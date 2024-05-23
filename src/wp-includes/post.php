@@ -487,6 +487,8 @@ function create_initial_post_types() {
 			'rest_base'                       => 'global-styles',
 			'rest_controller_class'           => 'WP_REST_Global_Styles_Controller',
 			'revisions_rest_controller_class' => 'WP_REST_Global_Styles_Revisions_Controller',
+			// Disable autosave endpoints for global styles.
+			'autosave_rest_controller_class'  => 'stdClass',
 			'late_route_registration'         => true,
 			'capabilities'                    => array(
 				'read'                   => 'edit_theme_options',
