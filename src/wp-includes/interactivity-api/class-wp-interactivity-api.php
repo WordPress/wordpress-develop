@@ -273,7 +273,7 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.5.0
 	 * @since 6.6.0 The function now adds a warning when the HTML contains unbalanced
-	 * tags or SVG/Math with directives.
+	 *              tags or SVG/Math with directives.
 	 *
 	 * @param string $html            The HTML content to process.
 	 * @param array  $context_stack   The reference to the array used to keep track of contexts during processing.
@@ -298,7 +298,7 @@ final class WP_Interactivity_API {
 			 */
 			if ( 'SVG' === $tag_name || 'MATH' === $tag_name ) {
 				if ( $p->get_attribute_names_with_prefix( 'data-wp-' ) ) {
-					/* translators: 1: SVG or MATH HTML tag, 2: Namespace of the interactive block.  */
+					/* translators: 1: SVG or MATH HTML tag, 2: Namespace of the interactive block. */
 					$message = sprintf( __( 'Interactivity directives were detected on an incompatible %1$s tag when processing "%2$s". These directives will be ignored.' ), $tag_name, end( $namespace_stack ) );
 					_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 				}
@@ -427,7 +427,7 @@ final class WP_Interactivity_API {
 			_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 			return null;
 		}
-		if ( empty( $ns ) || empty( $path ) ) {
+		if ( ! $ns || ! $path ) {
 			/* translators: %s: The directive value referenced. */
 			$message = sprintf( 'Namespace or reference path cannot be empty. Directive value referenced: %s ', $directive_value );
 			_doing_it_wrong( __METHOD__, $message, '6.6.0' );
