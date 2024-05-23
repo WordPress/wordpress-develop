@@ -219,12 +219,9 @@ final class WP_Interactivity_API {
 	public function register_script_modules() {
 		$suffix = wp_scripts_get_suffix();
 
-		// Use a debug version of the runtime when SCRIPT_DEBUG is enabled.
-		$runtime_module = SCRIPT_DEBUG ? 'interactivity-debug' : 'interactivity';
-
 		wp_register_script_module(
 			'@wordpress/interactivity',
-			includes_url( "js/dist/$runtime_module$suffix.js" )
+			includes_url( "js/dist/interactivity$suffix.js" )
 		);
 
 		wp_register_script_module(
