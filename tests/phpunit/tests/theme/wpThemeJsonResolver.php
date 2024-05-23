@@ -821,11 +821,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 		$theme_json_resolver = new WP_Theme_JSON_Resolver();
 
-		// Force-unset $i18n_schema property to "unload" translation schema.
-		$property = new ReflectionProperty( $theme_json_resolver, 'i18n_schema' );
-		$property->setAccessible( true );
-		$property->setValue( null, null );
-
 		// A completely empty theme.json data set still has the 'version' key when parsed.
 		$empty_theme_json = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
 
@@ -833,7 +828,12 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$theme_data = $theme_json_resolver->get_theme_data( array(), array( 'with_supports' => false ) );
 		$this->assertInstanceOf( 'WP_Theme_JSON', $theme_data, 'Theme data should be an instance of WP_Theme_JSON.' );
 		$this->assertSame( $empty_theme_json, $theme_data->get_raw_data(), 'Theme data should be empty without theme support.' );
-		$this->assertNull( $property->getValue(), 'Theme i18n schema should not have been loaded without theme support.' );
+
+		// Include an unmodified $wp_version.
+		require ABSPATH . WPINC . '/version.php';
+		$cache_group = 'theme_json_files';
+		$cache_key   = "i18n_schema_{$wp_version}";
+		$this->assertFalse( wp_cache_get( $cache_key, $cache_group ), 'Theme i18n schema should not have been loaded without theme support.' );
 	}
 
 	/**
