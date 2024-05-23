@@ -125,6 +125,7 @@ class WP_Theme_JSON {
 	 * @since 6.3.0 Replaced value_func for duotone with `null`. Custom properties are handled by class-wp-duotone.php.
 	 * @since 6.6.0 Added the `dimensions.aspectRatios` & `dimensions.defaultAspectRatios` preset.
 	 * @since 6.6.0 Updated the 'prevent_override' value for font size presets to use 'typography.defaultFontSizes'.
+	 * @since 6.6.0 Updated the 'prevent_override' value for spacing size presets to use `spacing.defaultSpacingSizes`.
 	 * @var array
 	 */
 	const PRESETS_METADATA = array(
@@ -188,7 +189,7 @@ class WP_Theme_JSON {
 		),
 		array(
 			'path'              => array( 'spacing', 'spacingSizes' ),
-			'prevent_override'  => false,
+			'prevent_override'  => array( 'spacing', 'defaultSpacingSizes' ),
 			'use_default_names' => true,
 			'value_key'         => 'size',
 			'css_vars'          => '--wp--preset--spacing--$slug',
@@ -381,6 +382,7 @@ class WP_Theme_JSON {
 	 *              `background.backgroundSize` and `dimensions.aspectRatio`.
 	 * @since 6.6.0 Added support for `dimensions.aspectRatios` and `dimensions.defaultAspectRatios`.
 	 * @since 6.6.0 Added support for `typography.defaultFontSizes`.
+	 * @since 6.6.0 Added support for `spacing.defaultSpacingSizes`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -435,13 +437,14 @@ class WP_Theme_JSON {
 			'sticky' => null,
 		),
 		'spacing'                       => array(
-			'customSpacingSize' => null,
-			'spacingSizes'      => null,
-			'spacingScale'      => null,
-			'blockGap'          => null,
-			'margin'            => null,
-			'padding'           => null,
-			'units'             => null,
+			'customSpacingSize'   => null,
+			'defaultSpacingSizes' => null,
+			'spacingSizes'        => null,
+			'spacingScale'        => null,
+			'blockGap'            => null,
+			'margin'              => null,
+			'padding'             => null,
+			'units'               => null,
 		),
 		'shadow'                        => array(
 			'presets'        => null,
@@ -740,6 +743,7 @@ class WP_Theme_JSON {
 	 * Constructor.
 	 *
 	 * @since 5.8.0
+	 * @since 6.6.0 Pre-generate the spacingSizes from spacingScale.
 	 *
 	 * @param array  $theme_json A structure that follows the theme.json schema.
 	 * @param string $origin     Optional. What source of data this object represents.
@@ -754,8 +758,8 @@ class WP_Theme_JSON {
 		$valid_block_names   = array_keys( static::get_blocks_metadata() );
 		$valid_element_names = array_keys( static::ELEMENTS );
 		$valid_variations    = static::get_valid_block_style_variations();
-		$theme_json          = static::sanitize( $this->theme_json, $valid_block_names, $valid_element_names, $valid_variations );
-		$this->theme_json    = static::maybe_opt_in_into_settings( $theme_json );
+		$this->theme_json    = static::sanitize( $this->theme_json, $valid_block_names, $valid_element_names, $valid_variations );
+		$this->theme_json    = static::maybe_opt_in_into_settings( $this->theme_json );
 
 		// Internally, presets are keyed by origin.
 		$nodes = static::get_setting_nodes( $this->theme_json );
@@ -773,6 +777,27 @@ class WP_Theme_JSON {
 					}
 				}
 			}
+		}
+
+		// In addition to presets, spacingScale (which generates presets) is also keyed by origin.
+		$scale_path    = array( 'settings', 'spacing', 'spacingScale' );
+		$spacing_scale = _wp_array_get( $this->theme_json, $scale_path, null );
+		if ( null !== $spacing_scale ) {
+			// If the spacingScale is not already keyed by origin.
+			if ( empty( array_intersect( array_keys( $spacing_scale ), static::VALID_ORIGINS ) ) ) {
+				_wp_array_set( $this->theme_json, $scale_path, array( $origin => $spacing_scale ) );
+			}
+		}
+
+		// Pre-generate the spacingSizes from spacingScale.
+		$scale_path    = array( 'settings', 'spacing', 'spacingScale', $origin );
+		$spacing_scale = _wp_array_get( $this->theme_json, $scale_path, null );
+		if ( isset( $spacing_scale ) ) {
+			$sizes_path           = array( 'settings', 'spacing', 'spacingSizes', $origin );
+			$spacing_sizes        = _wp_array_get( $this->theme_json, $sizes_path, array() );
+			$spacing_scale_sizes  = static::compute_spacing_sizes( $spacing_scale );
+			$merged_spacing_sizes = static::merge_spacing_sizes( $spacing_scale_sizes, $spacing_sizes );
+			_wp_array_set( $this->theme_json, $sizes_path, $merged_spacing_sizes );
 		}
 	}
 
@@ -2920,6 +2945,40 @@ class WP_Theme_JSON {
 		$this->theme_json = array_replace_recursive( $this->theme_json, $incoming_data );
 
 		/*
+		 * Recompute all the spacing sizes based on the new hierarchy of data. In the constructor
+		 * spacingScale and spacingSizes are both keyed by origin and VALID_ORIGINS is ordered, so
+		 * we can allow partial spacingScale data to inherit missing data from earlier layers when
+		 * computing the spacing sizes.
+		 *
+		 * This happens before the presets are merged to ensure that default spacing sizes can be
+		 * removed from the theme origin if $prevent_override is true.
+		 */
+		$flattened_spacing_scale = array();
+		foreach ( static::VALID_ORIGINS as $origin ) {
+			$scale_path = array( 'settings', 'spacing', 'spacingScale', $origin );
+
+			// Apply the base spacing scale to the current layer.
+			$base_spacing_scale      = _wp_array_get( $this->theme_json, $scale_path, array() );
+			$flattened_spacing_scale = array_replace( $flattened_spacing_scale, $base_spacing_scale );
+
+			$spacing_scale = _wp_array_get( $incoming_data, $scale_path, null );
+			if ( ! isset( $spacing_scale ) ) {
+				continue;
+			}
+
+			// Allow partial scale settings by merging with lower layers.
+			$flattened_spacing_scale = array_replace( $flattened_spacing_scale, $spacing_scale );
+
+			// Generate and merge the scales for this layer.
+			$sizes_path           = array( 'settings', 'spacing', 'spacingSizes', $origin );
+			$spacing_sizes        = _wp_array_get( $incoming_data, $sizes_path, array() );
+			$spacing_scale_sizes  = static::compute_spacing_sizes( $flattened_spacing_scale );
+			$merged_spacing_sizes = static::merge_spacing_sizes( $spacing_scale_sizes, $spacing_sizes );
+
+			_wp_array_set( $incoming_data, $sizes_path, $merged_spacing_sizes );
+		}
+
+		/*
 		 * The array_replace_recursive algorithm merges at the leaf level,
 		 * but we don't want leaf arrays to be merged, so we overwrite it.
 		 *
@@ -3709,10 +3768,16 @@ class WP_Theme_JSON {
 	 * Sets the spacingSizes array based on the spacingScale values from theme.json.
 	 *
 	 * @since 6.1.0
+	 * @deprecated 6.6.0
+	 *
+	 * @param string $origin Optional. What source of data to set the spacing sizes for.
+	 *                       One of 'default', 'theme', or 'custom'. Default 'default'.
 	 *
 	 * @return null|void
 	 */
 	public function set_spacing_sizes() {
+		_deprecated_function( __METHOD__, '6.6.0' );
+
 		$spacing_scale = isset( $this->theme_json['settings']['spacing']['spacingScale'] )
 			? $this->theme_json['settings']['spacing']['spacingScale']
 			: array();
@@ -3744,6 +3809,99 @@ class WP_Theme_JSON {
 		// If theme authors want to prevent the generation of the core spacing scale they can set their theme.json spacingScale.steps to 0.
 		if ( 0 === $spacing_scale['steps'] ) {
 			return null;
+		}
+
+		$spacing_sizes = static::compute_spacing_sizes( $spacing_scale );
+
+		// If there are 7 or fewer steps in the scale revert to numbers for labels instead of t-shirt sizes.
+		if ( $spacing_scale['steps'] <= 7 ) {
+			for ( $spacing_sizes_count = 0; $spacing_sizes_count < count( $spacing_sizes ); $spacing_sizes_count++ ) {
+				$spacing_sizes[ $spacing_sizes_count ]['name'] = (string) ( $spacing_sizes_count + 1 );
+			}
+		}
+
+		_wp_array_set( $this->theme_json, array( 'settings', 'spacing', 'spacingSizes', 'default' ), $spacing_sizes );
+	}
+
+	/**
+	 * Merges two sets of spacing size presets.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param array $base     The base set of spacing sizes.
+	 * @param array $incoming The set of spacing sizes to merge with the base. Duplicate slugs will override the base values.
+	 * @return array The merged set of spacing sizes.
+	 */
+	private static function merge_spacing_sizes( $base, $incoming ) {
+		// Preserve the order if there are no base (spacingScale) values.
+		if ( empty( $base ) ) {
+			return $incoming;
+		}
+		$merged = array();
+		foreach ( $base as $item ) {
+			$merged[ $item['slug'] ] = $item;
+		}
+		foreach ( $incoming as $item ) {
+			$merged[ $item['slug'] ] = $item;
+		}
+		ksort( $merged, SORT_NUMERIC );
+		return array_values( $merged );
+	}
+
+	/**
+	 * Generates a set of spacing sizes by starting with a medium size and
+	 * applying an operator with an increment value to generate the rest of the
+	 * sizes outward from the medium size. The medium slug is '50' with the rest
+	 * of the slugs being 10 apart. The generated names use t-shirt sizing.
+	 *
+	 * Example:
+	 *
+	 *     $spacing_scale = array(
+	 *         'steps'      => 4,
+	 *         'mediumStep' => 16,
+	 *         'unit'       => 'px',
+	 *         'operator'   => '+',
+	 *         'increment'  => 2,
+	 *     );
+	 *     $spacing_sizes = static::compute_spacing_sizes( $spacing_scale );
+	 *     // -> array(
+	 *     //        array( 'name' => 'Small',   'slug' => '40', 'size' => '14px' ),
+	 *     //        array( 'name' => 'Medium',  'slug' => '50', 'size' => '16px' ),
+	 *     //        array( 'name' => 'Large',   'slug' => '60', 'size' => '18px' ),
+	 *     //        array( 'name' => 'X-Large', 'slug' => '70', 'size' => '20px' ),
+	 *     //    )
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param array $spacing_scale {
+	 *      The spacing scale values. All are required.
+	 *
+	 *      @type int    $steps      The number of steps in the scale. (up to 10 steps are supported.)
+	 *      @type float  $mediumStep The middle value that gets the slug '50'. (For even number of steps, this becomes the first middle value.)
+	 *      @type string $unit       The CSS unit to use for the sizes.
+	 *      @type string $operator   The mathematical operator to apply to generate the other sizes. Either '+' or '*'.
+	 *      @type float  $increment  The value used with the operator to generate the other sizes.
+	 * }
+	 * @return array The spacing sizes presets or an empty array if some spacing scale values are missing or invalid.
+	 */
+	private static function compute_spacing_sizes( $spacing_scale ) {
+		/*
+		 * This condition is intentionally missing some checks on ranges for the values in order to
+		 * keep backwards compatibility with the previous implementation.
+		 */
+		if (
+			! isset( $spacing_scale['steps'] ) ||
+			! is_numeric( $spacing_scale['steps'] ) ||
+			0 === $spacing_scale['steps'] ||
+			! isset( $spacing_scale['mediumStep'] ) ||
+			! is_numeric( $spacing_scale['mediumStep'] ) ||
+			! isset( $spacing_scale['unit'] ) ||
+			! isset( $spacing_scale['operator'] ) ||
+			( '+' !== $spacing_scale['operator'] && '*' !== $spacing_scale['operator'] ) ||
+			! isset( $spacing_scale['increment'] ) ||
+			! is_numeric( $spacing_scale['increment'] )
+		) {
+			return array();
 		}
 
 		$unit            = '%' === $spacing_scale['unit'] ? '%' : sanitize_title( $spacing_scale['unit'] );
@@ -3828,14 +3986,7 @@ class WP_Theme_JSON {
 			$spacing_sizes[] = $above_sizes_item;
 		}
 
-		// If there are 7 or fewer steps in the scale revert to numbers for labels instead of t-shirt sizes.
-		if ( $spacing_scale['steps'] <= 7 ) {
-			for ( $spacing_sizes_count = 0; $spacing_sizes_count < count( $spacing_sizes ); $spacing_sizes_count++ ) {
-				$spacing_sizes[ $spacing_sizes_count ]['name'] = (string) ( $spacing_sizes_count + 1 );
-			}
-		}
-
-		_wp_array_set( $this->theme_json, array( 'settings', 'spacing', 'spacingSizes', 'default' ), $spacing_sizes );
+		return $spacing_sizes;
 	}
 
 	/**
