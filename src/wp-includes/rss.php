@@ -12,9 +12,7 @@
  * @subpackage MagpieRSS
  * @deprecated 3.0.0 Use SimplePie instead.
  */
-if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly
-}
+
 /**
  * Deprecated. Use SimplePie (class-simplepie.php) instead.
  */
