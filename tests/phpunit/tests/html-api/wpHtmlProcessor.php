@@ -374,7 +374,9 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 */
 	public static function data_html_with_target_element_and_depth_in_body() {
 		return array(
-			'Basic layout and formatting stack' => array( '<div><span><p><b><em class=target>', 7 ),
+			'Single element'                    => array( '<div class="target">', 3 ),
+			'Basic layout and formatting stack' => array( '<div><span><p><b><em class="target">', 7 ),
+			'Adjacent elements'                 => array( '<div><span></span><span class="target"></div>', 4 ),
 		);
 	}
 }
