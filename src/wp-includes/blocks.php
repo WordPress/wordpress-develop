@@ -1059,6 +1059,166 @@ function make_before_block_visitor( $hooked_blocks, $context, $callback = 'inser
 	};
 }
 
+function inject_hooked_blocks_into_content( $content, $hooked_blocks, $at = 0 ) {
+	$next_block_boundary = static function ( $text, $at ) {
+		$block_pattern = '/<!--\s+(?P<closer>\/)?wp:(?P<namespace>[a-z][a-z0-9_-]*\/)?(?P<name>[a-z][a-z0-9_-]*)\s+(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}\s+\/?-->).)*+)?}\s+)?(?P<void>\/)?-->/s';
+
+		if ( ! preg_match( $block_pattern, $text, $block_match, PREG_OFFSET_CAPTURE, $at ) ) {
+			// No more blocks.
+			return;
+		}
+
+		return array(
+			'at'     => $block_match[0][1],
+			'length' => strlen( $block_match[0][0] ),
+			'name'   => ( $block_match['namespace'][0] ?? 'core/' ) . $block_match['name'][0],
+			'attrs'  => $block_match['attrs'][0],
+			'type'   => '/' === $block_match['void'][0] ? 'void' : ( '/' === $block_match['closer'][0] ? 'closer' : 'opener' ),
+		);
+	};
+
+	$at     = 0;
+	$budget = 10000;
+	$stack  = array();
+	while ( $budget-- ) {
+		$block = $next_block_boundary( $content, $at );
+		if ( null === $block ) {
+			break;
+		}
+
+		$at = $block['at'];
+
+		if ( 'closer' === $block['type'] ) {
+			continue;
+		}
+
+		// @todo: Allow for core blocks without "core/" namespace.
+		if ( ! isset( $hooked_blocks[ $block['name'] ] ) ) {
+			continue;
+		}
+
+		$block_opener    = $block;
+
+		if ( 'void' === $block['type'] ) {
+			// Is Void Block; no inner blocks.
+			break;
+		}
+
+		$block = $next_block_boundary( $content, $at );
+		if ( null === $block ) {
+			break;
+		}
+
+		$at = $block['at'];
+
+		if ( 'closer' === $block['type'] ) {
+			$block_closer      = $block;
+			$first_inner_block = null;
+			$last_inner_block  = null;
+			break;
+		}
+
+		$first_inner_block = $block;
+
+		$stack[]          = $first_inner_block;
+		$last_inner_block = $first_inner_block;
+		while ( 0 < count( $stack ) ) {
+			// do this thing to scan in here
+			$block = $next_block_boundary( $content, $at );
+			if ( null === $block ) {
+				break;
+			}
+
+			$at = $block['at'];
+
+			if ( 'void' === $block['type'] ) {
+				$last_inner_block = $block;
+				continue;
+			}
+
+			if ( 'opener' === $block['type'] ) {
+				$stack[] = $block;
+
+				/**
+				 * <!-- anchor1 -->
+				 *     <!-- inner1 /-->
+				 *     <!-- inner2 -->
+				 *     <!-- /inner2 -->
+				 * <!-- /anchor1 -->
+				 *
+				 *
+				 * <!-- anchor1 -->
+				 *      <!-- inner1 /-->
+				 *      <!-- anchor2 --> <<<< restart here
+				 *          <!-- inner3 /-->
+				 *      <!-- /anchor2 --> >>>> return, replaced entire region with XYZ
+				 *  <!-- /anchor1 -->
+				 */
+				if ( isset( $hooked_blocks[ $block['name'] ] ) ) {
+					// recurse.
+					$new_region      = recurse( $pattern, $hooked_blocks, $block['at'] );
+					$content         = (
+						substr( $content, 0, $block['at'] ) .
+						$new_region .
+						substr( $content, $closing_block['at'] + $closing_block['length'] )
+					);
+					$block['length'] = strlen( $new_region );
+					$at              = $block['at'] + $block['length'];
+				}
+			}
+
+			// @todo Check if this matches the name of the bottom stack item.
+			array_pop( $stack );
+
+			$last_inner_block = $block;
+		}
+
+		// @todo we may have bailed by now so this could be wrong.
+		$closing_block = $block;
+	}
+
+	// Logic for insertion goes here.
+
+	list( $position, $blocks_to_insert ) = $hooked_blocks[ $block_opener['name'] ];
+
+	$block_html = implode(
+		'',
+		array_map(
+			'get_comment_delimited_block_content',
+			$blocks_to_insert,
+			array_fill( 0, count( $blocks_to_insert ), array() )
+		)
+	);
+
+	$next_content = '';
+	switch ( $position ) {
+		case 'before':
+			$point = $block_opener['at'];
+			break;
+
+		case 'after':
+			$point = $block_closer['at'] + $block_closer['length'];
+			break;
+
+		case 'first_child':
+			$point = $first_inner_block['at'];
+			break;
+
+		case 'last_child':
+			$point = $last_inner_block['at'] + $last_inner_block['length'];
+			break;
+	}
+
+	// @todo fix all this recursive funny business.
+	$next_content = substr( $content, 0, $point ) . $block_html . substr( $content, $point );
+	$at           = $first_inner_block['at'] + $first_inner_block['length'];
+	if ( $at < strlen( $content ) ) {
+		return inject_hooked_blocks_into_content( $next_content, $hooked_blocks, $at );
+	}
+
+	return $content;
+}
+
 /**
  * Returns a function that injects the hooked blocks after a given block.
  *
