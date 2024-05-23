@@ -591,7 +591,6 @@ class WP_Theme_JSON_Resolver {
 		$result = new WP_Theme_JSON();
 		$result->merge( static::get_core_data() );
 		if ( 'default' === $origin ) {
-			$result->set_spacing_sizes();
 			return $result;
 		}
 
@@ -602,12 +601,10 @@ class WP_Theme_JSON_Resolver {
 
 		$result->merge( static::get_theme_data() );
 		if ( 'theme' === $origin ) {
-			$result->set_spacing_sizes();
 			return $result;
 		}
 
 		$result->merge( static::get_user_data() );
-		$result->set_spacing_sizes();
 
 		return $result;
 	}
