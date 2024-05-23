@@ -229,6 +229,20 @@ class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 						),
 					),
 				),
+				'spacing'    => array(
+					'spacingSizes' => array(
+						array(
+							'name' => 'Small',
+							'slug' => 20,
+							'size' => '20px',
+						),
+						array(
+							'name' => 'Large',
+							'slug' => 80,
+							'size' => '80px',
+						),
+					),
+				),
 			),
 		);
 
@@ -249,6 +263,21 @@ class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 							'name' => 'Normal',
 							'slug' => 'normal',
 							'size' => 16,
+						),
+					),
+				),
+				'spacing'    => array(
+					'defaultSpacingSizes' => false,
+					'spacingSizes'        => array(
+						array(
+							'name' => 'Small',
+							'slug' => 20,
+							'size' => '20px',
+						),
+						array(
+							'name' => 'Large',
+							'slug' => 80,
+							'size' => '80px',
 						),
 					),
 				),
