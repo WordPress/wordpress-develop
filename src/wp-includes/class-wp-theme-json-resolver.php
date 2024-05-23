@@ -243,7 +243,7 @@ class WP_Theme_JSON_Resolver {
 				$theme_json_data = static::read_json_file( $theme_json_file );
 				$theme_json_data = static::translate( $theme_json_data, $wp_theme->get( 'TextDomain' ) );
 			} else {
-				$theme_json_data = array();
+				$theme_json_data = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
 			}
 
 			/**
@@ -359,7 +359,7 @@ class WP_Theme_JSON_Resolver {
 			return static::$blocks;
 		}
 
-		$config = array( 'version' => 2 );
+		$config = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
 		foreach ( $blocks as $block_name => $block_type ) {
 			if ( isset( $block_type->supports['__experimentalStyle'] ) ) {
 				$config['styles']['blocks'][ $block_name ] = static::remove_json_comments( $block_type->supports['__experimentalStyle'] );
@@ -494,6 +494,7 @@ class WP_Theme_JSON_Resolver {
 	 * Returns the user's origin config.
 	 *
 	 * @since 5.9.0
+	 * @since 6.6.0 The 'isGlobalStylesUserThemeJSON' flag is left on the user data.
 	 *
 	 * @return WP_Theme_JSON Entity that holds styles for user data.
 	 */
@@ -531,14 +532,18 @@ class WP_Theme_JSON_Resolver {
 				isset( $decoded_data['isGlobalStylesUserThemeJSON'] ) &&
 				$decoded_data['isGlobalStylesUserThemeJSON']
 			) {
-				unset( $decoded_data['isGlobalStylesUserThemeJSON'] );
 				$config = $decoded_data;
 			}
 		}
 
 		/** This filter is documented in wp-includes/class-wp-theme-json-resolver.php */
-		$theme_json   = apply_filters( 'wp_theme_json_data_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
-		static::$user = $theme_json->get_theme_json();
+		$theme_json = apply_filters( 'wp_theme_json_data_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
+		$config     = $theme_json->get_data();
+
+		// Needs to be set for schema migrations of user data.
+		$config['isGlobalStylesUserThemeJSON'] = true;
+
+		static::$user = new WP_Theme_JSON( $config, 'custom' );
 
 		return static::$user;
 	}
