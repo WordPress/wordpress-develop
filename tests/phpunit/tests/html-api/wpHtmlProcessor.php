@@ -348,8 +348,15 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	public function test_reports_proper_element_depth_in_body( $html_with_target_element, $depth_at_element ) {
 		$processor = WP_HTML_Processor::create_fragment( $html_with_target_element );
 
-		$this->assertTrue(
-			$processor->next_tag( array( 'class_name' => 'target' ) ),
+		while ( $processor->next_tag() ) {
+			if ( $processor->has_class( 'target' ) ) {
+				break;
+			}
+		}
+
+		$this->assertSame(
+			'#tag',
+			$processor->get_token_type(),
 			'Failed to find target element: check test data provider.'
 		);
 
