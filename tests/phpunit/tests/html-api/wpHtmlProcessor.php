@@ -417,7 +417,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'Adjacent text'                     => array( '<p>Before<img class="target">After</p>', 4 ),
 			'HTML comment'                      => array( '<img class="target"><!-- this is inside the BODY -->', 3 ),
 			'HTML comment in DIV'               => array( '<div class="target"><!-- this is inside the BODY -->', 4 ),
-			'Funky comment'                     => array( '<div><p>What <hr class="target"><//wp:post-author></p></div>', 5 ),
+			'Funky comment'                     => array( '<div><p>What <br class="target"><//wp:post-author></p></div>', 5 ),
 		);
 	}
 }
