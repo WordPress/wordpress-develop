@@ -2017,7 +2017,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  *          by `$post_type_object->label`. Default is 'Posts' / 'Pages'.
  * - `singular_name` - Name for one object of this post type. Default is 'Post' / 'Page'.
  * - `add_new` - Label for adding a new item. Default is 'Add Post' / 'Add Page'.
- * - `add_new_item` - Label for adding a new singular item. Default is 'Add New Post' / 'Add New Page'.
+ * - `add_new_item` - Label for adding a new singular item. Default is 'Add Post' / 'Add Page'.
  * - `edit_item` - Label for editing a singular item. Default is 'Edit Post' / 'Edit Page'.
  * - `new_item` - Label for the new item page title. Default is 'New Post' / 'New Page'.
  * - `view_item` - Label for viewing a singular item. Default is 'View Post' / 'View Page'.
