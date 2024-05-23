@@ -799,6 +799,77 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'delete_app_password':
 			$caps = map_meta_cap( 'edit_user', $user_id, $args[0] );
 			break;
+		case 'create_template':
+		case 'create_template_part':
+			$post_type = str_replace( 'create', 'wp', $cap );
+			$template = get_block_template( $args[0], $post_type );
+			if ( $template ) {
+				// Template can't be created because it already exists.
+				$caps[] = 'do_not_allow';
+			} else {
+				$parts = explode( '//', $args[0], 2 );
+
+				// Template ID needs to be valid to be created.
+				if ( 2 === count( $parts ) && '' !== $parts[0] && '' !== $parts[1] ) {
+					$post_type_object = get_post_type_object( $post_type );
+					if ( $post_type_object ) {
+						$caps[] = $post_type_object->cap->create_posts;
+					} else {
+						// If the post type is not registered, there is no mechanism to create templates.
+						$caps[] = 'do_not_allow';
+					}
+				} else {
+					$caps[] = 'do_not_allow';
+				}
+			}
+			break;
+		case 'delete_template':
+		case 'delete_template_part':
+			$template = get_block_template( $args[0], str_replace( 'delete', 'wp', $cap ) );
+			if ( $template && ! $template->has_theme_file ) {
+				// Templates can only be deleted if they have no theme file.
+				$caps = map_meta_cap( 'delete_post', $user_id, $template->wp_id );
+			} else {
+				$caps[] = 'do_not_allow';
+			}
+			break;
+		case 'edit_template':
+		case 'edit_template_part':
+			$post_type = str_replace( 'edit', 'wp', $cap );
+			$template = get_block_template( $args[0], $post_type );
+			if ( $template ) {
+				if ( $template->wp_id ) {
+					$caps = map_meta_cap( 'edit_post', $user_id, $template->wp_id );
+				} else {
+					$post_type_object = get_post_type_object( $post_type );
+					if ( $post_type_object ) {
+						// Editing a template from the theme means creating a new post.
+						$caps[] = $post_type_object->cap->create_posts;
+					} else {
+						// If the post type is not registered, there is no mechanism to edit templates.
+						$caps[] = 'do_not_allow';
+					}
+				}
+			} else {
+				// Template can't be edited if it doesn't exist.
+				$caps[] = 'do_not_allow';
+			}
+			break;
+		case 'read_template':
+		case 'read_template_part':
+			$template = get_block_template( $args[0], str_replace( 'read', 'wp', $cap ) );
+			if ( $template ) {
+				if ( $template->wp_id ) {
+					$caps = map_meta_cap( 'read_post', $user_id, $template->wp_id );
+				} else {
+					// Reading a template directly from the theme.
+					$caps[] = 'edit_theme_options';
+				}
+			} else {
+				// Template can't be read if it doesn't exist.
+				$caps[] = 'do_not_allow';
+			}
+			break;
 		default:
 			// Handle meta capabilities for custom post types.
 			global $post_type_meta_caps;
