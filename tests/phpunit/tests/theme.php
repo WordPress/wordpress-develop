@@ -322,7 +322,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				}
 
 				// Template file that doesn't exist.
-				$this->assertSame( '', get_query_template( 'nonexistant' ) );
+				$this->assertSame( '', get_query_template( 'nonexistent' ) );
 
 				// Template files that do exist.
 				foreach ( $theme['Template Files'] as $path ) {
@@ -1304,5 +1304,31 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		$this->assertSame( $old_root . '/test-parent', $path1, 'The original template path is not correct' );
 		$this->assertSame( $new_root . '/test-parent', $path2, 'The new template path is not correct' );
+	}
+
+	/**
+	 * Tests that switch_to_blog() uses the original template path.
+	 *
+	 * @ticket 60290
+	 *
+	 * @group ms-required
+	 *
+	 * @covers ::locate_template
+	 */
+	public function test_switch_to_blog_uses_original_template_path() {
+		$old_theme     = wp_get_theme();
+		$template_path = locate_template( 'index.php' );
+
+		$blog_id = self::factory()->blog->create();
+		switch_to_blog( $blog_id );
+
+		switch_theme( 'block-theme' );
+		$new_template_path = locate_template( 'index.php' );
+
+		// Cleanup.
+		restore_current_blog();
+		switch_theme( $old_theme->get_stylesheet() );
+
+		$this->assertSame( $template_path, $new_template_path, 'Switching blogs switches the template path' );
 	}
 }

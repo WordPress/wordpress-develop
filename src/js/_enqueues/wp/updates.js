@@ -957,7 +957,7 @@
 		$document.trigger( 'wp-check-plugin-dependencies-success', response );
 
 		if ( 'plugins-network' === pagenow ) {
-			buttonText = _x( 'Network Activate' );
+			buttonText = _x( 'Network Activate', 'plugin' );
 			ariaLabel  = sprintf(
 				/* translators: %s: Plugin name. */
 				_x( 'Network Activate %s', 'plugin' ),
@@ -1013,7 +1013,7 @@
 	 */
 	wp.updates.checkPluginDependenciesError = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' ),
-			buttonText = __( 'Activate' ),
+			buttonText = _x( 'Activate', 'plugin' ),
 			ariaLabel = sprintf(
 				/* translators: 1: Plugin name, 2. The reason the plugin cannot be activated. */
 				_x( 'Cannot activate %1$s. %2$s', 'plugin' ),
@@ -1087,7 +1087,7 @@
 					slug: args.slug,
 					removeClasses: 'installed updated-message button-primary',
 					addClasses: 'activating-message',
-					text: _x( 'Activating...', 'plugin' ),
+					text: __( 'Activating...' ),
 					ariaLabel: sprintf(
 						/* translators: %s: Plugin name. */
 						_x( 'Activating %s', 'plugin' ),
@@ -1105,21 +1105,33 @@
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param {Object} response             Response from the server.
-	 * @param {string} response.slug        Slug of the activated plugin.
-	 * @param {string} response.pluginName  Name of the activated plugin.
-	 * @param {string} response.plugin      The plugin file, relative to the plugins directory.
+	 * @param {Object} response            Response from the server.
+	 * @param {string} response.slug       Slug of the activated plugin.
+	 * @param {string} response.pluginName Name of the activated plugin.
+	 * @param {string} response.plugin     The plugin file, relative to the plugins directory.
 	 */
 	wp.updates.activatePluginSuccess = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' ),
+			isInModal = 'plugin-information-footer' === $message.parent().attr( 'id' ),
 			buttonText = _x( 'Activated!', 'plugin' ),
 			ariaLabel = sprintf(
 				/* translators: %s: The plugin name. */
 				'%s activated successfully.',
 				response.pluginName
-			);
+			),
+			noticeData = {
+				id: 'plugin-activated-successfully',
+				className: 'notice-success',
+				message: sprintf(
+					/* translators: %s: The refresh link's attributes. */
+					__( 'Plugin activated. Some changes may not occur until you refresh the page. <a %s>Refresh Now</a>' ),
+					'href="#" class="button button-secondary refresh-page"'
+				),
+				slug: response.slug
+			},
+			noticeTarget;
 
-		wp.a11y.speak( __( 'Activation completed successfully.' ) );
+		wp.a11y.speak( __( 'Activation completed successfully. Some changes may not occur until you refresh the page.' ) );
 		$document.trigger( 'wp-plugin-activate-success', response );
 
 		$message
@@ -1128,7 +1140,7 @@
 			.attr( 'aria-label', ariaLabel )
 			.text( buttonText );
 
-		if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
+		if ( isInModal ) {
 			wp.updates.setCardButtonStatus(
 				{
 					status: 'activated-plugin',
@@ -1139,13 +1151,26 @@
 					ariaLabel: ariaLabel
 				}
 			);
+
+			// Add a notice to the modal's footer.
+			$message.replaceWith( wp.updates.adminNotice( noticeData ) );
+
+			// Send notice information back to the parent screen.
+			noticeTarget = window.parent === window ? null : window.parent;
+			$.support.postMessage = !! window.postMessage;
+			if ( false !== $.support.postMessage && null !== noticeTarget && -1 === window.parent.location.pathname.indexOf( 'index.php' ) ) {
+				noticeTarget.postMessage(
+					JSON.stringify( noticeData ),
+					window.location.origin
+				);
+			}
+		} else {
+			// Add a notice to the top of the screen.
+			wp.updates.addAdminNotice( noticeData );
 		}
 
 		setTimeout( function() {
-			$message.removeClass( 'activated-message' )
-			.text( _x( 'Active', 'plugin' ) );
-
-			if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
+			if ( isInModal ) {
 				wp.updates.setCardButtonStatus(
 					{
 						status: 'plugin-active',
@@ -1159,6 +1184,8 @@
 						)
 					}
 				);
+			} else {
+				$message.removeClass( 'activated-message' ).text( _x( 'Active', 'plugin' ) );
 			}
 		}, 1000 );
 	};
@@ -1300,7 +1327,7 @@
 					pluginName
 				)
 			)
-			.text( __( 'Install Now' ) );
+			.text( _x( 'Install Now', 'plugin' ) );
 
 		wp.a11y.speak( errorMessage, 'assertive' );
 
@@ -1454,7 +1481,7 @@
 				$itemsCount.text(
 					sprintf(
 						/* translators: %s: The remaining number of plugins. */
-						_nx( '%s item', '%s items', 'plugin/plugins', remainingCount ),
+						_nx( '%s item', '%s items', remainingCount, 'plugin/plugins'  ),
 						remainingCount
 					)
 				);
@@ -1803,7 +1830,7 @@
 								response.themeName
 							)
 						)
-						.text( __( 'Activate' ) );
+						.text( _x( 'Activate', 'theme' ) );
 				}
 			}
 
@@ -2625,7 +2652,7 @@
 
 					$message
 						.removeClass( 'updating-message' )
-						.text( __( 'Install Now' ) );
+						.text( _x( 'Install Now', 'plugin' ) );
 
 					wp.a11y.speak( __( 'Update canceled.' ) );
 				} );
@@ -2663,7 +2690,7 @@
 						$activateButton.data( 'name' )
 					)
 				)
-				.text( _x( 'Activating...', 'plugin' ) );
+				.text( __( 'Activating...' ) );
 
 			wp.updates.activatePlugin(
 				{
@@ -2706,7 +2733,7 @@
 								pluginName
 							)
 						)
-						.text( __( 'Install Now' ) );
+						.text( _x( 'Install Now', 'plugin' ) );
 
 					wp.a11y.speak( __( 'Update canceled.' ) );
 				} );
@@ -2938,13 +2965,41 @@
 
 				wp.updates.adminNotice = wp.template( 'wp-bulk-updates-admin-notice' );
 
+				var successMessage = null;
+
+				if ( success ) {
+					if ( 'plugin' === response.update ) {
+						successMessage = sprintf(
+							/* translators: %s: Number of plugins. */
+							_n( '%s plugin successfully updated.', '%s plugins successfully updated.', success ),
+							success
+						);
+					} else {
+						successMessage = sprintf(
+							/* translators: %s: Number of themes. */
+							_n( '%s theme successfully updated.', '%s themes successfully updated.', success ),
+							success
+						);
+					}
+				}
+
+				var errorMessage = null;
+
+				if ( error ) {
+					errorMessage = sprintf(
+						/* translators: %s: Number of failed updates. */
+						_n( '%s update failed.', '%s updates failed.', error ),
+						error
+					);
+				}
+
 				wp.updates.addAdminNotice( {
 					id:            'bulk-action-notice',
 					className:     'bulk-action-notice',
-					successes:     success,
-					errors:        error,
-					errorMessages: errorMessages,
-					type:          response.update
+					successMessage: successMessage,
+					errorMessage:   errorMessage,
+					errorMessages:  errorMessages,
+					type:           response.update
 				} );
 
 				$bulkActionNotice = $( '#bulk-action-notice' ).on( 'click', 'button', function() {
@@ -3226,6 +3281,11 @@
 				return;
 			}
 
+			if ( 'undefined' !== typeof message.id && 'plugin-activated-successfully' === message.id ) {
+				wp.updates.addAdminNotice( message );
+				return;
+			}
+
 			if (
 				'undefined' !== typeof message.status &&
 				'undefined' !== typeof message.slug &&
@@ -3260,7 +3320,7 @@
 				$message.text( message.text );
 			}
 
-			if ( 'undefined' === typeof message.action || 'undefined' === typeof message.data.slug ) {
+			if ( 'undefined' === typeof message.action ) {
 				return;
 			}
 
@@ -3274,6 +3334,10 @@
 
 				case 'install-plugin':
 				case 'update-plugin':
+					if ( 'undefined' === typeof message.data || 'undefined' === typeof message.data.slug ) {
+						return;
+					}
+
 					message.data = wp.updates._addCallbacks( message.data, message.action );
 
 					wp.updates.queue.push( message );
@@ -3454,5 +3518,22 @@
 				} );
 			}
 		);
+
+		/**
+		 * Click handler for page refresh link.
+		 *
+		 * @since 6.5.3
+		 *
+		 * @param {Event} event Event interface.
+		 */
+		$document.on( 'click', '.refresh-page', function( event ) {
+			event.preventDefault();
+
+			if ( window.parent === window ) {
+				window.location.reload();
+			} else {
+				window.parent.location.reload();
+			}
+		} );
 	} );
 })( jQuery, window.wp, window._wpUpdatesSettings );

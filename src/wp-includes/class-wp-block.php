@@ -113,7 +113,16 @@ class WP_Block {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param array                  $block             Array of parsed block properties.
+	 * @param array                  $block             {
+	 *     A representative array of a single parsed block object. See WP_Block_Parser_Block.
+	 *
+	 *     @type string   $blockName    Name of block.
+	 *     @type array    $attrs        Attributes from block comment delimiters.
+	 *     @type array    $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                  have the same structure as this one.
+	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array    $innerContent List of string fragments and null markers where inner blocks were found.
+	 * }
 	 * @param array                  $available_context Optional array of ancestry context values.
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
 	 */
@@ -231,23 +240,19 @@ class WP_Block {
 	 * @return array The computed block attributes for the provided block bindings.
 	 */
 	private function process_block_bindings() {
-		$parsed_block = $this->parsed_block;
-
-		$computed_attributes = array();
-
-		// Allowed blocks that support block bindings.
-		// TODO: Look for a mechanism to opt-in for this. Maybe adding a property to block attributes?
-		$allowed_blocks = array(
+		$parsed_block               = $this->parsed_block;
+		$computed_attributes        = array();
+		$supported_block_attributes = array(
 			'core/paragraph' => array( 'content' ),
 			'core/heading'   => array( 'content' ),
-			'core/image'     => array( 'url', 'title', 'alt' ),
+			'core/image'     => array( 'id', 'url', 'title', 'alt' ),
 			'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
 		);
 
-		// If the block doesn't have the bindings property, isn't one of the allowed
+		// If the block doesn't have the bindings property, isn't one of the supported
 		// block types, or the bindings property is not an array, return the block content.
 		if (
-			! isset( $allowed_blocks[ $this->name ] ) ||
+			! isset( $supported_block_attributes[ $this->name ] ) ||
 			empty( $parsed_block['attrs']['metadata']['bindings'] ) ||
 			! is_array( $parsed_block['attrs']['metadata']['bindings'] )
 		) {
@@ -255,8 +260,8 @@ class WP_Block {
 		}
 
 		foreach ( $parsed_block['attrs']['metadata']['bindings'] as $attribute_name => $block_binding ) {
-			// If the attribute is not in the allowed list, process next attribute.
-			if ( ! in_array( $attribute_name, $allowed_blocks[ $this->name ], true ) ) {
+			// If the attribute is not in the supported list, process next attribute.
+			if ( ! in_array( $attribute_name, $supported_block_attributes[ $this->name ], true ) ) {
 				continue;
 			}
 			// If no source is provided, or that source is not registered, process next attribute.
@@ -293,7 +298,7 @@ class WP_Block {
 	 */
 	private function replace_html( string $block_content, string $attribute_name, $source_value ) {
 		$block_type = $this->block_type;
-		if ( ! isset( $block_type->attributes[ $attribute_name ] ) ) {
+		if ( ! isset( $block_type->attributes[ $attribute_name ]['source'] ) ) {
 			return $block_content;
 		}
 

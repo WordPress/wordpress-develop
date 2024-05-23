@@ -209,10 +209,7 @@ class WP_Duotone {
 			'rad'  => 360 / ( M_PI * 2 ),
 		);
 
-		$factor = $angle_units[ $unit ];
-		if ( ! $factor ) {
-			$factor = 1;
-		}
+		$factor = isset( $angle_units[ $unit ] ) ? $angle_units[ $unit ] : 1;
 
 		return (float) $value * $factor;
 	}
@@ -812,12 +809,13 @@ class WP_Duotone {
 	 * @internal
 	 *
 	 * @since 6.3.0
+	 * @since 6.6.0 Replaced body selector with `WP_Theme_JSON::ROOT_CSS_PROPERTIES_SELECTOR`.
 	 *
 	 * @param array $sources The duotone presets.
 	 * @return string The CSS for global styles.
 	 */
 	private static function get_global_styles_presets( $sources ) {
-		$css = 'body{';
+		$css = WP_Theme_JSON::ROOT_CSS_PROPERTIES_SELECTOR . '{';
 		foreach ( $sources as $filter_id => $filter_data ) {
 			$slug              = $filter_data['slug'];
 			$colors            = $filter_data['colors'];

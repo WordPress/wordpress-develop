@@ -180,7 +180,7 @@ class WP_Block_Type {
 	 * @since 5.5.0
 	 * @var string[]
 	 */
-	public $uses_context = array();
+	private $uses_context = array();
 
 	/**
 	 * Context provided by blocks of this type.
@@ -297,12 +297,12 @@ class WP_Block_Type {
 	 * @since 5.8.0 Added the `variations` property.
 	 * @since 5.9.0 Added the `view_script` property.
 	 * @since 6.0.0 Added the `ancestor` property.
-	 * @since 6.1.0 Added the `editor_script_handles`, `script_handles`, `view_script_handles,
+	 * @since 6.1.0 Added the `editor_script_handles`, `script_handles`, `view_script_handles`,
 	 *              `editor_style_handles`, and `style_handles` properties.
 	 *              Deprecated the `editor_script`, `script`, `view_script`, `editor_style`, and `style` properties.
 	 * @since 6.3.0 Added the `selectors` property.
 	 * @since 6.4.0 Added the `block_hooks` property.
-	 * @since 6.5.0 Added the `view_style_handles` property.
+	 * @since 6.5.0 Added the `allowed_blocks`, `variation_callback`, and `view_style_handles` properties.
 	 *
 	 * @see register_block_type()
 	 *
@@ -366,6 +366,10 @@ class WP_Block_Type {
 			return $this->get_variations();
 		}
 
+		if ( 'uses_context' === $name ) {
+			return $this->get_uses_context();
+		}
+
 		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			return;
 		}
@@ -394,7 +398,7 @@ class WP_Block_Type {
 	 *              or false otherwise.
 	 */
 	public function __isset( $name ) {
-		if ( 'variations' === $name ) {
+		if ( in_array( $name, array( 'variations', 'uses_context' ), true ) ) {
 			return true;
 		}
 
@@ -417,11 +421,6 @@ class WP_Block_Type {
 	 * @param mixed  $value Property value.
 	 */
 	public function __set( $name, $value ) {
-		if ( 'variations' === $name ) {
-			$this->variations = $value;
-			return;
-		}
-
 		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			$this->{$name} = $value;
 			return;
@@ -615,5 +614,24 @@ class WP_Block_Type {
 		 * @param WP_Block_Type $block_type The full block type object.
 		 */
 		return apply_filters( 'get_block_type_variations', $this->variations, $this );
+	}
+
+	/**
+	 * Get block uses context.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return string[]
+	 */
+	public function get_uses_context() {
+		/**
+		 * Filters the registered uses context for a block type.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param string[]      $uses_context Array of registered uses context for a block type.
+		 * @param WP_Block_Type $block_type   The full block type object.
+		 */
+		return apply_filters( 'get_block_type_uses_context', $this->uses_context, $this );
 	}
 }

@@ -106,7 +106,7 @@ function get_block_asset_url( $path ) {
 
 	$template = get_template();
 	if ( ! isset( $template_paths_norm[ $template ] ) ) {
-		$template_paths_norm[ $template ] = wp_normalize_path( get_template_directory() );
+		$template_paths_norm[ $template ] = wp_normalize_path( realpath( get_template_directory() ) );
 	}
 
 	if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $template ] ) ) ) {
@@ -116,7 +116,7 @@ function get_block_asset_url( $path ) {
 	if ( is_child_theme() ) {
 		$stylesheet = get_stylesheet();
 		if ( ! isset( $template_paths_norm[ $stylesheet ] ) ) {
-			$template_paths_norm[ $stylesheet ] = wp_normalize_path( get_stylesheet_directory() );
+			$template_paths_norm[ $stylesheet ] = wp_normalize_path( realpath( get_stylesheet_directory() ) );
 		}
 
 		if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $stylesheet ] ) ) ) {
@@ -172,12 +172,14 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 
 	$module_asset        = ! empty( $module_asset_path ) ? require $module_asset_path : array();
 	$module_dependencies = isset( $module_asset['dependencies'] ) ? $module_asset['dependencies'] : array();
+	$block_version       = isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$module_version      = isset( $module_asset['version'] ) ? $module_asset['version'] : $block_version;
 
 	wp_register_script_module(
 		$module_id,
 		$module_uri,
 		$module_dependencies,
-		isset( $module_asset['version'] ) ? $module_asset['version'] : false
+		$module_version
 	);
 
 	return $module_id;
@@ -225,7 +227,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	);
 
 	// Asset file for blocks is optional. See https://core.trac.wordpress.org/ticket/60460.
-	$script_asset = ! empty( $script_asset_path ) ? require $script_asset_path : array();
+	$script_asset  = ! empty( $script_asset_path ) ? require $script_asset_path : array();
 	$script_handle = isset( $script_asset['handle'] ) ?
 		$script_asset['handle'] :
 		generate_block_asset_handle( $metadata['name'], $field_name, $index );
@@ -851,44 +853,6 @@ function get_hooked_blocks() {
 }
 
 /**
- * Conditionally returns the markup for a given hooked block.
- *
- * Accepts three arguments: A hooked block, its type, and a reference to an anchor block.
- * If the anchor block has already been processed, and the given hooked block type is in the list
- * of ignored hooked blocks, an empty string is returned.
- *
- * The hooked block type is specified separately as it's possible that a filter might've modified
- * the hooked block such that `$hooked_block['blockName']` does no longer reflect the original type.
- *
- * This function is meant for internal use only.
- *
- * @since 6.5.0
- * @access private
- *
- * @param array  $hooked_block      The hooked block, represented as a parsed block array.
- * @param string $hooked_block_type The type of the hooked block. This could be different from
- *                                  $hooked_block['blockName'], as a filter might've modified the latter.
- * @param array  $anchor_block      The anchor block, represented as a parsed block array.
- *                                  Passed by reference.
- * @return string The markup for the given hooked block, or an empty string if the block is ignored.
- */
-function get_hooked_block_markup( $hooked_block, $hooked_block_type, &$anchor_block ) {
-	if ( ! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
-		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
-	}
-
-	if ( in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true ) ) {
-		return '';
-	}
-
-	// The following is only needed for the REST API endpoint.
-	// However, its presence does not affect the frontend.
-	$anchor_block['attrs']['metadata']['ignoredHookedBlocks'][] = $hooked_block_type;
-
-	return serialize_block( $hooked_block );
-}
-
-/**
  * Returns the markup for blocks hooked to the given anchor block in a specific relative position.
  *
  * @since 6.5.0
@@ -933,24 +897,109 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 		/**
 		 * Filters the parsed block array for a given hooked block.
 		 *
-		 * The dynamic portion of the hook name, `$hooked_block_type`, refers to the block type name of the specific hooked block.
-		 *
 		 * @since 6.5.0
 		 *
-		 * @param array                           $parsed_hooked_block The parsed block array for the given hooked block type.
+		 * @param array|null                      $parsed_hooked_block The parsed block array for the given hooked block type, or null to suppress the block.
+		 * @param string                          $hooked_block_type   The hooked block type name.
 		 * @param string                          $relative_position   The relative position of the hooked block.
 		 * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
 		 * @param WP_Block_Template|WP_Post|array $context             The block template, template part, `wp_navigation` post type,
 		 *                                                             or pattern that the anchor block belongs to.
 		 */
-		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $relative_position, $parsed_anchor_block, $context );
+		$parsed_hooked_block = apply_filters( 'hooked_block', $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
 
-		// It's possible that the `hooked_block_{$hooked_block_type}` filter returned a block of a different type,
-		// so we need to pass the original $hooked_block_type as well.
-		$markup .= get_hooked_block_markup( $parsed_hooked_block, $hooked_block_type, $parsed_anchor_block );
+		/**
+		 * Filters the parsed block array for a given hooked block.
+		 *
+		 * The dynamic portion of the hook name, `$hooked_block_type`, refers to the block type name of the specific hooked block.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param array|null                      $parsed_hooked_block The parsed block array for the given hooked block type, or null to suppress the block.
+		 * @param string                          $hooked_block_type   The hooked block type name.
+		 * @param string                          $relative_position   The relative position of the hooked block.
+		 * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
+		 * @param WP_Block_Template|WP_Post|array $context             The block template, template part, `wp_navigation` post type,
+		 *                                                             or pattern that the anchor block belongs to.
+		 */
+		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
+
+		if ( null === $parsed_hooked_block ) {
+			continue;
+		}
+
+		// It's possible that the filter returned a block of a different type, so we explicitly
+		// look for the original `$hooked_block_type` in the `ignoredHookedBlocks` metadata.
+		if (
+			! isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ||
+			! in_array( $hooked_block_type, $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true )
+		) {
+			$markup .= serialize_block( $parsed_hooked_block );
+		}
 	}
 
 	return $markup;
+}
+
+/**
+ * Adds a list of hooked block types to an anchor block's ignored hooked block types.
+ *
+ * This function is meant for internal use only.
+ *
+ * @since 6.5.0
+ * @access private
+ *
+ * @param array                   $parsed_anchor_block The anchor block, in parsed block array format.
+ * @param string                  $relative_position   The relative position of the hooked blocks.
+ *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
+ * @param array                   $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
+ * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
+ * @return string An empty string.
+ */
+function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
+	$anchor_block_type  = $parsed_anchor_block['blockName'];
+	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
+		: array();
+
+	/** This filter is documented in wp-includes/blocks.php */
+	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
+	if ( empty( $hooked_block_types ) ) {
+		return '';
+	}
+
+	foreach ( $hooked_block_types as $index => $hooked_block_type ) {
+		$parsed_hooked_block = array(
+			'blockName'    => $hooked_block_type,
+			'attrs'        => array(),
+			'innerBlocks'  => array(),
+			'innerContent' => array(),
+		);
+
+		/** This filter is documented in wp-includes/blocks.php */
+		$parsed_hooked_block = apply_filters( 'hooked_block', $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
+
+		/** This filter is documented in wp-includes/blocks.php */
+		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
+
+		if ( null === $parsed_hooked_block ) {
+			unset( $hooked_block_types[ $index ] );
+		}
+	}
+
+	$previously_ignored_hooked_blocks = isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] )
+		? $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks']
+		: array();
+
+	$parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array_unique(
+		array_merge(
+			$previously_ignored_hooked_blocks,
+			$hooked_block_types
+		)
+	);
+
+	// Markup for the hooked blocks has already been created (in `insert_hooked_blocks`).
+	return '';
 }
 
 /**
@@ -963,15 +1012,19 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
  * This function is meant for internal use only.
  *
  * @since 6.4.0
+ * @since 6.5.0 Added $callback argument.
  * @access private
  *
  * @param array                           $hooked_blocks An array of blocks hooked to another given block.
  * @param WP_Block_Template|WP_Post|array $context       A block template, template part, `wp_navigation` post object,
  *                                                       or pattern that the blocks belong to.
+ * @param callable                        $callback      A function that will be called for each block to generate
+ *                                                       the markup for a given list of blocks that are hooked to it.
+ *                                                       Default: 'insert_hooked_blocks'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks before it.
  */
-function make_before_block_visitor( $hooked_blocks, $context ) {
+function make_before_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
 	/**
 	 * Injects hooked blocks before the given block, injects the `theme` attribute into Template Part blocks, and returns the serialized markup.
 	 *
@@ -984,17 +1037,23 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 	 * @param array $prev         The previous sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
 	 */
-	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context ) {
+	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context, $callback ) {
 		_inject_theme_attribute_in_template_part_block( $block );
 
 		$markup = '';
 
 		if ( $parent_block && ! $prev ) {
 			// Candidate for first-child insertion.
-			$markup .= insert_hooked_blocks( $parent_block, 'first_child', $hooked_blocks, $context );
+			$markup .= call_user_func_array(
+				$callback,
+				array( &$parent_block, 'first_child', $hooked_blocks, $context )
+			);
 		}
 
-		$markup .= insert_hooked_blocks( $block, 'before', $hooked_blocks, $context );
+		$markup .= call_user_func_array(
+			$callback,
+			array( &$block, 'before', $hooked_blocks, $context )
+		);
 
 		return $markup;
 	};
@@ -1010,15 +1069,19 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
  * This function is meant for internal use only.
  *
  * @since 6.4.0
+ * @since 6.5.0 Added $callback argument.
  * @access private
  *
  * @param array                           $hooked_blocks An array of blocks hooked to another block.
  * @param WP_Block_Template|WP_Post|array $context       A block template, template part, `wp_navigation` post object,
  *                                                       or pattern that the blocks belong to.
+ * @param callable                        $callback      A function that will be called for each block to generate
+ *                                                       the markup for a given list of blocks that are hooked to it.
+ *                                                       Default: 'insert_hooked_blocks'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks after it.
  */
-function make_after_block_visitor( $hooked_blocks, $context ) {
+function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
 	/**
 	 * Injects hooked blocks after the given block, and returns the serialized markup.
 	 *
@@ -1030,12 +1093,18 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 	 * @param array $next         The next sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
 	 */
-	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context ) {
-		$markup = insert_hooked_blocks( $block, 'after', $hooked_blocks, $context );
+	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context, $callback ) {
+		$markup = call_user_func_array(
+			$callback,
+			array( &$block, 'after', $hooked_blocks, $context )
+		);
 
 		if ( $parent_block && ! $next ) {
 			// Candidate for last-child insertion.
-			$markup .= insert_hooked_blocks( $parent_block, 'last_child', $hooked_blocks, $context );
+			$markup .= call_user_func_array(
+				$callback,
+				array( &$parent_block, 'last_child', $hooked_blocks, $context )
+			);
 		}
 
 		return $markup;
@@ -1132,7 +1201,17 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  *
  * @since 5.3.1
  *
- * @param array $block A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param array $block {
+ *     A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ *
+ *     @type string   $blockName    Name of block.
+ *     @type array    $attrs        Attributes from block comment delimiters.
+ *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+ *                                  have the same structure as this one.
+ *     @type string   $innerHTML    HTML from inside block comment delimiters.
+ *     @type array    $innerContent List of string fragments and null markers where
+ *                                  inner blocks were found.
+ * }
  * @return string String of rendered HTML.
  */
 function serialize_block( $block ) {
@@ -1160,7 +1239,21 @@ function serialize_block( $block ) {
  *
  * @since 5.3.1
  *
- * @param array[] $blocks An array of representative arrays of parsed block objects. See serialize_block().
+ * @param array[] $blocks {
+ *     Array of block structures.
+ *
+ *     @type array ...$0 {
+ *         A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ *
+ *         @type string   $blockName    Name of block.
+ *         @type array    $attrs        Attributes from block comment delimiters.
+ *         @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+ *                                      have the same structure as this one.
+ *         @type string   $innerHTML    HTML from inside block comment delimiters.
+ *         @type array    $innerContent List of string fragments and null markers where
+ *                                      inner blocks were found.
+ *     }
+ * }
  * @return string String of rendered HTML.
  */
 function serialize_blocks( $blocks ) {
@@ -1569,7 +1662,17 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
  *
  * @global WP_Post $post The post to edit.
  *
- * @param array $parsed_block A single parsed block object.
+ * @param array $parsed_block {
+ *     A representative array of the block being rendered. See WP_Block_Parser_Block.
+ *
+ *     @type string   $blockName    Name of block.
+ *     @type array    $attrs        Attributes from block comment delimiters.
+ *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+ *                                  have the same structure as this one.
+ *     @type string   $innerHTML    HTML from inside block comment delimiters.
+ *     @type array    $innerContent List of string fragments and null markers where
+ *                                  inner blocks were found.
+ * }
  * @return string String of rendered HTML.
  */
 function render_block( $parsed_block ) {
@@ -1583,7 +1686,17 @@ function render_block( $parsed_block ) {
 	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
 	 * @param string|null   $pre_render   The pre-rendered content. Default null.
-	 * @param array         $parsed_block The block being rendered.
+	 * @param array         $parsed_block {
+	 *     A representative array of the block being rendered. See WP_Block_Parser_Block.
+	 *
+	 *     @type string   $blockName    Name of block.
+	 *     @type array    $attrs        Attributes from block comment delimiters.
+	 *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                  have the same structure as this one.
+	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array    $innerContent List of string fragments and null markers where
+	 *                                  inner blocks were found.
+	 * }
 	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
 	$pre_render = apply_filters( 'pre_render_block', null, $parsed_block, $parent_block );
@@ -1599,8 +1712,29 @@ function render_block( $parsed_block ) {
 	 * @since 5.1.0
 	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
-	 * @param array         $parsed_block The block being rendered.
-	 * @param array         $source_block An un-modified copy of $parsed_block, as it appeared in the source content.
+	 * @param array         $parsed_block {
+	 *     A representative array of the block being rendered. See WP_Block_Parser_Block.
+	 *
+	 *     @type string   $blockName    Name of block.
+	 *     @type array    $attrs        Attributes from block comment delimiters.
+	 *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                  have the same structure as this one.
+	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array    $innerContent List of string fragments and null markers where
+	 *                                  inner blocks were found.
+	 * }
+	 * @param array         $source_block {
+	 *     An un-modified copy of `$parsed_block`, as it appeared in the source content.
+	 *     See WP_Block_Parser_Block.
+	 *
+	 *     @type string   $blockName    Name of block.
+	 *     @type array    $attrs        Attributes from block comment delimiters.
+	 *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                  have the same structure as this one.
+	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array    $innerContent List of string fragments and null markers where
+	 *                                  inner blocks were found.
+	 * }
 	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
 	$parsed_block = apply_filters( 'render_block_data', $parsed_block, $source_block, $parent_block );
@@ -1626,7 +1760,17 @@ function render_block( $parsed_block ) {
 	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
 	 * @param array         $context      Default context.
-	 * @param array         $parsed_block Block being rendered, filtered by `render_block_data`.
+	 * @param array         $parsed_block {
+	 *     A representative array of the block being rendered. See WP_Block_Parser_Block.
+	 *
+	 *     @type string   $blockName    Name of block.
+	 *     @type array    $attrs        Attributes from block comment delimiters.
+	 *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                  have the same structure as this one.
+	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array    $innerContent List of string fragments and null markers where
+	 *                                  inner blocks were found.
+	 * }
 	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
 	$context = apply_filters( 'render_block_context', $context, $parsed_block, $parent_block );
@@ -1642,7 +1786,21 @@ function render_block( $parsed_block ) {
  * @since 5.0.0
  *
  * @param string $content Post content.
- * @return array[] Array of parsed block objects.
+ * @return array[] {
+ *     Array of block structures.
+ *
+ *     @type array ...$0 {
+ *         A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ *
+ *         @type string   $blockName    Name of block.
+ *         @type array    $attrs        Attributes from block comment delimiters.
+ *         @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+ *                                      have the same structure as this one.
+ *         @type string   $innerHTML    HTML from inside block comment delimiters.
+ *         @type array    $innerContent List of string fragments and null markers where
+ *                                      inner blocks were found.
+ *     }
+ * }
  */
 function parse_blocks( $content ) {
 	/**
@@ -1728,6 +1886,7 @@ function block_version( $content ) {
  * @param array  $style_properties Array containing the properties of the style name, label,
  *                                 style_handle (name of the stylesheet to be enqueued),
  *                                 inline_style (string containing the CSS to be added).
+ *                                 See WP_Block_Styles_Registry::register().
  * @return bool True if the block style was registered with success and false otherwise.
  */
 function register_block_style( $block_name, $style_properties ) {

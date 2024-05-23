@@ -381,7 +381,7 @@ blockquote footer {
 	font-size: var(--global--font-size-xs);
 	font-style: var(--quote--font-style-cite);
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	blockquote {
 		padding-left: calc(0.5 * var(--global--spacing-horizontal));
@@ -1418,6 +1418,10 @@ pre.wp-block-preformatted {
 	color: currentColor;
 	border-color: currentColor;
 	position: relative;
+	font-size: var(--pullquote--font-size);
+	font-style: var(--pullquote--font-style);
+	font-weight: 700;
+	letter-spacing: var(--pullquote--letter-spacing);
 }
 
 .wp-block-pullquote blockquote::before {
@@ -1433,12 +1437,16 @@ pre.wp-block-preformatted {
 
 .wp-block-pullquote p {
 	font-family: var(--pullquote--font-family);
-	font-size: var(--pullquote--font-size);
-	font-style: var(--pullquote--font-style);
-	font-weight: 700;
-	letter-spacing: var(--pullquote--letter-spacing);
-	line-height: var(--pullquote--line-height);
+	font-size: inherit;
+	font-style: inherit;
+	font-weight: inherit;
+	letter-spacing: inherit;
+	line-height: inherit;
 	margin: 0;
+}
+
+.wp-block-pullquote:where(:not([style*=line-height])) p {
+	line-height: var(--pullquote--line-height);
 }
 
 .wp-block-pullquote a {
@@ -1618,7 +1626,7 @@ pre.wp-block-preformatted {
 	line-height: var(--quote--line-height-large);
 	margin-right: 10px;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.wp-block-quote.is-large,
 	.wp-block-quote.is-style-large {
@@ -1641,7 +1649,7 @@ pre.wp-block-preformatted {
 		right: 0;
 	}
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.wp-block-quote {
 		padding-left: calc(0.5 * var(--global--spacing-horizontal));
