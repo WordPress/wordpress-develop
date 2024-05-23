@@ -4613,9 +4613,9 @@ function wp_ajax_activate_plugin() {
 		$status['configurationData'] = array();
 
 		if ( isset( $configuration_data['url'] ) ) {
-			$configuration_url = trim( $configuration_data['url'] );
+			$configuration_url = sanitize_url( $configuration_data['url'] );
 
-			if ( str_starts_with( $configuration_url, admin_url() ) ) {
+			if ( $configuration_url ) {
 				$status['configurationData']['url'] = $configuration_url;
 			}
 		}
