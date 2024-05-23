@@ -176,6 +176,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding: 0;
 }
 
+.entry-content .wp-block-pullquote blockquote:not(.alignleft):not(.alignright) {
+	margin-left: 0;
+	margin-right: 0;
+}
+
 .wp-block-pullquote.has-text-color blockquote,
 .wp-block-pullquote.has-background blockquote,
 .has-background .wp-block-pullquote blockquote,
