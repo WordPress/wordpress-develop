@@ -15,7 +15,7 @@ test.describe( 'Fatal error handler', () => {
 		process.env.LOCAL_DIR ?? 'src',
 		'wp-content/mu-plugins'
 	);
-	const muPluginFile = join( muPlugins, 'login-test.php' );
+	const muPluginFile = join( muPlugins, 'fatal-error.php' );
 
 	test.beforeAll( async () => {
 		const muPluginCode = `<?php new NonExistentClass();`;
