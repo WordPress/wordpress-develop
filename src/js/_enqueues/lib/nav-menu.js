@@ -518,7 +518,7 @@
 				if( depth < 2 ) {
 					title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalMenuItems ).replace( '%5$s', parentItemName );
 				} else {
-					title = menus.subMenuMoreDepthFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalMenuItems ).replace( '%5$s', parentItemName )..replace( '%6$d', depth );
+					title = menus.subMenuMoreDepthFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalMenuItems ).replace( '%5$s', parentItemName ).replace( '%6$d', depth );
 				}
 			}
 
