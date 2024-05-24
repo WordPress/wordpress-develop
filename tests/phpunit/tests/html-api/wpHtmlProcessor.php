@@ -183,7 +183,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the behavior of expects_closer with regular tags.
+	 * Ensure reporting that normal non-void HTML elements expect a closer.
 	 *
 	 * @ticket 61257
 	 */
@@ -191,10 +191,10 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$processor = WP_HTML_Processor::create_fragment( '<div><p><b><em>' );
 
 		$tags = 0;
-		while ( $processor->next_token() ) {
+		while ( $processor->next_tag() ) {
 			$this->assertTrue(
 				$processor->expects_closer(),
-				"Incorrectly expected a closer on tag {$processor->get_tag()}."
+				"Should have expected a closer for '{$processor->get_tag()}', but didn't."
 			);
 			++$tags;
 		}
@@ -207,28 +207,31 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the behavior of with non-tags.
-	 *
-	 * @dataProvider data_non_tags
-	 *
-	 * @param string $html HTML for test.
+	 * Ensure reporting that non-tag HTML nodes expect a closer.
 	 *
 	 * @ticket 61257
+	 *
+	 * @dataProvider data_self_contained_node_tokens
+	 *
+	 * @param string $self_contained_token String starting with HTML token that doesn't expect a closer,
+	 *                                     e.g. an HTML comment, text node, void tag, or special element.
 	 */
-	public function test_expects_closer_non_tags( $html ) {
-		$processor = WP_HTML_Processor::create_fragment( $html );
-
+	public function test_expects_closer_expects_no_closer_for_self_contained_tokens( $self_contained_token ) {
+		$processor   = WP_HTML_Processor::create_fragment( $self_contained_token );
 		$found_token = $processor->next_token();
 
 		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "HTML {$html} is not supported." );
+			$this->markTestSkipped( "HTML '{$self_contained_token}' is not supported." );
 		}
 
-		$this->assertTrue( $found_token, "Did not find token in {$html}." );
+		$this->assertTrue(
+			$found_token,
+			"Failed to find any tokens in '{$self_contained_token}': check test data provider."
+		);
 
 		$this->assertFalse(
 			$processor->expects_closer(),
-			"Incorrectly expected a closer on void tag {$processor->get_token_type()}."
+			"Incorrectly expected a closer for node of type '{$processor->get_token_type()}'."
 		);
 	}
 
@@ -237,41 +240,25 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_non_tags() {
-		return array(
-			// We don't pause on doctype?
-			// 'Doctype'                          => array( '<!DOCTYPE html>' ),
+	public static function data_self_contained_node_tokens() {
+		$self_contained_nodes = array(
 			'Normative comment'                => array( '<!-- comment -->' ),
-			'CDATA Section (comment)'          => array( '<![CDATA[ comment ]]>' ),
-			'Processing instruction (comment)' => array( '<?ok comment ?>' ),
+			'Comment with invalid closing'     => array( '<!-- comment --!>' ),
+			'CDATA Section lookalike'          => array( '<![CDATA[ comment ]]>' ),
+			'Processing Instruction lookalike' => array( '<?ok comment ?>' ),
+			'Funky comment'                    => array( '<//wp:post-meta key=isbn>' ),
+			'Text node'                        => array( 'Trombone' ),
 		);
-	}
 
-	/**
-	 * Test the behavior of expects_closer with special tags.
-	 *
-	 * @dataProvider data_special_tags
-	 *
-	 * @ticket 61257
-	 */
-	public function test_expects_closer_special_tags( $tag_name ) {
-		$processor = WP_HTML_Processor::create_fragment( "<{$tag_name}></{$tag_name}>" );
-
-		$found_tag = $processor->next_token();
-
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
+		foreach ( self::data_void_tags() as $tag_name => $_name ) {
+			$self_contained_nodes[ "Void elements ({$tag_name})" ] = array( "<{$tag_name}>" );
 		}
 
-		$this->assertTrue(
-			$found_tag,
-			"Could not find first {$tag_name}."
-		);
+		foreach ( self::data_special_tags() as $tag_name => $_name ) {
+			$self_contained_nodes[ "Special atomic elements ({$tag_name})" ] = array( "<{$tag_name}>" );
+		}
 
-		$this->assertFalse(
-			$processor->expects_closer(),
-			"Incorrectly expected a closer on special tag {$tag_name}."
-		);
+		return $self_contained_nodes;
 	}
 
 	/**
@@ -289,35 +276,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'TEXTAREA' => array( 'TEXTAREA' ),
 			'TITLE'    => array( 'TITLE' ),
 			'XMP'      => array( 'XMP' ),
-		);
-	}
-
-	/**
-	 * Test the behavior of expects_closer with void tags.
-	 *
-	 * @ticket 61257
-	 *
-	 * @dataProvider data_void_tags
-	 *
-	 * @param string $tag_name Name of void tag under test.
-	 */
-	public function test_expects_closer_void_tags( $tag_name ) {
-		$processor = WP_HTML_Processor::create_fragment( "<{$tag_name}>" );
-
-		$found_tag = $processor->next_token();
-
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
-		}
-
-		$this->assertTrue(
-			$found_tag,
-			"Could not find first {$tag_name}."
-		);
-
-		$this->assertFalse(
-			$processor->expects_closer(),
-			"Incorrectly expected a closer on void tag {$tag_name}."
 		);
 	}
 

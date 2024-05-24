@@ -507,6 +507,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * foreign content will also act just like a void tag, immediately
 	 * closing as soon as the processor advances to the next token.
 	 *
+	 * @since 6.6.0
+	 *
+	 * @todo When adding support for foreign content, ensure that
+	 *       this returns false for self-closing elements in the
+	 *       SVG and MathML namespace.
+	 *
 	 * @return bool Whether to expect a closer for the currently-matched node,
 	 *              or `null` if not matched on any token.
 	 */
