@@ -1118,7 +1118,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * @param mixed $expected  An expected return value.
 	 */
 	public function test_valid_size_wp_get_typography_value_and_unit( $raw_value, $expected ) {
-		$this->assertEquals( $expected, wp_get_typography_value_and_unit( $raw_value ) );
+		$this->assertSame( $expected, wp_get_typography_value_and_unit( $raw_value ) );
 	}
 
 	/**
@@ -1143,14 +1143,14 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			'size: `"10"`'                               => array(
 				'raw_value' => '10',
 				'expected'  => array(
-					'value' => 10,
+					'value' => 10.0,
 					'unit'  => 'px',
 				),
 			),
 			'size: `11`'                                 => array(
 				'raw_value' => 11,
 				'expected'  => array(
-					'value' => 11,
+					'value' => 11.0,
 					'unit'  => 'px',
 				),
 			),
@@ -1164,21 +1164,21 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			'size: `"12rem"`'                            => array(
 				'raw_value' => '12rem',
 				'expected'  => array(
-					'value' => 12,
+					'value' => 12.0,
 					'unit'  => 'rem',
 				),
 			),
 			'size: `"12px"`'                             => array(
 				'raw_value' => '12px',
 				'expected'  => array(
-					'value' => 12,
+					'value' => 12.0,
 					'unit'  => 'px',
 				),
 			),
 			'size: `"12em"`'                             => array(
 				'raw_value' => '12em',
 				'expected'  => array(
-					'value' => 12,
+					'value' => 12.0,
 					'unit'  => 'em',
 				),
 			),
