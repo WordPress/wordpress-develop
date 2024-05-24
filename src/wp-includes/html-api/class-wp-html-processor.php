@@ -386,9 +386,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
+		$needs_class = ( isset( $query['class_name'] ) && is_string( $query['class_name'] ) )
+			? $query['class_name']
+			: null;
+
 		if ( ! ( array_key_exists( 'breadcrumbs', $query ) && is_array( $query['breadcrumbs'] ) ) ) {
 			while ( $this->step() ) {
 				if ( '#tag' !== $this->get_token_type() ) {
+					continue;
+				}
+
+				if ( isset( $needs_class ) && ! $this->has_class( $needs_class ) ) {
 					continue;
 				}
 
@@ -414,6 +422,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		while ( $match_offset > 0 && $this->step() ) {
 			if ( '#tag' !== $this->get_token_type() ) {
+				continue;
+			}
+
+			if ( isset( $needs_class ) && ! $this->has_class( $needs_class ) ) {
 				continue;
 			}
 
@@ -609,6 +621,35 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		return $breadcrumbs;
+	}
+
+	/**
+	 * Returns the nesting depth of the current location in the document.
+	 *
+	 * Example:
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment( '<div><p></p></div>' );
+	 *     // The processor starts in the BODY context, meaning it has depth from the start: HTML > BODY.
+	 *     2 === $processor->get_current_depth();
+	 *
+	 *     // Opening the DIV element increases the depth.
+	 *     $processor->next_token();
+	 *     3 === $processor->get_current_depth();
+	 *
+	 *     // Opening the P element increases the depth.
+	 *     $processor->next_token();
+	 *     4 === $processor->get_current_depth();
+	 *
+	 *     // The P element is closed during `next_token()` so the depth is decreased to reflect that.
+	 *     $processor->next_token();
+	 *     3 === $processor->get_current_depth();
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return int Nesting-depth of current location in the document.
+	 */
+	public function get_current_depth() {
+		return $this->state->stack_of_open_elements->count();
 	}
 
 	/**
