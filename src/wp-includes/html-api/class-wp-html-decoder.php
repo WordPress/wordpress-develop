@@ -20,15 +20,14 @@ class WP_HTML_Decoder {
 	 * Example:
 	 *
 	 *     $value = 'http&colon;//wordpress.org/';
-	 *     true   === WP_HTML_Decoder::attribute_starts_with( $value, 'http:', 'case-insensitive' );
-	 *     false  === WP_HTML_Decoder::attribute_starts_with( $value, 'https:', 'case-insensitive' );
+	 *     true   === WP_HTML_Decoder::attribute_starts_with( $value, 'http:', 'ascii-case-insensitive' );
+	 *     false  === WP_HTML_Decoder::attribute_starts_with( $value, 'https:', 'ascii-case-insensitive' );
 	 *
 	 * @since 6.6.0
 	 *
 	 * @param string  $haystack         String containing the raw non-decoded attribute value.
 	 * @param string  $search_text      Does the attribute value start with this plain string.
-	 * @param ?string $case_sensitivity Set to `case-insensitive` to ignore ASCII case when matching.
-	 *
+	 * @param ?string $case_sensitivity Set to `ascii-case-insensitive` to ignore ASCII case when matching.
 	 * @return bool Whether the attribute value starts with the given string.
 	 */
 	public static function attribute_starts_with( $haystack, $search_text, $case_sensitivity = 'case-sensitive' ) {
@@ -44,7 +43,7 @@ class WP_HTML_Decoder {
 
 			$is_introducer = '&' === $haystack[ $value_at ];
 			$next_chunk    = $is_introducer
-				? self::read_character_reference( $haystack, $value_at, false, $skip_bytes )
+				? self::read_character_reference( $haystack, $value_at, false, $token_length )
 				: false;
 
 			// If there's no character reference and the characters don't match, the match fails.
@@ -65,7 +64,7 @@ class WP_HTML_Decoder {
 			}
 
 			// The character reference matched, so continue checking.
-			$value_at  += $skip_bytes;
+			$value_at  += $token_length;
 			$search_at += strlen( $next_chunk );
 		}
 
@@ -75,14 +74,19 @@ class WP_HTML_Decoder {
 	/**
 	 * Returns a string containing the decoded value of a given HTML text node.
 	 *
+	 * Text nodes appear in HTML DATA sections, which are the text segments inside
+	 * and around tags, excepting SCRIPT and STYLE elements (and some others),
+	 * whose inner text is not decoded. Use this function to read the decoded
+	 * value of such a text span in an HTML document.
+	 *
 	 * Example:
 	 *
 	 *     '“😄”' === WP_HTML_Decode::decode_text_node( '&#x93;&#x1f604;&#x94' );
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $text   Text containing raw and non-decoded text node to decode.
-	 * @return string Decoded value of given text node.
+	 * @param string $text Text containing raw and non-decoded text node to decode.
+	 * @return string Decoded UTF-8 value of given text node.
 	 */
 	public static function decode_text_node( $text ) {
 		return static::decode( 'data', $text );
@@ -91,14 +95,18 @@ class WP_HTML_Decoder {
 	/**
 	 * Returns a string containing the decoded value of a given HTML attribute.
 	 *
+	 * Text found inside an HTML attribute has different parsing rules than for
+	 * text found inside other markup, or DATA segments. Use this function to
+	 * read the decoded value of an HTML string inside a quoted attribute.
+	 *
 	 * Example:
 	 *
 	 *     '“😄”' === WP_HTML_Decode::decode_attribute( '&#x93;&#x1f604;&#x94' );
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $text   Text containing raw and non-decoded attribute value to decode.
-	 * @return string Decoded value of given attribute value.
+	 * @param string $text Text containing raw and non-decoded attribute value to decode.
+	 * @return string Decoded UTF-8 value of given attribute value.
 	 */
 	public static function decode_attribute( $text ) {
 		return static::decode( 'attribute', $text );
@@ -108,7 +116,8 @@ class WP_HTML_Decoder {
 	 * Decodes a span of HTML text, depending on the context in which it's found.
 	 *
 	 * This is a low-level method; prefer calling WP_HTML_Decoder::decode_attribute() or
-	 * WP_HTML_Decoder::decode_text_node() instead.
+	 * WP_HTML_Decoder::decode_text_node() instead. It's provided for cases where this
+	 * may be difficult to do from calling code.
 	 *
 	 * Example:
 	 *
@@ -116,9 +125,11 @@ class WP_HTML_Decoder {
 	 *
 	 * @since 6.6.0
 	 *
+	 * @access private
+	 *
 	 * @param string $context `attribute` for decoding attribute values, `data` otherwise.
 	 * @param string $text    Text document containing span of text to decode.
-	 * @return string Decoded string.
+	 * @return string Decoded UTF-8 string.
 	 */
 	public static function decode( $context, $text ) {
 		$decoded = '';
@@ -132,12 +143,12 @@ class WP_HTML_Decoder {
 				break;
 			}
 
-			$character_reference = self::read_character_reference( $context, $text, $next_character_reference_at, $skip_bytes );
+			$character_reference = self::read_character_reference( $context, $text, $next_character_reference_at, $token_length );
 			if ( isset( $character_reference ) ) {
 				$at       = $next_character_reference_at;
 				$decoded .= substr( $text, $was_at, $at - $was_at );
 				$decoded .= $character_reference;
-				$at      += $skip_bytes;
+				$at      += $token_length;
 				$was_at   = $at;
 				continue;
 			}
@@ -161,32 +172,41 @@ class WP_HTML_Decoder {
 	 * depending on the context in which it's found.
 	 *
 	 * If a character reference is found, this function will return the translated value
-	 * that the reference maps to. It will then set in `$skip_bytes` how many bytes of
-	 * input it read while consuming the character reference. This gives calling code the
-	 * opportunity to advance its cursor when traversing a string and decoding. It
-	 * indicates how long the character reference was.
+	 * that the reference maps to. It will then set `$byte_length_of_matched_token` the
+	 * number of bytes of input it read while consuming the character reference. This
+	 * gives calling code the opportunity to advance its cursor when traversing a string
+	 * and decoding.
 	 *
 	 * Example:
 	 *
 	 *     null === WP_HTML_Decoder::read_character_reference( 'attribute', 'Ships&hellip;', 0 );
-	 *     '…'  === WP_HTML_Decoder::read_character_reference( 'attribute', 'Ships&hellip;', 5, $skip_bytes );
-	 *     8    === $skip_bytes;
+	 *     '…'  === WP_HTML_Decoder::read_character_reference( 'attribute', 'Ships&hellip;', 5, $token_length );
+	 *     8    === $token_length; // `&hellip;`
 	 *
-	 *     null === WP_HTML_Decoder::read_character_reference( 'attribute', '&notin;', 0 );
-	 *     '¬'  === WP_HTML_Decoder::read_character_reference( 'attribute', '&notin;', 0, $skip_bytes );
-	 *     4    === $skip_bytes;
+	 *     null === WP_HTML_Decoder::read_character_reference( 'attribute', '&notin', 0 );
+	 *     '∉'  === WP_HTML_Decoder::read_character_reference( 'attribute', '&notin;', 0, $token_length );
+	 *     7    === $token_length; // `&notin;`
+	 *
+	 *     '¬'  === WP_HTML_Decoder::read_character_reference( 'data', '&notin', 0, $token_length );
+	 *     4    === $token_length; // `&not`
+	 *     '∉'  === WP_HTML_Decoder::read_character_reference( 'data', '&notin;', 0, $token_length );
+	 *     7    === $token_length; // `&notin;`
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $context    `attribute` for decoding attribute values, `data` otherwise.
-	 * @param string $text       Text document containing span of text to decode.
-	 * @param ?int   $at         Byte offset into text where span begins, defaults to the beginning.
-	 * @param ?int   $skip_bytes How many bytes the decodable portion of the text spans.
-	 *                           The default value spans to the end of the text.
-	 * @return string|null Decoded character reference if found, otherwise `false`.
+	 * @param string $context                      `attribute` for decoding attribute values, `data` otherwise.
+	 * @param string $text                         Text document containing span of text to decode.
+	 * @param ?int   $at                           Byte offset into text where span begins, defaults to the beginning.
+	 * @param ?int   $byte_length_of_matched_token Set to byte length of matched character reference, if matched,
+	 *                                             otherwise not set. This is an "out" parameter.
+	 * @return string|null Decoded character reference in UTF-8 if found, otherwise `false`.
 	 */
-	public static function read_character_reference( $context, $text, $at, &$skip_bytes = null ) {
+	public static function read_character_reference( $context, $text, $at, &$byte_length_of_matched_token = null ) {
 		global $html5_named_character_references;
+
+		if ( ! isset( $at ) ) {
+			$at = 0;
+		}
 
 		$length = strlen( $text );
 		if ( $at + 1 >= $length ) {
@@ -238,13 +258,15 @@ class WP_HTML_Decoder {
 				return null;
 			}
 
+			// Whereas `&#` and only zeros is invalid.
 			if ( 0 === $digit_count ) {
-				$skip_bytes = $end_of_span - $at;
+				$byte_length_of_matched_token = $end_of_span - $at;
 				return '�';
 			}
 
+			// If there are too many digits then it's not worth parsing. It's invalid.
 			if ( $digit_count > $max_digits ) {
-				$skip_bytes = $end_of_span - $at;
+				$byte_length_of_matched_token = $end_of_span - $at;
 				return '�';
 			}
 
@@ -321,7 +343,7 @@ class WP_HTML_Decoder {
 				$code_point = $windows_1252_mapping[ $code_point - 0x80 ];
 			}
 
-			$skip_bytes = $end_of_span - $at;
+			$byte_length_of_matched_token = $end_of_span - $at;
 			return self::code_point_to_utf8_bytes( $code_point );
 		}
 
@@ -342,7 +364,7 @@ class WP_HTML_Decoder {
 
 		// If the match ended with a semicolon then it should always be decoded.
 		if ( ';' === $text[ $name_at + $name_length - 1 ] ) {
-			$skip_bytes = $after_name - $at;
+			$byte_length_of_matched_token = $after_name - $at;
 			return $replacement;
 		}
 
@@ -362,15 +384,16 @@ class WP_HTML_Decoder {
 
 		// It's non-ambiguous, safe to leave it in.
 		if ( ! $ambiguous_follower ) {
-			$skip_bytes = $after_name - $at;
+			$byte_length_of_matched_token = $after_name - $at;
 			return $replacement;
 		}
 
+		// It's ambiguous, which isn't allowed inside attributes.
 		if ( 'attribute' === $context ) {
 			return null;
 		}
 
-		$skip_bytes = $after_name - $at;
+		$byte_length_of_matched_token = $after_name - $at;
 		return $replacement;
 	}
 
@@ -396,6 +419,7 @@ class WP_HTML_Decoder {
 	 * @return string Converted code point, or `�` if invalid.
 	 */
 	public static function code_point_to_utf8_bytes( $code_point ) {
+		// Pre-check to ensure a valid code point.
 		if (
 			$code_point <= 0 ||
 			( $code_point >= 0xD800 && $code_point <= 0xDFFF ) ||
@@ -423,13 +447,12 @@ class WP_HTML_Decoder {
 			return pack( 'CCC', $byte1, $byte2, $byte3 );
 		}
 
-		if ( $code_point <= 0x10FFFF ) {
-			$byte1 = ( $code_point >> 18 ) | 0xF0;
-			$byte2 = ( $code_point >> 12 ) & 0x3F | 0x80;
-			$byte3 = ( $code_point >> 6 ) & 0x3F | 0x80;
-			$byte4 = $code_point & 0x3F | 0x80;
+		// Any values above U+10FFFF are eliminated above in the pre-check.
+		$byte1 = ( $code_point >> 18 ) | 0xF0;
+		$byte2 = ( $code_point >> 12 ) & 0x3F | 0x80;
+		$byte3 = ( $code_point >> 6 ) & 0x3F | 0x80;
+		$byte4 = $code_point & 0x3F | 0x80;
 
-			return pack( 'CCCC', $byte1, $byte2, $byte3, $byte4 );
-		}
+		return pack( 'CCCC', $byte1, $byte2, $byte3, $byte4 );
 	}
 }
