@@ -2687,7 +2687,7 @@ class WP_HTML_Tag_Processor {
 		 *     <figure />
 		 *             ^ this appears one character before the end of the closing ">".
 		 */
-		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 1 ];
+		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 2 ];
 	}
 
 	/**
