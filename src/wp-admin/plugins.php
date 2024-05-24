@@ -75,7 +75,7 @@ if ( $action ) {
 			} else {
 				$recent = (array) get_site_option( 'recently_activated' );
 				unset( $recent[ $plugin ] );
-				update_site_option( 'recently_activated', $recent, 'off' );
+				update_site_option( 'recently_activated', $recent );
 			}
 
 			if ( isset( $_GET['from'] ) && 'import' === $_GET['from'] ) {
