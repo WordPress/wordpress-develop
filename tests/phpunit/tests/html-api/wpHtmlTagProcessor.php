@@ -2789,7 +2789,7 @@ HTML
 			public function insert_after( $new_html ) {
 				$this->set_bookmark( 'here' );
 				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
-					$this->bookmarks['here']->start + $this->bookmarks['here']->length + 1,
+					$this->bookmarks['here']->start + $this->bookmarks['here']->length,
 					0,
 					$new_html
 				);
