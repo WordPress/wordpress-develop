@@ -172,8 +172,18 @@ class WP_Theme_JSON_Resolver {
 		 *
 		 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 		 */
-		$theme_json   = apply_filters( 'wp_theme_json_data_default', new WP_Theme_JSON_Data( $config, 'default' ) );
-		static::$core = $theme_json->get_theme_json();
+		$theme_json = apply_filters( 'wp_theme_json_data_default', new WP_Theme_JSON_Data( $config, 'default' ) );
+
+		/*
+		 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
+		 * compatible class that has not implemented the get_theme_json method.
+		 */
+		if ( method_exists( $theme_json, 'get_theme_json' ) ) {
+			static::$core = $theme_json->get_theme_json();
+		} else {
+			$config       = $theme_json->get_data();
+			static::$core = new WP_Theme_JSON( $config, 'default' );
+		}
 
 		return static::$core;
 	}
@@ -253,8 +263,18 @@ class WP_Theme_JSON_Resolver {
 			 *
 			 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 			 */
-			$theme_json      = apply_filters( 'wp_theme_json_data_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
-			static::$theme   = $theme_json->get_theme_json();
+			$theme_json = apply_filters( 'wp_theme_json_data_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
+
+			/*
+			 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
+			 * compatible class that has not implemented the get_theme_json method.
+			 */
+			if ( method_exists( $theme_json, 'get_theme_json' ) ) {
+				static::$theme = $theme_json->get_theme_json();
+			} else {
+				$config        = $theme_json->get_data();
+				static::$theme = new WP_Theme_JSON( $config );
+			}
 
 			if ( $wp_theme->parent() ) {
 				// Get parent theme.json.
@@ -385,7 +405,18 @@ class WP_Theme_JSON_Resolver {
 		 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 		 */
 		$theme_json = apply_filters( 'wp_theme_json_data_blocks', new WP_Theme_JSON_Data( $config, 'blocks' ) );
-		static::$blocks = $theme_json->get_theme_json();
+
+		/*
+		 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
+		 * compatible class that has not implemented the get_theme_json method.
+		 */
+		if ( method_exists( $theme_json, 'get_theme_json' ) ) {
+			static::$blocks = $theme_json->get_theme_json();
+		} else {
+			$config         = $theme_json->get_data();
+			static::$blocks = new WP_Theme_JSON( $config, 'blocks' );
+		}
+
 		return static::$blocks;
 	}
 
@@ -519,7 +550,17 @@ class WP_Theme_JSON_Resolver {
 				 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 				 */
 				$theme_json = apply_filters( 'wp_theme_json_data_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
-				return $theme_json->get_theme_json();
+
+				/*
+				 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
+				 * compatible class that has not implemented the get_theme_json method.
+				 */
+				if ( method_exists( $theme_json, 'get_theme_json' ) ) {
+					return $theme_json->get_theme_json();
+				} else {
+					$config = $theme_json->get_data();
+					return new WP_Theme_JSON( $config, 'custom' );
+				}
 			}
 
 			/*
@@ -537,8 +578,18 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		/** This filter is documented in wp-includes/class-wp-theme-json-resolver.php */
-		$theme_json   = apply_filters( 'wp_theme_json_data_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
-		static::$user = $theme_json->get_theme_json();
+		$theme_json = apply_filters( 'wp_theme_json_data_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
+
+		/*
+		 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
+		 * compatible class that has not implemented the get_theme_json method.
+		 */
+		if ( method_exists( $theme_json, 'get_theme_json' ) ) {
+			static::$user = $theme_json->get_theme_json();
+		} else {
+			$config       = $theme_json->get_data();
+			static::$user = new WP_Theme_JSON( $config, 'custom' );
+		}
 
 		return static::$user;
 	}
