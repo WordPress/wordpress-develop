@@ -493,10 +493,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->next_tag( array( 'class_name' => 'target' ) );
 
 		$start_property = new ReflectionProperty( $processor, 'token_starts_at' );
-		$tag_start      = $start_property->getValue( $processor );
+		$start_property->setAccessible( true );
+		$tag_start = $start_property->getValue( $processor );
 
 		$length_property = new ReflectionProperty( $processor, 'token_length' );
-		$tag_length      = $length_property->getValue( $processor );
+		$length_property->setAccessible( true );
+		$tag_length = $length_property->getValue( $processor );
 
 		$this->assertSame( $start, $tag_start, "Incorrect tag start position found: {$tag_start}." );
 		$this->assertSame( $length, $tag_length, "Incorrect tag length found: {$tag_length}." );
