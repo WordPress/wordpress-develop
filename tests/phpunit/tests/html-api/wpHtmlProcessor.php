@@ -255,7 +255,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		}
 
 		foreach ( self::data_special_tags() as $tag_name => $_name ) {
-			$self_contained_nodes[ "Special atomic elements ({$tag_name})" ] = array( "<{$tag_name}>" );
+			$self_contained_nodes[ "Special atomic elements ({$tag_name})" ] = array( "<{$tag_name}>content</{$tag_name}>" );
 		}
 
 		return $self_contained_nodes;
