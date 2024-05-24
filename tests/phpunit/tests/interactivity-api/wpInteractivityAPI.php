@@ -1082,8 +1082,8 @@ JSON;
 					public function offsetUnset( $offset ): void {}
 				},
 				'derived'   => function () {
-					$state   = $this->interactivity->state();
-					$context = $this->interactivity->get_context();
+					$state   = wp_interactivity_state();
+					$context = wp_interactivity_get_context();
 					return 'Derived state: ' .
 						$state['key'] .
 						"\n" .
@@ -1112,7 +1112,15 @@ JSON;
 		$context_stack->setAccessible( true );
 		$context_stack->setValue( $this->interactivity, array( $default_namespace => $context ) );
 
-		return $evaluate->invokeArgs( $this->interactivity, array( $directive_value ) );
+		global $wp_interactivity;
+		$wp_interactivity_prev = $wp_interactivity;
+		$wp_interactivity      = $this->interactivity;
+
+		$result = $evaluate->invokeArgs( $this->interactivity, array( $directive_value ) );
+
+		$wp_interactivity = $wp_interactivity_prev;
+
+		return $result;
 	}
 
 	/**
@@ -1237,6 +1245,8 @@ JSON;
 	 * @ticket 61037
 	 *
 	 * @covers ::evaluate
+	 * @covers wp_interactivity_state
+	 * @covers wp_interactivity_get_context
 	 */
 	public function test_evaluate_derived_state() {
 		$result = $this->evaluate( 'state.derived' );

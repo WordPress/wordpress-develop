@@ -55,7 +55,7 @@ function wp_interactivity_process_directives( string $html ): string {
  * @return array The state for the specified store namespace. This will be the updated state if a $state argument was
  *               provided.
  */
-function wp_interactivity_state( string $store_namespace, array $state = array() ): array {
+function wp_interactivity_state( ?string $store_namespace = null, array $state = array() ): array {
 	return wp_interactivity()->state( $store_namespace, $state );
 }
 
