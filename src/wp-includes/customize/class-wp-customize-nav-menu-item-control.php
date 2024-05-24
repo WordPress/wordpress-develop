@@ -77,7 +77,6 @@ class WP_Customize_Nav_Menu_Item_Control extends WP_Customize_Control {
 				</span>
 				<span class="item-controls">
 					<button type="button" class="button-link item-edit" aria-expanded="false"><span class="screen-reader-text">
-					<!--<# console.log(data) #> -->
 					<# if ( 0 === data.depth ) { #>
 						<?php
 						/* translators: 1: Title of a menu item, 2: Type of a menu item */
