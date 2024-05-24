@@ -268,8 +268,17 @@ final class WP_Interactivity_API {
 	 *
 	 * @param string $store_namespace Optional. The unique store namespace identifier.
 	 */
-	public function get_context( string $store_namespace = '' ): array {
+	public function get_context( ?string $store_namespace = null ): array {
 		if ( ! $store_namespace ) {
+			if ( null !== $store_namespace ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'The namespace should be a non-empty string.' ),
+					'6.6.0'
+				);
+				return array();
+			}
+
 			$store_namespace = end( $this->namespace_stack );
 		}
 

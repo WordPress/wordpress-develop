@@ -634,6 +634,41 @@ JSON;
 	}
 
 	/**
+	 * Test that `get_context` should not be called with an empty string.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::get_context
+	 * @expectedIncorrectUsage WP_Interactivity_API::get_context
+	 */
+	public function test_get_context_with_empty_namespace() {
+		$interactivity = new ReflectionClass( $this->interactivity );
+
+		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
+		$namespace_stack->setAccessible( true );
+		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
+
+		$ctx_stack = array(
+			array(
+				'myPlugin' => array( 'a' => 0 ),
+			),
+			array(
+				'myPlugin' => array( 'a' => 1 ),
+			),
+		);
+
+		$ctx_stack_prop = $interactivity->getProperty( 'context_stack' );
+		$ctx_stack_prop->setAccessible( true );
+		$ctx_stack_prop->setValue( $this->interactivity, $ctx_stack );
+
+		$this->assertEquals(
+			array(),
+			$this->interactivity->get_context( '' )
+		);
+	}
+
+
+	/**
 	 * Tests extracting directive values from different string formats.
 	 *
 	 * @ticket 60356
