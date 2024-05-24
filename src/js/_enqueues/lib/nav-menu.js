@@ -503,7 +503,7 @@
 			if ( isPrimaryMenuItem ) {
 				primaryItems = $( '.menu-item-depth-0' ),
 				itemPosition = primaryItems.index( menuItem ) + 1,
-				totalMenuItems = primaryItems.length,
+				totalMenuItems = primaryItems.length;
 
 				// String together help text for primary menu items.
 				title = menus.menuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalMenuItems );
@@ -512,13 +512,14 @@
 				parentItemId = parentItem.find( '.menu-item-data-db-id' ).val(),
 				parentItemName = parentItem.find( '.menu-item-title' ).text(),
 				subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemId + '"]' ),
+				totalSubItems = subItems.length;
 				itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
 
 				// String together help text for sub menu items.
 				if( depth < 2 ) {
-					title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalMenuItems ).replace( '%5$s', parentItemName );
+					title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalSubItems ).replace( '%5$s', parentItemName );
 				} else {
-					title = menus.subMenuMoreDepthFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalMenuItems ).replace( '%5$s', parentItemName ).replace( '%6$d', depth );
+					title = menus.subMenuMoreDepthFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalSubItems ).replace( '%5$s', parentItemName ).replace( '%6$d', depth );
 				}
 			}
 
