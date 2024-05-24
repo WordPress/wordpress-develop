@@ -1,5 +1,5 @@
 ##
-# A callable workflow that runs the PHPUnit test suite with the specified configuration.
+# A reusable workflow that runs the PHPUnit test suite with the specified configuration.
 ##
 name: Run PHPUnit tests
 
