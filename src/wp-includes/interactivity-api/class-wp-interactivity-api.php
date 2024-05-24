@@ -540,7 +540,21 @@ final class WP_Interactivity_API {
 		}
 
 		if ( $current instanceof Closure ) {
-			$current = $current();
+			try {
+				$current = $current();
+			} catch ( Throwable $e ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: Path pointing to an Interactivity API state property, 2: Namespace for an Interactivity API store. */
+						__( 'Uncaught error executing a derived state callback with path "%1$s" and namespace "%2$s".' ),
+						$path,
+						$ns
+					),
+					'6.6.0'
+				);
+				return null;
+			}
 		}
 
 		// Returns the opposite if it contains a negation operator (!).

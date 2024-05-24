@@ -1064,24 +1064,21 @@ JSON;
 			$obj       = new stdClass();
 			$obj->prop = $name;
 			return array(
-				'key'       => $name,
-				'nested'    => array( 'key' => $name . '-nested' ),
-				'obj'       => $obj,
-				'arrAccess' => new class() implements ArrayAccess {
+				'key'               => $name,
+				'nested'            => array( 'key' => $name . '-nested' ),
+				'obj'               => $obj,
+				'arrAccess'         => new class() implements ArrayAccess {
 					#[\ReturnTypeWillChange]
 					public function offsetExists( $offset ) {
 						return true;
 					}
-
 					public function offsetGet( $offset ): string {
 						return $offset;
 					}
-
 					public function offsetSet( $offset, $value ): void {}
-
 					public function offsetUnset( $offset ): void {}
 				},
-				'derived'   => function () {
+				'derived'           => function () {
 					$state   = wp_interactivity_state();
 					$context = wp_interactivity_get_context();
 					return 'Derived state: ' .
@@ -1089,6 +1086,9 @@ JSON;
 						"\n" .
 						'Derived context: ' .
 						$context['key'];
+				},
+				'derivedThatThrows' => function () {
+					throw new Error( 'Something bad happened.' );
 				},
 			);
 		};
@@ -1251,6 +1251,20 @@ JSON;
 	public function test_evaluate_derived_state() {
 		$result = $this->evaluate( 'state.derived' );
 		$this->assertEquals( "Derived state: myPlugin-state\nDerived context: myPlugin-context", $result );
+	}
+
+
+	/**
+	 * Tests the `evaluate` method for derived state functions.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::evaluate
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
+	 */
+	public function test_evaluate_derived_state_that_throws() {
+		$result = $this->evaluate( 'state.derivedThatThrows' );
+		$this->assertEquals( null, $result );
 	}
 
 	/**
