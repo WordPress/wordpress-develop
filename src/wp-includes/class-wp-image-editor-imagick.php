@@ -566,22 +566,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
-				$this->image->setOption( 'png:exclude-chunk', 'all' );
-			}
-
-			/*
-			 * If alpha channel is not defined, set it opaque.
-			 *
-			 * Note that Imagick::getImageAlphaChannel() is only available if Imagick
-			 * has been compiled against ImageMagick version 6.4.0 or newer.
-			 */
-			if ( is_callable( array( $this->image, 'getImageAlphaChannel' ) )
-				&& is_callable( array( $this->image, 'setImageAlphaChannel' ) )
-				&& defined( 'Imagick::ALPHACHANNEL_UNDEFINED' )
-				&& defined( 'Imagick::ALPHACHANNEL_OPAQUE' )
-			) {
-				if ( $this->image->getImageAlphaChannel() === Imagick::ALPHACHANNEL_UNDEFINED ) {
-					$this->image->setImageAlphaChannel( Imagick::ALPHACHANNEL_OPAQUE );
+				if ( $this->indexed_color_encoded ) {
+					$this->image->setOption( 'png:include-chunk', 'tRNS' );
+				} else {
+					$this->image->setOption( 'png:exclude-chunk', 'all' );
 				}
 			}
 
@@ -605,6 +593,27 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				if ( ! empty( $max_colors ) ) {
 					$max_colors = min( $max_colors, $current_colors + 8 );
 					$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
+				}
+			}
+
+			/*
+			 * If alpha channel is not defined, set it opaque.
+			 *
+			 * Note that Imagick::getImageAlphaChannel() is only available if Imagick
+			 * has been compiled against ImageMagick version 6.4.0 or newer.
+			 */
+			if ( is_callable( array( $this->image, 'getImageAlphaChannel' ) )
+				&& is_callable( array( $this->image, 'setImageAlphaChannel' ) )
+				&& defined( 'Imagick::ALPHACHANNEL_UNDEFINED' )
+				&& defined( 'Imagick::ALPHACHANNEL_OPAQUE' )
+			) {
+				if ( $this->image->getImageAlphaChannel() === Imagick::ALPHACHANNEL_UNDEFINED ) {
+					$this->image->setImageAlphaChannel( Imagick::ALPHACHANNEL_OPAQUE );
+				}
+				if ( $this->indexed_color_encoded && $this->image->getImageAlphaChannel() && defined( 'Imagick::IMGTYPE_PALETTEMATTE' ) ) {
+					$this->image->setImageType( Imagick::IMGTYPE_PALETTEMATTE );
+				} elseif ( defined( 'Imagick::IMGTYPE_PALETTEMATTE' ) ) {
+					$this->image->setImageType( Imagick::IMGTYPE_PALETTE );
 				}
 			}
 
