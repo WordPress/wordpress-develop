@@ -1013,7 +1013,7 @@ class WP_HTML_Tag_Processor {
 		 */
 		$this->token_starts_at      = $was_at;
 		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
-		$this->text_starts_at       = $tag_ends_at + 1;
+		$this->text_starts_at       = $tag_ends_at;
 		$this->text_length          = $this->tag_name_starts_at - $this->text_starts_at;
 		$this->tag_name_starts_at   = $tag_name_starts_at;
 		$this->tag_name_length      = $tag_name_length;
