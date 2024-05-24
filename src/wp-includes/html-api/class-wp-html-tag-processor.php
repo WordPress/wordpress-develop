@@ -926,8 +926,8 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 		$this->parser_state         = self::STATE_MATCHED_TAG;
-		$this->token_length         = $tag_ends_at - $this->token_starts_at;
 		$this->bytes_already_parsed = $tag_ends_at + 1;
+		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
 
 		/*
 		 * For non-DATA sections which might contain text that looks like HTML tags but
