@@ -192,9 +192,9 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 
 			if ( ! $first_post ) {
 				$first_post = "<!-- wp:paragraph -->\n<p>" .
-					/* translators: First post content. %s: Site link. */
-					__( 'Welcome to %s. This is your first post. Edit or delete it, then start writing!' ) .
-					"</p>\n<!-- /wp:paragraph -->";
+				/* translators: First post content. %s: Site link. */
+				__( 'Welcome to %s. This is your first post. Edit or delete it, then start writing!' ) .
+				"</p>\n<!-- /wp:paragraph -->";
 			}
 
 			$first_post = sprintf(
@@ -207,9 +207,9 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 			$first_post = str_replace( 'SITE_NAME', get_network()->site_name, $first_post );
 		} else {
 			$first_post = "<!-- wp:paragraph -->\n<p>" .
-				/* translators: First post content. %s: Site link. */
-				__( 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' ) .
-				"</p>\n<!-- /wp:paragraph -->";
+			/* translators: First post content. %s: Site link. */
+			__( 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' ) .
+			"</p>\n<!-- /wp:paragraph -->";
 		}
 
 		$wpdb->insert(
@@ -257,7 +257,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 		$first_comment_email  = ! empty( $first_comment_email ) ? $first_comment_email : 'wapuu@wordpress.example';
 		$first_comment_url    = ! empty( $first_comment_url ) ? $first_comment_url : esc_url( __( 'https://wordpress.org/' ) );
 		$first_comment        = ! empty( $first_comment ) ? $first_comment : sprintf(
-		/* translators: %s: Gravatar URL. */
+			/* translators: %s: Gravatar URL. */
 			__(
 				'Hi, this is a comment.
 To get started with moderating, editing, and deleting comments, please visit the Comments screen in the dashboard.
@@ -307,7 +307,7 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 
 			$first_page .= "<!-- wp:paragraph -->\n<p>";
 			$first_page .= sprintf(
-			/* translators: First page content. %s: Site admin URL. */
+				/* translators: First page content. %s: Site admin URL. */
 				__( 'As a new WordPress user, you should go to <a href="%s">your dashboard</a> to delete this page and create new pages for your content. Have fun!' ),
 				admin_url()
 			);
@@ -554,7 +554,7 @@ if ( ! function_exists( 'wp_new_blog_notification' ) ) :
 		$login_url = wp_login_url();
 
 		$message = sprintf(
-		/* translators: New site notification email. 1: New site URL, 2: User login, 3: User password or password reset link, 4: Login URL. */
+			/* translators: New site notification email. 1: New site URL, 2: User login, 3: User password or password reset link, 4: Login URL. */
 			__(
 				'Your new WordPress site has been successfully set up at:
 
@@ -847,6 +847,9 @@ function upgrade_all() {
 		upgrade_650();
 	}
 
+	if ( $wp_current_db_version < 57160 ) {
+		upgrade_670();
+	}
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -973,7 +976,7 @@ function upgrade_110() {
 
 	$time_difference = $all_options->time_difference;
 
-	$server_time = time() + gmdate( 'Z' );
+	$server_time 	 = time() + gmdate( 'Z' );
 	$weblogger_time  = $server_time + $time_difference * HOUR_IN_SECONDS;
 	$gmt_time        = time();
 
@@ -2381,7 +2384,45 @@ function upgrade_650() {
 		wp_set_option_autoload_values( $autoload );
 	}
 }
+/**
+ * Executes changes made in WordPress 6.5.0.
+ *
+ * @ignore
+ * @since 6.7.0
+ *
+ * @global int  $wp_current_db_version The old (current) database version.
+ */
+function upgrade_670() {
+	global $wp_current_db_version;
 
+	if ( $wp_current_db_version < 57160 ) {
+		$options_ids = array(
+			'auto_plugin_theme_update_emails',
+			'recently_activated',
+			'_wp_suggested_policy_text_has_changed',
+			'dashboard_widget_options',
+			'ftp_credentials',
+			'recently_edited',
+			'adminhash',
+			'nav_menu_options',
+			'active_plugins',
+			'uninstall_plugins',
+			'wp_force_deactivated_plugins',
+			'delete_blog_hash',
+			'allowedthemes',
+			'admin_email',
+			'recently_activated',
+			'https_detection_errors',
+			'fresh_site',
+			'upload_path',
+			'admin_email',
+			'admin_email_lifespan',
+		);
+
+		$autoload = array_fill_keys( $options_ids, 'no' );
+		wp_set_option_autoload_values( $autoload );
+	}
+}
 /**
  * Executes network-level upgrade routines.
  *
