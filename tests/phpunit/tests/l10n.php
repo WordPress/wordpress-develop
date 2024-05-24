@@ -619,4 +619,42 @@ class Tests_L10n extends WP_UnitTestCase {
 
 		$this->assertSame( $expect, $comment_excerpt );
 	}
+
+	/**
+	 * @ticket 30049
+	 *
+	 * @covers ::get_locales_from_accept_language_header
+	 *
+	 * @dataProvider data_get_locales_from_accept_language_header
+	 */
+	public function test_get_locales_from_accept_language_header( $input, $expected ) {
+		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = $input;
+
+		$actual = get_locales_from_accept_language_header();
+
+		unset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] );
+
+		$this->assertSame( $expected, $actual, 'Parsed locales list does not expect actual list' );
+	}
+
+	public static function data_get_locales_from_accept_language_header() {
+		return array(
+			'Missing header'          => array(
+				null,
+				array(),
+			),
+			'Empty header'            => array(
+				false,
+				array(),
+			),
+			'Wildcard'                => array(
+				'*',
+				array(),
+			),
+			'Multiple types, weighed' => array(
+				'fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5',
+				array( 'fr_CH', 'fr_FR', 'de_DE' ),
+			),
+		);
+	}
 }

@@ -1988,3 +1988,38 @@ function wp_get_word_count_type() {
 
 	return $wp_locale->get_word_count_type();
 }
+
+/**
+ * Parses the `Accept-Language` header to get a list of locales.
+ *
+ * The locales are in the format WordPress expects, so "fr-CH" becomes "fr_CH"
+ * and "fr" becomes "fr_FR". "en" and wildcard values are discarded.
+ * The priority weighting is also discarded.
+ *
+ * @since 6.6.0
+ *
+ * @return string[] Locales list.
+ */
+function get_locales_from_accept_language_header() {
+	$locales = array();
+
+	if ( ! empty( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
+		$matches = array();
+		preg_match_all( '((?P<code>[a-z-_A-Z]{2,5})([;q=]+?(?P<prio>0.\d+))?)', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches );
+
+		foreach ( $matches['code'] as $code ) {
+			$locale = sanitize_locale_name( str_replace( '-', '_', $code ) );
+
+			if ( 'en' === $code ) {
+				continue;
+			}
+
+			if ( 2 === strlen( $locale ) ) {
+				$locale = $locale . '_' . strtoupper( $locale );
+			}
+			$locales[] = $locale;
+		}
+	}
+
+	return $locales;
+}
