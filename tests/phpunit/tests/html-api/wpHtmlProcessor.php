@@ -183,6 +183,103 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure reporting that normal non-void HTML elements expect a closer.
+	 *
+	 * @ticket 61257
+	 */
+	public function test_expects_closer_regular_tags() {
+		$processor = WP_HTML_Processor::create_fragment( '<div><p><b><em>' );
+
+		$tags = 0;
+		while ( $processor->next_tag() ) {
+			$this->assertTrue(
+				$processor->expects_closer(),
+				"Should have expected a closer for '{$processor->get_tag()}', but didn't."
+			);
+			++$tags;
+		}
+
+		$this->assertSame(
+			4,
+			$tags,
+			'Did not find all the expected tags.'
+		);
+	}
+
+	/**
+	 * Ensure reporting that non-tag HTML nodes expect a closer.
+	 *
+	 * @ticket 61257
+	 *
+	 * @dataProvider data_self_contained_node_tokens
+	 *
+	 * @param string $self_contained_token String starting with HTML token that doesn't expect a closer,
+	 *                                     e.g. an HTML comment, text node, void tag, or special element.
+	 */
+	public function test_expects_closer_expects_no_closer_for_self_contained_tokens( $self_contained_token ) {
+		$processor   = WP_HTML_Processor::create_fragment( $self_contained_token );
+		$found_token = $processor->next_token();
+
+		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
+			$this->markTestSkipped( "HTML '{$self_contained_token}' is not supported." );
+		}
+
+		$this->assertTrue(
+			$found_token,
+			"Failed to find any tokens in '{$self_contained_token}': check test data provider."
+		);
+
+		$this->assertFalse(
+			$processor->expects_closer(),
+			"Incorrectly expected a closer for node of type '{$processor->get_token_type()}'."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_self_contained_node_tokens() {
+		$self_contained_nodes = array(
+			'Normative comment'                => array( '<!-- comment -->' ),
+			'Comment with invalid closing'     => array( '<!-- comment --!>' ),
+			'CDATA Section lookalike'          => array( '<![CDATA[ comment ]]>' ),
+			'Processing Instruction lookalike' => array( '<?ok comment ?>' ),
+			'Funky comment'                    => array( '<//wp:post-meta key=isbn>' ),
+			'Text node'                        => array( 'Trombone' ),
+		);
+
+		foreach ( self::data_void_tags() as $tag_name => $_name ) {
+			$self_contained_nodes[ "Void elements ({$tag_name})" ] = array( "<{$tag_name}>" );
+		}
+
+		foreach ( self::data_special_tags() as $tag_name => $_name ) {
+			$self_contained_nodes[ "Special atomic elements ({$tag_name})" ] = array( "<{$tag_name}>content</{$tag_name}>" );
+		}
+
+		return $self_contained_nodes;
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_special_tags() {
+		return array(
+			'IFRAME'   => array( 'IFRAME' ),
+			'NOEMBED'  => array( 'NOEMBED' ),
+			'NOFRAMES' => array( 'NOFRAMES' ),
+			'SCRIPT'   => array( 'SCRIPT' ),
+			'STYLE'    => array( 'STYLE' ),
+			'TEXTAREA' => array( 'TEXTAREA' ),
+			'TITLE'    => array( 'TITLE' ),
+			'XMP'      => array( 'XMP' ),
+		);
+	}
+
+	/**
 	 * Ensure non-nesting tags do not nest when processing tokens.
 	 *
 	 * @ticket 60382
