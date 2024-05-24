@@ -7,7 +7,9 @@
  * @package WordPress
  * @subpackage Cache
  */
-
+if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly
+}
 /** WP_Object_Cache class */
 require_once ABSPATH . WPINC . '/class-wp-object-cache.php';
 
