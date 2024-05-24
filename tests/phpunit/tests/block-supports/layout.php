@@ -441,7 +441,8 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'parent_block' => new WP_Block(
 					array(
-						'attrs' => array(
+						'blockName' => 'core/group',
+						'attrs'     => array(
 							'layout' => array(
 								'type' => 'grid',
 							),
