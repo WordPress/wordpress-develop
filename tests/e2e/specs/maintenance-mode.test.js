@@ -13,12 +13,11 @@ test.describe( 'Maintenance mode', () => {
 	const documentRoot = join(
 		process.cwd(),
 		process.env.LOCAL_DIR ?? 'src',
-		'wp-content/mu-plugins'
 	);
 	const maintenanceLockFile = join( documentRoot, '.maintenance' );
 
 	test.beforeAll( async () => {
-		writeFileSync( maintenanceLockFile, '<?php $upgrading = 1700000000; ?>' );
+		writeFileSync( maintenanceLockFile, '<?php $upgrading = 10000000000; ?>' ); // Year 2286.
 	} );
 
 	test.afterAll( async () => {
