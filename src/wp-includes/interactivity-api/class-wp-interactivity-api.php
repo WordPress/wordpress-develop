@@ -116,8 +116,24 @@ final class WP_Interactivity_API {
 	 * @return array The current state for the specified store namespace. This will be the updated state if a $state
 	 *               argument was provided.
 	 */
-	public function state( string $store_namespace = '', array $state = array() ): array {
+	public function state( ?string $store_namespace = null, ?array $state = null ): array {
 		if ( ! $store_namespace ) {
+			if ( $state ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'The namespace is required when state data is passed.' ),
+					'6.6.0'
+				);
+				return array();
+			}
+			if ( null !== $store_namespace ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'The namespace should be a non-empty string.' ),
+					'6.6.0'
+				);
+				return array();
+			}
 			$store_namespace = end( $this->namespace_stack );
 		}
 		if ( ! isset( $this->state_data[ $store_namespace ] ) ) {

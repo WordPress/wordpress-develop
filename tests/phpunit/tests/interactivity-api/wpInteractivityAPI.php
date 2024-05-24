@@ -450,6 +450,55 @@ JSON;
 	}
 
 	/**
+	 * Test that passing state data without a valid namespace does nothing and
+	 * just returns an empty array.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::state
+	 * @expectedIncorrectUsage WP_Interactivity_API::state
+	 */
+	public function test_state_with_data_and_invalid_namespace() {
+		$interactivity = new ReflectionClass( $this->interactivity );
+
+		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
+		$namespace_stack->setAccessible( true );
+		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
+
+		$this->interactivity->state( 'myPlugin', array( 'a' => 1 ) );
+		$this->interactivity->state( 'otherPlugin', array( 'b' => 2 ) );
+
+		$this->assertEquals(
+			array(),
+			$this->interactivity->state( null, array( 'newProp' => 'value' ) )
+		);
+	}
+
+	/**
+	 * Test that calling state with an empty string as namespace is not allowed.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::state
+	 * @expectedIncorrectUsage WP_Interactivity_API::state
+	 */
+	public function test_state_without_namespace_and_with_data() {
+		$interactivity = new ReflectionClass( $this->interactivity );
+
+		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
+		$namespace_stack->setAccessible( true );
+		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
+
+		$this->interactivity->state( 'myPlugin', array( 'a' => 1 ) );
+		$this->interactivity->state( 'otherPlugin', array( 'b' => 2 ) );
+
+		$this->assertEquals(
+			array(),
+			$this->interactivity->state( '' )
+		);
+	}
+
+	/**
 	 * Test that `get_context` returns the latest context value for the given
 	 * namespace.
 	 *
