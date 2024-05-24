@@ -118,6 +118,6 @@ function wp_interactivity_data_wp_context( array $context, string $store_namespa
  * @param string $store_namespace Optional. The unique store namespace identifier.
  * @return array The context for the specified store namespace.
  */
-function wp_interactivity_get_context( string $store_namespace = '' ): array {
+function wp_interactivity_get_context( ?string $store_namespace = null ): array {
 	return wp_interactivity()->get_context( $store_namespace );
 }
