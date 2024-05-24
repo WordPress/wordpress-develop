@@ -115,7 +115,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		// Cleanup.
 		$_wp_tests_development_mode = $orig_dev_mode;
 
-		$this->assertFalse( $styles_for_blocks_initial, );
+		$this->assertFalse( $styles_for_blocks_initial );
 	}
 
 	/**
