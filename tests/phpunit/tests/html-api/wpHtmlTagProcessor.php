@@ -477,6 +477,49 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that tags start and length are correctly determined.
+	 *
+	 * @ticket 321
+	 *
+	 * @dataProvider data_tag_start_length
+	 *
+	 * @param string $html
+	 * @param int $start
+	 * @param int $length
+	 */
+	public function test_tag_start_length( string $html, int $start, int $length ) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+
+		$processor->next_tag( array( 'class_name' => 'target' ) );
+
+		$start_property = new ReflectionProperty( $processor, 'token_starts_at' );
+		$tag_start      = $start_property->getValue( $processor );
+
+		$length_property = new ReflectionProperty( $processor, 'token_length' );
+		$tag_length      = $length_property->getValue( $processor );
+
+		$this->assertSame( $start, $tag_start, "Incorrect tag start position found: {$tag_start}." );
+		$this->assertSame( $length, $tag_length, "Incorrect tag length found: {$tag_length}." );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_tag_start_length() {
+		return array(
+			'Simple DIV'          => array( '<div class="target">', 0, 20 ),
+			'DIV with attributes' => array( '<div class="target" disabled>', 0, 29 ),
+			'Nested DIV'          => array( '<div><div class="target">', 5, 20 ),
+			'DIV after text'      => array( 'Initial <div class="target">', 8, 20 ),
+			'DIV after comment'   => array( '<!-- comment --> <div class="target">', 17, 20 ),
+			'DIV before text'     => array( '<div class="target"> Trailing', 0, 20 ),
+			'DIV before comment'  => array( '<div class="target"><!-- comment --> ', 0, 20 ),
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
