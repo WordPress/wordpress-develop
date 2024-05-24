@@ -81,7 +81,7 @@ class WP_Customize_Nav_Menu_Item_Control extends WP_Customize_Control {
 					<# if ( 0 === data.depth ) { #>
 						<?php
 						/* translators: 1: Title of a menu item, 2: Type of a menu item */
-						printf( __( 'Edit %1$s (%2$s, %3$d of %4$d)' ), '{{ data.title || data.original_title || wp.customize.Menus.data.l10n.untitled }}', '{{ data.item_type_label }}', '','' );
+						printf( __( 'Edit %1$s (%2$s, %3$d of %4$d)' ), '{{ data.title || data.original_title || wp.customize.Menus.data.l10n.untitled }}', '{{ data.item_type_label }}', '', '' );
 						?>
 					<# } else if ( 1 === data.depth ) { #>
 						<?php
