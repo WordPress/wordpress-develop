@@ -449,7 +449,7 @@
 			}
 
 			var thisLink, thisLinkText, primaryItems, itemPosition, title,
-				parentItem, parentItemId, parentItemName, subItems,
+				parentItem, parentItemId, parentItemName, subItems, totalSubItems,
 				$this = $( itemToRefresh ),
 				menuItem = $this.closest( 'li.menu-item' ).first(),
 				depth = menuItem.menuItemDepth(),
