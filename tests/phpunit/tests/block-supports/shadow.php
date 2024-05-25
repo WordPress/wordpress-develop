@@ -57,13 +57,13 @@ class Test_Block_Supports_Shadow extends WP_UnitTestCase {
 	 * @param string        $value   Shadow style value for style attribute object.
 	 * @param array         $expected       Expected shadow block support styles.
 	 */
-	public function test_gutenberg_apply_shadow_support( $support, $value, $expected ) {
+	public function test_wp_apply_shadow_support( $support, $value, $expected ) {
 		$block_type  = self::register_shadow_block_with_support(
 			'test/shadow-block',
 			array( 'shadow' => $support )
 		);
 		$block_attrs = array( 'style' => array( 'shadow' => $value ) );
-		$actual      = gutenberg_apply_shadow_support( $block_type, $block_attrs );
+		$actual      = wp_apply_shadow_support( $block_type, $block_attrs );
 
 		$this->assertSame( $expected, $actual );
 	}
