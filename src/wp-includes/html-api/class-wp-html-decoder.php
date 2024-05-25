@@ -32,18 +32,19 @@ class WP_HTML_Decoder {
 	 */
 	public static function attribute_starts_with( $haystack, $search_text, $case_sensitivity = 'case-sensitive' ) {
 		$search_length = strlen( $search_text );
-		$loose_case    = 'case-insensitive' === $case_sensitivity;
+		$loose_case    = 'ascii-case-insensitive' === $case_sensitivity;
 		$haystack_end  = strlen( $haystack );
 		$search_at     = 0;
+		$haystack_at   = 0;
 
-		while ( $search_at < $search_length && $value_at < $haystack_end ) {
+		while ( $search_at < $search_length && $haystack_at < $haystack_end ) {
 			$chars_match = $loose_case
-				? strtolower( $haystack[ $value_at ] ) === strtolower( $search_text[ $search_at ] )
-				: $haystack[ $value_at ] === $search_text[ $search_at ];
+				? strtolower( $haystack[ $haystack_at ] ) === strtolower( $search_text[ $search_at ] )
+				: $haystack[ $haystack_at ] === $search_text[ $search_at ];
 
-			$is_introducer = '&' === $haystack[ $value_at ];
+			$is_introducer = '&' === $haystack[ $haystack_at ];
 			$next_chunk    = $is_introducer
-				? self::read_character_reference( $haystack, $value_at, false, $token_length )
+				? self::read_character_reference( 'attribute', $haystack, $haystack_at, $token_length )
 				: false;
 
 			// If there's no character reference and the characters don't match, the match fails.
@@ -53,7 +54,7 @@ class WP_HTML_Decoder {
 
 			// If there's no character reference but the character do match, then it could still match.
 			if ( false === $next_chunk && $chars_match ) {
-				++$value_at;
+				++$haystack_at;
 				++$search_at;
 				continue;
 			}
@@ -64,7 +65,7 @@ class WP_HTML_Decoder {
 			}
 
 			// The character reference matched, so continue checking.
-			$value_at  += $token_length;
+			$haystack_at  += $token_length;
 			$search_at += strlen( $next_chunk );
 		}
 
