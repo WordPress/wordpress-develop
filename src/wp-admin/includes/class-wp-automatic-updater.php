@@ -643,7 +643,7 @@ class WP_Automatic_Updater {
 			return;
 		}
 
-		$is_debug = WP_DEBUG && WP_DEBUG_DISPLAY;
+		$is_debug = WP_DEBUG && WP_DEBUG_LOG;
 
 		if ( $is_debug ) {
 			error_log( 'Automatic updates starting...' );
@@ -1757,7 +1757,7 @@ Thanks! -- The WordPress Team"
 		// Time to wait for loopback request to finish.
 		$timeout = 50; // 50 seconds.
 
-		$is_debug = WP_DEBUG && WP_DEBUG_DISPLAY;
+		$is_debug = WP_DEBUG && WP_DEBUG_LOG;
 		if ( $is_debug ) {
 			error_log( '    Scraping home page...' );
 		}
