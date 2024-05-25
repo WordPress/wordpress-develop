@@ -343,4 +343,60 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		wp_maybe_enqueue_oembed_host_js( $post_embed );
 		$this->assertFalse( $scripts->query( 'wp-embed', 'enqueued' ) );
 	}
+
+	/**
+	 * @ticket 35567
+	 */
+	public function test_is_embeddable_post_non_existent_post() {
+		$this->assertFalse( is_post_embeddable( 0 ) );
+	}
+
+	/**
+	 * @ticket 35567
+	 */
+	public function test_is_embeddable_post_should_return_false_for_non_embeddable_post_type() {
+		register_post_type( 'not_embeddable', array( 'is_embeddable' => false ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_type' => 'not_embeddable',
+			)
+		);
+
+		$this->assertFalse( is_post_embeddable( $post ) );
+	}
+
+	/**
+	 * @ticket 35567
+	 */
+	public function test_is_embeddable_post_should_return_true_for_embeddable_post_type() {
+		register_post_type( 'embeddable', array( 'is_embeddable' => true ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_type' => 'embeddable',
+			)
+		);
+
+		$this->assertTrue( is_post_embeddable( $post ) );
+	}
+
+	/**
+	 * @ticket 35567
+	 */
+	public function test_is_embeddable_post_filtered() {
+		register_post_type( 'not_embeddable', array( 'is_embeddable' => false ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_type' => 'not_embeddable',
+			)
+		);
+
+		add_filter( 'is_post_embeddable', '__return_true' );
+		$embeddable = is_post_embeddable( $post );
+		remove_filter( 'is_post_embeddable', '__return_true' );
+
+		$this->assertTrue( $embeddable );
+	}
 }

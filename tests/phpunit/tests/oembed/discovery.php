@@ -85,4 +85,19 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
+
+	/**
+	 * @ticket 35567
+	 */
+	public function test_wp_oembed_add_discovery_links_non_embeddable_post_type_output_should_be_empty() {
+		register_post_type( 'not_embeddable', array( 'is_embeddable' => false ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_type' => 'not_embeddable',
+			)
+		);
+
+		$this->assertFalse( get_oembed_response_data( $post, 100 ) );
+	}
 }

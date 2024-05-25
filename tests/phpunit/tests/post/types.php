@@ -589,4 +589,34 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	public function test_get_post_types_by_support_non_existent_feature() {
 		$this->assertSameSets( array(), get_post_types_by_support( 'somefeature' ) );
 	}
+
+	/**
+	 * @group oembed
+	 * @ticket 35567
+	 */
+	public function test_register_post_type_is_embeddable_defaults_to_public_argument() {
+		$post_type = register_post_type( rand_str( 10 ) );
+		$this->assertFalse( $post_type->is_embeddable );
+
+		$post_type = register_post_type( rand_str( 10 ), array( 'public' => true ) );
+		$this->assertTrue( $post_type->is_embeddable );
+	}
+
+	/**
+	 * @group oembed
+	 * @ticket 35567
+	 */
+	public function test_register_post_type_override_is_embeddable() {
+		$post_type = register_post_type( rand_str( 10 ), array( 'is_embeddable' => true ) );
+		$this->assertTrue( $post_type->is_embeddable );
+
+		$post_type = register_post_type(
+			rand_str( 10 ),
+			array(
+				'public'        => true,
+				'is_embeddable' => false,
+			)
+		);
+		$this->assertFalse( $post_type->is_embeddable );
+	}
 }
