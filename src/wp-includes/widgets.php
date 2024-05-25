@@ -28,24 +28,25 @@ global $wp_registered_sidebars, $wp_registered_widgets, $wp_registered_widget_co
 /**
  * Stores the sidebars, since many themes can have more than one.
  *
- * @global array $wp_registered_sidebars The registered sidebars.
  * @since 2.2.0
+ * @global array $wp_registered_sidebars The registered sidebars.
  */
 $wp_registered_sidebars = array();
 
 /**
  * Stores the registered widgets.
  *
- * @global array $wp_registered_widgets The registered widgets.
  * @since 2.2.0
+ * @global array $wp_registered_widgets The registered widgets.
+ *
  */
 $wp_registered_widgets = array();
 
 /**
  * Stores the registered widget controls (options).
  *
- * @global array $wp_registered_widget_controls The registered widget controls.
  * @since 2.2.0
+ * @global array $wp_registered_widget_controls The registered widget controls.
  */
 $wp_registered_widget_controls = array();
 /**
