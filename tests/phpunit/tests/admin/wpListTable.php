@@ -529,10 +529,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 */
 	public function test_search_box_working_with_array_of_orderby() {
-		$_REQUEST['s'] = 'search term';
+		$_REQUEST['s']       = 'search term';
 		$_REQUEST['orderby'] = array(
 			'menu_order' => 'ASC',
-			'title' => 'ASC',
+			'title'      => 'ASC',
 		);
 
 		$output = get_echo( array( $this->list_table, 'search_box' ), array( 'foo Label', 59494 ) );
