@@ -5,6 +5,10 @@
  * @package WordPress
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 define( 'BLOCKS_PATH', ABSPATH . WPINC . '/blocks/' );
 
 // Include files required for core blocks registration.
