@@ -51,13 +51,13 @@ function wp_get_layout_definitions() {
 			),
 			'spacingStyles' => array(
 				array(
-					'selector' => ' > :first-child:first-child',
+					'selector' => ' > :first-child',
 					'rules'    => array(
 						'margin-block-start' => '0',
 					),
 				),
 				array(
-					'selector' => ' > :last-child:last-child',
+					'selector' => ' > :last-child',
 					'rules'    => array(
 						'margin-block-end' => '0',
 					),
@@ -116,13 +116,13 @@ function wp_get_layout_definitions() {
 			),
 			'spacingStyles' => array(
 				array(
-					'selector' => ' > :first-child:first-child',
+					'selector' => ' > :first-child',
 					'rules'    => array(
 						'margin-block-start' => '0',
 					),
 				),
 				array(
-					'selector' => ' > :last-child:last-child',
+					'selector' => ' > :last-child',
 					'rules'    => array(
 						'margin-block-end' => '0',
 					),
@@ -150,7 +150,7 @@ function wp_get_layout_definitions() {
 					),
 				),
 				array(
-					'selector' => ' > *',
+					'selector' => ' > :is(*, div)', // :is(*, div) instead of just * increases the specificity by 001.
 					'rules'    => array(
 						'margin' => '0',
 					),
@@ -172,7 +172,7 @@ function wp_get_layout_definitions() {
 			'displayMode'   => 'grid',
 			'baseStyles'    => array(
 				array(
-					'selector' => ' > *',
+					'selector' => ' > :is(*, div)', // :is(*, div) instead of just * increases the specificity by 001.
 					'rules'    => array(
 						'margin' => '0',
 					),
@@ -261,7 +261,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 						),
 					),
 					array(
-						'selector'     => "$selector$selector > * + *",
+						'selector'     => "$selector > * + *",
 						'declarations' => array(
 							'margin-block-start' => $gap_value,
 							'margin-block-end'   => '0',
@@ -370,7 +370,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 						),
 					),
 					array(
-						'selector'     => "$selector$selector > * + *",
+						'selector'     => "$selector > * + *",
 						'declarations' => array(
 							'margin-block-start' => $gap_value,
 							'margin-block-end'   => '0',
@@ -795,7 +795,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		$has_block_gap_support = isset( $block_gap );
 
 		$style = wp_get_layout_style(
-			".$container_class.$container_class",
+			".$container_class",
 			$used_layout,
 			$has_block_gap_support,
 			$gap_value,

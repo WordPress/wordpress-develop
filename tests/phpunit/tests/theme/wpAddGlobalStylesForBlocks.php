@@ -45,7 +45,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		wp_add_global_styles_for_blocks();
 
 		$this->assertNotContains(
-			'.wp-block-my-third-party-block{background-color: hotpink;}',
+			':root :where(.wp-block-my-third-party-block){background-color: hotpink;}',
 			$this->get_global_styles()
 		);
 	}
@@ -59,7 +59,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		wp_register_style( 'global-styles', false, array(), true, true );
 
 		$this->assertNotContains(
-			'.wp-block-my-third-party-block{background-color: hotpink;}',
+			':root :where(.wp-block-my-third-party-block){background-color: hotpink;}',
 			$this->get_global_styles(),
 			'Third party block inline style should not be registered before running wp_add_global_styles_for_blocks()'
 		);
@@ -67,7 +67,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		wp_add_global_styles_for_blocks();
 
 		$this->assertContains(
-			'.wp-block-my-third-party-block{background-color: hotpink;}',
+			':root :where(.wp-block-my-third-party-block){background-color: hotpink;}',
 			$this->get_global_styles(),
 			'Third party block inline style should be registered after running wp_add_global_styles_for_blocks()'
 		);
@@ -83,7 +83,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		wp_register_style( 'global-styles', false, array(), true, true );
 
 		$this->assertNotContains(
-			'.wp-block-my-third-party-block{background-color: hotpink;}',
+			':root :where(.wp-block-my-third-party-block){background-color: hotpink;}',
 			$this->get_global_styles(),
 			'Third party block inline style should not be registered before running wp_add_global_styles_for_blocks()'
 		);
@@ -91,7 +91,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		wp_add_global_styles_for_blocks();
 
 		$this->assertContains(
-			'.wp-block-my-third-party-block{background-color: hotpink;}',
+			':root :where(.wp-block-my-third-party-block){background-color: hotpink;}',
 			$this->get_global_styles(),
 			'Third party block inline style should be registered after running wp_add_global_styles_for_blocks()'
 		);
@@ -111,7 +111,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		$actual = get_echo( 'wp_print_styles' );
 
 		$this->assertStringContainsString(
-			'.wp-block-my-third-party-block{background-color: hotpink;}',
+			':root :where(.wp-block-my-third-party-block){background-color: hotpink;}',
 			$actual,
 			'Third party block inline style should render'
 		);
@@ -133,7 +133,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		$actual = get_echo( 'wp_print_styles' );
 
 		$this->assertStringContainsString(
-			'.wp-block-my-third-party-block{background-color: hotpink;}',
+			':root :where(.wp-block-my-third-party-block){background-color: hotpink;}',
 			$actual,
 			'Third party block inline style should render'
 		);
@@ -158,7 +158,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		$actual = get_echo( 'wp_print_styles' );
 
 		$this->assertStringContainsString(
-			'.wp-block-my-third-party-block cite{color: white;}',
+			':root :where(.wp-block-my-third-party-block cite){color: white;}',
 			$actual
 		);
 	}
@@ -174,7 +174,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		$actual = get_echo( 'wp_print_styles' );
 
 		$this->assertStringContainsString(
-			'.wp-block-my-third-party-block cite{color: white;}',
+			':root :where(.wp-block-my-third-party-block cite){color: white;}',
 			$actual
 		);
 	}
