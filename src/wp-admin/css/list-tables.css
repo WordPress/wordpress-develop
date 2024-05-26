@@ -2341,7 +2341,7 @@ div.action-links,
 
 	table.plugin-install td.column-name strong {
 		font-size: 1.4em;
-		line-height: 1.6em;
+		line-height: 1.6;
 	}
 
 	table.plugin-install #the-list td {
