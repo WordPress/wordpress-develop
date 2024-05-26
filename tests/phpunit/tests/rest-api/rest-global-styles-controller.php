@@ -119,6 +119,11 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		// Controller does not use get_context_param().
 	}
 
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_theme_items
+	 * @ticket
+	 *
+	 */
 	public function test_get_theme_items() {
 		wp_set_current_user( self::$admin_id );
 		switch_theme( 'block-theme' );
@@ -128,7 +133,6 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$expected = array(
 			array(
 				'version'  => 2,
-				'title'    => 'variation-a',
 				'settings' => array(
 					'blocks' => array(
 						'core/paragraph' => array(
@@ -146,12 +150,29 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 						),
 					),
 				),
+				'title'    => 'variation-a',
 			),
 			array(
-				'version'  => 2,
-				'title'    => 'variation-b',
+				'version' => 2,
+/*				'_links'   => array(
+					'curies'        => array(
+						array(
+							'name'      => 'wp',
+							'href'      => 'https://api.w.org/{rel}',
+							'templated' => true,
+						),
+					),
+					'wp:theme-file' => array(
+						array(
+							'href'   => 'http://localhost:8889/wp-content/themes/emptytheme/assets/sugarloaf-mountain.jpg',
+							'name'   => 'file:./assets/sugarloaf-mountain.jpg',
+							'target' => 'styles.background.backgroundImage.url',
+							'type'   => 'image/jpeg',
+						),
+					),
+				),*/
 				'settings' => array(
-					'blocks' => array(
+					'blocks'  => array(
 						'core/post-title' => array(
 							'color' => array(
 								'palette' => array(
@@ -167,6 +188,14 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 						),
 					),
 				),
+				/*					'styles'  => array(
+						'background' => array(
+							'backgroundImage' => array(
+								'url' => 'http://localhost:8889/wp-content/themes/block-theme/assets/sugarloaf-mountain.jpg',
+							),
+						),
+					),*/
+				'title'   => 'variation-b',
 			),
 			array(
 				'version'  => 2,
@@ -195,9 +224,6 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 				),
 			),
 		);
-
-		wp_recursive_ksort( $data );
-		wp_recursive_ksort( $expected );
 
 		$this->assertSameSets( $expected, $data );
 	}
