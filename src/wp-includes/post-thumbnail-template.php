@@ -113,6 +113,17 @@ function update_post_thumbnail_cache( $wp_query = null ) {
 	$thumb_ids = array();
 
 	foreach ( $wp_query->posts as $post ) {
+
+		/*
+		 * Check $post is valid post object of WP_Post or not,
+		 * while some cases it can be an array of $posts IDs.
+		 * 
+		 * See https://core.trac.wordpress.org/ticket/59521.
+		 */
+		if ( ! ( $post instanceof WP_Post ) ) {
+			$post = get_post( $post );
+		}
+
 		$id = get_post_thumbnail_id( $post->ID );
 		if ( $id ) {
 			$thumb_ids[] = $id;
