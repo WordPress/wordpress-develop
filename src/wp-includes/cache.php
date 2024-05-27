@@ -8,11 +8,9 @@
  * @subpackage Cache
  */
 
-/**
-* Direct access not permitted
-*/
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly.
+	die( '-1' );
 }
 
 /** WP_Object_Cache class */
