@@ -328,8 +328,14 @@ function wp_add_global_styles_for_blocks() {
 	$update_cache = false;
 
 	foreach ( $block_nodes as $metadata ) {
-		if ( $can_use_cached ) {
-			$block_name = str_replace( '/', '-', $metadata['name'] );
+		if ( ! empty( $metadata['name'] ) ) {
+			$block_name = $metadata['name'];
+		} elseif ( ! isset( $metadata['name'] ) && ! empty( $metadata['path'] ) ) {
+			// The likes of block element styles from theme.json do not have  $metadata['name'] set.
+			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
+		}
+
+		if ( $can_use_cached && $block_name ) {
 			if ( isset( $cached[ $block_name ] ) ) {
 				$block_css = $cached[ $block_name ];
 			} else {
@@ -357,31 +363,15 @@ function wp_add_global_styles_for_blocks() {
 		 * before adding the inline style.
 		 * This conditional loading only applies to core blocks.
 		 */
-		if ( isset( $metadata['name'] ) ) {
-			if ( str_starts_with( $metadata['name'], 'core/' ) ) {
-				$block_name   = str_replace( 'core/', '', $metadata['name'] );
+		if ( $block_name ) {
+			if ( str_starts_with( $block_name, 'core/' ) ) {
+				$block_name   = str_replace( 'core/', '', $block_name );
 				$block_handle = 'wp-block-' . $block_name;
 				if ( in_array( $block_handle, $wp_styles->queue, true ) ) {
 					wp_add_inline_style( $stylesheet_handle, $block_css );
 				}
 			} else {
 				wp_add_inline_style( $stylesheet_handle, $block_css );
-			}
-		}
-
-		// The likes of block element styles from theme.json do not have  $metadata['name'] set.
-		if ( ! isset( $metadata['name'] ) && ! empty( $metadata['path'] ) ) {
-			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
-			if ( $block_name ) {
-				if ( str_starts_with( $block_name, 'core/' ) ) {
-					$block_name   = str_replace( 'core/', '', $block_name );
-					$block_handle = 'wp-block-' . $block_name;
-					if ( in_array( $block_handle, $wp_styles->queue, true ) ) {
-						wp_add_inline_style( $stylesheet_handle, $block_css );
-					}
-				} else {
-					wp_add_inline_style( $stylesheet_handle, $block_css );
-				}
 			}
 		}
 	}
