@@ -1277,7 +1277,7 @@ function rest_get_avatar_sizes() {
  * @param string $date      RFC3339 timestamp.
  * @param bool   $force_utc Optional. Whether to force UTC timezone instead of using
  *                          the timestamp's timezone. Default false.
- * @return int Unix timestamp.
+ * @return int|false Unix timestamp or false if invalid date.
  */
 function rest_parse_date( $date, $force_utc = false ) {
 	if ( $force_utc ) {
