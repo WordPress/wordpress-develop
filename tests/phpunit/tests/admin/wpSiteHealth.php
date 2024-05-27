@@ -535,13 +535,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests wp_autoloaded_options_size().
+	 * Tests get_autoloaded_options_size().
 	 *
 	 * @ticket 61276
 	 *
 	 * @covers ::wp_autoload_values_to_autoload()
 	 */
-	public function test_wp_autoloaded_options_size(): void {
+	public function test_get_autoloaded_options_size(): void {
 		global $wpdb;
 
 		$autoload_values = wp_autoload_values_to_autoload();
@@ -555,13 +555,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				$autoload_values
 			)
 		);
-		$this->assertEquals( $autoloaded_options_size, $this->instance->wp_autoloaded_options_size() );
+		$this->assertEquals( $autoloaded_options_size, $this->instance->get_autoloaded_options_size() );
 
 		// Add autoload option.
 		$test_option_string       = 'test';
 		$test_option_string_bytes = mb_strlen( $test_option_string, '8bit' );
 		self::set_autoloaded_option( $test_option_string_bytes );
-		$this->assertSame( $autoloaded_options_size + $test_option_string_bytes, $this->instance->wp_autoloaded_options_size() );
+		$this->assertSame( $autoloaded_options_size + $test_option_string_bytes, $this->instance->get_autoloaded_options_size() );
 	}
 
 	/**
