@@ -1719,7 +1719,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         Additionally, the 'revisions' feature dictates whether the post type
  *                                                         will store revisions, the 'autosave' feature dictates whether the post type
  *                                                         will be autosaved, and the 'comments' feature dictates whether the
- *                                                         comments count will show on the edit screen. A feature can also be
+ *                                                         comments count will show on the edit screen. For backward compatibility reasons,
+ *                                                         adding 'editor' support implies 'autosave' support too. A feature can also be
  *                                                         specified as an array of arguments to provide additional information
  *                                                         about supporting that feature.
  *                                                         Example: `array( 'my_feature', array( 'field' => 'value' ) )`.
