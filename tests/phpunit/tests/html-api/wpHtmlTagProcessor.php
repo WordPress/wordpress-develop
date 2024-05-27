@@ -479,7 +479,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensures that tags start and length are correctly determined.
 	 *
-	 * @ticket 321
+	 * @ticket 61301
 	 *
 	 * @dataProvider data_tag_start_length
 	 *
