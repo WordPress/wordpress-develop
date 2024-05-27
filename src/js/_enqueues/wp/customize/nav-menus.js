@@ -1132,6 +1132,8 @@
 				$( '#menu-to-edit' ).removeAttr( 'id' );
 				wpNavMenu.menuList.attr( 'id', 'menu-to-edit' ).addClass( 'menu' );
 
+				api.Menus.MenuItemControl.prototype.initAccessibility();
+
 				_.each( api.section( section.id ).controls(), function( control ) {
 					if ( 'nav_menu_item' === control.params.type ) {
 						control.actuallyEmbed();
@@ -1574,6 +1576,73 @@
 			};
 		},
 
+		initAccessibility: function() {
+			var control = this,
+				menu = $( '#menu-to-edit' );
+
+			// Refresh the accessibility when the user comes close to the item in any way.
+			menu.on( 'mouseenter.refreshAccessibility focus.refreshAccessibility touchstart.refreshAccessibility' , '.menu-item' , function(){
+				control.refreshAdvancedAccessibilityOfItem( $( this ).find( 'button.item-edit' ) );
+			} );
+
+			// We have to update on click as well because we might hover first, change the item, and then click.
+			menu.on( 'click', 'button.item-edit', function() {
+				control.refreshAdvancedAccessibilityOfItem( $( this ) );
+			} );
+		},
+
+		refreshAdvancedAccessibilityOfItem: function( itemToRefresh ) {
+
+			// Only refresh accessibility when necessary.
+			if ( true !== $( itemToRefresh ).data( 'needs_accessibility_refresh' ) ) {
+				return;
+			}
+
+			var thisLink, thisLinkText, primaryItems, itemPosition, title,
+				parentItem, parentItemId, parentItemName, subItems, totalSubItems,
+				$this = $( itemToRefresh ),
+				menuItem = $this.closest( 'li.menu-item' ).first(),
+				depth = menuItem.menuItemDepth(),
+				isPrimaryMenuItem = ( 0 === depth ),
+				itemName = $this.closest( '.menu-item-handle' ).find( '.menu-item-title' ).text(),
+				menuItemType = $this.closest( '.menu-item-handle' ).find( '.item-type' ).text(),
+				position = parseInt( menuItem.index(), 10 ),
+				prevItemDepth = ( isPrimaryMenuItem ) ? depth : parseInt( depth - 1, 10 ),
+				prevItemNameLeft = menuItem.prevAll('.menu-item-depth-' + prevItemDepth).first().find( '.menu-item-title' ).text(),
+				prevItemNameRight = menuItem.prevAll('.menu-item-depth-' + depth).first().find( '.menu-item-title' ).text(),
+				totalMenuItems = $('#menu-to-edit li').length,
+				hasSameDepthSibling = menuItem.nextAll( '.menu-item-depth-' + depth ).length;
+
+			if ( isPrimaryMenuItem ) {
+				primaryItems = $( '.menu-item-depth-0' ),
+				itemPosition = primaryItems.index( menuItem ) + 1,
+				totalMenuItems = primaryItems.length;
+
+				// String together help text for primary menu items.
+				title = menus.menuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalMenuItems );
+			} else {
+				parentItem = menuItem.prevAll( '.menu-item-depth-' + parseInt( depth - 1, 10 ) ).first(),
+				parentItemId = parentItem.find( '.menu-item-data-db-id' ).val(),
+				parentItemName = parentItem.find( '.menu-item-title' ).text(),
+				subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemId + '"]' ),
+				totalSubItems = subItems.length;
+				itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
+
+				// String together help text for sub menu items.
+				if( depth < 2 ) {
+					title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalSubItems ).replace( '%5$s', parentItemName );
+				} else {
+					title = menus.subMenuMoreDepthFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalSubItems ).replace( '%5$s', parentItemName ).replace( '%6$d', depth );
+				}
+			}
+
+			$this.find('.screen-reader-text').text( title );
+
+			// Mark this item's accessibility as refreshed.
+			$this.data( 'needs_accessibility_refresh', false );
+
+		},
+
 		/**
 		 * Override the embed() method to do nothing,
 		 * so that the control isn't embedded on load,
@@ -1607,6 +1676,9 @@
 			}
 			control.renderContent();
 			control.deferred.embedded.resolve(); // This triggers control.ready().
+			
+			// Mark all menu items as unprocessed.
+			$( 'button.item-edit' ).data( 'needs_accessibility_refresh', true );
 		},
 
 		/**
