@@ -939,6 +939,7 @@ EOF;
 	 * @ticket 56122
 	 * @ticket 58551
 	 * @ticket 60132
+	 * @ticket 60979
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1352,6 +1353,11 @@ EOF;
 			array(
 				'css'      => 'background-repeat: no-repeat',
 				'expected' => 'background-repeat: no-repeat',
+			),
+			// Convert "&amp;" to "&".
+			array(
+				'css'      => 'background: green url("/sites/2/2023/10/image.jpg?width=1024&amp;height=600") no-repeat fixed center',
+				'expected' => 'background: green url("/sites/2/2023/10/image.jpg?width=1024&height=600") no-repeat fixed center',
 			),
 		);
 	}
