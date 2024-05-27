@@ -117,7 +117,7 @@ function update_post_thumbnail_cache( $wp_query = null ) {
 		/*
 		 * Check $post is valid post object of WP_Post or not,
 		 * while some cases it can be an array of $posts IDs.
-		 * 
+		 *
 		 * See https://core.trac.wordpress.org/ticket/59521.
 		 */
 		if ( ! ( $post instanceof WP_Post ) ) {

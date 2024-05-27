@@ -71,6 +71,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	public function test_update_post_thumbnail_cache() {
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
+		// Test case where `$query->posts` should return Array of post objects.
 		$query = new WP_Query(
 			array(
 				'post_type' => 'any',
@@ -79,11 +80,28 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 			)
 		);
 
+		// Test case where `$query1->posts` should return Array of post IDs.
+		$query1 = new WP_Query(
+			array(
+				'post_type' => 'any',
+				'post__in'  => array( self::$post->ID ),
+				'orderby'   => 'post__in',
+				'fields'    => 'ids'
+			)
+		);
+
 		$this->assertFalse( $query->thumbnails_cached );
 
 		update_post_thumbnail_cache( $query );
 
 		$this->assertTrue( $query->thumbnails_cached );
+
+		// Check test cases for `$query1`.
+		$this->assertFalse( $query1->thumbnails_cached );
+
+		update_post_thumbnail_cache( $query1 );
+
+		$this->assertTrue( $query1->thumbnails_cached );
 	}
 
 	/**
