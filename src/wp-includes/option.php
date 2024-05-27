@@ -1396,7 +1396,7 @@ function delete_transient( $transient ) {
  * @param string $transient Transient name. Expected to not be SQL-escaped.
  * @return bool
  */
-function is_valid_transient($transient ) {
+function is_valid_transient( $transient ) {
 	$transient_option  = '_transient_' . $transient;
 	$transient_timeout = '_transient_timeout_' . $transient;
 
@@ -2506,7 +2506,7 @@ function delete_site_transient( $transient ) {
 * @param string $transient Transient name. Expected to not be SQL-escaped.
 * @return bool
 */
-function is_valid_site_transient($transient ) {
+function is_valid_site_transient( $transient ) {
 	$transient_option  = '_site_transient_' . $transient;
 	$transient_timeout = '_site_transient_timeout_' . $transient;
 
