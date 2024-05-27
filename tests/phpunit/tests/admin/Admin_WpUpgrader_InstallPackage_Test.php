@@ -3,20 +3,17 @@
 require_once __DIR__ . '/Admin_WpUpgrader_TestCase.php';
 
 /**
- * Tests the `WP_Upgrader` class.
- *
  * @group admin
  * @group upgrade
+ * @covers WP_Upgrader::install_package()
  */
-class Tests_Admin_WpUpgrader extends Admin_WpUpgrader_TestCase {
+class Admin_WpUpgrader_InstallPackage_Test extends Admin_WpUpgrader_TestCase {
 
 	/**
 	 * Tests that `WP_Upgrader::install_package()` returns a WP_Error object
 	 * when an invalid source is passed.
 	 *
 	 * @ticket 54245
-	 *
-	 * @covers WP_Upgrader::install_package
 	 *
 	 * @dataProvider data_install_package_invalid_paths
 	 *
@@ -57,8 +54,6 @@ class Tests_Admin_WpUpgrader extends Admin_WpUpgrader_TestCase {
 	 * when an invalid destination is passed.
 	 *
 	 * @ticket 54245
-	 *
-	 * @covers WP_Upgrader::install_package
 	 *
 	 * @dataProvider data_install_package_invalid_paths
 	 *
@@ -139,8 +134,6 @@ class Tests_Admin_WpUpgrader extends Admin_WpUpgrader_TestCase {
 	 * when the 'upgrader_pre_install' filter returns a WP_Error object.
 	 *
 	 * @ticket 54245
-	 *
-	 * @covers WP_Upgrader::install_package
 	 */
 	public function test_install_package_should_return_wp_error_when_pre_install_filter_returns_wp_error() {
 		self::$instance->generic_strings();
@@ -181,8 +174,6 @@ class Tests_Admin_WpUpgrader extends Admin_WpUpgrader_TestCase {
 	 * the source directory and a single subdirectory.
 	 *
 	 * @ticket 54245
-	 *
-	 * @covers WP_Upgrader::install_package
 	 */
 	public function test_install_package_should_add_trailing_slash_to_source_and_subdirectory() {
 		self::$instance->generic_strings();
@@ -235,8 +226,6 @@ class Tests_Admin_WpUpgrader extends Admin_WpUpgrader_TestCase {
 	 * when no source files exist.
 	 *
 	 * @ticket 54245
-	 *
-	 * @covers WP_Upgrader::install_package
 	 */
 	public function test_install_package_should_return_wp_error_when_no_source_files_exist() {
 		self::$instance->generic_strings();
@@ -276,8 +265,6 @@ class Tests_Admin_WpUpgrader extends Admin_WpUpgrader_TestCase {
 	 * the source directory of a single file.
 	 *
 	 * @ticket 54245
-	 *
-	 * @covers WP_Upgrader::install_package
 	 */
 	public function test_install_package_should_add_trailing_slash_to_the_source_directory_of_single_file() {
 		self::$instance->generic_strings();
@@ -323,8 +310,6 @@ class Tests_Admin_WpUpgrader extends Admin_WpUpgrader_TestCase {
 	 * separate process.
 	 *
 	 * @ticket 54245
-	 *
-	 * @covers WP_Upgrader::install_package
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -417,8 +402,6 @@ class Tests_Admin_WpUpgrader extends Admin_WpUpgrader_TestCase {
 	 * separate process.
 	 *
 	 * @ticket 54245
-	 *
-	 * @covers WP_Upgrader::install_package
 	 *
 	 * @dataProvider data_install_package_should_make_remote_destination_safe_when_set_to_a_protected_directory
 	 *
@@ -516,8 +499,6 @@ class Tests_Admin_WpUpgrader extends Admin_WpUpgrader_TestCase {
 	 * if the destination directory exists.
 	 *
 	 * @ticket 54245
-	 *
-	 * @covers WP_Upgrader::install_package
 	 */
 	public function test_install_package_should_abort_if_the_destination_directory_exists() {
 		self::$instance->generic_strings();
@@ -589,8 +570,6 @@ class Tests_Admin_WpUpgrader extends Admin_WpUpgrader_TestCase {
 	 * separate process.
 	 *
 	 * @ticket 54245
-	 *
-	 * @covers WP_Upgrader::install_package
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
