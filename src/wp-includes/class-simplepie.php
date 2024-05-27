@@ -1,9 +1,7 @@
 <?php
-/**
-* Direct access not permitted
-*/
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly.
+	die( '-1' );
 }
 
 if ( ! class_exists( 'SimplePie', false ) ) :
