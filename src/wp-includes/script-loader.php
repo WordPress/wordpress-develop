@@ -2684,7 +2684,7 @@ function enqueue_block_styles_assets() {
 }
 
 /**
- * Function responsible for enqueuing the CSS files required for block styles functionality on the editor and on the frontend.
+ * Function responsible for enqueuing the CSS files required for block styles functionality on the editor and frontend.
  *
  * @since 6.6.0
  *
