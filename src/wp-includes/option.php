@@ -1409,8 +1409,8 @@ function valid_transient( $transient ) {
 
 		return (bool) get_option( $transient_option );
 	} elseif ( $timeout < time() ) { // Expired transient detected.
-		delete_option('_transient_' . $transient);
-		delete_option($transient_timeout);
+		delete_option( '_transient_' . $transient );
+		delete_option( $transient_timeout );
 
 		return false;
 	}
@@ -1462,7 +1462,7 @@ function get_transient( $transient ) {
 			// If option is not in alloptions, it is not autoloaded and thus has a timeout.
 			$alloptions = wp_load_alloptions();
 
-			if ( ! isset( $alloptions[ $transient_option ] ) && ! valid_transient( $transient )  ) {
+			if ( ! isset( $alloptions[ $transient_option ] ) && ! valid_transient( $transient ) ) {
 				$value = false;
 			}
 		}
