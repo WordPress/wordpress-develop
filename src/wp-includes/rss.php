@@ -13,11 +13,9 @@
  * @deprecated 3.0.0 Use SimplePie instead.
  */
 
-/**
-* Direct access not permitted
-*/
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly.
+	die( '-1' );
 }
 
 /**
