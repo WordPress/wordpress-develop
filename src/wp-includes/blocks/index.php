@@ -5,8 +5,9 @@
  * @package WordPress
  */
 
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly.
+	die( '-1' );
 }
 
 define( 'BLOCKS_PATH', ABSPATH . WPINC . '/blocks/' );
