@@ -12,9 +12,14 @@
  * @subpackage MagpieRSS
  * @deprecated 3.0.0 Use SimplePie instead.
  */
+
+/**
+* Direct access not permitted
+*/
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
+
 /**
  * Deprecated. Use SimplePie (class-simplepie.php) instead.
  */
