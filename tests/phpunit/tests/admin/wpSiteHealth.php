@@ -539,7 +539,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @ticket 61276
 	 *
-	 * @covers ::wp_autoload_values_to_autoload()
+	 * @covers ::get_autoloaded_options_size()
 	 */
 	public function test_get_autoloaded_options_size(): void {
 		global $wpdb;
