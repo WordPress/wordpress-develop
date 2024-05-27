@@ -86,7 +86,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 				'post_type' => 'any',
 				'post__in'  => array( self::$post->ID ),
 				'orderby'   => 'post__in',
-				'fields'    => 'ids'
+				'fields'    => 'ids',
 			)
 		);
 
