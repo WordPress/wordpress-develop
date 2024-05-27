@@ -1048,9 +1048,9 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	protected function check_file_meta( $font_face_id, $src_attributes ) {
 		$file_meta = get_post_meta( $font_face_id, '_wp_font_face_file' );
 
-		foreach ( $src_attributes as $src_attribute ) {
-			$file_name = basename( $src_attribute );
-			$this->assertContains( $file_name, $file_meta, 'The uploaded font file path should be saved in the post meta.' );
+		foreach ( $file_meta as $file ) {
+			$base_directory = wp_get_font_dir()['basedir'];
+			$this->assertStringStartsNotWith( $base_directory, $file, 'The base directory should not be stored in the post meta.' );
 		}
 	}
 
