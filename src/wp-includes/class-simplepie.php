@@ -1,4 +1,8 @@
 <?php
+/**
+* Direct access not permitted
+*/
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
