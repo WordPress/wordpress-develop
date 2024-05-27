@@ -607,13 +607,62 @@ function wpautop( $text, $br = true ) {
 /**
  * Separates HTML elements and comments from the text.
  *
- * @since 4.2.4
+ * This function tokenizes an HTML document into its
+ * components and returns the array of tokens.
  *
- * @param string $input The text which has to be formatted.
- * @return string[] Array of the formatted text.
+ * @since 4.2.4
+ * @since 6.6.0 Relies on the HTML API for parsing.
+ *
+ * @param string $input_html Raw HTML potentially containing a mixture of tags,
+ *                           comments, text nodes, and other sytnax.
+ * @return string[]
  */
-function wp_html_split( $input ) {
-	return preg_split( get_html_split_regex(), $input, -1, PREG_SPLIT_DELIM_CAPTURE );
+function wp_html_split( $input_html ) {
+	$chunks    = array();
+	$processor = new class ( $input_html ) extends WP_HTML_Tag_Processor {
+		/**
+		 * Returns the raw token from the input string at the
+		 * current location, if paused at a location.
+		 *
+		 * @return false|string
+		 */
+		public function get_raw_token() {
+			if (
+				WP_HTML_Tag_Processor::STATE_READY === $this->parser_state ||
+				WP_HTML_Tag_Processor::STATE_INCOMPLETE_INPUT === $this->parser_state ||
+				WP_HTML_Tag_Processor::STATE_COMPLETE === $this->parser_state
+			) {
+				return false;
+			}
+
+			$this->set_bookmark( 'here' );
+			$here = $this->bookmarks['here'];
+
+			return substr( $this->html, $here->start, $here->length );
+		}
+	};
+
+	while ( $processor->next_token() ) {
+		$is_special_atomic_element = in_array(
+			$processor->get_tag(),
+			array( 'SCRIPT', 'STYLE', 'XMP', 'NOEMBED', 'NOFRAMES', 'TITLE', 'TEXTAREA' ),
+			true
+		);
+
+		// @todo Transfer everything properly.
+		if ( $is_special_atomic_element ) {
+			$raw_html = $processor->get_raw_token();
+			$tag_name = substr( $raw_html, 1, strlen( $processor->get_tag() ) );
+			$chunks[] = "<{$tag_name}>";
+			$chunks[] = $processor->get_modifiable_text();
+			$chunks[] = "</{$tag_name}>";
+			continue;
+		}
+
+		$chunks[] = $processor->get_raw_token();
+	}
+
+	return $chunks;
 }
 
 /**
