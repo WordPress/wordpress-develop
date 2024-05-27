@@ -69,5 +69,4 @@ abstract class Admin_WpUpgrader_TestCase extends WP_UnitTestCase {
 
 		parent::tear_down();
 	}
-
 }
