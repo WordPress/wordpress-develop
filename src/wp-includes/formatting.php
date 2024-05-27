@@ -605,21 +605,13 @@ function wpautop( $text, $br = true ) {
 }
 
 /**
- * Separates HTML elements and comments from the text.
+ * Returns a Tag Processor exposing the raw matched tokens.
  *
- * This function tokenizes an HTML document into its
- * components and returns the array of tokens.
- *
- * @since 4.2.4
- * @since 6.6.0 Relies on the HTML API for parsing.
- *
- * @param string $input_html Raw HTML potentially containing a mixture of tags,
- *                           comments, text nodes, and other sytnax.
- * @return string[]
+ * @param string $html Passed into the Tag Processor.
+ * @return WP_HTML_Tag_Processor|__anonymous@23567
  */
-function wp_html_split( $input_html ) {
-	$chunks    = array();
-	$processor = new class ( $input_html ) extends WP_HTML_Tag_Processor {
+function wp_get_internal_tag_processor( $html ) {
+	return new class( $html ) extends WP_HTML_Tag_Processor {
 		/**
 		 * Returns the raw token from the input string at the
 		 * current location, if paused at a location.
@@ -641,6 +633,24 @@ function wp_html_split( $input_html ) {
 			return substr( $this->html, $here->start, $here->length );
 		}
 	};
+}
+
+/**
+ * Separates HTML elements and comments from the text.
+ *
+ * This function tokenizes an HTML document into its
+ * components and returns the array of tokens.
+ *
+ * @since 4.2.4
+ * @since 6.6.0 Relies on the HTML API for parsing.
+ *
+ * @param string $input_html Raw HTML potentially containing a mixture of tags,
+ *                           comments, text nodes, and other sytnax.
+ * @return string[]
+ */
+function wp_html_split( $input_html ) {
+	$chunks    = array();
+	$processor = wp_get_internal_tag_processor( $input_html );
 
 	while ( $processor->next_token() ) {
 		$is_special_atomic_element = in_array(
@@ -651,11 +661,29 @@ function wp_html_split( $input_html ) {
 
 		// @todo Transfer everything properly.
 		if ( $is_special_atomic_element ) {
-			$raw_html = $processor->get_raw_token();
-			$tag_name = substr( $raw_html, 1, strlen( $processor->get_tag() ) );
-			$chunks[] = "<{$tag_name}>";
-			$chunks[] = $processor->get_modifiable_text();
-			$chunks[] = "</{$tag_name}>";
+			$raw_html    = $processor->get_raw_token();
+			$tag_name    = substr( $raw_html, 1, strlen( $processor->get_tag() ) );
+			$modified    = "<{$tag_name}" . substr( $raw_html, strlen( $tag_name ) + 1 );
+			$modified[1] = 'X';
+
+			$special = wp_get_internal_tag_processor( $modified );
+
+			// The first tag is the modified tag.
+			$special->next_tag();
+			$opening_tag    = $special->get_raw_token();
+			$opening_tag[1] = $tag_name[0];
+			$chunks[]       = $opening_tag;
+
+			$special->set_bookmark( 'last' );
+			while ( $special->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+				$special->set_bookmark( 'last' );
+			}
+			$special->seek( 'last' );
+			$closing_tag = $special->get_raw_token();
+
+			$chunks[] = substr( $raw_html, strlen( $opening_tag ), -strlen( $closing_tag ) );
+			$chunks[] = $closing_tag;
+
 			continue;
 		}
 
