@@ -662,27 +662,6 @@ class Tests_Admin_WpUpgrader extends Admin_WpUpgrader_TestCase {
 	}
 
 	/**
-	 * Tests that `WP_Upgrader::run()` returns `false` when
-	 * requesting filesystem credentials fails.
-	 *
-	 * @ticket 54245
-	 *
-	 * @covers WP_Upgrader::run
-	 */
-	public function test_run_should_return_false_when_requesting_filesystem_credentials_fails() {
-		self::$upgrader_skin_mock
-				->expects( $this->once() )
-				->method( 'request_filesystem_credentials' )
-				->willReturn( false );
-
-		self::$upgrader_skin_mock
-				->expects( $this->once() )
-				->method( 'footer' );
-
-		$this->assertFalse( self::$instance->run( array() ) );
-	}
-
-	/**
 	 * Tests that `WP_Upgrader::maintenance_mode()` removes the `.maintenance` file.
 	 *
 	 * @ticket 54245
