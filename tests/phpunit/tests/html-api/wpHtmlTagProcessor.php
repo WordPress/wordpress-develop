@@ -523,14 +523,28 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'DIV before text'               => array( '<div> text', 1, '<div>' ),
 			'DIV after comment'             => array( '<!-- comment --><div>', 2, '<div>' ),
 			'DIV before comment'            => array( '<div><!-- c --> ', 1, '<div>' ),
+			'Start "self-closing" tag'      => array( '<div />', 1, '<div />' ),
 
 			// Text
 			'Text'                          => array( 'Just text', 1, 'Just text' ),
 			'Text in DIV'                   => array( '<div>Text<div>', 2, 'Text' ),
-			'Text after DIV'                => array( 'Text<div>', 1, 'Text' ),
-			'Text before DIV'               => array( '<div>Text', 2, 'Text' ),
+			'Text before DIV'               => array( 'Text<div>', 1, 'Text' ),
+			'Text after DIV'                => array( '<div></div>Text', 3, 'Text' ),
 			'Text after comment'            => array( '<!-- comment -->Text', 2, 'Text' ),
 			'Text before comment'           => array( 'Text<!-- c --> ', 1, 'Text' ),
+
+			// Comments
+			'Comment'                       => array( '<!-- comment -->', 1, '<!-- comment -->' ),
+			'Comment in DIV'                => array( '<div><!-- comment --><div>', 2, '<!-- comment -->' ),
+			'Comment before DIV'            => array( '<!-- comment --><div>', 1, '<!-- comment -->' ),
+			'Comment after DIV'             => array( '<div></div><!-- comment -->', 3, '<!-- comment -->' ),
+			'Comment after comment'         => array( '<!-- comment --><!-- comment -->', 2, '<!-- comment -->' ),
+			'Comment before comment'        => array( '<!-- comment --><!-- c --> ', 1, '<!-- comment -->' ),
+			'Abruptly closed comment'       => array( '<!-->', 1, '<!-->' ),
+			'Empty comment'                 => array( '<!---->', 1, '<!---->' ),
+			'Funky comment'                 => array( '</_ funk >', 1, '</_ funk >' ),
+			'PI comment'                    => array( '<?processing instruction?>', 1, '<?processing instruction?>' ),
+			'CDATA comment'                 => array( '<![CDATA[ see? data ]]>', 1, '<![CDATA[ see? data ]]>' ),
 		);
 	}
 
