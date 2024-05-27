@@ -552,6 +552,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'Void tag w/self-closing flag'  => array( '<img src="img.png" />', 1, '<img src="png" />' ),
 			'Void tag inside DIV'           => array( '<div><img src="img.png"></div>', 2, '<img src="png">' ),
 
+			// Special atomic tags.
+			'SCRIPT tag'                    => array( '<script>inside text</script>', 1, '<script>inside text</script>' ),
+			'SCRIPT double-escape'          => array( '<script><!-- <script> echo "</script>"; </script><div>', 1, '<script><!-- <script> echo "</script>"; </script>' ),
+
 			// Text.
 			'Text'                          => array( 'Just text', 1, 'Just text' ),
 			'Text in DIV'                   => array( '<div>Text<div>', 2, 'Text' ),
