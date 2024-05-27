@@ -484,40 +484,53 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @dataProvider data_tag_start_length
 	 *
 	 * @param string $html
-	 * @param int $start
-	 * @param int $length
+	 * @param string $match_class
+	 * @param string $expected_match
 	 */
-	public function test_tag_start_length( string $html, int $start, int $length ) {
-		$processor = new WP_HTML_Tag_Processor( $html );
+	public function test_tag_start_length( string $html, int $match_nth_token, string $expected_match ) {
+		$processor = new class( $html ) extends WP_HTML_Tag_Processor {
+			public function get_token_string() {
+				$this->set_bookmark( 'mark' );
+				$mark = $this->bookmarks['mark'];
 
-		$processor->next_tag( array( 'class_name' => 'target' ) );
+				return substr( $this->html, $mark->start, $mark->length );
+			}
+		};
 
-		$start_property = new ReflectionProperty( $processor, 'token_starts_at' );
-		$start_property->setAccessible( true );
-		$tag_start = $start_property->getValue( $processor );
+		for ( $i = 0; $i < $match_nth_token; $i++ ) {
+			$processor->next_token(); }
 
-		$length_property = new ReflectionProperty( $processor, 'token_length' );
-		$length_property->setAccessible( true );
-		$tag_length = $length_property->getValue( $processor );
+		$found = $processor->get_token_string();
 
-		$this->assertSame( $start, $tag_start, "Incorrect tag start position found: {$tag_start}." );
-		$this->assertSame( $length, $tag_length, "Incorrect tag length found: {$tag_length}." );
+		$this->assertSame( $expected_match, $found, "Incorrect token found: {$found}." );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array<array<string>>
 	 */
 	public static function data_tag_start_length() {
 		return array(
-			'Simple DIV'          => array( '<div class="target">', 0, 20 ),
-			'DIV with attributes' => array( '<div class="target" disabled>', 0, 29 ),
-			'Nested DIV'          => array( '<div><div class="target">', 5, 20 ),
-			'DIV after text'      => array( 'Initial <div class="target">', 8, 20 ),
-			'DIV after comment'   => array( '<!-- comment --> <div class="target">', 17, 20 ),
-			'DIV before text'     => array( '<div class="target"> Trailing', 0, 20 ),
-			'DIV before comment'  => array( '<div class="target"><!-- comment --> ', 0, 20 ),
+			// Tags
+			'DIV start tag'                 => array( '<div>', 1, '<div>' ),
+			'DIV start tag with attributes' => array( '<div class="x" disabled>', 1, '<div class="x" disabled>' ),
+			'DIV end tag'                   => array( '</div>', 1, '</div>' ),
+			'DIV end tag with attributes'   => array( '</div class="x" disabled>', 1, '</div class="x" disabled>' ),
+			'Nested DIV'                    => array( '<div><div b>', 2, '<div b>' ),
+			'Sibling DIV'                   => array( '<div></div><div b>', 3, '<div b>' ),
+			'DIV after text'                => array( 'text <div>', 2, '<div>' ),
+			'DIV before text'               => array( '<div> text', 1, '<div>' ),
+			'DIV after comment'             => array( '<!-- comment --><div>', 2, '<div>' ),
+			'DIV before comment'            => array( '<div><!-- c --> ', 1, '<div>' ),
+
+			// Text
+			'Text'                          => array( 'Just text', 1, 'Just text' ),
+			'Text in DIV'                   => array( '<div>Text<div>', 2, 'Text' ),
+			'Text after DIV'                => array( 'Text<div>', 1, 'Text' ),
+			'Text before DIV'               => array( '<div>Text', 2, 'Text' ),
+			'Text after comment'            => array( '<!-- comment -->Text', 2, 'Text' ),
+			'Text before comment'           => array( 'Text<!-- c --> ', 1, 'Text' ),
 		);
 	}
 
