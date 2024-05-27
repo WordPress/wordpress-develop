@@ -477,17 +477,17 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that tags start and length are correctly determined.
+	 * Ensures that bookmarks start and langth correctly describe a given token in HTML.
 	 *
 	 * @ticket 61301
 	 *
-	 * @dataProvider data_tag_start_length
+	 * @dataProvider data_html_nth_token_substring
 	 *
-	 * @param string $html
-	 * @param string $match_class
-	 * @param string $expected_match
+	 * @param string $html            Input HTML.
+	 * @param string $match_nth_token The number of times to call ::match_token.
+	 * @param string $expected_match  The expected HTML at the matched token.
 	 */
-	public function test_tag_start_length( string $html, int $match_nth_token, string $expected_match ) {
+	public function test_token_bookmark_span( string $html, int $match_nth_token, string $expected_match ) {
 		$processor = new class( $html ) extends WP_HTML_Tag_Processor {
 			public function get_token_string() {
 				$this->set_bookmark( 'mark' );
@@ -508,9 +508,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<array<string>>
+	 * @return array
 	 */
-	public static function data_tag_start_length() {
+	public static function data_html_nth_token_substring() {
 		return array(
 			// Tags
 			'DIV start tag'                 => array( '<div>', 1, '<div>' ),
