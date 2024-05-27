@@ -655,6 +655,16 @@ function wp_html_split( $input_html ) {
 	$processor = wp_get_internal_tag_processor( $input_html );
 
 	while ( $processor->next_token() ) {
+		/*
+		 * There's a legacy behavior where text nodes are always stored in even
+		 * indices and "elements" are stored in odd indices. To preserve this,
+		 * empty text nodes are inserted when there's none between other syntax
+		 * tokens.
+		 */
+		if ( 0 === count( $chunks ) % 2 && '#text' !== $processor->get_token_name() ) {
+			$chunks[] = '';
+		}
+
 		$is_special_atomic_element = in_array(
 			$processor->get_tag(),
 			array( 'SCRIPT', 'STYLE', 'XMP', 'NOEMBED', 'NOFRAMES', 'TITLE', 'TEXTAREA' ),
