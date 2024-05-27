@@ -11,9 +11,12 @@ Author: Matt Mullenweg
 Version: 1.7.2
 Author URI: http://ma.tt/
 */
+
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	die( '-1' );
 }
+
 function hello_dolly_get_lyric() {
 	/** These are the lyrics to Hello Dolly */
 	$lyrics = "Hello, Dolly
