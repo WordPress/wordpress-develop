@@ -477,19 +477,34 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that bookmarks start and langth correctly describe a given token in HTML.
+	 * Ensures that bookmarks start and length correctly describe a given token in HTML.
 	 *
 	 * @ticket 61301
 	 *
 	 * @dataProvider data_html_nth_token_substring
 	 *
 	 * @param string $html            Input HTML.
-	 * @param string $match_nth_token The number of times to call ::match_token.
-	 * @param string $expected_match  The expected HTML at the matched token.
+	 * @param int    $match_nth_token Which token to inspect from input HTML.
+	 * @param string $expected_match  Expected full raw token bookmark should capture.
 	 */
 	public function test_token_bookmark_span( string $html, int $match_nth_token, string $expected_match ) {
 		$processor = new class( $html ) extends WP_HTML_Tag_Processor {
-			public function get_token_string() {
+			/**
+			 * Returns the raw span of HTML for the currently-matched
+			 * token, or null if not paused on any token.
+			 *
+			 * @return string|null Raw HTML content of currently-matched token,
+			 *                     otherwise `null` if not matched.
+			 */
+			public function get_raw_token() {
+				if (
+					WP_HTML_Tag_Processor::STATE_READY === $this->parser_state ||
+					WP_HTML_Tag_Processor::STATE_INCOMPLETE_INPUT === $this->parser_state ||
+					WP_HTML_Tag_Processor::STATE_COMPLETE === $this->parser_state
+				) {
+					return null;
+				}
+
 				$this->set_bookmark( 'mark' );
 				$mark = $this->bookmarks['mark'];
 
@@ -498,11 +513,20 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		};
 
 		for ( $i = 0; $i < $match_nth_token; $i++ ) {
-			$processor->next_token(); }
+			$processor->next_token();
+		}
 
-		$found = $processor->get_token_string();
+		$raw_token = $processor->get_raw_token();
+		$this->assertIsString(
+			$raw_token,
+			"Failed to find raw token at position {$match_nth_token}: check test data provider."
+		);
 
-		$this->assertSame( $expected_match, $found, "Incorrect token found: {$found}." );
+		$this->assertSame(
+			$expected_match,
+			$raw_token,
+			'Bookmarked wrong span of text for full matched token.'
+		);
 	}
 
 	/**
@@ -512,7 +536,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 */
 	public static function data_html_nth_token_substring() {
 		return array(
-			// Tags
+			// Tags.
 			'DIV start tag'                 => array( '<div>', 1, '<div>' ),
 			'DIV start tag with attributes' => array( '<div class="x" disabled>', 1, '<div class="x" disabled>' ),
 			'DIV end tag'                   => array( '</div>', 1, '</div>' ),
@@ -525,7 +549,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'DIV before comment'            => array( '<div><!-- c --> ', 1, '<div>' ),
 			'Start "self-closing" tag'      => array( '<div />', 1, '<div />' ),
 
-			// Text
+			// Text.
 			'Text'                          => array( 'Just text', 1, 'Just text' ),
 			'Text in DIV'                   => array( '<div>Text<div>', 2, 'Text' ),
 			'Text before DIV'               => array( 'Text<div>', 1, 'Text' ),
@@ -533,7 +557,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'Text after comment'            => array( '<!-- comment -->Text', 2, 'Text' ),
 			'Text before comment'           => array( 'Text<!-- c --> ', 1, 'Text' ),
 
-			// Comments
+			// Comments.
 			'Comment'                       => array( '<!-- comment -->', 1, '<!-- comment -->' ),
 			'Comment in DIV'                => array( '<div><!-- comment --><div>', 2, '<!-- comment -->' ),
 			'Comment before DIV'            => array( '<!-- comment --><div>', 1, '<!-- comment -->' ),
@@ -543,8 +567,8 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'Abruptly closed comment'       => array( '<!-->', 1, '<!-->' ),
 			'Empty comment'                 => array( '<!---->', 1, '<!---->' ),
 			'Funky comment'                 => array( '</_ funk >', 1, '</_ funk >' ),
-			'PI comment'                    => array( '<?processing instruction?>', 1, '<?processing instruction?>' ),
-			'CDATA comment'                 => array( '<![CDATA[ see? data ]]>', 1, '<![CDATA[ see? data ]]>' ),
+			'PI lookalike comment'          => array( '<?processing instruction?>', 1, '<?processing instruction?>' ),
+			'CDATA lookalike comment'       => array( '<![CDATA[ see? data ]]>', 1, '<![CDATA[ see? data ]]>' ),
 		);
 	}
 
