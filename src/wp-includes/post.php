@@ -328,6 +328,7 @@ function create_initial_post_types() {
 			'map_meta_cap'          => true,
 			'supports'              => array(
 				'title',
+				'excerpt',
 				'editor',
 				'revisions',
 				'custom-fields',
@@ -1219,7 +1220,10 @@ function get_post_mime_type( $post = null ) {
  * @return string|false Post status on success, false on failure.
  */
 function get_post_status( $post = null ) {
-	$post = get_post( $post );
+	// Normalize the post object if necessary, skip normalization if called from get_sample_permalink().
+	if ( ! $post instanceof WP_Post || ! isset( $post->filter ) || 'sample' !== $post->filter ) {
+		$post = get_post( $post );
+	}
 
 	if ( ! is_object( $post ) ) {
 		return false;
@@ -7932,9 +7936,9 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 /**
  * Prime the cache containing the parent ID of various post objects.
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @since 6.4.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int[] $ids ID list.
  */
