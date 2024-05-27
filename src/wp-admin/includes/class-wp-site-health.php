@@ -2593,7 +2593,7 @@ class WP_Site_Health {
 	 *
 	 * @return int autoloaded data in bytes.
 	 */
-	public function wp_autoloaded_options_size(): int {
+	public function get_autoloaded_options_size(): int {
 		$alloptions = wp_load_alloptions();
 
 		$total_length = 0;
@@ -2610,10 +2610,10 @@ class WP_Site_Health {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @return array{label: string, status: string, badge: array{label: string, color: string}, description: string, actions: string, test: string} The test results.
+	 * @return array The test results.
 	 */
 	public function get_test_autoloaded_options() {
-		$autoloaded_options_size  = $this->wp_autoloaded_options_size();
+		$autoloaded_options_size  = $this->get_autoloaded_options_size();
 		$autoloaded_options_count = count( wp_load_alloptions() );
 
 		$base_description = __( 'Autoloaded options are configuration settings for plugins and themes that are automatically loaded with every page load in WordPress. Having too many autoloaded options can slow down your site.' );
@@ -2642,7 +2642,7 @@ class WP_Site_Health {
 		 *
 		 * @param int $limit Autoloaded options threshold size. Default 800000.
 		 */
-		$limit = apply_filters( 'wp_autoloaded_options_limit_size_in_bytes', 800000 );
+		$limit = apply_filters( 'site_status_autoloaded_options_size_limit', 800000 );
 
 		if ( $autoloaded_options_size < $limit ) {
 			return $result;
