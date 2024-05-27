@@ -1576,6 +1576,13 @@
 			};
 		},
 
+		/**
+		 * initAccessibility( )
+		 * 
+		 * set up initial state of accessibility for menu items.
+		 *
+		 * @since 6.6.0
+		 */
 		initAccessibility: function() {
 			var control = this,
 				menu = $( '#menu-to-edit' );
@@ -1591,6 +1598,16 @@
 			} );
 		},
 
+		/**
+		 * refreshAdvancedAccessibilityOfItem( [itemToRefresh] )
+		 *
+		 * Refreshes advanced accessibility buttons for one menu item.
+		 * Shows or hides buttons based on the location of the menu item.
+		 *
+		 * @param {Object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed
+		 * 
+		 * @since 6.6.0
+		 */
 		refreshAdvancedAccessibilityOfItem: function( itemToRefresh ) {
 
 			// Only refresh accessibility when necessary.
