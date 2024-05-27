@@ -309,23 +309,33 @@ function wp_add_global_styles_for_blocks() {
 
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 	if ( $can_use_cached ) {
-		$settings_hash = _wp_get_global_settings_hash();
-		$cache_key     = 'wp_styles_for_blocks';
-		$cached        = get_site_transient( $cache_key );
+		$hash = md5(
+			wp_json_encode(
+				array(
+					'global_setting' => wp_get_global_settings(),
+					'block_nodes'    => $block_nodes,
+				)
+			)
+		);
+
+		$cache_key = "wp_styles_for_blocks:$hash";
+		$cached    = get_site_transient( $cache_key );
 		if ( ! is_array( $cached ) ) {
 			$cached = array();
 		}
 	}
 
+	$update_cache = false;
+
 	foreach ( $block_nodes as $metadata ) {
 		if ( $can_use_cached ) {
-			$metadata_hash   = md5( wp_json_encode( $metadata ) );
-			$style_cache_key = $settings_hash . '_' . $metadata_hash;
-			if ( isset( $cached[ $style_cache_key ] ) ) {
-				$block_css = $cached[ $style_cache_key ];
+			$block_name = str_replace( '/', '-', $metadata['name'] );
+			if ( isset( $cached[ $block_name ] ) ) {
+				$block_css = $cached[ $block_name ];
 			} else {
-				$block_css                  = $tree->get_styles_for_block( $metadata );
-				$cached[ $style_cache_key ] = $block_css;
+				$block_css             = $tree->get_styles_for_block( $metadata );
+				$cached[ $block_name ] = $block_css;
+				$update_cache          = true;
 			}
 		} else {
 			$block_css = $tree->get_styles_for_block( $metadata );
@@ -376,7 +386,7 @@ function wp_add_global_styles_for_blocks() {
 		}
 	}
 
-	if ( $can_use_cached ) {
+	if ( $update_cache ) {
 		set_site_transient( $cache_key, $cached, HOUR_IN_SECONDS );
 	}
 }
@@ -475,9 +485,7 @@ function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
 	wp_cache_delete( 'wp_get_theme_data_template_parts', 'theme_json' );
-	wp_cache_delete( 'wp_get_global_settings_hash', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
-	delete_site_transient( 'wp_styles_for_blocks' );
 }
 
 /**
@@ -638,25 +646,4 @@ function wp_get_block_css_selector( $block_type, $target = 'root', $fallback = f
 	}
 
 	return null;
-}
-
-/**
- * Gets the hash of the global settings.
- *
- * @since 6.6.0
- * @access private
- *
- * @return string The hash of the global settings.
- */
-function _wp_get_global_settings_hash() {
-	$cache_group = 'theme_json';
-	$cache_key   = 'wp_get_global_settings_hash';
-	$cache       = wp_cache_get( $cache_key, $cache_group );
-	if ( $cache ) {
-		return $cache;
-	}
-
-	$hash = md5( wp_json_encode( wp_get_global_settings() ) );
-	wp_cache_set( $cache_key, $hash, $cache_group );
-	return $hash;
 }
