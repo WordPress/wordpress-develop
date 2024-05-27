@@ -607,6 +607,8 @@ function wpautop( $text, $br = true ) {
 /**
  * Returns a Tag Processor exposing the raw matched tokens.
  *
+ * @since 6.6.0
+ *
  * @param string $html Passed into the Tag Processor.
  * @return WP_HTML_Tag_Processor|__anonymous@23567
  */
@@ -659,35 +661,46 @@ function wp_html_split( $input_html ) {
 			true
 		);
 
-		// @todo Transfer everything properly.
-		if ( $is_special_atomic_element ) {
-			$raw_html    = $processor->get_raw_token();
-			$tag_name    = substr( $raw_html, 1, strlen( $processor->get_tag() ) );
-			$modified    = "<{$tag_name}" . substr( $raw_html, strlen( $tag_name ) + 1 );
-			$modified[1] = 'X';
-
-			$special = wp_get_internal_tag_processor( $modified );
-
-			// The first tag is the modified tag.
-			$special->next_tag();
-			$opening_tag    = $special->get_raw_token();
-			$opening_tag[1] = $tag_name[0];
-			$chunks[]       = $opening_tag;
-
-			$special->set_bookmark( 'last' );
-			while ( $special->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
-				$special->set_bookmark( 'last' );
-			}
-			$special->seek( 'last' );
-			$closing_tag = $special->get_raw_token();
-
-			$chunks[] = substr( $raw_html, strlen( $opening_tag ), -strlen( $closing_tag ) );
-			$chunks[] = $closing_tag;
-
+		if ( ! $is_special_atomic_element ) {
+			$chunks[] = $processor->get_raw_token();
 			continue;
 		}
 
-		$chunks[] = $processor->get_raw_token();
+		/*
+		 * For special atomic tags, it's necessary to redo some work to find
+		 * the opening and closing tag, because the Tag Processor consumes
+		 * them all in one go.
+		 *
+		 * By replacing the first character of the tag name, it's possible to
+		 * trick the Tag Processor into thinking it's non-special content, and
+		 * then get the starting and ending tags, then restore the tag name at
+		 * the end.
+		 *
+		 * Because the end tag for these special atomic elements are matched
+		 * if they are unexpected, then the final closing tag will be found
+		 * after renaming the opening.
+		 */
+
+		$raw_html    = $processor->get_raw_token();
+		$first_char  = $raw_html[1];
+		$raw_html[1] = 'X';
+		$special     = wp_get_internal_tag_processor( $raw_html );
+
+		// The first tag is the modified tag.
+		$special->next_tag();
+		$opening_tag    = $special->get_raw_token();
+		$opening_tag[1] = $first_char;
+		$chunks[]       = $opening_tag;
+
+		$special->set_bookmark( 'last' );
+		while ( $special->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+			$special->set_bookmark( 'last' );
+		}
+		$special->seek( 'last' );
+		$closing_tag = $special->get_raw_token();
+
+		$chunks[] = substr( $raw_html, strlen( $opening_tag ), -strlen( $closing_tag ) );
+		$chunks[] = $closing_tag;
 	}
 
 	return $chunks;
