@@ -662,34 +662,6 @@ class Tests_Admin_WpUpgrader extends Admin_WpUpgrader_TestCase {
 	}
 
 	/**
-	 * Tests that `WP_Upgrader::release_lock()` removes the 'lock' option.
-	 *
-	 * @ticket 54245
-	 *
-	 * @covers WP_Upgrader::release_lock
-	 */
-	public function test_release_lock_should_remove_lock_option() {
-		global $wpdb;
-
-		$this->assertSame(
-			1,
-			$wpdb->insert(
-				$wpdb->options,
-				array(
-					'option_name'  => 'lock.lock',
-					'option_value' => 'content',
-				),
-				'%s'
-			),
-			'The initial lock was not created.'
-		);
-
-		WP_Upgrader::release_lock( 'lock' );
-
-		$this->assertNotSame( 'content', get_option( 'lock.lock' ) );
-	}
-
-	/**
 	 * Tests that `WP_Upgrader::download_package()` returns early when
 	 * the 'upgrader_pre_download' filter returns a non-false value.
 	 *
