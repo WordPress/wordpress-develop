@@ -397,7 +397,10 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * Ensure that setting a subdirectory on font uploads stores and deletes files as expected.
+	 *
 	 * @ticket 61297
+	 *
 	 * @covers WP_REST_Font_Faces_Controller::create_item
 	 */
 	public function test_create_item_sub_dir() {
