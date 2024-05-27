@@ -4,7 +4,7 @@
  * @group option
  * @group transient
  *
- * @covers ::valid_transient
+ * @covers ::is_valid_transient
  */
 class Tests_Option_ValidTransient extends WP_UnitTestCase {
 
@@ -17,11 +17,11 @@ class Tests_Option_ValidTransient extends WP_UnitTestCase {
 
 		set_transient( $transient_name, $transient_value, 10 );
 
-		$this->assertTrue( valid_transient( $transient_name ) );
+		$this->assertTrue( is_valid_transient( $transient_name ) );
 
 		update_option( '_transient_timeout_' . $transient_name, time() - 10 );
 
-		$this->assertFalse( valid_transient( $transient_name ) );
+		$this->assertFalse( is_valid_transient( $transient_name ) );
 	}
 
 	/**
@@ -32,7 +32,7 @@ class Tests_Option_ValidTransient extends WP_UnitTestCase {
 		$transient_value = 'transient_value';
 
 		set_transient( $transient_name, $transient_value );
-		$this->assertTrue( valid_transient( $transient_name ) );
+		$this->assertTrue( is_valid_transient( $transient_name ) );
 	}
 
 	/**
@@ -41,6 +41,6 @@ class Tests_Option_ValidTransient extends WP_UnitTestCase {
 	public function test_valid_transient_with_no_transient() {
 		$transient_name = 'valid_transient_with_no_transient';
 
-		$this->assertFalse( valid_transient( $transient_name ) );
+		$this->assertFalse( is_valid_transient( $transient_name ) );
 	}
 }

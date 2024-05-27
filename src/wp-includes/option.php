@@ -1391,13 +1391,12 @@ function delete_transient( $transient ) {
  * If the transient does not exist, does not have a value, or has expired,
  * then the return value will be false.
  *
- * @param string $transient Transient name. Expected to not be SQL-escaped.
- *
- * @return bool
  * @since 4.7.0
  *
+ * @param string $transient Transient name. Expected to not be SQL-escaped.
+ * @return bool
  */
-function valid_transient( $transient ) {
+function is_valid_transient($transient ) {
 	$transient_option  = '_transient_' . $transient;
 	$transient_timeout = '_transient_timeout_' . $transient;
 
@@ -1462,7 +1461,7 @@ function get_transient( $transient ) {
 			// If option is not in alloptions, it is not autoloaded and thus has a timeout.
 			$alloptions = wp_load_alloptions();
 
-			if ( ! isset( $alloptions[ $transient_option ] ) && ! valid_transient( $transient ) ) {
+			if ( ! isset( $alloptions[ $transient_option ] ) && ! is_valid_transient( $transient ) ) {
 				$value = false;
 			}
 		}
@@ -2505,10 +2504,9 @@ function delete_site_transient( $transient ) {
 * @since 4.7.0
 *
 * @param string $transient Transient name. Expected to not be SQL-escaped.
-*
 * @return bool
 */
-function valid_site_transient( $transient ) {
+function is_valid_site_transient($transient ) {
 	$transient_option  = '_site_transient_' . $transient;
 	$transient_timeout = '_site_transient_timeout_' . $transient;
 
@@ -2571,7 +2569,7 @@ function get_site_transient( $transient ) {
 	} else {
 		// Core transients that do not have a timeout. Listed here so querying timeouts can be avoided.
 		$no_timeout       = array( 'update_core', 'update_plugins', 'update_themes' );
-		if ( ! in_array( $transient, $no_timeout, true ) && ! valid_site_transient( $transient ) ) {
+		if ( ! in_array( $transient, $no_timeout, true ) && ! is_valid_site_transient( $transient ) ) {
 				$value = false;
 		}
 
