@@ -339,15 +339,15 @@ if ( current_user_can( 'promote_users' ) && apply_filters( 'show_network_site_us
 
 <?php
 /**
- * Filters whether to show the Add New User form on the Multisite Users screen.
+ * Filters whether to show the Add User form on the Multisite Users screen.
  *
  * @since 3.1.0
  *
- * @param bool $bool Whether to show the Add New User form. Default true.
+ * @param bool $bool Whether to show the Add User form. Default true.
  */
 if ( current_user_can( 'create_users' ) && apply_filters( 'show_network_site_users_add_new_form', true ) ) :
 	?>
-<h2 id="add-new-user"><?php _e( 'Add New User' ); ?></h2>
+<h2 id="add-new-user"><?php _e( 'Add User' ); ?></h2>
 <form action="<?php echo esc_url( network_admin_url( 'site-users.php?action=newuser' ) ); ?>" id="newuser" method="post">
 	<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
 	<table class="form-table" role="presentation">
@@ -374,7 +374,7 @@ if ( current_user_can( 'create_users' ) && apply_filters( 'show_network_site_use
 		</tr>
 	</table>
 	<?php wp_nonce_field( 'add-user', '_wpnonce_add-new-user' ); ?>
-	<?php submit_button( __( 'Add New User' ), 'primary', 'add-user', true, array( 'id' => 'submit-add-user' ) ); ?>
+	<?php submit_button( __( 'Add User' ), 'primary', 'add-user', true, array( 'id' => 'submit-add-user' ) ); ?>
 </form>
 <?php endif; ?>
 </div>
