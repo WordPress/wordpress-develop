@@ -548,6 +548,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'DIV after comment'             => array( '<!-- comment --><div>', 2, '<div>' ),
 			'DIV before comment'            => array( '<div><!-- c --> ', 1, '<div>' ),
 			'Start "self-closing" tag'      => array( '<div />', 1, '<div />' ),
+			'Void tag'                      => array( '<img src="img.png">', 1, '<img src="png">' ),
+			'Void tag w/self-closing flag'  => array( '<img src="img.png" />', 1, '<img src="png" />' ),
+			'Void tag inside DIV'           => array( '<div><img src="img.png"></div>', 2, '<img src="png">' ),
 
 			// Text.
 			'Text'                          => array( 'Just text', 1, 'Just text' ),
