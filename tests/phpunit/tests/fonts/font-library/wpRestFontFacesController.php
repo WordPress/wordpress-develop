@@ -397,6 +397,70 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * @ticket 61297
+	 * @covers WP_REST_Font_Faces_Controller::create_item
+	 */
+	public function test_create_item_sub_dir() {
+		wp_set_current_user( self::$admin_id );
+		add_filter(
+			'font_dir',
+			function ( $font_dir ) {
+				$subdir             = '/subdir';
+				$font_dir['subdir'] = $subdir;
+				$font_dir['path']  .= $subdir;
+				$font_dir['url']   .= $subdir;
+				return $font_dir;
+			}
+		);
+
+		$files = $this->setup_font_file_upload( array( 'woff2' ) );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/font-families/' . self::$font_family_id . '/font-faces' );
+		$request->set_param( 'theme_json_version', WP_REST_Font_Faces_Controller::LATEST_THEME_JSON_VERSION_SUPPORTED );
+		$request->set_param(
+			'font_face_settings',
+			wp_json_encode(
+				array(
+					'fontFamily' => '"Open Sans"',
+					'fontWeight' => '200',
+					'fontStyle'  => 'normal',
+					'src'        => array_keys( $files )[0],
+				)
+			)
+		);
+		$request->set_file_params( $files );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status(), 'The response status should be 201.' );
+		$this->check_font_face_data( $data, $data['id'], $response->get_links() );
+		$this->check_file_meta( $data['id'], array( $data['font_face_settings']['src'] ) );
+
+		$settings = $data['font_face_settings'];
+		unset( $settings['src'] );
+		$this->assertSame(
+			array(
+				'fontFamily' => '"Open Sans"',
+				'fontWeight' => '200',
+				'fontStyle'  => 'normal',
+			),
+			$settings,
+			'The font_face_settings data should match the expected data.'
+		);
+
+		$expected_file_path = WP_CONTENT_DIR . '/uploads/fonts/subdir/' . reset( $files )['name'];
+		$expected_post_meta = 'subdir/' . reset( $files )['name'];
+		$this->assertFileExists( $expected_file_path, 'The font file should exist in the expected subdirectory.' );
+		$this->assertSame( $expected_post_meta, get_post_meta( $data['id'], '_wp_font_face_file', true ), 'The post meta should match the expected subdirectory.' );
+		$this->assertSame( self::$font_family_id, $data['parent'], 'The returned parent id should match the font family id.' );
+
+		// Delete the post.
+		wp_delete_post( $data['id'], true );
+		$this->assertFileDoesNotExist( $expected_file_path, 'The font file should have been deleted when the post was deleted.' );
+	}
+
+	/**
 	 * @covers WP_REST_Font_Faces_Controller::create_item
 	 */
 	public function test_create_item_with_multiple_font_files() {
