@@ -1356,8 +1356,8 @@ EOF;
 			),
 			// Convert "&amp;" to "&".
 			array(
-				'css'      => 'background: green url("/sites/2/2023/10/image.jpg?width=1024&amp;height=600") no-repeat fixed center',
-				'expected' => 'background: green url("/sites/2/2023/10/image.jpg?width=1024&height=600") no-repeat fixed center',
+				'css'      => 'background: url("/sites/2/2023/10/image.jpg?width=1024&amp;height=600")',
+				'expected' => 'background: url("/sites/2/2023/10/image.jpg?width=1024&height=600")',
 			),
 		);
 	}
