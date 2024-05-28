@@ -1765,28 +1765,15 @@
 					control.moveDown();
 				} else if ( isMoveLeft ) {
 					control.moveLeft();
-					if ( 1 === control.params.depth ) {
-						control.container.find( '.is-submenu' ).hide();
-						title = menus.menuFocus.replace( '%1$s', control.params.label ).replace( '%2$s', control.params.item_type_label );
-					} else {
-						control.container.find( '.is-submenu' ).show();
-						title = menus.subMenuFocus.replace( '%1$s', control.params.label ).replace( '%2$s', control.params.item_type_label ).replace( '%3$d', control.params.depth );
-					}
 				} else if ( isMoveRight ) {
 					control.moveRight();
 					control.params.depth += 1;
-					if ( 0 === control.params.depth ) {
-						control.container.find( '.is-submenu' ).hide();
-						title = menus.menuFocus.replace( '%1$s', control.params.label ).replace( '%2$s', control.params.item_type_label );
-					} else {
-						control.container.find( '.is-submenu' ).show();
-						title = menus.subMenuFocus.replace( '%1$s', control.params.label ).replace( '%2$s', control.params.item_type_label ).replace( '%3$d', control.params.depth );
-					}
 				}
-
-				control.container.find( '.screen-reader-text' ).text( title );
-
+				
 				moveBtn.focus(); // Re-focus after the container was moved.
+
+				// Mark all menu items as unprocessed.
+				$( 'button.item-edit' ).data( 'needs_accessibility_refresh', true );
 			} );
 		},
 
@@ -2818,6 +2805,9 @@
 
 						menuItemControl.setting.set( setting );
 					});
+
+					// Mark all menu items as unprocessed.
+					$( 'button.item-edit' ).data( 'needs_accessibility_refresh', true );
 				});
 
 			});
