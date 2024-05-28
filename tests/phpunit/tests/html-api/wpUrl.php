@@ -38,6 +38,9 @@ class Tests_HtmlApi_WpUrl extends WP_UnitTestCase {
 			'Invalid scheme'        => array( 'sip://123.456.789.0' ),
 			'Missing scheme-suffix' => array( 'http:path' ),
 			'Broken scheme-suffix'  => array( 'http:/path' ),
+			'Non-ASCII hostname'    => array( 'https://going-to-🌕.com' ),
+			'Missing port number'   => array( 'http://domain:' ),
+			'Too-high port number'  => array( 'http://domain:135481' ),
 		);
 	}
 }

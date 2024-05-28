@@ -87,7 +87,7 @@ class WP_URL {
 
 			// Validate that `://` follows the scheme.
 			$at = $scheme_length + 1;
-			if ( '/' !== $raw_url[ $at ] && '/' !== $raw_url[ $at + 1 ] ) {
+			if ( '/' !== $raw_url[ $at ] || '/' !== $raw_url[ $at + 1 ] ) {
 				return null;
 			}
 			$at += 2;
@@ -95,9 +95,53 @@ class WP_URL {
 			// @todo Detect username and password authentication.
 
 			// @todo Validate domain characters.
-			$domain_length = strspn( $raw_url, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-.', $at );
-			if ( 0 === $domain_length ) {
+			$host_at     = $at + 2;
+			$host_length = strspn( $raw_url, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-.', $host_at );
+			if ( 0 === $host_length ) {
 				return null;
+			}
+
+			// Did that end the full host part?
+			$after_host = $host_at + $host_length;
+			if ( strlen( $raw_url ) === $after_host ) {
+				return $url;
+			}
+
+			$after_host_char = $raw_url[ $after_host ];
+			// Is there a port?
+			if ( ':' === $after_host_char ) {
+				$port_at     = $after_host + 1;
+				$port_zeros  = strspn( $raw_url, '0', $port_at );
+				$port_length = strspn( $raw_url, '0123456789', $port_at + $port_zeros );
+
+				// Max port is 65535.
+				if ( 0 === $port_length || $port_length > 5 ) {
+					return null;
+				}
+
+				$port_number = intval( substr( $raw_url, $port_at + $port_zeros, $port_length ), 10 );
+				if ( $port_number > 65535 ) {
+					return null;
+				}
+
+				$url->port = $port_number;
+			} elseif (
+
+				/*
+				 * If not followed by the next part of the URL, it's
+				 * still the host and contains invalid characters.
+				 */
+				'/' !== $after_host_char &&
+				'?' !== $after_host_char &&
+				'#' !== $after_host_char
+			) {
+				return null;
+			}
+
+			// Everything to here must be the host part.
+			$host = substr( $raw_url, $host_at, $host_length );
+			if ( 'x' === $host[0] && 'n' === $host[1] && '-' === $host[2] && '-' === $host[3] ) {
+				$host = self::decode_punycode( $host );
 			}
 		}
 
@@ -113,8 +157,22 @@ class WP_URL {
 		$this->base_url = $base_url;
 	}
 
-	public function is_valid() {
-
+	/**
+	 * Decodes punycode-encoded string.
+	 *
+	 * Example:
+	 *
+	 *     'ok' === WP_URL::decode_punycode( 'ok' );
+	 *     '😅' === WP_URL::decode_punycode( 'xn--i28h' );
+	 *     null === WP_URL::decode_punycode( 'xn--i28hz' );
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $encoded punycode-encoded string.
+	 * @return string|null Decoded string, if valid, otherwise `null`.
+	 */
+	public static function decode_punycode( $encoded ) {
+		
 	}
 
 	// Constants that would pollute the top of the class.
