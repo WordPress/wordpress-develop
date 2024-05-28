@@ -1615,7 +1615,7 @@
 				return;
 			}
 
-			var thisLink, thisLinkText, primaryItems, itemPosition, title,
+			var primaryItems, itemPosition, title,
 				parentItem, parentItemId, parentItemName, subItems, totalSubItems,
 				$this = $( itemToRefresh ),
 				menuItem = $this.closest( 'li.menu-item' ).first(),
@@ -1623,12 +1623,9 @@
 				isPrimaryMenuItem = ( 0 === depth ),
 				itemName = $this.closest( '.menu-item-handle' ).find( '.menu-item-title' ).text(),
 				menuItemType = $this.closest( '.menu-item-handle' ).find( '.item-type' ).text(),
-				position = parseInt( menuItem.index(), 10 ),
-				prevItemDepth = ( isPrimaryMenuItem ) ? depth : parseInt( depth - 1, 10 ),
-				prevItemNameLeft = menuItem.prevAll('.menu-item-depth-' + prevItemDepth).first().find( '.menu-item-title' ).text(),
-				prevItemNameRight = menuItem.prevAll('.menu-item-depth-' + depth).first().find( '.menu-item-title' ).text(),
-				totalMenuItems = $('#menu-to-edit li').length,
-				hasSameDepthSibling = menuItem.nextAll( '.menu-item-depth-' + depth ).length;
+				prevItemDepth = ( isPrimaryMenuItem ) ? depth : parseInt( depth - 1, 10 ),			
+				totalMenuItems = $('#menu-to-edit li').length;
+				
 
 			if ( isPrimaryMenuItem ) {
 				primaryItems = $( '.menu-item-depth-0' ),
