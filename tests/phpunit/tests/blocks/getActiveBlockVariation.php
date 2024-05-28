@@ -63,7 +63,7 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 			array(
 				'firstTestAttribute'  => 1,
 				'secondTestAttribute' => 10,
-			),
+			)
 		);
 		$this->assertSame( 'variation-1', $active_variation['name'] );
 
@@ -72,7 +72,7 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 			array(
 				'firstTestAttribute'  => 2,
 				'secondTestAttribute' => 20,
-			),
+			)
 		);
 		$this->assertSame( 'variation-2', $active_variation['name'] );
 
@@ -81,7 +81,7 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 			array(
 				'firstTestAttribute'  => 1,
 				'secondTestAttribute' => 20,
-			),
+			)
 		);
 		$this->assertSame( 'variation-3', $active_variation['name'] );
 	}
