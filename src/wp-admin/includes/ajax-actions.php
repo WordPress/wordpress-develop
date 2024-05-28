@@ -4589,14 +4589,7 @@ function wp_ajax_activate_plugin() {
 	}
 
 	/**
-	 * Filters the configuration data for the plugin.
-	 *
-	 * The dynamic portion of the hook name refers to the plugin slug.
-	 *
-	 * How WordPress uses this data may change in the future.
-	 *
-	 * Currently, the user will be redirected to the configuration URL
-	 * after activating the plugin.
+	 * Filters the data for the plugin's configuration workflow.
 	 *
 	 * @since 6.5.4
 	 *
