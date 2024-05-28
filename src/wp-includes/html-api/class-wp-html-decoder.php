@@ -200,7 +200,7 @@ class WP_HTML_Decoder {
 	 * @param ?int   $at                           Byte offset into text where span begins, defaults to the beginning.
 	 * @param ?int   $byte_length_of_matched_token Set to byte length of matched character reference, if matched,
 	 *                                             otherwise not set. This is an "out" parameter.
-	 * @return string|null Decoded character reference in UTF-8 if found, otherwise `false`.
+	 * @return string|false Decoded character reference in UTF-8 if found, otherwise `false`.
 	 */
 	public static function read_character_reference( $context, $text, $at, &$byte_length_of_matched_token = null ) {
 
@@ -213,11 +213,11 @@ class WP_HTML_Decoder {
 
 		$length = strlen( $text );
 		if ( $at + 1 >= $length ) {
-			return null;
+			return false;
 		}
 
 		if ( '&' !== $text[ $at ] ) {
-			return null;
+			return false;
 		}
 
 		/*
@@ -232,7 +232,7 @@ class WP_HTML_Decoder {
 		 */
 		if ( '#' === $text[ $at + 1 ] ) {
 			if ( $at + 2 >= $length ) {
-				return null;
+				return false;
 			}
 
 			/** Tracks inner parsing within the numeric character reference. */
@@ -258,7 +258,7 @@ class WP_HTML_Decoder {
 
 			// `&#` or `&#x` without digits returns into plaintext.
 			if ( 0 === $digit_count && 0 === $zero_count ) {
-				return null;
+				return false;
 			}
 
 			// Whereas `&#` and only zeros is invalid.
@@ -354,13 +354,13 @@ class WP_HTML_Decoder {
 		$name_at = $at + 1;
 		// Minimum named character reference is two characters. E.g. `GT`.
 		if ( $name_at + 2 > $length ) {
-			return null;
+			return false;
 		}
 
 		$name_length = 0;
 		$replacement = $html5_named_character_references->read_token( $text, $name_at, $name_length );
 		if ( false === $replacement ) {
-			return null;
+			return false;
 		}
 
 		$after_name = $name_at + $name_length;
@@ -393,7 +393,7 @@ class WP_HTML_Decoder {
 
 		// It's ambiguous, which isn't allowed inside attributes.
 		if ( 'attribute' === $context ) {
-			return null;
+			return false;
 		}
 
 		$byte_length_of_matched_token = $after_name - $at;
