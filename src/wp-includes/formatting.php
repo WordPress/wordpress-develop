@@ -748,6 +748,17 @@ function _get_wptexturize_shortcode_regex( $tagnames ) {
 /**
  * Replaces characters or phrases within HTML elements only.
  *
+ * You probably don't want to use this function as it could mess up
+ * the HTML structure. It applies string replacements to the HTML tags,
+ * comments, and syntax elements besides text. That is, it leaves text
+ * nodes alone and transforms everything else, enabling things like
+ * replacing tag names.
+ *
+ * Example:
+ *
+ *     $html = wp_replace_in_html_tags( '<div>div</div>', array( 'div' => 'span' ) );
+ *     $html === '<span>div</span>';
+ *
  * @since 4.2.3
  *
  * @param string $haystack      The text which has to be formatted.
@@ -755,45 +766,43 @@ function _get_wptexturize_shortcode_regex( $tagnames ) {
  * @return string The formatted text.
  */
 function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
-	// Find all elements.
-	$textarr = wp_html_split( $haystack );
-	$changed = false;
+	$processor = new class( $haystack ) extends WP_HTML_Tag_Processor {
+		/**
+		 * Transforms the current token with a given set of replacement pairs.
+		 *
+		 * @param array $replacements 'from' => 'to' replacement array.
+		 * @return bool Whether any replacement was enqueued.
+		 */
+		public function replace_token( $replacements ) {
+			$this->set_bookmark( 'here' );
+			$here = $this->bookmarks['here'];
 
-	// Optimize when searching for one item.
-	if ( 1 === count( $replace_pairs ) ) {
-		// Extract $needle and $replace.
-		foreach ( $replace_pairs as $needle => $replace ) {
-		}
+			$chunk       = substr( $this->html, $here->start, $here->length );
+			$transformed = strtr( $chunk, $replacements );
 
-		// Loop through delimiters (elements) only.
-		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) {
-			if ( str_contains( $textarr[ $i ], $needle ) ) {
-				$textarr[ $i ] = str_replace( $needle, $replace, $textarr[ $i ] );
-				$changed       = true;
+			if ( $chunk === $transformed ) {
+				return false;
 			}
-		}
-	} else {
-		// Extract all $needles.
-		$needles = array_keys( $replace_pairs );
 
-		// Loop through delimiters (elements) only.
-		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) {
-			foreach ( $needles as $needle ) {
-				if ( str_contains( $textarr[ $i ], $needle ) ) {
-					$textarr[ $i ] = strtr( $textarr[ $i ], $replace_pairs );
-					$changed       = true;
-					// After one strtr() break out of the foreach loop and look at next element.
-					break;
-				}
-			}
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+				$here->start,
+				$here->length,
+				$transformed
+			);
+
+			return true;
 		}
+	};
+
+	while ( $processor->next_token() ) {
+		if ( '#text' === $processor->get_token_name() ) {
+			continue;
+		}
+
+		$processor->replace_token( $replace_pairs );
 	}
 
-	if ( $changed ) {
-		$haystack = implode( $textarr );
-	}
-
-	return $haystack;
+	return $processor->get_updated_html();
 }
 
 /**
