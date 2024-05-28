@@ -503,10 +503,10 @@ function create_initial_post_types() {
 				'editor',
 				'revisions',
 			),
-			// Disable autosave endpoints for global styles.
-			'autosave_rest_controller_class'  => 'stdClass',
 		)
 	);
+	// Disable autosave endpoints for global styles.
+	remove_post_type_support( 'wp_global_styles', 'autosave' );
 
 	$navigation_post_edit_link = 'site-editor.php?' . build_query(
 		array(
