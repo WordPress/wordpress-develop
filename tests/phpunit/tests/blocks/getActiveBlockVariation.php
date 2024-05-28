@@ -56,7 +56,7 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 	/**
 	 * @ticket 61265
 	 */
-	public function test_get_active_block_variation_match_without_is_active() {
+	public function test_get_active_block_variation_match_with_is_active() {
 		$block_attributes = array(
 			'attribute1' => 'var1-attr1',
 			'attribute2' => 'var1-attr2',
@@ -84,7 +84,7 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 	/**
 	 * @ticket 61265
 	 */
-	public function test_get_active_block_variation_match_with_is_active() {
+	public function test_get_active_block_variation_match_without_is_active() {
 		$block_attributes = array(
 			'attribute1' => 'var3-attr1',
 			'attribute2' => 'var3-attr2',
