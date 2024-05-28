@@ -464,7 +464,7 @@ twentytwenty.primaryMenu = {
 			var self = this;
 			
 			//Removing Display none from previous child menu
-			menu.querySelector('li.menu-item-has-children > ul.sub-menu').style.display = "block";
+			menu.querySelector('li.menu-item-has-children > ul.sub-menu').style.display = 'block';
 
 			// Remove focus from all li elements of primary-menu.
 			menu.querySelectorAll('li').forEach( function(el){
@@ -504,7 +504,7 @@ twentytwenty.primaryMenu = {
 			if (isEscape) {
 				if(menu.querySelector('li.menu-item-has-children').classList.contains('focus')){
 					menu.querySelector('li.focus.menu-item-has-children > a').focus();
-					menu.querySelector('li.menu-item-has-children.focus > ul.sub-menu').style.display = "none";
+					menu.querySelector('li.menu-item-has-children.focus > ul.sub-menu').style.display = 'none';
 					menu.querySelector('li.focus.menu-item-has-children').classList.remove('focus');
 				}
 			}
