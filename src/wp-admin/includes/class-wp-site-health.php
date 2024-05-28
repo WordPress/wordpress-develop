@@ -2664,7 +2664,7 @@ class WP_Site_Health {
 		 *
 		 * @param string $description Description message when autoloaded options bigger than threshold.
 		 */
-		$result['description'] = apply_filters( 'wp_autoloaded_options_limit_description', $result['description'] );
+		$result['description'] = apply_filters( 'site_status_autoloaded_options_limit_description', $result['description'] );
 
 		$result['actions'] = sprintf(
 			/* translators: 1: HelpHub URL. 2: Link description. */
@@ -2680,7 +2680,7 @@ class WP_Site_Health {
 		 *
 		 * @param string $actions Call to Action to be used to point to the right direction to solve the issue.
 		 */
-		$result['actions'] = apply_filters( 'wp_autoloaded_options_action_to_perform', $result['actions'] );
+		$result['actions'] = apply_filters( 'site_status_autoloaded_options_action_to_perform', $result['actions'] );
 		return $result;
 	}
 
