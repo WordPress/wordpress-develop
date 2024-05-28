@@ -39,8 +39,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <div class="wrap">
 <h1><?php echo esc_html( $title ); ?></h1>
 
-    <!-- ARIA live region for screen readers -->
-    <div id="aria-live-region" aria-live="polite" class="screen-reader-text"></div>
+<!-- ARIA live region for screen readers -->
+<div id="aria-live-region" aria-live="polite" class="screen-reader-text"></div>
 
 
 <form method="post" action="options.php">
@@ -93,12 +93,12 @@ if ( ! get_option( 'users_can_register' ) && is_multisite() ) {
 
 <label for="close_comments_for_old_posts">
 <input name="close_comments_for_old_posts" type="checkbox" id="close_comments_for_old_posts" value="1" <?php checked( '1', get_option( 'close_comments_for_old_posts' ) ); ?> />
-<?php _e("Automatically close comments for old posts" )?>
+<?php _e( 'Automatically close comments for old posts' ); ?>
 </label>
 <br />
 
 <label for="close_comments_days_old" class="close-comments-setting indent-child" >
-<?php _e('Number of days to keep old comments: ')?>
+<?php _e( 'Number of days to keep old comments: '); ?>
 <input name="close_comments_days_old" type="number" step="1" min="0" id="close_comments_days_old" value="<?php echo esc_attr( get_option( 'close_comments_days_old' ) ); ?>" class="small-text" />
 </label>
 <br />
@@ -155,29 +155,29 @@ printf( __( 'Number of levels for threaded (nested) comments: %s' ), $thread_com
 </span></legend>
 <label for="page_comments">
 <input name="page_comments" type="checkbox" id="page_comments" value="1" <?php checked( '1', get_option( 'page_comments' ) ); ?> />
-<?php _e("Break comments into pages" )?>
+<?php _e( 'Break comments into pages' ); ?>
 </label>
 <br />
 
 <label for="comments_per_page" class="pagination-setting indent-child">
-<?php _e('Top level comments per page: ')?>
+<?php _e( 'Top level comments per page: ' ); ?>
 <input name="comments_per_page" type="number" step="1" min="0" id="comments_per_page" value="<?php echo esc_attr( get_option( 'comments_per_page' ) ); ?>" class="small-text" />
 </label>
 <br />
 
-<label for="default_comments_page" class="pagination-setting indent-child"><?php _e('Comments page to display by default: '); ?>
+<label for="default_comments_page" class="pagination-setting indent-child"><?php _e( 'Comments page to display by default: ' ); ?>
 <select name="default_comments_page" id="default_comments_page">
-	<option value="newest" <?php selected( 'newest', get_option( 'default_comments_page' ) ); ?>><?php _e('last page'); ?></option>
-	<option value="oldest" <?php selected( 'oldest', get_option( 'default_comments_page' ) ); ?>><?php _e('first page'); ?></option>
+	<option value="newest" <?php selected( 'newest', get_option( 'default_comments_page' ) ); ?>><?php _e( 'last page' ); ?></option>
+	<option value="oldest" <?php selected( 'oldest', get_option( 'default_comments_page' ) ); ?>><?php _e( 'first page' ); ?></option>
 </select>
 </label>
 <br />
 
 <label for="comment_order" class="pagination-setting indent-child">
-<?php _e('Comments to display at the top of each page: ')?>
+<?php _e( 'Comments to display at the top of each page: ' );?>
 <select name="comment_order" id="comment_order">
-	<option value="asc" <?php selected( 'asc', get_option( 'comment_order' ) ); ?>><?php _e('older'); ?></option>
-	<option value="desc" <?php selected( 'desc', get_option( 'comment_order' ) ); ?>><?php _e('newer'); ?></option>
+	<option value="asc" <?php selected( 'asc', get_option( 'comment_order' ) ); ?>><?php _e( 'older' ); ?></option>
+	<option value="desc" <?php selected( 'desc', get_option( 'comment_order' ) ); ?>><?php _e( 'newer' ); ?></option>
 </select>
 </label>
 <br />
