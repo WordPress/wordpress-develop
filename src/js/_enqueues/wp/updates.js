@@ -875,7 +875,7 @@
 
 		$card
 			.addClass( 'plugin-card-update-failed' )
-			.append( '<div class="notice notice-error notice-alt is-dismissible"><p>' + errorMessage + '</p></div>' );
+			.append( '<div class="notice notice-error notice-alt is-dismissible" role="alert"><p>' + errorMessage + '</p></div>' );
 
 		$card.on( 'click', '.notice.is-dismissible .notice-dismiss', function() {
 
