@@ -1,4 +1,4 @@
-# A callable workflow that runs WordPress upgrade testing under the conditions provided.
+# A reusable workflow that runs WordPress upgrade testing under the conditions provided.
 name: Upgrade Tests
 
 on:

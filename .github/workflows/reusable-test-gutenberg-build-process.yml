@@ -1,5 +1,5 @@
 ##
-# A callable workflow that tests the Gutenberg plugin build process when run within a wordpress-develop checkout.
+# A reusable workflow that tests the Gutenberg plugin build process when run within a wordpress-develop checkout.
 ##
 name: Test the Gutenberg plugin Build Process
 
