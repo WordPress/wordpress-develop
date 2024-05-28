@@ -1988,3 +1988,18 @@ function wp_get_word_count_type() {
 
 	return $wp_locale->get_word_count_type();
 }
+
+/**
+ * Returns the translation for the given string with optional context, text domain and locale else returns boolean false.
+ *
+ * @param string $text       Text to translate.
+ * @param string $context    Optional. Context for the string. Default empty string.
+ * @param string $textdomain Optional. Text domain. Default 'default'.
+ * @param string $locale     Optional. Locale. Default current locale.
+ * @return string|false Translation on success, false otherwise.
+ */
+function has_translation( string $text, string $context = '', string $textdomain = 'default', ?string $locale = null ) {
+	$i18n_controller = WP_Translation_Controller::get_instance();
+
+	return $i18n_controller->translate( $text, $context, $textdomain, $locale );
+}
