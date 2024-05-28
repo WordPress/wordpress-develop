@@ -65,8 +65,8 @@ class WP_HTML_Decoder {
 			}
 
 			// The character reference matched, so continue checking.
-			$haystack_at  += $token_length;
-			$search_at += strlen( $next_chunk );
+			$haystack_at += $token_length;
+			$search_at   += strlen( $next_chunk );
 		}
 
 		return true;
