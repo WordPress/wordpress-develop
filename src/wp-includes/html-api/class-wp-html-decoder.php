@@ -45,15 +45,15 @@ class WP_HTML_Decoder {
 			$is_introducer = '&' === $haystack[ $haystack_at ];
 			$next_chunk    = $is_introducer
 				? self::read_character_reference( 'attribute', $haystack, $haystack_at, $token_length )
-				: false;
+				: null;
 
 			// If there's no character reference and the characters don't match, the match fails.
-			if ( false === $next_chunk && ! $chars_match ) {
+			if ( null === $next_chunk && ! $chars_match ) {
 				return false;
 			}
 
 			// If there's no character reference but the character do match, then it could still match.
-			if ( false === $next_chunk && $chars_match ) {
+			if ( null === $next_chunk && $chars_match ) {
 				++$haystack_at;
 				++$search_at;
 				continue;
