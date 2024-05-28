@@ -153,49 +153,49 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 				'title'    => 'variation-a',
 			),
 			array(
-				'version' => 2,
-/*				'_links'   => array(
-					'curies'        => array(
-						array(
-							'name'      => 'wp',
-							'href'      => 'https://api.w.org/{rel}',
-							'templated' => true,
-						),
-					),
-					'wp:theme-file' => array(
-						array(
-							'href'   => 'http://localhost:8889/wp-content/themes/emptytheme/assets/sugarloaf-mountain.jpg',
-							'name'   => 'file:./assets/sugarloaf-mountain.jpg',
-							'target' => 'styles.background.backgroundImage.url',
-							'type'   => 'image/jpeg',
-						),
-					),
-				),*/
-				'settings' => array(
-					'blocks'  => array(
-						'core/post-title' => array(
-							'color' => array(
-								'palette' => array(
-									'theme' => array(
-										array(
-											'slug'  => 'light',
-											'name'  => 'Light',
-											'color' => '#f1f1f1',
+				'version'                          => 2,
+				/*              '_links'   => array(
+											'curies'        => array(
+												array(
+													'name'      => 'wp',
+													'href'      => 'https://api.w.org/{rel}',
+													'templated' => true,
+												),
+											),
+											'wp:theme-file' => array(
+												array(
+													'href'   => 'http://localhost:8889/wp-content/themes/emptytheme/assets/sugarloaf-mountain.jpg',
+													'name'   => 'file:./assets/sugarloaf-mountain.jpg',
+													'target' => 'styles.background.backgroundImage.url',
+													'type'   => 'image/jpeg',
+												),
+											),
+										),*/
+										'settings' => array(
+											'blocks' => array(
+												'core/post-title' => array(
+													'color' => array(
+														'palette' => array(
+															'theme' => array(
+																array(
+																	'slug'  => 'light',
+																	'name'  => 'Light',
+																	'color' => '#f1f1f1',
+																),
+															),
+														),
+													),
+												),
+											),
 										),
-									),
-								),
-							),
-						),
-					),
-				),
-				/*					'styles'  => array(
+				/*                  'styles'  => array(
 						'background' => array(
 							'backgroundImage' => array(
 								'url' => 'http://localhost:8889/wp-content/themes/block-theme/assets/sugarloaf-mountain.jpg',
 							),
 						),
 					),*/
-				'title'   => 'variation-b',
+				'title'                            => 'variation-b',
 			),
 			array(
 				'version'  => 2,
