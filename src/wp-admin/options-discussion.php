@@ -98,7 +98,7 @@ if ( ! get_option( 'users_can_register' ) && is_multisite() ) {
 <br />
 
 <label for="close_comments_days_old" class="close-comments-setting indent-child" >
-<?php _e( 'Number of days to keep old comments: '); ?>
+<?php _e( 'Number of days to keep old comments: ' ); ?>
 <input name="close_comments_days_old" type="number" step="1" min="0" id="close_comments_days_old" value="<?php echo esc_attr( get_option( 'close_comments_days_old' ) ); ?>" class="small-text" />
 </label>
 <br />
@@ -174,7 +174,7 @@ printf( __( 'Number of levels for threaded (nested) comments: %s' ), $thread_com
 <br />
 
 <label for="comment_order" class="pagination-setting indent-child">
-<?php _e( 'Comments to display at the top of each page: ' );?>
+<?php _e( 'Comments to display at the top of each page: ' ); ?>
 <select name="comment_order" id="comment_order">
 	<option value="asc" <?php selected( 'asc', get_option( 'comment_order' ) ); ?>><?php _e( 'older' ); ?></option>
 	<option value="desc" <?php selected( 'desc', get_option( 'comment_order' ) ); ?>><?php _e( 'newer' ); ?></option>
