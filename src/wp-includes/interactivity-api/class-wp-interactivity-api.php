@@ -336,7 +336,7 @@ final class WP_Interactivity_API {
 			return $html;
 		}
 
-		$result = $this->process_directives_args( $html );
+		$result = $this->_process_directives( $html );
 
 		return null === $result ? $html : $result;
 	}
@@ -350,14 +350,12 @@ final class WP_Interactivity_API {
 	 *
 	 * This method returns null if the HTML contains unbalanced tags.
 	 *
-	 * @since 6.5.0
-	 * @since 6.6.0 The function displays a warning message when the HTML contains unbalanced tags or a directive appears in a MATH or SVG tag.
-	 * @since 6.6.0 Removed `namespace_stack` and `context_stack` arguments.
+	 * @since 6.6.0
 	 *
 	 * @param string $html The HTML content to process.
 	 * @return string|null The processed HTML content. It returns null when the HTML contains unbalanced tags.
 	 */
-	private function process_directives_args( string $html ) {
+	private function _process_directives( string $html ) {
 		$p          = new WP_Interactivity_API_Directives_Processor( $html );
 		$tag_stack  = array();
 		$unbalanced = false;
@@ -1117,7 +1115,7 @@ HTML;
 				);
 
 				// Processes the inner content with the new context.
-				$processed_item = $this->process_directives_args( $inner_content );
+				$processed_item = $this->_process_directives( $inner_content );
 
 				if ( null === $processed_item ) {
 					// If the HTML is unbalanced, stop processing it.
