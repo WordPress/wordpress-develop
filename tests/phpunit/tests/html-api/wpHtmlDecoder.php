@@ -42,7 +42,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			'&#x6A;avascript:',
 			'&#X6A;avascript:',
 			'&#X6A;avascript&colon;',
-			'&#X6A;avascript&colon',
+			'&#X6A;avascript&Colon;',
 			'javascript:alert(1)',
 			'JaVaScRiPt:alert(1)',
 			'javascript:alert(1);',
