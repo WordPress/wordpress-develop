@@ -24,14 +24,17 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 	 */
 	public static function wpSetUpBeforeClass() {
 		self::$block_type = new WP_Block_Type(
-			'tests/block-type',
+			'block/name',
 			array(
 				'attributes' => array(
-					'attribute1' => array(
-						'type' => 'string',
+					'testAttribute'       => array(
+						'type' => 'number',
 					),
-					'attribute2' => array(
-						'type' => 'string',
+					'firstTestAttribute'  => array(
+						'type' => 'number',
+					),
+					'secondTestAttribute' => array(
+						'type' => 'number',
 					),
 				),
 				'variations' => self::mock_variation_callback(),
@@ -44,9 +47,7 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 	 */
 	public function test_get_active_block_variation_no_match() {
 		$block_attributes = array(
-			'attribute1' => 'var1-attr1',
-			'attribute2' => 'var1-attr2',
-			'attribute3' => 'mismatch',
+			'testAttribute' => 5555,
 		);
 
 		$active_variation = get_active_block_variation( self::$block_type, $block_attributes );
@@ -57,14 +58,32 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 	 * @ticket 61265
 	 */
 	public function test_get_active_block_variation_match_with_is_active() {
-		$block_attributes = array(
-			'attribute1' => 'var1-attr1',
-			'attribute2' => 'var1-attr2',
-			'attribute3' => 'var1-attr3',
+		$active_variation = get_active_block_variation(
+			self::$block_type,
+			array(
+				'firstTestAttribute'  => 1,
+				'secondTestAttribute' => 10,
+			),
 		);
+		$this->assertSame( 'variation-1', $active_variation['name'] );
 
-		$active_variation = get_active_block_variation( self::$block_type, $block_attributes );
-		$this->assertSame( 'variation_with_is_active', $active_variation['name'] );
+		$active_variation = get_active_block_variation(
+			self::$block_type,
+			array(
+				'firstTestAttribute'  => 2,
+				'secondTestAttribute' => 20,
+			),
+		);
+		$this->assertSame( 'variation-2', $active_variation['name'] );
+
+		$active_variation = get_active_block_variation(
+			self::$block_type,
+			array(
+				'firstTestAttribute'  => 1,
+				'secondTestAttribute' => 20,
+			),
+		);
+		$this->assertSame( 'variation-3', $active_variation['name'] );
 	}
 
 	/**
@@ -75,15 +94,36 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 	public static function mock_variation_callback() {
 		return array(
 			array(
-				'name'       => 'variation_with_is_active',
+				'name'       => 'variation-1',
 				'attributes' => array(
-					'attribute1' => 'var1-attr1',
-					'attribute2' => 'var1-attr2',
-					'attribute3' => 'var1-attr3',
+					'firstTestAttribute'  => 1,
+					'secondTestAttribute' => 10,
 				),
 				'isActive'   => array(
-					'attribute1',
-					'attribute3',
+					'firstTestAttribute',
+					'secondTestAttribute',
+				),
+			),
+			array(
+				'name'       => 'variation-2',
+				'attributes' => array(
+					'firstTestAttribute'  => 2,
+					'secondTestAttribute' => 20,
+				),
+				'isActive'   => array(
+					'firstTestAttribute',
+					'secondTestAttribute',
+				),
+			),
+			array(
+				'name'       => 'variation-3',
+				'attributes' => array(
+					'firstTestAttribute'  => 1,
+					'secondTestAttribute' => 20,
+				),
+				'isActive'   => array(
+					'firstTestAttribute',
+					'secondTestAttribute',
 				),
 			),
 		);
