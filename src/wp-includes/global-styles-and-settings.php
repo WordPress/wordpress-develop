@@ -309,6 +309,7 @@ function wp_add_global_styles_for_blocks() {
 
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 	if ( $can_use_cached ) {
+		// md5 is a costly operation, so we hashing global settings and block_node in a single call.
 		$hash = md5(
 			wp_json_encode(
 				array(
@@ -328,9 +329,9 @@ function wp_add_global_styles_for_blocks() {
 	$update_cache = false;
 
 	foreach ( $block_nodes as $metadata ) {
-		if ( ! empty( $metadata['name'] ) ) {
+		if ( isset( $metadata['name'] ) ) {
 			$block_name = $metadata['name'];
-		} elseif ( ! isset( $metadata['name'] ) && ! empty( $metadata['path'] ) ) {
+		} elseif ( ! empty( $metadata['path'] ) ) {
 			// The likes of block element styles from theme.json do not have  $metadata['name'] set.
 			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
 		}
