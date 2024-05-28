@@ -1391,7 +1391,7 @@ function delete_transient( $transient ) {
  * If the transient does not exist, does not have a value, or has expired,
  * then the return value will be false.
  *
- * @since 6.5.0
+ * @since 6.6.0
  *
  * @param string $transient Transient name. Expected to not be SQL-escaped.
  * @return bool
@@ -2501,7 +2501,7 @@ function delete_site_transient( $transient ) {
 * If the transient does not exist, does not have a value, or has expired,
 * then the return value will be false.
 *
-* @since 6.5.0
+* @since 6.6.0
 *
 * @param string $transient Transient name. Expected to not be SQL-escaped.
 * @return bool
