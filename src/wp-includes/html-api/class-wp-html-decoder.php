@@ -203,6 +203,8 @@ class WP_HTML_Decoder {
 	 * @return string|null Decoded character reference in UTF-8 if found, otherwise `false`.
 	 */
 	public static function read_character_reference( $context, $text, $at, &$byte_length_of_matched_token = null ) {
+
+		/** @var WP_Token_Map $html5_named_character_references */
 		global $html5_named_character_references;
 
 		if ( ! isset( $at ) ) {
