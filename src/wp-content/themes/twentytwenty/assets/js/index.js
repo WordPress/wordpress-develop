@@ -462,7 +462,7 @@ twentytwenty.primaryMenu = {
 		// Update focus class on an element.
 		function updateFocus() {
 			var self = this;
-			
+
 			//Removing Display none from previous child menu
 			menu.querySelector('li.menu-item-has-children > ul.sub-menu').style.display = 'block';
 
