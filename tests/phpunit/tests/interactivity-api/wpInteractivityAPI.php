@@ -748,7 +748,6 @@ JSON;
 	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
-	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
 	 */
 	public function test_process_directives_change_html_if_contains_math() {
 		$this->interactivity->state(
@@ -782,7 +781,6 @@ JSON;
 	 *
 	 * @ticket 60517
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
 	 * @covers ::process_directives
 	 */
 	public function test_process_directives_does_not_change_inner_html_in_math() {

@@ -198,6 +198,7 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	public function skip_to_tag_closer(): bool {
 		$depth    = 1;
 		$tag_name = $this->get_tag();
+
 		while ( $depth > 0 && $this->next_tag(
 			array(
 				'tag_name'    => $tag_name,
