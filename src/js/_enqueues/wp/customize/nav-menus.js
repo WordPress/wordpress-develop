@@ -1625,7 +1625,6 @@
 				menuItemType = $this.closest( '.menu-item-handle' ).find( '.item-type' ).text(),
 				prevItemDepth = ( isPrimaryMenuItem ) ? depth : parseInt( depth - 1, 10 ),			
 				totalMenuItems = $('#menu-to-edit li').length;
-				
 
 			if ( isPrimaryMenuItem ) {
 				primaryItems = $( '.menu-item-depth-0' ),
