@@ -413,10 +413,10 @@ class WP_Block {
 		 * There can be only one root interactive block at a time because the rendered HTML of that block contains
 		 * the rendered HTML of all its inner blocks, including any interactive block.
 		 */
-		static $root_interactive_block = null;
+		static $root_interactive_block               = null;
+		$wp_interactivity_process_directives_enabled = apply_filters( 'wp_interactivity_process_directives_enabled', true );
 		if (
-			null === $root_interactive_block &&
-			(
+			null === $root_interactive_block && $wp_interactivity_process_directives_enabled && (
 				( isset( $this->block_type->supports['interactivity'] ) && true === $this->block_type->supports['interactivity'] ) ||
 				! empty( $this->block_type->supports['interactivity']['interactive'] )
 			)
@@ -551,7 +551,7 @@ class WP_Block {
 
 		if ( $root_interactive_block === $this ) {
 			// The root interactive block has finished rendering. Time to process directives.
-			$block_content = wp_interactivity_process_directives( $block_content );
+			$block_content          = wp_interactivity_process_directives( $block_content );
 			$root_interactive_block = null;
 		}
 

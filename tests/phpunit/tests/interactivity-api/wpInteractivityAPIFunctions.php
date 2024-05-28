@@ -525,4 +525,40 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		unregister_block_type( 'test/custom-directive-block' );
 		$this->assertNull( $input_value );
 	}
+
+	/**
+	 * Tests wp_interactivity_process_directives_enabled filter.
+	 *
+	 * @ticket 61185
+	 *
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
+	 */
+	public function test_not_processing_directives_filter() {
+		wp_interactivity_state(
+			'dont-process',
+			array(
+				'text' => 'text',
+			)
+		);
+		register_block_type(
+			'test/custom-directive-block',
+			array(
+				'render_callback' => function () {
+					return '<div data-wp-interactive="dont-process"><input data-wp-bind--value="state.text" /></div>';
+				},
+				'supports'        => array(
+					'interactivity' => true,
+				),
+			)
+		);
+		$post_content = '<!-- wp:test/custom-directive-block /-->';
+		add_filter( 'wp_interactivity_process_directives_enabled', '__return_false' );
+		$processed_content = do_blocks( $post_content );
+		$processor         = new WP_HTML_Tag_Processor( $processed_content );
+		$processor->next_tag( array( 'tag_name' => 'input' ) );
+		$input_value = $processor->get_attribute( 'value' );
+		remove_filter( 'wp_interactivity_process_directives_enabled', '__return_false' );
+		unregister_block_type( 'test/custom-directive-block' );
+		$this->assertNull( $input_value );
+	}
 }
