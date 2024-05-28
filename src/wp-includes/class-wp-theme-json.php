@@ -2067,8 +2067,7 @@ class WP_Theme_JSON {
 	 * @since 5.9.0 Added the `$settings` and `$properties` parameters.
 	 * @since 6.1.0 Added `$theme_json`, `$selector`, and `$use_root_padding` parameters.
 	 * @since 6.5.0 Output a `min-height: unset` rule when `aspect-ratio` is set.
-	 * @since 6.6.0 Passing current theme JSON settings to wp_get_typography_font_size_value().
-	 *              Process background properties using the Style Engine.
+	 * @since 6.6.0 Pass current theme JSON settings to wp_get_typography_font_size_value(), and process background properties.
 	 *
 	 * @param array   $styles Styles to process.
 	 * @param array   $settings Theme settings.
