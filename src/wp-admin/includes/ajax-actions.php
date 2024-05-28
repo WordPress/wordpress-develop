@@ -4604,7 +4604,7 @@ function wp_ajax_activate_plugin() {
 	 *                        Default empty string for no configuration URL.
 	 * }
 	 */
-	$configuration_data = apply_filters( 'plugin_configuration_data_' . $status['slug'], array( 'url' => '' ) );
+	$configuration_data = apply_filters( "wp_plugin_configuration_data_{$status['slug']}", array( 'url' => '' ) );
 	if ( is_array( $configuration_data ) ) {
 		$status['configurationData'] = array();
 
