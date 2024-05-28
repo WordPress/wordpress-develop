@@ -414,7 +414,7 @@ class WP_Block {
 		 * the rendered HTML of all its inner blocks, including any interactive block.
 		 */
 		static $root_interactive_block               = null;
-		$wp_interactivity_process_directives_enabled = apply_filters( 'wp_interactivity_process_directives_enabled', true );
+		$wp_interactivity_process_directives_enabled = apply_filters( 'wp_interactivity_process_directives', true );
 		if (
 			null === $root_interactive_block && $wp_interactivity_process_directives_enabled && (
 				( isset( $this->block_type->supports['interactivity'] ) && true === $this->block_type->supports['interactivity'] ) ||

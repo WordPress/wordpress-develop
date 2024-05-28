@@ -552,12 +552,12 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 			)
 		);
 		$post_content = '<!-- wp:test/custom-directive-block /-->';
-		add_filter( 'wp_interactivity_process_directives_enabled', '__return_false' );
+		add_filter( 'wp_interactivity_process_directives', '__return_false' );
 		$processed_content = do_blocks( $post_content );
 		$processor         = new WP_HTML_Tag_Processor( $processed_content );
 		$processor->next_tag( array( 'tag_name' => 'input' ) );
 		$input_value = $processor->get_attribute( 'value' );
-		remove_filter( 'wp_interactivity_process_directives_enabled', '__return_false' );
+		remove_filter( 'wp_interactivity_process_directives', '__return_false' );
 		unregister_block_type( 'test/custom-directive-block' );
 		$this->assertNull( $input_value );
 	}
