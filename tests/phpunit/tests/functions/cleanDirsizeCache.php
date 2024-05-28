@@ -35,19 +35,19 @@ class Tests_Functions_CleanDirsizeCache extends WP_UnitTestCase {
 		return array(
 			'null'         => array(
 				'path'             => null,
-				'expected_message' => '<code>clean_dirsize_cache()</code> only accepts a non-empty path string, received <code>NULL</code>.',
+				'expected_message' => 'clean_dirsize_cache(): clean_dirsize_cache() only accepts a non-empty path string, received NULL.',
 			),
 			'bool false'   => array(
 				'path'             => false,
-				'expected_message' => '<code>clean_dirsize_cache()</code> only accepts a non-empty path string, received <code>boolean</code>.',
+				'expected_message' => 'clean_dirsize_cache(): clean_dirsize_cache() only accepts a non-empty path string, received boolean.',
 			),
 			'empty string' => array(
 				'path'             => '',
-				'expected_message' => '<code>clean_dirsize_cache()</code> only accepts a non-empty path string, received <code>string</code>.',
+				'expected_message' => 'clean_dirsize_cache(): clean_dirsize_cache() only accepts a non-empty path string, received string.',
 			),
 			'array'        => array(
 				'path'             => array( '.', './second/path/' ),
-				'expected_message' => '<code>clean_dirsize_cache()</code> only accepts a non-empty path string, received <code>array</code>.',
+				'expected_message' => 'clean_dirsize_cache(): clean_dirsize_cache() only accepts a non-empty path string, received array.',
 			),
 		);
 	}
