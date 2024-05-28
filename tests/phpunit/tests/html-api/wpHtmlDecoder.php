@@ -13,6 +13,25 @@
  */
 class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
+	 * @dataProvider data_edge_cases
+	 * @param $raw_text_node
+	 * @param $decoded_value
+	 */
+	public function test_edge_cases( $raw_text_node, $decoded_value ) {
+		$this->assertSame(
+			$decoded_value,
+			WP_HTML_Decoder::decode_text_node( $raw_text_node ),
+			'Improperly decoded raw text node.'
+		);
+	}
+
+	public static function data_edge_cases() {
+		return array(
+			'Single ampersand' => array( '&', '&' ),
+		);
+	}
+
+	/**
 	 * Ensures proper detection of attribute prefixes ignoring ASCII case.
 	 *
 	 * @ticket 61072
