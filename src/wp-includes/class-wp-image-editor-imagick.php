@@ -612,7 +612,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				}
 				if ( $this->indexed_color_encoded && $this->image->getImageAlphaChannel() && defined( 'Imagick::IMGTYPE_PALETTEMATTE' ) ) {
 					$this->image->setImageType( Imagick::IMGTYPE_PALETTEMATTE );
-				} elseif ( defined( 'Imagick::IMGTYPE_PALETTEMATTE' ) ) {
+				} elseif ( $this->indexed_color_encoded && defined( 'Imagick::IMGTYPE_PALETTE' ) ) {
 					$this->image->setImageType( Imagick::IMGTYPE_PALETTE );
 				}
 			}
