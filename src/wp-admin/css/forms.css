@@ -898,6 +898,10 @@ ul#add-to-blog-users {
 	display: inline-block;
 }
 
+.form-table td fieldset label.indent-child {
+	margin-left: 1.5em !important;
+}
+
 .form-table td fieldset p label {
 	margin-top: 0 !important;
 }
