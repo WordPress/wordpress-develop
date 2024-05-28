@@ -14,7 +14,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Whether the controller supports batching.
 	 *
-	 * @since 6.5.0
+	 * @since 6.6.0
 	 * @var array
 	 */
 	protected $allow_batch = array( 'v1' => false );
@@ -22,7 +22,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Constructor.
 	 *
-	 * @since 6.5.0
+	 * @since 6.6.0
 	 *
 	 * @param string $post_type Post type.
 	 */
@@ -393,7 +393,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.9.0
 	 * @since 6.2.0 Added 'edit-css' action.
-	 * @since 6.5.0 Added $post and $request parameters.
+	 * @since 6.6.0 Added $post and $request parameters.
 	 *
 	 * @param WP_Post         $post    Post object.
 	 * @param WP_REST_Request $request Request object.
