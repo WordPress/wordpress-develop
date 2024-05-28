@@ -1577,9 +1577,8 @@
 		},
 
 		/**
-		 * initAccessibility( )
 		 * 
-		 * set up initial state of accessibility for menu items.
+		 * Set up initial state of accessibility for menu items.
 		 *
 		 * @since 6.6.0
 		 */
