@@ -4591,6 +4591,9 @@ function wp_ajax_activate_plugin() {
 	/**
 	 * Filters the data for the plugin's configuration workflow.
 	 *
+	 * The dynamic portion of the hook refers to the plugin's slug provided by the
+	 * AJAX activation request. For the Hello Dolly plugin, this would be `hello-dolly`.
+	 *
 	 * @since 6.5.4
 	 *
 	 * @param array {
