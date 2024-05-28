@@ -27,7 +27,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	/**
 	 * Whether the controller supports batching.
 	 *
-	 * @since 6.5.1
+	 * @since 6.6.0
 	 * @var array
 	 */
 	protected $allow_batch = array( 'v1' => true );
