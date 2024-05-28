@@ -21,13 +21,46 @@ function options_discussion_add_js() {
 				childrenInputs = $(childInputElement );
 				ariaLiveRegion = $('#aria-live-region');
 
-			// Set editable/disabled state based on checkbox default state.
-			childrenInputs.toggleClass( 'disabled', ! parentCheckbox.prop( 'checked' ) );
-			parentCheckbox.attr( 'aria-expanded', parentCheckbox.prop( 'checked' ) );
-			// Disable the children if the parent is unchecked.
-			parentCheckbox.on( 'change', function(){
-				childrenInputs.toggleClass( 'disabled', ! this.checked );
-				$(this).attr( 'aria-expanded', this.checked);
+
+			function applyDisabledStyle(element, isDisabled) {
+				element.prop('disabled', isDisabled);
+				if (isDisabled) {
+					element.css({
+						'color': 'gray',
+						'opacity': '0.85',
+						'cursor': 'not-allowed'
+					});
+					element.closest('label').css({
+						'color': 'gray',
+						'opacity': '0.85',
+						'cursor': 'not-allowed',
+					});
+				} else {
+					element.css({
+						'color': '',
+						'opacity': '',
+						'cursor': ''
+					});
+					element.closest('label').css({
+						'color': '',
+						'opacity': '',
+						'cursor': '',
+					});
+				}
+			}
+
+			// Set the initial state based on the checkbox state
+			childrenInputs.find('input, select, textarea').each(function() {
+				applyDisabledStyle($(this), !parentCheckbox.prop('checked'));
+			});
+			parentCheckbox.attr('aria-expanded', parentCheckbox.prop('checked'));
+			// Update the disabled state of children on parent checkbox change
+			parentCheckbox.on('change', function() {
+				var isChecked = this.checked;
+				childrenInputs.find('input, select, textarea').each(function() {
+					applyDisabledStyle($(this), !isChecked);
+				});
+				$(this).attr('aria-expanded', isChecked);
 
 				// Announce the change to screen readers.
 				var message = this.checked ? 'Checked Checkbox, Dependent fields are now editable.' : 'Unchecked Checkbox, Dependent fields are now disabled.';
