@@ -1757,8 +1757,6 @@
 					isMoveLeft = moveBtn.is( '.menus-move-left' ),
 					isMoveRight = moveBtn.is( '.menus-move-right' );
 
-				var title;
-
 				if ( isMoveUp ) {
 					control.moveUp();
 				} else if ( isMoveDown ) {
