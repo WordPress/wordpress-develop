@@ -1623,7 +1623,6 @@
 				isPrimaryMenuItem = ( 0 === depth ),
 				itemName = $this.closest( '.menu-item-handle' ).find( '.menu-item-title' ).text(),
 				menuItemType = $this.closest( '.menu-item-handle' ).find( '.item-type' ).text(),
-				prevItemDepth = ( isPrimaryMenuItem ) ? depth : parseInt( depth - 1, 10 ),			
 				totalMenuItems = $('#menu-to-edit li').length;
 
 			if ( isPrimaryMenuItem ) {
