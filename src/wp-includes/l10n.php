@@ -1990,7 +1990,8 @@ function wp_get_word_count_type() {
 }
 
 /**
- * Returns the translation for the given string with optional context, text domain and locale else returns boolean false.
+ * Returns the translation for the given string with optional context, text domain and locale if the translation exists;
+ * else returns boolean false.
  *
  * @param string $text       Text to translate.
  * @param string $context    Optional. Context for the string. Default empty string.
