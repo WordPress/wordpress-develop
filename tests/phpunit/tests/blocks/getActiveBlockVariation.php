@@ -68,34 +68,6 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 61265
-	 */
-	public function test_get_active_block_variation_match_with_empty_is_active() {
-		$block_attributes = array(
-			'attribute1' => 'var2-attr1',
-			'attribute2' => 'var2-attr2',
-			'attribute3' => 'var2-attr3',
-		);
-
-		$active_variation = get_active_block_variation( self::$block_type, $block_attributes );
-		$this->assertSame( 'variation_with_empty_is_active', $active_variation['name'] );
-	}
-
-	/**
-	 * @ticket 61265
-	 */
-	public function test_get_active_block_variation_match_without_is_active() {
-		$block_attributes = array(
-			'attribute1' => 'var3-attr1',
-			'attribute2' => 'var3-attr2',
-			'attribute3' => 'var3-attr3',
-		);
-
-		$active_variation = get_active_block_variation( self::$block_type, $block_attributes );
-		$this->assertSame( 'variation_without_is_active', $active_variation['name'] );
-	}
-
-	/**
 	 * Mock variation callback.
 	 *
 	 * @return array
@@ -112,23 +84,6 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 				'isActive'   => array(
 					'attribute1',
 					'attribute3',
-				),
-			),
-			array(
-				'name'       => 'variation_with_empty_is_active',
-				'attributes' => array(
-					'attribute1' => 'var2-attr1',
-					'attribute2' => 'var2-attr2',
-					'attribute3' => 'var2-attr3',
-				),
-				'isActive'   => array(),
-			),
-			array(
-				'name'       => 'variation_without_is_active',
-				'attributes' => array(
-					'attribute1' => 'var3-attr1',
-					'attribute2' => 'var3-attr2',
-					'attribute3' => 'var3-attr3',
 				),
 			),
 		);
