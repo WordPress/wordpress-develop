@@ -703,8 +703,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			wp_clean_theme_json_cache();
 		}
 		$query_count = get_num_queries() - $query_count;
-		// we have transient delete query inside `wp_clean_theme_json_cache()` which result in 3 queries.
-		$this->assertSame( 3, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type prior to creation.' );
+		$this->assertSame( 0, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type prior to creation.' );
 
 		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
 		$this->assertEmpty( $user_cpt, 'User CPT is expected to be empty.' );
