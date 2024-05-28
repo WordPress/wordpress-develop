@@ -97,7 +97,7 @@ if ( ! get_option( 'users_can_register' ) && is_multisite() ) {
 </label>
 <br />
 
-<label for="close_comments_days_old" class="close-comments-setting" >
+<label for="close_comments_days_old" class="close-comments-setting indent-child" >
 <?php _e('Number of days to keep old comments: ')?>
 <input name="close_comments_days_old" type="number" step="1" min="0" id="close_comments_days_old" value="<?php echo esc_attr( get_option( 'close_comments_days_old' ) ); ?>" class="small-text" />
 </label>
@@ -115,7 +115,7 @@ if ( ! get_option( 'users_can_register' ) && is_multisite() ) {
 </label>
 <br />
 
-<label for="thread_comments_depth" class="thread-comments-setting">
+<label for="thread_comments_depth" class="thread-comments-setting indent-child">
 <?php
 /**
  * Filters the maximum depth of threaded/nested comments.
@@ -159,13 +159,13 @@ printf( __( 'Number of levels for threaded (nested) comments: %s' ), $thread_com
 </label>
 <br />
 
-<label for="comments_per_page" class="pagination-setting">
+<label for="comments_per_page" class="pagination-setting indent-child">
 <?php _e('Top level comments per page: ')?>
 <input name="comments_per_page" type="number" step="1" min="0" id="comments_per_page" value="<?php echo esc_attr( get_option( 'comments_per_page' ) ); ?>" class="small-text" />
 </label>
 <br />
 
-<label for="default_comments_page" class="pagination-setting"><?php _e('Comments page to display by default: '); ?>
+<label for="default_comments_page" class="pagination-setting indent-child"><?php _e('Comments page to display by default: '); ?>
 <select name="default_comments_page" id="default_comments_page">
 	<option value="newest" <?php selected( 'newest', get_option( 'default_comments_page' ) ); ?>><?php _e('last page'); ?></option>
 	<option value="oldest" <?php selected( 'oldest', get_option( 'default_comments_page' ) ); ?>><?php _e('first page'); ?></option>
@@ -173,7 +173,7 @@ printf( __( 'Number of levels for threaded (nested) comments: %s' ), $thread_com
 </label>
 <br />
 
-<label for="comment_order" class="pagination-setting">
+<label for="comment_order" class="pagination-setting indent-child">
 <?php _e('Comments to display at the top of each page: ')?>
 <select name="comment_order" id="comment_order">
 	<option value="asc" <?php selected( 'asc', get_option( 'comment_order' ) ); ?>><?php _e('older'); ?></option>
