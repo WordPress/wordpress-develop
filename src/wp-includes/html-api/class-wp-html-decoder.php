@@ -197,19 +197,15 @@ class WP_HTML_Decoder {
 	 *
 	 * @param string $context                      `attribute` for decoding attribute values, `data` otherwise.
 	 * @param string $text                         Text document containing span of text to decode.
-	 * @param ?int   $at                           Optional. Byte offset into text where span begins, defaults to the beginning.
+	 * @param int    $at                           Optional. Byte offset into text where span begins, defaults to the beginning (0).
 	 * @param ?int   $byte_length_of_matched_token Optional. Set to byte length of matched character reference, if matched,
 	 *                                             otherwise not set. This is an "out" parameter.
 	 * @return string|false Decoded character reference in UTF-8 if found, otherwise `false`.
 	 */
-	public static function read_character_reference( $context, $text, $at, &$byte_length_of_matched_token = null ) {
+	public static function read_character_reference( $context, $text, $at = 0, &$byte_length_of_matched_token = null ) {
 
 		/** @var WP_Token_Map $html5_named_character_references */
 		global $html5_named_character_references;
-
-		if ( ! isset( $at ) ) {
-			$at = 0;
-		}
 
 		$length = strlen( $text );
 		if ( $at + 1 >= $length ) {
