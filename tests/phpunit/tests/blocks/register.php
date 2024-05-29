@@ -1102,6 +1102,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		// @ticket 53148
 		$this->assertIsCallable( $result->render_callback );
+		// @ticket 61280
+		$this->assertIsCallable( $result->variations_callback );
 	}
 
 	/**
