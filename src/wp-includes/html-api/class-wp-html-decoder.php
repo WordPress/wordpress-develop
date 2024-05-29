@@ -25,9 +25,9 @@ class WP_HTML_Decoder {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string  $haystack         String containing the raw non-decoded attribute value.
-	 * @param string  $search_text      Does the attribute value start with this plain string.
-	 * @param ?string $case_sensitivity Set to `ascii-case-insensitive` to ignore ASCII case when matching.
+	 * @param string $haystack         String containing the raw non-decoded attribute value.
+	 * @param string $search_text      Does the attribute value start with this plain string.
+	 * @param string $case_sensitivity Optional. Pass 'ascii-case-insensitive' to ignore ASCII case when matching. Default 'case-sensitive'.
 	 * @return bool Whether the attribute value starts with the given string.
 	 */
 	public static function attribute_starts_with( $haystack, $search_text, $case_sensitivity = 'case-sensitive' ) {

@@ -435,8 +435,8 @@ class WP_Token_Map {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string  $word             Determine if this word is a lookup key in the map.
-	 * @param ?string $case_sensitivity 'ascii-case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
+	 * @param string $word             Determine if this word is a lookup key in the map.
+	 * @param string $case_sensitivity Optional. Pass 'ascii-case-insensitive' to ignore ASCII case when matching. Default 'case-sensitive'.
 	 * @return bool Whether there's an entry for the given word in the map.
 	 */
 	public function contains( $word, $case_sensitivity = 'case-sensitive' ) {
@@ -523,7 +523,7 @@ class WP_Token_Map {
 	 * @param string  $text                       String in which to search for a lookup key.
 	 * @param ?int    $offset                     How many bytes into the string where the lookup key ought to start.
 	 * @param ?int    &$matched_token_byte_length Holds byte-length of found token matched, otherwise not set.
-	 * @param ?string $case_sensitivity           'ascii-case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
+	 * @param string  $case_sensitivity           Optional. Pass 'ascii-case-insensitive' to ignore ASCII case when matching. Default 'case-sensitive'.
 	 * @return string|null Mapped value of lookup key if found, otherwise `null`.
 	 */
 	public function read_token( $text, $offset = 0, &$matched_token_byte_length = null, $case_sensitivity = 'case-sensitive' ) {
@@ -572,10 +572,10 @@ class WP_Token_Map {
 	 *
 	 * @since 6.6.0.
 	 *
-	 * @param string  $text                       String in which to search for a lookup key.
-	 * @param ?int    $offset                     How many bytes into the string where the lookup key ought to start.
-	 * @param ?int    &$matched_token_byte_length Holds byte-length of found lookup key if matched, otherwise not set.
-	 * @param ?string $case_sensitivity           'ascii-case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
+	 * @param string $text                       String in which to search for a lookup key.
+	 * @param ?int   $offset                     How many bytes into the string where the lookup key ought to start.
+	 * @param ?int   &$matched_token_byte_length Holds byte-length of found lookup key if matched, otherwise not set.
+	 * @param string $case_sensitivity           Optional. Pass 'ascii-case-insensitive' to ignore ASCII case when matching. Default 'case-sensitive'.
 	 * @return string|null Mapped value of lookup key if found, otherwise `null`.
 	 */
 	private function read_small_token( $text, $offset, &$matched_token_byte_length, $case_sensitivity = 'case-sensitive' ) {
