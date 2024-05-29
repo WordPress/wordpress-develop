@@ -1344,7 +1344,16 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 	);
 }
 
-function replace_pattern_blocks( $blocks, &$inner_content = null ) {
+/**
+ * Replaces patterns in a block tree with their content.
+ *
+ * @since 6.6.0
+ *
+ * @param array $blocks An array blocks.
+ *
+ * @return array An array of blocks with patterns replaced by their content.
+ */
+function resolve_pattern_blocks( $blocks, &$inner_content = null ) {
 	// Keep track of seen references to avoid infinite loops.
 	static $seen_refs = array();
 	$i                = 0;
@@ -1369,7 +1378,7 @@ function replace_pattern_blocks( $blocks, &$inner_content = null ) {
 
 			$blocks_to_insert   = parse_blocks( $pattern['content'] );
 			$seen_refs[ $slug ] = true;
-			$blocks_to_insert   = replace_pattern_blocks( $blocks_to_insert );
+			$blocks_to_insert   = resolve_pattern_blocks( $blocks_to_insert );
 			unset( $seen_refs[ $slug ] );
 			array_splice( $blocks, $i, 1, $blocks_to_insert );
 
@@ -1387,7 +1396,7 @@ function replace_pattern_blocks( $blocks, &$inner_content = null ) {
 			$i += count( $blocks_to_insert );
 		} else {
 			if ( ! empty( $blocks[ $i ]['innerBlocks'] ) ) {
-				$blocks[ $i ]['innerBlocks'] = replace_pattern_blocks(
+				$blocks[ $i ]['innerBlocks'] = resolve_pattern_blocks(
 					$blocks[ $i ]['innerBlocks'],
 					$blocks[ $i ]['innerContent']
 				);
@@ -1436,8 +1445,6 @@ function replace_pattern_blocks( $blocks, &$inner_content = null ) {
 function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_callback = null ) {
 	$result       = '';
 	$parent_block = null; // At the top level, there is no parent block to pass to the callbacks; yet the callbacks expect a reference.
-
-	$blocks = replace_pattern_blocks( $blocks );
 
 	foreach ( $blocks as $index => $block ) {
 		if ( is_callable( $pre_callback ) ) {
