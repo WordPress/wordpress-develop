@@ -272,8 +272,7 @@ final class WP_Interactivity_API {
 	 * it returns null if the HTML contains unbalanced tags.
 	 *
 	 * @since 6.5.0
-	 * @since 6.6.0 The function now adds a warning when the HTML contains unbalanced
-	 *              tags or SVG/Math with directives.
+	 * @since 6.6.0 The function displays a warning message when the HTML contains unbalanced tags.
 	 *
 	 * @param string $html            The HTML content to process.
 	 * @param array  $context_stack   The reference to the array used to keep track of contexts during processing.
@@ -392,7 +391,7 @@ final class WP_Interactivity_API {
 		 */
 		if ( $unbalanced || 0 < count( $tag_stack ) ) {
 			$tag_errored = 0 < count( $tag_stack ) ? end( $tag_stack )[0] : $tag_name;
-			/* translators: %s: Tag that caused the error, could by any HTML tag. */
+			/* translators: %s: The tag that caused the error; could be any HTML tag. */
 			$message = sprintf( __( 'Interactivity directives failed to process in "%1$s" due to a missing "%2$s" end tag.' ), end( $namespace_stack ), $tag_errored );
 			_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 			return null;
