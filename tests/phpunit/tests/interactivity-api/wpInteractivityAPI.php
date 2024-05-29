@@ -791,6 +791,9 @@ SCRIPT_TAG;
 
 		$result = $this->evaluate( 'state.obj.prop' );
 		$this->assertEquals( 'property', $result );
+
+		$result = $this->evaluate( 'otherPlugin::state.obj.prop' );
+		$this->assertEquals( null, $result );
 	}
 
 	/**
