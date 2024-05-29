@@ -748,15 +748,18 @@ SCRIPT_TAG;
 	 * @param string $directive_value The directive attribute value to evaluate.
 	 * @return mixed The result of the evaluate method.
 	 */
-	private function evaluate( $directive_value ) {
-		$generate_state = function ( $name ) {
+	private function evaluate( $directive_value, ) {
+		$obj            = new stdClass();
+		$obj->prop      = 'property';
+		$generate_state = function ( $name, $obj = null ) {
 			return array(
 				'key'    => $name,
 				'nested' => array( 'key' => $name . '-nested' ),
+				'obj'    => $obj,
 			);
 		};
-		$this->interactivity->state( 'myPlugin', $generate_state( 'myPlugin-state' ) );
-		$this->interactivity->state( 'otherPlugin', $generate_state( 'otherPlugin-state' ) );
+		$this->interactivity->state( 'myPlugin', $generate_state( 'myPlugin-state', $obj ) );
+		$this->interactivity->state( 'otherPlugin', $generate_state( 'otherPlugin-state', $obj ) );
 		$context  = array(
 			'myPlugin'    => $generate_state( 'myPlugin-context' ),
 			'otherPlugin' => $generate_state( 'otherPlugin-context' ),
@@ -785,6 +788,9 @@ SCRIPT_TAG;
 
 		$result = $this->evaluate( 'otherPlugin::context.key' );
 		$this->assertEquals( 'otherPlugin-context', $result );
+
+		$result = $this->evaluate( 'state.obj.prop' );
+		$this->assertEquals( 'property', $result );
 	}
 
 	/**
