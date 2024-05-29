@@ -557,7 +557,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		$processor         = new WP_HTML_Tag_Processor( $processed_content );
 		$processor->next_tag( array( 'tag_name' => 'input' ) );
 		$input_value = $processor->get_attribute( 'value' );
-		remove_filter( 'wp_interactivity_process_directives', '__return_false' );
+		remove_filter( 'interactivity_process_directives', '__return_false' );
 		unregister_block_type( 'test/custom-directive-block' );
 		$this->assertNull( $input_value );
 	}
