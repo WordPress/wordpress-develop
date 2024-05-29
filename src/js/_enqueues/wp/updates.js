@@ -2667,7 +2667,7 @@
 		 * Click handler for plugin activations in plugin activation modal view.
 		 *
 		 * @since 6.5.0
-		 * @since 6.5.3 Redirect the parent window to the activation URL.
+		 * @since 6.5.4 Redirect the parent window to the activation URL.
 		 *
 		 * @param {Event} event Event interface.
 		 */
