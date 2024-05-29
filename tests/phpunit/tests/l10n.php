@@ -647,6 +647,10 @@ class Tests_L10n extends WP_UnitTestCase {
 				false,
 				array(),
 			),
+			'Invalid type'            => array(
+				array(),
+				array(),
+			),
 			'Wildcard'                => array(
 				'*',
 				array(),

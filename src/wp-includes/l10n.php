@@ -2003,7 +2003,7 @@ function wp_get_word_count_type() {
 function get_locales_from_accept_language_header() {
 	$locales = array();
 
-	if ( ! empty( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
+	if ( ! empty( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) && is_string( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
 		$matches = array();
 		preg_match_all( '((?P<code>[a-z-_A-Z]{2,5})([;q=]+?(?P<prio>0.\d+))?)', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches );
 
