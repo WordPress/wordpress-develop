@@ -1992,9 +1992,8 @@ function wp_get_word_count_type() {
 /**
  * Parses the `Accept-Language` header to get a list of locales.
  *
- * The locales are in the format WordPress expects, so "fr-CH" becomes "fr_CH"
- * and "fr" becomes "fr_FR". "en" and wildcard values are discarded.
- * The priority weighting is also discarded.
+ * The locales are returned in the format WordPress expects,
+ * so "fr-CH" becomes "fr_CH" and "fr" becomes "fr_FR".
  *
  * @since 6.6.0
  *
@@ -2005,19 +2004,81 @@ function get_locales_from_accept_language_header() {
 
 	if ( ! empty( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) && is_string( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
 		$matches = array();
-		preg_match_all( '((?P<code>[a-z-_A-Z]{2,5})([;q=]+?(?P<prio>0.\d+))?)', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches );
+		preg_match_all( '((?P<code>[a-z-_A-Z]{2,5}|\*)([;q=]+?(?P<prio>1|0\.\d))?)', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches );
 
-		foreach ( $matches['code'] as $code ) {
+		if ( empty( $matches['code'] ) ) {
+			return $locales;
+		}
+
+		$codes = $matches['code'];
+
+		// An empty prio defaults to 1.
+		$prios = array_map(
+			static function ( $value ) {
+				if ( '' === $value ) {
+					return 1.0;
+				}
+
+				return (float) $value;
+			},
+			$matches['prio']
+		);
+
+		// Sort codes by priority.
+		usort(
+			$codes,
+			static function ( $a, $b ) use ( $codes, $prios ) {
+				$index_a = array_search( $a, $codes, true );
+				$index_b = array_search( $b, $codes, true );
+
+				return $prios[ $index_b ] <=> $prios[ $index_a ];
+			}
+		);
+
+		// Get list of available translations without potentially deleting an expired transient.
+		$translations = wp_using_ext_object_cache() ?
+			wp_cache_get( 'available_translations', 'site-transient' ) :
+			get_site_option( '_site_transient_available_translations' );
+
+		$has_available_translations = is_array( $translations ) && ! empty( $translations );
+
+		foreach ( $codes as $code ) {
+			if ( '*' === $code ) {
+				// Ignore anything after the wildcard, as we can then just default to en_US.
+				break;
+			}
+
 			$locale = sanitize_locale_name( str_replace( '-', '_', $code ) );
 
-			if ( 'en' === $code ) {
+			if ( '' === $locale ) {
 				continue;
 			}
 
-			if ( 2 === strlen( $locale ) ) {
-				$locale = $locale . '_' . strtoupper( $locale );
+			if ( $has_available_translations ) {
+				$found = array_keys(
+					array_filter(
+						$translations,
+						static function ( $translation ) use ( $locale ) {
+							return $locale === $translation['language'] || in_array( $locale, $translation['iso'], true );
+						}
+					)
+				);
+
+				array_push( $locales, ...$found );
+			} else {
+
+				// If English is accepted, then there is no point in adding any other locales after it.
+				if ( 'en' === $code ) {
+					break;
+				}
+
+				$locales[] = $locale;
+
+				// Fallback approximation, supporting cases like "el", but also "fr" -> "fr_FR",
+				if ( 2 === strlen( $locale ) ) {
+					$locales[] = $locale . '_' . strtoupper( $locale );
+				}
 			}
-			$locales[] = $locale;
 		}
 	}
 

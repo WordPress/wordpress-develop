@@ -627,8 +627,18 @@ class Tests_L10n extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_locales_from_accept_language_header
 	 */
-	public function test_get_locales_from_accept_language_header( $input, $expected ) {
+	public function test_get_locales_from_accept_language_header( $input, $expected, $has_transient = false ) {
 		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = $input;
+
+		if ( $has_transient ) {
+			// Fetches available translations and stores them in a transient.
+			require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+
+			wp_get_available_translations();
+		} else {
+			delete_site_transient( 'available_translations' );
+			wp_cache_delete( 'available_translations', 'site-transient' );
+		}
 
 		$actual = get_locales_from_accept_language_header();
 
@@ -639,25 +649,108 @@ class Tests_L10n extends WP_UnitTestCase {
 
 	public static function data_get_locales_from_accept_language_header() {
 		return array(
-			'Missing header'          => array(
+			'Missing header'                          => array(
 				null,
 				array(),
 			),
-			'Empty header'            => array(
+			'Empty header'                            => array(
 				false,
 				array(),
 			),
-			'Invalid type'            => array(
+			'Invalid type'                            => array(
 				array(),
 				array(),
 			),
-			'Wildcard'                => array(
+			'Wildcard'                                => array(
 				'*',
 				array(),
 			),
-			'Multiple types, weighed' => array(
-				'fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5',
-				array( 'fr_CH', 'fr_FR', 'de_DE' ),
+			'Two-letter locales'                      => array(
+				'de, fr, el, bn',
+				array(
+					'de',
+					'de_DE',
+					'fr',
+					'fr_FR',
+					'el',
+					'el_EL',
+					'bn',
+					'bn_BN',
+				),
+			),
+			'Two-letter locales, with transient'      => array(
+				'de, fr, el, bn',
+				array(
+					'de_CH',
+					'de_CH_informal',
+					'de_DE',
+					'de_AT',
+					'de_DE_formal',
+					'fr_CA',
+					'fr_FR',
+					'fr_BE',
+					'el',
+					'bn_BD',
+				),
+				true,
+			),
+			'Multiple types, weighed'                 => array(
+				'fr-CH, fr;q=0.7, en;q=0.6, de;q=0.8, es-ES;q=0.5',
+				array(
+					'fr_CH',
+					'de',
+					'de_DE',
+					'fr',
+					'fr_FR',
+				),
+			),
+			'Multiple types, weighed, with transient' => array(
+				'fr-CH, fr;q=0.7, en;q=0.6, de;q=0.8, es-ES;q=0.5',
+				array(
+					// Absent because WordPress is not fully translated into it.
+					// 'fr_CH',
+					'de_CH',
+					'de_CH_informal',
+					'de_DE',
+					'de_AT',
+					'de_DE_formal',
+					'fr_CA',
+					'fr_FR',
+					'fr_BE',
+					'en_ZA',
+					'en_CA',
+					'en_AU',
+					'en_NZ',
+					'en_GB',
+					'es_ES',
+				),
+				true,
+			),
+			'Multiple types, weighed, with wildcard'  => array(
+				'fr-CH, fr;q=0.7, *;q=0.6, de;q=0.8, es-ES;q=0.5',
+				array(
+					'fr_CH',
+					'de',
+					'de_DE',
+					'fr',
+					'fr_FR',
+				),
+			),
+			'Multiple types, weighed, with wildcard, with transient' => array(
+				'fr-CH, fr;q=0.7, *;q=0.6, de;q=0.8, es-ES;q=0.5',
+				array(
+					// Absent because WordPress is not fully translated into it.
+					// 'fr_CH',
+					'de_CH',
+					'de_CH_informal',
+					'de_DE',
+					'de_AT',
+					'de_DE_formal',
+					'fr_CA',
+					'fr_FR',
+					'fr_BE',
+				),
+				true,
 			),
 		);
 	}
