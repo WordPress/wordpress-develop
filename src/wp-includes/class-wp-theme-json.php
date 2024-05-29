@@ -123,7 +123,7 @@ class WP_Theme_JSON {
 	 *              `prevent_override` value for `color.duotone` to use `color.defaultDuotone`.
 	 * @since 6.2.0 Added 'shadow' presets.
 	 * @since 6.3.0 Replaced value_func for duotone with `null`. Custom properties are handled by class-wp-duotone.php.
-	 * @since 6.6.0 Added the `dimensions.aspectRatios` preset.
+	 * @since 6.6.0 Added the `dimensions.aspectRatios` & `dimensions.defaultAspectRatios` preset.
 	 * @var array
 	 */
 	const PRESETS_METADATA = array(
