@@ -463,30 +463,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		}
 	}
 
-	// variations can either be an array of block variations, or the name of
-	// a PHP file that generates that array.
-	if ( ! empty( $metadata['variations'] ) && is_string( $metadata['variations'] ) ) {
-		$variations_path = wp_normalize_path(
-			realpath(
-				dirname( $metadata['file'] ) . '/' .
-				remove_block_asset_path_prefix( $metadata['variations'] )
-			)
-		);
-		if ( $variations_path ) {
-			/**
-			 * Generates the list of block variations.
-			 *
-			 * @since 6.6.0
-			 *
-			 * @return string Returns the list of block variations.
-			 */
-			$metadata['variation_callback'] = static function () use ( $variations_path ) {
-				$variations = require $variations_path;
-				return $variations;
-			};
-		}
-	}
-
 	$settings          = array();
 	$property_mappings = array(
 		'apiVersion'      => 'api_version',
@@ -543,6 +519,30 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 				ob_start();
 				require $template_path;
 				return ob_get_clean();
+			};
+		}
+	}
+
+	// If `variations` is a string, it's the name of a PHP file that
+	// generates the variations.
+	if ( ! empty( $metadata['variations'] ) && is_string( $metadata['variations'] ) ) {
+		$variations_path = wp_normalize_path(
+			realpath(
+				dirname( $metadata['file'] ) . '/' .
+				remove_block_asset_path_prefix( $metadata['variations'] )
+			)
+		);
+		if ( $variations_path ) {
+			/**
+			 * Generates the list of block variations.
+			 *
+			 * @since 6.6.0
+			 *
+			 * @return string Returns the list of block variations.
+			 */
+			$settings['variation_callback'] = static function () use ( $variations_path ) {
+				$variations = require $variations_path;
+				return $variations;
 			};
 		}
 	}
