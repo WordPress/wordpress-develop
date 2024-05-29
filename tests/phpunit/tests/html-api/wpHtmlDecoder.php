@@ -13,9 +13,14 @@
  */
 class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
+	 * Ensures proper decoding of edge cases.
+	 *
+	 * @ticket 61072
+	 *
 	 * @dataProvider data_edge_cases
-	 * @param $raw_text_node
-	 * @param $decoded_value
+	 *
+	 * @param $raw_text_node Raw input text.
+	 * @param $decoded_value The expected decoded text result.
 	 */
 	public function test_edge_cases( $raw_text_node, $decoded_value ) {
 		$this->assertSame(
