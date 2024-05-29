@@ -791,7 +791,7 @@ SCRIPT_TAG;
 		$this->assertEquals( 'otherPlugin-context', $result );
 
 		$result = $this->evaluate( 'state.obj.prop' );
-		$this->assertEquals( 'myPlugin-state', $result );
+		$this->assertSame( 'myPlugin-state', $result );
 	}
 
 	/**
