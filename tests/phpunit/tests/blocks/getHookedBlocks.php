@@ -151,7 +151,7 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 			$template->content
 		);
 		$this->assertStringContainsString(
-			'<!-- wp:post-content {"layout":{"type":"constrained"}} /-->'
+			'<!-- wp:post-content {"layout":{"type":"constrained"},"metadata":{"ignoredHookedBlocks":["tests/hooked-after"]}} /-->'
 			. '<!-- wp:tests/hooked-after /-->',
 			$template->content
 		);
@@ -180,7 +180,7 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
 		$this->assertStringContainsString(
 			'<!-- wp:tests/hooked-before /-->'
-			. '<!-- wp:navigation {"layout":{"type":"flex","setCascadingProperties":true,"justifyContent":"right"}} /-->',
+			. '<!-- wp:navigation {"layout":{"type":"flex","setCascadingProperties":true,"justifyContent":"right"},"metadata":{"ignoredHookedBlocks":["tests/hooked-before"]}} /-->',
 			$template->content
 		);
 		$this->assertStringNotContainsString(
@@ -221,7 +221,7 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 			$pattern['content']
 		);
 		$this->assertStringContainsString(
-			'<!-- wp:comments -->'
+			'<!-- wp:comments {"metadata":{"ignoredHookedBlocks":["tests/hooked-first-child"]}} -->'
 			. '<div class="wp-block-comments">'
 			. '<!-- wp:tests/hooked-first-child /-->',
 			str_replace( array( "\n", "\t" ), '', $pattern['content'] )

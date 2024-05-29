@@ -580,6 +580,7 @@ add_filter( 'wp_calculate_image_sizes', 'twentyseventeen_content_image_sizes_att
  * Filters the `sizes` value in the header image markup.
  *
  * @since Twenty Seventeen 1.0
+ * @since Twenty Seventeen 3.7 Added larger image size for small screens.
  *
  * @param string $html   The HTML image tag markup being filtered.
  * @param object $header The custom header object returned by 'get_custom_header()'.
@@ -588,7 +589,7 @@ add_filter( 'wp_calculate_image_sizes', 'twentyseventeen_content_image_sizes_att
  */
 function twentyseventeen_header_image_tag( $html, $header, $attr ) {
 	if ( isset( $attr['sizes'] ) ) {
-		$html = str_replace( $attr['sizes'], '100vw', $html );
+		$html = str_replace( $attr['sizes'], '(max-width: 767px) 200vw, 100vw', $html );
 	}
 	return $html;
 }
@@ -687,6 +688,19 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 		return __( ', ', 'twentyseventeen' );
 	}
 endif;
+
+/**
+ * If a regular post or page, and not the front page, show the featured image below the header.
+ * Using get_queried_object_id() here since the $post global may not be set before a call to the_post().
+ *
+ * @since Twenty Seventeen 3.7
+ *
+ * @return bool Whether the post thumbnail should be shown.
+ */
+function twentyseventeen_should_show_featured_image() {
+	$show_featured_image = ( is_single() || ( is_page() && ! twentyseventeen_is_frontpage() ) ) && has_post_thumbnail( get_queried_object_id() );
+	return apply_filters( 'twentyseventeen_should_show_featured_image', $show_featured_image );
+}
 
 /**
  * Implement the Custom Header feature.

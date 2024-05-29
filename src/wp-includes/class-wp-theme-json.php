@@ -39,6 +39,14 @@ class WP_Theme_JSON {
 	protected static $blocks_metadata = array();
 
 	/**
+	 * The CSS selector for the top-level preset settings.
+	 *
+	 * @since 6.6.0
+	 * @var string
+	 */
+	const ROOT_CSS_PROPERTIES_SELECTOR = ':root';
+
+	/**
 	 * The CSS selector for the top-level styles.
 	 *
 	 * @since 5.8.0
@@ -205,6 +213,7 @@ class WP_Theme_JSON {
 	 * @since 6.3.0 Added `column-count` property.
 	 * @since 6.4.0 Added `writing-mode` property.
 	 * @since 6.5.0 Added `aspect-ratio` property.
+	 * @since 6.6.0 Added `background-[image|position|repeat|size]` properties.
 	 *
 	 * @var array
 	 */
@@ -212,6 +221,10 @@ class WP_Theme_JSON {
 		'aspect-ratio'                      => array( 'dimensions', 'aspectRatio' ),
 		'background'                        => array( 'color', 'gradient' ),
 		'background-color'                  => array( 'color', 'background' ),
+		'background-image'                  => array( 'background', 'backgroundImage' ),
+		'background-position'               => array( 'background', 'backgroundPosition' ),
+		'background-repeat'                 => array( 'background', 'backgroundRepeat' ),
+		'background-size'                   => array( 'background', 'backgroundSize' ),
 		'border-radius'                     => array( 'border', 'radius' ),
 		'border-top-left-radius'            => array( 'border', 'radius', 'topLeft' ),
 		'border-top-right-radius'           => array( 'border', 'radius', 'topRight' ),
@@ -275,9 +288,10 @@ class WP_Theme_JSON {
 	 *
 	 * Indirect properties are not output directly by `compute_style_properties`,
 	 * but are used elsewhere in the processing of global styles. The indirect
-	 * property is used to validate whether or not a style value is allowed.
+	 * property is used to validate whether a style value is allowed.
 	 *
 	 * @since 6.2.0
+	 * @since 6.6.0 Added background-image properties.
 	 *
 	 * @var array
 	 */
@@ -294,6 +308,9 @@ class WP_Theme_JSON {
 		'max-width'  => array(
 			array( 'layout', 'contentSize' ),
 			array( 'layout', 'wideSize' ),
+		),
+		'background-image' => array(
+			array( 'background', 'backgroundImage', 'url' ),
 		),
 	);
 
@@ -474,10 +491,17 @@ class WP_Theme_JSON {
 	 * @since 6.2.0 Added `outline`, and `minHeight` properties.
 	 * @since 6.3.0 Added support for `typography.textColumns`.
 	 * @since 6.5.0 Added support for `dimensions.aspectRatio`.
+	 * @since 6.6.0 Added `background` sub properties to top-level only.
 	 *
 	 * @var array
 	 */
 	const VALID_STYLES = array(
+		'background' => array(
+			'backgroundImage'    => 'top',
+			'backgroundPosition' => 'top',
+			'backgroundRepeat'   => 'top',
+			'backgroundSize'     => 'top',
+		),
 		'border'     => array(
 			'color'  => null,
 			'radius' => null,
@@ -1227,7 +1251,7 @@ class WP_Theme_JSON {
 			);
 
 			foreach ( $base_styles_nodes as $base_style_node ) {
-				$stylesheet .= $this->get_layout_styles( $base_style_node );
+				$stylesheet .= $this->get_layout_styles( $base_style_node, $types );
 			}
 		}
 
@@ -1388,11 +1412,14 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.1.0
 	 * @since 6.3.0 Reduced specificity for layout margin rules.
+	 * @since 6.5.1 Only output rules referencing content and wide sizes when values exist.
+	 * @since 6.5.3 Add types parameter to check if only base layout styles are needed.
 	 *
 	 * @param array $block_metadata Metadata about the block to get styles for.
+	 * @param array $types          Optional. Types of styles to output. If empty, all styles will be output.
 	 * @return string Layout styles for the block.
 	 */
-	protected function get_layout_styles( $block_metadata ) {
+	protected function get_layout_styles( $block_metadata, $types = array() ) {
 		$block_rules = '';
 		$block_type  = null;
 
@@ -1542,12 +1569,27 @@ class WP_Theme_JSON {
 					foreach ( $base_style_rules as $base_style_rule ) {
 						$declarations = array();
 
+						// Skip outputting base styles for flow and constrained layout types if theme doesn't support theme.json. The 'base-layout-styles' type flags this.
+						if ( in_array( 'base-layout-styles', $types, true ) && ( 'default' === $layout_definition['name'] || 'constrained' === $layout_definition['name'] ) ) {
+							continue;
+						}
+
 						if (
 							isset( $base_style_rule['selector'] ) &&
 							preg_match( $layout_selector_pattern, $base_style_rule['selector'] ) &&
 							! empty( $base_style_rule['rules'] )
 						) {
 							foreach ( $base_style_rule['rules'] as $css_property => $css_value ) {
+								// Skip rules that reference content size or wide size if they are not defined in the theme.json.
+								if (
+									is_string( $css_value ) &&
+									( str_contains( $css_value, '--global--content-size' ) || str_contains( $css_value, '--global--wide-size' ) ) &&
+									! isset( $this->theme_json['settings']['layout']['contentSize'] ) &&
+									! isset( $this->theme_json['settings']['layout']['wideSize'] )
+								) {
+									continue;
+								}
+
 								if ( static::is_safe_css_declaration( $css_property, $css_value ) ) {
 									$declarations[] = array(
 										'name'  => $css_property,
@@ -1690,6 +1732,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Added the `$origins` parameter.
+	 * @since 6.6.0 Added check for root CSS properties selector.
 	 *
 	 * @param array    $settings Settings to process.
 	 * @param string   $selector Selector wrapping the classes.
@@ -1697,7 +1740,7 @@ class WP_Theme_JSON {
 	 * @return string The result of processing the presets.
 	 */
 	protected static function compute_preset_classes( $settings, $selector, $origins ) {
-		if ( static::ROOT_BLOCK_SELECTOR === $selector ) {
+		if ( static::ROOT_BLOCK_SELECTOR === $selector || static::ROOT_CSS_PROPERTIES_SELECTOR === $selector ) {
 			/*
 			 * Classes at the global level do not need any CSS prefixed,
 			 * and we don't want to increase its specificity.
@@ -1804,6 +1847,7 @@ class WP_Theme_JSON {
 	 * </code>
 	 *
 	 * @since 5.9.0
+	 * @since 6.6.0 Passing $settings to the callbacks defined in static::PRESETS_METADATA.
 	 *
 	 * @param array    $settings        Settings to process.
 	 * @param array    $preset_metadata One of the PRESETS_METADATA values.
@@ -1830,7 +1874,7 @@ class WP_Theme_JSON {
 					is_callable( $preset_metadata['value_func'] )
 				) {
 					$value_func = $preset_metadata['value_func'];
-					$value      = call_user_func( $value_func, $preset );
+					$value      = call_user_func( $value_func, $preset, $settings );
 				} else {
 					// If we don't have a value, then don't add it to the result.
 					continue;
@@ -2023,6 +2067,7 @@ class WP_Theme_JSON {
 	 * @since 5.9.0 Added the `$settings` and `$properties` parameters.
 	 * @since 6.1.0 Added `$theme_json`, `$selector`, and `$use_root_padding` parameters.
 	 * @since 6.5.0 Output a `min-height: unset` rule when `aspect-ratio` is set.
+	 * @since 6.6.0 Pass current theme JSON settings to wp_get_typography_font_size_value(), and process background properties.
 	 *
 	 * @param array   $styles Styles to process.
 	 * @param array   $settings Theme settings.
@@ -2076,6 +2121,12 @@ class WP_Theme_JSON {
 				}
 			}
 
+			// Processes background styles.
+			if ( 'background' === $value_path[0] && isset( $styles['background'] ) ) {
+				$background_styles = wp_style_engine_get_styles( array( 'background' => $styles['background'] ) );
+				$value             = isset( $background_styles['declarations'][ $css_property ] ) ? $background_styles['declarations'][ $css_property ] : $value;
+			}
+
 			// Skip if empty and not "0" or value represents array of longhand values.
 			$has_missing_value = empty( $value ) && ! is_numeric( $value );
 			if ( $has_missing_value || is_array( $value ) ) {
@@ -2090,8 +2141,9 @@ class WP_Theme_JSON {
 				 * whether the incoming value can be converted to a fluid value.
 				 * Values that already have a clamp() function will not pass the test,
 				 * and therefore the original $value will be returned.
+				 * Pass the current theme_json settings to override any global settings.
 				 */
-				$value = wp_get_typography_font_size_value( array( 'size' => $value ) );
+				$value = wp_get_typography_font_size_value( array( 'size' => $value ), $settings );
 			}
 
 			if ( 'aspect-ratio' === $css_property ) {
@@ -2215,7 +2267,7 @@ class WP_Theme_JSON {
 		// Top-level.
 		$nodes[] = array(
 			'path'     => array( 'settings' ),
-			'selector' => static::ROOT_BLOCK_SELECTOR,
+			'selector' => static::ROOT_CSS_PROPERTIES_SELECTOR,
 		);
 
 		// Calculate paths for blocks.
@@ -2454,6 +2506,7 @@ class WP_Theme_JSON {
 	 * Gets the CSS rules for a particular block from theme.json.
 	 *
 	 * @since 6.1.0
+	 * @since 6.6.0 Setting a min-height of HTML when root styles have a background gradient or image.
 	 *
 	 * @param array $block_metadata Metadata about the block to get styles for.
 	 *
@@ -2465,6 +2518,7 @@ class WP_Theme_JSON {
 		$selector             = $block_metadata['selector'];
 		$settings             = isset( $this->theme_json['settings'] ) ? $this->theme_json['settings'] : array();
 		$feature_declarations = static::get_feature_declarations_for_node( $block_metadata, $node );
+		$is_root_selector     = static::ROOT_BLOCK_SELECTOR === $selector;
 
 		// If there are style variations, generate the declarations for them, including any feature selectors the block may have.
 		$style_variation_declarations = array();
@@ -2547,15 +2601,53 @@ class WP_Theme_JSON {
 		$block_rules = '';
 
 		/*
-		 * 1. Separate the declarations that use the general selector
+		 * 1. Bespoke declaration modifiers:
+		 * - 'filter': Separate the declarations that use the general selector
 		 * from the ones using the duotone selector.
+		 * - 'background|background-image': set the html min-height to 100%
+		 * to ensure the background covers the entire viewport.
 		 */
-		$declarations_duotone = array();
+		$declarations_duotone       = array();
+		$should_set_root_min_height = false;
+
 		foreach ( $declarations as $index => $declaration ) {
 			if ( 'filter' === $declaration['name'] ) {
+				/*
+				 * 'unset' filters happen when a filter is unset
+				 * in the site-editor UI. Because the 'unset' value
+				 * in the user origin overrides the value in the
+				 * theme origin, we can skip rendering anything
+				 * here as no filter needs to be applied anymore.
+				 * So only add declarations to with values other
+				 * than 'unset'.
+				 */
+				if ( 'unset' !== $declaration['value'] ) {
+					$declarations_duotone[] = $declaration;
+				}
 				unset( $declarations[ $index ] );
-				$declarations_duotone[] = $declaration;
 			}
+
+			if ( $is_root_selector && ( 'background-image' === $declaration['name'] || 'background' === $declaration['name'] ) ) {
+				$should_set_root_min_height = true;
+			}
+		}
+
+		/*
+		 * If root styles has a background-image or a background (gradient) set,
+		 * set the min-height to '100%'. Minus `--wp-admin--admin-bar--height` for logged-in view.
+		 * Setting the CSS rule on the HTML tag ensures background gradients and images behave similarly,
+		 * and matches the behavior of the site editor.
+		 */
+		if ( $should_set_root_min_height ) {
+			$block_rules .= static::to_ruleset(
+				'html',
+				array(
+					array(
+						'name'  => 'min-height',
+						'value' => 'calc(100% - var(--wp-admin--admin-bar--height, 0px))',
+					),
+				)
+			);
 		}
 
 		// Update declarations if there are separators with only background color defined.
@@ -2573,7 +2665,7 @@ class WP_Theme_JSON {
 
 		// 4. Generate Layout block gap styles.
 		if (
-			static::ROOT_BLOCK_SELECTOR !== $selector &&
+			! $is_root_selector &&
 			! empty( $block_metadata['name'] )
 		) {
 			$block_rules .= $this->get_layout_styles( $block_metadata );
@@ -2596,6 +2688,7 @@ class WP_Theme_JSON {
 	 * Outputs the CSS for layout rules on the root.
 	 *
 	 * @since 6.1.0
+	 * @since 6.6.0 Use `ROOT_CSS_PROPERTIES_SELECTOR` for CSS custom properties.
 	 *
 	 * @param string $selector The root node selector.
 	 * @param array  $block_metadata The metadata for the root block.
@@ -2607,16 +2700,6 @@ class WP_Theme_JSON {
 		$use_root_padding = isset( $this->theme_json['settings']['useRootPaddingAwareAlignments'] ) && true === $this->theme_json['settings']['useRootPaddingAwareAlignments'];
 
 		/*
-		* Reset default browser margin on the root body element.
-		* This is set on the root selector **before** generating the ruleset
-		* from the `theme.json`. This is to ensure that if the `theme.json` declares
-		* `margin` in its `spacing` declaration for the `body` element then these
-		* user-generated values take precedence in the CSS cascade.
-		* @link https://github.com/WordPress/gutenberg/issues/36147.
-		*/
-		$css .= 'body { margin: 0;';
-
-		/*
 		* If there are content and wide widths in theme.json, output them
 		* as custom properties on the body element so all blocks can use them.
 		*/
@@ -2625,11 +2708,19 @@ class WP_Theme_JSON {
 			$content_size = static::is_safe_css_declaration( 'max-width', $content_size ) ? $content_size : 'initial';
 			$wide_size    = isset( $settings['layout']['wideSize'] ) ? $settings['layout']['wideSize'] : $settings['layout']['contentSize'];
 			$wide_size    = static::is_safe_css_declaration( 'max-width', $wide_size ) ? $wide_size : 'initial';
-			$css         .= '--wp--style--global--content-size: ' . $content_size . ';';
-			$css         .= '--wp--style--global--wide-size: ' . $wide_size . ';';
+			$css .= static::ROOT_CSS_PROPERTIES_SELECTOR . ' { --wp--style--global--content-size: ' . $content_size . ';';
+			$css .= '--wp--style--global--wide-size: ' . $wide_size . '; }';
 		}
 
-		$css .= ' }';
+		/*
+		* Reset default browser margin on the body element.
+		* This is set on the body selector **before** generating the ruleset
+		* from the `theme.json`. This is to ensure that if the `theme.json` declares
+		* `margin` in its `spacing` declaration for the `body` element then these
+		* user-generated values take precedence in the CSS cascade.
+		* @link https://github.com/WordPress/gutenberg/issues/36147.
+		*/
+		$css .= 'body { margin: 0; }';
 
 		if ( $use_root_padding ) {
 			// Top and bottom padding are applied to the outer block container.
@@ -2652,16 +2743,15 @@ class WP_Theme_JSON {
 		$css .= '.wp-site-blocks > .alignright { float: right; margin-left: 2em; }';
 		$css .= '.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
 
-		$block_gap_value       = isset( $this->theme_json['styles']['spacing']['blockGap'] ) ? $this->theme_json['styles']['spacing']['blockGap'] : '0.5em';
-		$has_block_gap_support = isset( $this->theme_json['settings']['spacing']['blockGap'] );
-		if ( $has_block_gap_support ) {
+		// Block gap styles will be output unless explicitly set to `null`. See static::PROTECTED_PROPERTIES.
+		if ( isset( $this->theme_json['settings']['spacing']['blockGap'] ) ) {
 			$block_gap_value = static::get_property_value( $this->theme_json, array( 'styles', 'spacing', 'blockGap' ) );
 			$css            .= ":where(.wp-site-blocks) > * { margin-block-start: $block_gap_value; margin-block-end: 0; }";
 			$css            .= ':where(.wp-site-blocks) > :first-child:first-child { margin-block-start: 0; }';
 			$css            .= ':where(.wp-site-blocks) > :last-child:last-child { margin-block-end: 0; }';
 
 			// For backwards compatibility, ensure the legacy block gap CSS variable is still available.
-			$css .= "$selector { --wp--style--block-gap: $block_gap_value; }";
+			$css .= static::ROOT_CSS_PROPERTIES_SELECTOR . " { --wp--style--block-gap: $block_gap_value; }";
 		}
 		$css .= $this->get_layout_styles( $block_metadata );
 
@@ -2882,7 +2972,7 @@ class WP_Theme_JSON {
 
 	/**
 	 * Returns the default slugs for all the presets in an associative array
-	 * whose keys are the preset paths and the leafs is the list of slugs.
+	 * whose keys are the preset paths and the leaves is the list of slugs.
 	 *
 	 * For example:
 	 *

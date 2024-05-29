@@ -316,4 +316,36 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $override_load_textdomain_callback->get_call_count(), 'Expected override_load_textdomain not to be called.' );
 	}
+
+	/**
+	 * @ticket 60888
+	 * @covers ::load_plugin_textdomain
+	 */
+	public function test_load_plugin_textdomain_invalid_domain() {
+		$this->assertFalse( load_plugin_textdomain( null ) );
+	}
+
+	/**
+	 * @ticket 60888
+	 * @covers ::load_muplugin_textdomain
+	 */
+	public function test_load_muplugin_textdomain_invalid_domain() {
+		$this->assertFalse( load_muplugin_textdomain( null ) );
+	}
+
+	/**
+	 * @ticket 60888
+	 * @covers ::load_theme_textdomain
+	 */
+	public function test_load_theme_textdomain_invalid_domain() {
+		$this->assertFalse( load_theme_textdomain( null ) );
+	}
+
+	/**
+	 * @ticket 60888
+	 * @covers ::load_textdomain
+	 */
+	public function test_load_textdomain_invalid_domain() {
+		$this->assertFalse( load_textdomain( null, DIR_TESTDATA . '/pomo/thisfiledoesnotexist.mo' ) );
+	}
 }
