@@ -6694,6 +6694,219 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/global-styles/(?P<parent>[\\d]+)/revisions": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The ID for the parent of the revision.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/global-styles/(?P<parent>[\\d]+)/revisions/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The ID for the parent of the global styles revision.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "id": {
+                            "description": "Unique identifier for the global styles revision.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/global-styles/themes/(?P<stylesheet>[\\/\\s%\\w\\.\\(\\)\\[\\]\\@_\\-]+)/variations": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "allow_batch": {
+                        "v1": false
+                    },
+                    "args": {
+                        "stylesheet": {
+                            "description": "The theme identifier",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/global-styles/themes/(?P<stylesheet>[^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "allow_batch": {
+                        "v1": false
+                    },
+                    "args": {
+                        "stylesheet": {
+                            "description": "The theme identifier",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/global-styles/(?P<id>[\\/\\w-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "allow_batch": {
+                        "v1": false
+                    },
+                    "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "allow_batch": {
+                        "v1": false
+                    },
+                    "args": {
+                        "styles": {
+                            "description": "Global styles.",
+                            "type": [
+                                "object"
+                            ],
+                            "required": false
+                        },
+                        "settings": {
+                            "description": "Global settings.",
+                            "type": [
+                                "object"
+                            ],
+                            "required": false
+                        },
+                        "title": {
+                            "description": "Title of the global styles variation.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the global styles variation, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/navigation": {
             "namespace": "wp/v2",
             "methods": [
@@ -9287,6 +9500,7 @@ mockedApiResponse.Schema = {
                                     "wp_block": "wp_block",
                                     "wp_template": "wp_template",
                                     "wp_template_part": "wp_template_part",
+                                    "wp_global_styles": "wp_global_styles",
                                     "wp_navigation": "wp_navigation",
                                     "wp_font_family": "wp_font_family",
                                     "wp_font_face": "wp_font_face"
@@ -10501,207 +10715,6 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/global-styles/(?P<parent>[\\d]+)/revisions": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "parent": {
-                            "description": "The ID for the parent of the revision.",
-                            "type": "integer",
-                            "required": false
-                        },
-                        "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
-                            "enum": [
-                                "view",
-                                "embed",
-                                "edit"
-                            ],
-                            "default": "view",
-                            "required": false
-                        },
-                        "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
-                            "default": 1,
-                            "minimum": 1,
-                            "required": false
-                        },
-                        "per_page": {
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
-                        },
-                        "offset": {
-                            "description": "Offset the result set by a specific number of items.",
-                            "type": "integer",
-                            "required": false
-                        }
-                    }
-                }
-            ]
-        },
-        "/wp/v2/global-styles/(?P<parent>[\\d]+)/revisions/(?P<id>[\\d]+)": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "parent": {
-                            "description": "The ID for the parent of the global styles revision.",
-                            "type": "integer",
-                            "required": false
-                        },
-                        "id": {
-                            "description": "Unique identifier for the global styles revision.",
-                            "type": "integer",
-                            "required": false
-                        },
-                        "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
-                            "enum": [
-                                "view",
-                                "embed",
-                                "edit"
-                            ],
-                            "default": "view",
-                            "required": false
-                        }
-                    }
-                }
-            ]
-        },
-        "/wp/v2/global-styles/themes/(?P<stylesheet>[\\/\\s%\\w\\.\\(\\)\\[\\]\\@_\\-]+)/variations": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "stylesheet": {
-                            "description": "The theme identifier",
-                            "type": "string",
-                            "required": false
-                        }
-                    }
-                }
-            ]
-        },
-        "/wp/v2/global-styles/themes/(?P<stylesheet>[^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "stylesheet": {
-                            "description": "The theme identifier",
-                            "type": "string",
-                            "required": false
-                        }
-                    }
-                }
-            ]
-        },
-        "/wp/v2/global-styles/(?P<id>[\\/\\w-]+)": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "id": {
-                            "description": "The id of a template",
-                            "type": "string",
-                            "required": false
-                        }
-                    }
-                },
-                {
-                    "methods": [
-                        "POST",
-                        "PUT",
-                        "PATCH"
-                    ],
-                    "args": {
-                        "styles": {
-                            "description": "Global styles.",
-                            "type": [
-                                "object"
-                            ],
-                            "required": false
-                        },
-                        "settings": {
-                            "description": "Global settings.",
-                            "type": [
-                                "object"
-                            ],
-                            "required": false
-                        },
-                        "title": {
-                            "description": "Title of the global styles variation.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the global styles variation, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML title for the post, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
-                        }
-                    }
-                }
-            ]
-        },
         "/wp/v2/settings": {
             "namespace": "wp/v2",
             "methods": [
@@ -10725,88 +10738,105 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "title": {
+                            "title": "Title",
                             "description": "Site title.",
                             "type": "string",
                             "required": false
                         },
                         "description": {
+                            "title": "Tagline",
                             "description": "Site tagline.",
                             "type": "string",
                             "required": false
                         },
                         "url": {
+                            "title": "",
                             "description": "Site URL.",
                             "type": "string",
                             "format": "uri",
                             "required": false
                         },
                         "email": {
+                            "title": "",
                             "description": "This address is used for admin purposes, like new user notification.",
                             "type": "string",
                             "format": "email",
                             "required": false
                         },
                         "timezone": {
+                            "title": "",
                             "description": "A city in the same timezone as you.",
                             "type": "string",
                             "required": false
                         },
                         "date_format": {
+                            "title": "",
                             "description": "A date format for all date strings.",
                             "type": "string",
                             "required": false
                         },
                         "time_format": {
+                            "title": "",
                             "description": "A time format for all time strings.",
                             "type": "string",
                             "required": false
                         },
                         "start_of_week": {
+                            "title": "",
                             "description": "A day number of the week that the week should start on.",
                             "type": "integer",
                             "required": false
                         },
                         "language": {
+                            "title": "",
                             "description": "WordPress locale code.",
                             "type": "string",
                             "required": false
                         },
                         "use_smilies": {
+                            "title": "",
                             "description": "Convert emoticons like :-) and :-P to graphics on display.",
                             "type": "boolean",
                             "required": false
                         },
                         "default_category": {
+                            "title": "",
                             "description": "Default post category.",
                             "type": "integer",
                             "required": false
                         },
                         "default_post_format": {
+                            "title": "",
                             "description": "Default post format.",
                             "type": "string",
                             "required": false
                         },
                         "posts_per_page": {
+                            "title": "Maximum posts per page",
                             "description": "Blog pages show at most.",
                             "type": "integer",
                             "required": false
                         },
                         "show_on_front": {
+                            "title": "Show on front",
                             "description": "What to show on the front page",
                             "type": "string",
                             "required": false
                         },
                         "page_on_front": {
+                            "title": "Page on front",
                             "description": "The ID of the page that should be displayed on the front page",
                             "type": "integer",
                             "required": false
                         },
                         "page_for_posts": {
+                            "title": "",
                             "description": "The ID of the page that should display the latest posts",
                             "type": "integer",
                             "required": false
                         },
                         "default_ping_status": {
+                            "title": "",
                             "description": "Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.",
                             "type": "string",
                             "enum": [
@@ -10816,6 +10846,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "default_comment_status": {
+                            "title": "Allow comments on new posts",
                             "description": "Allow people to submit comments on new posts.",
                             "type": "string",
                             "enum": [
@@ -10825,11 +10856,13 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "site_logo": {
+                            "title": "",
                             "description": "Site logo.",
                             "type": "integer",
                             "required": false
                         },
                         "site_icon": {
+                            "title": "",
                             "description": "Site icon.",
                             "type": "integer",
                             "required": false
@@ -13113,6 +13146,36 @@ mockedApiResponse.TypesCollection = {
             "wp:items": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/template-parts"
+                }
+            ],
+            "curies": [
+                {
+                    "name": "wp",
+                    "href": "https://api.w.org/{rel}",
+                    "templated": true
+                }
+            ]
+        }
+    },
+    "wp_global_styles": {
+        "description": "Global styles to include in themes.",
+        "hierarchical": false,
+        "has_archive": false,
+        "name": "Global Styles",
+        "slug": "wp_global_styles",
+        "icon": null,
+        "taxonomies": [],
+        "rest_base": "global-styles",
+        "rest_namespace": "wp/v2",
+        "_links": {
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types"
+                }
+            ],
+            "wp:items": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/global-styles"
                 }
             ],
             "curies": [
