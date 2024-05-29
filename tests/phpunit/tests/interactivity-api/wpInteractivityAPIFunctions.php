@@ -527,7 +527,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	}
 
 	/**
-	 * Tests wp_interactivity_process_directives_enabled filter.
+	 * Tests interactivity_process_directives filter.
 	 *
 	 * @ticket 61185
 	 *
