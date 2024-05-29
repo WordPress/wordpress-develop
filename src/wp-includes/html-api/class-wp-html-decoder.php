@@ -213,11 +213,11 @@ class WP_HTML_Decoder {
 
 		$length = strlen( $text );
 		if ( $at + 1 >= $length ) {
-			return false;
+			return null;
 		}
 
 		if ( '&' !== $text[ $at ] ) {
-			return false;
+			return null;
 		}
 
 		/*
@@ -232,7 +232,7 @@ class WP_HTML_Decoder {
 		 */
 		if ( '#' === $text[ $at + 1 ] ) {
 			if ( $at + 2 >= $length ) {
-				return false;
+				return null;
 			}
 
 			/** Tracks inner parsing within the numeric character reference. */
@@ -258,7 +258,7 @@ class WP_HTML_Decoder {
 
 			// `&#` or `&#x` without digits returns into plaintext.
 			if ( 0 === $digit_count && 0 === $zero_count ) {
-				return false;
+				return null;
 			}
 
 			// Whereas `&#` and only zeros is invalid.
@@ -354,13 +354,13 @@ class WP_HTML_Decoder {
 		$name_at = $at + 1;
 		// Minimum named character reference is two characters. E.g. `GT`.
 		if ( $name_at + 2 > $length ) {
-			return false;
+			return null;
 		}
 
 		$name_length = 0;
 		$replacement = $html5_named_character_references->read_token( $text, $name_at, $name_length );
-		if ( false === $replacement ) {
-			return false;
+		if ( ! isset( $replacement ) ) {
+			return null;
 		}
 
 		$after_name = $name_at + $name_length;
@@ -393,7 +393,7 @@ class WP_HTML_Decoder {
 
 		// It's ambiguous, which isn't allowed inside attributes.
 		if ( 'attribute' === $context ) {
-			return false;
+			return null;
 		}
 
 		$byte_length_of_matched_token = $after_name - $at;
