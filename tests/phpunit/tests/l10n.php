@@ -666,7 +666,7 @@ class Tests_L10n extends WP_UnitTestCase {
 				array(),
 			),
 			'Two-letter locales'                      => array(
-				'de, fr, el, bn',
+				'de, fr, el, bn, ky',
 				array(
 					'de',
 					'de_DE',
@@ -676,10 +676,12 @@ class Tests_L10n extends WP_UnitTestCase {
 					'el_EL',
 					'bn',
 					'bn_BN',
+					'ky',
+					'ky_KY',
 				),
 			),
 			'Two-letter locales, with transient'      => array(
-				'de, fr, el, bn',
+				'de, fr, el, bn, ky',
 				array(
 					'de_AT',
 					'de_CH',
@@ -691,6 +693,7 @@ class Tests_L10n extends WP_UnitTestCase {
 					'fr_FR',
 					'el',
 					'bn_BD',
+					'kir',
 				),
 				true,
 			),
