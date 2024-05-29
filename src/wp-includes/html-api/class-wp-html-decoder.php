@@ -197,8 +197,8 @@ class WP_HTML_Decoder {
 	 *
 	 * @param string $context                      `attribute` for decoding attribute values, `data` otherwise.
 	 * @param string $text                         Text document containing span of text to decode.
-	 * @param ?int   $at                           Byte offset into text where span begins, defaults to the beginning.
-	 * @param ?int   $byte_length_of_matched_token Set to byte length of matched character reference, if matched,
+	 * @param ?int   $at                           Optional. Byte offset into text where span begins, defaults to the beginning.
+	 * @param ?int   $byte_length_of_matched_token Optional. Set to byte length of matched character reference, if matched,
 	 *                                             otherwise not set. This is an "out" parameter.
 	 * @return string|false Decoded character reference in UTF-8 if found, otherwise `false`.
 	 */

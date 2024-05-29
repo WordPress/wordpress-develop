@@ -521,8 +521,8 @@ class WP_Token_Map {
 	 * @since 6.6.0
 	 *
 	 * @param string  $text                       String in which to search for a lookup key.
-	 * @param ?int    $offset                     How many bytes into the string where the lookup key ought to start.
-	 * @param ?int    &$matched_token_byte_length Holds byte-length of found token matched, otherwise not set.
+	 * @param int     $offset                     Optional. How many bytes into the string where the lookup key ought to start. Default 0.
+	 * @param ?int    &$matched_token_byte_length Optional. Holds byte-length of found token matched, otherwise not set. Default null.
 	 * @param string  $case_sensitivity           Optional. Pass 'ascii-case-insensitive' to ignore ASCII case when matching. Default 'case-sensitive'.
 	 * @return string|null Mapped value of lookup key if found, otherwise `null`.
 	 */
@@ -573,8 +573,8 @@ class WP_Token_Map {
 	 * @since 6.6.0.
 	 *
 	 * @param string $text                       String in which to search for a lookup key.
-	 * @param ?int   $offset                     How many bytes into the string where the lookup key ought to start.
-	 * @param ?int   &$matched_token_byte_length Holds byte-length of found lookup key if matched, otherwise not set.
+	 * @param int    $offset                     Optional. How many bytes into the string where the lookup key ought to start. Default 0.
+	 * @param ?int   &$matched_token_byte_length Optional. Holds byte-length of found lookup key if matched, otherwise not set. Default null.
 	 * @param string $case_sensitivity           Optional. Pass 'ascii-case-insensitive' to ignore ASCII case when matching. Default 'case-sensitive'.
 	 * @return string|null Mapped value of lookup key if found, otherwise `null`.
 	 */
@@ -692,7 +692,7 @@ class WP_Token_Map {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param ?string $indent Use this string for indentation, or rely on the default horizontal tab character.
+	 * @param string $indent Optional. Use this string for indentation, or rely on the default horizontal tab character. Default "\t".
 	 * @return string Value which can be pasted into a PHP source file for quick loading of table.
 	 */
 	public function precomputed_php_source_table( $indent = "\t" ) {
