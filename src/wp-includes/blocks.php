@@ -385,6 +385,7 @@ function get_block_metadata_i18n_schema() {
  * @since 6.3.0 Added `selectors` field.
  * @since 6.4.0 Added support for `blockHooks` field.
  * @since 6.5.0 Added support for `allowedBlocks`, `viewScriptModule`, and `viewStyle` fields.
+ * @since 6.6.0 Added support for `variations` field.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -517,6 +518,29 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) {
 				ob_start();
 				require $template_path;
+				return ob_get_clean();
+			};
+		}
+	}
+
+	if ( ! empty( $metadata['variations'] ) ) {
+		$variations_path = wp_normalize_path(
+			realpath(
+				dirname( $metadata['file'] ) . '/' .
+				remove_block_asset_path_prefix( $metadata['variations'] )
+			)
+		);
+		if ( $variations_path ) {
+			/**
+			 * Generates the list of block variations.
+			 *
+			 * @since 6.6.0
+			 *
+			 * @return string Returns the list of block variations.
+			 */
+			$settings['render_callback'] = static function () use ( $variations_path ) {
+				ob_start();
+				require $variations_path;
 				return ob_get_clean();
 			};
 		}
