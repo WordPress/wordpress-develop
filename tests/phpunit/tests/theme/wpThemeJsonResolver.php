@@ -103,6 +103,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		add_filter( 'theme_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'stylesheet_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_set_theme_root' ) );
+		add_filter( 'theme_file_uri', array( $this, 'filter_theme_file_uri' ) );
 		$this->queries = array();
 		// Clear caches.
 		wp_clean_themes_cache();
@@ -113,10 +114,21 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
+		remove_filter( 'theme_file_uri', array( $this, 'filter_theme_file_uri' ) );
 
 		// Reset data between tests.
 		wp_clean_theme_json_cache();
 		parent::tear_down();
+	}
+
+	/*
+	 * This filter callback normalizes the return value from `get_theme_file_uri`
+	 * to guard against changes in test environments.
+	 * The test suite otherwise returns full system dir path, e.g.,
+	 * /wordpress-phpunit/includes/../data/themedir1/default/example/img/image.png
+	 */
+	public function filter_theme_file_uri( $file ) {
+		return 'https://example.org/wp-content/themes/example-theme/example/' . explode( 'example/', $file )[1];
 	}
 
 	public function filter_set_theme_root() {
@@ -1175,5 +1187,75 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 		$default_presets_for_block = $theme_json->get_settings()['shadow']['defaultPresets'];
 		$this->assertTrue( $default_presets_for_block );
+	}
+
+	/**
+	 * Tests that relative paths are resolved and merged into the theme.json data.
+	 *
+	 * @covers WP_Theme_JSON_Resolver::resolve_theme_file_uris
+	 * @ticket 61273
+	 */
+	public function test_resolve_theme_file_uris() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'backgroundImage' => array(
+							'url' => 'file:./example/img/image.png',
+						),
+					),
+				),
+			)
+		);
+
+		$expected_data = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'background' => array(
+					'backgroundImage' => array(
+						'url' => 'https://example.org/wp-content/themes/example-theme/example/img/image.png',
+					),
+				),
+			),
+		);
+
+		$actual = WP_Theme_JSON_Resolver::resolve_theme_file_uris( $theme_json );
+
+		$this->assertSame( $expected_data, $actual->get_raw_data() );
+	}
+
+	/**
+	 * Tests that them uris are resolved and bundled with other metadata in an array.
+	 *
+	 * @covers WP_Theme_JSON_Resolver::get_resolved_theme_uris
+	 * @ticket 61273
+	 */
+	public function test_get_resolved_theme_uris() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'backgroundImage' => array(
+							'url' => 'file:./example/img/image.png',
+						),
+					),
+				),
+			)
+		);
+
+		$expected_data = array(
+			array(
+				'name'   => 'file:./example/img/image.png',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/example/img/image.png',
+				'target' => 'styles.background.backgroundImage.url',
+				'type'   => 'image/png',
+			),
+		);
+
+		$actual = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $theme_json );
+
+		$this->assertSame( $expected_data, $actual );
 	}
 }

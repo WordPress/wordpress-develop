@@ -121,7 +121,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::get_theme_items
-	 * @ticket
+	 * @ticket 61273
 	 *
 	 */
 	public function test_get_theme_items() {
