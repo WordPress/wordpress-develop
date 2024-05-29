@@ -2626,7 +2626,7 @@ class WP_Theme_JSON {
 	 * Outputs the CSS for layout rules on the root.
 	 *
 	 * @since 6.1.0
-	 * @since 6.6.0 Use `ROOT_CSS_PROPERTIES_SELECTOR` for CSS custom properties.
+	 * @since 6.6.0 Use `ROOT_CSS_PROPERTIES_SELECTOR` for CSS custom properties and improved consistency of root padding rules.
 	 *
 	 * @param string $selector The root node selector.
 	 * @param array  $block_metadata The metadata for the root block.

@@ -3795,6 +3795,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61304
 	 */
 	public function test_get_styles_for_block_with_padding_aware_alignments() {
 		$theme_json = new WP_Theme_JSON(
