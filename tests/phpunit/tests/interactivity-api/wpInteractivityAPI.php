@@ -748,21 +748,22 @@ SCRIPT_TAG;
 	 * @param string $directive_value The directive attribute value to evaluate.
 	 * @return mixed The result of the evaluate method.
 	 */
-	private function evaluate( $directive_value, ) {
-		$obj            = new stdClass();
-		$obj->prop      = 'property';
-		$generate_state = function ( $name, $obj = null ) {
+	private function evaluate( $directive_value ) {
+		$generate_state = function ( $name ) {
+			$obj       = new stdClass();
+			$obj->prop = $name;
 			return array(
 				'key'    => $name,
 				'nested' => array( 'key' => $name . '-nested' ),
 				'obj'    => $obj,
 			);
 		};
-		$this->interactivity->state( 'myPlugin', $generate_state( 'myPlugin-state', $obj ) );
+		$this->interactivity->state( 'myPlugin', $generate_state( 'myPlugin-state' ) );
 		$this->interactivity->state( 'otherPlugin', $generate_state( 'otherPlugin-state' ) );
 		$context  = array(
 			'myPlugin'    => $generate_state( 'myPlugin-context' ),
 			'otherPlugin' => $generate_state( 'otherPlugin-context' ),
+			'obj'         => new stdClass(),
 		);
 		$evaluate = new ReflectionMethod( $this->interactivity, 'evaluate' );
 		$evaluate->setAccessible( true );
@@ -790,10 +791,7 @@ SCRIPT_TAG;
 		$this->assertEquals( 'otherPlugin-context', $result );
 
 		$result = $this->evaluate( 'state.obj.prop' );
-		$this->assertEquals( 'property', $result );
-
-		$result = $this->evaluate( 'otherPlugin::state.obj.prop' );
-		$this->assertEquals( null, $result );
+		$this->assertEquals( 'myPlugin-state', $result );
 	}
 
 	/**
