@@ -49,6 +49,9 @@
 	<!-- Exclude themes except the twenty* themes. -->
 	<exclude-pattern>/src/wp-content/themes/(?!twenty)*</exclude-pattern>
 
+	<!-- Exclude translation files. -->
+	<exclude-pattern>/src/wp-content/languages/*</exclude-pattern>
+
 	<!--
 		PHPCompatibilityParagonieSodiumCompat prevents false positives in `sodium_compat`.
 		However, because these files are included in a non-standard path, false positives are triggered in WordPress Core.
@@ -63,8 +66,8 @@
 
 	<rule ref="PHPCompatibilityWP"/>
 
-	<!-- WordPress Core currently supports PHP 7.0+. -->
-	<config name="testVersion" value="7.0-"/>
+	<!-- WordPress Core currently supports PHP 7.2+. -->
+	<config name="testVersion" value="7.2-"/>
 
 	<!--
 	#############################################################################

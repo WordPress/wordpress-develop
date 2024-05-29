@@ -109,7 +109,7 @@ class Tests_Block_Supports_WpRenderDimensionsSupport extends WP_UnitTestCase {
 
 		$actual = wp_render_dimensions_support( $wrapper, $block );
 
-		$this->assertEquals(
+		$this->assertSame(
 			$expected_wrapper,
 			$actual,
 			'Dimensions block wrapper markup should be correct'

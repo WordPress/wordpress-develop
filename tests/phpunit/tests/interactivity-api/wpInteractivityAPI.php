@@ -27,6 +27,10 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->interactivity = new WP_Interactivity_API();
 	}
 
+	public function charset_iso_8859_1() {
+		return 'iso-8859-1';
+	}
+
 	/**
 	 * Tests that the state and config methods return an empty array at the
 	 * beginning.
@@ -349,22 +353,76 @@ SCRIPT_TAG;
 	 * properly escaped.
 	 *
 	 * @ticket 60356
+	 * @ticket 61170
 	 *
 	 * @covers ::state
 	 * @covers ::config
 	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_state_and_config_escape_special_characters() {
-		$this->interactivity->state( 'myPlugin', array( 'amps' => 'http://site.test/?foo=1&baz=2' ) );
-		$this->interactivity->config( 'myPlugin', array( 'tags' => 'Tags: <!-- <script>' ) );
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'ampersand'                              => '&',
+				'less-than sign'                         => '<',
+				'greater-than sign'                      => '>',
+				'solidus'                                => '/',
+				'line separator'                         => "\u{2028}",
+				'paragraph separator'                    => "\u{2029}",
+				'flag of england'                        => "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}",
+				'malicious script closer'                => '</script>',
+				'entity-encoded malicious script closer' => '&lt;/script&gt;',
+			)
+		);
+		$this->interactivity->config( 'myPlugin', array( 'chars' => '&<>/' ) );
 
 		$interactivity_data_markup = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
-		preg_match( '/<script type="application\/json" id="wp-interactivity-data">.*?(\{.*\}).*?<\/script>/s', $interactivity_data_markup, $interactivity_data_string );
+		preg_match( '~<script type="application/json" id="wp-interactivity-data">\s*(\{.*\})\s*</script>~s', $interactivity_data_markup, $interactivity_data_string );
 
-		$this->assertEquals(
-			'{"config":{"myPlugin":{"tags":"Tags: \u003C!-- \u003Cscript\u003E"}},"state":{"myPlugin":{"amps":"http:\/\/site.test\/?foo=1\u0026baz=2"}}}',
-			$interactivity_data_string[1]
+		$expected = <<<"JSON"
+{"config":{"myPlugin":{"chars":"&\\u003C\\u003E/"}},"state":{"myPlugin":{"ampersand":"&","less-than sign":"\\u003C","greater-than sign":"\\u003E","solidus":"/","line separator":"\u{2028}","paragraph separator":"\u{2029}","flag of england":"\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}","malicious script closer":"\\u003C/script\\u003E","entity-encoded malicious script closer":"&lt;/script&gt;"}}}
+JSON;
+		$this->assertEquals( $expected, $interactivity_data_string[1] );
+	}
+
+	/**
+	 * Tests that special characters in the initial state and configuration are
+	 * properly escaped when the blog_charset is not UTF-8 (unicode compatible).
+	 *
+	 * This this test, unicode and line terminators should be escaped to their
+	 * JSON unicode sequences.
+	 *
+	 * @ticket 61170
+	 *
+	 * @covers ::state
+	 * @covers ::config
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_state_and_config_escape_special_characters_non_utf8() {
+		add_filter( 'pre_option_blog_charset', array( $this, 'charset_iso_8859_1' ) );
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'ampersand'                              => '&',
+				'less-than sign'                         => '<',
+				'greater-than sign'                      => '>',
+				'solidus'                                => '/',
+				'line separator'                         => "\u{2028}",
+				'paragraph separator'                    => "\u{2029}",
+				'flag of england'                        => "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}",
+				'malicious script closer'                => '</script>',
+				'entity-encoded malicious script closer' => '&lt;/script&gt;',
+			)
 		);
+		$this->interactivity->config( 'myPlugin', array( 'chars' => '&<>/' ) );
+
+		$interactivity_data_markup = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		preg_match( '~<script type="application/json" id="wp-interactivity-data">\s*(\{.*\})\s*</script>~s', $interactivity_data_markup, $interactivity_data_string );
+
+		$expected = <<<"JSON"
+{"config":{"myPlugin":{"chars":"&\\u003C\\u003E/"}},"state":{"myPlugin":{"ampersand":"&","less-than sign":"\\u003C","greater-than sign":"\\u003E","solidus":"/","line separator":"\\u2028","paragraph separator":"\\u2029","flag of england":"\\ud83c\\udff4\\udb40\\udc67\\udb40\\udc62\\udb40\\udc65\\udb40\\udc6e\\udb40\\udc67\\udb40\\udc7f","malicious script closer":"\\u003C/script\\u003E","entity-encoded malicious script closer":"&lt;/script&gt;"}}}
+JSON;
+		$this->assertEquals( $expected, $interactivity_data_string[1] );
 	}
 
 	/**
@@ -549,7 +607,7 @@ SCRIPT_TAG;
 	 * @covers ::process_directives
 	 */
 	public function test_process_directives_doesnt_fail_with_unknown_directives() {
-		$html           = '<div data-wp-uknown="">Text</div>';
+		$html           = '<div data-wp-unknown="">Text</div>';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$this->assertEquals( $html, $processed_html );
 	}
@@ -588,29 +646,37 @@ SCRIPT_TAG;
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_html_with_unbalanced_tags
+	 *
+	 * @param string $html HTML containing unbalanced tags and also a directive.
 	 */
-	public function test_process_directives_doesnt_change_html_if_contains_unbalanced_tags() {
+	public function test_process_directives_doesnt_change_html_if_contains_unbalanced_tags( $html ) {
 		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
 
-		$html_samples = array(
-			'<div data-wp-bind--id="myPlugin::state.id">Inner content</div></div>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner content</div><div>',
-			'<div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>',
-			'</div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner<div>content</div>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner</div>content</div>',
-			'<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner content</div></span>',
-			'<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div></span>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner conntent</ ></div>',
-		);
+		$processed_html = $this->interactivity->process_directives( $html );
+		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag();
+		$this->assertNull( $p->get_attribute( 'id' ) );
+	}
 
-		foreach ( $html_samples as $html ) {
-			$processed_html = $this->interactivity->process_directives( $html );
-			$p              = new WP_HTML_Tag_Processor( $processed_html );
-			$p->next_tag();
-			$this->assertNull( $p->get_attribute( 'id' ) );
-		}
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public static function data_html_with_unbalanced_tags() {
+		return array(
+			'DIV closer after'   => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div></div>' ),
+			'DIV opener after'   => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div><div>' ),
+			'DIV opener before'  => array( '<div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>' ),
+			'DIV closer before'  => array( '</div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>' ),
+			'DIV opener inside'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner<div>content</div>' ),
+			'DIV closer inside'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner</div>content</div>' ),
+			'SPAN opener inside' => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div>' ),
+			'SPAN closer after'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div></span>' ),
+			'SPAN overlapping'   => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div></span>' ),
+		);
 	}
 
 	/**

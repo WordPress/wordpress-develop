@@ -14,7 +14,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 * @var int
 	 */
 	protected static $admin_id;
-	private static $post;
+	private static $template_post;
+	private static $template_part_post;
 
 	/**
 	 * Create fake data before our tests run.
@@ -29,7 +30,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 
 		// Set up template post.
-		$args       = array(
+		$args                = array(
 			'post_type'    => 'wp_template',
 			'post_name'    => 'my_template',
 			'post_title'   => 'My Template',
@@ -41,12 +42,32 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				),
 			),
 		);
-		self::$post = self::factory()->post->create_and_get( $args );
-		wp_set_post_terms( self::$post->ID, get_stylesheet(), 'wp_theme' );
+		self::$template_post = self::factory()->post->create_and_get( $args );
+		wp_set_post_terms( self::$template_post->ID, get_stylesheet(), 'wp_theme' );
+
+		// Set up template part post.
+		$args                     = array(
+			'post_type'    => 'wp_template_part',
+			'post_name'    => 'my_template_part',
+			'post_title'   => 'My Template Part',
+			'post_content' => 'Content',
+			'post_excerpt' => 'Description of my template part.',
+			'tax_input'    => array(
+				'wp_theme'              => array(
+					get_stylesheet(),
+				),
+				'wp_template_part_area' => array(
+					WP_TEMPLATE_PART_AREA_HEADER,
+				),
+			),
+		);
+		self::$template_part_post = self::factory()->post->create_and_get( $args );
+		wp_set_post_terms( self::$template_part_post->ID, get_stylesheet(), 'wp_theme' );
+		wp_set_post_terms( self::$template_part_post->ID, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
 	}
 
 	public static function wpTearDownAfterClass() {
-		wp_delete_post( self::$post->ID );
+		wp_delete_post( self::$template_post->ID );
 	}
 
 	/**
@@ -56,7 +77,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 */
 	public function tear_down() {
 		if ( has_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' ) ) {
-			remove_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes', 10 );
+			remove_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 		}
 		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/block' ) ) {
 			unregister_block_type( 'tests/hooked-block' );
@@ -130,11 +151,11 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'rendered' => 'My Template',
 				),
 				'status'          => 'publish',
-				'wp_id'           => self::$post->ID,
+				'wp_id'           => self::$template_post->ID,
 				'has_theme_file'  => false,
 				'is_custom'       => true,
 				'author'          => 0,
-				'modified'        => mysql_to_rfc3339( self::$post->post_modified ),
+				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
@@ -177,11 +198,11 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'rendered' => 'My Template',
 				),
 				'status'          => 'publish',
-				'wp_id'           => self::$post->ID,
+				'wp_id'           => self::$template_post->ID,
 				'has_theme_file'  => false,
 				'is_custom'       => true,
 				'author'          => 0,
-				'modified'        => mysql_to_rfc3339( self::$post->post_modified ),
+				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
@@ -216,11 +237,11 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'rendered' => 'My Template',
 				),
 				'status'          => 'publish',
-				'wp_id'           => self::$post->ID,
+				'wp_id'           => self::$template_post->ID,
 				'has_theme_file'  => false,
 				'is_custom'       => true,
 				'author'          => 0,
-				'modified'        => mysql_to_rfc3339( self::$post->post_modified ),
+				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
@@ -889,6 +910,19 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * @ticket 60909
+	 * @covers WP_REST_Templates_Controller::get_template_fallback
+	 */
+	public function test_get_template_fallback_not_found() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/lookup' );
+		$request->set_param( 'slug', 'not-found' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( new stdClass(), $data, 'Response should be an empty object when a fallback template is not found.' );
+	}
+
+	/**
 	 * @ticket 57851
 	 *
 	 * @covers WP_REST_Templates_Controller::prepare_item_for_database
@@ -944,16 +978,17 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			)
 		);
 
-		add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes', 10, 2 );
+		add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template_part' );
 
 		$prepare_item_for_database = new ReflectionMethod( $endpoint, 'prepare_item_for_database' );
 		$prepare_item_for_database->setAccessible( true );
 
+		$id          = get_stylesheet() . '//' . 'my_template_part';
 		$body_params = array(
-			'title'   => 'Untitled Template Part',
-			'slug'    => 'untitled-template-part',
+			'id'      => $id,
+			'slug'    => 'my_template_part',
 			'content' => '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->',
 		);
 

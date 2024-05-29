@@ -4,7 +4,7 @@
  *
  * @covers ::wp_apply_shadow_support
  */
-class Test_Block_Supports_Shadow extends WP_UnitTestCase {
+class Tests_Block_Supports_Shadow extends WP_UnitTestCase {
 	/**
 	 * @var string|null
 	 */
