@@ -413,10 +413,18 @@ class WP_Block {
 		 * There can be only one root interactive block at a time because the rendered HTML of that block contains
 		 * the rendered HTML of all its inner blocks, including any interactive block.
 		 */
-		static $root_interactive_block               = null;
-		$wp_interactivity_process_directives_enabled = apply_filters( 'wp_interactivity_process_directives', true );
+		static $root_interactive_block  = null;
+		
+		/**
+		 * Filters whether Interactivity API should process directives.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param bool $enabled Whether the directives processing is enabled.
+		 */
+		$interactivity_process_directives_enabled = apply_filters( 'interactivity_process_directives', true );
 		if (
-			null === $root_interactive_block && $wp_interactivity_process_directives_enabled && (
+			$interactivity_process_directives_enabled && null === $root_interactive_block && (
 				( isset( $this->block_type->supports['interactivity'] ) && true === $this->block_type->supports['interactivity'] ) ||
 				! empty( $this->block_type->supports['interactivity']['interactive'] )
 			)
