@@ -531,7 +531,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 61185
 	 *
-	 * @covers wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives
 	 */
 	public function test_not_processing_directives_filter() {
 		wp_interactivity_state(
