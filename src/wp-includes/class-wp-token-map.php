@@ -579,19 +579,16 @@ class WP_Token_Map {
 	 * @return string|null Mapped value of lookup key if found, otherwise `null`.
 	 */
 	private function read_small_token( $text, $offset, &$matched_token_byte_length, $case_sensitivity = 'case-sensitive' ) {
-		$ignore_case  = 'ascii-case-insensitive' === $case_sensitivity;
-		$small_length = strlen( $this->small_words );
-		$search_text  = substr( $text, $offset, $this->key_length );
-		if ( $ignore_case ) {
-			$search_text = strtoupper( $search_text );
-		}
+		$ignore_case   = 'ascii-case-insensitive' === $case_sensitivity;
+		$small_length  = strlen( $this->small_words );
+		$search_text   = substr( $text, $offset, $this->key_length );
 		$starting_char = $search_text[0];
 
 		$at = 0;
 		while ( $at < $small_length ) {
 			if (
 				$starting_char !== $this->small_words[ $at ] &&
-				( ! $ignore_case || strtoupper( $this->small_words[ $at ] ) !== $starting_char )
+				( ! $ignore_case || 0 !== strcasecmp( $this->small_words[ $at ], $starting_char ) )
 			) {
 				$at += $this->key_length + 1;
 				continue;
@@ -605,7 +602,7 @@ class WP_Token_Map {
 
 				if (
 					$search_text[ $adjust ] !== $this->small_words[ $at + $adjust ] &&
-					( ! $ignore_case || strtoupper( $this->small_words[ $at + $adjust ] !== $search_text[ $adjust ] ) )
+					( ! $ignore_case || 0 !== strcasecmp( $this->small_words[ $at + $adjust ], $search_text[ $adjust ] ) )
 				) {
 					$at += $this->key_length + 1;
 					continue 2;
