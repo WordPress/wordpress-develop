@@ -480,7 +480,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			 *
 			 * @return string Returns the list of block variations.
 			 */
-			$settings['variations_callback'] = static function () use ( $variations_path ) {
+			$metadata['variations_callback'] = static function () use ( $variations_path ) {
 				ob_start();
 				require $variations_path;
 				return ob_get_clean();
