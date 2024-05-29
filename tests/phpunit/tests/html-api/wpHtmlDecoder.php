@@ -132,6 +132,10 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			array( 'http://wordpress.org', 'http', 'ascii-case-insensitive', true ),
 			array( 'http://wordpress.org', 'HTTP', 'case-sensitive', false ),
 			array( 'http://wordpress.org', 'HTTP', 'ascii-case-insensitive', true ),
+			array( 'http://wordpress.org', 'Http', 'case-sensitive', false ),
+			array( 'http://wordpress.org', 'Http', 'ascii-case-insensitive', true ),
+			array( 'http://wordpress.org', 'https', 'case-sensitive', false ),
+			array( 'http://wordpress.org', 'https', 'ascii-case-insensitive', false ),
 		);
 	}
 }
