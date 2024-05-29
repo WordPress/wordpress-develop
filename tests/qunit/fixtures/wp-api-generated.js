@@ -10856,13 +10856,13 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "site_logo": {
-                            "title": "",
+                            "title": "Logo",
                             "description": "Site logo.",
                             "type": "integer",
                             "required": false
                         },
                         "site_icon": {
-                            "title": "",
+                            "title": "Icon",
                             "description": "Site icon.",
                             "type": "integer",
                             "required": false
