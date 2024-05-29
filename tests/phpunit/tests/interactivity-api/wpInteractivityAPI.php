@@ -759,7 +759,7 @@ SCRIPT_TAG;
 			);
 		};
 		$this->interactivity->state( 'myPlugin', $generate_state( 'myPlugin-state', $obj ) );
-		$this->interactivity->state( 'otherPlugin', $generate_state( 'otherPlugin-state', $obj ) );
+		$this->interactivity->state( 'otherPlugin', $generate_state( 'otherPlugin-state' ) );
 		$context  = array(
 			'myPlugin'    => $generate_state( 'myPlugin-context' ),
 			'otherPlugin' => $generate_state( 'otherPlugin-context' ),
