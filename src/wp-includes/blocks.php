@@ -473,18 +473,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			)
 		);
 		if ( $variations_path ) {
-			/**
-			 * Generates the list of block variations.
-			 *
-			 * @since 6.6.0
-			 *
-			 * @return string Returns the list of block variations.
-			 */
-			$metadata['variations_callback'] = static function () use ( $variations_path ) {
-				ob_start();
-				require $variations_path;
-				return ob_get_clean();
-			};
+			$metadata['variations_callback'] = require $variations_path;
 		}
 	}
 
