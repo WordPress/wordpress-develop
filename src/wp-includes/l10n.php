@@ -2035,7 +2035,7 @@ function get_locales_from_accept_language_header() {
 			}
 		);
 
-		// Get list of available translations without potentially deleting an expired transient.
+		// Get list of available translations without potentially deleting an expired transient and causing an HTTP request.
 		$translations = wp_using_ext_object_cache() ?
 			wp_cache_get( 'available_translations', 'site-transient' ) :
 			get_site_option( '_site_transient_available_translations' );
