@@ -173,7 +173,7 @@ class WP_HTML_Decoder {
 	 * depending on the context in which it's found.
 	 *
 	 * If a character reference is found, this function will return the translated value
-	 * that the reference maps to. It will then set `$byte_length_of_matched_token` the
+	 * that the reference maps to. It will then set `$matched_token_byte_length` the
 	 * number of bytes of input it read while consuming the character reference. This
 	 * gives calling code the opportunity to advance its cursor when traversing a string
 	 * and decoding.
@@ -195,14 +195,13 @@ class WP_HTML_Decoder {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $context                      `attribute` for decoding attribute values, `data` otherwise.
-	 * @param string $text                         Text document containing span of text to decode.
-	 * @param int    $at                           Optional. Byte offset into text where span begins, defaults to the beginning (0).
-	 * @param ?int   $byte_length_of_matched_token Optional. Set to byte length of matched character reference, if matched,
-	 *                                             otherwise not set. This is an "out" parameter.
+	 * @param string $context                    `attribute` for decoding attribute values, `data` otherwise.
+	 * @param string $text                       Text document containing span of text to decode.
+	 * @param int    $at                         Optional. Byte offset into text where span begins, defaults to the beginning (0).
+	 * @param ?int   &$matched_token_byte_length Optional. Holds byte-length of found lookup key if matched, otherwise not set. Default null.
 	 * @return string|false Decoded character reference in UTF-8 if found, otherwise `false`.
 	 */
-	public static function read_character_reference( $context, $text, $at = 0, &$byte_length_of_matched_token = null ) {
+	public static function read_character_reference( $context, $text, $at = 0, &$matched_token_byte_length = null ) {
 
 		/** @var WP_Token_Map $html5_named_character_references */
 		global $html5_named_character_references;
@@ -259,13 +258,13 @@ class WP_HTML_Decoder {
 
 			// Whereas `&#` and only zeros is invalid.
 			if ( 0 === $digit_count ) {
-				$byte_length_of_matched_token = $end_of_span - $at;
+				$matched_token_byte_length = $end_of_span - $at;
 				return '�';
 			}
 
 			// If there are too many digits then it's not worth parsing. It's invalid.
 			if ( $digit_count > $max_digits ) {
-				$byte_length_of_matched_token = $end_of_span - $at;
+				$matched_token_byte_length = $end_of_span - $at;
 				return '�';
 			}
 
@@ -342,7 +341,7 @@ class WP_HTML_Decoder {
 				$code_point = $windows_1252_mapping[ $code_point - 0x80 ];
 			}
 
-			$byte_length_of_matched_token = $end_of_span - $at;
+			$matched_token_byte_length = $end_of_span - $at;
 			return self::code_point_to_utf8_bytes( $code_point );
 		}
 
@@ -363,7 +362,7 @@ class WP_HTML_Decoder {
 
 		// If the match ended with a semicolon then it should always be decoded.
 		if ( ';' === $text[ $name_at + $name_length - 1 ] ) {
-			$byte_length_of_matched_token = $after_name - $at;
+			$matched_token_byte_length = $after_name - $at;
 			return $replacement;
 		}
 
@@ -383,7 +382,7 @@ class WP_HTML_Decoder {
 
 		// It's non-ambiguous, safe to leave it in.
 		if ( ! $ambiguous_follower ) {
-			$byte_length_of_matched_token = $after_name - $at;
+			$matched_token_byte_length = $after_name - $at;
 			return $replacement;
 		}
 
@@ -392,7 +391,7 @@ class WP_HTML_Decoder {
 			return null;
 		}
 
-		$byte_length_of_matched_token = $after_name - $at;
+		$matched_token_byte_length = $after_name - $at;
 		return $replacement;
 	}
 
