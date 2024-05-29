@@ -1102,7 +1102,7 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 	$base_capabilities_key = $wpdb->base_prefix . 'capabilities';
 	$site_capabilities_key = $wpdb->base_prefix . $blog_id . '_capabilities';
 
-	if ( isset( $keys[ $base_capabilities_key ] ) && 1 == $blog_id ) {
+	if ( isset( $keys[ $base_capabilities_key ] ) && 1 === $blog_id ) {
 		return true;
 	}
 
@@ -2013,7 +2013,7 @@ function email_exists( $email ) {
  */
 function validate_username( $username ) {
 	$sanitized = sanitize_user( $username, true );
-	$valid     = ( $sanitized == $username && ! empty( $sanitized ) );
+	$valid     = ( $sanitized === $username && ! empty( $sanitized ) );
 
 	/**
 	 * Filters whether the provided username is valid.
