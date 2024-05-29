@@ -256,8 +256,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 				'expected' => 'Example: WordPress, test (some text), I love example.com (<a href="http://example.com" rel="nofollow">http://example.com</a>), it is brilliant',
 			),
 			'real world: (URL)...'                       => array(
-				'text'     => 'Some text followed by a bracketed link with a trailing elipsis (http://example.com)...',
-				'expected' => 'Some text followed by a bracketed link with a trailing elipsis (<a href="http://example.com" rel="nofollow">http://example.com</a>)...',
+				'text'     => 'Some text followed by a bracketed link with a trailing ellipsis (http://example.com)...',
+				'expected' => 'Some text followed by a bracketed link with a trailing ellipsis (<a href="http://example.com" rel="nofollow">http://example.com</a>)...',
 			),
 			'real world: (here: URL)'                    => array(
 				'text'     => 'In his famous speech “You and Your research” (here: http://www.cs.virginia.edu/~robins/YouAndYourResearch.html) Richard Hamming wrote about people getting more done with their doors closed...',

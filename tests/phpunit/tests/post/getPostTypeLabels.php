@@ -16,7 +16,7 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_returns_hierachical_labels() {
+	public function test_returns_hierarchical_labels() {
 		$labels = get_post_type_labels(
 			(object) array(
 				'name'         => 'foo',

@@ -761,6 +761,59 @@ HTML
 	}
 
 	/**
+	 * Ensures that various funky comments are properly parsed.
+	 *
+	 * @ticket 60170
+	 *
+	 * @since 6.6.0
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_token
+	 *
+	 * @dataProvider data_various_funky_comments
+	 *
+	 * @param string $funky_comment_html HTML containing a funky comment.
+	 * @param string $modifiable_text    Expected modifiable text of first funky comment in HTML.
+	 */
+	public function test_various_funky_comments( $funky_comment_html, $modifiable_text ) {
+		$processor = new WP_HTML_Tag_Processor( $funky_comment_html );
+		while ( '#funky-comment' !== $processor->get_token_type() && $processor->next_token() ) {
+			continue;
+		}
+
+		$this->assertSame(
+			'#funky-comment',
+			$processor->get_token_type(),
+			'Failed to find the expected funky comment.'
+		);
+
+		$this->assertSame(
+			$modifiable_text,
+			$processor->get_modifiable_text(),
+			'Found the wrong modifiable text span inside a funky comment.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public static function data_various_funky_comments() {
+		return array(
+			'Space'          => array( '</ >', ' ' ),
+			'Short-bang'     => array( '</!>', '!' ),
+			'Question mark'  => array( '</?>', '?' ),
+			'Short-slash'    => array( '<//>', '/' ),
+			'Bit (no attrs)' => array( '<//wp:post-meta>', '/wp:post-meta' ),
+			'Bit (attrs)'    => array( '<//wp:post-meta key=isbn>', '/wp:post-meta key=isbn' ),
+			'Curly-wrapped'  => array( '</{json}>', '{json}' ),
+			'Before P'       => array( '</1><p>', '1' ),
+			'After P'        => array( '<p></__("Read more")></p>', '__("Read more")' ),
+			'Reference'      => array( '</&gt;>', '&gt;' ),
+		);
+	}
+
+	/**
 	 * Test helper that wraps a string in double quotes.
 	 *
 	 * @param string $s The string to wrap in double-quotes.
