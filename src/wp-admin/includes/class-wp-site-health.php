@@ -2670,7 +2670,7 @@ class WP_Site_Health {
 			/* translators: 1: HelpHub URL. 2: Link description. */
 			'<p><a target="_blank" rel="noopener" href="%1$s">%2$s</a></p>',
 			esc_url( __( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#autoloaded-options' ) ),
-			__( 'More info about performance optimization' )
+			__( 'More info about optimizing autoloaded options' )
 		);
 
 		/**
