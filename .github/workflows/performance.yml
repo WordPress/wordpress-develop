@@ -37,6 +37,8 @@ jobs:
     permissions:
       contents: read
     if: ${{ ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) && ! contains( github.event.before, '00000000' ) }}
+    with:
+      php-version: '8.2'
 
   slack-notifications:
     name: Slack Notifications
