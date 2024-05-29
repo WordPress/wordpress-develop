@@ -394,6 +394,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60365
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet() {
 		$theme_json = new WP_Theme_JSON(
@@ -573,6 +574,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 54336
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_support_for_shorthand_and_longhand_values() {
 		$theme_json = new WP_Theme_JSON(
@@ -619,6 +621,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 54336
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_skips_disabled_protected_properties() {
 		$theme_json = new WP_Theme_JSON(
@@ -654,6 +657,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58548
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_renders_enabled_protected_properties() {
 		$theme_json = new WP_Theme_JSON(
@@ -713,6 +717,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 54336
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_preset_rules_come_after_block_rules() {
 		$theme_json = new WP_Theme_JSON(
@@ -806,6 +811,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 54336
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_preset_values_are_marked_as_important() {
 		$theme_json = new WP_Theme_JSON(
@@ -849,6 +855,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_handles_whitelisted_element_pseudo_selectors() {
 		$theme_json = new WP_Theme_JSON(
@@ -897,6 +904,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_handles_only_pseudo_selector_rules_for_given_property() {
 		$theme_json = new WP_Theme_JSON(
@@ -941,6 +949,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_ignores_pseudo_selectors_on_non_whitelisted_elements() {
 		$theme_json = new WP_Theme_JSON(
@@ -985,6 +994,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_ignores_non_whitelisted_pseudo_selectors() {
 		$theme_json = new WP_Theme_JSON(
@@ -1030,6 +1040,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_handles_priority_of_elements_vs_block_elements_pseudo_selectors() {
 		$theme_json = new WP_Theme_JSON(
@@ -1082,6 +1093,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_handles_whitelisted_block_level_element_pseudo_selectors() {
 		$theme_json = new WP_Theme_JSON(
@@ -1135,6 +1147,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58548
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_generates_layout_styles() {
 		$theme_json = new WP_Theme_JSON(
@@ -1170,6 +1183,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58548
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_generates_layout_styles_with_spacing_presets() {
 		$theme_json = new WP_Theme_JSON(
@@ -1204,6 +1218,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_generates_fallback_gap_layout_styles() {
 		$theme_json = new WP_Theme_JSON(
@@ -1240,6 +1255,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 60981
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_generates_base_fallback_gap_layout_styles() {
 		$theme_json = new WP_Theme_JSON(
@@ -1297,6 +1313,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_generates_valid_block_gap_values_and_skips_null_or_false_values() {
 		$theme_json = new WP_Theme_JSON(
@@ -1352,6 +1369,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 57354
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_returns_outline_styles() {
 		$theme_json = new WP_Theme_JSON(
@@ -1392,6 +1410,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Tests that a custom root selector is correctly applied when generating a stylesheet.
 	 *
 	 * @ticket 60343
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_custom_root_selector() {
 		$theme_json = new WP_Theme_JSON(
@@ -1421,6 +1440,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Tests that settings passed to WP_Theme_JSON override merged theme data.
 	 *
 	 * @ticket 61118
+	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_generates_fluid_typography_values() {
 		register_block_type(
@@ -3614,6 +3634,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_property_value_valid() {
 		$theme_json = new WP_Theme_JSON(
@@ -3697,6 +3718,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 * @expectedIncorrectUsage get_property_value
 	 */
 	public function test_get_property_value_loop() {
@@ -3734,6 +3756,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 * @expectedIncorrectUsage get_property_value
 	 */
 	public function test_get_property_value_recursion() {
@@ -3770,6 +3793,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 * @expectedIncorrectUsage get_property_value
 	 */
 	public function test_get_property_value_self() {
@@ -3796,6 +3820,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61304
+	 * @ticket 61165
 	 */
 	public function test_get_styles_for_block_with_padding_aware_alignments() {
 		$theme_json = new WP_Theme_JSON(
@@ -3832,6 +3857,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_styles_for_block_without_padding_aware_alignments() {
 		$theme_json = new WP_Theme_JSON(
@@ -3864,6 +3890,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 56467
 	 * @ticket 58550
+	 * @ticket 61165
 	 */
 	public function test_get_styles_for_block_with_content_width() {
 		$theme_json = new WP_Theme_JSON(
@@ -3894,6 +3921,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58548
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_styles_with_appearance_tools() {
 		$theme_json = new WP_Theme_JSON(
@@ -4275,6 +4303,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57583
+	 * @ticket 61165
 	 *
 	 * @dataProvider data_get_styles_for_block_with_style_variations
 	 *
@@ -4825,6 +4854,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56903
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 *
 	 * @dataProvider data_update_separator_declarations
 	 *
@@ -4946,6 +4976,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 57559
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 61165
 	 */
 	public function test_get_shadow_styles_for_blocks() {
 		$theme_json = new WP_Theme_JSON(
@@ -4989,6 +5020,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Tests that theme background image styles are correctly generated.
 	 *
 	 * @ticket 61123
+	 * @ticket 61165
 	 */
 	public function test_get_top_level_background_image_styles() {
 		$theme_json = new WP_Theme_JSON(
@@ -5054,6 +5086,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57536
+	 * @ticket 61165
 	 */
 	public function test_get_custom_css_handles_global_custom_css() {
 		$theme_json = new WP_Theme_JSON(
@@ -5148,6 +5181,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 61165
+	 *
 	 * @dataProvider data_process_blocks_custom_css
 	 *
 	 * @param array  $input    An array containing the selector and css to test.

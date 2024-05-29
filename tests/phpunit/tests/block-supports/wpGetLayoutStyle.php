@@ -18,6 +18,7 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_wp_get_layout_style
 	 * @ticket       56467
+	 * @ticket       61165
 	 *
 	 * @param array  $args            Dataset to test.
 	 * @param string $expected_output The expected output.
