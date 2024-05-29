@@ -2054,6 +2054,11 @@ function get_locales_from_accept_language_header() {
 				continue;
 			}
 
+			// If English is accepted, then there is no point in adding any other locales after it.
+			if ( 'en' === $locale ) {
+				break;
+			}
+
 			if ( $has_available_translations ) {
 				$found = array_keys(
 					array_filter(
@@ -2063,16 +2068,12 @@ function get_locales_from_accept_language_header() {
 						}
 					)
 				);
+				sort( $found );
 
 				if ( ! empty( $found ) ) {
 					array_push( $locales, ...$found );
 				}
 			} else {
-
-				// If English is accepted, then there is no point in adding any other locales after it.
-				if ( 'en' === $code ) {
-					break;
-				}
 
 				$locales[] = $locale;
 
