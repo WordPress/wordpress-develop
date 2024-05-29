@@ -34,6 +34,12 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	public function set_up() {
 		parent::set_up();
 		switch_theme( 'tt1-blocks' );
+		add_filter( 'theme_file_uri', array( $this, 'filter_theme_file_uri' ) );
+	}
+
+	public function tear_down() {
+		remove_filter( 'theme_file_uri', array( $this, 'filter_theme_file_uri' ) );
+		parent::tear_down();
 	}
 
 	/**
@@ -77,6 +83,17 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$admin_id );
 		self::delete_user( self::$subscriber_id );
+	}
+
+	/*
+	 * This filter callback normalizes the return value from `get_theme_file_uri`
+	 * to guard against changes in test environments.
+	 * The test suite otherwise returns full system dir path, e.g.,
+	 * /var/www/tests/phpunit/includes/../data/themedir1/block-theme/assets/sugarloaf-mountain.jpg
+	 */
+	public function filter_theme_file_uri( $file ) {
+		$file_name = substr( strrchr( $file, '/' ), 1 );
+		return 'https://example.org/wp-content/themes/example-theme/assets/' . $file_name;
 	}
 
 	/**
@@ -153,49 +170,49 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 				'title'    => 'variation-a',
 			),
 			array(
-				'version'                          => 2,
-				/*              '_links'   => array(
-											'curies'        => array(
-												array(
-													'name'      => 'wp',
-													'href'      => 'https://api.w.org/{rel}',
-													'templated' => true,
-												),
-											),
-											'wp:theme-file' => array(
-												array(
-													'href'   => 'http://localhost:8889/wp-content/themes/emptytheme/assets/sugarloaf-mountain.jpg',
-													'name'   => 'file:./assets/sugarloaf-mountain.jpg',
-													'target' => 'styles.background.backgroundImage.url',
-													'type'   => 'image/jpeg',
-												),
-											),
-										),*/
-										'settings' => array(
-											'blocks' => array(
-												'core/post-title' => array(
-													'color' => array(
-														'palette' => array(
-															'theme' => array(
-																array(
-																	'slug'  => 'light',
-																	'name'  => 'Light',
-																	'color' => '#f1f1f1',
-																),
-															),
-														),
-													),
-												),
-											),
+				'version'  => 2,
+				'settings' => array(
+					'blocks' => array(
+						'core/post-title' => array(
+							'color' => array(
+								'palette' => array(
+									'theme' => array(
+										array(
+											'slug'  => 'light',
+											'name'  => 'Light',
+											'color' => '#f1f1f1',
 										),
-				/*                  'styles'  => array(
-						'background' => array(
-							'backgroundImage' => array(
-								'url' => 'http://localhost:8889/wp-content/themes/block-theme/assets/sugarloaf-mountain.jpg',
+									),
+								),
 							),
 						),
-					),*/
-				'title'                            => 'variation-b',
+					),
+				),
+				'styles'   => array(
+					'background' => array(
+						'backgroundImage' => array(
+							'url' => 'file:./assets/sugarloaf-mountain.jpg',
+						),
+					),
+				),
+				'title'    => 'variation-b',
+				'_links'   => array(
+					'curies'        => array(
+						array(
+							'name'      => 'wp',
+							'href'      => 'https://api.w.org/{rel}',
+							'templated' => true,
+						),
+					),
+					'wp:theme-file' => array(
+						array(
+							'href'   => 'https://example.org/wp-content/themes/example-theme/assets/sugarloaf-mountain.jpg',
+							'name'   => 'file:./assets/sugarloaf-mountain.jpg',
+							'target' => 'styles.background.backgroundImage.url',
+							'type'   => 'image/jpeg',
+						),
+					),
+				),
 			),
 			array(
 				'version'  => 2,
@@ -224,6 +241,9 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 				),
 			),
 		);
+
+		wp_recursive_ksort( $data );
+		wp_recursive_ksort( $expected );
 
 		$this->assertSameSets( $expected, $data );
 	}

@@ -125,10 +125,11 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * This filter callback normalizes the return value from `get_theme_file_uri`
 	 * to guard against changes in test environments.
 	 * The test suite otherwise returns full system dir path, e.g.,
-	 * /wordpress-phpunit/includes/../data/themedir1/default/example/img/image.png
+	 * /var/www/tests/phpunit/includes/../data/themedir1/block-theme/assets/sugarloaf-mountain.jpg
 	 */
 	public function filter_theme_file_uri( $file ) {
-		return 'https://example.org/wp-content/themes/example-theme/example/' . explode( 'example/', $file )[1];
+		$file_name = substr( strrchr( $file, '/' ), 1 );
+		return 'https://example.org/wp-content/themes/example-theme/assets/' . $file_name;
 	}
 
 	public function filter_set_theme_root() {
@@ -1202,7 +1203,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				'styles'  => array(
 					'background' => array(
 						'backgroundImage' => array(
-							'url' => 'file:./example/img/image.png',
+							'url' => 'file:./assets/image.png',
 						),
 					),
 				),
@@ -1214,7 +1215,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			'styles'  => array(
 				'background' => array(
 					'backgroundImage' => array(
-						'url' => 'https://example.org/wp-content/themes/example-theme/example/img/image.png',
+						'url' => 'https://example.org/wp-content/themes/example-theme/assets/image.png',
 					),
 				),
 			),
@@ -1238,7 +1239,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				'styles'  => array(
 					'background' => array(
 						'backgroundImage' => array(
-							'url' => 'file:./example/img/image.png',
+							'url' => 'file:./assets/image.png',
 						),
 					),
 				),
@@ -1247,8 +1248,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 		$expected_data = array(
 			array(
-				'name'   => 'file:./example/img/image.png',
-				'href'   => 'https://example.org/wp-content/themes/example-theme/example/img/image.png',
+				'name'   => 'file:./assets/image.png',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/assets/image.png',
 				'target' => 'styles.background.backgroundImage.url',
 				'type'   => 'image/png',
 			),
