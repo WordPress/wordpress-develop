@@ -14,6 +14,7 @@
  * also be updated.
  *
  * @since 6.3.0
+ * @since 6.6.0 Updated specificity for compatibility with 0-1-0 global styles specificity.
  * @access private
  *
  * @return array[] Layout definitions.
@@ -222,6 +223,7 @@ function wp_register_layout_support( $block_type ) {
  * @since 5.9.0
  * @since 6.1.0 Added `$block_spacing` param, use style engine to enqueue styles.
  * @since 6.3.0 Added grid layout type.
+ * @since 6.6.0 Removed duplicated selector from layout styles.
  * @access private
  *
  * @param string               $selector                      CSS selector.
@@ -549,6 +551,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
  * @since 5.8.0
  * @since 6.3.0 Adds compound class to layout wrapper for global spacing styles.
  * @since 6.3.0 Check for layout support via the `layout` key with fallback to `__experimentalLayout`.
+ * @since 6.6.0 Removed duplicate container class from layout styles.
  * @access private
  *
  * @param string $block_content Rendered block content.
