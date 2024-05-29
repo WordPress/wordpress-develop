@@ -9,7 +9,12 @@
  * @subpackage Multisite
  * @since 3.0.0
  */
-
+ 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+ 
 /**
  * Objects representing the current network and current site.
  *
