@@ -2064,7 +2064,9 @@ function get_locales_from_accept_language_header() {
 					)
 				);
 
-				array_push( $locales, ...$found );
+				if ( ! empty( $found ) ) {
+					array_push( $locales, ...$found );
+				}
 			} else {
 
 				// If English is accepted, then there is no point in adding any other locales after it.
