@@ -40,7 +40,7 @@
 		"dimensions": {
 			"aspectRatios": [
 				{
-					"Name": "Aspect ratio name"
+					"name": "Aspect ratio name"
 				}
 			]
 		},
