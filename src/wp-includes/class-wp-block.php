@@ -414,7 +414,6 @@ class WP_Block {
 		 * the rendered HTML of all its inner blocks, including any interactive block.
 		 */
 		static $root_interactive_block  = null;
-		
 		/**
 		 * Filters whether Interactivity API should process directives.
 		 *
