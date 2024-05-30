@@ -8,7 +8,7 @@
  */
 
 /**
- * Generate class name for this application of this block's variation styles.
+ * Generate block style variation instance name.
  *
  * @since 6.6.0
  * @access private
@@ -16,10 +16,10 @@
  * @param array  $block     Block object.
  * @param string $variation Slug for the block style variation.
  *
- * @return string The unique class name.
+ * @return string The unique variation name.
  */
-function wp_create_block_style_variation_class_name( $block, $variation ) {
-	return 'is-style-' . $variation . '--' . md5( serialize( $block ) );
+function wp_create_block_style_variation_instance_name( $block, $variation ) {
+	return $variation . '--' . md5( serialize( $block ) );
 }
 
 /**
@@ -82,10 +82,9 @@ function wp_render_block_style_variation_support_styles( $parsed_block ) {
 		return $parsed_block;
 	}
 
-	$class_name         = wp_create_block_style_variation_class_name( $parsed_block, $variation );
+	$variation_instance = wp_create_block_style_variation_instance_name( $parsed_block, $variation );
+	$class_name         = "is-style-$variation_instance";
 	$updated_class_name = $parsed_block['attrs']['className'] . " $class_name";
-	$variation_instance = substr( $class_name, 9 );
-	$selector           = ".$class_name";
 
 	/*
 	 * Even though block style variations are effectively theme.json partials,
@@ -138,7 +137,7 @@ function wp_render_block_style_variation_support_styles( $parsed_block ) {
 		array( 'custom' ),
 		array(
 			'skip_root_layout_styles' => true,
-			'scope'                   => $selector,
+			'scope'                   => ".$class_name",
 		)
 	);
 
@@ -190,7 +189,7 @@ function wp_render_block_style_variation_class_name( $block_content, $block ) {
 	 * Matches a class prefixed by `is-style`, followed by the
 	 * variation slug, then `--`, and finally a hash.
 	 *
-	 * See `wp_create_block_style_variation_class_name` for class generation.
+	 * See `wp_create_block_style_variation_instance_name` for class generation.
 	 */
 	preg_match( '/\bis-style-(\S+?--\w+)\b/', $block['attrs']['className'], $matches );
 
