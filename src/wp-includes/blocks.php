@@ -1879,6 +1879,7 @@ function block_version( $content ) {
  * Registers a new block style.
  *
  * @since 5.3.0
+ * @since 6.6.0 Updated types as registry now allows registering styles for multiple block types at once.
  *
  * @link https://developer.wordpress.org/block-editor/reference-guides/block-api/block-styles/
  *

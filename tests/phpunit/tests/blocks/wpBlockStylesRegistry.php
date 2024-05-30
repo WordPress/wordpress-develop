@@ -43,7 +43,7 @@ class Tests_Blocks_wpBlockStylesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should accept valid string block type name.
 	 *
-	 * @ticket
+	 * @ticket 61274
 	 */
 	public function test_register_block_style_with_string_block_name() {
 		$name             = 'core/paragraph';
@@ -56,7 +56,7 @@ class Tests_Blocks_wpBlockStylesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should accept valid array of block type names.
 	 *
-	 * @ticket
+	 * @ticket 61274
 	 */
 	public function test_register_block_style_with_array_of_block_names() {
 		$names            = array( 'core/paragraph', 'core/group' );
