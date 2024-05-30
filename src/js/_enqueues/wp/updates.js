@@ -2671,7 +2671,7 @@
 		 *
 		 * @param {Event} event Event interface.
 		 */
-		$(document).on( 'click', '#plugin-information-footer .activate-now', function( event ) {
+		$document.on( 'click', '#plugin-information-footer .activate-now', function( event ) {
 			event.preventDefault();
 			window.parent.location.href = $( event.target ).attr( 'href' );
 		});
