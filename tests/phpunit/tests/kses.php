@@ -1369,7 +1369,7 @@ EOF;
 	 *                                         if not a custom data attribute.
 	 */
 	public function test_wp_kses_transform_custom_data_attribute_name_recognizes_data_attributes( $attribute_name, $dataset_name_if_any ) {
-		$transformed_name = wp_kses_transform_custom_data_attribute_name( $attribute_name );
+		$transformed_name = _wp_kses_transform_custom_data_attribute_name( $attribute_name );
 
 		if ( isset( $dataset_name_if_any ) ) {
 			$this->assertNotNull(

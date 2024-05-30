@@ -1256,12 +1256,21 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 	$allowed_attr = $allowed_html[ $element_low ];
 
 	if ( ! isset( $allowed_attr[ $name_low ] ) || '' === $allowed_attr[ $name_low ] ) {
-		$dataset_name = wp_kses_transform_custom_data_attribute_name( $name );
+		$name_in_javascript = _wp_kses_transform_custom_data_attribute_name( $name );
 
-		// Reject custom data attributes that don't fit a basic form.
+		/*
+		 * Only allow a subset of custom data attributes containing
+		 * ASCII alphanumerics, underscore, and hyphens. It may be
+		 * safe to allow others, including those with symbols, emoji,
+		 * and other characters, but as a conservative measure these
+		 * are rejected by default.
+		 *
+		 * Code wanting to allow other custom data attributes should
+		 * explicitly pass them in through `$allowed_html`.
+		 */
 		$is_allowable_custom_attribute = (
-			isset( $dataset_name ) &&
-			1 === preg_match( '/^[a-z0-9_-]+$/i', $dataset_name )
+			isset( $name_in_javascript ) &&
+			1 === preg_match( '/^[a-z0-9_-]+$/i', $name_in_javascript )
 		);
 
 		/*
@@ -1330,17 +1339,19 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
  *
  * Example:
  *
- *     'postId' === wp_kses_transform_custom_data_attribute_name( 'data-post-id' );
- *     null     === wp_kses_transform_custom_data_attribute_name( 'post-id' );
+ *     'postId' === _wp_kses_transform_custom_data_attribute_name( 'data-post-id' );
+ *     null     === _wp_kses_transform_custom_data_attribute_name( 'post-id' );
  *
  * @since 6.6.0
  *
  * @see https://html.spec.whatwg.org/#concept-domstringmap-pairs
  *
+ * @access private
+ *
  * @param string $raw_attribute_name Raw attribute name as found in the source HTML.
  * @return string|null Transformed `dataset` name, if valid, else `null`.
  */
-function wp_kses_transform_custom_data_attribute_name( $raw_attribute_name ) {
+function _wp_kses_transform_custom_data_attribute_name( $raw_attribute_name ) {
 	if ( 1 !== preg_match( '~^data-(?P<custom_name>[^=/> \t\f\r\n]*)$~', $raw_attribute_name, $matches ) ) {
 		return null;
 	}
