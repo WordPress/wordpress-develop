@@ -566,7 +566,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
-				if ( $this->indexed_color_encoded ) {
+				if ( $this->indexed_color_encoded
+					&& is_callable( array( $this->image, 'getImageAlphaChannel' ) )
+					&& $this->image->getImageAlphaChannel()
+				) {
 					$this->image->setOption( 'png:include-chunk', 'tRNS' );
 				} else {
 					$this->image->setOption( 'png:exclude-chunk', 'all' );
@@ -593,6 +596,14 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				if ( ! empty( $max_colors ) ) {
 					$max_colors = min( $max_colors, $current_colors + 8 );
 					$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
+                	/**
+                	 * ImageMagick likes to convert gray indexed images to grayscale.
+                	 * So, if the colorspace has changed to 'gray', use the png8 format
+                	 * to ensure it stays indexed.
+                	 */
+					if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
+						$this->image->setOption( 'png:format', 'png8' );
+					}
 				}
 			}
 
@@ -609,11 +620,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			) {
 				if ( $this->image->getImageAlphaChannel() === Imagick::ALPHACHANNEL_UNDEFINED ) {
 					$this->image->setImageAlphaChannel( Imagick::ALPHACHANNEL_OPAQUE );
-				}
-				if ( $this->indexed_color_encoded && $this->image->getImageAlphaChannel() && defined( 'Imagick::IMGTYPE_PALETTEMATTE' ) ) {
-					$this->image->setImageType( Imagick::IMGTYPE_PALETTEMATTE );
-				} elseif ( $this->indexed_color_encoded && defined( 'Imagick::IMGTYPE_PALETTE' ) ) {
-					$this->image->setImageType( Imagick::IMGTYPE_PALETTE );
 				}
 			}
 
