@@ -8,7 +8,7 @@
  */
 
 /**
- * Get the class name for this application of this block's variation styles.
+ * Generate class name for this application of this block's variation styles.
  *
  * @since 6.6.0
  * @access private
@@ -18,7 +18,7 @@
  *
  * @return string The unique class name.
  */
-function wp_get_block_style_variation_class_name( $block, $variation ) {
+function wp_create_block_style_variation_class_name( $block, $variation ) {
 	return 'is-style-' . $variation . '--' . md5( serialize( $block ) );
 }
 
@@ -82,10 +82,10 @@ function wp_render_block_style_variation_support_styles( $parsed_block ) {
 		return $parsed_block;
 	}
 
-	$class_name         = wp_get_block_style_variation_class_name( $parsed_block, $variation );
+	$class_name         = wp_create_block_style_variation_class_name( $parsed_block, $variation );
 	$updated_class_name = $parsed_block['attrs']['className'] . " $class_name";
 	$variation_instance = substr( $class_name, 9 );
-	$class_name         = ".$class_name";
+	$selector           = ".$class_name";
 
 	/*
 	 * To support blocks with more complex selectors, that can apply styles to
@@ -109,14 +109,14 @@ function wp_render_block_style_variation_support_styles( $parsed_block ) {
 	);
 
 	$config = array(
-		'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+		'version' => WP_Theme_JSON::LATEST_SCHEMA,
 		'styles'  => array(
 			'elements' => $elements_data,
 			'blocks'   => $blocks_data,
 		),
 	);
 
-	// Turn off filter that excludes block nodes. They are needed here.
+	// Turn off filter that excludes block nodes. They are needed here for the variation's inner block types.
 	if ( ! is_admin() ) {
 		remove_filter( 'wp_theme_json_get_style_nodes', 'wp_filter_out_block_nodes' );
 	}
@@ -125,20 +125,20 @@ function wp_render_block_style_variation_support_styles( $parsed_block ) {
 	$styles_registry = WP_Block_Styles_Registry::get_instance();
 	$styles_registry->register( $parsed_block['blockName'], array( 'name' => $variation_instance ) );
 
-	$variation_theme_json = new WP_Theme_JSON_Gutenberg( $config, 'blocks' );
+	$variation_theme_json = new WP_Theme_JSON( $config, 'blocks' );
 	$variation_styles     = $variation_theme_json->get_stylesheet(
 		array( 'styles' ),
 		array( 'custom' ),
 		array(
 			'skip_root_layout_styles' => true,
-			'scope'                   => $class_name,
+			'scope'                   => $selector,
 		)
 	);
 
 	// Clean up temporary block style now instance styles have been processed.
 	$styles_registry->unregister( $parsed_block['blockName'], $variation_instance );
 
-	// Restore filter that excludes block nodes. They are needed here.
+	// Restore filter that excludes block nodes.
 	if ( ! is_admin() ) {
 		add_filter( 'wp_theme_json_get_style_nodes', 'wp_filter_out_block_nodes' );
 	}
@@ -183,7 +183,7 @@ function wp_render_block_style_variation_class_name( $block_content, $block ) {
 	 * Matches a class prefixed by `is-style`, followed by the
 	 * variation slug, then `--`, and finally a hash.
 	 *
-	 * See `wp_get_block_style_variation_class_name` for class generation.
+	 * See `wp_create_block_style_variation_class_name` for class generation.
 	 */
 	preg_match( '/\bis-style-(\S+?--\w+)\b/', $block['attrs']['className'], $matches );
 
@@ -216,7 +216,7 @@ function wp_render_block_style_variation_class_name( $block_content, $block ) {
  *
  * @param array $variations Shared block style variations.
  *
- * @return array Block variations data to be merged under styles.blocks
+ * @return array Block variations data to be merged under `styles.blocks`.
  */
 function wp_resolve_and_register_block_style_variations( $variations ) {
 	$variations_data = array();
