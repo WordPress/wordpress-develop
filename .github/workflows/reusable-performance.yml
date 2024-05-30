@@ -17,7 +17,7 @@ on:
         type: 'string'
         default: '6.1.1'
       php-version:
-        description: 'The PHP version to us.'
+        description: 'The PHP version to use.'
         required: false
         type: 'string'
         default: '8.3'
