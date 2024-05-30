@@ -138,7 +138,7 @@ function wp_font_dir( $create_dir = true ) {
 		'subdir'  => '',
 		'basedir' => untrailingslashit( $upload_dir['basedir'] ) . '/fonts',
 		'baseurl' => untrailingslashit( $upload_dir['baseurl'] ) . '/fonts',
-		'error'   => $upload_dir['error'],
+		'error'   => false,
 	);
 
 	/**
