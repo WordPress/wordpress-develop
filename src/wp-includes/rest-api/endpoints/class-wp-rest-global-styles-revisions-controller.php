@@ -284,7 +284,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 
 		$fields     = $this->get_fields_for_response( $request );
 		$data       = array();
-		$theme_json = array();
+		$theme_json = null;
 
 		if ( ! empty( $global_styles_config['styles'] ) || ! empty( $global_styles_config['settings'] ) ) {
 			$theme_json           = new WP_Theme_JSON( $global_styles_config, 'custom' );
