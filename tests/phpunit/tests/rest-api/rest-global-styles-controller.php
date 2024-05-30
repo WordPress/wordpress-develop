@@ -137,9 +137,10 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
+	 * Tests a GET request to the global styles variations endpoint.
+	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_theme_items
 	 * @ticket 61273
-	 *
 	 */
 	public function test_get_theme_items() {
 		wp_set_current_user( self::$admin_id );

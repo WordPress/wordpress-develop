@@ -288,7 +288,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 
 		if ( ! empty( $global_styles_config['styles'] ) || ! empty( $global_styles_config['settings'] ) ) {
 			$theme_json           = new WP_Theme_JSON( $global_styles_config, 'custom' );
-			$global_styles_config = ( $theme_json )->get_raw_data();
+			$global_styles_config = $theme_json->get_raw_data();
 			if ( rest_is_field_included( 'settings', $fields ) ) {
 				$data['settings'] = ! empty( $global_styles_config['settings'] ) ? $global_styles_config['settings'] : new stdClass();
 			}

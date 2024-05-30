@@ -752,7 +752,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param WP_Theme_JSON_Gutenberg  $theme_json A theme json instance.
+	 * @param WP_Theme_JSON  $theme_json A theme json instance.
 	 * @return array An array of resolved paths.
 	 */
 	public static function get_resolved_theme_uris( $theme_json ) {
@@ -800,8 +800,8 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param WP_Theme_JSON_Gutenberg  $theme_json A theme json instance.
-	 * @return WP_Theme_JSON_Gutenberg Theme merged with resolved paths, if any found.
+	 * @param WP_Theme_JSON  $theme_json A theme json instance.
+	 * @return WP_Theme_JSON Theme merged with resolved paths, if any found.
 	 */
 	public static function resolve_theme_file_uris( $theme_json ) {
 		$resolved_urls = static::get_resolved_theme_uris( $theme_json );
