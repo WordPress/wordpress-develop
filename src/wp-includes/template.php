@@ -737,7 +737,7 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 			$located = $stylesheet;
 			break;
 		} elseif ( $is_child_theme && file_exists( $template ) && 0 === validate_file( $template ) ) {
-			$located = $wp_template_path . '/' . $template_name;
+			$located = $template;
 			break;
 		} elseif ( file_exists( $template_compat ) && 0 === validate_file( $template_compat ) ) {
 			$located = $template_compat;
