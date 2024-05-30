@@ -329,12 +329,14 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 		$data                = $this->add_additional_fields_to_object( $data, $request );
 		$data                = $this->filter_response_by_context( $data, $context );
 		$response            = rest_ensure_response( $data );
-		$links               = array();
 		$resolved_theme_uris = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $theme_json );
 
 		if ( ! empty( $resolved_theme_uris ) ) {
-			$links['https://api.w.org/theme-file'] = $resolved_theme_uris;
-			$response->add_links( $links );
+			$response->add_links(
+				array(
+					'https://api.w.org/theme-file' => $resolved_theme_uris,
+				)
+			);
 		}
 
 		return $response;

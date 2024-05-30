@@ -289,7 +289,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * Prepare a global styles config output for response.
 	 *
 	 * @since 5.9.0
-	 * @since 6.2.0 Handling of style.css was added to WP_Theme_JSON.
 	 * @since 6.6.0 Added custom relative theme file URIs to `_links`.
 	 *
 	 * @param WP_Post         $post    Global Styles post object.
