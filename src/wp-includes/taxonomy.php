@@ -721,6 +721,16 @@ function get_taxonomy_labels( $tax ) {
 
 	$labels = _get_custom_object_labels( $tax, $nohier_vs_hier_defaults );
 
+	if ( ! isset( $tax->labels->template_name ) && isset( $tax->object_type[0] ) ) {
+		$post_type = get_post_type_object( $tax->object_type[0] );
+
+		if ( isset( $post_type->labels->singular_name ) ) {
+			$post_type_singular_name = $post_type->labels->singular_name;
+			/* translators: %s: Post type name. */
+			$labels->template_name = sprintf( __( '%s Archives' ), $post_type_singular_name );
+		}
+	}
+
 	$taxonomy = $tax->name;
 
 	$default_labels = clone $labels;

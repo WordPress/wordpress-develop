@@ -2097,6 +2097,11 @@ function get_post_type_labels( $post_type_object ) {
 
 	$labels = _get_custom_object_labels( $post_type_object, $nohier_vs_hier_defaults );
 
+	if ( ! isset( $post_type_object->labels->template_name ) && isset( $post_type_object->labels->singular_name ) ) {
+			/* translators: %s: Post type name. */
+			$labels->template_name = sprintf( __( 'Single item: %s' ), $post_type_object->labels->singular_name );
+	}
+
 	$post_type = $post_type_object->name;
 
 	$default_labels = clone $labels;
@@ -2166,21 +2171,6 @@ function _get_custom_object_labels( $data_object, $nohier_vs_hier_defaults ) {
 
 	if ( ! isset( $data_object->labels['archives'] ) && isset( $data_object->labels['all_items'] ) ) {
 		$data_object->labels['archives'] = $data_object->labels['all_items'];
-	}
-
-	if ( ! isset( $data_object->labels['template_name'] ) && isset( $data_object->labels['singular_name'] ) ) {
-		if ( $data_object instanceof WP_Post_Type ) {
-			/* translators: %s: Post type name. */
-			$data_object->labels['template_name'] = sprintf( __( 'Single item: %s' ), $data_object->labels['singular_name'] );
-		} elseif ( $data_object instanceof WP_Taxonomy && isset( $data_object->object_type[0] ) ) {
-			$post_type = get_post_type_object( $data_object->object_type[0] );
-
-			if ( isset( $post_type->labels->singular_name ) ) {
-				$post_type_singular_name = $post_type->labels->singular_name;
-				/* translators: %s: Post type name. */
-				$data_object->labels['template_name'] = sprintf( __( '%s Archives' ), $post_type_singular_name );
-			}
-		}
 	}
 
 	$defaults = array();
