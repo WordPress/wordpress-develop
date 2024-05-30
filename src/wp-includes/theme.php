@@ -3450,15 +3450,11 @@ function _delete_attachment_theme_mod( $id ) {
 		remove_theme_mod( 'header_text' );
 	}
 
-<<<<<<< 56791-coding-standards
-	if ( $header_image && $header_image === $attachment_image ) {
-=======
-	if ( $site_logo_id && $site_logo_id == $id ) {
+	if ( $site_logo_id && (int) $site_logo_id === $id ) {
 		delete_option( 'site_logo' );
 	}
 
-	if ( $header_image && $header_image == $attachment_image ) {
->>>>>>> trunk
+	if ( $header_image && $header_image === $attachment_image ) {
 		remove_theme_mod( 'header_image' );
 		remove_theme_mod( 'header_image_data' );
 	}
