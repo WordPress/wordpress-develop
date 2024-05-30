@@ -6862,7 +6862,7 @@ function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 		$icon = wp_cache_get( "mime_type_icon_$mime" );
 	}
 
-	// Check preferred file format is available and if it is begins with a period or not.
+	// Check if preferred file format variable is present and is a validly formatted file extension.
 	if ( ! empty( $preferred_ext ) && is_string( $preferred_ext ) && ! str_starts_with( $preferred_ext, '.' ) ) {
 		$preferred_ext = '.' . strtolower( $preferred_ext );
 	}

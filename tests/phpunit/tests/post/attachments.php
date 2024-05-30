@@ -527,7 +527,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$icon1 = wp_mime_type_icon( 'video/mp4', '.png' ); // Added `$preferred_ext` parameter.
 		$icon2 = wp_mime_type_icon( 'video/mp4', 'png' ); // Added `$preferred_ext` parameter without period.
 
-		$this->assertStringContainsString( 'images/media/video.png', $icon1 );
-		$this->assertStringContainsString( 'images/media/video.png', $icon2 );
+		$this->assertStringContainsString( 'images/media/video.png', $icon1, 'Mime type icon should be correctly returned with ".png" argument.' );
+		$this->assertStringContainsString( 'images/media/video.png', $icon2, 'Mime type icon should be correctly returned with ".png" argument.' );
 	}
 }
