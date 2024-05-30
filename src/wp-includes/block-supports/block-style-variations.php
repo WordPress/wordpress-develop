@@ -88,14 +88,21 @@ function wp_render_block_style_variation_support_styles( $parsed_block ) {
 	$selector           = ".$class_name";
 
 	/*
-	 * To support blocks with more complex selectors, that can apply styles to
-	 * inner markup or even different inner elements depending on the feature,
-	 * the variation style data needs to be manipulated some. If the root variation
-	 * styles are moved under a variations property they will generate as desired.
+	 * Even though block style variations are effectively theme.json partials,
+	 * they can't be processed completely as though they are.
 	 *
-	 * Example blocks that require this approach include:
-	 *  - Button: `.wp-block-button .wp-block-button__link`
-	 *  - Image: `.wp-block-image` and `.wp-block-image img` for borders, shadow etc.
+	 * Block styles support custom selectors to direct specific types of styles
+	 * to inner elements. For example, borders on Image block's get applied to
+	 * the inner `img` element rather than the wrapping `figure`.
+	 *
+	 * The following relocates the "root" block style variation styles to
+	 * under an appropriate blocks property to leverage the preexisting style
+	 * generation for simple block style variations. This way they get the
+	 * custom selectors they need.
+	 *
+	 * The inner elements and block styles for the variation itself are
+	 * still included at the top level but scoped by the variation's selector
+	 * when the stylesheet is generated.
 	 */
 	$elements_data = $variation_data['elements'] ?? array();
 	$blocks_data   = $variation_data['blocks'] ?? array();
