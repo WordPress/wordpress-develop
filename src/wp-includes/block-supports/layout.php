@@ -224,6 +224,7 @@ function wp_register_layout_support( $block_type ) {
  * @since 6.1.0 Added `$block_spacing` param, use style engine to enqueue styles.
  * @since 6.3.0 Added grid layout type.
  * @since 6.6.0 Removed duplicated selector from layout styles.
+ *              Enabled negative margins for alignfull children of blocks with custom padding.
  * @access private
  *
  * @param string               $selector                      CSS selector.
