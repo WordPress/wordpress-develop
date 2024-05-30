@@ -2169,8 +2169,18 @@ function _get_custom_object_labels( $data_object, $nohier_vs_hier_defaults ) {
 	}
 
 	if ( ! isset( $data_object->labels['template_name'] ) && isset( $data_object->labels['singular_name'] ) ) {
-		/* translators: %s: Post type name. */
-		$data_object->labels['template_name'] = sprintf( __( 'Single item: %s' ), $data_object->labels['singular_name'] );
+		if ( $data_object instanceof WP_Post_Type ) {
+			/* translators: %s: Post type name. */
+			$data_object->labels['template_name'] = sprintf( __( 'Single item: %s' ), $data_object->labels['singular_name'] );
+		} elseif ( $data_object instanceof WP_Taxonomy && isset( $data_object->object_type[0] ) ) {
+			$post_type = get_post_type_object( $data_object->object_type[0] );
+
+			if ( isset( $post_type->labels->singular_name ) ) {
+				$post_type_singular_name = $post_type->labels->singular_name;
+				/* translators: %s: Post type name. */
+				$data_object->labels['template_name'] = sprintf( __( '%s Archives' ), $post_type_singular_name );
+			}
+		}
 	}
 
 	$defaults = array();
