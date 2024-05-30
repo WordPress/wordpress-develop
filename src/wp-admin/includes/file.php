@@ -787,8 +787,7 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *     @type bool     $test_type                Whether to test that the mime type of the file is as expected.
  *     @type string[] $mimes                    Array of allowed mime types keyed by their file extension regex.
  *     @type string[] $upload_dir               Array of the uploads directory data as returned by
- *                                              {@see wp_upload_dir()} or {@see wp_font_dir()}. If not set the function
- *                                              will use {@see wp_upload_dir()}.
+ *                                              wp_upload_dir() or wp_font_dir(). Defaults to wp_upload_dir().
  * }
  * @param string      $time      Time formatted in 'yyyy/mm'.
  * @param string      $action    Expected value for `$_POST['action']`.
