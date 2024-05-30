@@ -645,7 +645,7 @@ final class WP_Taxonomy {
 				_x( 'A link to a tag.', 'navigation link block description' ),
 				_x( 'A link to a category.', 'navigation link block description' ),
 			),
-			'template_name'              => array( _x( 'Tag', 'taxonomy singular name' ), _x( 'Category', 'taxonomy singular name' ) ),
+			'template_name'              => array( _x( 'Tag Archives', 'taxonomy template name' ), _x( 'Category Archives', 'taxonomy template name' ) ),
 		);
 
 		return self::$default_labels;
