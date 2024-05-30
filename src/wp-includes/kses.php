@@ -1329,13 +1329,13 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 }
 
 /**
- * If an attribute name represents a custom data attribute, return the
- * transformed name as it would appear in JavaScript, else return null.
+ * Return the corresponding JavaScript `dataset` name for an attribute
+ * if it represents a custom data attribute, or `null` if not.
  *
- * This function can be used to determine if an attribute name represents
- * a custom data attribute, and it can be used as well to return what the
- * name of the attribute would be in an element's `dataset` property when
- * accessed from JavaScript.
+ * Custom data attributes appear in an element's `dataset` property in a
+ * browser, but there's a specific way the names are translated from HTML
+ * into JavaScript. This function indicates how the name would appear in
+ * JavaScript if a browser would recognize it as a custom data attribute.
  *
  * Example:
  *
@@ -1349,6 +1349,7 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
  * @access private
  *
  * @param string $raw_attribute_name Raw attribute name as found in the source HTML.
+ *
  * @return string|null Transformed `dataset` name, if valid, else `null`.
  */
 function _wp_kses_transform_custom_data_attribute_name( $raw_attribute_name ) {
