@@ -3434,6 +3434,7 @@ function get_registered_theme_feature( $feature ) {
  * @since 3.0.0
  * @since 4.3.0 Also removes `header_image_data`.
  * @since 4.5.0 Also removes custom logo theme mods.
+ * @since 6.6.0 Also removes `site_logo` option set by the site logo block.
  *
  * @param int $id The attachment ID.
  */
@@ -3442,13 +3443,22 @@ function _delete_attachment_theme_mod( $id ) {
 	$header_image     = get_header_image();
 	$background_image = get_background_image();
 	$custom_logo_id   = get_theme_mod( 'custom_logo' );
+	$site_logo_id     = get_option( 'site_logo' );
 
 	if ( $custom_logo_id && (int) $custom_logo_id === $id ) {
 		remove_theme_mod( 'custom_logo' );
 		remove_theme_mod( 'header_text' );
 	}
 
+<<<<<<< 56791-coding-standards
 	if ( $header_image && $header_image === $attachment_image ) {
+=======
+	if ( $site_logo_id && $site_logo_id == $id ) {
+		delete_option( 'site_logo' );
+	}
+
+	if ( $header_image && $header_image == $attachment_image ) {
+>>>>>>> trunk
 		remove_theme_mod( 'header_image' );
 		remove_theme_mod( 'header_image_data' );
 	}

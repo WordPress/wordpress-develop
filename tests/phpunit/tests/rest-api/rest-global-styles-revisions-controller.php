@@ -420,6 +420,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 
 	/**
 	 * @ticket 58524
+	 * @ticket 60131
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_item_permissions_check
 	 */
@@ -428,7 +429,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_cannot_view', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
 	/**
@@ -829,7 +830,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 * @doesNotPerformAssertions
 	 */
 	public function test_context_param() {
-		// Controller does not implement test_context_param().
+		// Controller does not implement get_context_param().
 	}
 
 	/**

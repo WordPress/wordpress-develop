@@ -32,10 +32,14 @@ module.exports = function (
 		entry: MODULES.map( ( packageName ) =>
 			packageName.replace( WORDPRESS_NAMESPACE, '' )
 		).reduce( ( memo, packageName ) => {
+			const path =
+				'development' === mode && 'interactivity' === packageName
+					? 'interactivity/build-module/debug'
+					: packageName;
 			memo[ packageName ] = {
 				import: normalizeJoin(
 					baseDir,
-					`node_modules/@wordpress/${ packageName }`
+					`node_modules/@wordpress/${ path }`
 				),
 			};
 

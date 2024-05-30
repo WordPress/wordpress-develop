@@ -386,9 +386,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
+		$needs_class = ( isset( $query['class_name'] ) && is_string( $query['class_name'] ) )
+			? $query['class_name']
+			: null;
+
 		if ( ! ( array_key_exists( 'breadcrumbs', $query ) && is_array( $query['breadcrumbs'] ) ) ) {
 			while ( $this->step() ) {
 				if ( '#tag' !== $this->get_token_type() ) {
+					continue;
+				}
+
+				if ( isset( $needs_class ) && ! $this->has_class( $needs_class ) ) {
 					continue;
 				}
 
@@ -414,6 +422,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		while ( $match_offset > 0 && $this->step() ) {
 			if ( '#tag' !== $this->get_token_type() ) {
+				continue;
+			}
+
+			if ( isset( $needs_class ) && ! $this->has_class( $needs_class ) ) {
 				continue;
 			}
 
@@ -494,6 +506,44 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Indicates if the currently-matched node expects a closing
+	 * token, or if it will self-close on the next step.
+	 *
+	 * Most HTML elements expect a closer, such as a P element or
+	 * a DIV element. Others, like an IMG element are void and don't
+	 * have a closing tag. Special elements, such as SCRIPT and STYLE,
+	 * are treated just like void tags. Text nodes and self-closing
+	 * foreign content will also act just like a void tag, immediately
+	 * closing as soon as the processor advances to the next token.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @todo When adding support for foreign content, ensure that
+	 *       this returns false for self-closing elements in the
+	 *       SVG and MathML namespace.
+	 *
+	 * @return bool Whether to expect a closer for the currently-matched node,
+	 *              or `null` if not matched on any token.
+	 */
+	public function expects_closer() {
+		$token_name = $this->get_token_name();
+		if ( ! isset( $token_name ) ) {
+			return null;
+		}
+
+		return ! (
+			// Comments, text nodes, and other atomic tokens.
+			'#' === $token_name[0] ||
+			// Doctype declarations.
+			'html' === $token_name ||
+			// Void elements.
+			self::is_void( $token_name ) ||
+			// Special atomic elements.
+			in_array( $token_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true )
+		);
 	}
 
 	/**
@@ -609,6 +659,35 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		return $breadcrumbs;
+	}
+
+	/**
+	 * Returns the nesting depth of the current location in the document.
+	 *
+	 * Example:
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment( '<div><p></p></div>' );
+	 *     // The processor starts in the BODY context, meaning it has depth from the start: HTML > BODY.
+	 *     2 === $processor->get_current_depth();
+	 *
+	 *     // Opening the DIV element increases the depth.
+	 *     $processor->next_token();
+	 *     3 === $processor->get_current_depth();
+	 *
+	 *     // Opening the P element increases the depth.
+	 *     $processor->next_token();
+	 *     4 === $processor->get_current_depth();
+	 *
+	 *     // The P element is closed during `next_token()` so the depth is decreased to reflect that.
+	 *     $processor->next_token();
+	 *     3 === $processor->get_current_depth();
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return int Nesting-depth of current location in the document.
+	 */
+	public function get_current_depth() {
+		return $this->state->stack_of_open_elements->count();
 	}
 
 	/**

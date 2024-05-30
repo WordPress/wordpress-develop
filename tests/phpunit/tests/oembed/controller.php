@@ -342,7 +342,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 	}
 
 	/**
@@ -385,7 +385,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( home_url(), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 
 		update_option( 'show_on_front', 'posts' );
 	}
@@ -430,7 +430,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 	}
 
 	/**
@@ -716,7 +716,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 	}
 
 	/**
@@ -765,7 +765,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( home_url(), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 
 		update_option( 'show_on_front', 'posts' );
 	}
