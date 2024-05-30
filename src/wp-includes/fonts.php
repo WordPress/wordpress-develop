@@ -128,8 +128,8 @@ function wp_get_font_dir() {
  * }
  */
 function wp_font_dir( $create_dir = true ) {
-	// This will also create the /uploads directory if it doesn't exist and $create_dir is true.
-	$upload_dir = wp_upload_dir( null, $create_dir, false );
+	// Get base uploads directory.
+	$upload_dir = wp_upload_dir( null, false, false );
 
 	// Default fonts directory settings.
 	$font_dir = array(
