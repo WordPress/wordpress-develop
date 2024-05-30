@@ -1475,7 +1475,7 @@ EOF;
 		$processor = new WP_HTML_Tag_Processor( $element );
 		$processor->next_tag();
 
-		$this->assertTrue(
+		$this->assertIsString(
 			$processor->get_attribute( $attribute_name ),
 			"Failed to find expected attribute '{$attribute_name}' before filtering: check test."
 		);
