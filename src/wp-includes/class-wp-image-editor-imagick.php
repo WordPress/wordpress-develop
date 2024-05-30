@@ -594,7 +594,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 						$max_colors = 0;
 				}
 				if ( ! empty( $max_colors ) ) {
-					$max_colors = min( $max_colors, $current_colors + 8 );
+					$max_colors = min( $max_colors, $current_colors );
 					$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
                 	/**
                 	 * ImageMagick likes to convert gray indexed images to grayscale.
