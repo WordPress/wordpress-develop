@@ -1420,7 +1420,7 @@ EOF;
 	}
 
 	/**
-	 * Ensures that only allowable custom data attributes are retained.
+	 * Ensures that only allowable boolean custom data attributes are retained.
 	 *
 	 * @ticket 33121
 	 *
@@ -1429,7 +1429,7 @@ EOF;
 	 * @param string $attribute_name Custom data attribute, e.g. "data-wp-bind--enabled".
 	 * @param bool   $is_allowed     Whether the given attribute should be allowed.
 	 */
-	public function test_wp_kses_attr_data_attribute_is_allowed( $attribute_name, $is_allowed ) {
+	public function test_wp_kses_attr_boolean_data_attribute_is_allowed( $attribute_name, $is_allowed ) {
 		$element = "<div {$attribute_name}>Pens and pencils.</div>";
 
 		$processor = new WP_HTML_Tag_Processor( $element );
@@ -1448,6 +1448,46 @@ EOF;
 
 		if ( $is_allowed ) {
 			$this->assertTrue(
+				$processor->get_attribute( $attribute_name ),
+				"Allowed custom data attribute '{$attribute_name}' should not have been removed."
+			);
+		} else {
+			$this->assertNull(
+				$processor->get_attribute( $attribute_name ),
+				"Should have removed un-allowed custom data attribute '{$attribute_name}'."
+			);
+		}
+	}
+
+	/**
+	 * Ensures that only allowable custom data attributes with values are retained.
+	 *
+	 * @ticket 33121
+	 *
+	 * @dataProvider data_data_attributes_and_whether_they_are_allowed
+	 *
+	 * @param string $attribute_name Custom data attribute, e.g. "data-wp-bind--enabled".
+	 * @param bool   $is_allowed     Whether the given attribute should be allowed.
+	 */
+	public function test_wp_kses_attr_data_attribute_is_allowed( $attribute_name, $is_allowed ) {
+		$element = "<div {$attribute_name}='shadows and dust'>Pens and pencils.</div>";
+
+		$processor = new WP_HTML_Tag_Processor( $element );
+		$processor->next_tag();
+
+		$this->assertTrue(
+			$processor->get_attribute( $attribute_name ),
+			"Failed to find expected attribute '{$attribute_name}' before filtering: check test."
+		);
+
+		$processor = new WP_HTML_Tag_Processor( wp_kses_post( $element ) );
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Failed to find containing tag after filtering: check test.'
+		);
+
+		if ( $is_allowed ) {
+			$this->assertIsString(
 				$processor->get_attribute( $attribute_name ),
 				"Allowed custom data attribute '{$attribute_name}' should not have been removed."
 			);
