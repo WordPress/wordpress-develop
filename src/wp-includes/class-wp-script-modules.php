@@ -375,7 +375,7 @@ class WP_Script_Modules {
 	 * @since 6.6.0
 	 *
 	 * Data can be associated with a Script Module via the
-	 * {@see "scriptmoduledata_{$module_id}"} filter.
+	 * {@see "script_module_data_{$module_id}"} filter.
 	 *
 	 * The data for a Script Module will be serialized as JSON in a script tag with an ID of the
 	 * form `wp-scriptmodule-data_{$module_id}`.
@@ -406,7 +406,7 @@ class WP_Script_Modules {
 			 *
 			 * @example
 			 *   add_filter(
-			 *     'scriptmoduledata_MyScriptModuleID',
+			 *     'script_module_data_MyScriptModuleID',
 			 *     function ( array $data ): array {
 			 *       $data['script-needs-this-data'] = 'ok';
 			 *       return $data;
@@ -434,7 +434,7 @@ class WP_Script_Modules {
 			 *
 			 * @param array $data The data associated with the Script Module.
 			 */
-			$data = apply_filters( "scriptmoduledata_{$module_id}", array() );
+			$data = apply_filters( "script_module_data_{$module_id}", array() );
 
 			if ( is_array( $data ) && array() !== $data ) {
 				/*
