@@ -912,7 +912,7 @@ HTML;
 	 * @dataProvider data_invalid_script_module_data
 	 * @param mixed $data Data to return in filter.
 	 */
-	public function test_print_script_module_data_does_not_print_bad_data( $data ) {
+	public function test_print_script_module_data_does_not_print_invalid_data( $data ) {
 		$this->script_modules->enqueue( '@test/module', '/example.js' );
 		add_action(
 			'scriptmoduledata_@test/module',
