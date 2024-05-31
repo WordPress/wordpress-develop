@@ -159,7 +159,8 @@ function wp_print_media_templates() {
 	$alt_text_description = sprintf(
 		/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
 		__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
-		esc_url( 'https://www.w3.org/WAI/tutorials/images/decision-tree' ),
+		/* translators: Localized tutorial, if one exists. W3C Web Accessibility Initiative link has list of existing translations. */
+		esc_url( __( 'https://www.w3.org/WAI/tutorials/images/decision-tree/' ) ),
 		'target="_blank" rel="noopener"',
 		sprintf(
 			'<span class="screen-reader-text"> %s</span>',
@@ -483,7 +484,7 @@ function wp_print_media_templates() {
 
 				<# if ( data.fileLength && data.fileLengthHumanReadable ) { #>
 					<div class="file-length"><strong><?php _e( 'Length:' ); ?></strong>
-						<span aria-hidden="true">{{ data.fileLength }}</span>
+						<span aria-hidden="true">{{ data.fileLengthHumanReadable }}</span>
 						<span class="screen-reader-text">{{ data.fileLengthHumanReadable }}</span>
 					</div>
 				<# } #>
@@ -729,7 +730,7 @@ function wp_print_media_templates() {
 
 				<# if ( data.fileLength && data.fileLengthHumanReadable ) { #>
 					<div class="file-length"><?php _e( 'Length:' ); ?>
-						<span aria-hidden="true">{{ data.fileLength }}</span>
+						<span aria-hidden="true">{{ data.fileLengthHumanReadable }}</span>
 						<span class="screen-reader-text">{{ data.fileLengthHumanReadable }}</span>
 					</div>
 				<# } #>
