@@ -234,4 +234,41 @@ HTML;
 			'The block content should be updated with the value returned by the source.'
 		);
 	}
+
+	/**
+	 * Tests if the block content is sanitized when unsafe HTML is passed.
+	 *
+	 * @ticket 61333
+	 *
+	 * @covers ::register_block_bindings_source
+	 */
+	public function test_default_binding_for_pattern_overrides() {
+		$get_value_callback = function ( $source_args, $block_instance, $attribute_name ) {
+			$value = $source_args['key'];
+			return "The attribute name is '$attribute_name'";
+		};
+
+		register_block_bindings_source(
+			'core/pattern-overrides',
+			array(
+				'label'              => 'Pattern overrides',
+				'get_value_callback' => $get_value_callback,
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:paragraph {"metadata":{"bindings":{"__default":{"source":"core/pattern-overrides"}}}} -->
+<p>This should not appear</p>
+<!-- /wp:paragraph -->
+HTML;
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
+
+		$this->assertSame(
+			"<p>The attribute name is 'content'</p>",
+			trim( $result ),
+			'The `__default` attribute should be replaced with the real attribute prior to the callback.'
+		);
+	}
 }
