@@ -1395,9 +1395,10 @@ function delete_transient( $transient ) {
  * @since 2.8.0
  *
  * @param string $transient Transient name. Expected to not be SQL-escaped.
+ * @param bool   $force Optional. Whether to bypass the cache and retrieve the transient directly from the database. Default false.
  * @return mixed Value of transient.
  */
-function get_transient( $transient ) {
+function get_transient( $transient, $force = false ) {
 
 	/**
 	 * Filters the value of an existing transient before it is retrieved.
@@ -1421,7 +1422,7 @@ function get_transient( $transient ) {
 		return $pre;
 	}
 
-	if ( wp_using_ext_object_cache() || wp_installing() ) {
+	if ( ! $force && wp_using_ext_object_cache() || wp_installing() ) {
 		$value = wp_cache_get( $transient, 'transient' );
 	} else {
 		$transient_option = '_transient_' . $transient;
