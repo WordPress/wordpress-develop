@@ -1250,7 +1250,7 @@ JSON;
 	 */
 	public function test_evaluate_derived_state() {
 		$result = $this->evaluate( 'state.derived' );
-		$this->assertEquals( "Derived state: myPlugin-state\nDerived context: myPlugin-context", $result );
+		$this->assertSame( "Derived state: myPlugin-state\nDerived context: myPlugin-context", $result );
 	}
 
 
@@ -1264,7 +1264,7 @@ JSON;
 	 */
 	public function test_evaluate_derived_state_that_throws() {
 		$result = $this->evaluate( 'state.derivedThatThrows' );
-		$this->assertEquals( null, $result );
+		$this->assertNull( $result );
 	}
 
 	/**
