@@ -56,19 +56,27 @@ class Tests_Avatar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure the get_avatar_url always returns an HTTPs scheme for gravatars.
+	 *
 	 * @ticket 21195
+	 * @ticket 37454
 	 */
 	public function test_get_avatar_url_scheme() {
 		$url = get_avatar_url( 1 );
-		$this->assertSame( preg_match( '|^http://|', $url ), 1 );
+		$this->assertSame( preg_match( '|^https://|', $url ), 1, 'Avatars should default to the HTTPS scheme' );
 
 		$args = array( 'scheme' => 'https' );
 		$url  = get_avatar_url( 1, $args );
-		$this->assertSame( preg_match( '|^https://|', $url ), 1 );
+		$this->assertSame( preg_match( '|^https://|', $url ), 1, 'Requesting the HTTPS scheme should be respected' );
+
+		$args = array( 'scheme' => 'http' );
+		$url  = get_avatar_url( 1, $args );
+		$this->assertSame( preg_match( '|^https://|', $url ), 1, 'Requesting the HTTP scheme should return an HTTPS URL to avoid redirects' );
 
 		$args = array( 'scheme' => 'lolcat' );
 		$url  = get_avatar_url( 1, $args );
-		$this->assertSame( preg_match( '|^lolcat://|', $url ), 0 );
+		$this->assertSame( preg_match( '|^lolcat://|', $url ), 0, 'Unrecognized schemes should be ignored' );
+		$this->assertSame( preg_match( '|^https://|', $url ), 1, 'Unrecognized schemes should return an HTTPS URL' );
 	}
 
 	/**
