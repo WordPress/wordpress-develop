@@ -432,7 +432,7 @@ class WP_Script_Modules {
 			 *
 			 * @since 6.6.0
 			 *
-			 * @param array $data The data that should be associated with the array.
+			 * @param array $data The data associated with the Script Module.
 			 */
 			$data = apply_filters( "scriptmoduledata_{$module_id}", array() );
 
