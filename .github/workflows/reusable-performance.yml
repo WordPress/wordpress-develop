@@ -48,7 +48,7 @@ env:
   TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
 
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
-  LOCAL_PHP: ${{ inputs.php-version }}${{ 'latest' != inputs.php-version && '-fpm' }}
+  LOCAL_PHP: ${{ inputs.php-version }}${{ 'latest' != inputs.php-version && '-fpm' || '' }}
 
 jobs:
   # Performs the following steps:
