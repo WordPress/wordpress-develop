@@ -721,9 +721,9 @@ function get_taxonomy_labels( $tax ) {
 
 	$labels = _get_custom_object_labels( $tax, $nohier_vs_hier_defaults );
 
-	if ( ! isset( $tax->labels->template_name ) && isset( $tax->labels->singular_name ) ) {
+	if ( ! isset( $tax->labels->template_name ) && isset( $labels->singular_name ) ) {
 		/* translators: %s: Taxonomy name. */
-		$labels->template_name = sprintf( _x( '%s Archives', 'taxonomy template name' ), $tax->labels->singular_name );
+		$labels->template_name = sprintf( _x( '%s Archives', 'taxonomy template name' ), $labels->singular_name );
 	}
 
 	$taxonomy = $tax->name;
