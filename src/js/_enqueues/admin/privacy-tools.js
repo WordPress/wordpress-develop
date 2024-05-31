@@ -33,7 +33,7 @@ jQuery( function( $ ) {
 		}
 	}
 
-	/**
+    /**
      * Append results after a request row.
      *
      * @param {object} $requestRow - jQuery object representing the request row.
@@ -95,7 +95,7 @@ jQuery( function( $ ) {
 		clearResultsAfterRow( $requestRow );
 		setExportProgress( 0 );
 
-		/**
+        /**
          * Handle successful data export.
          *
          * @param {string} zipUrl - URL of the exported data zip file.
@@ -120,7 +120,7 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
-		/**
+        /**
          * Handle export failure.
          *
          * @param {string} errorMessage - Error message to display.
@@ -137,7 +137,7 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
-		/**
+        /**
          * Set the export progress percentage.
          *
          * @param {number} exporterIndex - The current exporter index.
@@ -149,7 +149,7 @@ jQuery( function( $ ) {
 			$progress.html( progressString );
 		}
 
-		/**
+        /**
          * Perform the next export step.
          *
          * @param {number} exporterIndex - The current exporter index.
@@ -221,7 +221,7 @@ jQuery( function( $ ) {
 		clearResultsAfterRow( $requestRow );
 		setErasureProgress( 0 );
 
-		/**
+        /**
          * Handle successful data erasure.
          */
 		function onErasureDoneSuccess() {
@@ -250,7 +250,7 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
-		/**
+        /**
          * Handle erasure failure.
          */
 		function onErasureFailure() {
@@ -263,7 +263,7 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
-		/**
+        /**
          * Set the erasure progress percentage.
          *
          * @param {number} eraserIndex - The current eraser index.
