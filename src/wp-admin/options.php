@@ -169,6 +169,17 @@ if ( get_site_option( 'initial_db_version' ) < 32453 ) {
 	$allowed_options['writing'][] = 'use_balanceTags';
 }
 
+/**
+ * Filters whether the post-by-email functionality is enabled.
+ *
+ * @since 3.0.0
+ *
+ * @param bool $enabled Whether post-by-email configuration is enabled. Default true.
+ */
+if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
+	$allowed_options['writing'] = array_merge( $allowed_options['writing'], $mail_options );
+}
+
 if ( ! is_multisite() ) {
 	if ( ! defined( 'WP_SITEURL' ) ) {
 		$allowed_options['general'][] = 'siteurl';
@@ -179,10 +190,7 @@ if ( ! is_multisite() ) {
 
 	$allowed_options['general'][] = 'users_can_register';
 	$allowed_options['general'][] = 'default_role';
-
-	if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
-		$allowed_options['writing'] = array_merge( $allowed_options['writing'], $mail_options );
-	}
+	
 	$allowed_options['writing'][] = 'ping_sites';
 
 	$allowed_options['media'][] = 'uploads_use_yearmonth_folders';
@@ -197,17 +205,6 @@ if ( ! is_multisite() ) {
 	) {
 		$allowed_options['media'][] = 'upload_path';
 		$allowed_options['media'][] = 'upload_url_path';
-	}
-} else {
-	/**
-	 * Filters whether the post-by-email functionality is enabled.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param bool $enabled Whether post-by-email configuration is enabled. Default true.
-	 */
-	if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
-		$allowed_options['writing'] = array_merge( $allowed_options['writing'], $mail_options );
 	}
 }
 
