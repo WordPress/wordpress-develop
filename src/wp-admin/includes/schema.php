@@ -1249,7 +1249,6 @@ We hope you enjoy your new site. Thanks!
 	foreach ( $all_mime_types as $ext => $mime ) {
 		array_push( $allowed_file_types, ...explode( '|', $ext ) );
 	}
-	sort( $allowed_file_types );
 	$upload_filetypes = array_unique( $allowed_file_types );
 
 	$sitemeta = array(
