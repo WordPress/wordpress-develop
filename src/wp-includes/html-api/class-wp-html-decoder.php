@@ -27,7 +27,8 @@ class WP_HTML_Decoder {
 	 *
 	 * @param string $haystack         String containing the raw non-decoded attribute value.
 	 * @param string $search_text      Does the attribute value start with this plain string.
-	 * @param string $case_sensitivity Optional. Pass 'ascii-case-insensitive' to ignore ASCII case when matching. Default 'case-sensitive'.
+	 * @param string $case_sensitivity Optional. Pass 'ascii-case-insensitive' to ignore ASCII case when matching.
+	 *                                 Default 'case-sensitive'.
 	 * @return bool Whether the attribute value starts with the given string.
 	 */
 	public static function attribute_starts_with( $haystack, $search_text, $case_sensitivity = 'case-sensitive' ) {
@@ -173,7 +174,7 @@ class WP_HTML_Decoder {
 	 * depending on the context in which it's found.
 	 *
 	 * If a character reference is found, this function will return the translated value
-	 * that the reference maps to. It will then set `$matched_token_byte_length` the
+	 * that the reference maps to. It will then set `$match_byte_length` the
 	 * number of bytes of input it read while consuming the character reference. This
 	 * gives calling code the opportunity to advance its cursor when traversing a string
 	 * and decoding.
@@ -195,15 +196,19 @@ class WP_HTML_Decoder {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $context                    `attribute` for decoding attribute values, `data` otherwise.
-	 * @param string $text                       Text document containing span of text to decode.
-	 * @param int    $at                         Optional. Byte offset into text where span begins, defaults to the beginning (0).
-	 * @param ?int   &$matched_token_byte_length Optional. Holds byte-length of found lookup key if matched, otherwise not set. Default null.
+	 * @param string $context            `attribute` for decoding attribute values, `data` otherwise.
+	 * @param string $text               Text document containing span of text to decode.
+	 * @param int    $at                 Optional. Byte offset into text where span begins, defaults to the beginning (0).
+	 * @param int    &$match_byte_length Optional. Set to byte-length of character reference if provided and if a match
+	 *                                   is found, otherwise not set. Default null.
 	 * @return string|false Decoded character reference in UTF-8 if found, otherwise `false`.
 	 */
-	public static function read_character_reference( $context, $text, $at = 0, &$matched_token_byte_length = null ) {
-
-		/** @var WP_Token_Map $html5_named_character_references */
+	public static function read_character_reference( $context, $text, $at = 0, &$match_byte_length = null ) {
+		/**
+		 * Mappings for HTML5 named character references.
+		 *
+		 * @var WP_Token_Map $html5_named_character_references
+		 */
 		global $html5_named_character_references;
 
 		$length = strlen( $text );
@@ -258,13 +263,13 @@ class WP_HTML_Decoder {
 
 			// Whereas `&#` and only zeros is invalid.
 			if ( 0 === $digit_count ) {
-				$matched_token_byte_length = $end_of_span - $at;
+				$match_byte_length = $end_of_span - $at;
 				return '�';
 			}
 
 			// If there are too many digits then it's not worth parsing. It's invalid.
 			if ( $digit_count > $max_digits ) {
-				$matched_token_byte_length = $end_of_span - $at;
+				$match_byte_length = $end_of_span - $at;
 				return '�';
 			}
 
@@ -341,7 +346,7 @@ class WP_HTML_Decoder {
 				$code_point = $windows_1252_mapping[ $code_point - 0x80 ];
 			}
 
-			$matched_token_byte_length = $end_of_span - $at;
+			$match_byte_length = $end_of_span - $at;
 			return self::code_point_to_utf8_bytes( $code_point );
 		}
 
@@ -354,7 +359,7 @@ class WP_HTML_Decoder {
 
 		$name_length = 0;
 		$replacement = $html5_named_character_references->read_token( $text, $name_at, $name_length );
-		if ( ! isset( $replacement ) ) {
+		if ( false === $replacement ) {
 			return null;
 		}
 
@@ -362,7 +367,7 @@ class WP_HTML_Decoder {
 
 		// If the match ended with a semicolon then it should always be decoded.
 		if ( ';' === $text[ $name_at + $name_length - 1 ] ) {
-			$matched_token_byte_length = $after_name - $at;
+			$match_byte_length = $after_name - $at;
 			return $replacement;
 		}
 
@@ -382,7 +387,7 @@ class WP_HTML_Decoder {
 
 		// It's non-ambiguous, safe to leave it in.
 		if ( ! $ambiguous_follower ) {
-			$matched_token_byte_length = $after_name - $at;
+			$match_byte_length = $after_name - $at;
 			return $replacement;
 		}
 
@@ -391,16 +396,16 @@ class WP_HTML_Decoder {
 			return null;
 		}
 
-		$matched_token_byte_length = $after_name - $at;
+		$match_byte_length = $after_name - $at;
 		return $replacement;
 	}
 
 	/**
 	 * Encode a code point number into the UTF-8 encoding.
 	 *
-	 * This encoder implements the encoding algorithm for converting a number
-	 * into a byte sequence, but if it receives an invalid code point it will
-	 * return the Unicode Replacement Character U+FFFD `�`.
+	 * This encoder implements the UTF-8 encoding algorithm for converting
+	 * a code point into a byte sequence. If it receives an invalid code
+	 * point it will return the Unicode Replacement Character U+FFFD `�`.
 	 *
 	 * Example:
 	 *
@@ -411,7 +416,7 @@ class WP_HTML_Decoder {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @see https://www.rfc-editor.org/rfc/rfc3629 UTF-8
+	 * @see https://www.rfc-editor.org/rfc/rfc3629 For the UTF-8 standard.
 	 *
 	 * @param int $code_point Which code point to convert.
 	 * @return string Converted code point, or `�` if invalid.
