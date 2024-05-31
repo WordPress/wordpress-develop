@@ -162,7 +162,7 @@ function wp_font_dir( $create_dir = true ) {
 	 */
 	$font_dir = apply_filters( 'font_dir', $font_dir, $upload_dir );
 
-	// Do not attempt to create the /fonts directory if there was an error in wp_upload_dir() or after the 'font_dir' filter.
+	// Do not attempt to create the /fonts directory if an error was set while running the 'font_dir' filter.
 	if ( ! empty( $font_dir['error'] ) ) {
 		return $font_dir;
 	}
