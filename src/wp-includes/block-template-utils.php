@@ -1607,3 +1607,33 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 
 	return $changes;
 }
+
+/**
+ * Inject ignoredHookedBlocks metadata attributes into a template or template part before we return
+ * it in the REST API response.
+ *
+ * @since 6.6.0
+ * @access private
+ *
+ * @param WP_REST_Response  $response  The response object.
+ * @param WP_Block_Template $template  An object representing a template or template part
+ *
+ * @return WP_Block_Template The updated object representing a template or template part.
+ */
+function inject_ignored_hooked_blocks_metadata_attributes_for_response( $response, $template ) {
+	$hooked_blocks = get_hooked_blocks();
+	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
+		return $template;
+	}
+
+	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
+	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
+
+	$blocks = parse_blocks( $template->content );
+
+	if ( isset( $response->data['content']['raw'] ) ) {
+		$response->data['content']['raw'] = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+	}
+
+	return $response;
+}

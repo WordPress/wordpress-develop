@@ -757,4 +757,8 @@ add_action( 'init', '_wp_register_default_font_collections' );
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 
+// Add ignoredHookedBlocks metadata attribute to the template and template part post types before returning them in the response.
+add_filter( 'rest_prepare_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes_for_response', 10, 2 );
+add_filter( 'rest_prepare_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes_for_response', 10, 2 );
+
 unset( $filter, $action );
