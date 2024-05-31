@@ -1010,7 +1010,6 @@ final class WP_Post_Type {
 				_x( 'A link to a post.', 'navigation link block description' ),
 				_x( 'A link to a page.', 'navigation link block description' ),
 			),
-			'template_name'            => array( __( 'Single item: Post' ), __( 'Single item: Page' ) ),
 		);
 
 		return self::$default_labels;
