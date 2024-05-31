@@ -292,12 +292,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 *
 	 */
 	public function test_wp_get_webp_info( $file, $expected ) {
-		$editor = wp_get_image_editor( $file );
-
-		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/webp' ) ) {
-			$this->markTestSkipped( sprintf( 'No WebP support in the editor engine %s on this system.', $this->editor_engine ) );
-		}
-
 		$file_data = wp_get_webp_info( $file );
 		$this->assertSame( $expected, $file_data );
 	}
@@ -364,4 +358,113 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Test wp_get_avif_info.
+	 *
+	 * @ticket 51228
+	 *
+	 * @dataProvider data_wp_get_avif_info
+	 *
+	 * @param string $file     The path to the AVIF file for testing.
+	 * @param array  $expected The expected AVIF file information.
+	 */
+	public function test_wp_get_avif_info( $file, $expected ) {
+		$file_data = wp_get_avif_info( $file );
+		$this->assertSame( $expected, $file_data );
+	}
+
+	/**
+	 * Data provider for test_wp_get_avif_info().
+	 */
+	public function data_wp_get_avif_info() {
+		return array(
+			// Standard JPEG.
+			array(
+				DIR_TESTDATA . '/images/test-image.jpg',
+				array(
+					'width'        => false,
+					'height'       => false,
+					'bit_depth'    => false,
+					'num_channels' => false,
+				),
+			),
+			// Standard GIF.
+			array(
+				DIR_TESTDATA . '/images/test-image.gif',
+				array(
+					'width'        => false,
+					'height'       => false,
+					'bit_depth'    => false,
+					'num_channels' => false,
+				),
+			),
+			// Animated AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-animated.avif',
+				array(
+					'width'        => 150,
+					'height'       => 150,
+					'bit_depth'    => 8,
+					'num_channels' => 4,
+				),
+			),
+			// Lossless AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossless.avif',
+				array(
+					'width'        => 400,
+					'height'       => 400,
+					'bit_depth'    => 8,
+					'num_channels' => 3,
+				),
+			),
+			// Lossy AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossy.avif',
+				array(
+					'width'        => 400,
+					'height'       => 400,
+					'bit_depth'    => 8,
+					'num_channels' => 3,
+				),
+			),
+			// Transparent AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-transparent.avif',
+				array(
+					'width'        => 128,
+					'height'       => 128,
+					'bit_depth'    => 12,
+					'num_channels' => 4,
+				),
+			),
+			array(
+				DIR_TESTDATA . '/images/color_grid_alpha_nogrid.avif',
+				array(
+					'width'        => 80,
+					'height'       => 80,
+					'bit_depth'    => 8,
+					'num_channels' => 4,
+				),
+			),
+			array(
+				DIR_TESTDATA . '/images/avif-alpha-grid2x1.avif',
+				array(
+					'width'        => 199,
+					'height'       => 200,
+					'bit_depth'    => 8,
+					'num_channels' => 4,
+				),
+			),
+			array(
+				DIR_TESTDATA . '/images/colors_hdr_p3.avif',
+				array(
+					'width'        => 200,
+					'height'       => 200,
+					'bit_depth'    => 10,
+					'num_channels' => 3,
+				),
+			),
+		);
+	}
 }

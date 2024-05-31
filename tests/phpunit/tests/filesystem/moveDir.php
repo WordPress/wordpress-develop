@@ -3,7 +3,8 @@
 /**
  * Tests move_dir().
  *
- * @group file.php
+ * @group file
+ * @group filesystem
  *
  * @covers ::move_dir
  */
@@ -308,5 +309,4 @@ class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 			'An unexpected error code was returned.'
 		);
 	}
-
 }

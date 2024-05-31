@@ -548,12 +548,17 @@ function populate_options( array $options = array() ) {
 		// 5.6.0
 		'auto_update_core_dev'            => 'enabled',
 		'auto_update_core_minor'          => 'enabled',
-		// Default to enabled for new installs.
-		// See https://core.trac.wordpress.org/ticket/51742.
+		/*
+		 * Default to enabled for new installs.
+		 * See https://core.trac.wordpress.org/ticket/51742.
+		 */
 		'auto_update_core_major'          => 'enabled',
 
 		// 5.8.0
 		'wp_force_deactivated_plugins'    => array(),
+
+		// 6.4.0
+		'wp_attachment_pages_enabled'     => 0,
 	);
 
 	// 3.3.0
@@ -589,18 +594,16 @@ function populate_options( array $options = array() ) {
 		}
 
 		if ( in_array( $option, $fat_options, true ) ) {
-			$autoload = 'no';
+			$autoload = 'off';
 		} else {
-			$autoload = 'yes';
-		}
-
-		if ( is_array( $value ) ) {
-			$value = serialize( $value );
+			$autoload = 'on';
 		}
 
 		if ( ! empty( $insert ) ) {
 			$insert .= ', ';
 		}
+
+		$value = maybe_serialize( sanitize_option( $option, $value ) );
 
 		$insert .= $wpdb->prepare( '(%s, %s, %s)', $option, $value, $autoload );
 	}
@@ -977,7 +980,7 @@ endif;
  * @param string $path              Optional. The path to append to the network's domain name. Default '/'.
  * @param bool   $subdomain_install Optional. Whether the network is a subdomain installation or a subdirectory installation.
  *                                  Default false, meaning the network is a subdirectory installation.
- * @return bool|WP_Error True on success, or WP_Error on warning (with the installation otherwise successful,
+ * @return true|WP_Error True on success, or WP_Error on warning (with the installation otherwise successful,
  *                       so the error code must be checked) or failure.
  */
 function populate_network( $network_id = 1, $domain = '', $email = '', $site_name = '', $path = '/', $subdomain_install = false ) {
@@ -1247,6 +1250,7 @@ We hope you enjoy your new site. Thanks!
 		'png',
 		'gif',
 		'webp',
+		'avif',
 		// Video.
 		'mov',
 		'avi',

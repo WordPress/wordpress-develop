@@ -159,7 +159,8 @@ function wp_print_media_templates() {
 	$alt_text_description = sprintf(
 		/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
 		__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
-		esc_url( 'https://www.w3.org/WAI/tutorials/images/decision-tree' ),
+		/* translators: Localized tutorial, if one exists. W3C Web Accessibility Initiative link has list of existing translations. */
+		esc_url( __( 'https://www.w3.org/WAI/tutorials/images/decision-tree/' ) ),
 		'target="_blank" rel="noopener"',
 		sprintf(
 			'<span class="screen-reader-text"> %s</span>',
@@ -375,7 +376,13 @@ function wp_print_media_templates() {
 		<div class="attachment-media-view {{ data.orientation }}">
 			<?php
 			if ( isset( $_GET['error'] ) && 'deprecated' === $_GET['error'] ) {
-				echo '<div id="message" class="error notice"><p>' . __( 'The Edit Media screen is deprecated as of WordPress 6.3. Please use the Media Library instead.' ) . '</p></div>';
+				wp_admin_notice(
+					__( 'The Edit Media screen is deprecated as of WordPress 6.3. Please use the Media Library instead.' ),
+					array(
+						'id'                 => 'message',
+						'additional_classes' => array( 'error' ),
+					)
+				);
 			}
 			?>
 			<h2 class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _e( 'Attachment Preview' ); ?></h2>
@@ -477,7 +484,7 @@ function wp_print_media_templates() {
 
 				<# if ( data.fileLength && data.fileLengthHumanReadable ) { #>
 					<div class="file-length"><strong><?php _e( 'Length:' ); ?></strong>
-						<span aria-hidden="true">{{ data.fileLength }}</span>
+						<span aria-hidden="true">{{ data.fileLengthHumanReadable }}</span>
 						<span class="screen-reader-text">{{ data.fileLengthHumanReadable }}</span>
 					</div>
 				<# } #>
@@ -551,7 +558,10 @@ function wp_print_media_templates() {
 
 			<div class="actions">
 				<# if ( data.link ) { #>
-					<a class="view-attachment" href="{{ data.link }}"><?php _e( 'View attachment page' ); ?></a>
+					<?php
+					$view_media_text = ( '1' === get_option( 'wp_attachment_pages_enabled' ) ) ? __( 'View attachment page' ) : __( 'View media file' );
+					?>
+					<a class="view-attachment" href="{{ data.link }}"><?php echo $view_media_text; ?></a>
 				<# } #>
 				<# if ( data.can.save ) { #>
 					<# if ( data.link ) { #>
@@ -720,7 +730,7 @@ function wp_print_media_templates() {
 
 				<# if ( data.fileLength && data.fileLengthHumanReadable ) { #>
 					<div class="file-length"><?php _e( 'Length:' ); ?>
-						<span aria-hidden="true">{{ data.fileLength }}</span>
+						<span aria-hidden="true">{{ data.fileLengthHumanReadable }}</span>
 						<span class="screen-reader-text">{{ data.fileLengthHumanReadable }}</span>
 					</div>
 				<# } #>

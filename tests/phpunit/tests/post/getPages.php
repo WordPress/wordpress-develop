@@ -274,25 +274,21 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		add_post_meta( $posts[1], 'some-meta-key', '' );
 		add_post_meta( $posts[2], 'some-meta-key', '1' );
 
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				get_pages(
-					array(
-						'meta_key'   => 'some-meta-key',
-						'meta_value' => '0',
-					)
+			get_pages(
+				array(
+					'meta_key'   => 'some-meta-key',
+					'meta_value' => '0',
 				)
 			)
 		);
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				get_pages(
-					array(
-						'meta_key'   => 'some-meta-key',
-						'meta_value' => '1',
-					)
+			get_pages(
+				array(
+					'meta_key'   => 'some-meta-key',
+					'meta_value' => '1',
 				)
 			)
 		);
@@ -344,7 +340,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		// Filter the query to return the wptests_pt post type.
 		add_filter(
 			'get_pages_query_args',
-			static function( $query_args, $parsed_args ) use ( &$query_args_values, &$parsed_args_values ) {
+			static function ( $query_args, $parsed_args ) use ( &$query_args_values, &$parsed_args_values ) {
 				$query_args['post_type'] = 'wptests_pt';
 				$query_args_values       = $query_args;
 				$parsed_args_values      = $parsed_args;
@@ -905,7 +901,6 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		// How it should work.
 		$found_pages = wp_list_filter( $pages, array( 'post_parent' => $page_1 ) );
 		$this->assertSameSets( array( $page_3, $page_5 ), wp_list_pluck( $found_pages, 'ID' ) );
-
 	}
 
 	/**
@@ -1179,6 +1174,37 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			"ORDER BY $wpdb->posts.post_date ASC",
 			$wpdb->last_query,
 			'Check that ORDER is post date.'
+		);
+	}
+
+	/**
+	 * Tests that the legacy `post_modified_gmt` orderby values are translated to the proper `WP_Query` values.
+	 *
+	 * @ticket 59226
+	 */
+	public function test_get_pages_order_by_post_modified_gmt() {
+		global $wpdb;
+
+		get_pages(
+			array(
+				'sort_column' => 'post_modified_gmt',
+			)
+		);
+		$this->assertStringContainsString(
+			"ORDER BY $wpdb->posts.post_modified ASC",
+			$wpdb->last_query,
+			'Check that ORDER is post modified when using post_modified_gmt.'
+		);
+
+		get_pages(
+			array(
+				'sort_column' => 'modified_gmt',
+			)
+		);
+		$this->assertStringContainsString(
+			"ORDER BY $wpdb->posts.post_modified ASC",
+			$wpdb->last_query,
+			'Check that ORDER is post modified when using modified_gmt.'
 		);
 	}
 }

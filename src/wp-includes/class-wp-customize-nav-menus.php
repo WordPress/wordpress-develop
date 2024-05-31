@@ -937,10 +937,10 @@ final class WP_Customize_Nav_Menus {
 	 * @param array $postarr {
 	 *     Post array. Note that post_status is overridden to be `auto-draft`.
 	 *
-	 * @var string $post_title   Post title. Required.
-	 * @var string $post_type    Post type. Required.
-	 * @var string $post_name    Post name.
-	 * @var string $post_content Post content.
+	 *     @type string $post_title   Post title. Required.
+	 *     @type string $post_type    Post type. Required.
+	 *     @type string $post_name    Post name.
+	 *     @type string $post_content Post content.
 	 * }
 	 * @return WP_Post|WP_Error Inserted auto-draft post object or error.
 	 */
@@ -1163,13 +1163,8 @@ final class WP_Customize_Nav_Menus {
 			</div>
 			<div id="available-menu-items-search" class="accordion-section cannot-expand">
 				<div class="accordion-section-title">
-					<label class="screen-reader-text" for="menu-items-search">
-						<?php
-						/* translators: Hidden accessibility text. */
-						_e( 'Search Menu Items' );
-						?>
-					</label>
-					<input type="text" id="menu-items-search" placeholder="<?php esc_attr_e( 'Search menu items&hellip;' ); ?>" aria-describedby="menu-items-search-desc" />
+					<label for="menu-items-search"><?php _e( 'Search Menu Items' ); ?></label>
+					<input type="text" id="menu-items-search" aria-describedby="menu-items-search-desc" />
 					<p class="screen-reader-text" id="menu-items-search-desc">
 						<?php
 						/* translators: Hidden accessibility text. */
@@ -1177,14 +1172,14 @@ final class WP_Customize_Nav_Menus {
 						?>
 					</p>
 					<span class="spinner"></span>
+					<div class="search-icon" aria-hidden="true"></div>
+					<button type="button" class="clear-results"><span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Clear Results' );
+						?>
+					</span></button>
 				</div>
-				<div class="search-icon" aria-hidden="true"></div>
-				<button type="button" class="clear-results"><span class="screen-reader-text">
-					<?php
-					/* translators: Hidden accessibility text. */
-					_e( 'Clear Results' );
-					?>
-				</span></button>
 				<ul class="accordion-section-content available-menu-items-list" data-type="search"></ul>
 			</div>
 			<?php
@@ -1243,10 +1238,12 @@ final class WP_Customize_Nav_Menus {
 				<?php if ( 'post_type' === $available_item_type['type'] ) : ?>
 					<?php $post_type_obj = get_post_type_object( $available_item_type['object'] ); ?>
 					<?php if ( current_user_can( $post_type_obj->cap->create_posts ) && current_user_can( $post_type_obj->cap->publish_posts ) ) : ?>
-						<div class="new-content-item">
-							<label for="<?php echo esc_attr( 'create-item-input-' . $available_item_type['object'] ); ?>" class="screen-reader-text"><?php echo esc_html( $post_type_obj->labels->add_new_item ); ?></label>
-							<input type="text" id="<?php echo esc_attr( 'create-item-input-' . $available_item_type['object'] ); ?>" class="create-item-input" placeholder="<?php echo esc_attr( $post_type_obj->labels->add_new_item ); ?>">
-							<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
+						<div class="new-content-item-wrapper">
+							<label for="<?php echo esc_attr( 'create-item-input-' . $available_item_type['object'] ); ?>"><?php echo esc_html( $post_type_obj->labels->add_new_item ); ?></label>
+							<div class="new-content-item">
+								<input type="text" id="<?php echo esc_attr( 'create-item-input-' . $available_item_type['object'] ); ?>" class="create-item-input">
+								<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
+							</div>
 						</div>
 					<?php endif; ?>
 				<?php endif; ?>
@@ -1559,7 +1556,7 @@ final class WP_Customize_Nav_Menus {
 		$exports = array(
 			'navMenuInstanceArgs' => $this->preview_nav_menu_instance_args,
 		);
-		printf( '<script>var _wpCustomizePreviewNavMenusExports = %s;</script>', wp_json_encode( $exports ) );
+		wp_print_inline_script_tag( sprintf( 'var _wpCustomizePreviewNavMenusExports = %s;', wp_json_encode( $exports ) ) );
 	}
 
 	/**

@@ -576,8 +576,10 @@ abstract class WP_REST_Controller {
 		$additional_fields = $this->get_additional_fields();
 
 		foreach ( $additional_fields as $field_name => $field_options ) {
-			// For back-compat, include any field with an empty schema
-			// because it won't be present in $this->get_item_schema().
+			/*
+			 * For back-compat, include any field with an empty schema
+			 * because it won't be present in $this->get_item_schema().
+			 */
 			if ( is_null( $field_options['schema'] ) ) {
 				$properties[ $field_name ] = $field_options;
 			}
@@ -623,15 +625,17 @@ abstract class WP_REST_Controller {
 		// Return the list of all requested fields which appear in the schema.
 		return array_reduce(
 			$requested_fields,
-			static function( $response_fields, $field ) use ( $fields ) {
+			static function ( $response_fields, $field ) use ( $fields ) {
 				if ( in_array( $field, $fields, true ) ) {
 					$response_fields[] = $field;
 					return $response_fields;
 				}
 				// Check for nested fields if $field is not a direct match.
 				$nested_fields = explode( '.', $field );
-				// A nested field is included so long as its top-level property
-				// is present in the schema.
+				/*
+				 * A nested field is included so long as its top-level property
+				 * is present in the schema.
+				 */
 				if ( in_array( $nested_fields[0], $fields, true ) ) {
 					$response_fields[] = $field;
 				}

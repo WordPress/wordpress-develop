@@ -127,6 +127,9 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$subscriber_id );
 		self::delete_user( self::$contributor_id );
 		self::delete_user( self::$admin_id );
+
+		remove_theme_support( 'editor-gradient-presets' );
+		remove_theme_support( 'editor-color-palette' );
 	}
 
 	/**
@@ -931,7 +934,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 49037
 	 */
-	public function test_theme_wp_block_styles_optin() {
+	public function test_theme_wp_block_styles_opt_in() {
 		remove_theme_support( 'wp-block-styles' );
 		add_theme_support( 'wp-block-styles' );
 		$response = self::perform_active_theme_request();
@@ -955,7 +958,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 49037
 	 */
-	public function test_theme_align_wide_optin() {
+	public function test_theme_align_wide_opt_in() {
 		remove_theme_support( 'align-wide' );
 		add_theme_support( 'align-wide' );
 		$response = self::perform_active_theme_request();
@@ -979,7 +982,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 49037
 	 */
-	public function test_theme_editor_styles_optin() {
+	public function test_theme_editor_styles_opt_in() {
 		remove_theme_support( 'editor-styles' );
 		add_theme_support( 'editor-styles' );
 		$response = self::perform_active_theme_request();
@@ -1003,7 +1006,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 49037
 	 */
-	public function test_theme_dark_editor_style_optin() {
+	public function test_theme_dark_editor_style_opt_in() {
 		remove_theme_support( 'dark-editor-style' );
 		add_theme_support( 'dark-editor-style' );
 		$response = self::perform_active_theme_request();

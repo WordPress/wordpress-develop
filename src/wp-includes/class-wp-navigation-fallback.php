@@ -13,22 +13,74 @@
  * Manages fallback behavior for Navigation menus.
  *
  * @access public
- * @since 6.3.0.
+ * @since 6.3.0
  */
 class WP_Navigation_Fallback {
 
 	/**
+	 * Updates the wp_navigation custom post type schema, in order to expose
+	 * additional fields in the embeddable links of WP_REST_Navigation_Fallback_Controller.
+	 *
+	 * The Navigation Fallback endpoint may embed the full Navigation Menu object
+	 * into the response as the `self` link. By default, the Posts Controller
+	 * will only expose a limited subset of fields but the editor requires
+	 * additional fields to be available in order to utilize the menu.
+	 *
+	 * Used with the `rest_wp_navigation_item_schema` hook.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array $schema The schema for the `wp_navigation` post.
+	 * @return array The modified schema.
+	 */
+	public static function update_wp_navigation_post_schema( $schema ) {
+		// Expose top level fields.
+		$schema['properties']['status']['context']  = array_merge( $schema['properties']['status']['context'], array( 'embed' ) );
+		$schema['properties']['content']['context'] = array_merge( $schema['properties']['content']['context'], array( 'embed' ) );
+
+		/*
+		 * Exposes sub properties of content field.
+		 * These sub properties aren't exposed by the posts controller by default,
+		 * for requests where context is `embed`.
+		 *
+		 * @see WP_REST_Posts_Controller::get_item_schema()
+		 */
+		$schema['properties']['content']['properties']['raw']['context']           = array_merge( $schema['properties']['content']['properties']['raw']['context'], array( 'embed' ) );
+		$schema['properties']['content']['properties']['rendered']['context']      = array_merge( $schema['properties']['content']['properties']['rendered']['context'], array( 'embed' ) );
+		$schema['properties']['content']['properties']['block_version']['context'] = array_merge( $schema['properties']['content']['properties']['block_version']['context'], array( 'embed' ) );
+
+		/*
+		 * Exposes sub properties of title field.
+		 * These sub properties aren't exposed by the posts controller by default,
+		 * for requests where context is `embed`.
+		 *
+		 * @see WP_REST_Posts_Controller::get_item_schema()
+		 */
+		$schema['properties']['title']['properties']['raw']['context'] = array_merge( $schema['properties']['title']['properties']['raw']['context'], array( 'embed' ) );
+
+		return $schema;
+	}
+
+	/**
 	 * Gets (and/or creates) an appropriate fallback Navigation Menu.
 	 *
-	 * @since 6.3.0.
+	 * @since 6.3.0
 	 *
 	 * @return WP_Post|null the fallback Navigation Post or null.
 	 */
 	public static function get_fallback() {
+		/**
+		 * Filters whether or not a fallback should be created.
+		 *
+		 * @since 6.3.0
+		 *
+		 * @param bool $create Whether to create a fallback navigation menu. Default true.
+		 */
+		$should_create_fallback = apply_filters( 'wp_navigation_should_create_fallback', true );
 
 		$fallback = static::get_most_recently_published_navigation();
 
-		if ( $fallback ) {
+		if ( $fallback || ! $should_create_fallback ) {
 			return $fallback;
 		}
 
@@ -52,7 +104,7 @@ class WP_Navigation_Fallback {
 	/**
 	 * Finds the most recently published `wp_navigation` post type.
 	 *
-	 * @since 6.3.0.
+	 * @since 6.3.0
 	 *
 	 * @return WP_Post|null the first non-empty Navigation or null.
 	 */
@@ -81,7 +133,7 @@ class WP_Navigation_Fallback {
 	/**
 	 * Creates a Navigation Menu post from a Classic Menu.
 	 *
-	 * @since 6.3.0.
+	 * @since 6.3.0
 	 *
 	 * @return int|WP_Error The post ID of the default fallback menu or a WP_Error object.
 	 */
@@ -95,6 +147,10 @@ class WP_Navigation_Fallback {
 
 		// If there is a classic menu then convert it to blocks.
 		$classic_nav_menu_blocks = WP_Classic_To_Block_Menu_Converter::convert( $classic_nav_menu );
+
+		if ( is_wp_error( $classic_nav_menu_blocks ) ) {
+			return $classic_nav_menu_blocks;
+		}
 
 		if ( empty( $classic_nav_menu_blocks ) ) {
 			return new WP_Error( 'cannot_convert_classic_menu', __( 'Unable to convert Classic Menu to blocks.' ) );
@@ -116,9 +172,9 @@ class WP_Navigation_Fallback {
 	}
 
 	/**
-	 * Determine the most appropriate classic navigation menu to use as a fallback.
+	 * Determines the most appropriate classic navigation menu to use as a fallback.
 	 *
-	 * @since 6.3.0.
+	 * @since 6.3.0
 	 *
 	 * @return WP_Term|null The most appropriate classic navigation menu to use as a fallback.
 	 */
@@ -148,7 +204,7 @@ class WP_Navigation_Fallback {
 	/**
 	 * Sorts the classic menus and returns the most recently created one.
 	 *
-	 * @since 6.3.0.
+	 * @since 6.3.0
 	 *
 	 * @param WP_Term[] $classic_nav_menus Array of classic nav menu term objects.
 	 * @return WP_Term The most recently created classic nav menu.
@@ -156,7 +212,7 @@ class WP_Navigation_Fallback {
 	private static function get_most_recently_created_nav_menu( $classic_nav_menus ) {
 		usort(
 			$classic_nav_menus,
-			static function( $a, $b ) {
+			static function ( $a, $b ) {
 				return $b->term_id - $a->term_id;
 			}
 		);
@@ -167,7 +223,7 @@ class WP_Navigation_Fallback {
 	/**
 	 * Returns the classic menu with the slug `primary` if it exists.
 	 *
-	 * @since 6.3.0.
+	 * @since 6.3.0
 	 *
 	 * @param WP_Term[] $classic_nav_menus Array of classic nav menu term objects.
 	 * @return WP_Term|null The classic nav menu with the slug `primary` or null.
@@ -187,7 +243,7 @@ class WP_Navigation_Fallback {
 	 * Gets the classic menu assigned to the `primary` navigation menu location
 	 * if it exists.
 	 *
-	 * @since 6.3.0.
+	 * @since 6.3.0
 	 *
 	 * @return WP_Term|null The classic nav menu assigned to the `primary` location or null.
 	 */
@@ -208,7 +264,7 @@ class WP_Navigation_Fallback {
 	/**
 	 * Creates a default Navigation Block Menu fallback.
 	 *
-	 * @since 6.3.0.
+	 * @since 6.3.0
 	 *
 	 * @return int|WP_Error The post ID of the default fallback menu or a WP_Error object.
 	 */
@@ -234,7 +290,7 @@ class WP_Navigation_Fallback {
 	/**
 	 * Gets the rendered markup for the default fallback blocks.
 	 *
-	 * @since 6.3.0.
+	 * @since 6.3.0
 	 *
 	 * @return string default blocks markup to use a the fallback.
 	 */

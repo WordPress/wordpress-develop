@@ -58,6 +58,7 @@ class WP_Style_Engine_Processor {
 	 * Adds rules to be processed.
 	 *
 	 * @since 6.1.0
+	 * @since 6.6.0 Added support for rules_group.
 	 *
 	 * @param WP_Style_Engine_CSS_Rule|WP_Style_Engine_CSS_Rule[] $css_rules A single, or an array of,
 	 *                                                                       WP_Style_Engine_CSS_Rule objects
@@ -70,7 +71,24 @@ class WP_Style_Engine_Processor {
 		}
 
 		foreach ( $css_rules as $rule ) {
-			$selector = $rule->get_selector();
+			$selector    = $rule->get_selector();
+			$rules_group = $rule->get_rules_group();
+
+			/**
+			 * If there is a rules_group and it already exists in the css_rules array,
+			 * add the rule to it.
+			 * Otherwise, create a new entry for the rules_group.
+			 */
+			if ( ! empty( $rules_group ) ) {
+				if ( isset( $this->css_rules[ "$rules_group $selector" ] ) ) {
+					$this->css_rules[ "$rules_group $selector" ]->add_declarations( $rule->get_declarations() );
+					continue;
+				}
+				$this->css_rules[ "$rules_group $selector" ] = $rule;
+				continue;
+			}
+
+			// If the selector already exists, add the declarations to it.
 			if ( isset( $this->css_rules[ $selector ] ) ) {
 				$this->css_rules[ $selector ]->add_declarations( $rule->get_declarations() );
 				continue;
@@ -85,12 +103,13 @@ class WP_Style_Engine_Processor {
 	 * Gets the CSS rules as a string.
 	 *
 	 * @since 6.1.0
+	 * @since 6.4.0 The Optimization is no longer the default.
 	 *
 	 * @param array $options   {
 	 *     Optional. An array of options. Default empty array.
 	 *
 	 *     @type bool $optimize Whether to optimize the CSS output, e.g. combine rules.
-	 *                          Default true.
+	 *                          Default false.
 	 *     @type bool $prettify Whether to add new lines and indents to output.
 	 *                          Defaults to whether the `SCRIPT_DEBUG` constant is defined.
 	 * }
@@ -98,7 +117,7 @@ class WP_Style_Engine_Processor {
 	 */
 	public function get_css( $options = array() ) {
 		$defaults = array(
-			'optimize' => true,
+			'optimize' => false,
 			'prettify' => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG,
 		);
 		$options  = wp_parse_args( $options, $defaults );
@@ -116,6 +135,7 @@ class WP_Style_Engine_Processor {
 		// Build the CSS.
 		$css = '';
 		foreach ( $this->css_rules as $rule ) {
+			// See class WP_Style_Engine_CSS_Rule for the get_css method.
 			$css .= $rule->get_css( $options['prettify'] );
 			$css .= $options['prettify'] ? "\n" : '';
 		}

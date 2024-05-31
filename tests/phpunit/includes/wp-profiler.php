@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * A simple manually-instrumented profiler for WordPress.
  *
  * This records basic execution time, and a summary of the actions and SQL queries run within each block.
@@ -15,7 +15,6 @@
  *
  * Multiple profile blocks are permitted, and they may be nested.
  */
-
 class WPProfiler {
 	public $stack;
 	public $profile;
@@ -56,7 +55,6 @@ class WPProfiler {
 			'filters'             => array(),
 			'queries'             => array(),
 		);
-
 	}
 
 	public function stop() {
@@ -73,7 +71,7 @@ class WPProfiler {
 
 		if ( isset( $this->profile[ $name ] ) ) {
 			$this->profile[ $name ]['time'] += $time;
-			$this->profile[ $name ]['calls']++;
+			++$this->profile[ $name ]['calls'];
 			$this->profile[ $name ]['cache_cold_hits']    += ( $wp_object_cache->cold_cache_hits - $item['cache_cold_hits'] );
 			$this->profile[ $name ]['cache_warm_hits']    += ( $wp_object_cache->warm_cache_hits - $item['cache_warm_hits'] );
 			$this->profile[ $name ]['cache_misses']       += ( $wp_object_cache->cache_misses - $item['cache_misses'] );
@@ -114,9 +112,9 @@ class WPProfiler {
 		if ( $this->stack ) {
 			global $wp_actions;
 			if ( end( $wp_actions ) === $tag ) {
-				$this->stack[ count( $this->stack ) - 1 ]['actions'][ $tag ]++;
+				++$this->stack[ count( $this->stack ) - 1 ]['actions'][ $tag ];
 			} else {
-				$this->stack[ count( $this->stack ) - 1 ]['filters'][ $tag ]++;
+				++$this->stack[ count( $this->stack ) - 1 ]['filters'][ $tag ];
 			}
 		}
 		return $arg;
@@ -124,7 +122,7 @@ class WPProfiler {
 
 	public function log_action( $tag ) {
 		if ( $this->stack ) {
-			$this->stack[ count( $this->stack ) - 1 ]['actions'][ $tag ]++;
+			++$this->stack[ count( $this->stack ) - 1 ]['actions'][ $tag ];
 		}
 	}
 
@@ -143,7 +141,7 @@ class WPProfiler {
 			$sql = preg_replace( '/(WHERE \w+ =) \d+/', '$1 x', $sql );
 			$sql = preg_replace( '/(WHERE \w+ =) \'\[-\w]+\'/', '$1 \'xxx\'', $sql );
 
-			$out[ $sql ]++;
+			++$out[ $sql ];
 		}
 		asort( $out );
 		return;
@@ -154,9 +152,9 @@ class WPProfiler {
 		$out = array();
 		foreach ( $queries as $q ) {
 			if ( empty( $q[2] ) ) {
-				$out['unknown']++;
+				++$out['unknown'];
 			} else {
-				$out[ $q[2] ]++;
+				++$out[ $q[2] ];
 			}
 		}
 		return $out;
@@ -220,5 +218,3 @@ function wppf_results() {
 function wppf_print_summary() {
 	$GLOBALS['wppf']->print_summary();
 }
-
-

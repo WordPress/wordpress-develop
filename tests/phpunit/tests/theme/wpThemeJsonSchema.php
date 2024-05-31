@@ -12,14 +12,9 @@
  */
 class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 	/**
-	 * The current theme.json schema version.
-	 */
-	const LATEST_SCHEMA_VERSION = WP_Theme_JSON::LATEST_SCHEMA;
-
-	/**
 	 * @ticket 54336
 	 */
-	public function test_migrate_v1_to_v2() {
+	public function test_migrate_v1_to_latest() {
 		$theme_json_v1 = array(
 			'version'  => 1,
 			'settings' => array(
@@ -106,7 +101,7 @@ class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 		$actual = WP_Theme_JSON_Schema::migrate( $theme_json_v1 );
 
 		$expected = array(
-			'version'  => self::LATEST_SCHEMA_VERSION,
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 			'settings' => array(
 				'color'      => array(
 					'palette' => array(

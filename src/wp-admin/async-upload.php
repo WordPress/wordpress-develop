@@ -64,12 +64,12 @@ if ( isset( $_REQUEST['attachment_id'] ) && (int) $_REQUEST['attachment_id'] && 
 					?>
 					<div class="filename new">
 						<span class="media-list-title"><strong><?php echo esc_html( wp_html_excerpt( $title, 60, '&hellip;' ) ); ?></strong></span>
-						<span class="media-list-subtitle"><?php echo wp_basename( $file ); ?></span>
+						<span class="media-list-subtitle"><?php echo esc_html( wp_basename( $file ) ); ?></span>
 					</div>
 				</div>
 				<div class="attachment-tools">
 					<span class="media-item-copy-container copy-to-clipboard-container edit-attachment">
-						<button type="button" class="button button-small copy-attachment-url" data-clipboard-text="<?php echo $file_url; ?>"><?php _e( 'Copy URL to clipboard' ); ?></button>
+						<button type="button" class="button button-small copy-attachment-url" data-clipboard-text="<?php echo esc_url( $file_url ); ?>"><?php _e( 'Copy URL to clipboard' ); ?></button>
 						<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
 					</span>
 					<?php
@@ -113,8 +113,8 @@ if ( isset( $_REQUEST['post_id'] ) ) {
 
 $id = media_handle_upload( 'async-upload', $post_id );
 if ( is_wp_error( $id ) ) {
-	printf(
-		'<div class="error-div error">%s <strong>%s</strong><br />%s</div>',
+	$message = sprintf(
+		'%s <strong>%s</strong><br />%s',
 		sprintf(
 			'<button type="button" class="dismiss button-link" onclick="jQuery(this).parents(\'div.media-item\').slideUp(200, function(){jQuery(this).remove();});">%s</button>',
 			__( 'Dismiss' )
@@ -125,6 +125,13 @@ if ( is_wp_error( $id ) ) {
 			esc_html( $_FILES['async-upload']['name'] )
 		),
 		esc_html( $id->get_error_message() )
+	);
+	wp_admin_notice(
+		$message,
+		array(
+			'additional_classes' => array( 'error-div', 'error' ),
+			'paragraph_wrap'     => false,
+		)
 	);
 	exit;
 }

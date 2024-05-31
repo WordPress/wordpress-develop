@@ -32,15 +32,15 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		// Exif from a Nikon D70.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2004-07-22-DSC_0008.jpg' );
 
-		$this->assertEquals( 6.3, $out['aperture'], 'Aperture value not equivalent' );
+		$this->assertSame( '6.3', $out['aperture'], 'Aperture value not equivalent' );
 		$this->assertSame( '', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( 'NIKON D70', $out['camera'], 'Camera value not the same' );
 		$this->assertSame( '', $out['caption'], 'Caption value not the same' );
-		$this->assertEquals( strtotime( '2004-07-22 17:14:59' ), $out['created_timestamp'], 'Timestamp value not equivalent' );
+		$this->assertSame( (string) strtotime( '2004-07-22 17:14:59' ), $out['created_timestamp'], 'Timestamp value not equivalent' );
 		$this->assertSame( '', $out['copyright'], 'Copyright value not the same' );
-		$this->assertEquals( 27, $out['focal_length'], 'Focal length value not equivalent' );
-		$this->assertEquals( 400, $out['iso'], 'Iso value not equivalent' );
-		$this->assertEquals( 1 / 40, $out['shutter_speed'], 'Shutter speed value not equivalent' );
+		$this->assertSame( '27', $out['focal_length'], 'Focal length value not equivalent' );
+		$this->assertSame( '400', $out['iso'], 'Iso value not equivalent' );
+		$this->assertSame( (string) ( 1 / 40 ), $out['shutter_speed'], 'Shutter speed value not equivalent' );
 		$this->assertSame( '', $out['title'], 'Title value not the same' );
 	}
 
@@ -51,13 +51,13 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( '0', $out['aperture'], 'Aperture value not the same' );
 		$this->assertSame( '', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( 'NIKON D70', $out['camera'], 'Camera value not the same' );
-		$this->assertSame( '', $out['caption'], 'Caption value not the same' );
-		$this->assertEquals( strtotime( '2007-06-17 21:18:00' ), $out['created_timestamp'], 'Timestamp value not equivalent' );
+		$this->assertSame( 'Copyright Alex Shiels', $out['caption'], 'Caption value not the same' );
+		$this->assertSame( (string) strtotime( '2007-06-17 21:18:00' ), $out['created_timestamp'], 'Timestamp value not equivalent' );
 		$this->assertSame( '', $out['copyright'], 'Copyright value not the same' );
-		$this->assertEquals( 0, $out['focal_length'], 'Focal length value not equivalent' );
-		$this->assertEquals( 0, $out['iso'], 'Iso value not equivalent' ); // Interesting - a Nikon bug?
-		$this->assertEquals( 1 / 500, $out['shutter_speed'], 'Shutter speed value not equivalent' );
-		$this->assertSame( '', $out['title'], 'Title value not the same' );
+		$this->assertSame( '0', $out['focal_length'], 'Focal length value not equivalent' );
+		$this->assertSame( '0', $out['iso'], 'Iso value not equivalent' ); // Interesting - a Nikon bug?
+		$this->assertSame( (string) ( 1 / 500 ), $out['shutter_speed'], 'Shutter speed value not equivalent' );
+		$this->assertSame( 'Copyright Alex Shiels', $out['title'], 'Title value not the same' );
 		// $this->assertSame( array( 'Flowers' ), $out['keywords'] );
 	}
 
@@ -65,15 +65,15 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		// Exif from a Nikon D70 with IPTC data added later.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2004-07-22-DSC_0007.jpg' );
 
-		$this->assertEquals( 6.3, $out['aperture'], 'Aperture value not equivalent' );
+		$this->assertSame( '6.3', $out['aperture'], 'Aperture value not equivalent' );
 		$this->assertSame( 'IPTC Creator', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( 'NIKON D70', $out['camera'], 'Camera value not the same' );
 		$this->assertSame( 'IPTC Caption', $out['caption'], 'Caption value not the same' );
-		$this->assertEquals( strtotime( '2004-07-22 17:14:35' ), $out['created_timestamp'], 'Timestamp value not equivalent' );
+		$this->assertSame( (string) strtotime( '2004-07-22 17:14:35' ), $out['created_timestamp'], 'Timestamp value not equivalent' );
 		$this->assertSame( 'IPTC Copyright', $out['copyright'], 'Copyright value not the same' );
-		$this->assertEquals( 18, $out['focal_length'], 'Focal length value not equivalent' );
-		$this->assertEquals( 200, $out['iso'], 'Iso value not equivalent' );
-		$this->assertEquals( 1 / 25, $out['shutter_speed'], 'Shutter speed value not equivalent' );
+		$this->assertSame( '18', $out['focal_length'], 'Focal length value not equivalent' );
+		$this->assertSame( '200', $out['iso'], 'Iso value not equivalent' );
+		$this->assertSame( (string) ( 1 / 25 ), $out['shutter_speed'], 'Shutter speed value not equivalent' );
 		$this->assertSame( 'IPTC Headline', $out['title'], 'Title value not the same' );
 	}
 
@@ -81,15 +81,15 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		// Exif from a Fuji FinePix S5600 (thanks Mark).
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/a2-small.jpg' );
 
-		$this->assertEquals( 4.5, $out['aperture'], 'Aperture value not equivalent' );
+		$this->assertSame( '4.5', $out['aperture'], 'Aperture value not equivalent' );
 		$this->assertSame( '', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( 'FinePix S5600', $out['camera'], 'Camera value not the same' );
 		$this->assertSame( '', $out['caption'], 'Caption value not the same' );
-		$this->assertEquals( strtotime( '2007-09-03 10:17:03' ), $out['created_timestamp'], 'Timestamp value not equivalent' );
+		$this->assertSame( (string) strtotime( '2007-09-03 10:17:03' ), $out['created_timestamp'], 'Timestamp value not equivalent' );
 		$this->assertSame( '', $out['copyright'], 'Copyright value not the same' );
-		$this->assertEquals( 6.3, $out['focal_length'], 'Focal length value not equivalent' );
-		$this->assertEquals( 64, $out['iso'], 'Iso value not equivalent' );
-		$this->assertEquals( 1 / 320, $out['shutter_speed'], 'Shutter speed value not equivalent' );
+		$this->assertSame( '6.3', $out['focal_length'], 'Focal length value not equivalent' );
+		$this->assertSame( '64', $out['iso'], 'Iso value not equivalent' );
+		$this->assertSame( (string) ( 1 / 320 ), $out['shutter_speed'], 'Shutter speed value not equivalent' );
 		$this->assertSame( '', $out['title'], 'Title value not the same' );
 	}
 
@@ -98,18 +98,18 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	 */
 	public function test_exif_error() {
 		// https://core.trac.wordpress.org/ticket/6571
-		// This triggers a warning mesage when reading the Exif block.
+		// This triggers a warning message when reading the Exif block.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/waffles.jpg' );
 
-		$this->assertEquals( 0, $out['aperture'], 'Aperture value not equivalent' );
+		$this->assertSame( '0', $out['aperture'], 'Aperture value not equivalent' );
 		$this->assertSame( '', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( '', $out['camera'], 'Camera value not the same' );
 		$this->assertSame( '', $out['caption'], 'Caption value not the same' );
-		$this->assertEquals( 0, $out['created_timestamp'], 'Timestamp value not equivalent' );
+		$this->assertSame( '0', $out['created_timestamp'], 'Timestamp value not equivalent' );
 		$this->assertSame( '', $out['copyright'], 'Copyright value not the same' );
-		$this->assertEquals( 0, $out['focal_length'], 'Focal length value not equivalent' );
-		$this->assertEquals( 0, $out['iso'], 'Iso value not equivalent' );
-		$this->assertEquals( 0, $out['shutter_speed'], 'Shutter speed value not equivalent' );
+		$this->assertSame( '0', $out['focal_length'], 'Focal length value not equivalent' );
+		$this->assertSame( '0', $out['iso'], 'Iso value not equivalent' );
+		$this->assertSame( '0', $out['shutter_speed'], 'Shutter speed value not equivalent' );
 		$this->assertSame( '', $out['title'], 'Title value not the same' );
 	}
 
@@ -117,15 +117,15 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		// No Exif data in this image (from burningwell.org).
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/canola.jpg' );
 
-		$this->assertEquals( 0, $out['aperture'], 'Aperture value not equivalent' );
+		$this->assertSame( '0', $out['aperture'], 'Aperture value not equivalent' );
 		$this->assertSame( '', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( '', $out['camera'], 'Camera value not the same' );
 		$this->assertSame( '', $out['caption'], 'Caption value not the same' );
-		$this->assertEquals( 0, $out['created_timestamp'], 'Timestamp value not equivalent' );
+		$this->assertSame( '0', $out['created_timestamp'], 'Timestamp value not equivalent' );
 		$this->assertSame( '', $out['copyright'], 'Copyright value not the same' );
-		$this->assertEquals( 0, $out['focal_length'], 'Focal length value not equivalent' );
-		$this->assertEquals( 0, $out['iso'], 'Iso value not equivalent' );
-		$this->assertEquals( 0, $out['shutter_speed'], 'Shutter speed value not equivalent' );
+		$this->assertSame( '0', $out['focal_length'], 'Focal length value not equivalent' );
+		$this->assertSame( '0', $out['iso'], 'Iso value not equivalent' );
+		$this->assertSame( '0', $out['shutter_speed'], 'Shutter speed value not equivalent' );
 		$this->assertSame( '', $out['title'], 'Title value not the same' );
 	}
 
@@ -158,13 +158,13 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( 'Photoshop Author', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( 'DMC-LX2', $out['camera'], 'Camera value not the same' );
 		$this->assertSame( 'Photoshop Description', $out['caption'], 'Caption value not the same' );
-		$this->assertEquals( 1306315327, $out['created_timestamp'], 'Timestamp value not equivalent' );
+		$this->assertSame( '1306315327', $out['created_timestamp'], 'Timestamp value not equivalent' );
 		$this->assertSame( 'Photoshop Copyrright Notice', $out['copyright'], 'Copyright value not the same' );
 		$this->assertSame( '6.3', $out['focal_length'], 'Focal length value not the same' );
 		$this->assertSame( '100', $out['iso'], 'Iso value not the same' );
 		$this->assertSame( '0.0025', $out['shutter_speed'], 'Shutter speed value not the same' );
 		$this->assertSame( 'Photoshop Document Ttitle', $out['title'], 'Title value not the same' );
-		$this->assertEquals( 1, $out['orientation'], 'Orientation value not equivalent' );
+		$this->assertSame( '1', $out['orientation'], 'Orientation value not equivalent' );
 		$this->assertSame( array( 'beach', 'baywatch', 'LA', 'sunset' ), $out['keywords'], 'Keywords not the same' );
 	}
 
@@ -246,15 +246,15 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		// Unexpected Exif data: FNumber is "0/0", aperture should be 0.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/sugarloaf-mountain.jpg' );
 
-		$this->assertEquals( 0, $out['aperture'], 'Aperture value not equivalent' );
+		$this->assertSame( '0', $out['aperture'], 'Aperture value not equivalent' );
 		$this->assertSame( '', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( 'X-T1', $out['camera'], 'Camera value not the same' );
 		$this->assertSame( '', $out['caption'], 'Caption value not the same' );
-		$this->assertEquals( 0, $out['created_timestamp'], 'Timestamp value not equivalent' );
+		$this->assertSame( '0', $out['created_timestamp'], 'Timestamp value not equivalent' );
 		$this->assertSame( '', $out['copyright'], 'Copyright value not the same' );
-		$this->assertEquals( 50, $out['focal_length'], 'Focal length value not equivalent' );
-		$this->assertEquals( 200, $out['iso'], 'Iso value not equivalent' );
-		$this->assertEquals( 2, $out['shutter_speed'], 'Shutter speed value not equivalent' );
+		$this->assertSame( '50', $out['focal_length'], 'Focal length value not equivalent' );
+		$this->assertSame( '200', $out['iso'], 'Iso value not equivalent' );
+		$this->assertSame( '2', $out['shutter_speed'], 'Shutter speed value not equivalent' );
 		$this->assertSame( 'Sugarloaf Panorama', $out['title'], 'Title value not the same' );
 	}
 }
