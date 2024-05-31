@@ -1732,83 +1732,83 @@ EOF;
 	public function data_wp_kses_object_tag_allowed() {
 		return array(
 			'valid value for type'                    => array(
-				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'invalid value for type'                  => array(
-				'<object type="application/exe" data="https://example.org/foo.exe" />',
+				'<object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" />',
 				'',
 			),
 			'multiple type attributes, last invalid'  => array(
-				'<object type="application/pdf" type="application/exe" data="https://example.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'multiple type attributes, first uppercase, last invalid' => array(
-				'<object TYPE="application/pdf" type="application/exe" data="https://example.org/foo.pdf" />',
-				'<object TYPE="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object TYPE="application/pdf" type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object TYPE="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'multiple type attributes, last upper case and invalid' => array(
-				'<object type="application/pdf" TYPE="application/exe" data="https://example.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" TYPE="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'multiple type attributes, first invalid' => array(
-				'<object type="application/exe" type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/exe" type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'multiple type attributes, first upper case and invalid' => array(
-				'<object TYPE="application/exe" type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object TYPE="application/exe" type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'multiple type attributes, first invalid, last uppercase' => array(
-				'<object type="application/exe" TYPE="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/exe" TYPE="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'multiple object tags, last invalid'      => array(
-				'<object type="application/pdf" data="https://example.org/foo.pdf" /><object type="application/exe" data="https://example.org/foo.exe" />',
-				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" /><object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'multiple object tags, first invalid'     => array(
-				'<object type="application/exe" data="https://example.org/foo.exe" /><object type="application/pdf" data="https://example.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" /><object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'type attribute with partially incorrect value' => array(
-				'<object type="application/pdfa" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdfa" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'type attribute with empty value'         => array(
-				'<object type="" data="https://example.org/foo.pdf" />',
+				'<object type="" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'type attribute with no value'            => array(
-				'<object type data="https://example.org/foo.pdf" />',
+				'<object type data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'no type attribute'                       => array(
-				'<object data="https://example.org/foo.pdf" />',
+				'<object data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'different protocol in url'               => array(
-				'<object type="application/pdf" data="http://example.org/foo.pdf" />',
-				'<object type="application/pdf" data="http://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="http://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="http://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'query string on url'                     => array(
-				'<object type="application/pdf" data="https://example.org/foo.pdf?lol=.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf?lol=.pdf" />',
 				'',
 			),
 			'fragment on url'                         => array(
-				'<object type="application/pdf" data="https://example.org/foo.pdf#lol.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf#lol.pdf" />',
 				'',
 			),
 			'wrong extension'                         => array(
-				'<object type="application/pdf" data="https://example.org/foo.php" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.php" />',
 				'',
 			),
 			'protocol-relative url'                   => array(
-				'<object type="application/pdf" data="//example.org/foo.pdf" />',
+				'<object type="application/pdf" data="//' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'unsupported protocol'                    => array(
-				'<object type="application/pdf" data="ftp://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="ftp://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'relative url'                            => array(
@@ -1816,8 +1816,8 @@ EOF;
 				'',
 			),
 			'url with port number-like path'          => array(
-				'<object type="application/pdf" data="https://example.org/cat:8888/foo.pdf" />',
-				'<object type="application/pdf" data="https://example.org/cat:8888/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/cat:8888/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/cat:8888/foo.pdf" />',
 			),
 		);
 	}
@@ -1868,7 +1868,14 @@ EOF;
 	 * @return array        $param with a modified `url`.
 	 */
 	public function wp_kses_upload_dir_filter( $param ) {
-		$url_with_port_number = is_string( $param['url'] ) ? str_replace( 'example.org', 'example.org:8888', $param['url'] ) : $param['url'];
+		// Take care to replace the entire domain, including cases where it already has a port number.
+		$parsed         = parse_url( $param['url'] );
+		$replace_domain = $parsed['host'];
+		if ( isset( $parsed['port'] ) ) {
+			$replace_domain .= ':' . $parsed['port'];
+		}
+
+		$url_with_port_number = is_string( $param['url'] ) ? str_replace( $replace_domain, 'example.org:8888', $param['url'] ) : $param['url'];
 		$param['url']         = $url_with_port_number;
 		return $param;
 	}
