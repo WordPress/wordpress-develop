@@ -98,7 +98,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	 */
 	public function test_exif_error() {
 		// https://core.trac.wordpress.org/ticket/6571
-		// This triggers a warning mesage when reading the Exif block.
+		// This triggers a warning message when reading the Exif block.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/waffles.jpg' );
 
 		$this->assertSame( '0', $out['aperture'], 'Aperture value not equivalent' );
