@@ -244,14 +244,13 @@ HTML;
 	 */
 	public function test_default_binding_for_pattern_overrides() {
 		$get_value_callback = function ( $source_args, $block_instance, $attribute_name ) {
-			$value = $source_args['key'];
 			return "The attribute name is '$attribute_name'";
 		};
 
 		register_block_bindings_source(
 			'core/pattern-overrides',
 			array(
-				'label'              => 'Pattern overrides',
+				'label'              => self::SOURCE_LABEL,
 				'get_value_callback' => $get_value_callback,
 			)
 		);
