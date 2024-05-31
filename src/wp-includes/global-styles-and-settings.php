@@ -330,20 +330,14 @@ function wp_add_global_styles_for_blocks() {
 	$update_cache = false;
 
 	foreach ( $block_nodes as $metadata ) {
-		if ( isset( $metadata['name'] ) ) {
-			$block_name = $metadata['name'];
-		} elseif ( ! empty( $metadata['path'] ) ) {
-			// The likes of block element styles from theme.json do not have  $metadata['name'] set.
-			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
-		}
 
-		if ( $can_use_cached && $block_name ) {
-			if ( isset( $cached[ $block_name ] ) ) {
-				$block_css = $cached[ $block_name ];
+		if ( $can_use_cached && isset( $metadata['name'] ) ) {
+			if ( isset( $cached[ $metadata['name'] ] ) ) {
+				$block_css = $cached[ $metadata['name'] ];
 			} else {
-				$block_css             = $tree->get_styles_for_block( $metadata );
-				$cached[ $block_name ] = $block_css;
-				$update_cache          = true;
+				$block_css                   = $tree->get_styles_for_block( $metadata );
+				$cached[ $metadata['name'] ] = $block_css;
+				$update_cache                = true;
 			}
 		} else {
 			$block_css = $tree->get_styles_for_block( $metadata );
@@ -365,15 +359,31 @@ function wp_add_global_styles_for_blocks() {
 		 * before adding the inline style.
 		 * This conditional loading only applies to core blocks.
 		 */
-		if ( $block_name ) {
-			if ( str_starts_with( $block_name, 'core/' ) ) {
-				$block_name   = str_replace( 'core/', '', $block_name );
+		if ( isset( $metadata['name'] ) ) {
+			if ( str_starts_with( $metadata['name'], 'core/' ) ) {
+				$block_name   = str_replace( 'core/', '', $metadata['name'] );
 				$block_handle = 'wp-block-' . $block_name;
 				if ( in_array( $block_handle, $wp_styles->queue, true ) ) {
 					wp_add_inline_style( $stylesheet_handle, $block_css );
 				}
 			} else {
 				wp_add_inline_style( $stylesheet_handle, $block_css );
+			}
+		}
+
+		// The likes of block element styles from theme.json do not have  $metadata['name'] set.
+		if ( ! isset( $metadata['name'] ) && ! empty( $metadata['path'] ) ) {
+			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
+			if ( $block_name ) {
+				if ( str_starts_with( $block_name, 'core/' ) ) {
+					$block_name   = str_replace( 'core/', '', $block_name );
+					$block_handle = 'wp-block-' . $block_name;
+					if ( in_array( $block_handle, $wp_styles->queue, true ) ) {
+						wp_add_inline_style( $stylesheet_handle, $block_css );
+					}
+				} else {
+					wp_add_inline_style( $stylesheet_handle, $block_css );
+				}
 			}
 		}
 	}
