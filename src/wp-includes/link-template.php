@@ -4527,7 +4527,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	/*
 	 * Gravatars are always served over https.
 	 *
-	 * The Gravarar website redirects http requests to https URLs so alway
+	 * The Gravarar website redirects http requests to https URLs so always
 	 * use the https scheme to avoid unnecessary redirects.
 	 */
 	$url = 'https://secure.gravatar.com/avatar/' . $email_hash;
