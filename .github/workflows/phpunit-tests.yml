@@ -31,12 +31,11 @@ concurrency:
 permissions: {}
 
 jobs:
-  #
   # Creates a PHPUnit test job for each PHP/MySQL combination.
   #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/phpunit-tests-run.yml@trunk
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests.yml@trunk
     permissions:
       contents: read
     secrets: inherit
@@ -88,7 +87,7 @@ jobs:
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/phpunit-tests-run.yml@trunk
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests.yml@trunk
     permissions:
       contents: read
     secrets: inherit
@@ -161,7 +160,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           retries: 2
           retry-exempt-status-codes: 418
