@@ -759,7 +759,7 @@ SCRIPT_TAG;
 				'arrAccess' => new class() implements ArrayAccess {
 					public function offsetExists( $offset ): bool {
 						return true; }
-					public function offsetGet( $offset ): mixed {
+					public function offsetGet( $offset ) {
 						return $offset; }
 					public function offsetSet( $offset, $value ): void {}
 					public function offsetUnset( $offset ): void {}
