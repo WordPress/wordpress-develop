@@ -436,7 +436,7 @@ class WP_Script_Modules {
 			 */
 			$data = apply_filters( "scriptmoduledata_{$module_id}", array() );
 
-			if ( is_array( $data ) && ! empty( $data ) ) {
+			if ( is_array( $data ) && array() !== $data ) {
 				/*
 				 * This data will be printed as JSON inside a script tag like this:
 				 *   <script type="application/json"></script>
