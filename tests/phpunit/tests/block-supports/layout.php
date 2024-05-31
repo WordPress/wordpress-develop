@@ -10,7 +10,7 @@
  *
  * @covers ::wp_restore_image_outer_container
  */
-class Test_Block_Supports_Layout extends WP_UnitTestCase {
+class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * Theme root directory.
@@ -310,7 +310,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	 */
 	public function test_restore_group_inner_container( $args, $expected_output ) {
 		$actual_output = wp_restore_group_inner_container( $args['block_content'], $args['block'] );
-		$this->assertEquals( $expected_output, $actual_output );
+		$this->assertSame( $expected_output, $actual_output );
 	}
 
 	/**
@@ -441,7 +441,8 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'parent_block' => new WP_Block(
 					array(
-						'attrs' => array(
+						'blockName' => 'core/group',
+						'attrs'     => array(
 							'layout' => array(
 								'type' => 'grid',
 							),
