@@ -243,29 +243,20 @@ HTML;
 	 * @covers ::register_block_bindings_source
 	 */
 	public function test_default_binding_for_pattern_overrides() {
-		$get_value_callback = function ( $source_args, $block_instance, $attribute_name ) {
-			return "The attribute name is '$attribute_name'";
-		};
-
-		register_block_bindings_source(
-			'core/pattern-overrides',
-			array(
-				'label'              => self::SOURCE_LABEL,
-				'get_value_callback' => $get_value_callback,
-			)
-		);
+		$expected_content = 'This is the content value';
 
 		$block_content = <<<HTML
-<!-- wp:paragraph {"metadata":{"bindings":{"__default":{"source":"core/pattern-overrides"}}}} -->
+<!-- wp:paragraph {"metadata":{"bindings":{"__default":{"source":"core/pattern-overrides"}}, "name":"Test"}} -->
 <p>This should not appear</p>
 <!-- /wp:paragraph -->
 HTML;
+
 		$parsed_blocks = parse_blocks( $block_content );
-		$block         = new WP_Block( $parsed_blocks[0] );
+		$block         = new WP_Block( $parsed_blocks[0], array( 'pattern/overrides' => array( 'Test' => array( 'content' => $expected_content ) ) ) );
 		$result        = $block->render();
 
 		$this->assertSame(
-			"<p>The attribute name is 'content'</p>",
+			"<p>$expected_content</p>",
 			trim( $result ),
 			'The `__default` attribute should be replaced with the real attribute prior to the callback.'
 		);
