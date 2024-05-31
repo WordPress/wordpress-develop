@@ -44,12 +44,11 @@ jobs:
           # Only prepare artifacts for Playground once.
           - os: ubuntu-latest
             directory: 'build'
-            playground-details: true
-
+            prepare-playground: true
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
-      playground-details: ${{ matrix.playground-details && matrix.playground-details || false }}
+      prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
 
   # Tests the WordPress Core build process on MacOS.
   #
