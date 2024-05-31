@@ -717,11 +717,11 @@ class WP_Theme_JSON_Resolver {
 	 */
 	private static function style_variation_has_scope( $variation, $scope ) {
 		if ( 'block' === $scope ) {
-				return isset( $variation['blockTypes'] );
+			return isset( $variation['blockTypes'] );
 		}
 
 		if ( 'theme' === $scope ) {
-				return ! isset( $variation['blockTypes'] );
+			return ! isset( $variation['blockTypes'] );
 		}
 
 		return false;

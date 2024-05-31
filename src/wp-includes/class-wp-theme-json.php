@@ -896,9 +896,9 @@ class WP_Theme_JSON {
 		 * inner `blocks`, the overall schema will be generated in multiple passes.
 		 */
 		foreach ( $valid_block_names as $block ) {
-				$schema_settings_blocks[ $block ]           = static::VALID_SETTINGS;
-				$schema_styles_blocks[ $block ]             = $styles_non_top_level;
-				$schema_styles_blocks[ $block ]['elements'] = $schema_styles_elements;
+			$schema_settings_blocks[ $block ]           = static::VALID_SETTINGS;
+			$schema_styles_blocks[ $block ]             = $styles_non_top_level;
+			$schema_styles_blocks[ $block ]['elements'] = $schema_styles_elements;
 		}
 
 		$block_style_variation_styles             = static::VALID_STYLES;
@@ -1062,15 +1062,15 @@ class WP_Theme_JSON {
 			$registered_styles = $style_registry->get_all_registered();
 			foreach ( static::$blocks_metadata as $block_name => $block_metadata ) {
 				if ( ! empty( $registered_styles[ $block_name ] ) ) {
-						$style_selectors = $block_metadata['styleVariations'] ?? array();
+					$style_selectors = $block_metadata['styleVariations'] ?? array();
 
 					foreach ( $registered_styles[ $block_name ] as $block_style ) {
 						if ( ! isset( $style_selectors[ $block_style['name'] ] ) ) {
-								$style_selectors[ $block_style['name'] ] = static::get_block_style_variation_selector( $block_style['name'], $block_metadata['selector'] );
+							$style_selectors[ $block_style['name'] ] = static::get_block_style_variation_selector( $block_style['name'], $block_metadata['selector'] );
 						}
 					}
 
-						static::$blocks_metadata[ $block_name ]['styleVariations'] = $style_selectors;
+					static::$blocks_metadata[ $block_name ]['styleVariations'] = $style_selectors;
 				}
 			}
 			return static::$blocks_metadata;
@@ -1117,11 +1117,11 @@ class WP_Theme_JSON {
 			// Block style variations can be registered through the WP_Block_Styles_Registry as well as block.json.
 			$registered_styles = $style_registry->get_registered_styles_for_block( $block_name );
 			foreach ( $registered_styles as $style ) {
-					$style_selectors[ $style['name'] ] = static::get_block_style_variation_selector( $style['name'], static::$blocks_metadata[ $block_name ]['selector'] );
+				$style_selectors[ $style['name'] ] = static::get_block_style_variation_selector( $style['name'], static::$blocks_metadata[ $block_name ]['selector'] );
 			}
 
 			if ( ! empty( $style_selectors ) ) {
-					static::$blocks_metadata[ $block_name ]['styleVariations'] = $style_selectors;
+				static::$blocks_metadata[ $block_name ]['styleVariations'] = $style_selectors;
 			}
 		}
 
@@ -3238,7 +3238,7 @@ class WP_Theme_JSON {
 					// Process a variation's elements and element pseudo selector styles.
 					if ( isset( $variation_input['elements'] ) ) {
 						foreach ( $valid_element_names as $element_name ) {
-												$element_input = $variation_input['elements'][ $element_name ] ?? null;
+							$element_input = $variation_input['elements'][ $element_name ] ?? null;
 							if ( $element_input ) {
 								$element_output = static::remove_insecure_styles( $element_input );
 
