@@ -739,7 +739,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	public function test_print_script_module_data_prints_enqueued_module_data() {
 		$this->script_modules->enqueue( '@test/module', '/example.js' );
 		add_action(
-			'scriptmoduledata_@test/module',
+			'script_module_data_@test/module',
 			function ( $data ) {
 				$data['foo'] = 'bar';
 				return $data;
@@ -764,7 +764,7 @@ HTML;
 		$this->script_modules->register( '@test/dependency', '/dependency.js' );
 		$this->script_modules->enqueue( '@test/module', '/example.js', array( '@test/dependency' ) );
 		add_action(
-			'scriptmoduledata_@test/dependency',
+			'script_module_data_@test/dependency',
 			function ( $data ) {
 				$data['foo'] = 'bar';
 				return $data;
@@ -789,7 +789,7 @@ HTML;
 		$this->script_modules->register( '@test/other', '/dependency.js' );
 		$this->script_modules->enqueue( '@test/module', '/example.js' );
 		add_action(
-			'scriptmoduledata_@test/other',
+			'script_module_data_@test/other',
 			function ( $data ) {
 				$data['foo'] = 'bar';
 				return $data;
@@ -807,7 +807,7 @@ HTML;
 	public function test_print_script_module_data_does_not_print_empty_data() {
 		$this->script_modules->enqueue( '@test/module', '/example.js' );
 		add_action(
-			'scriptmoduledata_@test/module',
+			'script_module_data_@test/module',
 			function ( $data ) {
 				return $data;
 			}
@@ -836,7 +836,7 @@ HTML;
 
 		$this->script_modules->enqueue( '@test/module', '/example.js' );
 		add_action(
-			'scriptmoduledata_@test/module',
+			'script_module_data_@test/module',
 			function ( $data ) use ( $input ) {
 				$data[''] = $input;
 				return $data;
@@ -915,7 +915,7 @@ HTML;
 	public function test_print_script_module_data_does_not_print_invalid_data( $data ) {
 		$this->script_modules->enqueue( '@test/module', '/example.js' );
 		add_action(
-			'scriptmoduledata_@test/module',
+			'script_module_data_@test/module',
 			function ( $_ ) use ( $data ) {
 				return $data;
 			}
