@@ -753,9 +753,17 @@ SCRIPT_TAG;
 			$obj       = new stdClass();
 			$obj->prop = $name;
 			return array(
-				'key'    => $name,
-				'nested' => array( 'key' => $name . '-nested' ),
-				'obj'    => $obj,
+				'key'       => $name,
+				'nested'    => array( 'key' => $name . '-nested' ),
+				'obj'       => $obj,
+				'arrAccess' => new class() implements ArrayAccess {
+					public function offsetExists( $offset ): bool {
+						return true; }
+					public function offsetGet( $offset ): mixed {
+						return $offset; }
+					public function offsetSet( $offset, $value ): void {}
+					public function offsetUnset( $offset ): void {}
+				},
 			);
 		};
 		$this->interactivity->state( 'myPlugin', $generate_state( 'myPlugin-state' ) );
@@ -792,6 +800,9 @@ SCRIPT_TAG;
 
 		$result = $this->evaluate( 'state.obj.prop' );
 		$this->assertSame( 'myPlugin-state', $result );
+
+		$result = $this->evaluate( 'state.arrAccess.1' );
+		$this->assertSame( '1', $result );
 	}
 
 	/**
