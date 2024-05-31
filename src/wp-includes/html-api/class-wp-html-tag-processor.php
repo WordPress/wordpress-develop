@@ -926,8 +926,8 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 		$this->parser_state         = self::STATE_MATCHED_TAG;
-		$this->token_length         = $tag_ends_at - $this->token_starts_at;
 		$this->bytes_already_parsed = $tag_ends_at + 1;
+		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
 
 		/*
 		 * For non-DATA sections which might contain text that looks like HTML tags but
@@ -1013,7 +1013,7 @@ class WP_HTML_Tag_Processor {
 		 */
 		$this->token_starts_at      = $was_at;
 		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
-		$this->text_starts_at       = $tag_ends_at + 1;
+		$this->text_starts_at       = $tag_ends_at;
 		$this->text_length          = $this->tag_name_starts_at - $this->text_starts_at;
 		$this->tag_name_starts_at   = $tag_name_starts_at;
 		$this->tag_name_length      = $tag_name_length;
@@ -1629,7 +1629,7 @@ class WP_HTML_Tag_Processor {
 			 * `<!` transitions to markup declaration open state
 			 * https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state
 			 */
-			if ( '!' === $html[ $at + 1 ] ) {
+			if ( ! $this->is_closing_tag && '!' === $html[ $at + 1 ] ) {
 				/*
 				 * `<!--` transitions to a comment state – apply further comment rules.
 				 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
@@ -1809,6 +1809,12 @@ class WP_HTML_Tag_Processor {
 			 * See https://html.spec.whatwg.org/#parse-error-missing-end-tag-name
 			 */
 			if ( '>' === $html[ $at + 1 ] ) {
+				// `<>` is interpreted as plaintext.
+				if ( ! $this->is_closing_tag ) {
+					++$at;
+					continue;
+				}
+
 				$this->parser_state         = self::STATE_PRESUMPTUOUS_TAG;
 				$this->token_length         = $at + 2 - $this->token_starts_at;
 				$this->bytes_already_parsed = $at + 2;
@@ -1819,7 +1825,7 @@ class WP_HTML_Tag_Processor {
 			 * `<?` transitions to a bogus comment state – skip to the nearest >
 			 * See https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 			 */
-			if ( '?' === $html[ $at + 1 ] ) {
+			if ( ! $this->is_closing_tag && '?' === $html[ $at + 1 ] ) {
 				$closer_at = strpos( $html, '>', $at + 2 );
 				if ( false === $closer_at ) {
 					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
@@ -1891,7 +1897,7 @@ class WP_HTML_Tag_Processor {
 					return false;
 				}
 
-				$closer_at = strpos( $html, '>', $at + 3 );
+				$closer_at = strpos( $html, '>', $at + 2 );
 				if ( false === $closer_at ) {
 					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 
@@ -2681,7 +2687,7 @@ class WP_HTML_Tag_Processor {
 		 *     <figure />
 		 *             ^ this appears one character before the end of the closing ">".
 		 */
-		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 1 ];
+		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 2 ];
 	}
 
 	/**

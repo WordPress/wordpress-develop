@@ -2372,6 +2372,7 @@ function kses_init() {
  *              Added support for `box-shadow`.
  * @since 6.4.0 Added support for `writing-mode`.
  * @since 6.5.0 Added support for `background-repeat`.
+ * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
  *
  * @param string $css        A string of CSS rules.
  * @param string $deprecated Not used.
@@ -2509,11 +2510,13 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'grid-auto-columns',
 			'grid-column-start',
 			'grid-column-end',
+			'grid-column',
 			'grid-column-gap',
 			'grid-template-rows',
 			'grid-auto-rows',
 			'grid-row-start',
 			'grid-row-end',
+			'grid-row',
 			'grid-row-gap',
 			'grid-gap',
 
@@ -2543,6 +2546,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'z-index',
 			'box-shadow',
 			'aspect-ratio',
+			'container-type',
 
 			// Custom CSS properties.
 			'--*',

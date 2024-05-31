@@ -14,6 +14,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 * @var int
 	 */
 	protected static $admin_id;
+	protected static $editor_id;
+	protected static $subscriber_id;
 	private static $template_post;
 	private static $template_part_post;
 
@@ -23,9 +25,19 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
 	public static function wpSetupBeforeClass( $factory ) {
-		self::$admin_id = $factory->user->create(
+		self::$admin_id      = $factory->user->create(
 			array(
 				'role' => 'administrator',
+			)
+		);
+		self::$editor_id     = $factory->user->create(
+			array(
+				'role' => 'editor',
+			)
+		);
+		self::$subscriber_id = $factory->user->create(
+			array(
+				'role' => 'subscriber',
 			)
 		);
 
@@ -166,6 +178,51 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @covers WP_REST_Templates_Controller::get_items
 	 */
+	public function test_get_items_editor() {
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame(
+			array(
+				'id'              => 'default//my_template',
+				'theme'           => 'default',
+				'slug'            => 'my_template',
+				'source'          => 'custom',
+				'origin'          => null,
+				'type'            => 'wp_template',
+				'description'     => 'Description of my template.',
+				'title'           => array(
+					'raw'      => 'My Template',
+					'rendered' => 'My Template',
+				),
+				'status'          => 'publish',
+				'wp_id'           => self::$template_post->ID,
+				'has_theme_file'  => false,
+				'is_custom'       => true,
+				'author'          => 0,
+				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
+				'author_text'     => 'Test Blog',
+				'original_source' => 'site',
+			),
+			$this->find_and_normalize_template_by_id( $data, 'default//my_template' )
+		);
+	}
+
+	/**
+	 * @covers WP_REST_Templates_Controller::get_items
+	 */
+	public function test_get_items_no_permission_subscriber() {
+		wp_set_current_user( self::$subscriber_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, 403 );
+	}
+
+	/**
+	 * @covers WP_REST_Templates_Controller::get_items
+	 */
 	public function test_get_items_no_permission() {
 		wp_set_current_user( 0 );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates' );
@@ -208,6 +265,54 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			),
 			$data
 		);
+	}
+
+	/**
+	 * @covers WP_REST_Templates_Controller::get_item
+	 */
+	public function test_get_item_editor() {
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/default//my_template' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		unset( $data['content'] );
+		unset( $data['_links'] );
+
+		$this->assertSame(
+			array(
+				'id'              => 'default//my_template',
+				'theme'           => 'default',
+				'slug'            => 'my_template',
+				'source'          => 'custom',
+				'origin'          => null,
+				'type'            => 'wp_template',
+				'description'     => 'Description of my template.',
+				'title'           => array(
+					'raw'      => 'My Template',
+					'rendered' => 'My Template',
+				),
+				'status'          => 'publish',
+				'wp_id'           => self::$template_post->ID,
+				'has_theme_file'  => false,
+				'is_custom'       => true,
+				'author'          => 0,
+				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
+				'author_text'     => 'Test Blog',
+				'original_source' => 'site',
+			),
+			$data
+		);
+	}
+
+	/**
+	 * @covers WP_REST_Templates_Controller::get_item
+	 */
+	public function test_get_item_subscriber() {
+		wp_set_current_user( self::$subscriber_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/default//my_template' );
+		$response = rest_get_server()->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, 403 );
 	}
 
 	/**
@@ -907,6 +1012,19 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$request->set_param( 'is_custom', false );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 'index', $response->get_data()['slug'], 'Should fallback to `index.html` when  ignore_empty is `true`.' );
+	}
+
+	/**
+	 * @ticket 60909
+	 * @covers WP_REST_Templates_Controller::get_template_fallback
+	 */
+	public function test_get_template_fallback_not_found() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/lookup' );
+		$request->set_param( 'slug', 'not-found' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( new stdClass(), $data, 'Response should be an empty object when a fallback template is not found.' );
 	}
 
 	/**

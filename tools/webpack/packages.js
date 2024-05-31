@@ -198,7 +198,7 @@ module.exports = function (
 		plugins: [
 			...baseConfig.plugins,
 			new DependencyExtractionPlugin( {
-				injectPolyfill: true,
+				injectPolyfill: false,
 				combineAssets: true,
 				combinedOutputFile: `../../assets/script-loader-packages${ suffix }.php`,
 			} ),
