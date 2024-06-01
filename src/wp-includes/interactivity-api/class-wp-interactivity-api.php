@@ -296,6 +296,11 @@ final class WP_Interactivity_API {
 			 * We still process the rest of the HTML.
 			 */
 			if ( 'SVG' === $tag_name || 'MATH' === $tag_name ) {
+				if ( $p->get_attribute_names_with_prefix( 'data-wp-' ) ) {
+					/* translators: 1: SVG or MATH HTML tag, 2: Namespace of the interactive block. */
+					$message = sprintf( __( 'Interactivity directives were detected on an incompatible %1$s tag when processing "%2$s". These directives will be ignored in the server side render.' ), $tag_name, end( $namespace_stack ) );
+					_doing_it_wrong( __METHOD__, $message, '6.6.0' );
+				}
 				$p->skip_to_tag_closer();
 				continue;
 			}
