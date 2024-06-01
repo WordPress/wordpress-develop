@@ -2050,7 +2050,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * Data provider for text_rest_upload_filename_spaces.
 	 *
-	 * @return <array
+	 * @return array
 	 */
 	public function rest_upload_filename_spaces() {
 		return array(
