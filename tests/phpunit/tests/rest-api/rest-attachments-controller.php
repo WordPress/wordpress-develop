@@ -2026,7 +2026,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @covers WP_REST_Attachments_Controller::insert_attachment
 	 * @dataProvider rest_upload_filename_spaces
 	 */
-	public function test_rest_upload_filename_spaces( $filename, $expected) {
+	public function test_rest_upload_filename_spaces( $filename, $expected ) {
 		wp_set_current_user( self::$editor_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
@@ -2052,7 +2052,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @return <array
 	 */
-	public function rest_upload_filename_spaces(){
+	public function rest_upload_filename_spaces() {
 		return array(
 			'filename with spaces' => array(
 				'Filename With Spaces.jpg',
@@ -2067,7 +2067,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'Filename-With-Dashes',
 			),
 		);
-
 	}
 
 	/**
