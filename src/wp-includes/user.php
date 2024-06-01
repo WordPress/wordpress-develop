@@ -2761,6 +2761,7 @@ All at ###SITENAME###
 			$default_cookie_life = apply_filters( 'auth_cookie_expiration', ( 2 * DAY_IN_SECONDS ), $user_id, false );
 
 			$remember = false;
+
 			if ( false !== $logged_in_cookie && ( $logged_in_cookie['expiration'] - time() ) > $default_cookie_life ) {
 				$remember = true;
 			}
