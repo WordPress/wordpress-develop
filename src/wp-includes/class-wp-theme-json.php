@@ -2194,13 +2194,20 @@ class WP_Theme_JSON {
 		}
 
 		$root_variable_duplicates = array();
+		$update_cache             = false;
+		$str_start_with_cache     = (array) wp_cache_get( 'str_start_with', 'theme_files' );
+		$str_len_root             = strlen( '--wp--style--root--' );
 
 		foreach ( $properties as $css_property => $value_path ) {
-			$value = static::get_property_value( $styles, $value_path, $theme_json );
-
-			if ( str_starts_with( $css_property, '--wp--style--root--' ) && ( static::ROOT_BLOCK_SELECTOR !== $selector || ! $use_root_padding ) ) {
+			if ( ! isset( $str_start_with_cache[ $css_property ] ) ) {
+				$str_start_with_cache[ $css_property ] = str_starts_with( $css_property, '--wp--style--root--' );
+				$update_cache                          = true;
+			}
+			if ( $str_start_with_cache[ $css_property ] && ( static::ROOT_BLOCK_SELECTOR !== $selector || ! $use_root_padding ) ) {
 				continue;
 			}
+
+			$value = static::get_property_value( $styles, $value_path, $theme_json );
 			/*
 			 * Root-level padding styles don't currently support strings with CSS shorthand values.
 			 * This may change: https://github.com/WordPress/gutenberg/issues/40132.
@@ -2209,8 +2216,8 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			if ( str_starts_with( $css_property, '--wp--style--root--' ) && $use_root_padding ) {
-				$root_variable_duplicates[] = substr( $css_property, strlen( '--wp--style--root--' ) );
+			if ( $str_start_with_cache[ $css_property ] && $use_root_padding ) {
+				$root_variable_duplicates[] = substr( $css_property, $str_len_root );
 			}
 
 			/*
@@ -2233,9 +2240,7 @@ class WP_Theme_JSON {
 				$value             = isset( $background_styles['declarations'][ $css_property ] ) ? $background_styles['declarations'][ $css_property ] : $value;
 			}
 
-			// Skip if empty and not "0" or value represents array of longhand values.
-			$has_missing_value = empty( $value ) && ! is_numeric( $value );
-			if ( $has_missing_value || is_array( $value ) ) {
+			if ( '' === $value || is_array( $value ) ) {
 				continue;
 			}
 
@@ -2265,6 +2270,10 @@ class WP_Theme_JSON {
 				'name'  => $css_property,
 				'value' => $value,
 			);
+		}
+
+		if ( $update_cache ) {
+			wp_cache_set( 'str_start_with', $str_start_with_cache, 'theme_files' );
 		}
 
 		// If a variable value is added to the root, the corresponding property should be removed.
