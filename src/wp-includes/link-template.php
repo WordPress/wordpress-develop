@@ -4531,7 +4531,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 
 	$url = add_query_arg(
 		rawurlencode_deep( array_filter( $url_args ) ),
-		set_url_scheme( $url, 'https' )
+		$url
 	);
 
 	/**
