@@ -2225,7 +2225,13 @@ class WP_Theme_JSON {
 			 * Skip protected properties that are explicitly set to `null`.
 			 */
 			if ( is_array( $value_path ) ) {
-				$path_string = implode( '.', $value_path );
+				$path_string = '';
+				for ( $i = 0; $i < count( $value_path ); $i++ ) {
+					if ( $i > 0 ) {
+						$path_string .= '.';
+					}
+					$path_string .= $value_path[ $i ];
+				}
 				if (
 					isset( static::PROTECTED_PROPERTIES[ $path_string ] ) &&
 					_wp_array_get( $settings, static::PROTECTED_PROPERTIES[ $path_string ], null ) === null
