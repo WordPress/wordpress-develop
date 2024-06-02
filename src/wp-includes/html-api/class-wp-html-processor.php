@@ -366,6 +366,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @todo Support matching the class name and tag name.
 	 *
 	 * @since 6.4.0
+	 * @since 6.6.0 Visits all tokens, including virtual ones.
 	 *
 	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
 	 *
@@ -373,6 +374,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *     Optional. Which tag name to find, having which class, etc. Default is to find any tag.
 	 *
 	 *     @type string|null $tag_name     Which tag to find, or `null` for "any tag."
+	 *     @type string      $tag_closers  'visit' to pause at tag closers, 'skip' or unset to only visit openers.
 	 *     @type int|null    $match_offset Find the Nth tag matching all search criteria.
 	 *                                     1 for "first" tag, 3 for "third," etc.
 	 *                                     Defaults to first tag.
@@ -383,13 +385,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether a tag was matched.
 	 */
 	public function next_tag( $query = null ) {
+		$visit_closers = isset( $query['tag_closers'] ) && 'visit' === $query['tag_closers'];
+
 		if ( null === $query ) {
-			while ( $this->step() ) {
+			while ( $this->next_token() ) {
 				if ( '#tag' !== $this->get_token_type() ) {
 					continue;
 				}
 
-				if ( ! parent::is_tag_closer() ) {
+				if ( ! $this::is_tag_closer() || $visit_closers ) {
 					return true;
 				}
 			}
@@ -415,7 +419,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			: null;
 
 		if ( ! ( array_key_exists( 'breadcrumbs', $query ) && is_array( $query['breadcrumbs'] ) ) ) {
-			while ( $this->step() ) {
+			while ( $this->next_token() ) {
 				if ( '#tag' !== $this->get_token_type() ) {
 					continue;
 				}
@@ -424,7 +428,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					continue;
 				}
 
-				if ( ! parent::is_tag_closer() ) {
+				if ( ! parent::is_tag_closer() || $visit_closers ) {
 					return true;
 				}
 			}
@@ -432,20 +436,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		if ( isset( $query['tag_closers'] ) && 'visit' === $query['tag_closers'] ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'Cannot visit tag closers in HTML Processor.' ),
-				'6.4.0'
-			);
-			return false;
-		}
-
 		$breadcrumbs  = $query['breadcrumbs'];
 		$match_offset = isset( $query['match_offset'] ) ? (int) $query['match_offset'] : 1;
 
-		while ( $match_offset > 0 && $this->step() ) {
-			if ( '#tag' !== $this->get_token_type() ) {
+		while ( $match_offset > 0 && $this->next_token() ) {
+			if ( '#tag' !== $this->get_token_type() || $this->is_tag_closer() ) {
 				continue;
 			}
 
@@ -477,6 +472,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function next_token() {
 		$this->current_element = null;
+
+		if ( isset( $this->last_error ) ) {
+			return false;
+		}
 
 		if ( 0 === count( $this->element_queue ) && ! $this->step() ) {
 			while ( $this->state->stack_of_open_elements->pop() ) {
@@ -1432,6 +1431,47 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		return parent::get_token_type();
 	}
 
+	/**
+	 * Returns the value of a requested attribute from a matched tag opener if that attribute exists.
+	 *
+	 * Example:
+	 *
+	 *     $p = WP_HTML_Processor::create_fragment( '<div enabled class="test" data-test-id="14">Test</div>' );
+	 *     $p->next_token() === true;
+	 *     $p->get_attribute( 'data-test-id' ) === '14';
+	 *     $p->get_attribute( 'enabled' ) === true;
+	 *     $p->get_attribute( 'aria-label' ) === null;
+	 *
+	 *     $p->next_tag() === false;
+	 *     $p->get_attribute( 'class' ) === null;
+	 *
+	 * @since 6.6.0 Subclassed for HTML Processor.
+	 *
+	 * @param string $name Name of attribute whose value is requested.
+	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
+	 */
+	public function get_attribute( $name ) {
+		if ( isset( $this->current_element ) ) {
+			// Closing tokens cannot contain attributes.
+			if ( WP_HTML_Stack_Event::POP === $this->current_element->operation ) {
+				return null;
+			}
+
+			$node_name = $this->current_element->token->node_name;
+
+			// Only tags can contain attributes.
+			if ( 'A' > $node_name[0] || 'Z' < $node_name[0] ) {
+				return null;
+			}
+
+			if ( $this->current_element->token->bookmark_name === (string) $this->bookmark_counter ) {
+				return parent::get_attribute( $name );
+			}
+		}
+
+		return null;
+	}
+
 	public function get_attribute_names_with_prefix( $prefix ) {
 		if ( isset( $this->current_element ) ) {
 			if ( WP_HTML_Stack_Event::POP === $this->current_element->operation ) {
@@ -1503,6 +1543,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			? $this->bookmarks[ $this->state->current_token->bookmark_name ]->start
 			: 0;
 		$bookmark_starts_at   = $this->bookmarks[ $actual_bookmark_name ]->start;
+		$bookmark_length      = $this->bookmarks[ $actual_bookmark_name ]->length;
 		$direction            = $bookmark_starts_at > $processor_started_at ? 'forward' : 'backward';
 
 		/*
@@ -1567,8 +1608,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return true;
 		}
 
-		while ( $this->step() ) {
+		while ( $this->next_token() ) {
 			if ( $bookmark_starts_at === $this->bookmarks[ $this->state->current_token->bookmark_name ]->start ) {
+				while ( isset( $this->current_element ) && $this->current_element->operation === WP_HTML_Stack_Event::POP ) {
+					$this->current_element = array_shift( $this->element_queue );
+				}
 				return true;
 			}
 		}
