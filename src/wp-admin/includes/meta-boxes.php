@@ -1434,7 +1434,7 @@ function link_xfn_meta_box( $link ) {
 			<input class="valinp" type="radio" name="family" value="spouse" id="spouse" <?php xfn_check( 'family', 'spouse' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'spouse' ); ?>
 			</label>
 			<label for="family">
-			    <input class="valinp" type="radio" name="family" value="" id="family" <?php xfn_check( 'family' ); ?> />&nbsp;<?php /* translators: xfn (family relation): http://gmpg.org/xfn/ */ _x( 'none', 'Type of relation' ); ?>
+			<input class="valinp" type="radio" name="family" value="" id="family" <?php xfn_check( 'family' ); ?> />&nbsp;<?php /* translators: xfn (family relation): http://gmpg.org/xfn/ */ _x( 'none', 'Type of relation' ); ?>
 			</label>
 		</fieldset></td>
 	</tr>
