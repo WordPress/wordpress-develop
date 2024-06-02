@@ -1610,7 +1610,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		while ( $this->next_token() ) {
 			if ( $bookmark_starts_at === $this->bookmarks[ $this->state->current_token->bookmark_name ]->start ) {
-				while ( isset( $this->current_element ) && $this->current_element->operation === WP_HTML_Stack_Event::POP ) {
+				while ( isset( $this->current_element ) && WP_HTML_Stack_Event::POP === $this->current_element->operation ) {
 					$this->current_element = array_shift( $this->element_queue );
 				}
 				return true;
