@@ -1092,12 +1092,12 @@ class WP_XML_Tag_Processor {
 			 * * https://xml.spec.whatwg.org/multipage/parsing.xml#data-state
 			 * * https://xml.spec.whatwg.org/multipage/parsing.xml#tag-open-state
 			 */
-			$tag_name_prefix_length = strspn( $xml, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', $at + 1 );
-			if ( $tag_name_prefix_length > 0 ) {
+			$tag_name_length = $this->parse_name( $at + 1 );
+			if ( $tag_name_length > 0 ) {
 				++$at;
 				$this->parser_state         = self::STATE_MATCHED_TAG;
 				$this->tag_name_starts_at   = $at;
-				$this->tag_name_length      = $tag_name_prefix_length + strcspn( $xml, " \t\f\r\n/>", $at + $tag_name_prefix_length );
+				$this->tag_name_length      = $tag_name_length;
 				$this->bytes_already_parsed = $at + $this->tag_name_length;
 				return true;
 			}
@@ -1405,6 +1405,14 @@ class WP_XML_Tag_Processor {
 
 		$attribute_start       = $this->bytes_already_parsed;
 		$attribute_name_length = $this->parse_name();
+		if($attribute_name_length === 0) {
+			$this->parser_state = self::STATE_INVALID_INPUT;
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Invalid attribute name encountered.' ),
+				'WP_VERSION'
+			);
+		}
 		$this->bytes_already_parsed += $attribute_name_length;
 		$attribute_name        = substr( $this->xml, $attribute_start, $attribute_name_length );
 		$this->skip_whitespace();
@@ -1499,7 +1507,7 @@ class WP_XML_Tag_Processor {
 			'~[' . self::NAME_START_CHAR_PATTERN . ']~Ssu',
 			$this->xml[ $offset ]
 		) ) {
-			return false;
+			return 0;
 		}
 
 		$name_length = 1;
