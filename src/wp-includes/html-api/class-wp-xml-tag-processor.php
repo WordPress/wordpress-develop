@@ -130,19 +130,6 @@ class WP_XML_Tag_Processor {
 	protected $parsing_stage = self::STAGE_PROLOG;
 
 	/**
-	 * What kind of syntax token became an XML comment.
-	 *
-	 * Since there are many ways in which XML syntax can create an XML comment,
-	 * this indicates which of those caused it. This allows the Tag Processor to
-	 * represent more from the original input document than would appear in the DOM.
-	 *
-	 * @since WP_VERSION
-	 *
-	 * @var string|null
-	 */
-	protected $comment_type = null;
-
-	/**
 	 * How many bytes from the original XML document have been read and parsed.
 	 *
 	 * This value points to the latest byte offset in the input document which
@@ -1032,7 +1019,6 @@ class WP_XML_Tag_Processor {
 						}
 
 						$this->parser_state         = self::STATE_COMMENT;
-						$this->comment_type         = self::COMMENT_AS_XML_COMMENT;
 						$this->token_length         = $closer_at + 3 - $this->token_starts_at;
 						$this->text_starts_at       = $this->token_starts_at + 4;
 						$this->text_length          = $closer_at - $this->text_starts_at;
@@ -1463,7 +1449,6 @@ class WP_XML_Tag_Processor {
 		$this->text_length          = 0;
 		$this->is_closing_tag       = null;
 		$this->attributes           = array();
-		$this->comment_type         = null;
 	}
 
 	private function pop_open_element() {
@@ -1970,31 +1955,6 @@ class WP_XML_Tag_Processor {
 			case self::STATE_COMMENT:
 				return '#comment';
 		}
-	}
-
-	/**
-	 * Indicates what kind of comment produced the comment node.
-	 *
-	 * Because there are different kinds of XML syntax which produce
-	 * comments, the Tag Processor tracks and exposes this as a type
-	 * for the comment. Nominally only regular XML comments exist as
-	 * they are commonly known, but a number of unrelated syntax errors
-	 * also produce comments.
-	 *
-	 * @see self::COMMENT_AS_CDATA_LOOKALIKE
-	 * @see self::COMMENT_AS_INVALID_XML
-	 * @see self::COMMENT_AS_XML_COMMENT
-	 *
-	 * @since WP_VERSION
-	 *
-	 * @return string|null
-	 */
-	public function get_comment_type() {
-		if ( self::STATE_COMMENT !== $this->parser_state ) {
-			return null;
-		}
-
-		return $this->comment_type;
 	}
 
 	/**
