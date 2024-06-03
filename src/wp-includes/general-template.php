@@ -2260,10 +2260,15 @@ function get_calendar( $initial = true, $display = true ) {
 	if ( ! $posts ) {
 		$query = new WP_Query(
 			array(
-				'post_type'      => 'post',
-				'post_status'    => 'publish',
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
+				'post_type'              => 'post',
+				'post_status'            => 'publish',
+				'posts_per_page'         => 1,
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'ignore_sticky_posts'    => true,
+				'suppress_filters'       => false,
+				'update_post_meta_cache' => false, 
+				'update_post_term_cache' => false,
 			)
 		);
 		if ( ! $query->have_posts() ) {
@@ -2307,17 +2312,22 @@ function get_calendar( $initial = true, $display = true ) {
 	// Get the next and previous month and year with at least one post.
 	$previous_query = new WP_Query(
 		array(
-			'post_type'      => 'post',
-			'post_status'    => 'publish',
-			'posts_per_page' => 1,
-			'order'          => 'DESC',
-			'date_query'     => array(
+			'post_type'              => 'post',
+			'post_status'            => 'publish',
+			'posts_per_page'         => 1,
+			'order'                  => 'DESC',
+			'date_query'             => array(
 				array(
 					'before'    => "$thisyear-$thismonth-01",
 					'inclusive' => false,
 				),
 			),
-			'fields' => 'ids',
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'ignore_sticky_posts'    => true,
+			'suppress_filters'       => false,
+			'update_post_meta_cache' => false, 
+			'update_post_term_cache' => false,
 		)
 	);
 	$previous = $previous_query->have_posts() ? $previous_query->posts[0] : null;
@@ -2373,16 +2383,21 @@ function get_calendar( $initial = true, $display = true ) {
 	// Get days with posts.
 	$days_query = new WP_Query(
 		array(
-			'post_type'      => 'post',
-			'post_status'    => 'publish',
-			'posts_per_page' => -1,
-			'date_query'     => array(
+			'post_type'              => 'post',
+			'post_status'            => 'publish',
+			'posts_per_page'         => -1,
+			'date_query'             => array(
 				array(
 					'year'  => $thisyear,
 					'month' => $thismonth,
 				),
 			),
-			'fields' => 'ids',
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'ignore_sticky_posts'    => true,
+			'suppress_filters'       => false,
+			'update_post_meta_cache' => false, 
+			'update_post_term_cache' => false,
 		)
 	);
 
