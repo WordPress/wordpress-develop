@@ -2481,18 +2481,6 @@ class WP_XML_Tag_Processor {
 	const STATE_COMMENT = 'STATE_COMMENT';
 
 	/**
-	 * Indicates that a comment was created when encountering
-	 * normative XML comment syntax.
-	 *
-	 * Example:
-	 *
-	 *     <!-- this is a comment -->
-	 *
-	 * @since WP_VERSION
-	 */
-	const COMMENT_AS_XML_COMMENT = 'COMMENT_AS_XML_COMMENT';
-
-	/**
 	 * Indicates that we're parsing the `prolog` part of the XML
 	 * document.
 	 * 
