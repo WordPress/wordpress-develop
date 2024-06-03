@@ -2587,11 +2587,11 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Calculate total amount of autoloaded data.
+	 * Calculates total amount of autoloaded data.
 	 *
 	 * @since 6.6.0
 	 *
-	 * @return int autoloaded data in bytes.
+	 * @return int Autoloaded data in bytes.
 	 */
 	public function get_autoloaded_options_size(): int {
 		$alloptions = wp_load_alloptions();
@@ -2606,7 +2606,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Callback for autoloaded_options test.
+	 * Tests the number of autoloaded options.
 	 *
 	 * @since 6.6.0
 	 *
@@ -2626,7 +2626,7 @@ class WP_Site_Health {
 				'color' => 'blue',
 			),
 			'description' => sprintf(
-				/* translators: 1. Number of autoloaded options. 2. Autoloaded options size. */
+				/* translators: 1: Number of autoloaded options, 2: Autoloaded options size. */
 				'<p>' . esc_html( $base_description ) . ' ' . __( 'Your site has %1$s autoloaded options (size: %2$s) in the options table, which is acceptable.' ) . '</p>',
 				$autoloaded_options_count,
 				size_format( $autoloaded_options_size )
@@ -2651,7 +2651,7 @@ class WP_Site_Health {
 		$result['status']      = 'critical';
 		$result['label']       = __( 'Autoloaded options could affect performance' );
 		$result['description'] = sprintf(
-			/* translators: 1. Number of autoloaded options. 2. Autoloaded options size. */
+			/* translators: 1: Number of autoloaded options, 2: Autoloaded options size. */
 			'<p>' . esc_html( $base_description ) . ' ' . __( 'Your site has %1$s autoloaded options (size: %2$s) in the options table, which could cause your site to be slow. You can reduce the number of autoloaded options by cleaning up your site\'s options table.' ) . '</p>',
 			$autoloaded_options_count,
 			size_format( $autoloaded_options_size )
@@ -2667,7 +2667,7 @@ class WP_Site_Health {
 		$result['description'] = apply_filters( 'site_status_autoloaded_options_limit_description', $result['description'] );
 
 		$result['actions'] = sprintf(
-			/* translators: 1: HelpHub URL. 2: Link description. */
+			/* translators: 1: HelpHub URL, 2: Link description. */
 			'<p><a target="_blank" rel="noopener" href="%1$s">%2$s</a></p>',
 			esc_url( __( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#autoloaded-options' ) ),
 			__( 'More info about optimizing autoloaded options' )
