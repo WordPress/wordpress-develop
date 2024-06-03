@@ -378,7 +378,7 @@ class WP_Script_Modules {
 	 * {@see "script_module_data_{$module_id}"} filter.
 	 *
 	 * The data for a Script Module will be serialized as JSON in a script tag with an ID of the
-	 * form `wp-scriptmodule-data_{$module_id}`.
+	 * form `wp-script-module-data-{$module_id}`.
 	 */
 	public function print_script_module_data(): void {
 		$modules = array();
@@ -416,12 +416,12 @@ class WP_Script_Modules {
 			 * If the filter returns no data (an empty array), nothing will be embedded in the page.
 			 *
 			 * The data for a given Script Module, if provided, will be JSON serialized in a script
-			 * tag with an ID of the form `wp-scriptmodule-data_{$module_id}`.
+			 * tag with an ID of the form `wp-script-module-data-{$module_id}`.
 			 *
 			 * The data can be read on the client with a pattern like this:
 			 *
 			 * @example
-			 *   const dataContainer = document.getElementById( 'wp-scriptmodule-data_MyScriptModuleID' );
+			 *   const dataContainer = document.getElementById( 'wp-script-module-data-MyScriptModuleID' );
 			 *   let data = {};
 			 *   if ( dataContainer ) {
 			 *     try {
@@ -475,7 +475,7 @@ class WP_Script_Modules {
 					),
 					array(
 						'type' => 'application/json',
-						'id'   => "wp-scriptmodule-data_{$module_id}",
+						'id'   => "wp-script-module-data-{$module_id}",
 					)
 				);
 			}
