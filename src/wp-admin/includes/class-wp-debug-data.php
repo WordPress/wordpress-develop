@@ -484,7 +484,7 @@ class WP_Debug_Data {
 				),
 				'fonts_path'   => array(
 					'label' => __( 'Fonts directory location' ),
-					'value' => wp_get_font_dir()['path'],
+					'value' => wp_get_font_dir()['basedir'],
 				),
 				'fonts_size'   => array(
 					'label' => __( 'Fonts directory size' ),
