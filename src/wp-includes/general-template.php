@@ -2267,7 +2267,7 @@ function get_calendar( $initial = true, $display = true ) {
 				'no_found_rows'          => true,
 				'ignore_sticky_posts'    => true,
 				'suppress_filters'       => false,
-				'update_post_meta_cache' => false, 
+				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 			)
 		);
@@ -2326,7 +2326,7 @@ function get_calendar( $initial = true, $display = true ) {
 			'no_found_rows'          => true,
 			'ignore_sticky_posts'    => true,
 			'suppress_filters'       => false,
-			'update_post_meta_cache' => false, 
+			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 		)
 	);
@@ -2396,7 +2396,7 @@ function get_calendar( $initial = true, $display = true ) {
 			'no_found_rows'          => true,
 			'ignore_sticky_posts'    => true,
 			'suppress_filters'       => false,
-			'update_post_meta_cache' => false, 
+			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 		)
 	);
