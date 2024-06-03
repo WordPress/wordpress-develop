@@ -1353,7 +1353,8 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  *
  * @return array An array of blocks with patterns replaced by their content.
  */
-function resolve_pattern_blocks( $blocks, &$inner_content = null ) {
+function resolve_pattern_blocks( $blocks ) {
+	static $inner_content;
 	// Keep track of seen references to avoid infinite loops.
 	static $seen_refs = array();
 	$i                = 0;
@@ -1385,7 +1386,10 @@ function resolve_pattern_blocks( $blocks, &$inner_content = null ) {
 
 			$blocks_to_insert   = parse_blocks( $pattern['content'] );
 			$seen_refs[ $slug ] = true;
+			$prev_inner_content = $inner_content;
+			$inner_content      = null;
 			$blocks_to_insert   = resolve_pattern_blocks( $blocks_to_insert );
+			$inner_content      = $prev_inner_content;
 			unset( $seen_refs[ $slug ] );
 			array_splice( $blocks, $i, 1, $blocks_to_insert );
 
@@ -1403,10 +1407,13 @@ function resolve_pattern_blocks( $blocks, &$inner_content = null ) {
 			$i += count( $blocks_to_insert );
 		} else {
 			if ( ! empty( $blocks[ $i ]['innerBlocks'] ) ) {
+				$prev_inner_content          = $inner_content;
+				$inner_content               = $blocks[ $i ]['innerContent'];
 				$blocks[ $i ]['innerBlocks'] = resolve_pattern_blocks(
-					$blocks[ $i ]['innerBlocks'],
-					$blocks[ $i ]['innerContent']
+					$blocks[ $i ]['innerBlocks']
 				);
+				$blocks[ $i ]['innerContent'] = $inner_content;
+				$inner_content               = $prev_inner_content;
 			}
 			++$i;
 		}
