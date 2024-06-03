@@ -2224,7 +2224,6 @@ function calendar_week_mod( $num ) {
  *
  * @since 1.0.0
  *
- * @global wpdb      $wpdb      WordPress database abstraction object.
  * @global int       $m
  * @global int       $monthnum
  * @global int       $year
@@ -2236,7 +2235,7 @@ function calendar_week_mod( $num ) {
  * @return void|string Void if `$display` argument is true, calendar HTML if `$display` is false.
  */
 function get_calendar( $initial = true, $display = true ) {
-	global $wpdb, $m, $monthnum, $year, $wp_locale, $posts;
+	global $m, $monthnum, $year, $wp_locale, $posts;
 
 	$key   = md5( $m . $monthnum . $year );
 	$cache = wp_cache_get( 'get_calendar', 'calendar' );
@@ -2264,6 +2263,7 @@ function get_calendar( $initial = true, $display = true ) {
 				'post_type'      => 'post',
 				'post_status'    => 'publish',
 				'posts_per_page' => 1,
+				'fields'         => 'ids',
 			)
 		);
 		if ( ! $query->have_posts() ) {
@@ -2317,6 +2317,7 @@ function get_calendar( $initial = true, $display = true ) {
 					'inclusive' => false,
 				),
 			),
+			'fields' => 'ids',
 		)
 	);
 	$previous = $previous_query->have_posts() ? $previous_query->posts[0] : null;
@@ -2333,6 +2334,7 @@ function get_calendar( $initial = true, $display = true ) {
 					'inclusive' => false,
 				),
 			),
+			'fields' => 'ids',
 		)
 	);
 	$next = $next_query->have_posts() ? $next_query->posts[0] : null;
