@@ -1,17 +1,23 @@
 <?php
 
 /**
- * ## XML Version support
- *
- * This class implements parts of the XML 1.0 specification:
- * https://www.w3.org/TR/xml/
+ * WP_XML_Tag_Processor is a non-validating, streaming XML 1.0 parser.
+ * 
+ * It implements a subset of the XML 1.0 specification (https://www.w3.org/TR/xml/)
+ * and supports XML documents with the following characteristics:
+ * 
+ * * XML 1.0
+ * * Well-formed
+ * * UTF-8 encoded
+ * * Not standalone (so can use external entities)
+ * * No DTD, DOCTYPE, ATTLIST, ENTITY, or conditional sections
  *
  * The final goal is to support both 1.0 and 1.1 depending on the
  * initial processing instruction (<?xml version="1.0" ?>). We're
  * starting with 1.0, however, because most that's what most WXR
  * files declare.
  * 
- * ## Remaining work
+ * ## Future work
  *
  * @TODO: Skip over the following syntax elements:
  *        * <!DOCTYPE, see https://www.w3.org/TR/xml/#sec-prolog-dtd
@@ -32,6 +38,8 @@
  *           <!ENTITY % zz '&#60;!ENTITY tricky "error-prone" >' >
  *           %xx;
  *       ]>
+ * 
+ * @TODO: Support XML 1.1.
  */
 class WP_XML_Tag_Processor {
 	/**
@@ -1208,6 +1216,12 @@ class WP_XML_Tag_Processor {
 					return false;
 				}
 
+				/**
+				 * Standalone XML documents have no external dependencies,
+				 * including predefined entities like `&nbsp;` and `&copy;`.
+				 * 
+				 * See https://www.w3.org/TR/xml/#sec-predefined-ent.
+				 */
 				if ( 
 					null !== $this->get_attribute( 'encoding' )
 					&& "UTF-8" !== strtoupper( $this->get_attribute( 'encoding' ) )
@@ -1216,6 +1230,18 @@ class WP_XML_Tag_Processor {
 					_doing_it_wrong(
 						__METHOD__,
 						__( 'Unsupported XML encoding declared, only UTF-8 is supported.' ),
+						'WP_VERSION'
+					);
+					return false;
+				}
+				if ( 
+					null !== $this->get_attribute( 'standalone' )
+					&& "YES" !== strtoupper( $this->get_attribute( 'standalone' ) )
+				) {
+					$this->parser_state = self::STATE_INVALID_INPUT;
+					_doing_it_wrong(
+						__METHOD__,
+						__( 'Standalone XML documents are not supported.' ),
 						'WP_VERSION'
 					);
 					return false;
