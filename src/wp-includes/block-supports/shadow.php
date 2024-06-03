@@ -43,6 +43,7 @@ function wp_register_shadow_support( $block_type ) {
  * This will be applied to the block markup in the front-end.
  *
  * @since 6.3.0
+ * @since 6.6.0 Return early if __experimentalSkipSerialization is true.
  * @access private
  *
  * @param  WP_Block_Type $block_type       Block type.
