@@ -81,9 +81,9 @@ final class WP_Interactivity_API {
 	 * remain empty afterwards.
 	 *
 	 * @since 6.6.0
-	 * @var array<string>
+	 * @var array<string>|null
 	 */
-	private $namespace_stack = array();
+	private $namespace_stack = null;
 
 	/**
 	 * Stack of contexts defined by `data-wp-context` directives, in
@@ -93,9 +93,9 @@ final class WP_Interactivity_API {
 	 * remain empty afterwards.
 	 *
 	 * @since 6.6.0
-	 * @var array<array<mixed>>
+	 * @var array<array<mixed>>|null
 	 */
-	private $context_stack = array();
+	private $context_stack = null;
 
 	/**
 	 * Gets and/or sets the initial state of an Interactivity API store for a
@@ -134,6 +134,15 @@ final class WP_Interactivity_API {
 				);
 				return array();
 			}
+			if ( null === $this->namespace_stack ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'The namespace can only be omitted during directive processing.' ),
+					'6.6.0'
+				);
+				return array();
+			}
+
 			$store_namespace = end( $this->namespace_stack );
 		}
 		if ( ! isset( $this->state_data[ $store_namespace ] ) ) {
@@ -269,6 +278,15 @@ final class WP_Interactivity_API {
 	 * @param string $store_namespace Optional. The unique store namespace identifier.
 	 */
 	public function get_context( ?string $store_namespace = null ): array {
+		if ( null === $this->context_stack ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The context can only be read during directive processing.' ),
+				'6.6.0'
+			);
+			return array();
+		}
+
 		if ( ! $store_namespace ) {
 			if ( null !== $store_namespace ) {
 				_doing_it_wrong(
@@ -336,7 +354,13 @@ final class WP_Interactivity_API {
 			return $html;
 		}
 
+		$this->namespace_stack = array();
+		$this->context_stack   = array();
+
 		$result = $this->_process_directives( $html );
+
+		$this->namespace_stack = null;
+		$this->context_stack   = null;
 
 		return null === $result ? $html : $result;
 	}

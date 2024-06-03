@@ -1419,6 +1419,7 @@ JSON;
 				},
 			)
 		);
+		$this->set_internal_context_stack();
 		$this->set_internal_namespace_stack( 'myPlugin' );
 
 		$result = $this->evaluate( 'state.derivedThatThrows' );
