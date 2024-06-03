@@ -308,6 +308,15 @@ class WP_XML_Tag_Processor {
 	protected $lexical_updates = array();
 
 	/**
+	 * Tracks open elements while scanning XML.
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @var string[]
+	 */
+	public $stack_of_open_elements = array();
+
+	/**
 	 * Tracks and limits `seek()` calls to prevent accidental infinite loops.
 	 *
 	 * @since WP_VERSION
@@ -761,6 +770,26 @@ class WP_XML_Tag_Processor {
 		return false;
 	}
 
+	private $is_implicit_cdata_element;
+	public function treat_element_contents_as_cdata()
+	{
+		if (
+			self::STATE_MATCHED_TAG !== $this->parser_state ||
+			$this->get_token_type() ||
+			$this->is_empty_element_tag()
+		) {
+
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'treat_element_contents_as_cdata can only be called after matching a tag.' ),
+				'WP_VERSION'
+			);
+			return false;
+		}
+		$this->is_implicit_cdata_element = true;
+		return true;
+	}
+
 	/**
 	 * Parses the next tag.
 	 *
@@ -776,13 +805,27 @@ class WP_XML_Tag_Processor {
 	 */
 	private function parse_next_tag() {
 		$this->after_tag();
-
+	
 		$xml        = $this->xml;
 		$doc_length = strlen( $xml );
 		$was_at     = $this->bytes_already_parsed;
 		$at         = $was_at;
 
 		while ( false !== $at && $at < $doc_length ) {
+			// if ( $is_implicit_cdata ) {
+			// 	$closer_at = strpos($xml, '</' . $tag_name, $at);
+			// 	if (false === $closer_at) {
+			// 		$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+			// 		return false;
+			// 	}
+
+			// 	$this->bytes_already_parsed = $closer_at + 2 + strlen($tag_name);
+			// 	$this->skip_whitespace();
+			// 	if('>' !== $this->xml[$this->bytes_already_parsed]) {
+			// 		continue;
+			// 	}
+			// }
+
 			$at = strpos( $xml, '<', $at );
 
 			/*
@@ -839,6 +882,24 @@ class WP_XML_Tag_Processor {
 				$this->tag_name_starts_at   = $at;
 				$this->tag_name_length      = $tag_name_length;
 				$this->bytes_already_parsed = $at + $this->tag_name_length;
+
+				if ( $this->is_closing_tag ) {
+					$popped = array_pop( $this->stack_of_open_elements );
+					if($popped !== $this->get_tag()) {
+						$this->parser_state = self::STATE_INVALID_INPUT;
+						_doing_it_wrong(
+							__METHOD__,
+							__( 'The closing tag did not match the opening tag.' ),
+							'WP_VERSION'
+						);
+						return false;
+					}					
+				} else {
+					array_push(
+						$this->stack_of_open_elements,
+						$this->get_tag()
+					);
+				}
 				return true;
 			}
 
