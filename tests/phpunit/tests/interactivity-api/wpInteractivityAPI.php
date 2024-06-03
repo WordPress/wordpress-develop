@@ -1053,71 +1053,55 @@ JSON;
 	}
 
 	/**
+	 * Modifies the internal namespace stack as if the WP_Interactivity_API
+	 * instance were find `data-wp-interactive` directives during
+	 * `process_directives` execution.
+	 *
+	 * @param array<string> $stack Values for the internal namespace stack.
+	 */
+	private function set_internal_namespace_stack( ...$stack ) {
+		$interactivity   = new ReflectionClass( $this->interactivity );
+		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
+		$namespace_stack->setAccessible( true );
+		$namespace_stack->setValue( $this->interactivity, $stack );
+	}
+
+	/**
+	 * Modifies the internal context stack as if the WP_Interactivity_API
+	 * instance were find `data-wp-context` directives during
+	 * `process_directives` execution.
+	 *
+	 * @param array<string> $stack Values for the internal context stack.
+	 */
+	private function set_internal_context_stack( ...$stack ) {
+		$interactivity = new ReflectionClass( $this->interactivity );
+		$context_stack = $interactivity->getProperty( 'context_stack' );
+		$context_stack->setAccessible( true );
+		$context_stack->setValue( $this->interactivity, $stack );
+	}
+
+	/**
 	 * Invokes the private `evaluate` method of WP_Interactivity_API class.
 	 *
 	 * @param string $directive_value   The directive attribute value to evaluate.
-	 * @param string $default_namespace The default namespace used with directives.
 	 * @return mixed The result of the evaluate method.
 	 */
-	private function evaluate( $directive_value, $default_namespace = 'myPlugin' ) {
-		$generate_state = function ( $name ) {
-			$obj       = new stdClass();
-			$obj->prop = $name;
-			return array(
-				'key'               => $name,
-				'nested'            => array( 'key' => $name . '-nested' ),
-				'obj'               => $obj,
-				'arrAccess'         => new class() implements ArrayAccess {
-					#[\ReturnTypeWillChange]
-					public function offsetExists( $offset ) {
-						return true;
-					}
-					public function offsetGet( $offset ): string {
-						return $offset;
-					}
-					public function offsetSet( $offset, $value ): void {}
-					public function offsetUnset( $offset ): void {}
-				},
-				'derived'           => function () {
-					$state   = wp_interactivity_state();
-					$context = wp_interactivity_get_context();
-					return 'Derived state: ' .
-						$state['key'] .
-						"\n" .
-						'Derived context: ' .
-						$context['key'];
-				},
-				'derivedThatThrows' => function () {
-					throw new Error( 'Something bad happened.' );
-				},
-			);
-		};
-		$this->interactivity->state( 'myPlugin', $generate_state( 'myPlugin-state' ) );
-		$this->interactivity->state( 'otherPlugin', $generate_state( 'otherPlugin-state' ) );
-		$context  = array(
-			'myPlugin'    => $generate_state( 'myPlugin-context' ),
-			'otherPlugin' => $generate_state( 'otherPlugin-context' ),
-			'obj'         => new stdClass(),
-		);
-		$evaluate = new ReflectionMethod( $this->interactivity, 'evaluate' );
-		$evaluate->setAccessible( true );
-
-		$interactivity = new ReflectionClass( $this->interactivity );
-
-		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
-		$namespace_stack->setAccessible( true );
-		$namespace_stack->setValue( $this->interactivity, array( $default_namespace ) );
-
-		$context_stack = $interactivity->getProperty( 'context_stack' );
-		$context_stack->setAccessible( true );
-		$context_stack->setValue( $this->interactivity, array( $default_namespace => $context ) );
-
+	private function evaluate( $directive_value ) {
+		/*
+		 * The global WP_Interactivity_API instance is momentarily replaced to
+		 * make global functions like `wp_interactivity_state` and
+		 * `wp_interactivity_get_config` work as expected.
+		 */
 		global $wp_interactivity;
 		$wp_interactivity_prev = $wp_interactivity;
 		$wp_interactivity      = $this->interactivity;
 
+		$evaluate = new ReflectionMethod( $this->interactivity, 'evaluate' );
+		$evaluate->setAccessible( true );
+
 		$result = $evaluate->invokeArgs( $this->interactivity, array( $directive_value ) );
 
+		// Restore the original WP_Interactivity_API instance.
 		$wp_interactivity = $wp_interactivity_prev;
 
 		return $result;
@@ -1131,6 +1115,16 @@ JSON;
 	 * @covers ::evaluate
 	 */
 	public function test_evaluate_value() {
+		$this->interactivity->state( 'myPlugin', array( 'key' => 'myPlugin-state' ) );
+		$this->interactivity->state( 'otherPlugin', array( 'key' => 'otherPlugin-state' ) );
+		$this->set_internal_context_stack(
+			array(
+				'myPlugin'    => array( 'key' => 'myPlugin-context' ),
+				'otherPlugin' => array( 'key' => 'otherPlugin-context' ),
+			)
+		);
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
 		$result = $this->evaluate( 'state.key' );
 		$this->assertEquals( 'myPlugin-state', $result );
 
@@ -1159,6 +1153,16 @@ JSON;
 	 * @covers ::evaluate
 	 */
 	public function test_evaluate_value_negation() {
+		$this->interactivity->state( 'myPlugin', array( 'key' => 'myPlugin-state' ) );
+		$this->interactivity->state( 'otherPlugin', array( 'key' => 'otherPlugin-state' ) );
+		$this->set_internal_context_stack(
+			array(
+				'myPlugin'    => array( 'key' => 'myPlugin-context' ),
+				'otherPlugin' => array( 'key' => 'otherPlugin-context' ),
+			)
+		);
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
 		$result = $this->evaluate( '!state.key' );
 		$this->assertFalse( $result );
 
@@ -1180,6 +1184,16 @@ JSON;
 	 * @covers ::evaluate
 	 */
 	public function test_evaluate_non_existent_path() {
+		$this->interactivity->state( 'myPlugin', array( 'key' => 'myPlugin-state' ) );
+		$this->interactivity->state( 'otherPlugin', array( 'key' => 'otherPlugin-state' ) );
+		$this->set_internal_context_stack(
+			array(
+				'myPlugin'    => array( 'key' => 'myPlugin-context' ),
+				'otherPlugin' => array( 'key' => 'otherPlugin-context' ),
+			)
+		);
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
 		$result = $this->evaluate( 'state.nonExistentKey' );
 		$this->assertNull( $result );
 
@@ -1207,6 +1221,30 @@ JSON;
 	 * @covers ::evaluate
 	 */
 	public function test_evaluate_nested_value() {
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'nested' => array( 'key' => 'myPlugin-state-nested' ),
+			)
+		);
+		$this->interactivity->state(
+			'otherPlugin',
+			array(
+				'nested' => array( 'key' => 'otherPlugin-state-nested' ),
+			)
+		);
+		$this->set_internal_context_stack(
+			array(
+				'myPlugin'    => array(
+					'nested' => array( 'key' => 'myPlugin-context-nested' ),
+				),
+				'otherPlugin' => array(
+					'nested' => array( 'key' => 'otherPlugin-context-nested' ),
+				),
+			)
+		);
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
 		$result = $this->evaluate( 'state.nested.key' );
 		$this->assertEquals( 'myPlugin-state-nested', $result );
 
@@ -1249,13 +1287,123 @@ JSON;
 	 * @covers wp_interactivity_get_context
 	 */
 	public function test_evaluate_derived_state() {
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'key'     => 'myPlugin-state',
+				'derived' => function () {
+					$state   = wp_interactivity_state();
+					$context = wp_interactivity_get_context();
+					return 'Derived state: ' .
+						$state['key'] .
+						"\n" .
+						'Derived context: ' .
+						$context['key'];
+				},
+			)
+		);
+		$this->set_internal_context_stack(
+			array(
+				'myPlugin' => array(
+					'key' => 'myPlugin-context',
+				),
+			)
+		);
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
 		$result = $this->evaluate( 'state.derived' );
 		$this->assertSame( "Derived state: myPlugin-state\nDerived context: myPlugin-context", $result );
 	}
 
+	/**
+	 * Tests the `evaluate` method for derived state functions accessing a
+	 * different namespace.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::evaluate
+	 * @covers wp_interactivity_state
+	 * @covers wp_interactivity_get_context
+	 */
+	public function test_evaluate_derived_state_accessing_different_namespace() {
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'key'     => 'myPlugin-state',
+				'derived' => function () {
+					$state   = wp_interactivity_state( 'otherPlugin' );
+					$context = wp_interactivity_get_context( 'otherPlugin' );
+					return 'Derived state: ' .
+						$state['key'] .
+						"\n" .
+						'Derived context: ' .
+						$context['key'];
+				},
+			)
+		);
+		$this->interactivity->state( 'otherPlugin', array( 'key' => 'otherPlugin-state' ) );
+		$this->set_internal_context_stack(
+			array(
+				'myPlugin'    => array(
+					'key' => 'myPlugin-context',
+				),
+				'otherPlugin' => array(
+					'key' => 'otherPlugin-context',
+				),
+			)
+		);
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
+		$result = $this->evaluate( 'state.derived' );
+		$this->assertSame( "Derived state: otherPlugin-state\nDerived context: otherPlugin-context", $result );
+	}
 
 	/**
-	 * Tests the `evaluate` method for derived state functions.
+	 * Tests the `evaluate` method for derived state functions defined in a
+	 * different namespace.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::evaluate
+	 * @covers wp_interactivity_state
+	 * @covers wp_interactivity_get_context
+	 */
+	public function test_evaluate_derived_state_defined_in_different_namespace() {
+		$this->interactivity->state( 'myPlugin', array( 'key' => 'myPlugin-state' ) );
+		$this->interactivity->state(
+			'otherPlugin',
+			array(
+				'key'     => 'otherPlugin-state',
+				'derived' => function () {
+					$state   = wp_interactivity_state();
+					$context = wp_interactivity_get_context();
+					return 'Derived state: ' .
+						$state['key'] .
+						"\n" .
+						'Derived context: ' .
+						$context['key'];
+				},
+			)
+		);
+		$this->set_internal_context_stack(
+			array(
+				'myPlugin'    => array(
+					'key' => 'myPlugin-context',
+				),
+				'otherPlugin' => array(
+					'key' => 'otherPlugin-context',
+				),
+			)
+		);
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
+		$result = $this->evaluate( 'otherPlugin::state.derived' );
+		$this->assertSame( "Derived state: otherPlugin-state\nDerived context: otherPlugin-context", $result );
+	}
+
+
+	/**
+	 * Tests the `evaluate` method for derived state functions that throw.
 	 *
 	 * @ticket 61037
 	 *
@@ -1263,6 +1411,16 @@ JSON;
 	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_evaluate_derived_state_that_throws() {
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'derivedThatThrows' => function () {
+					throw new Error( 'Something bad happened.' );
+				},
+			)
+		);
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
 		$result = $this->evaluate( 'state.derivedThatThrows' );
 		$this->assertNull( $result );
 	}
