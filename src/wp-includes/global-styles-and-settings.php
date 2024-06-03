@@ -337,13 +337,18 @@ function wp_add_global_styles_for_blocks() {
 			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
 		}
 
-		if ( $can_use_cached && $block_name ) {
-			if ( isset( $cached[ $block_name ] ) ) {
-				$block_css = $cached[ $block_name ];
+		if ( $can_use_cached ) {
+			$block_cache_key = $block_name;
+			if ( ! $block_cache_key ) {
+				$block_cache_key = md5( wp_json_encode( $metadata ) );
+			}
+
+			if ( isset( $cached[ $block_cache_key ] ) ) {
+				$block_css = $cached[ $block_cache_key ];
 			} else {
-				$block_css             = $tree->get_styles_for_block( $metadata );
-				$cached[ $block_name ] = $block_css;
-				$update_cache          = true;
+				$block_css                  = $tree->get_styles_for_block( $metadata );
+				$cached[ $block_cache_key ] = $block_css;
+				$update_cache               = true;
 			}
 		} else {
 			$block_css = $tree->get_styles_for_block( $metadata );
