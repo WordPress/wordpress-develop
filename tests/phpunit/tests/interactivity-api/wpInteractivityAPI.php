@@ -545,7 +545,7 @@ JSON;
 			array(
 				'myPlugin'    => array( 'a' => 1 ),
 				'otherPlugin' => array( 'b' => 2 ),
-			),
+			)
 		);
 
 		$this->assertEquals(
@@ -575,7 +575,7 @@ JSON;
 			array(
 				'myPlugin'    => array( 'a' => 1 ),
 				'otherPlugin' => array( 'b' => 2 ),
-			),
+			)
 		);
 
 		$this->assertEquals(
@@ -618,7 +618,7 @@ JSON;
 			),
 			array(
 				'myPlugin' => array( 'a' => 1 ),
-			),
+			)
 		);
 
 		$this->assertEquals(
@@ -643,7 +643,7 @@ JSON;
 			),
 			array(
 				'myPlugin' => array( 'a' => 1 ),
-			),
+			)
 		);
 
 		$this->assertEquals(
