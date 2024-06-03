@@ -85,16 +85,17 @@ class WP_XML_Tag_Processor {
 	/**
 	 * Specifies mode of operation of the parser at any given time.
 	 *
-	 * | State           | Meaning                                                              |
-	 * | ----------------|----------------------------------------------------------------------|
-	 * | *Ready*         | The parser is ready to run.                                          |
-	 * | *Complete*      | There is nothing left to parse.                                      |
-	 * | *Incomplete*    | The XML ended in the middle of a token; nothing more can be parsed. |
-	 * | *Matched tag*   | Found an XML tag; it's possible to modify its attributes.           |
-	 * | *Text node*     | Found a #text node; this is plaintext and modifiable.                |
-	 * | *CDATA node*    | Found a CDATA section; this is modifiable.                           |
-	 * | *Comment*       | Found a comment or bogus comment; this is modifiable.                |
-	 * | *Presumptuous*  | Found an empty tag closer: `</>`.                                    |
+	 * | State           | Meaning                                                                |
+	 * | ----------------|------------------------------------------------------------------------|
+	 * | *Ready*           | The parser is ready to run.                                          |
+	 * | *Complete*        | There is nothing left to parse.                                      |
+	 * | *Incomplete*      | The XML ended in the middle of a token; nothing more can be parsed.  |
+	 * | *Matched tag*     | Found an XML tag; it's possible to modify its attributes.            |
+	 * | *Text node*       | Found a #text node; this is plaintext and modifiable.                |
+	 * | *CDATA node*      | Found a CDATA section; this is modifiable.                           |
+	 * | *PI node*         | Found a processing instruction; this is modifiable.                  |
+	 * | *XML declaration* | Found an XML declaration; this is modifiable.                        |
+	 * | *Comment*         | Found a comment or bogus comment; this is modifiable.                |
 	 *
 	 * @since WP_VERSION
 	 *
@@ -104,8 +105,9 @@ class WP_XML_Tag_Processor {
 	 * @see WP_XML_Tag_Processor::STATE_MATCHED_TAG
 	 * @see WP_XML_Tag_Processor::STATE_TEXT_NODE
 	 * @see WP_XML_Tag_Processor::STATE_CDATA_NODE
+	 * @see WP_XML_Tag_Processor::STATE_PI_NODE
+	 * @see WP_XML_Tag_Processor::STATE_XML_DECLARATION
 	 * @see WP_XML_Tag_Processor::STATE_COMMENT
-	 * @see WP_XML_Tag_Processor::STATE_PRESUMPTUOUS_TAG
 	 *
 	 * @var string
 	 */
@@ -124,6 +126,16 @@ class WP_XML_Tag_Processor {
 	 * precede or follow it.
 	 * 
 	 * See https://www.w3.org/TR/xml/#NT-document.
+	 * 
+	 * | Stage           | Meaning                                                             |
+	 * | ----------------|---------------------------------------------------------------------|
+	 * | *Prolog*        | The parser is parsing the prolog.                                   |
+	 * | *Element*       | The parser is parsing the root element.                             |
+	 * | *Misc*          | The parser is parsing miscellaneous content.                        |
+	 * 
+	 * @see WP_XML_Tag_Processor::STAGE_PROLOG
+	 * @see WP_XML_Tag_Processor::STAGE_ELEMENT
+	 * @see WP_XML_Tag_Processor::STAGE_MISC
 	 *
 	 * @since WP_VERSION
 	 * @var bool 
