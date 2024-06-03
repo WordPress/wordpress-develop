@@ -340,13 +340,10 @@ class WP_Block {
 				}
 				$amended_content->set_attribute( $block_type->attributes[ $attribute_name ]['attribute'], $source_value );
 				return $amended_content->get_updated_html();
-				break;
 
 			default:
 				return $block_content;
-				break;
 		}
-		return;
 	}
 
 
