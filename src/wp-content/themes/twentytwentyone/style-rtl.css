@@ -927,11 +927,6 @@ template {
  * .entry-content children specific controls
  * - Adds special margin overrides for alignment utility classes
  */
-.entry-content > * {
-
-	/* Reset alignleft and alignright margins after alignfull */
-}
-
 .entry-content > *.alignleft,
 .entry-content > *.alignright,
 .entry-content > *.alignleft:first-child + *,
@@ -2653,13 +2648,6 @@ dd {
 	padding-right: calc(2 * var(--global--spacing-horizontal));
 }
 
-.wp-block-media-text {
-
-	/**
-   * Block Options
-   */
-}
-
 .wp-block-media-text.alignfull {
 	margin-top: 0;
 	margin-bottom: 0;
@@ -3204,6 +3192,7 @@ pre.wp-block-preformatted {
 	line-height: var(--form--line-height);
 	max-width: inherit;
 	margin-left: calc(-1 * var(--button--border-width));
+	margin-right: 0;
 	padding: var(--form--spacing-unit);
 }
 

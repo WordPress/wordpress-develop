@@ -294,7 +294,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		$error = download_url( $url );
 		$this->assertWPError( $error );
 		$this->assertSame( 'http_no_url', $error->get_error_code() );
-		$this->assertSame( 'Invalid URL Provided.', $error->get_error_message() );
+		$this->assertSame( 'No URL Provided.', $error->get_error_message() );
 	}
 
 	/**
