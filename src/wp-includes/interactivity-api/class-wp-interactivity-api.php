@@ -88,8 +88,7 @@ final class WP_Interactivity_API {
 	 * Stack of contexts defined by `data-wp-context` directives, in
 	 * the order they are processed.
 	 *
-	 * This list is populated only during directive processing, and it should
-	 * become `null` afterwards.
+	 * This is only available during directive processing, otherwise it is `null`.
 	 *
 	 * @since 6.6.0
 	 * @var array<array<mixed>>|null
