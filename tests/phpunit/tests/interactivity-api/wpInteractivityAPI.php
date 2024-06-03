@@ -32,6 +32,34 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Modifies the internal namespace stack as if the WP_Interactivity_API
+	 * instance had found `data-wp-interactive` directives during
+	 * `process_directives` execution.
+	 *
+	 * @param array<string> $stack Values for the internal namespace stack.
+	 */
+	private function set_internal_namespace_stack( ...$stack ) {
+		$interactivity   = new ReflectionClass( $this->interactivity );
+		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
+		$namespace_stack->setAccessible( true );
+		$namespace_stack->setValue( $this->interactivity, $stack );
+	}
+
+	/**
+	 * Modifies the internal context stack as if the WP_Interactivity_API
+	 * instance had found `data-wp-context` directives during
+	 * `process_directives` execution.
+	 *
+	 * @param array<array<mixed>> $stack Values for the internal context stack.
+	 */
+	private function set_internal_context_stack( ...$stack ) {
+		$interactivity = new ReflectionClass( $this->interactivity );
+		$context_stack = $interactivity->getProperty( 'context_stack' );
+		$context_stack->setAccessible( true );
+		$context_stack->setValue( $this->interactivity, $stack );
+	}
+
+	/**
 	 * Tests that the state and config methods return an empty array at the
 	 * beginning.
 	 *
@@ -434,11 +462,7 @@ JSON;
 	 * @covers ::state
 	 */
 	public function test_state_without_namespace() {
-		$interactivity = new ReflectionClass( $this->interactivity );
-
-		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
-		$namespace_stack->setAccessible( true );
-		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
+		$this->set_internal_namespace_stack( 'myPlugin' );
 
 		$this->interactivity->state( 'myPlugin', array( 'a' => 1 ) );
 		$this->interactivity->state( 'otherPlugin', array( 'b' => 2 ) );
@@ -459,11 +483,7 @@ JSON;
 	 * @expectedIncorrectUsage WP_Interactivity_API::state
 	 */
 	public function test_state_with_data_and_invalid_namespace() {
-		$interactivity = new ReflectionClass( $this->interactivity );
-
-		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
-		$namespace_stack->setAccessible( true );
-		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
+		$this->set_internal_namespace_stack( 'myPlugin' );
 
 		$this->interactivity->state( 'myPlugin', array( 'a' => 1 ) );
 		$this->interactivity->state( 'otherPlugin', array( 'b' => 2 ) );
@@ -483,11 +503,7 @@ JSON;
 	 * @expectedIncorrectUsage WP_Interactivity_API::state
 	 */
 	public function test_state_without_namespace_and_with_data() {
-		$interactivity = new ReflectionClass( $this->interactivity );
-
-		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
-		$namespace_stack->setAccessible( true );
-		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
+		$this->set_internal_namespace_stack( 'myPlugin' );
 
 		$this->interactivity->state( 'myPlugin', array( 'a' => 1 ) );
 		$this->interactivity->state( 'otherPlugin', array( 'b' => 2 ) );
@@ -499,6 +515,20 @@ JSON;
 	}
 
 	/**
+	 * Tests that calling state without namespace outside of
+	 * `process_directives` execution is not allowed.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::state
+	 * @expectedIncorrectUsage WP_Interactivity_API::state
+	 */
+	public function test_wp_interactivity_state_without_namespace() {
+		$state = $this->interactivity->state();
+		$this->assertEquals( array(), $state );
+	}
+
+	/**
 	 * Test that `get_context` returns the latest context value for the given
 	 * namespace.
 	 *
@@ -507,13 +537,8 @@ JSON;
 	 * @covers ::get_context
 	 */
 	public function test_get_context_with_namespace() {
-		$interactivity = new ReflectionClass( $this->interactivity );
-
-		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
-		$namespace_stack->setAccessible( true );
-		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
-
-		$ctx_stack = array(
+		$this->set_internal_namespace_stack( 'myPlugin' );
+		$this->set_internal_context_stack(
 			array(
 				'myPlugin' => array( 'a' => 0 ),
 			),
@@ -522,10 +547,6 @@ JSON;
 				'otherPlugin' => array( 'b' => 2 ),
 			),
 		);
-
-		$ctx_stack_prop = $interactivity->getProperty( 'context_stack' );
-		$ctx_stack_prop->setAccessible( true );
-		$ctx_stack_prop->setValue( $this->interactivity, $ctx_stack );
 
 		$this->assertEquals(
 			array( 'a' => 1 ),
@@ -546,13 +567,8 @@ JSON;
 	 * @covers ::get_context
 	 */
 	public function test_get_context_without_namespace() {
-		$interactivity = new ReflectionClass( $this->interactivity );
-
-		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
-		$namespace_stack->setAccessible( true );
-		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
-
-		$ctx_stack = array(
+		$this->set_internal_namespace_stack( 'myPlugin' );
+		$this->set_internal_context_stack(
 			array(
 				'myPlugin' => array( 'a' => 0 ),
 			),
@@ -561,10 +577,6 @@ JSON;
 				'otherPlugin' => array( 'b' => 2 ),
 			),
 		);
-
-		$ctx_stack_prop = $interactivity->getProperty( 'context_stack' );
-		$ctx_stack_prop->setAccessible( true );
-		$ctx_stack_prop->setValue( $this->interactivity, $ctx_stack );
 
 		$this->assertEquals(
 			array( 'a' => 1 ),
@@ -581,17 +593,8 @@ JSON;
 	 * @covers ::get_context
 	 */
 	public function test_get_context_with_empty_context_stack() {
-		$interactivity = new ReflectionClass( $this->interactivity );
-
-		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
-		$namespace_stack->setAccessible( true );
-		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
-
-		$ctx_stack = array();
-
-		$ctx_stack_prop = $interactivity->getProperty( 'context_stack' );
-		$ctx_stack_prop->setAccessible( true );
-		$ctx_stack_prop->setValue( $this->interactivity, $ctx_stack );
+		$this->set_internal_namespace_stack( 'myPlugin' );
+		$this->set_internal_context_stack();
 
 		$this->assertEquals(
 			array(),
@@ -608,13 +611,8 @@ JSON;
 	 * @covers ::get_context
 	 */
 	public function test_get_context_with_undefined_namespace() {
-		$interactivity = new ReflectionClass( $this->interactivity );
-
-		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
-		$namespace_stack->setAccessible( true );
-		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
-
-		$ctx_stack = array(
+		$this->set_internal_namespace_stack( 'myPlugin' );
+		$this->set_internal_context_stack(
 			array(
 				'myPlugin' => array( 'a' => 0 ),
 			),
@@ -622,10 +620,6 @@ JSON;
 				'myPlugin' => array( 'a' => 1 ),
 			),
 		);
-
-		$ctx_stack_prop = $interactivity->getProperty( 'context_stack' );
-		$ctx_stack_prop->setAccessible( true );
-		$ctx_stack_prop->setValue( $this->interactivity, $ctx_stack );
 
 		$this->assertEquals(
 			array(),
@@ -642,13 +636,8 @@ JSON;
 	 * @expectedIncorrectUsage WP_Interactivity_API::get_context
 	 */
 	public function test_get_context_with_empty_namespace() {
-		$interactivity = new ReflectionClass( $this->interactivity );
-
-		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
-		$namespace_stack->setAccessible( true );
-		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
-
-		$ctx_stack = array(
+		$this->set_internal_namespace_stack( 'myPlugin' );
+		$this->set_internal_context_stack(
 			array(
 				'myPlugin' => array( 'a' => 0 ),
 			),
@@ -657,16 +646,26 @@ JSON;
 			),
 		);
 
-		$ctx_stack_prop = $interactivity->getProperty( 'context_stack' );
-		$ctx_stack_prop->setAccessible( true );
-		$ctx_stack_prop->setValue( $this->interactivity, $ctx_stack );
-
 		$this->assertEquals(
 			array(),
 			$this->interactivity->get_context( '' )
 		);
 	}
 
+
+	/**
+	 * Tests that `get_context` should not be called outside of
+	 * `process_directives` execution.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::get_context
+	 * @expectedIncorrectUsage WP_Interactivity_API::get_context
+	 */
+	public function test_get_context_outside_of_directive_processing() {
+		$context = $this->interactivity->get_context();
+		$this->assertEquals( array(), $context );
+	}
 
 	/**
 	 * Tests extracting directive values from different string formats.
@@ -1050,34 +1049,6 @@ JSON;
 		$p              = new WP_HTML_Tag_Processor( $processed_html );
 		$p->next_tag( 'div' );
 		$this->assertNull( $p->get_attribute( 'id' ) );
-	}
-
-	/**
-	 * Modifies the internal namespace stack as if the WP_Interactivity_API
-	 * instance were find `data-wp-interactive` directives during
-	 * `process_directives` execution.
-	 *
-	 * @param array<string> $stack Values for the internal namespace stack.
-	 */
-	private function set_internal_namespace_stack( ...$stack ) {
-		$interactivity   = new ReflectionClass( $this->interactivity );
-		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
-		$namespace_stack->setAccessible( true );
-		$namespace_stack->setValue( $this->interactivity, $stack );
-	}
-
-	/**
-	 * Modifies the internal context stack as if the WP_Interactivity_API
-	 * instance were find `data-wp-context` directives during
-	 * `process_directives` execution.
-	 *
-	 * @param array<array<mixed>> $stack Values for the internal context stack.
-	 */
-	private function set_internal_context_stack( ...$stack ) {
-		$interactivity = new ReflectionClass( $this->interactivity );
-		$context_stack = $interactivity->getProperty( 'context_stack' );
-		$context_stack->setAccessible( true );
-		$context_stack->setValue( $this->interactivity, $stack );
 	}
 
 	/**
