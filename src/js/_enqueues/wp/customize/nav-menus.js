@@ -1621,7 +1621,7 @@
 				isPrimaryMenuItem = ( 0 === depth ),
 				itemName = $this.closest( '.menu-item-handle' ).find( '.menu-item-title' ).text(),
 				menuItemType = $this.closest( '.menu-item-handle' ).find( '.item-type' ).text(),
-				totalMenuItems = $('#menu-to-edit li').length;
+				totalMenuItems = $( '#menu-to-edit li' ).length;
 
 			if ( isPrimaryMenuItem ) {
 				primaryItems = $( '.menu-item-depth-0' ),
@@ -1635,7 +1635,7 @@
 				parentItemName = parentItem.find( '.menu-item-title' ).text(),
 				subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemId + '"]' ),
 				totalSubItems = subItems.length,
-				itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
+				itemPosition = $( subItems.parents( '.menu-item' ).get().reverse() ).index( menuItem ) + 1;
 
 				// String together help text for sub menu items.
 				if ( depth < 2 ) {
