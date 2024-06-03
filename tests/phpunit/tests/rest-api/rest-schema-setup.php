@@ -760,16 +760,21 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		}
 
 		foreach ( $data as $key => $value ) {
-			if ( is_string( $value ) && (
-				'date' === $key ||
-				'date_gmt' === $key ||
-				'modified' === $key ||
-				'modified_gmt' === $key
-			) ) {
-				$data[ $key ] = '2017-02-14T00:00:00';
-			} else {
-				$data[ $key ] = $this->normalize_fixture( $value, "$path.$key" );
+			$datetime_keys = array( 'date', 'date_gmt', 'modified', 'modified_gmt' );
+
+			if ( is_string( $value ) ) {
+				if ( in_array( $key, $datetime_keys, true ) ) {
+					$data[ $key ] = '2017-02-14T00:00:00';
+					continue;
+				}
+
+				if ( 1 === preg_match( '/^post-\d+$/', $value ) ) {
+					$data[ $key ] = 'post-1073';
+					continue;
+				}
 			}
+
+			$data[ $key ] = $this->normalize_fixture( $value, "$path.$key" );
 		}
 
 		return $data;
