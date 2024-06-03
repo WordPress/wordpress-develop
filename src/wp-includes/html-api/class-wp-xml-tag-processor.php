@@ -667,7 +667,7 @@ class WP_XML_Tag_Processor {
 	 * }
 	 * @return bool Whether a tag was matched.
 	 */
-	public function next( $query = null ) {
+	public function next_element( $query = null ) {
 		$this->parse_query( $query );
 		$already_found = 0;
 
@@ -1186,6 +1186,60 @@ class WP_XML_Tag_Processor {
 	public function get_breadcrumbs()
 	{
 		return $this->stack_of_open_elements;
+	}
+
+	/**
+	 * Indicates if the currently-matched tag matches the given breadcrumbs.
+	 *
+	 * A "*" represents a single tag wildcard, where any tag matches, but not no tags.
+	 *
+	 * At some point this function _may_ support a `**` syntax for matching any number
+	 * of unspecified tags in the breadcrumb stack. This has been intentionally left
+	 * out, however, to keep this function simple and to avoid introducing backtracking,
+	 * which could open up surprising performance breakdowns.
+	 *
+	 * Example:
+	 *
+	 *     $processor = new WP_XML_Tag_Processor( '<root><wp:post><content><image /></content></wp:post></root>' );
+	 *     $processor->next_element( 'img' );
+	 *     true  === $processor->matches_breadcrumbs( array( 'content', 'image' ) );
+	 *     true  === $processor->matches_breadcrumbs( array( 'wp:post', 'content', 'image' ) );
+	 *     false === $processor->matches_breadcrumbs( array( 'wp:post', 'image' ) );
+	 *     true  === $processor->matches_breadcrumbs( array( 'wp:post', '*', 'image' ) );
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @param string[] $breadcrumbs DOM sub-path at which element is found, e.g. `array( 'content', 'image' )`.
+	 *                              May also contain the wildcard `*` which matches a single element, e.g. `array( 'wp:post', '*' )`.
+	 * @return bool Whether the currently-matched tag is found at the given nested structure.
+	 */
+	public function matches_breadcrumbs( $breadcrumbs ) {
+		// Everything matches when there are zero constraints.
+		if ( 0 === count( $breadcrumbs ) ) {
+			return true;
+		}
+
+		// Start at the last crumb.
+		$crumb = end( $breadcrumbs );
+
+		if ( '*' !== $crumb && $this->get_tag() !== $crumb ) {
+			return false;
+		}
+
+		for ( $i = count( $this->stack_of_open_elements ) - 1; $i >= 0; $i-- ) {
+			$tag_name = $this->stack_of_open_elements[ $i ];
+			$crumb = strtoupper( current( $breadcrumbs ) );
+
+			if ( '*' !== $crumb && $tag_name !== $crumb ) {
+				return false;
+			}
+
+			if ( false === prev( $breadcrumbs ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

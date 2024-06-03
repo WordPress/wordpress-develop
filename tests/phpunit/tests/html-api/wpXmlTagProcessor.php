@@ -715,6 +715,26 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * 
 	 * @return void
 	 */
+	public function test_matches_breadcrumbs()
+	{
+		// Initialize the WP_XML_Tag_Processor with the given XML string
+		$processor = new WP_XML_Tag_Processor('<root><wp:post><content><image /></content></wp:post></root>');
+
+		// Move to the next element with tag name 'img'
+		$processor->next_element('img');
+
+		// Assert that the breadcrumbs match the expected sequences
+		$this->assertTrue($processor->matches_breadcrumbs(array('content', 'image')));
+		$this->assertTrue($processor->matches_breadcrumbs(array('wp:post', 'content', 'image')));
+		$this->assertFalse($processor->matches_breadcrumbs(array('wp:post', 'image')));
+		$this->assertTrue($processor->matches_breadcrumbs(array('wp:post', '*', 'image')));
+	}
+
+	/**
+	 * @ticket 57852
+	 * 
+	 * @return void
+	 */
 	public function test_get_current_depth()
 	{
         // Initialize the WP_XML_Processor with the given XML string
