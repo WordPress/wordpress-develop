@@ -1577,8 +1577,7 @@
 		},
 
 		/**
-		 * Sets up the initial state of the screen reader accessibility information for menu items.
-		 * Setting up the state of accessibility implies it's doing things outside the parameters that it's actually handling.
+		 * Set up the initial state of the screen reader accessibility information for menu items.
 		 *
 		 * @since 6.6.0
 		 */
