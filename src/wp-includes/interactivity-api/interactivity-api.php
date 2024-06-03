@@ -47,7 +47,11 @@ function wp_interactivity_process_directives( string $html ): string {
  * If state for that store namespace already exists, it merges the new
  * provided state with the existing one.
  *
+ * The namespace can be omitted inside derived state getters, using the
+ * namespace where the getter is defined.
+ *
  * @since 6.5.0
+ * @since 6.6.0 The namespace can be omitted when called inside derived state getters.
  *
  * @param string $store_namespace The unique store namespace identifier.
  * @param array  $state           Optional. The array that will be merged with the existing state for the specified
