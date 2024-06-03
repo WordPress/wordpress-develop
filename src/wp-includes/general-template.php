@@ -2259,11 +2259,11 @@ function get_calendar( $initial = true, $display = true ) {
 
 	// Quick check. If we have no posts at all, abort!
 	if ( ! $posts ) {
-		$query = new WP_Query( [
+		$query = new WP_Query( array(
 			'post_type'      => 'post',
 			'post_status'    => 'publish',
 			'posts_per_page' => 1,
-		] );
+		 ) );
 		if ( ! $query->have_posts() ) {
 			$cache[ $key ] = '';
 			wp_cache_set( 'get_calendar', $cache, 'calendar' );
@@ -2286,7 +2286,7 @@ function get_calendar( $initial = true, $display = true ) {
 		$thisyear = (int) substr( $m, 0, 4 );
 		// It seems MySQL's weeks disagree with PHP's.
 		$d         = ( ( $w - 1 ) * 7 ) + 6;
-		$thismonth = date( 'm', strtotime( "{$thisyear}-01-01 + {$d} days" ) );
+		$thismonth = gmdate( 'm', strtotime( "{$thisyear}-01-01 + {$d} days" ) );
 	} elseif ( ! empty( $m ) ) {
 		$thisyear = (int) substr( $m, 0, 4 );
 		if ( strlen( $m ) < 6 ) {
@@ -2303,32 +2303,32 @@ function get_calendar( $initial = true, $display = true ) {
 	$last_day  = gmdate( 't', $unixmonth );
 
 	// Get the next and previous month and year with at least one post.
-	$previous_query = new WP_Query( [
+	$previous_query = new WP_Query( array(
 		'post_type'      => 'post',
 		'post_status'    => 'publish',
 		'posts_per_page' => 1,
 		'order'          => 'DESC',
-		'date_query'     => [
-			[
+		'date_query'     => array(
+			array(
 				'before' => "$thisyear-$thismonth-01",
 				'inclusive' => false,
-			],
-		],
-	] );
+			),
+		),
+	 ) );
 	$previous = $previous_query->have_posts() ? $previous_query->posts[0] : null;
 
-	$next_query = new WP_Query( [
+	$next_query = new WP_Query( array(
 		'post_type'      => 'post',
 		'post_status'    => 'publish',
 		'posts_per_page' => 1,
 		'order'          => 'ASC',
-		'date_query'     => [
-			[
+		'date_query'     => array(
+			array(
 				'after' => "$thisyear-$thismonth-$last_day 23:59:59",
 				'inclusive' => false,
-			],
-		],
-	] );
+			),
+		),
+	 ) );
 	$next = $next_query->have_posts() ? $next_query->posts[0] : null;
 
 	/* translators: Calendar caption: 1: Month name, 2: 4-digit year. */
