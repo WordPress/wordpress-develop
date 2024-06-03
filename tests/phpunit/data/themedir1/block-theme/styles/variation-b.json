@@ -14,5 +14,12 @@
 				}
 			}
 		}
+	},
+	"styles": {
+		"background": {
+			"backgroundImage": {
+				"url": "file:./assets/sugarloaf-mountain.jpg"
+			}
+		}
 	}
 }
