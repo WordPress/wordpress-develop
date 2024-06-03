@@ -640,6 +640,108 @@ class WP_XML_Tag_Processor {
 		$this->xml = $xml;
 	}
 
+
+	public function step()
+	{
+		if(false === $this->next_token()) {
+			return false;
+		}
+
+		switch($this->parsing_stage) {
+			case self::STAGE_PROLOG:
+				return $this->step_in_prolog();
+			case self::STAGE_ELEMENT:
+				return $this->step_in_element();
+			case self::STAGE_MISC:
+				return $this->step_in_misc();
+		}
+	}
+
+	private function step_in_misc() {
+		switch($this->get_token_type()) {
+			case '#comment':
+			case '#processing-instructions':
+				return true;
+			case '#text':
+				$text = $this->get_modifiable_text();
+				$whitespaces = strspn($text, " \t\n\r");
+				if($whitespaces !== strlen($text)) {
+					$this->parser_state = self::STATE_INVALID_INPUT;
+					_doing_it_wrong( __METHOD__, 'Unexpected token type in prolog stage.', 'WP_VERSION' );
+				}
+				return $this->step();
+			default:
+				$this->parser_state = self::STATE_INVALID_INPUT;
+				_doing_it_wrong( __METHOD__, 'Unexpected token type in misc stage.', 'WP_VERSION' );
+				return false;
+		}
+	}
+
+	private function step_in_element() {
+		switch($this->get_token_type()) {
+			case '#text':
+			case '#cdata-section':
+			case '#comment':
+			case '#processing-instructions':
+				return true;
+			case '#tag':
+				// Update the stack of open elements
+				$tag_name = $this->get_tag();
+				if ( $this->is_closing_tag ) {
+					$popped = $this->pop_open_element();
+					if($popped !== $tag_name) {
+						$this->parser_state = self::STATE_INVALID_INPUT;
+						_doing_it_wrong(
+							__METHOD__,
+							__( 'The closing tag did not match the opening tag.' ),
+							'WP_VERSION'
+						);
+						return false;
+					}
+					if( count($this->stack_of_open_elements) === 0 ) {
+						$this->parsing_stage = self::STAGE_MISC;
+					}
+				} else {
+					$this->push_open_element($tag_name);
+				}
+				return true;
+			default:
+				$this->parser_state = self::STATE_INVALID_INPUT;
+				_doing_it_wrong( __METHOD__, 'Unexpected token type in element stage.', 'WP_VERSION' );
+				return false;
+		}
+	}
+
+	/**
+	 * Steps in the prolog stage.
+	 * 
+	 * @since WP_VERSION
+	 */
+	private function step_in_prolog()
+	{
+		switch($this->get_token_type()) {
+			case '#text':
+				$text = $this->get_modifiable_text();
+				$whitespaces = strspn($text, " \t\n\r");
+				if($whitespaces !== strlen($text)) {
+					$this->parser_state = self::STATE_INVALID_INPUT;
+					_doing_it_wrong( __METHOD__, 'Unexpected token type in prolog stage.', 'WP_VERSION' );
+				}
+				return $this->step_in_prolog();
+			case '#xml-declaration':
+			case '#comment':
+			case '#processing-instructions':
+				return true;
+			case '#tag':
+				$this->parsing_stage = self::STAGE_ELEMENT;
+				return $this->step_in_element();
+			default:
+				$this->parser_state = self::STATE_INVALID_INPUT;
+				_doing_it_wrong( __METHOD__, 'Unexpected token type in prolog stage.', 'WP_VERSION' );
+				return false;
+		}
+	}
+
 	/**
 	 * Finds the next tag matching the $query.
 	 *
@@ -743,16 +845,6 @@ class WP_XML_Tag_Processor {
 		$this->parser_state = self::STATE_READY;
 
 		if ( $this->bytes_already_parsed >= strlen( $this->xml ) ) {
-			if($this->parsing_stage === self::STAGE_PROLOG) {
-				$this->parser_state = self::STATE_INVALID_INPUT;
-				_doing_it_wrong(
-					__METHOD__,
-					__( "No root element was found." ),
-					'WP_VERSION'
-				);
-				return false;
-			}
-
 			if(
 				$this->parsing_stage === self::STAGE_ELEMENT &&
 				count($this->stack_of_open_elements) > 0
@@ -838,27 +930,6 @@ class WP_XML_Tag_Processor {
 		$this->parser_state         = self::STATE_MATCHED_TAG;
 		$this->bytes_already_parsed = $tag_ends_at + 1;
 		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
-
-		$tag_name = $this->get_tag();
-
-		// Update the stack of open elements
-		if ( $this->is_closing_tag ) {
-			$popped = $this->pop_open_element();
-			if($popped !== $tag_name) {
-				$this->parser_state = self::STATE_INVALID_INPUT;
-				_doing_it_wrong(
-					__METHOD__,
-					__( 'The closing tag did not match the opening tag.' ),
-					'WP_VERSION'
-				);
-				return false;
-			}
-			if( count($this->stack_of_open_elements) === 0 ) {
-				$this->parsing_stage = self::STAGE_MISC;
-			}
-		} else {
-			$this->push_open_element($tag_name);
-		}
 
 		return true;
 	}
@@ -1176,7 +1247,6 @@ class WP_XML_Tag_Processor {
 			 * is considered text.
 			 */
 			if (
-				$this->parsing_stage === self::STAGE_ELEMENT &&
 				array_key_exists(
 					end($this->stack_of_open_elements),
 					$this->pcdata_elements
@@ -1212,17 +1282,6 @@ class WP_XML_Tag_Processor {
 				 */
 			}
 
-			/*
-			 * Once the root element has been closed, only whitespace
-			 * is allowed in the document. Let's confirm that the text
-			 * we've found is only whitespace.
-			 */
-			if ($this->parsing_stage === self::STAGE_MISC) {
-				$this->skip_whitespace();
-				$was_at = $this->bytes_already_parsed;
-				$at = $this->bytes_already_parsed;
-			}
-
 			$at = strpos( $xml, '<', $at );
 
 			/*
@@ -1234,16 +1293,6 @@ class WP_XML_Tag_Processor {
 			}
 
 			if ( $at > $was_at ) {
-				if ( $this->parsing_stage === self::STAGE_MISC ) {
-					$this->parser_state = self::STATE_INVALID_INPUT;
-					_doing_it_wrong(
-						__METHOD__,
-						__('Text nodes are not allowed after the root element has been closed.'),
-						'WP_VERSION'
-					);
-					return false;
-				}
-
 				$this->parser_state         = self::STATE_TEXT_NODE;
 				$this->token_starts_at      = $was_at;
 				$this->token_length         = $at - $was_at;
@@ -1273,18 +1322,6 @@ class WP_XML_Tag_Processor {
 			 */
 			$tag_name_length = $this->parse_name( $at + 1 );
 			if ( $tag_name_length > 0 ) {
-				if($this->parsing_stage === self::STAGE_PROLOG) {
-					$this->parsing_stage = self::STAGE_ELEMENT;
-				} else if($this->parsing_stage === self::STAGE_MISC) {
-					$this->parser_state = self::STATE_INVALID_INPUT;
-					_doing_it_wrong(
-						__METHOD__,
-						__('Elements are not allowed after the root element has been closed.'),
-						'WP_VERSION'
-					);
-					return false;
-				}
-
 				++$at;
 				$this->parser_state         = self::STATE_MATCHED_TAG;
 				$this->tag_name_starts_at   = $at;
@@ -1359,16 +1396,6 @@ class WP_XML_Tag_Processor {
 					}
 				}
 
-				if ( $this->parsing_stage === self::STAGE_MISC ) {
-					$this->parser_state = self::STATE_INVALID_INPUT;
-					_doing_it_wrong(
-						__METHOD__,
-						__('Unexpected data found after the root element has been closed.'),
-						'WP_VERSION'
-					);
-					return false;
-				}
-
 				/*
 				 * Identify CDATA sections.
 				 *
@@ -1380,7 +1407,6 @@ class WP_XML_Tag_Processor {
 				 * See https://www.w3.org/TR/xml11.xml/#sec-cdata-sect
 				 */
 				if (
-					$this->parsing_stage === self::STAGE_ELEMENT &&
 					! $this->is_closing_tag &&
 					$doc_length > $this->token_starts_at + 8 &&
 					'[' === $xml[ $this->token_starts_at + 2 ] &&
@@ -1421,7 +1447,6 @@ class WP_XML_Tag_Processor {
 			 * See https://www.w3.org/TR/xml/#sec-prolog-dtd
 			 */
 			if (
-				$this->parsing_stage === self::STAGE_PROLOG &&
 				$at === 0 &&
 				! $this->is_closing_tag &&
 				'?' === $xml[ $at + 1 ] &&
@@ -1797,10 +1822,6 @@ class WP_XML_Tag_Processor {
 
 			$this->lexical_updates[] = $update;
 			unset( $this->lexical_updates[ $name ] );
-		}
-
-		if($this->is_empty_element_tag()) {
-			$this->pop_open_element();
 		}
 
 		$this->token_starts_at      = null;
