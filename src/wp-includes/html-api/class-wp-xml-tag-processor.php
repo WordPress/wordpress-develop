@@ -12,15 +12,11 @@
  * starting with 1.0, however, because most that's what most WXR
  * files declare.
  *
- * @TODO: Support processing directives (<?xml version="1.0" ?>).
- * @TODO: Support (or ignore) <!DOCTYPE declarations
- *        https://www.w3.org/TR/xml/#sec-prolog-dtd
- * @TODO: Support (or ignore) <!ATTLIST declarations
- *        https://www.w3.org/TR/xml/#attdecls
- * @TODO: Support (or ignore) <!ENTITY declarations
- *        https://www.w3.org/TR/xml/#sec-entity-decl
- * @TODO: Support (or ignore) conditional sections
- *        https://www.w3.org/TR/xml/#sec-condition-sect
+ * @TODO: Skip over the following syntax elements:
+ *        * <!DOCTYPE, see https://www.w3.org/TR/xml/#sec-prolog-dtd
+ *        * <!ATTLIST, see https://www.w3.org/TR/xml/#attdecls
+ *        * <!ENTITY, see https://www.w3.org/TR/xml/#sec-entity-decl
+ * 	      * Conditional sections, see https://www.w3.org/TR/xml/#sec-condition-sect
  */
 class WP_XML_Tag_Processor {
 	/**
