@@ -598,6 +598,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @ticket 41172
 	 */
 	public function test_post_type_supports_autosave_based_on_editor_support() {
+		$this->assertFalse( post_type_supports( 'attachment', 'autosave' ) );
+
 		register_post_type( 'foo', array( 'supports' => array( 'editor' ) ) );
 		$this->assertTrue( post_type_supports( 'foo', 'autosave' ) );
 		_unregister_post_type( 'foo' );
