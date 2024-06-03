@@ -1071,7 +1071,7 @@ JSON;
 	 * instance were find `data-wp-context` directives during
 	 * `process_directives` execution.
 	 *
-	 * @param array<string> $stack Values for the internal context stack.
+	 * @param array<array<mixed>> $stack Values for the internal context stack.
 	 */
 	private function set_internal_context_stack( ...$stack ) {
 		$interactivity = new ReflectionClass( $this->interactivity );
