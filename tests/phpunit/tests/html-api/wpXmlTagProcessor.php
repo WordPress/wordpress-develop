@@ -194,10 +194,12 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_contains_ampersand() {
-		$processor = new WP_XML_Tag_Processor( '<div enabled="the &quot;grande">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<div enabled="WordPress & WordPress">Test</div>' );
 
-		$this->assertFalse( $processor->next_tag(), 'Querying a malformed start tag did not return false' );
+		$this->assertTrue( $processor->next_tag(), 'Querying a tag did not return true' );
+		$this->assertNull( $processor->get_attribute('enabled'), 'Querying a malformed attribute did not return null' );
 	}
+
 	/**
 	 * @ticket 56299
 	 *
@@ -229,6 +231,22 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor = new WP_XML_Tag_Processor( '<div a/b="test">Test</div>' );
 
 		$this->assertFalse( $processor->next_tag(), 'Querying a malformed start tag did not return false' );
+	}
+
+	/**
+	 * @ticket 56299
+	 *
+	 * @covers WP_XML_Tag_Processor::get_attribute
+	 */
+	public function test_get_attribute_returns_a_decoded_value() {
+		$processor = new WP_XML_Tag_Processor( '<root encoded-data="&#x93;&#x1f604;&#x94;"></root>' );
+
+		$this->assertTrue( $processor->next_tag('root'), 'Querying a tag did not return true' );
+		$this->assertEquals(
+			'“😄”',
+			$processor->get_attribute( 'encoded-data' ),
+			'Reading an encoded attribute did not decode it.' 
+		);
 	}
 
 	/**

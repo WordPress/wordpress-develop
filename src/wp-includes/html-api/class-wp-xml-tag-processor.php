@@ -1359,7 +1359,16 @@ class WP_XML_Tag_Processor {
 			case '"':
 				$quote         = $this->xml[ $this->bytes_already_parsed ];
 				$value_start   = $this->bytes_already_parsed + 1;
-				$value_length  = strcspn( $this->xml, "<&$quote", $value_start );
+				/**
+				 * XML attributes cannot contain the characters "<" or "&".
+				 * 
+				 * This only checks for "<" because it's reasonably fast.
+				 * Ampersands are actually allowed, when used as the start
+				 * of an entity reference – verifying that in this context
+				 * would slow down the parser so we're deferring that check
+				 * to the get_attribute() method.
+				 */
+				$value_length  = strcspn( $this->xml, "<$quote", $value_start );
 				$attribute_end = $value_start + $value_length + 1;
 
 				if ( $this->xml[ $attribute_end - 1 ] !== $quote ) {
@@ -1814,25 +1823,42 @@ class WP_XML_Tag_Processor {
 		}
 
 		$attribute = $this->attributes[ $name ];
-
-		/*
-		 * This flag distinguishes an attribute with no value
-		 * from an attribute with an empty string value. For
-		 * unquoted attributes this could look very similar.
-		 * It refers to whether an `=` follows the name.
-		 *
-		 * e.g. <div boolean-attribute empty-attribute=></div>
-		 *           ¹                 ²
-		 *        1. Attribute `boolean-attribute` is `true`.
-		 *        2. Attribute `empty-attribute` is `""`.
-		 */
-		if ( true === $attribute->is_true ) {
-			return true;
-		}
-
 		$raw_value = substr( $this->xml, $attribute->value_starts_at, $attribute->value_length );
 
-		return WP_HTML_Decoder::decode_attribute( $raw_value );
+		// The XML spec disallows the presence of "<" characters in attribute values.
+		if ( false !== strpos( $raw_value, '<' ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Invalid character (<) found in attribute value.' ),
+				'WP_VERSION'
+			);
+			return null;
+		}
+
+		/**
+		 * XML attributes and HTML attributes both disallow ambiguous ampersands in
+		 * attribute values which conveniently allows us to decode both using 
+		 * the same decoder.
+		 */
+		$decoded = WP_HTML_Decoder::decode_attribute( $raw_value );
+
+		/*
+		 * The XML spec only allows using the "&" characters to encode entities.
+		 * If the decoded value contains an ampersand, then it's invalid.
+		 * 
+		 * Note this check only runs when the attribute is requested to avoid
+		 * slowing down the parser when scanning the document.
+		 */
+		if ( false !== strpos( $decoded, '&' ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Invalid character (ampersand) found in attribute value.' ),
+				'WP_VERSION'
+			);
+			return null;
+		}
+
+		return $decoded;
 	}
 
 	/**
@@ -2099,66 +2125,7 @@ class WP_XML_Tag_Processor {
 			return false;
 		}
 
-		/*
-		 * WordPress rejects more characters than are strictly forbidden
-		 * in XML5. This is to prevent additional security risks deeper
-		 * in the WordPress and plugin stack. Specifically the
-		 * less-than (<) greater-than (>) and ampersand (&) aren't allowed.
-		 *
-		 * The use of a PCRE match enables looking for specific Unicode
-		 * code points without writing a UTF-8 decoder. Whereas scanning
-		 * for one-byte characters is trivial (with `strcspn`), scanning
-		 * for the longer byte sequences would be more complicated. Given
-		 * that this shouldn't be in the hot path for execution, it's a
-		 * reasonable compromise in efficiency without introducing a
-		 * noticeable impact on the overall system.
-		 *
-		 * @TODO: xml-ize this!
-		 * @see https://xml.spec.whatwg.org/#attributes-2
-		 *
-		 * @todo As the only regex pattern maybe we should take it out?
-		 *       Are Unicode patterns available broadly in Core?
-		 */
-		if ( preg_match(
-			'~[' .
-				// Invalid chara
-				'"\'>&</ =' .
-				// Control characters.
-				'\x{00}-\x{1F}' .
-				// XML noncharacters.
-				'\x{FDD0}-\x{FDEF}' .
-				'\x{FFFE}\x{FFFF}\x{1FFFE}\x{1FFFF}\x{2FFFE}\x{2FFFF}\x{3FFFE}\x{3FFFF}' .
-				'\x{4FFFE}\x{4FFFF}\x{5FFFE}\x{5FFFF}\x{6FFFE}\x{6FFFF}\x{7FFFE}\x{7FFFF}' .
-				'\x{8FFFE}\x{8FFFF}\x{9FFFE}\x{9FFFF}\x{AFFFE}\x{AFFFF}\x{BFFFE}\x{BFFFF}' .
-				'\x{CFFFE}\x{CFFFF}\x{DFFFE}\x{DFFFF}\x{EFFFE}\x{EFFFF}\x{FFFFE}\x{FFFFF}' .
-				'\x{10FFFE}\x{10FFFF}' .
-			']~Ssu',
-			$name
-		) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'Invalid attribute name.' ),
-				'WP_VERSION'
-			);
-
-			return false;
-		}
-
-		/*
-		 * XML attribute values cannot contain certain characters. However,
-		 * even though ampersands are disallowed, entities are legal. 
-		 * @TODO: Support entities.
-		 */
-		if ( strcspn( $value, '<&"' ) !== strlen( $value ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'Invalid attribute name.' ),
-				'WP_VERSION'
-			);
-
-			return false;
-		}
-
+		$value = htmlspecialchars($value, ENT_XML1, 'UTF-8');
 		$updated_attribute = "{$name}=\"{$value}\"";
 
 		/*
