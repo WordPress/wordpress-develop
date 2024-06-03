@@ -74,9 +74,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor->next_tag( array( 'tag_closers' => 'visit' ) );
 
 		if ( $flag_is_set ) {
-			$this->assertTrue( $processor->is_empty_element_tag(), 'Did not find the empty element tag when it was present.' );
+			$this->assertTrue( $processor->is_empty_element(), 'Did not find the empty element tag when it was present.' );
 		} else {
-			$this->assertFalse( $processor->is_empty_element_tag(), 'Found the empty element tag when it was absent.' );
+			$this->assertFalse( $processor->is_empty_element(), 'Found the empty element tag when it was absent.' );
 		}
 	}
 
@@ -655,107 +655,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 
 		$this->assertFalse( $processor->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
 	}
-
-	/**
-	 * @ticket 56299
-	 * 
-	 * @covers WP_XML_Tag_Processor::next_tag
-	 * @covers WP_XML_Tag_Processor::get_breadcrumbs
-	 */
-	public function test_get_breadcrumbs()
-	{
-		$processor = new WP_XML_Tag_Processor( <<<XML
-			<wp:content>
-				<wp:text>
-					<photo />
-				</wp:text>
-			</wp:content>
-			XML
-		);
-		$processor->next_tag(array('tag_closers' => 'visit'));
-		$this->assertEquals(
-			array('wp:content'),
-			$processor->get_breadcrumbs(),
-			'get_breadcrumbs() did not return the expected breadcrumbs'
-		);
-
-		$processor->next_tag(array('tag_closers' => 'visit'));
-		$this->assertEquals(
-			array('wp:content', 'wp:text'),
-			$processor->get_breadcrumbs(),
-			'get_breadcrumbs() did not return the expected breadcrumbs'
-		);
-
-		$processor->next_tag(array('tag_closers' => 'visit'));
-		$this->assertEquals(
-			array('wp:content', 'wp:text', 'photo'),
-			$processor->get_breadcrumbs(),
-			'get_breadcrumbs() did not return the expected breadcrumbs'
-		);
-
-		$processor->next_tag(array('tag_closers' => 'visit'));
-		$this->assertEquals(
-			array('wp:content'),
-			$processor->get_breadcrumbs(),
-			'get_breadcrumbs() did not return the expected breadcrumbs'
-		);
-
-		$processor->next_tag(array('tag_closers' => 'visit'));
-		$this->assertEquals(
-			array(),
-			$processor->get_breadcrumbs(),
-			'get_breadcrumbs() did not return the expected breadcrumbs'
-		);
-
-		$this->assertFalse($processor->next_token());
-	}
-
-	/**
-	 * @ticket 57852
-	 * 
-	 * @return void
-	 */
-	public function test_matches_breadcrumbs()
-	{
-		// Initialize the WP_XML_Tag_Processor with the given XML string
-		$processor = new WP_XML_Tag_Processor('<root><wp:post><content><image /></content></wp:post></root>');
-
-		// Move to the next element with tag name 'img'
-		$processor->next_element('img');
-
-		// Assert that the breadcrumbs match the expected sequences
-		$this->assertTrue($processor->matches_breadcrumbs(array('content', 'image')));
-		$this->assertTrue($processor->matches_breadcrumbs(array('wp:post', 'content', 'image')));
-		$this->assertFalse($processor->matches_breadcrumbs(array('wp:post', 'image')));
-		$this->assertTrue($processor->matches_breadcrumbs(array('wp:post', '*', 'image')));
-	}
-
-	/**
-	 * @ticket 57852
-	 * 
-	 * @return void
-	 */
-	public function test_get_current_depth()
-	{
-        // Initialize the WP_XML_Processor with the given XML string
-        $processor = new WP_XML_Processor('<?xml version="1.0" ?><root><wp:text></wp:text></root>');
-
-        // Assert that the initial depth is 0
-        $this->assertEquals(0, $processor->get_current_depth());
-
-        // Opening the root element increases the depth
-        $processor->next_element();
-        $this->assertEquals(1, $processor->get_current_depth());
-
-        // Opening the wp:text element increases the depth
-        $processor->next_element();
-        $this->assertEquals(2, $processor->get_current_depth());
-
-        // The wp:text element is closed during `next_token()` so the depth is decreased to reflect that
-        $processor->next_token();
-        $this->assertEquals(1, $processor->get_current_depth());
-	}
-
+	
 	/**
 	 * @ticket 57852
 	 *
@@ -830,89 +730,6 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor = new WP_XML_Tag_Processor( '<wp:content>' );
 		$this->assertTrue( $processor->next_tag( array( 'tag_closers' => 'visit' ) ), "Did not find a tag opener when tag_closers was set to 'visit'" );
 		$this->assertFalse( $processor->next_tag( array( 'tag_closers' => 'visit' ) ), "Found a closer where there wasn't one" );
-	}
-
-	/**
-	 * @ticket 56299
-	 */
-	public function test_no_text_allowed_after_root_element() {
-		$processor = new WP_XML_Tag_Processor( '<root></root>text' );
-		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
-		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
-		$this->assertFalse( $processor->next_token(), 'Did not reject a text node after the root element' );
-	}
-
-	/**
-	 * @ticket 56299
-	 */
-	public function test_whitespace_text_allowed_after_root_element() {
-		$processor = new WP_XML_Tag_Processor( '<root></root>   ' );
-		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
-		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
-		$this->assertFalse( $processor->next_token(), 'Did not reject a text node after the root element' );
-	}
-
-	/**
-	 * @ticket 56299
-	 */
-	public function test_processing_directives_allowed_after_root_element() {
-		$processor = new WP_XML_Tag_Processor( '<root></root><?xml processing directive! ?>' );
-		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
-		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
-		$this->assertTrue( $processor->next_token(), 'Did not parse the processing directive after the root element' );
-		$this->assertEquals( ' processing directive! ', $processor->get_modifiable_text(), 'Did not parse the processing directive after the root element' );
-	}
-
-	/**
-	 * @ticket 56299
-	 */
-	public function test_mixed_misc_grammar_allowed_after_root_element() {
-		$processor = new WP_XML_Tag_Processor( '<root></root>   <?xml hey ?> <!-- comment --> <?xml another pi ?> <!-- more comments! -->' );
-		
-		$processor->next_token();
-		$this->assertEquals( 'root', $processor->get_tag(), 'Did not find a tag.' );
-
-		$processor->next_token();
-		$this->assertEquals( 'root', $processor->get_tag(), 'Did not find a tag.' );
-
-		$processor->next_token();
-		$this->assertEquals( '#processing-instructions', $processor->get_token_type(), 'Did not find the processing instructions.' );
-
-		$processor->next_token();
-		$this->assertEquals( '#comment', $processor->get_token_type(), 'Did not find the comment.' );
-
-		$processor->next_token();
-		$this->assertEquals( '#processing-instructions', $processor->get_token_type(), 'Did not find the processing instructions.' );
-
-		$processor->next_token();
-		$this->assertEquals( '#comment', $processor->get_token_type(), 'Did not find the comment.' );
-
-		$this->assertFalse( $processor->next_token(), 'Did not finish parsing after the last node.' );
-	}
-
-	/**
-	 * @ticket 56299
-	 */
-	public function test_elements_not_allowed_after_root_element() {
-		$processor = new WP_XML_Tag_Processor( '<root></root><another-root>' );
-		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
-		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
-		$this->assertFalse( $processor->next_token(), 'Did not reject an element node after the root element' );
-	}
-
-	public function test_comments_allowed_after_root_element() {
-		$processor = new WP_XML_Tag_Processor( '<root></root><!-- comment -->' );
-		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
-		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
-		$this->assertTrue( $processor->next_token(), 'Rejected a comment node after the root element' );
-		$this->assertEquals( ' comment ', $processor->get_modifiable_text(), 'Did not parse the comment after the root element' );
-	}
-
-	public function test_cdata_not_allowed_after_root_element() {
-		$processor = new WP_XML_Tag_Processor( '<root></root><![CDATA[ cdata ]]>' );
-		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
-		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
-		$this->assertFalse( $processor->next_token(), 'Did not reject a comment node after the root element' );
 	}
 
 	/**
@@ -1376,37 +1193,6 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	public function test_rejects_malformed_comments() {
 		$processor = new WP_XML_Tag_Processor( '<!-- comment -- oh, I did not close it after the initial double dash -->' );
 		$this->assertFalse( $processor->next_token(), 'Did not reject a malformed XML comment.' );
-	}
-
-	/**
-	 * 
-	 * @covers WP_XML_Tag_Processor::next_tag
-	 */
-	public function test_detects_invalid_document_no_root_tag() {
-		$processor = new WP_XML_Tag_Processor( <<<XML
-			<?xml version="1.0" encoding="UTF-8"?>
-			<!-- comment no root tag -->
-		XML
-		);
-		$this->assertFalse( $processor->next_tag(), 'Found a tag when there was none.' );
-		$this->assertTrue( $processor->get_last_error(), 'Did not mark a malformed XML document as invalid.' );
-	}
-
-	/**
-	 * 
-	 * @covers WP_XML_Tag_Processor::next_tag
-	 */
-	public function test_unclosed_root_yields_incomplete_input() {
-		$processor = new WP_XML_Tag_Processor( <<<XML
-			<root inert="yes" title="test">
-				<child></child>
-				<?xml directive ?>
-		XML
-		);
-		while( $processor->next_tag() ) {
-			continue;
-		}
-		$this->assertTrue( $processor->paused_at_incomplete_token(), 'Did not indicate that the XML input was incomplete.' );
 	}
 
 	/**
