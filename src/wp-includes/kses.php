@@ -1256,24 +1256,41 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 	$allowed_attr = $allowed_html[ $element_low ];
 
 	if ( ! isset( $allowed_attr[ $name_low ] ) || '' === $allowed_attr[ $name_low ] ) {
+		$name_in_javascript = _wp_kses_transform_custom_data_attribute_name( $name );
+
 		/*
-		 * Allow `data-*` attributes.
+		 * Only allow a subset of custom data attributes containing
+		 * ASCII alphanumerics, underscore, and hyphens. It may be
+		 * safe to allow others, including those with symbols, emoji,
+		 * and other characters, but as a conservative measure these
+		 * are rejected by default.
+		 *
+		 * Code wanting to allow other custom data attributes should
+		 * explicitly pass them in through `$allowed_html`.
+		 */
+		$is_allowable_custom_attribute = (
+			isset( $name_in_javascript ) &&
+			1 === preg_match( '/^[a-z0-9_-]+$/i', $name_in_javascript )
+		);
+
+		/*
+		 * Allow Custom Data Attributes (`data-*`).
 		 *
 		 * When specifying `$allowed_html`, the attribute name should be set as
 		 * `data-*` (not to be mixed with the HTML 4.0 `data` attribute, see
 		 * https://www.w3.org/TR/html40/struct/objects.html#adef-data).
 		 *
-		 * Note: the attribute name should only contain `A-Za-z0-9_-` chars,
-		 * double hyphens `--` are not accepted by WordPress.
+		 * Custom data attributes appear on an HTML element in the `dataset`
+		 * property and are available from JavaScript with a transformed name.
+		 *
+		 * @see https://html.spec.whatwg.org/#custom-data-attribute
 		 */
-		if ( str_starts_with( $name_low, 'data-' ) && ! empty( $allowed_attr['data-*'] )
-			&& preg_match( '/^data(?:-[a-z0-9_]+)+$/', $name_low, $match )
-		) {
+		if ( $is_allowable_custom_attribute && ! empty( $allowed_attr['data-*'] ) ) {
 			/*
 			 * Add the whole attribute name to the allowed attributes and set any restrictions
 			 * for the `data-*` attribute values for the current element.
 			 */
-			$allowed_attr[ $match[0] ] = $allowed_attr['data-*'];
+			$allowed_attr[ $name_low ] = $allowed_attr['data-*'];
 		} else {
 			$name  = '';
 			$value = '';
@@ -1309,6 +1326,57 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 	}
 
 	return true;
+}
+
+/**
+ * Return the corresponding JavaScript `dataset` name for an attribute
+ * if it represents a custom data attribute, or `null` if not.
+ *
+ * Custom data attributes appear in an element's `dataset` property in a
+ * browser, but there's a specific way the names are translated from HTML
+ * into JavaScript. This function indicates how the name would appear in
+ * JavaScript if a browser would recognize it as a custom data attribute.
+ *
+ * Example:
+ *
+ *     'postId' === _wp_kses_transform_custom_data_attribute_name( 'data-post-id' );
+ *     null     === _wp_kses_transform_custom_data_attribute_name( 'post-id' );
+ *
+ * @since 6.6.0
+ *
+ * @see https://html.spec.whatwg.org/#concept-domstringmap-pairs
+ *
+ * @access private
+ *
+ * @param string $raw_attribute_name Raw attribute name as found in the source HTML.
+ *
+ * @return string|null Transformed `dataset` name, if valid, else `null`.
+ */
+function _wp_kses_transform_custom_data_attribute_name( $raw_attribute_name ) {
+	if ( 1 !== preg_match( '~^data-(?P<custom_name>[^=/> \t\f\r\n]*)$~', $raw_attribute_name, $matches ) ) {
+		return null;
+	}
+
+	$custom_name = $matches['custom_name'];
+
+	/*
+	 * > For each name in list, for each U+002D HYPHEN-MINUS character (-)
+	 * > in the name that is followed by an ASCII lower alpha, remove the
+	 * > U+002D HYPHEN-MINUS character (-) and replace the character that
+	 * > followed it by the same character converted to ASCII uppercase.
+	 *
+	 * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
+	 */
+	$custom_name = preg_replace_callback(
+		'/-[a-z]/',
+		static function ( $dash_matches ) {
+			// Transforms "-a" -> "A".
+			return strtoupper( $dash_matches[0][1] );
+		},
+		strtolower( $custom_name )
+	);
+
+	return $custom_name;
 }
 
 /**
