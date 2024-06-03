@@ -45,7 +45,6 @@ abstract class WP_Theme_UnitTestCase extends WP_UnitTestCase {
 
 		wp_clean_themes_cache();
 		wp_clean_theme_json_cache();
-		wp_clean_theme_json_cache();
 		unset( $GLOBALS['wp_themes'] );
 
 		parent::tear_down();
