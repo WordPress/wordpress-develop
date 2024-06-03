@@ -538,6 +538,13 @@ final class WP_Interactivity_API {
 		}
 
 		if ( $current instanceof Closure ) {
+			/*
+			 * This is a derived state getter. This property's namespace needs
+			 * to be added onto the namespace stack to get the right one when
+			 * `wp_interactivity_state` or `wp_interactivity_get_config` are
+			 * called inside the getter without specifying the namespace.
+			 */
+			array_push( $this->namespace_stack, $ns );
 			try {
 				$current = $current();
 			} catch ( Throwable $e ) {
@@ -552,6 +559,9 @@ final class WP_Interactivity_API {
 					'6.6.0'
 				);
 				return null;
+			} finally {
+				// Remove the property's namespace from the stack.
+				array_pop( $this->namespace_stack );
 			}
 		}
 
