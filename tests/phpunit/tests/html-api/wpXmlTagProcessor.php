@@ -543,7 +543,6 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 			'Text'                          => array( 'Just text', 1, 'Just text' ),
 			'Text in DIV'                   => array( '<div>Text<div>', 2, 'Text' ),
 			'Text before DIV'               => array( 'Text<div>', 1, 'Text' ),
-			'Text after DIV'                => array( '<div></div>Text', 3, 'Text' ),
 			'Text after comment'            => array( '<!-- comment -->Text', 2, 'Text' ),
 			'Text before comment'           => array( 'Text<!-- c --> ', 1, 'Text' ),
 
@@ -740,6 +739,34 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$this->assertTrue( $processor->next_token(), 'Did not parse the processing directive after the root element' );
 		$this->assertEquals( ' processing directive! ', $processor->get_modifiable_text(), 'Did not parse the processing directive after the root element' );
 	}
+
+	/**
+	 * @ticket 56299
+	 */
+	public function test_mixed_misc_grammar_allowed_after_root_element() {
+		$processor = new WP_XML_Tag_Processor( '<root></root>   <?xml hey ?> <!-- comment --> <?xml another pi ?> <!-- more comments! -->' );
+		
+		$processor->next_token();
+		$this->assertEquals( 'root', $processor->get_tag(), 'Did not find a tag.' );
+
+		$processor->next_token();
+		$this->assertEquals( 'root', $processor->get_tag(), 'Did not find a tag.' );
+
+		$processor->next_token();
+		$this->assertEquals( '#processing-instructions', $processor->get_token_type(), 'Did not find the processing instructions.' );
+
+		$processor->next_token();
+		$this->assertEquals( '#comment', $processor->get_token_type(), 'Did not find the comment.' );
+
+		$processor->next_token();
+		$this->assertEquals( '#processing-instructions', $processor->get_token_type(), 'Did not find the processing instructions.' );
+
+		$processor->next_token();
+		$this->assertEquals( '#comment', $processor->get_token_type(), 'Did not find the comment.' );
+
+		$this->assertFalse( $processor->next_token(), 'Did not finish parsing after the last node.' );
+	}
+
 	/**
 	 * @ticket 56299
 	 */
@@ -1170,46 +1197,6 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * Ensures that no tags are matched in a document containing only non-tag content.
-	 *
-	 * @ticket 60122
-	 *
-	 * @covers WP_XML_Tag_Processor::next_tag
-	 * @covers WP_XML_Tag_Processor::paused_at_incomplete_token
-	 *
-	 * @dataProvider data_xml_without_tags
-	 *
-	 * @param string $xml_without_tags XML without any tags in it.
-	 */
-	public function test_next_tag_returns_false_when_there_are_no_tags( $xml_without_tags ) {
-		$processor = new WP_XML_Tag_Processor( $xml_without_tags );
-
-		$this->assertFalse(
-			$processor->next_tag(),
-			"Shouldn't have found any tags but found {$processor->get_tag()}."
-		);
-
-		$this->assertFalse(
-			$processor->paused_at_incomplete_token(),
-			'Should have indicated that end of document was reached without evidence that elements were truncated.'
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_xml_without_tags() {
-		return array(
-			// 'DOCTYPE declaration'    => array( '<!DOCTYPE xml>Just some XML' ),
-			'No tags'                => array( 'this is nothing more than a text node' ),
-			'Text with comments'     => array( 'One <!-- sneaky --> comment.' ),
-			'CDATA as XML comment'  => array( '<![CDATA[this closes at the first &gt;]]> ay' ),
-		);
-	}
-
-	/**
 	 * Ensures that the processor doesn't attempt to match an incomplete token.
 	 *
 	 * @ticket 58637
@@ -1313,7 +1300,8 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @ticket 60385
 	 */
 	public function test_parses_CDATA() {
-		$processor = new WP_XML_Tag_Processor( '<![CDATA[This is a CDATA text node.]]>' );
+		$processor = new WP_XML_Tag_Processor( '<root><![CDATA[This is a CDATA text node.]]></root>' );
+		$processor->next_tag();
 		$this->assertTrue($processor->next_token(), 'The first text node was not found.');		$this->assertEquals(
 			'This is a CDATA text node.',
 			$processor->get_modifiable_text(),
@@ -1325,8 +1313,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @ticket 60385
 	 */
 	public function test_yields_CDATA_a_separate_text_node() {
-		$processor = new WP_XML_Tag_Processor( 'This is the first text node <![CDATA[ and this is a second text node ]]> and this is the third text node.' );
+		$processor = new WP_XML_Tag_Processor( '<root>This is the first text node <![CDATA[ and this is a second text node ]]> and this is the third text node.</root>' );
 
+		$processor->next_token();
 		$this->assertTrue($processor->next_token(), 'The first text node was not found.');
 		$this->assertEquals(
 			'This is the first text node ',

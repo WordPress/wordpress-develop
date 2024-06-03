@@ -109,8 +109,25 @@ class WP_XML_Tag_Processor {
 	 * @var string
 	 */
 	protected $parser_state = self::STATE_READY;
-
-	protected $root_element_closed = false;
+	
+	/**
+	 * Indicates the current parsing stage.
+	 * 
+	 * A well-formed XML document has the following structure:
+	 * 
+	 * 	   document ::= prolog element Misc*
+	 *     prolog   ::= XMLDecl? Misc* (doctypedecl Misc*)?
+	 *     Misc     ::= Comment | PI | S
+	 * 
+	 * There is exactly one element, called the root. No elements or text nodes may 
+	 * precede or follow it.
+	 * 
+	 * See https://www.w3.org/TR/xml/#NT-document.
+	 *
+	 * @since WP_VERSION
+	 * @var bool 
+	 */
+	protected $parsing_stage = self::STAGE_PROLOG;
 
 	/**
 	 * What kind of syntax token became an XML comment.
@@ -529,7 +546,7 @@ class WP_XML_Tag_Processor {
 				return false;
 			}
 			if( count($this->stack_of_open_elements) === 0 ) {
-				$this->root_element_closed = true;
+				$this->parsing_stage = self::STAGE_MISC;
 			}
 		} else {
 			$this->push_open_element($this->get_tag());
@@ -855,10 +872,6 @@ class WP_XML_Tag_Processor {
 
 		$is_pcdata_element = $this->stack_of_open_elements;
 		while ( false !== $at && $at < $doc_length ) {
-			if($this->root_element_closed) {
-				// Only allow comments, PR, and whitespace
-			}
-
 			// if ( $is_implicit_cdata ) {
 			// 	$closer_at = strpos($xml, '</' . $tag_name, $at);
 			// 	if (false === $closer_at) {
@@ -873,6 +886,17 @@ class WP_XML_Tag_Processor {
 			// 	}
 			// }
 
+			/*
+			 * Once the root element has been closed, only whitespace
+			 * is allowed in the document. Let's confirm that the text
+			 * we've found is only whitespace.
+			 */
+			if ($this->parsing_stage === self::STAGE_MISC) {
+				$this->skip_whitespace();
+				$was_at = $this->bytes_already_parsed;
+				$at = $this->bytes_already_parsed;
+			}
+
 			$at = strpos( $xml, '<', $at );
 
 			/*
@@ -884,6 +908,16 @@ class WP_XML_Tag_Processor {
 			}
 
 			if ( $at > $was_at ) {
+				if ( $this->parsing_stage === self::STAGE_MISC ) {
+					$this->parser_state = self::STATE_INVALID_INPUT;
+					_doing_it_wrong(
+						__METHOD__,
+						__('Text nodes are not allowed after the root element has been closed.'),
+						'WP_VERSION'
+					);
+					return false;
+				}
+
 				$this->parser_state         = self::STATE_TEXT_NODE;
 				$this->token_starts_at      = $was_at;
 				$this->token_length         = $at - $was_at;
@@ -891,19 +925,6 @@ class WP_XML_Tag_Processor {
 				$this->text_length          = $this->token_length;
 				$this->bytes_already_parsed = $at;
 
-				if($this->root_element_closed) {
-					if (strspn($xml, " \t\n\r", $was_at) !== $this->token_length) {
-						$this->parser_state = self::STATE_INVALID_INPUT;
-						_doing_it_wrong(
-							__METHOD__,
-							__('Text nodes are not allowed after the root element has been closed.'),
-							'WP_VERSION'
-						);
-					} else {
-						$this->parser_state = self::STATE_COMPLETE;
-					}
-					return false;
-				}
 				return true;
 			}
 
@@ -932,7 +953,9 @@ class WP_XML_Tag_Processor {
 			 */
 			$tag_name_length = $this->parse_name( $at + 1 );
 			if ( $tag_name_length > 0 ) {
-				if($this->root_element_closed) {
+				if($this->parsing_stage === self::STAGE_PROLOG) {
+					$this->parsing_stage = self::STAGE_ELEMENT;
+				} else if($this->parsing_stage === self::STAGE_MISC) {
 					$this->parser_state = self::STATE_INVALID_INPUT;
 					_doing_it_wrong(
 						__METHOD__,
@@ -1018,7 +1041,7 @@ class WP_XML_Tag_Processor {
 					}
 				}
 
-				if($this->root_element_closed) {
+				if ( $this->parsing_stage === self::STAGE_MISC ) {
 					$this->parser_state = self::STATE_INVALID_INPUT;
 					_doing_it_wrong(
 						__METHOD__,
@@ -1039,6 +1062,7 @@ class WP_XML_Tag_Processor {
 				 * See https://www.w3.org/TR/xml11.xml/#sec-cdata-sect
 				 */
 				if (
+					$this->parsing_stage === self::STAGE_ELEMENT &&
 					! $this->is_closing_tag &&
 					$doc_length > $this->token_starts_at + 8 &&
 					'[' === $xml[ $this->token_starts_at + 2 ] &&
@@ -1079,6 +1103,7 @@ class WP_XML_Tag_Processor {
 			 * See https://www.w3.org/TR/xml/#sec-prolog-dtd
 			 */
 			if (
+				$this->parsing_stage === self::STAGE_PROLOG &&
 				$at === 0 &&
 				! $this->is_closing_tag &&
 				'?' === $xml[ $at + 1 ] &&
@@ -1185,7 +1210,7 @@ class WP_XML_Tag_Processor {
 			 * `<?` denotes a processing instruction.
 			 * See https://www.w3.org/TR/xml/#sec-pi
 			 */
-			if ( 
+			if (
 				! $this->is_closing_tag &&
 				'?' === $xml[ $at + 1 ]
 			) {
@@ -1824,13 +1849,6 @@ class WP_XML_Tag_Processor {
 			return $tag_name;
 		}
 
-		if (
-			self::STATE_COMMENT === $this->parser_state &&
-			self::PI_NODE === $this->get_comment_type()
-		) {
-			return $tag_name;
-		}
-
 		return null;
 	}
 
@@ -1966,7 +1984,6 @@ class WP_XML_Tag_Processor {
 	 * @see self::COMMENT_AS_CDATA_LOOKALIKE
 	 * @see self::COMMENT_AS_INVALID_XML
 	 * @see self::COMMENT_AS_XML_COMMENT
-	 * @see self::PI_NODE
 	 *
 	 * @since WP_VERSION
 	 *
@@ -2516,16 +2533,32 @@ class WP_XML_Tag_Processor {
 	const COMMENT_AS_XML_COMMENT = 'COMMENT_AS_XML_COMMENT';
 
 	/**
-	 * Indicates that a comment would be parsed as a Processing
-	 * Instruction node, were they to exist within XML.
-	 *
-	 * Example:
-	 *
-	 *     <?wp __( 'Like' ) ?>
-	 *
-	 * This is an XML comment, but it looks like a CDATA node.
-	 *
+	 * Indicates that we're parsing the `prolog` part of the XML
+	 * document.
+	 * 
 	 * @since WP_VERSION
+	 * 
+	 * @access private
 	 */
-	const PI_NODE = 'PI_NODE';
+	const STAGE_PROLOG = 'prolog';
+
+	/**
+	 * Indicates that we're parsing the `element` part of the XML
+	 * document.
+	 * 
+	 * @since WP_VERSION
+	 * 
+	 * @access private
+	 */
+	const STAGE_ELEMENT = 'element';
+
+	/**
+	 * Indicates that we're parsing the `misc` part of the XML
+	 * document.
+	 * 
+	 * @since WP_VERSION
+	 * 
+	 * @access private
+	 */
+	const STAGE_MISC = 'misc';
 }
