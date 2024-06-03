@@ -110,6 +110,8 @@ class WP_XML_Tag_Processor {
 	 */
 	protected $parser_state = self::STATE_READY;
 
+	protected $root_element_closed = false;
+
 	/**
 	 * What kind of syntax token became an XML comment.
 	 *
@@ -516,7 +518,7 @@ class WP_XML_Tag_Processor {
 
 		// Update the stack of open elements
 		if ( $this->is_closing_tag ) {
-			$popped = array_pop( $this->stack_of_open_elements );
+			$popped = $this->pop_open_element();
 			if($popped !== $this->get_tag()) {
 				$this->parser_state = self::STATE_INVALID_INPUT;
 				_doing_it_wrong(
@@ -525,12 +527,12 @@ class WP_XML_Tag_Processor {
 					'WP_VERSION'
 				);
 				return false;
-			}					
+			}
+			if( count($this->stack_of_open_elements) === 0 ) {
+				$this->root_element_closed = true;
+			}
 		} else {
-			array_push(
-				$this->stack_of_open_elements,
-				$this->get_tag()
-			);
+			$this->push_open_element($this->get_tag());
 		}
 		return true;
 	}
@@ -783,26 +785,6 @@ class WP_XML_Tag_Processor {
 		return false;
 	}
 
-	private $is_implicit_cdata_element;
-	public function treat_element_contents_as_cdata()
-	{
-		if (
-			self::STATE_MATCHED_TAG !== $this->parser_state ||
-			$this->get_token_type() ||
-			$this->is_empty_element_tag()
-		) {
-
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'treat_element_contents_as_cdata can only be called after matching a tag.' ),
-				'WP_VERSION'
-			);
-			return false;
-		}
-		$this->is_implicit_cdata_element = true;
-		return true;
-	}
-
 	/**
 	 * Computes the XML breadcrumbs for the currently-matched element, if matched.
 	 *
@@ -822,6 +804,32 @@ class WP_XML_Tag_Processor {
 	public function get_breadcrumbs()
 	{
 		return $this->stack_of_open_elements;
+	}
+
+
+	private $pcdata_elements = null;
+	/**
+	 * 
+	 * @TODO Explore declaring elements as PCdata directly in the XML document,
+	 *       for example as follows:
+	 * 
+	 *       <!ELEMENT p (#PCDATA|emph)* >
+	 * 
+	 *       or
+	 * 
+	 *       <!DOCTYPE test [
+	 *           <!ELEMENT test (#PCDATA) >
+	 *           <!ENTITY % xx '&#37;zz;'>
+	 *           <!ENTITY % zz '&#60;!ENTITY tricky "error-prone" >' >
+	 *           %xx;
+	 *       ]>
+	 * 
+	 * @param mixed $breadcrumbs
+	 * @return bool
+	 */
+	public function declare_element_as_pcdata($element_name)
+	{
+		$this->pcdata_elements[] = $element_name;
 	}
 
 	/**
@@ -845,7 +853,12 @@ class WP_XML_Tag_Processor {
 		$was_at     = $this->bytes_already_parsed;
 		$at         = $was_at;
 
+		$is_pcdata_element = $this->stack_of_open_elements;
 		while ( false !== $at && $at < $doc_length ) {
+			if($this->root_element_closed) {
+				// Only allow comments, PR, and whitespace
+			}
+
 			// if ( $is_implicit_cdata ) {
 			// 	$closer_at = strpos($xml, '</' . $tag_name, $at);
 			// 	if (false === $closer_at) {
@@ -867,13 +880,7 @@ class WP_XML_Tag_Processor {
 			 * can be nothing left in the document other than a #text node.
 			 */
 			if ( false === $at ) {
-				$this->parser_state         = self::STATE_TEXT_NODE;
-				$this->token_starts_at      = $was_at;
-				$this->token_length         = strlen( $xml ) - $was_at;
-				$this->text_starts_at       = $was_at;
-				$this->text_length          = $this->token_length;
-				$this->bytes_already_parsed = strlen( $xml );
-				return true;
+				$at = strlen( $xml );
 			}
 
 			if ( $at > $was_at ) {
@@ -883,6 +890,20 @@ class WP_XML_Tag_Processor {
 				$this->text_starts_at       = $was_at;
 				$this->text_length          = $this->token_length;
 				$this->bytes_already_parsed = $at;
+
+				if($this->root_element_closed) {
+					if (strspn($xml, " \t\n\r", $was_at) !== $this->token_length) {
+						$this->parser_state = self::STATE_INVALID_INPUT;
+						_doing_it_wrong(
+							__METHOD__,
+							__('Text nodes are not allowed after the root element has been closed.'),
+							'WP_VERSION'
+						);
+					} else {
+						$this->parser_state = self::STATE_COMPLETE;
+					}
+					return false;
+				}
 				return true;
 			}
 
@@ -911,6 +932,16 @@ class WP_XML_Tag_Processor {
 			 */
 			$tag_name_length = $this->parse_name( $at + 1 );
 			if ( $tag_name_length > 0 ) {
+				if($this->root_element_closed) {
+					$this->parser_state = self::STATE_INVALID_INPUT;
+					_doing_it_wrong(
+						__METHOD__,
+						__('Elements are not allowed after the root element has been closed.'),
+						'WP_VERSION'
+					);
+					return false;
+				}
+
 				++$at;
 				$this->parser_state         = self::STATE_MATCHED_TAG;
 				$this->tag_name_starts_at   = $at;
@@ -985,6 +1016,16 @@ class WP_XML_Tag_Processor {
 						$this->bytes_already_parsed = $closer_at + 3;
 						return true;
 					}
+				}
+
+				if($this->root_element_closed) {
+					$this->parser_state = self::STATE_INVALID_INPUT;
+					_doing_it_wrong(
+						__METHOD__,
+						__('Unexpected data found after the root element has been closed.'),
+						'WP_VERSION'
+					);
+					return false;
 				}
 
 				/*
@@ -1386,7 +1427,7 @@ class WP_XML_Tag_Processor {
 		}
 
 		if($this->is_empty_element_tag()) {
-			array_pop($this->stack_of_open_elements);
+			$this->pop_open_element();
 		}
 
 		$this->token_starts_at      = null;
@@ -1398,6 +1439,18 @@ class WP_XML_Tag_Processor {
 		$this->is_closing_tag       = null;
 		$this->attributes           = array();
 		$this->comment_type         = null;
+	}
+
+	private function pop_open_element() {
+		return array_pop($this->stack_of_open_elements);
+	}
+
+	private function push_open_element($tag_name)
+	{
+		array_push(
+			$this->stack_of_open_elements,
+			$tag_name
+		);
 	}
 
 	/**

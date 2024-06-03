@@ -527,13 +527,12 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 			// Tags.
 			'DIV start tag'                 => array( '<div>', 1, '<div>' ),
 			'DIV start tag with attributes' => array( '<div class="x" disabled="yes">', 1, '<div class="x" disabled="yes">' ),
-			'DIV end tag'                   => array( '</div>', 1, '</div>' ),
 			'DIV end tag with attributes'   => array( '</div class="x" disabled="yes">', 1, '</div class="x" disabled="yes">' ),
 			'Nested DIV'                    => array( '<div><div b="yes">', 2, '<div b="yes">' ),
 			'Sibling DIV'                   => array( '<div></div><div b="yes">', 3, '<div b="yes">' ),
 			'DIV after text'                => array( 'text <div>', 2, '<div>' ),
 			'DIV before text'               => array( '<div> text', 1, '<div>' ),
-			'DIV after comment'             => array( '<!-- comment --><div>', 2, '<div>' ),
+			'DIV after comment'             => array( '<root><!-- comment --><div>', 3, '<div>' ),
 			'DIV before comment'            => array( '<div><!-- c --> ', 1, '<div>' ),
 			'Start "self-closing" tag'      => array( '<div />', 1, '<div />' ),
 			'Void tag'                      => array( '<img src="img.png">', 1, '<img src="img.png">' ),
@@ -712,6 +711,61 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * @ticket 56299
+	 */
+	public function test_no_text_allowed_after_root_element() {
+		$processor = new WP_XML_Tag_Processor( '<root></root>text' );
+		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
+		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
+		$this->assertFalse( $processor->next_token(), 'Did not reject a text node after the root element' );
+	}
+
+	/**
+	 * @ticket 56299
+	 */
+	public function test_whitespace_text_allowed_after_root_element() {
+		$processor = new WP_XML_Tag_Processor( '<root></root>   ' );
+		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
+		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
+		$this->assertFalse( $processor->next_token(), 'Did not reject a text node after the root element' );
+	}
+
+	/**
+	 * @ticket 56299
+	 */
+	public function test_processing_directives_allowed_after_root_element() {
+		$processor = new WP_XML_Tag_Processor( '<root></root><?xml processing directive! ?>' );
+		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
+		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
+		$this->assertTrue( $processor->next_token(), 'Did not parse the processing directive after the root element' );
+		$this->assertEquals( ' processing directive! ', $processor->get_modifiable_text(), 'Did not parse the processing directive after the root element' );
+	}
+	/**
+	 * @ticket 56299
+	 */
+	public function test_elements_not_allowed_after_root_element() {
+		$processor = new WP_XML_Tag_Processor( '<root></root><another-root>' );
+		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
+		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
+		$this->assertFalse( $processor->next_token(), 'Did not reject an element node after the root element' );
+	}
+
+	public function test_comments_allowed_after_root_element() {
+		$processor = new WP_XML_Tag_Processor( '<root></root><!-- comment -->' );
+		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
+		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
+		$this->assertTrue( $processor->next_token(), 'Rejected a comment node after the root element' );
+		$this->assertEquals( ' comment ', $processor->get_modifiable_text(), 'Did not parse the comment after the root element' );
+	}
+
+	public function test_cdata_not_allowed_after_root_element() {
+		$processor = new WP_XML_Tag_Processor( '<root></root><![CDATA[ cdata ]]>' );
+		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
+		$this->assertTrue( $processor->next_token(), 'Did not find a tag.' );
+		$this->assertFalse( $processor->next_token(), 'Did not reject a comment node after the root element' );
+	}
+
+	/**
 	 * Verifies that updates to a document before calls to `get_updated_xml()` don't
 	 * lead to the Tag Processor jumping to the wrong tag after the updates.
 	 *
@@ -720,8 +774,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_updated_xml
 	 */
 	public function test_internal_pointer_returns_to_original_spot_after_inserting_content_before_cursor() {
-		$tags = new WP_XML_Tag_Processor( '<div>outside</div><section><div><img>inside</div></section>' );
+		$tags = new WP_XML_Tag_Processor( '<root><div>outside</div><section><div><img>inside</div></section></root>' );
 
+		$tags->next_tag();
 		$tags->next_tag();
 		$tags->set_attribute( 'class', 'foo' );
 		$tags->next_tag( 'section' );
@@ -732,7 +787,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		// Move ahead.
 		$tags->next_tag( 'img' );
 		$tags->seek( 'here' );
-		$this->assertSame( '<div class="foo">outside</div><section><div><img>inside</div></section>', $tags->get_updated_xml() );
+		$this->assertSame( '<root><div class="foo">outside</div><section><div><img>inside</div></section></root>', $tags->get_updated_xml() );
 		$this->assertSame( 'section', $tags->get_tag() );
 		$this->assertFalse( $tags->is_tag_closer() );
 	}
@@ -1357,7 +1412,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @ticket 60697
 	 */
 	public function test_applies_updates_before_proceeding() {
-		$xml = '<div><img/></div><div><img/></div>';
+		$xml = '<root><div><img/></div><div><img/></div></root>';
 
 		$subclass = new class( $xml ) extends WP_XML_Tag_Processor {
 			/**
@@ -1389,7 +1444,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$subclass->set_attribute( 'alt', 'mountain' );
 
 		$this->assertSame(
-			'<div><img/><p>snow-capped</p></div><div><img alt="mountain"/></div>',
+			'<root><div><img/><p>snow-capped</p></div><div><img alt="mountain"/></div></root>',
 			$subclass->get_updated_xml(),
 			'Should have properly applied the update from in front of the cursor.'
 		);
