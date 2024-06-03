@@ -389,7 +389,6 @@ class WP_XML_Tag_Processor {
 	 *  - an XML tag, whether opening, closing, or void.
 	 *  - a text node - the plaintext inside tags.
 	 *  - an XML comment.
-	 *  - a DOCTYPE declaration.
 	 *  - a processing instruction, e.g. `<?xml version="1.0" ?>`.
 	 *
 	 * The Tag Processor currently only supports the tag token.
@@ -1845,7 +1844,6 @@ class WP_XML_Tag_Processor {
 	 *  - `#text` when matched on a text node.
 	 *  - `#cdata-section` when matched on a CDATA node.
 	 *  - `#comment` when matched on a comment.
-	 *  - `#doctype` when matched on a DOCTYPE declaration.
 	 *  - `#presumptuous-tag` when matched on an empty tag closer.
 	 *
 	 * @since WP_VERSION
@@ -1871,7 +1869,6 @@ class WP_XML_Tag_Processor {
 	 *
 	 * Dynamic names:
 	 *  - Uppercase tag name for tag matches.
-	 *  - `xml` for DOCTYPE declarations.
 	 *
 	 * Note that if the Tag Processor is not matched on a token
 	 * then this function will return `null`, either because it

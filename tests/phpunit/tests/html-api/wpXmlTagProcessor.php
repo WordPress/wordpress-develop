@@ -62,14 +62,14 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	/**
 	 * @ticket 58009
 	 *
-	 * @covers WP_XML_Tag_Processor::has_self_closing_flag
+	 * @covers WP_XML_Tag_Processor::is_empty_element
 	 *
-	 * @dataProvider data_has_self_closing_flag
+	 * @dataProvider data_is_empty_element
 	 *
 	 * @param string $xml Input XML whose first tag might contain the self-closing flag `/`.
 	 * @param bool $flag_is_set Whether the input XML's first tag contains the self-closing flag.
 	 */
-	public function test_has_self_closing_flag_matches_input_xml( $xml, $flag_is_set ) {
+	public function test_is_empty_element_matches_input_xml( $xml, $flag_is_set ) {
 		$processor = new WP_XML_Tag_Processor( $xml );
 		$processor->next_tag( array( 'tag_closers' => 'visit' ) );
 
@@ -85,30 +85,25 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_has_self_closing_flag() {
+	public static function data_is_empty_element() {
 		return array(
 			// These should not have a self-closer, and will leave an element un-closed if it's assumed they are self-closing.
 			'Self-closing flag on non-void XML element' => array( '<div />', true ),
-//			'No self-closing flag on non-void XML element' => array( '<div>', false ),
+			'No self-closing flag on non-void XML element' => array( '<div>', false ),
 //			// These should not have a self-closer, but are benign when used because the elements are void.
-//			'Self-closing flag on void XML element'     => array( '<img />', true ),
-//			'No self-closing flag on void XML element'  => array( '<img>', false ),
-//			'Self-closing flag on void XML element without spacing' => array( '<img/>', true ),
+			'Self-closing flag on void XML element'     => array( '<img />', true ),
+			'No self-closing flag on void XML element'  => array( '<img>', false ),
+			'Self-closing flag on void XML element without spacing' => array( '<img/>', true ),
 //			// These should not have a self-closer, but as part of a tag closer they are entirely ignored.
-//			'Self-closing flag on tag closer'            => array( '</textarea />', true ),
-//			'No self-closing flag on tag closer'         => array( '</textarea>', false ),
+			'No self-closing flag on tag closer'         => array( '</textarea>', false ),
 //			// These can and should have self-closers, and will leave an element un-closed if it's assumed they aren't self-closing.
-//			'Self-closing flag on a foreign element'     => array( '<circle />', true ),
-//			'No self-closing flag on a foreign element'  => array( '<circle>', false ),
+			'Self-closing flag on a foreign element'     => array( '<circle />', true ),
+			'No self-closing flag on a foreign element'  => array( '<circle>', false ),
 //			// These involve syntax peculiarities.
-//			'Self-closing flag after extra spaces'       => array( '<div      />', true ),
-//			'Self-closing flag after attribute'          => array( '<div id=test/>', true ),
-//			'Self-closing flag after quoted attribute'   => array( '<div id="test"/>', true ),
-//			'Self-closing flag after boolean attribute'  => array( '<div enabled/>', true ),
-//			'Boolean attribute that looks like a self-closer' => array( '<div / >', false ),
+			'Self-closing flag after extra spaces'       => array( '<div      />', true ),
+			'Self-closing flag after quoted attribute'   => array( '<div id="test"/>', true ),
 		);
 	}
-
 
 	/**
 	 * @ticket 56299
@@ -1194,35 +1189,18 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	public static function data_incomplete_syntax_elements() {
 		return array(
 			'Incomplete tag name'                  => array( '<swit' ),
-			// 'Incomplete tag (no attributes)'       => array( '<div' ),
-			// 'Incomplete tag (attributes)'          => array( '<div inert title="test"' ),
-			'Incomplete attribute (unquoted)'      => array( '<button disabled' ),
+			'Incomplete tag (no attributes)'       => array( '<div' ),
+			'Incomplete tag (attributes)'          => array( '<div inert="yes" title="test"' ),
+			'Incomplete attribute (before =)'      => array( '<button disabled' ),
+			'Incomplete attribute (before ")'      => array( '<button disabled=' ),
+			'Incomplete attribute (before closing quote)' => array( '<button disabled="value started' ),
 			'Incomplete attribute (single quoted)' => array( "<li class='just-another class" ),
 			'Incomplete attribute (double quoted)' => array( '<iframe src="https://www.example.com/embed/abcdef' ),
-			// 'Incomplete comment (normative)'       => array( '<!-- without end' ),
-			// 'Incomplete comment (missing --)'      => array( '<!-- without end --' ),
-			// 'Incomplete comment (--!)'             => array( '<!-- without end --!' ),
-			// 'Incomplete DOCTYPE'                   => array( '<!DOCTYPE xml' ),
-			// 'Partial DOCTYPE'                      => array( '<!DOCTY' ),
-			// 'Incomplete CDATA'                     => array( '<![CDATA[something inside of here needs to get out' ),
-			// 'Partial CDATA'                        => array( '<![CDA' ),
-			// 'Partially closed CDATA]'              => array( '<![CDATA[cannot escape]' ),
-			// 'Unclosed IFRAME'                      => array( '<iframe><div>' ),
-			// 'Unclosed NOEMBED'                     => array( '<noembed><div>' ),
-			// 'Unclosed NOFRAMES'                    => array( '<noframes><div>' ),
-			// 'Unclosed SCRIPT'                      => array( '<script><div>' ),
-			// 'Unclosed STYLE'                       => array( '<style><div>' ),
-			// 'Unclosed TEXTAREA'                    => array( '<textarea><div>' ),
-			// 'Unclosed TITLE'                       => array( '<title><div>' ),
-			// 'Unclosed XMP'                         => array( '<xmp><div>' ),
-			// 'Partially closed IFRAME'              => array( '<iframe><div></iframe' ),
-			// 'Partially closed NOEMBED'             => array( '<noembed><div></noembed' ),
-			// 'Partially closed NOFRAMES'            => array( '<noframes><div></noframes' ),
-			// 'Partially closed SCRIPT'              => array( '<script><div></script' ),
-			// 'Partially closed STYLE'               => array( '<style><div></style' ),
-			// 'Partially closed TEXTAREA'            => array( '<textarea><div></textarea' ),
-			// 'Partially closed TITLE'               => array( '<title><div></title' ),
-			// 'Partially closed XMP'                 => array( '<xmp><div></xmp' ),
+			'Incomplete comment (normative)'       => array( '<!-- without end' ),
+			'Incomplete comment (missing --)'      => array( '<!-- without end --' ),
+			'Incomplete CDATA'                     => array( '<![CDATA[something inside of here needs to get out' ),
+			'Partial CDATA'                        => array( '<![CDA' ),
+			'Partially closed CDATA]'              => array( '<![CDATA[cannot escape]' ),
 		);
 	}
 
@@ -1252,6 +1230,15 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor = new WP_XML_Tag_Processor( '</ ' );
 		$result    = $processor->next_tag();
 		$this->assertFalse( $result, 'Did not handle "</ " xml properly.' );
+	}
+
+	/**
+	 * @covers WP_XML_Tag_Processor::next_tag
+	 */
+	public function test_rejects_empty_element_that_is_also_a_closer() {
+		$processor = new WP_XML_Tag_Processor( '</div/> ' );
+		$result    = $processor->next_tag();
+		$this->assertFalse( $result, 'Did not handle "</div/>" xml properly.' );
 	}
 
 	/**
@@ -1310,7 +1297,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * 
-	 * @return void
+	 * @ticket 60385
 	 */
 	public function test_xml_declaration()
 	{
@@ -1327,7 +1314,24 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * 
-	 * @return void
+	 * @ticket 60385
+	 */
+	public function test_xml_declaration_with_single_quotes()
+	{
+		$processor = new WP_XML_Tag_Processor( "<?xml version='1.0' encoding='UTF-8' ?>" );
+		$this->assertTrue($processor->next_token(), 'The XML declaration was not found.');
+		$this->assertEquals(
+			'#xml-declaration',
+			$processor->get_token_type(),
+			'The XML declaration was not correctly identified.'
+		);
+		$this->assertEquals('1.0', $processor->get_attribute('version'), 'The version attribute was not correctly captured.');
+		$this->assertEquals('UTF-8', $processor->get_attribute('encoding'), 'The encoding attribute was not correctly captured.');
+	}
+
+	/**
+	 * 
+	 * @ticket 60385
 	 */
 	public function test_processor_instructions()
 	{
