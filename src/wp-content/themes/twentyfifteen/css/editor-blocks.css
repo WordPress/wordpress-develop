@@ -518,8 +518,8 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-transform: none;
 }
 
-.wp-block-quote[class*="-text-color"] cite,
-.wp-block-quote[style*="color"] cite {
+.wp-block-quote.has-text-color cite,
+.wp-block-quote.has-background cite {
 	color: inherit;
 }
 
