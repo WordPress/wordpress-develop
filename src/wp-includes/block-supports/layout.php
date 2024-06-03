@@ -1025,33 +1025,50 @@ add_filter( 'render_block_core/group', 'wp_restore_group_inner_container', 10, 2
  * @return string Filtered block content.
  */
 function wp_restore_image_outer_container( $block_content, $block ) {
-	if ( wp_theme_has_theme_json() ) {
+	$image_with_align = "
+/# 1) everything up to the class attribute contents
+(
+	^\s*
+	<figure\b
+	[^>]*
+	\bclass=
+	[\"']
+)
+# 2) the class attribute contents
+(
+	[^\"']*
+	\bwp-block-image\b
+	[^\"']*
+	\b(?:alignleft|alignright|aligncenter)\b
+	[^\"']*
+)
+# 3) everything after the class attribute contents
+(
+	[\"']
+	[^>]*
+	>
+	.*
+	<\/figure>
+)/iUx";
+
+	if (
+		wp_theme_has_theme_json() ||
+		0 === preg_match( $image_with_align, $block_content, $matches )
+	) {
 		return $block_content;
 	}
 
-	$tags          = new WP_HTML_Tag_Processor( $block_content );
-	$wrapper_query = array(
-		'tag_name'   => 'div',
-		'class_name' => 'wp-block-image',
-	);
-	if ( ! $tags->next_tag( $wrapper_query ) ) {
-		return $block_content;
+	$wrapper_classnames = array( 'wp-block-image' );
+
+	// If the block has a classNames attribute these classnames need to be removed from the content and added back
+	// to the new wrapper div also.
+	if ( ! empty( $block['attrs']['className'] ) ) {
+		$wrapper_classnames = array_merge( $wrapper_classnames, explode( ' ', $block['attrs']['className'] ) );
 	}
+	$content_classnames          = explode( ' ', $matches[2] );
+	$filtered_content_classnames = array_diff( $content_classnames, $wrapper_classnames );
 
-	$tags->set_bookmark( 'wrapper-div' );
-	$tags->next_tag();
-
-	$inner_classnames = explode( ' ', $tags->get_attribute( 'class' ) );
-	foreach ( $inner_classnames as $classname ) {
-		if ( 0 === strpos( $classname, 'wp-duotone' ) ) {
-			$tags->remove_class( $classname );
-			$tags->seek( 'wrapper-div' );
-			$tags->add_class( $classname );
-			break;
-		}
-	}
-
-	return $tags->get_updated_html();
+	return '<div class="' . implode( ' ', $wrapper_classnames ) . '">' . $matches[1] . implode( ' ', $filtered_content_classnames ) . $matches[3] . '</div>';
 }
 
 add_filter( 'render_block_core/image', 'wp_restore_image_outer_container', 10, 2 );

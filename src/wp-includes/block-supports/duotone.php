@@ -57,3 +57,7 @@ add_filter( 'block_editor_settings_all', array( 'WP_Duotone', 'add_editor_settin
 
 // Migrate the old experimental duotone support flag.
 add_filter( 'block_type_metadata_settings', array( 'WP_Duotone', 'migrate_experimental_duotone_support_flag' ), 10, 2 );
+
+// Restore duotone classes to the image wrapper div.
+add_filter( 'render_block_core/image', array( 'WP_Duotone', 'restore_image_outer_container' ), 11, 2 );
+
