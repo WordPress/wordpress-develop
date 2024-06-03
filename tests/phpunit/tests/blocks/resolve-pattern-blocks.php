@@ -19,7 +19,7 @@ class Tests_Blocks_Resolve_Pattern_Blocks extends WP_UnitTestCase {
 				'title'       => 'Test',
 				'content'     => '<!-- wp:paragraph -->Hello<!-- /wp:paragraph --><!-- wp:paragraph -->World<!-- /wp:paragraph -->',
 				'description' => 'Test pattern.',
-			) 
+			)
 		);
 		register_block_pattern(
 			'core/recursive',
