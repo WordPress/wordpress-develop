@@ -2700,7 +2700,7 @@ function enqueue_block_styles_handle_assets() {
 				continue;
 			}
 
-			/**
+			/*
 			 * Add the path to the CSS file in the style extra data if missing.
 			 *
 			 * This allow WordPress to inline the CSS instead of loading it like an external  resource if the file
