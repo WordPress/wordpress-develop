@@ -507,7 +507,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_test_autoloaded_options()
 	 */
-	public function test_wp_autoloaded_options_test_no_warning(): void {
+	public function test_wp_autoloaded_options_test_no_warning() {
 		$expected_label  = esc_html__( 'Autoloaded options are acceptable' );
 		$expected_status = 'good';
 
@@ -523,7 +523,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_test_autoloaded_options()
 	 */
-	public function test_wp_autoloaded_options_test_warning(): void {
+	public function test_wp_autoloaded_options_test_warning() {
 		self::set_autoloaded_option( 800000 );
 
 		$expected_label  = esc_html__( 'Autoloaded options could affect performance' );
@@ -541,7 +541,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_autoloaded_options_size()
 	 */
-	public function test_get_autoloaded_options_size(): void {
+	public function test_get_autoloaded_options_size() {
 		global $wpdb;
 
 		$autoload_values = wp_autoload_values_to_autoload();
@@ -569,7 +569,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @param int $bytes bytes to load in options.
 	 */
-	public static function set_autoloaded_option( int $bytes = 800000 ): void {
+	public static function set_autoloaded_option( int $bytes = 800000 ) {
 		$heavy_option_string = wp_generate_password( $bytes );
 
 		// Force autoloading so that WordPress core does not override it. See https://core.trac.wordpress.org/changeset/57920.
