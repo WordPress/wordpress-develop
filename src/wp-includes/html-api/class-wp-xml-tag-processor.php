@@ -1947,8 +1947,17 @@ class WP_XML_Tag_Processor {
 		}
 
 		$text = substr( $this->xml, $this->text_starts_at, $this->text_length );
+		/*
+		 * > the XML processor must behave as if it normalized all line breaks in external parsed
+		 * > entities (including the document entity) on input, before parsing, by translating both
+		 * > the two-character sequence #xD #xA and any #xD that is not followed by #xA to a single
+		 * > #xA character.
+		 * 
+		 * See https://www.w3.org/TR/xml/#sec-line-ends
+		 */
+		$text = str_replace( array("\r\n", "\r"), "\n", $text );
 
-		// Comment data is not decoded.
+		// Comment data and CDATA section are not decoded any further.
 		if (
 			self::STATE_CDATA_NODE === $this->parser_state ||
 			self::STATE_COMMENT === $this->parser_state

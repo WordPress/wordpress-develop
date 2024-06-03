@@ -587,6 +587,12 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$this->assertFalse( $processor->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
 	}
 
+	/**
+	 * @ticket 56299
+	 * 
+	 * @covers WP_XML_Tag_Processor::next_tag
+	 * @covers WP_XML_Tag_Processor::get_breadcrumbs
+	 */
 	public function test_breadcrumbs()
 	{
 		$processor = new WP_XML_Tag_Processor( <<<XML
@@ -633,6 +639,44 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		);
 
 		$this->assertFalse($processor->next_token());
+	}
+
+	/**
+	 * @ticket 57852
+	 *
+	 * @covers WP_XML_Tag_Processor::get_modifiable_text
+	 */
+	public function test_normalizes_carriage_returns_in_text_nodes()
+	{
+		$processor = new WP_XML_Tag_Processor(
+			"<div>We are\rnormalizing\r\n\nthe\n\r\r\r\ncarriage returns"
+		);
+		$processor->next_tag();
+		$processor->next_token();
+		$this->assertEquals(
+			"We are\nnormalizing\n\nthe\n\n\n\ncarriage returns",
+			$processor->get_modifiable_text(),
+			'get_raw_token() did not normalize the carriage return characters'
+		);
+	}
+
+	/**
+	 * @ticket 57852
+	 *
+	 * @covers WP_XML_Tag_Processor::get_modifiable_text
+	 */
+	public function test_normalizes_carriage_returns_in_cdata()
+	{
+		$processor = new WP_XML_Tag_Processor(
+			"<div><![CDATA[We are\rnormalizing\r\n\nthe\n\r\r\r\ncarriage returns]]>"
+		);
+		$processor->next_tag();
+		$processor->next_token();
+		$this->assertEquals(
+			"We are\nnormalizing\n\nthe\n\n\n\ncarriage returns",
+			$processor->get_modifiable_text(),
+			'get_raw_token() did not normalize the carriage return characters'
+		);
 	}
 
 	/**
