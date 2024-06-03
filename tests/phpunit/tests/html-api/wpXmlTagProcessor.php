@@ -464,6 +464,35 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$this->assertSame( '<div wonky="true"><img hidden></div>', $processor->get_updated_xml() );
 	}
 
+	public function test_declare_element_as_pcdata()
+	{
+		$text = <<<XML
+			This text contains syntax that may seem
+			like XML nodes:
+
+			<input />
+			</seemingly invalid element --/>
+			<!-- is this a comment? -->
+			<?xml version="1.0" ?>
+			
+			&amp;&lt;&gt;&quot;&apos;
+
+			But! It's all treated as text.
+		XML;
+		$processor = new WP_XML_Tag_Processor(
+			"<root><my-pcdata>$text</my-pcdata></root>"
+		);
+ 		$processor->declare_element_as_pcdata('my-pcdata');
+ 		$processor->next_tag('my-pcdata');
+ 		$processor->next_token();
+ 
+		$this->assertEquals(
+ 			$text,
+ 			$processor->get_modifiable_text(),
+ 			'get_modifiable_text() did not return the expected text'
+ 		);
+	}
+
 	/**
 	 * Ensures that bookmarks start and length correctly describe a given token in XML.
 	 *

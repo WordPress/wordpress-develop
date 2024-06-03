@@ -18,6 +18,20 @@
  *        * <!ATTLIST, see https://www.w3.org/TR/xml/#attdecls
  *        * <!ENTITY, see https://www.w3.org/TR/xml/#sec-entity-decl
  * 	      * Conditional sections, see https://www.w3.org/TR/xml/#sec-condition-sect
+ * 
+ * @TODO Explore declaring elements as PCdata directly in the XML document,
+ *       for example as follows:
+ * 
+ *       <!ELEMENT p (#PCDATA|emph)* >
+ * 
+ *       or
+ * 
+ *       <!DOCTYPE test [
+ *           <!ELEMENT test (#PCDATA) >
+ *           <!ENTITY % xx '&#37;zz;'>
+ *           <!ENTITY % zz '&#60;!ENTITY tricky "error-prone" >' >
+ *           %xx;
+ *       ]>
  */
 class WP_XML_Tag_Processor {
 	/**
@@ -551,10 +565,12 @@ class WP_XML_Tag_Processor {
 		$this->bytes_already_parsed = $tag_ends_at + 1;
 		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
 
+		$tag_name = $this->get_tag();
+
 		// Update the stack of open elements
 		if ( $this->is_closing_tag ) {
 			$popped = $this->pop_open_element();
-			if($popped !== $this->get_tag()) {
+			if($popped !== $tag_name) {
 				$this->parser_state = self::STATE_INVALID_INPUT;
 				_doing_it_wrong(
 					__METHOD__,
@@ -567,8 +583,9 @@ class WP_XML_Tag_Processor {
 				$this->parsing_stage = self::STAGE_MISC;
 			}
 		} else {
-			$this->push_open_element($this->get_tag());
+			$this->push_open_element($tag_name);
 		}
+
 		return true;
 	}
 
@@ -718,54 +735,33 @@ class WP_XML_Tag_Processor {
 	}
 
 	/**
-	 * Skips contents of PCDATA elements, namely title and textarea tags.
+	 * Finds the end tag for any PCDATA element.
 	 *
 	 * @since WP_VERSION
 	 *
 	 * @see https://www.w3.org/TR/xml/#sec-mixed-content
 	 *
 	 * @param string $tag_name The tag name which will close the PCDATA region.
-	 * @return bool Whether an end to the PCDATA region was found before the end of the document.
+	 * @return false|int Byte offset of the closing tag, or false if not found.
 	 */
-	private function skip_pcdata( $tag_name ) {
+	private function find_pcdata_closer( $tag_name ) {
 		$xml       = $this->xml;
 		$doc_length = strlen( $xml );
 		$tag_length = strlen( $tag_name );
 
 		$at = $this->bytes_already_parsed;
-
+		$tag_name_starts_at = null;
 		while ( false !== $at && $at < $doc_length ) {
-			$at                       = strpos( $this->xml, '</', $at );
-			$this->tag_name_starts_at = $at;
+			$at                 = strpos( $this->xml, '</' . $tag_name, $at );
+			$tag_name_starts_at = $at;
 
 			// Fail if there is no possible tag closer.
-			if ( false === $at || ( $at + $tag_length ) >= $doc_length ) {
+			if ( false === $at ) {
 				return false;
 			}
 
-			$at += 2;
-
-			/*
-			 * Find a case-sensitive match to the tag name.
-			 *
-			 * Because tag names are limited to US-ASCII there is no
-			 * need to perform any kind of Unicode normalization when
-			 * comparing; any character which could be impacted by such
-			 * normalization could not be part of a tag name.
-			 */
-			for ( $i = 0; $i < $tag_length; $i++ ) {
-				if ( $xml[ $at + $i ] !== $tag_name[ $i ] ) {
-					$at += $i;
-					continue 2;
-				}
-			}
-
-			$at                        += $tag_length;
-			$this->bytes_already_parsed = $at;
-
-			if ( $at >= strlen( $xml ) ) {
-				return false;
-			}
+			$at += 2 + $tag_length;
+			$at += strspn( $this->xml, " \t\f\r\n", $at );
 
 			/*
 			 * Ensure that the tag name terminates to avoid matching on
@@ -773,32 +769,11 @@ class WP_XML_Tag_Processor {
 			 * "</wp:contentrug" should not match for "</wp:content" even
 			 * though "wp:content" is found within the text.
 			 */
-			$c = $xml[ $at ];
-			if ( ' ' !== $c && "\t" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
-				continue;
-			}
-
-			while ( $this->parse_next_attribute() ) {
-				continue;
-			}
-
-			$at = $this->bytes_already_parsed;
-			if ( $at >= strlen( $this->xml ) ) {
+			if ( $at >= strlen( $xml ) ) {
 				return false;
 			}
-
-			if ( '>' === $xml[ $at ] ) {
-				$this->bytes_already_parsed = $at + 1;
-				return true;
-			}
-
-			if ( $at + 1 >= strlen( $this->xml ) ) {
-				return false;
-			}
-
-			if ( '/' === $xml[ $at ] && '>' === $xml[ $at + 1 ] ) {
-				$this->bytes_already_parsed = $at + 2;
-				return true;
+			if ( $xml[ $at ] === '>' ) {
+				return $tag_name_starts_at;
 			}
 		}
 
@@ -826,30 +801,78 @@ class WP_XML_Tag_Processor {
 		return $this->stack_of_open_elements;
 	}
 
-
-	private $pcdata_elements = null;
 	/**
+	 * Tag names declared as PCDATA elements.
 	 * 
-	 * @TODO Explore declaring elements as PCdata directly in the XML document,
-	 *       for example as follows:
+	 * PCDATA elements are elements in which everything is treated as
+	 * text, even syntax that may look like other elements, closers,
+	 * processing instructions, etc.
 	 * 
-	 *       <!ELEMENT p (#PCDATA|emph)* >
+	 * Example:
 	 * 
-	 *       or
+	 *     <root>
+	 *         <my-pcdata>
+	 *             This text contains syntax that seems 
+	 *             like XML nodes:
 	 * 
-	 *       <!DOCTYPE test [
-	 *           <!ELEMENT test (#PCDATA) >
-	 *           <!ENTITY % xx '&#37;zz;'>
-	 *           <!ENTITY % zz '&#60;!ENTITY tricky "error-prone" >' >
-	 *           %xx;
-	 *       ]>
+	 *             <input />
+	 *             </seemingly invalid element --/>
+	 *             <!-- is this a comment? -->
+	 *             <?xml version="1.0" ?>
+	 *             
+	 *             &amp;&lt;&gt;&quot;&apos;
 	 * 
-	 * @param mixed $breadcrumbs
-	 * @return bool
+	 * 		       But! It's all treated as text.
+	 * 		   </my-pcdata>
+	 *    </root>
+	 * 
+	 * @var array
+	 */
+	private $pcdata_elements = array();
+
+	/**
+	 * Declares an element as PCDATA.
+	 * 
+	 * PCDATA elements are elements in which everything is treated as
+	 * text, even syntax that may look like other elements, closers,
+	 * processing instructions, etc.
+	 * 
+	 * For example:
+	 *     
+	 *      $processor = new WP_XML_Tag_Processor(
+	 *      <<<XML
+	 *          <root>
+	 *              <my-pcdata>
+	 *                  This text uses syntax that may seem
+	 *                  like XML nodes:
+	 *      
+	 *                  <input />
+	 *                  </seemingly invalid element --/>
+	 *                  <!-- is this a comment? -->
+	 *                  <?xml version="1.0" ?>
+	 *                  
+	 *                  &amp;&lt;&gt;&quot;&apos;
+	 *      
+	 *                  But! It's all treated as text.
+	 *              </my-pcdata>
+	 *         </root>
+	 * 	    XML
+	 *      );
+	 * 		
+	 * 		$processor->declare_element_as_pcdata('my-pcdata');
+	 * 		$processor->next_tag('my-pcdata');
+	 * 		$processor->next_token();
+	 * 
+	 *      // Returns everything inside the <my-pcdata> 
+	 *      // element as text:
+	 * 		$processor->get_modifiable_text();
+	 * 
+	 * @param string $element_name The name of the element to declare as PCDATA.
+	 * @return void
 	 */
 	public function declare_element_as_pcdata($element_name)
 	{
-		$this->pcdata_elements[] = $element_name;
+		$this->pcdata_elements[$element_name] = true;
 	}
 
 	/**
@@ -873,21 +896,47 @@ class WP_XML_Tag_Processor {
 		$was_at     = $this->bytes_already_parsed;
 		$at         = $was_at;
 
-		$is_pcdata_element = $this->stack_of_open_elements;
 		while ( false !== $at && $at < $doc_length ) {
-			// if ( $is_implicit_cdata ) {
-			// 	$closer_at = strpos($xml, '</' . $tag_name, $at);
-			// 	if (false === $closer_at) {
-			// 		$this->parser_state = self::STATE_INCOMPLETE_INPUT;
-			// 		return false;
-			// 	}
+			/*
+			 * If we are in a PCData element, everything until the closer
+			 * is considered text.
+			 */
+			if (
+				$this->parsing_stage === self::STAGE_ELEMENT &&
+				array_key_exists(
+					end($this->stack_of_open_elements),
+					$this->pcdata_elements
+				)
+			) {
+				$closer_at = $this->find_pcdata_closer(
+					end($this->stack_of_open_elements)
+				);
 
-			// 	$this->bytes_already_parsed = $closer_at + 2 + strlen($tag_name);
-			// 	$this->skip_whitespace();
-			// 	if('>' !== $this->xml[$this->bytes_already_parsed]) {
-			// 		continue;
-			// 	}
-			// }
+				// Closer not found, the document is incomplete.
+				if ( false === $closer_at ) {
+					$this->parser_state         = self::STATE_INCOMPLETE_INPUT;
+					return false;
+				}
+
+				/*
+				 * Closer found at non-zero index – this is the first
+				 * pass after the opening tag. Emit a text node.
+				 */
+				if ( $at < $closer_at ) {
+					$this->parser_state         = self::STATE_CDATA_NODE;
+					$this->token_starts_at      = $was_at;
+					$this->token_length         = $closer_at - $was_at;
+					$this->text_starts_at       = $was_at;
+					$this->text_length          = $this->token_length;
+					$this->bytes_already_parsed = $closer_at;
+					return true;
+				}
+
+				/*
+				 * Otherwise, closer was found at a zero index – let's
+				 * fall through to the normal tag parsing logic.
+				 */
+			}
 
 			/*
 			 * Once the root element has been closed, only whitespace
@@ -1470,6 +1519,11 @@ class WP_XML_Tag_Processor {
 			$this->stack_of_open_elements,
 			$tag_name
 		);
+	}
+
+	private function last_open_element()
+	{
+		return end($this->stack_of_open_elements);
 	}
 
 	/**
