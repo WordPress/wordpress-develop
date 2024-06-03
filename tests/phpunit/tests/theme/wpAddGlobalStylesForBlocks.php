@@ -131,6 +131,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	 * @ticket 61165
 	 */
 	public function test_blocks_inline_styles_get_rendered() {
+		$this->set_up_third_party_block();
 		wp_register_style( 'global-styles', false, array(), true, true );
 		wp_enqueue_style( 'global-styles' );
 		wp_add_global_styles_for_blocks();
@@ -174,6 +175,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	 * @ticket 61165
 	 */
 	public function test_third_party_blocks_inline_styles_for_elements_get_rendered() {
+		$this->set_up_third_party_block();
 		wp_register_style( 'global-styles', false, array(), true, true );
 		wp_enqueue_style( 'global-styles' );
 		wp_add_global_styles_for_blocks();
