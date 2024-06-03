@@ -7855,9 +7855,9 @@ mockedApiResponse.Schema = {
                         "theme_json_version": {
                             "description": "Version of the theme.json schema used for the typography settings.",
                             "type": "integer",
-                            "default": 2,
+                            "default": 3,
                             "minimum": 2,
-                            "maximum": 2,
+                            "maximum": 3,
                             "required": false
                         },
                         "font_family_settings": {
@@ -7924,9 +7924,9 @@ mockedApiResponse.Schema = {
                         "theme_json_version": {
                             "description": "Version of the theme.json schema used for the typography settings.",
                             "type": "integer",
-                            "default": 2,
+                            "default": 3,
                             "minimum": 2,
-                            "maximum": 2,
+                            "maximum": 3,
                             "required": false
                         },
                         "font_family_settings": {
@@ -8057,9 +8057,9 @@ mockedApiResponse.Schema = {
                         "theme_json_version": {
                             "description": "Version of the theme.json schema used for the typography settings.",
                             "type": "integer",
-                            "default": 2,
+                            "default": 3,
                             "minimum": 2,
-                            "maximum": 2,
+                            "maximum": 3,
                             "required": false
                         },
                         "font_face_settings": {
