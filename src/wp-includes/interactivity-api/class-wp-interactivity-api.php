@@ -77,8 +77,7 @@ final class WP_Interactivity_API {
 	 * Stack of namespaces defined by `data-wp-interactive` directives, in
 	 * the order they are processed.
 	 *
-	 * This list is populated only during directive processing, and it should
-	 * become `null` afterwards.
+	 * This is only available during directive processing, otherwise it is `null`.
 	 *
 	 * @since 6.6.0
 	 * @var array<string>|null
