@@ -1256,6 +1256,35 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * 
+	 * @covers WP_XML_Tag_Processor::next_tag
+	 */
+	public function test_detects_invalid_document_no_root_tag() {
+		$processor = new WP_XML_Tag_Processor( <<<XML
+			<?xml version="1.0" encoding="UTF-8"?>
+			<!-- comment no root tag -->
+		XML
+		);
+		$this->assertFalse( $processor->next_tag(), 'Found a tag when there was none.' );
+		$this->assertTrue( $processor->invalid_document(), 'Did not mark a malformed XML document as invalid.' );
+	}
+
+	/**
+	 * 
+	 * @covers WP_XML_Tag_Processor::next_tag
+	 */
+	public function test_detects_invalid_document_unclosed_root_tag() {
+		$processor = new WP_XML_Tag_Processor( <<<XML
+			<?xml version="1.0" encoding="UTF-8"?>
+			<root>
+		XML
+		);
+		$this->assertTrue( $processor->next_tag(), 'Did not find a tag when there was one.' );
+		$this->assertFalse( $processor->next_tag(), 'Found a tag when there was none.' );
+		$this->assertTrue( $processor->invalid_document(), 'Did not mark a malformed XML document as invalid.' );
+	}
+
+	/**
 	 * @covers WP_XML_Tag_Processor::next_tag
 	 */
 	public function test_handles_malformed_taglike_open_short_xml() {

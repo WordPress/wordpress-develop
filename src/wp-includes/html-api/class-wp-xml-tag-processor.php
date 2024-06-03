@@ -442,6 +442,29 @@ class WP_XML_Tag_Processor {
 		$this->parser_state = self::STATE_READY;
 
 		if ( $this->bytes_already_parsed >= strlen( $this->xml ) ) {
+			if($this->parsing_stage === self::STAGE_PROLOG) {
+				$this->parser_state = self::STATE_INVALID_INPUT;
+				_doing_it_wrong(
+					__METHOD__,
+					__( "No root element was found." ),
+					'WP_VERSION'
+				);
+				return false;
+			}
+
+			if(
+				$this->parsing_stage === self::STAGE_ELEMENT &&
+				count($this->stack_of_open_elements) > 0
+			) {
+				$this->parser_state = self::STATE_INVALID_INPUT;
+				_doing_it_wrong(
+					__METHOD__,
+					__( "Root tag element not closed." ),
+					'WP_VERSION'
+				);
+				return false;
+			}
+
 			$this->parser_state = self::STATE_COMPLETE;
 			return false;
 		}
@@ -557,6 +580,10 @@ class WP_XML_Tag_Processor {
 	 */
 	public function paused_at_incomplete_token() {
 		return self::STATE_INCOMPLETE_INPUT === $this->parser_state;
+	}
+
+	public function invalid_document() {
+		return self::STATE_INVALID_INPUT === $this->parser_state;		
 	}
 
 	/**
