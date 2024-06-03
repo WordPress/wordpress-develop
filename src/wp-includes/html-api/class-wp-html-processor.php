@@ -201,15 +201,50 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	private $release_internal_bookmark_on_destruct = null;
 
-	/** @var WP_HTML_Stack_Event[] */
+	/**
+	 * Stores stack events which arise during parsing of the
+	 * HTML document, which will then supply the "match" events.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @var WP_HTML_Stack_Event[]
+	 */
 	private $element_queue = array();
 
-	/** @var ?WP_HTML_Stack_Event */
+	/**
+	 * Current stack event, if set, representing a matched token.
+	 *
+	 * Because the parser may internally point to a place further along in a document
+	 * than the nodes which have already been processed (some "virtual" nodes may have
+	 * appeared while scanning the HTML document), this will point at the "current" node
+	 * being processed. It comes from the front of the element queue.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @var ?WP_HTML_Stack_Event
+	 */
 	private $current_element = null;
 
-	/** @var ?WP_HTML_Token context node if created as a fragment parser. */
+	/**
+	 * Context node if created as a fragment parser.
+	 *
+	 * @var ?WP_HTML_Token
+	 */
 	private $context_node = null;
 
+	/**
+	 * Whether the parser has yet processed the context node,
+	 * if created as a fragment parser.
+	 *
+	 * The context node will be initially pushed onto the stack of open elements,
+	 * but when created as a fragment parser, this context element (and the implicit
+	 * HTML document node above it) should not be exposed as a matched token or node.
+	 *
+	 * This boolean indicates whether the processor should skip over the current
+	 * node in its initial search for the first node created from the input HTML.
+	 *
+	 * @var bool
+	 */
 	private $has_seen_context_node = false;
 
 	/*
@@ -515,6 +550,23 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		return true;
 	}
 
+
+	/**
+	 * Indicates if the current tag token is a tag closer.
+	 *
+	 * Example:
+	 *
+	 *     $p = WP_HTML_Processor::create_fragment( '<div></div>' );
+	 *     $p->next_tag( array( 'tag_name' => 'div', 'tag_closers' => 'visit' ) );
+	 *     $p->is_tag_closer() === false;
+	 *
+	 *     $p->next_tag( array( 'tag_name' => 'div', 'tag_closers' => 'visit' ) );
+	 *     $p->is_tag_closer() === true;
+	 *
+	 * @since 6.6.0 Subclassed for HTML Processor.
+	 *
+	 * @return bool Whether the current tag is a tag closer.
+	 */
 	public function is_tag_closer() {
 		return isset( $this->current_element )
 			? ( WP_HTML_Stack_Event::POP === $this->current_element->operation )
@@ -1406,6 +1458,26 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 	}
 
+	/**
+	 * Returns the node name represented by the token.
+	 *
+	 * This matches the DOM API value `nodeName`. Some values
+	 * are static, such as `#text` for a text node, while others
+	 * are dynamically generated from the token itself.
+	 *
+	 * Dynamic names:
+	 *  - Uppercase tag name for tag matches.
+	 *  - `html` for DOCTYPE declarations.
+	 *
+	 * Note that if the Tag Processor is not matched on a token
+	 * then this function will return `null`, either because it
+	 * hasn't yet found a token or because it reached the end
+	 * of the document without matching a token.
+	 *
+	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 *
+	 * @return string|null Name of the matched token.
+	 */
 	public function get_token_name() {
 		if ( isset( $this->current_element ) ) {
 			return $this->current_element->token->node_name;
@@ -1414,6 +1486,28 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		return parent::get_token_name();
 	}
 
+	/**
+	 * Indicates the kind of matched token, if any.
+	 *
+	 * This differs from `get_token_name()` in that it always
+	 * returns a static string indicating the type, whereas
+	 * `get_token_name()` may return values derived from the
+	 * token itself, such as a tag name or processing
+	 * instruction tag.
+	 *
+	 * Possible values:
+	 *  - `#tag` when matched on a tag.
+	 *  - `#text` when matched on a text node.
+	 *  - `#cdata-section` when matched on a CDATA node.
+	 *  - `#comment` when matched on a comment.
+	 *  - `#doctype` when matched on a DOCTYPE declaration.
+	 *  - `#presumptuous-tag` when matched on an empty tag closer.
+	 *  - `#funky-comment` when matched on a funky comment.
+	 *
+	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 *
+	 * @return string|null What kind of token is matched, or null.
+	 */
 	public function get_token_type() {
 		if ( isset( $this->current_element ) ) {
 			$node_name = $this->current_element->token->node_name;
@@ -1472,22 +1566,67 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		return null;
 	}
 
+	/**
+	 * Gets lowercase names of all attributes matching a given prefix in the current tag.
+	 *
+	 * Note that matching is case-insensitive. This is in accordance with the spec:
+	 *
+	 * > There must never be two or more attributes on
+	 * > the same start tag whose names are an ASCII
+	 * > case-insensitive match for each other.
+	 *     - HTML 5 spec
+	 *
+	 * Example:
+	 *
+	 *     $p = new WP_HTML_Tag_Processor( '<div data-ENABLED class="test" DATA-test-id="14">Test</div>' );
+	 *     $p->next_tag( array( 'class_name' => 'test' ) ) === true;
+	 *     $p->get_attribute_names_with_prefix( 'data-' ) === array( 'data-enabled', 'data-test-id' );
+	 *
+	 *     $p->next_tag() === false;
+	 *     $p->get_attribute_names_with_prefix( 'data-' ) === null;
+	 *
+	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
+	 *
+	 * @param string $prefix Prefix of requested attribute names.
+	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
+	 */
 	public function get_attribute_names_with_prefix( $prefix ) {
 		if ( isset( $this->current_element ) ) {
 			if ( WP_HTML_Stack_Event::POP === $this->current_element->operation ) {
 				return null;
 			}
 
-			// @todo: Create `is_virtual_node()` or `get_node_reality()`
 			$mark = $this->bookmarks[ $this->current_element->token->bookmark_name ];
 			if ( 0 === $mark->length ) {
 				return null;
 			}
 		}
 
-		return parent::get_attribute_names_with_prefix( $prefix ); // TODO: Change the autogenerated stub
+		return parent::get_attribute_names_with_prefix( $prefix );
 	}
 
+	/**
+	 * Returns the modifiable text for a matched token, or an empty string.
+	 *
+	 * Modifiable text is text content that may be read and changed without
+	 * changing the HTML structure of the document around it. This includes
+	 * the contents of `#text` nodes in the HTML as well as the inner
+	 * contents of HTML comments, Processing Instructions, and others, even
+	 * though these nodes aren't part of a parsed DOM tree. They also contain
+	 * the contents of SCRIPT and STYLE tags, of TEXTAREA tags, and of any
+	 * other section in an HTML document which cannot contain HTML markup (DATA).
+	 *
+	 * If a token has no modifiable text then an empty string is returned to
+	 * avoid needless crashing or type errors. An empty string does not mean
+	 * that a token has modifiable text, and a token with modifiable text may
+	 * have an empty string (e.g. a comment with no contents).
+	 *
+	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 *
+	 * @return string
+	 */
 	public function get_modifiable_text() {
 		if ( isset( $this->current_element ) ) {
 			if ( WP_HTML_Stack_Event::POP === $this->current_element->operation ) {
