@@ -546,7 +546,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$autoload_values = wp_autoload_values_to_autoload();
 
-		$autoloaded_options_size = $wpdb->get_var(
+		$autoloaded_options_size = (int) $wpdb->get_var(
 			$wpdb->prepare(
 				sprintf(
 					"SELECT SUM(LENGTH(option_value)) FROM $wpdb->options WHERE autoload IN (%s)",
