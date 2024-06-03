@@ -98,7 +98,6 @@ class WP_XML_Tag_Processor {
 	 * | *CDATA node*    | Found a CDATA section; this is modifiable.                           |
 	 * | *Comment*       | Found a comment or bogus comment; this is modifiable.                |
 	 * | *Presumptuous*  | Found an empty tag closer: `</>`.                                    |
-	 * | *Funky comment* | Found a tag closer with an invalid tag name; this is modifiable.     |
 	 *
 	 * @since WP_VERSION
 	 *
@@ -111,7 +110,6 @@ class WP_XML_Tag_Processor {
 	 * @see WP_XML_Tag_Processor::STATE_COMMENT
 	 * @see WP_XML_Tag_Processor::STATE_DOCTYPE
 	 * @see WP_XML_Tag_Processor::STATE_PRESUMPTUOUS_TAG
-	 * @see WP_XML_Tag_Processor::STATE_FUNKY_COMMENT
 	 *
 	 * @var string
 	 */
@@ -512,96 +510,6 @@ class WP_XML_Tag_Processor {
 		$this->parser_state         = self::STATE_MATCHED_TAG;
 		$this->bytes_already_parsed = $tag_ends_at + 1;
 		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
-
-		/*
-		 * For non-DATA sections which might contain text that looks like XML tags but
-		 * isn't, scan with the appropriate alternative mode. Looking at the first letter
-		 * of the tag name as a pre-check avoids a string allocation when it's not needed.
-		 */
-		$t = $this->xml[ $this->tag_name_starts_at ];
-		if (
-			$this->is_closing_tag ||
-			! (
-				'i' === $t || 'I' === $t ||
-				'n' === $t || 'N' === $t ||
-				's' === $t || 'S' === $t ||
-				't' === $t || 'T' === $t ||
-				'x' === $t || 'X' === $t
-			)
-		) {
-			return true;
-		}
-
-		$tag_name = $this->get_tag();
-
-		/*
-		 * Preserve the opening tag pointers, as these will be overwritten
-		 * when finding the closing tag. They will be reset after finding
-		 * the closing to tag to point to the opening of the special atomic
-		 * tag sequence.
-		 */
-		$tag_name_starts_at   = $this->tag_name_starts_at;
-		$tag_name_length      = $this->tag_name_length;
-		$tag_ends_at          = $this->token_starts_at + $this->token_length;
-		$attributes           = $this->attributes;
-
-		// Find the closing tag if necessary.
-		$found_closer = false;
-		switch ( $tag_name ) {
-			case 'SCRIPT':
-				$found_closer = $this->skip_script_data();
-				break;
-
-			case 'TEXTAREA':
-			case 'TITLE':
-				$found_closer = $this->skip_rcdata( $tag_name );
-				break;
-
-			/*
-			 * In the browser this list would include the NOSCRIPT element,
-			 * but the Tag Processor is an environment with the scripting
-			 * flag disabled, meaning that it needs to descend into the
-			 * NOSCRIPT element to be able to properly process what will be
-			 * sent to a browser.
-			 *
-			 * Note that this rule makes XML5 syntax incompatible with XML,
-			 * because the parsing of this token depends on client application.
-			 * The NOSCRIPT element cannot be represented in the XXML syntax.
-			 */
-			case 'IFRAME':
-			case 'NOEMBED':
-			case 'NOFRAMES':
-			case 'STYLE':
-			case 'XMP':
-				$found_closer = $this->skip_rawtext( $tag_name );
-				break;
-
-			// No other tags should be treated in their entirety here.
-			default:
-				return true;
-		}
-
-		if ( ! $found_closer ) {
-			$this->parser_state         = self::STATE_INCOMPLETE_INPUT;
-			$this->bytes_already_parsed = $was_at;
-			return false;
-		}
-
-		/*
-		 * The values here look like they reference the opening tag but they reference
-		 * the closing tag instead. This is why the opening tag values were stored
-		 * above in a variable. It reads confusingly here, but that's because the
-		 * functions that skip the contents have moved all the internal cursors past
-		 * the inner content of the tag.
-		 */
-		$this->token_starts_at      = $was_at;
-		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
-		$this->text_starts_at       = $tag_ends_at;
-		$this->text_length          = $this->tag_name_starts_at - $this->text_starts_at;
-		$this->tag_name_starts_at   = $tag_name_starts_at;
-		$this->tag_name_length      = $tag_name_length;
-		$this->attributes           = $attributes;
-
 		return true;
 	}
 
@@ -854,147 +762,6 @@ class WP_XML_Tag_Processor {
 	}
 
 	/**
-	 * Skips contents of script tags.
-	 *
-	 * @since WP_VERSION
-	 *
-	 * @return bool Whether the script tag was closed before the end of the document.
-	 */
-	private function skip_script_data() {
-		$state      = 'unescaped';
-		$xml       = $this->xml;
-		$doc_length = strlen( $xml );
-		$at         = $this->bytes_already_parsed;
-
-		while ( false !== $at && $at < $doc_length ) {
-			$at += strcspn( $xml, '-<', $at );
-
-			/*
-			 * For all script states a "-->"  transitions
-			 * back into the normal unescaped script mode,
-			 * even if that's the current state.
-			 */
-			if (
-				$at + 2 < $doc_length &&
-				'-' === $xml[ $at ] &&
-				'-' === $xml[ $at + 1 ] &&
-				'>' === $xml[ $at + 2 ]
-			) {
-				$at   += 3;
-				$state = 'unescaped';
-				continue;
-			}
-
-			// Everything of interest past here starts with "<".
-			if ( $at + 1 >= $doc_length || '<' !== $xml[ $at++ ] ) {
-				continue;
-			}
-
-			/*
-			 * Unlike with "-->", the "<!--" only transitions
-			 * into the escaped mode if not already there.
-			 *
-			 * Inside the escaped modes it will be ignored; and
-			 * should never break out of the double-escaped
-			 * mode and back into the escaped mode.
-			 *
-			 * While this requires a mode change, it does not
-			 * impact the parsing otherwise, so continue
-			 * parsing after updating the state.
-			 */
-			if (
-				$at + 2 < $doc_length &&
-				'!' === $xml[ $at ] &&
-				'-' === $xml[ $at + 1 ] &&
-				'-' === $xml[ $at + 2 ]
-			) {
-				$at   += 3;
-				$state = 'unescaped' === $state ? 'escaped' : $state;
-				continue;
-			}
-
-			if ( '/' === $xml[ $at ] ) {
-				$closer_potentially_starts_at = $at - 1;
-				$is_closing                   = true;
-				++$at;
-			} else {
-				$is_closing = false;
-			}
-
-			/*
-			 * At this point the only remaining state-changes occur with the
-			 * <script> and </script> tags; unless one of these appears next,
-			 * proceed scanning to the next potential token in the text.
-			 */
-			if ( ! (
-				$at + 6 < $doc_length &&
-				( 's' === $xml[ $at ] || 'S' === $xml[ $at ] ) &&
-				( 'c' === $xml[ $at + 1 ] || 'C' === $xml[ $at + 1 ] ) &&
-				( 'r' === $xml[ $at + 2 ] || 'R' === $xml[ $at + 2 ] ) &&
-				( 'i' === $xml[ $at + 3 ] || 'I' === $xml[ $at + 3 ] ) &&
-				( 'p' === $xml[ $at + 4 ] || 'P' === $xml[ $at + 4 ] ) &&
-				( 't' === $xml[ $at + 5 ] || 'T' === $xml[ $at + 5 ] )
-			) ) {
-				++$at;
-				continue;
-			}
-
-			/*
-			 * Ensure that the script tag terminates to avoid matching on
-			 * substrings of a non-match. For example, the sequence
-			 * "<script123" should not end a script region even though
-			 * "<script" is found within the text.
-			 */
-			if ( $at + 6 >= $doc_length ) {
-				continue;
-			}
-			$at += 6;
-			$c   = $xml[ $at ];
-			if ( ' ' !== $c && "\t" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
-				++$at;
-				continue;
-			}
-
-			if ( 'escaped' === $state && ! $is_closing ) {
-				$state = 'double-escaped';
-				continue;
-			}
-
-			if ( 'double-escaped' === $state && $is_closing ) {
-				$state = 'escaped';
-				continue;
-			}
-
-			if ( $is_closing ) {
-				$this->bytes_already_parsed = $closer_potentially_starts_at;
-				$this->tag_name_starts_at   = $closer_potentially_starts_at;
-				if ( $this->bytes_already_parsed >= $doc_length ) {
-					return false;
-				}
-
-				while ( $this->parse_next_attribute() ) {
-					continue;
-				}
-
-				if ( $this->bytes_already_parsed >= $doc_length ) {
-					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
-
-					return false;
-				}
-
-				if ( '>' === $xml[ $this->bytes_already_parsed ] ) {
-					++$this->bytes_already_parsed;
-					return true;
-				}
-			}
-
-			++$at;
-		}
-
-		return false;
-	}
-
-	/**
 	 * Parses the next tag.
 	 *
 	 * This will find and start parsing the next tag, including
@@ -1033,33 +800,6 @@ class WP_XML_Tag_Processor {
 			}
 
 			if ( $at > $was_at ) {
-				/*
-				 * A "<" normally starts a new XML tag or syntax token, but in cases where the
-				 * following character can't produce a valid token, the "<" is instead treated
-				 * as plaintext and the parser should skip over it. This avoids a problem when
-				 * following earlier practices of typing emoji with text, e.g. "<3". This
-				 * should be a heart, not a tag. It's supposed to be rendered, not hidden.
-				 *
-				 * At this point the parser checks if this is one of those cases and if it is
-				 * will continue searching for the next "<" in search of a token boundary.
-				 *
-				 * @see https://xml.spec.whatwg.org/#tag-open-state
-				 */
-				if ( strlen( $xml ) > $at + 1 ) {
-					$next_character  = $xml[ $at + 1 ];
-					$at_another_node = (
-						'!' === $next_character ||
-						'/' === $next_character ||
-						'?' === $next_character ||
-						( 'A' <= $next_character && $next_character <= 'Z' ) ||
-						( 'a' <= $next_character && $next_character <= 'z' )
-					);
-					if ( ! $at_another_node ) {
-						++$at;
-						continue;
-					}
-				}
-
 				$this->parser_state         = self::STATE_TEXT_NODE;
 				$this->token_starts_at      = $was_at;
 				$this->token_length         = $at - $was_at;
@@ -1140,20 +880,32 @@ class WP_XML_Tag_Processor {
 					--$closer_at; // Pre-increment inside condition below reduces risk of accidental infinite looping.
 					while ( ++$closer_at < $doc_length ) {
 						$closer_at = strpos( $xml, '--', $closer_at );
-						if ( false === $closer_at ) {
+						if ( false === $closer_at || $closer_at + 2 == $doc_length ) {
 							$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 							return false;
 						}
 
-						if ( $closer_at + 2 < $doc_length && '>' === $xml[ $closer_at + 2 ] ) {
-							$this->parser_state         = self::STATE_COMMENT;
-							$this->comment_type         = self::COMMENT_AS_XML_COMMENT;
-							$this->token_length         = $closer_at + 3 - $this->token_starts_at;
-							$this->text_starts_at       = $this->token_starts_at + 4;
-							$this->text_length          = $closer_at - $this->text_starts_at;
-							$this->bytes_already_parsed = $closer_at + 3;
-							return true;
+						/*
+						 * The string " -- " (double-hyphen) must not occur within comments
+						 * See https://www.w3.org/TR/xml/#sec-comments
+						 */
+						if ( '>' !== $xml[ $closer_at + 2 ] ) {
+							$this->parser_state = self::STATE_INVALID_INPUT;
+							_doing_it_wrong(
+								__METHOD__,
+								__( 'Invalid comment syntax encountered.' ),
+								'WP_VERSION'
+							);
+							return false;
 						}
+
+						$this->parser_state         = self::STATE_COMMENT;
+						$this->comment_type         = self::COMMENT_AS_XML_COMMENT;
+						$this->token_length         = $closer_at + 3 - $this->token_starts_at;
+						$this->text_starts_at       = $this->token_starts_at + 4;
+						$this->text_length          = $closer_at - $this->text_starts_at;
+						$this->bytes_already_parsed = $closer_at + 3;
+						return true;
 					}
 				}
 
@@ -1168,7 +920,8 @@ class WP_XML_Tag_Processor {
 				 * See https://www.w3.org/TR/xml11.xml/#sec-cdata-sect
 				 */
 				if (
-					$this->token_length >= 10 &&
+					! $this->is_closing_tag &&
+					$doc_length > $this->token_starts_at + 8 &&
 					'[' === $xml[ $this->token_starts_at + 2 ] &&
 					'C' === $xml[ $this->token_starts_at + 3 ] &&
 					'D' === $xml[ $this->token_starts_at + 4 ] &&
@@ -1207,6 +960,7 @@ class WP_XML_Tag_Processor {
 			 * See https://www.w3.org/TR/xml/#sec-prolog-dtd
 			 */
 			if (
+				$at === 0 &&
 				! $this->is_closing_tag &&
 				'?' === $xml[ $at + 1 ] &&
 				'x' === $xml[ $at + 2 ] &&
@@ -1273,7 +1027,7 @@ class WP_XML_Tag_Processor {
 
 				// Consume the closer.
 				if ( ! (
-					$at + 2 < $doc_length &&
+					$at + 2 <= $doc_length &&
 					'?' === $xml[ $at ] &&
 					'>' === $xml[ $at + 1 ]
 				) ) {
@@ -1290,6 +1044,7 @@ class WP_XML_Tag_Processor {
 				$this->text_starts_at       = $this->token_starts_at + 2;
 				$this->text_length          = $at - $this->text_starts_at;
 				$this->bytes_already_parsed = $at + 2;
+				$this->parser_state = self::STATE_XML_DECLARATION;
 
 				return true;
 			}
@@ -1298,12 +1053,15 @@ class WP_XML_Tag_Processor {
 			 * `<?` denotes a processing instruction.
 			 * See https://www.w3.org/TR/xml/#sec-pi
 			 */
-			if ( ! $this->is_closing_tag && '?' === $xml[ $at + 1 ] && 0 === $at ) {
+			if ( 
+				! $this->is_closing_tag &&
+				'?' === $xml[ $at + 1 ]
+			) {
 				if ( ! (
-					$at + 3 < $doc_length &&
-					( 'x' === $xml[ $at ] || 'X' === $xml[ $at ] ) &&
-					( 'm' === $xml[ $at + 1 ] || 'M' === $xml[ $at + 1 ] ) &&
-					( 'l' === $xml[ $at + 2 ] || 'L' === $xml[ $at + 2 ] )
+					$at + 4 <= $doc_length &&
+					( 'x' === $xml[ $at + 2 ] || 'X' === $xml[ $at + 2 ] ) &&
+					( 'm' === $xml[ $at + 3 ] || 'M' === $xml[ $at + 3 ] ) &&
+					( 'l' === $xml[ $at + 4 ] || 'L' === $xml[ $at + 4 ] )
 				) ) {
 					_doing_it_wrong(
 						__METHOD__,
@@ -1315,8 +1073,8 @@ class WP_XML_Tag_Processor {
 
 				$at += 5;
 
-				// Skip whitespace and slashes.
-				$at += strspn( $this->xml, " \t\f\r\n/", $at );
+				// Skip whitespace.
+				$this->skip_whitespace();
 
 				/*
 				 * Find the closer.
@@ -1338,41 +1096,11 @@ class WP_XML_Tag_Processor {
 				}
 
 				$this->parser_state         = self::STATE_PI_NODE;
-				$this->token_length         = $closer_at + 1 - $this->token_starts_at;
-				$this->text_starts_at       = $this->token_starts_at + 2;
+				$this->token_length         = $closer_at + 5 - $this->token_starts_at;
+				$this->text_starts_at       = $this->token_starts_at + 5;
 				$this->text_length          = $closer_at - $this->text_starts_at;
-				$this->bytes_already_parsed = $closer_at + 1;
+				$this->bytes_already_parsed = $closer_at + 2;
 
-				return true;
-			}
-
-			/*
-			 * If a non-alpha starts the tag name in a tag closer it's a comment.
-			 * Find the first `>`, which closes the comment.
-			 *
-			 * This parser classifies these particular comments as special "funky comments"
-			 * which are made available for further processing.
-			 *
-			 * See https://xml.spec.whatwg.org/#parse-error-invalid-first-character-of-tag-name
-			 */
-			if ( $this->is_closing_tag ) {
-				// No chance of finding a closer.
-				if ( $at + 3 > $doc_length ) {
-					return false;
-				}
-
-				$closer_at = strpos( $xml, '>', $at + 2 );
-				if ( false === $closer_at ) {
-					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
-
-					return false;
-				}
-
-				$this->parser_state         = self::STATE_FUNKY_COMMENT;
-				$this->token_length         = $closer_at + 1 - $this->token_starts_at;
-				$this->text_starts_at       = $this->token_starts_at + 2;
-				$this->text_length          = $closer_at - $this->text_starts_at;
-				$this->bytes_already_parsed = $closer_at + 1;
 				return true;
 			}
 
@@ -1503,9 +1231,10 @@ class WP_XML_Tag_Processor {
 		if($offset === null) {
 			$offset = $this->bytes_already_parsed;
 		}
-		if ( false === preg_match(
+		if ( 1 !== preg_match(
 			'~[' . self::NAME_START_CHAR_PATTERN . ']~Ssu',
-			$this->xml[ $offset ]
+			$this->xml[ $offset ],
+			$matches
 		) ) {
 			return 0;
 		}
@@ -2022,7 +1751,6 @@ class WP_XML_Tag_Processor {
 	 *  - `#comment` when matched on a comment.
 	 *  - `#doctype` when matched on a DOCTYPE declaration.
 	 *  - `#presumptuous-tag` when matched on an empty tag closer.
-	 *  - `#funky-comment` when matched on a funky comment.
 	 *
 	 * @since WP_VERSION
 	 *
@@ -2072,6 +1800,9 @@ class WP_XML_Tag_Processor {
 			case self::STATE_XML_DECLARATION:
 				return '#xml-declaration';
 
+			case self::STATE_PI_NODE:
+				return '#processing-instructions';
+
 			case self::STATE_COMMENT:
 				return '#comment';
 
@@ -2080,9 +1811,6 @@ class WP_XML_Tag_Processor {
 
 			case self::STATE_PRESUMPTUOUS_TAG:
 				return '#presumptuous-tag';
-
-			case self::STATE_FUNKY_COMMENT:
-				return '#funky-comment';
 		}
 	}
 
@@ -2134,7 +1862,6 @@ class WP_XML_Tag_Processor {
 	 * @return string
 	 */
 	public function get_modifiable_text() {
-		throw new Exception('Not implemented yet');
 		if ( null === $this->text_starts_at ) {
 			return '';
 		}
@@ -2145,47 +1872,12 @@ class WP_XML_Tag_Processor {
 		if (
 			self::STATE_CDATA_NODE === $this->parser_state ||
 			self::STATE_COMMENT === $this->parser_state ||
-			self::STATE_DOCTYPE === $this->parser_state ||
-			self::STATE_FUNKY_COMMENT === $this->parser_state
+			self::STATE_DOCTYPE === $this->parser_state
 		) {
 			return $text;
 		}
 
-		$tag_name = $this->get_tag();
-		if (
-			// Script data is not decoded.
-			'SCRIPT' === $tag_name ||
-
-			// RAWTEXT data is not decoded.
-			'IFRAME' === $tag_name ||
-			'NOEMBED' === $tag_name ||
-			'NOFRAMES' === $tag_name ||
-			'STYLE' === $tag_name ||
-			'XMP' === $tag_name
-		) {
-			return $text;
-		}
-
-		$decoded = WP_XML_Decoder::decode_text_node( $text );
-
-		/*
-		 * TEXTAREA skips a leading newline, but this newline may appear not only as the
-		 * literal character `\n`, but also as a character reference, such as in the
-		 * following markup: `<textarea>&#x0a;Content</textarea>`.
-		 *
-		 * For these cases it's important to first decode the text content before checking
-		 * for a leading newline and removing it.
-		 */
-		if (
-			self::STATE_MATCHED_TAG === $this->parser_state &&
-			'TEXTAREA' === $tag_name &&
-			strlen( $decoded ) > 0 &&
-			"\n" === $decoded[0]
-		) {
-			return substr( $decoded, 1 );
-		}
-
-		return $decoded;
+		return WP_HTML_Decoder::decode_text_node( $text );
 	}
 
 	/**
@@ -2205,6 +1897,14 @@ class WP_XML_Tag_Processor {
 	 * @return bool Whether an attribute value was set.
 	 */
 	public function set_attribute( $name, $value ) {
+		if(!is_string($value)) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Non-string attribute values cannot be passed to set_attribute().' ),
+				'WP_VERSION'
+			);
+			return false;
+		}
 		if (
 			self::STATE_MATCHED_TAG !== $this->parser_state ||
 			$this->is_closing_tag
@@ -2233,7 +1933,7 @@ class WP_XML_Tag_Processor {
 		 */
 		if ( preg_match(
 			'~[' .
-				// Syntax-like characters.
+				// Invalid chara
 				'"\'>&</ =' .
 				// Control characters.
 				'\x{00}-\x{1F}' .
@@ -2257,20 +1957,21 @@ class WP_XML_Tag_Processor {
 		}
 
 		/*
-		 * > The values "true" and "false" are not allowed on boolean attributes.
-		 * > To represent a false value, the attribute has to be omitted altogether.
-		 *     - XML5 spec, https://xml.spec.whatwg.org/#boolean-attributes
+		 * XML attribute values cannot contain certain characters. However,
+		 * even though ampersands are disallowed, entities are legal. 
+		 * @TODO: Support entities.
 		 */
-		if ( false === $value ) {
-			return $this->remove_attribute( $name );
+		if ( strcspn( $value, '<&"' ) !== strlen( $value ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Invalid attribute name.' ),
+				'WP_VERSION'
+			);
+
+			return false;
 		}
 
-		if ( true === $value ) {
-			$updated_attribute = $name;
-		} else {
-			$escaped_new_value = esc_attr( $value );
-			$updated_attribute = "{$name}=\"{$escaped_new_value}\"";
-		}
+		$updated_attribute = "{$name}=\"{$value}\"";
 
 		/*
 		 * > An attribute name must not appear more than once
@@ -2683,27 +2384,6 @@ class WP_XML_Tag_Processor {
 	const STATE_PRESUMPTUOUS_TAG = 'STATE_PRESUMPTUOUS_TAG';
 
 	/**
-	 * Indicates that the parser has found a "funky comment"
-	 * and it's possible to read and modify its modifiable text.
-	 *
-	 * Example:
-	 *
-	 *     </%url>
-	 *     </{"wp-bit":"query/post-author"}>
-	 *     </2>
-	 *
-	 * Funky comments are tag closers with invalid tag names. Note
-	 * that in XML these are turn into bogus comments. Nonetheless,
-	 * the Tag Processor recognizes them in a stream of XML and
-	 * exposes them for inspection and modification.
-	 *
-	 * @since WP_VERSION
-	 *
-	 * @access private
-	 */
-	const STATE_FUNKY_COMMENT = 'STATE_WP_FUNKY';
-
-	/**
 	 * Indicates that a comment was created when encountering abruptly-closed XML comment.
 	 *
 	 * Example:
@@ -2740,17 +2420,4 @@ class WP_XML_Tag_Processor {
 	 * @since WP_VERSION
 	 */
 	const PI_NODE = 'PI_NODE';
-
-	/**
-	 * Indicates that a comment was created when encountering invalid
-	 * XML input, a so-called "bogus comment."
-	 *
-	 * Example:
-	 *
-	 *     <?nothing special>
-	 *     <!{nothing special}>
-	 *
-	 * @since WP_VERSION
-	 */
-	const COMMENT_AS_INVALID_XML = 'COMMENT_AS_INVALID_XML';
 }
