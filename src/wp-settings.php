@@ -261,6 +261,8 @@ require ABSPATH . WPINC . '/html-api/class-wp-html-open-elements.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-token.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-processor-state.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-processor.php';
+require ABSPATH . WPINC . '/html-api/class-wp-xml-decoder.php';
+require ABSPATH . WPINC . '/html-api/class-wp-xml-tag-processor.php';
 require ABSPATH . WPINC . '/class-wp-http.php';
 require ABSPATH . WPINC . '/class-wp-http-streams.php';
 require ABSPATH . WPINC . '/class-wp-http-curl.php';

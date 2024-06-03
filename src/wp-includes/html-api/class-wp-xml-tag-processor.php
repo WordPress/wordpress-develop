@@ -23,6 +23,7 @@
  *        * <!DOCTYPE, see https://www.w3.org/TR/xml/#sec-prolog-dtd
  *        * <!ATTLIST, see https://www.w3.org/TR/xml/#attdecls
  *        * <!ENTITY, see https://www.w3.org/TR/xml/#sec-entity-decl
+ *        * <!NOTATION, see https://www.w3.org/TR/xml/#sec-entity-decl
  * 	      * Conditional sections, see https://www.w3.org/TR/xml/#sec-condition-sect
  * 
  * @TODO Explore declaring elements as PCdata directly in the XML document,
@@ -1389,10 +1390,13 @@ class WP_XML_Tag_Processor {
 				 * XML attributes cannot contain the characters "<" or "&".
 				 * 
 				 * This only checks for "<" because it's reasonably fast.
-				 * Ampersands are actually allowed, when used as the start
-				 * of an entity reference – verifying that in this context
-				 * would slow down the parser so we're deferring that check
-				 * to the get_attribute() method.
+				 * Ampersands are actually allowed when used as the start
+				 * of an entity reference, but enforcing that would require
+				 * an expensive and complex check. It doesn't seem to be
+				 * worth it.
+				 * 
+				 * @TODO: Discuss enforcing or abandoning the ampersand rule
+				 *        and document the rationale.
 				 */
 				$value_length  = strcspn( $this->xml, "<$quote", $value_start );
 				$attribute_end = $value_start + $value_length + 1;
@@ -1851,37 +1855,21 @@ class WP_XML_Tag_Processor {
 		$attribute = $this->attributes[ $name ];
 		$raw_value = substr( $this->xml, $attribute->value_starts_at, $attribute->value_length );
 
-		// The XML spec disallows the presence of "<" characters in attribute values.
-		if ( false !== strpos( $raw_value, '<' ) ) {
+		$decoded = WP_XML_Decoder::decode( $raw_value );
+		if(!isset($decoded)) {
+			/**
+			 * If the attribute contained an invalid value, it's
+			 * a fatal error.
+			 * 
+			 * @see WP_XML_Decoder::decode()
+			 */
+			$this->parser_state = self::STATE_INVALID_INPUT;
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Invalid character (<) found in attribute value.' ),
+				__( 'Invalid attribute value encountered.' ),
 				'WP_VERSION'
 			);
-			return null;
-		}
-
-		/**
-		 * XML attributes and HTML attributes both disallow ambiguous ampersands in
-		 * attribute values which conveniently allows us to decode both using 
-		 * the same decoder.
-		 */
-		$decoded = WP_HTML_Decoder::decode_attribute( $raw_value );
-
-		/*
-		 * The XML spec only allows using the "&" characters to encode entities.
-		 * If the decoded value contains an ampersand, then it's invalid.
-		 * 
-		 * Note this check only runs when the attribute is requested to avoid
-		 * slowing down the parser when scanning the document.
-		 */
-		if ( false !== strpos( $decoded, '&' ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'Invalid character (ampersand) found in attribute value.' ),
-				'WP_VERSION'
-			);
-			return null;
+			return false;
 		}
 
 		return $decoded;
@@ -2116,7 +2104,25 @@ class WP_XML_Tag_Processor {
 			return $text;
 		}
 
-		return WP_HTML_Decoder::decode_text_node( $text );
+
+		$decoded = WP_XML_Decoder::decode( $text );
+		if (!isset($decoded)) {
+			/**
+			 * If the attribute contained an invalid value, it's
+			 * a fatal error.
+			 * 
+			 * @see WP_XML_Decoder::decode()
+			 */
+
+			$this->parser_state = self::STATE_INVALID_INPUT;
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Invalid text content encountered.' ),
+				'WP_VERSION'
+			);
+			return false;
+		}
+		return $decoded;
 	}
 
 	/**
