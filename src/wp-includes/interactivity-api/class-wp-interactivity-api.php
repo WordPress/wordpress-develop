@@ -105,7 +105,7 @@ final class WP_Interactivity_API {
 	 * provided state with the existing one.
 	 *
 	 * When no namespace is specified, it returns the state defined for the
-	 * current value in the internal namespace stack.
+	 * current value in the internal namespace stack during a `process_directives` call.
 	 *
 	 * @since 6.5.0
 	 * @since 6.6.0 The `$store_namespace` param is optional.
@@ -271,7 +271,7 @@ final class WP_Interactivity_API {
 	 * Returns the latest value on the context stack with the passed namespace.
 	 *
 	 * When the namespace is omitted, it uses the current namespace on the
-	 * namespace stack.
+	 * namespace stack during a `process_directives` call.
 	 *
 	 * @since 6.6.0
 	 *
