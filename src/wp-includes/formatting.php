@@ -886,6 +886,8 @@ function shortcode_unautop( $text ) {
  * @author bmorel at ssi dot fr (modified)
  * @since 1.2.1
  *
+ * @see https://bytes.com/topic/php/389730-checking-see-if-character-utf8
+ *
  * @param string $str The string to be checked
  * @return bool True if $str fits a UTF-8 model, false otherwise.
  */
