@@ -9371,6 +9371,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "GET"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "context": {
                             "description": "Scope under which the request is made; determines fields present in response.",
@@ -9514,6 +9517,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "POST"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "username": {
                             "description": "Login name for the user.",
@@ -9616,6 +9622,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "GET"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "id": {
                             "description": "Unique identifier for the user.",
@@ -9641,6 +9650,9 @@ mockedApiResponse.Schema = {
                         "PUT",
                         "PATCH"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "id": {
                             "description": "Unique identifier for the user.",
@@ -9733,6 +9745,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "DELETE"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "id": {
                             "description": "Unique identifier for the user.",
