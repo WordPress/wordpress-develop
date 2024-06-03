@@ -2054,7 +2054,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	public function rest_upload_filename_spaces() {
 		return array(
-			'filename with spaces' => array(
+			'filename with spaces'  => array(
 				'Filename With Spaces.jpg',
 				'Filename With Spaces',
 			),
@@ -2062,7 +2062,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'Filename.With.Periods.jpg',
 				'Filename.With.Periods',
 			),
-			'filename-with-dashes' => array(
+			'filename-with-dashes'  => array(
 				'Filename-With-Dashes.jpg',
 				'Filename-With-Dashes',
 			),
