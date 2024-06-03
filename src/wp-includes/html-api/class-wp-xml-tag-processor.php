@@ -1,7 +1,6 @@
 <?php
 
 /**
- *
  * ## XML Version support
  *
  * This class implements parts of the XML 1.0 specification:
@@ -11,6 +10,8 @@
  * initial processing instruction (<?xml version="1.0" ?>). We're
  * starting with 1.0, however, because most that's what most WXR
  * files declare.
+ * 
+ * ## Remaining work
  *
  * @TODO: Skip over the following syntax elements:
  *        * <!DOCTYPE, see https://www.w3.org/TR/xml/#sec-prolog-dtd
