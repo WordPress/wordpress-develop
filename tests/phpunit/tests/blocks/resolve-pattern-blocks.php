@@ -10,6 +10,27 @@
  * @group blocks
  */
 class Tests_Blocks_Resolve_Pattern_Blocks extends WP_UnitTestCase {
+    public function set_up() {
+		parent::set_up();
+
+        register_block_pattern( 'core/test', array(
+            'title'       => 'Test',
+            'content'     => '<!-- wp:paragraph -->Hello<!-- /wp:paragraph --><!-- wp:paragraph -->World<!-- /wp:paragraph -->',
+            'description' => 'Test pattern.',
+        ) );
+        register_block_pattern( 'core/recursive', array(
+            'title'       => 'Recursive',
+            'content'     => '<!-- wp:paragraph -->Recursive<!-- /wp:paragraph --><!-- wp:pattern {"slug":"core/recursive"} /-->',
+            'description' => 'Recursive pattern.',
+        ) );
+	}
+
+    public function tear_down() {
+        parent::tear_down();
+
+        unregister_block_pattern( 'core/test' );
+        unregister_block_pattern( 'core/recursive' );
+    }
 
 	/**
 	 * @dataProvider data_all
@@ -26,6 +47,12 @@ class Tests_Blocks_Resolve_Pattern_Blocks extends WP_UnitTestCase {
 		return array(
 			// Works without attributes, leaves the block as is.
 			array( '<!-- wp:pattern /-->', '<!-- wp:pattern /-->' ),
+            // Resolves the pattern.
+            array( '<!-- wp:pattern {"slug":"core/test"} /-->', '<!-- wp:paragraph -->Hello<!-- /wp:paragraph --><!-- wp:paragraph -->World<!-- /wp:paragraph -->' ),
+            // Skip recursive patterns.
+            array( '<!-- wp:pattern {"slug":"core/recursive"} /-->', '<!-- wp:paragraph -->Recursive<!-- /wp:paragraph -->' ),
+            // Resolves the pattern within a block.
+            array( '<!-- wp:group --><!-- wp:paragraph -->Before<!-- /wp:paragraph --><!-- wp:pattern {"slug":"core/test"} /--><!-- wp:paragraph -->After<!-- /wp:paragraph --><!-- /wp:group -->', '<!-- wp:group --><!-- wp:paragraph -->Before<!-- /wp:paragraph --><!-- wp:paragraph -->Hello<!-- /wp:paragraph --><!-- wp:paragraph -->World<!-- /wp:paragraph --><!-- wp:paragraph -->After<!-- /wp:paragraph --><!-- /wp:group -->' ),
 		);
 	}
 }
