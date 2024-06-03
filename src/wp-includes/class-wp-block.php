@@ -268,11 +268,12 @@ class WP_Block {
 			isset( $bindings['__default']['source'] ) &&
 			'core/pattern-overrides' === $bindings['__default']['source']
 		) {
+			$updated_bindings = array();
+
 			// Build an binding array of all supported attributes.
 			// Note that this also omits the `__default` attribute from the
 			// resulting array.
 			foreach ( $supported_block_attributes[ $parsed_block['blockName'] ] as $attribute_name ) {
-				$updated_bindings = array();
 				// Retain any non-pattern override bindings that might be present.
 				$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
 					? $bindings[ $attribute_name ]
