@@ -1577,10 +1577,9 @@
 		},
 
 		/**
-		 * 
-		 * It's setting up the initial state of the screen reader accessibility information for menu items.
+		 * Sets up the initial state of the screen reader accessibility information for menu items.
 		 * Setting up the state of accessibility implies it's doing things outside the parameters that it's actually handling.
-		 * 
+		 *
 		 * @since 6.6.0
 		 */
 		initAccessibility: function() {
@@ -1588,7 +1587,7 @@
 				menu = $( '#menu-to-edit' );
 
 			// Refresh the accessibility when the user comes close to the item in any way.
-			menu.on( 'mouseenter.refreshAccessibility focus.refreshAccessibility touchstart.refreshAccessibility' , '.menu-item' , function(){
+			menu.on( 'mouseenter.refreshAccessibility focus.refreshAccessibility touchstart.refreshAccessibility', '.menu-item', function(){
 				control.refreshAdvancedAccessibilityOfItem( $( this ).find( 'button.item-edit' ) );
 			} );
 
