@@ -705,35 +705,16 @@ class WP_XML_Tag_Processor {
 	}
 
 	/**
-	 * Skips contents of generic rawtext elements.
-	 *
-	 * @since 6.3.2
-	 *
-	 * @see https://xml.spec.whatwg.org/#generic-raw-text-element-parsing-algorithm
-	 *
-	 * @param string $tag_name The uppercase tag name which will close the RAWTEXT region.
-	 * @return bool Whether an end to the RAWTEXT region was found before the end of the document.
-	 */
-	private function skip_rawtext( $tag_name ) {
-		/*
-		 * These two functions distinguish themselves on whether character references are
-		 * decoded, and since functionality to read the inner markup isn't supported, it's
-		 * not necessary to implement these two functions separately.
-		 */
-		return $this->skip_rcdata( $tag_name );
-	}
-
-	/**
-	 * Skips contents of RCDATA elements, namely title and textarea tags.
+	 * Skips contents of PCDATA elements, namely title and textarea tags.
 	 *
 	 * @since WP_VERSION
 	 *
-	 * @see https://xml.spec.whatwg.org/multipage/parsing.xml#rcdata-state
+	 * @see https://www.w3.org/TR/xml/#sec-mixed-content
 	 *
-	 * @param string $tag_name The uppercase tag name which will close the RCDATA region.
-	 * @return bool Whether an end to the RCDATA region was found before the end of the document.
+	 * @param string $tag_name The tag name which will close the PCDATA region.
+	 * @return bool Whether an end to the PCDATA region was found before the end of the document.
 	 */
-	private function skip_rcdata( $tag_name ) {
+	private function skip_pcdata( $tag_name ) {
 		$xml       = $this->xml;
 		$doc_length = strlen( $xml );
 		$tag_length = strlen( $tag_name );
@@ -776,8 +757,8 @@ class WP_XML_Tag_Processor {
 			/*
 			 * Ensure that the tag name terminates to avoid matching on
 			 * substrings of a longer tag name. For example, the sequence
-			 * "</textarearug" should not match for "</textarea" even
-			 * though "textarea" is found within the text.
+			 * "</wp:contentrug" should not match for "</wp:content" even
+			 * though "wp:content" is found within the text.
 			 */
 			$c = $xml[ $at ];
 			if ( ' ' !== $c && "\t" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
@@ -947,18 +928,12 @@ class WP_XML_Tag_Processor {
 			}
 
 			/*
-			 * XML tag names must start with [a-zA-Z] otherwise they are not tags.
-			 * For example, "<3" is rendered as text, not a tag opener. If at least
-			 * one letter follows the "<" then _it is_ a tag, but if the following
-			 * character is anything else it _is not a tag_.
-			 *
-			 * It's not uncommon to find non-tags starting with `<` in an XML
-			 * document, so it's good for performance to make this pre-check before
-			 * continuing to attempt to parse a tag name.
+			 * XML tag names are defined by the same `Name` grammar rule as attribute
+			 * names.
 			 *
 			 * Reference:
-			 * * https://xml.spec.whatwg.org/multipage/parsing.xml#data-state
-			 * * https://xml.spec.whatwg.org/multipage/parsing.xml#tag-open-state
+			 * * https://www.w3.org/TR/xml/#NT-STag
+			 * * https://www.w3.org/TR/xml/#NT-Name
 			 */
 			$tag_name_length = $this->parse_name( $at + 1 );
 			if ( $tag_name_length > 0 ) {
@@ -994,8 +969,7 @@ class WP_XML_Tag_Processor {
 			}
 
 			/*
-			 * `<!` transitions to markup declaration open state
-			 * https://xml.spec.whatwg.org/multipage/parsing.xml#markup-declaration-open-state
+			 * `<!` indicates one of a few possible constructs:
 			 */
 			if ( ! $this->is_closing_tag && '!' === $xml[ $at + 1 ] ) {
 				/*
@@ -2072,6 +2046,7 @@ class WP_XML_Tag_Processor {
 		 * reasonable compromise in efficiency without introducing a
 		 * noticeable impact on the overall system.
 		 *
+		 * @TODO: xml-ize this!
 		 * @see https://xml.spec.whatwg.org/#attributes-2
 		 *
 		 * @todo As the only regex pattern maybe we should take it out?
