@@ -2700,6 +2700,20 @@ function enqueue_block_styles_handle_assets() {
 				continue;
 			}
 
+			/**
+			 * Add the path to the CSS file in the style extra data if missing.
+			 *
+			 * This allow WordPress to inline the CSS instead of loading it like an external  resource if the file
+			 * is bellow the size threshold.
+			 */
+			$style = $wp_styles->registered[ $style_properties['style_handle'] ];
+			if ( $style && ! empty( $style->src ) && empty( $style->extra['path'] ) ) {
+				$style_path = wp_normalize_path( str_replace( WP_CONTENT_URL, WP_CONTENT_DIR, $style->src ) );
+				if ( is_readable( $style_path ) ) {
+					$style->add_data( 'path', $style_path );
+				}
+			}
+
 			$handle           = $style_properties['style_handle'];
 			$enqueue_callback = function () use ( $handle ) {
 				wp_enqueue_style( $handle );
