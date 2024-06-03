@@ -1416,6 +1416,15 @@ EOF;
 			'With Unicode whitespace'      => array( "data-\u{2003}", "\u{2003}" ),
 			'With Emoji'                   => array( 'data-🐄-pasture', '🐄Pasture' ),
 			'Brackets and colon'           => array( 'data-[wish:granted]', '[wish:granted]' ),
+
+			// Pens and Pencils: a collection of interesting combinations of dash and underscore.
+			'data-pens-and-pencils'        => array( 'data-pens-and-pencils', 'pensAndPencils' ),
+			'data-pens--and--pencils'      => array( 'data-pens--and--pencils', 'pens-And-Pencils' ),
+			'data--pens--and--pencils'     => array( 'data--pens--and--pencils', 'Pens-And-Pencils' ),
+			'data---pens---and---pencils'  => array( 'data---pens---and---pencils', '-Pens--And--Pencils' ),
+			'data-pens-and-pencils-'       => array( 'data-pens-and-pencils-', 'pensAndPencils-' ),
+			'data-pens-and-pencils--'      => array( 'data-pens-and-pencils--', 'pensAndPencils--' ),
+			'data-pens_and_pencils__'      => array( 'data-pens_and_pencils__', 'pens_and_pencils__' ),
 		);
 	}
 
