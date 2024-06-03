@@ -2593,7 +2593,7 @@ class WP_Site_Health {
 	 *
 	 * @return int Autoloaded data in bytes.
 	 */
-	public function get_autoloaded_options_size(): int {
+	public function get_autoloaded_options_size() {
 		$alloptions = wp_load_alloptions();
 
 		$total_length = 0;
