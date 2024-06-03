@@ -749,7 +749,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
 
 		$expected = <<<HTML
-<script type="application/json" id="wp-scriptmodule-data_@test/module">
+<script type="application/json" id="wp-script-module-data-@test/module">
 {"foo":"bar"}
 </script>
 
@@ -774,7 +774,7 @@ HTML;
 		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
 
 		$expected = <<<HTML
-<script type="application/json" id="wp-scriptmodule-data_@test/dependency">
+<script type="application/json" id="wp-script-module-data-@test/dependency">
 {"foo":"bar"}
 </script>
 
@@ -846,7 +846,7 @@ HTML;
 		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
 
 		$expected = <<<HTML
-<script type="application/json" id="wp-scriptmodule-data_@test/module">
+<script type="application/json" id="wp-script-module-data-@test/module">
 {"":"{$expected}"}
 </script>
 
