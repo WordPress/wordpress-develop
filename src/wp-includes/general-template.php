@@ -2264,7 +2264,7 @@ function get_calendar( $initial = true, $display = true ) {
 				'post_type'      => 'post',
 				'post_status'    => 'publish',
 				'posts_per_page' => 1,
-			) 
+			)
 		);
 		if ( ! $query->have_posts() ) {
 			$cache[ $key ] = '';
@@ -2305,7 +2305,7 @@ function get_calendar( $initial = true, $display = true ) {
 	$last_day  = gmdate( 't', $unixmonth );
 
 	// Get the next and previous month and year with at least one post.
-	$previous_query = new WP_Query( 
+	$previous_query = new WP_Query(
 		array(
 			'post_type'      => 'post',
 			'post_status'    => 'publish',
@@ -2317,11 +2317,11 @@ function get_calendar( $initial = true, $display = true ) {
 					'inclusive' => false,
 				),
 			),
-		) 
+		)
 	);
 	$previous = $previous_query->have_posts() ? $previous_query->posts[0] : null;
 
-	$next_query = new WP_Query( 
+	$next_query = new WP_Query(
 		array(
 			'post_type'      => 'post',
 			'post_status'    => 'publish',
@@ -2333,7 +2333,7 @@ function get_calendar( $initial = true, $display = true ) {
 					'inclusive' => false,
 				),
 			),
-		) 
+		)
 	);
 	$next = $next_query->have_posts() ? $next_query->posts[0] : null;
 
@@ -2369,7 +2369,7 @@ function get_calendar( $initial = true, $display = true ) {
 	$daywithpost = array();
 
 	// Get days with posts.
-	$days_query = new WP_Query( 
+	$days_query = new WP_Query(
 		array(
 			'post_type'      => 'post',
 			'post_status'    => 'publish',
@@ -2381,7 +2381,7 @@ function get_calendar( $initial = true, $display = true ) {
 				),
 			),
 			'fields' => 'ids',
-		) 
+		)
 	);
 
 	if ( $days_query->have_posts() ) {
