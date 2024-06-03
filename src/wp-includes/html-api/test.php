@@ -17,9 +17,9 @@ $processor = new WP_XML_Tag_Processor( '<root>
 </root>' );
 $processor->declare_element_as_pcdata('span');
 
-// $wxr = file_get_contents(__DIR__ . '/test.wxr');
-// $processor = new WP_XML_Tag_Processor( $wxr );
-while( $processor->step() ) {
+$wxr = file_get_contents(__DIR__ . '/test.wxr');
+$processor = new WP_XML_Tag_Processor( $wxr );
+while( $processor->next() ) {
     echo "\n " . dump_token($processor);
 }
 

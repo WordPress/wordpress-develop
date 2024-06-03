@@ -662,7 +662,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::next_tag
 	 * @covers WP_XML_Tag_Processor::get_breadcrumbs
 	 */
-	public function test_breadcrumbs()
+	public function test_get_breadcrumbs()
 	{
 		$processor = new WP_XML_Tag_Processor( <<<XML
 			<wp:content>
@@ -708,6 +708,32 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		);
 
 		$this->assertFalse($processor->next_token());
+	}
+
+	/**
+	 * @ticket 57852
+	 * 
+	 * @return void
+	 */
+	public function test_get_current_depth()
+	{
+        // Initialize the WP_XML_Processor with the given XML string
+        $processor = new WP_XML_Processor('<?xml version="1.0" ?><root><wp:text></wp:text></root>');
+
+        // Assert that the initial depth is 0
+        $this->assertEquals(0, $processor->get_current_depth());
+
+        // Opening the root element increases the depth
+        $processor->next_element();
+        $this->assertEquals(1, $processor->get_current_depth());
+
+        // Opening the wp:text element increases the depth
+        $processor->next_element();
+        $this->assertEquals(2, $processor->get_current_depth());
+
+        // The wp:text element is closed during `next_token()` so the depth is decreased to reflect that
+        $processor->next_token();
+        $this->assertEquals(1, $processor->get_current_depth());
 	}
 
 	/**
@@ -1343,7 +1369,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		XML
 		);
 		$this->assertFalse( $processor->next_tag(), 'Found a tag when there was none.' );
-		$this->assertTrue( $processor->invalid_document(), 'Did not mark a malformed XML document as invalid.' );
+		$this->assertTrue( $processor->get_last_error(), 'Did not mark a malformed XML document as invalid.' );
 	}
 
 	/**

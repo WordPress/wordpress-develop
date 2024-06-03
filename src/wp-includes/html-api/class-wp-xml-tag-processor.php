@@ -422,14 +422,14 @@ class WP_XML_Tag_Processor {
 	 * | *Element*       | The parser is parsing the root element.                             |
 	 * | *Misc*          | The parser is parsing miscellaneous content.                        |
 	 * 
-	 * @see WP_XML_Tag_Processor::STAGE_PROLOG
-	 * @see WP_XML_Tag_Processor::STAGE_ELEMENT
-	 * @see WP_XML_Tag_Processor::STAGE_MISC
+	 * @see WP_XML_Tag_Processor::IN_PROLOG_CONTEXT
+	 * @see WP_XML_Tag_Processor::IN_ELEMENT_CONTEXT
+	 * @see WP_XML_Tag_Processor::IN_MISC_CONTEXT
 	 *
 	 * @since WP_VERSION
 	 * @var bool 
 	 */
-	protected $parsing_stage = self::STAGE_PROLOG;
+	protected $parser_context = self::IN_PROLOG_CONTEXT;
 
 	/**
 	 * How many bytes from the original XML document have been read and parsed.
@@ -531,6 +531,17 @@ class WP_XML_Tag_Processor {
 	 * @var bool
 	 */
 	private $is_closing_tag;
+
+	/**
+	 * Stores an explanation for why something failed, if it did.
+	 *
+	 * @see self::get_last_error
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @var string|null
+	 */
+	private $last_error = null;
 
 	/**
 	 * Lazily-built index of attributes found within an XML tag, keyed by the attribute name.
@@ -640,116 +651,13 @@ class WP_XML_Tag_Processor {
 		$this->xml = $xml;
 	}
 
-
-	public function step()
-	{
-		if(false === $this->next_token()) {
-			return false;
-		}
-
-		switch($this->parsing_stage) {
-			case self::STAGE_PROLOG:
-				return $this->step_in_prolog();
-			case self::STAGE_ELEMENT:
-				return $this->step_in_element();
-			case self::STAGE_MISC:
-				return $this->step_in_misc();
-		}
-	}
-
-	private function step_in_misc() {
-		switch($this->get_token_type()) {
-			case '#comment':
-			case '#processing-instructions':
-				return true;
-			case '#text':
-				$text = $this->get_modifiable_text();
-				$whitespaces = strspn($text, " \t\n\r");
-				if($whitespaces !== strlen($text)) {
-					$this->parser_state = self::STATE_INVALID_INPUT;
-					_doing_it_wrong( __METHOD__, 'Unexpected token type in prolog stage.', 'WP_VERSION' );
-				}
-				return $this->step();
-			default:
-				$this->parser_state = self::STATE_INVALID_INPUT;
-				_doing_it_wrong( __METHOD__, 'Unexpected token type in misc stage.', 'WP_VERSION' );
-				return false;
-		}
-	}
-
-	private function step_in_element() {
-		switch($this->get_token_type()) {
-			case '#text':
-			case '#cdata-section':
-			case '#comment':
-			case '#processing-instructions':
-				return true;
-			case '#tag':
-				// Update the stack of open elements
-				$tag_name = $this->get_tag();
-				if ( $this->is_closing_tag ) {
-					$popped = $this->pop_open_element();
-					if($popped !== $tag_name) {
-						$this->parser_state = self::STATE_INVALID_INPUT;
-						_doing_it_wrong(
-							__METHOD__,
-							__( 'The closing tag did not match the opening tag.' ),
-							'WP_VERSION'
-						);
-						return false;
-					}
-					if( count($this->stack_of_open_elements) === 0 ) {
-						$this->parsing_stage = self::STAGE_MISC;
-					}
-				} else {
-					$this->push_open_element($tag_name);
-				}
-				return true;
-			default:
-				$this->parser_state = self::STATE_INVALID_INPUT;
-				_doing_it_wrong( __METHOD__, 'Unexpected token type in element stage.', 'WP_VERSION' );
-				return false;
-		}
-	}
-
 	/**
-	 * Steps in the prolog stage.
-	 * 
-	 * @since WP_VERSION
-	 */
-	private function step_in_prolog()
-	{
-		switch($this->get_token_type()) {
-			case '#text':
-				$text = $this->get_modifiable_text();
-				$whitespaces = strspn($text, " \t\n\r");
-				if($whitespaces !== strlen($text)) {
-					$this->parser_state = self::STATE_INVALID_INPUT;
-					_doing_it_wrong( __METHOD__, 'Unexpected token type in prolog stage.', 'WP_VERSION' );
-				}
-				return $this->step_in_prolog();
-			case '#xml-declaration':
-			case '#comment':
-			case '#processing-instructions':
-				return true;
-			case '#tag':
-				$this->parsing_stage = self::STAGE_ELEMENT;
-				return $this->step_in_element();
-			default:
-				$this->parser_state = self::STATE_INVALID_INPUT;
-				_doing_it_wrong( __METHOD__, 'Unexpected token type in prolog stage.', 'WP_VERSION' );
-				return false;
-		}
-	}
-
-	/**
-	 * Finds the next tag matching the $query.
+	 * Finds the next element matching the $query.
 	 *
 	 * @since WP_VERSION
-	 * @since WP_VERSION No longer processes incomplete tokens at end of document; pauses the processor at start of token.
 	 *
 	 * @param array|string|null $query {
-	 *     Optional. Which tag name to find, having which class, etc. Default is to find any tag.
+	 *     Optional. Which element name to find. Default is to find any tag.
 	 *
 	 *     @type string|null $tag_name     Which tag to find, or `null` for "any tag."
 	 *     @type int|null    $match_offset Find the Nth tag matching all search criteria.
@@ -759,12 +667,12 @@ class WP_XML_Tag_Processor {
 	 * }
 	 * @return bool Whether a tag was matched.
 	 */
-	public function next_tag( $query = null ) {
+	public function next( $query = null ) {
 		$this->parse_query( $query );
 		$already_found = 0;
 
 		do {
-			if ( false === $this->next_token() ) {
+			if ( false === $this->step() ) {
 				return false;
 			}
 
@@ -778,6 +686,161 @@ class WP_XML_Tag_Processor {
 		} while ( $already_found < $this->sought_match_offset );
 
 		return true;
+	}
+
+	/**
+	 * Steps through the XML document and stop at the next tag, if any.
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
+	 *
+	 * @param string $node_to_process Whether to parse the next node or reprocess the current node.
+	 * @return bool Whether a tag was matched.
+	 */
+	private function step( $node_to_process = self::PROCESS_NEXT_NODE )
+	{
+		// Refuse to proceed if there was a previous error.
+		if ( null !== $this->last_error ) {
+			return false;
+		}
+
+		// Finish stepping when there are no more tokens in the document.
+		if (
+			WP_XML_Tag_Processor::STATE_INCOMPLETE_INPUT === $this->parser_state ||
+			WP_XML_Tag_Processor::STATE_COMPLETE === $this->parser_state
+		) {
+			return false;
+		}
+
+		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
+			if ( false === $this->next_token() ) {
+				return false;
+			}
+		}
+
+		switch($this->parser_context) {
+			case self::IN_PROLOG_CONTEXT:
+				return $this->step_in_prolog();
+			case self::IN_ELEMENT_CONTEXT:
+				return $this->step_in_element();
+			case self::IN_MISC_CONTEXT:
+				return $this->step_in_misc();
+			default:
+				$this->last_error = self::ERROR_UNSUPPORTED;
+				return false;
+		}
+	}
+
+	/**
+	 * Parses the next node in the 'prolog' part of the XML document.
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @see https://www.w3.org/TR/xml/#NT-document.
+	 * @see WP_XML_Tag_Processor::step
+	 *
+	 * @return bool Whether a node was found.
+	 */
+	private function step_in_prolog()
+	{
+		switch($this->get_token_type()) {
+			case '#text':
+				$text = $this->get_modifiable_text();
+				$whitespaces = strspn($text, " \t\n\r");
+				if($whitespaces !== strlen($text)) {
+					$this->last_error = self::ERROR_SYNTAX;
+					_doing_it_wrong( __METHOD__, 'Unexpected token type in prolog stage.', 'WP_VERSION' );
+				}
+				return $this->step();
+			case '#xml-declaration':
+			case '#comment':
+			case '#processing-instructions':
+				return true;
+			case '#tag':
+				$this->parser_context = self::IN_ELEMENT_CONTEXT;
+				return $this->step( self::PROCESS_CURRENT_NODE );
+			default:
+				$this->last_error = self::ERROR_SYNTAX;
+				_doing_it_wrong( __METHOD__, 'Unexpected token type in prolog stage.', 'WP_VERSION' );
+				return false;
+		}
+	}
+
+	/**
+	 * Parses the next node in the 'element' part of the XML document.
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @see https://www.w3.org/TR/xml/#NT-document.
+	 * @see WP_XML_Tag_Processor::step
+	 *
+	 * @return bool Whether a node was found.
+	 */
+	private function step_in_element() {
+		switch($this->get_token_type()) {
+			case '#text':
+			case '#cdata-section':
+			case '#comment':
+			case '#processing-instructions':
+				return true;
+			case '#tag':
+				// Update the stack of open elements
+				$tag_name = $this->get_tag();
+				if ( $this->is_closing_tag ) {
+					$popped = $this->pop_open_element();
+					if($popped !== $tag_name) {
+						$this->last_error = self::ERROR_SYNTAX;
+						_doing_it_wrong(
+							__METHOD__,
+							__( 'The closing tag did not match the opening tag.' ),
+							'WP_VERSION'
+						);
+						return false;
+					}
+					if( count($this->stack_of_open_elements) === 0 ) {
+						$this->parser_context = self::IN_MISC_CONTEXT;
+					}
+				} else {
+					$this->push_open_element($tag_name);
+				}
+				return true;
+			default:
+				$this->last_error = self::ERROR_SYNTAX;
+				_doing_it_wrong( __METHOD__, 'Unexpected token type in element stage.', 'WP_VERSION' );
+				return false;
+		}
+	}
+
+	/**
+	 * Parses the next node in the 'misc' part of the XML document.
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @see https://www.w3.org/TR/xml/#NT-document.
+	 * @see WP_XML_Tag_Processor::step
+	 *
+	 * @return bool Whether a node was found.
+	 */
+	private function step_in_misc() {
+		switch($this->get_token_type()) {
+			case '#comment':
+			case '#processing-instructions':
+				return true;
+			case '#text':
+				$text = $this->get_modifiable_text();
+				$whitespaces = strspn($text, " \t\n\r");
+				if($whitespaces !== strlen($text)) {
+					$this->last_error = self::ERROR_SYNTAX;
+					_doing_it_wrong( __METHOD__, 'Unexpected token type in prolog stage.', 'WP_VERSION' );
+					return false;
+				}
+				return $this->step();
+			default:
+				$this->last_error = self::ERROR_SYNTAX;
+				_doing_it_wrong( __METHOD__, 'Unexpected token type in misc stage.', 'WP_VERSION' );
+				return false;
+		}
 	}
 
 	/**
@@ -804,28 +867,11 @@ class WP_XML_Tag_Processor {
 	 *
 	 * @since WP_VERSION
 	 *
-	 * @return bool Whether a token was parsed.
-	 */
-	public function next_token() {
-		return $this->base_class_next_token();
-	}
-
-	/**
-	 * Internal method which finds the next token in the XML document.
-	 *
-	 * This method is a protected internal function which implements the logic for
-	 * finding the next token in a document. It exists so that the parser can update
-	 * its state without affecting the location of the cursor in the document and
-	 * without triggering subclass methods for things like `next_token()`, e.g. when
-	 * applying patches before searching for the next token.
-	 *
-	 * @since WP_VERSION
-	 *
 	 * @access private
 	 *
 	 * @return bool Whether a token was parsed.
 	 */
-	private function base_class_next_token() {
+	private function next_token() {
 		$was_at = $this->bytes_already_parsed;
 		$this->after_tag();
 
@@ -833,7 +879,7 @@ class WP_XML_Tag_Processor {
 		if (
 			self::STATE_COMPLETE === $this->parser_state ||
 			self::STATE_INCOMPLETE_INPUT === $this->parser_state ||
-			self::STATE_INVALID_INPUT === $this->parser_state
+			null !== $this->last_error
 		) {
 			return false;
 		}
@@ -846,7 +892,7 @@ class WP_XML_Tag_Processor {
 
 		if ( $this->bytes_already_parsed >= strlen( $this->xml ) ) {
 			if(
-				$this->parsing_stage === self::STAGE_ELEMENT &&
+				$this->parser_context === self::IN_ELEMENT_CONTEXT &&
 				count($this->stack_of_open_elements) > 0
 			) {
 				$this->parser_state = self::STATE_INCOMPLETE_INPUT;
@@ -866,7 +912,7 @@ class WP_XML_Tag_Processor {
 			return false;
 		}
 
-		if ( self::STATE_INVALID_INPUT === $this->parser_state ) {
+		if ( null !== $this->last_error ) {
 			return false;
 		}
 
@@ -893,7 +939,7 @@ class WP_XML_Tag_Processor {
 			}
 		}
 
-		if ( self::STATE_INVALID_INPUT === $this->parser_state ) {
+		if ( null !== $this->last_error ) {
 			return false;
 		}
 
@@ -918,7 +964,7 @@ class WP_XML_Tag_Processor {
 		}
 
 		if ( $this->is_closing_tag && $tag_ends_at !== $this->bytes_already_parsed ) {
-			$this->parser_state = self::STATE_INVALID_INPUT;
+			$this->last_error = self::ERROR_SYNTAX;
 			_doing_it_wrong(
 				__METHOD__,
 				__( "Invalid closing tag encountered." ),
@@ -950,10 +996,6 @@ class WP_XML_Tag_Processor {
 	 */
 	public function paused_at_incomplete_token() {
 		return self::STATE_INCOMPLETE_INPUT === $this->parser_state;
-	}
-
-	public function invalid_document() {
-		return self::STATE_INVALID_INPUT === $this->parser_state;		
 	}
 
 	/**
@@ -1137,13 +1179,68 @@ class WP_XML_Tag_Processor {
 	 *     $processor->next_tag( 'img' );
 	 *     $processor->get_breadcrumbs() === array( 'p', 'strong', 'em', 'img' );
 	 *
-	 * @since 6.4.0
+	 * @since WP_VERSION
 	 *
 	 * @return string[]|null Array of tag names representing path to matched node, if matched, otherwise NULL.
 	 */
 	public function get_breadcrumbs()
 	{
 		return $this->stack_of_open_elements;
+	}
+
+	/**
+	 * Returns the nesting depth of the current location in the document.
+	 *
+	 * Example:
+	 *
+	 *     $processor = new WP_XML_Processor( '<?xml version="1.0" ?><root><wp:text></wp:text></root>' );
+	 *     0 === $processor->get_current_depth();
+	 *
+	 *     // Opening the root element increases the depth.
+	 *     $processor->next_element();
+	 *     1 === $processor->get_current_depth();
+	 *
+	 *     // Opening the wp:text element increases the depth.
+	 *     $processor->next_element();
+	 *     2 === $processor->get_current_depth();
+	 *
+	 *     // The wp:text element is closed during `next_token()` so the depth is decreased to reflect that.
+	 *     $processor->next_token();
+	 *     1 === $processor->get_current_depth();
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @return int Nesting-depth of current location in the document.
+	 */
+	public function get_current_depth() {
+		return count($this->stack_of_open_elements);
+	}
+
+	/**
+	 * Returns the last error, if any.
+	 *
+	 * Various situations lead to parsing failure but this class will
+	 * return `false` in all those cases. To determine why something
+	 * failed it's possible to request the last error. This can be
+	 * helpful to know to distinguish whether a given tag couldn't
+	 * be found or if content in the document caused the processor
+	 * to give up and abort processing.
+	 *
+	 * Example
+	 *
+	 *     $processor = WP_XML_Tag_Processor::create_fragment( '<wp:content invalid-attr></wp:content>' );
+	 *     false === $processor->next_tag();
+	 *     WP_XML_Tag_Processor::ERROR_SYNTAX === $processor->get_last_error();
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @see self::ERROR_UNSUPPORTED
+	 * @see self::ERROR_EXCEEDED_MAX_BOOKMARKS
+	 *
+	 * @return string|null The last error, if one exists, otherwise null.
+	 */
+	public function get_last_error() {
+		return $this->last_error;
 	}
 
 	/**
@@ -1229,7 +1326,6 @@ class WP_XML_Tag_Processor {
 	 * closing `>`; these are left for other methods.
 	 *
 	 * @since WP_VERSION
-	 * @since 6.2.1 Support abruptly-closed comments, invalid-tag-closer-comments, and empty elements.
 	 *
 	 * @return bool Whether a tag was found before the end of the document.
 	 */
@@ -1378,7 +1474,7 @@ class WP_XML_Tag_Processor {
 						 * See https://www.w3.org/TR/xml/#sec-comments
 						 */
 						if ( '>' !== $xml[ $closer_at + 2 ] ) {
-							$this->parser_state = self::STATE_INVALID_INPUT;
+							$this->last_error = self::ERROR_SYNTAX;
 							_doing_it_wrong(
 								__METHOD__,
 								__( 'Invalid comment syntax encountered.' ),
@@ -1481,13 +1577,13 @@ class WP_XML_Tag_Processor {
 					}
 				}
 
-				if ( self::STATE_INVALID_INPUT === $this->parser_state ) {
+				if ( null !== $this->last_error ) {
 					return false;
 				}
 
 				foreach ( $this->attributes as $name => $attribute ) {
 					if ( 'version' !== $name && 'encoding' !== $name && 'standalone' !== $name ) {
-						$this->parser_state = self::STATE_INVALID_INPUT;
+						$this->last_error = self::ERROR_SYNTAX;
 						_doing_it_wrong(
 							__METHOD__,
 							__( 'Invalid attribute found in XML declaration.' ),
@@ -1498,7 +1594,7 @@ class WP_XML_Tag_Processor {
 				}
 
 				if ( '1.0' !== $this->get_attribute( 'version' ) ) {
-					$this->parser_state = self::STATE_INVALID_INPUT;
+					$this->last_error = self::ERROR_UNSUPPORTED;
 					_doing_it_wrong(
 						__METHOD__,
 						__( 'Unsupported XML version declared' ),
@@ -1517,7 +1613,7 @@ class WP_XML_Tag_Processor {
 					null !== $this->get_attribute( 'encoding' )
 					&& "UTF-8" !== strtoupper( $this->get_attribute( 'encoding' ) )
 				) {
-					$this->parser_state = self::STATE_INVALID_INPUT;
+					$this->last_error = self::ERROR_UNSUPPORTED;
 					_doing_it_wrong(
 						__METHOD__,
 						__( 'Unsupported XML encoding declared, only UTF-8 is supported.' ),
@@ -1529,7 +1625,7 @@ class WP_XML_Tag_Processor {
 					null !== $this->get_attribute( 'standalone' )
 					&& "YES" !== strtoupper( $this->get_attribute( 'standalone' ) )
 				) {
-					$this->parser_state = self::STATE_INVALID_INPUT;
+					$this->last_error = self::ERROR_UNSUPPORTED;
 					_doing_it_wrong(
 						__METHOD__,
 						__( 'Standalone XML documents are not supported.' ),
@@ -1549,7 +1645,7 @@ class WP_XML_Tag_Processor {
 					'?' === $xml[ $at ] &&
 					'>' === $xml[ $at + 1 ]
 				) ) {
-					$this->parser_state = self::STATE_INVALID_INPUT;
+					$this->last_error = self::ERROR_SYNTAX;
 					_doing_it_wrong(
 						__METHOD__,
 						__( 'XML declaration closer not found.' ),
@@ -1652,7 +1748,7 @@ class WP_XML_Tag_Processor {
 		$attribute_start       = $this->bytes_already_parsed;
 		$attribute_name_length = $this->parse_name();
 		if($attribute_name_length === 0) {
-			$this->parser_state = self::STATE_INVALID_INPUT;
+			$this->last_error = self::ERROR_SYNTAX;
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Invalid attribute name encountered.' ),
@@ -1692,7 +1788,7 @@ class WP_XML_Tag_Processor {
 				$attribute_end = $value_start + $value_length + 1;
 
 				if ( $this->xml[ $attribute_end - 1 ] !== $quote ) {
-					$this->parser_state = self::STATE_INVALID_INPUT;
+					$this->last_error = self::ERROR_SYNTAX;
 					_doing_it_wrong(
 						__METHOD__,
 						__( 'A disallowed character encountered in an attribute value (either < or &).' ),
@@ -1703,7 +1799,7 @@ class WP_XML_Tag_Processor {
 				break;
 
 			default:
-				$this->parser_state = self::STATE_INVALID_INPUT;
+			$this->last_error = self::ERROR_SYNTAX;
 				_doing_it_wrong(
 					__METHOD__,
 					__( 'Unquoted attribute value encountered.' ),
@@ -1722,7 +1818,7 @@ class WP_XML_Tag_Processor {
 		}
 
 		if ( array_key_exists( $attribute_name, $this->attributes ) ) {
-			$this->parser_state = self::STATE_INVALID_INPUT;
+			$this->last_error = self::ERROR_SYNTAX;
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Duplicate attribute found in an XML tag.' ),
@@ -1855,8 +1951,6 @@ class WP_XML_Tag_Processor {
 	 * Applies attribute updates to XML document.
 	 *
 	 * @since WP_VERSION
-	 * @since 6.2.1 Accumulates shift for internal cursor and passed pointer.
-	 * @since WP_VERSION Invalidate any bookmarks whose targets are overwritten.
 	 *
 	 * @param int $shift_this_point Accumulate and return shift for this position.
 	 * @return int How many bytes the given pointer moved in response to the updates.
@@ -2149,7 +2243,7 @@ class WP_XML_Tag_Processor {
 			 * 
 			 * @see WP_XML_Decoder::decode()
 			 */
-			$this->parser_state = self::STATE_INVALID_INPUT;
+			$this->last_error = self::ERROR_SYNTAX;
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Invalid attribute value encountered.' ),
@@ -2400,7 +2494,7 @@ class WP_XML_Tag_Processor {
 			 * @see WP_XML_Decoder::decode()
 			 */
 
-			$this->parser_state = self::STATE_INVALID_INPUT;
+			 $this->last_error = self::ERROR_SYNTAX;
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Invalid text content encountered.' ),
@@ -2421,7 +2515,6 @@ class WP_XML_Tag_Processor {
 	 * For string attributes, the value is escaped using the `esc_attr` function.
 	 *
 	 * @since WP_VERSION
-	 * @since 6.2.1 Fix: Only create a single update for multiple calls with case-variant attribute names.
 	 *
 	 * @param string      $name  The attribute name to target.
 	 * @param string|bool $value The new attribute value.
@@ -2563,8 +2656,6 @@ class WP_XML_Tag_Processor {
 	 * Returns the string representation of the XML Tag Processor.
 	 *
 	 * @since WP_VERSION
-	 * @since 6.2.1 Shifts the internal cursor corresponding to the applied updates.
-	 * @since 6.4.0 No longer calls subclass method `next_tag()` after updating XML.
 	 *
 	 * @return string The processed XML.
 	 */
@@ -2611,7 +2702,7 @@ class WP_XML_Tag_Processor {
 		 *                 └←─┘ back up by strlen("em") + 1 ==> 3
 		 */
 		$this->bytes_already_parsed = $before_current_tag;
-		$this->base_class_next_token();
+		$this->next_token();
 
 		return $this->xml;
 	}
@@ -2761,7 +2852,7 @@ class WP_XML_Tag_Processor {
 	 *
 	 * @access private
 	 */
-	const STATE_INVALID_INPUT = 'STATE_INVALID_INPUT';
+	const STATE_INVALID_DOCUMENT = 'STATE_INVALID_DOCUMENT';
 
 	/**
 	 * Parser Matched Tag State.
@@ -2837,7 +2928,7 @@ class WP_XML_Tag_Processor {
 	 * 
 	 * @access private
 	 */
-	const STAGE_PROLOG = 'prolog';
+	const IN_PROLOG_CONTEXT = 'prolog';
 
 	/**
 	 * Indicates that we're parsing the `element` part of the XML
@@ -2847,7 +2938,7 @@ class WP_XML_Tag_Processor {
 	 * 
 	 * @access private
 	 */
-	const STAGE_ELEMENT = 'element';
+	const IN_ELEMENT_CONTEXT = 'element';
 
 	/**
 	 * Indicates that we're parsing the `misc` part of the XML
@@ -2857,5 +2948,52 @@ class WP_XML_Tag_Processor {
 	 * 
 	 * @access private
 	 */
-	const STAGE_MISC = 'misc';
+	const IN_MISC_CONTEXT = 'misc';
+
+	/**
+	 * Indicates that the next HTML token should be parsed and processed.
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @var string
+	 */
+	const PROCESS_NEXT_NODE = 'process-next-node';
+
+	/**
+	 * Indicates that the current HTML token should be processed without advancing the parser.
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @var string
+	 */
+	const PROCESS_CURRENT_NODE = 'process-current-node';
+
+	/**
+	 * Indicates that the parser encountered unsupported syntax and has bailed.
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @var string
+	 */
+	const ERROR_SYNTAX = 'syntax';
+
+	/**
+	 * Indicates that the provided XML document contains a declaration that is
+	 * unsupported by the parser.
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @var string
+	 */
+	const ERROR_UNSUPPORTED = 'unsupported';
+
+	/**
+	 * Indicates that the parser encountered more XML tokens than it
+	 * was able to process and has bailed.
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @var string
+	 */
+	const ERROR_EXCEEDED_MAX_BOOKMARKS = 'exceeded-max-bookmarks';
 }
