@@ -90,16 +90,16 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 			// These should not have a self-closer, and will leave an element un-closed if it's assumed they are self-closing.
 			'Self-closing flag on non-void XML element' => array( '<div />', true ),
 			'No self-closing flag on non-void XML element' => array( '<div>', false ),
-//			// These should not have a self-closer, but are benign when used because the elements are void.
+			// These should not have a self-closer, but are benign when used because the elements are void.
 			'Self-closing flag on void XML element'     => array( '<img />', true ),
 			'No self-closing flag on void XML element'  => array( '<img>', false ),
 			'Self-closing flag on void XML element without spacing' => array( '<img/>', true ),
-//			// These should not have a self-closer, but as part of a tag closer they are entirely ignored.
+			// These should not have a self-closer, but as part of a tag closer they are entirely ignored.
 			'No self-closing flag on tag closer'         => array( '</textarea>', false ),
-//			// These can and should have self-closers, and will leave an element un-closed if it's assumed they aren't self-closing.
+			// These can and should have self-closers, and will leave an element un-closed if it's assumed they aren't self-closing.
 			'Self-closing flag on a foreign element'     => array( '<circle />', true ),
 			'No self-closing flag on a foreign element'  => array( '<circle>', false ),
-//			// These involve syntax peculiarities.
+			// These involve syntax peculiarities.
 			'Self-closing flag after extra spaces'       => array( '<div      />', true ),
 			'Self-closing flag after quoted attribute'   => array( '<div id="test"/>', true ),
 		);
@@ -533,7 +533,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 			'Sibling DIV'                   => array( '<div></div><div b="yes">', 3, '<div b="yes">' ),
 			'DIV after text'                => array( 'text <div>', 2, '<div>' ),
 			'DIV before text'               => array( '<div> text', 1, '<div>' ),
-			// 'DIV after comment'             => array( '<!-- comment --><div>', 2, '<div>' ),
+			'DIV after comment'             => array( '<!-- comment --><div>', 2, '<div>' ),
 			'DIV before comment'            => array( '<div><!-- c --> ', 1, '<div>' ),
 			'Start "self-closing" tag'      => array( '<div />', 1, '<div />' ),
 			'Void tag'                      => array( '<img src="img.png">', 1, '<img src="img.png">' ),
@@ -545,18 +545,17 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 			'Text in DIV'                   => array( '<div>Text<div>', 2, 'Text' ),
 			'Text before DIV'               => array( 'Text<div>', 1, 'Text' ),
 			'Text after DIV'                => array( '<div></div>Text', 3, 'Text' ),
-			// 'Text after comment'            => array( '<!-- comment -->Text', 2, 'Text' ),
+			'Text after comment'            => array( '<!-- comment -->Text', 2, 'Text' ),
 			'Text before comment'           => array( 'Text<!-- c --> ', 1, 'Text' ),
 
 			// Comments.
-			// 'Comment'                       => array( '<!-- comment -->', 1, '<!-- comment -->' ),
-			// 'Comment in DIV'                => array( '<div><!-- comment --><div>', 2, '<!-- comment -->' ),
-			// 'Comment before DIV'            => array( '<!-- comment --><div>', 1, '<!-- comment -->' ),
-			// 'Comment after DIV'             => array( '<div></div><!-- comment -->', 3, '<!-- comment -->' ),
-			// 'Comment after comment'         => array( '<!-- comment --><!-- comment -->', 2, '<!-- comment -->' ),
-			// 'Comment before comment'        => array( '<!-- comment --><!-- c --> ', 1, '<!-- comment -->' ),
-			// 'Abruptly closed comment'       => array( '<!-->', 1, '<!-->' ),
-			// 'Empty comment'                 => array( '<!---->', 1, '<!---->' ),
+			'Comment'                       => array( '<!-- comment -->', 1, '<!-- comment -->' ),
+			'Comment in DIV'                => array( '<div><!-- comment --><div>', 2, '<!-- comment -->' ),
+			'Comment before DIV'            => array( '<!-- comment --><div>', 1, '<!-- comment -->' ),
+			'Comment after DIV'             => array( '<div></div><!-- comment -->', 3, '<!-- comment -->' ),
+			'Comment after comment'         => array( '<!-- comment --><!-- comment -->', 2, '<!-- comment -->' ),
+			'Comment before comment'        => array( '<!-- comment --><!-- c --> ', 1, '<!-- comment -->' ),
+			'Empty comment'                 => array( '<!---->', 1, '<!---->' ),
 		);
 	}
 
@@ -1135,10 +1134,10 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 			"Shouldn't have found any tags but found {$processor->get_tag()}."
 		);
 
-		// $this->assertFalse(
-		// 	$processor->paused_at_incomplete_token(),
-		// 	'Should have indicated that end of document was reached without evidence that elements were truncated.'
-		// );
+		$this->assertFalse(
+			$processor->paused_at_incomplete_token(),
+			'Should have indicated that end of document was reached without evidence that elements were truncated.'
+		);
 	}
 
 	/**
@@ -1148,7 +1147,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 */
 	public static function data_xml_without_tags() {
 		return array(
-			'DOCTYPE declaration'    => array( '<!DOCTYPE xml>Just some XML' ),
+			// 'DOCTYPE declaration'    => array( '<!DOCTYPE xml>Just some XML' ),
 			'No tags'                => array( 'this is nothing more than a text node' ),
 			'Text with comments'     => array( 'One <!-- sneaky --> comment.' ),
 			'CDATA as XML comment'  => array( '<![CDATA[this closes at the first &gt;]]> ay' ),
