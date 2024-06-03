@@ -1158,7 +1158,7 @@ class WP_Duotone {
 	 * Fixes the issue with our generated class name not being added to the block's outer container
 	 * in classic themes due to gutenberg_restore_image_outer_container from layout block supports.
 	 *
-	 * @since 6.5.0
+	 * @since 6.6.0
 	 *
 	 * @param  string $block_content Rendered block content.
 	 * @return string                Filtered block content.
