@@ -748,7 +748,6 @@ SCRIPT_TAG;
 	 * @param string $directive_value The directive attribute value to evaluate.
 	 * @return mixed The result of the evaluate method.
 	 */
-	#[\ReturnTypeWillChange]
 	private function evaluate( $directive_value ) {
 		$generate_state = function ( $name ) {
 			$obj       = new stdClass();
@@ -758,8 +757,10 @@ SCRIPT_TAG;
 				'nested'    => array( 'key' => $name . '-nested' ),
 				'obj'       => $obj,
 				'arrAccess' => new class() implements ArrayAccess {
-					public function offsetExists( $offset ): bool {
+					#[\ReturnTypeWillChange]
+					public function offsetExists( $offset ) {
 						return true; }
+
 					public function offsetGet( $offset ): string {
 						return $offset; }
 					public function offsetSet( $offset, $value ): void {}
