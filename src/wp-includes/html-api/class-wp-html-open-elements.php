@@ -74,7 +74,7 @@ class WP_HTML_Open_Elements {
 	private $push_handler = null;
 
 	/**
-	 * Set a pop handler that will be called when an item is popped off the stack of
+	 * Sets a pop handler that will be called when an item is popped off the stack of
 	 * open elements.
 	 *
 	 * The function will be called with the pushed item as its argument.
@@ -88,7 +88,7 @@ class WP_HTML_Open_Elements {
 	}
 
 	/**
-	 * Set a push handler that will be called when an item is pushed onto the stack of
+	 * Sets a push handler that will be called when an item is pushed onto the stack of
 	 * open elements.
 	 *
 	 * The function will be called with the pushed item as its argument.
