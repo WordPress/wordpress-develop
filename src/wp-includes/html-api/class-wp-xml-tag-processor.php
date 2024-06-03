@@ -1,7 +1,10 @@
 <?php
-
 /**
- * WP_XML_Tag_Processor is a non-validating, streaming XML 1.0 parser.
+ * XML API: WP_XML_Tag_Processor class
+ * 
+ * Scans through an XML document to find specific tags, then
+ * transforms those tags by adding, removing, or updating the
+ * values of the XML attributes within that tag (opener).
  * 
  * It implements a subset of the XML 1.0 specification (https://www.w3.org/TR/xml/)
  * and supports XML documents with the following characteristics:
@@ -12,6 +15,8 @@
  * * Not standalone (so can use external entities)
  * * No DTD, DOCTYPE, ATTLIST, ENTITY, or conditional sections
  *
+ * ### Possible future direction for this module
+ * 
  * The final goal is to support both 1.0 and 1.1 depending on the
  * initial processing instruction (<?xml version="1.0" ?>). We're
  * starting with 1.0, however, because most that's what most WXR
@@ -41,6 +46,267 @@
  *       ]>
  * 
  * @TODO: Support XML 1.1.
+ * @package WordPress
+ * @subpackage XML-API
+ * @since WP_VERSION
+ */
+
+/**
+ * Core class used to modify attributes in an XML document for tags matching a query.
+ *
+ * ## Usage
+ *
+ * Use of this class requires three steps:
+ *
+ *  1. Create a new class instance with your input XML document.
+ *  2. Find the tag(s) you are looking for.
+ *  3. Request changes to the attributes in those tag(s).
+ *
+ * Example:
+ *
+ *     $tags = new WP_XML_Tag_Processor( $xml );
+ *     if ( $tags->next_tag( 'wp:option' ) ) {
+ *         $tags->set_attribute( 'selected', 'yes' );
+ *     }
+ *
+ * ### Finding tags
+ *
+ * The `next_tag()` function moves the internal cursor through
+ * your input XML document until it finds a tag meeting any of
+ * the supplied restrictions in the optional query argument. If
+ * no argument is provided then it will find the next XML tag,
+ * regardless of what kind it is.
+ *
+ * If you want to _find whatever the next tag is_:
+ *
+ *     $tags->next_tag();
+ *
+ * | Goal                                                      | Query                                                                           |
+ * |-----------------------------------------------------------|---------------------------------------------------------------------------------|
+ * | Find any tag.                                             | `$tags->next_tag();`                                                            |
+ * | Find next image tag.                                      | `$tags->next_tag( array( 'tag_name' => 'wp:image' ) );`                              |
+ * | Find next image tag (without passing the array).          | `$tags->next_tag( 'wp:image' );`                                                     |
+ *
+ * If a tag was found meeting your criteria then `next_tag()`
+ * will return `true` and you can proceed to modify it. If it
+ * returns `false`, however, it failed to find the tag and
+ * moved the cursor to the end of the file.
+ *
+ * Once the cursor reaches the end of the file the processor
+ * is done and if you want to reach an earlier tag you will
+ * need to recreate the processor and start over, as it's
+ * unable to back up or move in reverse.
+ *
+ * See the section on bookmarks for an exception to this
+ * no-backing-up rule.
+ * 
+ * #### Custom queries
+ *
+ * Sometimes it's necessary to further inspect an XML tag than
+ * the query syntax here permits. In these cases one may further
+ * inspect the search results using the read-only functions
+ * provided by the processor or external state or variables.
+ *
+ * Example:
+ *
+ *     // Paint up to the first five `wp:musician` or `wp:actor` tags marked with the "jazzy" style.
+ *     $remaining_count = 5;
+ *     while ( $remaining_count > 0 && $tags->next_tag() ) {
+ *         if (
+ *              ( 'wp:musician' === $tags->get_tag() || 'wp:actor' === $tags->get_tag() ) &&
+ *              'jazzy' === $tags->get_attribute( 'data-style' )
+ *         ) {
+ *             $tags->set_attribute( 'wp:theme-style', 'theme-style-everest-jazz' );
+ *             $remaining_count--;
+ *         }
+ *     }
+ *
+ * `get_attribute()` will return `null` if the attribute wasn't present
+ * on the tag when it was called. It may return `""` (the empty string)
+ * in cases where the attribute was present but its value was empty.
+ * For boolean attributes, those whose name is present but no value is
+ * given, it will return `true` (the only way to set `false` for an
+ * attribute is to remove it).
+ *
+ * #### When matching fails
+ *
+ * When `next_tag()` returns `false` it could mean different things:
+ *
+ *  - The requested tag wasn't found in the input document.
+ *  - The input document ended in the middle of an XML syntax element.
+ *
+ * When a document ends in the middle of a syntax element it will pause
+ * the processor. This is to make it possible in the future to extend the
+ * input document and proceed - an important requirement for chunked
+ * streaming parsing of a document.
+ *
+ * Example:
+ *
+ *     $processor = new WP_XML_Tag_Processor( 'This <wp:content is="a" partial="token' );
+ *     false === $processor->next_tag();
+ *
+ * If a special element (see next section) is encountered but no closing tag
+ * is found it will count as an incomplete tag. The parser will pause as if
+ * the opening tag were incomplete.
+ *
+ * Example:
+ *
+ *     $processor = new WP_XML_Tag_Processor( '<style>// there could be more styling to come' );
+ *     false === $processor->next_tag();
+ *
+ *     $processor = new WP_XML_Tag_Processor( '<style>// this is everything</style><wp:content>' );
+ *     true === $processor->next_tag( 'DIV' );
+ *
+ * #### Special elements
+ *
+ * All XML elements are handled in the same way, except when you mark
+ * them as PCdata elements. These are special because their contents
+ * is treated as text, even if it looks like XML tags.
+ * 
+ * Example:
+ * 
+ *    $processor = new WP_XML_Tag_Processor( '<root><wp:post-content>Text inside</input></wp:post-content><</root>' );
+ * 	  $processor->declare_element_as_pcdata('wp:post-content');
+ * 	  $processor->next_tag('wp:post-content');
+ * 	  $processor->next_token();
+ * 	  echo $processor->get_modifiable_text(); // Text inside</input>
+ *
+ * ### Modifying XML attributes for a found tag
+ *
+ * Once you've found the start of an opening tag you can modify
+ * any number of the attributes on that tag. You can set a new
+ * value for an attribute, remove the entire attribute, or do
+ * nothing and move on to the next opening tag.
+ *
+ * Example:
+ *
+ *     if ( $tags->next_tag( 'wp:user-group' ) ) {
+ *         $tags->set_attribute( 'name', 'Content editors' );
+ *         $tags->remove_attribute( 'data-test-id' );
+ *     }
+ *
+ * If `set_attribute()` is called for an existing attribute it will
+ * overwrite the existing value. Similarly, calling `remove_attribute()`
+ * for a non-existing attribute has no effect on the document. Both
+ * of these methods are safe to call without knowing if a given attribute
+ * exists beforehand.
+ * 
+ * ### Bookmarks
+ *
+ * While scanning through the input XML document it's possible to set
+ * a named bookmark when a particular tag is found. Later on, after
+ * continuing to scan other tags, it's possible to `seek` to one of
+ * the set bookmarks and then proceed again from that point forward.
+ *
+ * Because bookmarks create processing overhead one should avoid
+ * creating too many of them. As a rule, create only bookmarks
+ * of known string literal names; avoid creating "mark_{$index}"
+ * and so on. It's fine from a performance standpoint to create a
+ * bookmark and update it frequently, such as within a loop.
+ *
+ *     $total_todos = 0;
+ *     while ( $p->next_tag( array( 'tag_name' => 'wp:todo-list' ) ) ) {
+ *         $p->set_bookmark( 'list-start' );
+ *         while ( $p->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+ *             if ( 'wp:todo' === $p->get_tag() && $p->is_tag_closer() ) {
+ *                 $p->set_bookmark( 'list-end' );
+ *                 $p->seek( 'list-start' );
+ *                 $p->set_attribute( 'data-contained-todos', (string) $total_todos );
+ *                 $total_todos = 0;
+ *                 $p->seek( 'list-end' );
+ *                 break;
+ *             }
+ *
+ *             if ( 'wp:todo-item' === $p->get_tag() && ! $p->is_tag_closer() ) {
+ *                 $total_todos++;
+ *             }
+ *         }
+ *     }
+ *
+ * ## Tokens and finer-grained processing.
+ *
+ * It's possible to scan through every lexical token in the
+ * XML document using the `next_token()` function. This
+ * alternative form takes no argument and provides no built-in
+ * query syntax.
+ *
+ * Example:
+ *
+ *      $title = '(untitled)';
+ *      $text  = '';
+ *      while ( $processor->next_token() ) {
+ *          switch ( $processor->get_token_name() ) {
+ *              case '#text':
+ *                  $text .= $processor->get_modifiable_text();
+ *                  break;
+ *
+ *              case 'wp:new-line':
+ *                  $text .= "\n";
+ *                  break;
+ *
+ *              case 'wp:title':
+ *                  $title = $processor->get_modifiable_text();
+ *                  break;
+ *          }
+ *      }
+ *      return trim( "# {$title}\n\n{$text}" );
+ *
+ * ### Tokens and _modifiable text_.
+ *
+ * #### Other tokens with modifiable text.
+ *
+ * There are also non-elements which are void/self-closing in nature and contain
+ * modifiable text that is part of that individual syntax token itself.
+ *
+ *  - `#text` nodes, whose entire token _is_ the modifiable text.
+ *  - XML comments and tokens that become comments due to some syntax error. The
+ *    text for these tokens is the portion of the comment inside of the syntax.
+ *    E.g. for `<!-- comment -->` the text is `" comment "` (note the spaces are included).
+ *  - `CDATA` sections, whose text is the content inside of the section itself. E.g. for
+ *    `<![CDATA[some content]]>` the text is `"some content"`.
+ *  - XML Processing instruction nodes like `<?xml __( "Like" ); ?>` (with restrictions [1]).
+ *
+ * [1]: XML requires "xml" as a processing instruction name. The Tag Processor captures the entire
+ *      processing instruction as a single token up to the closing `?>`.
+ *
+ * ## Design and limitations
+ *
+ * The Tag Processor is designed to linearly scan XML documents and tokenize
+ * XML tags and their attributes. It's designed to do this as efficiently as
+ * possible without compromising parsing integrity. Therefore it will be
+ * slower than some methods of modifying XML, such as those incorporating
+ * over-simplified PCRE patterns, but will not introduce the defects and
+ * failures that those methods bring in, which lead to broken page renders
+ * and often to security vulnerabilities. On the other hand, it will be faster
+ * than full-blown XML parsers such as DOMDocument and use considerably
+ * less memory. It requires a negligible memory overhead, enough to consider
+ * it a zero-overhead system.
+ *
+ * The performance characteristics are maintained by avoiding tree construction.
+ * 
+ * The Tag Processor's checks the most important aspects of XML integrity as it scans
+ * through the document. It verifies that a single root element exists, that are
+ * no unclosed tags, and that each opener tag has a corresponding closer. It also
+ * ensures no duplicate attributes exist on a single tag.
+ * 
+ * At the same time, The Tag Processor also skips expensive validation of XML entities
+ * in the document. The Tag Processor will initially pass through the invalid entity references
+ * and only fail when the developer attempts to read their value. If that doesn't happen,
+ * the invalid values will be left untouched in the final document.
+ * 
+ * Most operations within the Tag Processor are designed to minimize the difference
+ * between an input and output document for any given change. For example, the
+ * `set_attribure` and `remove_attribute` methods preserve whitespace and the attribute
+ * ordering within the element definition. An exception to this rule is that all attribute 
+ * updates store their values as double-quoted strings, meaning that attributes on input with
+ * single-quoted or unquoted values will appear in the output with double-quotes.
+ *
+ * ### Text Encoding
+ *
+ * The Tag Processor assumes that the input XML document is encoded with a
+ * UTF-8 encoding and will refuse to process documents that declare other encodings.
+ *
+ * @since WP_VERSION
  */
 class WP_XML_Tag_Processor {
 	/**
@@ -98,7 +364,7 @@ class WP_XML_Tag_Processor {
 	private $sought_match_offset;
 
 	/**
-	 * Whether to visit tag closers, e.g. </div>, when walking an input document.
+	 * Whether to visit tag closers, e.g. </wp:content>, when walking an input document.
 	 *
 	 * @since WP_VERSION
 	 * @var bool
@@ -182,7 +448,7 @@ class WP_XML_Tag_Processor {
 	 *
 	 * Example:
 	 *
-	 *     <div id="test">...
+	 *     <wp:content id="test">...
 	 *     01234
 	 *     - token starts at 0
 	 *
@@ -197,7 +463,7 @@ class WP_XML_Tag_Processor {
 	 *
 	 * Example:
 	 *
-	 *     <div id="test">...
+	 *     <wp:content id="test">...
 	 *     012345678901234
 	 *     - token length is 14 - 0 = 14
 	 *
@@ -216,7 +482,7 @@ class WP_XML_Tag_Processor {
 	 *
 	 * Example:
 	 *
-	 *     <div id="test">...
+	 *     <wp:content id="test">...
 	 *     01234
 	 *      - tag name starts at 1
 	 *
@@ -231,7 +497,7 @@ class WP_XML_Tag_Processor {
 	 *
 	 * Example:
 	 *
-	 *     <div id="test">...
+	 *     <wp:content id="test">...
 	 *     01234
 	 *      --- tag name length is 3
 	 *
@@ -260,7 +526,7 @@ class WP_XML_Tag_Processor {
 	private $text_length;
 
 	/**
-	 * Whether the current tag is an opening tag, e.g. <div>, or a closing tag, e.g. </div>.
+	 * Whether the current tag is an opening tag, e.g. <wp:content>, or a closing tag, e.g. </wp:content>.
 	 *
 	 * @var bool
 	 */
@@ -273,17 +539,17 @@ class WP_XML_Tag_Processor {
 	 *
 	 *     // Supposing the parser is working through this content
 	 *     // and stops after recognizing the `id` attribute.
-	 *     // <div id="test-4" class=outline title="data:text/plain;base64=asdk3nk1j3fo8">
+	 *     // <wp:content id="test-4" class=outline title="data:text/plain;base64=asdk3nk1j3fo8">
 	 *     //                 ^ parsing will continue from this point.
 	 *     $this->attributes = array(
-	 *         'id' => new WP_XML_Attribute_Token( 'id', 9, 6, 5, 11, false )
+	 *         'id' => new WP_HTML_Attribute_Token( 'id', 9, 6, 5, 11, false )
 	 *     );
 	 *
 	 *     // When picking up parsing again, or when asking to find the
 	 *     // `class` attribute we will continue and add to this array.
 	 *     $this->attributes = array(
-	 *         'id'    => new WP_XML_Attribute_Token( 'id', 9, 6, 5, 11, false ),
-	 *         'class' => new WP_XML_Attribute_Token( 'class', 23, 7, 17, 13, false )
+	 *         'id'    => new WP_HTML_Attribute_Token( 'id', 9, 6, 5, 11, false ),
+	 *         'class' => new WP_HTML_Attribute_Token( 'class', 23, 7, 17, 13, false )
 	 *     );
 	 *
 	 * @since WP_VERSION
@@ -387,8 +653,7 @@ class WP_XML_Tag_Processor {
 	 *     @type int|null    $match_offset Find the Nth tag matching all search criteria.
 	 *                                     1 for "first" tag, 3 for "third," etc.
 	 *                                     Defaults to first tag.
-	 *     @type string|null $class_name   Tag must contain this whole class name to match.
-	 *     @type string|null $tag_closers  "visit" or "skip": whether to stop on tag closers, e.g. </div>.
+	 *     @type string|null $tag_closers  "visit" or "skip": whether to stop on tag closers, e.g. </wp:content>.
 	 * }
 	 * @return bool Whether a tag was matched.
 	 */
@@ -1820,7 +2085,7 @@ class WP_XML_Tag_Processor {
 	 *
 	 * Example:
 	 *
-	 *     $p = new WP_XML_Tag_Processor( '<div enabled class="test" data-test-id="14">Test</div>' );
+	 *     $p = new WP_XML_Tag_Processor( '<wp:content enabled class="test" data-test-id="14">Test</wp:content>' );
 	 *     $p->next_tag( array( 'class_name' => 'test' ) ) === true;
 	 *     $p->get_attribute( 'data-test-id' ) === '14';
 	 *     $p->get_attribute( 'enabled' ) === true;
@@ -1882,7 +2147,7 @@ class WP_XML_Tag_Processor {
 	 *
 	 * Example:
 	 *
-	 *     $p = new WP_XML_Tag_Processor( '<div data-ENABLED="1" class="test" DATA-test-id="14">Test</div>' );
+	 *     $p = new WP_XML_Tag_Processor( '<wp:content data-ENABLED="1" class="test" DATA-test-id="14">Test</wp:content>' );
 	 *     $p->next_tag( array( 'class_name' => 'test' ) ) === true;
 	 *     $p->get_attribute_names_with_prefix( 'data-' ) === array( 'data-ENABLED' );
 	 *     $p->get_attribute_names_with_prefix( 'DATA-' ) === array( 'DATA-test-id' );
@@ -1915,7 +2180,7 @@ class WP_XML_Tag_Processor {
 	 *
 	 * Example:
 	 *
-	 *     $p = new WP_XML_Tag_Processor( '<div class="test">Test</div>' );
+	 *     $p = new WP_XML_Tag_Processor( '<wp:content class="test">Test</wp:content>' );
 	 *     $p->next_tag() === true;
 	 *     $p->get_tag() === 'DIV';
 	 *
@@ -1971,11 +2236,11 @@ class WP_XML_Tag_Processor {
 	 *
 	 * Example:
 	 *
-	 *     $p = new WP_XML_Tag_Processor( '<div></div>' );
-	 *     $p->next_tag( array( 'tag_name' => 'div', 'tag_closers' => 'visit' ) );
+	 *     $p = new WP_XML_Tag_Processor( '<wp:content></wp:content>' );
+	 *     $p->next_tag( array( 'tag_name' => 'wp:content', 'tag_closers' => 'visit' ) );
 	 *     $p->is_tag_closer() === false;
 	 *
-	 *     $p->next_tag( array( 'tag_name' => 'div', 'tag_closers' => 'visit' ) );
+	 *     $p->next_tag( array( 'tag_name' => 'wp:content', 'tag_closers' => 'visit' ) );
 	 *     $p->is_tag_closer() === true;
 	 *
 	 * @since WP_VERSION
@@ -2171,14 +2436,14 @@ class WP_XML_Tag_Processor {
 			/*
 			 * Update an existing attribute.
 			 *
-			 * Example – set attribute id to "new" in <div id="initial_id" />:
+			 * Example – set attribute id to "new" in <wp:content id="initial_id" />:
 			 *
-			 *     <div id="initial_id"/>
+			 *     <wp:content id="initial_id"/>
 			 *          ^-------------^
 			 *          start         end
 			 *     replacement: `id="new"`
 			 *
-			 *     Result: <div id="new"/>
+			 *     Result: <wp:content id="new"/>
 			 */
 			$existing_attribute             = $this->attributes[ $name ];
 			$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
@@ -2190,14 +2455,14 @@ class WP_XML_Tag_Processor {
 			/*
 			 * Create a new attribute at the tag's name end.
 			 *
-			 * Example – add attribute id="new" to <div />:
+			 * Example – add attribute id="new" to <wp:content />:
 			 *
-			 *     <div/>
+			 *     <wp:content/>
 			 *         ^
 			 *         start and end
 			 *     replacement: ` id="new"`
 			 *
-			 *     Result: <div id="new"/>
+			 *     Result: <wp:content id="new"/>
 			 */
 			$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
 				$this->tag_name_starts_at + $this->tag_name_length,
@@ -2243,13 +2508,13 @@ class WP_XML_Tag_Processor {
 		/*
 		 * Removes an existing tag attribute.
 		 *
-		 * Example – remove the attribute id from <div id="main"/>:
-		 *    <div id="initial_id"/>
+		 * Example – remove the attribute id from <wp:content id="main"/>:
+		 *    <wp:content id="initial_id"/>
 		 *         ^-------------^
 		 *         start         end
 		 *    replacement: ``
 		 *
-		 *    Result: <div />
+		 *    Result: <wp:content />
 		 */
 		$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
 			$this->attributes[ $name ]->start,
@@ -2342,7 +2607,7 @@ class WP_XML_Tag_Processor {
 	 *     @type int|null    $match_offset Find the Nth tag matching all search criteria.
 	 *                                     1 for "first" tag, 3 for "third," etc.
 	 *                                     Defaults to first tag.
-	 *     @type string      $tag_closers  "visit" or "skip": whether to stop on tag closers, e.g. </div>.
+	 *     @type string      $tag_closers  "visit" or "skip": whether to stop on tag closers, e.g. </wp:content>.
 	 * }
 	 */
 	private function parse_query( $query ) {

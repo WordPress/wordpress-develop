@@ -20,9 +20,9 @@ require_once $base_dir . "/class-wp-xml-tag-processor.php";
  * @coversDefaultClass WP_XML_Tag_Processor
  */
 class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
-	const XML_SIMPLE       = '<div id="first"><span id="second">Text</span></div>';
-	const XML_WITH_CLASSES = '<div class="main with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>';
-	const XML_MALFORMED    = '<div><span class="d-md-none" Notifications</span><span class="d-none d-md-inline">Back to notifications</span></div>';
+	const XML_SIMPLE       = '<wp:content id="first"><wp:text id="second">Text</wp:text></wp:content>';
+	const XML_WITH_CLASSES = '<wp:content wp:post-type="main with-border" id="first"><wp:text wp:post-type="not-main bold with-border" id="second">Text</wp:text></wp:content>';
+	const XML_MALFORMED    = '<wp:content><wp:text wp:post-type="d-md-none" Notifications</wp:text><wp:text wp:post-type="d-none d-md-inline">Back to notifications</wp:text></wp:content>';
 
 	/**
 	 * @ticket 56299
@@ -30,7 +30,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_tag
 	 */
 	public function test_get_tag_returns_null_before_finding_tags() {
-		$processor = new WP_XML_Tag_Processor( '<div>Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content>Test</wp:content>' );
 
 		$this->assertNull( $processor->get_tag(), 'Calling get_tag() without selecting a tag did not return null' );
 	}
@@ -41,7 +41,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_tag
 	 */
 	public function test_get_tag_returns_null_when_not_in_open_tag() {
-		$processor = new WP_XML_Tag_Processor( '<div>Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content>Test</wp:content>' );
 
 		$this->assertFalse( $processor->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
 		$this->assertNull( $processor->get_tag(), 'Accessing a non-existing tag did not return null' );
@@ -53,10 +53,10 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_tag
 	 */
 	public function test_get_tag_returns_open_tag_name() {
-		$processor = new WP_XML_Tag_Processor( '<div>Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content>Test</wp:content>' );
 
-		$this->assertTrue( $processor->next_tag( 'div' ), 'Querying an existing tag did not return true' );
-		$this->assertSame( 'div', $processor->get_tag(), 'Accessing an existing tag name did not return "div"' );
+		$this->assertTrue( $processor->next_tag( 'wp:content' ), 'Querying an existing tag did not return true' );
+		$this->assertSame( 'wp:content', $processor->get_tag(), 'Accessing an existing tag name did not return "div"' );
 	}
 
 	/**
@@ -88,20 +88,20 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	public static function data_is_empty_element() {
 		return array(
 			// These should not have a self-closer, and will leave an element un-closed if it's assumed they are self-closing.
-			'Self-closing flag on non-void XML element' => array( '<div />', true ),
-			'No self-closing flag on non-void XML element' => array( '<div>', false ),
+			'Self-closing flag on non-void XML element' => array( '<wp:content />', true ),
+			'No self-closing flag on non-void XML element' => array( '<wp:content>', false ),
 			// These should not have a self-closer, but are benign when used because the elements are void.
-			'Self-closing flag on void XML element'     => array( '<img />', true ),
-			'No self-closing flag on void XML element'  => array( '<img>', false ),
-			'Self-closing flag on void XML element without spacing' => array( '<img/>', true ),
+			'Self-closing flag on void XML element'     => array( '<photo />', true ),
+			'No self-closing flag on void XML element'  => array( '<photo>', false ),
+			'Self-closing flag on void XML element without spacing' => array( '<photo/>', true ),
 			// These should not have a self-closer, but as part of a tag closer they are entirely ignored.
 			'No self-closing flag on tag closer'         => array( '</textarea>', false ),
 			// These can and should have self-closers, and will leave an element un-closed if it's assumed they aren't self-closing.
 			'Self-closing flag on a foreign element'     => array( '<circle />', true ),
 			'No self-closing flag on a foreign element'  => array( '<circle>', false ),
 			// These involve syntax peculiarities.
-			'Self-closing flag after extra spaces'       => array( '<div      />', true ),
-			'Self-closing flag after quoted attribute'   => array( '<div id="test"/>', true ),
+			'Self-closing flag after extra spaces'       => array( '<wp:content      />', true ),
+			'Self-closing flag after quoted attribute'   => array( '<wp:content id="test"/>', true ),
 		);
 	}
 
@@ -111,10 +111,10 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_null_when_not_in_open_tag() {
-		$processor = new WP_XML_Tag_Processor( '<div class="test">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content wp:post-type="test">Test</wp:content>' );
 
 		$this->assertFalse( $processor->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
-		$this->assertNull( $processor->get_attribute( 'class' ), 'Accessing an attribute of a non-existing tag did not return null' );
+		$this->assertNull( $processor->get_attribute( 'wp:post-type' ), 'Accessing an attribute of a non-existing tag did not return null' );
 	}
 
 	/**
@@ -123,11 +123,11 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_null_when_in_closing_tag() {
-		$processor = new WP_XML_Tag_Processor( '<div class="test">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content wp:post-type="test">Test</wp:content>' );
 
-		$this->assertTrue( $processor->next_tag( 'div' ), 'Querying an existing tag did not return true' );
+		$this->assertTrue( $processor->next_tag( 'wp:content' ), 'Querying an existing tag did not return true' );
 		$this->assertTrue( $processor->next_tag( array( 'tag_closers' => 'visit' ) ), 'Querying an existing closing tag did not return true' );
-		$this->assertNull( $processor->get_attribute( 'class' ), 'Accessing an attribute of a closing tag did not return null' );
+		$this->assertNull( $processor->get_attribute( 'wp:post-type' ), 'Accessing an attribute of a closing tag did not return null' );
 	}
 
 	/**
@@ -136,9 +136,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_null_when_attribute_missing() {
-		$processor = new WP_XML_Tag_Processor( '<div class="test">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content wp:post-type="test">Test</wp:content>' );
 
-		$this->assertTrue( $processor->next_tag( 'div' ), 'Querying an existing tag did not return true' );
+		$this->assertTrue( $processor->next_tag( 'wp:content' ), 'Querying an existing tag did not return true' );
 		$this->assertNull( $processor->get_attribute( 'test-id' ), 'Accessing a non-existing attribute did not return null' );
 	}
 
@@ -148,9 +148,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_attributes_are_rejected_in_tag_closers() {
-		$processor = new WP_XML_Tag_Processor( '<div>Test</div class="test">' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content>Test</wp:content wp:post-type="test">' );
 
-		$this->assertTrue( $processor->next_tag( 'div' ), 'Querying an existing tag did not return true' );
+		$this->assertTrue( $processor->next_tag( 'wp:content' ), 'Querying an existing tag did not return true' );
 		$this->assertFalse( $processor->next_tag( array( 'tag_closers' => 'visit' ) ), 'Querying an existing but invalid closing tag did not return false.' );
 	}
 
@@ -160,10 +160,10 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_attribute_value() {
-		$processor = new WP_XML_Tag_Processor( '<div class="test">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content wp:post-type="test">Test</wp:content>' );
 
-		$this->assertTrue( $processor->next_tag( 'div' ), 'Querying an existing tag did not return true' );
-		$this->assertSame( 'test', $processor->get_attribute( 'class' ), 'Accessing a class="test" attribute value did not return "test"' );
+		$this->assertTrue( $processor->next_tag( 'wp:content' ), 'Querying an existing tag did not return true' );
+		$this->assertSame( 'test', $processor->get_attribute( 'wp:post-type' ), 'Accessing a wp:post-type="test" attribute value did not return "test"' );
 	}
 
 	/**
@@ -172,7 +172,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_no_value() {
-		$processor = new WP_XML_Tag_Processor( '<div enabled class="test">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content enabled wp:post-type="test">Test</wp:content>' );
 
 		$this->assertFalse( $processor->next_tag(), 'Querying a malformed start tag did not return false' );
 	}
@@ -183,7 +183,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_no_quotes() {
-		$processor = new WP_XML_Tag_Processor( '<div enabled=1 class="test">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content enabled=1 wp:post-type="test">Test</wp:content>' );
 
 		$this->assertFalse( $processor->next_tag(), 'Querying a malformed start tag did not return false' );
 	}
@@ -194,7 +194,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_contains_ampersand() {
-		$processor = new WP_XML_Tag_Processor( '<div enabled="WordPress & WordPress">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content enabled="WordPress & WordPress">Test</wp:content>' );
 
 		$this->assertTrue( $processor->next_tag(), 'Querying a tag did not return true' );
 		$this->assertFalse( $processor->get_attribute('enabled'), 'Querying a malformed attribute did not return null' );
@@ -206,7 +206,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_contains_entity_without_semicolon() {
-		$processor = new WP_XML_Tag_Processor( '<div enabled="&#x94">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content enabled="&#x94">Test</wp:content>' );
 
 		$this->assertTrue( $processor->next_tag(), 'Querying a tag did not return true' );
 		$this->assertFalse( $processor->get_attribute('enabled'), 'Querying a malformed attribute did not return null' );
@@ -218,7 +218,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_contains_lt_character() {
-		$processor = new WP_XML_Tag_Processor( '<div enabled="I love <3 this">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content enabled="I love <3 this">Test</wp:content>' );
 
 		$this->assertFalse( $processor->next_tag(), 'Querying a malformed start tag did not return false' );
 	}
@@ -229,7 +229,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_parsing_stops_on_malformed_tags_duplicate_attributes() {
-		$processor = new WP_XML_Tag_Processor( '<div id="update-me" id="ignored-id"><span id="second">Text</span></div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content id="update-me" id="ignored-id"><wp:text id="second">Text</wp:text></wp:content>' );
 
 		$this->assertFalse($processor->next_tag());
 	}
@@ -240,7 +240,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_name_contains_slash() {
-		$processor = new WP_XML_Tag_Processor( '<div a/b="test">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content a/b="test">Test</wp:content>' );
 
 		$this->assertFalse( $processor->next_tag(), 'Querying a malformed start tag did not return false' );
 	}
@@ -287,7 +287,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @param string $attribute_name Name of data-enabled attribute with case variations.
 	 */
 	public function test_get_attribute_is_case_sensitive( ) {
-		$processor = new WP_XML_Tag_Processor( '<div DATA-enabled="true">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content DATA-enabled="true">Test</wp:content>' );
 		$processor->next_tag();
 
 		$this->assertEquals(
@@ -309,15 +309,15 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::remove_attribute
 	 */
 	public function test_remove_attribute_is_case_sensitive() {
-		$processor = new WP_XML_Tag_Processor( '<div DATA-enabled="true">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content DATA-enabled="true">Test</wp:content>' );
 		$processor->next_tag();
 		$processor->remove_attribute( 'data-enabled' );
 
-		$this->assertSame( '<div DATA-enabled="true">Test</div>', $processor->get_updated_xml(), 'A case-sensitive remove_attribute call did remove the attribute' );
+		$this->assertSame( '<wp:content DATA-enabled="true">Test</wp:content>', $processor->get_updated_xml(), 'A case-sensitive remove_attribute call did remove the attribute' );
 
 		$processor->remove_attribute( 'DATA-enabled' );
 
-		$this->assertSame( '<div >Test</div>', $processor->get_updated_xml(), 'A case-sensitive remove_attribute call did not remove the attribute' );
+		$this->assertSame( '<wp:content >Test</wp:content>', $processor->get_updated_xml(), 'A case-sensitive remove_attribute call did not remove the attribute' );
 	}
 
 	/**
@@ -326,11 +326,11 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::set_attribute
 	 */
 	public function test_set_attribute_is_case_sensitive() {
-		$processor = new WP_XML_Tag_Processor( '<div DATA-enabled="true">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content DATA-enabled="true">Test</wp:content>' );
 		$processor->next_tag();
 		$processor->set_attribute( 'data-enabled', 'abc' );
 
-		$this->assertSame( '<div data-enabled="abc" DATA-enabled="true">Test</div>', $processor->get_updated_xml(), 'A case-insensitive set_attribute call did not update the existing attribute' );
+		$this->assertSame( '<wp:content data-enabled="abc" DATA-enabled="true">Test</wp:content>', $processor->get_updated_xml(), 'A case-insensitive set_attribute call did not update the existing attribute' );
 	}
 
 	/**
@@ -339,7 +339,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute_names_with_prefix
 	 */
 	public function test_get_attribute_names_with_prefix_returns_null_before_finding_tags() {
-		$processor = new WP_XML_Tag_Processor( '<div data-foo="bar">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content data-foo="bar">Test</wp:content>' );
 		$this->assertNull(
 			$processor->get_attribute_names_with_prefix( 'data-' ),
 			'Accessing attributes by their prefix did not return null when no tag was selected'
@@ -352,7 +352,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute_names_with_prefix
 	 */
 	public function test_get_attribute_names_with_prefix_returns_null_when_not_in_open_tag() {
-		$processor = new WP_XML_Tag_Processor( '<div data-foo="bar">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content data-foo="bar">Test</wp:content>' );
 		$processor->next_tag( 'p' );
 		$this->assertNull( $processor->get_attribute_names_with_prefix( 'data-' ), 'Accessing attributes of a non-existing tag did not return null' );
 	}
@@ -363,8 +363,8 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute_names_with_prefix
 	 */
 	public function test_get_attribute_names_with_prefix_returns_null_when_in_closing_tag() {
-		$processor = new WP_XML_Tag_Processor( '<div data-foo="bar">Test</div>' );
-		$processor->next_tag( 'div' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content data-foo="bar">Test</wp:content>' );
+		$processor->next_tag( 'wp:content' );
 		$processor->next_tag( array( 'tag_closers' => 'visit' ) );
 
 		$this->assertNull( $processor->get_attribute_names_with_prefix( 'data-' ), 'Accessing attributes of a closing tag did not return null' );
@@ -376,8 +376,8 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute_names_with_prefix
 	 */
 	public function test_get_attribute_names_with_prefix_returns_empty_array_when_no_attributes_present() {
-		$processor = new WP_XML_Tag_Processor( '<div>Test</div>' );
-		$processor->next_tag( 'div' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content>Test</wp:content>' );
+		$processor->next_tag( 'wp:content' );
 
 		$this->assertSame( array(), $processor->get_attribute_names_with_prefix( 'data-' ), 'Accessing the attributes on a tag without any did not return an empty array' );
 	}
@@ -388,7 +388,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute_names_with_prefix
 	 */
 	public function test_get_attribute_names_with_prefix_returns_matching_attribute_names_in_original_case() {
-		$processor = new WP_XML_Tag_Processor( '<div DATA-enabled="yes" class="test" data-test-ID="14">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content DATA-enabled="yes" wp:post-type="test" data-test-ID="14">Test</wp:content>' );
 		$processor->next_tag();
 
 		$this->assertSame(
@@ -404,12 +404,12 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_attribute_names_with_prefix
 	 */
 	public function test_get_attribute_names_with_prefix_returns_attribute_added_by_set_attribute() {
-		$processor = new WP_XML_Tag_Processor( '<div data-foo="bar">Test</div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content data-foo="bar">Test</wp:content>' );
 		$processor->next_tag();
 		$processor->set_attribute( 'data-test-id', '14' );
 
 		$this->assertSame(
-			'<div data-test-id="14" data-foo="bar">Test</div>',
+			'<wp:content data-test-id="14" data-foo="bar">Test</wp:content>',
 			$processor->get_updated_xml(),
 			"Updated XML doesn't include attribute added via set_attribute"
 		);
@@ -426,12 +426,12 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::__toString
 	 */
 	public function test_to_string_returns_updated_xml() {
-		$processor = new WP_XML_Tag_Processor( '<hr id="remove" /><div enabled="yes" class="test">Test</div><span id="span-id"></span>' );
+		$processor = new WP_XML_Tag_Processor( '<line id="remove" /><wp:content enabled="yes" wp:post-type="test">Test</wp:content><wp:text id="span-id"></wp:text>' );
 		$processor->next_tag();
 		$processor->remove_attribute( 'id' );
 
 		$processor->next_tag();
-		$processor->set_attribute( 'id', 'div-id-1' );
+		$processor->set_attribute( 'id', 'wp:content-id-1' );
 
 		$this->assertSame(
 			$processor->get_updated_xml(),
@@ -446,23 +446,23 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_updated_xml
 	 */
 	public function test_get_updated_xml_applies_the_updates_so_far_and_keeps_the_processor_on_the_current_tag() {
-		$processor = new WP_XML_Tag_Processor( '<hr id="remove" /><div enabled="yes" class="test">Test</div><span id="span-id"></span>' );
+		$processor = new WP_XML_Tag_Processor( '<line id="remove" /><wp:content enabled="yes" wp:post-type="test">Test</wp:content><wp:text id="span-id"></wp:text>' );
 		$processor->next_tag();
 		$processor->remove_attribute( 'id' );
 
 		$processor->next_tag();
-		$processor->set_attribute( 'id', 'div-id-1' );
+		$processor->set_attribute( 'id', 'wp:content-id-1' );
 
 		$this->assertSame(
-			'<hr  /><div id="div-id-1" enabled="yes" class="test">Test</div><span id="span-id"></span>',
+			'<line  /><wp:content id="wp:content-id-1" enabled="yes" wp:post-type="test">Test</wp:content><wp:text id="span-id"></wp:text>',
 			$processor->get_updated_xml(),
 			'Calling get_updated_xml after updating the attributes of the second tag returned different XML than expected'
 		);
 
-		$processor->set_attribute( 'id', 'div-id-2' );
+		$processor->set_attribute( 'id', 'wp:content-id-2' );
 
 		$this->assertSame(
-			'<hr  /><div id="div-id-2" enabled="yes" class="test">Test</div><span id="span-id"></span>',
+			'<line  /><wp:content id="wp:content-id-2" enabled="yes" wp:post-type="test">Test</wp:content><wp:text id="span-id"></wp:text>',
 			$processor->get_updated_xml(),
 			'Calling get_updated_xml after updating the attributes of the second tag for the second time returned different XML than expected'
 		);
@@ -471,7 +471,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor->remove_attribute( 'id' );
 
 		$this->assertSame(
-			'<hr  /><div id="div-id-2" enabled="yes" class="test">Test</div><span ></span>',
+			'<line  /><wp:content id="wp:content-id-2" enabled="yes" wp:post-type="test">Test</wp:content><wp:text ></wp:text>',
 			$processor->get_updated_xml(),
 			'Calling get_updated_xml after removing the id attribute of the third tag returned different XML than expected'
 		);
@@ -499,7 +499,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @ticket 58160
 	 */
 	public function test_get_updated_xml_applies_updates_to_content_after_seeking_to_before_parsed_bytes() {
-		$processor = new WP_XML_Tag_Processor( '<div><img hidden></div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content><photo hidden></wp:content>' );
 
 		$processor->next_tag();
 		$processor->set_attribute( 'wonky', 'true' );
@@ -509,7 +509,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor->next_tag( array( 'tag_closers' => 'visit' ) );
 		$processor->seek( 'here' );
 
-		$this->assertSame( '<div wonky="true"><img hidden></div>', $processor->get_updated_xml() );
+		$this->assertSame( '<wp:content wonky="true"><photo hidden></wp:content>', $processor->get_updated_xml() );
 	}
 
 	public function test_declare_element_as_pcdata()
@@ -602,32 +602,32 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	public static function data_xml_nth_token_substring() {
 		return array(
 			// Tags.
-			'DIV start tag'                 => array( '<div>', 1, '<div>' ),
-			'DIV start tag with attributes' => array( '<div class="x" disabled="yes">', 1, '<div class="x" disabled="yes">' ),
-			'DIV end tag with attributes'   => array( '</div class="x" disabled="yes">', 1, '</div class="x" disabled="yes">' ),
-			'Nested DIV'                    => array( '<div><div b="yes">', 2, '<div b="yes">' ),
-			'Sibling DIV'                   => array( '<div></div><div b="yes">', 3, '<div b="yes">' ),
-			'DIV after text'                => array( 'text <div>', 2, '<div>' ),
-			'DIV before text'               => array( '<div> text', 1, '<div>' ),
-			'DIV after comment'             => array( '<root><!-- comment --><div>', 3, '<div>' ),
-			'DIV before comment'            => array( '<div><!-- c --> ', 1, '<div>' ),
-			'Start "self-closing" tag'      => array( '<div />', 1, '<div />' ),
-			'Void tag'                      => array( '<img src="img.png">', 1, '<img src="img.png">' ),
-			'Void tag w/self-closing flag'  => array( '<img src="img.png" />', 1, '<img src="img.png" />' ),
-			'Void tag inside DIV'           => array( '<div><img src="img.png"></div>', 2, '<img src="img.png">' ),
+			'DIV start tag'                 => array( '<wp:content>', 1, '<wp:content>' ),
+			'DIV start tag with attributes' => array( '<wp:content wp:post-type="x" disabled="yes">', 1, '<wp:content wp:post-type="x" disabled="yes">' ),
+			'DIV end tag with attributes'   => array( '</wp:content wp:post-type="x" disabled="yes">', 1, '</wp:content wp:post-type="x" disabled="yes">' ),
+			'Nested DIV'                    => array( '<wp:content><wp:content b="yes">', 2, '<wp:content b="yes">' ),
+			'Sibling DIV'                   => array( '<wp:content></wp:content><wp:content b="yes">', 3, '<wp:content b="yes">' ),
+			'DIV after text'                => array( 'text <wp:content>', 2, '<wp:content>' ),
+			'DIV before text'               => array( '<wp:content> text', 1, '<wp:content>' ),
+			'DIV after comment'             => array( '<root><!-- comment --><wp:content>', 3, '<wp:content>' ),
+			'DIV before comment'            => array( '<wp:content><!-- c --> ', 1, '<wp:content>' ),
+			'Start "self-closing" tag'      => array( '<wp:content />', 1, '<wp:content />' ),
+			'Void tag'                      => array( '<photo src="img.png">', 1, '<photo src="img.png">' ),
+			'Void tag w/self-closing flag'  => array( '<photo src="img.png" />', 1, '<photo src="img.png" />' ),
+			'Void tag inside DIV'           => array( '<wp:content><photo src="img.png"></wp:content>', 2, '<photo src="img.png">' ),
 
 			// Text.
 			'Text'                          => array( 'Just text', 1, 'Just text' ),
-			'Text in DIV'                   => array( '<div>Text<div>', 2, 'Text' ),
-			'Text before DIV'               => array( 'Text<div>', 1, 'Text' ),
+			'Text in DIV'                   => array( '<wp:content>Text<wp:content>', 2, 'Text' ),
+			'Text before DIV'               => array( 'Text<wp:content>', 1, 'Text' ),
 			'Text after comment'            => array( '<!-- comment -->Text', 2, 'Text' ),
 			'Text before comment'           => array( 'Text<!-- c --> ', 1, 'Text' ),
 
 			// Comments.
 			'Comment'                       => array( '<!-- comment -->', 1, '<!-- comment -->' ),
-			'Comment in DIV'                => array( '<div><!-- comment --><div>', 2, '<!-- comment -->' ),
-			'Comment before DIV'            => array( '<!-- comment --><div>', 1, '<!-- comment -->' ),
-			'Comment after DIV'             => array( '<div></div><!-- comment -->', 3, '<!-- comment -->' ),
+			'Comment in DIV'                => array( '<wp:content><!-- comment --><wp:content>', 2, '<!-- comment -->' ),
+			'Comment before DIV'            => array( '<!-- comment --><wp:content>', 1, '<!-- comment -->' ),
+			'Comment after DIV'             => array( '<wp:content></wp:content><!-- comment -->', 3, '<!-- comment -->' ),
 			'Comment after comment'         => array( '<!-- comment --><!-- comment -->', 2, '<!-- comment -->' ),
 			'Comment before comment'        => array( '<!-- comment --><!-- c --> ', 1, '<!-- comment -->' ),
 			'Empty comment'                 => array( '<!---->', 1, '<!---->' ),
@@ -665,37 +665,37 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	public function test_breadcrumbs()
 	{
 		$processor = new WP_XML_Tag_Processor( <<<XML
-			<div>
-				<span>
-					<img />
-				</span>
-			</div>
+			<wp:content>
+				<wp:text>
+					<photo />
+				</wp:text>
+			</wp:content>
 			XML
 		);
 		$processor->next_tag(array('tag_closers' => 'visit'));
 		$this->assertEquals(
-			array('div'),
+			array('wp:content'),
 			$processor->get_breadcrumbs(),
 			'get_breadcrumbs() did not return the expected breadcrumbs'
 		);
 
 		$processor->next_tag(array('tag_closers' => 'visit'));
 		$this->assertEquals(
-			array('div', 'span'),
+			array('wp:content', 'wp:text'),
 			$processor->get_breadcrumbs(),
 			'get_breadcrumbs() did not return the expected breadcrumbs'
 		);
 
 		$processor->next_tag(array('tag_closers' => 'visit'));
 		$this->assertEquals(
-			array('div', 'span', 'img'),
+			array('wp:content', 'wp:text', 'photo'),
 			$processor->get_breadcrumbs(),
 			'get_breadcrumbs() did not return the expected breadcrumbs'
 		);
 
 		$processor->next_tag(array('tag_closers' => 'visit'));
 		$this->assertEquals(
-			array('div'),
+			array('wp:content'),
 			$processor->get_breadcrumbs(),
 			'get_breadcrumbs() did not return the expected breadcrumbs'
 		);
@@ -718,7 +718,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	public function test_normalizes_carriage_returns_in_text_nodes()
 	{
 		$processor = new WP_XML_Tag_Processor(
-			"<div>We are\rnormalizing\r\n\nthe\n\r\r\r\ncarriage returns"
+			"<wp:content>We are\rnormalizing\r\n\nthe\n\r\r\r\ncarriage returns"
 		);
 		$processor->next_tag();
 		$processor->next_token();
@@ -737,7 +737,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	public function test_normalizes_carriage_returns_in_cdata()
 	{
 		$processor = new WP_XML_Tag_Processor(
-			"<div><![CDATA[We are\rnormalizing\r\n\nthe\n\r\r\r\ncarriage returns]]>"
+			"<wp:content><![CDATA[We are\rnormalizing\r\n\nthe\n\r\r\r\ncarriage returns]]>"
 		);
 		$processor->next_tag();
 		$processor->next_token();
@@ -756,15 +756,15 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::is_tag_closer
 	 */
 	public function test_next_tag_should_stop_on_closers_only_when_requested() {
-		$processor = new WP_XML_Tag_Processor( '<div><img /></div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content><photo /></wp:content>' );
 
-		$this->assertTrue( $processor->next_tag( array( 'tag_name' => 'div' ) ), 'Did not find desired tag opener' );
-		$this->assertFalse( $processor->next_tag( array( 'tag_name' => 'div' ) ), 'Visited an unwanted tag, a tag closer' );
+		$this->assertTrue( $processor->next_tag( array( 'tag_name' => 'wp:content' ) ), 'Did not find desired tag opener' );
+		$this->assertFalse( $processor->next_tag( array( 'tag_name' => 'wp:content' ) ), 'Visited an unwanted tag, a tag closer' );
 
-		$processor = new WP_XML_Tag_Processor( '<div><img /></div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content><photo /></wp:content>' );
 		$processor->next_tag(
 			array(
-				'tag_name'    => 'div',
+				'tag_name'    => 'wp:content',
 				'tag_closers' => 'visit',
 			)
 		);
@@ -773,7 +773,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$this->assertTrue(
 			$processor->next_tag(
 				array(
-					'tag_name'    => 'div',
+					'tag_name'    => 'wp:content',
 					'tag_closers' => 'visit',
 				)
 			),
@@ -781,7 +781,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		);
 		$this->assertTrue( $processor->is_tag_closer(), 'Indicated a tag closer is a tag opener' );
 
-		$processor = new WP_XML_Tag_Processor( '<div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content>' );
 		$this->assertTrue( $processor->next_tag( array( 'tag_closers' => 'visit' ) ), "Did not find a tag opener when tag_closers was set to 'visit'" );
 		$this->assertFalse( $processor->next_tag( array( 'tag_closers' => 'visit' ) ), "Found a closer where there wasn't one" );
 	}
@@ -878,20 +878,20 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::get_updated_xml
 	 */
 	public function test_internal_pointer_returns_to_original_spot_after_inserting_content_before_cursor() {
-		$tags = new WP_XML_Tag_Processor( '<root><div>outside</div><section><div><img>inside</div></section></root>' );
+		$tags = new WP_XML_Tag_Processor( '<root><wp:content>outside</wp:content><section><wp:content><photo>inside</wp:content></section></root>' );
 
 		$tags->next_tag();
 		$tags->next_tag();
-		$tags->set_attribute( 'class', 'foo' );
+		$tags->set_attribute( 'wp:post-type', 'foo' );
 		$tags->next_tag( 'section' );
 
 		// Return to this spot after moving ahead.
 		$tags->set_bookmark( 'here' );
 
 		// Move ahead.
-		$tags->next_tag( 'img' );
+		$tags->next_tag( 'photo' );
 		$tags->seek( 'here' );
-		$this->assertSame( '<root><div class="foo">outside</div><section><div><img>inside</div></section></root>', $tags->get_updated_xml() );
+		$this->assertSame( '<root><wp:content wp:post-type="foo">outside</wp:content><section><wp:content><photo>inside</wp:content></section></root>', $tags->get_updated_xml() );
 		$this->assertSame( 'section', $tags->get_tag() );
 		$this->assertFalse( $tags->is_tag_closer() );
 	}
@@ -905,7 +905,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor = new WP_XML_Tag_Processor( self::XML_SIMPLE );
 
 		$this->assertFalse( $processor->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
-		$this->assertFalse( $processor->next_tag( 'div' ), 'Querying a non-existing tag did not return false' );
+		$this->assertFalse( $processor->next_tag( 'wp:content' ), 'Querying a non-existing tag did not return false' );
 
 		$processor->set_attribute( 'id', 'primary' );
 
@@ -925,10 +925,10 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::remove_class
 	 */
 	public function test_attribute_ops_on_tag_closer_do_not_change_the_markup() {
-		$processor = new WP_XML_Tag_Processor( '<div id="3"></div>' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content id="3"></wp:content>' );
 		$processor->next_tag(
 			array(
-				'tag_name'    => 'div',
+				'tag_name'    => 'wp:content',
 				'tag_closers' => 'visit',
 			)
 		);
@@ -937,7 +937,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 
 		$processor->next_tag(
 			array(
-				'tag_name'    => 'div',
+				'tag_name'    => 'wp:content',
 				'tag_closers' => 'visit',
 			)
 		);
@@ -946,7 +946,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$this->assertFalse( $processor->set_attribute( 'id', 'test' ), "Allowed setting an attribute on a tag closer when it shouldn't have" );
 		$this->assertFalse( $processor->remove_attribute( 'invalid-id' ), "Allowed removing an attribute on a tag closer when it shouldn't have" );
 		$this->assertSame(
-			'<div id="3"></div>',
+			'<wp:content id="3"></wp:content>',
 			$processor->get_updated_xml(),
 			'Calling get_updated_xml after updating a non-existing tag returned an XML that was different from the original XML'
 		);
@@ -964,7 +964,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor->set_attribute( 'test-attribute', 'test-value' );
 
 		$this->assertSame(
-			'<div test-attribute="test-value" id="first"><span id="second">Text</span></div>',
+			'<wp:content test-attribute="test-value" id="first"><wp:text id="second">Text</wp:text></wp:content>',
 			$processor->get_updated_xml(),
 			'Updated XML does not include attribute added via set_attribute()'
 		);
@@ -991,7 +991,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 			'get_attribute() (called before get_updated_xml()) did not return attribute added via set_attribute()'
 		);
 		$this->assertSame(
-			'<div test-attribute="test-value" id="first"><span id="second">Text</span></div>',
+			'<wp:content test-attribute="test-value" id="first"><wp:text id="second">Text</wp:text></wp:content>',
 			$processor->get_updated_xml(),
 			'Updated XML does not include attribute added via set_attribute()'
 		);
@@ -1013,7 +1013,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 			'get_attribute() (called before get_updated_xml()) did not return attribute added via set_attribute()'
 		);
 		$this->assertSame(
-			'<div test-ATTribute="test-value" id="first"><span id="second">Text</span></div>',
+			'<wp:content test-ATTribute="test-value" id="first"><wp:text id="second">Text</wp:text></wp:content>',
 			$processor->get_updated_xml(),
 			'Updated XML does not include attribute added via set_attribute()'
 		);
@@ -1035,7 +1035,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 			'get_attribute() (called before get_updated_xml()) returned attribute that was removed by remove_attribute()'
 		);
 		$this->assertSame(
-			'<div ><span id="second">Text</span></div>',
+			'<wp:content ><wp:text id="second">Text</wp:text></wp:content>',
 			$processor->get_updated_xml(),
 			'Updated XML includes attribute that was removed by remove_attribute()'
 		);
@@ -1079,7 +1079,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 			'get_attribute() (called before get_updated_xml()) returned attribute that was overwritten by set_attribute() and then removed by remove_attribute()'
 		);
 		$this->assertSame(
-			'<div ><span id="second">Text</span></div>',
+			'<wp:content ><wp:text id="second">Text</wp:text></wp:content>',
 			$processor->get_updated_xml(),
 			'Updated XML includes attribute that was overwritten by set_attribute() and then removed by remove_attribute()'
 		);
@@ -1095,7 +1095,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor->next_tag();
 		$processor->set_attribute( 'id', 'new-id' );
 		$this->assertSame(
-			'<div id="new-id"><span id="second">Text</span></div>',
+			'<wp:content id="new-id"><wp:text id="second">Text</wp:text></wp:content>',
 			$processor->get_updated_xml(),
 			'Existing attribute was not updated'
 		);
@@ -1110,13 +1110,13 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::set_attribute
 	 */
 	public function test_set_attribute_with_case_variants_updates_only_the_original_first_copy() {
-		$processor = new WP_XML_Tag_Processor( '<div data-enabled="5">' );
+		$processor = new WP_XML_Tag_Processor( '<wp:content data-enabled="5">' );
 		$processor->next_tag();
 		$processor->set_attribute( 'data-enabled', 'canary1' );
 		$processor->set_attribute( 'data-enabled', 'canary2' );
 		$processor->set_attribute( 'data-enabled', 'canary3' );
 
-		$this->assertSame( '<div data-enabled="canary3">', strtolower( $processor->get_updated_xml() ) );
+		$this->assertSame( '<wp:content data-enabled="canary3">', strtolower( $processor->get_updated_xml() ) );
 	}
 
 	/**
@@ -1132,7 +1132,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		}
 
 		$this->assertSame(
-			'<div data-foo="bar" id="first"><span data-foo="bar" id="second">Text</span></div>',
+			'<wp:content data-foo="bar" id="first"><wp:text data-foo="bar" id="second">Text</wp:text></wp:content>',
 			$processor->get_updated_xml(),
 			'Not all tags were updated when looping with next_tag() and set_attribute()'
 		);
@@ -1149,7 +1149,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor->remove_attribute( 'id' );
 
 		$this->assertSame(
-			'<div ><span id="second">Text</span></div>',
+			'<wp:content ><wp:text id="second">Text</wp:text></wp:content>',
 			$processor->get_updated_xml(),
 			'Attribute was not removed'
 		);
@@ -1179,24 +1179,24 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 */
 	public function test_correctly_parses_xml_attributes_wrapped_in_single_quotation_marks() {
 		$processor = new WP_XML_Tag_Processor(
-			'<div id=\'first\'><span id=\'second\'>Text</span></div>'
+			'<wp:content id=\'first\'><wp:text id=\'second\'>Text</wp:text></wp:content>'
 		);
 		$processor->next_tag(
 			array(
-				'tag_name' => 'div',
+				'tag_name' => 'wp:content',
 				'id'       => 'first',
 			)
 		);
 		$processor->remove_attribute( 'id' );
 		$processor->next_tag(
 			array(
-				'tag_name' => 'span',
+				'tag_name' => 'wp:text',
 				'id'       => 'second',
 			)
 		);
 		$processor->set_attribute( 'id', 'single-quote' );
 		$this->assertSame(
-			'<div ><span id="single-quote">Text</span></div>',
+			'<wp:content ><wp:text id="single-quote">Text</wp:text></wp:content>',
 			$processor->get_updated_xml(),
 			'Did not remove single-quoted attribute'
 		);
@@ -1307,12 +1307,12 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	public static function data_incomplete_syntax_elements() {
 		return array(
 			'Incomplete tag name'                  => array( '<swit' ),
-			'Incomplete tag (no attributes)'       => array( '<div' ),
-			'Incomplete tag (attributes)'          => array( '<div inert="yes" title="test"' ),
+			'Incomplete tag (no attributes)'       => array( '<wp:content' ),
+			'Incomplete tag (attributes)'          => array( '<wp:content inert="yes" title="test"' ),
 			'Incomplete attribute (before =)'      => array( '<button disabled' ),
 			'Incomplete attribute (before ")'      => array( '<button disabled=' ),
 			'Incomplete attribute (before closing quote)' => array( '<button disabled="value started' ),
-			'Incomplete attribute (single quoted)' => array( "<li class='just-another class" ),
+			'Incomplete attribute (single quoted)' => array( "<li wp:post-type='just-another class" ),
 			'Incomplete attribute (double quoted)' => array( '<iframe src="https://www.example.com/embed/abcdef' ),
 			'Incomplete comment (normative)'       => array( '<!-- without end' ),
 			'Incomplete comment (missing --)'      => array( '<!-- without end --' ),
@@ -1385,9 +1385,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @covers WP_XML_Tag_Processor::next_tag
 	 */
 	public function test_rejects_empty_element_that_is_also_a_closer() {
-		$processor = new WP_XML_Tag_Processor( '</div/> ' );
+		$processor = new WP_XML_Tag_Processor( '</wp:content/> ' );
 		$result    = $processor->next_tag();
-		$this->assertFalse( $result, 'Did not handle "</div/>" xml properly.' );
+		$this->assertFalse( $result, 'Did not handle "</wp:content/>" xml properly.' );
 	}
 
 	/**
@@ -1509,7 +1509,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @ticket 60697
 	 */
 	public function test_applies_updates_before_proceeding() {
-		$xml = '<root><div><img/></div><div><img/></div></root>';
+		$xml = '<root><wp:content><photo/></wp:content><wp:content><photo/></wp:content></root>';
 
 		$subclass = new class( $xml ) extends WP_XML_Tag_Processor {
 			/**
@@ -1527,7 +1527,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 			}
 		};
 
-		$subclass->next_tag( 'img' );
+		$subclass->next_tag( 'photo' );
 		$subclass->insert_after( '<p>snow-capped</p>' );
 
 		$subclass->next_tag();
@@ -1537,11 +1537,11 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 			'Should have matched inserted XML as next tag.'
 		);
 
-		$subclass->next_tag( 'img' );
+		$subclass->next_tag( 'photo' );
 		$subclass->set_attribute( 'alt', 'mountain' );
 
 		$this->assertSame(
-			'<root><div><img/><p>snow-capped</p></div><div><img alt="mountain"/></div></root>',
+			'<root><wp:content><photo/><p>snow-capped</p></wp:content><wp:content><photo alt="mountain"/></wp:content></root>',
 			$subclass->get_updated_xml(),
 			'Should have properly applied the update from in front of the cursor.'
 		);
