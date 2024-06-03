@@ -37,7 +37,7 @@ jobs:
   #
   test-php:
     name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests.yml@try/make-workflows-callable
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests.yml@trunk
     permissions:
       contents: read
     secrets: inherit

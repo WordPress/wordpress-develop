@@ -43,7 +43,7 @@ jobs:
   # Runs PHP compatibility testing.
   php-compatibility:
     name: Check PHP compatibility
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-php-compatibility.yml@try/make-workflows-callable
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-php-compatibility.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}

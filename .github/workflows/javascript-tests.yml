@@ -46,7 +46,7 @@ jobs:
   # Runs the QUnit tests for WordPress.
   test-js:
     name: QUnit Tests
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-javascript-tests.yml@try/make-workflows-callable
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-javascript-tests.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}

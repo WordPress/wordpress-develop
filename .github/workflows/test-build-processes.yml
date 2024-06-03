@@ -41,7 +41,7 @@ jobs:
   # Tests the WordPress Core build process on multiple operating systems.
   test-core-build-process:
     name: Core running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@try/make-workflows-callable
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -65,7 +65,7 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-core-build-process-macos:
     name: Core running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@try/make-workflows-callable
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
