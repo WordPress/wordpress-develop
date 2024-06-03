@@ -1099,6 +1099,19 @@ class WP_XML_Tag_Processor {
 					return false;
 				}
 
+				if ( 
+					null !== $this->get_attribute( 'encoding' )
+					&& "UTF-8" !== strtoupper( $this->get_attribute( 'encoding' ) )
+				) {
+					$this->parser_state = self::STATE_INVALID_INPUT;
+					_doing_it_wrong(
+						__METHOD__,
+						__( 'Unsupported XML encoding declared, only UTF-8 is supported.' ),
+						'WP_VERSION'
+					);
+					return false;
+				}
+
 				$at = $this->bytes_already_parsed;
 
 				// Skip whitespace.
