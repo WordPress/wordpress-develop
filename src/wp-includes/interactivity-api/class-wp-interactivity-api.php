@@ -78,7 +78,7 @@ final class WP_Interactivity_API {
 	 * the order they are processed.
 	 *
 	 * This list is populated only during directive processing, and it should
-	 * remain empty afterwards.
+	 * become `null` afterwards.
 	 *
 	 * @since 6.6.0
 	 * @var array<string>|null
@@ -90,7 +90,7 @@ final class WP_Interactivity_API {
 	 * the order they are processed.
 	 *
 	 * This list is populated only during directive processing, and it should
-	 * remain empty afterwards.
+	 * become `null` afterwards.
 	 *
 	 * @since 6.6.0
 	 * @var array<array<mixed>>|null
