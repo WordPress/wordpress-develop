@@ -2652,7 +2652,7 @@ class WP_Site_Health {
 		$result['label']       = __( 'Autoloaded options could affect performance' );
 		$result['description'] = sprintf(
 			/* translators: 1: Number of autoloaded options, 2: Autoloaded options size. */
-			'<p>' . esc_html( $base_description ) . ' ' . __( 'Your site has %1$s autoloaded options (size: %2$s) in the options table, which could cause your site to be slow. You can reduce the number of autoloaded options by cleaning up your site\'s options table.' ) . '</p>',
+			'<p>' . esc_html( $base_description ) . ' ' . __( 'Your site has %1$s autoloaded options (size: %2$s) in the options table, which could cause your site to be slow. You can review the options being autoloaded in your database and remove any options that are no longer needed by your site.' ) . '</p>',
 			$autoloaded_options_count,
 			size_format( $autoloaded_options_size )
 		);
