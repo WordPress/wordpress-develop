@@ -124,6 +124,7 @@ class WP_Theme_JSON {
 	 * @since 6.2.0 Added 'shadow' presets.
 	 * @since 6.3.0 Replaced value_func for duotone with `null`. Custom properties are handled by class-wp-duotone.php.
 	 * @since 6.6.0 Added the `dimensions.aspectRatios` & `dimensions.defaultAspectRatios` preset.
+	 * @since 6.6.0 Updated the 'prevent_override' value for font size presets to use 'typography.defaultFontSizes'.
 	 * @var array
 	 */
 	const PRESETS_METADATA = array(
@@ -169,7 +170,7 @@ class WP_Theme_JSON {
 		),
 		array(
 			'path'              => array( 'typography', 'fontSizes' ),
-			'prevent_override'  => false,
+			'prevent_override'  => array( 'typography', 'defaultFontSizes' ),
 			'use_default_names' => true,
 			'value_func'        => 'wp_get_typography_font_size_value',
 			'css_vars'          => '--wp--preset--font-size--$slug',
@@ -379,6 +380,7 @@ class WP_Theme_JSON {
 	 * @since 6.5.0 Added support for `layout.allowCustomContentAndWideSize`,
 	 *              `background.backgroundSize` and `dimensions.aspectRatio`.
 	 * @since 6.6.0 Added support for `dimensions.aspectRatios` and `dimensions.defaultAspectRatios`.
+	 * @since 6.6.0 Added support for `typography.defaultFontSizes`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -446,20 +448,21 @@ class WP_Theme_JSON {
 			'defaultPresets' => null,
 		),
 		'typography'                    => array(
-			'fluid'          => null,
-			'customFontSize' => null,
-			'dropCap'        => null,
-			'fontFamilies'   => null,
-			'fontSizes'      => null,
-			'fontStyle'      => null,
-			'fontWeight'     => null,
-			'letterSpacing'  => null,
-			'lineHeight'     => null,
-			'textAlign'      => null,
-			'textColumns'    => null,
-			'textDecoration' => null,
-			'textTransform'  => null,
-			'writingMode'    => null,
+			'fluid'            => null,
+			'customFontSize'   => null,
+			'defaultFontSizes' => null,
+			'dropCap'          => null,
+			'fontFamilies'     => null,
+			'fontSizes'        => null,
+			'fontStyle'        => null,
+			'fontWeight'       => null,
+			'letterSpacing'    => null,
+			'lineHeight'       => null,
+			'textAlign'        => null,
+			'textColumns'      => null,
+			'textDecoration'   => null,
+			'textTransform'    => null,
+			'writingMode'      => null,
 		),
 	);
 
@@ -728,9 +731,10 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Changed value from 1 to 2.
+	 * @since 6.6.0 Changed value from 2 to 3.
 	 * @var int
 	 */
-	const LATEST_SCHEMA = 2;
+	const LATEST_SCHEMA = 3;
 
 	/**
 	 * Constructor.
@@ -741,7 +745,7 @@ class WP_Theme_JSON {
 	 * @param string $origin     Optional. What source of data this object represents.
 	 *                           One of 'default', 'theme', or 'custom'. Default 'theme'.
 	 */
-	public function __construct( $theme_json = array(), $origin = 'theme' ) {
+	public function __construct( $theme_json = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA ), $origin = 'theme' ) {
 		if ( ! in_array( $origin, static::VALID_ORIGINS, true ) ) {
 			$origin = 'theme';
 		}
@@ -2951,12 +2955,15 @@ class WP_Theme_JSON {
 			}
 
 			// Replace the presets.
-			foreach ( static::PRESETS_METADATA as $preset ) {
-				$override_preset = ! static::get_metadata_boolean( $this->theme_json['settings'], $preset['prevent_override'], true );
+			foreach ( static::PRESETS_METADATA as $preset_metadata ) {
+				$prevent_override = $preset_metadata['prevent_override'];
+				if ( is_array( $prevent_override ) ) {
+					$prevent_override = _wp_array_get( $this->theme_json['settings'], $preset_metadata['prevent_override'] );
+				}
 
 				foreach ( static::VALID_ORIGINS as $origin ) {
 					$base_path = $node['path'];
-					foreach ( $preset['path'] as $leaf ) {
+					foreach ( $preset_metadata['path'] as $leaf ) {
 						$base_path[] = $leaf;
 					}
 
@@ -2968,7 +2975,8 @@ class WP_Theme_JSON {
 						continue;
 					}
 
-					if ( 'theme' === $origin && $preset['use_default_names'] ) {
+					// Set names for theme presets based on the slug if they are not set and can use default names.
+					if ( 'theme' === $origin && $preset_metadata['use_default_names'] ) {
 						foreach ( $content as $key => $item ) {
 							if ( ! isset( $item['name'] ) ) {
 								$name = static::get_name_from_defaults( $item['slug'], $base_path );
@@ -2979,19 +2987,17 @@ class WP_Theme_JSON {
 						}
 					}
 
-					if (
-						( 'theme' !== $origin ) ||
-						( 'theme' === $origin && $override_preset )
-					) {
-						_wp_array_set( $this->theme_json, $path, $content );
-					} else {
-						$slugs_node = static::get_default_slugs( $this->theme_json, $node['path'] );
-						$slugs      = array_merge_recursive( $slugs_global, $slugs_node );
+					// Filter out default slugs from theme presets when defaults should not be overridden.
+					if ( 'theme' === $origin && $prevent_override ) {
+						$slugs_node    = static::get_default_slugs( $this->theme_json, $node['path'] );
+						$preset_global = _wp_array_get( $slugs_global, $preset_metadata['path'], array() );
+						$preset_node   = _wp_array_get( $slugs_node, $preset_metadata['path'], array() );
+						$preset_slugs  = array_merge_recursive( $preset_global, $preset_node );
 
-						$slugs_for_preset = _wp_array_get( $slugs, $preset['path'], array() );
-						$content          = static::filter_slugs( $content, $slugs_for_preset );
-						_wp_array_set( $this->theme_json, $path, $content );
+						$content = static::filter_slugs( $content, $preset_slugs );
 					}
+
+					_wp_array_set( $this->theme_json, $path, $content );
 				}
 			}
 		}
