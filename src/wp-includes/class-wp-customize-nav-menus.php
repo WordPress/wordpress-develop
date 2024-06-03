@@ -565,9 +565,9 @@ final class WP_Customize_Nav_Menus {
 			/* translators: 1: Item name, 2: Item type, 3: Item index, 4: Total Items */
 			'menuFocus'               => __( 'Edit %1$s (%2$s, %3$d of %4$d)' ),
 			/* translators: 1: Item name, 2: Item type, 3: Item index, 4: Total Items, 5: Item Parent. */
-			'subMenuFocus'            => __( 'Edit %1$s (%2$s, sub-item %3$d of %4$d of %5$s)' ),
+			'subMenuFocus'            => __( 'Edit %1$s (%2$s, sub-item %3$d of %4$d under %5$s)' ),
 			/* translators: 1: Item name, 2: Item type, 3: Item index, 4: Total Items, 5: Item Parent, 6: Item Depth */
-			'subMenuMoreDepthFocus'   => __( 'Edit %1$s (%2$s, sub-item %3$d of %4$d of %5$s, level %6$d)' ),
+			'subMenuMoreDepthFocus'   => __( 'Edit %1$s (%2$s, sub-item %3$d of %4$d under %5$s, level %6$d)' ),
 		);
 		wp_localize_script( 'nav-menu', 'menus', $nav_menus_l10n );
 	}

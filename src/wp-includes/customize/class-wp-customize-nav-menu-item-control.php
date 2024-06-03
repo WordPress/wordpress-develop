@@ -85,12 +85,12 @@ class WP_Customize_Nav_Menu_Item_Control extends WP_Customize_Control {
 					<# } else if ( 1 === data.depth ) { #>
 						<?php
 							/* translators: 1: Title of a menu item, 2: Type of a menu item, 3: Depth of a menu item */
-							printf( __( 'Edit %1$s (%2$s, sub-item %3$d of %4$d of %5$s)' ), '{{ data.title || data.original_title || wp.customize.Menus.data.l10n.untitled }}', '{{ data.item_type_label }}', '', '', '' );
+							printf( __( 'Edit %1$s (%2$s, sub-item %3$d of %4$d under %5$s)' ), '{{ data.title || data.original_title || wp.customize.Menus.data.l10n.untitled }}', '{{ data.item_type_label }}', '', '', '' );
 						?>
 					<# } else { #>
 						<?php
 							/* translators: 1: Title of a menu item, 2: Type of a menu item, 3: Depth of a menu item */
-							printf( __( 'Edit %1$s (%2$s, sub-item %3$d of %4$d of %5$s, level %6$s)' ), '{{ data.title || data.original_title || wp.customize.Menus.data.l10n.untitled }}', '{{ data.item_type_label }}', '', '', '', '{{data.depth}}' );
+							printf( __( 'Edit %1$s (%2$s, sub-item %3$d of %4$d under %5$s, level %6$s)' ), '{{ data.title || data.original_title || wp.customize.Menus.data.l10n.untitled }}', '{{ data.item_type_label }}', '', '', '', '{{data.depth}}' );
 						?>
 					<# } #>
 					</span><span class="toggle-indicator" aria-hidden="true"></span></button>

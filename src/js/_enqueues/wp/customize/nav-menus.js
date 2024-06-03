@@ -1578,8 +1578,9 @@
 
 		/**
 		 * 
-		 * Set up initial state of accessibility for menu items.
-		 *
+		 * It's setting up the initial state of the screen reader accessibility information for menu items.
+		 * Setting up the state of accessibility implies it's doing things outside the parameters that it's actually handling.
+		 * 
 		 * @since 6.6.0
 		 */
 		initAccessibility: function() {
