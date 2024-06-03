@@ -273,7 +273,7 @@ class WP_Block {
 			$updated_bindings = array();
 
 			/*
-			 * Build an binding array of all supported attributes.
+			 * Build a binding array of all supported attributes.
 			 * Note that this also omits the `__default` attribute from the
 			 * resulting array.
 			 */
