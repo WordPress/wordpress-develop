@@ -2362,6 +2362,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'description' => __( 'An array of the class names for the post container element.' ),
 				'type'        => 'array',
 				'context'     => array( 'view', 'edit' ),
+				'readonly'    => true,
 				'items'       => array(
 					'type' => 'string',
 				),
