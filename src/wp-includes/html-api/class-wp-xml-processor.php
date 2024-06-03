@@ -151,6 +151,34 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	}
 
 	/**
+	 * Low-level token iteration is not available in WP_XML_Processor
+	 * as it could lead to undefined behaviors.
+	 * 
+	 * @return false
+	 */
+	public function next_token()
+	{
+		_doing_it_wrong(
+			__METHOD__,
+			__( 'next_token() is not available in WP_XML_Processor. Consider using WP_XML_Tag_Processor instead.' ),
+			'WP_VERSION'
+		);
+		return false;
+	}
+
+	/**
+	 * A private method to step through the XML document without exposing
+	 * the low-level API to the public.
+	 * 
+	 * @see WP_XML_Tag_Processor::next_token
+	 * @return bool
+	 */
+	private function private_next_token()
+	{
+		return parent::next_token();
+	}
+
+	/**
 	 * Steps through the XML document and stop at the next tag, if any.
 	 * 
 	 * @since WP_VERSION
@@ -177,7 +205,7 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 			if ($this->is_empty_element()) {
 				$this->pop_open_element();
 			}
-			$this->next_token();
+			$this->private_next_token();
 		}
 
 		switch($this->parser_context) {

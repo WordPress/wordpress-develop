@@ -90,6 +90,24 @@ class Tests_XmlApi_WpXmlProcessor extends PHPUnit_Framework_TestCase {
 	 * 
 	 * @return void
 	 */
+	public function test_next_tag_by_breadcrumbs()
+	{
+		// Initialize the WP_XML_Processor with the given XML string
+		$processor = new WP_XML_Processor('<root><wp:post><content><image /></content></wp:post></root>');
+
+		// Move to the next element with tag name 'img'
+		$processor->next_tag(array(
+			'breadcrumbs' => array('content', 'image')
+		));
+
+		$this->assertEquals('image', $processor->get_tag(), 'Did not find the expected tag');
+	}
+
+	/**
+	 * @ticket 57852
+	 * 
+	 * @return void
+	 */
 	public function test_get_current_depth()
 	{
         // Initialize the WP_XML_Processor with the given XML string

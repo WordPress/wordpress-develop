@@ -11,8 +11,8 @@ require __DIR__ . "/class-wp-xml-processor.php";
 
 $processor = new WP_XML_Processor('<?xml version="1.0" ?><root><wp:text><post /></wp:text><image /></root>');
 
-// $wxr = file_get_contents(__DIR__ . '/test.wxr');
-// $processor = new WP_XML_Tag_Processor( $wxr );
+$wxr = file_get_contents(__DIR__ . '/test.wxr');
+$processor = new WP_XML_Processor( $wxr );
 while( $processor->next_tag() ) {
     echo "\n " . dump_token($processor);
 }
