@@ -236,17 +236,18 @@ HTML;
 	}
 
 	/**
-	 * Tests if the block content is sanitized when unsafe HTML is passed.
+	 * Tests if the `__default` attribute is replaced with real attribues for
+	 * pattern overrides.
 	 *
 	 * @ticket 61333
 	 *
-	 * @covers ::register_block_bindings_source
+	 * @covers WP_Block::process_block_bindings
 	 */
 	public function test_default_binding_for_pattern_overrides() {
 		$expected_content = 'This is the content value';
 
 		$block_content = <<<HTML
-<!-- wp:paragraph {"metadata":{"bindings":{"__default":{"source":"core/pattern-overrides"}}, "name":"Test"}} -->
+<!-- wp:paragraph {"metadata":{"bindings":{"__default":{"source":"core/pattern-overrides"}},"name":"Test"}} -->
 <p>This should not appear</p>
 <!-- /wp:paragraph -->
 HTML;
