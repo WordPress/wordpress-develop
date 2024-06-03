@@ -108,7 +108,6 @@ class WP_XML_Tag_Processor {
 	 * @see WP_XML_Tag_Processor::STATE_TEXT_NODE
 	 * @see WP_XML_Tag_Processor::STATE_CDATA_NODE
 	 * @see WP_XML_Tag_Processor::STATE_COMMENT
-	 * @see WP_XML_Tag_Processor::STATE_DOCTYPE
 	 * @see WP_XML_Tag_Processor::STATE_PRESUMPTUOUS_TAG
 	 *
 	 * @var string
@@ -519,6 +518,25 @@ class WP_XML_Tag_Processor {
 		$this->parser_state         = self::STATE_MATCHED_TAG;
 		$this->bytes_already_parsed = $tag_ends_at + 1;
 		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
+
+		// Update the stack of open elements
+		if ( $this->is_closing_tag ) {
+			$popped = array_pop( $this->stack_of_open_elements );
+			if($popped !== $this->get_tag()) {
+				$this->parser_state = self::STATE_INVALID_INPUT;
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'The closing tag did not match the opening tag.' ),
+					'WP_VERSION'
+				);
+				return false;
+			}					
+		} else {
+			array_push(
+				$this->stack_of_open_elements,
+				$this->get_tag()
+			);
+		}
 		return true;
 	}
 
@@ -791,6 +809,27 @@ class WP_XML_Tag_Processor {
 	}
 
 	/**
+	 * Computes the XML breadcrumbs for the currently-matched element, if matched.
+	 *
+	 * Breadcrumbs start at the outermost parent and descend toward the matched element.
+	 * They always include the entire path from the root XML node to the matched element.
+
+	 * Example
+	 *
+	 *     $processor = WP_XML_Processor::create_fragment( '<p><strong><em><img/></em></strong></p>' );
+	 *     $processor->next_tag( 'img' );
+	 *     $processor->get_breadcrumbs() === array( 'p', 'strong', 'em', 'img' );
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return string[]|null Array of tag names representing path to matched node, if matched, otherwise NULL.
+	 */
+	public function get_breadcrumbs()
+	{
+		return $this->stack_of_open_elements;
+	}
+
+	/**
 	 * Parses the next tag.
 	 *
 	 * This will find and start parsing the next tag, including
@@ -883,23 +922,6 @@ class WP_XML_Tag_Processor {
 				$this->tag_name_length      = $tag_name_length;
 				$this->bytes_already_parsed = $at + $this->tag_name_length;
 
-				if ( $this->is_closing_tag ) {
-					$popped = array_pop( $this->stack_of_open_elements );
-					if($popped !== $this->get_tag()) {
-						$this->parser_state = self::STATE_INVALID_INPUT;
-						_doing_it_wrong(
-							__METHOD__,
-							__( 'The closing tag did not match the opening tag.' ),
-							'WP_VERSION'
-						);
-						return false;
-					}					
-				} else {
-					array_push(
-						$this->stack_of_open_elements,
-						$this->get_tag()
-					);
-				}
 				return true;
 			}
 
@@ -1353,6 +1375,10 @@ class WP_XML_Tag_Processor {
 
 			$this->lexical_updates[] = $update;
 			unset( $this->lexical_updates[ $name ] );
+		}
+
+		if($this->is_empty_element_tag()) {
+			array_pop($this->stack_of_open_elements);
 		}
 
 		$this->token_starts_at      = null;
@@ -1866,12 +1892,6 @@ class WP_XML_Tag_Processor {
 
 			case self::STATE_COMMENT:
 				return '#comment';
-
-			case self::STATE_DOCTYPE:
-				return 'xml';
-
-			case self::STATE_PRESUMPTUOUS_TAG:
-				return '#presumptuous-tag';
 		}
 	}
 
@@ -1884,7 +1904,6 @@ class WP_XML_Tag_Processor {
 	 * they are commonly known, but a number of unrelated syntax errors
 	 * also produce comments.
 	 *
-	 * @see self::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT
 	 * @see self::COMMENT_AS_CDATA_LOOKALIKE
 	 * @see self::COMMENT_AS_INVALID_XML
 	 * @see self::COMMENT_AS_XML_COMMENT
@@ -1932,8 +1951,7 @@ class WP_XML_Tag_Processor {
 		// Comment data is not decoded.
 		if (
 			self::STATE_CDATA_NODE === $this->parser_state ||
-			self::STATE_COMMENT === $this->parser_state ||
-			self::STATE_DOCTYPE === $this->parser_state
+			self::STATE_COMMENT === $this->parser_state
 		) {
 			return $text;
 		}
@@ -2416,45 +2434,6 @@ class WP_XML_Tag_Processor {
 	 * @access private
 	 */
 	const STATE_COMMENT = 'STATE_COMMENT';
-
-	/**
-	 * Indicates that the parser has found a DOCTYPE node and it's
-	 * possible to read and modify its modifiable text.
-	 *
-	 * @since WP_VERSION
-	 *
-	 * @access private
-	 */
-	const STATE_DOCTYPE = 'STATE_DOCTYPE';
-
-	/**
-	 * Indicates that the parser has found an empty tag closer `</>`.
-	 *
-	 * Note that in XML there are no empty tag closers, and they
-	 * are ignored. Nonetheless, the Tag Processor still
-	 * recognizes them as they appear in the XML stream.
-	 *
-	 * These were historically discussed as a "presumptuous tag
-	 * closer," which would close the nearest open tag, but were
-	 * dismissed in favor of explicitly-closing tags.
-	 *
-	 * @since WP_VERSION
-	 *
-	 * @access private
-	 */
-	const STATE_PRESUMPTUOUS_TAG = 'STATE_PRESUMPTUOUS_TAG';
-
-	/**
-	 * Indicates that a comment was created when encountering abruptly-closed XML comment.
-	 *
-	 * Example:
-	 *
-	 *     <!-->
-	 *     <!--->
-	 *
-	 * @since WP_VERSION
-	 */
-	const COMMENT_AS_ABRUPTLY_CLOSED_COMMENT = 'COMMENT_AS_ABRUPTLY_CLOSED_COMMENT';
 
 	/**
 	 * Indicates that a comment was created when encountering

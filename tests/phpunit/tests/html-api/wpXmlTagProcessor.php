@@ -587,6 +587,53 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$this->assertFalse( $processor->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
 	}
 
+	public function test_breadcrumbs()
+	{
+		$processor = new WP_XML_Tag_Processor( <<<XML
+			<div>
+				<span>
+					<img />
+				</span>
+			</div>
+			XML
+		);
+		$processor->next_tag(array('tag_closers' => 'visit'));
+		$this->assertEquals(
+			array('div'),
+			$processor->get_breadcrumbs(),
+			'get_breadcrumbs() did not return the expected breadcrumbs'
+		);
+
+		$processor->next_tag(array('tag_closers' => 'visit'));
+		$this->assertEquals(
+			array('div', 'span'),
+			$processor->get_breadcrumbs(),
+			'get_breadcrumbs() did not return the expected breadcrumbs'
+		);
+
+		$processor->next_tag(array('tag_closers' => 'visit'));
+		$this->assertEquals(
+			array('div', 'span', 'img'),
+			$processor->get_breadcrumbs(),
+			'get_breadcrumbs() did not return the expected breadcrumbs'
+		);
+
+		$processor->next_tag(array('tag_closers' => 'visit'));
+		$this->assertEquals(
+			array('div'),
+			$processor->get_breadcrumbs(),
+			'get_breadcrumbs() did not return the expected breadcrumbs'
+		);
+
+		$processor->next_tag(array('tag_closers' => 'visit'));
+		$this->assertEquals(
+			array(),
+			$processor->get_breadcrumbs(),
+			'get_breadcrumbs() did not return the expected breadcrumbs'
+		);
+
+		$this->assertFalse($processor->next_token());
+	}
 
 	/**
 	 * @ticket 56299
@@ -1263,7 +1310,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * @ticket 60697
 	 */
 	public function test_applies_updates_before_proceeding() {
-		$xml = '<div><img></div><div><img></div>';
+		$xml = '<div><img/></div><div><img/></div>';
 
 		$subclass = new class( $xml ) extends WP_XML_Tag_Processor {
 			/**
@@ -1295,7 +1342,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$subclass->set_attribute( 'alt', 'mountain' );
 
 		$this->assertSame(
-			'<div><img><p>snow-capped</p></div><div><img alt="mountain"></div>',
+			'<div><img/><p>snow-capped</p></div><div><img alt="mountain"/></div>',
 			$subclass->get_updated_xml(),
 			'Should have properly applied the update from in front of the cursor.'
 		);
