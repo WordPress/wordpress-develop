@@ -40,26 +40,33 @@ class Tests_Blocks_ResolvePatternBlocks extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_all
+	 * @dataProvider data_should_resolve_pattern_blocks_as_expected
 	 *
-	 * @param string $input
-	 * @param string $expected
+	 * @ticket 61228
+	 *
+	 * @param string $blocks   A string representing blocks that need resolving.
+	 * @param string $expected Expected result.
 	 */
-	public function test_all( $input, $expected ) {
-		$actual = resolve_pattern_blocks( parse_blocks( $input ) );
+	public function test_should_resolve_pattern_blocks_as_expected( $blocks, $expected ) {
+		$actual = resolve_pattern_blocks( parse_blocks( $blocks ) );
 		$this->assertSame( $expected, serialize_blocks( $actual ) );
 	}
 
-	public function data_all() {
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_should_resolve_pattern_blocks_as_expected() {
 		return array(
 			// Works without attributes, leaves the block as is.
-			array( '<!-- wp:pattern /-->', '<!-- wp:pattern /-->' ),
+			'pattern with no slug attribute' => array( '<!-- wp:pattern /-->', '<!-- wp:pattern /-->' ),
 			// Resolves the pattern.
-			array( '<!-- wp:pattern {"slug":"core/test"} /-->', '<!-- wp:paragraph -->Hello<!-- /wp:paragraph --><!-- wp:paragraph -->World<!-- /wp:paragraph -->' ),
-			// Skip recursive patterns.
-			array( '<!-- wp:pattern {"slug":"core/recursive"} /-->', '<!-- wp:paragraph -->Recursive<!-- /wp:paragraph -->' ),
+			'test pattern'                   => array( '<!-- wp:pattern {"slug":"core/test"} /-->', '<!-- wp:paragraph -->Hello<!-- /wp:paragraph --><!-- wp:paragraph -->World<!-- /wp:paragraph -->' ),
+			// Skips recursive patterns.
+			'recursive pattern'              => array( '<!-- wp:pattern {"slug":"core/recursive"} /-->', '<!-- wp:paragraph -->Recursive<!-- /wp:paragraph -->' ),
 			// Resolves the pattern within a block.
-			array( '<!-- wp:group --><!-- wp:paragraph -->Before<!-- /wp:paragraph --><!-- wp:pattern {"slug":"core/test"} /--><!-- wp:paragraph -->After<!-- /wp:paragraph --><!-- /wp:group -->', '<!-- wp:group --><!-- wp:paragraph -->Before<!-- /wp:paragraph --><!-- wp:paragraph -->Hello<!-- /wp:paragraph --><!-- wp:paragraph -->World<!-- /wp:paragraph --><!-- wp:paragraph -->After<!-- /wp:paragraph --><!-- /wp:group -->' ),
+			'pattern within a block'         => array( '<!-- wp:group --><!-- wp:paragraph -->Before<!-- /wp:paragraph --><!-- wp:pattern {"slug":"core/test"} /--><!-- wp:paragraph -->After<!-- /wp:paragraph --><!-- /wp:group -->', '<!-- wp:group --><!-- wp:paragraph -->Before<!-- /wp:paragraph --><!-- wp:paragraph -->Hello<!-- /wp:paragraph --><!-- wp:paragraph -->World<!-- /wp:paragraph --><!-- wp:paragraph -->After<!-- /wp:paragraph --><!-- /wp:group -->' ),
 		);
 	}
 }
