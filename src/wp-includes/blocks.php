@@ -1359,7 +1359,14 @@ function resolve_pattern_blocks( $blocks, &$inner_content = null ) {
 	$i                = 0;
 	while ( $i < count( $blocks ) ) {
 		if ( 'core/pattern' === $blocks[ $i ]['blockName'] ) {
-			$slug = $blocks[ $i ]['attrs']['slug'];
+			$attrs = $blocks[ $i ]['attrs'];
+
+			if ( empty( $attrs['slug'] ) ) {
+				++$i;
+				continue;
+			}
+
+			$slug = $attrs['slug'];
 
 			if ( isset( $seen_refs[ $slug ] ) ) {
 				// Skip recursive patterns.
