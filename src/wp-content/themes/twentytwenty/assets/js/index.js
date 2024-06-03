@@ -429,7 +429,7 @@ twentytwenty.primaryMenu = {
 	// by adding the '.focus' class to all 'li.menu-item-has-children' when the focus is on the 'a' element.
 	focusMenuWithChildren: function() {
 		// Get all the link elements within the primary menu.
-		var links, i, len,
+		var links, i, len, focusedElement,
 			menu = document.querySelector( '.primary-menu-wrapper' );
 
 		if ( ! menu ) {
@@ -461,19 +461,21 @@ twentytwenty.primaryMenu = {
 
 		// Update focus class on an element.
 		function updateFocus() {
-			var self = this;
+			var self = focusedElement = this;
 
-			//Removing Display none from previous child menu
-			menu.querySelector('li.menu-item-has-children > ul.sub-menu').style.display = 'block';
+			//Removing display: none from previous child menu.
+			menu.querySelectorAll('li.menu-item-has-children > ul.sub-menu').forEach( function( el ){
+				el.style.display = 'block';
+			});
 
 			// Remove focus from all li elements of primary-menu.
-			menu.querySelectorAll('li').forEach( function(el){
+			menu.querySelectorAll('li').forEach( function( el ){
 				if(el.classList.contains('focus')){
 					el.classList.remove('focus');
 				}
 			});
 			
-			// Add focus to current a tag parent li.
+			// Set focus to current a element's parent li.
 			self.parentElement.classList.add('focus');
 
 			// If current element is inside sub-menu find main parent li and add focus.
@@ -502,10 +504,21 @@ twentytwenty.primaryMenu = {
 
 			// If pressed key is esc, remove focus class from main parent menu li.
 			if (isEscape) {
-				if(menu.querySelector('li.menu-item-has-children').classList.contains('focus')){
-					menu.querySelector('li.focus.menu-item-has-children > a').focus();
-					menu.querySelector('li.menu-item-has-children.focus > ul.sub-menu').style.display = 'none';
-					menu.querySelector('li.focus.menu-item-has-children').classList.remove('focus');
+				var parentLi = focusedElement.parentNode,
+					nestedParent = parentLi.closest('li.menu-item-has-children');
+				if( parentLi.classList.contains('menu-item-has-children') ){
+					var subMenu = parentLi.querySelector('ul.sub-menu');
+					if( subMenu.style.display === 'block'){
+						subMenu.style.display = 'none';
+					} else {
+						nestedParent.querySelector('a').focus();
+						nestedParent.classList.add('focus');
+						parentLi.closest('ul.sub-menu').style.display = 'none';
+					}
+				} else {
+					nestedParent.querySelector('a').focus();
+					nestedParent.classList.add('focus');
+					parentLi.closest('ul.sub-menu').style.display = 'none';
 				}
 			}
 		}
