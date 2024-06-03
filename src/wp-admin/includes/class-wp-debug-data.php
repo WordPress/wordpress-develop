@@ -1645,7 +1645,7 @@ class WP_Debug_Data {
 			'themes_size'    => get_theme_root(),
 			'plugins_size'   => WP_PLUGIN_DIR,
 			'uploads_size'   => $upload_dir['basedir'],
-			'fonts_size'     => wp_get_font_dir()['path'],
+			'fonts_size'     => wp_get_font_dir()['basedir'],
 		);
 
 		$exclude = $paths;
