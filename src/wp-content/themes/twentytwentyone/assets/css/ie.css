@@ -1225,7 +1225,7 @@ blockquote footer {
 	color: #28303d;
 	font-style: normal;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	blockquote {
 		padding-left: 13px;
@@ -2487,7 +2487,7 @@ h6,
 		max-width: 50%;
 	}
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.entry-content > .wp-block-image > .alignleft,
 	.entry-content > .wp-block-image > .alignright {
@@ -2921,7 +2921,7 @@ dd {
 	left: 25px;
 	border-style: solid;
 	border-color: #28303d transparent;
-	border-width: 0 7px 10px 7px;
+	border-width: 0 7px 10px;
 }
 
 .wp-block-navigation > .wp-block-navigation__container > .has-child > .wp-block-navigation__container:after {
@@ -3328,7 +3328,7 @@ pre.wp-block-preformatted {
 	color: #28303d;
 	font-size: 1.125rem;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.wp-block-quote.is-large,
 	.wp-block-quote.is-style-large {
@@ -3510,6 +3510,7 @@ pre.wp-block-preformatted {
 	line-height: 1.7;
 	max-width: inherit;
 	margin-right: -3px;
+	margin-left: 0;
 	padding: 10px;
 }
 
@@ -4253,7 +4254,7 @@ table.wp-calendar-table caption {
 	}
 }
 
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.site-header.has-logo:not(.has-title-and-tagline).has-menu .site-logo {
 		position: absolute;
@@ -4325,7 +4326,7 @@ table.wp-calendar-table caption {
 .no-widgets .site-footer {
 	margin-top: 180px;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.no-widgets .site-footer {
 		margin-top: 90px;
@@ -4556,7 +4557,7 @@ body:not(.single) .site-main > article:last-of-type .entry-footer {
 .single .site-main > article > .entry-footer .tags-links {
 	display: block;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.single .site-main > article > .entry-footer,
 	.single .site-main > article > .entry-footer .full-size-link {
@@ -4864,7 +4865,7 @@ h1.page-title {
 .comment-meta .comment-metadata {
 	color: #28303d;
 	font-size: 1rem;
-	padding: 8px 0 9px 0;
+	padding: 8px 0 9px;
 }
 
 .comment-meta .comment-metadata .edit-link {
@@ -4975,7 +4976,7 @@ h1.page-title {
 	flex-basis: 0;
 	flex-grow: 1;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.comment-form .comment-form-author,
 	.comment-form .comment-form-email {
@@ -5036,7 +5037,7 @@ h1.page-title {
 	padding-top: 15px;
 	padding-bottom: 8px;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.menu-button-container {
 		display: flex;
@@ -5124,7 +5125,7 @@ h1.page-title {
 		transition: all 0.15s ease-in-out;
 	}
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.primary-navigation > .primary-menu-container {
 		height: 100vh;
@@ -5176,7 +5177,7 @@ h1.page-title {
 	opacity: 1;
 	transform: translateY(0);
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.primary-navigation-open .has-logo.has-title-and-tagline .primary-navigation > .primary-menu-container {
 		transform: translateX(0) translateY(0);
@@ -5220,7 +5221,7 @@ h1.page-title {
 	padding-left: 0;
 	position: relative;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.primary-navigation > div > .menu-wrapper {
 		padding-bottom: 100px;
@@ -5263,7 +5264,7 @@ h1.page-title {
 .primary-navigation > div > .menu-wrapper .sub-menu-toggle:focus {
 	outline: 2px solid #28303d;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.primary-navigation > div > .menu-wrapper .sub-menu-toggle {
 		display: none;
@@ -5325,7 +5326,7 @@ h1.page-title {
 		left: 25px;
 		border-style: solid;
 		border-color: #28303d transparent;
-		border-width: 0 7px 10px 7px;
+		border-width: 0 7px 10px;
 	}
 
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu:after {
@@ -5485,7 +5486,7 @@ h1.page-title {
 		padding: 0;
 	}
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.primary-navigation .sub-menu .menu-item:last-child {
 		margin-bottom: 0;
@@ -5533,7 +5534,7 @@ h1.page-title {
 	display: inline-block;
 }
 
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.lock-scrolling .site {
 		position: fixed;
@@ -5830,7 +5831,7 @@ h1.page-title {
 .comments-pagination .nav-links > *.prev {
 	margin-right: auto;
 }
-@media only screen and (max-width: 821px) {
+@media only screen and (max-width: 821.98px) {
 
 	.pagination .nav-links,
 	.comments-pagination .nav-links {
@@ -5851,7 +5852,7 @@ h1.page-title {
 		flex: 0 1 auto;
 	}
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.pagination .nav-short,
 	.comments-pagination .nav-short {
@@ -5866,7 +5867,7 @@ h1.page-title {
 @media only screen and (min-width: 822px) {
 
 	.comments-pagination {
-		margin: 90px auto 120px auto;
+		margin: 90px auto 120px;
 	}
 }
 
@@ -5895,7 +5896,7 @@ h1.page-title {
 		grid-template-columns: repeat(3, 1fr);
 	}
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.widget-area {
 		margin-top: 90px;
@@ -6293,7 +6294,7 @@ footer {
 .is-IE.is-dark-theme .primary-navigation > div > .menu-wrapper > li > .sub-menu li {
 	background: #000;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.is-IE.is-dark-theme.primary-navigation-open .primary-navigation > .primary-menu-container,
 	.is-IE.is-dark-theme.primary-navigation-open .menu-button-container {

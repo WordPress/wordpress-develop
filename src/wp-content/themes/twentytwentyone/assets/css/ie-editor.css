@@ -194,7 +194,7 @@ blockquote footer {
 	color: #28303d;
 	font-style: normal;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	blockquote {
 		padding-left: 13px;
@@ -1586,7 +1586,7 @@ pre.wp-block-preformatted {
 		font-size: 2.5rem;
 	}
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.wp-block-quote.is-large,
 	.wp-block-quote.is-style-large {
