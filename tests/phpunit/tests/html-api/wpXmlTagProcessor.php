@@ -56,7 +56,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor = new WP_XML_Tag_Processor( '<div>Test</div>' );
 
 		$this->assertTrue( $processor->next_tag( 'div' ), 'Querying an existing tag did not return true' );
-		$this->assertSame( 'DIV', $processor->get_tag(), 'Accessing an existing tag name did not return "div"' );
+		$this->assertSame( 'div', $processor->get_tag(), 'Accessing an existing tag name did not return "div"' );
 	}
 
 	/**

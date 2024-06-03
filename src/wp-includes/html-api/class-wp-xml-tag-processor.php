@@ -297,15 +297,15 @@ class WP_XML_Tag_Processor {
 	 *     // sourced from the lazily-parsed XML recognizer.
 	 *     $start  = $attributes['src']->start;
 	 *     $length = $attributes['src']->length;
-	 *     $modifications[] = new WP_XML_Text_Replacement( $start, $length, $new_value );
+	 *     $modifications[] = new WP_HTML_Text_Replacement( $start, $length, $new_value );
 	 *
 	 *     // Correspondingly, something like this will appear in this array.
 	 *     $lexical_updates = array(
-	 *         WP_XML_Text_Replacement( 14, 28, 'https://my-site.my-domain/wp-content/uploads/2014/08/kittens.jpg' )
+	 *         WP_HTML_Text_Replacement( 14, 28, 'https://my-site.my-domain/wp-content/uploads/2014/08/kittens.jpg' )
 	 *     );
 	 *
 	 * @since WP_VERSION
-	 * @var WP_XML_Text_Replacement[]
+	 * @var WP_HTML_Text_Replacement[]
 	 */
 	protected $lexical_updates = array();
 
@@ -794,7 +794,7 @@ class WP_XML_Tag_Processor {
 			$at += 2;
 
 			/*
-			 * Find a case-insensitive match to the tag name.
+			 * Find a case-sensitive match to the tag name.
 			 *
 			 * Because tag names are limited to US-ASCII there is no
 			 * need to perform any kind of Unicode normalization when
@@ -802,10 +802,7 @@ class WP_XML_Tag_Processor {
 			 * normalization could not be part of a tag name.
 			 */
 			for ( $i = 0; $i < $tag_length; $i++ ) {
-				$tag_char  = $tag_name[ $i ];
-				$xml_char = $xml[ $at + $i ];
-
-				if ( $xml_char !== $tag_char && strtoupper( $xml_char ) !== $tag_char ) {
+				if ( $xml[ $at + $i ] !== $tag_name[ $i ] ) {
 					$at += $i;
 					continue 2;
 				}
@@ -1406,43 +1403,10 @@ class WP_XML_Tag_Processor {
 			return false;
 		}
 
-		$NAME_START_CHAR_PATTERN = ':A-Z_A-Z' .
-		                           '\x{C0}-\x{D6}' .
-		                           '\x{D8}-\x{F6}' .
-		                           '\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}';
-
-		if ( false === preg_match(
-			'~[' . $NAME_START_CHAR_PATTERN . ']~Ssu',
-			$this->xml[ $this->bytes_already_parsed ]
-		) ) {
-			$this->parser_state = self::STATE_INVALID_INPUT;
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'Invalid attribute name start character.' ),
-				'WP_VERSION'
-			);
-
-			return false;
-		}
-
-		$attribute_name_length = 1;
-
-		// Consume the rest of the attribute name
-		preg_match(
-			'~\G([a-zA-Z' . $NAME_START_CHAR_PATTERN . ']+)~Ssu',
-			$this->xml,
-			$matches,
-			0,
-			$this->bytes_already_parsed + 1
-		);
-
-		if ( is_array($matches) && count($matches) > 0 ) {
-			$attribute_name_length += strlen( $matches[0] );
-		}
-
-		$attribute_start             = $this->bytes_already_parsed;
-		$attribute_name              = substr( $this->xml, $attribute_start, $attribute_name_length );
+		$attribute_start       = $this->bytes_already_parsed;
+		$attribute_name_length = $this->parse_name();
 		$this->bytes_already_parsed += $attribute_name_length;
+		$attribute_name        = substr( $this->xml, $attribute_start, $attribute_name_length );
 		$this->skip_whitespace();
 
 		// Parse attribute value.
@@ -1491,15 +1455,7 @@ class WP_XML_Tag_Processor {
 			return true;
 		}
 
-		/*
-		 * > An attribute name must not appear more than once in the same
-		 *   start-tag or empty-element tag.
-		 *     - XML 1.0 spec
-		 *
-		 * @see https://www.w3.org/TR/xml/#sec-starttags
-		 */
-		$comparable_name = strtolower( $attribute_name );
-		if ( array_key_exists( $comparable_name, $this->attributes ) ) {
+		if ( array_key_exists( $attribute_name, $this->attributes ) ) {
 			$this->parser_state = self::STATE_INVALID_INPUT;
 			_doing_it_wrong(
 				__METHOD__,
@@ -1509,7 +1465,7 @@ class WP_XML_Tag_Processor {
 			return false;
 		}
 
-		$this->attributes[ $comparable_name ] = new WP_HTML_Attribute_Token(
+		$this->attributes[ $attribute_name ] = new WP_HTML_Attribute_Token(
 			$attribute_name,
 			$value_start,
 			$value_length,
@@ -1533,37 +1489,35 @@ class WP_XML_Tag_Processor {
 	// Describes the first character of the attribute name:
 	// NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
 	// See https://www.w3.org/TR/xml/#NT-Name
-	const NAME_START_CHAR_PATTERN = ':A-Z_A-Z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}';
-	const NAME_CHAR_PATTERN = '\\-\\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}:A-Z_A-Z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}';
-	private function parse_name() {
+	const NAME_START_CHAR_PATTERN = ':a-z_A-Z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}';
+	const NAME_CHAR_PATTERN = '\-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}:a-z_A-Z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}';
+	private function parse_name($offset = null) {
+		if($offset === null) {
+			$offset = $this->bytes_already_parsed;
+		}
 		if ( false === preg_match(
-				'~[' . $NAME_START_CHAR_PATTERN . ']~Ssu',
-				$this->xml[ $this->bytes_already_parsed ]
-			) ) {
-			$this->parser_state = self::STATE_INVALID_INPUT;
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'Invalid attribute name start character.' ),
-				'WP_VERSION'
-			);
-
+			'~[' . self::NAME_START_CHAR_PATTERN . ']~Ssu',
+			$this->xml[ $offset ]
+		) ) {
 			return false;
 		}
 
-		$attribute_name_length = 1;
+		$name_length = 1;
 
-		// Consume the rest of the attribute name
+		// Consume the rest of the name
 		preg_match(
-			'~\G([a-zA-Z' . $NAME_START_CHAR_PATTERN . ']+)~Ssu',
+			'~\G([' . self::NAME_CHAR_PATTERN . ']+)~Ssu',
 			$this->xml,
 			$matches,
 			0,
-			$this->bytes_already_parsed + 1
+			$offset + 1
 		);
 
 		if ( is_array($matches) && count($matches) > 0 ) {
-			$attribute_name_length += strlen( $matches[0] );
+			$name_length += strlen( $matches[0] );
 		}
+
+		return $name_length;
 	}
 
 	/**
@@ -1765,12 +1719,12 @@ class WP_XML_Tag_Processor {
 	}
 
 	/**
-	 * Compare two WP_XML_Text_Replacement objects.
+	 * Compare two WP_HTML_Text_Replacement objects.
 	 *
 	 * @since WP_VERSION
 	 *
-	 * @param WP_XML_Text_Replacement $a First attribute update.
-	 * @param WP_XML_Text_Replacement $b Second attribute update.
+	 * @param WP_HTML_Text_Replacement $a First attribute update.
+	 * @param WP_HTML_Text_Replacement $b Second attribute update.
 	 * @return int Comparison value for string order.
 	 */
 	private static function sort_start_ascending( $a, $b ) {
@@ -1891,19 +1845,17 @@ class WP_XML_Tag_Processor {
 			return null;
 		}
 
-		$comparable = strtolower( $name );
-
 		// Return any enqueued attribute value updates if they exist.
-		$enqueued_value = $this->get_enqueued_attribute_value( $comparable );
+		$enqueued_value = $this->get_enqueued_attribute_value( $name );
 		if ( false !== $enqueued_value ) {
 			return $enqueued_value;
 		}
 
-		if ( ! isset( $this->attributes[ $comparable ] ) ) {
+		if ( ! isset( $this->attributes[ $name ] ) ) {
 			return null;
 		}
 
-		$attribute = $this->attributes[ $comparable ];
+		$attribute = $this->attributes[ $name ];
 
 		/*
 		 * This flag distinguishes an attribute with no value
@@ -1984,7 +1936,7 @@ class WP_XML_Tag_Processor {
 		$tag_name = substr( $this->xml, $this->tag_name_starts_at, $this->tag_name_length );
 
 		if ( self::STATE_MATCHED_TAG === $this->parser_state ) {
-			return strtoupper( $tag_name );
+			return $tag_name;
 		}
 
 		if (
@@ -2313,16 +2265,13 @@ class WP_XML_Tag_Processor {
 		}
 
 		/*
-		 * > There must never be two or more attributes on
-		 * > the same start tag whose names are an ASCII
-		 * > case-insensitive match for each other.
-		 *     - XML 5 spec
+		 * > An attribute name must not appear more than once
+		 * > in the same start-tag or empty-element tag.
+		 *     - XML 1.0 spec
 		 *
-		 * @see https://xml.spec.whatwg.org/multipage/syntax.xml#attributes-2:ascii-case-insensitive
+		 * @see https://www.w3.org/TR/xml/#sec-starttags
 		 */
-		$comparable_name = strtolower( $name );
-
-		if ( isset( $this->attributes[ $comparable_name ] ) ) {
+		if ( isset( $this->attributes[ $name ] ) ) {
 			/*
 			 * Update an existing attribute.
 			 *
@@ -2335,8 +2284,8 @@ class WP_XML_Tag_Processor {
 			 *
 			 *     Result: <div id="new"/>
 			 */
-			$existing_attribute                        = $this->attributes[ $comparable_name ];
-			$this->lexical_updates[ $comparable_name ] = new WP_XML_Text_Replacement(
+			$existing_attribute             = $this->attributes[ $name ];
+			$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
 				$existing_attribute->start,
 				$existing_attribute->length,
 				$updated_attribute
@@ -2354,7 +2303,7 @@ class WP_XML_Tag_Processor {
 			 *
 			 *     Result: <div id="new"/>
 			 */
-			$this->lexical_updates[ $comparable_name ] = new WP_XML_Text_Replacement(
+			$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
 				$this->tag_name_starts_at + $this->tag_name_length,
 				0,
 				' ' . $updated_attribute
@@ -2569,21 +2518,9 @@ class WP_XML_Tag_Processor {
 
 			/*
 			 * Check each character to determine if they are the same.
-			 * Defer calls to `strtoupper()` to avoid them when possible.
-			 * Calling `strcasecmp()` here tested slowed than comparing each
-			 * character, so unless benchmarks show otherwise, it should
-			 * not be used.
-			 *
-			 * It's expected that most of the time that this runs, a
-			 * lower-case tag name will be supplied and the input will
-			 * contain lower-case tag names, thus normally bypassing
-			 * the case comparison code.
 			 */
 			for ( $i = 0; $i < $this->tag_name_length; $i++ ) {
-				$xml_char = $this->xml[ $this->tag_name_starts_at + $i ];
-				$tag_char  = $this->sought_tag_name[ $i ];
-
-				if ( $xml_char !== $tag_char && strtoupper( $xml_char ) !== $tag_char ) {
+				if ( $this->xml[ $this->tag_name_starts_at + $i ] !== $this->sought_tag_name[ $i ] ) {
 					return false;
 				}
 			}
