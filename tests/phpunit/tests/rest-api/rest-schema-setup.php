@@ -774,7 +774,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 				}
 			}
 
-			$data[ $key ] = $this->normalize_fixture( $value, "$path.$key" );
+			$data[ $key ] = $this->normalize_fixture( $value, $path . $key );
 		}
 
 		return $data;
