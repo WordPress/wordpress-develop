@@ -10,7 +10,7 @@
  * @group blocks
  * @covers resolve_pattern_blocks
  */
-class Tests_Blocks_Resolve_Pattern_Blocks extends WP_UnitTestCase {
+class Tests_Blocks_ResolvePatternBlocks extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
