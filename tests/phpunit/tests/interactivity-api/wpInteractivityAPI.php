@@ -502,7 +502,7 @@ JSON;
 	 * @covers ::state
 	 * @expectedIncorrectUsage WP_Interactivity_API::state
 	 */
-	public function test_state_without_namespace_and_with_data() {
+	public function test_state_with_empty_string_as_namespace() {
 		$this->set_internal_namespace_stack( 'myPlugin' );
 
 		$this->interactivity->state( 'myPlugin', array( 'a' => 1 ) );
@@ -523,9 +523,11 @@ JSON;
 	 * @covers ::state
 	 * @expectedIncorrectUsage WP_Interactivity_API::state
 	 */
-	public function test_wp_interactivity_state_without_namespace() {
-		$state = $this->interactivity->state();
-		$this->assertEquals( array(), $state );
+	public function test_state_without_namespace_outside_directive_processing() {
+		$this->assertEquals(
+			array(),
+			$this->interactivity->state()
+		);
 	}
 
 	/**
