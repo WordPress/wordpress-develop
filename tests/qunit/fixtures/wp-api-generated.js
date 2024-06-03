@@ -669,6 +669,14 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "class_list": {
+                            "description": "An array of the class names for the post container element.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "title": {
                             "description": "The title for the post.",
                             "type": "object",
@@ -951,6 +959,14 @@ mockedApiResponse.Schema = {
                         "password": {
                             "description": "A password to protect access to the content and excerpt.",
                             "type": "string",
+                            "required": false
+                        },
+                        "class_list": {
+                            "description": "An array of the class names for the post container element.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "title": {
@@ -1390,6 +1406,14 @@ mockedApiResponse.Schema = {
                         "password": {
                             "description": "A password to protect access to the content and excerpt.",
                             "type": "string",
+                            "required": false
+                        },
+                        "class_list": {
+                            "description": "An array of the class names for the post container element.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "title": {
@@ -1867,6 +1891,14 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "class_list": {
+                            "description": "An array of the class names for the post container element.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "parent": {
                             "description": "The ID for the parent of the post.",
                             "type": "integer",
@@ -2121,6 +2153,14 @@ mockedApiResponse.Schema = {
                         "password": {
                             "description": "A password to protect access to the content and excerpt.",
                             "type": "string",
+                            "required": false
+                        },
+                        "class_list": {
+                            "description": "An array of the class names for the post container element.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "parent": {
@@ -2532,6 +2572,14 @@ mockedApiResponse.Schema = {
                         "password": {
                             "description": "A password to protect access to the content and excerpt.",
                             "type": "string",
+                            "required": false
+                        },
+                        "class_list": {
+                            "description": "An array of the class names for the post container element.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "title": {
@@ -2968,6 +3016,14 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "class_list": {
+                            "description": "An array of the class names for the post container element.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "title": {
                             "description": "The title for the post.",
                             "type": "object",
@@ -3173,6 +3229,14 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
+                            "required": false
+                        },
+                        "class_list": {
+                            "description": "An array of the class names for the post container element.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "title": {
@@ -12322,6 +12386,15 @@ mockedApiResponse.PostsCollection = [
             1
         ],
         "tags": [],
+        "class_list": [
+            "post-4",
+            "post",
+            "type-post",
+            "status-publish",
+            "format-standard",
+            "hentry",
+            "category-uncategorized"
+        ],
         "_links": {
             "self": [
                 {
@@ -12421,7 +12494,16 @@ mockedApiResponse.PostModel = {
     "categories": [
         1
     ],
-    "tags": []
+    "tags": [],
+    "class_list": [
+        "post-4",
+        "post",
+        "type-post",
+        "status-publish",
+        "format-standard",
+        "hentry",
+        "category-uncategorized"
+    ]
 };
 
 mockedApiResponse.postRevisions = [
@@ -12613,6 +12695,13 @@ mockedApiResponse.PagesCollection = [
         "meta": {
             "meta_key": ""
         },
+        "class_list": [
+            "post-7",
+            "page",
+            "type-page",
+            "status-publish",
+            "hentry"
+        ],
         "_links": {
             "self": [
                 {
@@ -12696,7 +12785,14 @@ mockedApiResponse.PageModel = {
     "template": "",
     "meta": {
         "meta_key": ""
-    }
+    },
+    "class_list": [
+        "post-7",
+        "page",
+        "type-page",
+        "status-publish",
+        "hentry"
+    ]
 };
 
 mockedApiResponse.pageRevisions = [
@@ -12878,6 +12974,13 @@ mockedApiResponse.MediaCollection = [
         "meta": {
             "meta_key": ""
         },
+        "class_list": [
+            "post-10",
+            "attachment",
+            "type-attachment",
+            "status-inherit",
+            "hentry"
+        ],
         "description": {
             "rendered": "<p class=\"attachment\"><!-- <a...><img.../></a> --></p>"
         },
@@ -12940,6 +13043,13 @@ mockedApiResponse.MediaModel = {
     "meta": {
         "meta_key": ""
     },
+    "class_list": [
+        "post-10",
+        "attachment",
+        "type-attachment",
+        "status-inherit",
+        "hentry"
+    ],
     "description": {
         "rendered": "<p class=\"attachment\"><!-- <a...><img.../></a> --></p>"
     },

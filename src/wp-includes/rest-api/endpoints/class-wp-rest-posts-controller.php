@@ -2359,7 +2359,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 
 			$schema['properties']['class_list'] = array(
-				'description' => __( 'An array of the CSS class names for the post container element.' ),
+				'description' => __( 'An array of the class names for the post container element.' ),
 				'type'        => 'array',
 				'context'     => array( 'view', 'edit' ),
 				'items'       => array(
