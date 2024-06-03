@@ -33,10 +33,10 @@ class Tests_Blocks_ResolvePatternBlocks extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		parent::tear_down();
-
 		unregister_block_pattern( 'core/test' );
 		unregister_block_pattern( 'core/recursive' );
+
+		parent::tear_down();
 	}
 
 	/**
