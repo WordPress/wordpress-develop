@@ -844,5 +844,10 @@ function get_classic_theme_supports_block_editor_settings() {
 		$theme_settings['gradients'] = $gradient_presets;
 	}
 
+	$spacing_sizes = current( (array) get_theme_support( 'editor-spacing-sizes' ) );
+	if ( false !== $spacing_sizes ) {
+		$theme_settings['spacingSizes'] = $spacing_sizes;
+	}
+
 	return $theme_settings;
 }
