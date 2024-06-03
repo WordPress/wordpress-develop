@@ -512,8 +512,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$expected_status = 'good';
 
 		$result = $this->instance->get_test_autoloaded_options();
-		$this->assertSame( $expected_label, $result['label'] );
-		$this->assertSame( $expected_status, $result['status'] );
+		$this->assertSame( $expected_label, $result['label'], 'The label should indicate that autoloaded options are acceptable.' );
+		$this->assertSame( $expected_status, $result['status'], 'The status should be "good" when autoloaded options are acceptable.' );
 	}
 
 	/**
@@ -530,8 +530,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$expected_status = 'critical';
 
 		$result = $this->instance->get_test_autoloaded_options();
-		$this->assertSame( $expected_label, $result['label'] );
-		$this->assertSame( $expected_status, $result['status'] );
+		$this->assertSame( $expected_label, $result['label'], 'The label should indicate that autoloaded options could affect performance.' );
+		$this->assertSame( $expected_status, $result['status'], 'The status should be "critical" when autoloaded options could affect performance.' );
 	}
 
 	/**
@@ -555,13 +555,13 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				$autoload_values
 			)
 		);
-		$this->assertEquals( $autoloaded_options_size, $this->instance->get_autoloaded_options_size() );
+		$this->assertSame( $autoloaded_options_size, $this->instance->get_autoloaded_options_size(), 'The size of autoloaded options should match the calculated size from the database.' );
 
 		// Add autoload option.
 		$test_option_string       = 'test';
 		$test_option_string_bytes = mb_strlen( $test_option_string, '8bit' );
 		self::set_autoloaded_option( $test_option_string_bytes );
-		$this->assertSame( $autoloaded_options_size + $test_option_string_bytes, $this->instance->get_autoloaded_options_size() );
+		$this->assertSame( $autoloaded_options_size + $test_option_string_bytes, $this->instance->get_autoloaded_options_size(), 'The size of autoloaded options should increase by the size of the newly added option.' );
 	}
 
 	/**
