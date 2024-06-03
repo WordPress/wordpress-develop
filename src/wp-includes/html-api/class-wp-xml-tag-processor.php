@@ -456,12 +456,7 @@ class WP_XML_Tag_Processor {
 				$this->parsing_stage === self::STAGE_ELEMENT &&
 				count($this->stack_of_open_elements) > 0
 			) {
-				$this->parser_state = self::STATE_INVALID_INPUT;
-				_doing_it_wrong(
-					__METHOD__,
-					__( "Root tag element not closed." ),
-					'WP_VERSION'
-				);
+				$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 				return false;
 			}
 
