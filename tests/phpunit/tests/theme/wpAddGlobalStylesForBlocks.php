@@ -20,7 +20,6 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		switch_theme( 'default' );
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
 	}
 
@@ -33,7 +32,6 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 			$this->test_blocks = array();
 		}
 
-		switch_theme( 'default' );
 		parent::tear_down();
 	}
 
