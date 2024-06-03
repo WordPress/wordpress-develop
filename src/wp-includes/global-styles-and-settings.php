@@ -330,25 +330,20 @@ function wp_add_global_styles_for_blocks() {
 	$update_cache = false;
 
 	foreach ( $block_nodes as $metadata ) {
-		if ( isset( $metadata['name'] ) ) {
-			$block_name = $metadata['name'];
-		} elseif ( ! empty( $metadata['path'] ) ) {
-			// The likes of block element styles from theme.json do not have  $metadata['name'] set.
-			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
-		}
 
 		if ( $can_use_cached ) {
-			$block_cache_key = $block_name;
-			if ( ! $block_cache_key ) {
-				$block_cache_key = md5( wp_json_encode( $metadata ) );
-			}
+			/*
+			 * If the block name is available, use it for the cache key to avoid costly
+			 * hashing processes. Otherwise, cache the data using a hash of the metadata.
+			 */
+			$cache_node_key = isset( $metadata['name'] ) ? $metadata['name'] : md5( wp_json_encode( $metadata ) );
 
-			if ( isset( $cached[ $block_cache_key ] ) ) {
-				$block_css = $cached[ $block_cache_key ];
+			if ( isset( $cached[ $cache_node_key ] ) ) {
+				$block_css = $cached[ $cache_node_key ];
 			} else {
-				$block_css                  = $tree->get_styles_for_block( $metadata );
-				$cached[ $block_cache_key ] = $block_css;
-				$update_cache               = true;
+				$block_css                 = $tree->get_styles_for_block( $metadata );
+				$cached[ $cache_node_key ] = $block_css;
+				$update_cache              = true;
 			}
 		} else {
 			$block_css = $tree->get_styles_for_block( $metadata );
@@ -370,15 +365,31 @@ function wp_add_global_styles_for_blocks() {
 		 * before adding the inline style.
 		 * This conditional loading only applies to core blocks.
 		 */
-		if ( $block_name ) {
-			if ( str_starts_with( $block_name, 'core/' ) ) {
-				$block_name   = str_replace( 'core/', '', $block_name );
+		if ( isset( $metadata['name'] ) ) {
+			if ( str_starts_with( $metadata['name'], 'core/' ) ) {
+				$block_name   = str_replace( 'core/', '', $metadata['name'] );
 				$block_handle = 'wp-block-' . $block_name;
 				if ( in_array( $block_handle, $wp_styles->queue, true ) ) {
 					wp_add_inline_style( $stylesheet_handle, $block_css );
 				}
 			} else {
 				wp_add_inline_style( $stylesheet_handle, $block_css );
+			}
+		}
+
+		// The likes of block element styles from theme.json do not have  $metadata['name'] set.
+		if ( ! isset( $metadata['name'] ) && ! empty( $metadata['path'] ) ) {
+			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
+			if ( $block_name ) {
+				if ( str_starts_with( $block_name, 'core/' ) ) {
+					$block_name   = str_replace( 'core/', '', $block_name );
+					$block_handle = 'wp-block-' . $block_name;
+					if ( in_array( $block_handle, $wp_styles->queue, true ) ) {
+						wp_add_inline_style( $stylesheet_handle, $block_css );
+					}
+				} else {
+					wp_add_inline_style( $stylesheet_handle, $block_css );
+				}
 			}
 		}
 	}

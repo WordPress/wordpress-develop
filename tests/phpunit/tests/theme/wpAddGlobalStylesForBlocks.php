@@ -128,7 +128,6 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	 * @ticket 59595
 	 */
 	public function test_styles_for_blocks_cache_is_skipped() {
-		switch_theme( 'block-theme' );
 		wp_register_style( 'global-styles', false, array(), true, true );
 
 		// Initial register of global styles.
@@ -139,14 +138,15 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		$this->assertNotEmpty( $styles_for_blocks_initial, 'Initial cache was not set.' );
 
 		$this->set_up_third_party_block();
+
 		/*
 		 * Call register of global styles again to ensure the cache is updated.
 		 * In normal conditions, this function is only called once per request.
 		 */
 		wp_add_global_styles_for_blocks();
 
-		$cache_key_new             = $this->get_wp_styles_for_blocks_cache_key();
-		$styles_for_blocks_updated = get_site_transient( $cache_key_new );
+		$cache_key                 = $this->get_wp_styles_for_blocks_cache_key();
+		$styles_for_blocks_updated = get_site_transient( $cache_key );
 		$this->assertNotEmpty( $styles_for_blocks_updated, 'Updated cache was not set.' );
 
 		$this->assertNotEquals(
