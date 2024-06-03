@@ -396,7 +396,7 @@ final class WP_Interactivity_API {
 		 */
 		if ( $unbalanced || 0 < count( $tag_stack ) ) {
 			$tag_errored = 0 < count( $tag_stack ) ? end( $tag_stack )[0] : $tag_name;
-			/* translators: %s: The tag that caused the error; could be any HTML tag. */
+			/* translators: %1s: Namespace processed , %2s: The tag that caused the error; could be any HTML tag.  */
 			$message = sprintf( __( 'Interactivity directives failed to process in "%1$s" due to a missing "%2$s" end tag.' ), end( $namespace_stack ), $tag_errored );
 			_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 			return null;
@@ -423,7 +423,7 @@ final class WP_Interactivity_API {
 		list( $ns, $path ) = $this->extract_directive_value( $directive_value, $default_namespace );
 		if ( ! $ns || ! $path ) {
 			/* translators: %s: The directive value referenced. */
-			$message = sprintf( 'Namespace or reference path cannot be empty. Directive value referenced: %s ', $directive_value );
+			$message = sprintf( __( 'Namespace or reference path cannot be empty. Directive value referenced: %s ' ), $directive_value );
 			_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 			return null;
 		}
