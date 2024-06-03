@@ -123,9 +123,9 @@ class WP_Theme_JSON {
 	 *              `prevent_override` value for `color.duotone` to use `color.defaultDuotone`.
 	 * @since 6.2.0 Added 'shadow' presets.
 	 * @since 6.3.0 Replaced value_func for duotone with `null`. Custom properties are handled by class-wp-duotone.php.
-	 * @since 6.6.0 Added the `dimensions.aspectRatios` & `dimensions.defaultAspectRatios` preset.
-	 * @since 6.6.0 Updated the 'prevent_override' value for font size presets to use 'typography.defaultFontSizes'.
-	 * @since 6.6.0 Updated the 'prevent_override' value for spacing size presets to use `spacing.defaultSpacingSizes`.
+	 * @since 6.6.0 Added the `dimensions.aspectRatios` and `dimensions.defaultAspectRatios` presets.
+	 *              Updated the 'prevent_override' value for font size presets to use 'typography.defaultFontSizes'
+	 *              and spacing size presets to use `spacing.defaultSpacingSizes`.
 	 * @var array
 	 */
 	const PRESETS_METADATA = array(
@@ -380,9 +380,8 @@ class WP_Theme_JSON {
 	 *              `typography.writingMode`, `lightbox.enabled` and `lightbox.allowEditing`.
 	 * @since 6.5.0 Added support for `layout.allowCustomContentAndWideSize`,
 	 *              `background.backgroundSize` and `dimensions.aspectRatio`.
-	 * @since 6.6.0 Added support for `dimensions.aspectRatios` and `dimensions.defaultAspectRatios`.
-	 * @since 6.6.0 Added support for `typography.defaultFontSizes`.
-	 * @since 6.6.0 Added support for `spacing.defaultSpacingSizes`.
+	 * @since 6.6.0 Added support for 'dimensions.aspectRatios', 'dimensions.defaultAspectRatios',
+	 *              'typography.defaultFontSizes', and 'spacing.defaultSpacingSizes'.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -743,7 +742,8 @@ class WP_Theme_JSON {
 	 * Constructor.
 	 *
 	 * @since 5.8.0
-	 * @since 6.6.0 Pre-generate the spacingSizes from spacingScale.
+	 * @since 6.6.0 Key spacingScale by origin, and Pre-generate the
+	 *              spacingSizes from spacingScale.
 	 *
 	 * @param array  $theme_json A structure that follows the theme.json schema.
 	 * @param string $origin     Optional. What source of data this object represents.
