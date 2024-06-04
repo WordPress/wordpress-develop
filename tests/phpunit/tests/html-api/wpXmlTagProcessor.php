@@ -137,8 +137,8 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	/**
 	 * @ticket 61365
 	 *
-	 * @covers WP_XML_Tag_Processor::get_attribute
 	 * @expectedIncorrectUsage WP_XML_Tag_Processor::base_class_next_token
+	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_attributes_are_rejected_in_tag_closers() {
 		$processor = new WP_XML_Tag_Processor( '<wp:content>Test</wp:content wp:post-type="test">' );
@@ -161,9 +161,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_no_value() {
 		$processor = new WP_XML_Tag_Processor( '<wp:content enabled wp:post-type="test">Test</wp:content>' );
@@ -173,9 +173,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_no_quotes() {
 		$processor = new WP_XML_Tag_Processor( '<wp:content enabled=1 wp:post-type="test">Test</wp:content>' );
@@ -185,9 +185,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_contains_ampersand() {
 		$processor = new WP_XML_Tag_Processor( '<wp:content enabled="WordPress & WordPress">Test</wp:content>' );
@@ -198,9 +198,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_contains_entity_without_semicolon() {
 		$processor = new WP_XML_Tag_Processor( '<wp:content enabled="&#x94">Test</wp:content>' );
@@ -211,9 +211,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_contains_lt_character() {
 		$processor = new WP_XML_Tag_Processor( '<wp:content enabled="I love <3 this">Test</wp:content>' );
@@ -223,9 +223,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_tags_duplicate_attributes() {
 		$processor = new WP_XML_Tag_Processor( '<wp:content id="update-me" id="ignored-id"><wp:text id="second">Text</wp:text></wp:content>' );
@@ -235,9 +235,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_name_contains_slash() {
 		$processor = new WP_XML_Tag_Processor( '<wp:content a/b="test">Test</wp:content>' );
@@ -1064,10 +1064,10 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
-	 *
-	 * @covers WP_XML_Tag_Processor::set_attribute
 	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 * @expectedIncorrectUsage WP_XML_Tag_Processor::set_attribute
+	 *
+	 * @covers WP_XML_Tag_Processor::set_attribute
 	 */
 	public function test_setting_an_attribute_to_false_is_rejected() {
 		$processor = new WP_XML_Tag_Processor(
@@ -1082,9 +1082,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::set_attribute
 	 *
 	 * @covers WP_XML_Tag_Processor::set_attribute
-	 * @expectedIncorrectUsage WP_XML_Tag_Processor::set_attribute
 	 */
 	public function test_setting_a_missing_attribute_to_false_does_not_change_the_markup() {
 		$xml_input = '<form action="/action_page.php"><input type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>';
@@ -1188,8 +1188,8 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	/**
 	 * The string " -- " (double-hyphen) must not occur within comments.
 	 *
-	 * @covers WP_XML_Tag_Processor::next_tag
 	 * @expectedIncorrectUsage WP_XML_Tag_Processor::base_class_next_token
+	 * @covers WP_XML_Tag_Processor::next_tag
 	 */
 	public function test_rejects_malformed_comments() {
 		$processor = new WP_XML_Tag_Processor( '<!-- comment -- oh, I did not close it after the initial double dash -->' );
@@ -1215,8 +1215,8 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_XML_Tag_Processor::next_tag
 	 * @expectedIncorrectUsage WP_XML_Tag_Processor::base_class_next_token
+	 * @covers WP_XML_Tag_Processor::next_tag
 	 */
 	public function test_rejects_empty_element_that_is_also_a_closer() {
 		$processor = new WP_XML_Tag_Processor( '</wp:content/> ' );

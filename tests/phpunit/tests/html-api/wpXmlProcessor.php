@@ -247,6 +247,8 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
+	 *
+	 * @expectedIncorrectUsage WP_XML_Processor::step_in_misc
 	 */
 	public function test_elements_not_allowed_after_root_element() {
 		$processor = new WP_XML_Processor( '<root></root><another-root>' );
@@ -263,6 +265,7 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 	 * @ticket 61365
 	 *
 	 * @expectedIncorrectUsage WP_XML_Processor::step_in_misc
+	 *
 	 * @return void
 	 */
 	public function test_comments_allowed_after_root_element() {
