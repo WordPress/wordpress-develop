@@ -91,7 +91,7 @@ class WP_HTML_Decoder {
 	 * @return string Decoded UTF-8 value of given text node.
 	 */
 	public static function decode_text_node( $text ) {
-		return self::decode( 'data', $text );
+		return static::decode( 'data', $text );
 	}
 
 	/**
