@@ -593,6 +593,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				$webp_info = wp_get_webp_info( $this->file );
 				if ( ! empty( $webp_info['type'] ) && 'lossless' === $webp_info['type'] ) {
 					$quality = IMG_WEBP_LOSSLESS;
+					parent::set_quality( $quality );
 				}
 			}
 		} catch ( Exception $e ) {
