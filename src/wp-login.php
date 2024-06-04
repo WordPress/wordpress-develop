@@ -33,13 +33,17 @@ if ( force_ssl_admin() && ! is_ssl() ) {
  *                                    upon successful login.
  * @global string      $action        The action that brought the visitor to the login page.
  *
- * @param string   $title    Optional. WordPress login Page title to display in the `<title>` element.
- *                           Default 'Log In'.
- * @param string   $message  Optional. Message to display in header. Default empty.
- * @param WP_Error $wp_error Optional. The error to pass. Default is a WP_Error instance.
+ * @param string|null   $title    Optional. WordPress login page title to display in the `<title>` element.
+ *                                Defaults to 'Log In'.
+ * @param string        $message  Optional. Message to display in header. Default empty.
+ * @param WP_Error|null $wp_error Optional. The error to pass. Defaults to a WP_Error instance.
  */
-function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
+function login_header( $title = null, $message = '', $wp_error = null ) {
 	global $error, $interim_login, $action;
+
+	if ( null === $title ) {
+		$title = __( 'Log In' );
+	}
 
 	// Don't index any of these forms.
 	add_filter( 'wp_robots', 'wp_robots_sensitive_page' );
@@ -753,7 +757,7 @@ switch ( $action ) {
 		break;
 
 	case 'postpass':
-		if ( ! array_key_exists( 'post_password', $_POST ) ) {
+		if ( ! isset( $_POST['post_password'] ) || ! is_string( $_POST['post_password'] ) ) {
 			wp_safe_redirect( wp_get_referer() );
 			exit;
 		}

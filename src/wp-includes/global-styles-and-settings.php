@@ -139,6 +139,7 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  *
  * @since 5.9.0
  * @since 6.1.0 Added 'base-layout-styles' support.
+ * @since 6.6.0 Resolves relative paths in theme.json styles to theme absolute paths.
  *
  * @param array $types Optional. Types of styles to load.
  *                     It accepts as values 'variables', 'presets', 'styles', 'base-layout-styles'.
@@ -179,9 +180,9 @@ function wp_get_global_stylesheet( $types = array() ) {
 		}
 	}
 
-	$tree = WP_Theme_JSON_Resolver::get_merged_data();
-
+	$tree                = WP_Theme_JSON_Resolver::resolve_theme_file_uris( WP_Theme_JSON_Resolver::get_merged_data() );
 	$supports_theme_json = wp_theme_has_theme_json();
+
 	if ( empty( $types ) && ! $supports_theme_json ) {
 		$types = array( 'variables', 'presets', 'base-layout-styles' );
 	} elseif ( empty( $types ) ) {
@@ -329,7 +330,7 @@ function wp_add_global_styles_for_blocks() {
 			if ( str_starts_with( $metadata['name'], 'core/' ) ) {
 				$block_name   = str_replace( 'core/', '', $metadata['name'] );
 				$block_handle = 'wp-block-' . $block_name;
-				if ( in_array( $block_handle, $wp_styles->queue ) ) {
+				if ( in_array( $block_handle, $wp_styles->queue, true ) ) {
 					wp_add_inline_style( $stylesheet_handle, $block_css );
 				}
 			} else {
@@ -344,7 +345,7 @@ function wp_add_global_styles_for_blocks() {
 				if ( str_starts_with( $block_name, 'core/' ) ) {
 					$block_name   = str_replace( 'core/', '', $block_name );
 					$block_handle = 'wp-block-' . $block_name;
-					if ( in_array( $block_handle, $wp_styles->queue ) ) {
+					if ( in_array( $block_handle, $wp_styles->queue, true ) ) {
 						wp_add_inline_style( $stylesheet_handle, $block_css );
 					}
 				} else {

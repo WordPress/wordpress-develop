@@ -94,6 +94,7 @@ class Tests_Readme extends WP_UnitTestCase {
 		$response = wp_remote_get( $url );
 
 		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$response_code = wp_remote_retrieve_response_code( $response );
 		$response_body = wp_remote_retrieve_body( $response );

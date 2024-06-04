@@ -11,9 +11,9 @@
 /**
  * Initializes $wp_scripts if it has not been set.
  *
- * @global WP_Scripts $wp_scripts
- *
  * @since 4.2.0
+ *
+ * @global WP_Scripts $wp_scripts
  *
  * @return WP_Scripts WP_Scripts instance.
  */
@@ -77,9 +77,9 @@ function _wp_scripts_maybe_doing_it_wrong( $function_name, $handle = '' ) {
  * hook to register/enqueue new scripts.
  *
  * @see WP_Scripts::do_item()
- * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
- *
  * @since 2.1.0
+ *
+ * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
  *
  * @param string|string[]|false $handles Optional. Scripts to be printed. Default 'false'.
  * @return string[] On success, an array of handles of processed WP_Dependencies items; otherwise, an empty array.
@@ -211,7 +211,6 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
  *
  * @see WP_Scripts::localize()
  * @link https://core.trac.wordpress.org/ticket/11520
- * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
  *
  * @since 2.2.0
  *
@@ -224,12 +223,7 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
  * @return bool True if the script was successfully localized, false otherwise.
  */
 function wp_localize_script( $handle, $object_name, $l10n ) {
-	global $wp_scripts;
-
-	if ( ! ( $wp_scripts instanceof WP_Scripts ) ) {
-		_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
-		return false;
-	}
+	$wp_scripts = wp_scripts();
 
 	return $wp_scripts->localize( $handle, $object_name, $l10n );
 }
@@ -240,10 +234,10 @@ function wp_localize_script( $handle, $object_name, $l10n ) {
  * Works only if the script has already been registered.
  *
  * @see WP_Scripts::set_translations()
- * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
- *
  * @since 5.0.0
  * @since 5.1.0 The `$domain` parameter was made optional.
+ *
+ * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
  *
  * @param string $handle Script handle the textdomain will be attached to.
  * @param string $domain Optional. Text domain. Default 'default'.
