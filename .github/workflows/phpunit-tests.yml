@@ -53,6 +53,9 @@ jobs:
         memcached: [ false ]
 
         include:
+          # Allow PHP 8.1 tests to have errors.
+          - php: '8.1'
+            allow-errors: true
           # Include jobs for PHP 7.4 with memcached.
           - os: ubuntu-latest
             php: '7.4'
@@ -83,6 +86,7 @@ jobs:
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: ${{ matrix.report || false }}
+      allow-errors: ${{ matrix.allow-errors || false }}
 
   slack-notifications:
     name: Slack Notifications
