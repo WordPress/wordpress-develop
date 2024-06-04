@@ -21,13 +21,11 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 	 */
 	public function test_get_breadcrumbs() {
 		$processor = new WP_XML_Processor(
-			<<<XML
-			<wp:content>
+			'<wp:content>
 				<wp:text>
 					<photo />
 				</wp:text>
-			</wp:content>
-			XML
+			</wp:content>'
 		);
 		$processor->next_tag();
 		$this->assertEquals(
