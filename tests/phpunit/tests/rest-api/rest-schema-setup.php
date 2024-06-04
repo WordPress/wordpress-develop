@@ -759,9 +759,9 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			return $data;
 		}
 
-		foreach ( $data as $key => $value ) {
-			$datetime_keys = array( 'date', 'date_gmt', 'modified', 'modified_gmt' );
+		$datetime_keys = array( 'date', 'date_gmt', 'modified', 'modified_gmt' );
 
+		foreach ( $data as $key => $value ) {
 			if ( is_string( $value ) ) {
 				if ( in_array( $key, $datetime_keys, true ) ) {
 					$data[ $key ] = '2017-02-14T00:00:00';
