@@ -150,71 +150,6 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	}
 
 	/**
-	 * Retrieves the text content of the current element,
-	 * including any nested elements.
-	 *
-	 * For example, given the following XML:
-	 *
-	 *     <root>
-	 *         <wp:post>
-	 *             The open source publishing <content> platform of choice for millions
-	 *             of websites <image /> worldwide—from creators </content>and small businesses
-	 *         </wp:post>
-	 *     </root>
-	 *
-	 * The inner text of the `wp:post` element would be:
-	 *
-	 *             The open source publishing platform of choice for millions
-	 *             of websites worldwide—from creators and small businesses
-	 *
-	 * Note that whitespace is preserved, including newlines and tabs.
-	 *
-	 * @return bool|string
-	 */
-	public function get_inner_text() {
-		if ( false === $this->set_bookmark( 'inner_text' ) ) {
-			return false;
-		}
-
-		if ( $this->is_pcdata_element() ) {
-			return $this->get_modifiable_text();
-		}
-
-		try {
-			$text  = '';
-			$depth = 1;
-			while ( $depth > 0 && $this->base_class_next_token() ) {
-				switch ( $this->get_token_type() ) {
-					case '#tag':
-						if ( $this->is_empty_element() ) {
-							continue 2;
-						}
-						if ( $this->is_tag_closer() ) {
-							--$depth;
-						} else {
-							++$depth;
-						}
-						$text .= $this->get_modifiable_text();
-						break;
-					case '#text':
-					case '#cdata-section':
-						if ( $depth > 0 ) {
-							$text .= $this->get_modifiable_text();
-						}
-						break;
-					default:
-						continue 2;
-				}
-			}
-
-			return $text;
-		} finally {
-			$this->seek( 'inner_text' );
-			$this->release_bookmark( 'inner_text' );
-		}
-	}
-
-	/**
 	 * Sets a bookmark in the XML document.
 	 *
 	 * Bookmarks represent specific places or tokens in the HTML
@@ -357,7 +292,7 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	 * @return false
 	 */
 	public function next_token() {
-		return $this->next_tag();
+		return $this->step();
 	}
 
 	/**
