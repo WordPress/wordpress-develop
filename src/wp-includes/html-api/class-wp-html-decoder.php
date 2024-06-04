@@ -111,7 +111,7 @@ class WP_HTML_Decoder {
 	 * @return string Decoded UTF-8 value of given attribute value.
 	 */
 	public static function decode_attribute( $text ) {
-		return self::decode( 'attribute', $text );
+		return static::decode( 'attribute', $text );
 	}
 
 	/**
