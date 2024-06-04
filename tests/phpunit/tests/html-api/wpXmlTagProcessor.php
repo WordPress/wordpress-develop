@@ -7,12 +7,12 @@
  */
 
 $base_dir = __DIR__ . '/../../../../src/wp-includes/html-api';
-require_once $base_dir . "/class-wp-html-token.php";
-require_once $base_dir . "/class-wp-html-span.php";
-require_once $base_dir . "/class-wp-html-text-replacement.php";
-require_once $base_dir . "/class-wp-html-decoder.php";
-require_once $base_dir . "/class-wp-html-attribute-token.php";
-require_once $base_dir . "/class-wp-xml-tag-processor.php";
+require_once $base_dir . '/class-wp-html-token.php';
+require_once $base_dir . '/class-wp-html-span.php';
+require_once $base_dir . '/class-wp-html-text-replacement.php';
+require_once $base_dir . '/class-wp-html-decoder.php';
+require_once $base_dir . '/class-wp-html-attribute-token.php';
+require_once $base_dir . '/class-wp-xml-tag-processor.php';
 
 /**
  * @group xml-api
@@ -25,7 +25,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	const XML_MALFORMED    = '<wp:content><wp:text wp:post-type="d-md-none" Notifications</wp:text><wp:text wp:post-type="d-none d-md-inline">Back to notifications</wp:text></wp:content>';
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_tag
 	 */
@@ -36,7 +36,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_tag
 	 */
@@ -48,7 +48,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_tag
 	 */
@@ -60,7 +60,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 58009
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::is_empty_element
 	 *
@@ -88,25 +88,25 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	public static function data_is_empty_element() {
 		return array(
 			// These should not have a self-closer, and will leave an element un-closed if it's assumed they are self-closing.
-			'Self-closing flag on non-void XML element' => array( '<wp:content />', true ),
+			'Self-closing flag on non-void XML element'    => array( '<wp:content />', true ),
 			'No self-closing flag on non-void XML element' => array( '<wp:content>', false ),
 			// These should not have a self-closer, but are benign when used because the elements are void.
-			'Self-closing flag on void XML element'     => array( '<photo />', true ),
-			'No self-closing flag on void XML element'  => array( '<photo>', false ),
+			'Self-closing flag on void XML element'        => array( '<photo />', true ),
+			'No self-closing flag on void XML element'     => array( '<photo>', false ),
 			'Self-closing flag on void XML element without spacing' => array( '<photo/>', true ),
 			// These should not have a self-closer, but as part of a tag closer they are entirely ignored.
-			'No self-closing flag on tag closer'         => array( '</textarea>', false ),
+			'No self-closing flag on tag closer'           => array( '</textarea>', false ),
 			// These can and should have self-closers, and will leave an element un-closed if it's assumed they aren't self-closing.
-			'Self-closing flag on a foreign element'     => array( '<circle />', true ),
-			'No self-closing flag on a foreign element'  => array( '<circle>', false ),
+			'Self-closing flag on a foreign element'       => array( '<circle />', true ),
+			'No self-closing flag on a foreign element'    => array( '<circle>', false ),
 			// These involve syntax peculiarities.
-			'Self-closing flag after extra spaces'       => array( '<wp:content      />', true ),
-			'Self-closing flag after quoted attribute'   => array( '<wp:content id="test"/>', true ),
+			'Self-closing flag after extra spaces'         => array( '<wp:content      />', true ),
+			'Self-closing flag after quoted attribute'     => array( '<wp:content id="test"/>', true ),
 		);
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -118,7 +118,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -131,7 +131,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -143,7 +143,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -155,7 +155,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -167,7 +167,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -178,7 +178,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -189,7 +189,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -197,11 +197,11 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor = new WP_XML_Tag_Processor( '<wp:content enabled="WordPress & WordPress">Test</wp:content>' );
 
 		$this->assertTrue( $processor->next_tag(), 'Querying a tag did not return true' );
-		$this->assertFalse( $processor->get_attribute('enabled'), 'Querying a malformed attribute did not return null' );
+		$this->assertFalse( $processor->get_attribute( 'enabled' ), 'Querying a malformed attribute did not return null' );
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -209,11 +209,11 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor = new WP_XML_Tag_Processor( '<wp:content enabled="&#x94">Test</wp:content>' );
 
 		$this->assertTrue( $processor->next_tag(), 'Querying a tag did not return true' );
-		$this->assertFalse( $processor->get_attribute('enabled'), 'Querying a malformed attribute did not return null' );
+		$this->assertFalse( $processor->get_attribute( 'enabled' ), 'Querying a malformed attribute did not return null' );
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -224,18 +224,18 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_parsing_stops_on_malformed_tags_duplicate_attributes() {
 		$processor = new WP_XML_Tag_Processor( '<wp:content id="update-me" id="ignored-id"><wp:text id="second">Text</wp:text></wp:content>' );
 
-		$this->assertFalse($processor->next_tag());
+		$this->assertFalse( $processor->next_tag() );
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -246,47 +246,47 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_get_modifiable_text_returns_a_decoded_value() {
 		$processor = new WP_XML_Tag_Processor( '<root>&#x93;&#x1f604;&#x94;</root>' );
 
-		$processor->next_tag('root');
+		$processor->next_tag( 'root' );
 		$processor->next_token();
-		
+
 		$this->assertEquals(
 			'“😄”',
 			$processor->get_modifiable_text(),
-			'Reading an encoded text did not decode it.' 
+			'Reading an encoded text did not decode it.'
 		);
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_a_decoded_value() {
 		$processor = new WP_XML_Tag_Processor( '<root encoded-data="&#x93;&#x1f604;&#x94;"></root>' );
 
-		$this->assertTrue( $processor->next_tag('root'), 'Querying a tag did not return true' );
+		$this->assertTrue( $processor->next_tag( 'root' ), 'Querying a tag did not return true' );
 		$this->assertEquals(
 			'“😄”',
 			$processor->get_attribute( 'encoded-data' ),
-			'Reading an encoded attribute did not decode it.' 
+			'Reading an encoded attribute did not decode it.'
 		);
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 *
 	 * @param string $attribute_name Name of data-enabled attribute with case variations.
 	 */
-	public function test_get_attribute_is_case_sensitive( ) {
+	public function test_get_attribute_is_case_sensitive() {
 		$processor = new WP_XML_Tag_Processor( '<wp:content DATA-enabled="true">Test</wp:content>' );
 		$processor->next_tag();
 
@@ -304,7 +304,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::remove_attribute
 	 */
@@ -321,7 +321,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::set_attribute
 	 */
@@ -334,7 +334,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute_names_with_prefix
 	 */
@@ -347,7 +347,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute_names_with_prefix
 	 */
@@ -358,7 +358,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute_names_with_prefix
 	 */
@@ -371,7 +371,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute_names_with_prefix
 	 */
@@ -383,7 +383,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute_names_with_prefix
 	 */
@@ -399,7 +399,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute_names_with_prefix
 	 */
@@ -421,7 +421,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::__toString
 	 */
@@ -441,7 +441,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_updated_xml
 	 */
@@ -478,7 +478,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_updated_xml
 	 */
@@ -496,7 +496,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * Ensures that when seeking to an earlier spot in the document that
 	 * all previously-enqueued updates are applied as they ought to be.
 	 *
-	 * @ticket 58160
+	 * @ticket 61365
 	 */
 	public function test_get_updated_xml_applies_updates_to_content_after_seeking_to_before_parsed_bytes() {
 		$processor = new WP_XML_Tag_Processor( '<wp:content><photo hidden></wp:content>' );
@@ -512,9 +512,8 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$this->assertSame( '<wp:content wonky="true"><photo hidden></wp:content>', $processor->get_updated_xml() );
 	}
 
-	public function test_declare_element_as_pcdata()
-	{
-		$text = <<<XML
+	public function test_declare_element_as_pcdata() {
+		$text      = <<<XML
 			This text contains syntax that may seem
 			like XML nodes:
 
@@ -530,20 +529,20 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		$processor = new WP_XML_Tag_Processor(
 			"<root><my-pcdata>$text</my-pcdata></root>"
 		);
- 		$processor->declare_element_as_pcdata('my-pcdata');
- 		$processor->next_tag('my-pcdata');
- 
+		$processor->declare_element_as_pcdata( 'my-pcdata' );
+		$processor->next_tag( 'my-pcdata' );
+
 		$this->assertEquals(
- 			$text,
- 			$processor->get_modifiable_text(),
- 			'get_modifiable_text() did not return the expected text'
- 		);
+			$text,
+			$processor->get_modifiable_text(),
+			'get_modifiable_text() did not return the expected text'
+		);
 	}
 
 	/**
 	 * Ensures that bookmarks start and length correctly describe a given token in XML.
 	 *
-	 * @ticket 61301
+	 * @ticket 61365
 	 *
 	 * @dataProvider data_xml_nth_token_substring
 	 *
@@ -634,7 +633,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::next_tag
 	 */
@@ -645,7 +644,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::next_tag
 	 */
@@ -654,14 +653,13 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 
 		$this->assertFalse( $processor->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
 	}
-	
+
 	/**
-	 * @ticket 57852
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_modifiable_text
 	 */
-	public function test_normalizes_carriage_returns_in_text_nodes()
-	{
+	public function test_normalizes_carriage_returns_in_text_nodes() {
 		$processor = new WP_XML_Tag_Processor(
 			"<wp:content>We are\rnormalizing\r\n\nthe\n\r\r\r\ncarriage returns"
 		);
@@ -675,12 +673,11 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 57852
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_modifiable_text
 	 */
-	public function test_normalizes_carriage_returns_in_cdata()
-	{
+	public function test_normalizes_carriage_returns_in_cdata() {
 		$processor = new WP_XML_Tag_Processor(
 			"<wp:content><![CDATA[We are\rnormalizing\r\n\nthe\n\r\r\r\ncarriage returns]]>"
 		);
@@ -694,8 +691,8 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
-	 * @ticket 57852
+	 * @ticket 61365
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::next_tag
 	 * @covers WP_XML_Tag_Processor::is_tag_closer
@@ -735,7 +732,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * Verifies that updates to a document before calls to `get_updated_xml()` don't
 	 * lead to the Tag Processor jumping to the wrong tag after the updates.
 	 *
-	 * @ticket 58179
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_updated_xml
 	 */
@@ -759,7 +756,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::set_attribute
 	 */
@@ -779,7 +776,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::set_attribute
 	 * @covers WP_XML_Tag_Processor::remove_attribute
@@ -816,7 +813,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::set_attribute
 	 */
@@ -838,7 +835,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -860,7 +857,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -883,7 +880,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -904,7 +901,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -926,7 +923,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -946,9 +943,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 			'Updated XML includes attribute that was overwritten by set_attribute() and then removed by remove_attribute()'
 		);
 	}
-	
+
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::set_attribute
 	 */
@@ -967,7 +964,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 * Ensures that when setting an attribute multiple times that only
 	 * one update flushes out into the updated XML.
 	 *
-	 * @ticket 58146
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::set_attribute
 	 */
@@ -982,7 +979,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::next_tag
 	 * @covers WP_XML_Tag_Processor::set_attribute
@@ -1001,7 +998,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::remove_attribute
 	 */
@@ -1018,7 +1015,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::remove_attribute
 	 */
@@ -1035,7 +1032,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::next_tag
 	 */
@@ -1065,7 +1062,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::set_attribute
 	 */
@@ -1075,19 +1072,19 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		);
 		$processor->next_tag( 'input' );
 		$this->assertFalse(
-			$processor->set_attribute('checked', false),
+			$processor->set_attribute( 'checked', false ),
 			'Accepted a boolean attribute name.'
 		);
 	}
 
 	/**
-	 * @ticket 56299
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::set_attribute
 	 */
 	public function test_setting_a_missing_attribute_to_false_does_not_change_the_markup() {
 		$xml_input = '<form action="/action_page.php"><input type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>';
-		$processor  = new WP_XML_Tag_Processor( $xml_input );
+		$processor = new WP_XML_Tag_Processor( $xml_input );
 		$processor->next_tag( 'input' );
 		$processor->set_attribute( 'checked', false );
 		$this->assertSame(
@@ -1100,7 +1097,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	/**
 	 * Ensures that unclosed and invalid comments trigger warnings or errors.
 	 *
-	 * @ticket 58007
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::next_tag
 	 * @covers WP_XML_Tag_Processor::paused_at_incomplete_token
@@ -1130,15 +1127,15 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 */
 	public static function data_xml_with_unclosed_comments() {
 		return array(
-			'Shortest open valid comment'      => array( '<!--' ),
-			'Basic truncated comment'          => array( '<!-- this ends --' ),
+			'Shortest open valid comment' => array( '<!--' ),
+			'Basic truncated comment'     => array( '<!-- this ends --' ),
 		);
 	}
 
 	/**
 	 * Ensures that the processor doesn't attempt to match an incomplete token.
 	 *
-	 * @ticket 58637
+	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::next_tag
 	 * @covers WP_XML_Tag_Processor::paused_at_incomplete_token
@@ -1168,25 +1165,25 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	 */
 	public static function data_incomplete_syntax_elements() {
 		return array(
-			'Incomplete tag name'                  => array( '<swit' ),
-			'Incomplete tag (no attributes)'       => array( '<wp:content' ),
-			'Incomplete tag (attributes)'          => array( '<wp:content inert="yes" title="test"' ),
-			'Incomplete attribute (before =)'      => array( '<button disabled' ),
-			'Incomplete attribute (before ")'      => array( '<button disabled=' ),
+			'Incomplete tag name'                         => array( '<swit' ),
+			'Incomplete tag (no attributes)'              => array( '<wp:content' ),
+			'Incomplete tag (attributes)'                 => array( '<wp:content inert="yes" title="test"' ),
+			'Incomplete attribute (before =)'             => array( '<button disabled' ),
+			'Incomplete attribute (before ")'             => array( '<button disabled=' ),
 			'Incomplete attribute (before closing quote)' => array( '<button disabled="value started' ),
-			'Incomplete attribute (single quoted)' => array( "<li wp:post-type='just-another class" ),
-			'Incomplete attribute (double quoted)' => array( '<iframe src="https://www.example.com/embed/abcdef' ),
-			'Incomplete comment (normative)'       => array( '<!-- without end' ),
-			'Incomplete comment (missing --)'      => array( '<!-- without end --' ),
-			'Incomplete CDATA'                     => array( '<![CDATA[something inside of here needs to get out' ),
-			'Partial CDATA'                        => array( '<![CDA' ),
-			'Partially closed CDATA]'              => array( '<![CDATA[cannot escape]' ),
+			'Incomplete attribute (single quoted)'        => array( "<li wp:post-type='just-another class" ),
+			'Incomplete attribute (double quoted)'        => array( '<iframe src="https://www.example.com/embed/abcdef' ),
+			'Incomplete comment (normative)'              => array( '<!-- without end' ),
+			'Incomplete comment (missing --)'             => array( '<!-- without end --' ),
+			'Incomplete CDATA'                            => array( '<![CDATA[something inside of here needs to get out' ),
+			'Partial CDATA'                               => array( '<![CDA' ),
+			'Partially closed CDATA]'                     => array( '<![CDATA[cannot escape]' ),
 		);
 	}
 
 	/**
 	 * The string " -- " (double-hyphen) must not occur within comments.
-	 * 
+	 *
 	 * @covers WP_XML_Tag_Processor::next_tag
 	 */
 	public function test_rejects_malformed_comments() {
@@ -1224,24 +1221,24 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	/**
 	 * Ensures that non-tag syntax starting with `<` is rejected.
 	 *
-	 * @ticket 60385
+	 * @ticket 61365
 	 */
 	public function test_single_text_node_with_taglike_text() {
 		$processor = new WP_XML_Tag_Processor( 'This is a text node< /A>' );
-		$this->assertTrue($processor->next_token(), 'A valid text node was not found.');
-		$this->assertEquals('This is a text node', $processor->get_modifiable_text(), 'The contents of a valid text node were not correctly captured.');
-		$this->assertFalse($processor->next_tag(), 'A malformed XML markup was not rejected.');
+		$this->assertTrue( $processor->next_token(), 'A valid text node was not found.' );
+		$this->assertEquals( 'This is a text node', $processor->get_modifiable_text(), 'The contents of a valid text node were not correctly captured.' );
+		$this->assertFalse( $processor->next_tag(), 'A malformed XML markup was not rejected.' );
 	}
 
 	/**
 	 * Ensures that non-tag syntax starting with `<` is rejected.
 	 *
-	 * @ticket 60385
+	 * @ticket 61365
 	 */
 	public function test_parses_CDATA() {
 		$processor = new WP_XML_Tag_Processor( '<root><![CDATA[This is a CDATA text node.]]></root>' );
 		$processor->next_tag();
-		$this->assertTrue($processor->next_token(), 'The first text node was not found.');		$this->assertEquals(
+		$this->assertTrue( $processor->next_token(), 'The first text node was not found.' );      $this->assertEquals(
 			'This is a CDATA text node.',
 			$processor->get_modifiable_text(),
 			'The contents of a a CDATA text node were not correctly captured.'
@@ -1249,27 +1246,27 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @ticket 60385
+	 * @ticket 61365
 	 */
 	public function test_yields_CDATA_a_separate_text_node() {
 		$processor = new WP_XML_Tag_Processor( '<root>This is the first text node <![CDATA[ and this is a second text node ]]> and this is the third text node.</root>' );
 
 		$processor->next_token();
-		$this->assertTrue($processor->next_token(), 'The first text node was not found.');
+		$this->assertTrue( $processor->next_token(), 'The first text node was not found.' );
 		$this->assertEquals(
 			'This is the first text node ',
 			$processor->get_modifiable_text(),
 			'The contents of a valid text node were not correctly captured.'
 		);
 
-		$this->assertTrue($processor->next_token(), 'The CDATA text node was not found.');
+		$this->assertTrue( $processor->next_token(), 'The CDATA text node was not found.' );
 		$this->assertEquals(
 			' and this is a second text node ',
 			$processor->get_modifiable_text(),
 			'The contents of a a CDATA text node were not correctly captured.'
 		);
 
-		$this->assertTrue($processor->next_token(), 'The text node was not found.');
+		$this->assertTrue( $processor->next_token(), 'The text node was not found.' );
 		$this->assertEquals(
 			' and this is the third text node.',
 			$processor->get_modifiable_text(),
@@ -1278,66 +1275,63 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * 
-	 * @ticket 60385
+	 *
+	 * @ticket 61365
 	 */
-	public function test_xml_declaration()
-	{
+	public function test_xml_declaration() {
 		$processor = new WP_XML_Tag_Processor( '<?xml version="1.0" encoding="UTF-8" ?>' );
-		$this->assertTrue($processor->next_token(), 'The XML declaration was not found.');
+		$this->assertTrue( $processor->next_token(), 'The XML declaration was not found.' );
 		$this->assertEquals(
 			'#xml-declaration',
 			$processor->get_token_type(),
 			'The XML declaration was not correctly identified.'
 		);
-		$this->assertEquals('1.0', $processor->get_attribute('version'), 'The version attribute was not correctly captured.');
-		$this->assertEquals('UTF-8', $processor->get_attribute('encoding'), 'The encoding attribute was not correctly captured.');
+		$this->assertEquals( '1.0', $processor->get_attribute( 'version' ), 'The version attribute was not correctly captured.' );
+		$this->assertEquals( 'UTF-8', $processor->get_attribute( 'encoding' ), 'The encoding attribute was not correctly captured.' );
 	}
 
 	/**
-	 * 
-	 * @ticket 60385
+	 *
+	 * @ticket 61365
 	 */
-	public function test_xml_declaration_with_single_quotes()
-	{
+	public function test_xml_declaration_with_single_quotes() {
 		$processor = new WP_XML_Tag_Processor( "<?xml version='1.0' encoding='UTF-8' ?>" );
-		$this->assertTrue($processor->next_token(), 'The XML declaration was not found.');
+		$this->assertTrue( $processor->next_token(), 'The XML declaration was not found.' );
 		$this->assertEquals(
 			'#xml-declaration',
 			$processor->get_token_type(),
 			'The XML declaration was not correctly identified.'
 		);
-		$this->assertEquals('1.0', $processor->get_attribute('version'), 'The version attribute was not correctly captured.');
-		$this->assertEquals('UTF-8', $processor->get_attribute('encoding'), 'The encoding attribute was not correctly captured.');
+		$this->assertEquals( '1.0', $processor->get_attribute( 'version' ), 'The version attribute was not correctly captured.' );
+		$this->assertEquals( 'UTF-8', $processor->get_attribute( 'encoding' ), 'The encoding attribute was not correctly captured.' );
 	}
 
 	/**
-	 * 
-	 * @ticket 60385
+	 *
+	 * @ticket 61365
 	 */
-	public function test_processor_instructions()
-	{
-		$processor = new WP_XML_Tag_Processor( 
+	public function test_processor_instructions() {
+		$processor = new WP_XML_Tag_Processor(
 			// The first <?xml tag is an xml declaration.
 			'<?xml version="1.0" encoding="UTF-8" ?>' .
 			// The second <?xml tag is a processing instruction.
 			'<?xml stylesheet type="text/xsl" href="style.xsl" ?>'
 		);
-		$this->assertTrue($processor->next_token(), 'The XML declaration was not found.');
-		$this->assertTrue($processor->next_token(), 'The processing instruction was not found.');
+		$this->assertTrue( $processor->next_token(), 'The XML declaration was not found.' );
+		$this->assertTrue( $processor->next_token(), 'The processing instruction was not found.' );
 		$this->assertEquals(
 			'#processing-instructions',
 			$processor->get_token_type(),
 			'The processing instruction was not correctly identified.'
 		);
-		$this->assertEquals(' stylesheet type="text/xsl" href="style.xsl" ', $processor->get_modifiable_text(), 'The modifiable text was not correctly captured.');
+		$this->assertEquals( ' stylesheet type="text/xsl" href="style.xsl" ', $processor->get_modifiable_text(), 'The modifiable text was not correctly captured.' );
 	}
 
 	/**
 	 * Ensures that updates which are enqueued in front of the cursor
 	 * are applied before moving forward in the document.
 	 *
-	 * @ticket 60697
+	 * @ticket 61365
 	 */
 	public function test_applies_updates_before_proceeding() {
 		$xml = '<root><wp:content><photo/></wp:content><wp:content><photo/></wp:content></root>';

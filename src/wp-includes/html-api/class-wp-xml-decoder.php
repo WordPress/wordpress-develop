@@ -43,7 +43,7 @@ class WP_XML_Decoder {
 				/*
 				 * > The following are forbidden, and constitute fatal errors:
 				 * > * the appearance of a reference to an unparsed entity, except in the EntityValue in an entity declaration.
-				 * 
+				 *
 				 * See https://www.w3.org/TR/xml/#forbidden
 				 */
 				return null;
@@ -51,16 +51,16 @@ class WP_XML_Decoder {
 
 			if ( '�' === $character_reference ) {
 				/*
-				 * > It is a fatal error when an XML processor encounters an entity with an 
+				 * > It is a fatal error when an XML processor encounters an entity with an
 				 * > encoding that it is unable to process. It is a fatal error if an XML entity
 				 * > is determined (via default, encoding declaration, or higher-level protocol)
-				 * > to be in a certain encoding but contains byte sequences that are not legal 
+				 * > to be in a certain encoding but contains byte sequences that are not legal
 				 * > in that encoding. Specifically, it is a fatal error if an entity encoded in
 				 * >  UTF-8 contains any ill-formed code unit sequences, as defined in section
 				 * > 3.9 of Unicode [Unicode]. Unless an encoding is determined by a higher-level
-				 * > protocol, it is also a fatal error if an XML entity contains no encoding 
+				 * > protocol, it is also a fatal error if an XML entity contains no encoding
 				 * > declaration and its content is not legal UTF-8 or UTF-16.
-				 * 
+				 *
 				 * See https://www.w3.org/TR/xml/#charencoding
 				 */
 				return null;
@@ -90,5 +90,4 @@ class WP_XML_Decoder {
 
 		return $decoded;
 	}
-
 }

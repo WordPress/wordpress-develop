@@ -1,7 +1,7 @@
 <?php
 /**
  * XML API: WP_XML_Processor class
- * 
+ *
 
  * @package WordPress
  * @subpackage XML-API
@@ -15,30 +15,30 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 
 	/**
 	 * Indicates the current parsing stage.
-	 * 
+	 *
 	 * A well-formed XML document has the following structure:
-	 * 
-	 * 	   document ::= prolog element Misc*
+	 *
+	 *     document ::= prolog element Misc*
 	 *     prolog   ::= XMLDecl? Misc* (doctypedecl Misc*)?
 	 *     Misc     ::= Comment | PI | S
-	 * 
-	 * There is exactly one element, called the root. No elements or text nodes may 
+	 *
+	 * There is exactly one element, called the root. No elements or text nodes may
 	 * precede or follow it.
-	 * 
+	 *
 	 * See https://www.w3.org/TR/xml/#NT-document.
-	 * 
+	 *
 	 * | Stage           | Meaning                                                             |
 	 * | ----------------|---------------------------------------------------------------------|
 	 * | *Prolog*        | The parser is parsing the prolog.                                   |
 	 * | *Element*       | The parser is parsing the root element.                             |
 	 * | *Misc*          | The parser is parsing miscellaneous content.                        |
-	 * 
+	 *
 	 * @see WP_XML_Tag_Processor::IN_PROLOG_CONTEXT
 	 * @see WP_XML_Tag_Processor::IN_ELEMENT_CONTEXT
 	 * @see WP_XML_Tag_Processor::IN_MISC_CONTEXT
 	 *
 	 * @since WP_VERSION
-	 * @var bool 
+	 * @var bool
 	 */
 	protected $parser_context = self::IN_PROLOG_CONTEXT;
 
@@ -64,11 +64,11 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 
 	/**
 	 * Finds the next element matching the $query.
-	 * 
+	 *
 	 * This doesn't currently have a way to represent non-tags and doesn't process
 	 * semantic rules for text nodes. For access to the raw tokens consider using
 	 * WP_XML_Tag_Processor instead.
-	 * 
+	 *
 	 * @since WP_VERSION
 	 *
 	 * @param array|string|null $query {
@@ -153,45 +153,44 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	/**
 	 * Retrieves the text content of the current element,
 	 * including any nested elements.
-	 * 
+	 *
 	 * For example, given the following XML:
-	 * 
+	 *
 	 *     <root>
 	 *         <wp:post>
-	 * 	           The open source publishing <content> platform of choice for millions 
+	 *             The open source publishing <content> platform of choice for millions
 	 *             of websites <image /> worldwide—from creators </content>and small businesses
-	 * 	       </wp:post>
+	 *         </wp:post>
 	 *     </root>
-	 * 
+	 *
 	 * The inner text of the `wp:post` element would be:
-	 * 
-	 *             The open source publishing platform of choice for millions 
+	 *
+	 *             The open source publishing platform of choice for millions
 	 *             of websites worldwide—from creators and small businesses
-	 * 
+	 *
 	 * Note that whitespace is preserved, including newlines and tabs.
-	 * 
+	 *
 	 * @return bool|string
 	 */
-	public function get_inner_text()
-	{
-		if(false === $this->set_bookmark('inner_text')) {
+	public function get_inner_text() {
+		if ( false === $this->set_bookmark( 'inner_text' ) ) {
 			return false;
 		}
 
-		if($this->is_pcdata_element()) {
+		if ( $this->is_pcdata_element() ) {
 			return $this->get_modifiable_text();
 		}
 
 		try {
-			$text = '';
+			$text  = '';
 			$depth = 1;
-			while ($depth > 0 && $this->base_class_next_token()) {
-				switch ($this->get_token_type()) {
+			while ( $depth > 0 && $this->base_class_next_token() ) {
+				switch ( $this->get_token_type() ) {
 					case '#tag':
-						if ($this->is_empty_element()) {
+						if ( $this->is_empty_element() ) {
 							continue 2;
 						}
-						if ($this->is_tag_closer()) {
+						if ( $this->is_tag_closer() ) {
 							--$depth;
 						} else {
 							++$depth;
@@ -199,7 +198,7 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 						break;
 					case '#text':
 					case '#cdata-section':
-						if ($depth > 0) {
+						if ( $depth > 0 ) {
 							$text .= $this->get_modifiable_text();
 						}
 						break;
@@ -210,8 +209,8 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 
 			return $text;
 		} finally {
-			$this->seek('inner_text');
-			$this->release_bookmark('inner_text');
+			$this->seek( 'inner_text' );
+			$this->release_bookmark( 'inner_text' );
 		}
 	}
 
@@ -316,8 +315,7 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
 	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
 	 */
-	public function seek($bookmark_name)
-	{
+	public function seek( $bookmark_name ) {
 		// Flush any pending updates to the document before beginning.
 		$this->get_updated_xml();
 		return parent::seek( "_{$bookmark_name}" );
@@ -353,26 +351,24 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	/**
 	 * Low-level token iteration is not available in WP_XML_Processor
 	 * as it could lead to undefined behaviors.
-	 * 
+	 *
 	 * @use WP_XML_Processor::next_tag() instead.
-	 * 
+	 *
 	 * @return false
 	 */
-	public function next_token()
-	{
+	public function next_token() {
 		return $this->next_tag();
 	}
 
 	/**
 	 * Steps through the XML document and stop at the next tag, if any.
-	 * 
+	 *
 	 * @since WP_VERSION
 	 *
 	 * @param string $node_to_process Whether to parse the next node or reprocess the current node.
 	 * @return bool Whether a tag was matched.
 	 */
-	private function step( $node_to_process = self::PROCESS_NEXT_NODE )
-	{
+	private function step( $node_to_process = self::PROCESS_NEXT_NODE ) {
 		// Refuse to proceed if there was a previous error.
 		if ( null !== $this->last_error ) {
 			return false;
@@ -387,13 +383,13 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 		}
 
 		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
-			if ($this->is_empty_element()) {
+			if ( $this->is_empty_element() ) {
 				$this->pop_open_element();
 			}
 			$this->base_class_next_token();
 		}
 
-		switch($this->parser_context) {
+		switch ( $this->parser_context ) {
 			case self::IN_PROLOG_CONTEXT:
 				return $this->step_in_prolog();
 			case self::IN_ELEMENT_CONTEXT:
@@ -416,19 +412,18 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	 *
 	 * @return bool Whether a node was found.
 	 */
-	private function step_in_prolog()
-	{
+	private function step_in_prolog() {
 		// XML requires a root element. If we've reached the end of data in the prolog stage,
 		// before finding a root element, then the document is incomplete.
-		if(WP_XML_Tag_Processor::STATE_COMPLETE === $this->parser_state) {
+		if ( WP_XML_Tag_Processor::STATE_COMPLETE === $this->parser_state ) {
 			$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 			return false;
 		}
-		switch($this->get_token_type()) {
+		switch ( $this->get_token_type() ) {
 			case '#text':
-				$text = $this->get_modifiable_text();
-				$whitespaces = strspn($text, " \t\n\r");
-				if($whitespaces !== strlen($text)) {
+				$text        = $this->get_modifiable_text();
+				$whitespaces = strspn( $text, " \t\n\r" );
+				if ( strlen( $text ) !== $whitespaces ) {
 					$this->last_error = self::ERROR_SYNTAX;
 					_doing_it_wrong( __METHOD__, 'Unexpected token type in prolog stage.', 'WP_VERSION' );
 				}
@@ -460,15 +455,14 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	 */
 	private function step_in_element() {
 		// An XML document isn't complete until the root element is closed.
-		if ( 
-			self::STATE_COMPLETE === $this->parser_state &&
-			count($this->stack_of_open_elements) > 0
+		if ( self::STATE_COMPLETE === $this->parser_state &&
+			count( $this->stack_of_open_elements ) > 0
 		) {
 			$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 			return false;
 		}
 
-		switch($this->get_token_type()) {
+		switch ( $this->get_token_type() ) {
 			case '#text':
 			case '#cdata-section':
 			case '#comment':
@@ -479,7 +473,7 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 				$tag_name = $this->get_tag();
 				if ( $this->is_tag_closer() ) {
 					$popped = $this->pop_open_element();
-					if($popped !== $tag_name) {
+					if ( $popped !== $tag_name ) {
 						$this->last_error = self::ERROR_SYNTAX;
 						_doing_it_wrong(
 							__METHOD__,
@@ -488,11 +482,11 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 						);
 						return false;
 					}
-					if( count($this->stack_of_open_elements) === 0 ) {
+					if ( count( $this->stack_of_open_elements ) === 0 ) {
 						$this->parser_context = self::IN_MISC_CONTEXT;
 					}
 				} else {
-					$this->push_open_element($tag_name);
+					$this->push_open_element( $tag_name );
 				}
 				return true;
 			default:
@@ -513,18 +507,18 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	 * @return bool Whether a node was found.
 	 */
 	private function step_in_misc() {
-		if(self::STATE_COMPLETE === $this->parser_state) {
+		if ( self::STATE_COMPLETE === $this->parser_state ) {
 			return true;
 		}
 
-		switch($this->get_token_type()) {
+		switch ( $this->get_token_type() ) {
 			case '#comment':
 			case '#processing-instructions':
 				return true;
 			case '#text':
-				$text = $this->get_modifiable_text();
-				$whitespaces = strspn($text, " \t\n\r");
-				if($whitespaces !== strlen($text)) {
+				$text        = $this->get_modifiable_text();
+				$whitespaces = strspn( $text, " \t\n\r" );
+				if ( strlen( $text ) !== $whitespaces ) {
 					$this->last_error = self::ERROR_SYNTAX;
 					_doing_it_wrong( __METHOD__, 'Unexpected token type in prolog stage.', 'WP_VERSION' );
 					return false;
@@ -553,8 +547,7 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	 *
 	 * @return string[]|null Array of tag names representing path to matched node, if matched, otherwise NULL.
 	 */
-	public function get_breadcrumbs()
-	{
+	public function get_breadcrumbs() {
 		return $this->stack_of_open_elements;
 	}
 
@@ -598,7 +591,7 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 
 		for ( $i = count( $this->stack_of_open_elements ) - 1; $i >= 0; $i-- ) {
 			$tag_name = $this->stack_of_open_elements[ $i ];
-			$crumb = current( $breadcrumbs );
+			$crumb    = current( $breadcrumbs );
 
 			if ( '*' !== $crumb && $tag_name !== $crumb ) {
 				return false;
@@ -637,32 +630,30 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	 * @return int Nesting-depth of current location in the document.
 	 */
 	public function get_current_depth() {
-		return count($this->stack_of_open_elements);
+		return count( $this->stack_of_open_elements );
 	}
 
 	private function pop_open_element() {
-		return array_pop($this->stack_of_open_elements);
+		return array_pop( $this->stack_of_open_elements );
 	}
 
-	private function push_open_element($tag_name)
-	{
+	private function push_open_element( $tag_name ) {
 		array_push(
 			$this->stack_of_open_elements,
 			$tag_name
 		);
 	}
 
-	private function last_open_element()
-	{
-		return end($this->stack_of_open_elements);
+	private function last_open_element() {
+		return end( $this->stack_of_open_elements );
 	}
 
 	/**
 	 * Indicates that we're parsing the `prolog` part of the XML
 	 * document.
-	 * 
+	 *
 	 * @since WP_VERSION
-	 * 
+	 *
 	 * @access private
 	 */
 	const IN_PROLOG_CONTEXT = 'prolog';
@@ -670,9 +661,9 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	/**
 	 * Indicates that we're parsing the `element` part of the XML
 	 * document.
-	 * 
+	 *
 	 * @since WP_VERSION
-	 * 
+	 *
 	 * @access private
 	 */
 	const IN_ELEMENT_CONTEXT = 'element';
@@ -680,9 +671,9 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	/**
 	 * Indicates that we're parsing the `misc` part of the XML
 	 * document.
-	 * 
+	 *
 	 * @since WP_VERSION
-	 * 
+	 *
 	 * @access private
 	 */
 	const IN_MISC_CONTEXT = 'misc';
@@ -704,5 +695,4 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	 * @var string
 	 */
 	const PROCESS_CURRENT_NODE = 'process-current-node';
-
 }

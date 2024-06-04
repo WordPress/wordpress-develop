@@ -1,14 +1,14 @@
 <?php
 /**
  * XML API: WP_XML_Tag_Processor class
- * 
+ *
  * Scans through an XML document to find specific tags, then
  * transforms those tags by adding, removing, or updating the
  * values of the XML attributes within that tag (opener).
- * 
+ *
  * It implements a subset of the XML 1.0 specification (https://www.w3.org/TR/xml/)
  * and supports XML documents with the following characteristics:
- * 
+ *
  * * XML 1.0
  * * Well-formed
  * * UTF-8 encoded
@@ -16,12 +16,12 @@
  * * No DTD, DOCTYPE, ATTLIST, ENTITY, or conditional sections
  *
  * ### Possible future direction for this module
- * 
+ *
  * The final goal is to support both 1.0 and 1.1 depending on the
  * initial processing instruction (<?xml version="1.0" ?>). We're
  * starting with 1.0, however, because most that's what most WXR
  * files declare.
- * 
+ *
  * ## Future work
  *
  * @TODO: Skip over the following syntax elements:
@@ -29,22 +29,22 @@
  *        * <!ATTLIST, see https://www.w3.org/TR/xml/#attdecls
  *        * <!ENTITY, see https://www.w3.org/TR/xml/#sec-entity-decl
  *        * <!NOTATION, see https://www.w3.org/TR/xml/#sec-entity-decl
- * 	      * Conditional sections, see https://www.w3.org/TR/xml/#sec-condition-sect
- * 
+ *        * Conditional sections, see https://www.w3.org/TR/xml/#sec-condition-sect
+ *
  * @TODO Explore declaring elements as PCdata directly in the XML document,
  *       for example as follows:
- * 
+ *
  *       <!ELEMENT p (#PCDATA|emph)* >
- * 
+ *
  *       or
- * 
+ *
  *       <!DOCTYPE test [
  *           <!ELEMENT test (#PCDATA) >
  *           <!ENTITY % xx '&#37;zz;'>
  *           <!ENTITY % zz '&#60;!ENTITY tricky "error-prone" >' >
  *           %xx;
  *       ]>
- * 
+ *
  * @TODO: Support XML 1.1.
  * @package WordPress
  * @subpackage XML-API
@@ -99,7 +99,7 @@
  *
  * See the section on bookmarks for an exception to this
  * no-backing-up rule.
- * 
+ *
  * #### Custom queries
  *
  * Sometimes it's necessary to further inspect an XML tag than
@@ -162,14 +162,14 @@
  * All XML elements are handled in the same way, except when you mark
  * them as PCdata elements. These are special because their contents
  * is treated as text, even if it looks like XML tags.
- * 
+ *
  * Example:
- * 
+ *
  *    $processor = new WP_XML_Tag_Processor( '<root><wp:post-content>Text inside</input></wp:post-content><</root>' );
- * 	  $processor->declare_element_as_pcdata('wp:post-content');
- * 	  $processor->next_tag('wp:post-content');
- * 	  $processor->next_token();
- * 	  echo $processor->get_modifiable_text(); // Text inside</input>
+ *    $processor->declare_element_as_pcdata('wp:post-content');
+ *    $processor->next_tag('wp:post-content');
+ *    $processor->next_token();
+ *    echo $processor->get_modifiable_text(); // Text inside</input>
  *
  * ### Modifying XML attributes for a found tag
  *
@@ -190,7 +190,7 @@
  * for a non-existing attribute has no effect on the document. Both
  * of these methods are safe to call without knowing if a given attribute
  * exists beforehand.
- * 
+ *
  * ### Bookmarks
  *
  * While scanning through the input XML document it's possible to set
@@ -283,21 +283,21 @@
  * it a zero-overhead system.
  *
  * The performance characteristics are maintained by avoiding tree construction.
- * 
+ *
  * The Tag Processor's checks the most important aspects of XML integrity as it scans
  * through the document. It verifies that a single root element exists, that are
  * no unclosed tags, and that each opener tag has a corresponding closer. It also
  * ensures no duplicate attributes exist on a single tag.
- * 
+ *
  * At the same time, The Tag Processor also skips expensive validation of XML entities
  * in the document. The Tag Processor will initially pass through the invalid entity references
  * and only fail when the developer attempts to read their value. If that doesn't happen,
  * the invalid values will be left untouched in the final document.
- * 
+ *
  * Most operations within the Tag Processor are designed to minimize the difference
  * between an input and output document for any given change. For example, the
  * `set_attribure` and `remove_attribute` methods preserve whitespace and the attribute
- * ordering within the element definition. An exception to this rule is that all attribute 
+ * ordering within the element definition. An exception to this rule is that all attribute
  * updates store their values as double-quoted strings, meaning that attributes on input with
  * single-quoted or unquoted values will appear in the output with double-quotes.
  *
@@ -615,10 +615,10 @@ class WP_XML_Tag_Processor {
 
 	/**
 	 * Finds the next element matching the $query.
-	 * 
+	 *
 	 * This doesn't currently have a way to represent non-tags and doesn't process
-	 * semantic rules for text nodes. 
-	 * 
+	 * semantic rules for text nodes.
+	 *
 	 * @since WP_VERSION
 	 *
 	 * @param array|string|null $query {
@@ -788,7 +788,7 @@ class WP_XML_Tag_Processor {
 			$this->last_error = self::ERROR_SYNTAX;
 			_doing_it_wrong(
 				__METHOD__,
-				__( "Invalid closing tag encountered." ),
+				__( 'Invalid closing tag encountered.' ),
 				'WP_VERSION'
 			);
 			return false;
@@ -812,10 +812,10 @@ class WP_XML_Tag_Processor {
 		 * the closing to tag to point to the opening of the special atomic
 		 * tag sequence.
 		 */
-		$tag_name_starts_at   = $this->tag_name_starts_at;
-		$tag_name_length      = $this->tag_name_length;
-		$tag_ends_at          = $this->token_starts_at + $this->token_length;
-		$attributes           = $this->attributes;
+		$tag_name_starts_at = $this->tag_name_starts_at;
+		$tag_name_length    = $this->tag_name_length;
+		$tag_ends_at        = $this->token_starts_at + $this->token_length;
+		$attributes         = $this->attributes;
 
 		$found_closer = $this->skip_pcdata( $this->get_tag() );
 
@@ -833,16 +833,15 @@ class WP_XML_Tag_Processor {
 		 * functions that skip the contents have moved all the internal cursors past
 		 * the inner content of the tag.
 		 */
-		$this->token_starts_at      = $was_at;
-		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
-		$this->text_starts_at       = $tag_ends_at;
-		$this->text_length          = $this->tag_name_starts_at - $this->text_starts_at;
-		$this->tag_name_starts_at   = $tag_name_starts_at;
-		$this->tag_name_length      = $tag_name_length;
-		$this->attributes           = $attributes;
+		$this->token_starts_at    = $was_at;
+		$this->token_length       = $this->bytes_already_parsed - $this->token_starts_at;
+		$this->text_starts_at     = $tag_ends_at;
+		$this->text_length        = $this->tag_name_starts_at - $this->text_starts_at;
+		$this->tag_name_starts_at = $tag_name_starts_at;
+		$this->tag_name_length    = $tag_name_length;
+		$this->attributes         = $attributes;
 
 		return true;
-
 	}
 
 	/**
@@ -997,13 +996,13 @@ class WP_XML_Tag_Processor {
 	 * @return false|int Byte offset of the closing tag, or false if not found.
 	 */
 	private function skip_pcdata( $tag_name ) {
-		$xml       = $this->xml;
+		$xml        = $this->xml;
 		$doc_length = strlen( $xml );
 		$tag_length = strlen( $tag_name );
 
 		$at = $this->bytes_already_parsed;
 		while ( false !== $at && $at < $doc_length ) {
-			$at = strpos( $this->xml, '</' . $tag_name, $at );
+			$at                       = strpos( $this->xml, '</' . $tag_name, $at );
 			$this->tag_name_starts_at = $at;
 
 			// Fail if there is no possible tag closer.
@@ -1011,8 +1010,8 @@ class WP_XML_Tag_Processor {
 				return false;
 			}
 
-			$at += 2 + $tag_length;
-			$at += strspn( $this->xml, " \t\f\r\n", $at );
+			$at                        += 2 + $tag_length;
+			$at                        += strspn( $this->xml, " \t\f\r\n", $at );
 			$this->bytes_already_parsed = $at;
 
 			/*
@@ -1024,7 +1023,7 @@ class WP_XML_Tag_Processor {
 			if ( $at >= strlen( $xml ) ) {
 				return false;
 			}
-			if ( $xml[ $at ] === '>' ) {
+			if ( '>' === $xml[ $at ] ) {
 				$this->bytes_already_parsed = $at + 1;
 				return true;
 			}
@@ -1062,88 +1061,86 @@ class WP_XML_Tag_Processor {
 
 	/**
 	 * Tag names declared as PCDATA elements.
-	 * 
+	 *
 	 * PCDATA elements are elements in which everything is treated as
 	 * text, even syntax that may look like other elements, closers,
 	 * processing instructions, etc.
-	 * 
+	 *
 	 * Example:
-	 * 
+	 *
 	 *     <root>
 	 *         <my-pcdata>
-	 *             This text contains syntax that seems 
+	 *             This text contains syntax that seems
 	 *             like XML nodes:
-	 * 
+	 *
 	 *             <input />
 	 *             </seemingly invalid element --/>
 	 *             <!-- is this a comment? -->
 	 *             <?xml version="1.0" ?>
-	 *             
+	 *
 	 *             &amp;&lt;&gt;&quot;&apos;
-	 * 
-	 * 		       But! It's all treated as text.
-	 * 		   </my-pcdata>
+	 *
+	 *             But! It's all treated as text.
+	 *         </my-pcdata>
 	 *    </root>
-	 * 
+	 *
 	 * @var array
 	 */
 	private $pcdata_elements = array();
 
 	/**
 	 * Declares an element as PCDATA.
-	 * 
+	 *
 	 * PCDATA elements are elements in which everything is treated as
 	 * text, even syntax that may look like other elements, closers,
 	 * processing instructions, etc.
-	 * 
+	 *
 	 * For example:
-	 *     
+	 *
 	 *      $processor = new WP_XML_Tag_Processor(
 	 *      <<<XML
 	 *          <root>
 	 *              <my-pcdata>
 	 *                  This text uses syntax that may seem
 	 *                  like XML nodes:
-	 *      
+	 *
 	 *                  <input />
 	 *                  </seemingly invalid element --/>
 	 *                  <!-- is this a comment? -->
 	 *                  <?xml version="1.0" ?>
-	 *                  
+	 *
 	 *                  &amp;&lt;&gt;&quot;&apos;
-	 *      
+	 *
 	 *                  But! It's all treated as text.
 	 *              </my-pcdata>
 	 *         </root>
-	 * 	    XML
+	 *      XML
 	 *      );
-	 * 		
-	 * 		$processor->declare_element_as_pcdata('my-pcdata');
-	 * 		$processor->next_tag('my-pcdata');
-	 * 		$processor->next_token();
-	 * 
-	 *      // Returns everything inside the <my-pcdata> 
+	 *
+	 *      $processor->declare_element_as_pcdata('my-pcdata');
+	 *      $processor->next_tag('my-pcdata');
+	 *      $processor->next_token();
+	 *
+	 *      // Returns everything inside the <my-pcdata>
 	 *      // element as text:
-	 * 		$processor->get_modifiable_text();
-	 * 
+	 *      $processor->get_modifiable_text();
+	 *
 	 * @param string $element_name The name of the element to declare as PCDATA.
 	 * @return void
 	 */
-	public function declare_element_as_pcdata($element_name)
-	{
-		$this->pcdata_elements[$element_name] = true;
+	public function declare_element_as_pcdata( $element_name ) {
+		$this->pcdata_elements[ $element_name ] = true;
 	}
 
 	/**
 	 * Indicates if the currently matched tag is a PCDATA element.
-	 * 
+	 *
 	 * @since WP_VERSION
-	 * 
+	 *
 	 * @return bool Whether the currently matched tag is a PCDATA element.
 	 */
-	public function is_pcdata_element()
-	{
-		return array_key_exists($this->get_tag(), $this->pcdata_elements);
+	public function is_pcdata_element() {
+		return array_key_exists( $this->get_tag(), $this->pcdata_elements );
 	}
 
 	/**
@@ -1160,7 +1157,7 @@ class WP_XML_Tag_Processor {
 	 */
 	private function parse_next_tag() {
 		$this->after_tag();
-	
+
 		$xml        = $this->xml;
 		$doc_length = strlen( $xml );
 		$was_at     = $this->bytes_already_parsed;
@@ -1253,7 +1250,7 @@ class WP_XML_Tag_Processor {
 					--$closer_at; // Pre-increment inside condition below reduces risk of accidental infinite looping.
 					while ( ++$closer_at < $doc_length ) {
 						$closer_at = strpos( $xml, '--', $closer_at );
-						if ( false === $closer_at || $closer_at + 2 == $doc_length ) {
+						if ( false === $closer_at || $closer_at + 2 === $doc_length ) {
 							$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 							return false;
 						}
@@ -1332,7 +1329,7 @@ class WP_XML_Tag_Processor {
 			 * See https://www.w3.org/TR/xml/#sec-prolog-dtd
 			 */
 			if (
-				$at === 0 &&
+				0 === $at &&
 				! $this->is_closing_tag &&
 				'?' === $xml[ $at + 1 ] &&
 				'x' === $xml[ $at + 2 ] &&
@@ -1361,7 +1358,7 @@ class WP_XML_Tag_Processor {
 				while ( false !== $this->parse_next_attribute() ) {
 					$this->skip_whitespace();
 					// Parse until the XML declaration closer.
-					if ( $xml[$this->bytes_already_parsed] === '?' ) {
+					if ( '?' === $xml[ $this->bytes_already_parsed ] ) {
 						break;
 					}
 				}
@@ -1395,12 +1392,11 @@ class WP_XML_Tag_Processor {
 				/**
 				 * Standalone XML documents have no external dependencies,
 				 * including predefined entities like `&nbsp;` and `&copy;`.
-				 * 
+				 *
 				 * See https://www.w3.org/TR/xml/#sec-predefined-ent.
 				 */
-				if ( 
-					null !== $this->get_attribute( 'encoding' )
-					&& "UTF-8" !== strtoupper( $this->get_attribute( 'encoding' ) )
+				if ( null !== $this->get_attribute( 'encoding' )
+					&& 'UTF-8' !== strtoupper( $this->get_attribute( 'encoding' ) )
 				) {
 					$this->last_error = self::ERROR_UNSUPPORTED;
 					_doing_it_wrong(
@@ -1410,9 +1406,8 @@ class WP_XML_Tag_Processor {
 					);
 					return false;
 				}
-				if ( 
-					null !== $this->get_attribute( 'standalone' )
-					&& "YES" !== strtoupper( $this->get_attribute( 'standalone' ) )
+				if ( null !== $this->get_attribute( 'standalone' )
+					&& 'YES' !== strtoupper( $this->get_attribute( 'standalone' ) )
 				) {
 					$this->last_error = self::ERROR_UNSUPPORTED;
 					_doing_it_wrong(
@@ -1447,7 +1442,7 @@ class WP_XML_Tag_Processor {
 				$this->text_starts_at       = $this->token_starts_at + 2;
 				$this->text_length          = $at - $this->text_starts_at;
 				$this->bytes_already_parsed = $at + 2;
-				$this->parser_state = self::STATE_XML_DECLARATION;
+				$this->parser_state         = self::STATE_XML_DECLARATION;
 
 				return true;
 			}
@@ -1530,13 +1525,13 @@ class WP_XML_Tag_Processor {
 		}
 
 		// No more attributes to parse.
-		if ( $this->xml[ $this->bytes_already_parsed ] === '>' ) {
+		if ( '>' === $this->xml[ $this->bytes_already_parsed ] ) {
 			return false;
 		}
 
 		$attribute_start       = $this->bytes_already_parsed;
 		$attribute_name_length = $this->parse_name();
-		if($attribute_name_length === 0) {
+		if ( 0 === $attribute_name_length ) {
 			$this->last_error = self::ERROR_SYNTAX;
 			_doing_it_wrong(
 				__METHOD__,
@@ -1545,7 +1540,7 @@ class WP_XML_Tag_Processor {
 			);
 		}
 		$this->bytes_already_parsed += $attribute_name_length;
-		$attribute_name        = substr( $this->xml, $attribute_start, $attribute_name_length );
+		$attribute_name              = substr( $this->xml, $attribute_start, $attribute_name_length );
 		$this->skip_whitespace();
 
 		// Parse attribute value.
@@ -1559,17 +1554,17 @@ class WP_XML_Tag_Processor {
 		switch ( $this->xml[ $this->bytes_already_parsed ] ) {
 			case "'":
 			case '"':
-				$quote         = $this->xml[ $this->bytes_already_parsed ];
-				$value_start   = $this->bytes_already_parsed + 1;
+				$quote       = $this->xml[ $this->bytes_already_parsed ];
+				$value_start = $this->bytes_already_parsed + 1;
 				/**
 				 * XML attributes cannot contain the characters "<" or "&".
-				 * 
+				 *
 				 * This only checks for "<" because it's reasonably fast.
 				 * Ampersands are actually allowed when used as the start
 				 * of an entity reference, but enforcing that would require
 				 * an expensive and complex check. It doesn't seem to be
 				 * worth it.
-				 * 
+				 *
 				 * @TODO: Discuss enforcing or abandoning the ampersand rule
 				 *        and document the rationale.
 				 */
@@ -1588,7 +1583,7 @@ class WP_XML_Tag_Processor {
 				break;
 
 			default:
-			$this->last_error = self::ERROR_SYNTAX;
+				$this->last_error = self::ERROR_SYNTAX;
 				_doing_it_wrong(
 					__METHOD__,
 					__( 'Unquoted attribute value encountered.' ),
@@ -1641,9 +1636,9 @@ class WP_XML_Tag_Processor {
 	// NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
 	// See https://www.w3.org/TR/xml/#NT-Name
 	const NAME_START_CHAR_PATTERN = ':a-z_A-Z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}';
-	const NAME_CHAR_PATTERN = '\-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}:a-z_A-Z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}';
-	private function parse_name($offset = null) {
-		if($offset === null) {
+	const NAME_CHAR_PATTERN       = '\-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}:a-z_A-Z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}';
+	private function parse_name( $offset = null ) {
+		if ( null === $offset ) {
 			$offset = $this->bytes_already_parsed;
 		}
 		if ( 1 !== preg_match(
@@ -1665,7 +1660,7 @@ class WP_XML_Tag_Processor {
 			$offset + 1
 		);
 
-		if ( is_array($matches) && count($matches) > 0 ) {
+		if ( is_array( $matches ) && count( $matches ) > 0 ) {
 			$name_length += strlen( $matches[0] );
 		}
 
@@ -1709,14 +1704,14 @@ class WP_XML_Tag_Processor {
 			unset( $this->lexical_updates[ $name ] );
 		}
 
-		$this->token_starts_at      = null;
-		$this->token_length         = null;
-		$this->tag_name_starts_at   = null;
-		$this->tag_name_length      = null;
-		$this->text_starts_at       = 0;
-		$this->text_length          = 0;
-		$this->is_closing_tag       = null;
-		$this->attributes           = array();
+		$this->token_starts_at    = null;
+		$this->token_length       = null;
+		$this->tag_name_starts_at = null;
+		$this->tag_name_length    = null;
+		$this->text_starts_at     = 0;
+		$this->text_length        = 0;
+		$this->is_closing_tag     = null;
+		$this->attributes         = array();
 	}
 
 	/**
@@ -2008,11 +2003,11 @@ class WP_XML_Tag_Processor {
 		$raw_value = substr( $this->xml, $attribute->value_starts_at, $attribute->value_length );
 
 		$decoded = WP_XML_Decoder::decode( $raw_value );
-		if(!isset($decoded)) {
+		if ( ! isset( $decoded ) ) {
 			/**
 			 * If the attribute contained an invalid value, it's
 			 * a fatal error.
-			 * 
+			 *
 			 * @see WP_XML_Decoder::decode()
 			 */
 			$this->last_error = self::ERROR_SYNTAX;
@@ -2244,10 +2239,10 @@ class WP_XML_Tag_Processor {
 		 * > entities (including the document entity) on input, before parsing, by translating both
 		 * > the two-character sequence #xD #xA and any #xD that is not followed by #xA to a single
 		 * > #xA character.
-		 * 
+		 *
 		 * See https://www.w3.org/TR/xml/#sec-line-ends
 		 */
-		$text = str_replace( array("\r\n", "\r"), "\n", $text );
+		$text = str_replace( array( "\r\n", "\r" ), "\n", $text );
 
 		// Comment data, CDATA sections, and PCData tags contents are not decoded any further.
 		if (
@@ -2259,15 +2254,15 @@ class WP_XML_Tag_Processor {
 		}
 
 		$decoded = WP_XML_Decoder::decode( $text );
-		if (!isset($decoded)) {
+		if ( ! isset( $decoded ) ) {
 			/**
 			 * If the attribute contained an invalid value, it's
 			 * a fatal error.
-			 * 
+			 *
 			 * @see WP_XML_Decoder::decode()
 			 */
 
-			 $this->last_error = self::ERROR_SYNTAX;
+			$this->last_error = self::ERROR_SYNTAX;
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Invalid text content encountered.' ),
@@ -2294,7 +2289,7 @@ class WP_XML_Tag_Processor {
 	 * @return bool Whether an attribute value was set.
 	 */
 	public function set_attribute( $name, $value ) {
-		if(!is_string($value)) {
+		if ( ! is_string( $value ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Non-string attribute values cannot be passed to set_attribute().' ),
@@ -2309,7 +2304,7 @@ class WP_XML_Tag_Processor {
 			return false;
 		}
 
-		$value = htmlspecialchars($value, ENT_XML1, 'UTF-8');
+		$value             = htmlspecialchars( $value, ENT_XML1, 'UTF-8' );
 		$updated_attribute = "{$name}=\"{$value}\"";
 
 		/*
