@@ -192,7 +192,7 @@ class WP_Fatal_Error_Handler {
 			} else {
 				$message = sprintf(
 					/* translators: %s: Support forums URL. */
-					__( 'There has been a critical error on this website. Your site admin email inbox should receive a message with instructions for troubleshooting. If you need further assistance, please try the <a href="%s">support forums</a>.' ),
+					__( 'There has been a critical error on this website. Please check your site admin email inbox for instructions. If you need further assistance, please try the <a href="%s">support forums</a>.' ),
 					__( 'https://wordpress.org/support/forums/' )
 				);
 			}
