@@ -879,7 +879,7 @@ function install_plugin_information() {
 	echo "</div>\n"; // #plugin-information-scrollable
 	echo "<div id='$tab-footer'>\n";
 	if ( ! empty( $api->download_link ) && ( current_user_can( 'install_plugins' ) || current_user_can( 'update_plugins' ) ) ) {
-		$button = wp_get_plugin_action_button( $api->name, $api, $compatible_php, $compatible_wp );
+		$button = wp_get_plugin_action_button( $api->name, $api, $compatible_php, $compatible_wp, 'plugin-information-modal' );
 		$button = str_replace( 'class="', 'class="right ', $button );
 
 		if ( ! str_contains( $button, _x( 'Activate', 'plugin' ) ) ) {
