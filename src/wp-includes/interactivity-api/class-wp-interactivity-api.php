@@ -403,7 +403,7 @@ final class WP_Interactivity_API {
 			if ( 'SVG' === $tag_name || 'MATH' === $tag_name ) {
 				if ( $p->get_attribute_names_with_prefix( 'data-wp-' ) ) {
 					/* translators: 1: SVG or MATH HTML tag, 2: Namespace of the interactive block. */
-					$message = sprintf( __( 'Interactivity directives were detected on an incompatible %1$s tag when processing "%2$s". These directives will be ignored in the server side render.' ), $tag_name, end( $namespace_stack ) );
+					$message = sprintf( __( 'Interactivity directives were detected on an incompatible %1$s tag when processing "%2$s". These directives will be ignored in the server side render.' ), $tag_name, end( $this->namespace_stack ) );
 					_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 				}
 				$p->skip_to_tag_closer();
@@ -506,7 +506,7 @@ final class WP_Interactivity_API {
 		if ( $unbalanced || 0 < count( $tag_stack ) ) {
 			$tag_errored = 0 < count( $tag_stack ) ? end( $tag_stack )[0] : $tag_name;
 			/* translators: %1s: Namespace processed, %2s: The tag that caused the error; could be any HTML tag.  */
-			$message = sprintf( __( 'Interactivity directives failed to process in "%1$s" due to a missing "%2$s" end tag.' ), end( $namespace_stack ), $tag_errored );
+			$message = sprintf( __( 'Interactivity directives failed to process in "%1$s" due to a missing "%2$s" end tag.' ), end( $this->namespace_stack ), $tag_errored );
 			_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 			return null;
 		}

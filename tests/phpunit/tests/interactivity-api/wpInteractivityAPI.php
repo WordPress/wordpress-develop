@@ -893,7 +893,7 @@ JSON;
 	 *
 	 * @dataProvider data_html_with_unbalanced_tags
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
+	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 *
 	 * @param string $html HTML containing unbalanced tags and also a directive.
 	 */
@@ -992,7 +992,7 @@ JSON;
 	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
-	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
+	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 */
 	public function test_process_directives_change_html_if_contains_math() {
 		$this->interactivity->state(
@@ -1027,7 +1027,7 @@ JSON;
 	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
-	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
+	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 * @expectedIncorrectUsage WP_Interactivity_API_Directives_Processor::skip_to_tag_closer
 	 */
 	public function test_process_directives_does_not_change_inner_html_in_math() {
@@ -1088,7 +1088,29 @@ JSON;
 	 * @covers ::evaluate
 	 */
 	public function test_evaluate_value() {
-		$this->interactivity->state( 'myPlugin', array( 'key' => 'myPlugin-state' ) );
+		$obj       = new stdClass();
+		$obj->prop = 'object property';
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'key'       => 'myPlugin-state',
+				'obj'       => $obj,
+				'arrAccess' => new class() implements ArrayAccess {
+					public function offsetExists( $offset ): bool {
+						return true;
+					}
+
+					#[\ReturnTypeWillChange]
+					public function offsetGet( $offset ) {
+						return $offset;
+					}
+
+					public function offsetSet( $offset, $value ): void {}
+
+					public function offsetUnset( $offset ): void {}
+				},
+			)
+		);
 		$this->interactivity->state( 'otherPlugin', array( 'key' => 'otherPlugin-state' ) );
 		$this->set_internal_context_stack(
 			array(
@@ -1111,7 +1133,7 @@ JSON;
 		$this->assertEquals( 'otherPlugin-context', $result );
 
 		$result = $this->evaluate( 'state.obj.prop' );
-		$this->assertSame( 'myPlugin-state', $result );
+		$this->assertSame( 'object property', $result );
 
 		$result = $this->evaluate( 'state.arrAccess.1' );
 		$this->assertSame( '1', $result );
@@ -1240,6 +1262,9 @@ JSON;
 	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_evaluate_unvalid_namespaces() {
+		$this->set_internal_context_stack( array() );
+		$this->set_internal_namespace_stack();
+
 		$result = $this->evaluate( 'path', 'null' );
 		$this->assertNull( $result );
 

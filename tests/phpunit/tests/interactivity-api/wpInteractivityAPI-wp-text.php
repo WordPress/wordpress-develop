@@ -132,7 +132,7 @@ class Tests_Interactivity_API_WpInteractivityAPIWPText extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
+	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 */
 	public function test_wp_text_fails_with_unbalanced_and_same_tags_inside_content() {
 		$html     = '<div data-wp-text="myPlugin::state.text">Text<div></div>';
