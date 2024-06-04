@@ -92,8 +92,6 @@ if ( ! get_option( 'users_can_register' ) && is_multisite() ) {
 <br />
 <input name="close_comments_for_old_posts" type="checkbox" id="close_comments_for_old_posts" value="1" <?php checked( '1', get_option( 'close_comments_for_old_posts' ) ); ?> /> <label for="close_comments_for_old_posts"><?php _e( 'Automatically close comments for old posts' ); ?></label>
 <br />
-<?php
-?>
 <ul>
 	<li>
 		<label for="close_comments_days_old"><?php _e( 'Number of days to keep old comments' ); ?></label>
@@ -146,8 +144,6 @@ $thread_comments_depth .= '</select>';
 </span></legend>
 <input name="page_comments" type="checkbox" id="page_comments" value="1" <?php checked( '1', get_option( 'page_comments' ) ); ?> />
 <label for="page_comments"><?php _e( 'Break comments into pages' ); ?></label>
-<?php
-?>
 <ul>
 	<li>
 		<label for="comments_per_page"><?php _e( 'Top level comments per page' ); ?></label>
