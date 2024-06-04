@@ -145,7 +145,7 @@ class WP_Network_Query {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param string|array $query WP_Network_Query arguments. See WP_Network_Query::__construct()
+	 * @param string|array $query WP_Network_Query arguments. See WP_Network_Query::__construct() for accepted arguments.
 	 */
 	public function parse_query( $query = '' ) {
 		if ( empty( $query ) ) {
@@ -269,7 +269,7 @@ class WP_Network_Query {
 		}
 
 		if ( $this->found_networks && $this->query_vars['number'] ) {
-			$this->max_num_pages = ceil( $this->found_networks / $this->query_vars['number'] );
+			$this->max_num_pages = (int) ceil( $this->found_networks / $this->query_vars['number'] );
 		}
 
 		// If querying for a count only, there's nothing more to do.
@@ -481,14 +481,14 @@ class WP_Network_Query {
 		$this->sql_clauses['orderby'] = $orderby;
 		$this->sql_clauses['limits']  = $limits;
 
-		$this->request = "
-			{$this->sql_clauses['select']}
-			{$this->sql_clauses['from']}
-			{$where}
-			{$this->sql_clauses['groupby']}
-			{$this->sql_clauses['orderby']}
-			{$this->sql_clauses['limits']}
-		";
+		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
+		$this->request =
+			"{$this->sql_clauses['select']}
+			 {$this->sql_clauses['from']}
+			 {$where}
+			 {$this->sql_clauses['groupby']}
+			 {$this->sql_clauses['orderby']}
+			 {$this->sql_clauses['limits']}";
 
 		if ( $this->query_vars['count'] ) {
 			return (int) $wpdb->get_var( $this->request );

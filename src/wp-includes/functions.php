@@ -1347,6 +1347,7 @@ function wp( $query_vars = '' ) {
  * @since 3.9.0 Added status codes 418, 428, 429, 431, and 511.
  * @since 4.5.0 Added status codes 308, 421, and 451.
  * @since 5.1.0 Added status code 103.
+ * @since 6.6.0 Added status code 425.
  *
  * @global array $wp_header_to_desc
  *
@@ -1408,6 +1409,7 @@ function get_status_header_desc( $code ) {
 			422 => 'Unprocessable Entity',
 			423 => 'Locked',
 			424 => 'Failed Dependency',
+			425 => 'Too Early',
 			426 => 'Upgrade Required',
 			428 => 'Precondition Required',
 			429 => 'Too Many Requests',
@@ -2268,7 +2270,7 @@ function wp_is_writable( $path ) {
  * PHP has issues with Windows ACL's for determine if a
  * directory is writable or not, this works around them by
  * checking the ability to open files rather than relying
- * upon PHP to interprate the OS ACL.
+ * upon PHP to interpret the OS ACL.
  *
  * @since 2.8.0
  *
@@ -2342,10 +2344,10 @@ function wp_get_upload_dir() {
  * @since 2.0.0
  * @uses _wp_upload_dir()
  *
- * @param string $time Optional. Time formatted in 'yyyy/mm'. Default null.
- * @param bool   $create_dir Optional. Whether to check and create the uploads directory.
- *                           Default true for backward compatibility.
- * @param bool   $refresh_cache Optional. Whether to refresh the cache. Default false.
+ * @param string|null $time          Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param bool        $create_dir    Optional. Whether to check and create the uploads directory.
+ *                                   Default true for backward compatibility.
+ * @param bool        $refresh_cache Optional. Whether to refresh the cache. Default false.
  * @return array {
  *     Array of information about the upload directory.
  *
@@ -2417,7 +2419,7 @@ function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false
  * @since 4.5.0
  * @access private
  *
- * @param string $time Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param string|null $time Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array See wp_upload_dir()
  */
 function _wp_upload_dir( $time = null ) {
@@ -2869,7 +2871,7 @@ function _wp_check_existing_file_names( $filename, $files ) {
  * @param string      $name       Filename.
  * @param null|string $deprecated Never used. Set to null.
  * @param string      $bits       File content
- * @param string      $time       Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param string|null $time       Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array {
  *     Information about the newly-uploaded file.
  *
@@ -3359,7 +3361,7 @@ function wp_get_image_mime( $file ) {
 		 * specification and the AV1-AVIF spec, see https://aomediacodec.github.io/av1-avif/v1.1.0.html#brands.
 		 */
 
-		 // Divide the header string into 4 byte groups.
+		// Divide the header string into 4 byte groups.
 		$magic = str_split( $magic, 8 );
 
 		if (
@@ -3905,21 +3907,16 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			font-size: 14px ;
 		}
 		a {
-			color: #0073aa;
+			color: #2271b1;
 		}
 		a:hover,
 		a:active {
-			color: #006799;
+			color: #135e96;
 		}
 		a:focus {
-			color: #124964;
-			-webkit-box-shadow:
-				0 0 0 1px #5b9dd9,
-				0 0 2px 1px rgba(30, 140, 190, 0.8);
-			box-shadow:
-				0 0 0 1px #5b9dd9,
-				0 0 2px 1px rgba(30, 140, 190, 0.8);
-			outline: none;
+			color: #043959;
+			box-shadow: 0 0 0 2px #2271b1;
+			outline: 2px solid transparent;
 		}
 		.button {
 			background: #f3f5f6;
@@ -4056,6 +4053,10 @@ function _json_wp_die_handler( $message, $title = '', $args = array() ) {
 		'additional_errors' => $parsed_args['additional_errors'],
 	);
 
+	if ( isset( $parsed_args['error_data'] ) ) {
+		$data['data']['error'] = $parsed_args['error_data'];
+	}
+
 	if ( ! headers_sent() ) {
 		header( "Content-Type: application/json; charset={$parsed_args['charset']}" );
 		if ( null !== $parsed_args['response'] ) {
@@ -4093,6 +4094,10 @@ function _jsonp_wp_die_handler( $message, $title = '', $args = array() ) {
 		),
 		'additional_errors' => $parsed_args['additional_errors'],
 	);
+
+	if ( isset( $parsed_args['error_data'] ) ) {
+		$data['data']['error'] = $parsed_args['error_data'];
+	}
 
 	if ( ! headers_sent() ) {
 		header( "Content-Type: application/javascript; charset={$parsed_args['charset']}" );
@@ -4270,6 +4275,9 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
 			}
 			if ( empty( $title ) && is_array( $errors[0]['data'] ) && ! empty( $errors[0]['data']['title'] ) ) {
 				$title = $errors[0]['data']['title'];
+			}
+			if ( WP_DEBUG_DISPLAY && is_array( $errors[0]['data'] ) && ! empty( $errors[0]['data']['error'] ) ) {
+				$args['error_data'] = $errors[0]['data']['error'];
 			}
 
 			unset( $errors[0] );
@@ -4754,10 +4762,10 @@ function wp_is_serving_rest_request() {
  * the description. Probably should create a Codex page for it, so that it is
  * available.
  *
+ * @since 2.2.0
+ *
  * @global array $wpsmiliestrans
  * @global array $wp_smiliessearch
- *
- * @since 2.2.0
  */
 function smilies_init() {
 	global $wpsmiliestrans, $wp_smiliessearch;
@@ -5392,10 +5400,10 @@ function wp_widgets_add_menu() {
 	}
 
 	$menu_name = __( 'Widgets' );
-	if ( wp_is_block_theme() || current_theme_supports( 'block-template-parts' ) ) {
+	if ( wp_is_block_theme() ) {
 		$submenu['themes.php'][] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	} else {
-		$submenu['themes.php'][7] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
+		$submenu['themes.php'][8] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	}
 
 	ksort( $submenu['themes.php'], SORT_NUMERIC );
@@ -5985,7 +5993,7 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 			$message .= ' ' . sprintf(
 				/* translators: %s: Documentation URL. */
 				__( 'Please see <a href="%s">Debugging in WordPress</a> for more information.' ),
-				__( 'https://wordpress.org/documentation/article/debugging-in-wordpress/' )
+				__( 'https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/' )
 			);
 
 			$message = sprintf(
@@ -6002,7 +6010,7 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 
 			$message .= sprintf(
 				' Please see <a href="%s">Debugging in WordPress</a> for more information.',
-				'https://wordpress.org/documentation/article/debugging-in-wordpress/'
+				'https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/'
 			);
 
 			$message = sprintf(
@@ -7458,6 +7466,49 @@ function get_tag_regex( $tag ) {
 }
 
 /**
+ * Indicates if a given slug for a character set represents the UTF-8
+ * text encoding. If not provided, examines the current blog's charset.
+ *
+ * A charset is considered to represent UTF-8 if it is a case-insensitive
+ * match of "UTF-8" with or without the hyphen.
+ *
+ * Example:
+ *
+ *     true  === is_utf8_charset( 'UTF-8' );
+ *     true  === is_utf8_charset( 'utf8' );
+ *     false === is_utf8_charset( 'latin1' );
+ *     false === is_utf8_charset( 'UTF 8' );
+ *
+ *     // Only strings match.
+ *     false === is_utf8_charset( [ 'charset' => 'utf-8' ] );
+ *
+ *     // Without a given charset, it depends on the site option "blog_charset".
+ *     $is_utf8 = is_utf8_charset();
+ *
+ * @since 6.6.0
+ *
+ * @param ?string $blog_charset Slug representing a text character encoding, or "charset".
+ *                              E.g. "UTF-8", "Windows-1252", "ISO-8859-1", "SJIS".
+ * @return bool Whether the slug represents the UTF-8 encoding.
+ */
+function is_utf8_charset( $blog_charset = null ) {
+	$charset_to_examine = $blog_charset ?? get_option( 'blog_charset' );
+
+	/*
+	 * Only valid string values count: the absence of a charset
+	 * does not imply any charset, let alone UTF-8.
+	 */
+	if ( ! is_string( $charset_to_examine ) ) {
+		return false;
+	}
+
+	return (
+		0 === strcasecmp( 'UTF-8', $charset_to_examine ) ||
+		0 === strcasecmp( 'UTF8', $charset_to_examine )
+	);
+}
+
+/**
  * Retrieves a canonical form of the provided charset appropriate for passing to PHP
  * functions such as htmlspecialchars() and charset HTML attributes.
  *
@@ -7466,17 +7517,27 @@ function get_tag_regex( $tag ) {
  *
  * @see https://core.trac.wordpress.org/ticket/23688
  *
- * @param string $charset A charset name.
+ * @param string $charset A charset name, e.g. "UTF-8", "Windows-1252", "SJIS".
  * @return string The canonical form of the charset.
  */
 function _canonical_charset( $charset ) {
-	if ( 'utf-8' === strtolower( $charset ) || 'utf8' === strtolower( $charset ) ) {
-
+	if ( is_utf8_charset( $charset ) ) {
 		return 'UTF-8';
 	}
 
-	if ( 'iso-8859-1' === strtolower( $charset ) || 'iso8859-1' === strtolower( $charset ) ) {
-
+	/*
+	 * Normalize the ISO-8859-1 family of languages.
+	 *
+	 * This is not required for htmlspecialchars(), as it properly recognizes all of
+	 * the input character sets that here are transformed into "ISO-8859-1".
+	 *
+	 * @todo Should this entire check be removed since it's not required for the stated purpose?
+	 * @todo Should WordPress transform other potential charset equivalents, such as "latin1"?
+	 */
+	if (
+		( 0 === strcasecmp( 'iso-8859-1', $charset ) ) ||
+		( 0 === strcasecmp( 'iso8859-1', $charset ) )
+	) {
 		return 'ISO-8859-1';
 	}
 
@@ -8499,7 +8560,7 @@ function wp_get_update_https_url() {
  */
 function wp_get_default_update_https_url() {
 	/* translators: Documentation explaining HTTPS and why it should be used. */
-	return __( 'https://wordpress.org/documentation/article/why-should-i-use-https/' );
+	return __( 'https://developer.wordpress.org/advanced-administration/security/https/' );
 }
 
 /**
@@ -8756,6 +8817,14 @@ function is_wp_version_compatible( $required ) {
 
 	// Strip off any -alpha, -RC, -beta, -src suffixes.
 	list( $version ) = explode( '-', $wp_version );
+
+	if ( is_string( $required ) ) {
+		$trimmed = trim( $required );
+
+		if ( substr_count( $trimmed, '.' ) > 1 && str_ends_with( $trimmed, '.0' ) ) {
+			$required = substr( $trimmed, 0, -2 );
+		}
+	}
 
 	return empty( $required ) || version_compare( $version, $required, '>=' );
 }

@@ -189,6 +189,12 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp-site-health/v1/directory-sizes',
 			'/wp/v2/wp_pattern_category',
 			'/wp/v2/wp_pattern_category/(?P<id>[\d]+)',
+			'/wp/v2/font-collections',
+			'/wp/v2/font-collections/(?P<slug>[\/\w-]+)',
+			'/wp/v2/font-families',
+			'/wp/v2/font-families/(?P<font_family_id>[\d]+)/font-faces',
+			'/wp/v2/font-families/(?P<font_family_id>[\d]+)/font-faces/(?P<id>[\d]+)',
+			'/wp/v2/font-families/(?P<id>[\d]+)',
 		);
 
 		$this->assertSameSets( $expected_routes, $routes );
@@ -204,6 +210,10 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	}
 
 	public function test_build_wp_api_client_fixtures() {
+		if ( 'example.org' !== WP_TESTS_DOMAIN ) {
+			$this->markTestSkipped( 'This test can only be run on example.org' );
+		}
+
 		// Set up data for individual endpoint responses.  We need to specify
 		// lots of different fields on these objects, otherwise the generated
 		// fixture file will be different between runs of PHPUnit tests, which
@@ -749,17 +759,23 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			return $data;
 		}
 
+		$datetime_keys = array( 'date', 'date_gmt', 'modified', 'modified_gmt' );
+
 		foreach ( $data as $key => $value ) {
-			if ( is_string( $value ) && (
-				'date' === $key ||
-				'date_gmt' === $key ||
-				'modified' === $key ||
-				'modified_gmt' === $key
-			) ) {
-				$data[ $key ] = '2017-02-14T00:00:00';
-			} else {
-				$data[ $key ] = $this->normalize_fixture( $value, "$path.$key" );
+			if ( is_string( $value ) ) {
+				if ( in_array( $key, $datetime_keys, true ) ) {
+					$data[ $key ] = '2017-02-14T00:00:00';
+					continue;
+				}
+
+				if ( 1 === preg_match( '/^post-\d+$/', $value ) ) {
+					// Normalize the class value to ensure test stability.
+					$data[ $key ] = 'post-1073';
+					continue;
+				}
 			}
+
+			$data[ $key ] = $this->normalize_fixture( $value, "$path.$key" );
 		}
 
 		return $data;

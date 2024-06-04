@@ -1664,7 +1664,8 @@ function get_media_item( $attachment_id, $args = null ) {
 	$meta       = wp_get_attachment_metadata( $post->ID );
 
 	if ( isset( $meta['width'], $meta['height'] ) ) {
-		$media_dims .= "<span id='media-dims-$post->ID'>{$meta['width']}&nbsp;&times;&nbsp;{$meta['height']}</span> ";
+		/* translators: 1: A number of pixels wide, 2: A number of pixels tall. */
+		$media_dims .= "<span id='media-dims-$post->ID'>" . sprintf( __( '%1$s by %2$s pixels' ), $meta['width'], $meta['height'] ) . '</span>';
 	}
 
 	/**
@@ -2832,7 +2833,7 @@ function media_upload_library_form( $errors ) {
 				'format'    => '',
 				'prev_text' => __( '&laquo;' ),
 				'next_text' => __( '&raquo;' ),
-				'total'     => ceil( $wp_query->found_posts / 10 ),
+				'total'     => (int) ceil( $wp_query->found_posts / 10 ),
 				'current'   => $q['paged'],
 			)
 		);
@@ -3240,7 +3241,8 @@ function edit_form_image_editor( $post ) {
 		printf(
 			/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
 			__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
-			esc_url( 'https://www.w3.org/WAI/tutorials/images/decision-tree' ),
+			/* translators: Localized tutorial, if one exists. W3C Web Accessibility Initiative link has list of existing translations. */
+			esc_url( __( 'https://www.w3.org/WAI/tutorials/images/decision-tree/' ) ),
 			'target="_blank" rel="noopener"',
 			sprintf(
 				'<span class="screen-reader-text"> %s</span>',
@@ -3306,7 +3308,8 @@ function attachment_submitbox_metadata() {
 	$meta       = wp_get_attachment_metadata( $attachment_id );
 
 	if ( isset( $meta['width'], $meta['height'] ) ) {
-		$media_dims .= "<span id='media-dims-$attachment_id'>{$meta['width']}&nbsp;&times;&nbsp;{$meta['height']}</span> ";
+		/* translators: 1: A number of pixels wide, 2: A number of pixels tall. */
+		$media_dims .= "<span id='media-dims-$attachment_id'>" . sprintf( __( '%1$s by %2$s pixels' ), $meta['width'], $meta['height'] ) . '</span>';
 	}
 	/** This filter is documented in wp-admin/includes/media.php */
 	$media_dims = apply_filters( 'media_meta', $media_dims, $post );
@@ -3440,6 +3443,9 @@ function attachment_submitbox_metadata() {
 						if ( ! empty( $meta['bitrate_mode'] ) ) {
 							echo ' ' . strtoupper( esc_html( $meta['bitrate_mode'] ) );
 						}
+						break;
+					case 'length_formatted':
+						echo human_readable_duration( $meta['length_formatted'] );
 						break;
 					default:
 						echo esc_html( $meta[ $key ] );

@@ -9,7 +9,7 @@
  * @group meta
  * @group meta-revisions
  */
-class MetaRevisionTests extends WP_UnitTestCase {
+class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 
 	/**
 	 * Callback function to add the revisioned keys.
@@ -50,7 +50,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 
 		// Store a custom meta value, which is not revisioned by default.
 		update_post_meta( $post_id, 'meta_revision_test', wp_slash( $passed ) );
-		$this->assertEquals( $expected, get_post_meta( $post_id, 'meta_revision_test', true ) );
+		$this->assertSame( $expected, get_post_meta( $post_id, 'meta_revision_test', true ) );
 
 		// Update the post, storing a revision.
 		wp_update_post(
@@ -80,7 +80,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		// Restore!
 		wp_restore_post_revision( $last_revision->ID );
 
-		$this->assertEquals( $expected, get_post_meta( $post_id, 'meta_revision_test', true ) );
+		$this->assertSame( $expected, get_post_meta( $post_id, 'meta_revision_test', true ) );
 	}
 
 	/**
@@ -187,8 +187,8 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		 * Check the meta values to verify they are NOT revisioned - they are not revisioned by default.
 		 */
 
-		// Custom post meta should NOT be restored, orignal value should not be restored, value still 'update1'.
-		$this->assertEquals( 'update1', get_post_meta( $post_id, 'meta_revision_test', true ) );
+		// Custom post meta should NOT be restored, original value should not be restored, value still 'update1'.
+		$this->assertSame( 'update1', get_post_meta( $post_id, 'meta_revision_test', true ) );
 
 		update_post_meta( $post_id, 'meta_revision_test', 'update2' );
 
@@ -209,7 +209,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 
 		$revisions = array_values( wp_get_post_revisions( $post_id ) );
 		$this->assertCount( 5, $revisions );
-		$this->assertEquals( 'update2', get_post_meta( $revisions[0]->ID, 'meta_revision_test', true ) );
+		$this->assertSame( 'update2', get_post_meta( $revisions[0]->ID, 'meta_revision_test', true ) );
 
 		// Store custom meta values, which should now be revisioned.
 		update_post_meta( $post_id, 'meta_revision_test', 'update3' );
@@ -231,7 +231,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		$this->assertCount( 6, $revisions );
 
 		// Verify that previous post meta is set.
-		$this->assertEquals( 'update3', get_post_meta( $post_id, 'meta_revision_test', true ) );
+		$this->assertSame( 'update3', get_post_meta( $post_id, 'meta_revision_test', true ) );
 
 		// Restore the previous revision.
 		$revisions = wp_get_post_revisions( $post_id );
@@ -244,7 +244,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		/*
 		 * Verify that previous post meta is restored.
 		 */
-		$this->assertEquals( 'update2', get_post_meta( $post_id, 'meta_revision_test', true ) );
+		$this->assertSame( 'update2', get_post_meta( $post_id, 'meta_revision_test', true ) );
 
 		// Try storing a blank meta.
 		update_post_meta( $post_id, 'meta_revision_test', '' );
@@ -270,7 +270,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		/*
 		 * Verify that previous blank post meta is restored.
 		 */
-		$this->assertEquals( '', get_post_meta( $post_id, 'meta_revision_test', true ) );
+		$this->assertSame( '', get_post_meta( $post_id, 'meta_revision_test', true ) );
 
 		/*
 		 * Test not tracking a key - remove the key from the revisioned meta.
@@ -302,7 +302,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		/*
 		 * Verify that previous post meta is NOT restored.
 		 */
-		$this->assertEquals( 'update 6', get_post_meta( $post_id, 'meta_revision_test', true ) );
+		$this->assertSame( 'update 6', get_post_meta( $post_id, 'meta_revision_test', true ) );
 
 		// Add the custom field to be revised via the wp_post_revision_meta_keys filter.
 		add_filter( 'wp_post_revision_meta_keys', array( $this, 'add_revisioned_keys' ) );
@@ -330,7 +330,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		/*
 		 * Verify that multiple metas stored correctly.
 		 */
-		$this->assertEquals( array( 'update 7', 'update 7 number 2', 'update 7 number 3' ), get_post_meta( $post_id, 'meta_revision_test' ) );
+		$this->assertSame( array( 'update 7', 'update 7 number 2', 'update 7 number 3' ), get_post_meta( $post_id, 'meta_revision_test' ) );
 
 		/*
 		 * Test the revisioning of a multidimensional array.
@@ -373,7 +373,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		 * Verify  multidimensional array stored correctly.
 		 */
 		$stored_array = get_post_meta( $post_id, 'meta_revision_test' );
-		$this->assertEquals( $test_array, $stored_array[0] );
+		$this->assertSame( $test_array, $stored_array[0] );
 		/*
 
 		 * Test multiple revisions on the same key.
@@ -390,7 +390,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		$stored_array = get_post_meta( $post_id, 'meta_multiples_test' );
 		$expect       = array( 'test1', 'test2', 'test3' );
 
-		$this->assertEquals( $expect, $stored_array );
+		$this->assertSame( $expect, $stored_array );
 
 		// Restore the previous revision.
 		$revisions     = wp_get_post_revisions( $post_id );
@@ -400,7 +400,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		$stored_array = get_post_meta( $post_id, 'meta_multiples_test' );
 		$expect       = array( 'test1', 'test2', 'test3' );
 
-		$this->assertEquals( $expect, $stored_array );
+		$this->assertSame( $expect, $stored_array );
 
 		// Cleanup!
 		wp_delete_post( $original_post_id );
@@ -482,14 +482,14 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		$stored_array = get_post_meta( $post_id, 'meta_multiples_test' );
 		$expect       = array( 'test1', 'test2', 'test3' );
 
-		$this->assertEquals( $expect, $stored_array );
+		$this->assertSame( $expect, $stored_array );
 
 		// Restore the previous revision.
 		$revisions     = wp_get_post_revisions( $post_id );
 		$last_revision = array_shift( $revisions );
 		wp_restore_post_revision( $last_revision->ID );
 		$stored_data = get_post_meta( $post_id, 'foo' );
-		$this->assertEquals( '', $stored_data[0] );
+		$this->assertSame( '', $stored_data[0] );
 	}
 
 	/**
@@ -526,13 +526,13 @@ class MetaRevisionTests extends WP_UnitTestCase {
 
 		// Check that the meta is blank.
 		$stored_data = get_post_meta( $post_id, 'meta_revision_test', true );
-		$this->assertEquals( '', $stored_data );
+		$this->assertSame( '', $stored_data );
 
 		// Also verify that the latest revision has blank stored for the meta.
 		$revisions     = wp_get_post_revisions( $post_id );
 		$last_revision = array_shift( $revisions );
 		$stored_data   = get_post_meta( $last_revision->ID, 'meta_revision_test', true );
-		$this->assertEquals( '', $stored_data );
+		$this->assertSame( '', $stored_data );
 
 		// Delete the meta.
 		delete_post_meta( $post_id, 'meta_revision_test' );
@@ -546,14 +546,14 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		);
 
 		// Check that the default meta value is returned.
-		$this->assertEquals( 'default value', get_post_meta( $post_id, 'meta_revision_test', true ) );
+		$this->assertSame( 'default value', get_post_meta( $post_id, 'meta_revision_test', true ) );
 
 		// Also verify that the latest revision has the default value returned for the meta.
 		$revisions     = wp_get_post_revisions( $post_id );
 		$last_revision = array_shift( $revisions );
 
 		// No ,eta data should be stored in the revision.
-		$this->assertEquals( array(), get_post_meta( $last_revision->ID ) );
+		$this->assertSame( array(), get_post_meta( $last_revision->ID ) );
 
 		// Set the test meta again.
 		update_post_meta( $post_id, 'meta_revision_test', 'test' );
@@ -565,7 +565,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		wp_restore_post_revision( $last_revision->ID );
 
 		// Verify the default meta value is still returned.
-		$this->assertEquals( 'default value', get_post_meta( $post_id, 'meta_revision_test', true ) );
+		$this->assertSame( 'default value', get_post_meta( $post_id, 'meta_revision_test', true ) );
 	}
 
 	/**
@@ -598,7 +598,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		$revisions       = wp_get_post_revisions( $post_id );
 		$revision        = array_shift( $revisions );
 		$revisioned_meta = get_post_meta( $revision->ID, $meta_key, true );
-		$this->assertEquals( $expected_is_revisioned, 'bar' === $revisioned_meta );
+		$this->assertSame( $expected_is_revisioned, 'bar' === $revisioned_meta );
 
 		// Reset global so subsequent data tests do not get polluted.
 		$GLOBALS['wp_meta_keys'] = array();
@@ -690,7 +690,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 			// Go back to load the previous revision.
 			$last_revision = array_shift( $revisions );
 				wp_restore_post_revision( $last_revision->ID );
-			$this->assertEquals( $expected, get_post_meta( $page_id, 'meta_revision_test', true ) );
+			$this->assertSame( $expected, get_post_meta( $page_id, 'meta_revision_test', true ) );
 		} else {
 			$this->assertEmpty( $revisions );
 		}

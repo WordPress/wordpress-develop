@@ -36,106 +36,18 @@ env:
 
 jobs:
   # Runs the end-to-end test suite.
-  #
-  # Performs the following steps:
-  # - Sets environment variables.
-  # - Checks out the repository.
-  # - Sets up Node.js.
-  # - Logs debug information about the GitHub Action runner.
-  # - Installs npm dependencies.
-  # - Install Playwright browsers.
-  # - Builds WordPress to run from the `build` directory.
-  # - Starts the WordPress Docker container.
-  # - Logs the running Docker containers.
-  # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container).
-  # - Install WordPress within the Docker container.
-  # - Install Gutenberg.
-  # - Run the E2E tests.
-  # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
-    name: E2E Tests with SCRIPT_DEBUG ${{ matrix.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
-    runs-on: ubuntu-latest
+    name: Test with SCRIPT_DEBUG ${{ matrix.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-end-to-end-tests.yml@trunk
     permissions:
       contents: read
-    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
         LOCAL_SCRIPT_DEBUG: [ true, false ]
-
-    steps:
-      - name: Configure environment variables
-        run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
-
-      - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-        with:
-          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          locale -a
-
-      - name: Install npm Dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      - name: Build WordPress
-        run: npm run build
-
-      - name: Start Docker environment
-        run: |
-          npm run env:start
-
-      - name: Log running Docker containers
-        run: docker ps -a
-
-      - name: Docker debug information
-        run: |
-          docker -v
-          docker-compose -v
-          docker-compose run --rm mysql mysql --version
-          docker-compose run --rm php php --version
-          docker-compose run --rm php php -m
-          docker-compose run --rm php php -i
-          docker-compose run --rm php locale -a
-
-      - name: Install WordPress
-        env:
-          LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
-        run: npm run env:install
-
-      - name: Install Gutenberg
-        run: npm run env:cli -- plugin install gutenberg --path=/var/www/${{ env.LOCAL_DIR }}
-
-      - name: Run E2E tests
-        run: npm run test:e2e
-
-      - name: Archive debug artifacts (screenshots, HTML snapshots)
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
-        if: always()
-        with:
-            name: failures-artifacts${{ matrix.LOCAL_SCRIPT_DEBUG && '-SCRIPT_DEBUG' || '' }}-${{ github.run_id }}
-            path: artifacts
-            if-no-files-found: ignore
-
-      - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
+    with:
+      LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
 
   slack-notifications:
     name: Slack Notifications

@@ -748,6 +748,13 @@ class WP_REST_Server {
 						$request['context'] = 'embed';
 					}
 
+					if ( empty( $request['per_page'] ) ) {
+						$matched = $this->match_request_to_handler( $request );
+						if ( ! is_wp_error( $matched ) && isset( $matched[1]['args']['per_page']['maximum'] ) ) {
+							$request['per_page'] = (int) $matched[1]['args']['per_page']['maximum'];
+						}
+					}
+
 					$response = $this->dispatch( $request );
 
 					/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */

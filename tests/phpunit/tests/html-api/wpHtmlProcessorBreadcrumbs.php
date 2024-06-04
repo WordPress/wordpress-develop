@@ -231,12 +231,18 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function test_fails_when_encountering_unsupported_markup( $html, $description ) {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 
-		while ( $processor->step() && null === $processor->get_attribute( 'supported' ) ) {
+		while ( $processor->next_token() && null === $processor->get_attribute( 'supported' ) ) {
 			continue;
 		}
 
+		$this->assertNull(
+			$processor->get_last_error(),
+			'Bailed on unsupported input before finding supported checkpoint: check test code.'
+		);
+
 		$this->assertTrue( $processor->get_attribute( 'supported' ), 'Did not find required supported element.' );
-		$this->assertFalse( $processor->step(), "Didn't properly reject unsupported markup: {$description}" );
+		$processor->next_token();
+		$this->assertNotNull( $processor->get_last_error(), "Didn't properly reject unsupported markup: {$description}" );
 	}
 
 	/**
@@ -247,7 +253,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public static function data_unsupported_markup() {
 		return array(
 			'A with formatting following unclosed A' => array(
-				'<a><strong>Click <a supported><big unsupported>Here</big></a></strong></a>',
+				'<a><strong>Click <span supported><a unsupported><big>Here</big></a></strong></a>',
 				'Unclosed formatting requires complicated reconstruction.',
 			),
 
@@ -325,7 +331,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'IMG after invalid DIV closer'          => array( '</div><img target>', array( 'HTML', 'BODY', 'IMG' ), 1 ),
 			'EM inside DIV'                         => array( '<div>The weather is <em target>beautiful</em>.</div>', array( 'HTML', 'BODY', 'DIV', 'EM' ), 1 ),
 			'EM after closed EM'                    => array( '<em></em><em target></em>', array( 'HTML', 'BODY', 'EM' ), 2 ),
-			'EM after closed EMs'                   => array( '<em></em><em><em></em></em><em></em><em></em><em target></em>', array( 'HTML', 'BODY', 'EM' ), 6 ),
+			'EM after closed EMs'                   => array( '<em></em><em><em></em></em><em></em><em></em><em target></em>', array( 'HTML', 'BODY', 'EM' ), 5 ),
 			'EM after unclosed EM'                  => array( '<em><em target></em>', array( 'HTML', 'BODY', 'EM', 'EM' ), 1 ),
 			'EM after unclosed EM after DIV'        => array( '<em><div><em target>', array( 'HTML', 'BODY', 'EM', 'DIV', 'EM' ), 1 ),
 			// This should work for all formatting elements, but if two work, the others probably do too.
@@ -544,5 +550,27 @@ HTML
 		// Seek forwards. If the current token isn't also updated this could appear like a backwards seek.
 		$processor->seek( 'second' );
 		$this->assertTrue( $processor->get_attribute( 'two' ) );
+	}
+
+	/**
+	 * Ensures that breadcrumbs are properly reported after seeking backward to a location
+	 * inside an element which has been fully closed before the seek.
+	 *
+	 * @ticket 60687
+	 */
+	public function test_retains_proper_bookmarks_after_seeking_back_to_closed_element() {
+		$processor = WP_HTML_Processor::create_fragment( '<div><img></div><div><hr></div>' );
+
+		$processor->next_tag( 'IMG' );
+		$processor->set_bookmark( 'first' );
+
+		$processor->next_tag( 'HR' );
+
+		$processor->seek( 'first' );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'IMG' ),
+			$processor->get_breadcrumbs(),
+			'Should have retained breadcrumbs from bookmarked location after seeking backwards to it.'
+		);
 	}
 }
