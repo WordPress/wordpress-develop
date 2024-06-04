@@ -4624,7 +4624,7 @@ function paginate_links( $args = '' ) {
 
 	switch ( $args['type'] ) {
 		case 'array':
-			**
+			/**
 			* Filter The Page Link Array.
 			* @param array page_link_array.
 			*/
