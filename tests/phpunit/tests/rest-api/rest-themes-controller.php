@@ -419,6 +419,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'editor-color-palette', $theme_supports );
 		$this->assertArrayHasKey( 'editor-font-sizes', $theme_supports );
 		$this->assertArrayHasKey( 'editor-gradient-presets', $theme_supports );
+		$this->assertArrayHasKey( 'editor-spacing-sizes', $theme_supports );
 		$this->assertArrayHasKey( 'editor-styles', $theme_supports );
 		$this->assertArrayHasKey( 'formats', $theme_supports );
 		$this->assertArrayHasKey( 'html5', $theme_supports );
@@ -426,7 +427,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'responsive-embeds', $theme_supports );
 		$this->assertArrayHasKey( 'title-tag', $theme_supports );
 		$this->assertArrayHasKey( 'wp-block-styles', $theme_supports );
-		$this->assertCount( 23, $theme_supports, 'There should be 23 theme supports' );
+		$this->assertCount( 24, $theme_supports, 'There should be 23 theme supports' );
 	}
 
 	/**
