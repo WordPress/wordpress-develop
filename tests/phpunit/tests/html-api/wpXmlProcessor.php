@@ -198,6 +198,8 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
+	 * 
+	 * @expectedDeprecated
 	 */
 	public function test_no_text_allowed_after_root_element() {
 		$this->setExpectedIncorrectUsage( 'Unexpected token type in prolog stage. (This message was added in version WP_VERSION.)' );
@@ -260,7 +262,8 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
-	 *
+	 * 
+	 * @expectedDeprecated
 	 * @return void
 	 */
 	public function test_comments_allowed_after_root_element() {
@@ -273,7 +276,8 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
-	 *
+	 * 
+	 * @expectedDeprecated
 	 * @return void
 	 */
 	public function test_cdata_not_allowed_after_root_element() {
