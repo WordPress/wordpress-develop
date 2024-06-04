@@ -3745,10 +3745,9 @@ class WP_Theme_JSON {
 	 * Sets the spacingSizes array based on the spacingScale values from theme.json.
 	 *
 	 * @since 6.1.0
-	 * @deprecated 6.6.0
-	 *
-	 * @param string $origin Optional. What source of data to set the spacing sizes for.
-	 *                       One of 'default', 'theme', or 'custom'. Default 'default'.
+	 * @deprecated 6.6.0 No longer used as the spacingSizes are automatically
+	 *                   generated in the constructor and merge methods instead
+	 *                   of manually after instantiation.
 	 *
 	 * @return null|void
 	 */
