@@ -901,6 +901,7 @@ function install_plugin_information() {
  * Gets the markup for the plugin install action button.
  *
  * @since 6.5.0
+ * @since 6.6.0 Added the `$context` parameter.
  *
  * @param string       $name           Plugin name.
  * @param array|object $data           {
@@ -912,9 +913,10 @@ function install_plugin_information() {
  * }
  * @param bool         $compatible_php   The result of a PHP compatibility check.
  * @param bool         $compatible_wp    The result of a WP compatibility check.
+ * @param string       $context          Optional. The context the button will appear in. Default empty string.
  * @return string The markup for the dependency row button.
  */
-function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible_wp ) {
+function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible_wp, $context = '' ) {
 	$button           = '';
 	$data             = (object) $data;
 	$status           = install_plugin_install_status( $data );
