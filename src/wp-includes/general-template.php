@@ -4624,7 +4624,11 @@ function paginate_links( $args = '' ) {
 
 	switch ( $args['type'] ) {
 		case 'array':
-			return $page_links;
+			**
+			* Fitler The Page Link Array.
+			* @param array page_link_array.
+			*/
+			return apply_filter( 'filter_page_links_array', $page_links );
 
 		case 'list':
 			$r .= "<ul class='page-numbers'>\n\t<li>";
