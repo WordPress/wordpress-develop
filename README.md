@@ -13,7 +13,7 @@ To get started, create a codespace for this repository by clicking this 👇
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=trunk&repo=75645659)
 
-A codespace will open in a web-based version of Visual Studio Code. The [dev container](.devcontainer/devcontainer.json) is fully configured with softwares needed for this project.
+A codespace will open in a web-based version of Visual Studio Code. The [dev container](.devcontainer/devcontainer.json) is fully configured with software needed for this project.
 
 **Note**: Dev containers is an open spec which is supported by [GitHub Codespaces](https://github.com/codespaces) and [other tools](https://containers.dev/supporting).
 
@@ -117,6 +117,29 @@ Starting the environment again is a single command:
 ```
 npm run env:start
 ```
+
+#### Resetting the development environment
+
+The development environment can be reset. This will destroy the database and attempt to remove the pulled Docker images.
+
+```
+npm run env:reset
+```
+
+### Apple Silicone machines and old MySQL versions
+
+The MySQL Docker images do not support Apple Silicone processors (M1, M2, etc.) for MySQL versions 5.7 and earlier.
+
+When using MySQL <= 5.7 on an Apple Silicone machine, you must create a `docker-compose.override.yml` file with the following contents:
+
+```
+services:
+
+  mysql:
+    platform: linux/amd64
+```
+
+Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in Docker needs to be disabled for this workaround.
 
 ## Credentials
 

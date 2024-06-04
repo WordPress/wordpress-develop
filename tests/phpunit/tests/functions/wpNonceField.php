@@ -44,7 +44,7 @@ class Tests_Functions_wpNonceField extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_wp_nonce_field() {
 		return array(

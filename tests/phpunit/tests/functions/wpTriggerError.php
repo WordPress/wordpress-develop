@@ -78,7 +78,7 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_should_trigger_error() {
 		return array(

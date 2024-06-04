@@ -272,7 +272,7 @@ function create_initial_taxonomies() {
  *
  * @param array  $args     Optional. An array of `key => value` arguments to match against the taxonomy objects.
  *                         Default empty array.
- * @param string $output   Optional. The type of output to return in the array. Accepts either taxonomy 'names'
+ * @param string $output   Optional. The type of output to return in the array. Either 'names'
  *                         or 'objects'. Default 'names'.
  * @param string $operator Optional. The logical operation to perform. Accepts 'and' or 'or'. 'or' means only
  *                         one element from the array needs to match; 'and' means all elements must match.
@@ -4365,7 +4365,7 @@ function _wp_batch_split_terms() {
 	$lock_name = 'term_split.lock';
 
 	// Try to lock.
-	$lock_result = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO `$wpdb->options` ( `option_name`, `option_value`, `autoload` ) VALUES (%s, %s, 'no') /* LOCK */", $lock_name, time() ) );
+	$lock_result = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO `$wpdb->options` ( `option_name`, `option_value`, `autoload` ) VALUES (%s, %s, 'off') /* LOCK */", $lock_name, time() ) );
 
 	if ( ! $lock_result ) {
 		$lock_result = get_option( $lock_name );

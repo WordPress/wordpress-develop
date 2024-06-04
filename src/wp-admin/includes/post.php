@@ -649,8 +649,21 @@ function bulk_edit_posts( $post_data = null ) {
 		}
 
 		if ( isset( $new_cats ) && in_array( 'category', $tax_names, true ) ) {
-			$cats                       = (array) wp_get_post_categories( $post_id );
-			$post_data['post_category'] = array_unique( array_merge( $cats, $new_cats ) );
+			$cats = (array) wp_get_post_categories( $post_id );
+
+			if (
+				isset( $post_data['indeterminate_post_category'] )
+				&& is_array( $post_data['indeterminate_post_category'] )
+			) {
+				$indeterminate_post_category = $post_data['indeterminate_post_category'];
+			} else {
+				$indeterminate_post_category = array();
+			}
+
+			$indeterminate_cats         = array_intersect( $cats, $indeterminate_post_category );
+			$determinate_cats           = array_diff( $new_cats, $indeterminate_post_category );
+			$post_data['post_category'] = array_unique( array_merge( $indeterminate_cats, $determinate_cats ) );
+
 			unset( $post_data['tax_input']['category'] );
 		}
 
@@ -1071,7 +1084,7 @@ function get_post_meta_by_id( $mid ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int $postid A post ID.
+ * @param int $post_id A post ID.
  * @return array[] {
  *     Array of meta data arrays for the given post ID.
  *
@@ -1085,7 +1098,7 @@ function get_post_meta_by_id( $mid ) {
  *     }
  * }
  */
-function has_meta( $postid ) {
+function has_meta( $post_id ) {
 	global $wpdb;
 
 	return $wpdb->get_results(
@@ -1093,7 +1106,7 @@ function has_meta( $postid ) {
 			"SELECT meta_key, meta_value, meta_id, post_id
 			FROM $wpdb->postmeta WHERE post_id = %d
 			ORDER BY meta_key,meta_id",
-			$postid
+			$post_id
 		),
 		ARRAY_A
 	);
@@ -1126,7 +1139,7 @@ function update_meta( $meta_id, $meta_key, $meta_value ) {
  * @since 2.3.0
  * @access private
  *
- * @param int|object $post Post ID or post object.
+ * @param int|WP_Post $post Post ID or post object.
  * @return void|int|WP_Error Void if nothing fixed. 0 or WP_Error on update failure. The post ID on update success.
  */
 function _fix_attachment_links( $post ) {
@@ -1186,9 +1199,9 @@ function _fix_attachment_links( $post ) {
  * @return string[] An array of all the statuses for the supplied post type.
  */
 function get_available_post_statuses( $type = 'post' ) {
-	$stati = wp_count_posts( $type );
+	$statuses = wp_count_posts( $type );
 
-	return array_keys( get_object_vars( $stati ) );
+	return array_keys( get_object_vars( $statuses ) );
 }
 
 /**
@@ -1204,9 +1217,11 @@ function wp_edit_posts_query( $q = false ) {
 	if ( false === $q ) {
 		$q = $_GET;
 	}
-	$q['m']     = isset( $q['m'] ) ? (int) $q['m'] : 0;
-	$q['cat']   = isset( $q['cat'] ) ? (int) $q['cat'] : 0;
-	$post_stati = get_post_stati();
+
+	$q['m']   = isset( $q['m'] ) ? (int) $q['m'] : 0;
+	$q['cat'] = isset( $q['cat'] ) ? (int) $q['cat'] : 0;
+
+	$post_statuses = get_post_stati();
 
 	if ( isset( $q['post_type'] ) && in_array( $q['post_type'], get_post_types(), true ) ) {
 		$post_type = $q['post_type'];
@@ -1218,7 +1233,7 @@ function wp_edit_posts_query( $q = false ) {
 	$post_status      = '';
 	$perm             = '';
 
-	if ( isset( $q['post_status'] ) && in_array( $q['post_status'], $post_stati, true ) ) {
+	if ( isset( $q['post_status'] ) && in_array( $q['post_status'], $post_statuses, true ) ) {
 		$post_status = $q['post_status'];
 		$perm        = 'readable';
 	}
@@ -1448,7 +1463,7 @@ function get_sample_permalink( $post, $title = null, $name = null ) {
 	$original_filter = $post->filter;
 
 	// Hack: get_permalink() would return plain permalink for drafts, so we will fake that our post is published.
-	if ( in_array( $post->post_status, array( 'draft', 'pending', 'future' ), true ) ) {
+	if ( in_array( $post->post_status, array( 'auto-draft', 'draft', 'pending', 'future' ), true ) ) {
 		$post->post_status = 'publish';
 		$post->post_name   = sanitize_title( $post->post_name ? $post->post_name : $post->post_title, $post->ID );
 	}

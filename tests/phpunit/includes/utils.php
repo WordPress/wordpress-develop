@@ -6,17 +6,17 @@
  * Returns a string of the required length containing random characters. Note that
  * the maximum possible string length is 32.
  *
- * @param int $len Optional. The required length. Default 32.
+ * @param int $length Optional. The required length. Default 32.
  * @return string The string.
  */
-function rand_str( $len = 32 ) {
-	return substr( md5( uniqid( rand() ) ), 0, $len );
+function rand_str( $length = 32 ) {
+	return substr( md5( uniqid( rand() ) ), 0, $length );
 }
 
 /**
  * Returns a string of the required length containing random characters.
  *
- * @param int $len The required length.
+ * @param int $length The required length.
  * @return string The string.
  */
 function rand_long_str( $length ) {
@@ -49,7 +49,7 @@ function strip_ws( $txt ) {
 	return trim( implode( "\n", $result ) );
 }
 
-/*
+/**
  * Helper class for testing code that involves actions and filters.
  *
  * Typical use:

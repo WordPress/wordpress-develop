@@ -15,10 +15,6 @@
  *  - Prune the whitespace when removing classes/attributes: e.g. "a b c" -> "c" not " c".
  *    This would increase the size of the changes for some operations but leave more
  *    natural-looking output HTML.
- *  - Properly decode HTML character references in `get_attribute()`. PHP's
- *    `html_entity_decode()` is wrong in a couple ways: it doesn't account for the
- *    no-ambiguous-ampersand rule, and it improperly handles the way semicolons may
- *    or may not terminate a character reference.
  *
  * @package WordPress
  * @subpackage HTML-API
@@ -837,8 +833,27 @@ class WP_HTML_Tag_Processor {
 	 * @return bool Whether a token was parsed.
 	 */
 	public function next_token() {
+		return $this->base_class_next_token();
+	}
+
+	/**
+	 * Internal method which finds the next token in the HTML document.
+	 *
+	 * This method is a protected internal function which implements the logic for
+	 * finding the next token in a document. It exists so that the parser can update
+	 * its state without affecting the location of the cursor in the document and
+	 * without triggering subclass methods for things like `next_token()`, e.g. when
+	 * applying patches before searching for the next token.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @access private
+	 *
+	 * @return bool Whether a token was parsed.
+	 */
+	private function base_class_next_token() {
 		$was_at = $this->bytes_already_parsed;
-		$this->get_updated_html();
+		$this->after_tag();
 
 		// Don't proceed if there's nothing more to scan.
 		if (
@@ -907,8 +922,8 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 		$this->parser_state         = self::STATE_MATCHED_TAG;
-		$this->token_length         = $tag_ends_at - $this->token_starts_at;
 		$this->bytes_already_parsed = $tag_ends_at + 1;
+		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
 
 		/*
 		 * For non-DATA sections which might contain text that looks like HTML tags but
@@ -994,7 +1009,7 @@ class WP_HTML_Tag_Processor {
 		 */
 		$this->token_starts_at      = $was_at;
 		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
-		$this->text_starts_at       = $tag_ends_at + 1;
+		$this->text_starts_at       = $tag_ends_at;
 		$this->text_length          = $this->tag_name_starts_at - $this->text_starts_at;
 		$this->tag_name_starts_at   = $tag_name_starts_at;
 		$this->tag_name_length      = $tag_name_length;
@@ -1528,20 +1543,26 @@ class WP_HTML_Tag_Processor {
 
 			if ( $at > $was_at ) {
 				/*
-				 * A "<" has been found in the document. That may be the start of another node, or
-				 * it may be an "ivalid-first-character-of-tag-name" error. If this is not the start
-				 * of another node the "<" should be included in this text node and another
-				 * termination point should be found for the text node.
+				 * A "<" normally starts a new HTML tag or syntax token, but in cases where the
+				 * following character can't produce a valid token, the "<" is instead treated
+				 * as plaintext and the parser should skip over it. This avoids a problem when
+				 * following earlier practices of typing emoji with text, e.g. "<3". This
+				 * should be a heart, not a tag. It's supposed to be rendered, not hidden.
+				 *
+				 * At this point the parser checks if this is one of those cases and if it is
+				 * will continue searching for the next "<" in search of a token boundary.
 				 *
 				 * @see https://html.spec.whatwg.org/#tag-open-state
 				 */
 				if ( strlen( $html ) > $at + 1 ) {
 					$next_character  = $html[ $at + 1 ];
-					$at_another_node =
+					$at_another_node = (
 						'!' === $next_character ||
 						'/' === $next_character ||
 						'?' === $next_character ||
-						( 'A' <= $next_character && $next_character <= 'z' );
+						( 'A' <= $next_character && $next_character <= 'Z' ) ||
+						( 'a' <= $next_character && $next_character <= 'z' )
+					);
 					if ( ! $at_another_node ) {
 						++$at;
 						continue;
@@ -1604,7 +1625,7 @@ class WP_HTML_Tag_Processor {
 			 * `<!` transitions to markup declaration open state
 			 * https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state
 			 */
-			if ( '!' === $html[ $at + 1 ] ) {
+			if ( ! $this->is_closing_tag && '!' === $html[ $at + 1 ] ) {
 				/*
 				 * `<!--` transitions to a comment state – apply further comment rules.
 				 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
@@ -1784,6 +1805,12 @@ class WP_HTML_Tag_Processor {
 			 * See https://html.spec.whatwg.org/#parse-error-missing-end-tag-name
 			 */
 			if ( '>' === $html[ $at + 1 ] ) {
+				// `<>` is interpreted as plaintext.
+				if ( ! $this->is_closing_tag ) {
+					++$at;
+					continue;
+				}
+
 				$this->parser_state         = self::STATE_PRESUMPTUOUS_TAG;
 				$this->token_length         = $at + 2 - $this->token_starts_at;
 				$this->bytes_already_parsed = $at + 2;
@@ -1794,7 +1821,7 @@ class WP_HTML_Tag_Processor {
 			 * `<?` transitions to a bogus comment state – skip to the nearest >
 			 * See https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 			 */
-			if ( '?' === $html[ $at + 1 ] ) {
+			if ( ! $this->is_closing_tag && '?' === $html[ $at + 1 ] ) {
 				$closer_at = strpos( $html, '>', $at + 2 );
 				if ( false === $closer_at ) {
 					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
@@ -1866,7 +1893,7 @@ class WP_HTML_Tag_Processor {
 					return false;
 				}
 
-				$closer_at = strpos( $html, '>', $at + 3 );
+				$closer_at = strpos( $html, '>', $at + 2 );
 				if ( false === $closer_at ) {
 					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 
@@ -2035,6 +2062,45 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 */
 	private function after_tag() {
+		/*
+		 * There could be lexical updates enqueued for an attribute that
+		 * also exists on the next tag. In order to avoid conflating the
+		 * attributes across the two tags, lexical updates with names
+		 * need to be flushed to raw lexical updates.
+		 */
+		$this->class_name_updates_to_attributes_updates();
+
+		/*
+		 * Purge updates if there are too many. The actual count isn't
+		 * scientific, but a few values from 100 to a few thousand were
+		 * tests to find a practically-useful limit.
+		 *
+		 * If the update queue grows too big, then the Tag Processor
+		 * will spend more time iterating through them and lose the
+		 * efficiency gains of deferring applying them.
+		 */
+		if ( 1000 < count( $this->lexical_updates ) ) {
+			$this->get_updated_html();
+		}
+
+		foreach ( $this->lexical_updates as $name => $update ) {
+			/*
+			 * Any updates appearing after the cursor should be applied
+			 * before proceeding, otherwise they may be overlooked.
+			 */
+			if ( $update->start >= $this->bytes_already_parsed ) {
+				$this->get_updated_html();
+				break;
+			}
+
+			if ( is_int( $name ) ) {
+				continue;
+			}
+
+			$this->lexical_updates[] = $update;
+			unset( $this->lexical_updates[ $name ] );
+		}
+
 		$this->token_starts_at      = null;
 		$this->token_length         = null;
 		$this->tag_name_starts_at   = null;
@@ -2224,7 +2290,7 @@ class WP_HTML_Tag_Processor {
 			$shift = strlen( $diff->text ) - $diff->length;
 
 			// Adjust the cursor position by however much an update affects it.
-			if ( $diff->start <= $this->bytes_already_parsed ) {
+			if ( $diff->start < $this->bytes_already_parsed ) {
 				$this->bytes_already_parsed += $shift;
 			}
 
@@ -2429,7 +2495,7 @@ class WP_HTML_Tag_Processor {
 		 *        3. Double-quoting ends at the last character in the update.
 		 */
 		$enqueued_value = substr( $enqueued_text, $equals_at + 2, -1 );
-		return html_entity_decode( $enqueued_value );
+		return WP_HTML_Decoder::decode_attribute( $enqueued_value );
 	}
 
 	/**
@@ -2502,7 +2568,7 @@ class WP_HTML_Tag_Processor {
 
 		$raw_value = substr( $this->html, $attribute->value_starts_at, $attribute->value_length );
 
-		return html_entity_decode( $raw_value );
+		return WP_HTML_Decoder::decode_attribute( $raw_value );
 	}
 
 	/**
@@ -2617,7 +2683,7 @@ class WP_HTML_Tag_Processor {
 		 *     <figure />
 		 *             ^ this appears one character before the end of the closing ">".
 		 */
-		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 1 ];
+		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 2 ];
 	}
 
 	/**
@@ -2802,11 +2868,7 @@ class WP_HTML_Tag_Processor {
 			return $text;
 		}
 
-		$decoded = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5 | ENT_SUBSTITUTE );
-
-		if ( empty( $decoded ) ) {
-			return '';
-		}
+		$decoded = WP_HTML_Decoder::decode_text_node( $text );
 
 		/*
 		 * TEXTAREA skips a leading newline, but this newline may appear not only as the
@@ -3162,15 +3224,7 @@ class WP_HTML_Tag_Processor {
 		 *                 └←─┘ back up by strlen("em") + 1 ==> 3
 		 */
 		$this->bytes_already_parsed = $before_current_tag;
-		$this->parse_next_tag();
-		// Reparse the attributes.
-		while ( $this->parse_next_attribute() ) {
-			continue;
-		}
-
-		$tag_ends_at                = strpos( $this->html, '>', $this->bytes_already_parsed );
-		$this->token_length         = $tag_ends_at - $this->token_starts_at;
-		$this->bytes_already_parsed = $tag_ends_at;
+		$this->base_class_next_token();
 
 		return $this->html;
 	}

@@ -30,16 +30,10 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @ticket 58517
 	 *
 	 * @covers WP_HTML_Processor::__construct
+	 * @expectedIncorrectUsage WP_HTML_Processor::__construct
 	 */
 	public function test_warns_that_the_static_creator_methods_should_be_called_instead_of_the_public_constructor() {
-		$this->setExpectedIncorrectUsage( 'WP_HTML_Processor::__construct' );
-
 		new WP_HTML_Processor( '<p>Light roast.</p>' );
-
-		$this->assertNotNull(
-			$this->caught_doing_it_wrong['WP_HTML_Processor::__construct'],
-			"Calling the public constructor should warn to call the static creator methods instead, but didn't."
-		);
 	}
 
 	/**
@@ -185,6 +179,103 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			array( 'HTML', 'BODY', 'DIV' ),
 			$processor->get_breadcrumbs(),
 			"DIV should have been a sibling of the {$tag_name}."
+		);
+	}
+
+	/**
+	 * Ensure reporting that normal non-void HTML elements expect a closer.
+	 *
+	 * @ticket 61257
+	 */
+	public function test_expects_closer_regular_tags() {
+		$processor = WP_HTML_Processor::create_fragment( '<div><p><b><em>' );
+
+		$tags = 0;
+		while ( $processor->next_tag() ) {
+			$this->assertTrue(
+				$processor->expects_closer(),
+				"Should have expected a closer for '{$processor->get_tag()}', but didn't."
+			);
+			++$tags;
+		}
+
+		$this->assertSame(
+			4,
+			$tags,
+			'Did not find all the expected tags.'
+		);
+	}
+
+	/**
+	 * Ensure reporting that non-tag HTML nodes expect a closer.
+	 *
+	 * @ticket 61257
+	 *
+	 * @dataProvider data_self_contained_node_tokens
+	 *
+	 * @param string $self_contained_token String starting with HTML token that doesn't expect a closer,
+	 *                                     e.g. an HTML comment, text node, void tag, or special element.
+	 */
+	public function test_expects_closer_expects_no_closer_for_self_contained_tokens( $self_contained_token ) {
+		$processor   = WP_HTML_Processor::create_fragment( $self_contained_token );
+		$found_token = $processor->next_token();
+
+		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
+			$this->markTestSkipped( "HTML '{$self_contained_token}' is not supported." );
+		}
+
+		$this->assertTrue(
+			$found_token,
+			"Failed to find any tokens in '{$self_contained_token}': check test data provider."
+		);
+
+		$this->assertFalse(
+			$processor->expects_closer(),
+			"Incorrectly expected a closer for node of type '{$processor->get_token_type()}'."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_self_contained_node_tokens() {
+		$self_contained_nodes = array(
+			'Normative comment'                => array( '<!-- comment -->' ),
+			'Comment with invalid closing'     => array( '<!-- comment --!>' ),
+			'CDATA Section lookalike'          => array( '<![CDATA[ comment ]]>' ),
+			'Processing Instruction lookalike' => array( '<?ok comment ?>' ),
+			'Funky comment'                    => array( '<//wp:post-meta key=isbn>' ),
+			'Text node'                        => array( 'Trombone' ),
+		);
+
+		foreach ( self::data_void_tags() as $tag_name => $_name ) {
+			$self_contained_nodes[ "Void elements ({$tag_name})" ] = array( "<{$tag_name}>" );
+		}
+
+		foreach ( self::data_special_tags() as $tag_name => $_name ) {
+			$self_contained_nodes[ "Special atomic elements ({$tag_name})" ] = array( "<{$tag_name}>content</{$tag_name}>" );
+		}
+
+		return $self_contained_nodes;
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_special_tags() {
+		return array(
+			'IFRAME'   => array( 'IFRAME' ),
+			'NOEMBED'  => array( 'NOEMBED' ),
+			'NOFRAMES' => array( 'NOFRAMES' ),
+			'SCRIPT'   => array( 'SCRIPT' ),
+			'STYLE'    => array( 'STYLE' ),
+			'TEXTAREA' => array( 'TEXTAREA' ),
+			'TITLE'    => array( 'TITLE' ),
+			'XMP'      => array( 'XMP' ),
 		);
 	}
 
@@ -338,6 +429,92 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'TITLE'     => array( 'TITLE' ),
 			'TR'        => array( 'TR' ),
 			'XMP'       => array( 'XMP' ),
+		);
+	}
+
+	/**
+	 * Ensures that the HTML Processor properly reports the depth of a given element.
+	 *
+	 * @ticket 61255
+	 *
+	 * @dataProvider data_html_with_target_element_and_depth_in_body
+	 *
+	 * @param string $html_with_target_element HTML containing element with `target` class.
+	 * @param int    $depth_at_element         Depth into document at target node.
+	 */
+	public function test_reports_proper_element_depth_in_body( $html_with_target_element, $depth_at_element ) {
+		$processor = WP_HTML_Processor::create_fragment( $html_with_target_element );
+
+		$this->assertTrue(
+			$processor->next_tag( array( 'class_name' => 'target' ) ),
+			'Failed to find target element: check test data provider.'
+		);
+
+		$this->assertSame(
+			$depth_at_element,
+			$processor->get_current_depth(),
+			'HTML Processor reported the wrong depth at the matched element.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public static function data_html_with_target_element_and_depth_in_body() {
+		return array(
+			'Single element'                    => array( '<div class="target">', 3 ),
+			'Basic layout and formatting stack' => array( '<div><span><p><b><em class="target">', 7 ),
+			'Adjacent elements'                 => array( '<div><span></span><span class="target"></div>', 4 ),
+		);
+	}
+
+	/**
+	 * Ensures that the HTML Processor properly reports the depth of a given non-element.
+	 *
+	 * @ticket 61255
+	 *
+	 * @dataProvider data_html_with_target_element_and_depth_of_next_node_in_body
+	 *
+	 * @param string $html_with_target_element HTML containing element with `target` class.
+	 * @param int    $depth_after_element      Depth into document immediately after target node.
+	 */
+	public function test_reports_proper_non_element_depth_in_body( $html_with_target_element, $depth_after_element ) {
+		$processor = WP_HTML_Processor::create_fragment( $html_with_target_element );
+
+		$this->assertTrue(
+			$processor->next_tag( array( 'class_name' => 'target' ) ),
+			'Failed to find target element: check test data provider.'
+		);
+
+		$this->assertTrue(
+			$processor->next_token(),
+			'Failed to find next node after target element: check tests data provider.'
+		);
+
+		$this->assertSame(
+			$depth_after_element,
+			$processor->get_current_depth(),
+			'HTML Processor reported the wrong depth after the matched element.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public static function data_html_with_target_element_and_depth_of_next_node_in_body() {
+		return array(
+			'Element then text'                 => array( '<div class="target">One Deeper', 4 ),
+			'Basic layout and formatting stack' => array( '<div><span><p><b><em class="target">Formatted', 8 ),
+			'Basic layout with text'            => array( '<div>a<span>b<p>c<b>e<em class="target">e', 8 ),
+			'Adjacent elements'                 => array( '<div><span></span><span class="target">Here</div>', 5 ),
+			'Adjacent text'                     => array( '<p>Before<img class="target">After</p>', 4 ),
+			'HTML comment'                      => array( '<img class="target"><!-- this is inside the BODY -->', 3 ),
+			'HTML comment in DIV'               => array( '<div class="target"><!-- this is inside the BODY -->', 4 ),
+			'Funky comment'                     => array( '<div><p>What <br class="target"><//wp:post-author></p></div>', 5 ),
 		);
 	}
 }

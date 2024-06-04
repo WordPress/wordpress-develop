@@ -306,7 +306,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 	 * @ticket 45097
 	 */
 	public function test_has_block_with_invalid_content() {
-		// some content with invalid HMTL comments and a single valid block.
+		// some content with invalid HTML comments and a single valid block.
 		$invalid_content = 'before' .
 		'<!- - wp:core/weird-space --><!-- /wp:core/weird-space -->' .
 		'<!--wp:core/untrimmed-left --><!-- /wp:core/untrimmed -->' .

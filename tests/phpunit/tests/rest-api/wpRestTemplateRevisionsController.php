@@ -465,8 +465,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertArrayHasKey( 'modified', $properties, 'modified key should exist in properties.' );
 		$this->assertArrayHasKey( 'is_custom', $properties, 'is_custom key should exist in properties.' );
 		$this->assertArrayHasKey( 'parent', $properties, 'Parent key should exist in properties.' );
-		$this->assertArrayHasKey( 'author_text', $properties, 'Parent key should exist in properties.' );
-		$this->assertArrayHasKey( 'original_source', $properties, 'Parent key should exist in properties.' );
+		$this->assertArrayHasKey( 'author_text', $properties, 'author_text key should exist in properties.' );
+		$this->assertArrayHasKey( 'original_source', $properties, 'original_source key should exist in properties.' );
 	}
 
 	/**

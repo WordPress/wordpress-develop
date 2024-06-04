@@ -263,7 +263,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		// Test slashes in names.
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\fg.png' ), 'Slash not removed' );
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\fg.png' ), 'Double slashed not removed' );
-		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Tripple slashed not removed' );
+		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Triple slashed not removed' );
 	}
 
 	/**
@@ -724,41 +724,6 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( 'foobarbaz', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', $orig_blog_charset );
-	}
-
-	/**
-	 * @dataProvider data_wp_parse_id_list
-	 */
-	public function test_wp_parse_id_list( $expected, $actual ) {
-		$this->assertSame( $expected, array_values( wp_parse_id_list( $actual ) ) );
-	}
-
-	public function data_wp_parse_id_list() {
-		return array(
-			array( array( 1, 2, 3, 4 ), '1,2,3,4' ),
-			array( array( 1, 2, 3, 4 ), '1, 2,,3,4' ),
-			array( array( 1, 2, 3, 4 ), '1,2,2,3,4' ),
-			array( array( 1, 2, 3, 4 ), array( '1', '2', '3', '4', '3' ) ),
-			array( array( 1, 2, 3, 4 ), array( 1, '2', 3, '4' ) ),
-			array( array( 1, 2, 3, 4 ), '-1,2,-3,4' ),
-			array( array( 1, 2, 3, 4 ), array( -1, 2, '-3', '4' ) ),
-		);
-	}
-
-	/**
-	 * @dataProvider data_wp_parse_slug_list
-	 */
-	public function test_wp_parse_slug_list( $expected, $actual ) {
-		$this->assertSame( $expected, array_values( wp_parse_slug_list( $actual ) ) );
-	}
-
-	public function data_wp_parse_slug_list() {
-		return array(
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple,banana,carrot,dog' ),
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple, banana,,carrot,dog' ),
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple banana carrot dog' ),
-			array( array( 'apple', 'banana-carrot', 'd-o-g' ), array( 'apple ', 'banana carrot', 'd o g' ) ),
-		);
 	}
 
 	/**
@@ -1557,6 +1522,17 @@ class Tests_Functions extends WP_UnitTestCase {
 					128,
 					IMAGETYPE_AVIF,
 					'width="128" height="128"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Grid AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-alpha-grid2x1.avif',
+				array(
+					199,
+					200,
+					IMAGETYPE_AVIF,
+					'width="199" height="200"',
 					'mime' => 'image/avif',
 				),
 			),
