@@ -203,12 +203,12 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 		$processor = new WP_XML_Processor( '<root></root>text' );
 		$this->assertTrue( $processor->next_tag(), 'Did not find a tag.' );
 		$this->assertFalse( $processor->next_tag(), 'Found a non-existent tag.' );
-
 		$this->assertEquals(
 			WP_XML_Tag_Processor::ERROR_SYNTAX,
 			$processor->get_last_error(),
 			'Did not run into a parse error after the root element'
 		);
+		$this->setExpectedIncorrectUsage( 'Unexpected token type in prolog stage. (This message was added in version WP_VERSION.)' );
 	}
 
 	/**
@@ -268,7 +268,7 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 		$this->assertTrue( $processor->next_tag(), 'Did not find a tag.' );
 		$this->assertFalse( $processor->next_tag(), 'Found a comment node after the root element' );
 		$this->assertNull( $processor->get_last_error(), 'Did not run into a parse error after the root element' );
-		// $this->assertEquals( ' comment ', $processor->get_modifiable_text(), 'Did not parse the comment after the root element' );
+		$this->setExpectedIncorrectUsage( 'Unexpected token type in misc stage. (This message was added in version WP_VERSION.)' );
 	}
 
 	/**
@@ -285,6 +285,7 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 			$processor->get_last_error(),
 			'Did not run into a parse error after the root element'
 		);
+		$this->setExpectedIncorrectUsage( 'Unexpected token type in misc stage. (This message was added in version WP_VERSION.)' );
 	}
 
 	/**
