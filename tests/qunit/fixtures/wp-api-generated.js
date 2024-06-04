@@ -12323,7 +12323,7 @@ mockedApiResponse.PostsCollection = [
         ],
         "tags": [],
         "class_list": [
-            "post-2390",
+            "post-1073",
             "post",
             "type-post",
             "status-publish",
@@ -12432,7 +12432,7 @@ mockedApiResponse.PostModel = {
     ],
     "tags": [],
     "class_list": [
-        "post-2390",
+        "post-1073",
         "post",
         "type-post",
         "status-publish",
@@ -12632,7 +12632,7 @@ mockedApiResponse.PagesCollection = [
             "meta_key": ""
         },
         "class_list": [
-            "post-2393",
+            "post-1073",
             "page",
             "type-page",
             "status-publish",
@@ -12723,7 +12723,7 @@ mockedApiResponse.PageModel = {
         "meta_key": ""
     },
     "class_list": [
-        "post-2393",
+        "post-1073",
         "page",
         "type-page",
         "status-publish",
@@ -12911,7 +12911,7 @@ mockedApiResponse.MediaCollection = [
             "meta_key": ""
         },
         "class_list": [
-            "post-2396",
+            "post-1073",
             "attachment",
             "type-attachment",
             "status-inherit",
@@ -12980,7 +12980,7 @@ mockedApiResponse.MediaModel = {
         "meta_key": ""
     },
     "class_list": [
-        "post-2396",
+        "post-1073",
         "attachment",
         "type-attachment",
         "status-inherit",

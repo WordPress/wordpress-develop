@@ -773,7 +773,6 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		}
 
 		$post_data = implode(',', $post_data);
-
 		foreach ( $data as $key => $value ) {
 			if ( is_string( $value ) ) {
 				if ( in_array( $key, $datetime_keys, true ) ) {
