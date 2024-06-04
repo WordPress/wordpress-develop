@@ -138,11 +138,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::base_class_next_token
 	 */
 	public function test_attributes_are_rejected_in_tag_closers() {
-		$this->setExpectedIncorrectUsage( 'Invalid closing tag encountered. (This message was added in version WP_VERSION.)' );
-
 		$processor = new WP_XML_Tag_Processor( '<wp:content>Test</wp:content wp:post-type="test">' );
 
 		$this->assertTrue( $processor->next_tag( 'wp:content' ), 'Querying an existing tag did not return true' );
@@ -165,10 +163,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_no_value() {
-		$this->setExpectedIncorrectUsage( 'Unquoted attribute value encountered. (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Tag_Processor( '<wp:content enabled wp:post-type="test">Test</wp:content>' );
 
 		$this->assertFalse( $processor->next_tag(), 'Querying a malformed start tag did not return false' );
@@ -178,10 +175,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_no_quotes() {
-		$this->setExpectedIncorrectUsage( 'Unquoted attribute value encountered. (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Tag_Processor( '<wp:content enabled=1 wp:post-type="test">Test</wp:content>' );
 
 		$this->assertFalse( $processor->next_tag(), 'Querying a malformed start tag did not return false' );
@@ -191,10 +187,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_contains_ampersand() {
-		$this->setExpectedIncorrectUsage( 'Unquoted attribute value encountered. (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Tag_Processor( '<wp:content enabled="WordPress & WordPress">Test</wp:content>' );
 
 		$this->assertTrue( $processor->next_tag(), 'Querying a tag did not return true' );
@@ -205,10 +200,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_contains_entity_without_semicolon() {
-		$this->setExpectedIncorrectUsage( 'Unquoted attribute value encountered. (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Tag_Processor( '<wp:content enabled="&#x94">Test</wp:content>' );
 
 		$this->assertTrue( $processor->next_tag(), 'Querying a tag did not return true' );
@@ -219,10 +213,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_value_contains_lt_character() {
-		$this->setExpectedIncorrectUsage( 'Unquoted attribute value encountered. (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Tag_Processor( '<wp:content enabled="I love <3 this">Test</wp:content>' );
 
 		$this->assertFalse( $processor->next_tag(), 'Querying a malformed start tag did not return false' );
@@ -232,10 +225,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_tags_duplicate_attributes() {
-		$this->setExpectedIncorrectUsage( 'Unquoted attribute value encountered. (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Tag_Processor( '<wp:content id="update-me" id="ignored-id"><wp:text id="second">Text</wp:text></wp:content>' );
 
 		$this->assertFalse( $processor->next_tag() );
@@ -245,10 +237,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_parsing_stops_on_malformed_attribute_name_contains_slash() {
-		$this->setExpectedIncorrectUsage( 'Unquoted attribute value encountered. (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Tag_Processor( '<wp:content a/b="test">Test</wp:content>' );
 
 		$this->assertFalse( $processor->next_tag(), 'Querying a malformed start tag did not return false' );
@@ -506,10 +497,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	 * all previously-enqueued updates are applied as they ought to be.
 	 *
 	 * @ticket 61365
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
 	 */
 	public function test_get_updated_xml_applies_updates_to_content_after_seeking_to_before_parsed_bytes() {
-		$this->setExpectedIncorrectUsage( 'Unquoted attribute value encountered. (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Tag_Processor( '<wp:content><photo hidden></wp:content>' );
 
 		$processor->next_tag();
@@ -1076,11 +1066,10 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::set_attribute
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::set_attribute
 	 */
 	public function test_setting_an_attribute_to_false_is_rejected() {
-		$this->setExpectedIncorrectUsage( 'Unquoted attribute value encountered. (This message was added in version WP_VERSION.)' );
-		$this->setExpectedIncorrectUsage( 'Non-string attribute values cannot be passed to set_attribute(). (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Tag_Processor(
 			'<form action="/action_page.php"><input checked type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>'
 		);
@@ -1095,10 +1084,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	 * @ticket 61365
 	 *
 	 * @covers WP_XML_Tag_Processor::set_attribute
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::set_attribute
 	 */
 	public function test_setting_a_missing_attribute_to_false_does_not_change_the_markup() {
-		$this->setExpectedIncorrectUsage( 'Non-string attribute values cannot be passed to set_attribute(). (This message was added in version WP_VERSION.)' );
 		$xml_input = '<form action="/action_page.php"><input type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>';
 		$processor = new WP_XML_Tag_Processor( $xml_input );
 		$processor->next_tag( 'input' );
@@ -1201,10 +1189,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	 * The string " -- " (double-hyphen) must not occur within comments.
 	 *
 	 * @covers WP_XML_Tag_Processor::next_tag
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::base_class_next_token
 	 */
 	public function test_rejects_malformed_comments() {
-		$this->setExpectedIncorrectUsage( 'Invalid comment syntax encountered. (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Tag_Processor( '<!-- comment -- oh, I did not close it after the initial double dash -->' );
 		$this->assertFalse( $processor->next_token(), 'Did not reject a malformed XML comment.' );
 	}
@@ -1229,10 +1216,9 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_XML_Tag_Processor::next_tag
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::base_class_next_token
 	 */
 	public function test_rejects_empty_element_that_is_also_a_closer() {
-		$this->setExpectedIncorrectUsage( 'Invalid closing tag encountered. (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Tag_Processor( '</wp:content/> ' );
 		$result    = $processor->next_tag();
 		$this->assertFalse( $result, 'Did not handle "</wp:content/>" xml properly.' );

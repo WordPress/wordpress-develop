@@ -199,10 +199,9 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 	/**
 	 * @ticket 61365
 	 *
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Processor::step_in_misc
 	 */
 	public function test_no_text_allowed_after_root_element() {
-		$this->setExpectedIncorrectUsage( 'Unexpected token type in prolog stage. (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Processor( '<root></root>text' );
 		$this->assertTrue( $processor->next_tag(), 'Did not find a tag.' );
 		$this->assertFalse( $processor->next_tag(), 'Found a non-existent tag.' );
@@ -263,11 +262,10 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 	/**
 	 * @ticket 61365
 	 *
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Processor::step_in_misc
 	 * @return void
 	 */
 	public function test_comments_allowed_after_root_element() {
-		$this->setExpectedIncorrectUsage( 'Unexpected token type in misc stage. (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Processor( '<root></root><!-- comment -->' );
 		$this->assertTrue( $processor->next_tag(), 'Did not find a tag.' );
 		$this->assertFalse( $processor->next_tag(), 'Found a comment node after the root element' );
@@ -277,11 +275,10 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 	/**
 	 * @ticket 61365
 	 *
-	 * @expectedIncorrectUsage
+	 * @expectedIncorrectUsage WP_XML_Processor::step_in_misc
 	 * @return void
 	 */
 	public function test_cdata_not_allowed_after_root_element() {
-		$this->setExpectedIncorrectUsage( 'Unexpected token type in misc stage. (This message was added in version WP_VERSION.)' );
 		$processor = new WP_XML_Processor( '<root></root><![CDATA[ cdata ]]>' );
 		$this->assertTrue( $processor->next_tag(), 'Did not find a tag.' );
 		$this->assertFalse( $processor->next_tag(), 'Did not reject a comment node after the root element' );
