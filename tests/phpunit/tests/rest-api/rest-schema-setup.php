@@ -239,7 +239,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			)
 		);
 
-		wp_update_post(
+		$update_post = wp_update_post(
 			array(
 				'ID'           => $post_id,
 				'post_content' => 'Updated post content.',
@@ -269,7 +269,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 				'post_author'   => 0,
 			)
 		);
-		wp_update_post(
+		$update_page = wp_update_post(
 			array(
 				'ID'           => $page_id,
 				'post_content' => 'Updated page content.',
@@ -518,6 +518,10 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			);
 			$this->assertNotEmpty( $data, $route['name'] . ' route should return data.' );
 
+			$data['debug_post_id'] = get_post_class(array(), $post_id);
+			$data['debug_update_post_id'] = get_post_class(array(), $update_post);
+			$data['debug_page_id'] = get_post_class(array(), $page_id);
+			$data['debug_update_page_id'] = get_post_class(array(), $update_page);
 			$fixture           = $this->normalize_fixture( $data, $route['name'] );
 			$mocked_responses .= "\nmockedApiResponse." . $route['name'] . ' = '
 				. json_encode( $fixture, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES )
@@ -768,7 +772,11 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 					continue;
 				}
 
-
+				if ( 1 === preg_match( '/^post-\d+$/', $value ) ) {
+					// Normalize the class value to ensure test stability.
+					$data[ $key ] = 'post-1073';
+					continue;
+				}
 			}
 
 			$data[ $key ] = $this->normalize_fixture( $value, "$path.$key" );
