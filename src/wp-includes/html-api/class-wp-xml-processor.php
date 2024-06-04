@@ -590,7 +590,11 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 		// Start at the last crumb.
 		$crumb = end( $breadcrumbs );
 
-		if ( '*' !== $crumb && $this->get_tag() !== $crumb ) {
+		if (
+			'#tag' === $this->get_token_type() && 
+			'*' !== $crumb && 
+			$this->get_tag() !== $crumb
+		) {
 			return false;
 		}
 
