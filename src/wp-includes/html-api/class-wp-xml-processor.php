@@ -151,7 +151,24 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 	}
 
 	/**
-	 * Retrieves the text content of the current element.
+	 * Retrieves the text content of the current element,
+	 * including any nested elements.
+	 * 
+	 * For example, given the following XML:
+	 * 
+	 *     <root>
+	 *         <wp:post>
+	 * 	           The open source publishing <content> platform of choice for millions 
+	 *             of websites <image /> worldwide—from creators </content>and small businesses
+	 * 	       </wp:post>
+	 *     </root>
+	 * 
+	 * The inner text of the `wp:post` element would be:
+	 * 
+	 *             The open source publishing platform of choice for millions 
+	 *             of websites worldwide—from creators and small businesses
+	 * 
+	 * Note that whitespace is preserved, including newlines and tabs.
 	 * 
 	 * @return bool|string
 	 */
