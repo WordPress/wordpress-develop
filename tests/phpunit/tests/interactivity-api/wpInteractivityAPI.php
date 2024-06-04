@@ -816,9 +816,26 @@ JSON;
 	 */
 	private function evaluate( $directive_value ) {
 		$generate_state = function ( $name ) {
+			$obj       = new stdClass();
+			$obj->prop = $name;
 			return array(
-				'key'    => $name,
-				'nested' => array( 'key' => $name . '-nested' ),
+				'key'       => $name,
+				'nested'    => array( 'key' => $name . '-nested' ),
+				'obj'       => $obj,
+				'arrAccess' => new class() implements ArrayAccess {
+					#[\ReturnTypeWillChange]
+					public function offsetExists( $offset ) {
+						return true;
+					}
+
+					public function offsetGet( $offset ): string {
+						return $offset;
+					}
+
+					public function offsetSet( $offset, $value ): void {}
+
+					public function offsetUnset( $offset ): void {}
+				},
 			);
 		};
 		$this->interactivity->state( 'myPlugin', $generate_state( 'myPlugin-state' ) );
@@ -826,6 +843,7 @@ JSON;
 		$context  = array(
 			'myPlugin'    => $generate_state( 'myPlugin-context' ),
 			'otherPlugin' => $generate_state( 'otherPlugin-context' ),
+			'obj'         => new stdClass(),
 		);
 		$evaluate = new ReflectionMethod( $this->interactivity, 'evaluate' );
 		$evaluate->setAccessible( true );
@@ -851,6 +869,12 @@ JSON;
 
 		$result = $this->evaluate( 'otherPlugin::context.key' );
 		$this->assertEquals( 'otherPlugin-context', $result );
+
+		$result = $this->evaluate( 'state.obj.prop' );
+		$this->assertSame( 'myPlugin-state', $result );
+
+		$result = $this->evaluate( 'state.arrAccess.1' );
+		$this->assertSame( '1', $result );
 	}
 
 	/**
