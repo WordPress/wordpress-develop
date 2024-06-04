@@ -518,10 +518,6 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			);
 			$this->assertNotEmpty( $data, $route['name'] . ' route should return data.' );
 
-			$data['debug_post_id'] = $post_id;
-			$data['debug_update_post_id'] = $update_post;
-			$data['debug_page_id'] = $page_id;
-			$data['debug_update_page_id'] = $update_page;
 			$fixture           = $this->normalize_fixture( $data, $route['name'] );
 			$mocked_responses .= "\nmockedApiResponse." . $route['name'] . ' = '
 				. json_encode( $fixture, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES )
@@ -765,6 +761,19 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 
 		$datetime_keys = array( 'date', 'date_gmt', 'modified', 'modified_gmt' );
 
+		global $wpdb;
+		$posts = $wpdb->get_results("SELECT id, post_title, post_name as slug FROM $wpdb->posts");
+
+		//Save all titles
+		$post_data = array();
+		foreach( $posts as $post ) {
+			$post_data[] = $post->id;
+			$post_data[] = $post->post_title;
+			$post_data[] = $post->slug;
+		}
+
+		$post_data = implode(',', $post_data);
+
 		foreach ( $data as $key => $value ) {
 			if ( is_string( $value ) ) {
 				if ( in_array( $key, $datetime_keys, true ) ) {
@@ -774,7 +783,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 
 				if ( 1 === preg_match( '/^post-\d+$/', $value ) ) {
 					// Normalize the class value to ensure test stability.
-					$data[ $key ] = 'post-1073';
+					$data[ $key ] = $post_data;
 					continue;
 				}
 			}
