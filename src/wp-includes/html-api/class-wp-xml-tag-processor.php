@@ -1576,6 +1576,12 @@ class WP_XML_Tag_Processor {
 				$value_length  = strcspn( $this->xml, "<$quote", $value_start );
 				$attribute_end = $value_start + $value_length + 1;
 
+				if ( $attribute_end - 1 >= strlen( $this->xml ) ) {
+					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+		
+					return false;
+				}
+
 				if ( $this->xml[ $attribute_end - 1 ] !== $quote ) {
 					$this->last_error = self::ERROR_SYNTAX;
 					_doing_it_wrong(
