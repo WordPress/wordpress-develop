@@ -532,7 +532,6 @@ class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
 		);
  		$processor->declare_element_as_pcdata('my-pcdata');
  		$processor->next_tag('my-pcdata');
- 		$processor->next_token();
  
 		$this->assertEquals(
  			$text,

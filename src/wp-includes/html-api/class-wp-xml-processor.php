@@ -178,6 +178,10 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 			return false;
 		}
 
+		if($this->is_pcdata_element()) {
+			return $this->get_modifiable_text();
+		}
+
 		try {
 			$text = '';
 			$depth = 1;

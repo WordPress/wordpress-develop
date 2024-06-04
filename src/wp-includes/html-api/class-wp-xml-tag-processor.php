@@ -701,9 +701,6 @@ class WP_XML_Tag_Processor {
 	 * @return bool Whether a token was parsed.
 	 */
 	protected function base_class_next_token() {
-		$tag_name = $this->get_tag();
-		$is_pcdata_tag = array_key_exists($tag_name, $this->pcdata_elements);
-
 		$was_at = $this->bytes_already_parsed;
 		$this->after_tag();
 
@@ -721,39 +718,6 @@ class WP_XML_Tag_Processor {
 		 * clear it so that state doesn't linger from the previous step.
 		 */
 		$this->parser_state = self::STATE_READY;
-	
-		/*
-		 * If we are in a PCData element, everything until the closer
-		 * is considered text.
-		 */
-		if ( $is_pcdata_tag ) {
-			$closer_at = $this->scan_for_pcdata_closer( $tag_name );
-
-			// Closer not found, the document is incomplete.
-			if ( false === $closer_at ) {
-				$this->parser_state         = self::STATE_INCOMPLETE_INPUT;
-				return false;
-			}
-
-			/*
-			 * Closer found at non-zero index – this is the first
-			 * pass after the opening tag. Emit a text node.
-			 */
-			if ( $this->bytes_already_parsed < $closer_at ) {
-				$this->parser_state         = self::STATE_CDATA_NODE;
-				$this->token_starts_at      = $was_at;
-				$this->token_length         = $closer_at - $was_at;
-				$this->text_starts_at       = $was_at;
-				$this->text_length          = $this->token_length;
-				$this->bytes_already_parsed = $closer_at;
-				return true;
-			}
-
-			/*
-			 * Otherwise, closer was found at a zero index – let's
-			 * fall through to the normal tag parsing logic.
-			 */
-		}
 
 		if ( $this->bytes_already_parsed >= strlen( $this->xml ) ) {
 			$this->parser_state = self::STATE_COMPLETE;
@@ -834,7 +798,51 @@ class WP_XML_Tag_Processor {
 		$this->bytes_already_parsed = $tag_ends_at + 1;
 		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
 
+		/*
+		 * If we are in a PCData element, everything until the closer
+		 * is considered text.
+		 */
+		if ( ! $this->is_pcdata_element() ) {
+			return true;
+		}
+
+		/*
+		 * Preserve the opening tag pointers, as these will be overwritten
+		 * when finding the closing tag. They will be reset after finding
+		 * the closing to tag to point to the opening of the special atomic
+		 * tag sequence.
+		 */
+		$tag_name_starts_at   = $this->tag_name_starts_at;
+		$tag_name_length      = $this->tag_name_length;
+		$tag_ends_at          = $this->token_starts_at + $this->token_length;
+		$attributes           = $this->attributes;
+
+		$found_closer = $this->skip_pcdata( $this->get_tag() );
+
+		// Closer not found, the document is incomplete.
+		if ( false === $found_closer ) {
+			$this->parser_state         = self::STATE_INCOMPLETE_INPUT;
+			$this->bytes_already_parsed = $was_at;
+			return false;
+		}
+
+		/*
+		 * The values here look like they reference the opening tag but they reference
+		 * the closing tag instead. This is why the opening tag values were stored
+		 * above in a variable. It reads confusingly here, but that's because the
+		 * functions that skip the contents have moved all the internal cursors past
+		 * the inner content of the tag.
+		 */
+		$this->token_starts_at      = $was_at;
+		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
+		$this->text_starts_at       = $tag_ends_at;
+		$this->text_length          = $this->tag_name_starts_at - $this->text_starts_at;
+		$this->tag_name_starts_at   = $tag_name_starts_at;
+		$this->tag_name_length      = $tag_name_length;
+		$this->attributes           = $attributes;
+
 		return true;
+
 	}
 
 	/**
@@ -979,7 +987,7 @@ class WP_XML_Tag_Processor {
 	}
 
 	/**
-	 * Finds the end tag for any PCDATA element.
+	 * Skips contents of PCDATA element.
 	 *
 	 * @since WP_VERSION
 	 *
@@ -988,16 +996,15 @@ class WP_XML_Tag_Processor {
 	 * @param string $tag_name The tag name which will close the PCDATA region.
 	 * @return false|int Byte offset of the closing tag, or false if not found.
 	 */
-	private function scan_for_pcdata_closer( $tag_name ) {
+	private function skip_pcdata( $tag_name ) {
 		$xml       = $this->xml;
 		$doc_length = strlen( $xml );
 		$tag_length = strlen( $tag_name );
 
 		$at = $this->bytes_already_parsed;
-		$tag_name_starts_at = null;
 		while ( false !== $at && $at < $doc_length ) {
-			$at                 = strpos( $this->xml, '</' . $tag_name, $at );
-			$tag_name_starts_at = $at;
+			$at = strpos( $this->xml, '</' . $tag_name, $at );
+			$this->tag_name_starts_at = $at;
 
 			// Fail if there is no possible tag closer.
 			if ( false === $at ) {
@@ -1006,6 +1013,7 @@ class WP_XML_Tag_Processor {
 
 			$at += 2 + $tag_length;
 			$at += strspn( $this->xml, " \t\f\r\n", $at );
+			$this->bytes_already_parsed = $at;
 
 			/*
 			 * Ensure that the tag name terminates to avoid matching on
@@ -1017,7 +1025,8 @@ class WP_XML_Tag_Processor {
 				return false;
 			}
 			if ( $xml[ $at ] === '>' ) {
-				return $tag_name_starts_at;
+				$this->bytes_already_parsed = $at + 1;
+				return true;
 			}
 		}
 
@@ -1123,6 +1132,18 @@ class WP_XML_Tag_Processor {
 	public function declare_element_as_pcdata($element_name)
 	{
 		$this->pcdata_elements[$element_name] = true;
+	}
+
+	/**
+	 * Indicates if the currently matched tag is a PCDATA element.
+	 * 
+	 * @since WP_VERSION
+	 * 
+	 * @return bool Whether the currently matched tag is a PCDATA element.
+	 */
+	public function is_pcdata_element()
+	{
+		return array_key_exists($this->get_tag(), $this->pcdata_elements);
 	}
 
 	/**
@@ -2217,6 +2238,7 @@ class WP_XML_Tag_Processor {
 		}
 
 		$text = substr( $this->xml, $this->text_starts_at, $this->text_length );
+
 		/*
 		 * > the XML processor must behave as if it normalized all line breaks in external parsed
 		 * > entities (including the document entity) on input, before parsing, by translating both
@@ -2227,14 +2249,14 @@ class WP_XML_Tag_Processor {
 		 */
 		$text = str_replace( array("\r\n", "\r"), "\n", $text );
 
-		// Comment data and CDATA section are not decoded any further.
+		// Comment data, CDATA sections, and PCData tags contents are not decoded any further.
 		if (
 			self::STATE_CDATA_NODE === $this->parser_state ||
-			self::STATE_COMMENT === $this->parser_state
+			self::STATE_COMMENT === $this->parser_state ||
+			$this->is_pcdata_element()
 		) {
 			return $text;
 		}
-
 
 		$decoded = WP_XML_Decoder::decode( $text );
 		if (!isset($decoded)) {
