@@ -505,7 +505,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	public function test_declare_element_as_pcdata() {
-		$text      = <<<XML
+		$text      = '
 			This text contains syntax that may seem
 			like XML nodes:
 
@@ -516,8 +516,8 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 			
 			&amp;&lt;&gt;&quot;&apos;
 
-			But! It's all treated as text.
-		XML;
+			But! It is all treated as text.
+		';
 		$processor = new WP_XML_Tag_Processor(
 			"<root><my-pcdata>$text</my-pcdata></root>"
 		);

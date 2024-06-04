@@ -296,10 +296,8 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 	 */
 	public function test_detects_invalid_document_no_root_tag() {
 		$processor = new WP_XML_Processor(
-			<<<XML
-			<?xml version="1.0" encoding="UTF-8"?>
-			<!-- comment no root tag -->
-		XML
+			'<?xml version="1.0" encoding="UTF-8" ?>
+			 <!-- comment no root tag -->'
 		);
 		$this->assertFalse( $processor->next_tag(), 'Found an element when there was none.' );
 		$this->assertTrue( $processor->paused_at_incomplete_token(), 'Did not indicate that the XML input was incomplete.' );
@@ -312,11 +310,10 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 	 */
 	public function test_unclosed_root_yields_incomplete_input() {
 		$processor = new WP_XML_Processor(
-			<<<XML
-			<root inert="yes" title="test">
+			'<root inert="yes" title="test">
 				<child></child>
 				<?xml directive ?>
-		XML
+			'
 		);
 		while ( $processor->next_tag() ) {
 			continue;
