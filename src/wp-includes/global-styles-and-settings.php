@@ -310,7 +310,7 @@ function wp_add_global_styles_for_blocks() {
 
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 	if ( $can_use_cached ) {
-		// md5 is a costly operation, so we hashing global settings and block_node in a single call.
+		// Hash global settings and block nodes together to optimize performance of key generation.
 		$hash = md5(
 			wp_json_encode(
 				array(
@@ -332,10 +332,7 @@ function wp_add_global_styles_for_blocks() {
 	foreach ( $block_nodes as $metadata ) {
 
 		if ( $can_use_cached ) {
-			/*
-			 * If the block name is available, use it for the cache key to avoid costly
-			 * hashing processes. Otherwise, cache the data using a hash of the metadata.
-			 */
+			// Use the block name as the key for cached CSS data. Otherwise, use a hash of the metadata.
 			$cache_node_key = isset( $metadata['name'] ) ? $metadata['name'] : md5( wp_json_encode( $metadata ) );
 
 			if ( isset( $cached[ $cache_node_key ] ) ) {
