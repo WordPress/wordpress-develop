@@ -78,7 +78,7 @@
 		}
 	}
 
-	// The large style has been removed but the CSS is kept for backwards compatibility.
+	// The large style was removed in WordPress 6.0, the CSS is kept for backwards compatibility.
 	&.is-large,
 	&.is-style-large {
 		padding-left: 0;
