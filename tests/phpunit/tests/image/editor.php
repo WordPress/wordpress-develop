@@ -113,6 +113,11 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * @ticket 60291
 	 */
 	public function test_set_quality_webp_lossless() {
+		// Only test when WebP lossless is supported.
+		if ( ! defined( 'IMG_WEBP_LOSSLESS' ) ) {
+			$this->markTestSkipped( 'No support available for lossless WebP images.' );
+		}
+
 		// Get a new editor to test that lossless WebP images are handles correctly.
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/webp-lossless.webp' );
 
