@@ -769,6 +769,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 				}
 
 				if ( 1 === preg_match( '/^post-\d+$/', $value ) ) {
+					// Normalize the class value to ensure test stability.
 					$data[ $key ] = 'post-1073';
 					continue;
 				}
