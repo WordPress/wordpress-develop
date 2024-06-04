@@ -194,6 +194,7 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 						} else {
 							++$depth;
 						}
+						$text .= $this->get_modifiable_text();
 						break;
 					case '#text':
 					case '#cdata-section':
@@ -386,6 +387,11 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 				$this->pop_open_element();
 			}
 			$this->base_class_next_token();
+		}
+
+		// Do not step if we paused due to an incomplete input.
+		if ( WP_XML_Tag_Processor::STATE_INCOMPLETE_INPUT === $this->parser_state ) {
+			return false;
 		}
 
 		switch ( $this->parser_context ) {

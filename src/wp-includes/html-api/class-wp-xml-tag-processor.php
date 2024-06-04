@@ -1194,6 +1194,11 @@ class WP_XML_Tag_Processor {
 				$this->is_closing_tag = false;
 			}
 
+			if ( $at + 1 >= $doc_length ) {
+				$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+				return false;
+			}
+
 			/*
 			 * XML tag names are defined by the same `Name` grammar rule as attribute
 			 * names.
@@ -1530,7 +1535,7 @@ class WP_XML_Tag_Processor {
 		}
 
 		$attribute_start       = $this->bytes_already_parsed;
-		$attribute_name_length = $this->parse_name();
+		$attribute_name_length = $this->parse_name( $this->bytes_already_parsed );
 		if ( 0 === $attribute_name_length ) {
 			$this->last_error = self::ERROR_SYNTAX;
 			_doing_it_wrong(
@@ -1637,10 +1642,7 @@ class WP_XML_Tag_Processor {
 	// See https://www.w3.org/TR/xml/#NT-Name
 	const NAME_START_CHAR_PATTERN = ':a-z_A-Z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}';
 	const NAME_CHAR_PATTERN       = '\-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}:a-z_A-Z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}';
-	private function parse_name( $offset = null ) {
-		if ( null === $offset ) {
-			$offset = $this->bytes_already_parsed;
-		}
+	private function parse_name( $offset ) {
 		if ( 1 !== preg_match(
 			'~[' . self::NAME_START_CHAR_PATTERN . ']~Ssu',
 			$this->xml[ $offset ],
