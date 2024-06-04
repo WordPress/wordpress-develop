@@ -50,9 +50,14 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         directory: [ 'src', 'build' ]
+        include:
+          # Only prepare artifacts for Playground once.
+          - directory: 'build'
+            prepare-playground: true
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
       test-emoji: false
 
   # Tests the WordPress Core build process on MacOS.
