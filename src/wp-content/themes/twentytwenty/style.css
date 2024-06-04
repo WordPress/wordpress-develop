@@ -6533,6 +6533,6 @@ a.to-the-top > * {
 /* BLOCK: PULLQUOTE - Added CSS for adding padding when has border color*/
 
 .wp-block-pullquote.has-border-color{
-	padding-top: 2rem;
-	padding-bottom: 2rem;
+	padding-top: 15px;
+	padding-bottom: 15px;
 }
