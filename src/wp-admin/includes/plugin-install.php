@@ -1011,14 +1011,17 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						$button_text = _x( 'Activate', 'plugin' );
 						/* translators: %s: Plugin name. */
 						$button_label = _x( 'Activate %s', 'plugin' );
-						$activate_url = add_query_arg(
-							array(
-								'_wpnonce' => wp_create_nonce( 'activate-plugin_' . $status['file'] ),
-								'action'   => 'activate',
-								'plugin'   => $status['file'],
-							),
-							network_admin_url( 'plugins.php' )
+
+						$query_args = array(
+							'_wpnonce' => wp_create_nonce( 'activate-plugin_' . $status['file'] ),
+							'action'   => 'activate',
+							'plugin'   => $status['file'],
 						);
+
+						if ( 'plugin-information-modal' === $context ) {
+							$query_args['redirect_to'] = urlencode( wp_get_referer() );
+						}
+						$activate_url = add_query_arg( $query_args, network_admin_url( 'plugins.php' ) );
 
 						if ( is_network_admin() ) {
 							$button_text = _x( 'Network Activate', 'plugin' );
