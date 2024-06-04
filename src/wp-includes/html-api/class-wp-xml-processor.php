@@ -150,6 +150,11 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 		return false;
 	}
 
+	/**
+	 * Retrieves the text content of the current element.
+	 * 
+	 * @return bool|string
+	 */
 	public function get_inner_text()
 	{
 		if(false === $this->set_bookmark('inner_text')) {

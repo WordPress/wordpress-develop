@@ -75,6 +75,19 @@ class Tests_XmlApi_WpXmlProcessor extends PHPUnit_Framework_TestCase {
 		);
 	}
 
+	public function test_get_inner_text_handles_cdata()
+	{
+		$processor = new WP_XML_Processor(
+			'<root><wp:post>The open source publishing <![CDATA[  <content> platform of choice for millions of websites <image /> worldwide—from creators </content>and small businesses]]></wp:post></root>'
+		);
+		$processor->next_tag('wp:post');
+		$this->assertEquals(
+			'The open source publishing   <content> platform of choice for millions of websites <image /> worldwide—from creators </content>and small businesses',
+			$processor->get_inner_text(),
+			'get_inner_text() did not return the expected inner text'
+		);		
+	}
+
 	public function test_get_inner_text_returns_to_the_original_element()
 	{
 		$processor = new WP_XML_Processor(
