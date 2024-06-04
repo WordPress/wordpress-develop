@@ -649,6 +649,8 @@ JSON;
 	 *
 	 * @dataProvider data_html_with_unbalanced_tags
 	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
+	 *
 	 * @param string $html HTML containing unbalanced tags and also a directive.
 	 */
 	public function test_process_directives_doesnt_change_html_if_contains_unbalanced_tags( $html ) {
@@ -696,22 +698,17 @@ JSON;
 		);
 		$html           = '
 			<header>
-				<svg height="100" data-wp-bind--width="myPlugin::state.width">
+				<svg height="100">
 					<title>Red Circle</title>
 					<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
 				</svg>
 				<div data-wp-bind--id="myPlugin::state.id"></div>
-				<div data-wp-bind--id="myPlugin::state.width"></div>
 			</header>
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$p              = new WP_HTML_Tag_Processor( $processed_html );
-		$p->next_tag( 'svg' );
-		$this->assertNull( $p->get_attribute( 'width' ) );
 		$p->next_tag( 'div' );
 		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
-		$p->next_tag( 'div' );
-		$this->assertEquals( '100', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -721,6 +718,7 @@ JSON;
 	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API_Directives_Processor::skip_to_tag_closer
 	 */
 	public function test_process_directives_does_not_change_inner_html_in_svgs() {
 		$this->interactivity->state(
@@ -750,6 +748,7 @@ JSON;
 	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
 	 */
 	public function test_process_directives_change_html_if_contains_math() {
 		$this->interactivity->state(
@@ -784,6 +783,8 @@ JSON;
 	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
+	 * @expectedIncorrectUsage WP_Interactivity_API_Directives_Processor::skip_to_tag_closer
 	 */
 	public function test_process_directives_does_not_change_inner_html_in_math() {
 		$this->interactivity->state(
@@ -811,10 +812,11 @@ JSON;
 	/**
 	 * Invokes the private `evaluate` method of WP_Interactivity_API class.
 	 *
-	 * @param string $directive_value The directive attribute value to evaluate.
+	 * @param string $directive_value   The directive attribute value to evaluate.
+	 * @param string $default_namespace The default namespace used with directives.
 	 * @return mixed The result of the evaluate method.
 	 */
-	private function evaluate( $directive_value ) {
+	private function evaluate( $directive_value, $default_namespace = 'myPlugin' ) {
 		$generate_state = function ( $name ) {
 			$obj       = new stdClass();
 			$obj->prop = $name;
@@ -847,7 +849,7 @@ JSON;
 		);
 		$evaluate = new ReflectionMethod( $this->interactivity, 'evaluate' );
 		$evaluate->setAccessible( true );
-		return $evaluate->invokeArgs( $this->interactivity, array( $directive_value, 'myPlugin', $context ) );
+		return $evaluate->invokeArgs( $this->interactivity, array( $directive_value, $default_namespace, $context ) );
 	}
 
 	/**
@@ -945,6 +947,25 @@ JSON;
 
 		$result = $this->evaluate( 'otherPlugin::context.nested.key' );
 		$this->assertEquals( 'otherPlugin-context-nested', $result );
+	}
+
+	/**
+	 * Tests the `evaluate` method for non valid namespace values.
+	 *
+	 * @ticket 61044
+	 *
+	 * @covers ::evaluate
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
+	 */
+	public function test_evaluate_unvalid_namespaces() {
+		$result = $this->evaluate( 'path', 'null' );
+		$this->assertNull( $result );
+
+		$result = $this->evaluate( 'path', '' );
+		$this->assertNull( $result );
+
+		$result = $this->evaluate( 'path', '{}' );
+		$this->assertNull( $result );
 	}
 
 	/**
