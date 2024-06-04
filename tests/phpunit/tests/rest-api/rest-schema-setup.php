@@ -518,10 +518,10 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			);
 			$this->assertNotEmpty( $data, $route['name'] . ' route should return data.' );
 
-			$data['debug_post_id'] = get_post_class(array(), $post_id);
-			$data['debug_update_post_id'] = get_post_class(array(), $update_post);
-			$data['debug_page_id'] = get_post_class(array(), $page_id);
-			$data['debug_update_page_id'] = get_post_class(array(), $update_page);
+			$data['debug_post_id'] = $post_id;
+			$data['debug_update_post_id'] = $update_post;
+			$data['debug_page_id'] = $page_id;
+			$data['debug_update_page_id'] = $update_page;
 			$fixture           = $this->normalize_fixture( $data, $route['name'] );
 			$mocked_responses .= "\nmockedApiResponse." . $route['name'] . ' = '
 				. json_encode( $fixture, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES )
