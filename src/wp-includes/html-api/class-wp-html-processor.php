@@ -428,7 +428,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					continue;
 				}
 
-				if ( ! $this::is_tag_closer() || $visit_closers ) {
+				if ( ! $this->is_tag_closer() || $visit_closers ) {
 					return true;
 				}
 			}
