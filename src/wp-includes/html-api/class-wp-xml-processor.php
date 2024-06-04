@@ -106,7 +106,7 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Please pass a query array to this function.' ),
-				'6.4.0'
+				'WP_VERSION'
 			);
 			return false;
 		}
@@ -129,7 +129,7 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Cannot visit tag closers in XML Processor.' ),
-				'6.4.0'
+				'WP_VERSION'
 			);
 			return false;
 		}
@@ -150,32 +150,191 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 		return false;
 	}
 
+	public function get_inner_text()
+	{
+		if(false === $this->set_bookmark('inner_text')) {
+			return false;
+		}
+
+		try {
+			$text = '';
+			$depth = 1;
+			while ($depth > 0 && $this->base_class_next_token()) {
+				switch ($this->get_token_type()) {
+					case '#tag':
+						if ($this->is_empty_element()) {
+							continue 2;
+						}
+						if ($this->is_tag_closer()) {
+							--$depth;
+						} else {
+							++$depth;
+						}
+						break;
+					case '#text':
+					case '#cdata-section':
+						if ($depth > 0) {
+							$text .= $this->get_modifiable_text();
+						}
+						break;
+					default:
+						continue 2;
+				}
+			}
+
+			return $text;
+		} finally {
+			$this->seek('inner_text');
+			$this->release_bookmark('inner_text');
+		}
+	}
+
+	/**
+	 * Sets a bookmark in the XML document.
+	 *
+	 * Bookmarks represent specific places or tokens in the HTML
+	 * document, such as a tag opener or closer. When applying
+	 * edits to a document, such as setting an attribute, the
+	 * text offsets of that token may shift; the bookmark is
+	 * kept updated with those shifts and remains stable unless
+	 * the entire span of text in which the token sits is removed.
+	 *
+	 * Release bookmarks when they are no longer needed.
+	 *
+	 * Example:
+	 *
+	 *     <main><h2>Surprising fact you may not know!</h2></main>
+	 *           ^  ^
+	 *            \-|-- this `H2` opener bookmark tracks the token
+	 *
+	 *     <main class="clickbait"><h2>Surprising fact you may no…
+	 *                             ^  ^
+	 *                              \-|-- it shifts with edits
+	 *
+	 * Bookmarks provide the ability to seek to a previously-scanned
+	 * place in the HTML document. This avoids the need to re-scan
+	 * the entire document.
+	 *
+	 * Example:
+	 *
+	 *     <ul><li>One</li><li>Two</li><li>Three</li></ul>
+	 *                                 ^^^^
+	 *                                 want to note this last item
+	 *
+	 *     $p = new WP_HTML_Tag_Processor( $html );
+	 *     $in_list = false;
+	 *     while ( $p->next_tag( array( 'tag_closers' => $in_list ? 'visit' : 'skip' ) ) ) {
+	 *         if ( 'UL' === $p->get_tag() ) {
+	 *             if ( $p->is_tag_closer() ) {
+	 *                 $in_list = false;
+	 *                 $p->set_bookmark( 'resume' );
+	 *                 if ( $p->seek( 'last-li' ) ) {
+	 *                     $p->add_class( 'last-li' );
+	 *                 }
+	 *                 $p->seek( 'resume' );
+	 *                 $p->release_bookmark( 'last-li' );
+	 *                 $p->release_bookmark( 'resume' );
+	 *             } else {
+	 *                 $in_list = true;
+	 *             }
+	 *         }
+	 *
+	 *         if ( 'LI' === $p->get_tag() ) {
+	 *             $p->set_bookmark( 'last-li' );
+	 *         }
+	 *     }
+	 *
+	 * Bookmarks intentionally hide the internal string offsets
+	 * to which they refer. They are maintained internally as
+	 * updates are applied to the HTML document and therefore
+	 * retain their "position" - the location to which they
+	 * originally pointed. The inability to use bookmarks with
+	 * functions like `substr` is therefore intentional to guard
+	 * against accidentally breaking the HTML.
+	 *
+	 * Because bookmarks allocate memory and require processing
+	 * for every applied update, they are limited and require
+	 * a name. They should not be created with programmatically-made
+	 * names, such as "li_{$index}" with some loop. As a general
+	 * rule they should only be created with string-literal names
+	 * like "start-of-section" or "last-paragraph".
+	 *
+	 * Bookmarks are a powerful tool to enable complicated behavior.
+	 * Consider double-checking that you need this tool if you are
+	 * reaching for it, as inappropriate use could lead to broken
+	 * HTML structure or unwanted processing overhead.
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @param string $bookmark_name Identifies this particular bookmark.
+	 * @return bool Whether the bookmark was successfully created.
+	 */
+	public function set_bookmark( $bookmark_name ) {
+		return parent::set_bookmark( "_{$bookmark_name}" );
+	}
+
+	/**
+	 * Moves the internal cursor in the HTML Processor to a given bookmark's location.
+	 *
+	 * Be careful! Seeking backwards to a previous location resets the parser to the
+	 * start of the document and reparses the entire contents up until it finds the
+	 * sought-after bookmarked location.
+	 *
+	 * In order to prevent accidental infinite loops, there's a
+	 * maximum limit on the number of times seek() can be called.
+	 *
+	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
+	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
+	 */
+	public function seek($bookmark_name)
+	{
+		// Flush any pending updates to the document before beginning.
+		$this->get_updated_xml();
+		return parent::seek( "_{$bookmark_name}" );
+	}
+
+	/**
+	 * Removes a bookmark that is no longer needed.
+	 *
+	 * Releasing a bookmark frees up the small
+	 * performance overhead it requires.
+	 *
+	 * @since WP_VERSION
+	 *
+	 * @param string $bookmark_name Name of the bookmark to remove.
+	 * @return bool Whether the bookmark already existed before removal.
+	 */
+	public function release_bookmark( $bookmark_name ) {
+		return parent::release_bookmark( "_{$bookmark_name}" );
+	}
+
+	/**
+	 * Checks whether a bookmark with the given name exists.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $bookmark_name Name to identify a bookmark that potentially exists.
+	 * @return bool Whether that bookmark exists.
+	 */
+	public function has_bookmark( $bookmark_name ) {
+		return parent::has_bookmark( "_{$bookmark_name}" );
+	}
+
 	/**
 	 * Low-level token iteration is not available in WP_XML_Processor
 	 * as it could lead to undefined behaviors.
+	 * 
+	 * @use WP_XML_Processor::next_tag() instead.
 	 * 
 	 * @return false
 	 */
 	public function next_token()
 	{
-		_doing_it_wrong(
-			__METHOD__,
-			__( 'next_token() is not available in WP_XML_Processor. Consider using WP_XML_Tag_Processor instead.' ),
-			'WP_VERSION'
-		);
-		return false;
-	}
-
-	/**
-	 * A private method to step through the XML document without exposing
-	 * the low-level API to the public.
-	 * 
-	 * @see WP_XML_Tag_Processor::next_token
-	 * @return bool
-	 */
-	private function private_next_token()
-	{
-		return parent::next_token();
+		return $this->next_tag();
 	}
 
 	/**
@@ -205,7 +364,7 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 			if ($this->is_empty_element()) {
 				$this->pop_open_element();
 			}
-			$this->private_next_token();
+			$this->base_class_next_token();
 		}
 
 		switch($this->parser_context) {

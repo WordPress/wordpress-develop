@@ -637,7 +637,7 @@ class WP_XML_Tag_Processor {
 		$already_found = 0;
 
 		do {
-			if ( false === $this->next_token() ) {
+			if ( false === $this->base_class_next_token() ) {
 				return false;
 			}
 
@@ -682,6 +682,25 @@ class WP_XML_Tag_Processor {
 	 * @return bool Whether a token was parsed.
 	 */
 	public function next_token() {
+		return $this->base_class_next_token();
+	}
+
+	/**
+	 * Internal method which finds the next token in the HTML document.
+	 *
+	 * This method is a protected internal function which implements the logic for
+	 * finding the next token in a document. It exists so that the parser can update
+	 * its state without affecting the location of the cursor in the document and
+	 * without triggering subclass methods for things like `next_token()`, e.g. when
+	 * applying patches before searching for the next token.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @access private
+	 *
+	 * @return bool Whether a token was parsed.
+	 */
+	protected function base_class_next_token() {
 		$tag_name = $this->get_tag();
 		$is_pcdata_tag = array_key_exists($tag_name, $this->pcdata_elements);
 
@@ -1824,7 +1843,7 @@ class WP_XML_Tag_Processor {
 		// Point this tag processor before the sought tag opener and consume it.
 		$this->bytes_already_parsed = $this->bookmarks[ $bookmark_name ]->start;
 		$this->parser_state         = self::STATE_READY;
-		return $this->next_token();
+		return $this->base_class_next_token();
 	}
 
 	/**
@@ -2434,7 +2453,7 @@ class WP_XML_Tag_Processor {
 		 *                 └←─┘ back up by strlen("em") + 1 ==> 3
 		 */
 		$this->bytes_already_parsed = $before_current_tag;
-		$this->next_token();
+		$this->base_class_next_token();
 
 		return $this->xml;
 	}

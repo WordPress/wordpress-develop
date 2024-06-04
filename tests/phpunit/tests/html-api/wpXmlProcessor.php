@@ -21,9 +21,6 @@ require_once $base_dir . "/class-wp-xml-tag-processor.php";
  * @coversDefaultClass WP_XML_Processor
  */
 class Tests_XmlApi_WpXmlProcessor extends PHPUnit_Framework_TestCase {
-	const XML_SIMPLE       = '<wp:content id="first"><wp:text id="second">Text</wp:text></wp:content>';
-	const XML_WITH_CLASSES = '<wp:content wp:post-type="main with-border" id="first"><wp:text wp:post-type="not-main bold with-border" id="second">Text</wp:text></wp:content>';
-	const XML_MALFORMED    = '<wp:content><wp:text wp:post-type="d-md-none" Notifications</wp:text><wp:text wp:post-type="d-none d-md-inline">Back to notifications</wp:text></wp:content>';
 
 	/**
 	 * @ticket 56299
@@ -63,6 +60,37 @@ class Tests_XmlApi_WpXmlProcessor extends PHPUnit_Framework_TestCase {
 		);
 
 		$this->assertFalse($processor->next_tag());
+	}
+
+	public function test_get_inner_text_returns_all_inner_text()
+	{
+		$processor = new WP_XML_Processor(
+			'<root><wp:post>The open source publishing  <content> platform of choice for millions of websites <image /> worldwide—from creators </content>and small businesses</wp:post></root>'
+		);
+		$processor->next_tag('wp:post');
+		$this->assertEquals(
+			'The open source publishing   platform of choice for millions of websites  worldwide—from creators and small businesses',
+			$processor->get_inner_text(),
+			'get_inner_text() did not return the expected inner text'
+		);
+	}
+
+	public function test_get_inner_text_returns_to_the_original_element()
+	{
+		$processor = new WP_XML_Processor(
+			'<root><wp:post>The open source publishing  <content> platform of choice for millions of websites <image /> worldwide—from creators </content>and small businesses</wp:post></root>'
+		);
+		$processor->next_tag('wp:post');
+		$processor->get_inner_text();
+		$this->assertEquals(
+			'wp:post',
+			$processor->get_tag(),
+			'get_inner_text() did not return to the original tag'
+		);
+		$this->assertFalse(
+			$processor->is_tag_closer(),
+			'get_inner_text() did not return to the original tag'
+		);
 	}
 
 	/**
