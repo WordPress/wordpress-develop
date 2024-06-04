@@ -47,7 +47,7 @@
  *
  * @TODO: Support XML 1.1.
  * @package WordPress
- * @subpackage XML-API
+ * @subpackage HTML-API
  * @since WP_VERSION
  */
 

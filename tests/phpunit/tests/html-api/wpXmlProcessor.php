@@ -3,24 +3,15 @@
  * Unit tests covering WP_XML_Processor functionality.
  *
  * @package WordPress
- * @subpackage XML-API
+ * @subpackage HTML-API
  */
-
-$base_dir = __DIR__ . '/../../../../src/wp-includes/html-api';
-require_once $base_dir . '/class-wp-html-token.php';
-require_once $base_dir . '/class-wp-html-span.php';
-require_once $base_dir . '/class-wp-html-text-replacement.php';
-require_once $base_dir . '/class-wp-html-decoder.php';
-require_once $base_dir . '/class-wp-html-attribute-token.php';
-require_once $base_dir . '/class-wp-xml-processor.php';
-require_once $base_dir . '/class-wp-xml-tag-processor.php';
 
 /**
  * @group xml-api
  *
  * @coversDefaultClass WP_XML_Processor
  */
-class Tests_XmlApi_WpXmlProcessor extends PHPUnit_Framework_TestCase {
+class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365

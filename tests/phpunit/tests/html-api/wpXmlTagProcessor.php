@@ -3,23 +3,15 @@
  * Unit tests covering WP_XML_Tag_Processor functionality.
  *
  * @package WordPress
- * @subpackage XML-API
+ * @subpackage HTML-API
  */
-
-$base_dir = __DIR__ . '/../../../../src/wp-includes/html-api';
-require_once $base_dir . '/class-wp-html-token.php';
-require_once $base_dir . '/class-wp-html-span.php';
-require_once $base_dir . '/class-wp-html-text-replacement.php';
-require_once $base_dir . '/class-wp-html-decoder.php';
-require_once $base_dir . '/class-wp-html-attribute-token.php';
-require_once $base_dir . '/class-wp-xml-tag-processor.php';
 
 /**
  * @group xml-api
  *
  * @coversDefaultClass WP_XML_Tag_Processor
  */
-class Tests_XmlApi_WpXmlTagProcessor extends PHPUnit_Framework_TestCase {
+class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	const XML_SIMPLE       = '<wp:content id="first"><wp:text id="second">Text</wp:text></wp:content>';
 	const XML_WITH_CLASSES = '<wp:content wp:post-type="main with-border" id="first"><wp:text wp:post-type="not-main bold with-border" id="second">Text</wp:text></wp:content>';
 	const XML_MALFORMED    = '<wp:content><wp:text wp:post-type="d-md-none" Notifications</wp:text><wp:text wp:post-type="d-none d-md-inline">Back to notifications</wp:text></wp:content>';
