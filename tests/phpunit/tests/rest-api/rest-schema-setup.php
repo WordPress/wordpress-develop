@@ -13,6 +13,8 @@
 class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	const YOUTUBE_VIDEO_ID = 'i_cVJgIz_Cs';
 
+	private static $ids;
+
 	public function set_up() {
 		parent::set_up();
 
@@ -502,6 +504,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		$mocked_responses .= "var mockedApiResponse = {};\n";
 		$mocked_responses .= "/* jshint -W109 */\n";
 
+		static::$ids = "$post_id|$update_post|$page_id|$update_page";
+
 		foreach ( $routes_to_generate_data as $route ) {
 			$request = new WP_REST_Request( 'GET', $route['route'] );
 			if ( isset( $route['args'] ) ) {
@@ -771,6 +775,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			$post_data[] = $post->post_title;
 			$post_data[] = $post->slug;
 		}
+		static $original_class_ids;
 
 		$post_data = implode(',', $post_data);
 		foreach ( $data as $key => $value ) {
@@ -781,7 +786,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 				}
 
 				if ( 1 === preg_match( '/^post-\d+$/', $value ) ) {
-					$data[ $key ] = $value . '-' . $post_data;
+					$data[ $key ] = static::$ids . '-' . $value . '-' . $post_data;
 					continue;
 				}
 			}
