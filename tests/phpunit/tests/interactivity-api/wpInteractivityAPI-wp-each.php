@@ -581,7 +581,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
+	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 */
 	public function test_wp_each_unbalanced_tags() {
 		$original = '' .
@@ -601,7 +601,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
+	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 */
 	public function test_wp_each_unbalanced_tags_in_nested_template_tags() {
 		$this->interactivity->state( 'myPlugin', array( 'list2' => array( 3, 4 ) ) );
