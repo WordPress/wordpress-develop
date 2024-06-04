@@ -1578,7 +1578,7 @@ class WP_XML_Tag_Processor {
 
 				if ( $attribute_end - 1 >= strlen( $this->xml ) ) {
 					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
-		
+
 					return false;
 				}
 
