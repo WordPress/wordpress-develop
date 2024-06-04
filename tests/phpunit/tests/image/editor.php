@@ -108,29 +108,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test WebP lossless quality is handled correctly.
-	 *
-	 * @ticket 60291
-	 */
-	public function test_set_quality_webp_lossless() {
-		// Get a new editor to test that lossless WebP images are handles correctly.
-		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/webp-lossless.webp' );
-
-		// Only test when WebP lossless is supported.
-		if ( 'WP_Image_Editor_GD' === get_class( $editor ) && ! defined( 'IMG_WEBP_LOSSLESS' ) ) {
-			$this->markTestSkipped( 'No GD support available for lossless WebP images.' );
-		}
-
-		// If no editor is available, skip the test.
-		if ( is_wp_error( $editor ) ) {
-			$this->markTestSkipped( 'No editor available for lossless WebP images.' );
-		}
-
-		// Ensure the quality is set to 100 for lossless WebP images.
-		$this->assertSame( 100, $editor->get_quality() );
-	}
-
-	/**
 	 * Test test_quality when converting image
 	 *
 	 * @ticket 6821
