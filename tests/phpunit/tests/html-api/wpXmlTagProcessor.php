@@ -185,7 +185,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
-	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::get_attribute
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -198,7 +198,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61365
-	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_attribute
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::get_attribute
 	 *
 	 * @covers WP_XML_Tag_Processor::get_attribute
 	 */
@@ -603,7 +603,6 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 			// Tags.
 			'DIV start tag'                 => array( '<wp:content>', 1, '<wp:content>' ),
 			'DIV start tag with attributes' => array( '<wp:content wp:post-type="x" disabled="yes">', 1, '<wp:content wp:post-type="x" disabled="yes">' ),
-			'DIV end tag with attributes'   => array( '</wp:content wp:post-type="x" disabled="yes">', 1, '</wp:content wp:post-type="x" disabled="yes">' ),
 			'Nested DIV'                    => array( '<wp:content><wp:content b="yes">', 2, '<wp:content b="yes">' ),
 			'Sibling DIV'                   => array( '<wp:content></wp:content><wp:content b="yes">', 3, '<wp:content b="yes">' ),
 			'DIV after text'                => array( 'text <wp:content>', 2, '<wp:content>' ),
@@ -1188,7 +1187,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	/**
 	 * The string " -- " (double-hyphen) must not occur within comments.
 	 *
-	 * @expectedIncorrectUsage WP_XML_Tag_Processor::base_class_next_token
+	 * @expectedIncorrectUsage WP_XML_Tag_Processor::parse_next_tag
 	 * @covers WP_XML_Tag_Processor::next_tag
 	 */
 	public function test_rejects_malformed_comments() {

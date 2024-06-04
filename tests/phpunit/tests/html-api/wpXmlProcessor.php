@@ -264,15 +264,13 @@ class Tests_XmlApi_WpXmlProcessor extends WP_UnitTestCase {
 	/**
 	 * @ticket 61365
 	 *
-	 * @expectedIncorrectUsage WP_XML_Processor::step_in_misc
-	 *
 	 * @return void
 	 */
 	public function test_comments_allowed_after_root_element() {
 		$processor = new WP_XML_Processor( '<root></root><!-- comment -->' );
 		$this->assertTrue( $processor->next_tag(), 'Did not find a tag.' );
-		$this->assertFalse( $processor->next_tag(), 'Found a comment node after the root element' );
-		$this->assertNull( $processor->get_last_error(), 'Did not run into a parse error after the root element' );
+		$this->assertFalse( $processor->next_tag(), 'Found an element node after the root element' );
+		$this->assertNull( $processor->get_last_error(), 'Ran into a parse error after the root element' );
 	}
 
 	/**
