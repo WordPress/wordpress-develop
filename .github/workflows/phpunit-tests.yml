@@ -108,7 +108,7 @@ jobs:
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-phpunit-tests.yml@add/continue-on-error-input-phpunit
     permissions:
       contents: read
     secrets: inherit
