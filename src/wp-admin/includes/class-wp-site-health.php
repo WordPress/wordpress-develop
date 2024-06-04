@@ -2600,7 +2600,7 @@ class WP_Site_Health {
 
 		foreach ( $alloptions as $option_value ) {
 			if ( is_array( $option_value ) || is_object( $option_value ) ) {
-				$option_value = serialize( $option_value ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+				$option_value = maybe_serialize( $option_value );
 			}
 			$total_length += strlen( (string) $option_value );
 		}
