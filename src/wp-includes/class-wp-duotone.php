@@ -1160,8 +1160,8 @@ class WP_Duotone {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param  string $block_content Rendered block content.
-	 * @return string                Filtered block content.
+	 * @param string $block_content Rendered block content.
+	 * @return string Filtered block content.
 	 */
 	public static function restore_image_outer_container( $block_content ) {
 		if ( wp_theme_has_theme_json() ) {
