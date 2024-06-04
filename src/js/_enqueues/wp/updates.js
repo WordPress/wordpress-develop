@@ -950,8 +950,13 @@
 		// Transform the 'Install' button into an 'Activate' button.
 		$message
 			.removeClass( 'install-now installed button-disabled updated-message' )
-			.addClass( 'activate-now button-primary' )
-			.attr( 'href', response.activateUrl );
+			.addClass( 'activate-now button-primary' );
+
+			if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
+				$message.attr( 'href', response.activateUrl + '&redirect_to=' + encodeURIComponent( window.parent.location.href ) );
+			} else {
+				$message.attr( 'href', response.activateUrl );
+			}
 
 		wp.a11y.speak( __( 'Plugin dependencies check completed successfully.' ) );
 		$document.trigger( 'wp-check-plugin-dependencies-success', response );
