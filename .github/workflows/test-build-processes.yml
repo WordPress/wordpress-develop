@@ -55,7 +55,6 @@ jobs:
           - os: ubuntu-latest
             directory: 'build'
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
-
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
