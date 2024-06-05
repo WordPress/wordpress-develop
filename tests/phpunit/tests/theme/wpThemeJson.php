@@ -900,6 +900,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that if an element has nothing but pseudo selector styles, they are still output by get_stylesheet.
+	 *
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
@@ -934,14 +936,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$base_styles = ':where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}';
+		$expected = ':root :where(a:where(:not(.wp-element-button)):hover){background-color: green;color: red;font-size: 10em;text-transform: uppercase;}:root :where(a:where(:not(.wp-element-button)):focus){background-color: black;color: yellow;}';
 
-		$element_styles = ':root :where(a:where(:not(.wp-element-button)):hover){background-color: green;color: red;font-size: 10em;text-transform: uppercase;}:root :where(a:where(:not(.wp-element-button)):focus){background-color: black;color: yellow;}';
-
-		$expected = $base_styles . $element_styles;
-
-		$this->assertSame( $expected, $theme_json->get_stylesheet() );
-		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ) ) );
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
 	}
 
 	/**
@@ -979,14 +976,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$base_styles = ':where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}';
+		$expected = ':root :where(h4){background-color: red;color: green;}';
 
-		$element_styles = ':root :where(h4){background-color: red;color: green;}';
-
-		$expected = $base_styles . $element_styles;
-
-		$this->assertSame( $expected, $theme_json->get_stylesheet() );
-		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ) ) );
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
 	}
 
 	/**
@@ -1024,77 +1016,22 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$base_styles = ':where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}';
+		$expected = ':root :where(a:where(:not(.wp-element-button))){background-color: red;color: green;}:root :where(a:where(:not(.wp-element-button)):hover){background-color: green;color: red;}';
 
-		$element_styles = ':root :where(a:where(:not(.wp-element-button))){background-color: red;color: green;}:root :where(a:where(:not(.wp-element-button)):hover){background-color: green;color: red;}';
-
-		$expected = $base_styles . $element_styles;
-
-		$this->assertSame( $expected, $theme_json->get_stylesheet() );
-		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ) ) );
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
 		$this->assertStringNotContainsString( 'a:levitate{', $theme_json->get_stylesheet( array( 'styles' ) ) );
 	}
 
 	/**
+	 * Tests that element pseudo selectors are output before block element pseudo selectors, and that whitelisted
+	 * block element pseudo selectors are output correctly.
+	 *
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
 	 */
 	public function test_get_stylesheet_handles_priority_of_elements_vs_block_elements_pseudo_selectors() {
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version' => WP_Theme_JSON::LATEST_SCHEMA,
-				'styles'  => array(
-					'blocks' => array(
-						'core/group' => array(
-							'elements' => array(
-								'link' => array(
-									'color'  => array(
-										'text'       => 'green',
-										'background' => 'red',
-									),
-									':hover' => array(
-										'color'      => array(
-											'text'       => 'red',
-											'background' => 'green',
-										),
-										'typography' => array(
-											'textTransform' => 'uppercase',
-											'fontSize' => '10em',
-										),
-									),
-									':focus' => array(
-										'color' => array(
-											'text'       => 'yellow',
-											'background' => 'black',
-										),
-									),
-								),
-							),
-						),
-					),
-				),
-			)
-		);
-
-		$base_styles = ':where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}';
-
-		$element_styles = ':root :where(.wp-block-group a:where(:not(.wp-element-button))){background-color: red;color: green;}:root :where(.wp-block-group a:where(:not(.wp-element-button)):hover){background-color: green;color: red;font-size: 10em;text-transform: uppercase;}:root :where(.wp-block-group a:where(:not(.wp-element-button)):focus){background-color: black;color: yellow;}';
-
-		$expected = $base_styles . $element_styles;
-
-		$this->assertSame( $expected, $theme_json->get_stylesheet() );
-		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ) ) );
-	}
-
-	/**
-	 * @ticket 56467
-	 * @ticket 58550
-	 * @ticket 60936
-	 * @ticket 61165
-	 */
-	public function test_get_stylesheet_handles_whitelisted_block_level_element_pseudo_selectors() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
@@ -1131,14 +1068,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$base_styles = ':where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}';
+		$expected = ':root :where(a:where(:not(.wp-element-button))){background-color: red;color: green;}:root :where(a:where(:not(.wp-element-button)):hover){background-color: green;color: red;}:root :where(.wp-block-group a:where(:not(.wp-element-button)):hover){background-color: black;color: yellow;}';
 
-		$element_styles = ':root :where(a:where(:not(.wp-element-button))){background-color: red;color: green;}:root :where(a:where(:not(.wp-element-button)):hover){background-color: green;color: red;}:root :where(.wp-block-group a:where(:not(.wp-element-button)):hover){background-color: black;color: yellow;}';
-
-		$expected = $base_styles . $element_styles;
-
-		$this->assertSame( $expected, $theme_json->get_stylesheet() );
-		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ) ) );
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
 	}
 
 	/**
@@ -1261,10 +1193,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
-					'layout'  => array(
-						'contentSize' => '640px',
-						'wideSize'    => '1200px',
-					),
 					'spacing' => array(
 						'blockGap' => null,
 					),
