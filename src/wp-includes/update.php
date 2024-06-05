@@ -332,11 +332,16 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$current = new stdClass();
 	}
 
+	if ( ! isset( $current->checked ) ) {
+		$current->checked = array();
+	}
+
 	$updates               = new stdClass();
 	$updates->last_checked = time();
 	$updates->response     = array();
 	$updates->translations = array();
 	$updates->no_update    = array();
+	$updates->checked      = $current->checked;
 
 	$doing_cron = wp_doing_cron();
 
