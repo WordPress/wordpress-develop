@@ -191,7 +191,6 @@ if ( ! is_multisite() ) {
 
 	$allowed_options['general'][] = 'users_can_register';
 	$allowed_options['general'][] = 'default_role';
-	
 	$allowed_options['writing'][] = 'ping_sites';
 
 	$allowed_options['media'][] = 'uploads_use_yearmonth_folders';
