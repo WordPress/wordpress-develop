@@ -708,7 +708,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$org_filesize = filesize( $file );
 
-		$imagick_image_editor->resize( $size['width'] - 10, $size['height'] - 10 );
+		$imagick_image_editor->resize( $size['width'] - $size['width'] / 10, $size['height'] - $size['height'] / 10 );
 
 		$saved = $imagick_image_editor->save( $temp_file );
 
@@ -727,7 +727,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	public static function data_resizes_are_small_for_16bit_images() {
 		return array(
 			'17-c3-duplicate-entries' => array(
-				DIR_TESTDATA . '/images/png-tests/17-c3-duplicate-entries.png',
+				DIR_TESTDATA . '/images/png-tests/Palette_icon-or8.png',
 			),
 			'cloudflare-status'       => array(
 				DIR_TESTDATA . '/images/png-tests/cloudflare-status.png',
@@ -736,7 +736,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 				DIR_TESTDATA . '/images/png-tests/deskcat8.png',
 			),
 			'rabbit-time-paletted'    => array(
-				DIR_TESTDATA . '/images/png-tests/rabbit-time-paletted.png',
+				DIR_TESTDATA . '/images/png-tests/rabbit-time-paletted-or8.png',
 			),
 			'test8'                   => array(
 				DIR_TESTDATA . '/images/png-tests/test8.png',
