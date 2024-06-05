@@ -521,7 +521,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensures that subclasses can be created from ::create_fragment method.
 	 *
-	 * @ticket TBD
+	 * @ticket 61374
 	 */
 	public function test_subclass_create_fragment_creates_subclass() {
 		$processor = WP_HTML_Processor::create_fragment( '' );
