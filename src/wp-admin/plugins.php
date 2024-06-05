@@ -84,11 +84,16 @@ if ( $action ) {
 			} elseif ( isset( $_GET['from'] ) && 'press-this' === $_GET['from'] ) {
 				wp_redirect( self_admin_url( 'press-this.php' ) );
 			} elseif ( str_contains( wp_get_referer(), 'wp-admin/plugin-install.php' ) ) {
+				$url = wp_get_referer();
 				if ( isset( $_GET['redirect_to'] ) ) {
-					wp_redirect( urldecode( $_GET['redirect_to'] ) );
-				} else {
-					wp_redirect( wp_get_referer() );
+					$url = urldecode( $_GET['redirect_to'] );
 				}
+
+				if ( ! is_wp_error( $result ) ) {
+					$url = add_query_arg( 'activate', 'true', $url );
+				}
+
+				wp_redirect( $url );
 			} else {
 				// Overrides the ?error=true one above.
 				wp_redirect( self_admin_url( "plugins.php?activate=true&plugin_status=$status&paged=$page&s=$s" ) );
