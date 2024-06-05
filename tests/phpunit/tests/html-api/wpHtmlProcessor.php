@@ -533,7 +533,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			}
 		};
 
-		$subclass_processor = $subclass_instance::class::create_fragment( '' );
-		$this->assertInstanceOf( $subclass_instance::class, $subclass_processor, '::create_fragment did not return subclass instance.' );
+		$subclass_processor = call_user_func( array( get_class( $subclass_instance ), 'create_fragment' ), '' );
+		$this->assertInstanceOf( get_class( $subclass_instance ), $subclass_processor, '::create_fragment did not return subclass instance.' );
 	}
 }
