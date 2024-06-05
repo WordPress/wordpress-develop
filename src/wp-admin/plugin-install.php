@@ -24,6 +24,17 @@ if ( is_multisite() && ! is_network_admin() ) {
 	exit;
 }
 
+if ( isset( $_GET['activate'] ) ) {
+	wp_admin_notice(
+		__( 'Plugin activated.' ),
+		array(
+			'id'                 => 'message',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
+	);
+}
+
 $wp_list_table = _get_list_table( 'WP_Plugin_Install_List_Table' );
 $pagenum       = $wp_list_table->get_pagenum();
 
