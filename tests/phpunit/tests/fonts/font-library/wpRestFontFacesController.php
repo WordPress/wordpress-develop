@@ -623,7 +623,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	public function data_create_item_invalid_theme_json_version() {
 		return array(
 			array( 1 ),
-			array( 3 ),
+			array( 4 ),
 		);
 	}
 
