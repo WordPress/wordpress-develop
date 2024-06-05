@@ -158,17 +158,6 @@ $allowed_options['misc']    = array();
 $allowed_options['options'] = array();
 $allowed_options['privacy'] = array();
 
-$mail_options = array( 'mailserver_url', 'mailserver_port', 'mailserver_login', 'mailserver_pass' );
-
-if ( ! is_utf8_charset() ) {
-	$allowed_options['reading'][] = 'blog_charset';
-}
-
-if ( get_site_option( 'initial_db_version' ) < 32453 ) {
-	$allowed_options['writing'][] = 'use_smilies';
-	$allowed_options['writing'][] = 'use_balanceTags';
-}
-
 /**
  * Filters whether the post-by-email functionality is enabled.
  *
@@ -177,7 +166,19 @@ if ( get_site_option( 'initial_db_version' ) < 32453 ) {
  * @param bool $enabled Whether post-by-email configuration is enabled. Default true.
  */
 if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
-	$allowed_options['writing'] = array_merge( $allowed_options['writing'], $mail_options );
+	$allowed_options['writing'][] = 'mailserver_url';
+	$allowed_options['writing'][] = 'mailserver_port';
+	$allowed_options['writing'][] = 'mailserver_login';
+	$allowed_options['writing'][] = 'mailserver_pass';
+}
+
+if ( ! is_utf8_charset() ) {
+	$allowed_options['reading'][] = 'blog_charset';
+}
+
+if ( get_site_option( 'initial_db_version' ) < 32453 ) {
+	$allowed_options['writing'][] = 'use_smilies';
+	$allowed_options['writing'][] = 'use_balanceTags';
 }
 
 if ( ! is_multisite() ) {
@@ -191,7 +192,8 @@ if ( ! is_multisite() ) {
 	$allowed_options['general'][] = 'users_can_register';
 	$allowed_options['general'][] = 'default_role';
 	$allowed_options['writing'][] = 'ping_sites';
-	$allowed_options['media'][]   = 'uploads_use_yearmonth_folders';
+	
+	$allowed_options['media'][] = 'uploads_use_yearmonth_folders';
 
 	/*
 	 * If upload_url_path is not the default (empty),
