@@ -31,7 +31,7 @@ jobs:
   # Tests the WordPress Core build process on multiple operating systems.
   test-core-build-process:
     name: Core running from ${{ matrix.directory }}
-    uses: desrosj/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@add-input-for-saving-build
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@add/input-for-saving-build
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
