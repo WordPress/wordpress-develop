@@ -21,6 +21,11 @@ on:
         required: false
         type: 'boolean'
         default: true
+      save-build:
+        description: 'Whether to save a ZIP of built WordPress as an artifact.'
+        required: false
+        type: 'boolean'
+        default: false
       prepare-playground:
         description: 'Whether to prepare the artifacts needed for Playground testing.'
         required: false
@@ -97,14 +102,14 @@ jobs:
 
       - name: Upload ZIP as a GitHub Actions artifact
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
-        if: ${{ inputs.prepare-playground }}
+        if: ${{ inputs.save-build || inputs.prepare-playground }}
         with:
           name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
           path: wordpress.zip
           if-no-files-found: error
 
       - name: Save PR number
-        if: ${{ inputs.prepare-playground && github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
+        if: ${{ inputs.prepare-playground }}
         run: |
           mkdir -p ./pr-number
           echo ${{ github.event.number }} > ./pr-number/NR
