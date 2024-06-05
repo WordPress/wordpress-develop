@@ -1685,7 +1685,7 @@ class Tests_DB extends WP_UnitTestCase {
 			),
 
 			/*
-			 * @ticket 56933.
+			 * @ticket 56933
 			 * When preparing a '%%%s%%', test that the inserted value
 			 * is not wrapped in single quotes between the 2 "%".
 			 */
@@ -1838,7 +1838,7 @@ class Tests_DB extends WP_UnitTestCase {
 			),
 
 			/*
-			 * @ticket 52506.
+			 * @ticket 52506
 			 * Adding an escape method for Identifiers (e.g. table/field names).
 			 */
 			array(
