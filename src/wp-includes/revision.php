@@ -1132,18 +1132,3 @@ function _wp_preview_meta_filter( $value, $object_id, $meta_key, $single ) {
 
 	return get_post_meta( $preview->ID, $meta_key, $single );
 }
-
-/**
- * Add any revisioned meta fields to the revisions screen.
- *
- * @since 6.7.0
- *
- * @param string $revision_field The field value, but $revision->$field
- *                               (footnotes) does not exist.
- * @param string $field          The field name, in this case "footnotes".
- * @param object $revision       The revision object to compare against.
- * @return string The field value.
- */
-function wp_add_revisioned_meta_to_revision_ui( $revision_field, $field, $revision ) {
-	return get_metadata( 'post', $revision->ID );
-}
