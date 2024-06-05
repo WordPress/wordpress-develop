@@ -517,4 +517,23 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'Funky comment'                     => array( '<div><p>What <br class="target"><//wp:post-author></p></div>', 5 ),
 		);
 	}
+
+	/**
+	 * Ensures that subclasses can be created from ::create_fragment method.
+	 *
+	 * @ticket TBD
+	 */
+	public function test_subclass_create_fragment_creates_subclass() {
+		$processor = WP_HTML_Processor::create_fragment( '' );
+		$this->assertInstanceOf( WP_HTML_Processor::class, $processor, '::create_fragment did not return class instance.' );
+
+		$subclass_instance = new class('') extends WP_HTML_Processor {
+			public function __construct( $html ) {
+				parent::__construct( $html, parent::CONSTRUCTOR_UNLOCK_CODE );
+			}
+		};
+
+		$subclass_processor = $subclass_instance::class::create_fragment( '' );
+		$this->assertInstanceOf( $subclass_instance::class, $subclass_processor, '::create_fragment did not return subclass instance.' );
+	}
 }
