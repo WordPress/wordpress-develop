@@ -15,10 +15,6 @@
  *  - Prune the whitespace when removing classes/attributes: e.g. "a b c" -> "c" not " c".
  *    This would increase the size of the changes for some operations but leave more
  *    natural-looking output HTML.
- *  - Properly decode HTML character references in `get_attribute()`. PHP's
- *    `html_entity_decode()` is wrong in a couple ways: it doesn't account for the
- *    no-ambiguous-ampersand rule, and it improperly handles the way semicolons may
- *    or may not terminate a character reference.
  *
  * @package WordPress
  * @subpackage HTML-API
@@ -926,8 +922,8 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 		$this->parser_state         = self::STATE_MATCHED_TAG;
-		$this->token_length         = $tag_ends_at - $this->token_starts_at;
 		$this->bytes_already_parsed = $tag_ends_at + 1;
+		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
 
 		/*
 		 * For non-DATA sections which might contain text that looks like HTML tags but
@@ -1013,7 +1009,7 @@ class WP_HTML_Tag_Processor {
 		 */
 		$this->token_starts_at      = $was_at;
 		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
-		$this->text_starts_at       = $tag_ends_at + 1;
+		$this->text_starts_at       = $tag_ends_at;
 		$this->text_length          = $this->tag_name_starts_at - $this->text_starts_at;
 		$this->tag_name_starts_at   = $tag_name_starts_at;
 		$this->tag_name_length      = $tag_name_length;
@@ -2499,7 +2495,7 @@ class WP_HTML_Tag_Processor {
 		 *        3. Double-quoting ends at the last character in the update.
 		 */
 		$enqueued_value = substr( $enqueued_text, $equals_at + 2, -1 );
-		return html_entity_decode( $enqueued_value );
+		return WP_HTML_Decoder::decode_attribute( $enqueued_value );
 	}
 
 	/**
@@ -2572,7 +2568,7 @@ class WP_HTML_Tag_Processor {
 
 		$raw_value = substr( $this->html, $attribute->value_starts_at, $attribute->value_length );
 
-		return html_entity_decode( $raw_value );
+		return WP_HTML_Decoder::decode_attribute( $raw_value );
 	}
 
 	/**
@@ -2687,7 +2683,7 @@ class WP_HTML_Tag_Processor {
 		 *     <figure />
 		 *             ^ this appears one character before the end of the closing ">".
 		 */
-		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 1 ];
+		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 2 ];
 	}
 
 	/**
@@ -2872,7 +2868,7 @@ class WP_HTML_Tag_Processor {
 			return $text;
 		}
 
-		$decoded = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5 | ENT_SUBSTITUTE );
+		$decoded = WP_HTML_Decoder::decode_text_node( $text );
 
 		/*
 		 * TEXTAREA skips a leading newline, but this newline may appear not only as the
