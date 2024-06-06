@@ -1168,7 +1168,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 			$this->assertTrue(
 				$result,
-				"imageavif() should return true."
+				'imageavif() should return true.'
 			);
 
 			$this->assertGreaterThan(
