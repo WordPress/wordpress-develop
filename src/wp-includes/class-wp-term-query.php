@@ -645,6 +645,7 @@ class WP_Term_Query {
 			$limits = '';
 		}
 
+		// Adding alias for the s for the search.
 		if ( ! empty( $args['s'] ) ) {
 			$args['search'] = $args['s'];
 		}
