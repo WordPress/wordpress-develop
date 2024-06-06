@@ -52,7 +52,14 @@
 			"label": "Other"
 		}
 	],
-	"variations": "variations.php",
+	"variations": [
+		{
+			"name": "error",
+			"title": "Error",
+			"description": "Shows error.",
+			"keywords": [ "failure" ]
+		}
+	],
 	"example": {
 		"attributes": {
 			"message": "This is a notice!"
