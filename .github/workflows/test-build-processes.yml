@@ -51,7 +51,7 @@ jobs:
         os: [ ubuntu-latest, windows-latest ]
         directory: [ 'src', 'build' ]
         include:
-          # Only prepare artifacts for Playground once.
+          # Only prepare artifacts once.
           - os: ubuntu-latest
             directory: 'build'
             prepare-playground: true
