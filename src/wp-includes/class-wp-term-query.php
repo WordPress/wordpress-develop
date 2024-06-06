@@ -160,6 +160,7 @@ class WP_Term_Query {
 	 *                                                   (even if `$hide_empty` is set to true). Default true.
 	 *     @type string          $search                 Search criteria to match terms. Will be SQL-formatted with
 	 *                                                   wildcards before and after. Default empty.
+	 *     @type string          $s                      Alias of `$search`. Default empty.
 	 *     @type string          $name__like             Retrieve terms with criteria by which a term is LIKE
 	 *                                                   `$name__like`. Default empty.
 	 *     @type string          $description__like      Retrieve terms where the description is LIKE
@@ -214,6 +215,7 @@ class WP_Term_Query {
 			'term_taxonomy_id'       => '',
 			'hierarchical'           => true,
 			'search'                 => '',
+			's'                      => '',
 			'name__like'             => '',
 			'description__like'      => '',
 			'pad_counts'             => false,
@@ -643,6 +645,9 @@ class WP_Term_Query {
 			$limits = '';
 		}
 
+		if ( ! empty( $args['s'] ) ) {
+			$args['search'] = $args['s'];
+		}
 		if ( ! empty( $args['search'] ) ) {
 			$this->sql_clauses['where']['search'] = $this->get_search_sql( $args['search'] );
 		}
