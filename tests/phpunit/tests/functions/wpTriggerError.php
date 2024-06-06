@@ -102,6 +102,11 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 				'message'          => '<strong>expected</strong> the function name and message',
 				'expected_message' => 'some_function(): <strong>expected</strong> the function name and message',
 			),
+			'HTML links are present in message'            => array(
+				'function_name'    => 'some_function',
+				'message'          => '<a href="https://example.com">expected the function name and message</a>',
+				'expected_message' => 'some_function(): <a href="https://example.com">expected the function name and message</a>',
+			),
 			'disallowed HTML elements are present in message' => array(
 				'function_name'    => 'some_function',
 				'message'          => '<script>alert("expected the function name and message")</script>',
