@@ -47,7 +47,7 @@ jobs:
         LOCAL_SCRIPT_DEBUG: [ true, false ]
     with:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
-      php-version: '8.2'
+      php-version: '8.0'
       install-gutenberg: false
 
   failed-workflow:
