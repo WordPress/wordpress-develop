@@ -1109,6 +1109,59 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	public function data_block_registers_with_metadata_fixture() {
 		$folder = DIR_TESTDATA . '/blocks/notice';
+		$json = wp_json_file_decode( $folder . '/block.json', array( 'associative' => true ) ); // We need the mappings!
+
+		$property_mappings = array(
+			'apiVersion'      => 'api_version',
+			'name'            => 'name',
+			'title'           => 'title',
+			'category'        => 'category',
+			'parent'          => 'parent',
+			'ancestor'        => 'ancestor',
+			'icon'            => 'icon',
+			'description'     => 'description',
+			'keywords'        => 'keywords',
+			'attributes'      => 'attributes',
+			'providesContext' => 'provides_context',
+			'usesContext'     => 'uses_context',
+			'selectors'       => 'selectors',
+			'supports'        => 'supports',
+			'styles'          => 'styles',
+			'variations'      => 'variations',
+			'example'         => 'example',
+			'allowedBlocks'   => 'allowed_blocks',
+		);
+
+		$script_fields = array(
+			'editorScript' => 'editor_script_handles',
+			'script'       => 'script_handles',
+			'viewScript'   => 'view_script_handles',
+		);
+
+		$module_fields = array(
+			'viewScriptModule' => 'view_script_module_ids',
+		);
+
+		$style_fields = array(
+			'editorStyle' => 'editor_style_handles',
+			'style'       => 'style_handles',
+			'viewStyle'   => 'view_style_handles',
+		);
+
+		$all_mappings = array_merge(
+			$property_mappings,
+			$script_fields,
+			$module_fields,
+			$style_fields
+		);
+
+		$args = array();
+		foreach ( $all_mappings as $json_key => $arg_key ) {
+			if ( isset( $json[ $json_key ] ) ) {
+				$args[ $arg_key ] = $json[ $json_key ];
+			}
+		}
+
 		return array(
 			'block.json with no extra arguments' => array(
 				$folder,
@@ -1116,7 +1169,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			),
 			'arguments' => array(
 				'',
-				wp_json_file_decode( $folder . '/block.json', array( 'associative' => true ) )
+				$args
 			),
 
 		);
