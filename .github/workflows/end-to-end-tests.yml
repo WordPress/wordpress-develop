@@ -26,116 +26,36 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 env:
   LOCAL_DIR: build
-  LOCAL_PHP: 8.0-fpm
 
 jobs:
   # Runs the end-to-end test suite.
-  #
-  # Performs the following steps:
-  # - Sets environment variables.
-  # - Checks out the repository.
-  # - Logs debug information about the GitHub Action runner.
-  # - Installs Node.js.
-  # _ Installs npm dependencies.
-  # - Builds WordPress to run from the `build` directory.
-  # - Starts the WordPress Docker container.
-  # - Logs general debug information.
-  # - Logs the running Docker containers.
-  # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container).
-  # - Install WordPress within the Docker container.
-  # - Run the E2E tests.
-  # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    name: Test with SCRIPT_DEBUG ${{ matrix.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-end-to-end-tests.yml@trunk
+    permissions:
+      contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-
-    steps:
-      - name: Configure environment variables
-        run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
-
-      - name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
-          php --version
-          php -i
-          locale -a
-
-      - name: Install Node.js
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build WordPress
-        run: npm run build
-
-      - name: Start Docker environment
-        run: |
-          npm run env:start
-
-      - name: General debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
-
-      - name: Log running Docker containers
-        run: docker ps -a
-
-      - name: Docker debug information
-        run: |
-          docker -v
-          docker-compose -v
-          docker-compose run --rm mysql mysql --version
-          docker-compose run --rm php php --version
-          docker-compose run --rm php php -m
-          docker-compose run --rm php php -i
-          docker-compose run --rm php locale -a
-
-      - name: Install WordPress
-        run: npm run env:install
-
-      - name: Run E2E tests
-        run: npm run test:e2e
-
-      - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
-
-  slack-notifications:
-    name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
-    needs: [ e2e-tests ]
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    strategy:
+      fail-fast: false
+      matrix:
+        LOCAL_SCRIPT_DEBUG: [ true, false ]
     with:
-      calling_status: ${{ needs.e2e-tests.result == 'success' && 'success' || needs.e2e-tests.result == 'cancelled' && 'cancelled' || 'failure' }}
-    secrets:
-      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
-      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
-      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
-      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+      LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
+      php-version: '8.0'
+      install-gutenberg: false
 
   failed-workflow:
     name: Failed workflow tasks
     runs-on: ubuntu-latest
-    needs: [ e2e-tests, slack-notifications ]
+    permissions:
+      actions: write
+    needs: [ e2e-tests ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
@@ -144,7 +64,6 @@ jobs:
       (
         needs.e2e-tests.result == 'cancelled' || needs.e2e-tests.result == 'failure'
       )
-
     steps:
       - name: Dispatch workflow run
         uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
