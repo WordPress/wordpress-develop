@@ -6068,7 +6068,7 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
 	$message = wp_kses(
 		$message,
 		array(
-			'a'      => array( 'href' ),
+			'a'      => array( 'href' => true ),
 			'br'     => array(),
 			'code'   => array(),
 			'em'     => array(),
