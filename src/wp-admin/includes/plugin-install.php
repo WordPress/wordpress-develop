@@ -913,7 +913,8 @@ function install_plugin_information() {
  * }
  * @param bool         $compatible_php   The result of a PHP compatibility check.
  * @param bool         $compatible_wp    The result of a WP compatibility check.
- * @param string       $context          Optional. The context the button will appear in. Default empty string.
+ * @param string       $context          Optional. The context the button will appear in.
+ *                                       Accepts 'plugin-information-modal'. Default empty string.
  * @return string The markup for the dependency row button.
  */
 function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible_wp, $context = '' ) {
