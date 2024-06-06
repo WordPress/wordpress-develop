@@ -961,15 +961,18 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * Tests that the function returns the registered block when the `block.json`
 	 * is found in the fixtures directory.
 	 *
+	 * @dataProvider data_block_registers_with_metadata_fixture
+	 *
 	 * @ticket 50263
 	 * @ticket 50328
 	 * @ticket 57585
 	 * @ticket 59797
 	 * @ticket 60233
 	 */
-	public function test_block_registers_with_metadata_fixture() {
+	public function test_block_registers_with_metadata_fixture( $folder, $args ) {
 		$result = register_block_type_from_metadata(
-			DIR_TESTDATA . '/blocks/notice'
+			$folder,
+			$args
 		);
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
@@ -1102,6 +1105,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		// @ticket 53148
 		$this->assertIsCallable( $result->render_callback );
+	}
+
+	public function data_block_registers_with_metadata_fixture() {
+		$folder = DIR_TESTDATA . '/blocks/notice';
+		return array(
+			'block.json with no extra arguments' => array(
+				$folder,
+				array(),
+			),
+			'arguments' => array(
+				'',
+				wp_json_file_decode( $folder . '/block.json', array( 'associative' => true ) )
+			),
+
+		);
 	}
 
 	/**
