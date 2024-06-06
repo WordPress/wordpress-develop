@@ -324,11 +324,7 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 			$this->base_class_next_token();
 		}
 
-		// Do not step if we paused due to an incomplete input.
-		if ( WP_XML_Tag_Processor::STATE_INCOMPLETE_INPUT === $this->parser_state ) {
-			return false;
-		}
-
+		static $i = 0;
 		switch ( $this->parser_context ) {
 			case self::IN_PROLOG_CONTEXT:
 				return $this->step_in_prolog();
@@ -357,6 +353,10 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 		// before finding a root element, then the document is incomplete.
 		if ( WP_XML_Tag_Processor::STATE_COMPLETE === $this->parser_state ) {
 			$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+			return false;
+		}
+		// Do not step if we paused due to an incomplete input.
+		if ( WP_XML_Tag_Processor::STATE_INCOMPLETE_INPUT === $this->parser_state ) {
 			return false;
 		}
 		switch ( $this->get_token_type() ) {
@@ -399,6 +399,10 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 			count( $this->stack_of_open_elements ) > 0
 		) {
 			$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+			return false;
+		}
+		// Do not step if we paused due to an incomplete input.
+		if ( WP_XML_Tag_Processor::STATE_INCOMPLETE_INPUT === $this->parser_state ) {
 			return false;
 		}
 
@@ -465,6 +469,26 @@ class WP_XML_Processor extends WP_XML_Tag_Processor {
 				}
 				return $this->step();
 			default:
+				/*
+				 * If we're at the end of the document, we can never be sure
+				 * whether it's complete or are we still waiting for a comment
+				 * or a processing directive. Let's mark the parse as complete
+				 * and let the API consumer decide whether they want to re-parse
+				 * once more data becomes available in.
+				 */
+				if (
+					WP_XML_Tag_Processor::STATE_INCOMPLETE_INPUT === $this->parser_state &&
+					$this->is_incomplete_text_node
+				) {
+					$text = $this->get_modifiable_text();
+					// Non-whitespace characters are not allowed after the root element was closed.
+					$contains_only_whitespace = strlen( $text ) === strspn( $text, " \t\n\r" );
+					if ( $contains_only_whitespace ) {
+						$this->parser_state = self::STATE_COMPLETE;
+						return false;
+					}
+				}
+
 				$this->last_error = self::ERROR_SYNTAX;
 				_doing_it_wrong( __METHOD__, 'Unexpected token type in misc stage.', 'WP_VERSION' );
 				return false;

@@ -403,6 +403,22 @@ class WP_XML_Tag_Processor {
 	protected $parser_state = self::STATE_READY;
 
 	/**
+	 * Whether we stopped at an incomplete text node.
+	 *
+	 * If we are before the last tag in the document, every text
+	 * node is incomplete until we find the next tag. However,
+	 * if we are after the last tag, an incomplete all-whitespace
+	 * node may either mean we're the end of the document or
+	 * that we're still waiting for more data/
+	 *
+	 * This flag allows us to differentiate between these two
+	 * cases in context-aware APIs such as WP_XML_Processor.
+	 *
+	 * @var bool
+	 */
+	protected $is_incomplete_text_node = false;
+
+	/**
 	 * How many bytes from the original XML document have been read and parsed.
 	 *
 	 * This value points to the latest byte offset in the input document which
@@ -1167,11 +1183,18 @@ class WP_XML_Tag_Processor {
 			$at = strpos( $xml, '<', $at );
 
 			/*
-			 * This does not imply an incomplete parse; it indicates that there
-			 * can be nothing left in the document other than a #text node.
+			 * There may be no text nodes outside of elements.
+			 * If this character sequence was encountered outside of
+			 * the root element, it is a syntax error. WP_XML_Tag_Processor
+			 * does not have that context – it is up to the API consumer,
+			 * such as WP_Tag_Processor, to handle this scenario.
 			 */
 			if ( false === $at ) {
-				$at = strlen( $xml );
+				$this->parser_state            = self::STATE_INCOMPLETE_INPUT;
+				$this->is_incomplete_text_node = true;
+				$this->text_starts_at          = $was_at;
+				$this->text_length             = $doc_length - $was_at;
+				return false;
 			}
 
 			if ( $at > $was_at ) {
@@ -1712,14 +1735,15 @@ class WP_XML_Tag_Processor {
 			unset( $this->lexical_updates[ $name ] );
 		}
 
-		$this->token_starts_at    = null;
-		$this->token_length       = null;
-		$this->tag_name_starts_at = null;
-		$this->tag_name_length    = null;
-		$this->text_starts_at     = 0;
-		$this->text_length        = 0;
-		$this->is_closing_tag     = null;
-		$this->attributes         = array();
+		$this->is_incomplete_text_node = false;
+		$this->token_starts_at         = null;
+		$this->token_length            = null;
+		$this->tag_name_starts_at      = null;
+		$this->tag_name_length         = null;
+		$this->text_starts_at          = 0;
+		$this->text_length             = 0;
+		$this->is_closing_tag          = null;
+		$this->attributes              = array();
 	}
 
 	/**

@@ -615,10 +615,10 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 			'Void tag inside DIV'           => array( '<wp:content><photo src="img.png"></wp:content>', 2, '<photo src="img.png">' ),
 
 			// Text.
-			'Text'                          => array( 'Just text', 1, 'Just text' ),
+			'Text'                          => array( 'Just text</data>', 1, 'Just text' ),
 			'Text in DIV'                   => array( '<wp:content>Text<wp:content>', 2, 'Text' ),
 			'Text before DIV'               => array( 'Text<wp:content>', 1, 'Text' ),
-			'Text after comment'            => array( '<!-- comment -->Text', 2, 'Text' ),
+			'Text after comment'            => array( '<!-- comment -->Text<!-- c -->', 2, 'Text' ),
 			'Text before comment'           => array( 'Text<!-- c --> ', 1, 'Text' ),
 
 			// Comments.
@@ -661,7 +661,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 	 */
 	public function test_normalizes_carriage_returns_in_text_nodes() {
 		$processor = new WP_XML_Tag_Processor(
-			"<wp:content>We are\rnormalizing\r\n\nthe\n\r\r\r\ncarriage returns"
+			"<wp:content>We are\rnormalizing\r\n\nthe\n\r\r\r\ncarriage returns</wp:content>"
 		);
 		$processor->next_tag();
 		$processor->next_token();
@@ -1181,6 +1181,52 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 			'Incomplete CDATA'                            => array( '<![CDATA[something inside of here needs to get out' ),
 			'Partial CDATA'                               => array( '<![CDA' ),
 			'Partially closed CDATA]'                     => array( '<![CDATA[cannot escape]' ),
+		);
+	}
+
+	/**
+	 * Ensures that the processor doesn't attempt to match an incomplete text node.
+	 *
+	 * @ticket 61365
+	 *
+	 * @covers WP_XML_Tag_Processor::next_tag
+	 * @covers WP_XML_Tag_Processor::paused_at_incomplete_token
+	 *
+	 * @dataProvider data_incomplete_text_nodes
+	 *
+	 * @param string $incomplete_xml XML text containing some kind of incomplete syntax.
+	 */
+	public function test_next_tag_returns_false_for_incomplete_text_nodes( $incomplete_xml, $node_at = 1 ) {
+		$processor = new WP_XML_Tag_Processor( $incomplete_xml );
+
+		for ( $i = 0; $i < $node_at - 1; $i++ ) {
+			$this->assertTrue(
+				$processor->next_token(),
+				"Failed to find text node {$i} in incomplete XML."
+			);
+		}
+
+		$this->assertFalse(
+			$processor->next_token(),
+			"Shouldn't have found any more text nodes but found {$processor->get_modifiable_text()}."
+		);
+
+		$this->assertTrue(
+			$processor->paused_at_incomplete_token(),
+			"Should have indicated that the parser found an incomplete token but didn't."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_incomplete_text_nodes() {
+		return array(
+			'Incomplete text node'               => array( 'This is a text node' ),
+			'Incomplete text node after a tag'   => array( '<data>This is a text node', 2 ),
+			'Incomplete text node after (CDATA)' => array( 'This is a text node<![CDATA[ and this is a second text node ]]> and this is the third text node.', 3 ),
 		);
 	}
 
