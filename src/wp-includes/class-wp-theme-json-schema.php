@@ -35,7 +35,7 @@ class WP_Theme_JSON_Schema {
 	 * Function that migrates a given theme.json structure to the last version.
 	 *
 	 * @since 5.9.0
-	 * @since 6.6.0 Migrate up to v3.
+	 * @since 6.6.0 Migrate up to v3 and add $origin parameter.
 	 *
 	 * @param array $theme_json The structure to migrate.
 	 * @param string $origin    Optional. What source of data this object represents.
