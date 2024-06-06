@@ -395,6 +395,7 @@ class WP_Block {
 				}
 				$block_reader->release_bookmark( 'iterate-selectors' );
 				return $block_content;
+
 			case 'attribute':
 				$amended_content = new WP_HTML_Tag_Processor( $block_content );
 				if ( ! $amended_content->next_tag(
