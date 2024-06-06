@@ -226,11 +226,21 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private $current_element = null;
 
 	/**
+	 * @var ?WP_HTML_Node
+	 */
+	private $current_node = null;
+
+	/**
+	 * @var ?WP_HTML_Node
+	 */
+	private $tree = null;
+
+	/**
 	 * Context node if created as a fragment parser.
 	 *
 	 * @var ?WP_HTML_Token
 	 */
-	private $context_node = null;
+	private ?WP_HTML_Token $context_node = null;
 
 	/**
 	 * Whether the parser has yet processed the context node,
@@ -295,12 +305,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$processor->bookmarks['root-node']    = new WP_HTML_Span( 0, 0 );
 		$processor->bookmarks['context-node'] = new WP_HTML_Span( 0, 0 );
 
-		$processor->state->stack_of_open_elements->push(
-			new WP_HTML_Token(
-				'root-node',
-				'HTML',
-				false
-			)
+		$processor->insert_html_element(
+			new WP_HTML_Token( 'root-node', 'HTML', false )
 		);
 
 		$context_node = new WP_HTML_Token(
@@ -309,7 +315,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			false
 		);
 
-		$processor->state->stack_of_open_elements->push( $context_node );
+		$processor->insert_html_element( $context_node );
+		/*$processor->state->stack_of_open_elements->push( $context_node );*/
 		$processor->context_node = $context_node;
 
 		return $processor;
@@ -349,12 +356,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$this->state->stack_of_open_elements->set_push_handler(
 			function ( WP_HTML_Token $token ) {
 				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::PUSH );
+				$this->debug_tree( $this->tree );
 			}
 		);
 
 		$this->state->stack_of_open_elements->set_pop_handler(
 			function ( WP_HTML_Token $token ) {
 				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::POP );
+				if ( $this->current_node ) {
+					$this->current_node = &$this->current_node->parent_node;
+				}
+
+				$this->debug_tree( $this->tree );
 			}
 		);
 
@@ -366,6 +379,27 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$this->release_internal_bookmark_on_destruct = function ( $name ) {
 			parent::release_bookmark( $name );
 		};
+	}
+
+	private function debug_tree( ?WP_HTML_Node &$node, int $depth = 0 ) {
+		if ( ! $node ) {
+			return;
+		}
+
+		echo str_repeat( '  ', $depth ) . "{$node->token->node_name} ({$node::$node_type})";
+		if ( $node === $this->current_node ) {
+			echo ' <- current';
+		}
+		echo "\n";
+		if ( $node instanceof ElementNode ) {
+			foreach ( $node->child_nodes as $child ) {
+				$this->debug_tree( $child, $depth + 1 );
+			}
+		}
+
+		if ( 0 === $depth ) {
+			echo "  =========  \n";
+		}
 	}
 
 	/**
@@ -2091,6 +2125,54 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param WP_HTML_Token $token Name of bookmark pointing to element in original input HTML.
 	 */
 	private function insert_html_element( $token ) {
+		$token_name = $token->node_name;
+
+		switch ( $token_name ) {
+			// Doctype declarations don't appear in the tree or stack.
+			case 'html':
+				return;
+
+			case '#comment':
+				$node = new CommentNode(
+					$token,
+					$this->current_node,
+					$this->get_comment_type()
+				);
+				break;
+
+			case '#text':
+				$node = new TextNode(
+					$token,
+					$this->current_node,
+				);
+				break;
+
+			case '#cdata-section';
+			case '#presumptuous-tag':
+			case '#funky-comment':
+				throw new Error( "unhandled $token_name" );
+
+			default:
+				if ( ! ctype_upper( $token_name[0] ) ) {
+					throw new Error( "unhandled $token_name" );
+				}
+				$node = new ElementNode(
+					$token,
+					$this->current_node,
+				);
+				break;
+		}
+
+		if ( null === $this->tree ) {
+			$this->tree         = $node;
+			$this->current_node = &$this->tree;
+		} elseif ( $this->current_node instanceof ElementNode ) {
+			$this->current_node->append_child( $node );
+			$this->current_node = &$node;
+		} else {
+			throw new Error( "Trying to append to non-element node at {$this->bookmarks[$token->bookmark_name]->start}" );
+		}
+
 		$this->state->stack_of_open_elements->push( $token );
 	}
 
@@ -2310,4 +2392,56 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @access private
 	 */
 	const CONSTRUCTOR_UNLOCK_CODE = 'Use WP_HTML_Processor::create_fragment() instead of calling the class constructor directly.';
+}
+
+
+// phpcs:disable Generic.Files.OneObjectStructurePerFile.MultipleFound
+abstract class WP_HTML_Node {
+	const NODE_TYPE_ELEMENT                = 1;
+	const NODE_TYPE_ATTRIBUTE              = 2;
+	const NODE_TYPE_TEXT                   = 3;
+	const NODE_TYPE_CDATA_SECTION          = 4;
+	const NODE_TYPE_ENTITY_REFERENCE       = 5;
+	const NODE_TYPE_ENTITY                 = 6;
+	const NODE_TYPE_PROCESSING_INSTRUCTION = 7;
+	const NODE_TYPE_COMMENT                = 8;
+	const NODE_TYPE_DOCUMENT               = 9;
+	const NODE_TYPE_DOCUMENT_TYPE          = 10;
+	const NODE_TYPE_DOCUMENT_FRAGMENT      = 11;
+	const NODE_TYPE_NOTATION               = 12;
+
+	public static int $node_type;
+
+	public ?WP_HTML_Node $parent_node;
+	public ?WP_HTML_Token $token;
+
+	public function __construct( ?WP_HTML_Token $token, ?ElementNode &$parent_node = null ) {
+		$this->token       = $token;
+		$this->parent_node = $parent_node;
+	}
+}
+
+class ElementNode extends WP_HTML_Node {
+	public static int $node_type = WP_HTML_Node::NODE_TYPE_ELEMENT;
+
+	/** @var array<WP_HTML_Node> */
+	public array $child_nodes = array();
+
+	public function append_child( WP_HTML_Node &$node ) {
+		$this->child_nodes[] = &$node;
+	}
+}
+
+class TextNode extends WP_HTML_Node {
+	public static int $node_type = WP_HTML_Node::NODE_TYPE_TEXT;
+}
+
+class CommentNode extends WP_HTML_Node {
+	public static int $node_type = WP_HTML_Node::NODE_TYPE_COMMENT;
+	public string $comment_type;
+
+	public function __construct( WP_HTML_Token $token, ElementNode &$parent_node = null, string $comment_type ) {
+		parent::__construct( $token, $parent_node );
+		$this->comment_type = $comment_type;
+	}
 }
