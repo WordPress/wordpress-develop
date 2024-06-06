@@ -635,14 +635,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$reflected_theme_json        = new ReflectionClass( 'WP_Theme_JSON' );
-		$get_styles_for_block_method = $reflected_theme_json->getMethod( 'get_styles_for_block' );
-		$get_styles_for_block_method->setAccessible( true );
-
 		$group_styles = ':root :where(.wp-block-group){border-radius: 10px;margin: 1em;padding: 24px;}';
 		$image_styles = ':root :where(.wp-block-image){margin-bottom: 30px;padding-top: 15px;}:root :where(.wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder){border-top-left-radius: 10px;border-bottom-right-radius: 1em;}';
-		$this->assertSame( $group_styles, $get_styles_for_block_method->invoke( $theme_json, $group_node ) );
-		$this->assertSame( $image_styles, $get_styles_for_block_method->invoke( $theme_json, $image_node ) );
+		$this->assertSame( $group_styles, $theme_json->get_styles_for_block( $group_node ) );
+		$this->assertSame( $image_styles, $theme_json->get_styles_for_block( $image_node ) );
 	}
 
 	/**
@@ -886,17 +882,13 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'selector' => 'a:where(:not(.wp-element-button)):focus',
 		);
 
-		$reflected_theme_json        = new ReflectionClass( 'WP_Theme_JSON' );
-		$get_styles_for_block_method = $reflected_theme_json->getMethod( 'get_styles_for_block' );
-		$get_styles_for_block_method->setAccessible( true );
-
 		$link_style  = ':root :where(a:where(:not(.wp-element-button))){background-color: red;color: green;}';
 		$hover_style = ':root :where(a:where(:not(.wp-element-button)):hover){background-color: green;color: red;font-size: 10em;text-transform: uppercase;}';
 		$focus_style = ':root :where(a:where(:not(.wp-element-button)):focus){background-color: black;color: yellow;}';
 
-		$this->assertSame( $link_style, $get_styles_for_block_method->invoke( $theme_json, $link_node ) );
-		$this->assertSame( $hover_style, $get_styles_for_block_method->invoke( $theme_json, $hover_node ) );
-		$this->assertSame( $focus_style, $get_styles_for_block_method->invoke( $theme_json, $focus_node ) );
+		$this->assertSame( $link_style, $theme_json->get_styles_for_block( $link_node ) );
+		$this->assertSame( $hover_style, $theme_json->get_styles_for_block( $hover_node ) );
+		$this->assertSame( $focus_style, $theme_json->get_styles_for_block( $focus_node ) );
 	}
 
 	/**
@@ -4768,11 +4760,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'selector' => '.wp-block-separator',
 		);
 
-		$reflected_theme_json        = new ReflectionClass( 'WP_Theme_JSON' );
-		$get_styles_for_block_method = $reflected_theme_json->getMethod( 'get_styles_for_block' );
-		$get_styles_for_block_method->setAccessible( true );
-
-		$this->assertSame( $expected_output, $get_styles_for_block_method->invoke( $theme_json, $separator_node ) );
+		$this->assertSame( $expected_output, $theme_json->get_styles_for_block( $separator_node ) );
 	}
 
 	/**
@@ -4939,12 +4927,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'selector' => 'body',
 		);
 
-		$reflected_theme_json        = new ReflectionClass( 'WP_Theme_JSON' );
-		$get_styles_for_block_method = $reflected_theme_json->getMethod( 'get_styles_for_block' );
-		$get_styles_for_block_method->setAccessible( true );
-
 		$expected_styles = "html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}:root :where(body){background-image: url('http://example.org/image.png');background-position: center center;background-repeat: no-repeat;background-size: contain;}";
-		$this->assertSame( $expected_styles, $get_styles_for_block_method->invoke( $theme_json, $body_node ), 'Styles returned from "::get_stylesheet()" with top-level background styles type does not match expectations' );
+		$this->assertSame( $expected_styles, $theme_json->get_styles_for_block( $body_node ), 'Styles returned from "::get_stylesheet()" with top-level background styles type does not match expectations' );
 
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -4961,7 +4945,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$expected_styles = "html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}:root :where(body){background-image: url('http://example.org/image.png');background-position: center center;background-repeat: no-repeat;background-size: contain;}";
-		$this->assertSame( $expected_styles, $get_styles_for_block_method->invoke( $theme_json, $body_node ), 'Styles returned from "::get_stylesheet()" with top-level background image as string type does not match expectations' );
+		$this->assertSame( $expected_styles, $theme_json->get_styles_for_block( $body_node ), 'Styles returned from "::get_stylesheet()" with top-level background image as string type does not match expectations' );
 	}
 
 	/**
