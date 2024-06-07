@@ -1048,7 +1048,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 				}
 				break;
 		}
-
-		return $button;
 	}
+
+	return $button;
 }
