@@ -30,7 +30,7 @@
  * @property int    $user_level
  * @property string $display_name
  * @property string $spam
- * @property string $deleted
+ * @property string $deleted Deprecated. Use {@see $spam} instead.
  * @property string $locale
  * @property string $rich_editing
  * @property string $syntax_highlighting
