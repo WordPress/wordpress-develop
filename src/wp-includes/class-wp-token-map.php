@@ -578,7 +578,7 @@ class WP_Token_Map {
 	 * @param string $case_sensitivity           Optional. Pass 'ascii-case-insensitive' to ignore ASCII case when matching. Default 'case-sensitive'.
 	 * @return string|null Mapped value of lookup key if found, otherwise `null`.
 	 */
-	private function read_small_token( string $text, int $offset, &$matched_token_byte_length, $case_sensitivity = 'case-sensitive' ): ?string {
+	private function read_small_token( string $text, int $offset = 0, &$matched_token_byte_length = null, $case_sensitivity = 'case-sensitive' ): ?string {
 		$ignore_case  = 'ascii-case-insensitive' === $case_sensitivity;
 		$small_length = strlen( $this->small_words );
 		$search_text  = substr( $text, $offset, $this->key_length );
