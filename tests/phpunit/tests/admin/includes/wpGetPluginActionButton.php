@@ -72,7 +72,7 @@ class Tests_Admin_Includes_WpGetPluginActionButton extends WP_UnitTestCase {
 	/**
 	 * Tests that an empty string is returned when the user does not have the correct capabilities.
 	 *
-	 * @ticket
+	 * @ticket 61400
 	 */
 	public function test_should_return_empty_string_without_proper_capabilities() {
 		wp_set_current_user( self::$user_id );
@@ -90,7 +90,7 @@ class Tests_Admin_Includes_WpGetPluginActionButton extends WP_UnitTestCase {
 	/**
 	 * Tests that an empty string is not returned when the user has the correct capabilities.
 	 *
-	 * @ticket
+	 * @ticket 61400
 	 *
 	 * @dataProvider data_capabilities
 	 *
@@ -127,7 +127,7 @@ class Tests_Admin_Includes_WpGetPluginActionButton extends WP_UnitTestCase {
 	/**
 	 * Tests that an empty string is not returned when the user has the correct capabilities.
 	 *
-	 * @ticket
+	 * @ticket 61400
 	 *
 	 * @group ms-required
 	 */
