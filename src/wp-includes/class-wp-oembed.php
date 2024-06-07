@@ -213,7 +213,7 @@ class WP_oEmbed {
 		 * | Facebook     | facebook.com         | 4.7.0     | 5.5.2     |
 		 * | Meetup.com   | meetup.com           | 3.9.0     | 6.0.1     |
 		 * | Meetup.com   | meetu.ps             | 3.9.0     | 6.0.1     |
-		 * | Slideshare   | slideshare.net       | 3.5.0     | 6.6.0     |
+		 * | SlideShare   | slideshare.net       | 3.5.0     | 6.6.0     |
 		 *
 		 * @see wp_oembed_add_provider()
 		 *
