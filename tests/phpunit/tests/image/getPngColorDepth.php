@@ -24,34 +24,32 @@ class Tests_WP_Image_Editor_Imagick_get_png_color_depth extends WP_Image_UnitTes
 	 *
 	 * @dataProvider get_png_color_depth_with_valid_png_data
 	 */
-	public function test_get_png_color_depth_with_valid_png( $file, $expected_depth ) {
+	public function test_get_png_color_depth_with_valid_png( $file, $expected_depth, $expected_encoded ) {
 
 		$image = new WP_Image_Editor_Imagick( DIR_TESTDATA . $file );
 		$image->load();
 		$image->get_png_color_depth();
 
 		$this->assertSame( $expected_depth, $image->indexed_pixel_depth );
-		$this->assertTrue( $image->indexed_color_encoded );
+		$this->assertSame( $expected_encoded, $image->indexed_color_encoded );
 	}
 
-	public function get_png_color_depth_with_valid_png_data()
-	{
+	public function get_png_color_depth_with_valid_png_data() {
 		return array(
-			'4 bit' => array(
-				'file' => '/images/png-tests/17-c3-duplicate-entries.png',
-				'expected_depth' => 4
+			'4 bit'  => array(
+				'file'             => '/images/png-tests/17-c3-duplicate-entries.png',
+				'expected_depth'   => 4,
+				'expected_encoded' => true,
 			),
-			'8 bit' => array(
-				'file' => '/images/png-tests/test8.png',
-				'expected_depth' => 8
+			'8 bit'  => array(
+				'file'             => '/images/png-tests/test8.png',
+				'expected_depth'   => 8,
+				'expected_encoded' => true,
 			),
 			'16 bit' => array(
-				'file' => '/images/png-tests/16-bit.png',
-				'expected_depth' => 16
-			),
-			32 => array(
-				'file' => '/images/codeispoetry.png',
-				'expected_depth' => 32
+				'file'             => '/images/png-tests/basi0g16.png',
+				'expected_depth'   => 16,
+				'expected_encoded' => false,
 			),
 		);
 	}
@@ -66,5 +64,4 @@ class Tests_WP_Image_Editor_Imagick_get_png_color_depth extends WP_Image_UnitTes
 
 		$this->assertFalse( $image->indexed_pixel_depth );
 	}
-
 }

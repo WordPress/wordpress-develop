@@ -382,9 +382,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		// Skip past the dimensions.
-		$dimensions = fread( $file_handle, 8 );
-		var_dump((string) fread( $file_handle, 1 ) );
-var_dump(ord( (string) fread( $file_handle, 1 ) ));
+		fread( $file_handle, 8 );
+
 		// Bit depth: 1 byte
 		// Bit depth is a single-byte integer giving the number of bits per sample or
 		// per palette index (not per pixel).
