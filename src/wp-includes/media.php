@@ -3342,6 +3342,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 	$html_atts = array(
 		'class'    => $atts['class'],
 		'id'       => sprintf( 'audio-%d-%d', $post_id, $instance ),
+		'src'      => $atts['src'],
 		'loop'     => wp_validate_boolean( $atts['loop'] ),
 		'autoplay' => wp_validate_boolean( $atts['autoplay'] ),
 		'preload'  => $atts['preload'],
