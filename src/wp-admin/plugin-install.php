@@ -24,17 +24,6 @@ if ( is_multisite() && ! is_network_admin() ) {
 	exit;
 }
 
-if ( isset( $_GET['activate'] ) ) {
-	wp_admin_notice(
-		__( 'Plugin activated.' ),
-		array(
-			'id'                 => 'message',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
-		)
-	);
-}
-
 $wp_list_table = _get_list_table( 'WP_Plugin_Install_List_Table' );
 $pagenum       = $wp_list_table->get_pagenum();
 
@@ -145,6 +134,17 @@ get_current_screen()->set_screen_reader_content(
  * WordPress Administration Template Header.
  */
 require_once ABSPATH . 'wp-admin/admin-header.php';
+
+if ( isset( $_GET['activate'] ) ) {
+	wp_admin_notice(
+		__( 'Plugin activated.' ),
+		array(
+			'id'                 => 'message',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
+	);
+}
 
 WP_Plugin_Dependencies::initialize();
 WP_Plugin_Dependencies::display_admin_notice_for_unmet_dependencies();
