@@ -94,6 +94,8 @@ class Tests_Admin_Includes_WpGetPluginActionButton extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_capabilities
 	 *
+	 * @group ms-excluded
+	 *
 	 * @param string $capability The name of the capability.
 	 */
 	public function test_should_not_return_empty_string_with_proper_capabilities( $capability ) {
