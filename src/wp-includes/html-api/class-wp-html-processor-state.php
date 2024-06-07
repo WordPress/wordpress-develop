@@ -70,7 +70,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @var WP_HTML_Open_Elements
 	 */
-	public $stack_of_open_elements = null;
+	public $stack_of_open_elements;
 
 	/**
 	 * Tracks open formatting elements, used to handle mis-nested formatting element tags.
@@ -83,7 +83,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @var WP_HTML_Active_Formatting_Elements
 	 */
-	public $active_formatting_elements = null;
+	public $active_formatting_elements;
 
 	/**
 	 * Refers to the currently-matched tag, if any.
