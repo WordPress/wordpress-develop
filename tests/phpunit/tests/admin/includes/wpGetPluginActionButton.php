@@ -123,4 +123,28 @@ class Tests_Admin_Includes_WpGetPluginActionButton extends WP_UnitTestCase {
 	public function data_capabilities() {
 		return self::text_array_to_dataprovider( array( 'install_plugins', 'update_plugins' ) );
 	}
+
+	/**
+	 * Tests that an empty string is not returned when the user has the correct capabilities.
+	 *
+	 * @ticket
+	 *
+	 * @group ms-required
+	 */
+	public function test_should_not_return_empty_string_with_proper_capabilities_multisite() {
+		wp_set_current_user( self::$user_id );
+
+		grant_super_admin( self::$user_id );
+
+		$actual = wp_get_plugin_action_button(
+			self::$test_plugin->name,
+			self::$test_plugin,
+			true,
+			true
+		);
+
+		revoke_super_admin( self::$user_id );
+
+		$this->assertNotSame( '', $actual, 'Button markup should be returned.' );
+	}
 }
