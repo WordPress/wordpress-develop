@@ -1423,6 +1423,12 @@ class WP_Theme_JSON {
 			$stylesheet .= $this->get_preset_classes( $setting_nodes, $origins );
 		}
 
+		// Load the custom CSS last so it has the highest specificity.
+		if ( in_array( 'custom-css', $types, true ) ) {
+			// Add the global styles root CSS.
+			$stylesheet .= _wp_array_get( $this->theme_json, array( 'styles', 'css' ) );
+		}
+
 		return $stylesheet;
 	}
 
@@ -2692,6 +2698,7 @@ class WP_Theme_JSON {
 				'duotone'    => $duotone_selector,
 				'features'   => $feature_selectors,
 				'variations' => $variation_selectors,
+				'css'        => $selector,
 			);
 
 			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
@@ -2910,6 +2917,11 @@ class WP_Theme_JSON {
 
 		// 7. Generate and append any custom CSS rules pertaining to nested block style variations.
 		if ( isset( $node['css'] ) && ! $is_root_selector ) {
+			$block_rules .= $this->process_blocks_custom_css( $node['css'], $selector );
+		}
+
+		// 7. Generate and append any custom CSS rules.
+		if ( isset( $node['css'] ) ) {
 			$block_rules .= $this->process_blocks_custom_css( $node['css'], $selector );
 		}
 
