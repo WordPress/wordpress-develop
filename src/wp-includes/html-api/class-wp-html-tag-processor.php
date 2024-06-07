@@ -2787,6 +2787,8 @@ class WP_HTML_Tag_Processor {
 			case self::STATE_FUNKY_COMMENT:
 				return '#funky-comment';
 		}
+
+		return null;
 	}
 
 	/**
