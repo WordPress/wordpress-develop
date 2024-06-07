@@ -31,7 +31,7 @@ class WP_HTML_Decoder {
 	 *                                 Default 'case-sensitive'.
 	 * @return bool Whether the attribute value starts with the given string.
 	 */
-	public static function attribute_starts_with( $haystack, $search_text, $case_sensitivity = 'case-sensitive' ) {
+	public static function attribute_starts_with( string $haystack, string $search_text, string $case_sensitivity = 'case-sensitive' ): bool {
 		$search_length = strlen( $search_text );
 		$loose_case    = 'ascii-case-insensitive' === $case_sensitivity;
 		$haystack_end  = strlen( $haystack );
@@ -90,7 +90,7 @@ class WP_HTML_Decoder {
 	 * @param string $text Text containing raw and non-decoded text node to decode.
 	 * @return string Decoded UTF-8 value of given text node.
 	 */
-	public static function decode_text_node( $text ) {
+	public static function decode_text_node( string $text ): string {
 		return static::decode( 'data', $text );
 	}
 
@@ -110,7 +110,7 @@ class WP_HTML_Decoder {
 	 * @param string $text Text containing raw and non-decoded attribute value to decode.
 	 * @return string Decoded UTF-8 value of given attribute value.
 	 */
-	public static function decode_attribute( $text ) {
+	public static function decode_attribute( string $text ): string {
 		return static::decode( 'attribute', $text );
 	}
 
@@ -133,7 +133,7 @@ class WP_HTML_Decoder {
 	 * @param string $text    Text document containing span of text to decode.
 	 * @return string Decoded UTF-8 string.
 	 */
-	public static function decode( $context, $text ) {
+	public static function decode( string $context, string $text ): string {
 		$decoded = '';
 		$end     = strlen( $text );
 		$at      = 0;
@@ -203,7 +203,7 @@ class WP_HTML_Decoder {
 	 *                                   is found, otherwise not set. Default null.
 	 * @return string|false Decoded character reference in UTF-8 if found, otherwise `false`.
 	 */
-	public static function read_character_reference( $context, $text, $at = 0, &$match_byte_length = null ) {
+	public static function read_character_reference( string $context, string $text, int $at = 0, &$match_byte_length = null ) {
 		/**
 		 * Mappings for HTML5 named character references.
 		 *
@@ -421,7 +421,7 @@ class WP_HTML_Decoder {
 	 * @param int $code_point Which code point to convert.
 	 * @return string Converted code point, or `�` if invalid.
 	 */
-	public static function code_point_to_utf8_bytes( $code_point ) {
+	public static function code_point_to_utf8_bytes( int $code_point ): string {
 		// Pre-check to ensure a valid code point.
 		if (
 			$code_point <= 0 ||
