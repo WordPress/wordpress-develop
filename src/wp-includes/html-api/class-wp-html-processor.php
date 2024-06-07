@@ -157,9 +157,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @var ?WP_HTML_Processor_State
+	 * @var WP_HTML_Processor_State
 	 */
-	private $state = null;
+	private $state;
 
 	/**
 	 * Used to create unique bookmark names.
