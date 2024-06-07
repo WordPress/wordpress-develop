@@ -348,7 +348,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$this->state = new WP_HTML_Processor_State();
 
 		$this->state->stack_of_open_elements->set_push_handler(
-			function ( WP_HTML_Token $token ) {
+			function ( WP_HTML_Token $token ): void {
 				$is_virtual            = ! isset( $this->state->current_token ) || $this->is_tag_closer();
 				$same_node             = isset( $this->state->current_token ) && $token->node_name === $this->state->current_token->node_name;
 				$provenance            = ( ! $same_node || $is_virtual ) ? 'virtual' : 'real';
@@ -357,7 +357,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		);
 
 		$this->state->stack_of_open_elements->set_pop_handler(
-			function ( WP_HTML_Token $token ) {
+			function ( WP_HTML_Token $token ): void {
 				$is_virtual            = ! isset( $this->state->current_token ) || ! $this->is_tag_closer();
 				$same_node             = isset( $this->state->current_token ) && $token->node_name === $this->state->current_token->node_name;
 				$provenance            = ( ! $same_node || $is_virtual ) ? 'virtual' : 'real';
@@ -370,7 +370,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * a private method into WP_HTML_Token classes without
 		 * exposing it to any public API.
 		 */
-		$this->release_internal_bookmark_on_destruct = function ( $name ) {
+		$this->release_internal_bookmark_on_destruct = function ( $name ): void {
 			parent::release_bookmark( $name );
 		};
 	}
@@ -1986,7 +1986,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @see https://html.spec.whatwg.org/#close-a-p-element
 	 */
-	private function close_a_p_element() {
+	private function close_a_p_element(): void {
 		$this->generate_implied_end_tags( 'P' );
 		$this->state->stack_of_open_elements->pop_until( 'P' );
 	}
@@ -2000,7 +2000,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @param string|null $except_for_this_element Perform as if this element doesn't exist in the stack of open elements.
 	 */
-	private function generate_implied_end_tags( ?string $except_for_this_element = null ) {
+	private function generate_implied_end_tags( ?string $except_for_this_element = null ): void {
 		$elements_with_implied_end_tags = array(
 			'DD',
 			'DT',
@@ -2028,7 +2028,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see WP_HTML_Processor::generate_implied_end_tags
 	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
 	 */
-	private function generate_implied_end_tags_thoroughly() {
+	private function generate_implied_end_tags_thoroughly(): void {
 		$elements_with_implied_end_tags = array(
 			'DD',
 			'DT',
@@ -2097,7 +2097,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @see https://html.spec.whatwg.org/#adoption-agency-algorithm
 	 */
-	private function run_adoption_agency_algorithm() {
+	private function run_adoption_agency_algorithm(): void {
 		$budget       = 1000;
 		$subject      = $this->get_tag();
 		$current_node = $this->state->stack_of_open_elements->current_node();
@@ -2208,7 +2208,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @param WP_HTML_Token $token Name of bookmark pointing to element in original input HTML.
 	 */
-	private function insert_html_element( WP_HTML_Token $token ) {
+	private function insert_html_element( WP_HTML_Token $token ): void {
 		$this->state->stack_of_open_elements->push( $token );
 	}
 

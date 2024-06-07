@@ -2052,7 +2052,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 */
-	private function skip_whitespace() {
+	private function skip_whitespace(): void {
 		$this->bytes_already_parsed += strspn( $this->html, " \t\f\r\n", $this->bytes_already_parsed );
 	}
 
@@ -2061,7 +2061,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 */
-	private function after_tag() {
+	private function after_tag(): void {
 		/*
 		 * There could be lexical updates enqueued for an attribute that
 		 * also exists on the next tag. In order to avoid conflating the
@@ -2122,7 +2122,7 @@ class WP_HTML_Tag_Processor {
 	 * @see WP_HTML_Tag_Processor::$lexical_updates
 	 * @see WP_HTML_Tag_Processor::$classname_updates
 	 */
-	private function class_name_updates_to_attributes_updates() {
+	private function class_name_updates_to_attributes_updates(): void {
 		if ( count( $this->classname_updates ) === 0 ) {
 			return;
 		}

@@ -83,7 +83,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @param Closure $handler The handler function.
 	 */
-	public function set_pop_handler( Closure $handler ) {
+	public function set_pop_handler( Closure $handler ): void {
 		$this->pop_handler = $handler;
 	}
 
@@ -97,7 +97,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @param Closure $handler The handler function.
 	 */
-	public function set_push_handler( Closure $handler ) {
+	public function set_push_handler( Closure $handler ): void {
 		$this->push_handler = $handler;
 	}
 
@@ -355,7 +355,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @param WP_HTML_Token $stack_item Item to add onto stack.
 	 */
-	public function push( WP_HTML_Token $stack_item ) {
+	public function push( WP_HTML_Token $stack_item ): void {
 		$this->stack[] = $stack_item;
 		$this->after_element_push( $stack_item );
 	}
@@ -465,7 +465,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @param WP_HTML_Token $item Element that was added to the stack of open elements.
 	 */
-	public function after_element_push( WP_HTML_Token $item ) {
+	public function after_element_push( WP_HTML_Token $item ): void {
 		/*
 		 * When adding support for new elements, expand this switch to trap
 		 * cases where the precalculated value needs to change.
@@ -498,7 +498,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @param WP_HTML_Token $item Element that was removed from the stack of open elements.
 	 */
-	public function after_element_pop( WP_HTML_Token $item ) {
+	public function after_element_pop( WP_HTML_Token $item ): void {
 		/*
 		 * When adding support for new elements, expand this switch to trap
 		 * cases where the precalculated value needs to change.
