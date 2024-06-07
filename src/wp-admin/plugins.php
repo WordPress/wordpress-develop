@@ -83,7 +83,7 @@ if ( $action ) {
 				wp_redirect( self_admin_url( 'import.php?import=' . str_replace( '-importer', '', dirname( $plugin ) ) ) );
 			} elseif ( isset( $_GET['from'] ) && 'press-this' === $_GET['from'] ) {
 				wp_redirect( self_admin_url( 'press-this.php' ) );
-			} elseif ( str_contains( wp_get_referer(), 'wp-admin/plugin-install.php' ) ) {
+			} elseif ( str_contains( wp_get_referer(), network_admin_url( 'plugin-install.php' ) ) ) {
 				$url = wp_get_referer();
 				if ( isset( $_GET['redirect_to'] ) ) {
 					$url = urldecode( $_GET['redirect_to'] );
