@@ -157,7 +157,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @var WP_HTML_Processor_State
+	 * @var ?WP_HTML_Processor_State
 	 */
 	private $state = null;
 
@@ -184,7 +184,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @var string|null
+	 * @var ?string
 	 */
 	private $last_error = null;
 
@@ -197,7 +197,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @var closure
+	 * @var ?Closure
 	 */
 	private $release_internal_bookmark_on_destruct = null;
 
@@ -283,7 +283,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $encoding Text encoding of the document; must be default of 'UTF-8'.
 	 * @return static|null The created processor if successful, otherwise null.
 	 */
-	public static function create_fragment( $html, $context = '<body>', $encoding = 'UTF-8' ) {
+	public static function create_fragment( string $html, string $context = '<body>', string $encoding = 'UTF-8' ) {
 		if ( '<body>' !== $context || 'UTF-8' !== $encoding ) {
 			return null;
 		}
@@ -330,7 +330,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string      $html                                  HTML to process.
 	 * @param string|null $use_the_static_create_methods_instead This constructor should not be called manually.
 	 */
-	public function __construct( $html, $use_the_static_create_methods_instead = null ) {
+	public function __construct( string $html, ?string $use_the_static_create_methods_instead = null ) {
 		parent::__construct( $html );
 
 		if ( self::CONSTRUCTOR_UNLOCK_CODE !== $use_the_static_create_methods_instead ) {
@@ -398,7 +398,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string|null The last error, if one exists, otherwise null.
 	 */
-	public function get_last_error() {
+	public function get_last_error(): ?string {
 		return $this->last_error;
 	}
 
@@ -426,7 +426,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * }
 	 * @return bool Whether a tag was matched.
 	 */
-	public function next_tag( $query = null ) {
+	public function next_tag( $query = null ): bool {
 		$visit_closers = isset( $query['tag_closers'] ) && 'visit' === $query['tag_closers'];
 
 		if ( null === $query ) {
@@ -512,7 +512,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool
 	 */
-	public function next_token() {
+	public function next_token(): bool {
 		$this->current_element = null;
 
 		if ( isset( $this->last_error ) ) {
@@ -556,7 +556,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		return true;
 	}
-
 
 	/**
 	 * Indicates if the current tag token is a tag closer.
@@ -620,7 +619,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *                              May also contain the wildcard `*` which matches a single element, e.g. `array( 'SECTION', '*' )`.
 	 * @return bool Whether the currently-matched tag is found at the given nested structure.
 	 */
-	public function matches_breadcrumbs( $breadcrumbs ) {
+	public function matches_breadcrumbs( array $breadcrumbs ): bool {
 		// Everything matches when there are zero constraints.
 		if ( 0 === count( $breadcrumbs ) ) {
 			return true;
@@ -669,7 +668,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether to expect a closer for the currently-matched node,
 	 *              or `null` if not matched on any token.
 	 */
-	public function expects_closer( $node = null ) {
+	public function expects_closer( ?WP_HTML_Token $node = null ): ?bool {
 		$token_name = $node->node_name ?? $this->get_token_name();
 		if ( ! isset( $token_name ) ) {
 			return null;
@@ -700,7 +699,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $node_to_process Whether to parse the next node or reprocess the current node.
 	 * @return bool Whether a tag was matched.
 	 */
-	public function step( $node_to_process = self::PROCESS_NEXT_NODE ) {
+	public function step( string $node_to_process = self::PROCESS_NEXT_NODE ): bool {
 		// Refuse to proceed if there was a previous error.
 		if ( null !== $this->last_error ) {
 			return false;
@@ -786,7 +785,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string[]|null Array of tag names representing path to matched node, if matched, otherwise NULL.
 	 */
-	public function get_breadcrumbs() {
+	public function get_breadcrumbs(): ?array {
 		$breadcrumbs = array();
 		foreach ( $this->state->stack_of_open_elements->walk_down() as $stack_item ) {
 			$breadcrumbs[] = $stack_item->node_name;
@@ -820,7 +819,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return int Nesting-depth of current location in the document.
 	 */
-	public function get_current_depth() {
+	public function get_current_depth(): int {
 		return $this->state->stack_of_open_elements->count();
 	}
 
@@ -839,7 +838,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_body() {
+	private function step_in_body(): bool {
 		$token_name = $this->get_token_name();
 		$token_type = $this->get_token_type();
 		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
@@ -1456,7 +1455,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string|null Name of currently matched tag in input HTML, or `null` if none found.
 	 */
-	public function get_tag() {
+	public function get_tag(): ?string {
 		if ( null !== $this->last_error ) {
 			return null;
 		}
@@ -1592,7 +1591,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $name Name of attribute whose value is requested.
 	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
 	 */
-	public function get_attribute( $name ) {
+	public function get_attribute( string $name ) {
 		return $this->is_virtual() ? null : parent::get_attribute( $name );
 	}
 
@@ -1653,7 +1652,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $prefix Prefix of requested attribute names.
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
 	 */
-	public function get_attribute_names_with_prefix( $prefix ) {
+	public function get_attribute_names_with_prefix( string $prefix ): ?array {
 		return $this->is_virtual() ? null : parent::get_attribute_names_with_prefix( $prefix );
 	}
 
@@ -1733,7 +1732,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string
 	 */
-	public function get_modifiable_text() {
+	public function get_modifiable_text(): string {
 		return $this->is_virtual() ? '' : parent::get_modifiable_text();
 	}
 
@@ -1771,7 +1770,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Name of the bookmark to remove.
 	 * @return bool Whether the bookmark already existed before removal.
 	 */
-	public function release_bookmark( $bookmark_name ) {
+	public function release_bookmark( string $bookmark_name ): bool {
 		return parent::release_bookmark( "_{$bookmark_name}" );
 	}
 
@@ -1792,7 +1791,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
 	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
 	 */
-	public function seek( $bookmark_name ) {
+	public function seek( string $bookmark_name ): bool {
 		// Flush any pending updates to the document before beginning.
 		$this->get_updated_html();
 
@@ -1958,7 +1957,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Identifies this particular bookmark.
 	 * @return bool Whether the bookmark was successfully created.
 	 */
-	public function set_bookmark( $bookmark_name ) {
+	public function set_bookmark( string $bookmark_name ): bool {
 		return parent::set_bookmark( "_{$bookmark_name}" );
 	}
 
@@ -1970,7 +1969,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Name to identify a bookmark that potentially exists.
 	 * @return bool Whether that bookmark exists.
 	 */
-	public function has_bookmark( $bookmark_name ) {
+	public function has_bookmark( string $bookmark_name ): bool {
 		return parent::has_bookmark( "_{$bookmark_name}" );
 	}
 
@@ -2001,7 +2000,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @param string|null $except_for_this_element Perform as if this element doesn't exist in the stack of open elements.
 	 */
-	private function generate_implied_end_tags( $except_for_this_element = null ) {
+	private function generate_implied_end_tags( ?string $except_for_this_element = null ) {
 		$elements_with_implied_end_tags = array(
 			'DD',
 			'DT',
@@ -2057,7 +2056,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether any formatting elements needed to be reconstructed.
 	 */
-	private function reconstruct_active_formatting_elements() {
+	private function reconstruct_active_formatting_elements(): bool {
 		/*
 		 * > If there are no entries in the list of active formatting elements, then there is nothing
 		 * > to reconstruct; stop this algorithm.
@@ -2209,7 +2208,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @param WP_HTML_Token $token Name of bookmark pointing to element in original input HTML.
 	 */
-	private function insert_html_element( $token ) {
+	private function insert_html_element( WP_HTML_Token $token ) {
 		$this->state->stack_of_open_elements->push( $token );
 	}
 
@@ -2227,7 +2226,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $tag_name Name of element to check.
 	 * @return bool Whether the element of the given name is in the special category.
 	 */
-	public static function is_special( $tag_name ) {
+	public static function is_special( string $tag_name ): bool {
 		$tag_name = strtoupper( $tag_name );
 
 		return (
@@ -2342,7 +2341,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $tag_name Name of HTML tag to check.
 	 * @return bool Whether the given tag is an HTML Void Element.
 	 */
-	public static function is_void( $tag_name ) {
+	public static function is_void( string $tag_name ): bool {
 		$tag_name = strtoupper( $tag_name );
 
 		return (

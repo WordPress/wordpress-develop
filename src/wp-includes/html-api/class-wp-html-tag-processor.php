@@ -1209,7 +1209,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $name Identifies this particular bookmark.
 	 * @return bool Whether the bookmark was successfully created.
 	 */
-	public function set_bookmark( $name ) {
+	public function set_bookmark( string $name ): bool {
 		// It only makes sense to set a bookmark if the parser has paused on a concrete token.
 		if (
 			self::STATE_COMPLETE === $this->parser_state ||
@@ -1242,7 +1242,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $name Name of the bookmark to remove.
 	 * @return bool Whether the bookmark already existed before removal.
 	 */
-	public function release_bookmark( $name ) {
+	public function release_bookmark( string $name ): bool {
 		if ( ! array_key_exists( $name, $this->bookmarks ) ) {
 			return false;
 		}
@@ -2362,7 +2362,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Name to identify a bookmark that potentially exists.
 	 * @return bool Whether that bookmark exists.
 	 */
-	public function has_bookmark( $bookmark_name ) {
+	public function has_bookmark( string $bookmark_name ): bool {
 		return array_key_exists( $bookmark_name, $this->bookmarks );
 	}
 
@@ -2377,7 +2377,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
 	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
 	 */
-	public function seek( $bookmark_name ) {
+	public function seek( string $bookmark_name ): bool {
 		if ( ! array_key_exists( $bookmark_name, $this->bookmarks ) ) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -2517,7 +2517,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $name Name of attribute whose value is requested.
 	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
 	 */
-	public function get_attribute( $name ) {
+	public function get_attribute( string $name ) {
 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
 			return null;
 		}
@@ -2597,7 +2597,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $prefix Prefix of requested attribute names.
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
 	 */
-	public function get_attribute_names_with_prefix( $prefix ) {
+	public function get_attribute_names_with_prefix( string $prefix ): ?array {
 		if (
 			self::STATE_MATCHED_TAG !== $this->parser_state ||
 			$this->is_closing_tag
@@ -2838,7 +2838,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @return string
 	 */
-	public function get_modifiable_text() {
+	public function get_modifiable_text(): string {
 		if ( null === $this->text_starts_at ) {
 			return '';
 		}
