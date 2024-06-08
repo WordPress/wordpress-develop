@@ -3,7 +3,7 @@
  * Unit tests covering WP_XML_Processor functionality.
  *
  * @package WordPress
- * @subpackage HTML-API
+ * @subpackage XML-API
  */
 
 /**

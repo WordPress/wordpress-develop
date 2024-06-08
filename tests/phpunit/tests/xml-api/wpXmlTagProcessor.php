@@ -3,7 +3,7 @@
  * Unit tests covering WP_XML_Tag_Processor functionality.
  *
  * @package WordPress
- * @subpackage HTML-API
+ * @subpackage XML-API
  */
 
 /**
@@ -522,7 +522,7 @@ class Tests_XmlApi_WpXmlTagProcessor extends WP_UnitTestCase {
 			</seemingly invalid element --/>
 			<!-- is this a comment? -->
 			<?xml version="1.0" ?>
-			
+
 			&amp;&lt;&gt;&quot;&apos;
 
 			But! It is all treated as text.
