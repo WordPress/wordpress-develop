@@ -1020,7 +1020,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						);
 
 						if ( 'plugin-information-modal' === $context ) {
-							$query_args['redirect_to'] = urlencode( wp_get_referer() );
+							$query_args['redirect_to'] = wp_get_referer();
 						}
 						$activate_url = add_query_arg( $query_args, network_admin_url( 'plugins.php' ) );
 
