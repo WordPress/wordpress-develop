@@ -87,7 +87,7 @@ if ( $action ) {
 
 				if ( isset( $_GET['redirect_to'] ) ) {
 					// This will occur when a plugin is activated from within a modal.
-					$url = add_query_arg( 'redirect_to', $_GET['redirect_to'], $url );
+					$url = add_query_arg( 'redirect_to', wp_unslash( $_GET['redirect_to'] ), $url );
 				} else {
 					// This will occur when a plugin is activated from its plugin card.
 					$url = add_query_arg( 'redirect_to', wp_get_referer(), $url );
@@ -106,7 +106,7 @@ if ( $action ) {
 			exit;
 		case 'finish-activation':
 			if ( isset( $_GET['redirect_to'] ) ) {
-				$url = urldecode( $_GET['redirect_to'] );
+				$url = urldecode( wp_unslash( $_GET['redirect_to'] ) );
 
 				if ( isset( $_GET['activate'] ) ) {
 					$url = add_query_arg( 'activate', 'true', $url );
