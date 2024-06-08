@@ -45,6 +45,8 @@
  *           %xx;
  *       ]>
  *
+ * @see https://www.w3.org/TR/xml/
+ *
  * @TODO: Support XML 1.1.
  * @package WordPress
  * @subpackage HTML-API

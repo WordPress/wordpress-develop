@@ -2,6 +2,8 @@
 /**
  * XML API: WP_XML_Processor class
  *
+ * @see https://www.w3.org/TR/xml/
+ *
  * @package WordPress
  * @subpackage HTML-API
  * @since WP_VERSION
