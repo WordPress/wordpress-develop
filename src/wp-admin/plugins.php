@@ -113,8 +113,9 @@ if ( $action ) {
 				}
 
 				wp_redirect( $url );
+				exit;
 			}
-			exit;
+			break;
 		case 'activate-selected':
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				wp_die( __( 'Sorry, you are not allowed to activate plugins for this site.' ) );
