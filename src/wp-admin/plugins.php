@@ -43,7 +43,6 @@ wp_enqueue_script( 'updates' );
 WP_Plugin_Dependencies::initialize();
 
 if ( $action ) {
-
 	switch ( $action ) {
 		case 'activate':
 			if ( ! current_user_can( 'activate_plugin', $plugin ) ) {
@@ -83,11 +82,17 @@ if ( $action ) {
 				wp_redirect( self_admin_url( 'import.php?import=' . str_replace( '-importer', '', dirname( $plugin ) ) ) );
 			} elseif ( isset( $_GET['from'] ) && 'press-this' === $_GET['from'] ) {
 				wp_redirect( self_admin_url( 'press-this.php' ) );
-			} elseif ( str_contains( wp_get_referer(), network_admin_url( 'plugin-install.php' ) ) ) {
-				$url = wp_get_referer();
+			} elseif ( str_contains( wp_get_referer(), self_admin_url( 'plugin-install.php' ) ) ) {
+				$url = self_admin_url( 'plugins.php' );
+
 				if ( isset( $_GET['redirect_to'] ) ) {
-					$url = urldecode( $_GET['redirect_to'] );
+					// This will occur when a plugin is activated from within a modal.
+					$url = add_query_arg( 'redirect_to', urldecode( $_GET['redirect_to'] ), $url );
+				} else {
+					// This will occur when a plugin is activated from its plugin card.
+					$url = add_query_arg( 'redirect_to', urlencode( wp_get_referer() ), $url );
 				}
+				$url = add_query_arg( 'action', 'finish-activation', $url );
 
 				if ( ! is_wp_error( $result ) ) {
 					$url = add_query_arg( 'activate', 'true', $url );
@@ -99,7 +104,17 @@ if ( $action ) {
 				wp_redirect( self_admin_url( "plugins.php?activate=true&plugin_status=$status&paged=$page&s=$s" ) );
 			}
 			exit;
+		case 'finish-activation':
+			if ( isset( $_GET['redirect_to'] ) ) {
+				$url = urldecode( $_GET['redirect_to'] );
 
+				if ( isset( $_GET['activate'] ) ) {
+					$url = add_query_arg( 'activate', 'true', $url );
+				}
+
+				wp_redirect( $url );
+			}
+			exit;
 		case 'activate-selected':
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				wp_die( __( 'Sorry, you are not allowed to activate plugins for this site.' ) );
