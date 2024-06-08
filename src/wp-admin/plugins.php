@@ -109,6 +109,7 @@ if ( $action ) {
 				$url = add_query_arg( 'action', 'finish-activation', $url );
 
 				if ( ! is_wp_error( $result ) ) {
+					// This ensures the user gets feedback the plugin was successfully activated.
 					$url = add_query_arg( 'activate', 'true', $url );
 				}
 
@@ -123,6 +124,7 @@ if ( $action ) {
 				$url = urldecode( wp_unslash( $_GET['redirect_to'] ) );
 
 				if ( isset( $_GET['activate'] ) ) {
+					// This ensures the user gets feedback the plugin was successfully activated.
 					$url = add_query_arg( 'activate', 'true', $url );
 				}
 
