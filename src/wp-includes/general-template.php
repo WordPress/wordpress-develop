@@ -491,6 +491,7 @@ function wp_registration_url() {
  * The login form HTML is echoed by default. Pass a false value for `$echo` to return it instead.
  *
  * @since 3.0.0
+ * @since 6.6.0 Added `required_username` and `required_password` arguments.
  *
  * @param array $args {
  *     Optional. Array of options to control the form output. Default empty array.
