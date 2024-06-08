@@ -220,6 +220,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.8.0
 	 * @since 5.9.0 Theme supports have been inlined and the `$theme_support_data` argument removed.
 	 * @since 6.0.0 Added an `$options` parameter to allow the theme data to be returned without theme supports.
+	 * @since 6.6.0 Add support for 'default-font-sizes' and 'default-spacing-sizes' theme supports.
 	 *
 	 * @param array $deprecated Deprecated. Not used.
 	 * @param array $options {
@@ -243,7 +244,7 @@ class WP_Theme_JSON_Resolver {
 				$theme_json_data = static::read_json_file( $theme_json_file );
 				$theme_json_data = static::translate( $theme_json_data, $wp_theme->get( 'TextDomain' ) );
 			} else {
-				$theme_json_data = array();
+				$theme_json_data = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
 			}
 
 			/**
@@ -286,33 +287,25 @@ class WP_Theme_JSON_Resolver {
 		 */
 		$theme_support_data = WP_Theme_JSON::get_from_editor_settings( get_classic_theme_supports_block_editor_settings() );
 		if ( ! wp_theme_has_theme_json() ) {
-			if ( ! isset( $theme_support_data['settings']['color'] ) ) {
-				$theme_support_data['settings']['color'] = array();
-			}
+			/*
+			 * Unlike block themes, classic themes without a theme.json disable
+			 * default presets when custom preset theme support is added. This
+			 * behavior can be overridden by using the corresponding default
+			 * preset theme support.
+			 */
+			$theme_support_data['settings']['color']['defaultPalette']        =
+				! isset( $theme_support_data['settings']['color']['palette'] ) ||
+				current_theme_supports( 'default-color-palette' );
+			$theme_support_data['settings']['color']['defaultGradients']      =
+				! isset( $theme_support_data['settings']['color']['gradients'] ) ||
+				current_theme_supports( 'default-gradient-presets' );
+			$theme_support_data['settings']['typography']['defaultFontSizes'] =
+				! isset( $theme_support_data['settings']['typography']['fontSizes'] ) ||
+				current_theme_supports( 'default-font-sizes' );
+			$theme_support_data['settings']['spacing']['defaultSpacingSizes'] =
+				! isset( $theme_support_data['settings']['spacing']['spacingSizes'] ) ||
+				current_theme_supports( 'default-spacing-sizes' );
 
-			$default_palette = false;
-			if ( current_theme_supports( 'default-color-palette' ) ) {
-				$default_palette = true;
-			}
-			if ( ! isset( $theme_support_data['settings']['color']['palette'] ) ) {
-				// If the theme does not have any palette, we still want to show the core one.
-				$default_palette = true;
-			}
-			$theme_support_data['settings']['color']['defaultPalette'] = $default_palette;
-
-			$default_gradients = false;
-			if ( current_theme_supports( 'default-gradient-presets' ) ) {
-				$default_gradients = true;
-			}
-			if ( ! isset( $theme_support_data['settings']['color']['gradients'] ) ) {
-				// If the theme does not have any gradients, we still want to show the core ones.
-				$default_gradients = true;
-			}
-			$theme_support_data['settings']['color']['defaultGradients'] = $default_gradients;
-
-			if ( ! isset( $theme_support_data['settings']['shadow'] ) ) {
-				$theme_support_data['settings']['shadow'] = array();
-			}
 			/*
 			 * Shadow presets are explicitly disabled for classic themes until a
 			 * decision is made for whether the default presets should match the
@@ -359,7 +352,7 @@ class WP_Theme_JSON_Resolver {
 			return static::$blocks;
 		}
 
-		$config = array( 'version' => 2 );
+		$config = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
 		foreach ( $blocks as $block_name => $block_type ) {
 			if ( isset( $block_type->supports['__experimentalStyle'] ) ) {
 				$config['styles']['blocks'][ $block_name ] = static::remove_json_comments( $block_type->supports['__experimentalStyle'] );
@@ -494,6 +487,7 @@ class WP_Theme_JSON_Resolver {
 	 * Returns the user's origin config.
 	 *
 	 * @since 5.9.0
+	 * @since 6.6.0 The 'isGlobalStylesUserThemeJSON' flag is left on the user data.
 	 *
 	 * @return WP_Theme_JSON Entity that holds styles for user data.
 	 */
@@ -586,7 +580,6 @@ class WP_Theme_JSON_Resolver {
 		$result = new WP_Theme_JSON();
 		$result->merge( static::get_core_data() );
 		if ( 'default' === $origin ) {
-			$result->set_spacing_sizes();
 			return $result;
 		}
 
@@ -597,12 +590,10 @@ class WP_Theme_JSON_Resolver {
 
 		$result->merge( static::get_theme_data() );
 		if ( 'theme' === $origin ) {
-			$result->set_spacing_sizes();
 			return $result;
 		}
 
 		$result->merge( static::get_user_data() );
-		$result->set_spacing_sizes();
 
 		return $result;
 	}

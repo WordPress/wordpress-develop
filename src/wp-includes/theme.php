@@ -2642,6 +2642,7 @@ function get_theme_starter_content() {
  * @since 6.3.0 The `border` feature allows themes without theme.json to add border styles to blocks.
  * @since 6.5.0 The `appearance-tools` feature enables a few design tools for blocks,
  *              see `WP_Theme_JSON::APPEARANCE_TOOLS_OPT_INS` for a complete list.
+ * @since 6.6.0 The `editor-spacing-sizes` feature was added.
  *
  * @global array $_wp_theme_features
  *
@@ -2669,6 +2670,7 @@ function get_theme_starter_content() {
  *                          - 'editor-color-palette'
  *                          - 'editor-gradient-presets'
  *                          - 'editor-font-sizes'
+ *                          - 'editor-spacing-sizes'
  *                          - 'editor-styles'
  *                          - 'featured-content'
  *                          - 'html5'
@@ -3442,15 +3444,15 @@ function _delete_attachment_theme_mod( $id ) {
 	$attachment_image = wp_get_attachment_url( $id );
 	$header_image     = get_header_image();
 	$background_image = get_background_image();
-	$custom_logo_id   = get_theme_mod( 'custom_logo' );
-	$site_logo_id     = get_option( 'site_logo' );
+	$custom_logo_id   = (int) get_theme_mod( 'custom_logo' );
+	$site_logo_id     = (int) get_option( 'site_logo' );
 
-	if ( $custom_logo_id && (int) $custom_logo_id === $id ) {
+	if ( $custom_logo_id && $custom_logo_id === $id ) {
 		remove_theme_mod( 'custom_logo' );
 		remove_theme_mod( 'header_text' );
 	}
 
-	if ( $site_logo_id && (int) $site_logo_id === $id ) {
+	if ( $site_logo_id && $site_logo_id === $id ) {
 		delete_option( 'site_logo' );
 	}
 
@@ -4218,6 +4220,31 @@ function create_initial_theme_features() {
 								'type' => 'string',
 							),
 							'slug'     => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			),
+		)
+	);
+	register_theme_feature(
+		'editor-spacing-sizes',
+		array(
+			'type'         => 'array',
+			'description'  => __( 'Custom spacing sizes if defined by the theme.' ),
+			'show_in_rest' => array(
+				'schema' => array(
+					'items' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'name' => array(
+								'type' => 'string',
+							),
+							'size' => array(
+								'type' => 'string',
+							),
+							'slug' => array(
 								'type' => 'string',
 							),
 						),
