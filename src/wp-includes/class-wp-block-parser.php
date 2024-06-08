@@ -244,13 +244,7 @@ class WP_Block_Parser {
 		 * a closer has no attributes). we can trap them both and process the
 		 * match back in PHP to see which one it was.
 		 */
-		$has_match = preg_match(
-			'/<!--\s+(?P<closer>\/)?wp:(?P<namespace>[a-z][a-z0-9_-]*\/)?(?P<name>[a-z][a-z0-9_-]*)\s+(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}\s+\/?-->).)*+)?}\s+)?(?P<void>\/)?-->/s',
-			$this->document,
-			$matches,
-			PREG_OFFSET_CAPTURE,
-			$this->offset
-		);
+		$has_match = preg_match( get_block_delimiter_regex(), $this->document, $matches, PREG_OFFSET_CAPTURE, $this->offset );
 
 		// if we get here we probably have catastrophic backtracking or out-of-memory in the PCRE.
 		if ( false === $has_match ) {
