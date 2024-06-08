@@ -83,6 +83,15 @@ if ( $action ) {
 			} elseif ( isset( $_GET['from'] ) && 'press-this' === $_GET['from'] ) {
 				wp_redirect( self_admin_url( 'press-this.php' ) );
 			} elseif ( str_contains( wp_get_referer(), self_admin_url( 'plugin-install.php' ) ) ) {
+				/*
+				 * After activating from 'plugin-install.php', the user will be returned to the previous page.
+				 *
+				 * For backward compatibility, since 'load-plugins.php' callbacks and any other code
+				 * before now have already run, the user must first be redirected to 'plugins.php' again.
+				 *
+				 * This ensures that plugin functionality dependent on earlier code in this file still runs
+				 * after the plugin has been activated.
+				 */
 				$url = self_admin_url( 'plugins.php' );
 
 				if ( isset( $_GET['redirect_to'] ) ) {
@@ -92,6 +101,11 @@ if ( $action ) {
 					// This will occur when a plugin is activated from its plugin card.
 					$url = add_query_arg( 'redirect_to', wp_get_referer(), $url );
 				}
+
+				/*
+				 * On the re-loading of this file, the 'finish-activation' action will perform
+				 * the redirect to the previous page from which the plugin was activated.
+				 */
 				$url = add_query_arg( 'action', 'finish-activation', $url );
 
 				if ( ! is_wp_error( $result ) ) {
