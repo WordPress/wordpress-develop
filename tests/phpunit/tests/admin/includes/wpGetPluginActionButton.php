@@ -84,7 +84,8 @@ class Tests_Admin_Includes_WpGetPluginActionButton extends WP_UnitTestCase {
 			true
 		);
 
-		$this->assertSame( '', $actual, 'No button markup should be returned.' );
+		$this->assertIsString( $actual, 'A string should be returned.' );
+		$this->assertEmpty( $actual, 'An empty string should be returned.' );
 	}
 
 	/**
@@ -113,7 +114,8 @@ class Tests_Admin_Includes_WpGetPluginActionButton extends WP_UnitTestCase {
 
 		self::$role->remove_cap( $capability );
 
-		$this->assertNotSame( '', $actual, 'Button markup should be returned.' );
+		$this->assertIsString( $actual, 'A string should be returned.' );
+		$this->assertNotEmpty( $actual, 'An empty string should not be returned.' );
 	}
 
 	/**
@@ -147,6 +149,7 @@ class Tests_Admin_Includes_WpGetPluginActionButton extends WP_UnitTestCase {
 
 		revoke_super_admin( self::$user_id );
 
-		$this->assertNotSame( '', $actual, 'Button markup should be returned.' );
+		$this->assertIsString( $actual, 'A string should be returned.' );
+		$this->assertNotEmpty( $actual, 'An empty string should not be returned.' );
 	}
 }
