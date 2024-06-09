@@ -378,6 +378,10 @@ p.has-drop-cap:not(:focus)::first-letter {
 	border-width: 0 1px 1px 0;
 }
 
+.wp-block-table figcaption {
+	font-size: 100%;
+}
+
 /*--------------------------------------------------------------
 4.0 Blocks - Layout Elements
 --------------------------------------------------------------*/

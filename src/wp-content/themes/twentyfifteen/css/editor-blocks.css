@@ -731,6 +731,15 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-align: right;
 }
 
+.editor-styles-wrapper .wp-block-table figcaption {
+	font-size: 100%;
+}
+
+.editor-styles-wrapper .wp-block-table[style*="font-size"] *,
+.editor-styles-wrapper .wp-block-table[class*="-font-size"] * {
+	font-size: inherit;
+}
+
 /* Verse */
 
 .editor-styles-wrapper .wp-block-verse {
