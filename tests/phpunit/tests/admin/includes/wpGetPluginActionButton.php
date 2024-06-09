@@ -92,9 +92,9 @@ class Tests_Admin_Includes_WpGetPluginActionButton extends WP_UnitTestCase {
 	 *
 	 * @ticket 61400
 	 *
-	 * @dataProvider data_capabilities
-	 *
 	 * @group ms-excluded
+	 *
+	 * @dataProvider data_capabilities
 	 *
 	 * @param string $capability The name of the capability.
 	 */
