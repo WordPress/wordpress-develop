@@ -88,7 +88,8 @@ class Tests_Admin_Includes_WpGetPluginActionButton extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that an empty string is not returned when the user has the correct capabilities.
+	 * Tests that an empty string is not returned when the user
+	 * has the correct capabilities on single site.
 	 *
 	 * @ticket 61400
 	 *
@@ -98,7 +99,7 @@ class Tests_Admin_Includes_WpGetPluginActionButton extends WP_UnitTestCase {
 	 *
 	 * @param string $capability The name of the capability.
 	 */
-	public function test_should_not_return_empty_string_with_proper_capabilities( $capability ) {
+	public function test_should_not_return_empty_string_with_proper_capabilities_single_site( $capability ) {
 		self::$role->add_cap( $capability );
 
 		wp_set_current_user( self::$user_id );
@@ -125,7 +126,8 @@ class Tests_Admin_Includes_WpGetPluginActionButton extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that an empty string is not returned when the user has the correct capabilities.
+	 * Tests that an empty string is not returned when the user
+	 * has the correct capabilities on multisite.
 	 *
 	 * @ticket 61400
 	 *
