@@ -1007,7 +1007,11 @@ function rest_output_link_wp_head() {
 	$resource = rest_get_queried_resource_route();
 
 	if ( $resource ) {
-		printf( '<link rel="alternate" type="application/json" href="%s" />', esc_url( rest_url( $resource ) ) );
+		printf(
+			'<link rel="alternate" title="%1$s" type="application/json" href="%2$s" />',
+			_x( 'JSON', 'REST API resource link name' ),
+			esc_url( rest_url( $resource ) )
+		);
 	}
 }
 
@@ -1032,7 +1036,14 @@ function rest_output_link_header() {
 	$resource = rest_get_queried_resource_route();
 
 	if ( $resource ) {
-		header( sprintf( 'Link: <%s>; rel="alternate"; type="application/json"', sanitize_url( rest_url( $resource ) ) ), false );
+		header(
+			sprintf(
+				'Link: <%1$s>; rel="alternate"; title="%2$s"; type="application/json"',
+				sanitize_url( rest_url( $resource ) ),
+				_x( 'JSON', 'REST API resource link name' )
+			),
+			false
+		);
 	}
 }
 
@@ -1269,7 +1280,7 @@ function rest_get_avatar_sizes() {
  * @param string $date      RFC3339 timestamp.
  * @param bool   $force_utc Optional. Whether to force UTC timezone instead of using
  *                          the timestamp's timezone. Default false.
- * @return int Unix timestamp.
+ * @return int|false Unix timestamp on success, false on failure.
  */
 function rest_parse_date( $date, $force_utc = false ) {
 	if ( $force_utc ) {
@@ -1291,7 +1302,7 @@ function rest_parse_date( $date, $force_utc = false ) {
  * @since 5.4.0
  *
  * @param string $color 3 or 6 digit hex color (with #).
- * @return string|false
+ * @return string|false Color value on success, false on failure.
  */
 function rest_parse_hex_color( $color ) {
 	$regex = '|^#([A-Fa-f0-9]{3}){1,2}$|';
