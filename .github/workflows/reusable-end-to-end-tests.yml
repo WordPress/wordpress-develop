@@ -14,6 +14,11 @@ on:
         required: false
         type: 'boolean'
         default: false
+      php-version:
+        description: 'The PHP version to use.'
+        required: false
+        type: 'string'
+        default: 'latest'
       install-gutenberg:
         description: 'Whether to install the Gutenberg plugin.'
         required: false
@@ -22,6 +27,7 @@ on:
 
 env:
   LOCAL_DIR: build
+  LOCAL_PHP: ${{ inputs.php-version }}${{ 'latest' != inputs.php-version && '-fpm' || '' }}
 
 jobs:
   # Runs the end-to-end test suite.

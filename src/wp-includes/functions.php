@@ -5400,7 +5400,7 @@ function wp_widgets_add_menu() {
 	}
 
 	$menu_name = __( 'Widgets' );
-	if ( wp_is_block_theme() || current_theme_supports( 'block-template-parts' ) ) {
+	if ( wp_is_block_theme() ) {
 		$submenu['themes.php'][] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	} else {
 		$submenu['themes.php'][8] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
@@ -6068,11 +6068,11 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
 	$message = wp_kses(
 		$message,
 		array(
-			'a' => array( 'href' ),
-			'br',
-			'code',
-			'em',
-			'strong',
+			'a'      => array( 'href' => true ),
+			'br'     => array(),
+			'code'   => array(),
+			'em'     => array(),
+			'strong' => array(),
 		),
 		array( 'http', 'https' )
 	);
