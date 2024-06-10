@@ -224,7 +224,7 @@ function wp_render_block_style_variation_class_name( $block_content, $block ) {
  *
  * @return array Block variations data to be merged under `styles.blocks`.
  */
-function wp_resolve_and_register_block_style_variations( $variations ) {
+function wp_resolve_block_style_variations( $variations ) {
 	$variations_data = array();
 
 	if ( empty( $variations ) ) {
@@ -312,7 +312,7 @@ function wp_merge_block_style_variations_data( $variations_data, $theme_json, $o
 function wp_resolve_block_style_variations_from_theme_style_variation( $theme_json ) {
 	$theme_json_data   = $theme_json->get_data();
 	$shared_variations = $theme_json_data['styles']['blocks']['variations'] ?? array();
-	$variations_data   = wp_resolve_and_register_block_style_variations( $shared_variations );
+	$variations_data   = wp_resolve_block_style_variations( $shared_variations );
 
 	return wp_merge_block_style_variations_data( $variations_data, $theme_json, 'user' );
 }
@@ -330,7 +330,7 @@ function wp_resolve_block_style_variations_from_theme_style_variation( $theme_js
  */
 function wp_resolve_block_style_variations_from_theme_json_partials( $theme_json ) {
 	$block_style_variations = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
-	$variations_data        = wp_resolve_and_register_block_style_variations( $block_style_variations );
+	$variations_data        = wp_resolve_block_style_variations( $block_style_variations );
 
 	return wp_merge_block_style_variations_data( $variations_data, $theme_json );
 }
@@ -349,7 +349,7 @@ function wp_resolve_block_style_variations_from_theme_json_partials( $theme_json
 function wp_resolve_block_style_variations_from_primary_theme_json( $theme_json ) {
 	$theme_json_data        = $theme_json->get_data();
 	$block_style_variations = $theme_json_data['styles']['blocks']['variations'] ?? array();
-	$variations_data        = wp_resolve_and_register_block_style_variations( $block_style_variations );
+	$variations_data        = wp_resolve_block_style_variations( $block_style_variations );
 
 	return wp_merge_block_style_variations_data( $variations_data, $theme_json );
 }
