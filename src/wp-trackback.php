@@ -61,7 +61,7 @@ $blog_name = isset( $_POST['blog_name'] ) ? wp_unslash( $_POST['blog_name'] ) : 
 if ( $charset ) {
 	$charset = str_replace( array( ',', ' ' ), '', strtoupper( trim( $charset ) ) );
 
-	// Validate the specified charset is supported by this site.
+	// Validate the specified "sender" charset is available on the receiving site.
 	if ( function_exists( 'mb_list_encodings' ) && ! in_array( $charset, mb_list_encodings(), true ) ) {
 		$charset = '';
 	}
