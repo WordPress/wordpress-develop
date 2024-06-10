@@ -2147,9 +2147,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				);
 				break;
 
-			case '#cdata-section';
-			case '#presumptuous-tag':
 			case '#funky-comment':
+				$node = new FunkyCommentNode(
+					$token,
+					$this->current_node,
+				);
+				break;
+
+			case '#cdata-section':
+			case '#presumptuous-tag':
 				throw new Error( "unhandled $token_name" );
 
 			default:
@@ -2444,4 +2450,8 @@ class CommentNode extends WP_HTML_Node {
 		parent::__construct( $token, $parent_node );
 		$this->comment_type = $comment_type;
 	}
+}
+
+class FunkyCommentNode extends WP_HTML_Node {
+	public static int $node_type = WP_HTML_Node::NODE_TYPE_COMMENT;
 }
