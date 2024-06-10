@@ -120,7 +120,7 @@ if ( $action ) {
 			}
 			exit;
 		case 'finish-activation':
-			if ( isset( $_GET['redirect_to'] ) ) {
+			if ( ! did_filter( 'wp_redirect' ) && isset( $_GET['redirect_to'] ) ) {
 				$url = urldecode( wp_unslash( $_GET['redirect_to'] ) );
 
 				if ( isset( $_GET['activate'] ) ) {
