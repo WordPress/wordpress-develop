@@ -1008,12 +1008,12 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
  * @since 6.6.0
  * @access private
  *
- * @param string $content Serialized content.
- * @param WP_Block_Template|WP_Post|array $context       A block template, template part, `wp_navigation` post object,
- *                                                       or pattern that the blocks belong to.
- * @param callable                        $callback      A function that will be called for each block to generate
- *                                                       the markup for a given list of blocks that are hooked to it.
- *                                                       Default: 'insert_hooked_blocks'.
+ * @param string                          $content  Serialized content.
+ * @param WP_Block_Template|WP_Post|array $context  A block template, template part, `wp_navigation` post object,
+ *                                                  or pattern that the blocks belong to.
+ * @param callable                        $callback A function that will be called for each block to generate
+ *                                                  the markup for a given list of blocks that are hooked to it.
+ *                                                  Default: 'insert_hooked_blocks'.
  * @return string The serialized markup.
  */
 function apply_block_hooks_to_content( $content, $context, $callback = 'insert_hooked_blocks' ) {
@@ -1064,7 +1064,7 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		return $post;
 	}
 
-	/**
+	/*
 	 * Skip meta generation when consumers intentionally update specific Navigation fields
 	 * and omit the content update.
 	 */
@@ -1072,7 +1072,7 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		return $post;
 	}
 
-	/**
+	/*
 	 * Skip meta generation when the post content is not a navigation block.
 	 */
 	if ( ! isset( $post->post_type ) || 'wp_navigation' !== $post->post_type ) {
@@ -1115,11 +1115,14 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 	return $post;
 }
 
-/*
+/**
  * Returns the markup for blocks hooked to the given anchor block in a specific relative position and then
  * adds a list of hooked block types to an anchor block's ignored hooked block types.
  *
  * This function is meant for internal use only.
+ *
+ * @since 6.6.0
+ * @access private
  *
  * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
  * @param string                          $relative_position   The relative position of the hooked blocks.
@@ -1516,6 +1519,83 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 		$block['attrs'],
 		$block_content
 	);
+}
+
+/**
+ * Replaces patterns in a block tree with their content.
+ *
+ * @since 6.6.0
+ *
+ * @param array $blocks An array blocks.
+ *
+ * @return array An array of blocks with patterns replaced by their content.
+ */
+function resolve_pattern_blocks( $blocks ) {
+	static $inner_content;
+	// Keep track of seen references to avoid infinite loops.
+	static $seen_refs = array();
+	$i                = 0;
+	while ( $i < count( $blocks ) ) {
+		if ( 'core/pattern' === $blocks[ $i ]['blockName'] ) {
+			$attrs = $blocks[ $i ]['attrs'];
+
+			if ( empty( $attrs['slug'] ) ) {
+				++$i;
+				continue;
+			}
+
+			$slug = $attrs['slug'];
+
+			if ( isset( $seen_refs[ $slug ] ) ) {
+				// Skip recursive patterns.
+				array_splice( $blocks, $i, 1 );
+				continue;
+			}
+
+			$registry = WP_Block_Patterns_Registry::get_instance();
+			$pattern  = $registry->get_registered( $slug );
+
+			// Skip unknown patterns.
+			if ( ! $pattern ) {
+				++$i;
+				continue;
+			}
+
+			$blocks_to_insert   = parse_blocks( $pattern['content'] );
+			$seen_refs[ $slug ] = true;
+			$prev_inner_content = $inner_content;
+			$inner_content      = null;
+			$blocks_to_insert   = resolve_pattern_blocks( $blocks_to_insert );
+			$inner_content      = $prev_inner_content;
+			unset( $seen_refs[ $slug ] );
+			array_splice( $blocks, $i, 1, $blocks_to_insert );
+
+			// If we have inner content, we need to insert nulls in the
+			// inner content array, otherwise serialize_blocks will skip
+			// blocks.
+			if ( $inner_content ) {
+				$null_indices  = array_keys( $inner_content, null, true );
+				$content_index = $null_indices[ $i ];
+				$nulls         = array_fill( 0, count( $blocks_to_insert ), null );
+				array_splice( $inner_content, $content_index, 1, $nulls );
+			}
+
+			// Skip inserted blocks.
+			$i += count( $blocks_to_insert );
+		} else {
+			if ( ! empty( $blocks[ $i ]['innerBlocks'] ) ) {
+				$prev_inner_content          = $inner_content;
+				$inner_content               = $blocks[ $i ]['innerContent'];
+				$blocks[ $i ]['innerBlocks'] = resolve_pattern_blocks(
+					$blocks[ $i ]['innerBlocks']
+				);
+				$blocks[ $i ]['innerContent'] = $inner_content;
+				$inner_content               = $prev_inner_content;
+			}
+			++$i;
+		}
+	}
+	return $blocks;
 }
 
 /**

@@ -25,6 +25,7 @@
  * @since 2.5.0
  *
  * @global string $auth_secure_cookie
+ * @global wpdb   $wpdb               WordPress database abstraction object.
  *
  * @param array       $credentials {
  *     Optional. User info in order to sign on.
@@ -38,6 +39,8 @@
  * @return WP_User|WP_Error WP_User on success, WP_Error on failure.
  */
 function wp_signon( $credentials = array(), $secure_cookie = '' ) {
+	global $auth_secure_cookie, $wpdb;
+
 	if ( empty( $credentials ) ) {
 		$credentials = array(
 			'user_login'    => '',
@@ -98,7 +101,7 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	 */
 	$secure_cookie = apply_filters( 'secure_signon_cookie', $secure_cookie, $credentials );
 
-	global $auth_secure_cookie; // XXX ugly hack to pass this to wp_authenticate_cookie().
+	// XXX ugly hack to pass this to wp_authenticate_cookie().
 	$auth_secure_cookie = $secure_cookie;
 
 	add_filter( 'authenticate', 'wp_authenticate_cookie', 30, 3 );
@@ -110,6 +113,20 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	}
 
 	wp_set_auth_cookie( $user->ID, $credentials['remember'], $secure_cookie );
+
+	// Clear `user_activation_key` after a successful login.
+	if ( ! empty( $user->user_activation_key ) ) {
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_activation_key' => '',
+			),
+			array( 'ID' => $user->ID )
+		);
+
+		$user->user_activation_key = '';
+	}
+
 	/**
 	 * Fires after the user has successfully logged in.
 	 *
@@ -119,6 +136,7 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	 * @param WP_User $user       WP_User object of the logged-in user.
 	 */
 	do_action( 'wp_login', $user->user_login, $user );
+
 	return $user;
 }
 
@@ -284,6 +302,8 @@ function wp_authenticate_email_password( $user, $email, $password ) {
  * @return WP_User|WP_Error WP_User on success, WP_Error on failure.
  */
 function wp_authenticate_cookie( $user, $username, $password ) {
+	global $auth_secure_cookie;
+
 	if ( $user instanceof WP_User ) {
 		return $user;
 	}
@@ -293,8 +313,6 @@ function wp_authenticate_cookie( $user, $username, $password ) {
 		if ( $user_id ) {
 			return new WP_User( $user_id );
 		}
-
-		global $auth_secure_cookie;
 
 		if ( $auth_secure_cookie ) {
 			$auth_cookie = SECURE_AUTH_COOKIE;
