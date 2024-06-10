@@ -493,6 +493,37 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Indicates if the currently-matched token came from text in the input HTML or
+	 * if it represents a virtual node, implied by the HTML but not found in it.
+	 *
+	 * When not matched on a token this function returns `null`.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return string|null 'real' if the current token is found within the text of the input HTML,
+	 *                     'virtual' if it's implied but not in the text itself,
+	 *                     `null` if not paused at a token.
+	 */
+	public function current_token_provenance(): ?string {
+		if (
+			self::STATE_READY === $this->parser_state ||
+			self::STATE_INCOMPLETE_INPUT === $this->parser_state ||
+			self::STATE_COMPLETE === $this->parser_state ||
+			! isset( $this->state->current_token )
+		) {
+			return null;
+		}
+
+		if ( ! isset( $this->bookmarks[ $this->state->current_token->bookmark_name ] ) ) {
+			return 'virtual';
+		}
+
+		$here = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+
+		return 0 === $here->length ? 'virtual' : 'real';
+	}
+
+	/**
 	 * Ensures internal accounting is maintained for HTML semantic rules while
 	 * the underlying Tag Processor class is seeking to a bookmark.
 	 *
@@ -1480,11 +1511,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null Name of the matched token.
 	 */
 	public function get_token_name() {
-		if ( isset( $this->current_element ) ) {
-			return $this->current_element->token->node_name;
+		if ( 'real' === $this->current_token_provenance() ) {
+			return parent::get_token_name();
 		}
 
-		return parent::get_token_name();
+		if ( ! isset( $this->current_element ) ) {
+			return null;
+		}
+
+		// @todo Process this as needed.
+		return $this->current_element->token->node_name;
 	}
 
 	/**
@@ -1510,20 +1546,24 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null What kind of token is matched, or null.
 	 */
 	public function get_token_type() {
-		if ( isset( $this->current_element ) ) {
-			$node_name = $this->current_element->token->node_name;
-			if ( ctype_upper( $node_name[0] ) ) {
-				return '#tag';
-			}
-
-			if ( 'html' === $node_name ) {
-				return '#doctype';
-			}
-
-			return $node_name;
+		if ( 'real' === $this->current_token_provenance() ) {
+			return parent::get_token_type();
 		}
 
-		return parent::get_token_type();
+		if ( ! isset( $this->current_element ) ) {
+			return null;
+		}
+
+		$node_name = $this->current_element->token->node_name;
+		if ( ctype_upper( $node_name[0] ) ) {
+			return '#tag';
+		}
+
+		if ( 'html' === $node_name ) {
+			return '#doctype';
+		}
+
+		return $node_name;
 	}
 
 	/**
@@ -1546,25 +1586,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
 	 */
 	public function get_attribute( $name ) {
-		if ( isset( $this->current_element ) ) {
-			// Closing tokens cannot contain attributes.
-			if ( WP_HTML_Stack_Event::POP === $this->current_element->operation ) {
-				return null;
-			}
-
-			$node_name = $this->current_element->token->node_name;
-
-			// Only tags can contain attributes.
-			if ( 'A' > $node_name[0] || 'Z' < $node_name[0] ) {
-				return null;
-			}
-
-			if ( $this->current_element->token->bookmark_name === (string) $this->bookmark_counter ) {
-				return parent::get_attribute( $name );
-			}
-		}
-
-		return null;
+		return 'real' === $this->current_token_provenance()
+			? parent::get_attribute( $name )
+			: null;
 	}
 
 	/**
@@ -1594,18 +1618,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
 	 */
 	public function get_attribute_names_with_prefix( $prefix ) {
-		if ( isset( $this->current_element ) ) {
-			if ( WP_HTML_Stack_Event::POP === $this->current_element->operation ) {
-				return null;
-			}
-
-			$mark = $this->bookmarks[ $this->current_element->token->bookmark_name ];
-			if ( 0 === $mark->length ) {
-				return null;
-			}
-		}
-
-		return parent::get_attribute_names_with_prefix( $prefix );
+		return 'real' === $this->current_token_provenance()
+			? parent::get_attribute_names_with_prefix( $prefix )
+			: null;
 	}
 
 	/**
@@ -1629,17 +1644,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string
 	 */
 	public function get_modifiable_text() {
-		if ( isset( $this->current_element ) ) {
-			if ( WP_HTML_Stack_Event::POP === $this->current_element->operation ) {
-				return '';
-			}
-
-			$mark = $this->bookmarks[ $this->current_element->token->bookmark_name ];
-			if ( 0 === $mark->length ) {
-				return '';
-			}
-		}
-		return parent::get_modifiable_text();
+		return 'real' === $this->current_token_provenance()
+			? parent::get_modifiable_text()
+			: null;
 	}
 
 	/**
