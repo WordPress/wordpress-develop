@@ -542,18 +542,22 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( $expected_html1, $output );
 		$this->assertStringContainsString( $expected_html2, $output );
+	}
 
+	/**
+	 * Tests that "search_box()" works correctly with orderby set to a string.
+	 *
+	 * @ticket 59494
+	 */
+	public function test_search_box_works_with_orderby_string() {	
 		// Test with one 'orderby' element.
-		$_REQUEST['orderby'] = array(
-			'title' => 'ASC',
-		);
+		$_REQUEST['s']       = 'search term';
+		$_REQUEST['orderby'] = 'title';
 
 		$output = get_echo( array( $this->list_table, 'search_box' ), array( 'foo Label', 59494 ) );
 
-		$expected_html1 = '<input type="hidden" name="orderby[menu_order]" value="ASC" />';
-		$expected_html2 = '<input type="hidden" name="orderby[title]" value="ASC" />';
+		$expected_html = '<input type="hidden" name="orderby" value="title" />';
 
-		$this->assertStringNotContainsString( $expected_html1, $output );
-		$this->assertStringContainsString( $expected_html2, $output );
+		$this->assertStringContainsString( $expected_html, $output );
 	}
 }
