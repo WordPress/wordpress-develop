@@ -417,7 +417,7 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 				array(
 					'parent' => 'site-name',
 					'id'     => 'edit-site',
-					'title'  => __( 'Edit Site' ),
+					'title'  => __( 'Manage Site' ),
 					'href'   => network_admin_url( 'site-info.php?id=' . get_current_blog_id() ),
 				)
 			);
@@ -451,10 +451,11 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 }
 
 /**
- * Adds the "Site Editor" link to the Toolbar.
+ * Adds the "Edit site" link to the Toolbar.
  *
  * @since 5.9.0
  * @since 6.3.0 Added `$_wp_current_template_id` global for editing of current template directly from the admin bar.
+ * @since 6.6.0 Added the `canvas` query arg to the Site Editor link.
  *
  * @global string $_wp_current_template_id
  *
@@ -476,11 +477,12 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-editor',
-			'title' => __( 'Site Editor' ),
+			'title' => __( 'Edit site' ),
 			'href'  => add_query_arg(
 				array(
 					'postType' => 'wp_template',
 					'postId'   => $_wp_current_template_id,
+					'canvas'   => 'edit',
 				),
 				admin_url( 'site-editor.php' )
 			),
