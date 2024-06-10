@@ -163,7 +163,7 @@ function get_option( $option, $default_value = false ) {
 	if ( ! wp_installing() ) {
 		$alloptions = wp_load_alloptions();
 
-		if ( isset( $alloptions[ $option ] ) ) {
+		if ( isset( $alloptions[ $option ] ) || array_key_exists( $option, $alloptions ) ) {
 			$value = $alloptions[ $option ];
 		} else {
 			$value = wp_cache_get( $option, 'options' );
@@ -176,7 +176,7 @@ function get_option( $option, $default_value = false ) {
 				if ( ! is_array( $notoptions ) ) {
 					$notoptions = array();
 					wp_cache_set( 'notoptions', $notoptions, 'options' );
-				} elseif ( isset( $notoptions[ $option ] ) ) {
+				} elseif ( isset( $notoptions[ $option ] ) || array_key_exists( $option, $notoptions ) ) {
 					/**
 					 * Filters the default value for an option.
 					 *
@@ -478,7 +478,7 @@ function wp_set_option_autoload_values( array $options ) {
 		$alloptions = wp_load_alloptions( true );
 
 		foreach ( $grouped_options['off'] as $option ) {
-			if ( isset( $alloptions[ $option ] ) ) {
+			if ( isset( $alloptions[ $option ] ) || array_key_exists( $option, $alloptions ) ) {
 				unset( $alloptions[ $option ] );
 			}
 		}
@@ -947,7 +947,7 @@ function update_option( $option, $value, $autoload = null ) {
 
 	$notoptions = wp_cache_get( 'notoptions', 'options' );
 
-	if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
+	if ( is_array( $notoptions ) && ( isset( $notoptions[ $option ] ) || array_key_exists( $option, $notoptions ) ) ) {
 		unset( $notoptions[ $option ] );
 		wp_cache_set( 'notoptions', $notoptions, 'options' );
 	}
@@ -957,7 +957,7 @@ function update_option( $option, $value, $autoload = null ) {
 			// Update the cached value based on where it is currently cached.
 			$alloptions = wp_load_alloptions( true );
 
-			if ( isset( $alloptions[ $option ] ) ) {
+			if ( isset( $alloptions[ $option ] ) || array_key_exists( $option, $alloptions ) ) {
 				$alloptions[ $option ] = $serialized_value;
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
 			} else {
@@ -975,7 +975,7 @@ function update_option( $option, $value, $autoload = null ) {
 			// Delete the alloptions cache, then set the individual cache.
 			$alloptions = wp_load_alloptions( true );
 
-			if ( isset( $alloptions[ $option ] ) ) {
+			if ( isset( $alloptions[ $option ] ) || array_key_exists( $option, $alloptions ) ) {
 				unset( $alloptions[ $option ] );
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
 			}
@@ -1135,7 +1135,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	// This option exists now.
 	$notoptions = wp_cache_get( 'notoptions', 'options' ); // Yes, again... we need it to be fresh.
 
-	if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
+	if ( is_array( $notoptions ) && ( isset( $notoptions[ $option ] ) || array_key_exists( $option, $notoptions ) ) ) {
 		unset( $notoptions[ $option ] );
 		wp_cache_set( 'notoptions', $notoptions, 'options' );
 	}
@@ -1210,7 +1210,7 @@ function delete_option( $option ) {
 		if ( in_array( $row->autoload, wp_autoload_values_to_autoload(), true ) ) {
 			$alloptions = wp_load_alloptions( true );
 
-			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
+			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) || array_key_exists( $option, $alloptions ) ) {
 				unset( $alloptions[ $option ] );
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
 			}
@@ -1997,7 +1997,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	$notoptions_key = "$network_id:notoptions";
 	$notoptions     = wp_cache_get( $notoptions_key, 'site-options' );
 
-	if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
+	if ( is_array( $notoptions ) && ( isset( $notoptions[ $option ] ) || array_key_exists( $option, $notoptions ) ) ) {
 
 		/**
 		 * Filters the value of a specific default network option.
@@ -2156,7 +2156,7 @@ function add_network_option( $network_id, $option, $value ) {
 		// This option exists now.
 		$notoptions = wp_cache_get( $notoptions_key, 'site-options' ); // Yes, again... we need it to be fresh.
 
-		if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
+		if ( is_array( $notoptions ) && ( isset( $notoptions[ $option ] ) || array_key_exists( $option, $notoptions ) ) ) {
 			unset( $notoptions[ $option ] );
 			wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
 		}
@@ -2359,7 +2359,7 @@ function update_network_option( $network_id, $option, $value ) {
 	$notoptions_key = "$network_id:notoptions";
 	$notoptions     = wp_cache_get( $notoptions_key, 'site-options' );
 
-	if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
+	if ( is_array( $notoptions ) && ( isset( $notoptions[ $option ] ) || array_key_exists( $option, $notoptions ) ) ) {
 		unset( $notoptions[ $option ] );
 		wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
 	}
