@@ -15,10 +15,6 @@
  *  - Prune the whitespace when removing classes/attributes: e.g. "a b c" -> "c" not " c".
  *    This would increase the size of the changes for some operations but leave more
  *    natural-looking output HTML.
- *  - Properly decode HTML character references in `get_attribute()`. PHP's
- *    `html_entity_decode()` is wrong in a couple ways: it doesn't account for the
- *    no-ambiguous-ampersand rule, and it improperly handles the way semicolons may
- *    or may not terminate a character reference.
  *
  * @package WordPress
  * @subpackage HTML-API
@@ -926,8 +922,8 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 		$this->parser_state         = self::STATE_MATCHED_TAG;
-		$this->token_length         = $tag_ends_at - $this->token_starts_at;
 		$this->bytes_already_parsed = $tag_ends_at + 1;
+		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
 
 		/*
 		 * For non-DATA sections which might contain text that looks like HTML tags but
@@ -1013,7 +1009,7 @@ class WP_HTML_Tag_Processor {
 		 */
 		$this->token_starts_at      = $was_at;
 		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
-		$this->text_starts_at       = $tag_ends_at + 1;
+		$this->text_starts_at       = $tag_ends_at;
 		$this->text_length          = $this->tag_name_starts_at - $this->text_starts_at;
 		$this->tag_name_starts_at   = $tag_name_starts_at;
 		$this->tag_name_length      = $tag_name_length;
@@ -1629,7 +1625,7 @@ class WP_HTML_Tag_Processor {
 			 * `<!` transitions to markup declaration open state
 			 * https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state
 			 */
-			if ( '!' === $html[ $at + 1 ] ) {
+			if ( ! $this->is_closing_tag && '!' === $html[ $at + 1 ] ) {
 				/*
 				 * `<!--` transitions to a comment state – apply further comment rules.
 				 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
@@ -1809,6 +1805,12 @@ class WP_HTML_Tag_Processor {
 			 * See https://html.spec.whatwg.org/#parse-error-missing-end-tag-name
 			 */
 			if ( '>' === $html[ $at + 1 ] ) {
+				// `<>` is interpreted as plaintext.
+				if ( ! $this->is_closing_tag ) {
+					++$at;
+					continue;
+				}
+
 				$this->parser_state         = self::STATE_PRESUMPTUOUS_TAG;
 				$this->token_length         = $at + 2 - $this->token_starts_at;
 				$this->bytes_already_parsed = $at + 2;
@@ -1819,7 +1821,7 @@ class WP_HTML_Tag_Processor {
 			 * `<?` transitions to a bogus comment state – skip to the nearest >
 			 * See https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 			 */
-			if ( '?' === $html[ $at + 1 ] ) {
+			if ( ! $this->is_closing_tag && '?' === $html[ $at + 1 ] ) {
 				$closer_at = strpos( $html, '>', $at + 2 );
 				if ( false === $closer_at ) {
 					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
@@ -1891,7 +1893,7 @@ class WP_HTML_Tag_Processor {
 					return false;
 				}
 
-				$closer_at = strpos( $html, '>', $at + 3 );
+				$closer_at = strpos( $html, '>', $at + 2 );
 				if ( false === $closer_at ) {
 					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 
@@ -2071,7 +2073,7 @@ class WP_HTML_Tag_Processor {
 		/*
 		 * Purge updates if there are too many. The actual count isn't
 		 * scientific, but a few values from 100 to a few thousand were
-		 * tests to find a practially-useful limit.
+		 * tests to find a practically-useful limit.
 		 *
 		 * If the update queue grows too big, then the Tag Processor
 		 * will spend more time iterating through them and lose the
@@ -2263,7 +2265,7 @@ class WP_HTML_Tag_Processor {
 	 * @param int $shift_this_point Accumulate and return shift for this position.
 	 * @return int How many bytes the given pointer moved in response to the updates.
 	 */
-	private function apply_attributes_updates( $shift_this_point = 0 ) {
+	private function apply_attributes_updates( $shift_this_point ) {
 		if ( ! count( $this->lexical_updates ) ) {
 			return 0;
 		}
@@ -2493,7 +2495,7 @@ class WP_HTML_Tag_Processor {
 		 *        3. Double-quoting ends at the last character in the update.
 		 */
 		$enqueued_value = substr( $enqueued_text, $equals_at + 2, -1 );
-		return html_entity_decode( $enqueued_value );
+		return WP_HTML_Decoder::decode_attribute( $enqueued_value );
 	}
 
 	/**
@@ -2566,7 +2568,7 @@ class WP_HTML_Tag_Processor {
 
 		$raw_value = substr( $this->html, $attribute->value_starts_at, $attribute->value_length );
 
-		return html_entity_decode( $raw_value );
+		return WP_HTML_Decoder::decode_attribute( $raw_value );
 	}
 
 	/**
@@ -2681,7 +2683,7 @@ class WP_HTML_Tag_Processor {
 		 *     <figure />
 		 *             ^ this appears one character before the end of the closing ">".
 		 */
-		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 1 ];
+		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 2 ];
 	}
 
 	/**
@@ -2785,6 +2787,8 @@ class WP_HTML_Tag_Processor {
 			case self::STATE_FUNKY_COMMENT:
 				return '#funky-comment';
 		}
+
+		return null;
 	}
 
 	/**
@@ -2866,7 +2870,7 @@ class WP_HTML_Tag_Processor {
 			return $text;
 		}
 
-		$decoded = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5 | ENT_SUBSTITUTE );
+		$decoded = WP_HTML_Decoder::decode_text_node( $text );
 
 		/*
 		 * TEXTAREA skips a leading newline, but this newline may appear not only as the
@@ -3193,7 +3197,7 @@ class WP_HTML_Tag_Processor {
 		 * Keep track of the position right before the current tag. This will
 		 * be necessary for reparsing the current tag after updating the HTML.
 		 */
-		$before_current_tag = $this->token_starts_at;
+		$before_current_tag = $this->token_starts_at ?? 0;
 
 		/*
 		 * 1. Apply the enqueued edits and update all the pointers to reflect those changes.

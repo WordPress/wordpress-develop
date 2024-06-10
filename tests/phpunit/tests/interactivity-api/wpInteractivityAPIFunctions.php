@@ -69,9 +69,9 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_single_interactive_block() {
+	public function test_process_directives_of_single_interactive_block() {
 		$post_content    = '<!-- wp:test/interactive-block { "block": 1 } /-->';
 		$rendered_blocks = do_blocks( $post_content );
 		$p               = new WP_HTML_Tag_Processor( $rendered_blocks );
@@ -85,9 +85,9 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_multiple_interactive_blocks_in_paralell() {
+	public function test_process_directives_of_multiple_interactive_blocks_in_parallel() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } /-->
 			<!-- wp:test/interactive-block-2 { "block": 2 } /-->
@@ -111,9 +111,9 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_interactive_block_inside_non_interactive_block() {
+	public function test_process_directives_of_interactive_block_inside_non_interactive_block() {
 		$post_content    = '
 			<!-- wp:test/non-interactive-block { "block": 1 } -->
 				<!-- wp:test/interactive-block { "block": 2 } /-->
@@ -131,9 +131,9 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_multple_interactive_blocks_inside_non_interactive_block() {
+	public function test_process_directives_of_multiple_interactive_blocks_inside_non_interactive_block() {
 		$post_content    = '
 			<!-- wp:test/non-interactive-block { "block": 1 } -->
 				<!-- wp:test/interactive-block { "block": 2 } /-->
@@ -154,9 +154,9 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_interactive_block_inside_multple_non_interactive_block() {
+	public function test_process_directives_of_interactive_block_inside_multiple_non_interactive_block() {
 		$post_content    = '
 			<!-- wp:test/non-interactive-block { "block": 1 } -->
 				<!-- wp:test/interactive-block { "block": 2 } /-->
@@ -179,9 +179,9 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_interactive_block_containing_non_interactive_block_without_directives() {
+	public function test_process_directives_of_interactive_block_containing_non_interactive_block_without_directives() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } -->
 				<!-- wp:test/non-interactive-block { "block": 2 } /-->
@@ -201,9 +201,9 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_interactive_block_containing_non_interactive_block_with_directives() {
+	public function test_process_directives_of_interactive_block_containing_non_interactive_block_with_directives() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } -->
 				<!-- wp:test/non-interactive-block { "block": 2, "hasDirective": true } /-->
@@ -224,9 +224,9 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_interactive_block_containing_nested_interactive_and_non_interactive_blocks() {
+	public function test_process_directives_of_interactive_block_containing_nested_interactive_and_non_interactive_blocks() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } -->
 				<!-- wp:test/interactive-block-2 { "block": 2 } -->
@@ -277,7 +277,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_process_directives_only_process_the_root_interactive_blocks() {
 		$class                = new ReflectionClass( 'WP_Interactivity_API' );
@@ -352,7 +352,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_data_wp_context
+	 * @covers wp_interactivity_data_wp_context
 	 */
 	public function test_wp_interactivity_data_wp_context_with_different_arrays() {
 		$this->assertEquals( 'data-wp-context=\'{}\'', wp_interactivity_data_wp_context( array() ) );
@@ -382,7 +382,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_data_wp_context
+	 * @covers wp_interactivity_data_wp_context
 	 */
 	public function test_wp_interactivity_data_wp_context_with_different_arrays_and_a_namespace() {
 		$this->assertEquals( 'data-wp-context=\'myPlugin::{}\'', wp_interactivity_data_wp_context( array(), 'myPlugin' ) );
@@ -415,7 +415,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_data_wp_context
+	 * @covers wp_interactivity_data_wp_context
 	 */
 	public function test_wp_interactivity_data_wp_context_with_json_flags() {
 		$this->assertEquals( 'data-wp-context=\'{"tag":"\u003Cfoo\u003E"}\'', wp_interactivity_data_wp_context( array( 'tag' => '<foo>' ) ) );
@@ -522,6 +522,42 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		$processor         = new WP_HTML_Tag_Processor( $processed_content );
 		$processor->next_tag( array( 'tag_name' => 'input' ) );
 		$input_value = $processor->get_attribute( 'value' );
+		unregister_block_type( 'test/custom-directive-block' );
+		$this->assertNull( $input_value );
+	}
+
+	/**
+	 * Tests interactivity_process_directives filter.
+	 *
+	 * @ticket 61185
+	 *
+	 * @covers wp_interactivity_process_directives
+	 */
+	public function test_not_processing_directives_filter() {
+		wp_interactivity_state(
+			'dont-process',
+			array(
+				'text' => 'text',
+			)
+		);
+		register_block_type(
+			'test/custom-directive-block',
+			array(
+				'render_callback' => function () {
+					return '<div data-wp-interactive="dont-process"><input data-wp-bind--value="state.text" /></div>';
+				},
+				'supports'        => array(
+					'interactivity' => true,
+				),
+			)
+		);
+		$post_content = '<!-- wp:test/custom-directive-block /-->';
+		add_filter( 'interactivity_process_directives', '__return_false' );
+		$processed_content = do_blocks( $post_content );
+		$processor         = new WP_HTML_Tag_Processor( $processed_content );
+		$processor->next_tag( array( 'tag_name' => 'input' ) );
+		$input_value = $processor->get_attribute( 'value' );
+		remove_filter( 'interactivity_process_directives', '__return_false' );
 		unregister_block_type( 'test/custom-directive-block' );
 		$this->assertNull( $input_value );
 	}

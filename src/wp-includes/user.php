@@ -25,6 +25,7 @@
  * @since 2.5.0
  *
  * @global string $auth_secure_cookie
+ * @global wpdb   $wpdb               WordPress database abstraction object.
  *
  * @param array       $credentials {
  *     Optional. User info in order to sign on.
@@ -38,6 +39,8 @@
  * @return WP_User|WP_Error WP_User on success, WP_Error on failure.
  */
 function wp_signon( $credentials = array(), $secure_cookie = '' ) {
+	global $auth_secure_cookie, $wpdb;
+
 	if ( empty( $credentials ) ) {
 		$credentials = array(
 			'user_login'    => '',
@@ -98,7 +101,7 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	 */
 	$secure_cookie = apply_filters( 'secure_signon_cookie', $secure_cookie, $credentials );
 
-	global $auth_secure_cookie; // XXX ugly hack to pass this to wp_authenticate_cookie().
+	// XXX ugly hack to pass this to wp_authenticate_cookie().
 	$auth_secure_cookie = $secure_cookie;
 
 	add_filter( 'authenticate', 'wp_authenticate_cookie', 30, 3 );
@@ -110,6 +113,20 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	}
 
 	wp_set_auth_cookie( $user->ID, $credentials['remember'], $secure_cookie );
+
+	// Clear `user_activation_key` after a successful login.
+	if ( ! empty( $user->user_activation_key ) ) {
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_activation_key' => '',
+			),
+			array( 'ID' => $user->ID )
+		);
+
+		$user->user_activation_key = '';
+	}
+
 	/**
 	 * Fires after the user has successfully logged in.
 	 *
@@ -119,6 +136,7 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	 * @param WP_User $user       WP_User object of the logged-in user.
 	 */
 	do_action( 'wp_login', $user->user_login, $user );
+
 	return $user;
 }
 
@@ -284,6 +302,8 @@ function wp_authenticate_email_password( $user, $email, $password ) {
  * @return WP_User|WP_Error WP_User on success, WP_Error on failure.
  */
 function wp_authenticate_cookie( $user, $username, $password ) {
+	global $auth_secure_cookie;
+
 	if ( $user instanceof WP_User ) {
 		return $user;
 	}
@@ -293,8 +313,6 @@ function wp_authenticate_cookie( $user, $username, $password ) {
 		if ( $user_id ) {
 			return new WP_User( $user_id );
 		}
-
-		global $auth_secure_cookie;
 
 		if ( $auth_secure_cookie ) {
 			$auth_cookie = SECURE_AUTH_COOKIE;
@@ -1102,7 +1120,7 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 	$base_capabilities_key = $wpdb->base_prefix . 'capabilities';
 	$site_capabilities_key = $wpdb->base_prefix . $blog_id . '_capabilities';
 
-	if ( isset( $keys[ $base_capabilities_key ] ) && 1 == $blog_id ) {
+	if ( isset( $keys[ $base_capabilities_key ] ) && 1 === $blog_id ) {
 		return true;
 	}
 
@@ -1253,7 +1271,7 @@ function count_users( $strategy = 'time', $site_id = null ) {
 	$result      = array();
 
 	if ( 'time' === $strategy ) {
-		if ( is_multisite() && get_current_blog_id() != $site_id ) {
+		if ( is_multisite() && get_current_blog_id() !== $site_id ) {
 			switch_to_blog( $site_id );
 			$avail_roles = wp_roles()->get_names();
 			restore_current_blog();
@@ -1540,54 +1558,70 @@ function setup_userdata( $for_user_id = 0 ) {
  *
  * @since 2.3.0
  * @since 4.5.0 Added the 'display_name_with_login' value for 'show'.
- * @since 4.7.0 Added the `$role`, `$role__in`, and `$role__not_in` parameters.
+ * @since 4.7.0 Added the 'role', 'role__in', and 'role__not_in' parameters.
+ * @since 5.9.0 Added the 'capability', 'capability__in', and 'capability__not_in' parameters.
+ *              Deprecated the 'who' parameter.
  *
  * @param array|string $args {
  *     Optional. Array or string of arguments to generate a drop-down of users.
  *     See WP_User_Query::prepare_query() for additional available arguments.
  *
- *     @type string       $show_option_all         Text to show as the drop-down default (all).
- *                                                 Default empty.
- *     @type string       $show_option_none        Text to show as the drop-down default when no
- *                                                 users were found. Default empty.
- *     @type int|string   $option_none_value       Value to use for $show_option_none when no users
- *                                                 were found. Default -1.
- *     @type string       $hide_if_only_one_author Whether to skip generating the drop-down
- *                                                 if only one user was found. Default empty.
- *     @type string       $orderby                 Field to order found users by. Accepts user fields.
- *                                                 Default 'display_name'.
- *     @type string       $order                   Whether to order users in ascending or descending
- *                                                 order. Accepts 'ASC' (ascending) or 'DESC' (descending).
- *                                                 Default 'ASC'.
- *     @type int[]|string $include                 Array or comma-separated list of user IDs to include.
- *                                                 Default empty.
- *     @type int[]|string $exclude                 Array or comma-separated list of user IDs to exclude.
- *                                                 Default empty.
- *     @type bool|int     $multi                   Whether to skip the ID attribute on the 'select' element.
- *                                                 Accepts 1|true or 0|false. Default 0|false.
- *     @type string       $show                    User data to display. If the selected item is empty
- *                                                 then the 'user_login' will be displayed in parentheses.
- *                                                 Accepts any user field, or 'display_name_with_login' to show
- *                                                 the display name with user_login in parentheses.
- *                                                 Default 'display_name'.
- *     @type int|bool     $echo                    Whether to echo or return the drop-down. Accepts 1|true (echo)
- *                                                 or 0|false (return). Default 1|true.
- *     @type int          $selected                Which user ID should be selected. Default 0.
- *     @type bool         $include_selected        Whether to always include the selected user ID in the drop-
- *                                                 down. Default false.
- *     @type string       $name                    Name attribute of select element. Default 'user'.
- *     @type string       $id                      ID attribute of the select element. Default is the value of $name.
- *     @type string       $class                   Class attribute of the select element. Default empty.
- *     @type int          $blog_id                 ID of blog (Multisite only). Default is ID of the current blog.
- *     @type string       $who                     Which type of users to query. Accepts only an empty string or
- *                                                 'authors'. Default empty.
- *     @type string|array $role                    An array or a comma-separated list of role names that users must
- *                                                 match to be included in results. Note that this is an inclusive
- *                                                 list: users must match *each* role. Default empty.
- *     @type string[]     $role__in                An array of role names. Matched users must have at least one of
- *                                                 these roles. Default empty array.
- *     @type string[]     $role__not_in            An array of role names to exclude. Users matching one or more of
- *                                                 these roles will not be included in results. Default empty array.
+ *     @type string          $show_option_all         Text to show as the drop-down default (all).
+ *                                                    Default empty.
+ *     @type string          $show_option_none        Text to show as the drop-down default when no
+ *                                                    users were found. Default empty.
+ *     @type int|string      $option_none_value       Value to use for `$show_option_none` when no users
+ *                                                    were found. Default -1.
+ *     @type string          $hide_if_only_one_author Whether to skip generating the drop-down
+ *                                                    if only one user was found. Default empty.
+ *     @type string          $orderby                 Field to order found users by. Accepts user fields.
+ *                                                    Default 'display_name'.
+ *     @type string          $order                   Whether to order users in ascending or descending
+ *                                                    order. Accepts 'ASC' (ascending) or 'DESC' (descending).
+ *                                                    Default 'ASC'.
+ *     @type int[]|string    $include                 Array or comma-separated list of user IDs to include.
+ *                                                    Default empty.
+ *     @type int[]|string    $exclude                 Array or comma-separated list of user IDs to exclude.
+ *                                                    Default empty.
+ *     @type bool|int        $multi                   Whether to skip the ID attribute on the 'select' element.
+ *                                                    Accepts 1|true or 0|false. Default 0|false.
+ *     @type string          $show                    User data to display. If the selected item is empty
+ *                                                    then the 'user_login' will be displayed in parentheses.
+ *                                                    Accepts any user field, or 'display_name_with_login' to show
+ *                                                    the display name with user_login in parentheses.
+ *                                                    Default 'display_name'.
+ *     @type int|bool        $echo                    Whether to echo or return the drop-down. Accepts 1|true (echo)
+ *                                                    or 0|false (return). Default 1|true.
+ *     @type int             $selected                Which user ID should be selected. Default 0.
+ *     @type bool            $include_selected        Whether to always include the selected user ID in the drop-
+ *                                                    down. Default false.
+ *     @type string          $name                    Name attribute of select element. Default 'user'.
+ *     @type string          $id                      ID attribute of the select element. Default is the value of `$name`.
+ *     @type string          $class                   Class attribute of the select element. Default empty.
+ *     @type int             $blog_id                 ID of blog (Multisite only). Default is ID of the current blog.
+ *     @type string          $who                     Deprecated, use `$capability` instead.
+ *                                                    Which type of users to query. Accepts only an empty string or
+ *                                                    'authors'. Default empty (all users).
+ *     @type string|string[] $role                    An array or a comma-separated list of role names that users
+ *                                                    must match to be included in results. Note that this is
+ *                                                    an inclusive list: users must match *each* role. Default empty.
+ *     @type string[]        $role__in                An array of role names. Matched users must have at least one
+ *                                                    of these roles. Default empty array.
+ *     @type string[]        $role__not_in            An array of role names to exclude. Users matching one or more
+ *                                                    of these roles will not be included in results. Default empty array.
+ *     @type string|string[] $capability              An array or a comma-separated list of capability names that users
+ *                                                    must match to be included in results. Note that this is
+ *                                                    an inclusive list: users must match *each* capability.
+ *                                                    Does NOT work for capabilities not in the database or filtered
+ *                                                    via {@see 'map_meta_cap'}. Default empty.
+ *     @type string[]        $capability__in          An array of capability names. Matched users must have at least one
+ *                                                    of these capabilities.
+ *                                                    Does NOT work for capabilities not in the database or filtered
+ *                                                    via {@see 'map_meta_cap'}. Default empty array.
+ *     @type string[]        $capability__not_in      An array of capability names to exclude. Users matching one or more
+ *                                                    of these capabilities will not be included in results.
+ *                                                    Does NOT work for capabilities not in the database or filtered
+ *                                                    via {@see 'map_meta_cap'}. Default empty array.
  * }
  * @return string HTML dropdown list of users.
  */
@@ -1997,7 +2031,7 @@ function email_exists( $email ) {
  */
 function validate_username( $username ) {
 	$sanitized = sanitize_user( $username, true );
-	$valid     = ( $sanitized == $username && ! empty( $sanitized ) );
+	$valid     = ( $sanitized === $username && ! empty( $sanitized ) );
 
 	/**
 	 * Filters whether the provided username is valid.
@@ -2474,8 +2508,8 @@ function wp_insert_user( $userdata ) {
 		 */
 		do_action( 'profile_update', $user_id, $old_user_data, $userdata );
 
-		if ( isset( $userdata['spam'] ) && $userdata['spam'] != $old_user_data->spam ) {
-			if ( 1 == $userdata['spam'] ) {
+		if ( isset( $userdata['spam'] ) && $userdata['spam'] !== $old_user_data->spam ) {
+			if ( '1' === $userdata['spam'] ) {
 				/**
 				 * Fires after the user is marked as a SPAM user.
 				 *
@@ -2732,7 +2766,7 @@ All at ###SITENAME###
 
 	// Update the cookies if the password changed.
 	$current_user = wp_get_current_user();
-	if ( $current_user->ID == $user_id ) {
+	if ( $current_user->ID === $user_id ) {
 		if ( isset( $plaintext_pass ) ) {
 			wp_clear_auth_cookie();
 
@@ -2743,7 +2777,9 @@ All at ###SITENAME###
 			$logged_in_cookie = wp_parse_auth_cookie( '', 'logged_in' );
 			/** This filter is documented in wp-includes/pluggable.php */
 			$default_cookie_life = apply_filters( 'auth_cookie_expiration', ( 2 * DAY_IN_SECONDS ), $user_id, false );
-			$remember            = false;
+
+			$remember = false;
+
 			if ( false !== $logged_in_cookie && ( $logged_in_cookie['expiration'] - time() ) > $default_cookie_life ) {
 				$remember = true;
 			}
@@ -3255,9 +3291,9 @@ function retrieve_password( $user_login = null ) {
 	 *     @type string $message The body of the email.
 	 *     @type string $headers The headers of the email.
 	 * }
-	 * @type string  $key        The activation key.
-	 * @type string  $user_login The username for the user.
-	 * @type WP_User $user_data  WP_User object.
+	 * @param string  $key        The activation key.
+	 * @param string  $user_login The username for the user.
+	 * @param WP_User $user_data  WP_User object.
 	 */
 	$notification_email = apply_filters( 'retrieve_password_notification_email', $defaults, $key, $user_login, $user_data );
 
@@ -3547,7 +3583,7 @@ function wp_get_users_with_no_role( $site_id = null ) {
 
 	$prefix = $wpdb->get_blog_prefix( $site_id );
 
-	if ( is_multisite() && get_current_blog_id() != $site_id ) {
+	if ( is_multisite() && get_current_blog_id() !== $site_id ) {
 		switch_to_blog( $site_id );
 		$role_names = wp_roles()->get_names();
 		restore_current_blog();
@@ -3656,11 +3692,11 @@ function send_confirmation_on_profile_email() {
 		$errors = new WP_Error();
 	}
 
-	if ( $current_user->ID != $_POST['user_id'] ) {
+	if ( $current_user->ID !== (int) $_POST['user_id'] ) {
 		return false;
 	}
 
-	if ( $current_user->user_email != $_POST['email'] ) {
+	if ( $current_user->user_email !== $_POST['email'] ) {
 		if ( ! is_email( $_POST['email'] ) ) {
 			$errors->add(
 				'user_email',

@@ -73,13 +73,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding-top: 0.75em;
 }
 
-[class^="wp-block-"].alignleft,
-[class^="wp-block-"] .alignleft,
-[class^="wp-block-"].alignright,
-[class^="wp-block-"] .alignright {
-
-}
-
 /* Gallery */
 
 .wp-block-gallery {
@@ -240,6 +233,11 @@ pre.wp-block-code {
 	border: 0;
 	border-top: 1px solid #ededed;
 	padding: 6px 10px 6px 0;
+}
+
+.wp-block-table[style*="font-size"] *,
+.wp-block-table[class*="-font-size"] * {
+	font-size: inherit;
 }
 
 /*--------------------------------------------------------------

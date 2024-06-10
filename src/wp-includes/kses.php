@@ -1263,11 +1263,10 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 		 * `data-*` (not to be mixed with the HTML 4.0 `data` attribute, see
 		 * https://www.w3.org/TR/html40/struct/objects.html#adef-data).
 		 *
-		 * Note: the attribute name should only contain `A-Za-z0-9_-` chars,
-		 * double hyphens `--` are not accepted by WordPress.
+		 * Note: the attribute name should only contain `A-Za-z0-9_-` chars.
 		 */
 		if ( str_starts_with( $name_low, 'data-' ) && ! empty( $allowed_attr['data-*'] )
-			&& preg_match( '/^data(?:-[a-z0-9_]+)+$/', $name_low, $match )
+			&& preg_match( '/^data-[a-z0-9_-]+$/', $name_low, $match )
 		) {
 			/*
 			 * Add the whole attribute name to the allowed attributes and set any restrictions
@@ -2147,7 +2146,7 @@ function wp_filter_global_styles_post( $data ) {
 	) {
 		unset( $decoded_data['isGlobalStylesUserThemeJSON'] );
 
-		$data_to_encode = WP_Theme_JSON::remove_insecure_properties( $decoded_data );
+		$data_to_encode = WP_Theme_JSON::remove_insecure_properties( $decoded_data, 'custom' );
 
 		$data_to_encode['isGlobalStylesUserThemeJSON'] = true;
 		return wp_slash( wp_json_encode( $data_to_encode ) );
@@ -2304,6 +2303,7 @@ function kses_init() {
  *              Added support for `box-shadow`.
  * @since 6.4.0 Added support for `writing-mode`.
  * @since 6.5.0 Added support for `background-repeat`.
+ * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
  *
  * @param string $css        A string of CSS rules.
  * @param string $deprecated Not used.
@@ -2441,11 +2441,13 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'grid-auto-columns',
 			'grid-column-start',
 			'grid-column-end',
+			'grid-column',
 			'grid-column-gap',
 			'grid-template-rows',
 			'grid-auto-rows',
 			'grid-row-start',
 			'grid-row-end',
+			'grid-row',
 			'grid-row-gap',
 			'grid-gap',
 
@@ -2475,6 +2477,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'z-index',
 			'box-shadow',
 			'aspect-ratio',
+			'container-type',
 
 			// Custom CSS properties.
 			'--*',

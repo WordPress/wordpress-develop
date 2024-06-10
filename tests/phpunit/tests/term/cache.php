@@ -55,7 +55,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 14485
 	 */
-	public function test_hierachy_invalidation() {
+	public function test_hierarchy_invalidation() {
 		$tax = 'burrito';
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 		$this->assertTrue( get_taxonomy( $tax )->hierarchical );
