@@ -386,7 +386,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return;
 		}
 
-		echo str_repeat( '  ', $depth ) . "{$node->token->node_name} ({$node::$node_type})";
+		$node_type = get_class( $node );
+
+		echo str_repeat( '  ', $depth ) . "{$node->token->node_name} ({$node_type})";
 		if ( $node === $this->current_node ) {
 			echo ' <- current';
 		}
@@ -2154,9 +2156,19 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				);
 				break;
 
-			case '#cdata-section':
 			case '#presumptuous-tag':
-				throw new Error( "unhandled $token_name" );
+				$node = new PresumptuousTagNode(
+					$token,
+					$this->current_node,
+				);
+				break;
+
+			case '#cdata-section':
+				$node = new CDataSectionNode(
+					$token,
+					$this->current_node,
+				);
+				break;
 
 			default:
 				if ( ! ctype_upper( $token_name[0] ) ) {
@@ -2403,21 +2415,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 // phpcs:disable Generic.Files.OneObjectStructurePerFile.MultipleFound
 abstract class WP_HTML_Node {
-	const NODE_TYPE_ELEMENT                = 1;
-	const NODE_TYPE_ATTRIBUTE              = 2;
-	const NODE_TYPE_TEXT                   = 3;
-	const NODE_TYPE_CDATA_SECTION          = 4;
-	const NODE_TYPE_ENTITY_REFERENCE       = 5;
-	const NODE_TYPE_ENTITY                 = 6;
-	const NODE_TYPE_PROCESSING_INSTRUCTION = 7;
-	const NODE_TYPE_COMMENT                = 8;
-	const NODE_TYPE_DOCUMENT               = 9;
-	const NODE_TYPE_DOCUMENT_TYPE          = 10;
-	const NODE_TYPE_DOCUMENT_FRAGMENT      = 11;
-	const NODE_TYPE_NOTATION               = 12;
-
-	public static int $node_type;
-
 	public ?WP_HTML_Node $parent_node;
 	public ?WP_HTML_Token $token;
 
@@ -2428,8 +2425,6 @@ abstract class WP_HTML_Node {
 }
 
 class ElementNode extends WP_HTML_Node {
-	public static int $node_type = WP_HTML_Node::NODE_TYPE_ELEMENT;
-
 	/** @var array<WP_HTML_Node> */
 	public array $child_nodes = array();
 
@@ -2438,12 +2433,9 @@ class ElementNode extends WP_HTML_Node {
 	}
 }
 
-class TextNode extends WP_HTML_Node {
-	public static int $node_type = WP_HTML_Node::NODE_TYPE_TEXT;
-}
+class TextNode extends WP_HTML_Node {}
 
 class CommentNode extends WP_HTML_Node {
-	public static int $node_type = WP_HTML_Node::NODE_TYPE_COMMENT;
 	public string $comment_type;
 
 	public function __construct( WP_HTML_Token $token, ElementNode &$parent_node = null, string $comment_type ) {
@@ -2451,7 +2443,6 @@ class CommentNode extends WP_HTML_Node {
 		$this->comment_type = $comment_type;
 	}
 }
-
-class FunkyCommentNode extends WP_HTML_Node {
-	public static int $node_type = WP_HTML_Node::NODE_TYPE_COMMENT;
-}
+class FunkyCommentNode extends WP_HTML_Node {}
+class PresumptuousTagNode extends WP_HTML_Node {}
+class CDataSectionNode extends WP_HTML_Node {}
