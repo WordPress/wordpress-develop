@@ -179,4 +179,44 @@ class WP_XML_Decoder {
 
 		return $decoded;
 	}
+
+	/**
+	 * Finds and parses the next entity in a given text starting after the
+	 * given byte offset, and being entirely found within the given max length.
+	 *
+	 * @since {WP_VERSION}
+	 *
+	 * // @todo Implement this function.
+	 *
+	 * @param string   $text                 Text in which to search for an XML entity.
+	 * @param int      $starting_byte_offset Start looking after this byte offset.
+	 * @param int      $ending_byte_offset   Stop looking if entity is not fully contained before this byte offset.
+	 * @param int|null $entity_at            Optional. If provided, will be set to byte offset where entity was
+	 *                                       found, if found. Otherwise, will not be set.
+	 *
+	 * @return string|null Parsed entity, if parsed, otherwise `null`.
+	 */
+	public static function next_entity( string $text, int $starting_byte_offset, int $ending_byte_offset, int &$entity_at = null ): ?string {
+		$at  = $starting_byte_offset;
+		$end = $ending_byte_offset;
+
+		while ( $at < $end ) {
+			$remaining = $end - $at;
+			$amp_after = strcspn( $text, '&', $at, $remaining );
+
+			// There are no more possible entities.
+			if ( $amp_after === $remaining ) {
+				return null;
+			}
+
+			/*
+			 * @todo Move the decoding logic from `decode()` above into here,
+			 *       then call this function in a loop from `decode()`.
+			 */
+
+			++$at;
+		}
+
+		return null;
+	}
 }

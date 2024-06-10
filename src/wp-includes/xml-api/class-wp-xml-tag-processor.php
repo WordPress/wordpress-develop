@@ -45,6 +45,8 @@
  *           %xx;
  *       ]>
  *
+ * @todo Add custom Exception for reporting errors, error levels, and show cause of error in `_doing_it_wrong()`.
+ *
  * @see https://www.w3.org/TR/xml/
  *
  * @TODO: Support XML 1.1.
@@ -1225,20 +1227,18 @@ class WP_XML_Tag_Processor {
 			}
 
 			/*
-			 * XML tag names are defined by the same `Name` grammar rule as attribute
-			 * names.
+			 * XML tag names are defined by the same `Name` grammar rule as attribute names.
 			 *
-			 * Reference:
-			 * * https://www.w3.org/TR/xml/#NT-STag
-			 * * https://www.w3.org/TR/xml/#NT-Name
+			 *     STag ::= '<' Name (S Attribute)* S? '>'
+			 *
+			 * @see https://www.w3.org/TR/xml/#NT-STag
 			 */
-			$tag_name_length = $this->parse_name( $at + 1 );
-			if ( $tag_name_length > 0 ) {
-				++$at;
+			$tag_name = $this->parse_name( $at + 1 );
+			if ( isset( $tag_name ) ) {
 				$this->parser_state         = self::STATE_MATCHED_TAG;
-				$this->tag_name_starts_at   = $at;
-				$this->tag_name_length      = $tag_name_length;
-				$this->bytes_already_parsed = $at + $this->tag_name_length;
+				$this->tag_name_starts_at   = $at + 1;
+				$this->tag_name_length      = strlen( $tag_name );
+				$this->bytes_already_parsed = $this->tag_name_starts_at + $this->tag_name_length;
 
 				return true;
 			}
@@ -1559,9 +1559,9 @@ class WP_XML_Tag_Processor {
 			return false;
 		}
 
-		$attribute_start       = $this->bytes_already_parsed;
-		$attribute_name_length = $this->parse_name( $this->bytes_already_parsed );
-		if ( 0 === $attribute_name_length ) {
+		$attribute_start = $this->bytes_already_parsed;
+		$attribute_name  = $this->parse_name( $this->bytes_already_parsed );
+		if ( ! isset( $attribute_name ) ) {
 			$this->last_error = self::ERROR_SYNTAX;
 			_doing_it_wrong(
 				__METHOD__,
@@ -1569,8 +1569,7 @@ class WP_XML_Tag_Processor {
 				'WP_VERSION'
 			);
 		}
-		$this->bytes_already_parsed += $attribute_name_length;
-		$attribute_name              = substr( $this->xml, $attribute_start, $attribute_name_length );
+		$this->bytes_already_parsed += strlen( $attribute_name );
 		$this->skip_whitespace();
 
 		// Parse attribute value.
@@ -1595,26 +1594,57 @@ class WP_XML_Tag_Processor {
 				 * an expensive and complex check. It doesn't seem to be
 				 * worth it.
 				 *
-				 * @TODO: Discuss enforcing or abandoning the ampersand rule
-				 *        and document the rationale.
+				 * @todo Discuss enforcing or abandoning the ampersand rule
+				 *       and document the rationale.
+				 *
+				 * @todo Finding a `<` or a `&` in an attribute value seems
+				 *       like a recoverable error. It wouldn't affect the
+				 *       structure of the parse, as the attribute value would
+				 *       still extend to the terminating quote. It would be
+				 *       possibly better to find the attribute value span and
+				 *       then validate after that.
+				 *
+				 * @see https://www.w3.org/TR/xml/#NT-AttValue
 				 */
-				$value_length  = strcspn( $this->xml, "<$quote", $value_start );
-				$attribute_end = $value_start + $value_length + 1;
-
-				if ( $attribute_end - 1 >= strlen( $this->xml ) ) {
+				$terminating_quote_at = strpos( $this->xml, $quote, $value_start );
+				if ( false === $terminating_quote_at ) {
 					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
-
 					return false;
 				}
 
-				if ( $this->xml[ $attribute_end - 1 ] !== $quote ) {
+				$value_length  = $terminating_quote_at - $value_start - 1;
+				$attribute_end = $value_start + $value_length + 1;
+
+				$error_at  = $value_start;
+				$error_end = $value_start + $value_length;
+				while ( $error_at < $error_end ) {
+					$error_at += strcspn( $this->xml, '<&', $error_at, $error_end - $error_at );
+					if ( $error_at >= $error_end ) {
+						break;
+					}
+
+					// Could this be a real entity? If it is, it's not an error.
+					if ( '&' === $this->xml[ $error_at ] ) {
+						$entity = WP_XML_Decoder::next_entity( $this->xml, $error_at, $error_end, $entity_at );
+						if ( isset( $entity ) ) {
+							$error_at = $entity_at + strlen( $entity );
+							continue;
+						}
+					}
+
 					$this->last_error = self::ERROR_SYNTAX;
 					_doing_it_wrong(
 						__METHOD__,
-						__( 'A disallowed character encountered in an attribute value (either < or &).' ),
+						sprintf(
+							/* translators: 1: a found and invalid character, 2: a byte offset as a number */
+							__( 'The "%1$s" at byte offset %2$d is not allowed in an attribute value.' ),
+							$this->xml[ $error_at ],
+							$error_at
+						),
 						'WP_VERSION'
 					);
 				}
+
 				$this->bytes_already_parsed = $attribute_end;
 				break;
 
@@ -1668,36 +1698,63 @@ class WP_XML_Tag_Processor {
 		$this->bytes_already_parsed += strspn( $this->xml, " \t\f\r\n", $this->bytes_already_parsed );
 	}
 
-	// Describes the first character of the attribute name:
-	// NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
-	// See https://www.w3.org/TR/xml/#NT-Name
-	const NAME_START_CHAR_PATTERN = ':a-z_A-Z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}';
-	const NAME_CHAR_PATTERN       = '\-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}:a-z_A-Z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}';
-	private function parse_name( $offset ) {
-		if ( 1 !== preg_match(
-			'~[' . self::NAME_START_CHAR_PATTERN . ']~Ssu',
-			$this->xml[ $offset ],
-			$matches
-		) ) {
-			return 0;
+	/**
+	 * Matches an XML NT-NAME token.
+	 *
+	 *     NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] |
+	 *                       [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] |
+	 *                       [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] |
+	 *                       [#x10000-#xEFFFF]
+	 *
+	 *     NameChar      ::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
+	 *
+	 * @since {WP_VERSION}
+	 *
+	 * @see https://www.w3.org/TR/xml/#NT-Name
+	 */
+	const P_NAME = <<<'REGEXP'
+		~
+		# The match must start at the given offset.
+		\G
+			# NameStartChar
+			[:a-z_A-Z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}]
+
+			# NameChar*
+			[-.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}:a-z_A-Z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}]*
+
+		# u - The escape sequences refer to Unicode code points encoded as UTF-8.
+		#     They are not bytes, as they would be interpreted with the `u` flag.
+		# x - Use the extended syntax, which allows for these comments,
+		#     and to ignore whitespace outside of character groups.
+		~ux
+REGEXP;
+
+	/**
+	 * Attempts to parse an XML NT-NAME token.
+	 *
+	 * > NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] |
+	 * >                   [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] |
+	 * >                   [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] |
+	 * >                   [#x10000-#xEFFFF]
+	 * >
+	 * > NameChar      ::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
+	 *
+	 * @since {WP_VERSION}
+	 *
+	 * @see https://www.w3.org/TR/xml/#NT-Name
+	 *
+	 * @param int|null $offset Optional. Byte offset at which to start parsing.
+	 *                         Default is to start at the current cursor position.
+	 * @return string|null Parsed NT-NAME token, if parsed, otherwise `null`.
+	 */
+	private function parse_name( int $offset = null ): ?string {
+		if ( ! isset( $offset ) ) {
+			$offset = $this->bytes_already_parsed;
 		}
 
-		$name_length = 1;
-
-		// Consume the rest of the name
-		preg_match(
-			'~\G([' . self::NAME_CHAR_PATTERN . ']+)~Ssu',
-			$this->xml,
-			$matches,
-			0,
-			$offset + 1
-		);
-
-		if ( is_array( $matches ) && count( $matches ) > 0 ) {
-			$name_length += strlen( $matches[0] );
-		}
-
-		return $name_length;
+		return 1 === preg_match( self::P_NAME, $this->xml, $name_match, 0, $offset )
+			? $name_match[0]
+			: null;
 	}
 
 	/**
