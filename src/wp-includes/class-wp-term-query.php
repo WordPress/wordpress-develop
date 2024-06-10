@@ -161,6 +161,7 @@ class WP_Term_Query {
 	 *     @type string          $search                 Search criteria to match terms. Will be SQL-formatted with
 	 *                                                   wildcards before and after. Default empty.
 	 *     @type string          $s                      Alias of `$search`. Default empty.
+	 *                                                   @since 6.7.0
 	 *     @type string          $name__like             Retrieve terms with criteria by which a term is LIKE
 	 *                                                   `$name__like`. Default empty.
 	 *     @type string          $description__like      Retrieve terms where the description is LIKE
