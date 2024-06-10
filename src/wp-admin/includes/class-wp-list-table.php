@@ -1057,7 +1057,7 @@ class WP_List_Table {
 			$disable_first = true;
 			$disable_prev  = true;
 		}
-		if ( (int) $total_pages === $current ) {
+		if ( $total_pages === $current ) {
 			$disable_last = true;
 			$disable_next = true;
 		}
