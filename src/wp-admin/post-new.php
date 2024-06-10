@@ -10,8 +10,8 @@
 require_once __DIR__ . '/admin.php';
 
 /**
- * @global string  $post_type
- * @global object  $post_type_object
+ * @global string  $post_type        Global post type.
+ * @global object  $post_type_object Global post type object.
  * @global WP_Post $post             Global post object.
  */
 global $post_type, $post_type_object, $post;
