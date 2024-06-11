@@ -406,13 +406,16 @@ add_filter( 'wp_theme_json_data_theme', 'wp_resolve_block_style_variations_from_
 add_filter( 'wp_theme_json_data_user', 'wp_resolve_block_style_variations_from_theme_style_variation', 10, 1 );
 
 /**
+ * Registers any block style variations contained within the provided
+ * theme.json data.
+ *
  * @access private
+ *
+ * @param array $variations Shared block style variations.
  */
 function wp_register_block_style_variations_from_theme_json_data( $variations ) {
-	$variations_data = array();
-
 	if ( empty( $variations ) ) {
-		return $variations_data;
+		return $variations;
 	}
 
 	$registry              = WP_Block_Styles_Registry::get_instance();
