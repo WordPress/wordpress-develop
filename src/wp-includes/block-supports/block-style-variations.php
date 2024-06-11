@@ -461,18 +461,17 @@ function wp_register_block_style_variations_from_theme_json_data( $variations ) 
 }
 
 /**
- * @access private
+ * Register shared block style variations defined by the theme.
  *
- * Register the block style variations defined by the theme.
  * These can come in three forms:
- *
  * - the theme's theme.json
- * - the theme's partials (standalone files in styles that only define block style variations)
+ * - the theme's partials (standalone files in `/styles` that only define block style variations)
  * - the user's theme.json (for example, theme style variations the user selected)
  *
+ * @access private
  */
 function wp_register_block_style_variations_from_theme() {
-	// Partials.
+	// Partials from `/styles`.
 	$variations_partials = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
 	wp_register_block_style_variations_from_theme_json_data( $variations_partials );
 
@@ -496,4 +495,4 @@ function wp_register_block_style_variations_from_theme() {
 	$variations_user = $theme_json_user->get_data()['styles']['blocks']['variations'] ?? array();
 	wp_register_block_style_variations_from_theme_json_data( $variations_user );
 }
-add_filter( 'init', 'wp_register_block_style_variations_from_theme' );
+add_action( 'init', 'wp_register_block_style_variations_from_theme' );
