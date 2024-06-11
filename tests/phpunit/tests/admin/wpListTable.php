@@ -550,15 +550,16 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 */
 	public function test_search_box_working_with_array_of_orderby_single_value() {
 		// Test with one 'orderby' element.
+		$_REQUEST['s']       = 'search term';
 		$_REQUEST['orderby'] = array(
 			'title' => 'ASC',
 		);
 
 		$actual = get_echo( array( $this->list_table, 'search_box' ), array( 'Search Posts', 'post' ) );
 
-		$expected_html = '<input type="hidden" name="orderby[menu_order]" value="ASC" />';
+		$expected_html = '<input type="hidden" name="orderby[title]" value="ASC" />';
 
-		$this->assertStringNotContainsString( $expected_html, $actual );
+		$this->assertStringContainsString( $expected_html, $actual );
 	}
 
 	/**
