@@ -971,7 +971,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 				'api_version' => 2,
 				'name'        => 'tests/notice-with-variations-php',
 				'title'       => 'Notice with variations from a PHP file',
-				'variations'  => 'variations.php'
+				'variations'  => 'variations.php',
 			)
 		);
 
