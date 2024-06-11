@@ -523,37 +523,42 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that "search_box()" works correctly with an array of orderby.
+	 * Tests that "search_box()" works correctly with an orderby array with multiple values.
 	 *
 	 * @ticket 59494
 	 */
-	public function test_search_box_working_with_array_of_orderby() {
+	public function test_search_box_working_with_array_of_orderby_multiple_values() {
 		$_REQUEST['s']       = 'search term';
 		$_REQUEST['orderby'] = array(
 			'menu_order' => 'ASC',
 			'title'      => 'ASC',
 		);
 
-		$output = get_echo( array( $this->list_table, 'search_box' ), array( 'foo Label', 59494 ) );
+		$actual = get_echo( array( $this->list_table, 'search_box' ), array( 'Search Posts', 'post' ) );
 
 		$expected_html1 = '<input type="hidden" name="orderby[menu_order]" value="ASC" />';
 		$expected_html2 = '<input type="hidden" name="orderby[title]" value="ASC" />';
 
-		$this->assertStringContainsString( $expected_html1, $output );
-		$this->assertStringContainsString( $expected_html2, $output );
+		$this->assertStringContainsString( $expected_html1, $actual );
+		$this->assertStringContainsString( $expected_html2, $actual );
+	}
 
+	/**
+	 * Tests that "search_box()" works correctly with an orderby array with a single value.
+	 *
+	 * @ticket 59494
+	 */
+	public function test_search_box_working_with_array_of_orderby_single_value() {
 		// Test with one 'orderby' element.
 		$_REQUEST['orderby'] = array(
 			'title' => 'ASC',
 		);
 
-		$output = get_echo( array( $this->list_table, 'search_box' ), array( 'foo Label', 59494 ) );
+		$actual = get_echo( array( $this->list_table, 'search_box' ), array( 'Search Posts', 'post' ) );
 
-		$expected_html1 = '<input type="hidden" name="orderby[menu_order]" value="ASC" />';
-		$expected_html2 = '<input type="hidden" name="orderby[title]" value="ASC" />';
+		$expected_html = '<input type="hidden" name="orderby[menu_order]" value="ASC" />';
 
-		$this->assertStringNotContainsString( $expected_html1, $output );
-		$this->assertStringContainsString( $expected_html2, $output );
+		$this->assertStringNotContainsString( $expected_html, $actual );
 	}
 
 	/**
@@ -566,10 +571,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		$_REQUEST['s']       = 'search term';
 		$_REQUEST['orderby'] = 'title';
 
-		$output = get_echo( array( $this->list_table, 'search_box' ), array( 'foo Label', 59494 ) );
+		$actual = get_echo( array( $this->list_table, 'search_box' ), array( 'Search Posts', 'post' ) );
 
 		$expected_html = '<input type="hidden" name="orderby" value="title" />';
 
-		$this->assertStringContainsString( $expected_html, $output );
+		$this->assertStringContainsString( $expected_html, $actual );
 	}
 }
