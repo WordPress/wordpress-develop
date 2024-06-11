@@ -3096,6 +3096,74 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 55600
+	 */
+	public function test_default_is_saved_to_db() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'with_bool_default',
+			array(
+				'type'         => 'boolean',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => true,
+			)
+		);
+
+		register_post_meta(
+			'post',
+			'with_integer_default',
+			array(
+				'type'         => 'integer',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => 42,
+			)
+		);
+
+		register_post_meta(
+			'post',
+			'with_string_default',
+			array(
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => 'string default',
+			)
+		);
+
+		$data    = array(
+			'meta' => array(
+				'with_string_default' => 'string default',
+				'with_integer_default' => 42,
+				'with_bool_default' => true,
+			),
+		);
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params( $data );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$meta = get_metadata_raw('post', self::$post_id, 'with_bool_default', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 1, $meta );
+		$this->assertSame( '1', $meta[0] );
+
+		$meta = get_metadata_raw('post', self::$post_id, 'with_integer_default', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 1, $meta );
+		$this->assertSame( '42', $meta[0] );
+
+		$meta = get_metadata_raw('post', self::$post_id, 'with_string_default', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 1, $meta );
+		$this->assertSame( 'string default', $meta[0] );
+	}
+
+	/**
 	 * @ticket 48823
 	 */
 	public function test_multiple_errors_are_returned_at_once() {
