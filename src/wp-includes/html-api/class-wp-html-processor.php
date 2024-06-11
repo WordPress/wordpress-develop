@@ -228,7 +228,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * @var ?WP_HTML_Node
 	 */
-	private $current_node = null;
+	private $insertion_point = null;
 
 	/**
 	 * @var ?WP_HTML_Node
@@ -363,8 +363,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$this->state->stack_of_open_elements->set_pop_handler(
 			function ( WP_HTML_Token $token ) {
 				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::POP );
-				if ( $this->current_node ) {
-					$this->current_node = &$this->current_node->parent_node;
+				if ( $this->insertion_point ) {
+					$this->insertion_point = &$this->insertion_point->parent_node;
 				}
 
 				$this->debug_tree( $this->tree );
@@ -389,7 +389,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$node_type = get_class( $node );
 
 		echo str_repeat( '  ', $depth ) . "{$node->token->node_name} ({$node_type})";
-		if ( $node === $this->current_node ) {
+		if ( $node === $this->insertion_point ) {
 			echo ' <- current';
 		}
 		echo "\n";
@@ -2137,7 +2137,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#comment':
 				$node = new CommentNode(
 					$token,
-					$this->current_node,
+					$this->insertion_point,
 					$this->get_comment_type()
 				);
 				break;
@@ -2145,28 +2145,28 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#text':
 				$node = new TextNode(
 					$token,
-					$this->current_node,
+					$this->insertion_point
 				);
 				break;
 
 			case '#funky-comment':
 				$node = new FunkyCommentNode(
 					$token,
-					$this->current_node,
+					$this->insertion_point
 				);
 				break;
 
 			case '#presumptuous-tag':
 				$node = new PresumptuousTagNode(
 					$token,
-					$this->current_node,
+					$this->insertion_point
 				);
 				break;
 
 			case '#cdata-section':
 				$node = new CDataSectionNode(
 					$token,
-					$this->current_node,
+					$this->insertion_point
 				);
 				break;
 
@@ -2176,17 +2176,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 				$node = new ElementNode(
 					$token,
-					$this->current_node,
+					$this->insertion_point
 				);
 				break;
 		}
 
 		if ( null === $this->tree ) {
-			$this->tree         = $node;
-			$this->current_node = &$this->tree;
-		} elseif ( $this->current_node instanceof ElementNode ) {
-			$this->current_node->append_child( $node );
-			$this->current_node = &$node;
+			$this->tree            = $node;
+			$this->insertion_point = &$this->tree;
+		} elseif ( $this->insertion_point instanceof ElementNode ) {
+			$this->insertion_point->append_child( $node );
+			$this->insertion_point = &$node;
 		} else {
 			throw new Error( "Trying to append to non-element node at {$this->bookmarks[$token->bookmark_name]->start}" );
 		}
