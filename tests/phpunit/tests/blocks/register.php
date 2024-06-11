@@ -965,20 +965,18 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @covers ::register_block_type_from_metadata
 	 */
 	public function test_register_block_type_from_metadata_with_variations_php_file() {
+		$filter_metadata_registration = static function ( $metadata ) {
+			$metadata['variations'] = 'variations.php';
+			return $metadata;
+		};
+
+		add_filter( 'block_type_metadata', $filter_metadata_registration, 10, 2 );
 		$result = register_block_type_from_metadata(
-			DIR_TESTDATA . '/blocks/notice',
-			array(
-				'api_version' => 2,
-				'name'        => 'tests/notice-with-variations-php',
-				'title'       => 'Notice with variations from a PHP file',
-				'variations'  => 'variations.php',
-			)
+			DIR_TESTDATA . '/blocks/notice'
 		);
+		remove_filter( 'block_type_metadata', $filter_metadata_registration );
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result, 'The block was not registered' );
-		$this->assertSame( 2, $result->api_version, 'The API version is incorrect' );
-		$this->assertSame( 'tests/notice-with-variations-php', $result->name, 'The block name is incorrect' );
-		$this->assertSame( 'Notice with variations from a PHP file', $result->title, 'The block title is incorrect' );
 		$this->assertSame( 'variations.php', $result->variations, 'The block variations are incorrect' );
 		$this->assertIsCallable( $result->variation_callback, 'The variation callback hasn\'t been set' );
 
