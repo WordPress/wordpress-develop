@@ -72,7 +72,7 @@ final class WP_Block_Bindings_Registry {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $source_name       The name of the source. It must be a string containing a namespace prefix, i.e.
+	 * @param string $source_name The name of the source. It must be a string containing a namespace prefix, i.e.
 	 *                                    `my-plugin/my-custom-source`. It must only contain lowercase alphanumeric
 	 *                                    characters, the forward slash `/` and dashes.
 	 * @param array  $source_properties {
