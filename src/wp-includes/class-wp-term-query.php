@@ -92,6 +92,7 @@ class WP_Term_Query {
 	 * @since 5.1.0 Introduced the 'meta_compare_key' parameter.
 	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
 	 * @since 6.4.0 Introduced the 'cache_results' parameter.
+	 * @since 6.7.0 Introduced the 's' parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of term query parameters. Default empty.
@@ -161,7 +162,6 @@ class WP_Term_Query {
 	 *     @type string          $search                 Search criteria to match terms. Will be SQL-formatted with
 	 *                                                   wildcards before and after. Default empty.
 	 *     @type string          $s                      Alias of `$search`. Default empty.
-	 *                                                   @since 6.7.0
 	 *     @type string          $name__like             Retrieve terms with criteria by which a term is LIKE
 	 *                                                   `$name__like`. Default empty.
 	 *     @type string          $description__like      Retrieve terms where the description is LIKE
