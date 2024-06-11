@@ -1,5 +1,5 @@
 ##
-# A callable workflow that tests the WordPress Core build process.
+# A reusable workflow that tests the WordPress Core build process.
 ##
 name: Test the WordPress Build Process
 
@@ -16,6 +16,21 @@ on:
         required: false
         type: 'string'
         default: 'src'
+      test-emoji:
+        description: 'Whether to run the grunt precommit:emoji script.'
+        required: false
+        type: 'boolean'
+        default: true
+      save-build:
+        description: 'Whether to save a ZIP of built WordPress as an artifact.'
+        required: false
+        type: 'boolean'
+        default: false
+      prepare-playground:
+        description: 'Whether to prepare the artifacts needed for Playground testing.'
+        required: false
+        type: 'boolean'
+        default: false
 
 env:
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
@@ -34,8 +49,10 @@ jobs:
   # - Cleans up after building WordPress.
   # - Ensures version-controlled files are not modified or deleted.
   # - Uploads the ZIP as a GitHub Actions artifact (when building to the build directory).
+  # - Saves the pull request number to a text file.
+  # - Uploads the pull request number as an artifact.
   build-process-tests:
-    name: Core running from ${{ inputs.directory }} / ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }}
+    name: Core running from ${{ inputs.directory }} / ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
 
@@ -49,7 +66,6 @@ jobs:
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version-file: '.nvmrc'
-          check-latest: true
           cache: npm
 
       - name: Log debug information
@@ -63,6 +79,7 @@ jobs:
         run: npm ci
 
       - name: Run Emoji precommit task
+        if: ${{ inputs.test-emoji }}
         run: npm run grunt precommit:emoji
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -85,8 +102,23 @@ jobs:
 
       - name: Upload ZIP as a GitHub Actions artifact
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
-        if: ${{ inputs.directory == 'build' && 'ubuntu-latest' == inputs.os }}
+        if: ${{ inputs.save-build || inputs.prepare-playground }}
         with:
           name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
           path: wordpress.zip
           if-no-files-found: error
+
+      - name: Save PR number
+        if: ${{ inputs.prepare-playground }}
+        run: |
+          mkdir -p ./pr-number
+          echo ${{ github.event.number }} > ./pr-number/NR
+
+      # Uploads the PR number as an artifact for the Pull Request Commenting workflow to download and then
+      # leave a comment detailing how to test the PR within WordPress Playground.
+      - name: Upload PR number as artifact
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        if: ${{ inputs.prepare-playground && github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
+        with:
+          name: pr-number
+          path: pr-number/
