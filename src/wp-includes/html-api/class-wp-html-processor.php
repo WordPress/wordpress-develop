@@ -240,7 +240,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @var ?WP_HTML_Token
 	 */
-	private ?WP_HTML_Token $context_node = null;
+	private $context_node = null;
 
 	/**
 	 * Whether the parser has yet processed the context node,
@@ -2415,8 +2415,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 // phpcs:disable Generic.Files.OneObjectStructurePerFile.MultipleFound
 abstract class WP_HTML_Node {
-	public ?WP_HTML_Node $parent_node;
-	public ?WP_HTML_Token $token;
+	/** @var ?WP_HTML_Node */
+	public $parent_node;
+
+	/** @var ?WP_HTML_Token  */
+	public $token;
 
 	public function __construct( ?WP_HTML_Token $token, ?ElementNode &$parent_node = null ) {
 		$this->token       = $token;
@@ -2426,7 +2429,7 @@ abstract class WP_HTML_Node {
 
 class ElementNode extends WP_HTML_Node {
 	/** @var array<WP_HTML_Node> */
-	public array $child_nodes = array();
+	public $child_nodes = array();
 
 	public function append_child( WP_HTML_Node &$node ) {
 		$this->child_nodes[] = &$node;
@@ -2436,7 +2439,8 @@ class ElementNode extends WP_HTML_Node {
 class TextNode extends WP_HTML_Node {}
 
 class CommentNode extends WP_HTML_Node {
-	public string $comment_type;
+	/** @var string */
+	public $comment_type;
 
 	public function __construct( WP_HTML_Token $token, ElementNode &$parent_node = null, string $comment_type ) {
 		parent::__construct( $token, $parent_node );
