@@ -3136,9 +3136,9 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		$data    = array(
 			'meta' => array(
-				'with_string_default' => 'string default',
+				'with_string_default'  => 'string default',
 				'with_integer_default' => 42,
-				'with_bool_default' => true,
+				'with_bool_default'    => true,
 			),
 		);
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
@@ -3147,17 +3147,17 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 
-		$meta = get_metadata_raw('post', self::$post_id, 'with_bool_default', false );
+		$meta = get_metadata_raw( 'post', self::$post_id, 'with_bool_default', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
 		$this->assertSame( '1', $meta[0] );
 
-		$meta = get_metadata_raw('post', self::$post_id, 'with_integer_default', false );
+		$meta = get_metadata_raw( 'post', self::$post_id, 'with_integer_default', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
 		$this->assertSame( '42', $meta[0] );
 
-		$meta = get_metadata_raw('post', self::$post_id, 'with_string_default', false );
+		$meta = get_metadata_raw( 'post', self::$post_id, 'with_string_default', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
 		$this->assertSame( 'string default', $meta[0] );
