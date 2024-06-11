@@ -213,9 +213,6 @@ function wp_render_block_style_variation_class_name( $block_content, $block ) {
 
 /**
  * Collects block style variation data for merging with theme.json data.
- * As each block style variation is processed it is registered if it hasn't
- * been already. This registration is required for later sanitization of
- * theme.json data.
  *
  * @since 6.6.0
  * @access private
