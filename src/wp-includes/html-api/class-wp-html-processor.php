@@ -226,7 +226,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private $current_element = null;
 
 	/**
-	 * @var ?WP_HTML_Node
+	 * @var ?ElementNode
 	 */
 	private $insertion_point = null;
 
@@ -2182,13 +2182,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		if ( null === $this->tree ) {
-			$this->tree            = $node;
-			$this->insertion_point = &$this->tree;
-		} elseif ( $this->insertion_point instanceof ElementNode ) {
-			$this->insertion_point->append_child( $node );
-			$this->insertion_point = &$node;
+			$this->tree = &$node;
 		} else {
-			throw new Error( "Trying to append to non-element node at {$this->bookmarks[$token->bookmark_name]->start}" );
+			$this->insertion_point->append_child( $node );
+		}
+
+		if ( $node instanceof ElementNode && $this->expects_closer( $node->token ) ) {
+			$this->insertion_point = &$node;
 		}
 
 		$this->state->stack_of_open_elements->push( $token );
