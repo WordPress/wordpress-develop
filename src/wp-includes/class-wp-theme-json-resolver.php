@@ -247,8 +247,8 @@ class WP_Theme_JSON_Resolver {
 
 		$can_use_cached = ! wp_is_development_mode( 'theme' );
 		if ( $can_use_cached ) {
-			$cache_key = 'get_theme_data_cache';
-			if ( null === static::$theme && ! $options['with_supports'] ) {
+			$cache_key = 'get_theme_data_cache_' . md5( wp_json_encode( func_get_args() ) );
+			if ( null === static::$theme ) {
 				$cache_value = get_transient( $cache_key );
 				if ( $cache_value ) {
 					static::$theme                = $cache_value;
@@ -295,11 +295,12 @@ class WP_Theme_JSON_Resolver {
 			}
 		}
 
+		if ( $can_use_cached && static::$theme_cache_intitial !== static::$theme ) {
+			static::$theme_cache_intitial = static::$theme;
+			set_transient( $cache_key, static::$theme, 10 * MINUTE_IN_SECONDS );
+		}
+
 		if ( ! $options['with_supports'] ) {
-			if ( $can_use_cached && static::$theme_cache_intitial !== static::$theme ) {
-				static::$theme_cache_intitial = static::$theme;
-				set_transient( $cache_key, static::$theme, 10 * MINUTE_IN_SECONDS );
-			}
 			return static::$theme;
 		}
 
