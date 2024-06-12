@@ -57,13 +57,12 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		/*
-		 * Four expected queries:
+		 * Three expected queries:
 		 * 1: Posts data,
-		 * 2: Post meta data,
-		 * 3: Taxonomy data,
-		 * 4: Term data.
+		 * 2: Taxonomy data,
+		 * 3: Term data.
 		 */
-		$this->assertSame( 4, $num_queries, 'Unexpected number of queries.' );
+		$this->assertSame( 3, $num_queries, 'Unexpected number of queries.' );
 
 		$this->assertSame( array(), _get_non_cached_ids( array( $post_id ), 'posts' ), 'Post is not cached.' );
 
@@ -95,13 +94,12 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		/*
-		 * Four expected queries:
+		 * Three expected queries:
 		 * 1: Posts data,
-		 * 2: Post meta data,
-		 * 3: Taxonomy data,
-		 * 4: Term data.
+		 * 2: Taxonomy data,
+		 * 3: Term data.
 		 */
-		$this->assertSame( 4, $num_queries, 'Unexpected number of queries.' );
+		$this->assertSame( 3, $num_queries, 'Unexpected number of queries.' );
 
 		$this->assertSame( array(), _get_non_cached_ids( self::$posts, 'posts' ), 'Posts are not cached.' );
 	}
@@ -165,11 +163,10 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		/*
-		 * Two expected queries:
+		 * One expected queries:
 		 * 1: Posts data.
-		 * 2: Post meta data.
 		 */
-		$this->assertSame( 2, $num_queries, 'Unexpected number of queries warming cache.' );
+		$this->assertSame( 1, $num_queries, 'Unexpected number of queries warming cache.' );
 
 		$this->assertSame( array(), _get_non_cached_ids( self::$posts, 'posts' ), 'Posts are not cached.' );
 
@@ -202,12 +199,11 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		/*
-		 * Three expected queries:
-		 * 1: Post meta data,
-		 * 2: Taxonomy data,
-		 * 3: Term data.
+		 * Two expected queries:
+		 * 1: Taxonomy data,
+		 * 2: Term data.
 		 */
-		$this->assertSame( 3, $num_queries, 'Unexpected number of queries.' );
+		$this->assertSame( 2, $num_queries, 'Unexpected number of queries.' );
 	}
 
 	/**
