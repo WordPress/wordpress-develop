@@ -202,19 +202,33 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private $release_internal_bookmark_on_destruct = null;
 
 	/**
-	 * @var ?WP_HTML_Node
+	 * Stores stack events which arise during parsing of the
+	 * HTML document, which will then supply the "match" events.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @var WP_HTML_Stack_Event[]
 	 */
-	private $yielded_node = null;
+	private $element_queue = array();
+
+	/**
+	 * Current stack event, if set, representing a matched token.
+	 *
+	 * Because the parser may internally point to a place further along in a document
+	 * than the nodes which have already been processed (some "virtual" nodes may have
+	 * appeared while scanning the HTML document), this will point at the "current" node
+	 * being processed. It comes from the front of the element queue.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @var ?WP_HTML_Stack_Event
+	 */
+	private $current_element = null;
 
 	/**
 	 * @var ?ElementNode
 	 */
 	private $insertion_point = null;
-
-	/**
-	 * @var ?ElementNode
-	 */
-	private $last_parsed_node = null;
 
 	/**
 	 * @var ?WP_HTML_Node
@@ -302,10 +316,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		);
 
 		$processor->insert_html_element( $context_node );
+		/*$processor->state->stack_of_open_elements->push( $context_node );*/
 		$processor->context_node = $context_node;
-
-		/*$processor->yielded_node     = &$processor->tree->child_nodes[0];*/
-		/*$processor->last_parsed_node = &$processor->tree->child_nodes[0];*/
 
 		return $processor;
 	}
@@ -341,9 +353,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		$this->state = new WP_HTML_Processor_State();
 
+		$this->state->stack_of_open_elements->set_push_handler(
+			function ( WP_HTML_Token $token ) {
+				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::PUSH );
+				$this->debug_tree( $this->tree );
+			}
+		);
+
 		$this->state->stack_of_open_elements->set_pop_handler(
 			function ( WP_HTML_Token $token ) {
-				$this->pop_html_node( $token );
+				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::POP );
+				if ( $this->insertion_point ) {
+					$this->insertion_point = &$this->insertion_point->parent_node;
+				}
+
 				$this->debug_tree( $this->tree );
 			}
 		);
@@ -359,10 +382,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	private function debug_tree( ?WP_HTML_Node &$node, int $depth = 0 ) {
-		if ( ! defined( 'DEBUG_DUMP' ) || DEBUG_DUMP !== true ) {
-			return;
-		}
-
 		if ( ! $node ) {
 			return;
 		}
@@ -523,53 +542,48 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool
 	 */
 	public function next_token() {
+		$this->current_element = null;
+
 		if ( isset( $this->last_error ) ) {
 			return false;
 		}
 
-		if ( null === $this->yielded_node ) {
-			if ( null !== $this->tree ) {
-				$this->yielded_node = &$this->tree;
-				return true;
-			}
-		}
-
-		if ( $this->last_parsed_node === null ) {
-		}
-
-		if ( $this->yielded_node === $this->last_parsed_node && ! $this->step() ) {
+		if ( 0 === count( $this->element_queue ) && ! $this->step() ) {
 			while ( $this->state->stack_of_open_elements->pop() ) {
+				continue;
 			}
+		}
+
+		$this->current_element = array_shift( $this->element_queue );
+		while ( isset( $this->context_node ) && ! $this->has_seen_context_node ) {
+			if ( isset( $this->current_element ) ) {
+				if ( $this->context_node === $this->current_element->token && WP_HTML_Stack_Event::PUSH === $this->current_element->operation ) {
+					$this->has_seen_context_node = true;
+					return $this->next_token();
+				}
+			}
+			$this->current_element = array_shift( $this->element_queue );
+		}
+
+		if ( ! isset( $this->current_element ) ) {
+			return $this->next_token();
+		}
+
+		if ( isset( $this->context_node ) && WP_HTML_Stack_Event::POP === $this->current_element->operation && $this->context_node === $this->current_element->token ) {
+			$this->element_queue   = array();
+			$this->current_element = null;
 			return false;
 		}
 
-		// Try to yield child nodes
-		if ( $this->yielded_node instanceof ElementNode && 0 < count( $this->yielded_node->child_nodes ) ) {
-			$this->yielded_node = &$this->yielded_node->child_nodes[0];
-			return true;
-		}
-
-		// Otherwise yield the next sibling moving up to parents recursively
-		for (
-			$current_node = &$this->yielded_node,
-			$parent_node = &$current_node->parent_node;
-			null !== $parent_node;
-			$parent_node = &$parent_node->parent_node
+		// Avoid sending close events for elements which don't expect a closing.
+		if (
+			WP_HTML_Stack_Event::POP === $this->current_element->operation &&
+			! static::expects_closer( $this->current_element->token )
 		) {
-			$yield_next = false;
-			foreach ( $parent_node->child_nodes as &$node ) {
-				if ( $yield_next ) {
-					$this->yielded_node = &$node;
-					return true;
-				}
-
-				if ( $node === $current_node ) {
-					$yield_next = true;
-				}
-			}
+			return $this->next_token();
 		}
 
-		return false;
+		return true;
 	}
 
 
@@ -590,10 +604,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether the current tag is a tag closer.
 	 */
 	public function is_tag_closer() {
-		return false;
-		/*return isset( $this->current_element )*/
-		/*  ? ( WP_HTML_Stack_Event::POP === $this->current_element->operation )*/
-		/*  : parent::is_tag_closer();*/
+		return isset( $this->current_element )
+			? ( WP_HTML_Stack_Event::POP === $this->current_element->operation )
+			: parent::is_tag_closer();
 	}
 
 	/**
@@ -753,8 +766,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step_in_body();
 
 				default:
-					$this->last_error = new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
-					throw $this->last_error;
+					$this->last_error = self::ERROR_UNSUPPORTED;
+					throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 			}
 		} catch ( WP_HTML_Unsupported_Exception $e ) {
 			/*
@@ -841,8 +854,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_body() {
-		$token_name = parent::get_token_name();
-		$token_type = parent::get_token_type();
+		$token_name = $this->get_token_name();
+		$token_type = $this->get_token_type();
 		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
 		$op         = "{$op_sigil}{$token_name}";
 
@@ -1244,8 +1257,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * >   than the end tag token that it actually is.
 			 */
 			case '-BR':
-				$this->last_error = new WP_HTML_Unsupported_Exception( 'Closing BR tags require unimplemented special handling.' );
-				throw $this->last_error;
+				$this->last_error = self::ERROR_UNSUPPORTED;
+				throw new WP_HTML_Unsupported_Exception( 'Closing BR tags require unimplemented special handling.' );
 
 			/*
 			 * > A start tag whose tag name is one of: "area", "br", "embed", "img", "keygen", "wbr"
@@ -1362,8 +1375,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'TITLE':
 			case 'TR':
 			case 'XMP':
-				$this->last_error = new WP_HTML_Unsupported_Exception( "Cannot process {$token_name} element at {$this->bytes_already_parsed} {$this->token_starts_at} {$this->html}." );
-				throw $this->last_error;
+				$this->last_error = self::ERROR_UNSUPPORTED;
+				throw new WP_HTML_Unsupported_Exception( "Cannot process {$token_name} element." );
 		}
 
 		if ( ! parent::is_tag_closer() ) {
@@ -1425,8 +1438,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	private function bookmark_token() {
 		if ( ! parent::set_bookmark( ++$this->bookmark_counter ) ) {
-			$this->last_error = new Exception( 'could not allocate bookmark' );
-			throw $this->last_error;
+			$this->last_error = self::ERROR_EXCEEDED_MAX_BOOKMARKS;
+			throw new Exception( 'could not allocate bookmark' );
 		}
 
 		return "{$this->bookmark_counter}";
@@ -1462,8 +1475,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		if ( isset( $this->yielded_node ) ) {
-			return $this->yielded_node->token->node_name;
+		if ( isset( $this->current_element ) ) {
+			return $this->current_element->token->node_name;
 		}
 
 		$tag_name = parent::get_tag();
@@ -1502,11 +1515,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null Name of the matched token.
 	 */
 	public function get_token_name() {
-		if ( isset( $this->yielded_node ) ) {
-			return $this->yielded_node->token->node_name;
+		if ( isset( $this->current_element ) ) {
+			return $this->current_element->token->node_name;
 		}
 
-		return null;
+		return parent::get_token_name();
 	}
 
 	/**
@@ -1532,8 +1545,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null What kind of token is matched, or null.
 	 */
 	public function get_token_type() {
-		if ( isset( $this->yielded_node ) ) {
-			$node_name = $this->yielded_node->token->node_name;
+		if ( isset( $this->current_element ) ) {
+			$node_name = $this->current_element->token->node_name;
 			if ( ctype_upper( $node_name[0] ) ) {
 				return '#tag';
 			}
@@ -1545,7 +1558,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return $node_name;
 		}
 
-		return null;
+		return parent::get_token_type();
 	}
 
 	/**
@@ -1697,8 +1710,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
 	 */
 	public function seek( $bookmark_name ) {
-		throw new Error( 'no seeking now' );
-
 		// Flush any pending updates to the document before beginning.
 		$this->get_updated_html();
 
@@ -1991,8 +2002,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		$this->last_error = new WP_HTML_Unsupported_Exception( 'Cannot reconstruct active formatting elements when advancing and rewinding is required.' );
-		throw $this->last_error;
+		$this->last_error = self::ERROR_UNSUPPORTED;
+		throw new WP_HTML_Unsupported_Exception( 'Cannot reconstruct active formatting elements when advancing and rewinding is required.' );
 	}
 
 	/**
@@ -2045,8 +2056,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			// > If there is no such element, then return and instead act as described in the "any other end tag" entry above.
 			if ( null === $formatting_element ) {
-				$this->last_error = new WP_HTML_Unsupported_Exception( 'Cannot run adoption agency when "any other end tag" is required.' );
-				throw $this->last_error;
+				$this->last_error = self::ERROR_UNSUPPORTED;
+				throw new WP_HTML_Unsupported_Exception( 'Cannot run adoption agency when "any other end tag" is required.' );
 			}
 
 			// > If formatting element is not in the stack of open elements, then this is a parse error; remove the element from the list, and return.
@@ -2098,26 +2109,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 
-			$this->last_error = new WP_HTML_Unsupported_Exception( 'Cannot extract common ancestor in adoption agency algorithm.' );
-			throw $this->last_error;
+			$this->last_error = self::ERROR_UNSUPPORTED;
+			throw new WP_HTML_Unsupported_Exception( 'Cannot extract common ancestor in adoption agency algorithm.' );
 		}
 
-		$this->last_error = new WP_HTML_Unsupported_Exception( 'Cannot run adoption agency when looping required.' );
-		throw $this->last_error;
-	}
-
-	/**
-	 * @param ?WP_HTML_Token $token Name of bookmark pointing to element in original input HTML.
-	 */
-	private function pop_html_node( ?WP_HTML_Token $token ) {
-		if ( $this->insertion_point ) {
-			if ( null !== $token ) {
-				$this->insertion_point->end_token = $token;
-			}
-			$this->insertion_point = &$this->insertion_point->parent_node;
-			return true;
-		}
-		return false;
+		$this->last_error = self::ERROR_UNSUPPORTED;
+		throw new WP_HTML_Unsupported_Exception( 'Cannot run adoption agency when looping required.' );
 	}
 
 	/**
@@ -2189,8 +2186,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		} else {
 			$this->insertion_point->append_child( $node );
 		}
-
-		$this->last_parsed_node = &$node;
 
 		if ( $node instanceof ElementNode && $this->expects_closer( $node->token ) ) {
 			$this->insertion_point = &$node;
@@ -2420,7 +2415,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 // phpcs:disable Generic.Files.OneObjectStructurePerFile.MultipleFound
 abstract class WP_HTML_Node {
-	/** @var ?ElementNode */
+	/** @var ?WP_HTML_Node */
 	public $parent_node;
 
 	/** @var ?WP_HTML_Token  */
@@ -2433,9 +2428,6 @@ abstract class WP_HTML_Node {
 }
 
 class ElementNode extends WP_HTML_Node {
-	/** @var ?WP_HTML_Token  */
-	public $end_token;
-
 	/** @var array<WP_HTML_Node> */
 	public $child_nodes = array();
 
