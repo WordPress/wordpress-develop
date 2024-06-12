@@ -153,6 +153,28 @@ if ( is_multisite() ) :
 		}
 
 		/**
+		 * @group multisite
+		 *
+		 * @covers ::get_site_option
+		 */
+		public function test_site_notoptions() {
+			$network_id     = get_current_network_id();
+			$notoptions_key = "{$network_id}:notoptions";
+
+			$_notoptions = wp_cache_get( 'notoptions', 'site-options' );
+			$this->assertEmpty( $_notoptions );
+			$_notoptions1 = wp_cache_get( $notoptions_key, 'site-options' );
+			$this->assertEmpty( $_notoptions1 );
+
+			get_site_option( 'burrito' );
+
+			$notoptions = wp_cache_get( 'notoptions', 'site-options' );
+			$this->assertEmpty( $notoptions );
+			$notoptions1 = wp_cache_get( $notoptions_key, 'site-options' );
+			$this->assertNotEmpty( $notoptions1 );
+		}
+
+		/**
 		 * @covers ::users_can_register_signup_filter
 		 * @covers ::get_site_option
 		 */

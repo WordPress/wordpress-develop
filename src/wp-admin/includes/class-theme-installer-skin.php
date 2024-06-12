@@ -24,6 +24,12 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	private $is_downgrading = false;
 
 	/**
+	 * Constructor.
+	 *
+	 * Sets up the theme installer skin.
+	 *
+	 * @since 2.8.0
+	 *
 	 * @param array $args
 	 */
 	public function __construct( $args = array() ) {
@@ -46,7 +52,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform before installing a theme.
+	 * Performs an action before installing a theme.
 	 *
 	 * @since 2.8.0
 	 */
@@ -66,7 +72,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	 * @since 5.5.0
 	 *
 	 * @param WP_Error $wp_error WP_Error object.
-	 * @return bool
+	 * @return bool True if the error should be hidden, false otherwise.
 	 */
 	public function hide_process_failed( $wp_error ) {
 		if (
@@ -81,7 +87,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform following a single theme install.
+	 * Performs an action following a single theme install.
 	 *
 	 * @since 2.8.0
 	 */
@@ -129,7 +135,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 				'<span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
 				esc_url( $customize_url ),
 				__( 'Live Preview' ),
-				/* translators: %s: Theme name. */
+				/* translators: Hidden accessibility text. %s: Theme name. */
 				sprintf( __( 'Live Preview &#8220;%s&#8221;' ), $name )
 			);
 		}
@@ -138,8 +144,8 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			'<a href="%s" class="activatelink">' .
 			'<span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
 			esc_url( $activate_link ),
-			__( 'Activate' ),
-			/* translators: %s: Theme name. */
+			_x( 'Activate', 'theme' ),
+			/* translators: Hidden accessibility text. %s: Theme name. */
 			sprintf( _x( 'Activate &#8220;%s&#8221;', 'theme' ), $name )
 		);
 
@@ -188,7 +194,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Check if the theme can be overwritten and output the HTML for overwriting a theme on upload.
+	 * Checks if the theme can be overwritten and outputs the HTML for overwriting a theme on upload.
 	 *
 	 * @since 5.5.0
 	 *
@@ -328,13 +334,13 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are uploading an older version of the active theme. You can continue to install the older version, but be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://wordpress.org/support/article/wordpress-backups/' )
+					__( 'https://developer.wordpress.org/advanced-administration/security/backup/' )
 				);
 			} else {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are updating a theme. Be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://wordpress.org/support/article/wordpress-backups/' )
+					__( 'https://developer.wordpress.org/advanced-administration/security/backup/' )
 				);
 			}
 

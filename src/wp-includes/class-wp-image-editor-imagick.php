@@ -102,8 +102,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return false;
 		}
 
-		// setIteratorIndex is optional unless mime is an animated format.
-		// Here, we just say no if you are missing it and aren't loading a jpeg.
+		/*
+		 * setIteratorIndex is optional unless mime is an animated format.
+		 * Here, we just say no if you are missing it and aren't loading a jpeg.
+		 */
 		if ( ! method_exists( 'Imagick', 'setIteratorIndex' ) && 'image/jpeg' !== $mime_type ) {
 				return false;
 		}
@@ -166,6 +168,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setIteratorIndex( 0 );
 			}
 
+			if ( 'pdf' === $file_extension ) {
+				$this->remove_pdf_alpha_channel();
+			}
+
 			$this->mime_type = $this->get_mime_type( $this->image->getImageFormat() );
 		} catch ( Exception $e ) {
 			return new WP_Error( 'invalid_image', $e->getMessage(), $this->file );
@@ -213,6 +219,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 						$this->image->setImageCompressionQuality( $quality );
 					}
 					break;
+				case 'image/avif':
 				default:
 					$this->image->setImageCompressionQuality( $quality );
 			}
@@ -250,7 +257,67 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$height = $size['height'];
 		}
 
+		/*
+		 * If we still don't have the image size, fall back to `wp_getimagesize`. This ensures AVIF images
+		 * are properly sized without affecting previous `getImageGeometry` behavior.
+		 */
+		if ( ( ! $width || ! $height ) && 'image/avif' === $this->mime_type ) {
+			$size   = wp_getimagesize( $this->file );
+			$width  = $size[0];
+			$height = $size[1];
+		}
+
 		return parent::update_size( $width, $height );
+	}
+
+	/**
+	 * Sets Imagick time limit.
+	 *
+	 * Depending on configuration, Imagick processing may take time.
+	 *
+	 * Multiple problems exist if PHP times out before ImageMagick completed:
+	 * 1. Temporary files aren't cleaned by ImageMagick garbage collection.
+	 * 2. No clear error is provided.
+	 * 3. The cause of such timeout can be hard to pinpoint.
+	 *
+	 * This function, which is expected to be run before heavy image routines, resolves
+	 * point 1 above by aligning Imagick's timeout with PHP's timeout, assuming it is set.
+	 *
+	 * However seems it introduces more problems than it fixes,
+	 * see https://core.trac.wordpress.org/ticket/58202.
+	 *
+	 * Note:
+	 *  - Imagick resource exhaustion does not issue catchable exceptions (yet).
+	 *    See https://github.com/Imagick/imagick/issues/333.
+	 *  - The resource limit is not saved/restored. It applies to subsequent
+	 *    image operations within the time of the HTTP request.
+	 *
+	 * @since 6.2.0
+	 * @since 6.3.0 This method was deprecated.
+	 *
+	 * @return int|null The new limit on success, null on failure.
+	 */
+	public static function set_imagick_time_limit() {
+		_deprecated_function( __METHOD__, '6.3.0' );
+
+		if ( ! defined( 'Imagick::RESOURCETYPE_TIME' ) ) {
+			return null;
+		}
+
+		// Returns PHP_FLOAT_MAX if unset.
+		$imagick_timeout = Imagick::getResourceLimit( Imagick::RESOURCETYPE_TIME );
+
+		// Convert to an integer, keeping in mind that: 0 === (int) PHP_FLOAT_MAX.
+		$imagick_timeout = $imagick_timeout > PHP_INT_MAX ? PHP_INT_MAX : (int) $imagick_timeout;
+
+		$php_timeout = (int) ini_get( 'max_execution_time' );
+
+		if ( $php_timeout > 1 && $php_timeout < $imagick_timeout ) {
+			$limit = (float) 0.8 * $php_timeout;
+			Imagick::setResourceLimit( Imagick::RESOURCETYPE_TIME, $limit );
+
+			return $limit;
+		}
 	}
 
 	/**
@@ -262,13 +329,20 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int|null $max_w Image width.
-	 * @param int|null $max_h Image height.
-	 * @param bool     $crop
+	 * @param int|null   $max_w Image width.
+	 * @param int|null   $max_h Image height.
+	 * @param bool|array $crop  {
+	 *     Optional. Image cropping behavior. If false, the image will be scaled (default).
+	 *     If true, image will be cropped to the specified dimensions using center positions.
+	 *     If an array, the image will be cropped using the array to specify the crop location:
+	 *
+	 *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+	 *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
+	 * }
 	 * @return true|WP_Error
 	 */
 	public function resize( $max_w, $max_h, $crop = false ) {
-		if ( ( $this->size['width'] == $max_w ) && ( $this->size['height'] == $max_h ) ) {
+		if ( ( $this->size['width'] === $max_w ) && ( $this->size['height'] === $max_h ) ) {
 			return true;
 		}
 
@@ -415,10 +489,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 					$this->image->setImageDepth( 8 );
 				}
 			}
-
-			if ( is_callable( array( $this->image, 'setInterlaceScheme' ) ) && defined( 'Imagick::INTERLACE_NO' ) ) {
-				$this->image->setInterlaceScheme( Imagick::INTERLACE_NO );
-			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_resize_error', $e->getMessage() );
 		}
@@ -447,9 +517,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *     @type array ...$0 {
 	 *         Array of height, width values, and whether to crop.
 	 *
-	 *         @type int  $width  Image width. Optional if `$height` is specified.
-	 *         @type int  $height Image height. Optional if `$width` is specified.
-	 *         @type bool $crop   Optional. Whether to crop the image. Default false.
+	 *         @type int        $width  Image width. Optional if `$height` is specified.
+	 *         @type int        $height Image height. Optional if `$width` is specified.
+	 *         @type bool|array $crop   Optional. Whether to crop the image. Default false.
 	 *     }
 	 * }
 	 * @return array An array of resized images' metadata by size.
@@ -476,9 +546,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param array $size_data {
 	 *     Array of size data.
 	 *
-	 *     @type int  $width  The maximum width in pixels.
-	 *     @type int  $height The maximum height in pixels.
-	 *     @type bool $crop   Whether to crop the image to exact dimensions.
+	 *     @type int        $width  The maximum width in pixels.
+	 *     @type int        $height The maximum height in pixels.
+	 *     @type bool|array $crop   Whether to crop the image to exact dimensions.
 	 * }
 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
 	 *                        WP_Error object on error.
@@ -501,6 +571,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 		if ( ! isset( $size_data['crop'] ) ) {
 			$size_data['crop'] = false;
+		}
+
+		if ( ( $this->size['width'] === $size_data['width'] ) && ( $this->size['height'] === $size_data['height'] ) ) {
+			return new WP_Error( 'image_subsize_create_error', __( 'The image already has the requested size.' ) );
 		}
 
 		$resized = $this->resize( $size_data['width'], $size_data['height'], $size_data['crop'] );
@@ -550,8 +624,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$this->image->setImagePage( $src_w, $src_h, 0, 0 );
 
 			if ( $dst_w || $dst_h ) {
-				// If destination width/height isn't specified,
-				// use same as width/height from source.
+				/*
+				 * If destination width/height isn't specified,
+				 * use same as width/height from source.
+				 */
 				if ( ! $dst_w ) {
 					$dst_w = $src_w;
 				}
@@ -694,6 +770,24 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	}
 
 	/**
+	 * Removes PDF alpha after it's been read.
+	 *
+	 * @since 6.4.0
+	 */
+	protected function remove_pdf_alpha_channel() {
+		$version = Imagick::getVersion();
+		// Remove alpha channel if possible to avoid black backgrounds for Ghostscript >= 9.14. RemoveAlphaChannel added in ImageMagick 6.7.5.
+		if ( $version['versionNumber'] >= 0x675 ) {
+			try {
+				// Imagick::ALPHACHANNEL_REMOVE mapped to RemoveAlphaChannel in PHP imagick 3.2.0b2.
+				$this->image->setImageAlphaChannel( defined( 'Imagick::ALPHACHANNEL_REMOVE' ) ? Imagick::ALPHACHANNEL_REMOVE : 12 );
+			} catch ( Exception $e ) {
+				return new WP_Error( 'pdf_alpha_process_failed', $e->getMessage() );
+			}
+		}
+	}
+
+	/**
 	 * @since 3.5.0
 	 * @since 6.0.0 The `$filesize` value was added to the returned array.
 	 *
@@ -727,6 +821,20 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
 		}
 
+		if ( method_exists( $this->image, 'setInterlaceScheme' )
+			&& method_exists( $this->image, 'getInterlaceScheme' )
+			&& defined( 'Imagick::INTERLACE_PLANE' )
+		) {
+			$orig_interlace = $this->image->getInterlaceScheme();
+
+			/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
+			if ( apply_filters( 'image_save_progressive', false, $mime_type ) ) {
+				$this->image->setInterlaceScheme( Imagick::INTERLACE_PLANE ); // True - line interlace output.
+			} else {
+				$this->image->setInterlaceScheme( Imagick::INTERLACE_NO ); // False - no interlace output.
+			}
+		}
+
 		$write_image_result = $this->write_image( $this->image, $filename );
 		if ( is_wp_error( $write_image_result ) ) {
 			return $write_image_result;
@@ -735,6 +843,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		try {
 			// Reset original format.
 			$this->image->setImageFormat( $orig_format );
+
+			if ( isset( $orig_interlace ) ) {
+				$this->image->setInterlaceScheme( $orig_interlace );
+			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
 		}
@@ -905,8 +1017,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 */
 	protected function pdf_setup() {
 		try {
-			// By default, PDFs are rendered in a very low resolution.
-			// We want the thumbnail to be readable, so increase the rendering DPI.
+			/*
+			 * By default, PDFs are rendered in a very low resolution.
+			 * We want the thumbnail to be readable, so increase the rendering DPI.
+			 */
 			$this->image->setResolution( 128, 128 );
 
 			// Only load the first page.
@@ -934,12 +1048,16 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		try {
-			// When generating thumbnails from cropped PDF pages, Imagemagick uses the uncropped
-			// area (resulting in unnecessary whitespace) unless the following option is set.
+			/*
+			 * When generating thumbnails from cropped PDF pages, Imagemagick uses the uncropped
+			 * area (resulting in unnecessary whitespace) unless the following option is set.
+			 */
 			$this->image->setOption( 'pdf:use-cropbox', true );
 
-			// Reading image after Imagick instantiation because `setResolution`
-			// only applies correctly before the image is read.
+			/*
+			 * Reading image after Imagick instantiation because `setResolution`
+			 * only applies correctly before the image is read.
+			 */
 			$this->image->readImage( $filename );
 		} catch ( Exception $e ) {
 			// Attempt to run `gs` without the `use-cropbox` option. See #48853.
@@ -950,5 +1068,4 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 		return true;
 	}
-
 }

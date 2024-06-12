@@ -313,7 +313,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 /* Comments */
 
 .wp-block-latest-comments article {
-	margin-bottom: 4em;
+	margin-bottom: 4rem;
 }
 
 .widget-area .wp-block-latest-comments article {
@@ -335,7 +335,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 .wp-block-latest-comments a {
 	-webkit-box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 1);
 	box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 1);
-
 }
 
 .wp-block-latest-comments .wp-block-latest-comments__comment {
@@ -362,11 +361,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 	letter-spacing: 0.1818em;
 	margin-top: 0.4em;
 	text-transform: uppercase;
-}
-
-.editor-block-list__block .wp-block-latest-comments__comment-excerpt p {
-	font-size: 14px;
-	font-size: 0.875rem;
 }
 
 /* Query Loop & Post Template */

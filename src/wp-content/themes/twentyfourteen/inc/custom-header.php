@@ -82,7 +82,7 @@ if ( ! function_exists( 'twentyfourteen_header_style' ) ) :
 		}
 			<?php
 			// If the user has set a custom color for the text, use that.
-		elseif ( get_theme_support( 'custom-header', 'default-text-color' ) != $text_color ) :
+		elseif ( get_theme_support( 'custom-header', 'default-text-color' ) !== $text_color ) :
 			?>
 		.site-title a {
 			color: #<?php echo esc_attr( $text_color ); ?>;
@@ -151,3 +151,29 @@ if ( ! function_exists( 'twentyfourteen_admin_header_image' ) ) :
 		<?php
 	}
 endif; // twentyfourteen_admin_header_image()
+
+
+if ( ! function_exists( 'twentyfourteen_header_image' ) ) :
+	/**
+	 * Create the custom header image markup displayed.
+	 *
+	 * @see twentyfourteen_custom_header_setup()
+	 *
+	 * @since Twenty Fourteen 3.8
+	 */
+	function twentyfourteen_header_image() {
+		$custom_header = get_custom_header();
+		$attrs         = array(
+			'alt'    => get_bloginfo( 'name', 'display' ),
+			'height' => $custom_header->height,
+			'width'  => $custom_header->width,
+		);
+		if ( function_exists( 'the_header_image_tag' ) ) {
+			the_header_image_tag( $attrs );
+			return;
+		}
+		?>
+		<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $attrs['width'] ); ?>" height="<?php echo esc_attr( $attrs['height'] ); ?>" alt="<?php echo esc_attr( $attrs['alt'] ); ?>" />
+		<?php
+	}
+endif; // twentyfourteen_header_image()

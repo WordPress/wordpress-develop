@@ -151,6 +151,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47912
+	 * @ticket 55117
 	 * @dataProvider data_removes_non_visible_characters_without_width
 	 *
 	 * @param string $title     The title to be sanitized.
@@ -179,6 +180,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 			'only %e2%80%ad'     => array( '%e2%80%ad' ),
 			'only %e2%80%ae'     => array( '%e2%80%ae' ),
 			'only %ef%bb%bf'     => array( '%ef%bb%bf' ),
+			'only %ef%bf%bc'     => array( '%ef%bf%bc' ),
 
 			// Non-visible characters within the title.
 			'in middle of title' => array(
@@ -202,6 +204,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47912
+	 * @ticket 55117
 	 * @dataProvider data_non_visible_characters_without_width_when_not_save
 	 *
 	 * @param string $title     The title to be sanitized.
@@ -230,6 +233,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 			'only %e2%80%ad'     => array( '%e2%80%ad', '%e2%80%ad' ),
 			'only %e2%80%ae'     => array( '%e2%80%ae', '%e2%80%ae' ),
 			'only %ef%bb%bf'     => array( '%ef%bb%bf', '%ef%bb%bf' ),
+			'only %ef%bf%bc'     => array( '%ef%bf%bc', '%ef%bf%bc' ),
 
 			// Non-visible characters within the title.
 			'in middle of title' => array(
