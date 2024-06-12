@@ -975,7 +975,7 @@ form#tags-filter {
 
 .privacy-settings-accordion-actions .success {
 	display: none;
-	color: #008a20;
+	color: #007017;
 	padding-right: 1em;
 	padding-top: 6px;
 }
@@ -1271,13 +1271,23 @@ label.post-format-icon {
 	margin: 0;
 }
 
+.categorydiv,
+.customlinkdiv,
+.posttypediv,
+.taxonomydiv {
+	max-height: inherit;
+	height: 100%;
+}
+
 .wp-tab-panel,
 .categorydiv div.tabs-panel,
 .customlinkdiv div.tabs-panel,
 .posttypediv div.tabs-panel,
 .taxonomydiv div.tabs-panel {
 	min-height: 42px;
-	max-height: 200px;
+	/* Allow space for content after tab panels in nav menu editor. */
+	max-height: calc( 100% - 75px );
+	height: 100%;
 	overflow: auto;
 	padding: 0 0.9em;
 	border: solid 1px #dcdcde;
@@ -1293,8 +1303,9 @@ div.tabs-panel-inactive {
 }
 
 div.tabs-panel-active:focus {
-	box-shadow: inset 0 0 0 1px #4f94d4, inset 0 0 2px 1px rgba(79, 148, 212, 0.8);
-	outline: 0 none;
+	box-shadow: inset 0 0 0 2px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 #front-page-warning,
@@ -1688,7 +1699,6 @@ table.links-table {
  * HiDPI Displays
  */
 @media print,
-  (-webkit-min-device-pixel-ratio: 1.25),
   (min-resolution: 120dpi) {
 	#content-resize-handle,
 	#post-body .wp_themeSkin .mceStatusbar a.mceResize {

@@ -54,7 +54,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 	 * is always fresh from the potential modifications done via hooks
 	 * that can use dynamic data (modify the stylesheet depending on some option,
 	 * settings depending on user permissions, etc.).
-	 * See some of the existing hooks to modify theme.json behaviour:
+	 * See some of the existing hooks to modify theme.json behavior:
 	 * https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
 	 *
 	 * A different alternative considered was to invalidate the cache upon certain
@@ -69,7 +69,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
 	 * developer's workflow.
 	 */
-	$can_use_cached = ! wp_in_development_mode( 'theme' );
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
 	$settings = false;
 	if ( $can_use_cached ) {
@@ -139,6 +139,7 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  *
  * @since 5.9.0
  * @since 6.1.0 Added 'base-layout-styles' support.
+ * @since 6.6.0 Resolves relative paths in theme.json styles to theme absolute paths.
  *
  * @param array $types Optional. Types of styles to load.
  *                     It accepts as values 'variables', 'presets', 'styles', 'base-layout-styles'.
@@ -152,7 +153,7 @@ function wp_get_global_stylesheet( $types = array() ) {
 	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
 	 * developer's workflow.
 	 */
-	$can_use_cached = empty( $types ) && ! wp_in_development_mode( 'theme' );
+	$can_use_cached = empty( $types ) && ! wp_is_development_mode( 'theme' );
 
 	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
@@ -179,9 +180,9 @@ function wp_get_global_stylesheet( $types = array() ) {
 		}
 	}
 
-	$tree = WP_Theme_JSON_Resolver::get_merged_data();
-
+	$tree                = WP_Theme_JSON_Resolver::resolve_theme_file_uris( WP_Theme_JSON_Resolver::get_merged_data() );
 	$supports_theme_json = wp_theme_has_theme_json();
+
 	if ( empty( $types ) && ! $supports_theme_json ) {
 		$types = array( 'variables', 'presets', 'base-layout-styles' );
 	} elseif ( empty( $types ) ) {
@@ -222,7 +223,13 @@ function wp_get_global_stylesheet( $types = array() ) {
 		 * @see wp_add_global_styles_for_blocks
 		 */
 		$origins = array( 'default', 'theme', 'custom' );
-		if ( ! $supports_theme_json ) {
+		/*
+		 * If the theme doesn't have theme.json but supports both appearance tools and color palette,
+		 * the 'theme' origin should be included so color palette presets are also output.
+		 */
+		if ( ! $supports_theme_json && ( current_theme_supports( 'appearance-tools' ) || current_theme_supports( 'border' ) ) && current_theme_supports( 'editor-color-palette' ) ) {
+			$origins = array( 'default', 'theme' );
+		} elseif ( ! $supports_theme_json ) {
 			$origins = array( 'default' );
 		}
 		$styles_rest = $tree->get_stylesheet( $types, $origins );
@@ -251,7 +258,7 @@ function wp_get_global_styles_custom_css() {
 	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
 	 * developer's workflow.
 	 */
-	$can_use_cached = ! wp_in_development_mode( 'theme' );
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
 	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
@@ -292,12 +299,52 @@ function wp_get_global_styles_custom_css() {
  * Adds global style rules to the inline style for each block.
  *
  * @since 6.1.0
+ *
+ * @global WP_Styles $wp_styles
  */
 function wp_add_global_styles_for_blocks() {
+	global $wp_styles;
+
 	$tree        = WP_Theme_JSON_Resolver::get_merged_data();
 	$block_nodes = $tree->get_styles_block_nodes();
+
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+	if ( $can_use_cached ) {
+		// Hash global settings and block nodes together to optimize performance of key generation.
+		$hash = md5(
+			wp_json_encode(
+				array(
+					'global_setting' => wp_get_global_settings(),
+					'block_nodes'    => $block_nodes,
+				)
+			)
+		);
+
+		$cache_key = "wp_styles_for_blocks:$hash";
+		$cached    = get_site_transient( $cache_key );
+		if ( ! is_array( $cached ) ) {
+			$cached = array();
+		}
+	}
+
+	$update_cache = false;
+
 	foreach ( $block_nodes as $metadata ) {
-		$block_css = $tree->get_styles_for_block( $metadata );
+
+		if ( $can_use_cached ) {
+			// Use the block name as the key for cached CSS data. Otherwise, use a hash of the metadata.
+			$cache_node_key = isset( $metadata['name'] ) ? $metadata['name'] : md5( wp_json_encode( $metadata ) );
+
+			if ( isset( $cached[ $cache_node_key ] ) ) {
+				$block_css = $cached[ $cache_node_key ];
+			} else {
+				$block_css                 = $tree->get_styles_for_block( $metadata );
+				$cached[ $cache_node_key ] = $block_css;
+				$update_cache              = true;
+			}
+		} else {
+			$block_css = $tree->get_styles_for_block( $metadata );
+		}
 
 		if ( ! wp_should_load_separate_core_block_assets() ) {
 			wp_add_inline_style( 'global-styles', $block_css );
@@ -305,41 +352,89 @@ function wp_add_global_styles_for_blocks() {
 		}
 
 		$stylesheet_handle = 'global-styles';
+
+		/*
+		 * When `wp_should_load_separate_core_block_assets()` is true, block styles are
+		 * enqueued for each block on the page in class WP_Block's render function.
+		 * This means there will be a handle in the styles queue for each of those blocks.
+		 * Block-specific global styles should be attached to the global-styles handle, but
+		 * only for blocks on the page, thus we check if the block's handle is in the queue
+		 * before adding the inline style.
+		 * This conditional loading only applies to core blocks.
+		 */
 		if ( isset( $metadata['name'] ) ) {
-			/*
-			 * These block styles are added on block_render.
-			 * This hooks inline CSS to them so that they are loaded conditionally
-			 * based on whether or not the block is used on the page.
-			 */
 			if ( str_starts_with( $metadata['name'], 'core/' ) ) {
-				$block_name        = str_replace( 'core/', '', $metadata['name'] );
-				$stylesheet_handle = 'wp-block-' . $block_name;
+				$block_name   = str_replace( 'core/', '', $metadata['name'] );
+				$block_handle = 'wp-block-' . $block_name;
+				if ( in_array( $block_handle, $wp_styles->queue, true ) ) {
+					wp_add_inline_style( $stylesheet_handle, $block_css );
+				}
+			} else {
+				wp_add_inline_style( $stylesheet_handle, $block_css );
 			}
-			wp_add_inline_style( $stylesheet_handle, $block_css );
 		}
 
 		// The likes of block element styles from theme.json do not have  $metadata['name'] set.
 		if ( ! isset( $metadata['name'] ) && ! empty( $metadata['path'] ) ) {
-			$result = array_values(
-				array_filter(
-					$metadata['path'],
-					static function ( $item ) {
-						if ( str_contains( $item, 'core/' ) ) {
-							return true;
-						}
-						return false;
+			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
+			if ( $block_name ) {
+				if ( str_starts_with( $block_name, 'core/' ) ) {
+					$block_name   = str_replace( 'core/', '', $block_name );
+					$block_handle = 'wp-block-' . $block_name;
+					if ( in_array( $block_handle, $wp_styles->queue, true ) ) {
+						wp_add_inline_style( $stylesheet_handle, $block_css );
 					}
-				)
-			);
-			if ( isset( $result[0] ) ) {
-				if ( str_starts_with( $result[0], 'core/' ) ) {
-					$block_name        = str_replace( 'core/', '', $result[0] );
-					$stylesheet_handle = 'wp-block-' . $block_name;
+				} else {
+					wp_add_inline_style( $stylesheet_handle, $block_css );
 				}
-				wp_add_inline_style( $stylesheet_handle, $block_css );
 			}
 		}
 	}
+
+	if ( $update_cache ) {
+		set_site_transient( $cache_key, $cached, HOUR_IN_SECONDS );
+	}
+}
+
+/**
+ * Gets the block name from a given theme.json path.
+ *
+ * @since 6.3.0
+ * @access private
+ *
+ * @param array $path An array of keys describing the path to a property in theme.json.
+ * @return string Identified block name, or empty string if none found.
+ */
+function wp_get_block_name_from_theme_json_path( $path ) {
+	// Block name is expected to be the third item after 'styles' and 'blocks'.
+	if (
+		count( $path ) >= 3
+		&& 'styles' === $path[0]
+		&& 'blocks' === $path[1]
+		&& str_contains( $path[2], '/' )
+	) {
+		return $path[2];
+	}
+
+	/*
+	 * As fallback and for backward compatibility, allow any core block to be
+	 * at any position.
+	 */
+	$result = array_values(
+		array_filter(
+			$path,
+			static function ( $item ) {
+				if ( str_contains( $item, 'core/' ) ) {
+					return true;
+				}
+				return false;
+			}
+		)
+	);
+	if ( isset( $result[0] ) ) {
+		return $result[0];
+	}
+	return '';
 }
 
 /**
@@ -360,7 +455,7 @@ function wp_theme_has_theme_json() {
 		 * Ignore static cache when the development mode is set to 'theme', to avoid interfering with
 		 * the theme developer's workflow.
 		 */
-		! wp_in_development_mode( 'theme' )
+		! wp_is_development_mode( 'theme' )
 	) {
 		return $theme_has_support[ $stylesheet ];
 	}
@@ -394,6 +489,7 @@ function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_settings_custom', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
+	wp_cache_delete( 'wp_get_theme_data_template_parts', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }
 
@@ -407,6 +503,49 @@ function wp_clean_theme_json_cache() {
  */
 function wp_get_theme_directory_pattern_slugs() {
 	return WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_patterns();
+}
+
+/**
+ * Returns the metadata for the custom templates defined by the theme via theme.json.
+ *
+ * @since 6.4.0
+ *
+ * @return array Associative array of `$template_name => $template_data` pairs,
+ *               with `$template_data` having "title" and "postTypes" fields.
+ */
+function wp_get_theme_data_custom_templates() {
+	return WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_custom_templates();
+}
+
+/**
+ * Returns the metadata for the template parts defined by the theme.
+ *
+ * @since 6.4.0
+ *
+ * @return array Associative array of `$part_name => $part_data` pairs,
+ *               with `$part_data` having "title" and "area" fields.
+ */
+function wp_get_theme_data_template_parts() {
+	$cache_group    = 'theme_json';
+	$cache_key      = 'wp_get_theme_data_template_parts';
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+
+	$metadata = false;
+	if ( $can_use_cached ) {
+		$metadata = wp_cache_get( $cache_key, $cache_group );
+		if ( false !== $metadata ) {
+			return $metadata;
+		}
+	}
+
+	if ( false === $metadata ) {
+		$metadata = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
+		if ( $can_use_cached ) {
+			wp_cache_set( $cache_key, $metadata, $cache_group );
+		}
+	}
+
+	return $metadata;
 }
 
 /**
@@ -464,7 +603,7 @@ function wp_get_block_css_selector( $block_type, $target = 'root', $fallback = f
 		// Prefer the selectors API if available.
 		if ( $has_selectors ) {
 			// Look for selector under `feature.root`.
-			$path             = array_merge( $target, array( 'root' ) );
+			$path             = array( current( $target ), 'root' );
 			$feature_selector = _wp_array_get( $block_type->selectors, $path, null );
 
 			if ( $feature_selector ) {
@@ -478,7 +617,7 @@ function wp_get_block_css_selector( $block_type, $target = 'root', $fallback = f
 		}
 
 		// Try getting old experimental supports selector value.
-		$path             = array_merge( $target, array( '__experimentalSelector' ) );
+		$path             = array( current( $target ), '__experimentalSelector' );
 		$feature_selector = _wp_array_get( $block_type->supports, $path, null );
 
 		// Nothing to work with, provide fallback or null.

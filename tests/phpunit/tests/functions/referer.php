@@ -3,7 +3,8 @@
 /**
  * Test wp_get_referer().
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_get_referer
  * @covers ::wp_get_raw_referer
  */
@@ -30,7 +31,9 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 	}
 
 	public function filter_allowed_redirect_hosts( $hosts ) {
-		$hosts[] = 'another.' . WP_TESTS_DOMAIN;
+		// Make sure we're only using the hostname and not anything else that might be in the WP_TESTS_DOMAIN.
+		$parsed  = parse_url( 'http://' . WP_TESTS_DOMAIN );
+		$hosts[] = 'another.' . $parsed['host'];
 
 		return $hosts;
 	}

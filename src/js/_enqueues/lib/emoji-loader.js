@@ -73,25 +73,20 @@
 	 * @returns {?SupportTests} Support tests, or null if not set or older than 1 week.
 	 */
 	function getSessionSupportTests() {
-		if (
-			typeof sessionStorage !== 'undefined' &&
-			sessionStorageKey in sessionStorage
-		) {
-			try {
-				/** @type {SessionSupportTests} */
-				var item = JSON.parse(
-					sessionStorage.getItem( sessionStorageKey )
-				);
-				if (
-					typeof item === 'object' &&
-					typeof item.timestamp === 'number' &&
-					new Date().valueOf() < item.timestamp + 604800 && // Note: Number is a week in seconds.
-					typeof item.supportTests === 'object'
-				) {
-					return item.supportTests;
-				}
-			} catch ( e ) {}
-		}
+		try {
+			/** @type {SessionSupportTests} */
+			var item = JSON.parse(
+				sessionStorage.getItem( sessionStorageKey )
+			);
+			if (
+				typeof item === 'object' &&
+				typeof item.timestamp === 'number' &&
+				new Date().valueOf() < item.timestamp + 604800 && // Note: Number is a week in seconds.
+				typeof item.supportTests === 'object'
+			) {
+				return item.supportTests;
+			}
+		} catch ( e ) {}
 		return null;
 	}
 
@@ -105,20 +100,18 @@
 	 * @param {SupportTests} supportTests Support tests.
 	 */
 	function setSessionSupportTests( supportTests ) {
-		if ( typeof sessionStorage !== 'undefined' ) {
-			try {
-				/** @type {SessionSupportTests} */
-				var item = {
-					supportTests: supportTests,
-					timestamp: new Date().valueOf()
-				};
+		try {
+			/** @type {SessionSupportTests} */
+			var item = {
+				supportTests: supportTests,
+				timestamp: new Date().valueOf()
+			};
 
-				sessionStorage.setItem(
-					sessionStorageKey,
-					JSON.stringify( item )
-				);
-			} catch ( e ) {}
-		}
+			sessionStorage.setItem(
+				sessionStorageKey,
+				JSON.stringify( item )
+			);
+		} catch ( e ) {}
 	}
 
 	/**
@@ -239,27 +232,24 @@
 				return ! isIdentical;
 			case 'emoji':
 				/*
-				 * Why can't we be friends? Everyone can now shake hands in emoji, regardless of skin tone!
+				 * Four and twenty blackbirds baked in a pie.
 				 *
-				 * To test for Emoji 14.0 support, try to render a new emoji: Handshake: Light Skin Tone, Dark Skin Tone.
+				 * To test for Emoji 15.0 support, try to render a new emoji: Blackbird.
 				 *
-				 * The Handshake: Light Skin Tone, Dark Skin Tone emoji is a ZWJ sequence combining 🫱 Rightwards Hand,
-				 * 🏻 Light Skin Tone, a Zero Width Joiner, 🫲 Leftwards Hand, and 🏿 Dark Skin Tone.
+				 * The Blackbird is a ZWJ sequence combining 🐦 Bird and ⬛ large black square.,
 				 *
-				 * 0x1FAF1 == Rightwards Hand
-				 * 0x1F3FB == Light Skin Tone
+				 * 0x1F426 (\uD83D\uDC26) == Bird
 				 * 0x200D == Zero-Width Joiner (ZWJ) that links the code points for the new emoji or
 				 * 0x200B == Zero-Width Space (ZWS) that is rendered for clients not supporting the new emoji.
-				 * 0x1FAF2 == Leftwards Hand
-				 * 0x1F3FF == Dark Skin Tone.
+				 * 0x2B1B == Large Black Square
 				 *
 				 * When updating this test for future Emoji releases, ensure that individual emoji that make up the
 				 * sequence come from older emoji standards.
 				 */
 				isIdentical = emojiSetsRenderIdentically(
 					context,
-					'\uD83E\uDEF1\uD83C\uDFFB\u200D\uD83E\uDEF2\uD83C\uDFFF', // as the zero-width joiner sequence
-					'\uD83E\uDEF1\uD83C\uDFFB\u200B\uD83E\uDEF2\uD83C\uDFFF' // separated by a zero-width space
+					'\uD83D\uDC26\u200D\u2B1B', // as the zero-width joiner sequence
+					'\uD83D\uDC26\u200B\u2B1B' // separated by a zero-width space
 				);
 
 				return ! isIdentical;

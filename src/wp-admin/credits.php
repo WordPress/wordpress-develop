@@ -29,13 +29,7 @@ $credits = wp_credits();
 		</div>
 
 		<div class="about__header-text">
-			<?php
-			printf(
-				/* translators: %s: Version number. */
-				__( 'WordPress %s was created by a worldwide team of passionate individuals' ),
-				$display_version
-			);
-			?>
+			<?php _e( 'Created by a worldwide team of passionate individuals' ); ?>
 		</div>
 	</div>
 
@@ -60,7 +54,7 @@ $credits = wp_credits();
 				);
 				?>
 				<br />
-				<a href="https://make.wordpress.org/"><?php _e( 'Get involved in WordPress.' ); ?></a>
+				<a href="<?php echo esc_url( __( 'https://make.wordpress.org/contribute/' ) ); ?>"><?php _e( 'Get involved in WordPress.' ); ?></a>
 			</p>
 
 			<?php else : ?>
@@ -68,7 +62,7 @@ $credits = wp_credits();
 			<p>
 				<?php _e( 'Want to see your name in lights on this page?' ); ?>
 				<br />
-				<a href="https://make.wordpress.org/"><?php _e( 'Get involved in WordPress.' ); ?></a>
+				<a href="<?php echo esc_url( __( 'https://make.wordpress.org/contribute/' ) ); ?>"><?php _e( 'Get involved in WordPress.' ); ?></a>
 			</p>
 
 			<?php endif; ?>

@@ -240,10 +240,10 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		$request = array(
 			'post_type'      => 'post',
-			'post_author'    => -1,
-			'ping_status'    => -1,
-			'comment_status' => -1,
-			'_status'        => -1,
+			'post_author'    => '-1',
+			'ping_status'    => '-1',
+			'comment_status' => '-1',
+			'_status'        => '-1',
 			'post'           => array( $post1, $post2 ),
 		);
 
@@ -273,8 +273,8 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		set_post_format( $post_ids[1], 'aside' );
 
 		$request = array(
-			'post_format' => -1, // Don't change the post format.
-			'_status'     => -1,
+			'post_format' => '-1', // Don't change the post format.
+			'_status'     => '-1',
 			'post'        => $post_ids,
 		);
 
@@ -367,7 +367,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		$request = array(
 			'post_format' => 'aside',
-			'_status'     => -1,
+			'_status'     => '-1',
 			'post'        => array( self::$post_id ),
 		);
 
@@ -382,6 +382,131 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		if ( self::$post_id === $post_id ) {
 			$this->assertSame( 'aside', get_post_format( $post_id ) );
 		}
+	}
+
+	/**
+	 * @ticket 11302
+	 */
+	public function test_bulk_edit_if_categories_unchanged() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_ids = self::factory()->post->create_many( 3 );
+
+		wp_set_post_categories( $post_ids[0], array( 'test1', 'test2' ) );
+		wp_set_post_categories( $post_ids[1], array( 'test2', 'test3' ) );
+		wp_set_post_categories( $post_ids[2], array( 'test1', 'test3' ) );
+
+		$terms1 = wp_get_post_categories( $post_ids[0] );
+		$terms2 = wp_get_post_categories( $post_ids[1] );
+		$terms3 = wp_get_post_categories( $post_ids[2] );
+
+		$indeterminate_categories = array_merge( $terms1, $terms2, $terms3 );
+
+		$request = array(
+			'_status'                     => -1,
+			'post'                        => $post_ids,
+			'indeterminate_post_category' => $indeterminate_categories,
+		);
+
+		bulk_edit_posts( $request );
+
+		$updated_terms1 = wp_get_post_categories( $post_ids[0] );
+		$updated_terms2 = wp_get_post_categories( $post_ids[1] );
+		$updated_terms3 = wp_get_post_categories( $post_ids[2] );
+
+		$this->assertSame( $terms1, $updated_terms1, 'Post 1 should have terms 1 and 2.' );
+		$this->assertSame( $terms2, $updated_terms2, 'Post 2 should have terms 2 and 3.' );
+		$this->assertSame( $terms3, $updated_terms3, 'Post 3 should have terms 1 and 3.' );
+	}
+
+	/**
+	 * @ticket 11302
+	 */
+	public function test_bulk_edit_if_some_categories_added() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_ids = self::factory()->post->create_many( 3 );
+		$term1    = wp_create_category( 'test1' );
+		$term2    = wp_create_category( 'test2' );
+		$term3    = wp_create_category( 'test3' );
+		$term4    = wp_create_category( 'test4' );
+
+		wp_set_post_categories( $post_ids[0], array( $term1, $term2 ) );
+		wp_set_post_categories( $post_ids[1], array( $term2, $term3 ) );
+		wp_set_post_categories( $post_ids[2], array( $term1, $term3 ) );
+
+		$terms1 = wp_get_post_categories( $post_ids[0], array( 'fields' => 'ids' ) );
+		$terms2 = wp_get_post_categories( $post_ids[1], array( 'fields' => 'ids' ) );
+		$terms3 = wp_get_post_categories( $post_ids[2], array( 'fields' => 'ids' ) );
+		// All existing categories are indeterminate.
+		$indeterminate = array_unique( array_merge( $terms1, $terms2, $terms3 ) );
+		// Add new category.
+		$categories[] = $term4;
+
+		$request = array(
+			'_status'                     => -1,
+			'post'                        => $post_ids,
+			'post_category'               => $categories,
+			'indeterminate_post_category' => $indeterminate,
+		);
+
+		bulk_edit_posts( $request );
+
+		$updated_terms1 = wp_get_post_categories( $post_ids[0], array( 'fields' => 'ids' ) );
+		$updated_terms2 = wp_get_post_categories( $post_ids[1], array( 'fields' => 'ids' ) );
+		$updated_terms3 = wp_get_post_categories( $post_ids[2], array( 'fields' => 'ids' ) );
+
+		// Each post should have the same categories as before and add term 4.
+		$this->assertSame( array( $term1, $term2, $term4 ), $updated_terms1, 'Post should have terms 1, 2, and 4.' );
+		$this->assertSame( array( $term2, $term3, $term4 ), $updated_terms2, 'Post should have terms 2, 3, and 4.' );
+		$this->assertSame( array( $term1, $term3, $term4 ), $updated_terms3, 'Post should have terms 1, 3, and 4.' );
+	}
+
+	/**
+	 * @ticket 11302
+	 */
+	public function test_bulk_edit_if_some_categories_removed() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_ids = self::factory()->post->create_many( 3 );
+		$term1    = wp_create_category( 'test1' );
+		$term2    = wp_create_category( 'test2' );
+		$term3    = wp_create_category( 'test3' );
+
+		wp_set_post_categories( $post_ids[0], array( $term1, $term2 ) );
+		wp_set_post_categories( $post_ids[1], array( $term2, $term3 ) );
+		wp_set_post_categories( $post_ids[2], array( $term1, $term3 ) );
+
+		$terms1 = wp_get_post_categories( $post_ids[0], array( 'fields' => 'ids' ) );
+		$terms2 = wp_get_post_categories( $post_ids[1], array( 'fields' => 'ids' ) );
+		$terms3 = wp_get_post_categories( $post_ids[2], array( 'fields' => 'ids' ) );
+
+		// Terms 2 and 3 are in indeterminate state.
+		$indeterminate = array( $term2, $term3 );
+		// Remove term 1 from selected categories.
+		$categories = array_unique( array_merge( $terms1, $terms2, $terms3 ) );
+		$remove_key = array_search( $term1, $categories, true );
+		unset( $categories[ $remove_key ] );
+
+		$request = array(
+			'_status'                     => -1,
+			'post'                        => $post_ids,
+			'post_category'               => $categories,
+			'indeterminate_post_category' => $indeterminate,
+		);
+
+		bulk_edit_posts( $request );
+
+		$updated_terms1 = wp_get_post_categories( $post_ids[0], array( 'fields' => 'ids' ) );
+		$updated_terms2 = wp_get_post_categories( $post_ids[1], array( 'fields' => 'ids' ) );
+		$updated_terms3 = wp_get_post_categories( $post_ids[2], array( 'fields' => 'ids' ) );
+
+		// Post 1 should only have term 2.
+		$this->assertSame( $updated_terms1, array( $term2 ), 'Post 1 should only have term 2.' );
+		// Post 2 should be unchanged.
+		$this->assertSame( $terms2, $updated_terms2, 'Post 2 should be unchanged.' );
+		// Post 3 should only have term 3.
+		$this->assertSame( $updated_terms3, array( $term3 ), 'Post 3 should only have term 3.' );
 	}
 
 	/**
@@ -795,7 +920,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		add_filter(
 			'get_sample_permalink',
-			function( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
+			function ( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
 				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
 				return $permalink;
 			},
@@ -805,6 +930,28 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		get_sample_permalink( $post );
 		$this->assertEquals( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
+	}
+
+	/**
+	 * @ticket 59283
+	 */
+	public function test_get_sample_permalink_should_return_pretty_permalink_for_posts_with_post_status_auto_draft() {
+		$permalink_structure = '%postname%';
+		$this->set_permalink_structure( "/$permalink_structure/" );
+
+		$future_date = gmdate( 'Y-m-d H:i:s', time() + 100 );
+		$p           = self::factory()->post->create(
+			array(
+				'post_status' => 'auto-draft',
+				'post_name'   => 'foo',
+				'post_date'   => $future_date,
+			)
+		);
+
+		$found    = get_sample_permalink( $p );
+		$expected = trailingslashit( home_url( $permalink_structure ) );
+
+		$this->assertSame( $expected, $found[0] );
 	}
 
 	public function test_post_exists_should_match_title() {
@@ -918,6 +1065,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 			'render_callback' => 'foo',
 			'ancestor'        => array( 'core/test-ancestor' ),
 			'selectors'       => array( 'root' => '.wp-block-test' ),
+			'block_hooks'     => array( 'core/post-content' => 'before' ),
 		);
 
 		register_block_type( $name, $settings );
@@ -934,9 +1082,11 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 				'description' => '',
 				'icon'        => 'text',
 				'attributes'  => array(
-					'lock' => array( 'type' => 'object' ),
+					'lock'     => array( 'type' => 'object' ),
+					'metadata' => array( 'type' => 'object' ),
 				),
 				'usesContext' => array(),
+				'blockHooks'  => array( 'core/post-content' => 'before' ),
 				'selectors'   => array( 'root' => '.wp-block-test' ),
 				'category'    => 'common',
 				'styles'      => array(),
@@ -1142,8 +1292,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 	/**
 	 * Test refreshed nonce for metabox loader.
-	 *
-	 * @return void
 	 */
 	public function test_user_get_refreshed_metabox_nonce() {
 

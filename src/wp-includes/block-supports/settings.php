@@ -40,12 +40,12 @@ function _wp_add_block_level_presets_class( $block_content, $block ) {
 
 	// return early if the block doesn't have support for settings.
 	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
-	if ( ! block_has_support( $block_type, array( '__experimentalSettings' ), false ) ) {
+	if ( ! block_has_support( $block_type, '__experimentalSettings', false ) ) {
 		return $block_content;
 	}
 
 	// return early if no settings are found on the block attributes.
-	$block_settings = _wp_array_get( $block, array( 'attrs', 'settings' ), null );
+	$block_settings = isset( $block['attrs']['settings'] ) ? $block['attrs']['settings'] : null;
 	if ( empty( $block_settings ) ) {
 		return $block_content;
 	}
@@ -77,12 +77,12 @@ function _wp_add_block_level_presets_class( $block_content, $block ) {
 function _wp_add_block_level_preset_styles( $pre_render, $block ) {
 	// Return early if the block has not support for descendent block styles.
 	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
-	if ( ! block_has_support( $block_type, array( '__experimentalSettings' ), false ) ) {
+	if ( ! block_has_support( $block_type, '__experimentalSettings', false ) ) {
 		return null;
 	}
 
 	// return early if no settings are found on the block attributes.
-	$block_settings = _wp_array_get( $block, array( 'attrs', 'settings' ), null );
+	$block_settings = isset( $block['attrs']['settings'] ) ? $block['attrs']['settings'] : null;
 	if ( empty( $block_settings ) ) {
 		return null;
 	}

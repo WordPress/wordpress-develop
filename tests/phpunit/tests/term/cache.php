@@ -55,7 +55,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 14485
 	 */
-	public function test_hierachy_invalidation() {
+	public function test_hierarchy_invalidation() {
 		$tax = 'burrito';
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 		$this->assertTrue( get_taxonomy( $tax )->hierarchical );
@@ -73,12 +73,12 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 				case 2:
 					$parent    = wp_insert_term( 'Child' . $i, $tax, array( 'parent' => $parent_id ) );
 					$parent_id = $parent['term_id'];
-					$children++;
+					++$children;
 					break;
 				case 3:
 					wp_insert_term( 'Grandchild' . $i, $tax, array( 'parent' => $parent_id ) );
 					$parent_id = 0;
-					$children++;
+					++$children;
 					break;
 			}
 
@@ -93,7 +93,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 			if ( 0 === ( $i % 3 ) ) {
 				$step = 1;
 			} else {
-				$step++;
+				++$step;
 			}
 		}
 
@@ -418,7 +418,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$this->assertSame( $num_queries, get_num_queries() );
 
 		$term_meta = get_term_meta( $term_id, 'foo', true );
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $term_meta, 'bar' );
 		$this->assertSame( $num_queries, get_num_queries() );
 	}

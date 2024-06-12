@@ -233,7 +233,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 
 		// Database should be hit again.
 		$found = get_term( $terms[1]['term_id'], 'wptests_tax_2' );
-		$num_queries++;
+		++$num_queries;
 
 		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertInstanceOf( 'WP_Term', $found );

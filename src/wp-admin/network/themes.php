@@ -135,11 +135,25 @@ if ( $action ) {
 				<div class="wrap">
 				<?php if ( 1 === $themes_to_delete ) : ?>
 					<h1><?php _e( 'Delete Theme' ); ?></h1>
-					<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'This theme may be active on other sites in the network.' ); ?></p></div>
+					<?php
+					wp_admin_notice(
+						'<strong>' . __( 'Caution:' ) . '</strong> ' . __( 'This theme may be active on other sites in the network.' ),
+						array(
+							'additional_classes' => array( 'error' ),
+						)
+					);
+					?>
 					<p><?php _e( 'You are about to remove the following theme:' ); ?></p>
 				<?php else : ?>
 					<h1><?php _e( 'Delete Themes' ); ?></h1>
-					<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'These themes may be active on other sites in the network.' ); ?></p></div>
+					<?php
+					wp_admin_notice(
+						'<strong>' . __( 'Caution:' ) . '</strong> ' . __( 'These themes may be active on other sites in the network.' ),
+						array(
+							'additional_classes' => array( 'error' ),
+						)
+					);
+					?>
 					<p><?php _e( 'You are about to remove the following themes:' ); ?></p>
 				<?php endif; ?>
 					<ul class="ul-disc">
@@ -349,7 +363,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 
 <?php if ( current_user_can( 'install_themes' ) ) : ?>
-	<a href="theme-install.php" class="page-title-action"><?php echo esc_html_x( 'Add New', 'theme' ); ?></a>
+	<a href="theme-install.php" class="page-title-action"><?php echo esc_html__( 'Add New Theme' ); ?></a>
 <?php endif; ?>
 
 <?php
@@ -367,57 +381,82 @@ if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 <hr class="wp-header-end">
 
 <?php
+$message = '';
+$type    = 'success';
+
 if ( isset( $_GET['enabled'] ) ) {
 	$enabled = absint( $_GET['enabled'] );
 	if ( 1 === $enabled ) {
 		$message = __( 'Theme enabled.' );
 	} else {
-		/* translators: %s: Number of themes. */
-		$message = _n( '%s theme enabled.', '%s themes enabled.', $enabled );
+		$message = sprintf(
+			/* translators: %s: Number of themes. */
+			_n( '%s theme enabled.', '%s themes enabled.', $enabled ),
+			number_format_i18n( $enabled )
+		);
 	}
-	echo '<div id="message" class="notice notice-success is-dismissible"><p>' . sprintf( $message, number_format_i18n( $enabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['disabled'] ) ) {
 	$disabled = absint( $_GET['disabled'] );
 	if ( 1 === $disabled ) {
 		$message = __( 'Theme disabled.' );
 	} else {
-		/* translators: %s: Number of themes. */
-		$message = _n( '%s theme disabled.', '%s themes disabled.', $disabled );
+		$message = sprintf(
+			/* translators: %s: Number of themes. */
+			_n( '%s theme disabled.', '%s themes disabled.', $disabled ),
+			number_format_i18n( $disabled )
+		);
 	}
-	echo '<div id="message" class="notice notice-success is-dismissible"><p>' . sprintf( $message, number_format_i18n( $disabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['deleted'] ) ) {
 	$deleted = absint( $_GET['deleted'] );
 	if ( 1 === $deleted ) {
 		$message = __( 'Theme deleted.' );
 	} else {
-		/* translators: %s: Number of themes. */
-		$message = _n( '%s theme deleted.', '%s themes deleted.', $deleted );
+		$message = sprintf(
+			/* translators: %s: Number of themes. */
+			_n( '%s theme deleted.', '%s themes deleted.', $deleted ),
+			number_format_i18n( $deleted )
+		);
 	}
-	echo '<div id="message" class="notice notice-success is-dismissible"><p>' . sprintf( $message, number_format_i18n( $deleted ) ) . '</p></div>';
 } elseif ( isset( $_GET['enabled-auto-update'] ) ) {
 	$enabled = absint( $_GET['enabled-auto-update'] );
 	if ( 1 === $enabled ) {
 		$message = __( 'Theme will be auto-updated.' );
 	} else {
-		/* translators: %s: Number of themes. */
-		$message = _n( '%s theme will be auto-updated.', '%s themes will be auto-updated.', $enabled );
+		$message = sprintf(
+			/* translators: %s: Number of themes. */
+			_n( '%s theme will be auto-updated.', '%s themes will be auto-updated.', $enabled ),
+			number_format_i18n( $enabled )
+		);
 	}
-	echo '<div id="message" class="notice notice-success is-dismissible"><p>' . sprintf( $message, number_format_i18n( $enabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['disabled-auto-update'] ) ) {
 	$disabled = absint( $_GET['disabled-auto-update'] );
 	if ( 1 === $disabled ) {
 		$message = __( 'Theme will no longer be auto-updated.' );
 	} else {
-		/* translators: %s: Number of themes. */
-		$message = _n( '%s theme will no longer be auto-updated.', '%s themes will no longer be auto-updated.', $disabled );
+		$message = sprintf(
+			/* translators: %s: Number of themes. */
+			_n( '%s theme will no longer be auto-updated.', '%s themes will no longer be auto-updated.', $disabled ),
+			number_format_i18n( $disabled )
+		);
 	}
-	echo '<div id="message" class="notice notice-success is-dismissible"><p>' . sprintf( $message, number_format_i18n( $disabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['error'] ) && 'none' === $_GET['error'] ) {
-	echo '<div id="message" class="notice notice-error is-dismissible"><p>' . __( 'No theme selected.' ) . '</p></div>';
+	$message = __( 'No theme selected.' );
+	$type    = 'error';
 } elseif ( isset( $_GET['error'] ) && 'main' === $_GET['error'] ) {
-	echo '<div id="message" class="notice notice-error is-dismissible"><p>' . __( 'You cannot delete a theme while it is active on the main site.' ) . '</p></div>';
+	$message = __( 'You cannot delete a theme while it is active on the main site.' );
+	$type    = 'error';
 }
 
+if ( '' !== $message ) {
+	wp_admin_notice(
+		$message,
+		array(
+			'type'        => $type,
+			'dismissible' => true,
+			'id'          => 'message',
+		)
+	);
+}
 ?>
 
 <form method="get">
