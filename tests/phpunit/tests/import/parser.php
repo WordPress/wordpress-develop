@@ -33,7 +33,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 
 		// Regex based parser cannot detect malformed XML.
 		foreach ( array( 'WXR_Parser_SimpleXML', 'WXR_Parser_XML' ) as $p ) {
-			$parser = new $p;
+			$parser = new $p();
 			$result = $parser->parse( $file );
 			$this->assertWPError( $result );
 			$this->assertSame( 'There was an error when reading this WXR file', $result->get_error_message() );
@@ -51,7 +51,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 
 		foreach ( array( 'WXR_Parser_SimpleXML', 'WXR_Parser_XML', 'WXR_Parser_Regex' ) as $p ) {
 			foreach ( array( $f1, $f2 ) as $file ) {
-				$parser = new $p;
+				$parser = new $p();
 				$result = $parser->parse( $file );
 				$this->assertWPError( $result );
 				$this->assertSame( 'This does not appear to be a WXR file, missing/invalid WXR version number', $result->get_error_message() );
@@ -69,12 +69,12 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 
 		foreach ( array( 'WXR_Parser_SimpleXML', 'WXR_Parser_XML', 'WXR_Parser_Regex' ) as $p ) {
 			$message = $p . ' failed';
-			$parser  = new $p;
+			$parser  = new $p();
 			$result  = $parser->parse( $file );
 
 			$this->assertIsArray( $result, $message );
 			$this->assertSame( 'http://localhost/', $result['base_url'], $message );
-			$this->assertEquals(
+			$this->assertEqualSetsWithIndex(
 				array(
 					'author_id'           => 2,
 					'author_login'        => 'john',
@@ -86,7 +86,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 				$result['authors']['john'],
 				$message
 			);
-			$this->assertEquals(
+			$this->assertEqualSetsWithIndex(
 				array(
 					'term_id'              => 3,
 					'category_nicename'    => 'alpha',
@@ -97,7 +97,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 				$result['categories'][0],
 				$message
 			);
-			$this->assertEquals(
+			$this->assertEqualSetsWithIndex(
 				array(
 					'term_id'         => 22,
 					'tag_slug'        => 'clippable',
@@ -107,7 +107,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 				$result['tags'][0],
 				$message
 			);
-			$this->assertEquals(
+			$this->assertEqualSetsWithIndex(
 				array(
 					'term_id'          => 40,
 					'term_taxonomy'    => 'post_tax',
@@ -123,7 +123,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			$this->assertCount( 2, $result['posts'], $message );
 			$this->assertCount( 19, $result['posts'][0], $message );
 			$this->assertCount( 18, $result['posts'][1], $message );
-			$this->assertEquals(
+			$this->assertEqualSetsWithIndex(
 				array(
 					array(
 						'name'   => 'alpha',
@@ -167,7 +167,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 
 		foreach ( array( 'WXR_Parser_SimpleXML', 'WXR_Parser_XML', 'WXR_Parser_Regex' ) as $p ) {
 			$message = $p . ' failed';
-			$parser  = new $p;
+			$parser  = new $p();
 			$result  = $parser->parse( $file );
 
 			$this->assertIsArray( $result, $message );
@@ -265,7 +265,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 
 		foreach ( array( 'WXR_Parser_SimpleXML', 'WXR_Parser_XML', 'WXR_Parser_Regex' ) as $p ) {
 			$message = 'Parser ' . $p;
-			$parser  = new $p;
+			$parser  = new $p();
 			$result  = $parser->parse( $file );
 
 			$post = $result['posts'][0];
@@ -298,7 +298,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 	public function test_unescaped_cdata_closing_sequence() {
 		$file = DIR_TESTDATA . '/export/crazy-cdata.xml';
 
-		$parser = new WXR_Parser_Regex;
+		$parser = new WXR_Parser_Regex();
 		$result = $parser->parse( $file );
 
 		$post = $result['posts'][0];

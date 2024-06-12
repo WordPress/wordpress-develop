@@ -39,11 +39,12 @@ function got_mod_rewrite() {
  * @since 3.7.0
  *
  * @global bool $is_nginx
+ * @global bool $is_caddy
  *
  * @return bool Whether the server supports URL rewriting.
  */
 function got_url_rewrite() {
-	$got_url_rewrite = ( got_mod_rewrite() || $GLOBALS['is_nginx'] || iis7_supports_permalinks() );
+	$got_url_rewrite = ( got_mod_rewrite() || $GLOBALS['is_nginx'] || $GLOBALS['is_caddy'] || iis7_supports_permalinks() );
 
 	/**
 	 * Filters whether URL rewriting is available.
@@ -76,19 +77,19 @@ function extract_from_markers( $filename, $marker ) {
 	$state = false;
 
 	foreach ( $markerdata as $markerline ) {
-		if ( false !== strpos( $markerline, '# END ' . $marker ) ) {
+		if ( str_contains( $markerline, '# END ' . $marker ) ) {
 			$state = false;
 		}
 
 		if ( $state ) {
-			if ( '#' === substr( $markerline, 0, 1 ) ) {
+			if ( str_starts_with( $markerline, '#' ) ) {
 				continue;
 			}
 
 			$result[] = $markerline;
 		}
 
-		if ( false !== strpos( $markerline, '# BEGIN ' . $marker ) ) {
+		if ( str_contains( $markerline, '# BEGIN ' . $marker ) ) {
 			$state = true;
 		}
 	}
@@ -194,10 +195,10 @@ Any changes to the directives between these markers will be overwritten.'
 	$found_end_marker = false;
 
 	foreach ( $lines as $line ) {
-		if ( ! $found_marker && false !== strpos( $line, $start_marker ) ) {
+		if ( ! $found_marker && str_contains( $line, $start_marker ) ) {
 			$found_marker = true;
 			continue;
-		} elseif ( ! $found_end_marker && false !== strpos( $line, $end_marker ) ) {
+		} elseif ( ! $found_end_marker && str_contains( $line, $end_marker ) ) {
 			$found_end_marker = true;
 			continue;
 		}
@@ -403,7 +404,7 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 		$size  = count( $tree );
 
 		foreach ( $tree as $label => $theme_file ) :
-			$index++;
+			++$index;
 
 			if ( ! is_array( $theme_file ) ) {
 				wp_print_theme_file_tree( $theme_file, $level, $index, $size );
@@ -414,7 +415,12 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 				aria-level="<?php echo esc_attr( $level ); ?>"
 				aria-setsize="<?php echo esc_attr( $size ); ?>"
 				aria-posinset="<?php echo esc_attr( $index ); ?>">
-				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text"><?php _e( 'folder' ); ?></span><span aria-hidden="true" class="icon"></span></span>
+				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'folder' );
+					?>
+				</span><span aria-hidden="true" class="icon"></span></span>
 				<ul role="group" class="tree-folder"><?php wp_print_theme_file_tree( $theme_file, $level + 1, $index, $size ); ?></ul>
 			</li>
 			<?php
@@ -500,7 +506,7 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 		$size  = count( $tree );
 
 		foreach ( $tree as $label => $plugin_file ) :
-			$index++;
+			++$index;
 
 			if ( ! is_array( $plugin_file ) ) {
 				wp_print_plugin_file_tree( $plugin_file, $label, $level, $index, $size );
@@ -511,7 +517,12 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 				aria-level="<?php echo esc_attr( $level ); ?>"
 				aria-setsize="<?php echo esc_attr( $size ); ?>"
 				aria-posinset="<?php echo esc_attr( $index ); ?>">
-				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text"><?php _e( 'folder' ); ?></span><span aria-hidden="true" class="icon"></span></span>
+				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'folder' );
+					?>
+				</span><span aria-hidden="true" class="icon"></span></span>
 				<ul role="group" class="tree-folder"><?php wp_print_plugin_file_tree( $plugin_file, '', $level + 1, $index, $size ); ?></ul>
 			</li>
 			<?php
@@ -545,7 +556,7 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 }
 
 /**
- * Flushes rewrite rules if siteurl, home or page_on_front changed.
+ * Flushes rewrite rules if `siteurl`, `home` or `page_on_front` changed.
  *
  * @since 2.1.0
  *
@@ -564,13 +575,12 @@ function update_home_siteurl( $old_value, $value ) {
 	}
 }
 
-
 /**
- * Resets global variables based on $_GET and $_POST.
+ * Resets global variables based on `$_GET` and `$_POST`.
  *
  * This function resets global variables based on the names passed
- * in the $vars array to the value of $_POST[$var] or $_GET[$var] or ''
- * if neither is defined.
+ * in the `$vars` array to the value of `$_POST[$var]` or `$_GET[$var]` or an
+ * empty string if neither is defined.
  *
  * @since 2.0.0
  *
@@ -740,11 +750,11 @@ function set_screen_options() {
 		default:
 			$screen_option = false;
 
-			if ( '_page' === substr( $option, -5 ) || 'layout_columns' === $option ) {
+			if ( str_ends_with( $option, '_page' ) || 'layout_columns' === $option ) {
 				/**
 				 * Filters a screen option value before it is set.
 				 *
-				 * The filter can also be used to modify non-standard [items]_per_page
+				 * The filter can also be used to modify non-standard `[items]_per_page`
 				 * settings. See the parent function for a full list of standard options.
 				 *
 				 * Returning false from the filter will skip saving the current option.
@@ -1012,7 +1022,12 @@ function admin_color_scheme_picker( $user_id ) {
 	}
 	?>
 	<fieldset id="color-picker" class="scheme-list">
-		<legend class="screen-reader-text"><span><?php _e( 'Admin Color Scheme' ); ?></span></legend>
+		<legend class="screen-reader-text"><span>
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Admin Color Scheme' );
+			?>
+		</span></legend>
 		<?php
 		wp_nonce_field( 'save-color-scheme', 'color-nonce', false );
 		foreach ( $_wp_admin_css_colors as $color => $color_info ) :
@@ -1023,17 +1038,15 @@ function admin_color_scheme_picker( $user_id ) {
 				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>" />
 				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
 				<label for="admin_color_<?php echo esc_attr( $color ); ?>"><?php echo esc_html( $color_info->name ); ?></label>
-				<table class="color-palette">
-					<tr>
-					<?php
-					foreach ( $color_info->colors as $html_color ) {
-						?>
-						<td style="background-color: <?php echo esc_attr( $html_color ); ?>">&nbsp;</td>
-						<?php
-					}
+				<div class="color-palette">
+				<?php
+				foreach ( $color_info->colors as $html_color ) {
 					?>
-					</tr>
-				</table>
+					<div class="color-palette-shade" style="background-color: <?php echo esc_attr( $html_color ); ?>">&nbsp;</div>
+					<?php
+				}
+				?>
+				</div>
 			</div>
 			<?php
 
@@ -1291,7 +1304,7 @@ function wp_refresh_metabox_loader_nonces( $response, $data ) {
 }
 
 /**
- * Adds the latest Heartbeat and REST-API nonce to the Heartbeat response.
+ * Adds the latest Heartbeat and REST API nonce to the Heartbeat response.
  *
  * @since 5.0.0
  *
@@ -1383,6 +1396,15 @@ function wp_admin_canonical_url() {
 	// Ensure we're using an absolute URL.
 	$current_url  = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$filtered_url = remove_query_arg( $removable_query_args, $current_url );
+
+	/**
+	 * Filters the admin canonical URL value.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $filtered_url The admin canonical URL value.
+	 */
+	$filtered_url = apply_filters( 'wp_admin_canonical_url', $filtered_url );
 	?>
 	<link id="wp-admin-canonical" rel="canonical" href="<?php echo esc_url( $filtered_url ); ?>" />
 	<script>
@@ -1457,7 +1479,7 @@ function update_option_new_admin_email( $old_value, $value ) {
 	);
 	update_option( 'adminhash', $new_admin_email );
 
-	$switched_locale = switch_to_locale( get_user_locale() );
+	$switched_locale = switch_to_user_locale( get_current_user_id() );
 
 	/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
@@ -1484,11 +1506,11 @@ All at ###SITENAME###
 	 * Filters the text of the email sent when a change of site admin email address is attempted.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
-	 * ###USERNAME###  The current user's username.
-	 * ###ADMIN_URL### The link to click on to confirm the email change.
-	 * ###EMAIL###     The proposed new site admin email address.
-	 * ###SITENAME###  The name of the site.
-	 * ###SITEURL###   The URL to the site.
+	 *  - ###USERNAME###  The current user's username.
+	 *  - ###ADMIN_URL### The link to click on to confirm the email change.
+	 *  - ###EMAIL###     The proposed new site admin email address.
+	 *  - ###SITENAME###  The name of the site.
+	 *  - ###SITEURL###   The URL to the site.
 	 *
 	 * @since MU (3.0.0)
 	 * @since 4.9.0 This filter is no longer Multisite specific.
@@ -1516,15 +1538,22 @@ All at ###SITENAME###
 		$site_title = parse_url( home_url(), PHP_URL_HOST );
 	}
 
-	wp_mail(
-		$value,
-		sprintf(
-			/* translators: New admin email address notification email subject. %s: Site title. */
-			__( '[%s] New Admin Email Address' ),
-			$site_title
-		),
-		$content
+	$subject = sprintf(
+		/* translators: New admin email address notification email subject. %s: Site title. */
+		__( '[%s] New Admin Email Address' ),
+		$site_title
 	);
+
+	/**
+	 * Filters the subject of the email sent when a change of site admin email address is attempted.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $subject Subject of the email.
+	 */
+	$subject = apply_filters( 'new_admin_email_subject', $subject );
+
+	wp_mail( $value, $subject, $content );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
@@ -1557,7 +1586,16 @@ function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
  * @since 5.1.0
  * @since 5.1.1 Added the {@see 'wp_is_php_version_acceptable'} filter.
  *
- * @return array|false Array of PHP version data. False on failure.
+ * @return array|false {
+ *     Array of PHP version data. False on failure.
+ *
+ *     @type string $recommended_version The PHP version recommended by WordPress.
+ *     @type string $minimum_version     The minimum required PHP version.
+ *     @type bool   $is_supported        Whether the PHP version is actively supported.
+ *     @type bool   $is_secure           Whether the PHP version receives security updates.
+ *     @type bool   $is_acceptable       Whether the PHP version is still acceptable or warnings
+ *                                       should be shown and an update recommended.
+ * }
  */
 function wp_check_php_version() {
 	$version = PHP_VERSION;
@@ -1580,14 +1618,6 @@ function wp_check_php_version() {
 			return false;
 		}
 
-		/**
-		 * Response should be an array with:
-		 *  'recommended_version' - string - The PHP version recommended by WordPress.
-		 *  'is_supported' - boolean - Whether the PHP version is actively supported.
-		 *  'is_secure' - boolean - Whether the PHP version receives security updates.
-		 *  'is_acceptable' - boolean - Whether the PHP version is still acceptable or warnings
-		 *                              should be shown and an update recommended.
-		 */
 		$response = json_decode( wp_remote_retrieve_body( $response ), true );
 
 		if ( ! is_array( $response ) ) {
@@ -1616,8 +1646,8 @@ function wp_check_php_version() {
 
 	$response['is_lower_than_future_minimum'] = false;
 
-	// The minimum supported PHP version will be updated to 7.2. Check if the current version is lower.
-	if ( version_compare( $version, '7.2', '<' ) ) {
+	// The minimum supported PHP version will be updated to 7.4 in the future. Check if the current version is lower.
+	if ( version_compare( $version, '7.4', '<' ) ) {
 		$response['is_lower_than_future_minimum'] = true;
 
 		// Force showing of warnings.

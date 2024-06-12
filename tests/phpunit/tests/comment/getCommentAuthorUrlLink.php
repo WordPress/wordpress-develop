@@ -6,6 +6,7 @@
  * @covers ::get_comment_author_url_link
  */
 class Tests_Comment_GetCommentAuthorUrlLink extends WP_UnitTestCase {
+
 	protected static $comments = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -20,7 +21,7 @@ class Tests_Comment_GetCommentAuthorUrlLink extends WP_UnitTestCase {
 			$linktext = rtrim( preg_replace( '#http://(www\.)?#', '', $comment->comment_author_url ), '/' );
 		}
 		return sprintf(
-			'<a href=\'%s\' rel=\'external\'>%s</a>',
+			'<a href="%s" rel="external">%s</a>',
 			$comment->comment_author_url,
 			$linktext
 		);
@@ -29,7 +30,7 @@ class Tests_Comment_GetCommentAuthorUrlLink extends WP_UnitTestCase {
 	public function test_no_comment() {
 		$url_link = get_comment_author_url_link();
 
-		$this->assertSame( "<a href='' rel='external'></a>", $url_link );
+		$this->assertSame( '<a href="" rel="external"></a>', $url_link );
 	}
 
 	public function test_global_comment() {

@@ -104,7 +104,7 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
 	$parsed_args = wp_parse_args( $params, $defaults );
 
 	if ( empty( $parsed_args['walker'] ) || ! ( $parsed_args['walker'] instanceof Walker ) ) {
-		$walker = new Walker_Category_Checklist;
+		$walker = new Walker_Category_Checklist();
 	} else {
 		$walker = $parsed_args['walker'];
 	}
@@ -165,8 +165,10 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
 	$output = '';
 
 	if ( $parsed_args['checked_ontop'] ) {
-		// Post-process $categories rather than adding an exclude to the get_terms() query
-		// to keep the query the same across all posts (for any query cache).
+		/*
+		 * Post-process $categories rather than adding an exclude to the get_terms() query
+		 * to keep the query the same across all posts (for any query cache).
+		 */
 		$checked_categories = array();
 		$keys               = array_keys( $categories );
 
@@ -260,7 +262,7 @@ function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10,
  *
  * @since 2.5.1
  *
- * @param int $link_id
+ * @param int $link_id Optional. The link ID. Default 0.
  */
 function wp_link_category_checklist( $link_id = 0 ) {
 	$default = 1;
@@ -402,10 +404,11 @@ function get_inline_data( $post ) {
  *
  * @global WP_List_Table $wp_list_table
  *
- * @param int    $position
- * @param bool   $checkbox
- * @param string $mode
- * @param bool   $table_row
+ * @param int    $position  Optional. The value of the 'position' input field. Default 1.
+ * @param bool   $checkbox  Optional. The value of the 'checkbox' input field. Default false.
+ * @param string $mode      Optional. If set to 'single', will use WP_Post_Comments_List_Table,
+ *                          otherwise WP_Comments_List_Table. Default 'single'.
+ * @param bool   $table_row Optional. Whether to use a table instead of a div element. Default true.
  */
 function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $table_row = true ) {
 	global $wp_list_table;
@@ -458,11 +461,16 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 	<legend>
 		<span class="hidden" id="editlegend"><?php _e( 'Edit Comment' ); ?></span>
 		<span class="hidden" id="replyhead"><?php _e( 'Reply to Comment' ); ?></span>
-		<span class="hidden" id="addhead"><?php _e( 'Add new Comment' ); ?></span>
+		<span class="hidden" id="addhead"><?php _e( 'Add New Comment' ); ?></span>
 	</legend>
 
 	<div id="replycontainer">
-	<label for="replycontent" class="screen-reader-text"><?php _e( 'Comment' ); ?></label>
+	<label for="replycontent" class="screen-reader-text">
+		<?php
+		/* translators: Hidden accessibility text. */
+		_e( 'Comment' );
+		?>
+	</label>
 	<?php
 	$quicktags_settings = array( 'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,close' );
 	wp_editor(
@@ -504,9 +512,16 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 			<button type="button" class="cancel button"><?php _e( 'Cancel' ); ?></button>
 			<span class="waiting spinner"></span>
 		</p>
-		<div class="notice notice-error notice-alt inline hidden">
-			<p class="error"></p>
-		</div>
+		<?php
+		wp_admin_notice(
+			'<p class="error"></p>',
+			array(
+				'type'               => 'error',
+				'additional_classes' => array( 'notice-alt', 'inline', 'hidden' ),
+				'paragraph_wrap'     => false,
+			)
+		);
+		?>
 	</div>
 
 	<input type="hidden" name="action" id="action" value="" />
@@ -565,7 +580,7 @@ function wp_comment_trashnotice() {
  *
  * @since 1.2.0
  *
- * @param array $meta
+ * @param array[] $meta An array of meta data arrays keyed on 'meta_key' and 'meta_value'.
  */
 function list_meta( $meta ) {
 	// Exit if no meta.
@@ -609,9 +624,9 @@ function list_meta( $meta ) {
  *
  * @since 2.5.0
  *
- * @param array $entry
- * @param int   $count
- * @return string
+ * @param array $entry An array of meta data keyed on 'meta_key' and 'meta_value'.
+ * @param int   $count Reference to the row number.
+ * @return string A single row of public meta data.
  */
 function _list_meta_row( $entry, &$count ) {
 	static $update_nonce = '';
@@ -625,7 +640,7 @@ function _list_meta_row( $entry, &$count ) {
 	}
 
 	$r = '';
-	++ $count;
+	++$count;
 
 	if ( is_serialized( $entry['meta_value'] ) ) {
 		if ( is_serialized_string( $entry['meta_value'] ) ) {
@@ -645,7 +660,10 @@ function _list_meta_row( $entry, &$count ) {
 	$delete_nonce = wp_create_nonce( 'delete-meta_' . $entry['meta_id'] );
 
 	$r .= "\n\t<tr id='meta-{$entry['meta_id']}'>";
-	$r .= "\n\t\t<td class='left'><label class='screen-reader-text' for='meta-{$entry['meta_id']}-key'>" . __( 'Key' ) . "</label><input name='meta[{$entry['meta_id']}][key]' id='meta-{$entry['meta_id']}-key' type='text' size='20' value='{$entry['meta_key']}' />";
+	$r .= "\n\t\t<td class='left'><label class='screen-reader-text' for='meta-{$entry['meta_id']}-key'>" .
+		/* translators: Hidden accessibility text. */
+		__( 'Key' ) .
+	"</label><input name='meta[{$entry['meta_id']}][key]' id='meta-{$entry['meta_id']}-key' type='text' size='20' value='{$entry['meta_key']}' />";
 
 	$r .= "\n\t\t<div class='submit'>";
 	$r .= get_submit_button( __( 'Delete' ), 'deletemeta small', "deletemeta[{$entry['meta_id']}]", false, array( 'data-wp-lists' => "delete:the-list:meta-{$entry['meta_id']}::_ajax_nonce=$delete_nonce" ) );
@@ -655,7 +673,10 @@ function _list_meta_row( $entry, &$count ) {
 	$r .= wp_nonce_field( 'change-meta', '_ajax_nonce', false, false );
 	$r .= '</td>';
 
-	$r .= "\n\t\t<td><label class='screen-reader-text' for='meta-{$entry['meta_id']}-value'>" . __( 'Value' ) . "</label><textarea name='meta[{$entry['meta_id']}][value]' id='meta-{$entry['meta_id']}-value' rows='2' cols='30'>{$entry['meta_value']}</textarea></td>\n\t</tr>";
+	$r .= "\n\t\t<td><label class='screen-reader-text' for='meta-{$entry['meta_id']}-value'>" .
+		/* translators: Hidden accessibility text. */
+		__( 'Value' ) .
+	"</label><textarea name='meta[{$entry['meta_id']}][value]' id='meta-{$entry['meta_id']}-value' rows='2' cols='30'>{$entry['meta_value']}</textarea></td>\n\t</tr>";
 	return $r;
 }
 
@@ -712,16 +733,13 @@ function meta_form( $post = null ) {
 
 	if ( $keys ) {
 		natcasesort( $keys );
-		$meta_key_input_id = 'metakeyselect';
-	} else {
-		$meta_key_input_id = 'metakeyinput';
 	}
 	?>
 <p><strong><?php _e( 'Add New Custom Field:' ); ?></strong></p>
 <table id="newmeta">
 <thead>
 <tr>
-<th class="left"><label for="<?php echo $meta_key_input_id; ?>"><?php _ex( 'Name', 'meta name' ); ?></label></th>
+<th class="left"><label for="metakeyselect"><?php _ex( 'Name', 'meta name' ); ?></label></th>
 <th><label for="metavalue"><?php _e( 'Value' ); ?></label></th>
 </tr>
 </thead>
@@ -741,19 +759,21 @@ function meta_form( $post = null ) {
 		}
 		?>
 </select>
-<input class="hide-if-js" type="text" id="metakeyinput" name="metakeyinput" value="" />
-<a href="#postcustomstuff" class="hide-if-no-js" onclick="jQuery('#metakeyinput, #metakeyselect, #enternew, #cancelnew').toggle();return false;">
+<input class="hidden" type="text" id="metakeyinput" name="metakeyinput" value="" aria-label="<?php _e( 'New custom field name' ); ?>" />
+<button type="button" id="newmeta-button" class="button button-small hide-if-no-js" onclick="jQuery('#metakeyinput, #metakeyselect, #enternew, #cancelnew').toggleClass('hidden');jQuery('#metakeyinput, #metakeyselect').filter(':visible').trigger('focus');">
 <span id="enternew"><?php _e( 'Enter new' ); ?></span>
-<span id="cancelnew" class="hidden"><?php _e( 'Cancel' ); ?></span></a>
+<span id="cancelnew" class="hidden"><?php _e( 'Cancel' ); ?></span></button>
 <?php } else { ?>
 <input type="text" id="metakeyinput" name="metakeyinput" value="" />
 <?php } ?>
 </td>
-<td><textarea id="metavalue" name="metavalue" rows="2" cols="25"></textarea></td>
+<td><textarea id="metavalue" name="metavalue" rows="2" cols="25"></textarea>
+	<?php wp_nonce_field( 'add-meta', '_ajax_nonce-add-meta', false ); ?>
+</td>
 </tr>
-
-<tr><td colspan="2">
-<div class="submit">
+</tbody>
+</table>
+<div class="submit add-custom-field">
 	<?php
 	submit_button(
 		__( 'Add Custom Field' ),
@@ -767,12 +787,7 @@ function meta_form( $post = null ) {
 	);
 	?>
 </div>
-	<?php wp_nonce_field( 'add-meta', '_ajax_nonce-add-meta', false ); ?>
-</td></tr>
-</tbody>
-</table>
 	<?php
-
 }
 
 /**
@@ -819,7 +834,10 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 	$cur_hh = current_time( 'H' );
 	$cur_mn = current_time( 'i' );
 
-	$month = '<label><span class="screen-reader-text">' . __( 'Month' ) . '</span><select class="form-required" ' . ( $multi ? '' : 'id="mm" ' ) . 'name="mm"' . $tab_index_attribute . ">\n";
+	$month = '<label><span class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'Month' ) .
+	'</span><select class="form-required" ' . ( $multi ? '' : 'id="mm" ' ) . 'name="mm"' . $tab_index_attribute . ">\n";
 	for ( $i = 1; $i < 13; $i = $i + 1 ) {
 		$monthnum  = zeroise( $i, 2 );
 		$monthtext = $wp_locale->get_month_abbrev( $wp_locale->get_month( $i ) );
@@ -829,10 +847,22 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 	}
 	$month .= '</select></label>';
 
-	$day    = '<label><span class="screen-reader-text">' . __( 'Day' ) . '</span><input type="text" ' . ( $multi ? '' : 'id="jj" ' ) . 'name="jj" value="' . $jj . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
-	$year   = '<label><span class="screen-reader-text">' . __( 'Year' ) . '</span><input type="text" ' . ( $multi ? '' : 'id="aa" ' ) . 'name="aa" value="' . $aa . '" size="4" maxlength="4"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
-	$hour   = '<label><span class="screen-reader-text">' . __( 'Hour' ) . '</span><input type="text" ' . ( $multi ? '' : 'id="hh" ' ) . 'name="hh" value="' . $hh . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
-	$minute = '<label><span class="screen-reader-text">' . __( 'Minute' ) . '</span><input type="text" ' . ( $multi ? '' : 'id="mn" ' ) . 'name="mn" value="' . $mn . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	$day = '<label><span class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'Day' ) .
+	'</span><input type="text" ' . ( $multi ? '' : 'id="jj" ' ) . 'name="jj" value="' . $jj . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	$year = '<label><span class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'Year' ) .
+	'</span><input type="text" ' . ( $multi ? '' : 'id="aa" ' ) . 'name="aa" value="' . $aa . '" size="4" maxlength="4"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	$hour = '<label><span class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'Hour' ) .
+	'</span><input type="text" ' . ( $multi ? '' : 'id="hh" ' ) . 'name="hh" value="' . $hh . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	$minute = '<label><span class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'Minute' ) .
+	'</span><input type="text" ' . ( $multi ? '' : 'id="mn" ' ) . 'name="mn" value="' . $mn . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
 
 	echo '<div class="timestamp-wrap">';
 	/* translators: 1: Month, 2: Day, 3: Year, 4: Hour, 5: Minute. */
@@ -877,7 +907,7 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
  * @since 4.7.0 Added the `$post_type` parameter.
  *
  * @param string $default_template Optional. The template file name. Default empty.
- * @param string $post_type        Optional. Post type to get templates for. Default 'post'.
+ * @param string $post_type        Optional. Post type to get templates for. Default 'page'.
  */
 function page_template_dropdown( $default_template = '', $post_type = 'page' ) {
 	$templates = get_page_templates( null, $post_type );
@@ -983,10 +1013,15 @@ function wp_import_upload_form( $action ) {
 	$size       = size_format( $bytes );
 	$upload_dir = wp_upload_dir();
 	if ( ! empty( $upload_dir['error'] ) ) :
-		?>
-		<div class="error"><p><?php _e( 'Before you can upload your import file, you will need to fix the following error:' ); ?></p>
-		<p><strong><?php echo $upload_dir['error']; ?></strong></p></div>
-		<?php
+		$upload_directory_error  = '<p>' . __( 'Before you can upload your import file, you will need to fix the following error:' ) . '</p>';
+		$upload_directory_error .= '<p><strong>' . $upload_dir['error'] . '</strong></p>';
+		wp_admin_notice(
+			$upload_directory_error,
+			array(
+				'additional_classes' => array( 'error' ),
+				'paragraph_wrap'     => false,
+			)
+		);
 	else :
 		?>
 <form enctype="multipart/form-data" id="import-upload-form" method="post" class="wp-upload-form" action="<?php echo esc_url( wp_nonce_url( $action, 'import-upload' ) ); ?>">
@@ -1213,7 +1248,7 @@ function _get_plugin_from_callback( $callback ) {
 	try {
 		if ( is_array( $callback ) ) {
 			$reflection = new ReflectionMethod( $callback[0], $callback[1] );
-		} elseif ( is_string( $callback ) && false !== strpos( $callback, '::' ) ) {
+		} elseif ( is_string( $callback ) && str_contains( $callback, '::' ) ) {
 			$reflection = new ReflectionMethod( $callback );
 		} else {
 			$reflection = new ReflectionFunction( $callback );
@@ -1230,14 +1265,14 @@ function _get_plugin_from_callback( $callback ) {
 		$filename   = wp_normalize_path( $reflection->getFileName() );
 		$plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
 
-		if ( strpos( $filename, $plugin_dir ) === 0 ) {
+		if ( str_starts_with( $filename, $plugin_dir ) ) {
 			$filename = str_replace( $plugin_dir, '', $filename );
 			$filename = preg_replace( '|^/([^/]*/).*$|', '\\1', $filename );
 
 			$plugins = get_plugins();
 
 			foreach ( $plugins as $name => $plugin ) {
-				if ( strpos( $name, $filename ) === 0 ) {
+				if ( str_starts_with( $name, $filename ) ) {
 					return $plugin;
 				}
 			}
@@ -1280,8 +1315,10 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 
 	printf( '<div id="%s-sortables" class="meta-box-sortables">', esc_attr( $context ) );
 
-	// Grab the ones the user has manually sorted.
-	// Pull them out of their previous context/priority and into the one the user chose.
+	/*
+	 * Grab the ones the user has manually sorted.
+	 * Pull them out of their previous context/priority and into the one the user chose.
+	 */
 	$sorted = get_user_option( "meta-box-order_$page" );
 
 	if ( ! $already_sorted && $sorted ) {
@@ -1330,7 +1367,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						}
 					}
 
-					$i++;
+					++$i;
 					// get_hidden_meta_boxes() doesn't apply in the block editor.
 					$hidden_class = ( ! $screen->is_block_editor() && in_array( $box['id'], $hidden, true ) ) ? ' hide-if-js' : '';
 					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . '>' . "\n";
@@ -1339,7 +1376,10 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 					echo '<h2 class="hndle">';
 					if ( 'dashboard_php_nag' === $box['id'] ) {
 						echo '<span aria-hidden="true" class="dashicons dashicons-warning"></span>';
-						echo '<span class="screen-reader-text">' . __( 'Warning:' ) . ' </span>';
+						echo '<span class="screen-reader-text">' .
+							/* translators: Hidden accessibility text. */
+							__( 'Warning:' ) .
+						' </span>';
 					}
 					echo $box['title'];
 					echo "</h2>\n";
@@ -1356,7 +1396,10 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						echo '<div class="handle-actions hide-if-no-js">';
 
 						echo '<button type="button" class="handle-order-higher" aria-disabled="false" aria-describedby="' . $box['id'] . '-handle-order-higher-description">';
-						echo '<span class="screen-reader-text">' . __( 'Move up' ) . '</span>';
+						echo '<span class="screen-reader-text">' .
+							/* translators: Hidden accessibility text. */
+							__( 'Move up' ) .
+						'</span>';
 						echo '<span class="order-higher-indicator" aria-hidden="true"></span>';
 						echo '</button>';
 						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-higher-description">' . sprintf(
@@ -1366,7 +1409,10 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						) . '</span>';
 
 						echo '<button type="button" class="handle-order-lower" aria-disabled="false" aria-describedby="' . $box['id'] . '-handle-order-lower-description">';
-						echo '<span class="screen-reader-text">' . __( 'Move down' ) . '</span>';
+						echo '<span class="screen-reader-text">' .
+							/* translators: Hidden accessibility text. */
+							__( 'Move down' ) .
+						'</span>';
 						echo '<span class="order-lower-indicator" aria-hidden="true"></span>';
 						echo '</button>';
 						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-lower-description">' . sprintf(
@@ -1377,7 +1423,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 
 						echo '<button type="button" class="handlediv" aria-expanded="true">';
 						echo '<span class="screen-reader-text">' . sprintf(
-							/* translators: %s: Meta box title. */
+							/* translators: %s: Hidden accessibility text. Meta box title. */
 							__( 'Toggle panel: %s' ),
 							$widget_title
 						) . '</span>';
@@ -1393,16 +1439,17 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 					if ( WP_DEBUG && ! $block_compatible && 'edit' === $screen->parent_base && ! $screen->is_block_editor() && ! isset( $_GET['meta-box-loader'] ) ) {
 						$plugin = _get_plugin_from_callback( $box['callback'] );
 						if ( $plugin ) {
-							?>
-							<div class="error inline">
-								<p>
-									<?php
-										/* translators: %s: The name of the plugin that generated this meta box. */
-										printf( __( 'This meta box, from the %s plugin, is not compatible with the block editor.' ), "<strong>{$plugin['Name']}</strong>" );
-									?>
-								</p>
-							</div>
-							<?php
+							$meta_box_not_compatible_message = sprintf(
+								/* translators: %s: The name of the plugin that generated this meta box. */
+								__( 'This meta box, from the %s plugin, is not compatible with the block editor.' ),
+								"<strong>{$plugin['Name']}</strong>"
+							);
+							wp_admin_notice(
+								$meta_box_not_compatible_message,
+								array(
+									'additional_classes' => array( 'error', 'inline' ),
+								)
+							);
 						}
 					}
 
@@ -1417,7 +1464,6 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 	echo '</div>';
 
 	return $i;
-
 }
 
 /**
@@ -1517,7 +1563,7 @@ function do_accordion_sections( $screen, $context, $data_object ) {
 						continue;
 					}
 
-					$i++;
+					++$i;
 					$hidden_class = in_array( $box['id'], $hidden, true ) ? 'hide-if-js' : '';
 
 					$open_class = '';
@@ -1529,7 +1575,12 @@ function do_accordion_sections( $screen, $context, $data_object ) {
 					<li class="control-section accordion-section <?php echo $hidden_class; ?> <?php echo $open_class; ?> <?php echo esc_attr( $box['id'] ); ?>" id="<?php echo esc_attr( $box['id'] ); ?>">
 						<h3 class="accordion-section-title hndle" tabindex="0">
 							<?php echo esc_html( $box['title'] ); ?>
-							<span class="screen-reader-text"><?php _e( 'Press return or enter to open this section' ); ?></span>
+							<span class="screen-reader-text">
+								<?php
+								/* translators: Hidden accessibility text. */
+								_e( 'Press return or enter to open this section' );
+								?>
+							</span>
 						</h3>
 						<div class="accordion-section-content <?php postbox_classes( $box['id'], $page ); ?>">
 							<div class="inside">
@@ -1845,15 +1896,19 @@ function add_settings_error( $setting, $code, $message, $type = 'error' ) {
  *
  * @param string $setting  Optional. Slug title of a specific setting whose errors you want.
  * @param bool   $sanitize Optional. Whether to re-sanitize the setting value before returning errors.
- * @return array {
- *     Array of settings errors.
+ * @return array[] {
+ *     Array of settings error arrays.
  *
- *     @type string $setting Slug title of the setting to which this error applies.
- *     @type string $code    Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
- *     @type string $message The formatted message text to display to the user (will be shown inside styled
- *                           `<div>` and `<p>` tags).
- *     @type string $type    Optional. Message type, controls HTML class. Possible values include 'error',
- *                           'success', 'warning', 'info'. Default 'error'.
+ *     @type array ...$0 {
+ *         Associative array of setting error data.
+ *
+ *         @type string $setting Slug title of the setting to which this error applies.
+ *         @type string $code    Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
+ *         @type string $message The formatted message text to display to the user (will be shown inside styled
+ *                               `<div>` and `<p>` tags).
+ *         @type string $type    Optional. Message type, controls HTML class. Possible values include 'error',
+ *                               'success', 'warning', 'info'. Default 'error'.
+ *     }
  * }
  */
 function get_settings_errors( $setting = '', $sanitize = false ) {
@@ -1969,14 +2024,19 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
  *
  * @since 2.7.0
  *
- * @param string $found_action
+ * @param string $found_action Optional. The value of the 'found_action' input field. Default empty string.
  */
 function find_posts_div( $found_action = '' ) {
 	?>
 	<div id="find-posts" class="find-box" style="display: none;">
 		<div id="find-posts-head" class="find-box-head">
 			<?php _e( 'Attach to existing content' ); ?>
-			<button type="button" id="find-posts-close"><span class="screen-reader-text"><?php _e( 'Close media attachment panel' ); ?></span></button>
+			<button type="button" id="find-posts-close"><span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Close media attachment panel' );
+				?>
+			</span></button>
 		</div>
 		<div class="find-box-inside">
 			<div class="find-box-search">
@@ -1985,7 +2045,12 @@ function find_posts_div( $found_action = '' ) {
 				<?php } ?>
 				<input type="hidden" name="affected" id="affected" value="" />
 				<?php wp_nonce_field( 'find-posts', '_ajax_nonce', false ); ?>
-				<label class="screen-reader-text" for="find-posts-input"><?php _e( 'Search' ); ?></label>
+				<label class="screen-reader-text" for="find-posts-input">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Search' );
+					?>
+				</label>
 				<input type="text" id="find-posts-input" name="ps" value="" />
 				<span class="spinner"></span>
 				<input type="button" id="find-posts-search" value="<?php esc_attr_e( 'Search' ); ?>" class="button" />
@@ -2053,14 +2118,17 @@ function _admin_search_query() {
  *
  * @global string    $hook_suffix
  * @global string    $admin_body_class
+ * @global string    $body_id
  * @global WP_Locale $wp_locale        WordPress date and time locale object.
  *
  * @param string $title      Optional. Title of the Iframe page. Default empty.
  * @param bool   $deprecated Not used.
  */
 function iframe_header( $title = '', $deprecated = false ) {
+	global $hook_suffix, $admin_body_class, $body_id, $wp_locale;
+
 	show_admin_bar( false );
-	global $hook_suffix, $admin_body_class, $wp_locale;
+
 	$admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 
 	$current_screen = get_current_screen();
@@ -2114,16 +2182,13 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	?>
 </head>
 	<?php
-	/**
-	 * @global string $body_id
-	 */
-	$admin_body_id = isset( $GLOBALS['body_id'] ) ? 'id="' . $GLOBALS['body_id'] . '" ' : '';
+	$admin_body_id = isset( $body_id ) ? 'id="' . $body_id . '" ' : '';
 
 	/** This filter is documented in wp-admin/admin-header.php */
 	$admin_body_classes = apply_filters( 'admin_body_class', '' );
 	$admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 	?>
-<body <?php echo $admin_body_id; ?>class="wp-admin wp-core-ui no-js iframe <?php echo $admin_body_classes; ?>">
+<body <?php echo $admin_body_id; ?>class="wp-admin wp-core-ui no-js iframe <?php echo esc_attr( $admin_body_classes ); ?>">
 <script type="text/javascript">
 (function(){
 var c = document.body.className;
@@ -2475,22 +2540,22 @@ function compression_test() {
  *
  * @see get_submit_button()
  *
- * @param string       $text             The text of the button (defaults to 'Save Changes')
+ * @param string       $text             Optional. The text of the button. Defaults to 'Save Changes'.
  * @param string       $type             Optional. The type and CSS class(es) of the button. Core values
  *                                       include 'primary', 'small', and 'large'. Default 'primary'.
- * @param string       $name             The HTML name of the submit button. Defaults to "submit". If no
- *                                       id attribute is given in $other_attributes below, $name will be
- *                                       used as the button's id.
- * @param bool         $wrap             True if the output button should be wrapped in a paragraph tag,
- *                                       false otherwise. Defaults to true.
- * @param array|string $other_attributes Other attributes that should be output with the button, mapping
- *                                       attributes to their values, such as setting tabindex to 1, etc.
- *                                       These key/value attribute pairs will be output as attribute="value",
- *                                       where attribute is the key. Other attributes can also be provided
- *                                       as a string such as 'tabindex="1"', though the array format is
- *                                       preferred. Default null.
+ * @param string       $name             Optional. The HTML name of the submit button. If no `id` attribute
+ *                                       is given in the `$other_attributes` parameter, `$name` will be used
+ *                                       as the button's `id`. Default 'submit'.
+ * @param bool         $wrap             Optional. True if the output button should be wrapped in a paragraph tag,
+ *                                       false otherwise. Default true.
+ * @param array|string $other_attributes Optional. Other attributes that should be output with the button,
+ *                                       mapping attributes to their values, e.g. `array( 'id' => 'search-submit' )`.
+ *                                       These key/value attribute pairs will be output as `attribute="value"`,
+ *                                       where attribute is the key. Attributes can also be provided as a string,
+ *                                       e.g. `id="search-submit"`, though the array format is generally preferred.
+ *                                       Default empty string.
  */
-function submit_button( $text = null, $type = 'primary', $name = 'submit', $wrap = true, $other_attributes = null ) {
+function submit_button( $text = '', $type = 'primary', $name = 'submit', $wrap = true, $other_attributes = '' ) {
 	echo get_submit_button( $text, $type, $name, $wrap, $other_attributes );
 }
 
@@ -2499,20 +2564,20 @@ function submit_button( $text = null, $type = 'primary', $name = 'submit', $wrap
  *
  * @since 3.1.0
  *
- * @param string       $text             Optional. The text of the button. Default 'Save Changes'.
+ * @param string       $text             Optional. The text of the button. Defaults to 'Save Changes'.
  * @param string       $type             Optional. The type and CSS class(es) of the button. Core values
  *                                       include 'primary', 'small', and 'large'. Default 'primary large'.
- * @param string       $name             Optional. The HTML name of the submit button. Defaults to "submit".
- *                                       If no id attribute is given in $other_attributes below, `$name` will
- *                                       be used as the button's id. Default 'submit'.
- * @param bool         $wrap             Optional. True if the output button should be wrapped in a paragraph
- *                                       tag, false otherwise. Default true.
+ * @param string       $name             Optional. The HTML name of the submit button. If no `id` attribute
+ *                                       is given in the `$other_attributes` parameter, `$name` will be used
+ *                                       as the button's `id`. Default 'submit'.
+ * @param bool         $wrap             Optional. True if the output button should be wrapped in a paragraph tag,
+ *                                       false otherwise. Default true.
  * @param array|string $other_attributes Optional. Other attributes that should be output with the button,
- *                                       mapping attributes to their values, such as `array( 'tabindex' => '1' )`.
- *                                       These attributes will be output as `attribute="value"`, such as
- *                                       `tabindex="1"`. Other attributes can also be provided as a string such
- *                                       as `tabindex="1"`, though the array format is typically cleaner.
- *                                       Default empty.
+ *                                       mapping attributes to their values, e.g. `array( 'id' => 'search-submit' )`.
+ *                                       These key/value attribute pairs will be output as `attribute="value"`,
+ *                                       where attribute is the key. Attributes can also be provided as a string,
+ *                                       e.g. `id="search-submit"`, though the array format is generally preferred.
+ *                                       Default empty string.
  * @return string Submit button HTML.
  */
 function get_submit_button( $text = '', $type = 'primary large', $name = 'submit', $wrap = true, $other_attributes = '' ) {
@@ -2636,17 +2701,22 @@ function convert_to_screen( $hook_name ) {
  * @access private
  */
 function _local_storage_notice() {
-	?>
-	<div id="local-storage-notice" class="hidden notice is-dismissible">
-	<p class="local-restore">
-		<?php _e( 'The backup of this post in your browser is different from the version below.' ); ?>
-		<button type="button" class="button restore-backup"><?php _e( 'Restore the backup' ); ?></button>
-	</p>
-	<p class="help">
-		<?php _e( 'This will replace the current editor content with the last backup version. You can use undo and redo in the editor to get the old content back or to return to the restored version.' ); ?>
-	</p>
-	</div>
-	<?php
+	$local_storage_message  = '<p class="local-restore">';
+	$local_storage_message .= __( 'The backup of this post in your browser is different from the version below.' );
+	$local_storage_message .= '<button type="button" class="button restore-backup">' . __( 'Restore the backup' ) . '</button></p>';
+	$local_storage_message .= '<p class="help">';
+	$local_storage_message .= __( 'This will replace the current editor content with the last backup version. You can use undo and redo in the editor to get the old content back or to return to the restored version.' );
+	$local_storage_message .= '</p>';
+
+	wp_admin_notice(
+		$local_storage_message,
+		array(
+			'id'                 => 'local-storage-notice',
+			'additional_classes' => array( 'hidden' ),
+			'dismissible'        => true,
+			'paragraph_wrap'     => false,
+		)
+	);
 }
 
 /**
@@ -2695,11 +2765,11 @@ function wp_star_rating( $args = array() ) {
 	$empty_stars = 5 - $full_stars - $half_stars;
 
 	if ( $parsed_args['number'] ) {
-		/* translators: 1: The rating, 2: The number of ratings. */
+		/* translators: Hidden accessibility text. 1: The rating, 2: The number of ratings. */
 		$format = _n( '%1$s rating based on %2$s rating', '%1$s rating based on %2$s ratings', $parsed_args['number'] );
 		$title  = sprintf( $format, number_format_i18n( $rating, 1 ), number_format_i18n( $parsed_args['number'] ) );
 	} else {
-		/* translators: %s: The rating. */
+		/* translators: Hidden accessibility text. %s: The rating. */
 		$title = sprintf( __( '%s rating' ), number_format_i18n( $rating, 1 ) );
 	}
 
@@ -2724,9 +2794,12 @@ function wp_star_rating( $args = array() ) {
  * @since 4.2.0
  */
 function _wp_posts_page_notice() {
-	printf(
-		'<div class="notice notice-warning inline"><p>%s</p></div>',
-		__( 'You are currently editing the page that shows your latest posts.' )
+	wp_admin_notice(
+		__( 'You are currently editing the page that shows your latest posts.' ),
+		array(
+			'type'               => 'warning',
+			'additional_classes' => array( 'inline' ),
+		)
 	);
 }
 

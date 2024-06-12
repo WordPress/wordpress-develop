@@ -255,8 +255,17 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( $grandchild_id_2, url_to_postid( get_permalink( $grandchild_id_2 ) ) );
 	}
 
-	public function test_url_to_postid_home_has_path() {
+	/**
+	 * @covers ::url_to_postid
+	 */
+	public function test_url_to_postid_url_has_only_path() {
+		$this->assertSame( 0, url_to_postid( '/example/' ) );
+	}
 
+	/**
+	 * @covers ::url_to_postid
+	 */
+	public function test_url_to_postid_home_has_only_path() {
 		update_option( 'home', home_url( '/example/' ) );
 
 		$id = self::factory()->post->create(

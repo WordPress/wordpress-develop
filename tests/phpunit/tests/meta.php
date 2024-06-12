@@ -151,56 +151,50 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertNotEquals( $this->author->user_login, $u[0]->user_login );
 
 		// Test EXISTS and NOT EXISTS together, no users should be found.
-		$this->assertSame(
+		$this->assertCount(
 			0,
-			count(
-				get_users(
-					array(
-						'meta_query' => array(
-							array(
-								'key'     => 'meta_key',
-								'compare' => 'NOT EXISTS',
-							),
-							array(
-								'key'     => 'delete_meta_key',
-								'compare' => 'EXISTS',
-							),
+			get_users(
+				array(
+					'meta_query' => array(
+						array(
+							'key'     => 'meta_key',
+							'compare' => 'NOT EXISTS',
 						),
-					)
+						array(
+							'key'     => 'delete_meta_key',
+							'compare' => 'EXISTS',
+						),
+					),
 				)
 			)
 		);
 
-		$this->assertSame(
+		$this->assertCount(
 			2,
-			count(
-				get_users(
-					array(
-						'meta_query' => array(
-							array(
-								'key'     => 'non_existing_meta',
-								'compare' => 'NOT EXISTS',
-							),
+			get_users(
+				array(
+					'meta_query' => array(
+						array(
+							'key'     => 'non_existing_meta',
+							'compare' => 'NOT EXISTS',
 						),
-					)
+					),
 				)
 			)
 		);
 
 		delete_metadata( 'user', $this->author->ID, 'meta_key' );
 
-		$this->assertSame(
+		$this->assertCount(
 			2,
-			count(
-				get_users(
-					array(
-						'meta_query' => array(
-							array(
-								'key'     => 'meta_key',
-								'compare' => 'NOT EXISTS',
-							),
+			get_users(
+				array(
+					'meta_query' => array(
+						array(
+							'key'     => 'meta_key',
+							'compare' => 'NOT EXISTS',
 						),
-					)
+					),
 				)
 			)
 		);
@@ -378,7 +372,7 @@ class Tests_Meta extends WP_UnitTestCase {
 
 		$string_mid = "{$meta_id}.0";
 
-		// phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison -- intentional implicit casting check
+		// phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- intentional implicit casting check
 		$this->assertTrue( floor( $string_mid ) == $string_mid );
 		$this->assertNotFalse( get_metadata_by_mid( 'user', $string_mid ) );
 		$this->assertNotFalse( update_metadata_by_mid( 'user', $string_mid, 'meta_new_value_2' ) );
@@ -401,7 +395,7 @@ class Tests_Meta extends WP_UnitTestCase {
 	 * @ticket 15030
 	 */
 	public function test_get_metadata_with_empty_key_object_value() {
-		$data      = new stdClass;
+		$data      = new stdClass();
 		$data->foo = 'bar';
 		$value     = serialize( $data );
 		add_metadata( 'user', $this->author->ID, 'foo', $data );

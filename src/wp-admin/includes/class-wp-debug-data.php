@@ -29,12 +29,13 @@ class WP_Debug_Data {
 	 * @since 5.5.0 Added pretty permalinks support information.
 	 *
 	 * @throws ImagickException
-	 * @global wpdb $wpdb WordPress database abstraction object.
+	 * @global wpdb  $wpdb               WordPress database abstraction object.
+	 * @global array $_wp_theme_features
 	 *
 	 * @return array The debug data for the site.
 	 */
 	public static function debug_data() {
-		global $wpdb;
+		global $wpdb, $_wp_theme_features;
 
 		// Save few function calls.
 		$upload_dir             = wp_upload_dir();
@@ -133,6 +134,7 @@ class WP_Debug_Data {
 
 		if ( ! $is_multisite ) {
 			$info['wp-paths-sizes'] = array(
+				/* translators: Filesystem directory paths and storage sizes. */
 				'label'  => __( 'Directories and Sizes' ),
 				'fields' => array(),
 			);
@@ -322,6 +324,11 @@ class WP_Debug_Data {
 					'value' => $wp_environment_type,
 					'debug' => $wp_environment_type,
 				),
+				'WP_DEVELOPMENT_MODE' => array(
+					'label' => 'WP_DEVELOPMENT_MODE',
+					'value' => WP_DEVELOPMENT_MODE ? WP_DEVELOPMENT_MODE : __( 'Disabled' ),
+					'debug' => WP_DEVELOPMENT_MODE,
+				),
 				'DB_CHARSET'          => array(
 					'label' => 'DB_CHARSET',
 					'value' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : __( 'Undefined' ) ),
@@ -340,6 +347,7 @@ class WP_Debug_Data {
 		$is_writable_upload_dir         = wp_is_writable( $upload_dir['basedir'] );
 		$is_writable_wp_plugin_dir      = wp_is_writable( WP_PLUGIN_DIR );
 		$is_writable_template_directory = wp_is_writable( get_theme_root( get_template() ) );
+		$is_writable_fonts_dir          = wp_is_writable( wp_get_font_dir()['basedir'] );
 
 		$info['wp-filesystem'] = array(
 			'label'       => __( 'Filesystem Permissions' ),
@@ -370,11 +378,24 @@ class WP_Debug_Data {
 					'value' => ( $is_writable_template_directory ? __( 'Writable' ) : __( 'Not writable' ) ),
 					'debug' => ( $is_writable_template_directory ? 'writable' : 'not writable' ),
 				),
+				'fonts'      => array(
+					'label' => __( 'The fonts directory' ),
+					'value' => ( $is_writable_fonts_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+					'debug' => ( $is_writable_fonts_dir ? 'writable' : 'not writable' ),
+				),
 			),
 		);
 
 		// Conditionally add debug information for multisite setups.
 		if ( is_multisite() ) {
+			$site_id = get_current_blog_id();
+
+			$info['wp-core']['fields']['site_id'] = array(
+				'label' => __( 'Site ID' ),
+				'value' => $site_id,
+				'debug' => $site_id,
+			);
+
 			$network_query = new WP_Network_Query();
 			$network_ids   = $network_query->query(
 				array(
@@ -468,6 +489,15 @@ class WP_Debug_Data {
 					'value' => $loading,
 					'debug' => 'loading...',
 				),
+				'fonts_path'   => array(
+					'label' => __( 'Fonts directory location' ),
+					'value' => wp_get_font_dir()['basedir'],
+				),
+				'fonts_size'   => array(
+					'label' => __( 'Fonts directory size' ),
+					'value' => $loading,
+					'debug' => 'loading...',
+				),
 				'database_size'  => array(
 					'label' => __( 'Database size' ),
 					'value' => $loading,
@@ -542,6 +572,7 @@ class WP_Debug_Data {
 			);
 		} else {
 			// Get the PHP ini directive values.
+			$file_uploads        = ini_get( 'file_uploads' );
 			$post_max_size       = ini_get( 'post_max_size' );
 			$upload_max_filesize = ini_get( 'upload_max_filesize' );
 			$max_file_uploads    = ini_get( 'max_file_uploads' );
@@ -550,8 +581,8 @@ class WP_Debug_Data {
 			// Add info in Media section.
 			$info['wp-media']['fields']['file_uploads']        = array(
 				'label' => __( 'File uploads' ),
-				'value' => empty( ini_get( 'file_uploads' ) ) ? __( 'Disabled' ) : __( 'Enabled' ),
-				'debug' => 'File uploads is turned off',
+				'value' => $file_uploads ? __( 'Enabled' ) : __( 'Disabled' ),
+				'debug' => $file_uploads,
 			);
 			$info['wp-media']['fields']['post_max_size']       = array(
 				'label' => __( 'Max size of post data allowed' ),
@@ -580,6 +611,7 @@ class WP_Debug_Data {
 				'map'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MAP ) ) : $not_available ),
 				'memory' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MEMORY ) ) : $not_available ),
 				'thread' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_THREAD ) : $not_available ),
+				'time'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_TIME ) : $not_available ),
 			);
 
 			$limits_debug = array(
@@ -589,6 +621,7 @@ class WP_Debug_Data {
 				'imagick::RESOURCETYPE_MAP'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MAP ) ) : 'not available' ),
 				'imagick::RESOURCETYPE_MEMORY' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MEMORY ) ) : 'not available' ),
 				'imagick::RESOURCETYPE_THREAD' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_THREAD ) : 'not available' ),
+				'imagick::RESOURCETYPE_TIME'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_TIME ) : 'not available' ),
 			);
 
 			$info['wp-media']['fields']['imagick_limits'] = array(
@@ -692,12 +725,6 @@ class WP_Debug_Data {
 			$php_version_debug .= ' 64bit';
 		}
 
-		if ( function_exists( 'php_sapi_name' ) ) {
-			$php_sapi = php_sapi_name();
-		} else {
-			$php_sapi = 'unknown';
-		}
-
 		$info['wp-server']['fields']['server_architecture'] = array(
 			'label' => __( 'Server architecture' ),
 			'value' => ( 'unknown' !== $server_architecture ? $server_architecture : __( 'Unable to determine server architecture' ) ),
@@ -715,8 +742,8 @@ class WP_Debug_Data {
 		);
 		$info['wp-server']['fields']['php_sapi']            = array(
 			'label' => __( 'PHP SAPI' ),
-			'value' => ( 'unknown' !== $php_sapi ? $php_sapi : __( 'Unable to determine PHP SAPI' ) ),
-			'debug' => $php_sapi,
+			'value' => PHP_SAPI,
+			'debug' => PHP_SAPI,
 		);
 
 		// Some servers disable `ini_set()` and `ini_get()`, we check this before trying to get configuration values.
@@ -836,11 +863,24 @@ class WP_Debug_Data {
 			);
 		}
 
+		// Server time.
+		$date = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
+
+		$info['wp-server']['fields']['current']     = array(
+			'label' => __( 'Current time' ),
+			'value' => $date->format( DateTime::ATOM ),
+		);
+		$info['wp-server']['fields']['utc-time']    = array(
+			'label' => __( 'Current UTC time' ),
+			'value' => $date->format( DateTime::RFC850 ),
+		);
+		$info['wp-server']['fields']['server-time'] = array(
+			'label' => __( 'Current Server time' ),
+			'value' => wp_date( 'c', $_SERVER['REQUEST_TIME'] ),
+		);
+
 		// Populate the database debug fields.
-		if ( is_resource( $wpdb->dbh ) ) {
-			// Old mysql extension.
-			$extension = 'mysql';
-		} elseif ( is_object( $wpdb->dbh ) ) {
+		if ( is_object( $wpdb->dbh ) ) {
 			// mysqli or PDO.
 			$extension = get_class( $wpdb->dbh );
 		} else {
@@ -850,16 +890,7 @@ class WP_Debug_Data {
 
 		$server = $wpdb->get_var( 'SELECT VERSION()' );
 
-		if ( isset( $wpdb->use_mysqli ) && $wpdb->use_mysqli ) {
-			$client_version = $wpdb->dbh->client_info;
-		} else {
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_client_info,PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved
-			if ( preg_match( '|[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}|', mysql_get_client_info(), $matches ) ) {
-				$client_version = $matches[0];
-			} else {
-				$client_version = null;
-			}
-		}
+		$client_version = $wpdb->dbh->client_info;
 
 		$info['wp-database']['fields']['extension'] = array(
 			'label' => __( 'Extension' ),
@@ -1064,7 +1095,6 @@ class WP_Debug_Data {
 		}
 
 		// Populate the section for the currently active theme.
-		global $_wp_theme_features;
 		$theme_features = array();
 
 		if ( ! empty( $_wp_theme_features ) ) {
@@ -1558,6 +1588,8 @@ class WP_Debug_Data {
 	 *
 	 * @since 5.2.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @return int The size of the database, in bytes.
 	 */
 	public static function get_database_size() {
@@ -1595,25 +1627,32 @@ class WP_Debug_Data {
 			$max_execution_time = ini_get( 'max_execution_time' );
 		}
 
-		// The max_execution_time defaults to 0 when PHP runs from cli.
-		// We still want to limit it below.
+		/*
+		 * The max_execution_time defaults to 0 when PHP runs from cli.
+		 * We still want to limit it below.
+		 */
 		if ( empty( $max_execution_time ) ) {
 			$max_execution_time = 30; // 30 seconds.
 		}
 
 		if ( $max_execution_time > 20 ) {
-			// If the max_execution_time is set to lower than 20 seconds, reduce it a bit to prevent
-			// edge-case timeouts that may happen after the size loop has finished running.
+			/*
+			 * If the max_execution_time is set to lower than 20 seconds, reduce it a bit to prevent
+			 * edge-case timeouts that may happen after the size loop has finished running.
+			 */
 			$max_execution_time -= 2;
 		}
 
-		// Go through the various installation directories and calculate their sizes.
-		// No trailing slashes.
+		/*
+		 * Go through the various installation directories and calculate their sizes.
+		 * No trailing slashes.
+		 */
 		$paths = array(
 			'wordpress_size' => untrailingslashit( ABSPATH ),
 			'themes_size'    => get_theme_root(),
 			'plugins_size'   => WP_PLUGIN_DIR,
 			'uploads_size'   => $upload_dir['basedir'],
+			'fonts_size'     => wp_get_font_dir()['basedir'],
 		);
 
 		$exclude = $paths;

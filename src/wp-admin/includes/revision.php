@@ -39,8 +39,10 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		return false;
 	}
 
-	// If comparing revisions, make sure we're dealing with the right post parent.
-	// The parent post may be a 'revision' when revisions are disabled and we're looking at autosaves.
+	/*
+	 * If comparing revisions, make sure we are dealing with the right post parent.
+	 * The parent post may be a 'revision' when revisions are disabled and we're looking at autosaves.
+	 */
 	if ( $compare_from && $compare_from->post_parent !== $post->ID && $compare_from->ID !== $post->ID ) {
 		return false;
 	}
@@ -83,7 +85,7 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		 * @param string  $field          The current revision field.
 		 * @param WP_Post $compare_from   The revision post object to compare to or from.
 		 * @param string  $context        The context of whether the current revision is the old
-		 *                                or the new one. Values are 'to' or 'from'.
+		 *                                or the new one. Either 'to' or 'from'.
 		 */
 		$content_from = $compare_from ? apply_filters( "_wp_post_revision_field_{$field}", $compare_from->$field, $field, $compare_from, 'from' ) : '';
 
@@ -118,8 +120,10 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		$diff = wp_text_diff( $content_from, $content_to, $args );
 
 		if ( ! $diff && 'post_title' === $field ) {
-			// It's a better user experience to still show the Title, even if it didn't change.
-			// No, you didn't see this.
+			/*
+			 * It's a better user experience to still show the Title, even if it didn't change.
+			 * No, you didn't see this.
+			 */
 			$diff = '<table class="diff"><colgroup><col class="content diffsplit left"><col class="content diffsplit middle"><col class="content diffsplit right"></colgroup><tbody><tr>';
 
 			// In split screen mode, show the title before/after side by side.
@@ -157,7 +161,6 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 	 * @param WP_Post $compare_to   The revision post to compare to.
 	 */
 	return apply_filters( 'wp_get_revision_ui_diff', $return, $compare_from, $compare_to );
-
 }
 
 /**
@@ -194,7 +197,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 
 	$show_avatars = get_option( 'show_avatars' );
 
-	cache_users( wp_list_pluck( $revisions, 'post_author' ) );
+	update_post_author_caches( $revisions );
 
 	$can_restore = current_user_can( 'edit_post', $post->ID );
 	$current_id  = false;
@@ -279,9 +282,9 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 		$revisions[ $revision->ID ] = apply_filters( 'wp_prepare_revision_for_js', $revisions_data, $revision, $post );
 	}
 
-	/**
-	 * If we only have one revision, the initial revision is missing; This happens
-	 * when we have an autsosave and the user has clicked 'View the Autosave'
+	/*
+	 * If we only have one revision, the initial revision is missing. This happens
+	 * when we have an autosave and the user has clicked 'View the Autosave'.
 	 */
 	if ( 1 === count( $revisions ) ) {
 		$revisions[ $post->ID ] = array(

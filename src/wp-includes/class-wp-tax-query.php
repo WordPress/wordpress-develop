@@ -202,7 +202,7 @@ class WP_Tax_Query {
 	 * @since 4.1.0
 	 *
 	 * @param string $relation Raw relation key from the query argument.
-	 * @return string Sanitized relation ('AND' or 'OR').
+	 * @return string Sanitized relation. Either 'AND' or 'OR'.
 	 */
 	public function sanitize_relation( $relation ) {
 		if ( 'OR' === strtoupper( $relation ) ) {
@@ -374,11 +374,11 @@ class WP_Tax_Query {
 	 *
 	 * @param array $clause       Query clause (passed by reference).
 	 * @param array $parent_query Parent query array.
-	 * @return string[] {
+	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to a first-order query.
 	 *
-	 *     @type string $join  SQL fragment to append to the main JOIN clause.
-	 *     @type string $where SQL fragment to append to the main WHERE clause.
+	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
+	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
 	 */
 	public function get_sql_for_clause( &$clause, $parent_query ) {
@@ -466,13 +466,13 @@ class WP_Tax_Query {
 
 			$where = $wpdb->prepare(
 				"$operator (
-				SELECT 1
-				FROM $wpdb->term_relationships
-				INNER JOIN $wpdb->term_taxonomy
-				ON $wpdb->term_taxonomy.term_taxonomy_id = $wpdb->term_relationships.term_taxonomy_id
-				WHERE $wpdb->term_taxonomy.taxonomy = %s
-				AND $wpdb->term_relationships.object_id = $this->primary_table.$this->primary_id_column
-			)",
+					SELECT 1
+					FROM $wpdb->term_relationships
+					INNER JOIN $wpdb->term_taxonomy
+					ON $wpdb->term_taxonomy.term_taxonomy_id = $wpdb->term_relationships.term_taxonomy_id
+					WHERE $wpdb->term_taxonomy.taxonomy = %s
+					AND $wpdb->term_relationships.object_id = $this->primary_table.$this->primary_id_column
+				)",
 				$clause['taxonomy']
 			);
 
@@ -505,7 +505,7 @@ class WP_Tax_Query {
 	protected function find_compatible_table_alias( $clause, $parent_query ) {
 		$alias = false;
 
-		// Sanity check. Only IN queries use the JOIN syntax.
+		// Confidence check. Only IN queries use the JOIN syntax.
 		if ( ! isset( $clause['operator'] ) || 'IN' !== $clause['operator'] ) {
 			return $alias;
 		}
@@ -589,8 +589,6 @@ class WP_Tax_Query {
 	 *
 	 * @since 3.2.0
 	 *
-	 * @global wpdb $wpdb The WordPress database abstraction object.
-	 *
 	 * @param array  $query           The single query. Passed by reference.
 	 * @param string $resulting_field The resulting field. Accepts 'slug', 'name', 'term_taxonomy_id',
 	 *                                or 'term_id'. Default 'term_id'.
@@ -600,7 +598,7 @@ class WP_Tax_Query {
 			return;
 		}
 
-		if ( $query['field'] == $resulting_field ) {
+		if ( $query['field'] === $resulting_field ) {
 			return;
 		}
 
