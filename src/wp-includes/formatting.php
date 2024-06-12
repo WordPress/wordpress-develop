@@ -3994,34 +3994,6 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 			add_filter( 'the_content', 'wp_filter_content_tags', 12 );
 		}
 
-		// Restore the original filter if removed.
-		if ( $filter_block_removed ) {
-			add_filter( 'the_content', 'do_blocks', 9 );
-		}
-
-		/*
-		 * Only restore the filter callback if it was removed above. The logic
-		 * to unhook and restore only applies on the default priority of 10,
-		 * which is generally used for the filter callback in WordPress core.
-		 */
-		if ( $filter_image_removed ) {
-			add_filter( 'the_content', 'wp_filter_content_tags', 12 );
-		}
-
-		// Restore the original filter if removed.
-		if ( $filter_block_removed ) {
-			add_filter( 'the_content', 'do_blocks', 9 );
-		}
-
-		/*
-		 * Only restore the filter callback if it was removed above. The logic
-		 * to unhook and restore only applies on the default priority of 10,
-		 * which is generally used for the filter callback in WordPress core.
-		 */
-		if ( $filter_image_removed ) {
-			add_filter( 'the_content', 'wp_filter_content_tags', 12 );
-		}
-
 		$excerpt_length = get_excerpt_length();
 
 		/**
