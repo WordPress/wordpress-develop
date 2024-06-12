@@ -249,7 +249,7 @@ function wp_resolve_block_style_variations( $variations ) {
 		 * Block style variations read in via standalone theme.json partials
 		 * need to have their name set to the kebab case version of their title.
 		 */
-		$variation_name  = $have_named_variations ? $key : _wp_to_kebab_case( $variation['title'] );
+		$variation_name = $have_named_variations ? $key : _wp_to_kebab_case( $variation['title'] );
 
 		foreach ( $supported_blocks as $block_type ) {
 			// Add block style variation data under current block type.
@@ -409,6 +409,7 @@ add_filter( 'wp_theme_json_data_user', 'wp_resolve_block_style_variations_from_t
  * Registers any block style variations contained within the provided
  * theme.json data.
  *
+ * @since 6.6.0
  * @access private
  *
  * @param array $variations Shared block style variations.
@@ -468,6 +469,7 @@ function wp_register_block_style_variations_from_theme_json_data( $variations ) 
  * - the theme's partials (standalone files in `/styles` that only define block style variations)
  * - the user's theme.json (for example, theme style variations the user selected)
  *
+ * @since 6.6.0
  * @access private
  */
 function wp_register_block_style_variations_from_theme() {
