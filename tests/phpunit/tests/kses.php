@@ -413,6 +413,9 @@ EOF;
 				case 'XML HTML+TIME':
 					$this->assertSame( '&lt;t:set attributeName=&quot;innerHTML&quot; to=&quot;XSSalert(\'XSS\')"&gt;', $result );
 					break;
+				case 'Deprecated IE Conditional Comment Syntax':
+					$this->assertSame( "<!--[if gte IE 4]&gt;\n&lt;SCRIPT&gt;alert(&apos;XSS&apos;);&lt;/SCRIPT&gt;\n&lt;![endif]-->", $result );
+					break;
 				case 'Cookie Manipulation':
 					$this->assertSame( '&lt;META HTTP-EQUIV=&quot;Set-Cookie&quot; Content=&quot;USERID=alert(\'XSS\')"&gt;', $result );
 					break;
