@@ -1118,7 +1118,7 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	 * it should be interpreted as an HTML comment. It extends until the
 	 * first `>` character after the initial opening `</`.
 	 */
-	if ( 1 === preg_match( '~</[^a-zA-Z][^>]*>~', $content ) ) {
+	if ( 1 === preg_match( '~^</[^a-zA-Z][^>]*>$~', $content ) ) {
 		return $content;
 	}
 
