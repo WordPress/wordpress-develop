@@ -1112,17 +1112,28 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	}
 
 	/*
-	 * Preserve funky comments.
-	 *
 	 * When a closing tag appears with a name that isn't a valid tag name,
-	 * it should be interpreted as an HTML comment. It extends until the
+	 * it must be interpreted as an HTML comment. It extends until the
 	 * first `>` character after the initial opening `</`.
+	 *
+	 * Preserve these comments and do not treat them like tags.
 	 */
 	if ( 1 === preg_match( '~^</[^a-zA-Z][^>]*>$~', $content ) ) {
-		return $content;
+		$content     = substr( $content, 2, -1 );
+		$transformed = null;
+
+		while ( $transformed !== $content ) {
+			$transformed = wp_kses( $content, $allowed_html, $allowed_protocols );
+			$content     = $transformed;
+		}
+
+		return "</{$transformed}>";
 	}
 
-	// Preserve HTML comments.
+	/*
+	 * Normative HTML comments should be handled separately as their
+	 * parsing rules differ from those for tags and text nodes.
+	 */
 	if ( str_starts_with( $content, '<!--' ) ) {
 		$content = str_replace( array( '<!--', '-->', '--!>' ), '', $content );
 
