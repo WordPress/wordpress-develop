@@ -337,11 +337,6 @@ EOF;
 		}
 	}
 
-	/**
-	 * Ensures protection against specific known XSS attacks.
-	 *
-	 * @since 6.6.0 Removed guard against IE conditional comments, since they are not interpreted as they once were.
-	 */
 	public function test_hackers_attacks() {
 		$xss = simplexml_load_file( DIR_TESTDATA . '/formatting/xssAttacks.xml' );
 		foreach ( $xss->attack as $attack ) {
@@ -413,8 +408,8 @@ EOF;
 				case 'XML HTML+TIME':
 					$this->assertSame( '&lt;t:set attributeName=&quot;innerHTML&quot; to=&quot;XSSalert(\'XSS\')"&gt;', $result );
 					break;
-				case 'Deprecated IE Conditional Comment Syntax':
-					$this->assertSame( "<!--[if gte IE 4]&gt;\n&lt;SCRIPT&gt;alert(&apos;XSS&apos;);&lt;/SCRIPT&gt;\n&lt;![endif]-->", $result );
+				case 'Commented-out Block':
+					$this->assertSame( "<!--[if gte IE 4]&gt;-->\nalert('XSS');", $result );
 					break;
 				case 'Cookie Manipulation':
 					$this->assertSame( '&lt;META HTTP-EQUIV=&quot;Set-Cookie&quot; Content=&quot;USERID=alert(\'XSS\')"&gt;', $result );

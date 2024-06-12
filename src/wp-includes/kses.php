@@ -991,7 +991,7 @@ function wp_kses_split( $content, $allowed_html, $allowed_protocols ) {
 	)
 	|
 	(<[^>]*(>|$)|>)           # Tag-like spans of text.
-~sx
+~x
 REGEX;
 	return preg_replace_callback( $token_pattern, '_wp_kses_split_callback', $content );
 }
