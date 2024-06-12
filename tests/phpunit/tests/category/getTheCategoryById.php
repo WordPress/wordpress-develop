@@ -2,7 +2,6 @@
 
 /**
  * @group taxonomy
- * @group category
  *
  * @covers ::get_the_category_by_ID
  */

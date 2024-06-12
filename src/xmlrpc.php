@@ -6,13 +6,13 @@
  */
 
 /**
- * Whether this is an XML-RPC Request.
+ * Whether this is an XML-RPC Request
  *
  * @var bool
  */
 define( 'XMLRPC_REQUEST', true );
 
-// Discard unneeded cookies sent by some browser-embedded clients.
+// Some browser-embedded clients send cookies. We don't want them.
 $_COOKIE = array();
 
 // $HTTP_RAW_POST_DATA was deprecated in PHP 5.6 and removed in PHP 7.0.
@@ -30,7 +30,7 @@ if ( isset( $HTTP_RAW_POST_DATA ) ) {
 /** Include the bootstrap for setting up WordPress environment */
 require_once __DIR__ . '/wp-load.php';
 
-if ( isset( $_GET['rsd'] ) ) { // https://cyber.harvard.edu/blogs/gems/tech/rsd.html
+if ( isset( $_GET['rsd'] ) ) { // http://cyber.law.harvard.edu/blogs/gems/tech/rsd.html
 	header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), true );
 	echo '<?xml version="1.0" encoding="' . get_option( 'blog_charset' ) . '"?' . '>';
 	?>
@@ -46,9 +46,9 @@ if ( isset( $_GET['rsd'] ) ) { // https://cyber.harvard.edu/blogs/gems/tech/rsd.
 			<api name="Blogger" blogID="1" preferred="false" apiLink="<?php echo site_url( 'xmlrpc.php', 'rpc' ); ?>" />
 			<?php
 			/**
-			 * Fires when adding APIs to the Really Simple Discovery (RSD) endpoint.
+			 * Add additional APIs to the Really Simple Discovery (RSD) endpoint.
 			 *
-			 * @link https://cyber.harvard.edu/blogs/gems/tech/rsd.html
+			 * @link http://cyber.law.harvard.edu/blogs/gems/tech/rsd.html
 			 *
 			 * @since 3.5.0
 			 */
@@ -81,7 +81,7 @@ $post_default_title = '';
  * @param string $class The name of the XML-RPC server class.
  */
 $wp_xmlrpc_server_class = apply_filters( 'wp_xmlrpc_server_class', 'wp_xmlrpc_server' );
-$wp_xmlrpc_server       = new $wp_xmlrpc_server_class();
+$wp_xmlrpc_server       = new $wp_xmlrpc_server_class;
 
 // Fire off the request.
 $wp_xmlrpc_server->serve_request();
@@ -91,16 +91,13 @@ exit;
 /**
  * logIO() - Writes logging info to a file.
  *
- * @since 1.2.0
  * @deprecated 3.4.0 Use error_log()
  * @see error_log()
  *
- * @global int|bool $xmlrpc_logging Whether to enable XML-RPC logging.
- *
- * @param string $io  Whether input or output.
+ * @param string $io Whether input or output
  * @param string $msg Information describing logging reason.
  */
-function logIO( $io, $msg ) {
+function logIO( $io, $msg ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	_deprecated_function( __FUNCTION__, '3.4.0', 'error_log()' );
 	if ( ! empty( $GLOBALS['xmlrpc_logging'] ) ) {
 		error_log( $io . ' - ' . $msg );

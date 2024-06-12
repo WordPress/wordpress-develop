@@ -4,7 +4,6 @@
  * @group date
  * @group datetime
  * @group post
- *
  * @covers ::the_date
  * @covers ::the_weekday_date
  */
@@ -81,7 +80,7 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 	}
 
 	public function count_hook( $input ) {
-		++$this->hooks_called[ current_filter() ];
+		$this->hooks_called[ current_filter() ] ++;
 
 		return $input;
 	}

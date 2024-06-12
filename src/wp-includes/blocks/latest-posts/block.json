@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 3,
+	"apiVersion": 2,
 	"name": "core/latest-posts",
 	"title": "Latest Posts",
 	"category": "widgets",
@@ -85,19 +85,6 @@
 	"supports": {
 		"align": true,
 		"html": false,
-		"color": {
-			"gradients": true,
-			"link": true,
-			"__experimentalDefaultControls": {
-				"background": true,
-				"text": true,
-				"link": true
-			}
-		},
-		"spacing": {
-			"margin": true,
-			"padding": true
-		},
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,
@@ -110,9 +97,6 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
-		},
-		"interactivity": {
-			"clientNavigation": true
 		}
 	},
 	"editorStyle": "wp-block-latest-posts-editor",

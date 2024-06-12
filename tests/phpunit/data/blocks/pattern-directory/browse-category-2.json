@@ -10,8 +10,7 @@
 			"spay_email": "",
 			"wpop_description": "Three filled buttons with rounded corners, side by side.",
 			"wpop_keywords": "",
-			"wpop_viewport_width": 600,
-			"wpop_block_types": []
+			"wpop_viewport_width": 600
 		},
 		"category_slugs": [ "buttons" ],
 		"keyword_slugs": [ "core" ],
@@ -28,8 +27,7 @@
 			"spay_email": "",
 			"wpop_description": "Two buttons, one filled and one outlined, side by side.",
 			"wpop_keywords": "",
-			"wpop_viewport_width": 500,
-			"wpop_block_types": []
+			"wpop_viewport_width": 500
 		},
 		"category_slugs": [ "buttons" ],
 		"keyword_slugs": [ "core" ],

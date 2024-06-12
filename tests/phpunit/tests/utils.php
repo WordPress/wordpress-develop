@@ -34,6 +34,7 @@ class Tests_Utils extends WP_UnitTestCase {
 		$expected .= 'foo';
 
 		$this->assertSame( $expected, strip_ws( $in ) );
+
 	}
 
 	/**

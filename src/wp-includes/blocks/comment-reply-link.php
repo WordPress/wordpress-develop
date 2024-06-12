@@ -8,8 +8,6 @@
 /**
  * Renders the `core/comment-reply-link` block on the server.
  *
- * @since 6.0.0
- *
  * @param array    $attributes Block attributes.
  * @param string   $content    Block default content.
  * @param WP_Block $block      Block instance.
@@ -36,7 +34,7 @@ function render_block_core_comment_reply_link( $attributes, $content, $block ) {
 
 	// Compute comment's depth iterating over its ancestors.
 	while ( ! empty( $parent_id ) ) {
-		++$depth;
+		$depth++;
 		$parent_id = get_comment( $parent_id )->comment_parent;
 	}
 
@@ -53,15 +51,12 @@ function render_block_core_comment_reply_link( $attributes, $content, $block ) {
 		return;
 	}
 
-	$classes = array();
+	$classes = '';
 	if ( isset( $attributes['textAlign'] ) ) {
-		$classes[] = 'has-text-align-' . $attributes['textAlign'];
-	}
-	if ( isset( $attributes['style']['elements']['link']['color']['text'] ) ) {
-		$classes[] = 'has-link-color';
+		$classes .= 'has-text-align-' . $attributes['textAlign'];
 	}
 
-	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => implode( ' ', $classes ) ) );
+	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => $classes ) );
 
 	return sprintf(
 		'<div %1$s>%2$s</div>',
@@ -72,8 +67,6 @@ function render_block_core_comment_reply_link( $attributes, $content, $block ) {
 
 /**
  * Registers the `core/comment-reply-link` block on the server.
- *
- * @since 6.0.0
  */
 function register_block_core_comment_reply_link() {
 	register_block_type_from_metadata(

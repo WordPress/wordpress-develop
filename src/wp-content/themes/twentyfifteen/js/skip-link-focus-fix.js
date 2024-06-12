@@ -1,27 +1,21 @@
 /**
- * File skip-link-focus-fix.js.
+ * Makes "skip to content" link work correctly in IE9, Chrome, and Opera
+ * for better accessibility.
  *
- * Helps with accessibility for keyboard only users.
- *
- * Learn more: https://git.io/vWdr2
+ * @link http://www.nczonline.net/blog/2013/01/15/fixing-skip-to-content-links/
  */
 
 ( function() {
-	var isIe = /(trident|msie)/i.test( navigator.userAgent );
+	var ua = navigator.userAgent.toLowerCase();
 
-	if ( isIe && document.getElementById && window.addEventListener ) {
+	if ( ( ua.indexOf( 'webkit' ) > -1 || ua.indexOf( 'opera' ) > -1 || ua.indexOf( 'msie' ) > -1 ) &&
+		document.getElementById && window.addEventListener ) {
+
 		window.addEventListener( 'hashchange', function() {
-			var id = location.hash.substring( 1 ),
-				element;
-
-			if ( ! ( /^[A-z0-9_-]+$/.test( id ) ) ) {
-				return;
-			}
-
-			element = document.getElementById( id );
+			var element = document.getElementById( location.hash.substring( 1 ) );
 
 			if ( element ) {
-				if ( ! ( /^(?:a|select|input|button|textarea)$/i.test( element.tagName ) ) ) {
+				if ( ! /^(?:a|select|input|button|textarea)$/i.test( element.nodeName ) ) {
 					element.tabIndex = -1;
 				}
 

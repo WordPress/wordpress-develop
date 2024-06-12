@@ -1,6 +1,4 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
-	"version": 2,
 	"title": "Block out",
 	"settings": {
 		"color": {
@@ -75,10 +73,10 @@
 				},
 				{
 					"fluid": {
-						"max": "7rem",
-						"min": "4.3rem"
+						"max": "14rem",
+						"min": "4rem"
 					},
-					"size": "7rem",
+					"size": "10rem",
 					"slug": "xx-large"
 				}
 			]
@@ -127,15 +125,6 @@
 				}
 			},
 			"core/post-title": {
-				"elements": {
-					"link": {
-						":active": {
-							"color": {
-								"text": "var(--wp--preset--color--primary)"
-							}
-						}
-					}
-				},
 				"color": {
 					"text": "var(--wp--preset--color--primary)"
 				}
@@ -156,21 +145,6 @@
 				}
 			},
 			"core/site-title": {
-				"elements": {
-					"link": {
-						":active": {
-							"color": {
-								"text": "var(--wp--preset--color--primary)"
-							}
-						}
-					}
-				},
-				"spacing": {
-					"padding": {
-						"bottom": "var(--wp--preset--spacing--30)",
-						"top": "var(--wp--preset--spacing--30)"
-					}
-				},
 				"typography": {
 					"fontSize": "var(--wp--preset--font-size--xx-large)",
 					"lineHeight": "1.1",
@@ -179,9 +153,9 @@
 			},
 			"core/query": {
 				"elements": {
-					"h2": {
-						"typography": {
-							"fontSize": "var(--wp--preset--font-size--large)"
+					"h3": {
+						"color": {
+							"text": "var(--wp--preset--color--contrast)"
 						}
 					}
 				}
@@ -196,11 +170,6 @@
 					"fontFamily": "var(--wp--preset--font-family--ibm-plex-mono)",
 					"fontStyle": "italic",
 					"fontWeight": "400"
-				},
-				":active": {
-					"color": {
-						"text": "var(--wp--preset--color--contrast)"
-					}
 				}
 			},
 			"h1": {
@@ -220,11 +189,6 @@
 				}
 			},
 			"link": {
-				":active": {
-					"color": {
-						"text": "var(--wp--preset--color--primary)"
-					}
-				},
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--ibm-plex-mono)",
 					"fontStyle": "italic",
@@ -241,5 +205,7 @@
 		"typography": {
 			"fontFamily": "var(--wp--preset--font-family--dm-sans)"
 		}
-	}
+	},
+	"version": 2,
+	"$schema": "https://schemas.wp.org/trunk/theme.json"
 }

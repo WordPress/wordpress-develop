@@ -4,7 +4,9 @@
  *
  * @package    WordPress
  * @subpackage REST API
- *
+ */
+
+/**
  * @group restapi
  */
 class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {

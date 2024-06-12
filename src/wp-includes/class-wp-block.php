@@ -113,16 +113,7 @@ class WP_Block {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param array                  $block             {
-	 *     A representative array of a single parsed block object. See WP_Block_Parser_Block.
-	 *
-	 *     @type string   $blockName    Name of block.
-	 *     @type array    $attrs        Attributes from block comment delimiters.
-	 *     @type array    $innerBlocks  List of inner blocks. An array of arrays that
-	 *                                  have the same structure as this one.
-	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
-	 *     @type array    $innerContent List of string fragments and null markers where inner blocks were found.
-	 * }
+	 * @param array                  $block             Array of parsed block properties.
 	 * @param array                  $available_context Optional array of ancestry context values.
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
 	 */
@@ -201,186 +192,9 @@ class WP_Block {
 	}
 
 	/**
-	 * Processes the block bindings and updates the block attributes with the values from the sources.
-	 *
-	 * A block might contain bindings in its attributes. Bindings are mappings
-	 * between an attribute of the block and a source. A "source" is a function
-	 * registered with `register_block_bindings_source()` that defines how to
-	 * retrieve a value from outside the block, e.g. from post meta.
-	 *
-	 * This function will process those bindings and update the block's attributes
-	 * with the values coming from the bindings.
-	 *
-	 * ### Example
-	 *
-	 * The "bindings" property for an Image block might look like this:
-	 *
-	 * ```json
-	 * {
-	 *   "metadata": {
-	 *     "bindings": {
-	 *       "title": {
-	 *         "source": "core/post-meta",
-	 *         "args": { "key": "text_custom_field" }
-	 *       },
-	 *       "url": {
-	 *         "source": "core/post-meta",
-	 *         "args": { "key": "url_custom_field" }
-	 *       }
-	 *     }
-	 *   }
-	 * }
-	 * ```
-	 *
-	 * The above example will replace the `title` and `url` attributes of the Image
-	 * block with the values of the `text_custom_field` and `url_custom_field` post meta.
-	 *
-	 * @since 6.5.0
-	 * @since 6.6.0 Handle the `__default` attribute for pattern overrides.
-	 *
-	 * @return array The computed block attributes for the provided block bindings.
-	 */
-	private function process_block_bindings() {
-		$parsed_block               = $this->parsed_block;
-		$computed_attributes        = array();
-		$supported_block_attributes = array(
-			'core/paragraph' => array( 'content' ),
-			'core/heading'   => array( 'content' ),
-			'core/image'     => array( 'id', 'url', 'title', 'alt' ),
-			'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
-		);
-
-		// If the block doesn't have the bindings property, isn't one of the supported
-		// block types, or the bindings property is not an array, return the block content.
-		if (
-			! isset( $supported_block_attributes[ $this->name ] ) ||
-			empty( $parsed_block['attrs']['metadata']['bindings'] ) ||
-			! is_array( $parsed_block['attrs']['metadata']['bindings'] )
-		) {
-			return $computed_attributes;
-		}
-
-		$bindings = $parsed_block['attrs']['metadata']['bindings'];
-
-		/*
-		 * If the default binding is set for pattern overrides, replace it
-		 * with a pattern override binding for all supported attributes.
-		 */
-		if (
-			isset( $bindings['__default']['source'] ) &&
-			'core/pattern-overrides' === $bindings['__default']['source']
-		) {
-			$updated_bindings = array();
-
-			/*
-			 * Build a binding array of all supported attributes.
-			 * Note that this also omits the `__default` attribute from the
-			 * resulting array.
-			 */
-			foreach ( $supported_block_attributes[ $parsed_block['blockName'] ] as $attribute_name ) {
-				// Retain any non-pattern override bindings that might be present.
-				$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
-					? $bindings[ $attribute_name ]
-					: array( 'source' => 'core/pattern-overrides' );
-			}
-			$bindings = $updated_bindings;
-		}
-
-		foreach ( $bindings as $attribute_name => $block_binding ) {
-			// If the attribute is not in the supported list, process next attribute.
-			if ( ! in_array( $attribute_name, $supported_block_attributes[ $this->name ], true ) ) {
-				continue;
-			}
-			// If no source is provided, or that source is not registered, process next attribute.
-			if ( ! isset( $block_binding['source'] ) || ! is_string( $block_binding['source'] ) ) {
-				continue;
-			}
-
-			$block_binding_source = get_block_bindings_source( $block_binding['source'] );
-			if ( null === $block_binding_source ) {
-				continue;
-			}
-
-			$source_args  = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
-			$source_value = $block_binding_source->get_value( $source_args, $this, $attribute_name );
-
-			// If the value is not null, process the HTML based on the block and the attribute.
-			if ( ! is_null( $source_value ) ) {
-				$computed_attributes[ $attribute_name ] = $source_value;
-			}
-		}
-
-		return $computed_attributes;
-	}
-
-	/**
-	 * Depending on the block attribute name, replace its value in the HTML based on the value provided.
-	 *
-	 * @since 6.5.0
-	 *
-	 * @param string $block_content  Block content.
-	 * @param string $attribute_name The attribute name to replace.
-	 * @param mixed  $source_value   The value used to replace in the HTML.
-	 * @return string The modified block content.
-	 */
-	private function replace_html( string $block_content, string $attribute_name, $source_value ) {
-		$block_type = $this->block_type;
-		if ( ! isset( $block_type->attributes[ $attribute_name ]['source'] ) ) {
-			return $block_content;
-		}
-
-		// Depending on the attribute source, the processing will be different.
-		switch ( $block_type->attributes[ $attribute_name ]['source'] ) {
-			case 'html':
-			case 'rich-text':
-				// Hardcode the selectors and processing until the HTML API is able to read CSS selectors and replace inner HTML.
-				// TODO: Use the HTML API instead.
-				if ( 'core/paragraph' === $this->name && 'content' === $attribute_name ) {
-					$selector = 'p';
-				}
-				if ( 'core/heading' === $this->name && 'content' === $attribute_name ) {
-					$selector = 'h[1-6]';
-				}
-				if ( 'core/button' === $this->name && 'text' === $attribute_name ) {
-					// Check if it is a <button> or <a> tag.
-					if ( preg_match( '/<button[^>]*>.*?<\/button>/', $block_content ) ) {
-						$selector = 'button';
-					} else {
-						$selector = 'a';
-					}
-				}
-				if ( empty( $selector ) ) {
-					return $block_content;
-				}
-				$pattern = '/(<' . $selector . '[^>]*>).*?(<\/' . $selector . '>)/i';
-				return preg_replace( $pattern, '$1' . wp_kses_post( $source_value ) . '$2', $block_content );
-
-			case 'attribute':
-				$amended_content = new WP_HTML_Tag_Processor( $block_content );
-				if ( ! $amended_content->next_tag(
-					array(
-						// TODO: build the query from CSS selector.
-						'tag_name' => $block_type->attributes[ $attribute_name ]['selector'],
-					)
-				) ) {
-					return $block_content;
-				}
-				$amended_content->set_attribute( $block_type->attributes[ $attribute_name ]['attribute'], $source_value );
-				return $amended_content->get_updated_html();
-
-			default:
-				return $block_content;
-		}
-	}
-
-
-	/**
 	 * Generates the render output for the block.
 	 *
 	 * @since 5.5.0
-	 * @since 6.5.0 Added block bindings processing.
-	 *
-	 * @global WP_Post $post Global post object.
 	 *
 	 * @param array $options {
 	 *     Optional options object.
@@ -391,42 +205,12 @@ class WP_Block {
 	 */
 	public function render( $options = array() ) {
 		global $post;
-
-		/*
-		 * There can be only one root interactive block at a time because the rendered HTML of that block contains
-		 * the rendered HTML of all its inner blocks, including any interactive block.
-		 */
-		static $root_interactive_block = null;
-		/**
-		 * Filters whether Interactivity API should process directives.
-		 *
-		 * @since 6.6.0
-		 *
-		 * @param bool $enabled Whether the directives processing is enabled.
-		 */
-		$interactivity_process_directives_enabled = apply_filters( 'interactivity_process_directives', true );
-		if (
-			$interactivity_process_directives_enabled && null === $root_interactive_block && (
-				( isset( $this->block_type->supports['interactivity'] ) && true === $this->block_type->supports['interactivity'] ) ||
-				! empty( $this->block_type->supports['interactivity']['interactive'] )
-			)
-		) {
-			$root_interactive_block = $this;
-		}
-
 		$options = wp_parse_args(
 			$options,
 			array(
 				'dynamic' => true,
 			)
 		);
-
-		// Process the block bindings and get attributes updated with the values from the sources.
-		$computed_attributes = $this->process_block_bindings();
-		if ( ! empty( $computed_attributes ) ) {
-			// Merge the computed attributes with the original attributes.
-			$this->attributes = array_merge( $this->attributes, $computed_attributes );
-		}
 
 		$is_dynamic    = $options['dynamic'] && $this->name && null !== $this->block_type && $this->block_type->is_dynamic();
 		$block_content = '';
@@ -458,14 +242,8 @@ class WP_Block {
 						$block_content .= $inner_block->render();
 					}
 
-					++$index;
+					$index++;
 				}
-			}
-		}
-
-		if ( ! empty( $computed_attributes ) && ! empty( $block_content ) ) {
-			foreach ( $computed_attributes as $attribute_name => $source_value ) {
-				$block_content = $this->replace_html( $block_content, $attribute_name, $source_value );
 			}
 		}
 
@@ -488,27 +266,15 @@ class WP_Block {
 			}
 		}
 
-		if ( ! empty( $this->block_type->view_script_handles ) ) {
+		if ( ! empty( $this->block_type->view_script_handles ) && empty( $this->block_type->render_callback ) ) {
 			foreach ( $this->block_type->view_script_handles as $view_script_handle ) {
 				wp_enqueue_script( $view_script_handle );
-			}
-		}
-
-		if ( ! empty( $this->block_type->view_script_module_ids ) ) {
-			foreach ( $this->block_type->view_script_module_ids as $view_script_module_id ) {
-				wp_enqueue_script_module( $view_script_module_id );
 			}
 		}
 
 		if ( ( ! empty( $this->block_type->style_handles ) ) ) {
 			foreach ( $this->block_type->style_handles as $style_handle ) {
 				wp_enqueue_style( $style_handle );
-			}
-		}
-
-		if ( ( ! empty( $this->block_type->view_style_handles ) ) ) {
-			foreach ( $this->block_type->view_style_handles as $view_style_handle ) {
-				wp_enqueue_style( $view_style_handle );
 			}
 		}
 
@@ -539,12 +305,7 @@ class WP_Block {
 		 */
 		$block_content = apply_filters( "render_block_{$this->name}", $block_content, $this->parsed_block, $this );
 
-		if ( $root_interactive_block === $this ) {
-			// The root interactive block has finished rendering. Time to process directives.
-			$block_content          = wp_interactivity_process_directives( $block_content );
-			$root_interactive_block = null;
-		}
-
 		return $block_content;
 	}
+
 }

@@ -2,8 +2,14 @@
 /**
  * Unit tests covering WP_Block_Pattern_Categories_Registry functionality.
  *
- * @package WordPress
+ * @package    WordPress
  * @subpackage REST_API
+ * @since      6.0.0
+ */
+
+/**
+ * Tests for REST API for Block Pattern Categories Registry.
+ *
  * @since 6.0.0
  *
  * @ticket 55505
@@ -65,30 +71,18 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		self::$registry_instance_property = new ReflectionProperty( 'WP_Block_Pattern_Categories_Registry', 'instance' );
 		self::$registry_instance_property->setAccessible( true );
 		$test_registry = new WP_Block_Pattern_Categories_Registry();
-		self::$registry_instance_property->setValue( null, $test_registry );
+		self::$registry_instance_property->setValue( $test_registry );
 
 		// Register some categories in the test registry.
-		$test_registry->register(
-			'test',
-			array(
-				'label'       => 'Test',
-				'description' => 'Test description',
-			)
-		);
-		$test_registry->register(
-			'query',
-			array(
-				'label'       => 'Query',
-				'description' => 'Query',
-			)
-		);
+		$test_registry->register( 'test', array( 'label' => 'Test' ) );
+		$test_registry->register( 'query', array( 'label' => 'Query' ) );
 	}
 
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$admin_id );
 
 		// Restore the original registry instance.
-		self::$registry_instance_property->setValue( null, self::$orig_registry );
+		self::$registry_instance_property->setValue( self::$orig_registry );
 		self::$registry_instance_property->setAccessible( false );
 		self::$registry_instance_property = null;
 		self::$orig_registry              = null;
@@ -109,10 +103,10 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		wp_set_current_user( self::$admin_id );
 
 		$expected_names  = array( 'test', 'query' );
-		$expected_fields = array( 'name', 'label', 'description' );
+		$expected_fields = array( 'name', 'label' );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
-		$request['_fields'] = 'name,label,description';
+		$request['_fields'] = 'name,label';
 		$response           = rest_get_server()->dispatch( $request );
 		$data               = $response->get_data();
 

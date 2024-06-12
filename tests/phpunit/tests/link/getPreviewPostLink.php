@@ -83,4 +83,5 @@ class Tests_Link_GetPreviewPostLink extends WP_UnitTestCase {
 
 		$this->assertSame( '', get_preview_post_link( $post ) );
 	}
+
 }

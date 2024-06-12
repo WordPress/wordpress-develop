@@ -12,9 +12,14 @@
  */
 class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 	/**
+	 * The current theme.json schema version.
+	 */
+	const LATEST_SCHEMA_VERSION = WP_Theme_JSON::LATEST_SCHEMA;
+
+	/**
 	 * @ticket 54336
 	 */
-	public function test_migrate_v1_to_latest() {
+	function test_migrate_v1_to_v2() {
 		$theme_json_v1 = array(
 			'version'  => 1,
 			'settings' => array(
@@ -41,18 +46,6 @@ class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 					'width'        => false,
 				),
 				'typography' => array(
-					'fontSizes'      => array(
-						array(
-							'name' => 'Small',
-							'slug' => 'small',
-							'size' => 12,
-						),
-						array(
-							'name' => 'Normal',
-							'slug' => 'normal',
-							'size' => 16,
-						),
-					),
 					'fontStyle'      => false,
 					'fontWeight'     => false,
 					'letterSpacing'  => false,
@@ -113,7 +106,7 @@ class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 		$actual = WP_Theme_JSON_Schema::migrate( $theme_json_v1 );
 
 		$expected = array(
-			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'version'  => self::LATEST_SCHEMA_VERSION,
 			'settings' => array(
 				'color'      => array(
 					'palette' => array(
@@ -138,24 +131,11 @@ class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 					'width'  => false,
 				),
 				'typography' => array(
-					'defaultFontSizes' => false,
-					'fontSizes'        => array(
-						array(
-							'name' => 'Small',
-							'slug' => 'small',
-							'size' => 12,
-						),
-						array(
-							'name' => 'Normal',
-							'slug' => 'normal',
-							'size' => 16,
-						),
-					),
-					'fontStyle'        => false,
-					'fontWeight'       => false,
-					'letterSpacing'    => false,
-					'textDecoration'   => false,
-					'textTransform'    => false,
+					'fontStyle'      => false,
+					'fontWeight'     => false,
+					'letterSpacing'  => false,
+					'textDecoration' => false,
+					'textTransform'  => false,
 				),
 				'blocks'     => array(
 					'core/group' => array(
@@ -202,82 +182,6 @@ class Tests_Theme_wpThemeJsonSchema extends WP_UnitTestCase {
 					'link' => array(
 						'color' => array(
 							'text' => 'red',
-						),
-					),
-				),
-			),
-		);
-
-		$this->assertEqualSetsWithIndex( $expected, $actual );
-	}
-
-	public function test_migrate_v2_to_latest() {
-		$theme_json_v2 = array(
-			'version'  => 2,
-			'settings' => array(
-				'typography' => array(
-					'fontSizes' => array(
-						array(
-							'name' => 'Small',
-							'slug' => 'small',
-							'size' => 12,
-						),
-						array(
-							'name' => 'Normal',
-							'slug' => 'normal',
-							'size' => 16,
-						),
-					),
-				),
-				'spacing'    => array(
-					'spacingSizes' => array(
-						array(
-							'name' => 'Small',
-							'slug' => 20,
-							'size' => '20px',
-						),
-						array(
-							'name' => 'Large',
-							'slug' => 80,
-							'size' => '80px',
-						),
-					),
-				),
-			),
-		);
-
-		$actual = WP_Theme_JSON_Schema::migrate( $theme_json_v2 );
-
-		$expected = array(
-			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
-			'settings' => array(
-				'typography' => array(
-					'defaultFontSizes' => false,
-					'fontSizes'        => array(
-						array(
-							'name' => 'Small',
-							'slug' => 'small',
-							'size' => 12,
-						),
-						array(
-							'name' => 'Normal',
-							'slug' => 'normal',
-							'size' => 16,
-						),
-					),
-				),
-				'spacing'    => array(
-					'defaultSpacingSizes' => false,
-					'spacingSizes'        => array(
-						array(
-							'name' => 'Small',
-							'slug' => 20,
-							'size' => '20px',
-						),
-						array(
-							'name' => 'Large',
-							'slug' => 80,
-							'size' => '80px',
 						),
 					),
 				),

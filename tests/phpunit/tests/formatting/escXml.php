@@ -9,7 +9,7 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 	/**
 	 * Test basic escaping
 	 *
-	 * @dataProvider data_esc_xml_basics
+	 * @dataProvider _test_esc_xml_basics_dataprovider
 	 *
 	 * @param string $source   The source string to be escaped.
 	 * @param string $expected The expected escaped value of `$source`.
@@ -27,7 +27,7 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 	 *     @type string $expected The expected escaped value of `$source`.
 	 * }
 	 */
-	public function data_esc_xml_basics() {
+	public function _test_esc_xml_basics_dataprovider() {
 		return array(
 			// Simple string.
 			array(
@@ -84,7 +84,7 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 	/**
 	 * Test that CDATA Sections are not escaped.
 	 *
-	 * @dataProvider data_ignores_cdata_sections
+	 * @dataProvider _test_ignores_cdata_sections_dataprovider
 	 *
 	 * @param string $source   The source string to be escaped.
 	 * @param string $expected The expected escaped value of `$source`.
@@ -102,7 +102,7 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 	 *     @type string $expected The expected escaped value of `$source`.
 	 * }
 	 */
-	public function data_ignores_cdata_sections() {
+	public function _test_ignores_cdata_sections_dataprovider() {
 		return array(
 			// basic CDATA Section containing chars that would otherwise be escaped if not in a CDATA Section
 			// not to mention the CDATA Section markup itself :-)

@@ -1,14 +1,13 @@
 <?php
 
 /**
- * @group functions
- *
+ * @group functions.php
  * @covers ::remove_query_arg
  */
 class Tests_Functions_RemoveQueryArg extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider data_remove_query_arg
+	 * @dataProvider remove_query_arg_provider
 	 */
 	public function test_remove_query_arg( $keys_to_remove, $url, $expected ) {
 		$actual = remove_query_arg( $keys_to_remove, $url );
@@ -17,12 +16,7 @@ class Tests_Functions_RemoveQueryArg extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public function data_remove_query_arg() {
+	public function remove_query_arg_provider() {
 		return array(
 			array( 'foo', 'edit.php?foo=test1&baz=test1', 'edit.php?baz=test1' ),
 			array( array( 'foo' ), 'edit.php?foo=test2&baz=test2', 'edit.php?baz=test2' ),

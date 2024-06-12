@@ -1,10 +1,10 @@
 /*!
- * jQuery UI Accordion 1.13.3
- * https://jqueryui.com
+ * jQuery UI Accordion 1.13.2
+ * http://jqueryui.com
  *
- * Copyright OpenJS Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
- * https://jquery.org/license
+ * http://jquery.org/license
  */
 
 //>>label: Accordion
@@ -12,8 +12,8 @@
 /* eslint-disable max-len */
 //>>description: Displays collapsible content panels for presenting information in a limited amount of space.
 /* eslint-enable max-len */
-//>>docs: https://api.jqueryui.com/accordion/
-//>>demos: https://jqueryui.com/accordion/
+//>>docs: http://api.jqueryui.com/accordion/
+//>>demos: http://jqueryui.com/accordion/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/accordion.css
 //>>css.theme: ../../themes/base/theme.css
@@ -26,10 +26,7 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"../version",
-			"../keycode",
-			"../unique-id",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 
@@ -40,7 +37,7 @@
 "use strict";
 
 return $.widget( "ui.accordion", {
-	version: "1.13.3",
+	version: "1.13.2",
 	options: {
 		active: 0,
 		animate: {},

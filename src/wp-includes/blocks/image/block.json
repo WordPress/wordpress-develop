@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 3,
+	"apiVersion": 2,
 	"name": "core/image",
 	"title": "Image",
 	"category": "media",
@@ -9,6 +9,9 @@
 	"keywords": [ "img", "photo", "picture" ],
 	"textdomain": "default",
 	"attributes": {
+		"align": {
+			"type": "string"
+		},
 		"url": {
 			"type": "string",
 			"source": "attribute",
@@ -25,16 +28,10 @@
 			"__experimentalRole": "content"
 		},
 		"caption": {
-			"type": "rich-text",
-			"source": "rich-text",
+			"type": "string",
+			"source": "html",
 			"selector": "figcaption",
 			"__experimentalRole": "content"
-		},
-		"lightbox": {
-			"type": "object",
-			"enabled": {
-				"type": "boolean"
-			}
 		},
 		"title": {
 			"type": "string",
@@ -67,16 +64,10 @@
 			"__experimentalRole": "content"
 		},
 		"width": {
-			"type": "string"
+			"type": "number"
 		},
 		"height": {
-			"type": "string"
-		},
-		"aspectRatio": {
-			"type": "string"
-		},
-		"scale": {
-			"type": "string"
+			"type": "number"
 		},
 		"sizeSlug": {
 			"type": "string"
@@ -92,36 +83,23 @@
 		}
 	},
 	"supports": {
-		"interactivity": true,
-		"align": [ "left", "center", "right", "wide", "full" ],
 		"anchor": true,
 		"color": {
+			"__experimentalDuotone": "img, .components-placeholder",
 			"text": false,
 			"background": false
-		},
-		"filter": {
-			"duotone": true
 		},
 		"__experimentalBorder": {
 			"color": true,
 			"radius": true,
 			"width": true,
+			"__experimentalSelector": "img, .wp-block-image__crop-area",
 			"__experimentalSkipSerialization": true,
 			"__experimentalDefaultControls": {
 				"color": true,
 				"radius": true,
 				"width": true
 			}
-		},
-		"shadow": {
-			"__experimentalSkipSerialization": true
-		}
-	},
-	"selectors": {
-		"border": ".wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder",
-		"shadow": ".wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder",
-		"filter": {
-			"duotone": ".wp-block-image img, .wp-block-image .components-placeholder"
 		}
 	},
 	"styles": [

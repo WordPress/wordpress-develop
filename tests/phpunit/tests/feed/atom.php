@@ -56,6 +56,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 
 		// Assign a tagline option.
 		update_option( 'blogdescription', 'Just another WordPress site' );
+
 	}
 
 	/**
@@ -287,7 +288,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 					$this->assertSame( $enclosures[ $i ]['expected']['href'], $link['attributes']['href'] );
 					$this->assertEquals( $enclosures[ $i ]['expected']['length'], $link['attributes']['length'] );
 					$this->assertSame( $enclosures[ $i ]['expected']['type'], $link['attributes']['type'] );
-					++$i;
+					$i++;
 				}
 			}
 		}

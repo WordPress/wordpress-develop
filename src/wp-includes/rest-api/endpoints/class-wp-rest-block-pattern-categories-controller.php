@@ -1,6 +1,6 @@
 <?php
 /**
- * REST API: WP_REST_Block_Pattern_Categories_Controller class
+ * REST API: WP_REST_Block_Pattern_Catergories_Controller class
  *
  * @package    WordPress
  * @subpackage REST_API
@@ -102,10 +102,10 @@ class WP_REST_Block_Pattern_Categories_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		$fields = $this->get_fields_for_response( $request );
-		$keys   = array( 'name', 'label', 'description' );
+		$keys   = array( 'name', 'label' );
 		$data   = array();
 		foreach ( $keys as $key ) {
-			if ( isset( $item[ $key ] ) && rest_is_field_included( $key, $fields ) ) {
+			if ( rest_is_field_included( $key, $fields ) ) {
 				$data[ $key ] = $item[ $key ];
 			}
 		}
@@ -125,29 +125,19 @@ class WP_REST_Block_Pattern_Categories_Controller extends WP_REST_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
-		if ( $this->schema ) {
-			return $this->add_additional_fields_schema( $this->schema );
-		}
-
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'block-pattern-category',
 			'type'       => 'object',
 			'properties' => array(
-				'name'        => array(
+				'name'  => array(
 					'description' => __( 'The category name.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'label'       => array(
+				'label' => array(
 					'description' => __( 'The category label, in human readable format.' ),
-					'type'        => 'string',
-					'readonly'    => true,
-					'context'     => array( 'view', 'edit', 'embed' ),
-				),
-				'description' => array(
-					'description' => __( 'The category description, in human readable format.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
@@ -155,8 +145,6 @@ class WP_REST_Block_Pattern_Categories_Controller extends WP_REST_Controller {
 			),
 		);
 
-		$this->schema = $schema;
-
-		return $this->add_additional_fields_schema( $this->schema );
+		return $this->add_additional_fields_schema( $schema );
 	}
 }

@@ -48,7 +48,7 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 	public $filter_type = 'local';
 
 	/**
-	 * Gets section parameters for JS.
+	 * Get section parameters for JS.
 	 *
 	 * @since 4.9.0
 	 * @return array Exported parameters.
@@ -62,7 +62,7 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 	}
 
 	/**
-	 * Renders a themes section as a JS template.
+	 * Render a themes section as a JS template.
 	 *
 	 * The template is only rendered by PHP once, so all actions are prepared at once on the server side.
 	 *
@@ -112,10 +112,10 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 	}
 
 	/**
-	 * Renders the filter bar portion of a themes section as a JS template.
+	 * Render the filter bar portion of a themes section as a JS template.
 	 *
 	 * The template is only rendered by PHP once, so all actions are prepared at once on the server side.
-	 * The filter bar container is rendered by {@see render_template()}.
+	 * The filter bar container is rendered by @see `render_template()`.
 	 *
 	 * @since 4.9.0
 	 */
@@ -124,68 +124,48 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 		<button type="button" class="button button-primary customize-section-back customize-themes-mobile-back"><?php _e( 'Go to theme sources' ); ?></button>
 		<# if ( 'wporg' === data.action ) { #>
 			<div class="search-form">
-				<label for="wp-filter-search-input-{{ data.id }}"><?php _e( 'Search themes' ); ?></label>
-				<div class="search-form-input">
-					<input type="search" id="wp-filter-search-input-{{ data.id }}" aria-describedby="{{ data.id }}-live-search-desc" class="wp-filter-search">
-					<div class="search-icon" aria-hidden="true"></div>
-					<span id="{{ data.id }}-live-search-desc" class="screen-reader-text">
-						<?php
-						/* translators: Hidden accessibility text. */
-						_e( 'The search results will be updated as you type.' );
-						?>
-					</span>
-				</div>
+				<label for="wp-filter-search-input-{{ data.id }}" class="screen-reader-text"><?php _e( 'Search themes&hellip;' ); ?></label>
+				<input type="search" id="wp-filter-search-input-{{ data.id }}" placeholder="<?php esc_attr_e( 'Search themes&hellip;' ); ?>" aria-describedby="{{ data.id }}-live-search-desc" class="wp-filter-search">
+				<div class="search-icon" aria-hidden="true"></div>
+				<span id="{{ data.id }}-live-search-desc" class="screen-reader-text"><?php _e( 'The search results will be updated as you type.' ); ?></span>
 			</div>
-		<# } else { #>
-			<div class="themes-filter-container">
-				<label for="{{ data.id }}-themes-filter"><?php _e( 'Search themes' ); ?></label>
-				<div class="search-form-input">
-					<input type="search" id="{{ data.id }}-themes-filter" aria-describedby="{{ data.id }}-live-search-desc" class="wp-filter-search wp-filter-search-themes" />
-					<div class="search-icon" aria-hidden="true"></div>
-					<span id="{{ data.id }}-live-search-desc" class="screen-reader-text">
-						<?php
-						/* translators: Hidden accessibility text. */
-						_e( 'The search results will be updated as you type.' );
-						?>
-					</span>
-				</div>
-			</div>
-		<# } #>
-		<div class="filter-themes-wrapper">
-			<# if ( 'wporg' === data.action ) { #>
 			<button type="button" class="button feature-filter-toggle">
 				<span class="filter-count-0"><?php _e( 'Filter themes' ); ?></span><span class="filter-count-filters">
-					<?php
-					/* translators: %s: Number of filters selected. */
-					printf( __( 'Filter themes (%s)' ), '<span class="theme-filter-count">0</span>' );
-					?>
+				<?php
+				/* translators: %s: Number of filters selected. */
+				printf( __( 'Filter themes (%s)' ), '<span class="theme-filter-count">0</span>' );
+				?>
 				</span>
 			</button>
-			<# } #>
-			<div class="filter-themes-count">
-				<span class="themes-displayed">
-					<?php
-					/* translators: %s: Number of themes displayed. */
-					printf( __( '%s themes' ), '<span class="theme-count">0</span>' );
-					?>
-				</span>
+		<# } else { #>
+			<div class="themes-filter-container">
+				<label for="{{ data.id }}-themes-filter" class="screen-reader-text"><?php _e( 'Search themes&hellip;' ); ?></label>
+				<input type="search" id="{{ data.id }}-themes-filter" placeholder="<?php esc_attr_e( 'Search themes&hellip;' ); ?>" aria-describedby="{{ data.id }}-live-search-desc" class="wp-filter-search wp-filter-search-themes" />
+				<div class="search-icon" aria-hidden="true"></div>
+				<span id="{{ data.id }}-live-search-desc" class="screen-reader-text"><?php _e( 'The search results will be updated as you type.' ); ?></span>
 			</div>
+		<# } #>
+		<div class="filter-themes-count">
+			<span class="themes-displayed">
+				<?php
+				/* translators: %s: Number of themes displayed. */
+				printf( __( '%s themes' ), '<span class="theme-count">0</span>' );
+				?>
+			</span>
 		</div>
 		<?php
 	}
 
 	/**
-	 * Renders the filter drawer portion of a themes section as a JS template.
+	 * Render the filter drawer portion of a themes section as a JS template.
 	 *
-	 * The filter bar container is rendered by {@see render_template()}.
+	 * The filter bar container is rendered by @see `render_template()`.
 	 *
 	 * @since 4.9.0
 	 */
 	protected function filter_drawer_content_template() {
-		/*
-		 * @todo Use the .org API instead of the local core feature list.
-		 * The .org API is currently outdated and will be reconciled when the .org themes directory is next redesigned.
-		 */
+		// @todo Use the .org API instead of the local core feature list.
+		// The .org API is currently outdated and will be reconciled when the .org themes directory is next redesigned.
 		$feature_list = get_theme_feature_list( false );
 		?>
 		<# if ( 'wporg' === data.action ) { #>

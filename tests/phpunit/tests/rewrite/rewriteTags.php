@@ -20,8 +20,19 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$this->queryreplace   = $wp_rewrite->queryreplace;
 	}
 
+	public function _invalid_rewrite_tags() {
+		return array(
+			array( 'foo', 'bar' ),
+			array( '%', 'bar' ),
+			array( '%a', 'bar' ),
+			array( 'a%', 'bar' ),
+			array( '%%', 'bar' ),
+			array( '', 'bar' ),
+		);
+	}
+
 	/**
-	 * @dataProvider data_add_rewrite_tag_invalid
+	 * @dataProvider _invalid_rewrite_tags
 	 *
 	 * @param string $tag   Rewrite tag.
 	 * @param string $regex Regex.
@@ -33,17 +44,6 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$this->assertSameSets( $this->rewritecode, $wp_rewrite->rewritecode );
 		$this->assertSameSets( $this->rewritereplace, $wp_rewrite->rewritereplace );
 		$this->assertSameSets( $this->queryreplace, $wp_rewrite->queryreplace );
-	}
-
-	public function data_add_rewrite_tag_invalid() {
-		return array(
-			array( 'foo', 'bar' ),
-			array( '%', 'bar' ),
-			array( '%a', 'bar' ),
-			array( 'a%', 'bar' ),
-			array( '%%', 'bar' ),
-			array( '', 'bar' ),
-		);
 	}
 
 	public function test_add_rewrite_tag_empty_query() {

@@ -116,7 +116,7 @@ $is_dev_version  = preg_match( '/alpha|beta|RC/', $wp_version );
 if ( ! $is_dev_version ) {
 	$version_url = sprintf(
 		/* translators: %s: WordPress version. */
-		esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
+		esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
 		sanitize_title( $wp_version )
 	);
 
@@ -129,8 +129,8 @@ if ( ! $is_dev_version ) {
 
 $screen->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/documentation/article/dashboard-screen/">Documentation on Dashboard</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/dashboard-screen/">Documentation on Dashboard</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>' .
 	'<p>' . $wp_version_text . '</p>'
 );
 
@@ -154,21 +154,20 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		// Only show the dashboard notice if it's been less than a minute since the message was postponed.
 		if ( $time_passed < MINUTE_IN_SECONDS ) :
-			$message = sprintf(
-				/* translators: %s: Human-readable time interval. */
-				__( 'The admin email verification page will reappear after %s.' ),
-				human_time_diff( time() + $remind_interval )
-			);
-			wp_admin_notice(
-				$message,
-				array(
-					'type'        => 'success',
-					'dismissible' => true,
-				)
-			);
-		endif;
-	endif;
-	?>
+			?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				<?php
+				printf(
+					/* translators: %s: Human-readable time interval. */
+					__( 'The admin email verification page will reappear after %s.' ),
+					human_time_diff( time() + $remind_interval )
+				);
+				?>
+			</p>
+		</div>
+		<?php endif; ?>
+	<?php endif; ?>
 
 <?php
 if ( has_action( 'welcome_panel' ) && current_user_can( 'edit_theme_options' ) ) :
@@ -187,7 +186,7 @@ if ( has_action( 'welcome_panel' ) && current_user_can( 'edit_theme_options' ) )
 		<a class="welcome-panel-close" href="<?php echo esc_url( admin_url( '?welcome=0' ) ); ?>" aria-label="<?php esc_attr_e( 'Dismiss the welcome panel' ); ?>"><?php _e( 'Dismiss' ); ?></a>
 		<?php
 		/**
-		 * Fires when adding content to the welcome panel on the admin dashboard.
+		 * Add content to the welcome panel on the admin dashboard.
 		 *
 		 * To remove the default welcome panel, use remove_action():
 		 *

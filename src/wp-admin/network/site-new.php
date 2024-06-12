@@ -29,8 +29,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/#network-admin-sites-screen">Documentation on Site Management</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/article/network-admin-sites-screen/">Documentation on Site Management</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support Forums</a>' ) . '</p>'
 );
 
 if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
@@ -81,10 +81,6 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 				$meta['WPLANG'] = $language;
 			}
 		}
-	}
-
-	if ( empty( $title ) ) {
-		wp_die( __( 'Missing site title.' ) );
 	}
 
 	if ( empty( $domain ) ) {
@@ -192,14 +188,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <h1 id="add-new-site"><?php _e( 'Add New Site' ); ?></h1>
 <?php
 if ( ! empty( $messages ) ) {
-	$notice_args = array(
-		'type'        => 'success',
-		'dismissible' => true,
-		'id'          => 'message',
-	);
-
 	foreach ( $messages as $msg ) {
-		wp_admin_notice( $msg, $notice_args );
+		echo '<div id="message" class="updated notice is-dismissible"><p>' . $msg . '</p></div>';
 	}
 }
 ?>

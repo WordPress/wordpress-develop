@@ -3,7 +3,7 @@
 /**
  * Tests for wp_is_ini_value_changeable().
  *
- * @group load
+ * @group load.php
  *
  * @covers ::wp_is_ini_value_changeable
  */

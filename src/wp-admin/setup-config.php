@@ -116,10 +116,6 @@ function setup_config_display_header( $body_classes = array() ) {
 	<?php
 } // End function setup_config_display_header();
 
-/**
- * @global string    $wp_local_package Locale code of the package.
- * @global WP_Locale $wp_locale        WordPress date and time locale object.
- */
 $language = '';
 if ( ! empty( $_REQUEST['language'] ) ) {
 	$language = preg_replace( '/[^a-zA-Z0-9_]/', '', $_REQUEST['language'] );
@@ -161,12 +157,7 @@ switch ( $step ) {
 			$step_1 .= '&amp;language=' . $loaded_language;
 		}
 		?>
-<h1 class="screen-reader-text">
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'Before getting started' );
-		?>
-</h1>
+<h1 class="screen-reader-text"><?php _e( 'Before getting started' ); ?></h1>
 <p><?php _e( 'Welcome to WordPress. Before getting started, you will need to know the following items.' ); ?></p>
 <ol>
 	<li><?php _e( 'Database name' ); ?></li>
@@ -197,7 +188,7 @@ switch ( $step ) {
 		printf(
 			/* translators: 1: Documentation URL, 2: wp-config.php */
 			__( 'Need more help? <a href="%1$s">Read the support article on %2$s</a>.' ),
-			__( 'https://developer.wordpress.org/advanced-administration/wordpress/wp-config/' ),
+			__( 'https://wordpress.org/support/article/editing-wp-config-php/' ),
 			'<code>wp-config.php</code>'
 		);
 		?>
@@ -216,52 +207,39 @@ switch ( $step ) {
 
 		$autofocus = wp_is_mobile() ? '' : ' autofocus';
 		?>
-<h1 class="screen-reader-text">
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'Set up your database connection' );
-		?>
-</h1>
+<h1 class="screen-reader-text"><?php _e( 'Set up your database connection' ); ?></h1>
 <form method="post" action="setup-config.php?step=2">
 	<p><?php _e( 'Below you should enter your database connection details. If you are not sure about these, contact your host.' ); ?></p>
 	<table class="form-table" role="presentation">
 		<tr>
 			<th scope="row"><label for="dbname"><?php _e( 'Database Name' ); ?></label></th>
-			<td><input name="dbname" id="dbname" type="text" aria-describedby="dbname-desc" size="25" placeholder="wordpress"<?php echo $autofocus; ?>/>
-			<p id="dbname-desc"><?php _e( 'The name of the database you want to use with WordPress.' ); ?></p></td>
+			<td><input name="dbname" id="dbname" type="text" aria-describedby="dbname-desc" size="25" placeholder="wordpress"<?php echo $autofocus; ?>/></td>
+			<td id="dbname-desc"><?php _e( 'The name of the database you want to use with WordPress.' ); ?></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="uname"><?php _e( 'Username' ); ?></label></th>
-			<td><input name="uname" id="uname" type="text" aria-describedby="uname-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'username', 'example username' ), ENT_QUOTES ); ?>" />
-			<p id="uname-desc"><?php _e( 'Your database username.' ); ?></p></td>
+			<td><input name="uname" id="uname" type="text" aria-describedby="uname-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'username', 'example username' ), ENT_QUOTES ); ?>" /></td>
+			<td id="uname-desc"><?php _e( 'Your database username.' ); ?></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="pwd"><?php _e( 'Password' ); ?></label></th>
-			<td>
-				<div class="wp-pwd">
-					<input name="pwd" id="pwd" type="password" class="regular-text" data-reveal="1" aria-describedby="pwd-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" spellcheck="false" />
-					<button type="button" class="button pwd-toggle hide-if-no-js" data-toggle="0" data-start-masked="1" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
-						<span class="dashicons dashicons-visibility"></span>
-						<span class="text"><?php _e( 'Show' ); ?></span>
-					</button>
-				</div>
-				<p id="pwd-desc"><?php _e( 'Your database password.' ); ?></p>
-			</td>
+			<td><input name="pwd" id="pwd" type="text" aria-describedby="pwd-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" /></td>
+			<td id="pwd-desc"><?php _e( 'Your database password.' ); ?></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="dbhost"><?php _e( 'Database Host' ); ?></label></th>
-			<td><input name="dbhost" id="dbhost" type="text" aria-describedby="dbhost-desc" size="25" value="localhost" />
-			<p id="dbhost-desc">
+			<td><input name="dbhost" id="dbhost" type="text" aria-describedby="dbhost-desc" size="25" value="localhost" /></td>
+			<td id="dbhost-desc">
 			<?php
 				/* translators: %s: localhost */
 				printf( __( 'You should be able to get this info from your web host, if %s does not work.' ), '<code>localhost</code>' );
 			?>
-			</p></td>
+			</td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="prefix"><?php _e( 'Table Prefix' ); ?></label></th>
-			<td><input name="prefix" id="prefix" type="text" aria-describedby="prefix-desc" value="wp_" size="25" />
-			<p id="prefix-desc"><?php _e( 'If you want to run multiple WordPress installations in a single database, change this.' ); ?></p></td>
+			<td><input name="prefix" id="prefix" type="text" aria-describedby="prefix-desc" value="wp_" size="25" /></td>
+			<td id="prefix-desc"><?php _e( 'If you want to run multiple WordPress installations in a single database, change this.' ); ?></td>
 		</tr>
 	</table>
 		<?php
@@ -272,7 +250,6 @@ switch ( $step ) {
 	<p class="step"><input name="submit" type="submit" value="<?php echo htmlspecialchars( __( 'Submit' ), ENT_QUOTES ); ?>" class="button button-large" /></p>
 </form>
 		<?php
-		wp_print_scripts( 'password-toggle' );
 		break;
 
 	case 2:
@@ -376,7 +353,7 @@ switch ( $step ) {
 
 		$key = 0;
 		foreach ( $config_file as $line_num => $line ) {
-			if ( str_starts_with( $line, '$table_prefix =' ) ) {
+			if ( '$table_prefix =' === substr( $line, 0, 15 ) ) {
 				$config_file[ $line_num ] = '$table_prefix = \'' . addcslashes( $prefix, "\\'" ) . "';\r\n";
 				continue;
 			}
@@ -396,7 +373,7 @@ switch ( $step ) {
 					$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'" . addcslashes( constant( $constant ), "\\'" ) . "' );\r\n";
 					break;
 				case 'DB_CHARSET':
-					if ( 'utf8mb4' === $wpdb->charset || ( ! $wpdb->charset ) ) {
+					if ( 'utf8mb4' === $wpdb->charset || ( ! $wpdb->charset && $wpdb->has_cap( 'utf8mb4' ) ) ) {
 						$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'utf8mb4' );\r\n";
 					}
 					break;
@@ -484,7 +461,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 						/* translators: 1: wp-config.php, 2: Documentation URL. */
 						__( 'You need to make the file %1$s writable before you can save your changes. See <a href="%2$s">Changing File Permissions</a> for more information.' ),
 						'<code>wp-config.php</code>',
-						__( 'https://developer.wordpress.org/advanced-administration/server/file-permissions/' )
+						__( 'https://wordpress.org/support/article/changing-file-permissions/' )
 					);
 				} else {
 					$error_message = sprintf(
@@ -500,12 +477,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 
 			if ( false !== $handle ) :
 				?>
-<h1 class="screen-reader-text">
-				<?php
-				/* translators: Hidden accessibility text. */
-				_e( 'Successful database connection' );
-				?>
-</h1>
+<h1 class="screen-reader-text"><?php _e( 'Successful database connection' ); ?></h1>
 <p><?php _e( 'All right, sparky! You&#8217;ve made it through this part of the installation. WordPress can now communicate with your database. If you are ready, time now to&hellip;' ); ?></p>
 
 <p class="step"><a href="<?php echo $install; ?>" class="button button-large"><?php _e( 'Run the installation' ); ?></a></p>

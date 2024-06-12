@@ -20,7 +20,7 @@ $template_html = get_the_block_template_html();
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
-<?php echo $template_html; ?>
+<?php echo $template_html; // phpcs:ignore WordPress.Security.EscapeOutput ?>
 
 <?php wp_footer(); ?>
 </body>

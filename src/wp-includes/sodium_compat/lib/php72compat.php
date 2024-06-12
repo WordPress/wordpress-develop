@@ -1360,8 +1360,6 @@ if (!is_callable('sodium_memzero')) {
      * @return void
      * @throws SodiumException
      * @throws TypeError
-     *
-     * @psalm-suppress ReferenceConstraintViolation
      */
     function sodium_memzero(&$string)
     {

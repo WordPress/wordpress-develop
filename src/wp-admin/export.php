@@ -56,8 +56,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/documentation/article/tools-export-screen/">Documentation on Export</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/article/tools-export-screen/">Documentation on Export</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
 // If the 'download' URL parameter is set, a WXR export file is baked and returned.
@@ -127,12 +127,12 @@ if ( isset( $_GET['download'] ) ) {
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 /**
- * Creates the date options fields for exporting a given post type.
- *
- * @since 3.1.0
+ * Create the date options fields for exporting a given post type.
  *
  * @global wpdb      $wpdb      WordPress database abstraction object.
  * @global WP_Locale $wp_locale WordPress date and time locale object.
+ *
+ * @since 3.1.0
  *
  * @param string $post_type The post type. Default 'post'.
  */
@@ -141,10 +141,12 @@ function export_date_options( $post_type = 'post' ) {
 
 	$months = $wpdb->get_results(
 		$wpdb->prepare(
-			"SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
-			FROM $wpdb->posts
-			WHERE post_type = %s AND post_status != 'auto-draft'
-			ORDER BY post_date DESC",
+			"
+		SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+		FROM $wpdb->posts
+		WHERE post_type = %s AND post_status != 'auto-draft'
+		ORDER BY post_date DESC
+			",
 			$post_type
 		)
 	);
@@ -160,12 +162,7 @@ function export_date_options( $post_type = 'post' ) {
 		}
 
 		$month = zeroise( $date->month, 2 );
-
-		printf(
-			'<option value="%1$s">%2$s</option>',
-			esc_attr( $date->year . '-' . $month ),
-			$wp_locale->get_month( $month ) . ' ' . $date->year
-		);
+		echo '<option value="' . $date->year . '-' . $month . '">' . $wp_locale->get_month( $month ) . ' ' . $date->year . '</option>';
 	}
 }
 ?>
@@ -180,12 +177,7 @@ function export_date_options( $post_type = 'post' ) {
 <h2><?php _e( 'Choose what to export' ); ?></h2>
 <form method="get" id="export-filters">
 <fieldset>
-<legend class="screen-reader-text">
-	<?php
-	/* translators: Hidden accessibility text. */
-	_e( 'Content to export' );
-	?>
-</legend>
+<legend class="screen-reader-text"><?php _e( 'Content to export' ); ?></legend>
 <input type="hidden" name="download" value="true" />
 <p><label><input type="radio" name="content" value="all" checked="checked" aria-describedby="all-content-desc" /> <?php _e( 'All content' ); ?></label></p>
 <p class="description" id="all-content-desc"><?php _e( 'This will contain all of your posts, pages, comments, custom fields, terms, navigation menus, and custom posts.' ); ?></p>
@@ -215,12 +207,7 @@ function export_date_options( $post_type = 'post' ) {
 	</li>
 	<li>
 		<fieldset>
-		<legend class="screen-reader-text">
-			<?php
-			/* translators: Hidden accessibility text. */
-			_e( 'Date range:' )
-			?>
-		</legend>
+		<legend class="screen-reader-text"><?php _e( 'Date range:' ); ?></legend>
 		<label for="post-start-date" class="label-responsive"><?php _e( 'Start date:' ); ?></label>
 		<select name="post_start_date" id="post-start-date">
 			<option value="0"><?php _e( '&mdash; Select &mdash;' ); ?></option>
@@ -238,8 +225,8 @@ function export_date_options( $post_type = 'post' ) {
 		<select name="post_status" id="post-status">
 			<option value="0"><?php _e( 'All' ); ?></option>
 			<?php
-			$post_statuses = get_post_stati( array( 'internal' => false ), 'objects' );
-			foreach ( $post_statuses as $status ) :
+			$post_stati = get_post_stati( array( 'internal' => false ), 'objects' );
+			foreach ( $post_stati as $status ) :
 				?>
 			<option value="<?php echo esc_attr( $status->name ); ?>"><?php echo esc_html( $status->label ); ?></option>
 			<?php endforeach; ?>
@@ -267,12 +254,7 @@ function export_date_options( $post_type = 'post' ) {
 	</li>
 	<li>
 		<fieldset>
-		<legend class="screen-reader-text">
-			<?php
-			/* translators: Hidden accessibility text. */
-			_e( 'Date range:' );
-			?>
-		</legend>
+		<legend class="screen-reader-text"><?php _e( 'Date range:' ); ?></legend>
 		<label for="page-start-date" class="label-responsive"><?php _e( 'Start date:' ); ?></label>
 		<select name="page_start_date" id="page-start-date">
 			<option value="0"><?php _e( '&mdash; Select &mdash;' ); ?></option>
@@ -289,7 +271,7 @@ function export_date_options( $post_type = 'post' ) {
 		<label for="page-status" class="label-responsive"><?php _e( 'Status:' ); ?></label>
 		<select name="page_status" id="page-status">
 			<option value="0"><?php _e( 'All' ); ?></option>
-			<?php foreach ( $post_statuses as $status ) : ?>
+			<?php foreach ( $post_stati as $status ) : ?>
 			<option value="<?php echo esc_attr( $status->name ); ?>"><?php echo esc_html( $status->label ); ?></option>
 			<?php endforeach; ?>
 		</select>
@@ -312,12 +294,7 @@ foreach ( get_post_types(
 <ul id="attachment-filters" class="export-filters">
 	<li>
 		<fieldset>
-		<legend class="screen-reader-text">
-			<?php
-			/* translators: Hidden accessibility text. */
-			_e( 'Date range:' );
-			?>
-		</legend>
+		<legend class="screen-reader-text"><?php _e( 'Date range:' ); ?></legend>
 		<label for="attachment-start-date" class="label-responsive"><?php _e( 'Start date:' ); ?></label>
 		<select name="attachment_start_date" id="attachment-start-date">
 			<option value="0"><?php _e( '&mdash; Select &mdash;' ); ?></option>

@@ -28,6 +28,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	 * @ticket 36904
 	 */
 	public function test_archive_comment_feed() {
+		global $wpdb;
 		add_filter( 'split_the_query', '__return_false' );
 		$q1   = new WP_Query();
 		$args = array(
@@ -41,12 +42,12 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 			'cache_results'          => false,
 		);
 		$q1->query( $args );
-		$num_queries = get_num_queries();
+		$num_queries = $wpdb->num_queries;
 		$q2          = new WP_Query();
 		$q2->query( $args );
 		$this->assertTrue( $q2->is_comment_feed() );
 		$this->assertFalse( $q2->is_singular() );
-		$this->assertSame( $num_queries + 1, get_num_queries() );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 	}
 
 	/**
@@ -86,6 +87,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	 * @ticket 36904
 	 */
 	public function test_single_comment_feed() {
+		global $wpdb;
 		$post = get_post( self::$post_ids[0] );
 
 		$q1   = new WP_Query();
@@ -101,12 +103,12 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 		);
 
 		$q1->query( $args );
-		$num_queries = get_num_queries();
+		$num_queries = $wpdb->num_queries;
 		$q2          = new WP_Query();
 		$q2->query( $args );
 
 		$this->assertTrue( $q2->is_comment_feed() );
 		$this->assertTrue( $q2->is_singular() );
-		$this->assertSame( $num_queries + 1, get_num_queries() );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 	}
 }

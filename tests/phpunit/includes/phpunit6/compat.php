@@ -36,6 +36,7 @@ if ( class_exists( 'PHPUnit\Runner\Version' ) && version_compare( PHPUnit\Runner
 
 			return array_unique( $tickets );
 		}
+
 	}
 
 }

@@ -2,7 +2,6 @@
 
 /**
  * @group admin
- * @group user
  *
  * @covers WP_Users_List_Table
  */

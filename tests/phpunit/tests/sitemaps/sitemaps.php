@@ -95,7 +95,7 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	/**
 	 * Helper function to get all sitemap entries data.
 	 *
-	 * @return array A list of sitemap entries.
+	 * @return array A list of sitemap entires.
 	 */
 	public function _get_sitemap_entries() {
 		$entries = array();
@@ -251,16 +251,13 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		$post_list = $providers['posts']->get_url_list( 1, 'page' );
 
-		$post_list_sorted = wp_list_sort( $post_list, 'lastmod', 'DESC' );
-
 		$expected = $this->_get_expected_url_list( 'page', self::$pages );
 
 		// Add the homepage to the front of the URL list.
 		array_unshift(
 			$expected,
 			array(
-				'loc'     => home_url( '/' ),
-				'lastmod' => $post_list_sorted[0]['lastmod'],
+				'loc' => home_url( '/' ),
 			)
 		);
 
@@ -381,8 +378,7 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 		return array_map(
 			static function ( $post ) {
 				return array(
-					'loc'     => get_permalink( $post ),
-					'lastmod' => get_post_modified_time( DATE_W3C, true, $post ),
+					'loc' => get_permalink( $post ),
 				);
 			},
 			$posts

@@ -1,8 +1,7 @@
 <?php
 
 /**
- * @group functions
- *
+ * @group functions.php
  * @covers ::wp_get_archives
  */
 class Tests_Functions_wpGetArchives extends WP_UnitTestCase {

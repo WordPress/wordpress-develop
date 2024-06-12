@@ -8,8 +8,6 @@
 /**
  * Performs wpautop() on the shortcode block content.
  *
- * @since 5.0.0
- *
  * @param array  $attributes The block attributes.
  * @param string $content    The block content.
  *
@@ -21,8 +19,6 @@ function render_block_core_shortcode( $attributes, $content ) {
 
 /**
  * Registers the `core/shortcode` block on server.
- *
- * @since 5.0.0
  */
 function register_block_core_shortcode() {
 	register_block_type_from_metadata(

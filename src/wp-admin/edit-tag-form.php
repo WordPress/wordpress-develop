@@ -44,7 +44,11 @@ if ( 'category' === $taxonomy ) {
 	do_action_deprecated( 'edit_tag_form_pre', array( $tag ), '3.0.0', '{$taxonomy}_pre_edit_form' );
 }
 
-$wp_http_referer = ! empty( $_REQUEST['wp_http_referer'] ) ? sanitize_text_field( $_REQUEST['wp_http_referer'] ) : '';
+/**
+ * Use with caution, see https://developer.wordpress.org/reference/functions/wp_reset_vars/
+ */
+wp_reset_vars( array( 'wp_http_referer' ) );
+
 $wp_http_referer = remove_query_arg( array( 'action', 'message', 'tag_ID' ), $wp_http_referer );
 
 // Also used by Edit Tags.
@@ -75,18 +79,16 @@ do_action( "{$taxonomy}_pre_edit_form", $tag, $taxonomy ); ?>
 $class = ( isset( $msg ) && 5 === $msg ) ? 'error' : 'success';
 
 if ( $message ) {
-	$message = '<p><strong>' . $message . '</strong></p>';
-	if ( $wp_http_referer ) {
-		$message .= '<p><a href="' . esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), admin_url( 'term.php?taxonomy=' . $taxonomy ) ) ) . '">' . esc_html( $tax->labels->back_to_items ) . '</a></p>';
-	}
-	wp_admin_notice(
-		$message,
-		array(
-			'type'           => $class,
-			'id'             => 'message',
-			'paragraph_wrap' => false,
-		)
-	);
+	?>
+<div id="message" class="notice notice-<?php echo $class; ?>">
+	<p><strong><?php echo $message; ?></strong></p>
+	<?php if ( $wp_http_referer ) { ?>
+	<p><a href="<?php echo esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), admin_url( 'term.php?taxonomy=' . $taxonomy ) ) ); ?>">
+		<?php echo esc_html( $tax->labels->back_to_items ); ?>
+	</a></p>
+	<?php } ?>
+</div>
+	<?php
 }
 ?>
 

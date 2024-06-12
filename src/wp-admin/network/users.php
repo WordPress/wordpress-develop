@@ -94,7 +94,7 @@ if ( isset( $_GET['action'] ) ) {
 								$blogs        = get_blogs_of_user( $user_id, true );
 
 								foreach ( (array) $blogs as $details ) {
-									if ( ! is_main_site( $details->userblog_id ) ) { // Main site is not a spam!
+									if ( get_network()->site_id != $details->userblog_id ) { // Main blog is not a spam!
 										update_blog_status( $details->userblog_id, 'spam', '1' );
 									}
 								}
@@ -184,7 +184,7 @@ if ( isset( $_GET['action'] ) ) {
 						continue;
 					}
 					wpmu_delete_user( $id );
-					++$i;
+					$i++;
 				}
 			}
 
@@ -240,7 +240,7 @@ get_current_screen()->add_help_tab(
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 	'<p>' . __( '<a href="https://codex.wordpress.org/Network_Admin_Users_Screen">Documentation on Network Users</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support Forums</a>' ) . '</p>'
 );
 
 get_current_screen()->set_screen_reader_content(
@@ -253,34 +253,30 @@ get_current_screen()->set_screen_reader_content(
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
-if ( isset( $_REQUEST['updated'] ) && 'true' === $_REQUEST['updated'] && ! empty( $_REQUEST['action'] ) ) {
-	$message = '';
-	switch ( $_REQUEST['action'] ) {
-		case 'delete':
-			$message = __( 'User deleted.' );
-			break;
-		case 'all_spam':
-			$message = __( 'Users marked as spam.' );
-			break;
-		case 'all_notspam':
-			$message = __( 'Users removed from spam.' );
-			break;
-		case 'all_delete':
-			$message = __( 'Users deleted.' );
-			break;
-		case 'add':
-			$message = __( 'User added.' );
-			break;
-	}
-
-	wp_admin_notice(
-		$message,
-		array(
-			'type'        => 'success',
-			'dismissible' => true,
-			'id'          => 'message',
-		)
-	);
+if ( isset( $_REQUEST['updated'] ) && 'true' == $_REQUEST['updated'] && ! empty( $_REQUEST['action'] ) ) {
+	?>
+	<div id="message" class="updated notice is-dismissible"><p>
+		<?php
+		switch ( $_REQUEST['action'] ) {
+			case 'delete':
+				_e( 'User deleted.' );
+				break;
+			case 'all_spam':
+				_e( 'Users marked as spam.' );
+				break;
+			case 'all_notspam':
+				_e( 'Users removed from spam.' );
+				break;
+			case 'all_delete':
+				_e( 'Users deleted.' );
+				break;
+			case 'add':
+				_e( 'User added.' );
+				break;
+		}
+		?>
+	</p></div>
+	<?php
 }
 ?>
 <div class="wrap">
@@ -289,7 +285,7 @@ if ( isset( $_REQUEST['updated'] ) && 'true' === $_REQUEST['updated'] && ! empty
 	<?php
 	if ( current_user_can( 'create_users' ) ) :
 		?>
-		<a href="<?php echo esc_url( network_admin_url( 'user-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html__( 'Add New User' ); ?></a>
+		<a href="<?php echo esc_url( network_admin_url( 'user-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html_x( 'Add New', 'user' ); ?></a>
 		<?php
 	endif;
 

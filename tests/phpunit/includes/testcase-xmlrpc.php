@@ -34,4 +34,5 @@ abstract class WP_XMLRPC_UnitTestCase extends WP_UnitTestCase {
 			)
 		);
 	}
+
 }

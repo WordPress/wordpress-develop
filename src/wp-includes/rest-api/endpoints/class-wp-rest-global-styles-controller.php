@@ -10,30 +10,32 @@
 /**
  * Base Global Styles REST API Controller.
  */
-class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
+class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
+
 	/**
-	 * Whether the controller supports batching.
+	 * Post type.
 	 *
-	 * @since 6.6.0
-	 * @var array
+	 * @since 5.9.0
+	 * @var string
 	 */
-	protected $allow_batch = array( 'v1' => false );
+	protected $post_type;
 
 	/**
 	 * Constructor.
-	 *
-	 * @since 6.6.0
-	 *
-	 * @param string $post_type Post type.
+	 * @since 5.9.0
 	 */
-	public function __construct( $post_type = 'wp_global_styles' ) {
-		parent::__construct( $post_type );
+	public function __construct() {
+		$this->namespace = 'wp/v2';
+		$this->rest_base = 'global-styles';
+		$this->post_type = 'wp_global_styles';
 	}
 
 	/**
 	 * Registers the controllers routes.
 	 *
 	 * @since 5.9.0
+	 *
+	 * @return void
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -50,7 +52,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 							'type'        => 'string',
 						),
 					),
-					'allow_batch'         => $this->allow_batch,
 				),
 			)
 		);
@@ -62,10 +63,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			sprintf(
 				'/%s/themes/(?P<stylesheet>%s)',
 				$this->rest_base,
-				/*
-				 * Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
-				 * Excludes invalid directory name characters: `/:<>*?"|`.
-				 */
+				// Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+				// Excludes invalid directory name characters: `/:<>*?"|`.
 				'[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?'
 			),
 			array(
@@ -80,7 +79,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 							'sanitize_callback' => array( $this, '_sanitize_global_styles_callback' ),
 						),
 					),
-					'allow_batch'         => $this->allow_batch,
 				),
 			)
 		);
@@ -108,8 +106,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 					'permission_callback' => array( $this, 'update_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
 				),
-				'schema'      => array( $this, 'get_public_item_schema' ),
-				'allow_batch' => $this->allow_batch,
+				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
 	}
@@ -197,8 +194,26 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_Post $post Post object.
 	 * @return bool Whether the post can be read.
 	 */
-	public function check_read_permission( $post ) {
+	protected function check_read_permission( $post ) {
 		return current_user_can( 'read_post', $post->ID );
+	}
+
+	/**
+	 * Returns the given global styles config.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_REST_Request $request The request instance.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function get_item( $request ) {
+		$post = $this->get_post( $request['id'] );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		return $this->prepare_item_for_response( $post, $request );
 	}
 
 	/**
@@ -227,14 +242,57 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Checks if a global style can be edited.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return bool Whether the post can be edited.
+	 */
+	protected function check_update_permission( $post ) {
+		return current_user_can( 'edit_post', $post->ID );
+	}
+
+	/**
+	 * Updates a single global style config.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 */
+	public function update_item( $request ) {
+		$post_before = $this->get_post( $request['id'] );
+		if ( is_wp_error( $post_before ) ) {
+			return $post_before;
+		}
+
+		$changes = $this->prepare_item_for_database( $request );
+		$result  = wp_update_post( wp_slash( (array) $changes ), true, false );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$post          = get_post( $request['id'] );
+		$fields_update = $this->update_additional_fields_for_object( $post, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
+
+		wp_after_insert_post( $post, true, $post_before );
+
+		$response = $this->prepare_item_for_response( $post, $request );
+
+		return rest_ensure_response( $response );
+	}
+
+	/**
 	 * Prepares a single global styles config for update.
 	 *
 	 * @since 5.9.0
-	 * @since 6.2.0 Added validation of styles.css property.
-	 * @since 6.6.0 Added registration of newly created style variations provided by the user.
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return stdClass|WP_Error Prepared item on success. WP_Error on when the custom CSS is not valid.
+	 * @return stdClass Changes to pass to wp_update_post.
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$changes     = new stdClass();
@@ -254,35 +312,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		if ( isset( $request['styles'] ) || isset( $request['settings'] ) ) {
 			$config = array();
 			if ( isset( $request['styles'] ) ) {
-				if ( isset( $request['styles']['css'] ) ) {
-					$css_validation_result = $this->validate_custom_css( $request['styles']['css'] );
-					if ( is_wp_error( $css_validation_result ) ) {
-						return $css_validation_result;
-					}
-				}
 				$config['styles'] = $request['styles'];
 			} elseif ( isset( $existing_config['styles'] ) ) {
 				$config['styles'] = $existing_config['styles'];
 			}
-
-			/*
-			 * If the incoming request is going to create a new variation
-			 * that is not yet registered, we register it here.
-			 * This is because the variations are registered on init,
-			 * but we want this endpoint to return the new variation immediately:
-			 * if we don't register it, it'll be stripped out of the response
-			 * just in this request (subsequent ones will be ok).
-			 * Take the variations defined in styles.blocks.variations from the incoming request
-			 * that are not part of the $exsting_config.
-			 */
-			if ( isset( $request['styles']['blocks']['variations'] ) ) {
-				$existing_variations = isset( $existing_config['styles']['blocks']['variations'] ) ? $existing_config['styles']['blocks']['variations'] : array();
-				$new_variations      = array_diff_key( $request['styles']['blocks']['variations'], $existing_variations );
-				if ( ! empty( $new_variations ) ) {
-					wp_register_block_style_variations_from_theme_json_data( $new_variations );
-				}
-			}
-
 			if ( isset( $request['settings'] ) ) {
 				$config['settings'] = $request['settings'];
 			} elseif ( isset( $existing_config['settings'] ) ) {
@@ -309,25 +342,22 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * Prepare a global styles config output for response.
 	 *
 	 * @since 5.9.0
-	 * @since 6.6.0 Added custom relative theme file URIs to `_links`.
 	 *
 	 * @param WP_Post         $post    Global Styles post object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $post, $request ) {
+	public function prepare_item_for_response( $post, $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		$raw_config                       = json_decode( $post->post_content, true );
 		$is_global_styles_user_theme_json = isset( $raw_config['isGlobalStylesUserThemeJSON'] ) && true === $raw_config['isGlobalStylesUserThemeJSON'];
 		$config                           = array();
-		$theme_json                       = null;
 		if ( $is_global_styles_user_theme_json ) {
-			$theme_json = new WP_Theme_JSON( $raw_config, 'custom' );
-			$config     = $theme_json->get_raw_data();
+			$config = ( new WP_Theme_JSON( $raw_config, 'custom' ) )->get_raw_data();
 		}
 
 		// Base fields for every post.
-		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
+		$fields = $this->get_fields_for_response( $request );
 
 		if ( rest_is_field_included( 'id', $fields ) ) {
 			$data['id'] = $post->ID;
@@ -364,18 +394,9 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 
 		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
 			$links = $this->prepare_links( $post->ID );
-
-			// Only return resolved URIs for get requests to user theme JSON.
-			if ( $theme_json ) {
-				$resolved_theme_uris = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $theme_json );
-				if ( ! empty( $resolved_theme_uris ) ) {
-					$links['https://api.w.org/theme-file'] = $resolved_theme_uris;
-				}
-			}
-
 			$response->add_links( $links );
 			if ( ! empty( $links['self']['href'] ) ) {
-				$actions = $this->get_available_actions( $post, $request );
+				$actions = $this->get_available_actions();
 				$self    = $links['self']['href'];
 				foreach ( $actions as $rel ) {
 					$response->add_link( $rel, $self );
@@ -390,7 +411,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * Prepares links for the request.
 	 *
 	 * @since 5.9.0
-	 * @since 6.3.0 Adds revisions count and rest URL href to version-history.
 	 *
 	 * @param integer $id ID.
 	 * @return array Links for the given post.
@@ -399,23 +419,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		$base = sprintf( '%s/%s', $this->namespace, $this->rest_base );
 
 		$links = array(
-			'self'  => array(
+			'self' => array(
 				'href' => rest_url( trailingslashit( $base ) . $id ),
 			),
-			'about' => array(
-				'href' => rest_url( 'wp/v2/types/' . $this->post_type ),
-			),
 		);
-
-		if ( post_type_supports( $this->post_type, 'revisions' ) ) {
-			$revisions                = wp_get_latest_revision_id_and_total_count( $id );
-			$revisions_count          = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
-			$revisions_base           = sprintf( '/%s/%d/revisions', $base, $id );
-			$links['version-history'] = array(
-				'href'  => rest_url( $revisions_base ),
-				'count' => $revisions_count,
-			);
-		}
 
 		return $links;
 	}
@@ -424,26 +431,33 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * Get the link relations available for the post and current user.
 	 *
 	 * @since 5.9.0
-	 * @since 6.2.0 Added 'edit-css' action.
-	 * @since 6.6.0 Added $post and $request parameters.
 	 *
-	 * @param WP_Post         $post    Post object.
-	 * @param WP_REST_Request $request Request object.
 	 * @return array List of link relations.
 	 */
-	protected function get_available_actions( $post, $request ) {
+	protected function get_available_actions() {
 		$rels = array();
 
-		$post_type = get_post_type_object( $post->post_type );
+		$post_type = get_post_type_object( $this->post_type );
 		if ( current_user_can( $post_type->cap->publish_posts ) ) {
 			$rels[] = 'https://api.w.org/action-publish';
 		}
 
-		if ( current_user_can( 'edit_css' ) ) {
-			$rels[] = 'https://api.w.org/action-edit-css';
-		}
-
 		return $rels;
+	}
+
+	/**
+	 * Overwrites the default protected title format.
+	 *
+	 * By default, WordPress will show password protected posts with a title of
+	 * "Protected: %s", as the REST API communicates the protected status of a post
+	 * in a machine readable format, we remove the "Protected: " prefix.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return string Protected title format.
+	 */
+	public function protected_title_format() {
+		return '%s';
 	}
 
 	/**
@@ -526,10 +540,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_theme_item_permissions_check( $request ) {
-		/*
-		 * Verify if the current user has edit_theme_options capability.
-		 * This capability is required to edit/view/delete templates.
-		 */
+		// Verify if the current user has edit_theme_options capability.
+		// This capability is required to edit/view/delete templates.
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_manage_global_styles',
@@ -547,13 +559,12 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * Returns the given theme global styles config.
 	 *
 	 * @since 5.9.0
-	 * @since 6.6.0 Added custom relative theme file URIs to `_links`.
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_theme_item( $request ) {
-		if ( get_stylesheet() !== $request['stylesheet'] ) {
+		if ( wp_get_theme()->get_stylesheet() !== $request['stylesheet'] ) {
 			// This endpoint only supports the active theme for now.
 			return new WP_Error(
 				'rest_theme_not_found',
@@ -563,8 +574,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$theme  = WP_Theme_JSON_Resolver::get_merged_data( 'theme' );
-		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
+		$fields = $this->get_fields_for_response( $request );
 
 		if ( rest_is_field_included( 'settings', $fields ) ) {
 			$data['settings'] = $theme->get_settings();
@@ -582,15 +593,11 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		$response = rest_ensure_response( $data );
 
 		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
-			$links               = array(
+			$links = array(
 				'self' => array(
 					'href' => rest_url( sprintf( '%s/%s/themes/%s', $this->namespace, $this->rest_base, $request['stylesheet'] ) ),
 				),
 			);
-			$resolved_theme_uris = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $theme );
-			if ( ! empty( $resolved_theme_uris ) ) {
-				$links['https://api.w.org/theme-file'] = $resolved_theme_uris;
-			}
 			$response->add_links( $links );
 		}
 
@@ -605,11 +612,9 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
-	public function get_theme_items_permissions_check( $request ) {
-		/*
-		 * Verify if the current user has edit_theme_options capability.
-		 * This capability is required to edit/view/delete templates.
-		 */
+	public function get_theme_items_permissions_check( $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+		// Verify if the current user has edit_theme_options capability.
+		// This capability is required to edit/view/delete templates.
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_manage_global_styles',
@@ -627,15 +632,13 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * Returns the given theme global styles variations.
 	 *
 	 * @since 6.0.0
-	 * @since 6.2.0 Returns parent theme variations, if they exist.
-	 * @since 6.6.0 Added custom relative theme file URIs to `_links` for each item.
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 *
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_theme_items( $request ) {
-		if ( get_stylesheet() !== $request['stylesheet'] ) {
+		if ( wp_get_theme()->get_stylesheet() !== $request['stylesheet'] ) {
 			// This endpoint only supports the active theme for now.
 			return new WP_Error(
 				'rest_theme_not_found',
@@ -644,45 +647,9 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$response   = array();
 		$variations = WP_Theme_JSON_Resolver::get_style_variations();
+		$response   = rest_ensure_response( $variations );
 
-		foreach ( $variations as $variation ) {
-			$variation_theme_json = new WP_Theme_JSON( $variation );
-			$resolved_theme_uris  = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $variation_theme_json );
-			$data                 = rest_ensure_response( $variation );
-			if ( ! empty( $resolved_theme_uris ) ) {
-				$data->add_links(
-					array(
-						'https://api.w.org/theme-file' => $resolved_theme_uris,
-					)
-				);
-			}
-			$response[] = $this->prepare_response_for_collection( $data );
-		}
-
-		return rest_ensure_response( $response );
-	}
-
-	/**
-	 * Validate style.css as valid CSS.
-	 *
-	 * Currently just checks for invalid markup.
-	 *
-	 * @since 6.2.0
-	 * @since 6.4.0 Changed method visibility to protected.
-	 *
-	 * @param string $css CSS to validate.
-	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
-	 */
-	protected function validate_custom_css( $css ) {
-		if ( preg_match( '#</?\w+#', $css ) ) {
-			return new WP_Error(
-				'rest_custom_css_illegal_markup',
-				__( 'Markup is not allowed in CSS.' ),
-				array( 'status' => 400 )
-			);
-		}
-		return true;
+		return $response;
 	}
 }

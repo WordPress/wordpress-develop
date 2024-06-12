@@ -73,6 +73,7 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 				$this->put_contents( $path, 'This is a test file' );
 			}
 		}
+
 	}
 
 	/**
@@ -205,6 +206,7 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 		}
 		return $ret;
 	}
+
 }
 
 class MockFS_Node {

@@ -142,7 +142,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 	color: #fff;
 	font-size: 12px;
 	font-weight: 700;
-	line-height: 1.25;
+	line-height: 15px;
 	padding: 10px 30px 11px;
 	text-transform: uppercase;
 	vertical-align: bottom;
@@ -155,11 +155,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 .wp-block-file .wp-block-file__button:active {
 	background-color: #55d737;
-}
-
-.widget .wp-block-file .wp-block-file__button,
-.widget .wp-block-file .wp-block-file__button:hover {
-	color: #fff;
 }
 
 /*--------------------------------------------------------------
@@ -184,33 +179,12 @@ p.has-drop-cap:not(:focus)::first-letter {
 	margin: 0;
 }
 
-:where(.wp-block-pullquote[class*="-font-size"], .wp-block-pullquote[style*="font-size"]) blockquote {
-	font-size: inherit;
-}
-
-:where(.wp-block-pullquote[style*="font-style"]) blockquote {
-	font-style: inherit;
-}
-
-:where(.wp-block-pullquote[style*="font-weight"]) blockquote {
-	font-weight: inherit;
-}
-
 .wp-block-pullquote cite {
 	color: #2b2b2b;
 	font-size: 16px;
 	font-weight: 400;
 	margin-top: 0;
 	text-transform: none;
-}
-
-.wp-block-pullquote.has-text-color blockquote,
-.wp-block-pullquote.has-background blockquote,
-.has-background .wp-block-pullquote blockquote,
-.wp-block-pullquote.has-text-color cite,
-.has-background .wp-block-pullquote cite,
-.has-text-color .wp-block-pullquote__citation {
-	color: inherit;
 }
 
 .wp-block-pullquote.alignleft {
@@ -252,16 +226,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 .wp-block-button .wp-block-button__link {
 	font-size: 12px;
 	font-weight: 700;
-	line-height: 1.25;
+	line-height: 15px;
 	padding: 10px 30px 11px;
 	text-decoration: none;
 	text-transform: uppercase;
 	vertical-align: bottom;
-}
-
-.wp-block-buttons[style*="text-transform"] .wp-block-button__link,
-.wp-block-button[style*="text-transform"] .wp-block-button__link {
-	text-transform: inherit;
 }
 
 .wp-block-button__link {
@@ -285,11 +254,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 	background-color: #55d737;
 }
 
-.widget a.wp-block-button__link:not(.has-text-color),
-.widget a.wp-block-button__link:not(.has-text-color):hover {
-	color: #fff;
-}
-
 /* Separator */
 
 .wp-block-separator {
@@ -297,8 +261,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 	max-width: 100px;
 }
 
-.wp-block-separator.is-style-wide,
-.wp-block-separator.is-style-dots {
+.wp-block-separator.is-style-wide {
 	max-width: 100%;
 }
 
@@ -377,6 +340,9 @@ p.has-drop-cap:not(:focus)::first-letter {
 	color: #41a62a;
 }
 
+.wp-block-latest-comments__comment-excerpt p:last-child {
+}
+
 .wp-block-latest-comments__comment-date {
 	text-transform: uppercase;
 }
@@ -392,13 +358,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 .wp-block-latest-posts.is-grid {
 	margin-left: 0;
 	margin-right: 0;
-}
-
-/* Search */
-
-html :where(.wp-block-search__button-inside .wp-block-search__inside-wrapper) {
-	border: 1px solid #949494;
-	padding: 4px;
 }
 
 /*--------------------------------------------------------------

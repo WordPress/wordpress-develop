@@ -1,9 +1,15 @@
 <?php
 /**
- * Tests for block rendering functions.
+ * Block rendering tests
  *
  * @package WordPress
  * @subpackage Blocks
+ * @since 5.0.0
+ */
+
+/**
+ * Tests for block rendering functions.
+ *
  * @since 5.0.0
  *
  * @group blocks
@@ -218,18 +224,14 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 
 		$html = do_blocks( self::strip_r( file_get_contents( $html_path ) ) );
 		// If blocks opt into Gutenberg's layout implementation
-		// the container will receive an additional, unique classname based on "wp-container-[blockname]-layout"
+		// the container will receive an added classname of `wp_unique_id( 'wp-container-' )`
 		// so we need to normalize the random id.
-		$normalized_html = preg_replace( '/wp-container-[a-z-]+\d+/', 'wp-container-1', $html );
+		$normalized_html = preg_replace( '/wp-container-\d+/', 'wp-container-1', $html );
 
 		// The gallery block uses a unique class name of `wp_unique_id( 'wp-block-gallery-' )`
 		// so we need to normalize the random id.
 		$normalized_html = preg_replace( '/wp-block-gallery-\d+/', 'wp-block-gallery-1', $normalized_html );
 		$expected_html   = self::strip_r( file_get_contents( $server_html_path ) );
-
-		// Convert HTML to be white space insensitive.
-		$normalized_html = preg_replace( '/(\s+$)/m', '', $normalized_html );
-		$expected_html   = preg_replace( '/(\s+$)/m', '', $expected_html );
 
 		$this->assertSame(
 			$expected_html,
@@ -521,4 +523,5 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 
 		return $content;
 	}
+
 }

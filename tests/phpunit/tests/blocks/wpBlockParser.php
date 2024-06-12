@@ -1,9 +1,15 @@
 <?php
 /**
- * Tests for WP_Block_Parser.
+ * WP_Block_Parser tests
  *
  * @package WordPress
  * @subpackage Blocks
+ * @since 5.0.0
+ */
+
+/**
+ * Tests for WP_Block_Parser.
+ *
  * @since 5.0.0
  *
  * @group blocks

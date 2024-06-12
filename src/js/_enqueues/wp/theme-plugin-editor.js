@@ -191,7 +191,7 @@ wp.themePluginEditor = (function( $ ) {
 			return;
 		}
 
-		// Scroll to the line that has the error.
+		// Scroll ot the line that has the error.
 		if ( component.lintErrors.length ) {
 			component.instance.codemirror.setCursor( component.lintErrors[0].from.line );
 			return;

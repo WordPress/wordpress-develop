@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 3,
+	"apiVersion": 2,
 	"name": "core/more",
 	"title": "More",
 	"category": "design",
@@ -9,8 +9,7 @@
 	"textdomain": "default",
 	"attributes": {
 		"customText": {
-			"type": "string",
-			"default": ""
+			"type": "string"
 		},
 		"noTeaser": {
 			"type": "boolean",
@@ -21,10 +20,7 @@
 		"customClassName": false,
 		"className": false,
 		"html": false,
-		"multiple": false,
-		"interactivity": {
-			"clientNavigation": true
-		}
+		"multiple": false
 	},
 	"editorStyle": "wp-block-more-editor"
 }

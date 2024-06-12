@@ -88,6 +88,8 @@ jQuery( function($) {
 	}
 });
 
+jQuery(window).on( 'unload', function () { window.tinymce = window.tinyMCE = window.wpgallery = null; } ); // Cleanup.
+
 /* gallery settings */
 window.tinymce = null;
 

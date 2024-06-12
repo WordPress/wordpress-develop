@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 3,
+	"apiVersion": 2,
 	"name": "core/video",
 	"title": "Video",
 	"category": "media",
@@ -15,8 +15,8 @@
 			"attribute": "autoplay"
 		},
 		"caption": {
-			"type": "rich-text",
-			"source": "rich-text",
+			"type": "string",
+			"source": "html",
 			"selector": "figcaption",
 			"__experimentalRole": "content"
 		},
@@ -83,14 +83,7 @@
 		"align": true,
 		"spacing": {
 			"margin": true,
-			"padding": true,
-			"__experimentalDefaultControls": {
-				"margin": false,
-				"padding": false
-			}
-		},
-		"interactivity": {
-			"clientNavigation": true
+			"padding": true
 		}
 	},
 	"editorStyle": "wp-block-video-editor",

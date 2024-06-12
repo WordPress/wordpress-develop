@@ -48,26 +48,7 @@ $out            = '';
 $wp_styles = new WP_Styles();
 wp_default_styles( $wp_styles );
 
-$etag = "WP:{$wp_version};";
-
-foreach ( $load as $handle ) {
-	if ( ! array_key_exists( $handle, $wp_styles->registered ) ) {
-		continue;
-	}
-
-	$ver   = $wp_styles->registered[ $handle ]->ver ? $wp_styles->registered[ $handle ]->ver : $wp_version;
-	$etag .= "{$handle}:{$ver};";
-}
-
-/*
- * This is not intended to be cryptographically secure, just a fast way to get
- * a fixed length string based on the script versions. As this file does not
- * load the full WordPress environment, it is not possible to use the salted
- * wp_hash() function.
- */
-$etag = 'W/"' . md5( $etag ) . '"';
-
-if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) && stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) === $etag ) {
+if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) && stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) === $wp_version ) {
 	header( "$protocol 304 Not Modified" );
 	exit;
 }
@@ -92,8 +73,7 @@ foreach ( $load as $handle ) {
 
 	$content = get_file( $path ) . "\n";
 
-	// Note: str_starts_with() is not used here, as wp-includes/compat.php is not loaded in this file.
-	if ( 0 === strpos( $style->src, '/' . WPINC . '/css/' ) ) {
+	if ( strpos( $style->src, '/' . WPINC . '/css/' ) === 0 ) {
 		$content = str_replace( '../images/', '../' . WPINC . '/images/', $content );
 		$content = str_replace( '../js/tinymce/', '../' . WPINC . '/js/tinymce/', $content );
 		$content = str_replace( '../fonts/', '../' . WPINC . '/fonts/', $content );
@@ -103,7 +83,7 @@ foreach ( $load as $handle ) {
 	}
 }
 
-header( "Etag: $etag" );
+header( "Etag: $wp_version" );
 header( 'Content-Type: text/css; charset=UTF-8' );
 header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + $expires_offset ) . ' GMT' );
 header( "Cache-Control: public, max-age=$expires_offset" );

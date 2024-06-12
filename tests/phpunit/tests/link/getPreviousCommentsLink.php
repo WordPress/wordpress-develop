@@ -35,4 +35,5 @@ class Tests_Link_GetPreviousCommentsLink extends WP_UnitTestCase {
 
 		set_query_var( 'cpage', $cpage );
 	}
+
 }

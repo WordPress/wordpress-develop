@@ -1,9 +1,13 @@
 <?php
 /**
- * Unit tests covering WP_REST_Search_Controller functionality.
+ * WP_REST_Search_Controller tests
  *
  * @package WordPress
  * @subpackage REST_API
+ */
+
+/**
+ * Tests for WP_REST_Search_Controller.
  *
  * @group restapi
  */
@@ -889,17 +893,4 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 	}
 
-	/**
-	 * @ticket 60771
-	 */
-	public function test_sanitize_subtypes_validates_type() {
-		$response = $this->do_request_with_params(
-			array(
-				'subtype' => 'page',
-				'type'    => array( 'invalid' ),
-			)
-		);
-
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
-	}
 }

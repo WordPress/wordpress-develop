@@ -79,15 +79,8 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 		 * If you're building a theme based on Twenty Eleven, use
 		 * a find and replace to change 'twentyeleven' to the name
 		 * of your theme in all the template files.
-		 *
-		 * Manual loading of text domain is not required after the introduction of
-		 * just in time translation loading in WordPress version 4.6.
-		 *
-		 * @ticket 58318
 		 */
-		if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
-			load_theme_textdomain( 'twentyeleven', get_template_directory() . '/languages' );
-		}
+		load_theme_textdomain( 'twentyeleven', get_template_directory() . '/languages' );
 
 		// This theme styles the visual editor with editor-style.css to match the theme style.
 		add_editor_style();
@@ -304,7 +297,7 @@ endif; // twentyeleven_setup()
  */
 function twentyeleven_scripts_styles() {
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyeleven-block-style', get_template_directory_uri() . '/blocks.css', array(), '20230122' );
+	wp_enqueue_style( 'twentyeleven-block-style', get_template_directory_uri() . '/blocks.css', array(), '20190102' );
 }
 add_action( 'wp_enqueue_scripts', 'twentyeleven_scripts_styles' );
 
@@ -315,7 +308,7 @@ add_action( 'wp_enqueue_scripts', 'twentyeleven_scripts_styles' );
  */
 function twentyeleven_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyeleven-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20220927' );
+	wp_enqueue_style( 'twentyeleven-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20201208' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyeleven_block_editor_styles' );
 
@@ -329,7 +322,7 @@ if ( ! function_exists( 'twentyeleven_header_style' ) ) :
 		$text_color = get_header_textcolor();
 
 		// If no custom options for text are set, let's bail.
-		if ( HEADER_TEXTCOLOR === $text_color ) {
+		if ( HEADER_TEXTCOLOR == $text_color ) {
 			return;
 		}
 
@@ -393,7 +386,7 @@ if ( ! function_exists( 'twentyeleven_admin_header_style' ) ) :
 	}
 		<?php
 		// If the user has set a custom color for the text, use that.
-		if ( get_header_textcolor() !== HEADER_TEXTCOLOR ) :
+		if ( get_header_textcolor() != HEADER_TEXTCOLOR ) :
 			?>
 	#site-title a,
 	#site-description {
@@ -439,39 +432,6 @@ if ( ! function_exists( 'twentyeleven_admin_header_image' ) ) :
 		<?php
 	}
 endif; // twentyeleven_admin_header_image()
-
-
-if ( ! function_exists( 'twentyeleven_header_image' ) ) :
-	/**
-	 * Custom header image markup displayed.
-	 *
-	 * @since Twenty Eleven 4.5
-	 */
-	function twentyeleven_header_image() {
-		$attrs = array(
-			'alt' => get_bloginfo( 'name', 'display' ),
-		);
-
-		// Compatibility with versions of WordPress prior to 3.4.
-		if ( function_exists( 'get_custom_header' ) ) {
-			$custom_header   = get_custom_header();
-			$attrs['width']  = $custom_header->width;
-			$attrs['height'] = $custom_header->height;
-		} else {
-			$attrs['width']  = HEADER_IMAGE_WIDTH;
-			$attrs['height'] = HEADER_IMAGE_HEIGHT;
-		}
-
-		if ( function_exists( 'the_header_image_tag' ) ) {
-			the_header_image_tag( $attrs );
-			return;
-		}
-
-		?>
-		<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $attrs['width'] ); ?>" height="<?php echo esc_attr( $attrs['height'] ); ?>" alt="<?php echo esc_attr( $attrs['alt'] ); ?>" />
-		<?php
-	}
-endif; // twentyeleven_header_image()
 
 /**
  * Set the post excerpt length to 40 words.
@@ -562,7 +522,7 @@ add_filter( 'wp_page_menu_args', 'twentyeleven_page_menu_args' );
 /**
  * Register sidebars and widgetized areas.
  *
- * Also register the default Ephemera widget.
+ * Also register the default Epherma widget.
  *
  * @since Twenty Eleven 1.0
  */
@@ -700,15 +660,15 @@ function twentyeleven_footer_sidebar_class() {
 	$count = 0;
 
 	if ( is_active_sidebar( 'sidebar-3' ) ) {
-		++$count;
+		$count++;
 	}
 
 	if ( is_active_sidebar( 'sidebar-4' ) ) {
-		++$count;
+		$count++;
 	}
 
 	if ( is_active_sidebar( 'sidebar-5' ) ) {
-		++$count;
+		$count++;
 	}
 
 	$class = '';
@@ -764,7 +724,7 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 					<?php
 					$avatar_size = 68;
 
-					if ( '0' !== $comment->comment_parent ) {
+					if ( '0' != $comment->comment_parent ) {
 						$avatar_size = 39;
 					}
 
@@ -796,7 +756,7 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 					}
 					?>
 
-					<?php if ( '0' === $comment->comment_approved ) : ?>
+					<?php if ( '0' == $comment->comment_approved ) : ?>
 					<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
 					<br />
 					<?php endif; ?>

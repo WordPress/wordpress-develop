@@ -40,7 +40,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
+	 * @return bool|WP_Error True if the request has read access for the item, otherwise false or WP_Error object.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$has_permission = parent::get_item_permissions_check( $request );
@@ -81,7 +81,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the current user has permission, WP_Error object otherwise.
+	 * @return bool|WP_Error Whether the current user has permission.
 	 */
 	protected function check_has_read_only_access( $request ) {
 		if ( current_user_can( 'edit_theme_options' ) ) {
@@ -523,10 +523,6 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
-		if ( $this->schema ) {
-			return $this->add_additional_fields_schema( $this->schema );
-		}
-
 		$schema = parent::get_item_schema();
 		unset( $schema['properties']['count'], $schema['properties']['link'], $schema['properties']['taxonomy'] );
 
@@ -538,7 +534,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 			),
 			'context'     => array( 'view', 'edit' ),
 			'arg_options' => array(
-				'validate_callback' => static function ( $locations, $request, $param ) {
+				'validate_callback' => function ( $locations, $request, $param ) {
 					$valid = rest_validate_request_arg( $locations, $request, $param );
 
 					if ( true !== $valid ) {
@@ -570,8 +566,6 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 			'type'        => 'boolean',
 		);
 
-		$this->schema = $schema;
-
-		return $this->add_additional_fields_schema( $this->schema );
+		return $schema;
 	}
 }

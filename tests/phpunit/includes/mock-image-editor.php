@@ -61,6 +61,7 @@ if ( class_exists( 'WP_Image_Editor' ) ) :
 			return self::$save_return;
 		}
 		public function stream( $mime_type = null ) {
+
 		}
 
 		public function get_size() {

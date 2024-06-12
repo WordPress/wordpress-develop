@@ -4,7 +4,6 @@
  * @group date
  * @group datetime
  * @group post
- *
  * @covers ::get_post_time
  * @covers ::get_post_modified_time
  */

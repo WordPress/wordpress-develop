@@ -225,9 +225,9 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 		register_post_status( 'foo' );
 		_unregister_post_status( 'foo' );
 
-		$statuses = get_post_stati();
+		$stati = get_post_stati();
 
-		$this->assertArrayNotHasKey( 'foo', $statuses );
+		$this->assertArrayNotHasKey( 'foo', $stati );
 	}
 
 	/**

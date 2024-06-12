@@ -33,12 +33,7 @@ if ( is_singular() ) {
 			?>
 
 			<div class="entry-categories">
-				<span class="screen-reader-text">
-					<?php
-					/* translators: Hidden accessibility text. */
-					_e( 'Categories', 'twentytwenty' );
-					?>
-				</span>
+				<span class="screen-reader-text"><?php _e( 'Categories', 'twentytwenty' ); ?></span>
 				<div class="entry-categories-inner">
 					<?php the_category( ' ' ); ?>
 				</div><!-- .entry-categories-inner -->

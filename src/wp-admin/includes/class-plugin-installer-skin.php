@@ -24,12 +24,6 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	private $is_downgrading = false;
 
 	/**
-	 * Constructor.
-	 *
-	 * Sets up the plugin installer skin.
-	 *
-	 * @since 2.8.0
-	 *
 	 * @param array $args
 	 */
 	public function __construct( $args = array() ) {
@@ -52,7 +46,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Performs an action before installing a plugin.
+	 * Action to perform before installing a plugin.
 	 *
 	 * @since 2.8.0
 	 */
@@ -72,7 +66,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 * @since 5.5.0
 	 *
 	 * @param WP_Error $wp_error WP_Error object.
-	 * @return bool True if the error should be hidden, false otherwise.
+	 * @return bool
 	 */
 	public function hide_process_failed( $wp_error ) {
 		if (
@@ -87,7 +81,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Performs an action following a plugin install.
+	 * Action to perform following a plugin install.
 	 *
 	 * @since 2.8.0
 	 */
@@ -127,7 +121,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['network_activate'] = sprintf(
 				'<a class="button button-primary" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( 'plugins.php?action=activate&amp;networkwide=1&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ),
-				_x( 'Network Activate', 'plugin' )
+				__( 'Network Activate' )
 			);
 			unset( $install_actions['activate_plugin'] );
 		}
@@ -183,7 +177,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Checks if the plugin can be overwritten and outputs the HTML for overwriting a plugin on upload.
+	 * Check if the plugin can be overwritten and output the HTML for overwriting a plugin on upload.
 	 *
 	 * @since 5.5.0
 	 *
@@ -299,13 +293,13 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are uploading an older version of a current plugin. You can continue to install the older version, but be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://developer.wordpress.org/advanced-administration/security/backup/' )
+					__( 'https://wordpress.org/support/article/wordpress-backups/' )
 				);
 			} else {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are updating a plugin. Be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://developer.wordpress.org/advanced-administration/security/backup/' )
+					__( 'https://wordpress.org/support/article/wordpress-backups/' )
 				);
 			}
 

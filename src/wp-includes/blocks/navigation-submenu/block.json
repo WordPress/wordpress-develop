@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 3,
+	"apiVersion": 2,
 	"name": "core/navigation-submenu",
 	"title": "Submenu",
 	"category": "design",
@@ -58,10 +58,7 @@
 	],
 	"supports": {
 		"reusable": false,
-		"html": false,
-		"interactivity": {
-			"clientNavigation": true
-		}
+		"html": false
 	},
 	"editorStyle": "wp-block-navigation-submenu-editor",
 	"style": "wp-block-navigation-submenu"

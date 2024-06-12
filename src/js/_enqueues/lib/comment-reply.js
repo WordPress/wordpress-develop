@@ -59,7 +59,7 @@ window.addComment = ( function( window ) {
 	 * @since 5.1.1
 	 */
 	function ready() {
-		// Initialize the events.
+		// Initialise the events.
 		init();
 
 		// Set up a MutationObserver to check for comments loaded late.

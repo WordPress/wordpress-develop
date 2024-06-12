@@ -56,7 +56,7 @@ if ( ! function_exists( 'mb_substr' ) ) :
 	 * @param string|null $encoding Optional. Character encoding to use. Default null.
 	 * @return string Extracted substring.
 	 */
-	function mb_substr( $string, $start, $length = null, $encoding = null ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.stringFound
+	function mb_substr( $string, $start, $length = null, $encoding = null ) {
 		return _mb_substr( $string, $start, $length, $encoding );
 	}
 endif;
@@ -91,7 +91,7 @@ function _mb_substr( $str, $start, $length = null, $encoding = null ) {
 	 * The solution below works only for UTF-8, so in case of a different
 	 * charset just use built-in substr().
 	 */
-	if ( ! is_utf8_charset( $encoding ) ) {
+	if ( ! in_array( $encoding, array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
 		return is_null( $length ) ? substr( $str, $start ) : substr( $str, $start, $length );
 	}
 
@@ -148,7 +148,7 @@ if ( ! function_exists( 'mb_strlen' ) ) :
 	 * @param string|null $encoding Optional. Character encoding to use. Default null.
 	 * @return int String length of `$string`.
 	 */
-	function mb_strlen( $string, $encoding = null ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.stringFound
+	function mb_strlen( $string, $encoding = null ) {
 		return _mb_strlen( $string, $encoding );
 	}
 endif;
@@ -156,7 +156,7 @@ endif;
 /**
  * Internal compat function to mimic mb_strlen().
  *
- * Only understands UTF-8 and 8bit. All other character sets will be treated as 8bit.
+ * Only understands UTF-8 and 8bit.  All other character sets will be treated as 8bit.
  * For `$encoding === UTF-8`, the `$str` input is expected to be a valid UTF-8 byte
  * sequence. The behavior of this function for invalid inputs is undefined.
  *
@@ -176,7 +176,7 @@ function _mb_strlen( $str, $encoding = null ) {
 	 * The solution below works only for UTF-8, so in case of a different charset
 	 * just use built-in strlen().
 	 */
-	if ( ! is_utf8_charset( $encoding ) ) {
+	if ( ! in_array( $encoding, array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
 		return strlen( $str );
 	}
 
@@ -203,7 +203,7 @@ function _mb_strlen( $str, $encoding = null ) {
 
 	do {
 		// We had some string left over from the last round, but we counted it in that last round.
-		--$count;
+		$count--;
 
 		/*
 		 * Split by UTF-8 character, limit to 1000 characters (last array element will contain
@@ -333,6 +333,10 @@ if ( ! function_exists( 'hash_equals' ) ) :
 	}
 endif;
 
+// random_int() was introduced in PHP 7.0.
+if ( ! function_exists( 'random_int' ) ) {
+	require ABSPATH . WPINC . '/random_compat/random.php';
+}
 // sodium_crypto_box() was introduced in PHP 7.2.
 if ( ! function_exists( 'sodium_crypto_box' ) ) {
 	require ABSPATH . WPINC . '/sodium_compat/autoload.php';
@@ -359,6 +363,23 @@ if ( ! function_exists( 'is_countable' ) ) {
 	}
 }
 
+if ( ! function_exists( 'is_iterable' ) ) {
+	/**
+	 * Polyfill for is_iterable() function added in PHP 7.1.
+	 *
+	 * Verify that the content of a variable is an array or an object
+	 * implementing the Traversable interface.
+	 *
+	 * @since 4.9.6
+	 *
+	 * @param mixed $value The value to check.
+	 * @return bool True if `$value` is iterable, false otherwise.
+	 */
+	function is_iterable( $value ) {
+		return ( is_array( $value ) || $value instanceof Traversable );
+	}
+}
+
 if ( ! function_exists( 'array_key_first' ) ) {
 	/**
 	 * Polyfill for array_key_first() function added in PHP 7.3.
@@ -372,7 +393,7 @@ if ( ! function_exists( 'array_key_first' ) ) {
 	 * @return string|int|null The first key of array if the array
 	 *                         is not empty; `null` otherwise.
 	 */
-	function array_key_first( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+	function array_key_first( array $array ) {
 		foreach ( $array as $key => $value ) {
 			return $key;
 		}
@@ -392,7 +413,7 @@ if ( ! function_exists( 'array_key_last' ) ) {
 	 * @return string|int|null The last key of array if the array
 	 *.                        is not empty; `null` otherwise.
 	 */
-	function array_key_last( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+	function array_key_last( array $array ) {
 		if ( empty( $array ) ) {
 			return null;
 		}
@@ -400,38 +421,6 @@ if ( ! function_exists( 'array_key_last' ) ) {
 		end( $array );
 
 		return key( $array );
-	}
-}
-
-if ( ! function_exists( 'array_is_list' ) ) {
-	/**
-	 * Polyfill for `array_is_list()` function added in PHP 8.1.
-	 *
-	 * Determines if the given array is a list.
-	 *
-	 * An array is considered a list if its keys consist of consecutive numbers from 0 to count($array)-1.
-	 *
-	 * @see https://github.com/symfony/polyfill-php81/tree/main
-	 *
-	 * @since 6.5.0
-	 *
-	 * @param array<mixed> $arr The array being evaluated.
-	 * @return bool True if array is a list, false otherwise.
-	 */
-	function array_is_list( $arr ) {
-		if ( ( array() === $arr ) || ( array_values( $arr ) === $arr ) ) {
-			return true;
-		}
-
-		$next_key = -1;
-
-		foreach ( $arr as $k => $v ) {
-			if ( ++$next_key !== $k ) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 }
 
@@ -445,15 +434,11 @@ if ( ! function_exists( 'str_contains' ) ) {
 	 * @since 5.9.0
 	 *
 	 * @param string $haystack The string to search in.
-	 * @param string $needle   The substring to search for in the `$haystack`.
+	 * @param string $needle   The substring to search for in the haystack.
 	 * @return bool True if `$needle` is in `$haystack`, otherwise false.
 	 */
 	function str_contains( $haystack, $needle ) {
-		if ( '' === $needle ) {
-			return true;
-		}
-
-		return false !== strpos( $haystack, $needle );
+		return ( '' === $needle || false !== strpos( $haystack, $needle ) );
 	}
 }
 
@@ -493,22 +478,22 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
 	 */
 	function str_ends_with( $haystack, $needle ) {
-		if ( '' === $haystack ) {
-			return '' === $needle;
+		if ( '' === $haystack && '' !== $needle ) {
+			return false;
 		}
 
 		$len = strlen( $needle );
 
-		return substr( $haystack, -$len, $len ) === $needle;
+		return 0 === substr_compare( $haystack, $needle, -$len, $len );
 	}
 }
 
-// IMAGETYPE_AVIF constant is only defined in PHP 8.x or later.
-if ( ! defined( 'IMAGETYPE_AVIF' ) ) {
-	define( 'IMAGETYPE_AVIF', 19 );
+// IMAGETYPE_WEBP constant is only defined in PHP 7.1 or later.
+if ( ! defined( 'IMAGETYPE_WEBP' ) ) {
+	define( 'IMAGETYPE_WEBP', 18 );
 }
 
-// IMG_AVIF constant is only defined in PHP 8.x or later.
-if ( ! defined( 'IMG_AVIF' ) ) {
-	define( 'IMG_AVIF', IMAGETYPE_AVIF );
+// IMG_WEBP constant is only defined in PHP 7.0.10 or later.
+if ( ! defined( 'IMG_WEBP' ) ) {
+	define( 'IMG_WEBP', IMAGETYPE_WEBP );
 }

@@ -147,6 +147,7 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 		if ( ! is_customize_preview() ) {
 			wp_cache_set( 'widget_twentyeleven_ephemera', $cache, 'widget' );
 		}
+
 	}
 
 	/**

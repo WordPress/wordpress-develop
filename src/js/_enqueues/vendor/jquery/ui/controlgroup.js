@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Controlgroup 1.13.3
- * https://jqueryui.com
+ * jQuery UI Controlgroup 1.13.2
+ * http://jqueryui.com
  *
- * Copyright OpenJS Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
- * https://jquery.org/license
+ * http://jquery.org/license
  */
 
 //>>label: Controlgroup
 //>>group: Widgets
 //>>description: Visually groups form control widgets
-//>>docs: https://api.jqueryui.com/controlgroup/
-//>>demos: https://jqueryui.com/controlgroup/
+//>>docs: http://api.jqueryui.com/controlgroup/
+//>>demos: http://jqueryui.com/controlgroup/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/controlgroup.css
 //>>css.theme: ../../themes/base/theme.css
@@ -24,7 +24,7 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 
@@ -36,8 +36,8 @@
 
 var controlgroupCornerRegex = /ui-corner-([a-z]){2,6}/g;
 
-return $.widget( "ui.controlgroup", {
-	version: "1.13.3",
+$.widget( "ui.controlgroup", {
+	version: "1.13.2",
 	defaultElement: "<div>",
 	options: {
 		direction: "horizontal",

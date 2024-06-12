@@ -112,6 +112,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		$this->assertSame( self::THEME_ROOT . '/sandbox', $theme['Stylesheet Dir'] );
 		$this->assertSame( 'publish', $theme['Status'] );
 		$this->assertSame( '', $theme['Parent Theme'] );
+
 	}
 
 	/**
@@ -143,6 +144,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		$this->assertSame( self::THEME_ROOT . '/stylesheetonly', $theme['Stylesheet Dir'] );
 		$this->assertSame( 'publish', $theme['Status'] );
 		$this->assertSame( 'Sandbox', $theme['Parent Theme'] );
+
 	}
 
 	/**
@@ -161,7 +163,6 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		$theme_names = array_keys( $themes );
 		$expected    = array(
 			'WordPress Default',
-			'Default Child Theme with no theme.json',
 			'Sandbox',
 			'Stylesheet Only',
 			'My Theme',
@@ -176,20 +177,10 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'REST Theme',
 			'Block Theme',
 			'Block Theme Child Theme',
-			'Block Theme Child Deprecated Path',
-			'Block Theme Child With Block Style Variations Theme',
-			'Block Theme Child with no theme.json',
-			'Block Theme Child Theme With Fluid Layout',
-			'Block Theme Child Theme With Fluid Typography',
-			'Block Theme Child Theme With Fluid Typography Config',
-			'Block Theme Non Latin',
 			'Block Theme [0.4.0]',
 			'Block Theme [1.0.0] in subdirectory',
 			'Block Theme Deprecated Path',
-			'Block Theme Patterns',
-			'Block Theme Post Content Default',
-			'Block Theme with defined Typography Fonts',
-			'Block Theme with Hooked Blocks',
+			'Webfonts theme',
 			'Empty `fontFace` in theme.json - no webfonts defined',
 			'A theme with the Update URI header',
 		);

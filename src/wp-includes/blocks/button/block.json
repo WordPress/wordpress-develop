@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 3,
+	"apiVersion": 2,
 	"name": "core/button",
 	"title": "Button",
 	"category": "design",
@@ -9,51 +9,34 @@
 	"keywords": [ "link" ],
 	"textdomain": "default",
 	"attributes": {
-		"tagName": {
-			"type": "string",
-			"enum": [ "a", "button" ],
-			"default": "a"
-		},
-		"type": {
-			"type": "string",
-			"default": "button"
-		},
-		"textAlign": {
-			"type": "string"
-		},
 		"url": {
 			"type": "string",
 			"source": "attribute",
 			"selector": "a",
-			"attribute": "href",
-			"__experimentalRole": "content"
+			"attribute": "href"
 		},
 		"title": {
 			"type": "string",
 			"source": "attribute",
-			"selector": "a,button",
-			"attribute": "title",
-			"__experimentalRole": "content"
+			"selector": "a",
+			"attribute": "title"
 		},
 		"text": {
-			"type": "rich-text",
-			"source": "rich-text",
-			"selector": "a,button",
-			"__experimentalRole": "content"
+			"type": "string",
+			"source": "html",
+			"selector": "a"
 		},
 		"linkTarget": {
 			"type": "string",
 			"source": "attribute",
 			"selector": "a",
-			"attribute": "target",
-			"__experimentalRole": "content"
+			"attribute": "target"
 		},
 		"rel": {
 			"type": "string",
 			"source": "attribute",
 			"selector": "a",
-			"attribute": "rel",
-			"__experimentalRole": "content"
+			"attribute": "rel"
 		},
 		"placeholder": {
 			"type": "string"
@@ -73,8 +56,7 @@
 	},
 	"supports": {
 		"anchor": true,
-		"splitting": true,
-		"align": false,
+		"align": true,
 		"alignWide": false,
 		"color": {
 			"__experimentalSkipSerialization": true,
@@ -98,9 +80,6 @@
 			}
 		},
 		"reusable": false,
-		"shadow": {
-			"__experimentalSkipSerialization": true
-		},
 		"spacing": {
 			"__experimentalSkipSerialization": true,
 			"padding": [ "horizontal", "vertical" ],
@@ -109,22 +88,13 @@
 			}
 		},
 		"__experimentalBorder": {
-			"color": true,
 			"radius": true,
-			"style": true,
-			"width": true,
 			"__experimentalSkipSerialization": true,
 			"__experimentalDefaultControls": {
-				"color": true,
-				"radius": true,
-				"style": true,
-				"width": true
+				"radius": true
 			}
 		},
-		"__experimentalSelector": ".wp-block-button .wp-block-button__link",
-		"interactivity": {
-			"clientNavigation": true
-		}
+		"__experimentalSelector": ".wp-block-button .wp-block-button__link"
 	},
 	"styles": [
 		{ "name": "fill", "label": "Fill", "isDefault": true },

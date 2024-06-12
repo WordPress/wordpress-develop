@@ -173,8 +173,7 @@ $title = sprintf( __( 'Edit Site: %s' ), esc_html( $details->blogname ) );
 $parent_file  = 'sites.php';
 $submenu_file = 'sites.php';
 
-require_once ABSPATH . 'wp-admin/admin-header.php';
-?>
+require_once ABSPATH . 'wp-admin/admin-header.php'; ?>
 
 <div class="wrap">
 <h1 id="edit-site"><?php echo $title; ?></h1>
@@ -196,15 +195,7 @@ if ( isset( $_GET['enabled'] ) ) {
 		/* translators: %s: Number of themes. */
 		$message = _n( '%s theme enabled.', '%s themes enabled.', $enabled );
 	}
-
-	wp_admin_notice(
-		sprintf( $message, number_format_i18n( $enabled ) ),
-		array(
-			'type'        => 'success',
-			'dismissible' => true,
-			'id'          => 'message',
-		)
-	);
+	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $enabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['disabled'] ) ) {
 	$disabled = absint( $_GET['disabled'] );
 	if ( 1 === $disabled ) {
@@ -213,24 +204,9 @@ if ( isset( $_GET['enabled'] ) ) {
 		/* translators: %s: Number of themes. */
 		$message = _n( '%s theme disabled.', '%s themes disabled.', $disabled );
 	}
-
-	wp_admin_notice(
-		sprintf( $message, number_format_i18n( $disabled ) ),
-		array(
-			'type'        => 'success',
-			'dismissible' => true,
-			'id'          => 'message',
-		)
-	);
+	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $disabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['error'] ) && 'none' === $_GET['error'] ) {
-	wp_admin_notice(
-		__( 'No theme selected.' ),
-		array(
-			'type'        => 'error',
-			'dismissible' => true,
-			'id'          => 'message',
-		)
-	);
+	echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'No theme selected.' ) . '</p></div>';
 }
 ?>
 

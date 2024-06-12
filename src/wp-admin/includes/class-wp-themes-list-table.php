@@ -11,6 +11,7 @@
  * Core class used to implement displaying installed themes in a list table.
  *
  * @since 3.1.0
+ * @access private
  *
  * @see WP_List_Table
  */
@@ -170,7 +171,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return string[] Array of column titles keyed by their column name.
+	 * @return array
 	 */
 	public function get_columns() {
 		return array();
@@ -212,7 +213,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 				$activate_link,
 				/* translators: %s: Theme name. */
 				esc_attr( sprintf( _x( 'Activate &#8220;%s&#8221;', 'theme' ), $title ) ),
-				_x( 'Activate', 'theme' )
+				__( 'Activate' )
 			);
 
 			if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {

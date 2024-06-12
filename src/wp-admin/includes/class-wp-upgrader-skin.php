@@ -20,6 +20,7 @@ class WP_Upgrader_Skin {
 	 * Holds the upgrader data.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var WP_Upgrader
 	 */
 	public $upgrader;
@@ -28,6 +29,7 @@ class WP_Upgrader_Skin {
 	 * Whether header is done.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var bool
 	 */
 	public $done_header = false;
@@ -36,6 +38,7 @@ class WP_Upgrader_Skin {
 	 * Whether footer is done.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var bool
 	 */
 	public $done_footer = false;
@@ -44,6 +47,7 @@ class WP_Upgrader_Skin {
 	 * Holds the result of an upgrade.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var string|bool|WP_Error
 	 */
 	public $result = false;
@@ -52,6 +56,7 @@ class WP_Upgrader_Skin {
 	 * Holds the options of an upgrade.
 	 *
 	 * @since 2.8.0
+	 *
 	 * @var array
 	 */
 	public $options = array();
@@ -77,8 +82,6 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Sets the relationship between the skin being used and the upgrader.
-	 *
 	 * @since 2.8.0
 	 *
 	 * @param WP_Upgrader $upgrader
@@ -91,8 +94,6 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Sets up the strings used in the update process.
-	 *
 	 * @since 3.0.0
 	 */
 	public function add_strings() {
@@ -140,8 +141,6 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Displays the header before the update process.
-	 *
 	 * @since 2.8.0
 	 */
 	public function header() {
@@ -154,8 +153,6 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Displays the footer following the update process.
-	 *
 	 * @since 2.8.0
 	 */
 	public function footer() {
@@ -167,8 +164,6 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Displays an error message about the update.
-	 *
 	 * @since 2.8.0
 	 *
 	 * @param string|WP_Error $errors Errors.
@@ -191,8 +186,6 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Displays a message about the update.
-	 *
 	 * @since 2.8.0
 	 * @since 5.9.0 Renamed `$string` (a PHP reserved keyword) to `$feedback` for PHP 8 named parameter support.
 	 *
@@ -204,7 +197,7 @@ class WP_Upgrader_Skin {
 			$feedback = $this->upgrader->strings[ $feedback ];
 		}
 
-		if ( str_contains( $feedback, '%' ) ) {
+		if ( strpos( $feedback, '%' ) !== false ) {
 			if ( $args ) {
 				$args     = array_map( 'strip_tags', $args );
 				$args     = array_map( 'esc_html', $args );
@@ -218,21 +211,21 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Performs an action before an update.
+	 * Action to perform before an update.
 	 *
 	 * @since 2.8.0
 	 */
 	public function before() {}
 
 	/**
-	 * Performs an action following an update.
+	 * Action to perform following an update.
 	 *
 	 * @since 2.8.0
 	 */
 	public function after() {}
 
 	/**
-	 * Outputs JavaScript that calls function to decrement the update counts.
+	 * Output JavaScript that calls function to decrement the update counts.
 	 *
 	 * @since 3.9.0
 	 *
@@ -247,14 +240,7 @@ class WP_Upgrader_Skin {
 		if ( defined( 'IFRAME_REQUEST' ) ) {
 			echo '<script type="text/javascript">
 					if ( window.postMessage && JSON ) {
-						window.parent.postMessage(
-							JSON.stringify( {
-								action: "decrementUpdateCount",
-								upgradeType: "' . $type . '"
-							} ),
-							window.location.protocol + "//" + window.location.hostname
-								+ ( "" !== window.location.port ? ":" + window.location.port : "" )
-						);
+						window.parent.postMessage( JSON.stringify( { action: "decrementUpdateCount", upgradeType: "' . $type . '" } ), window.location.protocol + "//" + window.location.hostname );
 					}
 				</script>';
 		} else {
@@ -269,15 +255,11 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Displays the header before the bulk update process.
-	 *
 	 * @since 3.0.0
 	 */
 	public function bulk_header() {}
 
 	/**
-	 * Displays the footer following the bulk update process.
-	 *
 	 * @since 3.0.0
 	 */
 	public function bulk_footer() {}
@@ -288,7 +270,7 @@ class WP_Upgrader_Skin {
 	 * @since 5.5.0
 	 *
 	 * @param WP_Error $wp_error WP_Error object.
-	 * @return bool True if the error should be hidden, false otherwise.
+	 * @return bool
 	 */
 	public function hide_process_failed( $wp_error ) {
 		return false;

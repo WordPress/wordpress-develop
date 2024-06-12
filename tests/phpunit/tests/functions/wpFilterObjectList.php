@@ -3,7 +3,7 @@
 /**
  * Test wp_filter_object_list().
  *
- * @group functions
+ * @group functions.php
  * @covers ::wp_filter_object_list
  */
 class Tests_Functions_wpFilterObjectList extends WP_UnitTestCase {

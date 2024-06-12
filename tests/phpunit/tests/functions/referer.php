@@ -3,8 +3,7 @@
 /**
  * Test wp_get_referer().
  *
- * @group functions
- *
+ * @group functions.php
  * @covers ::wp_get_referer
  * @covers ::wp_get_raw_referer
  */
@@ -31,9 +30,7 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 	}
 
 	public function filter_allowed_redirect_hosts( $hosts ) {
-		// Make sure we're only using the hostname and not anything else that might be in the WP_TESTS_DOMAIN.
-		$parsed  = parse_url( 'http://' . WP_TESTS_DOMAIN );
-		$hosts[] = 'another.' . $parsed['host'];
+		$hosts[] = 'another.' . WP_TESTS_DOMAIN;
 
 		return $hosts;
 	}
@@ -158,13 +155,5 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 		$_SERVER['HTTP_REFERER']      = addslashes( 'http://example.com/foo?bar' );
 		$_REQUEST['_wp_http_referer'] = addslashes( 'http://foo.bar/baz' );
 		$this->assertSame( 'http://foo.bar/baz', wp_get_raw_referer() );
-	}
-
-	/**
-	 * @ticket 57670
-	 */
-	public function test_raw_referer_is_false_on_invalid_request_parameter() {
-		$_REQUEST['_wp_http_referer'] = array( 'demo' );
-		$this->assertFalse( wp_get_raw_referer() );
 	}
 }

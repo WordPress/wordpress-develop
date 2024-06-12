@@ -240,15 +240,7 @@ class WP_Customize_Theme_Control extends WP_Customize_Control {
 						<button type="button" class="button button-primary customize-theme" aria-label="<?php echo esc_attr( $customize_label ); ?>"><?php _e( 'Customize' ); ?></button>
 					</div>
 				</div>
-				<?php
-				wp_admin_notice(
-					_x( 'Installed', 'theme' ),
-					array(
-						'type'               => 'success',
-						'additional_classes' => array( 'notice-alt' ),
-					)
-				);
-				?>
+				<div class="notice notice-success notice-alt"><p><?php _ex( 'Installed', 'theme' ); ?></p></div>
 			<# } else if ( 'installed' === data.theme.type ) { #>
 				<# if ( data.theme.blockTheme ) { #>
 					<div class="theme-id-container">
@@ -263,26 +255,21 @@ class WP_Customize_Theme_Control extends WP_Customize_Control {
 							<# } #>
 						</div>
 					</div>
-					<?php $customizer_not_supported_message = __( 'This theme doesn\'t support Customizer.' ); ?>
+					<div class="notice notice-error notice-alt"><p>
+					<?php
+						_e( 'This theme doesn\'t support Customizer.' );
+					?>
 					<# if ( data.theme.actions.activate ) { #>
 						<?php
-							$customizer_not_supported_message .= ' ' . sprintf(
+							echo ' ';
+							printf(
 								/* translators: %s: URL to the themes page (also it activates the theme). */
 								__( 'However, you can still <a href="%s">activate this theme</a>, and use the Site Editor to customize it.' ),
 								'{{{ data.theme.actions.activate }}}'
 							);
 						?>
 					<# } #>
-
-					<?php
-					wp_admin_notice(
-						$customizer_not_supported_message,
-						array(
-							'type'               => 'error',
-							'additional_classes' => array( 'notice-alt' ),
-						)
-					);
-					?>
+					</p></div>
 				<# } else { #>
 					<div class="theme-id-container">
 						<h3 class="theme-name" id="{{ data.section }}-{{ data.theme.id }}-name">{{ data.theme.name }}</h3>
@@ -294,15 +281,7 @@ class WP_Customize_Theme_Control extends WP_Customize_Control {
 							<# } #>
 						</div>
 					</div>
-					<?php
-					wp_admin_notice(
-						_x( 'Installed', 'theme' ),
-						array(
-							'type'               => 'success',
-							'additional_classes' => array( 'notice-alt' ),
-						)
-					);
-					?>
+					<div class="notice notice-success notice-alt"><p><?php _ex( 'Installed', 'theme' ); ?></p></div>
 				<# } #>
 			<# } else { #>
 				<div class="theme-id-container">

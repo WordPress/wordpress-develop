@@ -49,7 +49,7 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 	}
 
 	public function test_map_deep_should_map_each_object_element_of_an_array() {
-		$this->assertEqualSets(
+		$this->assertEquals(
 			array(
 				'var0' => 'ababa',
 				'var1' => (object) array(
@@ -171,4 +171,5 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 	public function append_baba( $value ) {
 		return $value . 'baba';
 	}
+
 }

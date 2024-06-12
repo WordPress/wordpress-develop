@@ -27,7 +27,7 @@ get_current_screen()->add_help_tab(
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 	'<p>' . __( '<a href="https://codex.wordpress.org/Network_Admin_Users_Screen">Documentation on Network Users</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support Forums</a>' ) . '</p>'
 );
 
 if ( isset( $_REQUEST['action'] ) && 'add-user' === $_REQUEST['action'] ) {
@@ -77,8 +77,8 @@ if ( isset( $_REQUEST['action'] ) && 'add-user' === $_REQUEST['action'] ) {
 	}
 }
 
-$message = '';
 if ( isset( $_GET['update'] ) ) {
+	$messages = array();
 	if ( 'added' === $_GET['update'] ) {
 		$edit_link = '';
 		if ( isset( $_GET['user_id'] ) ) {
@@ -93,6 +93,8 @@ if ( isset( $_GET['update'] ) ) {
 		if ( $edit_link ) {
 			$message .= sprintf( ' <a href="%s">%s</a>', $edit_link, __( 'Edit user' ) );
 		}
+
+		$messages[] = $message;
 	}
 }
 
@@ -100,55 +102,41 @@ if ( isset( $_GET['update'] ) ) {
 $title       = __( 'Add New User' );
 $parent_file = 'users.php';
 
-require_once ABSPATH . 'wp-admin/admin-header.php';
-?>
+require_once ABSPATH . 'wp-admin/admin-header.php'; ?>
 
 <div class="wrap">
 <h1 id="add-new-user"><?php _e( 'Add New User' ); ?></h1>
 <?php
-if ( '' !== $message ) {
-	wp_admin_notice(
-		$message,
-		array(
-			'type'        => 'success',
-			'dismissible' => true,
-			'id'          => 'message',
-		)
-	);
+if ( ! empty( $messages ) ) {
+	foreach ( $messages as $msg ) {
+		echo '<div id="message" class="updated notice is-dismissible"><p>' . $msg . '</p></div>';
+	}
 }
 
 if ( isset( $add_user_errors ) && is_wp_error( $add_user_errors ) ) {
-	$error_messages = '';
-	foreach ( $add_user_errors->get_error_messages() as $error ) {
-		$error_messages .= "<p>$error</p>";
-	}
-
-	wp_admin_notice(
-		$error_messages,
-		array(
-			'type'           => 'error',
-			'dismissible'    => true,
-			'id'             => 'message',
-			'paragraph_wrap' => false,
-		)
-	);
-}
-?>
+	?>
+	<div class="error">
+		<?php
+		foreach ( $add_user_errors->get_error_messages() as $message ) {
+			echo "<p>$message</p>";
+		}
+		?>
+	</div>
+<?php } ?>
 	<form action="<?php echo esc_url( network_admin_url( 'user-new.php?action=add-user' ) ); ?>" id="adduser" method="post" novalidate="novalidate">
-		<p><?php echo wp_required_field_message(); ?></p>
-		<table class="form-table" role="presentation">
-			<tr class="form-field form-required">
-				<th scope="row"><label for="username"><?php _e( 'Username' ); ?> <?php echo wp_required_field_indicator(); ?></label></th>
-				<td><input type="text" class="regular-text" name="user[username]" id="username" autocapitalize="none" autocorrect="off" maxlength="60" required="required" /></td>
-			</tr>
-			<tr class="form-field form-required">
-				<th scope="row"><label for="email"><?php _e( 'Email' ); ?> <?php echo wp_required_field_indicator(); ?></label></th>
-				<td><input type="email" class="regular-text" name="user[email]" id="email" required="required" /></td>
-			</tr>
-			<tr class="form-field">
-				<td colspan="2" class="td-full"><?php _e( 'A password reset link will be sent to the user via email.' ); ?></td>
-			</tr>
-		</table>
+	<table class="form-table" role="presentation">
+		<tr class="form-field form-required">
+			<th scope="row"><label for="username"><?php _e( 'Username' ); ?></label></th>
+			<td><input type="text" class="regular-text" name="user[username]" id="username" autocapitalize="none" autocorrect="off" maxlength="60" /></td>
+		</tr>
+		<tr class="form-field form-required">
+			<th scope="row"><label for="email"><?php _e( 'Email' ); ?></label></th>
+			<td><input type="email" class="regular-text" name="user[email]" id="email" /></td>
+		</tr>
+		<tr class="form-field">
+			<td colspan="2" class="td-full"><?php _e( 'A password reset link will be sent to the user via email.' ); ?></td>
+		</tr>
+	</table>
 	<?php
 	/**
 	 * Fires at the end of the new user form in network admin.

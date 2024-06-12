@@ -160,14 +160,13 @@ final class WP_oEmbed_Controller {
 	 * @since 4.8.0
 	 *
 	 * @see WP_oEmbed::get_html()
-	 * @global WP_Embed   $wp_embed   WordPress Embed object.
-	 * @global WP_Scripts $wp_scripts
+	 * @global WP_Embed $wp_embed
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return object|WP_Error oEmbed response data or WP_Error on failure.
 	 */
 	public function get_proxy_item( $request ) {
-		global $wp_embed, $wp_scripts;
+		global $wp_embed;
 
 		$args = $request->get_params();
 
@@ -205,6 +204,7 @@ final class WP_oEmbed_Controller {
 			$html = $wp_embed->get_embed_handler_html( $args, $url );
 
 			if ( $html ) {
+				global $wp_scripts;
 				// Check if any scripts were enqueued by the shortcode, and include them in the response.
 				$enqueued_scripts = array();
 

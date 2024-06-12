@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Autocomplete 1.13.3
- * https://jqueryui.com
+ * jQuery UI Autocomplete 1.13.2
+ * http://jqueryui.com
  *
- * Copyright OpenJS Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
- * https://jquery.org/license
+ * http://jquery.org/license
  */
 
 //>>label: Autocomplete
 //>>group: Widgets
 //>>description: Lists suggested words as the user is typing.
-//>>docs: https://api.jqueryui.com/autocomplete/
-//>>demos: https://jqueryui.com/autocomplete/
+//>>docs: http://api.jqueryui.com/autocomplete/
+//>>demos: http://jqueryui.com/autocomplete/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/autocomplete.css
 //>>css.theme: ../../themes/base/theme.css
@@ -25,11 +25,7 @@
 		define( [
 			"jquery",
 			"./menu",
-			"../keycode",
-			"../position",
-			"../safe-active-element",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 
@@ -40,7 +36,7 @@
 "use strict";
 
 $.widget( "ui.autocomplete", {
-	version: "1.13.3",
+	version: "1.13.2",
 	defaultElement: "<input>",
 	options: {
 		appendTo: null,

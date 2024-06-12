@@ -70,25 +70,13 @@ class Tests_L10n extends WP_UnitTestCase {
 		$this->assertEmpty( $array );
 
 		$array = get_available_languages( DIR_TESTDATA . '/languages/' );
-		$this->assertEqualSets(
-			array(
-				'de_DE',
-				'en_GB',
-				'es_ES',
-				'ja_JP',
-				'de_CH',
-			),
-			$array
-		);
+		$this->assertSame( array( 'de_DE', 'en_GB', 'es_ES', 'ja_JP' ), $array );
 	}
 
 	/**
 	 * @ticket 35284
-	 * @ticket 60554
 	 *
 	 * @covers ::wp_get_installed_translations
-	 * @covers ::wp_get_pomo_file_data
-	 * @covers ::wp_get_l10n_php_file_data
 	 */
 	public function test_wp_get_installed_translations_for_core() {
 		$installed_translations = wp_get_installed_translations( 'core' );
@@ -107,12 +95,6 @@ class Tests_L10n extends WP_UnitTestCase {
 		$this->assertSame( '2016-10-25 18:29+0200', $data_es_es['PO-Revision-Date'] );
 		$this->assertSame( 'Administration', $data_es_es['Project-Id-Version'] );
 		$this->assertSame( 'Poedit 1.8.10', $data_es_es['X-Generator'] );
-
-		$this->assertNotEmpty( $installed_translations['default']['de_CH'] );
-		$data_en_gb = $installed_translations['default']['de_CH'];
-		$this->assertSame( '2024-01-31 19:08:22+0000', $data_en_gb['PO-Revision-Date'] );
-		$this->assertSame( 'WordPress - 6.4.x - Development', $data_en_gb['Project-Id-Version'] );
-		$this->assertSame( 'GlotPress/4.0.0-beta.2', $data_en_gb['X-Generator'] );
 	}
 
 	/**
@@ -453,19 +435,6 @@ class Tests_L10n extends WP_UnitTestCase {
 
 		switch_to_locale( 'en_US' );
 
-		/*
-		 * The recent drafts list is only displayed on the Dashboard screen for users
-		 * with the 'edit_posts' capability.
-		 *
-		 * This means the current user needs to be set to Editor as a prerequisite
-		 * for the call to the wp_dashboard_recent_drafts() function.
-		 *
-		 * This allows the subsequent call to get_edit_post_link() to work as expected
-		 * and return a string instead of null, which would otherwise cause a PHP 8.1
-		 * "passing null to non-nullable" deprecation notice.
-		 */
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
-
 		$args = array(
 			'post_content' => $this->long_text,
 			'post_excerpt' => '',
@@ -492,19 +461,6 @@ class Tests_L10n extends WP_UnitTestCase {
 
 		switch_to_locale( 'ja_JP' );
 
-		/*
-		 * The recent drafts list is only displayed on the Dashboard screen for users
-		 * with the 'edit_posts' capability.
-		 *
-		 * This means the current user needs to be set to Editor as a prerequisite
-		 * for the call to the wp_dashboard_recent_drafts() function.
-		 *
-		 * This allows the subsequent call to get_edit_post_link() to work as expected
-		 * and return a string instead of null, which would otherwise cause a PHP 8.1
-		 * "passing null to non-nullable" deprecation notice.
-		 */
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
-
 		$args = array(
 			'post_content' => $this->long_text,
 			'post_excerpt' => '',
@@ -530,19 +486,6 @@ class Tests_L10n extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/dashboard.php';
 
 		switch_to_locale( 'ja_JP' );
-
-		/*
-		 * The recent drafts list is only displayed on the Dashboard screen for users
-		 * with the 'edit_posts' capability.
-		 *
-		 * This means the current user needs to be set to Editor as a prerequisite
-		 * for the call to the wp_dashboard_recent_drafts() function.
-		 *
-		 * This allows the subsequent call to get_edit_post_link() to work as expected
-		 * and return a string instead of null, which would otherwise cause a PHP 8.1
-		 * "passing null to non-nullable" deprecation notice.
-		 */
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 
 		$args = array(
 			'post_content' => str_repeat( 'あ', 200 ),

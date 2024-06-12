@@ -213,8 +213,7 @@ if ( ! wp_is_large_network( 'users' ) && apply_filters( 'show_network_site_users
 	wp_enqueue_script( 'user-suggest' );
 }
 
-require_once ABSPATH . 'wp-admin/admin-header.php';
-?>
+require_once ABSPATH . 'wp-admin/admin-header.php'; ?>
 
 <script type="text/javascript">
 var current_site_id = <?php echo absint( $id ); ?>;
@@ -234,57 +233,41 @@ network_edit_site_nav(
 );
 
 if ( isset( $_GET['update'] ) ) :
-	$message = '';
-	$type    = 'error';
-
 	switch ( $_GET['update'] ) {
 		case 'adduser':
-			$type    = 'success';
-			$message = __( 'User added.' );
+			echo '<div id="message" class="updated notice is-dismissible"><p>' . __( 'User added.' ) . '</p></div>';
 			break;
 		case 'err_add_member':
-			$message = __( 'User is already a member of this site.' );
+			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'User is already a member of this site.' ) . '</p></div>';
 			break;
 		case 'err_add_fail':
-			$message = __( 'User could not be added to this site.' );
+			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'User could not be added to this site.' ) . '</p></div>';
 			break;
 		case 'err_add_notfound':
-			$message = __( 'Enter the username of an existing user.' );
+			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'Enter the username of an existing user.' ) . '</p></div>';
 			break;
 		case 'promote':
-			$type    = 'success';
-			$message = __( 'Changed roles.' );
+			echo '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Changed roles.' ) . '</p></div>';
 			break;
 		case 'err_promote':
-			$message = __( 'Select a user to change role.' );
+			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'Select a user to change role.' ) . '</p></div>';
 			break;
 		case 'remove':
-			$type    = 'success';
-			$message = __( 'User removed from this site.' );
+			echo '<div id="message" class="updated notice is-dismissible"><p>' . __( 'User removed from this site.' ) . '</p></div>';
 			break;
 		case 'err_remove':
-			$message = __( 'Select a user to remove.' );
+			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'Select a user to remove.' ) . '</p></div>';
 			break;
 		case 'newuser':
-			$type    = 'success';
-			$message = __( 'User created.' );
+			echo '<div id="message" class="updated notice is-dismissible"><p>' . __( 'User created.' ) . '</p></div>';
 			break;
 		case 'err_new':
-			$message = __( 'Enter the username and email.' );
+			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'Enter the username and email.' ) . '</p></div>';
 			break;
 		case 'err_new_dup':
-			$message = __( 'Duplicated username or email address.' );
+			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'Duplicated username or email address.' ) . '</p></div>';
 			break;
 	}
-
-	wp_admin_notice(
-		$message,
-		array(
-			'type'        => $type,
-			'dismissible' => true,
-			'id'          => 'message',
-		)
-	);
 endif;
 ?>
 

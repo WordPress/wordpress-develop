@@ -4,6 +4,12 @@
  *
  * @package WordPress
  * @since 4.9.9
+ */
+
+/**
+ * Tests_User_WpSendUserRequest class.
+ *
+ * @since 4.9.9
  *
  * @group privacy
  * @group user

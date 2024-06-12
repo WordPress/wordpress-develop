@@ -8,8 +8,6 @@
 /**
  * Renders the `core/comment-content` block on the server.
  *
- * @since 6.0.0
- *
  * @param array    $attributes Block attributes.
  * @param string   $content    Block default content.
  * @param WP_Block $block      Block instance.
@@ -51,15 +49,12 @@ function render_block_core_comment_content( $attributes, $content, $block ) {
 		}
 	}
 
-	$classes = array();
+	$classes = '';
 	if ( isset( $attributes['textAlign'] ) ) {
-		$classes[] = 'has-text-align-' . $attributes['textAlign'];
-	}
-	if ( isset( $attributes['style']['elements']['link']['color']['text'] ) ) {
-		$classes[] = 'has-link-color';
+		$classes .= 'has-text-align-' . $attributes['textAlign'];
 	}
 
-	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => implode( ' ', $classes ) ) );
+	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => $classes ) );
 
 	return sprintf(
 		'<div %1$s>%2$s%3$s</div>',
@@ -71,8 +66,6 @@ function render_block_core_comment_content( $attributes, $content, $block ) {
 
 /**
  * Registers the `core/comment-content` block on the server.
- *
- * @since 6.0.0
  */
 function register_block_core_comment_content() {
 	register_block_type_from_metadata(

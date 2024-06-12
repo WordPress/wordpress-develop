@@ -16,8 +16,6 @@
  */
 class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
-	const NAME_PATTERN = '^[a-z][a-z0-9-]*/[a-z][a-z0-9-]*$';
-
 	/**
 	 * Instance of WP_Block_Type_Registry.
 	 *
@@ -239,8 +237,6 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.5.0
 	 * @since 5.9.0 Renamed `$block_type` to `$item` to match parent class for PHP 8 named parameter support.
-	 * @since 6.3.0 Added `selectors` field.
-	 * @since 6.5.0 Added `view_script_module_ids` field.
 	 *
 	 * @param WP_Block_Type   $item    Block type data.
 	 * @param WP_REST_Request $request Full details about the request.
@@ -249,9 +245,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$block_type = $item;
-
-		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$fields     = $this->get_fields_for_response( $request );
+		$data       = array();
 
 		if ( rest_is_field_included( 'attributes', $fields ) ) {
 			$data['attributes'] = $block_type->get_attributes();
@@ -281,10 +276,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				'keywords',
 				'parent',
 				'ancestor',
-				'allowed_blocks',
 				'provides_context',
 				'uses_context',
-				'selectors',
 				'supports',
 				'styles',
 				'textdomain',
@@ -292,12 +285,9 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				'editor_script_handles',
 				'script_handles',
 				'view_script_handles',
-				'view_script_module_ids',
 				'editor_style_handles',
 				'style_handles',
-				'view_style_handles',
 				'variations',
-				'block_hooks',
 			),
 			$deprecated_fields
 		);
@@ -305,10 +295,6 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			if ( rest_is_field_included( $extra_field, $fields ) ) {
 				if ( isset( $block_type->$extra_field ) ) {
 					$field = $block_type->$extra_field;
-					if ( in_array( $extra_field, $deprecated_fields, true ) && is_array( $field ) ) {
-						// Since the schema only allows strings or null (but no arrays), we return the first array item.
-						$field = ! empty( $field ) ? array_shift( $field ) : '';
-					}
 				} elseif ( array_key_exists( 'default', $schema['properties'][ $extra_field ] ) ) {
 					$field = $schema['properties'][ $extra_field ]['default'];
 				} else {
@@ -389,7 +375,6 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * Retrieves the block type' schema, conforming to JSON Schema.
 	 *
 	 * @since 5.5.0
-	 * @since 6.3.0 Added `selectors` field.
 	 *
 	 * @return array Item schema data.
 	 */
@@ -408,8 +393,6 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'name'        => array(
 						'description' => __( 'The name of the inner block.' ),
 						'type'        => 'string',
-						'pattern'     => self::NAME_PATTERN,
-						'required'    => true,
 					),
 					'attributes'  => array(
 						'description' => __( 'The attributes of the inner block.' ),
@@ -470,37 +453,36 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			'title'      => 'block-type',
 			'type'       => 'object',
 			'properties' => array(
-				'api_version'            => array(
+				'api_version'           => array(
 					'description' => __( 'Version of block API.' ),
 					'type'        => 'integer',
 					'default'     => 1,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'title'                  => array(
+				'title'                 => array(
 					'description' => __( 'Title of block type.' ),
 					'type'        => 'string',
 					'default'     => '',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'name'                   => array(
+				'name'                  => array(
 					'description' => __( 'Unique name identifying the block type.' ),
 					'type'        => 'string',
-					'pattern'     => self::NAME_PATTERN,
-					'required'    => true,
+					'default'     => '',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'description'            => array(
+				'description'           => array(
 					'description' => __( 'Description of block type.' ),
 					'type'        => 'string',
 					'default'     => '',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'icon'                   => $icon_definition,
-				'attributes'             => array(
+				'icon'                  => $icon_definition,
+				'attributes'            => array(
 					'description'          => __( 'Block attributes.' ),
 					'type'                 => array( 'object', 'null' ),
 					'properties'           => array(),
@@ -511,7 +493,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'              => array( 'embed', 'view', 'edit' ),
 					'readonly'             => true,
 				),
-				'provides_context'       => array(
+				'provides_context'      => array(
 					'description'          => __( 'Context provided by blocks of this type.' ),
 					'type'                 => 'object',
 					'properties'           => array(),
@@ -522,7 +504,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'              => array( 'embed', 'view', 'edit' ),
 					'readonly'             => true,
 				),
-				'uses_context'           => array(
+				'uses_context'          => array(
 					'description' => __( 'Context values inherited by blocks of this type.' ),
 					'type'        => 'array',
 					'default'     => array(),
@@ -532,15 +514,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'selectors'              => array(
-					'description' => __( 'Custom CSS selectors.' ),
-					'type'        => 'object',
-					'default'     => array(),
-					'properties'  => array(),
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
-				),
-				'supports'               => array(
+				'supports'              => array(
 					'description' => __( 'Block supports.' ),
 					'type'        => 'object',
 					'default'     => array(),
@@ -548,15 +522,15 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'category'               => $category_definition,
-				'is_dynamic'             => array(
+				'category'              => $category_definition,
+				'is_dynamic'            => array(
 					'description' => __( 'Is the block dynamically rendered.' ),
 					'type'        => 'boolean',
 					'default'     => false,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'editor_script_handles'  => array(
+				'editor_script_handles' => array(
 					'description' => __( 'Editor script handles.' ),
 					'type'        => array( 'array' ),
 					'default'     => array(),
@@ -566,7 +540,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'script_handles'         => array(
+				'script_handles'        => array(
 					'description' => __( 'Public facing and editor script handles.' ),
 					'type'        => array( 'array' ),
 					'default'     => array(),
@@ -576,7 +550,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'view_script_handles'    => array(
+				'view_script_handles'   => array(
 					'description' => __( 'Public facing script handles.' ),
 					'type'        => array( 'array' ),
 					'default'     => array(),
@@ -586,17 +560,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'view_script_module_ids' => array(
-					'description' => __( 'Public facing script module IDs.' ),
-					'type'        => array( 'array' ),
-					'default'     => array(),
-					'items'       => array(
-						'type' => 'string',
-					),
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
-				),
-				'editor_style_handles'   => array(
+				'editor_style_handles'  => array(
 					'description' => __( 'Editor style handles.' ),
 					'type'        => array( 'array' ),
 					'default'     => array(),
@@ -606,7 +570,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'style_handles'          => array(
+				'style_handles'         => array(
 					'description' => __( 'Public facing and editor style handles.' ),
 					'type'        => array( 'array' ),
 					'default'     => array(),
@@ -616,17 +580,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'view_style_handles'     => array(
-					'description' => __( 'Public facing style handles.' ),
-					'type'        => array( 'array' ),
-					'default'     => array(),
-					'items'       => array(
-						'type' => 'string',
-					),
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
-				),
-				'styles'                 => array(
+				'styles'                => array(
 					'description' => __( 'Block style variations.' ),
 					'type'        => 'array',
 					'items'       => array(
@@ -655,7 +609,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'variations'             => array(
+				'variations'            => array(
 					'description' => __( 'Block variations.' ),
 					'type'        => 'array',
 					'items'       => array(
@@ -707,61 +661,35 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'default'     => null,
 				),
-				'textdomain'             => array(
+				'textdomain'            => array(
 					'description' => __( 'Public text domain.' ),
 					'type'        => array( 'string', 'null' ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'parent'                 => array(
+				'parent'                => array(
 					'description' => __( 'Parent blocks.' ),
 					'type'        => array( 'array', 'null' ),
 					'items'       => array(
-						'type'    => 'string',
-						'pattern' => self::NAME_PATTERN,
+						'type' => 'string',
 					),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'ancestor'               => array(
+				'ancestor'              => array(
 					'description' => __( 'Ancestor blocks.' ),
 					'type'        => array( 'array', 'null' ),
 					'items'       => array(
-						'type'    => 'string',
-						'pattern' => self::NAME_PATTERN,
+						'type' => 'string',
 					),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'allowed_blocks'         => array(
-					'description' => __( 'Allowed child block types.' ),
-					'type'        => array( 'array', 'null' ),
-					'items'       => array(
-						'type'    => 'string',
-						'pattern' => self::NAME_PATTERN,
-					),
-					'default'     => null,
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
-				),
-				'keywords'               => $keywords_definition,
-				'example'                => $example_definition,
-				'block_hooks'            => array(
-					'description'       => __( 'This block is automatically inserted near any occurrence of the block types used as keys of this map, into a relative position given by the corresponding value.' ),
-					'type'              => 'object',
-					'patternProperties' => array(
-						self::NAME_PATTERN => array(
-							'type' => 'string',
-							'enum' => array( 'before', 'after', 'first_child', 'last_child' ),
-						),
-					),
-					'default'           => array(),
-					'context'           => array( 'embed', 'view', 'edit' ),
-					'readonly'          => true,
-				),
+				'keywords'              => $keywords_definition,
+				'example'               => $example_definition,
 			),
 		);
 
@@ -824,4 +752,5 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			),
 		);
 	}
+
 }

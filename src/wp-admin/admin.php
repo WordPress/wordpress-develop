@@ -348,7 +348,7 @@ if ( isset( $plugin_page ) ) {
 	define( 'WP_IMPORTING', true );
 
 	/**
-	 * Filters whether to filter imported data through kses on import.
+	 * Whether to filter imported data through kses on import.
 	 *
 	 * Multisite uses this hook to filter all data through kses by default,
 	 * as a super administrator may be assisting an untrusted user.

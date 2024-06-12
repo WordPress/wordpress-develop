@@ -108,4 +108,5 @@ class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 		$this->assertTrue( is_404() );
 		$this->assertSame( '', get_query_var( 'page_endpoint' ) );
 	}
+
 }

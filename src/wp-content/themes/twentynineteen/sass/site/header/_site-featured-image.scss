@@ -68,6 +68,7 @@
 	/* Entry header */
 	.site-featured-image {
 
+		/* First layer: grayscale. */
 		.post-thumbnail img {
 			height: auto;
 			left: 50%;
@@ -89,9 +90,8 @@
 				width: 100%;
 			}
 
+			/* When image filters are active, make it grayscale to colorize it blue. */
 			.image-filters-enabled & {
-				/* First layer: grayscale. */
-				/* When image filters are active, make it grayscale to colorize it blue. */
 				filter: grayscale(100%);
 			}
 		}

@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 3,
+	"apiVersion": 2,
 	"name": "core/separator",
 	"title": "Separator",
 	"category": "design",
@@ -28,9 +28,6 @@
 		},
 		"spacing": {
 			"margin": [ "top", "bottom" ]
-		},
-		"interactivity": {
-			"clientNavigation": true
 		}
 	},
 	"styles": [

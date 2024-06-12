@@ -5,14 +5,13 @@
  *
  * @since 5.3.0
  *
- * @group functions
- *
+ * @group functions.php
  * @covers ::get_status_header_desc
  */
 class Tests_Functions_GetStatusHeaderDesc extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider data_get_status_header_desc
+	 * @dataProvider _status_strings
 	 *
 	 * @param int    $code     HTTP status code.
 	 * @param string $expected Status description.
@@ -24,9 +23,9 @@ class Tests_Functions_GetStatusHeaderDesc extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_get_status_header_desc().
 	 *
-	 * @return array[]
+	 * @return array
 	 */
-	public function data_get_status_header_desc() {
+	public function _status_strings() {
 		return array(
 			array( 200, 'OK' ),
 			array( 301, 'Moved Permanently' ),

@@ -150,13 +150,11 @@ function wp_title_rss( $deprecated = '&#8211;' ) {
  * Retrieves the current post title for the feed.
  *
  * @since 2.0.0
- * @since 6.6.0 Added the `$post` parameter.
  *
- * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string Current post title.
  */
-function get_the_title_rss( $post = 0 ) {
-	$title = get_the_title( $post );
+function get_the_title_rss() {
+	$title = get_the_title();
 
 	/**
 	 * Filters the post title for use in a feed.
@@ -450,7 +448,7 @@ function the_category_rss( $type = null ) {
  */
 function html_type_rss() {
 	$type = get_bloginfo( 'html_type' );
-	if ( str_contains( $type, 'xhtml' ) ) {
+	if ( strpos( $type, 'xhtml' ) !== false ) {
 		$type = 'xhtml';
 	} else {
 		$type = 'html';
@@ -582,7 +580,7 @@ function atom_enclosure() {
  * @return array array(type, value)
  */
 function prep_atom_text_construct( $data ) {
-	if ( ! str_contains( $data, '<' ) && ! str_contains( $data, '&' ) ) {
+	if ( strpos( $data, '<' ) === false && strpos( $data, '&' ) === false ) {
 		return array( 'text', $data );
 	}
 
@@ -599,7 +597,7 @@ function prep_atom_text_construct( $data ) {
 	unset( $parser );
 
 	if ( ! $code ) {
-		if ( ! str_contains( $data, '<' ) ) {
+		if ( strpos( $data, '<' ) === false ) {
 			return array( 'text', $data );
 		} else {
 			$data = "<div xmlns='http://www.w3.org/1999/xhtml'>$data</div>";
@@ -607,7 +605,7 @@ function prep_atom_text_construct( $data ) {
 		}
 	}
 
-	if ( ! str_contains( $data, ']]>' ) ) {
+	if ( strpos( $data, ']]>' ) === false ) {
 		return array( 'html', "<![CDATA[$data]]>" );
 	} else {
 		return array( 'html', htmlspecialchars( $data ) );
@@ -660,14 +658,8 @@ function rss2_site_icon() {
  * @return string Correct link for the atom:self element.
  */
 function get_self_link() {
-	$parsed = parse_url( home_url() );
-
-	$domain = $parsed['host'];
-	if ( isset( $parsed['port'] ) ) {
-		$domain .= ':' . $parsed['port'];
-	}
-
-	return set_url_scheme( 'http://' . $domain . wp_unslash( $_SERVER['REQUEST_URI'] ) );
+	$host = parse_url( home_url() );
+	return set_url_scheme( 'http://' . $host['host'] . wp_unslash( $_SERVER['REQUEST_URI'] ) );
 }
 
 /**
@@ -697,9 +689,9 @@ function self_link() {
  * If viewing a comment feed, the time of the most recently modified
  * comment will be returned.
  *
- * @since 5.2.0
- *
  * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @since 5.2.0
  *
  * @param string $format Date format string to return the time in.
  * @return string|false The time in requested format, or false on failure.
@@ -755,7 +747,6 @@ function get_feed_build_date( $format ) {
  * @since 2.8.0
  *
  * @param string $type Type of feed. Possible values include 'rss', rss2', 'atom', and 'rdf'.
- * @return string Content type for specified feed type.
  */
 function feed_content_type( $type = '' ) {
 	if ( empty( $type ) ) {
@@ -805,10 +796,8 @@ function fetch_feed( $url ) {
 	$feed = new SimplePie();
 
 	$feed->set_sanitize_class( 'WP_SimplePie_Sanitize_KSES' );
-	/*
-	 * We must manually overwrite $feed->sanitize because SimplePie's constructor
-	 * sets it before we have a chance to set the sanitization class.
-	 */
+	// We must manually overwrite $feed->sanitize because SimplePie's constructor
+	// sets it before we have a chance to set the sanitization class.
 	$feed->sanitize = new WP_SimplePie_Sanitize_KSES();
 
 	// Register the cache handler using the recommended method for SimplePie 1.3 or later.

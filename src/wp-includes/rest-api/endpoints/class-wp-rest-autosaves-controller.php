@@ -65,16 +65,11 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			$parent_controller = new WP_REST_Posts_Controller( $parent_post_type );
 		}
 
-		$this->parent_controller = $parent_controller;
-
-		$revisions_controller = $post_type_object->get_revisions_rest_controller();
-		if ( ! $revisions_controller ) {
-			$revisions_controller = new WP_REST_Revisions_Controller( $parent_post_type );
-		}
-		$this->revisions_controller = $revisions_controller;
+		$this->parent_controller    = $parent_controller;
+		$this->revisions_controller = new WP_REST_Revisions_Controller( $parent_post_type );
 		$this->rest_base            = 'autosaves';
-		$this->parent_base          = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 		$this->namespace            = ! empty( $post_type_object->rest_namespace ) ? $post_type_object->rest_namespace : 'wp/v2';
+		$this->parent_base          = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 	}
 
 	/**
@@ -136,6 +131,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
+
 	}
 
 	/**
@@ -210,11 +206,11 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 */
 	public function create_item( $request ) {
 
-		if ( ! defined( 'WP_RUN_CORE_TESTS' ) && ! defined( 'DOING_AUTOSAVE' ) ) {
+		if ( ! defined( 'DOING_AUTOSAVE' ) ) {
 			define( 'DOING_AUTOSAVE', true );
 		}
 
-		$post = $this->get_parent( $request['id'] );
+		$post = get_post( $request['id'] );
 
 		if ( is_wp_error( $post ) ) {
 			return $post;
@@ -233,14 +229,12 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		$is_draft  = 'draft' === $post->post_status || 'auto-draft' === $post->post_status;
 
 		if ( $is_draft && (int) $post->post_author === $user_id && ! $post_lock ) {
-			/*
-			 * Draft posts for the same author: autosaving updates the post and does not create a revision.
-			 * Convert the post object to an array and add slashes, wp_update_post() expects escaped array.
-			 */
+			// Draft posts for the same author: autosaving updates the post and does not create a revision.
+			// Convert the post object to an array and add slashes, wp_update_post() expects escaped array.
 			$autosave_id = wp_update_post( wp_slash( (array) $prepared_post ), true );
 		} else {
-			// Non-draft posts: create or update the post autosave. Pass the meta data.
-			$autosave_id = $this->create_post_autosave( (array) $prepared_post, (array) $request->get_param( 'meta' ) );
+			// Non-draft posts: create or update the post autosave.
+			$autosave_id = $this->create_post_autosave( (array) $prepared_post );
 		}
 
 		if ( is_wp_error( $autosave_id ) ) {
@@ -310,7 +304,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		$revisions = wp_get_post_revisions( $parent_id, array( 'check_enabled' => false ) );
 
 		foreach ( $revisions as $revision ) {
-			if ( str_contains( $revision->post_name, "{$parent_id}-autosave" ) ) {
+			if ( false !== strpos( $revision->post_name, "{$parent_id}-autosave" ) ) {
 				$data       = $this->prepare_item_for_response( $revision, $request );
 				$response[] = $this->prepare_response_for_collection( $data );
 			}
@@ -353,13 +347,11 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * From wp-admin/post.php.
 	 *
 	 * @since 5.0.0
-	 * @since 6.4.0 The `$meta` parameter was added.
 	 *
 	 * @param array $post_data Associative array containing the post data.
-	 * @param array $meta      Associative array containing the post meta data.
 	 * @return mixed The autosave revision ID or WP_Error.
 	 */
-	public function create_post_autosave( $post_data, array $meta = array() ) {
+	public function create_post_autosave( $post_data ) {
 
 		$post_id = (int) $post_data['ID'];
 		$post    = get_post( $post_id );
@@ -368,70 +360,44 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return $post;
 		}
 
-		// Only create an autosave when it is different from the saved post.
-		$autosave_is_different = false;
-		$new_autosave          = _wp_post_revision_data( $post_data, true );
-
-		foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
-			if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
-				$autosave_is_different = true;
-				break;
-			}
-		}
-
-		// Check if meta values have changed.
-		if ( ! empty( $meta ) ) {
-			$revisioned_meta_keys = wp_post_revision_meta_keys( $post->post_type );
-			foreach ( $revisioned_meta_keys as $meta_key ) {
-				// get_metadata_raw is used to avoid retrieving the default value.
-				$old_meta = get_metadata_raw( 'post', $post_id, $meta_key, true );
-				$new_meta = isset( $meta[ $meta_key ] ) ? $meta[ $meta_key ] : '';
-
-				if ( $new_meta !== $old_meta ) {
-					$autosave_is_different = true;
-					break;
-				}
-			}
-		}
-
 		$user_id = get_current_user_id();
 
 		// Store one autosave per author. If there is already an autosave, overwrite it.
 		$old_autosave = wp_get_post_autosave( $post_id, $user_id );
 
-		if ( ! $autosave_is_different && $old_autosave ) {
-			// Nothing to save, return the existing autosave.
-			return $old_autosave->ID;
-		}
-
 		if ( $old_autosave ) {
+			$new_autosave                = _wp_post_revision_data( $post_data, true );
 			$new_autosave['ID']          = $old_autosave->ID;
 			$new_autosave['post_author'] = $user_id;
+
+			// If the new autosave has the same content as the post, delete the autosave.
+			$autosave_is_different = false;
+
+			foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
+				if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
+					$autosave_is_different = true;
+					break;
+				}
+			}
+
+			if ( ! $autosave_is_different ) {
+				wp_delete_post_revision( $old_autosave->ID );
+				return new WP_Error(
+					'rest_autosave_no_changes',
+					__( 'There is nothing to save. The autosave and the post content are the same.' ),
+					array( 'status' => 400 )
+				);
+			}
 
 			/** This filter is documented in wp-admin/post.php */
 			do_action( 'wp_creating_autosave', $new_autosave );
 
 			// wp_update_post() expects escaped array.
-			$revision_id = wp_update_post( wp_slash( $new_autosave ) );
-		} else {
-			// Create the new autosave as a special post revision.
-			$revision_id = _wp_put_post_revision( $post_data, true );
+			return wp_update_post( wp_slash( $new_autosave ) );
 		}
 
-		if ( is_wp_error( $revision_id ) || 0 === $revision_id ) {
-			return $revision_id;
-		}
-
-		// Attached any passed meta values that have revisions enabled.
-		if ( ! empty( $meta ) ) {
-			foreach ( $revisioned_meta_keys as $meta_key ) {
-				if ( isset( $meta[ $meta_key ] ) ) {
-					update_metadata( 'post', $revision_id, $meta_key, wp_slash( $meta[ $meta_key ] ) );
-				}
-			}
-		}
-
-		return $revision_id;
+		// Create the new autosave as a special post revision.
+		return _wp_put_post_revision( $post_data, true );
 	}
 
 	/**
@@ -446,10 +412,10 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$post = $item;
-
+		$post     = $item;
 		$response = $this->revisions_controller->prepare_item_for_response( $post, $request );
-		$fields   = $this->get_fields_for_response( $request );
+
+		$fields = $this->get_fields_for_response( $request );
 
 		if ( in_array( 'preview_link', $fields, true ) ) {
 			$parent_id          = wp_is_post_autosave( $post );

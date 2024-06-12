@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Tooltip 1.13.3
- * https://jqueryui.com
+ * jQuery UI Tooltip 1.13.2
+ * http://jqueryui.com
  *
- * Copyright OpenJS Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
- * https://jquery.org/license
+ * http://jquery.org/license
  */
 
 //>>label: Tooltip
 //>>group: Widgets
 //>>description: Shows additional information for any element on hover or focus.
-//>>docs: https://api.jqueryui.com/tooltip/
-//>>demos: https://jqueryui.com/tooltip/
+//>>docs: http://api.jqueryui.com/tooltip/
+//>>demos: http://jqueryui.com/tooltip/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/tooltip.css
 //>>css.theme: ../../themes/base/theme.css
@@ -24,11 +24,7 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"../keycode",
-			"../position",
-			"../unique-id",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 
@@ -39,7 +35,7 @@
 "use strict";
 
 $.widget( "ui.tooltip", {
-	version: "1.13.3",
+	version: "1.13.2",
 	options: {
 		classes: {
 			"ui-tooltip": "ui-corner-all ui-widget-shadow"

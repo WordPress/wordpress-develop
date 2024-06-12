@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Checkboxradio 1.13.3
- * https://jqueryui.com
+ * jQuery UI Checkboxradio 1.13.2
+ * http://jqueryui.com
  *
- * Copyright OpenJS Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
- * https://jquery.org/license
+ * http://jquery.org/license
  */
 
 //>>label: Checkboxradio
 //>>group: Widgets
 //>>description: Enhances a form with multiple themeable checkboxes or radio buttons.
-//>>docs: https://api.jqueryui.com/checkboxradio/
-//>>demos: https://jqueryui.com/checkboxradio/
+//>>docs: http://api.jqueryui.com/checkboxradio/
+//>>demos: http://jqueryui.com/checkboxradio/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/button.css
 //>>css.structure: ../../themes/base/checkboxradio.css
@@ -25,9 +25,7 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"../form-reset-mixin",
-			"../labels",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 
@@ -38,7 +36,7 @@
 "use strict";
 
 $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
-	version: "1.13.3",
+	version: "1.13.2",
 	options: {
 		disabled: null,
 		label: null,

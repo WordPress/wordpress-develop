@@ -1,9 +1,8 @@
 <?php
 
 /**
- * @group functions
+ * @group functions.php
  * @group query
- *
  * @covers ::wp
  */
 class Tests_Functions_WP extends WP_UnitTestCase {
@@ -17,4 +16,5 @@ class Tests_Functions_WP extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Query', $wp_query );
 		$this->assertInstanceOf( 'WP_Query', $wp_the_query );
 	}
+
 }

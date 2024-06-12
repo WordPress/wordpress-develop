@@ -182,4 +182,5 @@ class WP_Widget_Pages extends WP_Widget {
 		</p>
 		<?php
 	}
+
 }

@@ -86,53 +86,57 @@ class WP_Network_Query {
 	 * Sets up the network query, based on the query vars passed.
 	 *
 	 * @since 4.6.0
+	 * @since 6.1.0 Introduced the 'update_network_meta_cache' parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of network query parameters. Default empty.
 	 *
-	 *     @type int[]        $network__in          Array of network IDs to include. Default empty.
-	 *     @type int[]        $network__not_in      Array of network IDs to exclude. Default empty.
-	 *     @type bool         $count                Whether to return a network count (true) or array of network objects.
-	 *                                              Default false.
-	 *     @type string       $fields               Network fields to return. Accepts 'ids' (returns an array of network IDs)
-	 *                                              or empty (returns an array of complete network objects). Default empty.
-	 *     @type int          $number               Maximum number of networks to retrieve. Default empty (no limit).
-	 *     @type int          $offset               Number of networks to offset the query. Used to build LIMIT clause.
-	 *                                              Default 0.
-	 *     @type bool         $no_found_rows        Whether to disable the `SQL_CALC_FOUND_ROWS` query. Default true.
-	 *     @type string|array $orderby              Network status or array of statuses. Accepts 'id', 'domain', 'path',
-	 *                                              'domain_length', 'path_length' and 'network__in'. Also accepts false,
-	 *                                              an empty array, or 'none' to disable `ORDER BY` clause. Default 'id'.
-	 *     @type string       $order                How to order retrieved networks. Accepts 'ASC', 'DESC'. Default 'ASC'.
-	 *     @type string       $domain               Limit results to those affiliated with a given domain. Default empty.
-	 *     @type string[]     $domain__in           Array of domains to include affiliated networks for. Default empty.
-	 *     @type string[]     $domain__not_in       Array of domains to exclude affiliated networks for. Default empty.
-	 *     @type string       $path                 Limit results to those affiliated with a given path. Default empty.
-	 *     @type string[]     $path__in             Array of paths to include affiliated networks for. Default empty.
-	 *     @type string[]     $path__not_in         Array of paths to exclude affiliated networks for. Default empty.
-	 *     @type string       $search               Search term(s) to retrieve matching networks for. Default empty.
-	 *     @type bool         $update_network_cache Whether to prime the cache for found networks. Default true.
+	 *     @type int[]        $network__in                Array of network IDs to include. Default empty.
+	 *     @type int[]        $network__not_in            Array of network IDs to exclude. Default empty.
+	 *     @type bool         $count                      Whether to return a network count (true) or array of network objects.
+	 *                                                    Default false.
+	 *     @type string       $fields                     Network fields to return. Accepts 'ids' (returns an array of network IDs)
+	 *                                                    or empty (returns an array of complete network objects). Default empty.
+	 *     @type int          $number                     Maximum number of networks to retrieve. Default empty (no limit).
+	 *     @type int          $offset                     Number of networks to offset the query. Used to build LIMIT clause.
+	 *                                                    Default 0.
+	 *     @type bool         $no_found_rows              Whether to disable the `SQL_CALC_FOUND_ROWS` query. Default true.
+	 *     @type string|array $orderby                    Network status or array of statuses. Accepts 'id', 'domain', 'path',
+	 *                                                    'domain_length', 'path_length' and 'network__in'. Also accepts false,
+	 *                                                    an empty array, or 'none' to disable `ORDER BY` clause. Default 'id'.
+	 *     @type string       $order                      How to order retrieved networks. Accepts 'ASC', 'DESC'. Default 'ASC'.
+	 *     @type string       $domain                     Limit results to those affiliated with a given domain. Default empty.
+	 *     @type string[]     $domain__in                 Array of domains to include affiliated networks for. Default empty.
+	 *     @type string[]     $domain__not_in             Array of domains to exclude affiliated networks for. Default empty.
+	 *     @type string       $path                       Limit results to those affiliated with a given path. Default empty.
+	 *     @type string[]     $path__in                   Array of paths to include affiliated networks for. Default empty.
+	 *     @type string[]     $path__not_in               Array of paths to exclude affiliated networks for. Default empty.
+	 *     @type string       $search                     Search term(s) to retrieve matching networks for. Default empty.
+	 *     @type bool         $update_network_cache       Whether to prime the cache for found networks. Default true.
+	 *     @type bool         $update_network_meta_cache  Whether to prime the metadata (option) cache for found networks.
+	 *                                                    Default true.
 	 * }
 	 */
 	public function __construct( $query = '' ) {
 		$this->query_var_defaults = array(
-			'network__in'          => '',
-			'network__not_in'      => '',
-			'count'                => false,
-			'fields'               => '',
-			'number'               => '',
-			'offset'               => '',
-			'no_found_rows'        => true,
-			'orderby'              => 'id',
-			'order'                => 'ASC',
-			'domain'               => '',
-			'domain__in'           => '',
-			'domain__not_in'       => '',
-			'path'                 => '',
-			'path__in'             => '',
-			'path__not_in'         => '',
-			'search'               => '',
-			'update_network_cache' => true,
+			'network__in'               => '',
+			'network__not_in'           => '',
+			'count'                     => false,
+			'fields'                    => '',
+			'number'                    => '',
+			'offset'                    => '',
+			'no_found_rows'             => true,
+			'orderby'                   => 'id',
+			'order'                     => 'ASC',
+			'domain'                    => '',
+			'domain__in'                => '',
+			'domain__not_in'            => '',
+			'path'                      => '',
+			'path__in'                  => '',
+			'path__not_in'              => '',
+			'search'                    => '',
+			'update_network_cache'      => true,
+			'update_network_meta_cache' => true,
 		);
 
 		if ( ! empty( $query ) ) {
@@ -145,7 +149,7 @@ class WP_Network_Query {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param string|array $query WP_Network_Query arguments. See WP_Network_Query::__construct() for accepted arguments.
+	 * @param string|array $query WP_Network_Query arguments. See WP_Network_Query::__construct()
 	 */
 	public function parse_query( $query = '' ) {
 		if ( empty( $query ) ) {
@@ -243,14 +247,14 @@ class WP_Network_Query {
 		// $args can include anything. Only use the args defined in the query_var_defaults to compute the key.
 		$_args = wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) );
 
-		// Ignore the $fields, $update_network_cache arguments as the queried result will be the same regardless.
-		unset( $_args['fields'], $_args['update_network_cache'] );
+		// Ignore these arguments, as the queried result will be the same regardless.
+		unset( $_args['fields'], $_args['update_network_cache'], $_args['update_network_meta_cache'] );
 
 		$key          = md5( serialize( $_args ) );
 		$last_changed = wp_cache_get_last_changed( 'networks' );
 
 		$cache_key   = "get_network_ids:$key:$last_changed";
-		$cache_value = wp_cache_get( $cache_key, 'network-queries' );
+		$cache_value = wp_cache_get( $cache_key, 'networks' );
 
 		if ( false === $cache_value ) {
 			$network_ids = $this->get_network_ids();
@@ -262,14 +266,14 @@ class WP_Network_Query {
 				'network_ids'    => $network_ids,
 				'found_networks' => $this->found_networks,
 			);
-			wp_cache_add( $cache_key, $cache_value, 'network-queries' );
+			wp_cache_add( $cache_key, $cache_value, 'networks' );
 		} else {
 			$network_ids          = $cache_value['network_ids'];
 			$this->found_networks = $cache_value['found_networks'];
 		}
 
 		if ( $this->found_networks && $this->query_vars['number'] ) {
-			$this->max_num_pages = (int) ceil( $this->found_networks / $this->query_vars['number'] );
+			$this->max_num_pages = ceil( $this->found_networks / $this->query_vars['number'] );
 		}
 
 		// If querying for a count only, there's nothing more to do.
@@ -286,7 +290,7 @@ class WP_Network_Query {
 		}
 
 		if ( $this->query_vars['update_network_cache'] ) {
-			_prime_network_caches( $network_ids );
+			_prime_network_caches( $network_ids, $this->query_vars['update_network_meta_cache'] );
 		}
 
 		// Fetch full network objects from the primed cache.
@@ -481,14 +485,14 @@ class WP_Network_Query {
 		$this->sql_clauses['orderby'] = $orderby;
 		$this->sql_clauses['limits']  = $limits;
 
-		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
-		$this->request =
-			"{$this->sql_clauses['select']}
-			 {$this->sql_clauses['from']}
-			 {$where}
-			 {$this->sql_clauses['groupby']}
-			 {$this->sql_clauses['orderby']}
-			 {$this->sql_clauses['limits']}";
+		$this->request = "
+			{$this->sql_clauses['select']}
+			{$this->sql_clauses['from']}
+			{$where}
+			{$this->sql_clauses['groupby']}
+			{$this->sql_clauses['orderby']}
+			{$this->sql_clauses['limits']}
+		";
 
 		if ( $this->query_vars['count'] ) {
 			return (int) $wpdb->get_var( $this->request );

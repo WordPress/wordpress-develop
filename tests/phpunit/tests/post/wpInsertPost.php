@@ -128,7 +128,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertSame( $data['post_content'], $post->post_content );
 		$this->assertSame( $data['post_title'], $post->post_title );
 		$this->assertSame( $data['post_status'], $post->post_status );
-		$this->assertSame( (string) $data['post_author'], $post->post_author );
+		$this->assertEquals( $data['post_author'], $post->post_author );
 
 		// Test cache state.
 		$post_cache = wp_cache_get( $post_id, 'posts' );
@@ -304,6 +304,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		// There should be a publish_future_post hook scheduled on the future date.
 		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $post_id ) );
+
 	}
 
 	/**
@@ -649,6 +650,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( 'WP_Error', wp_insert_post( $post, true ) );
 		$this->assertInstanceOf( 'WP_Error', wp_update_post( $post, true ) );
+
 	}
 
 	/**
@@ -675,7 +677,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertGreaterThan( 0, $post_id );
 
 		$post = get_post( $post_id );
-		$this->assertSame( (string) self::$user_ids['editor'], $post->post_author );
+		$this->assertEquals( self::$user_ids['editor'], $post->post_author );
 		$this->assertSame( $title, $post->post_title );
 	}
 
@@ -787,7 +789,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_wp_insert_post_author_zero() {
 		$post_id = self::factory()->post->create( array( 'post_author' => 0 ) );
 
-		$this->assertSame( '0', get_post( $post_id )->post_author );
+		$this->assertEquals( 0, get_post( $post_id )->post_author );
 	}
 
 	/**
@@ -798,7 +800,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create( array( 'post_author' => null ) );
 
-		$this->assertSame( (string) self::$user_ids['editor'], get_post( $post_id )->post_author );
+		$this->assertEquals( self::$user_ids['editor'], get_post( $post_id )->post_author );
 	}
 
 	/**
@@ -877,7 +879,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	/**
 	 * @ticket 19954
 	 */
-	public function test_updating_a_post_should_not_trash_categories() {
+	function test_updating_a_post_should_not_trash_categories() {
 		// Create a category and attach it to a new post.
 		$term_id = self::factory()->term->create(
 			array(
@@ -898,7 +900,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		// Validate that the term got assigned.
 		$assigned_terms = wp_get_object_terms( array( $post_id ), array( 'category' ), array() );
 		$this->assertCount( 1, $assigned_terms );
-		$this->assertSame( $term_id, $assigned_terms[0]->term_id );
+		$this->assertEquals( $term_id, $assigned_terms[0]->term_id );
 
 		// Update the post with no changes.
 		$post = get_post( $post_id );
@@ -907,7 +909,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		// Validate the term is still assigned.
 		$assigned_terms = wp_get_object_terms( array( $post_id ), array( 'category' ), array() );
 		$this->assertCount( 1, $assigned_terms );
-		$this->assertSame( $term_id, $assigned_terms[0]->term_id );
+		$this->assertEquals( $term_id, $assigned_terms[0]->term_id );
 
 		// Remove the term from the post.
 		$post->post_category = array();
@@ -916,7 +918,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		// Validate that the post has had the default category assigned again.
 		$this->assertCount( 1, $assigned_terms );
-		$this->assertSame( (int) get_option( 'default_category' ), $assigned_terms[0]->term_id );
+		$this->assertEquals( get_option( 'default_category' ), $assigned_terms[0]->term_id );
 	}
 
 	/**
@@ -1190,7 +1192,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_status' => 'draft',
 			)
 		);
-		$this->assertWPError( $post_id );
+		$this->assertSame( 0, $post_id );
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -1199,7 +1201,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_status'   => 'draft',
 			)
 		);
-		$this->assertWPError( $post_id );
+		$this->assertSame( 0, $post_id );
 
 		// Empty post_date_gmt without floating status
 		$post_id = self::factory()->post->create(
@@ -1208,7 +1210,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_status' => 'publish',
 			)
 		);
-		$this->assertWPError( $post_id );
+		$this->assertSame( 0, $post_id );
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -1217,7 +1219,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_status'   => 'publish',
 			)
 		);
-		$this->assertWPError( $post_id );
+		$this->assertSame( 0, $post_id );
 
 		// Valid post_date_gmt
 		$post_id = self::factory()->post->create(
@@ -1226,7 +1228,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_date_gmt' => $post_date_gmt,
 			)
 		);
-		$this->assertWPError( $post_id );
+		$this->assertSame( 0, $post_id );
 
 		// Invalid post_date_gmt
 		$post_id = self::factory()->post->create(
@@ -1235,7 +1237,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_date_gmt' => $invalid_date,
 			)
 		);
-		$this->assertWPError( $post_id );
+		$this->assertSame( 0, $post_id );
 	}
 
 	/**

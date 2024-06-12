@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Resizable 1.13.3
- * https://jqueryui.com
+ * jQuery UI Resizable 1.13.2
+ * http://jqueryui.com
  *
- * Copyright OpenJS Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
- * https://jquery.org/license
+ * http://jquery.org/license
  */
 
 //>>label: Resizable
 //>>group: Interactions
 //>>description: Enables resize functionality for any element.
-//>>docs: https://api.jqueryui.com/resizable/
-//>>demos: https://jqueryui.com/resizable/
+//>>docs: http://api.jqueryui.com/resizable/
+//>>demos: http://jqueryui.com/resizable/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/resizable.css
 //>>css.theme: ../../themes/base/theme.css
@@ -25,10 +25,7 @@
 		define( [
 			"jquery",
 			"./mouse",
-			"../disable-selection",
-			"../plugin",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 
@@ -39,7 +36,7 @@
 "use strict";
 
 $.widget( "ui.resizable", $.ui.mouse, {
-	version: "1.13.3",
+	version: "1.13.2",
 	widgetEventPrefix: "resize",
 	options: {
 		alsoResize: false,
@@ -533,17 +530,14 @@ $.widget( "ui.resizable", $.ui.mouse, {
 		if ( this.position.left !== this.prevPosition.left ) {
 			props.left = this.position.left + "px";
 		}
-
-		this.helper.css( props );
-
 		if ( this.size.width !== this.prevSize.width ) {
 			props.width = this.size.width + "px";
-			this.helper.width( props.width );
 		}
 		if ( this.size.height !== this.prevSize.height ) {
 			props.height = this.size.height + "px";
-			this.helper.height( props.height );
 		}
+
+		this.helper.css( props );
 
 		return props;
 	},
@@ -1051,7 +1045,7 @@ $.ui.plugin.add( "resizable", "alsoResize", {
 		$( o.alsoResize ).each( function() {
 			var el = $( this );
 			el.data( "ui-resizable-alsoresize", {
-				width: parseFloat( el.css( "width" ) ), height: parseFloat( el.css( "height" ) ),
+				width: parseFloat( el.width() ), height: parseFloat( el.height() ),
 				left: parseFloat( el.css( "left" ) ), top: parseFloat( el.css( "top" ) )
 			} );
 		} );

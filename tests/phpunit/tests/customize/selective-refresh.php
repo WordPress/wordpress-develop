@@ -1,8 +1,12 @@
 <?php
 /**
- * Tests for the WP_Customize_Selective_Refresh class.
+ * WP_Customize_Selective_Refresh tests.
  *
  * @package WordPress
+ */
+
+/**
+ * Tests for the WP_Customize_Selective_Refresh class.
  *
  * @group customize
  */

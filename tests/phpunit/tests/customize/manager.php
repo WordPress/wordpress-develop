@@ -34,11 +34,18 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	protected static $subscriber_user_id;
 
 	/**
-	 * Whether any attachments have been created in the current test run.
+	 * Path to test file 1.
 	 *
-	 * @var bool
+	 * @var string
 	 */
-	private $attachments_created = false;
+	private $test_file;
+
+	/**
+	 * Path to test file 2.
+	 *
+	 * @var string
+	 */
+	private $test_file2;
 
 	/**
 	 * Set up before class.
@@ -57,17 +64,19 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$this->manager = $this->instantiate();
+
+		$orig_file       = DIR_TESTDATA . '/images/canola.jpg';
+		$this->test_file = get_temp_dir() . 'canola.jpg';
+		copy( $orig_file, $this->test_file );
+		$orig_file2       = DIR_TESTDATA . '/images/waffles.jpg';
+		$this->test_file2 = get_temp_dir() . 'waffles.jpg';
+		copy( $orig_file2, $this->test_file2 );
 	}
 
 	/**
 	 * Tear down test.
 	 */
 	public function tear_down() {
-		if ( true === $this->attachments_created ) {
-			$this->remove_added_uploads();
-			$this->attachments_created = false;
-		}
-
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
 		$_REQUEST = array();
@@ -271,7 +280,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @ticket 41039
 	 */
 	public function test_fresh_site_flag_clearing() {
-		global $wp_customize;
+		global $wp_customize, $wpdb;
 
 		// Make sure fresh site flag is cleared when publishing a changeset.
 		update_option( 'fresh_site', '1' );
@@ -283,9 +292,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		wp_load_alloptions();
 
 		// Make sure no DB write is done when publishing and a site is already non-fresh.
-		$query_count = get_num_queries();
+		$query_count = $wpdb->num_queries;
 		do_action( 'customize_save_after', $wp_customize );
-		$this->assertSame( $query_count, get_num_queries() );
+		$this->assertSame( $query_count, $wpdb->num_queries );
 	}
 
 	/**
@@ -547,13 +556,8 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		add_theme_support( 'custom-header' );
 		add_theme_support( 'custom-background' );
 
-		// For existing attachment, copy into uploads.
-		$canola_image_file    = DIR_TESTDATA . '/images/canola.jpg';
-		$canola_image_upload  = wp_upload_bits( wp_basename( $canola_image_file ), null, file_get_contents( $canola_image_file ) );
-		$existing_canola_file = $canola_image_upload['file'];
-
-		$existing_canola_attachment_id = self::factory()->attachment->create_object(
-			$existing_canola_file,
+		$existing_canola_attachment_id     = self::factory()->attachment->create_object(
+			$this->test_file,
 			0,
 			array(
 				'post_mime_type' => 'image/jpeg',
@@ -561,9 +565,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				'post_name'      => 'canola',
 			)
 		);
-
-		$this->attachments_created = true;
-
 		$existing_published_home_page_id   = self::factory()->post->create(
 			array(
 				'post_name'   => 'home',
@@ -630,13 +631,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 					'post_title'   => 'Waffles',
 					'post_content' => 'Waffles Attachment Description',
 					'post_excerpt' => 'Waffles Attachment Caption',
-					'file'         => DIR_TESTDATA . '/images/waffles.jpg',
+					'file'         => $this->test_file2,
 				),
 				'canola'  => array(
 					'post_title'   => 'Canola',
 					'post_content' => 'Canola Attachment Description',
 					'post_excerpt' => 'Canola Attachment Caption',
-					'file'         => $existing_canola_file,
+					'file'         => $this->test_file,
 				),
 			),
 			'options'     => array(
@@ -764,7 +765,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		/*
 		 * Test that adding blogname starter content is ignored now that it is modified,
-		 * but updating a non-modified starter content site description passes.
+		 * but updating a non-modified starter content blog description passes.
 		 */
 		$previous_blogname        = $changeset_data['blogname']['value'];
 		$previous_blogdescription = $changeset_data['blogdescription']['value'];
@@ -1345,7 +1346,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		// User saved as one who can bypass content_save_pre filter.
 		$this->assertStringContainsString( '<script>', get_option( 'custom_html_1' ) );
-		$this->assertStringContainsString( 'Wordpress', get_option( 'custom_html_1' ) ); // phpcs:ignore WordPress.WP.CapitalPDangit.MisspelledInText
+		$this->assertStringContainsString( 'Wordpress', get_option( 'custom_html_1' ) ); // phpcs:ignore WordPress.WP.CapitalPDangit.Misspelled
 
 		// User saved as one who cannot bypass content_save_pre filter.
 		$this->assertStringNotContainsString( '<script>', get_option( 'custom_html_2' ) );
@@ -2151,45 +2152,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that trash_changeset_post() passes the correct number of arguments to post trash hooks.
-	 *
-	 * @ticket 60183
-	 * @covers WP_Customize_Manager::trash_changeset_post
-	 */
-	public function test_trash_changeset_post_passes_all_arguments_to_trash_hooks() {
-		$args = array(
-			'post_type'    => 'customize_changeset',
-			'post_content' => wp_json_encode(
-				array(
-					'blogname' => array(
-						'value' => 'Test',
-					),
-				)
-			),
-			'post_name'    => wp_generate_uuid4(),
-			'post_status'  => 'draft',
-		);
-
-		$post_id = wp_insert_post( $args );
-
-		$manager = $this->create_test_manager( $args['post_name'] );
-
-		$pre_trash_post = new MockAction();
-		$wp_trash_post  = new MockAction();
-		$trashed_post   = new MockAction();
-
-		add_action( 'pre_trash_post', array( $pre_trash_post, 'action' ), 10, 3 );
-		add_action( 'wp_trash_post', array( $wp_trash_post, 'action' ), 10, 2 );
-		add_action( 'trashed_post', array( $trashed_post, 'action' ), 10, 2 );
-
-		$manager->trash_changeset_post( $post_id );
-
-		$this->assertCount( 3, $pre_trash_post->get_args()[0] );
-		$this->assertCount( 2, $wp_trash_post->get_args()[0] );
-		$this->assertCount( 2, $trashed_post->get_args()[0] );
-	}
-
-	/**
 	 * Register scratchpad setting.
 	 *
 	 * @param WP_Customize_Manager $wp_customize Manager.
@@ -2571,10 +2533,10 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertSame( $default_value, $this->manager->post_value( $setting, $default_value ) );
 		$this->assertSame( $default_value, $setting->post_value( $default_value ) );
 
-		$post_value = 42;
-		$this->manager->set_post_value( 'numeric', (string) $post_value );
-		$this->assertSame( $post_value, $this->manager->post_value( $setting, $default_value ) );
-		$this->assertSame( $post_value, $setting->post_value( $default_value ) );
+		$post_value = '42';
+		$this->manager->set_post_value( 'numeric', $post_value );
+		$this->assertEquals( $post_value, $this->manager->post_value( $setting, $default_value ) );
+		$this->assertEquals( $post_value, $setting->post_value( $default_value ) );
 	}
 
 	/**
@@ -3174,8 +3136,8 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$manager = new WP_Customize_Manager( array( 'messenger_channel' => 'preview-0' ) );
 		ob_start();
 		$manager->remove_frameless_preview_messenger_channel();
-		$processor = new WP_HTML_Tag_Processor( ob_get_clean() );
-		$this->assertTrue( $processor->next_tag( 'script' ), 'Failed to find expected SCRIPT element in output.' );
+		$output = ob_get_clean();
+		$this->assertStringContainsString( '<script>', $output );
 	}
 
 	/**
@@ -3378,45 +3340,45 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$setting_id = 'dynamic';
 		$setting    = $manager->add_setting( $setting_id );
 		$this->assertSame( 'WP_Customize_Setting', get_class( $setting ) );
-		$this->assertObjectNotHasProperty( 'custom', $setting );
+		$this->assertObjectNotHasAttribute( 'custom', $setting );
 		$manager->remove_setting( $setting_id );
 
 		add_filter( 'customize_dynamic_setting_class', array( $this, 'return_dynamic_customize_setting_class' ), 10, 3 );
 		add_filter( 'customize_dynamic_setting_args', array( $this, 'return_dynamic_customize_setting_args' ), 10, 2 );
 		$setting = $manager->add_setting( $setting_id );
 		$this->assertSame( 'Test_Dynamic_Customize_Setting', get_class( $setting ) );
-		$this->assertObjectHasProperty( 'custom', $setting );
+		$this->assertObjectHasAttribute( 'custom', $setting );
 		$this->assertSame( 'foo', $setting->custom );
 	}
 
 	/**
-	 * Returns 'Test_Dynamic_Customize_Setting' in 'customize_dynamic_setting_class'.
+	 * Return 'Test_Dynamic_Customize_Setting' in 'customize_dynamic_setting_class.
 	 *
-	 * @param string $setting_class Setting class.
-	 * @param array  $setting_args  Setting args.
-	 * @param string $setting_id    Setting ID.
-	 * @return string Setting class.
+	 * @param string $class Setting class.
+	 * @param array  $args  Setting args.
+	 * @param string $id    Setting ID.
+	 * @return string       Setting class.
 	 */
-	public function return_dynamic_customize_setting_class( $setting_class, $setting_id, $setting_args ) {
-		unset( $setting_args );
-		if ( 0 === strpos( $setting_id, 'dynamic' ) ) {
-			$setting_class = 'Test_Dynamic_Customize_Setting';
+	public function return_dynamic_customize_setting_class( $class, $id, $args ) {
+		unset( $args );
+		if ( 0 === strpos( $id, 'dynamic' ) ) {
+			$class = 'Test_Dynamic_Customize_Setting';
 		}
-		return $setting_class;
+		return $class;
 	}
 
 	/**
-	 * Returns 'foo' in 'customize_dynamic_setting_args'.
+	 * Return 'Test_Dynamic_Customize_Setting' in 'customize_dynamic_setting_class.
 	 *
-	 * @param array  $setting_args Setting args.
-	 * @param string $setting_id   Setting ID.
-	 * @return array Setting args.
+	 * @param array  $args Setting args.
+	 * @param string $id   Setting ID.
+	 * @return string      Setting args.
 	 */
-	public function return_dynamic_customize_setting_args( $setting_args, $setting_id ) {
-		if ( 0 === strpos( $setting_id, 'dynamic' ) ) {
-			$setting_args['custom'] = 'foo';
+	public function return_dynamic_customize_setting_args( $args, $id ) {
+		if ( 0 === strpos( $id, 'dynamic' ) ) {
+			$args['custom'] = 'foo';
 		}
-		return $setting_args;
+		return $args;
 	}
 
 	/**
@@ -3708,4 +3670,5 @@ class Test_Setting_Without_Applying_Validate_Filter extends WP_Customize_Setting
 		}
 		return true;
 	}
+
 }

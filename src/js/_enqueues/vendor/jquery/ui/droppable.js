@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Droppable 1.13.3
- * https://jqueryui.com
+ * jQuery UI Droppable 1.13.2
+ * http://jqueryui.com
  *
- * Copyright OpenJS Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
- * https://jquery.org/license
+ * http://jquery.org/license
  */
 
 //>>label: Droppable
 //>>group: Interactions
 //>>description: Enables drop targets for draggable elements.
-//>>docs: https://api.jqueryui.com/droppable/
-//>>demos: https://jqueryui.com/droppable/
+//>>docs: http://api.jqueryui.com/droppable/
+//>>demos: http://jqueryui.com/droppable/
 
 ( function( factory ) {
 	"use strict";
@@ -23,8 +23,7 @@
 			"jquery",
 			"./draggable",
 			"./mouse",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 
@@ -35,7 +34,7 @@
 "use strict";
 
 $.widget( "ui.droppable", {
-	version: "1.13.3",
+	version: "1.13.2",
 	widgetEventPrefix: "drop",
 	options: {
 		accept: "*",

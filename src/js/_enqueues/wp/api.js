@@ -7,7 +7,7 @@
 	'use strict';
 
 	/**
-	 * Initialize the WP_API.
+	 * Initialise the WP_API.
 	 */
 	function WP_API() {
 		/** @namespace wp.api.models */

@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Effects Clip 1.13.3
- * https://jqueryui.com
+ * jQuery UI Effects Clip 1.13.2
+ * http://jqueryui.com
  *
- * Copyright OpenJS Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
- * https://jquery.org/license
+ * http://jquery.org/license
  */
 
 //>>label: Clip Effect
 //>>group: Effects
 //>>description: Clips the element on and off like an old TV.
-//>>docs: https://api.jqueryui.com/clip-effect/
-//>>demos: https://jqueryui.com/effect/
+//>>docs: http://api.jqueryui.com/clip-effect/
+//>>demos: http://jqueryui.com/effect/
 
 ( function( factory ) {
 	"use strict";
@@ -21,8 +21,7 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"../version",
-			"../effect"
+			"./effect"
 		], factory );
 	} else {
 

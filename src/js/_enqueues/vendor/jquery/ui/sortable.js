@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Sortable 1.13.3
- * https://jqueryui.com
+ * jQuery UI Sortable 1.13.2
+ * http://jqueryui.com
  *
- * Copyright OpenJS Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
- * https://jquery.org/license
+ * http://jquery.org/license
  */
 
 //>>label: Sortable
 //>>group: Interactions
 //>>description: Enables items in a list to be sorted using the mouse.
-//>>docs: https://api.jqueryui.com/sortable/
-//>>demos: https://jqueryui.com/sortable/
+//>>docs: http://api.jqueryui.com/sortable/
+//>>demos: http://jqueryui.com/sortable/
 //>>css.structure: ../../themes/base/sortable.css
 
 ( function( factory ) {
@@ -23,11 +23,7 @@
 		define( [
 			"jquery",
 			"./mouse",
-			"../data",
-			"../ie",
-			"../scroll-parent",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 
@@ -38,7 +34,7 @@
 "use strict";
 
 return $.widget( "ui.sortable", $.ui.mouse, {
-	version: "1.13.3",
+	version: "1.13.2",
 	widgetEventPrefix: "sort",
 	ready: false,
 	options: {

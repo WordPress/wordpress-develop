@@ -16,8 +16,8 @@ function fileQueued( fileObj ) {
 	jQuery( '<div class="media-item">' )
 		.attr( 'id', 'media-item-' + fileObj.id )
 		.addClass( 'child-of-' + postid )
-		.append( jQuery( '<div class="filename original">' ).text( ' ' + fileObj.name ),
-			'<div class="progress"><div class="percent">0%</div><div class="bar"></div></div>' )
+		.append( '<div class="progress"><div class="percent">0%</div><div class="bar"></div></div>',
+			jQuery( '<div class="filename original">' ).text( ' ' + fileObj.name ) )
 		.appendTo( jQuery( '#media-items' ) );
 
 	// Disable submit.
@@ -380,6 +380,8 @@ function copyAttachmentUploadURLClipboard() {
 
 		// Clear the selection and move focus back to the trigger.
 		event.clearSelection();
+		// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
+		triggerElement.trigger( 'focus' );
 		// Show success visual feedback.
 		clearTimeout( successTimeout );
 		successElement.removeClass( 'hidden' );
@@ -397,7 +399,7 @@ jQuery( document ).ready( function( $ ) {
 	var tryAgainCount = {};
 	var tryAgain;
 
-	$( '.media-upload-form' ).on( 'click.uploader', function( e ) {
+	$( '.media-upload-form' ).bind( 'click.uploader', function( e ) {
 		var target = $( e.target ), tr, c;
 
 		if ( target.is( 'input[type="radio"]' ) ) { // Remember the last used image size and alignment.
@@ -555,7 +557,7 @@ jQuery( document ).ready( function( $ ) {
 	uploader_init = function() {
 		uploader = new plupload.Uploader( wpUploaderInit );
 
-		$( '#image_resize' ).on( 'change', function() {
+		$( '#image_resize' ).bind( 'change', function() {
 			var arg = $( this ).prop( 'checked' );
 
 			setResize( arg );
@@ -605,11 +607,6 @@ jQuery( document ).ready( function( $ ) {
 					wpQueueError( pluploadL10n.unsupported_image );
 				} else if ( file.type === 'image/webp' && up.settings.webp_upload_error ) {
 					// Disallow uploading of WebP images if the server cannot edit them.
-					wpQueueError( pluploadL10n.noneditable_image );
-					up.removeFile( file );
-					return;
-				} else if ( file.type === 'image/avif' && up.settings.avif_upload_error ) {
-					// Disallow uploading of AVIF images if the server cannot edit them.
 					wpQueueError( pluploadL10n.noneditable_image );
 					up.removeFile( file );
 					return;

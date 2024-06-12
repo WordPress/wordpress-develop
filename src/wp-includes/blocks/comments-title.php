@@ -8,8 +8,6 @@
 /**
  * Renders the `core/comments-title` block on the server.
  *
- * @since 6.0.0
- *
  * @param array $attributes Block attributes.
  *
  * @return string Return the post comments title.
@@ -86,8 +84,6 @@ function render_block_core_comments_title( $attributes ) {
 
 /**
  * Registers the `core/comments-title` block on the server.
- *
- * @since 6.0.0
  */
 function register_block_core_comments_title() {
 	register_block_type_from_metadata(

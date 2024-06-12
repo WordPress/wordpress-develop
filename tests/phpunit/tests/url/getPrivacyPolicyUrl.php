@@ -1,13 +1,19 @@
 <?php
 /**
- * Test cases for the `get_privacy_policy_url()` function.
+ * Define a class to test `get_privacy_policy_url()`.
  *
  * @package WordPress
  * @subpackage UnitTests
  * @since 4.9.6
+ */
+
+/**
+ * Test cases for `get_privacy_policy_url()`.
  *
  * @group url
  * @group privacy
+ *
+ * @since 4.9.6
  *
  * @covers ::get_privacy_policy_url
  */

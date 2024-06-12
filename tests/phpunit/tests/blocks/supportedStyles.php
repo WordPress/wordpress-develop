@@ -1,9 +1,15 @@
 <?php
 /**
- * Test block supported styles.
+ * Block supported style tests
  *
  * @package WordPress
  * @subpackage Blocks
+ * @since 5.6.0
+ */
+
+/**
+ * Test block supported styles.
+ *
  * @since 5.6.0
  *
  * @group blocks
@@ -169,7 +175,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 			'attrs'        => array(
 				'textColor'       => 'red',
 				'backgroundColor' => 'black',
-				// The following should not be applied (subcategories of color support).
+				// The following should not be applied (subcatagories of color support).
 				'gradient'        => 'some-gradient',
 			),
 			'innerBlock'   => array(),
@@ -203,7 +209,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 					'color' => array(
 						'text'       => '#000',
 						'background' => '#fff',
-						// The following should not be applied (subcategories of color support).
+						// The following should not be applied (subcatagories of color support).
 						'gradient'   => 'some-gradient',
 						'style'      => array( 'color' => array( 'link' => '#fff' ) ),
 					),
@@ -695,14 +701,13 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 		$this->register_block_type( 'core/example', $block_type_settings );
 
-		$block    = array(
+		$block = array(
 			'blockName'    => 'core/example',
 			'attrs'        => array(),
 			'innerBlock'   => array(),
 			'innerContent' => array(),
 			'innerHTML'    => array(),
 		);
-		$wp_block = new WP_Block( $block );
 
 		// Custom error handler's see Warnings even if they are suppressed by the @ symbol.
 		$errors = array();
@@ -715,7 +720,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 
 		// HTML5 elements like <time> are not supported by the DOMDocument parser used by the block supports feature.
 		// This specific example is emitted by the "Display post date" setting in the latest-posts block.
-		apply_filters( 'render_block', '<div><time datetime="2020-06-18T04:01:43+10:00" class="wp-block-latest-posts__post-date">June 18, 2020</time></div>', $block, $wp_block );
+		apply_filters( 'render_block', '<div><time datetime="2020-06-18T04:01:43+10:00" class="wp-block-latest-posts__post-date">June 18, 2020</time></div>', $block );
 
 		restore_error_handler();
 

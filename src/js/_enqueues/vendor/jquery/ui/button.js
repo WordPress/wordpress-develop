@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Button 1.13.3
- * https://jqueryui.com
+ * jQuery UI Button 1.13.2
+ * http://jqueryui.com
  *
- * Copyright OpenJS Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
- * https://jquery.org/license
+ * http://jquery.org/license
  */
 
 //>>label: Button
 //>>group: Widgets
 //>>description: Enhances a form with themeable buttons.
-//>>docs: https://api.jqueryui.com/button/
-//>>demos: https://jqueryui.com/button/
+//>>docs: http://api.jqueryui.com/button/
+//>>demos: http://jqueryui.com/button/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/button.css
 //>>css.theme: ../../themes/base/theme.css
@@ -30,8 +30,7 @@
 			"./controlgroup",
 			"./checkboxradio",
 
-			"../keycode",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 
@@ -42,7 +41,7 @@
 "use strict";
 
 $.widget( "ui.button", {
-	version: "1.13.3",
+	version: "1.13.2",
 	defaultElement: "<button>",
 	options: {
 		classes: {

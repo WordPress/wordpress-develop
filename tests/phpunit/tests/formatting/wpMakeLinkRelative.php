@@ -45,4 +45,5 @@ class Tests_Formatting_wpMakeLinkRelative extends WP_UnitTestCase {
 		$relative_link = wp_make_link_relative( $link );
 		$this->assertSame( '', $relative_link );
 	}
+
 }

@@ -28,12 +28,10 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		// The toolbar is composed of two `PriorityList` views.
 		this.primary   = new wp.media.view.PriorityList();
 		this.secondary = new wp.media.view.PriorityList();
-		this.tertiary  = new wp.media.view.PriorityList();
 		this.primary.$el.addClass('media-toolbar-primary search-form');
 		this.secondary.$el.addClass('media-toolbar-secondary');
-		this.tertiary.$el.addClass('media-bg-overlay');
 
-		this.views.set([ this.secondary, this.primary, this.tertiary ]);
+		this.views.set([ this.secondary, this.primary ]);
 
 		if ( this.options.items ) {
 			this.set( this.options.items, { silent: true });
@@ -52,7 +50,7 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		}
 	},
 	/**
-	 * @return {wp.media.view.Toolbar} Returns itself to allow chaining
+	 * @return {wp.media.view.Toolbar} Returns itsef to allow chaining
 	 */
 	dispose: function() {
 		if ( this.selection ) {
@@ -124,7 +122,6 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		delete this._views[ id ];
 		this.primary.unset( id, options );
 		this.secondary.unset( id, options );
-		this.tertiary.unset( id, options );
 
 		if ( ! options || ! options.silent ) {
 			this.refresh();

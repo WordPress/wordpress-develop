@@ -643,6 +643,16 @@
 					}, 3000 );
 				}
 
+				function reload() {
+					if ( ! editor.isHidden() ) {
+						$( node ).data( 'rendered', null );
+
+						setTimeout( function() {
+							wp.mce.views.render();
+						} );
+					}
+				}
+
 				function addObserver() {
 					observer = new MutationObserver( _.debounce( resize, 100 ) );
 
@@ -653,7 +663,7 @@
 					} );
 				}
 
-				$( iframeWin ).on( 'load', resize );
+				$( iframeWin ).on( 'load', resize ).on( 'unload', reload );
 
 				MutationObserver = iframeWin.MutationObserver || iframeWin.WebKitMutationObserver || iframeWin.MozMutationObserver;
 

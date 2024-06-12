@@ -5,7 +5,6 @@
 /* global ajaxurl, pwsL10n, userProfileL10n */
 (function($) {
 	var updateLock = false,
-		isSubmitting = false,
 		__ = wp.i18n.__,
 		$pass1Row,
 		$pass1,
@@ -16,8 +15,6 @@
 		$submitButtons,
 		$submitButton,
 		currentPass,
-		$form,
-		originalFormContent,
 		$passwordWrapper;
 
 	function generatePassword() {
@@ -55,9 +52,7 @@
 		$( '#pw-weak-text-label' ).text( __( 'Confirm use of weak password' ) );
 
 		// Focus the password field.
-		if ( 'mailserver_pass' !== $pass1.prop('id' ) ) {
-			$( $pass1 ).trigger( 'focus' );
-		}
+		$( $pass1 ).trigger( 'focus' );
 	}
 
 	function bindPass1() {
@@ -176,7 +171,7 @@
 		var $generateButton,
 			$cancelButton;
 
-		$pass1Row = $( '.user-pass1-wrap, .user-pass-wrap, .mailserver-pass-wrap, .reset-pass-submit' );
+		$pass1Row = $( '.user-pass1-wrap, .user-pass-wrap, .reset-pass-submit' );
 
 		// Hide the confirm password field when JavaScript support is enabled.
 		$('.user-pass2-wrap').hide();
@@ -193,7 +188,7 @@
 			$submitButtons.prop( 'disabled', ! $weakCheckbox.prop( 'checked' ) );
 		} );
 
-		$pass1 = $('#pass1, #mailserver_pass');
+		$pass1 = $('#pass1');
 		if ( $pass1.length ) {
 			bindPass1();
 		} else {
@@ -314,32 +309,28 @@
 				$('#pass-strength-result').addClass('short').html( pwsL10n.mismatch );
 				break;
 			default:
-				$('#pass-strength-result').addClass('short').html( pwsL10n.short );
+				$('#pass-strength-result').addClass('short').html( pwsL10n['short'] );
 		}
 	}
 
 	function showOrHideWeakPasswordCheckbox() {
-		var passStrengthResult = $('#pass-strength-result');
+		var passStrength = $('#pass-strength-result')[0];
 
-		if ( passStrengthResult.length ) {
-			var passStrength = passStrengthResult[0];
-
-			if ( passStrength.className ) {
-				$pass1.addClass( passStrength.className );
-				if ( $( passStrength ).is( '.short, .bad' ) ) {
-					if ( ! $weakCheckbox.prop( 'checked' ) ) {
-						$submitButtons.prop( 'disabled', true );
-					}
-					$weakRow.show();
-				} else {
-					if ( $( passStrength ).is( '.empty' ) ) {
-						$submitButtons.prop( 'disabled', true );
-						$weakCheckbox.prop( 'checked', false );
-					} else {
-						$submitButtons.prop( 'disabled', false );
-					}
-					$weakRow.hide();
+		if ( passStrength.className ) {
+			$pass1.addClass( passStrength.className );
+			if ( $( passStrength ).is( '.short, .bad' ) ) {
+				if ( ! $weakCheckbox.prop( 'checked' ) ) {
+					$submitButtons.prop( 'disabled', true );
 				}
+				$weakRow.show();
+			} else {
+				if ( $( passStrength ).is( '.empty' ) ) {
+					$submitButtons.prop( 'disabled', true );
+					$weakCheckbox.prop( 'checked', false );
+				} else {
+					$submitButtons.prop( 'disabled', false );
+				}
+				$weakRow.hide();
 			}
 		}
 	}
@@ -457,12 +448,6 @@
 
 		bindPasswordForm();
 		bindPasswordResetLink();
-		$submitButtons.on( 'click', function() {
-			isSubmitting = true;
-		});
-
-		$form = $( '#your-profile, #createuser' );
-		originalFormContent = $form.serialize();
 	});
 
 	$( '#destroy-sessions' ).on( 'click', function( e ) {
@@ -490,10 +475,7 @@
 		if ( true === updateLock ) {
 			return __( 'Your new password has not been saved.' );
 		}
-		if ( originalFormContent !== $form.serialize() && ! isSubmitting ) {
-			return __( 'The changes you made will be lost if you navigate away from this page.' );
-		}
-	});
+	} );
 
 	/*
 	 * We need to generate a password as soon as the Reset Password page is loaded,

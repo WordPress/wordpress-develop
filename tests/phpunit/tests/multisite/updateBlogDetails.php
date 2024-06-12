@@ -7,7 +7,6 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite_UpdateBlogDetails extends WP_UnitTestCase {
-
 		/**
 		 * If `update_blog_details()` is called with any kind of empty arguments, it
 		 * should return false.
@@ -57,7 +56,8 @@ if ( is_multisite() ) :
 		 * @dataProvider data_flag_hooks
 		 */
 		public function test_update_blog_details_flag_action( $flag, $flag_value, $hook ) {
-			$test_action_counter = new MockAction();
+			global $test_action_counter;
+			$test_action_counter = 0;
 
 			$blog_id = self::factory()->blog->create();
 
@@ -66,7 +66,7 @@ if ( is_multisite() ) :
 				update_blog_details( $blog_id, array( $flag => '1' ) );
 			}
 
-			add_action( $hook, array( $test_action_counter, 'action' ) );
+			add_action( $hook, array( $this, 'action_counter_cb' ), 10 );
 
 			update_blog_details( $blog_id, array( $flag => $flag_value ) );
 			$blog = get_site( $blog_id );
@@ -74,13 +74,15 @@ if ( is_multisite() ) :
 			$this->assertSame( $flag_value, $blog->{$flag} );
 
 			// The hook attached to this flag should have fired once during update_blog_details().
-			$this->assertSame( 1, $test_action_counter->get_call_count() );
+			$this->assertSame( 1, $test_action_counter );
 
 			// Update the site to the exact same flag value for this flag.
 			update_blog_details( $blog_id, array( $flag => $flag_value ) );
 
 			// The hook attached to this flag should not have fired again.
-			$this->assertSame( 1, $test_action_counter->get_call_count() );
+			$this->assertSame( 1, $test_action_counter );
+
+			remove_action( $hook, array( $this, 'action_counter_cb' ), 10 );
 		}
 
 		public function data_flag_hooks() {
@@ -94,6 +96,14 @@ if ( is_multisite() ) :
 				array( 'mature', '1', 'mature_blog' ),
 				array( 'mature', '0', 'unmature_blog' ),
 			);
+		}
+
+		/**
+		 * Provide a counter to determine that hooks are firing when intended.
+		 */
+		public function action_counter_cb() {
+			global $test_action_counter;
+			$test_action_counter++;
 		}
 
 		/**
@@ -127,5 +137,6 @@ if ( is_multisite() ) :
 				array( 'multiple///dirs', '/multiple///dirs/' ),
 			);
 		}
+
 	}
 endif;

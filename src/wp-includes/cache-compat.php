@@ -138,17 +138,7 @@ if ( ! function_exists( 'wp_cache_flush_runtime' ) ) :
 	 * @return bool True on success, false on failure.
 	 */
 	function wp_cache_flush_runtime() {
-		if ( ! wp_cache_supports( 'flush_runtime' ) ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				__( 'Your object cache implementation does not support flushing the in-memory runtime cache.' ),
-				'6.1.0'
-			);
-
-			return false;
-		}
-
-		return wp_cache_flush();
+		return wp_using_ext_object_cache() ? false : wp_cache_flush();
 	}
 endif;
 
@@ -157,7 +147,7 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) :
 	 * Removes all cache items in a group, if the object cache implementation supports it.
 	 *
 	 * Before calling this function, always check for group flushing support using the
-	 * `wp_cache_supports( 'flush_group' )` function.
+	 * `wp_cache_supports_group_flush()` function.
 	 *
 	 * @since 6.1.0
 	 *
@@ -170,7 +160,7 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) :
 	function wp_cache_flush_group( $group ) {
 		global $wp_object_cache;
 
-		if ( ! wp_cache_supports( 'flush_group' ) ) {
+		if ( ! wp_cache_supports_group_flush() ) {
 			_doing_it_wrong(
 				__FUNCTION__,
 				__( 'Your object cache implementation does not support flushing individual groups.' ),
@@ -184,18 +174,17 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) :
 	}
 endif;
 
-if ( ! function_exists( 'wp_cache_supports' ) ) :
+if ( ! function_exists( 'wp_cache_supports_group_flush' ) ) :
 	/**
-	 * Determines whether the object cache implementation supports a particular feature.
+	 * Determines whether the object cache implementation supports flushing individual cache groups.
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param string $feature Name of the feature to check for. Possible values include:
-	 *                        'add_multiple', 'set_multiple', 'get_multiple', 'delete_multiple',
-	 *                        'flush_runtime', 'flush_group'.
-	 * @return bool True if the feature is supported, false otherwise.
+	 * @see WP_Object_Cache::flush_group()
+	 *
+	 * @return bool True if group flushing is supported, false otherwise.
 	 */
-	function wp_cache_supports( $feature ) {
+	function wp_cache_supports_group_flush() {
 		return false;
 	}
 endif;

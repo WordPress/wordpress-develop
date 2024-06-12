@@ -9,21 +9,9 @@
 class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 
 	/**
-	 * Tests the urlencode_deep() function pair by pair.
-	 *
-	 * @dataProvider data_urlencode_deep
-	 *
-	 * @param string $input
-	 * @param string $expected
+	 * Data Provider
 	 */
-	public function test_urlencode_deep_should_encode_individual_value( $input, $expected ) {
-		$this->assertSame( $expected, urlencode_deep( $input ) );
-	}
-
-	/**
-	 * Data provider.
-	 */
-	public function data_urlencode_deep() {
+	public function data_test_values() {
 		return array(
 			array( 'qwerty123456', 'qwerty123456' ),
 			array( '|!"£$%&/()=?', '%7C%21%22%C2%A3%24%25%26%2F%28%29%3D%3F' ),
@@ -34,14 +22,27 @@ class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the whole array as input.
+	 * Validate the urlencode_deep function pair by pair
+	 *
+	 * @dataProvider data_test_values
+	 *
+	 * @param string $actual
+	 * @param string $expected
+	 */
+	public function test_urlencode_deep_should_encode_individual_value( $actual, $expected ) {
+		$this->assertSame( $expected, urlencode_deep( $actual ) );
+	}
+
+	/**
+	 * Test the whole array as input
 	 */
 	public function test_urlencode_deep_should_encode_all_values_in_array() {
-		$data = $this->data_urlencode_deep();
+		$data = $this->data_test_values();
 
 		$actual   = wp_list_pluck( $data, 0 );
 		$expected = wp_list_pluck( $data, 1 );
 
 		$this->assertSame( $expected, urlencode_deep( $actual ) );
 	}
+
 }

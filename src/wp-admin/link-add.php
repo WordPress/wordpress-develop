@@ -17,9 +17,7 @@ if ( ! current_user_can( 'manage_links' ) ) {
 $title       = __( 'Add New Link' );
 $parent_file = 'link-manager.php';
 
-$action  = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
-$cat_id  = ! empty( $_REQUEST['cat_id'] ) ? absint( $_REQUEST['cat_id'] ) : 0;
-$link_id = ! empty( $_REQUEST['link_id'] ) ? absint( $_REQUEST['link_id'] ) : 0;
+wp_reset_vars( array( 'action', 'cat_id', 'link_id' ) );
 
 wp_enqueue_script( 'link' );
 wp_enqueue_script( 'xfn' );

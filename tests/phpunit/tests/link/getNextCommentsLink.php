@@ -37,4 +37,5 @@ class Tests_Link_GetNextCommentsLink extends WP_UnitTestCase {
 
 		set_query_var( 'cpage', $cpage );
 	}
+
 }

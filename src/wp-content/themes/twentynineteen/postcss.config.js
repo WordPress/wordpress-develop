@@ -8,8 +8,6 @@ module.exports = {
 
 module.exports = {
     plugins: [
-        postcssFocusWithin({
-            disablePolyfillReadyClass: true
-        })
+        postcssFocusWithin(/* pluginOptions */)
     ]
 };

@@ -5,12 +5,16 @@
  * @package WordPress
  * @subpackage REST_API
  * @since 5.8.0
+ */
+
+/**
+ * Tests for WP_REST_Widget_Types_Controller.
  *
- * @covers WP_REST_Widget_Types_Controller
+ * @since 5.8.0
  *
  * @see WP_TEST_REST_Controller_Testcase
  * @group restapi
- * @group widgets
+ * @covers WP_REST_Widget_Types_Controller
  */
 class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testcase {
 
@@ -114,7 +118,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertGreaterThan( 1, count( $data ) );
-		$endpoint = new WP_REST_Widget_Types_Controller();
+		$endpoint = new WP_REST_Widget_Types_Controller;
 		foreach ( $data as $item ) {
 			$widget_type = $endpoint->get_widget( $item['name'] );
 			$this->check_widget_type_object( $widget_type, $item, $item['_links'] );
@@ -161,7 +165,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$data         = $response->get_data();
 		$text_widgets = array_filter(
 			$data,
-			static function ( $widget ) {
+			static function( $widget ) {
 				return 'text' === $widget['id'];
 			}
 		);
@@ -176,7 +180,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		wp_set_current_user( self::$admin_id );
 		$request     = new WP_REST_Request( 'GET', '/wp/v2/widget-types/' . $widget_name );
 		$response    = rest_get_server()->dispatch( $request );
-		$endpoint    = new WP_REST_Widget_Types_Controller();
+		$endpoint    = new WP_REST_Widget_Types_Controller;
 		$widget_type = $endpoint->get_widget( $widget_name );
 		$this->check_widget_type_object( $widget_type, $response->get_data(), $response->get_links() );
 	}
@@ -189,12 +193,12 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		wp_register_sidebar_widget(
 			$widget_id,
 			'WP legacy widget',
-			static function () {}
+			static function() {}
 		);
 		wp_set_current_user( self::$admin_id );
 		$request     = new WP_REST_Request( 'GET', '/wp/v2/widget-types/' . $widget_id );
 		$response    = rest_get_server()->dispatch( $request );
-		$endpoint    = new WP_REST_Widget_Types_Controller();
+		$endpoint    = new WP_REST_Widget_Types_Controller;
 		$widget_type = $endpoint->get_widget( $widget_id );
 		$this->check_widget_type_object( $widget_type, $response->get_data(), $response->get_links() );
 	}
@@ -220,7 +224,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		wp_register_sidebar_widget(
 			$widget_id,
 			'&#8216;Legacy &#8209; Archive &#8209; Widget&#8217;',
-			static function () {},
+			static function() {},
 			array(
 				'description' => '&#8220;A great &amp; interesting archive of your site&#8217;s posts!&#8221;',
 			)
@@ -294,9 +298,9 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	 * @ticket 41683
 	 */
 	public function test_prepare_item() {
-		$endpoint    = new WP_REST_Widget_Types_Controller();
+		$endpoint    = new WP_REST_Widget_Types_Controller;
 		$widget_type = $endpoint->get_widget( 'calendar' );
-		$request     = new WP_REST_Request();
+		$request     = new WP_REST_Request;
 		$request->set_param( 'context', 'edit' );
 		$response = $endpoint->prepare_item_for_response( $widget_type, $request );
 		$this->check_widget_type_object( $widget_type, $response->get_data(), $response->get_links() );
@@ -362,7 +366,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			array(
 				'encoded' => base64_encode( serialize( array() ) ),
 				'hash'    => wp_hash( serialize( array() ) ),
-				'raw'     => new stdClass(),
+				'raw'     => new stdClass,
 			),
 			$data['instance']
 		);
@@ -398,7 +402,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			array(
 				'encoded' => base64_encode( serialize( array() ) ),
 				'hash'    => wp_hash( serialize( array() ) ),
-				'raw'     => new stdClass(),
+				'raw'     => new stdClass,
 			),
 			$data['instance']
 		);

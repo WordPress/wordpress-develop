@@ -76,7 +76,7 @@ class Tests_Import_Postmeta extends WP_Import_UnitTestCase {
 		$classy->tag = 'wscript';
 		$expected[]  = $classy;
 
-		$this->assertEqualSets( $expected, get_post_meta( 150, 'test', true ) );
+		$this->assertEquals( $expected, get_post_meta( 150, 'test', true ) );
 	}
 
 	/**

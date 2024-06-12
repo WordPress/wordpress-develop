@@ -7,7 +7,7 @@
  */
 class Tests_Formatting_Ent2ncr extends WP_UnitTestCase {
 	/**
-	 * @dataProvider data_entities
+	 * @dataProvider entities
 	 */
 	public function test_converts_named_entities_to_numeric_character_references( $entity, $ncr ) {
 		$entity = '&' . $entity . ';';
@@ -19,7 +19,7 @@ class Tests_Formatting_Ent2ncr extends WP_UnitTestCase {
 	 * Get test data from files, one test per line.
 	 * Comments start with "###".
 	 */
-	public function data_entities() {
+	public function entities() {
 		$entities      = file( DIR_TESTDATA . '/formatting/entities.txt' );
 		$data_provided = array();
 		foreach ( $entities as $line ) {
@@ -36,3 +36,4 @@ class Tests_Formatting_Ent2ncr extends WP_UnitTestCase {
 		return $data_provided;
 	}
 }
+

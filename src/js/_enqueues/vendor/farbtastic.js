@@ -1,15 +1,9 @@
 /*!
  * Farbtastic: jQuery color picker plug-in v1.3u
- * https://github.com/mattfarina/farbtastic
  *
  * Licensed under the GPL license:
  *   http://www.gnu.org/licenses/gpl.html
  */
-/**
- * Modified for WordPress: replaced deprecated jQuery methods.
- * See https://core.trac.wordpress.org/ticket/57946.
- */
-
 (function($) {
 
 $.fn.farbtastic = function (options) {
@@ -55,7 +49,7 @@ $._farbtastic = function (container, callback) {
   fb.linkTo = function (callback) {
     // Unbind previous nodes
     if (typeof fb.callback == 'object') {
-      $(fb.callback).off('keyup', fb.updateValue);
+      $(fb.callback).unbind('keyup', fb.updateValue);
     }
 
     // Reset color
@@ -67,7 +61,7 @@ $._farbtastic = function (container, callback) {
     }
     else if (typeof callback == 'object' || typeof callback == 'string') {
       fb.callback = $(callback);
-      fb.callback.on('keyup', fb.updateValue);
+      fb.callback.bind('keyup', fb.updateValue);
       if (fb.callback.get(0).value) {
         fb.setColor(fb.callback.get(0).value);
       }
@@ -122,7 +116,7 @@ $._farbtastic = function (container, callback) {
   fb.mousedown = function (event) {
     // Capture mouse
     if (!document.dragging) {
-      $(document).on('mousemove', fb.mousemove).on('mouseup', fb.mouseup);
+      $(document).bind('mousemove', fb.mousemove).bind('mouseup', fb.mouseup);
       document.dragging = true;
     }
 
@@ -161,8 +155,8 @@ $._farbtastic = function (container, callback) {
    */
   fb.mouseup = function () {
     // Uncapture mouse
-    $(document).off('mousemove', fb.mousemove);
-    $(document).off('mouseup', fb.mouseup);
+    $(document).unbind('mousemove', fb.mousemove);
+    $(document).unbind('mouseup', fb.mouseup);
     document.dragging = false;
   };
 
@@ -268,7 +262,7 @@ $._farbtastic = function (container, callback) {
   };
 
   // Install mousedown handler (the others are set on the document on-demand)
-  $('*', e).on('mousedown', fb.mousedown);
+  $('*', e).mousedown(fb.mousedown);
 
     // Init color
   fb.setColor('#000000');

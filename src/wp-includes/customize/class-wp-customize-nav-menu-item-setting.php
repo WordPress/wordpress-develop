@@ -183,6 +183,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 				throw new Exception( "Supplied nav_menu_item value missing property: $missing" );
 			}
 		}
+
 	}
 
 	/**
@@ -227,7 +228,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 		} else {
 			$value = false;
 
-			// Note that an ID of less than one indicates a nav_menu not yet inserted.
+			// Note that a ID of less than one indicates a nav_menu not yet inserted.
 			if ( $this->post_id > 0 ) {
 				$post = get_post( $this->post_id );
 				if ( $post && self::POST_TYPE === $post->post_type ) {
@@ -877,6 +878,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 				}
 			}
 		}
+
 	}
 
 	/**

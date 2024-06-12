@@ -43,7 +43,7 @@ module.exports = function( env = { environment: 'production', buildTarget: false
 			name: 'react-refresh-runtime',
 			entry: {
 				'react-refresh-runtime': {
-					import: 'react-refresh/runtime',
+					import: 'react-refresh/runtime.js',
 					library: {
 						name: 'ReactRefreshRuntime',
 						type: 'window',

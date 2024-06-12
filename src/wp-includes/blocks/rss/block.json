@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 3,
+	"apiVersion": 2,
 	"name": "core/rss",
 	"title": "RSS",
 	"category": "widgets",
@@ -43,10 +43,7 @@
 	},
 	"supports": {
 		"align": true,
-		"html": false,
-		"interactivity": {
-			"clientNavigation": true
-		}
+		"html": false
 	},
 	"editorStyle": "wp-block-rss-editor",
 	"style": "wp-block-rss"

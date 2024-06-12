@@ -11,13 +11,6 @@
 //                                                            ///
 /////////////////////////////////////////////////////////////////
 
-if(!defined('GETID3_LIBXML_OPTIONS') && defined('LIBXML_VERSION')) {
-	if(LIBXML_VERSION >= 20621) {
-		define('GETID3_LIBXML_OPTIONS', LIBXML_NOENT | LIBXML_NONET | LIBXML_NOWARNING | LIBXML_COMPACT);
-	} else {
-		define('GETID3_LIBXML_OPTIONS', LIBXML_NOENT | LIBXML_NONET | LIBXML_NOWARNING);
-	}
-}
 
 class getid3_lib
 {
@@ -121,22 +114,10 @@ class getid3_lib
 			}
 		}
 		// if integers are 64-bit - no other check required
-		if ($hasINT64 || (($num <= PHP_INT_MAX) && ($num >= PHP_INT_MIN))) {
+		if ($hasINT64 || (($num <= PHP_INT_MAX) && ($num >= PHP_INT_MIN))) { // phpcs:ignore PHPCompatibility.Constants.NewConstants.php_int_minFound
 			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * Perform a division, guarding against division by zero
-	 *
-	 * @param float|int $numerator
-	 * @param float|int $denominator
-	 * @param float|int $fallback
-	 * @return float|int
-	 */
-	public static function SafeDiv($numerator, $denominator, $fallback = 0) {
-		return $denominator ? $numerator / $denominator : $fallback;
 	}
 
 	/**
@@ -146,7 +127,7 @@ class getid3_lib
 	 */
 	public static function DecimalizeFraction($fraction) {
 		list($numerator, $denominator) = explode('/', $fraction);
-		return (int) $numerator / ($denominator ? $denominator : 1);
+		return $numerator / ($denominator ? $denominator : 1);
 	}
 
 	/**
@@ -322,10 +303,11 @@ class getid3_lib
 			}
 		} elseif (($exponent == 0) && ($fraction == 0)) {
 			if ($signbit == '1') {
-				$floatvalue = -0.0;
+				$floatvalue = -0;
 			} else {
-				$floatvalue = 0.0;
+				$floatvalue = 0;
 			}
+			$floatvalue = ($signbit ? 0 : -0);
 		} elseif (($exponent == 0) && ($fraction != 0)) {
 			// These are 'unnormalized' values
 			$floatvalue = pow(2, (-1 * (pow(2, $exponentbits - 1) - 2))) * self::DecimalBinary2Float($fractionstring);
@@ -750,7 +732,7 @@ class getid3_lib
 			// This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading is
 			// disabled by default, but is still needed when LIBXML_NOENT is used.
 			$loader = @libxml_disable_entity_loader(true);
-			$XMLobject = simplexml_load_string($XMLstring, 'SimpleXMLElement', GETID3_LIBXML_OPTIONS);
+			$XMLobject = simplexml_load_string($XMLstring, 'SimpleXMLElement', LIBXML_NOENT);
 			$return = self::SimpleXMLelement2array($XMLobject);
 			@libxml_disable_entity_loader($loader);
 			return $return;
@@ -883,6 +865,10 @@ class getid3_lib
 	 * @return string
 	 */
 	public static function iconv_fallback_iso88591_utf8($string, $bom=false) {
+		if (function_exists('utf8_encode')) {
+			return utf8_encode($string);
+		}
+		// utf8_encode() unavailable, use getID3()'s iconv_fallback() conversions (possibly PHP is compiled without XML support)
 		$newcharstring = '';
 		if ($bom) {
 			$newcharstring .= "\xEF\xBB\xBF";
@@ -951,6 +937,10 @@ class getid3_lib
 	 * @return string
 	 */
 	public static function iconv_fallback_utf8_iso88591($string) {
+		if (function_exists('utf8_decode')) {
+			return utf8_decode($string);
+		}
+		// utf8_decode() unavailable, use getID3()'s iconv_fallback() conversions (possibly PHP is compiled without XML support)
 		$newcharstring = '';
 		$offset = 0;
 		$stringlength = strlen($string);

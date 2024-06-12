@@ -10,8 +10,6 @@
  * For now it only supports Archive title,
  * using queried object information
  *
- * @since 5.8.0
- *
  * @param array $attributes Block attributes.
  *
  * @return string Returns the query title based on the queried object.
@@ -30,9 +28,12 @@ function render_block_core_query_title( $attributes ) {
 	if ( $is_archive ) {
 		$show_prefix = isset( $attributes['showPrefix'] ) ? $attributes['showPrefix'] : true;
 		if ( ! $show_prefix ) {
-			add_filter( 'get_the_archive_title_prefix', '__return_empty_string', 1 );
+			$filter_title = function( $title, $original_title ) {
+				return $original_title;
+			};
+			add_filter( 'get_the_archive_title', $filter_title, 10, 2 );
 			$title = get_the_archive_title();
-			remove_filter( 'get_the_archive_title_prefix', '__return_empty_string', 1 );
+			remove_filter( 'get_the_archive_title', $filter_title, 10, 2 );
 		} else {
 			$title = get_the_archive_title();
 		}
@@ -62,8 +63,6 @@ function render_block_core_query_title( $attributes ) {
 
 /**
  * Registers the `core/query-title` block on the server.
- *
- * @since 5.8.0
  */
 function register_block_core_query_title() {
 	register_block_type_from_metadata(

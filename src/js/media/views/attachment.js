@@ -120,7 +120,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 			options.can.save = !! options.nonces.update;
 		}
 
-		if ( this.controller.state().get('allowLocalEdits') && ! options.uploading ) {
+		if ( this.controller.state().get('allowLocalEdits') ) {
 			options.allowLocalEdits = true;
 		}
 

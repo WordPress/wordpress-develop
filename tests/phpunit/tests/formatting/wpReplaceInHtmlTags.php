@@ -36,3 +36,4 @@ class Tests_Formatting_wpReplaceInHtmlTags extends WP_UnitTestCase {
 		);
 	}
 }
+

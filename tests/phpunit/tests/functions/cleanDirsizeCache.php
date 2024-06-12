@@ -3,9 +3,7 @@
 /**
  * Tests specific to the directory size caching.
  *
- * @group functions
- *
- * @covers ::clean_dirsize_cache
+ * @group functions.php
  */
 class Tests_Functions_CleanDirsizeCache extends WP_UnitTestCase {
 
@@ -13,6 +11,8 @@ class Tests_Functions_CleanDirsizeCache extends WP_UnitTestCase {
 	 * Tests the handling of invalid data passed as the $path parameter.
 	 *
 	 * @ticket 52241
+	 *
+	 * @covers ::clean_dirsize_cache
 	 *
 	 * @dataProvider data_clean_dirsize_cache_with_invalid_inputs
 	 *
@@ -57,6 +57,8 @@ class Tests_Functions_CleanDirsizeCache extends WP_UnitTestCase {
 	 *
 	 * @ticket 52241
 	 *
+	 * @covers ::clean_dirsize_cache
+	 *
 	 * @dataProvider data_clean_dirsize_cache_with_non_path_string
 	 *
 	 * @param string $path           Path input to use in the test.
@@ -88,7 +90,7 @@ class Tests_Functions_CleanDirsizeCache extends WP_UnitTestCase {
 				'path'           => 'string',
 				'expected_count' => 1,
 			),
-			'non-existent string, but non-path' => array(
+			'non-existant string, but non-path' => array(
 				'path'           => 'doesnotexist',
 				'expected_count' => 2,
 			),
@@ -103,7 +105,7 @@ class Tests_Functions_CleanDirsizeCache extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the behavior of the function when the transient doesn't exist.
+	 * Tests the behaviour of the function when the transient doesn't exist.
 	 *
 	 * @ticket 52241
 	 * @ticket 53635
@@ -119,7 +121,7 @@ class Tests_Functions_CleanDirsizeCache extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the behavior of the function when the transient does exist, but is not an array.
+	 * Tests the behaviour of the function when the transient does exist, but is not an array.
 	 *
 	 * In particular, this tests that no PHP TypeErrors are being thrown.
 	 *

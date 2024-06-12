@@ -1,8 +1,7 @@
 <?php
 
 /**
- * @group functions
- *
+ * @group functions.php
  * @covers ::get_weekstartend
  */
 class Tests_Functions_GetWeekstartend extends WP_UnitTestCase {

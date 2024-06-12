@@ -135,6 +135,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		register_sidebars( 1, array( 'id' => 'wp-unit-test' ) );
 
 		$this->assertArrayHasKey( 'wp-unit-test', $wp_registered_sidebars );
+
 	}
 
 	/**
@@ -156,6 +157,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		}
 
 		$this->assertCount( $num, $result );
+
 	}
 
 	/**
@@ -264,6 +266,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertArrayHasKey( $sidebar_id, $wp_registered_sidebars );
 		$this->assertStringContainsString( '<div id="%1$s" class="before-sidebar %2$s">', $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
 		$this->assertStringContainsString( '</div> <!-- .before-sidebar -->', $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
+
 	}
 
 	/**
@@ -283,6 +286,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertArrayHasKey( $sidebar_id, $wp_registered_sidebars );
 		$this->assertEmpty( $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
 		$this->assertEmpty( $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
+
 	}
 
 	/**
@@ -589,14 +593,14 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * @ticket 52728
 	 */
-	public function test_widget_display_callback_handles_arrayobject() {
+	function test_widget_display_callback_handles_arrayobject() {
 		$widget = new WP_Widget_Text();
 
 		register_widget( $widget );
 
 		add_filter(
 			"pre_option_{$widget->option_name}",
-			static function () {
+			static function() {
 				return new ArrayObject(
 					array(
 						2              => array( 'title' => 'Test Title' ),
@@ -809,7 +813,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 
 		wp_widgets_init();
-		require_once ABSPATH . 'wp-admin/includes/widgets.php';
+		require_once ABSPATH . '/wp-admin/includes/widgets.php';
 		$widget_id    = 'search-2';
 		$widget       = $wp_registered_widgets[ $widget_id ];
 		$params       = array(
@@ -886,6 +890,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		unregister_widget( 'WP_Widget_Text' );
 
 		$this->assertMatchesRegularExpression( '/<span class="special widget_text">/', $actual );
+
 	}
 
 	/**
@@ -1269,10 +1274,10 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$new_next_theme_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
 
 		$expected_sidebars = array(
-			'wp_inactive_widgets' => array(),
 			'primary'             => 1,
+			'wp_inactive_widgets' => array(),
 		);
-		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
+		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
 	}
 
 	/**
@@ -1290,7 +1295,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		$new_next_theme_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
 
-		$this->assertSameSetsWithIndex( $prev_theme_sidebars, $new_next_theme_sidebars );
+		$this->assertEquals( $prev_theme_sidebars, $new_next_theme_sidebars );
 	}
 
 	/**
@@ -1313,7 +1318,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'secondary'           => array(),
 			'wp_inactive_widgets' => array(),
 		);
-		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
+		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
 	}
 
 	/**
@@ -1357,6 +1362,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'primary'             => array(),
 			'wp_inactive_widgets' => array(),
 		);
-		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
+		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
 	}
 }

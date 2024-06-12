@@ -14,7 +14,7 @@ require_once __DIR__ . '/admin.php';
 $parent_file  = 'edit.php';
 $submenu_file = 'edit.php';
 
-$action = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
+wp_reset_vars( array( 'action' ) );
 
 if ( isset( $_GET['post'] ) && isset( $_POST['post_ID'] ) && (int) $_GET['post'] !== (int) $_POST['post_ID'] ) {
 	wp_die( __( 'A post ID mismatch has been detected.' ), __( 'Sorry, you are not allowed to edit this item.' ), 400 );
@@ -55,8 +55,8 @@ if ( isset( $_POST['deletepost'] ) ) {
 
 $sendback = wp_get_referer();
 if ( ! $sendback ||
-	str_contains( $sendback, 'post.php' ) ||
-	str_contains( $sendback, 'post-new.php' ) ) {
+	false !== strpos( $sendback, 'post.php' ) ||
+	false !== strpos( $sendback, 'post-new.php' ) ) {
 	if ( 'attachment' === $post_type ) {
 		$sendback = admin_url( 'upload.php' );
 	} else {
@@ -97,7 +97,7 @@ switch ( $action ) {
 		$_POST['ping_status']    = get_default_comment_status( $post->post_type, 'pingback' );
 
 		// Wrap Quick Draft content in the Paragraph block.
-		if ( ! str_contains( $_POST['content'], '<!-- wp:paragraph -->' ) ) {
+		if ( false === strpos( $_POST['content'], '<!-- wp:paragraph -->' ) ) {
 			$_POST['content'] = sprintf(
 				'<!-- wp:paragraph -->%s<!-- /wp:paragraph -->',
 				str_replace( array( "\r\n", "\r", "\n" ), '<br />', $_POST['content'] )

@@ -1,6 +1,4 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
-	"version": 2,
 	"title": "Grapes",
 	"settings": {
 		"color": {
@@ -35,17 +33,6 @@
 	},
 	"styles": {
 		"blocks": {
-			"core/post-comments": {
-				"elements": {
-					"link": {
-						":hover": {
-							"typography": {
-								"textDecoration": "underline dashed"
-							}
-						}
-					}
-				}
-			},
 			"core/post-date": {
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--source-serif-pro)",
@@ -57,11 +44,6 @@
 					"fontFamily": "var(--wp--preset--font-family--source-serif-pro)",
 					"fontStyle": "italic"
 				}
-			},
-			"core/site-title": {
-				"typography": {
-					"textTransform": "lowercase"
-				}
 			}
 		},
 		"elements": {
@@ -72,11 +54,6 @@
 				"color": {
 					"background": "var(--wp--preset--color--primary)",
 					"text": "var(--wp--preset--color--base)"
-				},
-				":visited": {
-					"color": {
-						"text": "var(--wp--preset--color--base)"
-					}
 				}
 			},
 			"heading": {
@@ -88,10 +65,12 @@
 			"link": {
 				":hover": {
 					"typography": {
-						"textDecoration": "underline dashed"
+						"textDecoration": "underline"
 					}
 				}
 			}
 		}
-	}
+	},
+	"version": 2,
+	"$schema": "https://schemas.wp.org/trunk/theme.json"
 }

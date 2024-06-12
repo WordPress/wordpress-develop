@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 3,
+	"apiVersion": 2,
 	"name": "core/table",
 	"title": "Table",
 	"category": "text",
@@ -9,12 +9,13 @@
 	"attributes": {
 		"hasFixedLayout": {
 			"type": "boolean",
-			"default": true
+			"default": false
 		},
 		"caption": {
-			"type": "rich-text",
-			"source": "rich-text",
-			"selector": "figcaption"
+			"type": "string",
+			"source": "html",
+			"selector": "figcaption",
+			"default": ""
 		},
 		"head": {
 			"type": "array",
@@ -29,8 +30,8 @@
 					"selector": "td,th",
 					"query": {
 						"content": {
-							"type": "rich-text",
-							"source": "rich-text"
+							"type": "string",
+							"source": "html"
 						},
 						"tag": {
 							"type": "string",
@@ -46,16 +47,6 @@
 							"type": "string",
 							"source": "attribute",
 							"attribute": "data-align"
-						},
-						"colspan": {
-							"type": "string",
-							"source": "attribute",
-							"attribute": "colspan"
-						},
-						"rowspan": {
-							"type": "string",
-							"source": "attribute",
-							"attribute": "rowspan"
 						}
 					}
 				}
@@ -74,8 +65,8 @@
 					"selector": "td,th",
 					"query": {
 						"content": {
-							"type": "rich-text",
-							"source": "rich-text"
+							"type": "string",
+							"source": "html"
 						},
 						"tag": {
 							"type": "string",
@@ -91,16 +82,6 @@
 							"type": "string",
 							"source": "attribute",
 							"attribute": "data-align"
-						},
-						"colspan": {
-							"type": "string",
-							"source": "attribute",
-							"attribute": "colspan"
-						},
-						"rowspan": {
-							"type": "string",
-							"source": "attribute",
-							"attribute": "rowspan"
 						}
 					}
 				}
@@ -119,8 +100,8 @@
 					"selector": "td,th",
 					"query": {
 						"content": {
-							"type": "rich-text",
-							"source": "rich-text"
+							"type": "string",
+							"source": "html"
 						},
 						"tag": {
 							"type": "string",
@@ -136,16 +117,6 @@
 							"type": "string",
 							"source": "attribute",
 							"attribute": "data-align"
-						},
-						"colspan": {
-							"type": "string",
-							"source": "attribute",
-							"attribute": "colspan"
-						},
-						"rowspan": {
-							"type": "string",
-							"source": "attribute",
-							"attribute": "rowspan"
 						}
 					}
 				}
@@ -165,11 +136,7 @@
 		},
 		"spacing": {
 			"margin": true,
-			"padding": true,
-			"__experimentalDefaultControls": {
-				"margin": false,
-				"padding": false
-			}
+			"padding": true
 		},
 		"typography": {
 			"fontSize": true,
@@ -195,10 +162,7 @@
 				"width": true
 			}
 		},
-		"__experimentalSelector": ".wp-block-table > table",
-		"interactivity": {
-			"clientNavigation": true
-		}
+		"__experimentalSelector": ".wp-block-table > table"
 	},
 	"styles": [
 		{

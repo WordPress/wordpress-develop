@@ -1,6 +1,4 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
-	"version": 2,
 	"title": "Pilgrimage",
 	"settings": {
 		"color": {
@@ -26,24 +24,9 @@
 					"slug": "secondary-primary"
 				},
 				{
-					"gradient": "linear-gradient(180deg, var(--wp--preset--color--primary) 0%,var(--wp--preset--color--tertiary) 100%)",
-					"name": "Tertiary to Secondary",
-					"slug": "tertiary-secondary"
-				},
-				{
-					"gradient": "linear-gradient(180deg, var(--wp--preset--color--tertiary) 0%,var(--wp--preset--color--primary) 100%)",
-					"name": "Tertiary to Primary",
-					"slug": "tertiary-primary"
-				},
-				{
 					"gradient": "linear-gradient(180deg, var(--wp--preset--color--base) 0%,var(--wp--preset--color--primary) 350%)",
 					"name": "Base to Primary",
 					"slug": "base-primary"
-				},
-				{
-					"gradient": "radial-gradient(circle at 5px 5px,#0c0d0d70 2px,#ffffff00 0px,#ffffff00 0px) 0 0 / 8px 8px, linear-gradient(180deg, var(--wp--preset--color--base) 0%,#000000 200%)",
-					"name": "Dots",
-					"slug": "dots"
 				}
 			],
 			"palette": [
@@ -82,7 +65,7 @@
 					"link": {
 						":active": {
 							"color": {
-								"text": "var(--wp--preset--color--tertiary)"
+								"text": "var(--wp--preset--color--primary)"
 							}
 						}
 					}
@@ -93,7 +76,7 @@
 					"link": {
 						":active": {
 							"color": {
-								"text": "var(--wp--preset--color--tertiary)"
+								"text": "var(--wp--preset--color--primary)"
 							},
 							"typography": {
 								"textDecoration": "underline"
@@ -107,7 +90,7 @@
 					"link": {
 						":active": {
 							"color": {
-								"text": "var(--wp--preset--color--tertiary)"
+								"text": "var(--wp--preset--color--primary)"
 							}
 						}
 					}
@@ -152,8 +135,11 @@
 					"link": {
 						":hover": {
 							"color": {
-								"text": "var(--wp--preset--color--tertiary)"
+								"text": "var(--wp--preset--color--primary)"
 							}
+						},
+						"color": {
+							"text": "var(--wp--preset--color--primary)"
 						}
 					}
 				}
@@ -177,17 +163,12 @@
 					}
 				}
 			},
-			"core/post-featured-image": {
-				"filter": {
-					"duotone": "var(--wp--preset--duotone--default-filter)"
-				}
-			},
 			"core/post-title": {
 				"elements": {
 					"link": {
 						":active": {
 							"color": {
-								"text": "var(--wp--preset--color--tertiary)"
+								"text": "var(--wp--preset--color--primary)"
 							},
 							"typography": {
 								"textDecoration": "underline"
@@ -210,7 +191,7 @@
 			},
 			"core/separator": {
 				"color": {
-					"text": "var(--wp--preset--color--secondary)"
+					"text": "var(--wp--preset--color--primary)"
 				}
 			},
 			"core/site-title": {
@@ -222,22 +203,17 @@
 							}
 						}
 					}
-				},
-				"typography": {
-					"fontStyle": "italic",
-					"fontWeight": "700"
 				}
 			}
 		},
 		"color": {
-			"gradient": "var(--wp--preset--gradient--dots)"
+			"gradient": "var(--wp--preset--gradient--base-primary)"
 		},
 		"elements": {
 			"button": {
 				":active": {
 					"color": {
-						"background": "var(--wp--preset--color--secondary)",
-						"gradient": "none"
+						"background": "var(--wp--preset--color--secondary)"
 					}
 				},
 				":focus": {
@@ -248,11 +224,6 @@
 				":hover": {
 					"color": {
 						"gradient": "var(--wp--preset--gradient--secondary-primary)"
-					}
-				},
-				":visited": {
-					"color": {
-						"text": "var(--wp--preset--color--base)"
 					}
 				},
 				"border": {
@@ -299,25 +270,22 @@
 				}
 			},
 			"link": {
-				"color": {
-					"text": "var(--wp--preset--color--primary)"
+				":active": {
+					"color": {
+						"text": "var(--wp--preset--color--primary)"
+					}
 				},
 				":hover": {
 					"color": {
-						"text":"var(--wp--preset--color--tertiary)"
+						"text":"var(--wp--preset--color--primary)"
 					}
 				},
-				":focus": {
-					"color": {
-						"text":"var(--wp--preset--color--tertiary)"
-					}
-				},
-				":active": {
-					"color": {
-						"text": "var(--wp--preset--color--tertiary)"
-					}
+				"color": {
+					"text": "var(--wp--preset--color--primary)"
 				}
 			}
 		}
-	}
+	},
+	"version": 2,
+	"$schema": "https://schemas.wp.org/trunk/theme.json"
 }

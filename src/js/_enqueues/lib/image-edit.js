@@ -11,7 +11,7 @@
 	var __ = wp.i18n.__;
 
 	/**
-	 * Contains all the methods to initialize and control the image editor.
+	 * Contains all the methods to initialise and control the image editor.
 	 *
 	 * @namespace imageEdit
 	 */
@@ -22,61 +22,25 @@
 	_view : false,
 
 	/**
-	 * Enable crop tool.
-	 */
-	toggleCropTool: function( postid, nonce, cropButton ) {
-		var img = $( '#image-preview-' + postid ),
-			selection = this.iasapi.getSelection();
-
-		imageEdit.toggleControls( cropButton );
-		var $el = $( cropButton );
-		var state = ( $el.attr( 'aria-expanded' ) === 'true' ) ? 'true' : 'false';
-		// Crop tools have been closed.
-		if ( 'false' === state ) {
-			// Cancel selection, but do not unset inputs.
-			this.iasapi.cancelSelection();
-			imageEdit.setDisabled($('.imgedit-crop-clear'), 0);
-		} else {
-			imageEdit.setDisabled($('.imgedit-crop-clear'), 1);
-			// Get values from inputs to restore previous selection.
-			var startX = ( $( '#imgedit-start-x-' + postid ).val() ) ? $('#imgedit-start-x-' + postid).val() : 0;
-			var startY = ( $( '#imgedit-start-y-' + postid ).val() ) ? $('#imgedit-start-y-' + postid).val() : 0;
-			var width = ( $( '#imgedit-sel-width-' + postid ).val() ) ? $('#imgedit-sel-width-' + postid).val() : img.innerWidth();
-			var height = ( $( '#imgedit-sel-height-' + postid ).val() ) ? $('#imgedit-sel-height-' + postid).val() : img.innerHeight();
-			// Ensure selection is available, otherwise reset to full image.
-			if ( isNaN( selection.x1 ) ) {
-				this.setCropSelection( postid, { 'x1': startX, 'y1': startY, 'x2': width, 'y2': height, 'width': width, 'height': height } );
-				selection = this.iasapi.getSelection();
-			}
-
-			// If we don't already have a selection, select the entire image.
-			if ( 0 === selection.x1 && 0 === selection.y1 && 0 === selection.x2 && 0 === selection.y2 ) {
-				this.iasapi.setSelection( 0, 0, img.innerWidth(), img.innerHeight(), true );
-				this.iasapi.setOptions( { show: true } );
-				this.iasapi.update();
-			} else {
-				this.iasapi.setSelection( startX, startY, width, height, true );
-				this.iasapi.setOptions( { show: true } );
-				this.iasapi.update();
-			}
-		}
-	},
-
-	/**
 	 * Handle crop tool clicks.
 	 */
 	handleCropToolClick: function( postid, nonce, cropButton ) {
+		var img = $( '#image-preview-' + postid ),
+			selection = this.iasapi.getSelection();
 
-		if ( cropButton.classList.contains( 'imgedit-crop-clear' ) ) {
-			this.iasapi.cancelSelection();
-			imageEdit.setDisabled($('.imgedit-crop-apply'), 0);
+		// Ensure selection is available, otherwise reset to full image.
+		if ( isNaN( selection.x1 ) ) {
+			this.setCropSelection( postid, { 'x1': 0, 'y1': 0, 'x2': img.innerWidth(), 'y2': img.innerHeight(), 'width': img.innerWidth(), 'height': img.innerHeight() } );
+			selection = this.iasapi.getSelection();
+		}
 
-			$('#imgedit-sel-width-' + postid).val('');
-			$('#imgedit-sel-height-' + postid).val('');
-			$('#imgedit-start-x-' + postid).val('0');
-			$('#imgedit-start-y-' + postid).val('0');
-			$('#imgedit-selection-' + postid).val('');
+		// If we don't already have a selection, select the entire image.
+		if ( 0 === selection.x1 && 0 === selection.y1 && 0 === selection.x2 && 0 === selection.y2 ) {
+			this.iasapi.setSelection( 0, 0, img.innerWidth(), img.innerHeight(), true );
+			this.iasapi.setOptions( { show: true } );
+			this.iasapi.update();
 		} else {
+
 			// Otherwise, perform the crop.
 			imageEdit.crop( postid, nonce , cropButton );
 		}
@@ -158,17 +122,6 @@
 		t.postid = postid;
 		$('#imgedit-response-' + postid).empty();
 
-		$('#imgedit-panel-' + postid).on( 'keypress', function(e) {
-			var nonce = $( '#imgedit-nonce-' + postid ).val();
-			if ( e.which === 26 && e.ctrlKey ) {
-				imageEdit.undo( postid, nonce );
-			}
-
-			if ( e.which === 25 && e.ctrlKey ) {
-				imageEdit.redo( postid, nonce );
-			}
-		});
-
 		$('#imgedit-panel-' + postid).on( 'keypress', 'input[type="text"]', function(e) {
 			var k = e.keyCode;
 
@@ -217,125 +170,6 @@
 	},
 
 	/**
-	 * Shows or hides image menu popup.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @memberof imageEdit
-	 *
-	 * @param {HTMLElement} el The activated control element.
-	 *
-	 * @return {boolean} Always returns false.
-	 */
-	togglePopup : function(el) {
-		var $el = $( el );
-		var $targetEl = $( el ).attr( 'aria-controls' );
-		var $target = $( '#' + $targetEl );
-		$el
-			.attr( 'aria-expanded', 'false' === $el.attr( 'aria-expanded' ) ? 'true' : 'false' );
-		// Open menu and set z-index to appear above image crop area if it is enabled.
-		$target
-			.toggleClass( 'imgedit-popup-menu-open' ).slideToggle( 'fast' ).css( { 'z-index' : 200000 } );
-		// Move focus to first item in menu when opening menu.
-		if ( 'true' === $el.attr( 'aria-expanded' ) ) {
-			$target.find( 'button' ).first().trigger( 'focus' );
-		}
-
-		return false;
-	},
-
-	/**
-	 * Observes whether the popup should remain open based on focus position.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @memberof imageEdit
-	 *
-	 * @param {HTMLElement} el The activated control element.
-	 *
-	 * @return {boolean} Always returns false.
-	 */
-	monitorPopup : function() {
-		var $parent = document.querySelector( '.imgedit-rotate-menu-container' );
-		var $toggle = document.querySelector( '.imgedit-rotate-menu-container .imgedit-rotate' );
-
-		setTimeout( function() {
-			var $focused = document.activeElement;
-			var $contains = $parent.contains( $focused );
-
-			// If $focused is defined and not inside the menu container, close the popup.
-			if ( $focused && ! $contains ) {
-				if ( 'true' === $toggle.getAttribute( 'aria-expanded' ) ) {
-					imageEdit.togglePopup( $toggle );
-				}
-			}
-		}, 100 );
-
-		return false;
-	},
-
-	/**
-	 * Navigate popup menu by arrow keys.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @memberof imageEdit
-	 *
-	 * @param {HTMLElement} el The current element.
-	 *
-	 * @return {boolean} Always returns false.
-	 */
-	browsePopup : function(el) {
-		var $el = $( el );
-		var $collection = $( el ).parent( '.imgedit-popup-menu' ).find( 'button' );
-		var $index = $collection.index( $el );
-		var $prev = $index - 1;
-		var $next = $index + 1;
-		var $last = $collection.length;
-		if ( $prev < 0 ) {
-			$prev = $last - 1;
-		}
-		if ( $next === $last ) {
-			$next = 0;
-		}
-		var $target = false;
-		if ( event.keyCode === 40 ) {
-			$target = $collection.get( $next );
-		} else if ( event.keyCode === 38 ) {
-			$target = $collection.get( $prev );
-		}
-		if ( $target ) {
-			$target.focus();
-			event.preventDefault();
-		}
-
-		return false;
-	},
-
-	/**
-	 * Close popup menu and reset focus on feature activation.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @memberof imageEdit
-	 *
-	 * @param {HTMLElement} el The current element.
-	 *
-	 * @return {boolean} Always returns false.
-	 */
-	closePopup : function(el) {
-		var $parent = $(el).parent( '.imgedit-popup-menu' );
-		var $controlledID = $parent.attr( 'id' );
-		var $target = $( 'button[aria-controls="' + $controlledID + '"]' );
-		$target
-			.attr( 'aria-expanded', 'false' ).trigger( 'focus' );
-		$parent
-			.toggleClass( 'imgedit-popup-menu-open' ).slideToggle( 'fast' );
-
-		return false;
-	},
-
-	/**
 	 * Shows or hides the image edit help box.
 	 *
 	 * @since 2.9.0
@@ -356,28 +190,6 @@
 	},
 
 	/**
-	 * Shows or hides image edit input fields when enabled.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @memberof imageEdit
-	 *
-	 * @param {HTMLElement} el The element to trigger the edit panel.
-	 *
-	 * @return {boolean} Always returns false.
-	 */
-	toggleControls : function(el) {
-		var $el = $( el );
-		var $target = $( '#' + $el.attr( 'aria-controls' ) );
-		$el
-			.attr( 'aria-expanded', 'false' === $el.attr( 'aria-expanded' ) ? 'true' : 'false' );
-		$target
-			.parent( '.imgedit-group' ).toggleClass( 'imgedit-panel-active' );
-
-		return false;
-	},
-
-	/**
 	 * Gets the value from the image edit target.
 	 *
 	 * The image edit target contains the image sizes where the (possible) changes
@@ -390,16 +202,10 @@
 	 * @param {number} postid The post ID.
 	 *
 	 * @return {string} The value from the imagedit-save-target input field when available,
-	 *                  'full' when not selected, or 'all' if it doesn't exist.
+	 *                  or 'full' when not available.
 	 */
-	getTarget : function( postid ) {
-		var element = $( '#imgedit-save-target-' + postid );
-
-		if ( element.length ) {
-			return element.find( 'input[name="imgedit-target-' + postid + '"]:checked' ).val() || 'full';
-		}
-
-		return 'all';
+	getTarget : function(postid) {
+		return $('input[name="imgedit-target-' + postid + '"]:checked', '#imgedit-save-target-' + postid).val() || 'full';
 	},
 
 	/**
@@ -420,8 +226,7 @@
 	 */
 	scaleChanged : function( postid, x, el ) {
 		var w = $('#imgedit-scale-width-' + postid), h = $('#imgedit-scale-height-' + postid),
-		warn = $('#imgedit-scale-warn-' + postid), w1 = '', h1 = '',
-		scaleBtn = $('#imgedit-scale-button');
+		warn = $('#imgedit-scale-warn-' + postid), w1 = '', h1 = '';
 
 		if ( false === this.validateNumeric( el ) ) {
 			return;
@@ -437,10 +242,8 @@
 
 		if ( ( h1 && h1 > this.hold.oh ) || ( w1 && w1 > this.hold.ow ) ) {
 			warn.css('visibility', 'visible');
-			scaleBtn.prop('disabled', true);
 		} else {
 			warn.css('visibility', 'hidden');
-			scaleBtn.prop('disabled', false);
 		}
 	},
 
@@ -599,14 +402,12 @@
 				}
 
 				if ( $('#imgedit-history-' + postid).val() && $('#imgedit-undone-' + postid).val() === '0' ) {
-					$('button.imgedit-submit-btn', '#imgedit-panel-' + postid).prop('disabled', false);
+					$('input.imgedit-submit-btn', '#imgedit-panel-' + postid).prop('disabled', false);
 				} else {
-					$('button.imgedit-submit-btn', '#imgedit-panel-' + postid).prop('disabled', true);
+					$('input.imgedit-submit-btn', '#imgedit-panel-' + postid).prop('disabled', true);
 				}
-				var successMessage = __( 'Image updated.' );
 
 				t.toggleEditor(postid, 0);
-				wp.a11y.speak( successMessage, 'assertive' );
 			})
 			.on( 'error', function() {
 				var errorMessage = __( 'Could not load the preview image. Please reload the page and try again.' );
@@ -634,7 +435,7 @@
 	 *
 	 * @return {boolean|void} Executes a post request that refreshes the page
 	 *                        when the action is performed.
-	 *                        Returns false if an invalid action is given,
+	 *                        Returns false if a invalid action is given,
 	 *                        or when the action cannot be performed.
 	 */
 	action : function(postid, nonce, action) {
@@ -835,7 +636,7 @@
 				btn.removeClass( 'button-activated' );
 				spin.removeClass( 'is-active' );
 			} );
-			// Initialize the Image Editor now that everything is ready.
+			// Initialise the Image Editor now that everything is ready.
 			imageEdit.init( postid );
 		} );
 
@@ -888,7 +689,7 @@
 				elementToSetFocusTo = $( '.imgedit-wrap' ).find( ':tabbable:first' );
 			}
 
-			elementToSetFocusTo.attr( 'tabindex', '-1' ).trigger( 'focus' );
+			elementToSetFocusTo.trigger( 'focus' );
 		}, 100 );
 	},
 
@@ -909,8 +710,6 @@
 		var t = this,
 			selW = $('#imgedit-sel-width-' + postid),
 			selH = $('#imgedit-sel-height-' + postid),
-			selX = $('#imgedit-start-x-' + postid),
-			selY = $('#imgedit-start-y-' + postid),
 			$image = $( image ),
 			$img;
 
@@ -969,8 +768,6 @@
 			 */
 			onSelectStart: function() {
 				imageEdit.setDisabled($('#imgedit-crop-sel-' + postid), 1);
-				imageEdit.setDisabled($('.imgedit-crop-clear'), 1);
-				imageEdit.setDisabled($('.imgedit-crop-apply'), 1);
 			},
 			/**
 			 * Event triggered when the selection is ended.
@@ -984,9 +781,6 @@
 			 */
 			onSelectEnd: function(img, c) {
 				imageEdit.setCropSelection(postid, c);
-				if ( ! $('#imgedit-crop > *').is(':visible') ) {
-					imageEdit.toggleControls($('.imgedit-crop.button'));
-				}
 			},
 
 			/**
@@ -1003,8 +797,6 @@
 				var sizer = imageEdit.hold.sizer;
 				selW.val( imageEdit.round(c.width / sizer) );
 				selH.val( imageEdit.round(c.height / sizer) );
-				selX.val( imageEdit.round(c.x1 / sizer) );
-				selY.val( imageEdit.round(c.y1 / sizer) );
 			}
 		});
 	},
@@ -1031,8 +823,6 @@
 			this.setDisabled( $( '#imgedit-crop-sel-' + postid ), 1 );
 			$('#imgedit-sel-width-' + postid).val('');
 			$('#imgedit-sel-height-' + postid).val('');
-			$('#imgedit-start-x-' + postid).val('0');
-			$('#imgedit-start-y-' + postid).val('0');
 			$('#imgedit-selection-' + postid).val('');
 			return false;
 		}
@@ -1163,7 +953,7 @@
 		if ( $(t).hasClass('disabled') ) {
 			return false;
 		}
-		this.closePopup(t);
+
 		this.addStep({ 'r': { 'r': angle, 'fw': this.hold.h, 'fh': this.hold.w }}, postid, nonce);
 	},
 
@@ -1185,7 +975,7 @@
 		if ( $(t).hasClass('disabled') ) {
 			return false;
 		}
-		this.closePopup(t);
+
 		this.addStep({ 'f': { 'f': axis, 'fw': this.hold.w, 'fh': this.hold.h }}, postid, nonce);
 	},
 
@@ -1221,8 +1011,6 @@
 		// Clear the selection fields after cropping.
 		$('#imgedit-sel-width-' + postid).val('');
 		$('#imgedit-sel-height-' + postid).val('');
-		$('#imgedit-start-x-' + postid).val('0');
-		$('#imgedit-start-y-' + postid).val('0');
 	},
 
 	/**
@@ -1306,8 +1094,6 @@
 	 */
 	setNumSelection : function( postid, el ) {
 		var sel, elX = $('#imgedit-sel-width-' + postid), elY = $('#imgedit-sel-height-' + postid),
-			elX1 = $('#imgedit-start-x-' + postid), elY1 = $('#imgedit-start-y-' + postid),
-			xS = this.intval( elX1.val() ), yS = this.intval( elY1.val() ),
 			x = this.intval( elX.val() ), y = this.intval( elY.val() ),
 			img = $('#image-preview-' + postid), imgh = img.height(), imgw = img.width(),
 			sizer = this.hold.sizer, x1, y1, x2, y2, ias = this.iasapi;
@@ -1326,11 +1112,11 @@
 			return false;
 		}
 
-		if ( ( ( x && y ) || ( xS && yS ) ) && ( sel = ias.getSelection() ) ) {
+		if ( x && y && ( sel = ias.getSelection() ) ) {
 			x2 = sel.x1 + Math.round( x * sizer );
 			y2 = sel.y1 + Math.round( y * sizer );
-			x1 = ( xS === sel.x1 ) ? sel.x1 : Math.round( xS * sizer );
-			y1 = ( yS === sel.y1 ) ? sel.y1 : Math.round( yS * sizer );
+			x1 = sel.x1;
+			y1 = sel.y1;
 
 			if ( x2 > imgw ) {
 				x1 = 0;
@@ -1416,21 +1202,10 @@
 
 				if ( r > h ) {
 					r = h;
-					var errorMessage = __( 'Selected crop ratio exceeds the boundaries of the image. Try a different ratio.' );
-
-					$( '#imgedit-crop-' + postid )
-						.prepend( '<div class="notice notice-error" tabindex="-1" role="alert"><p>' + errorMessage + '</p></div>' );
-
-					wp.a11y.speak( errorMessage, 'assertive' );
 					if ( n ) {
-						$('#imgedit-crop-height-' + postid).val( '' );
+						$('#imgedit-crop-height-' + postid).val('');
 					} else {
-						$('#imgedit-crop-width-' + postid).val( '');
-					}
-				} else {
-					var error = $( '#imgedit-crop-' + postid ).find( '.notice-error' );
-					if ( 'undefined' !== typeof( error ) ) {
-						error.remove();
+						$('#imgedit-crop-width-' + postid).val('');
 					}
 				}
 
@@ -1453,7 +1228,7 @@
 	 *                        void when it is.
 	 */
 	validateNumeric: function( el ) {
-		if ( false === this.intval( $( el ).val() ) ) {
+		if ( ! this.intval( $( el ).val() ) ) {
 			$( el ).val( '' );
 			return false;
 		}

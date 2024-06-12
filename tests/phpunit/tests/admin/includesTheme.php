@@ -1,6 +1,5 @@
 <?php
 /**
- * @group admin
  * @group themes
  */
 class Tests_Admin_IncludesTheme extends WP_UnitTestCase {

@@ -1,9 +1,15 @@
 <?php
 /**
- * Tests for the block editor methods.
+ * Block editor tests
  *
  * @package WordPress
  * @subpackage Blocks
+ * @since 5.5.0
+ */
+
+/**
+ * Tests for the block editor methods.
+ *
  * @since 5.5.0
  *
  * @group blocks
@@ -18,8 +24,6 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 		parent::set_up();
 
-		remove_action( 'wp_print_styles', 'print_emoji_styles' );
-
 		$args = array(
 			'post_title' => 'Example',
 		);
@@ -27,19 +31,14 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$post = self::factory()->post->create_and_get( $args );
 
 		global $wp_rest_server;
-		$wp_rest_server = new Spy_REST_Server();
+		$wp_rest_server = new Spy_REST_Server;
 		do_action( 'rest_api_init', $wp_rest_server );
-
-		global $post_ID;
-		$post_ID = 1;
 	}
 
 	public function tear_down() {
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
-		global $post_ID;
-		$post_ID = null;
 		parent::tear_down();
 	}
 
@@ -67,7 +66,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	public function filter_set_block_editor_settings_post( $editor_settings, $post ) {
 		if ( empty( $post ) ) {
-			return $editor_settings;
+			return $allowed_block_types;
 		}
 
 		return array(
@@ -241,7 +240,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 				),
 				array(
 					'slug'  => 'reusable',
-					'title' => 'Patterns',
+					'title' => 'Reusable Blocks',
 					'icon'  => null,
 				),
 			),
@@ -300,31 +299,6 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		);
 		$this->assertIsInt( $settings['maxUploadFileSize'] );
 		$this->assertTrue( $settings['__unstableGalleryWithImageBlocks'] );
-	}
-
-	/**
-	 * @ticket 56815
-	 */
-	public function test_get_default_block_editor_settings_max_upload_file_size() {
-		// Force the return value of wp_max_upload_size() to be 500.
-		add_filter(
-			'upload_size_limit',
-			static function () {
-				return 500;
-			}
-		);
-
-		// Expect 0 when user is not allowed to upload (as wp_max_upload_size() should not be called).
-		$settings = get_default_block_editor_settings();
-		$this->assertSame( 0, $settings['maxUploadFileSize'] );
-
-		// Set up an administrator, as they can upload files.
-		$administrator = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		wp_set_current_user( $administrator );
-
-		// Expect the above 500 as the user is now allowed to upload.
-		$settings = get_default_block_editor_settings();
-		$this->assertSame( 500, $settings['maxUploadFileSize'] );
 	}
 
 	/**
@@ -404,65 +378,6 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 58534
-	 */
-	public function test_wp_get_first_block() {
-		$block_name               = 'core/paragraph';
-		$blocks                   = array(
-			array(
-				'blockName' => 'core/image',
-			),
-			array(
-				'blockName' => $block_name,
-				'attrs'     => array(
-					'content' => 'Hello World!',
-				),
-			),
-			array(
-				'blockName' => 'core/heading',
-			),
-			array(
-				'blockName' => $block_name,
-			),
-		);
-		$blocks_with_no_paragraph = array(
-			array(
-				'blockName' => 'core/image',
-			),
-			array(
-				'blockName' => 'core/heading',
-			),
-		);
-
-		$this->assertSame( $blocks[1], wp_get_first_block( $blocks, $block_name ) );
-
-		$this->assertSame( array(), wp_get_first_block( $blocks_with_no_paragraph, $block_name ) );
-	}
-
-	/**
-	 * @ticket 58534
-	 */
-	public function test_wp_get_post_content_block_attributes() {
-		$attributes_with_layout = array(
-			'layout' => array(
-				'type' => 'constrained',
-			),
-		);
-		// With no block theme, expect null.
-		$this->assertNull( wp_get_post_content_block_attributes() );
-
-		switch_theme( 'block-theme' );
-
-		$this->assertSame( $attributes_with_layout, wp_get_post_content_block_attributes() );
-	}
-
-	public function test_wp_get_post_content_block_attributes_no_layout() {
-		switch_theme( 'block-theme-post-content-default' );
-
-		$this->assertSame( array(), wp_get_post_content_block_attributes() );
-	}
-
-	/**
 	 * @ticket 53458
 	 */
 	public function test_get_block_editor_settings_theme_json_settings() {
@@ -522,29 +437,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertSameSets( array( 'rem' ), $settings['enableCustomUnits'] );
 		// settings.spacing.customPadding
 		$this->assertTrue( $settings['enableCustomSpacing'] );
-		// settings.postContentAttributes
-		$this->assertSameSets(
-			array(
-				'layout' => array(
-					'type' => 'constrained',
-				),
-			),
-			$settings['postContentAttributes']
-		);
 
 		switch_theme( WP_DEFAULT_THEME );
-	}
-
-	/**
-	 * @ticket 59358
-	 */
-	public function test_get_block_editor_settings_without_post_content_block() {
-
-		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
-
-		$settings = get_block_editor_settings( array(), $post_editor_context );
-
-		$this->assertArrayNotHasKey( 'postContentAttributes', $settings );
 	}
 
 	/**
@@ -647,44 +541,6 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		block_editor_rest_api_preload( $preload_paths, new WP_Block_Editor_Context() );
 		$haystack = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
 		$this->assertStringContainsString( $expected, $haystack );
-	}
-
-	/**
-	 * @ticket 57547
-	 *
-	 * @covers ::get_classic_theme_supports_block_editor_settings
-	 */
-	public function test_get_classic_theme_supports_block_editor_settings() {
-		$font_sizes = array(
-			array(
-				'name' => 'Small',
-				'size' => 12,
-				'slug' => 'small',
-			),
-			array(
-				'name' => 'Regular',
-				'size' => 16,
-				'slug' => 'regular',
-			),
-		);
-
-		add_theme_support( 'editor-font-sizes', $font_sizes );
-		$settings = get_classic_theme_supports_block_editor_settings();
-		remove_theme_support( 'editor-font-sizes' );
-
-		$this->assertFalse( $settings['disableCustomColors'], 'Value for array key "disableCustomColors" does not match expectations' );
-		$this->assertFalse( $settings['disableCustomFontSizes'], 'Value for array key "disableCustomFontSizes" does not match expectations' );
-		$this->assertFalse( $settings['disableCustomGradients'], 'Value for array key "disableCustomGradients" does not match expectations' );
-		$this->assertFalse( $settings['disableLayoutStyles'], 'Value for array key "disableLayoutStyles" does not match expectations' );
-		$this->assertFalse( $settings['enableCustomLineHeight'], 'Value for array key "enableCustomLineHeight" does not match expectations' );
-		$this->assertFalse( $settings['enableCustomSpacing'], 'Value for array key "enableCustomSpacing" does not match expectations' );
-		$this->assertFalse( $settings['enableCustomUnits'], 'Value for array key "enableCustomUnits" does not match expectations' );
-
-		$this->assertSame(
-			$font_sizes,
-			$settings['fontSizes'],
-			'Value for array key "fontSizes" does not match expectations'
-		);
 	}
 
 	/**

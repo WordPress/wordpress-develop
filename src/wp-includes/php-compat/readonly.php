@@ -4,7 +4,7 @@
  * to `wp_readonly()` in WordPress 5.9.0.
  *
  * In order to avoid PHP parser errors, this function was extracted
- * to this separate file and is only included conditionally on PHP < 8.1.
+ * to this separate file and is only included conditionally on PHP 8.1.
  *
  * Including this file on PHP >= 8.1 results in a fatal error.
  *
@@ -24,14 +24,14 @@
  *
  * @see wp_readonly()
  *
- * @param mixed $readonly_value One of the values to compare.
- * @param mixed $current        Optional. The other value to compare if not just true.
- *                              Default true.
- * @param bool  $display        Optional. Whether to echo or just return the string.
- *                              Default true.
+ * @param mixed $readonly One of the values to compare.
+ * @param mixed $current  Optional. The other value to compare if not just true.
+ *                        Default true.
+ * @param bool  $echo     Optional. Whether to echo or just return the string.
+ *                        Default true.
  * @return string HTML attribute or empty string.
  */
-function readonly( $readonly_value, $current = true, $display = true ) {
+function readonly( $readonly, $current = true, $echo = true ) {
 	_deprecated_function( __FUNCTION__, '5.9.0', 'wp_readonly()' );
-	return wp_readonly( $readonly_value, $current, $display );
+	return wp_readonly( $readonly, $current, $echo );
 }

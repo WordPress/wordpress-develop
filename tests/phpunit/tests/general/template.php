@@ -10,7 +10,6 @@
 require_once ABSPATH . 'wp-admin/includes/class-wp-site-icon.php';
 
 class Tests_General_Template extends WP_UnitTestCase {
-
 	protected $wp_site_icon;
 	public $site_icon_id;
 	public $site_icon_url;
@@ -42,7 +41,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		switch_theme( 'default' );
 		$this->wp_site_icon = new WP_Site_Icon();
 	}
 

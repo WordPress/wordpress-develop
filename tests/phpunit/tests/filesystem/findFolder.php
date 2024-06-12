@@ -3,8 +3,8 @@
 require_once __DIR__ . '/base.php';
 
 /**
- * @group file
  * @group filesystem
+ * @group wp-filesystem
  */
 class WP_Filesystem_Find_Folder_Test extends WP_Filesystem_UnitTestCase {
 
@@ -24,6 +24,7 @@ class WP_Filesystem_Find_Folder_Test extends WP_Filesystem_UnitTestCase {
 
 		$path = $fs->find_folder( '/this/directory/doesnt/exist/' );
 		$this->assertFalse( $path );
+
 	}
 
 	public function test_sibling_wordpress_in_subdir() {
@@ -47,6 +48,7 @@ class WP_Filesystem_Find_Folder_Test extends WP_Filesystem_UnitTestCase {
 
 		$path = $fs->find_folder( '/var/www/wp.example.com/wordpress/wp-content/' );
 		$this->assertSame( '/www/wp.example.com/wordpress/wp-content/', $path );
+
 	}
 
 	/**
@@ -74,6 +76,7 @@ class WP_Filesystem_Find_Folder_Test extends WP_Filesystem_UnitTestCase {
 
 		$path = $fs->abspath( '/var/www/example.com/' );
 		$this->assertSame( '/', $path );
+
 	}
 
 	/**
@@ -90,7 +93,7 @@ class WP_Filesystem_Find_Folder_Test extends WP_Filesystem_UnitTestCase {
 			/example.com/www/index.php
 			/example.com/www/wp-includes/
 			/example.com/www/wp-content/plugins/
-
+			
 			# sub.example.com
 			/example.com/sub/index.php
 			/example.com/sub/wp-includes/
@@ -110,4 +113,5 @@ class WP_Filesystem_Find_Folder_Test extends WP_Filesystem_UnitTestCase {
 		$path = $fs->find_folder( '/var/www/example.com/sub/wp-content/plugins/' );
 		$this->assertSame( '/example.com/sub/wp-content/plugins/', $path );
 	}
+
 }

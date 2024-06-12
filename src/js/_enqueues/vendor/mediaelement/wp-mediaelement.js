@@ -19,8 +19,6 @@
 		 * @return {void}
 		 */
 		function initialize() {
-			var selectors = [];
-
 			if ( typeof _wpmejsSettings !== 'undefined' ) {
 				settings = $.extend( true, {}, _wpmejsSettings );
 			}
@@ -65,18 +63,8 @@
 				}
 			};
 
-			if ( 'undefined' === typeof settings.videoShortcodeLibrary || 'mediaelement' === settings.videoShortcodeLibrary ) {
-				selectors.push( '.wp-video-shortcode' );
-			}
-			if ( 'undefined' === typeof settings.audioShortcodeLibrary || 'mediaelement' === settings.audioShortcodeLibrary ) {
-				selectors.push( '.wp-audio-shortcode' );
-			}
-			if ( ! selectors.length ) {
-				return;
-			}
-
 			// Only initialize new media elements.
-			$( selectors.join( ', ' ) )
+			$( '.wp-audio-shortcode, .wp-video-shortcode' )
 				.not( '.mejs-container' )
 				.filter(function () {
 					return ! $( this ).parent().hasClass( 'mejs-mediaelement' );

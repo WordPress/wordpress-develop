@@ -1,8 +1,12 @@
 <?php
 /**
- * Tests for the Test_WP_Customize_Control class.
+ * Test_WP_Customize_Control tests.
  *
  * @package WordPress
+ */
+
+/**
+ * Tests for the Test_WP_Customize_Control class.
  *
  * @todo This is missing dedicated tests for all but one of the methods.
  *

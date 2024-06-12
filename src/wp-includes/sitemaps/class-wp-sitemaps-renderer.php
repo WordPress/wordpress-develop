@@ -123,7 +123,7 @@ class WP_Sitemaps_Renderer {
 	 * @param array $sitemaps Array of sitemap URLs.
 	 */
 	public function render_index( $sitemaps ) {
-		header( 'Content-Type: application/xml; charset=UTF-8' );
+		header( 'Content-type: application/xml; charset=UTF-8' );
 
 		$this->check_for_simple_xml_availability();
 
@@ -131,6 +131,7 @@ class WP_Sitemaps_Renderer {
 
 		if ( ! empty( $index_xml ) ) {
 			// All output is escaped within get_sitemap_index_xml().
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			echo $index_xml;
 		}
 	}
@@ -187,7 +188,7 @@ class WP_Sitemaps_Renderer {
 	 * @param array $url_list Array of URLs for a sitemap.
 	 */
 	public function render_sitemap( $url_list ) {
-		header( 'Content-Type: application/xml; charset=UTF-8' );
+		header( 'Content-type: application/xml; charset=UTF-8' );
 
 		$this->check_for_simple_xml_availability();
 
@@ -195,6 +196,7 @@ class WP_Sitemaps_Renderer {
 
 		if ( ! empty( $sitemap_xml ) ) {
 			// All output is escaped within get_sitemap_xml().
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			echo $sitemap_xml;
 		}
 	}

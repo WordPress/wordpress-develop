@@ -6,21 +6,13 @@
 class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider data_sanitize_option
-	 *
-	 * @covers ::sanitize_option
-	 */
-	public function test_sanitize_option( $option_name, $sanitized, $original ) {
-		$this->assertSame( $sanitized, sanitize_option( $option_name, $original ) );
-	}
-	/**
 	 * Data provider to test all of the sanitize_option() case
 	 *
 	 * Inner array params: $option_name, $sanitized, $original
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_option() {
+	public function sanitize_option_provider() {
 		return array(
 			array( 'admin_email', 'mail@example.com', 'mail@example.com' ),
 			array( 'admin_email', get_option( 'admin_email' ), 'invalid' ),
@@ -36,7 +28,6 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			array( 'blogname', '&lt;i&gt;My Site&lt;/i&gt;', '<i>My Site</i>' ),
 			array( 'blog_charset', 'UTF-8', 'UTF-8' ),
 			array( 'blog_charset', 'charset', '">charset<"' ),
-			array( 'blog_charset', '', null ),
 			array( 'blog_public', 1, null ),
 			array( 'blog_public', 1, '1' ),
 			array( 'blog_public', -2, '-2' ),
@@ -46,7 +37,6 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			array( 'ping_sites', "http://www.example.com\nhttp://example.org", "www.example.com \n\texample.org\n\n" ),
 			array( 'gmt_offset', '0', 0 ),
 			array( 'gmt_offset', '1.5', '1.5' ),
-			array( 'gmt_offset', '', null ),
 			array( 'siteurl', 'http://example.org', 'http://example.org' ),
 			array( 'siteurl', 'http://example.org/subdir', 'http://example.org/subdir' ),
 			array( 'siteurl', get_option( 'siteurl' ), '' ),
@@ -96,21 +86,30 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_sanitize_option_upload_path
+	 * @dataProvider sanitize_option_provider
 	 *
 	 * @covers ::sanitize_option
 	 */
-	public function test_sanitize_option_upload_path( $provided, $expected ) {
-		$this->assertSame( $expected, sanitize_option( 'upload_path', $provided ) );
+	public function test_sanitize_option( $option_name, $sanitized, $original ) {
+		$this->assertSame( $sanitized, sanitize_option( $option_name, $original ) );
 	}
 
-	public function data_sanitize_option_upload_path() {
+	public function upload_path_provider() {
 		return array(
 			array( '<a href="http://www.example.com">Link</a>', 'Link' ),
 			array( '<scr' . 'ipt>url</scr' . 'ipt>', 'url' ),
 			array( '/path/to/things', '/path/to/things' ),
 			array( '\path\to\things', '\path\to\things' ),
 		);
+	}
+
+	/**
+	 * @dataProvider upload_path_provider
+	 *
+	 * @covers ::sanitize_option
+	 */
+	public function test_sanitize_option_upload_path( $provided, $expected ) {
+		$this->assertSame( $expected, sanitize_option( 'upload_path', $provided ) );
 	}
 
 	/**
@@ -134,12 +133,12 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_sanitize_option_permalink_structure
+	 * @dataProvider permalink_structure_provider
 	 *
 	 * @covers ::sanitize_option
 	 * @covers ::get_settings_errors
 	 */
-	public function test_sanitize_option_permalink_structure( $provided, $expected, $valid ) {
+	public function test_sanitize_permalink_structure( $provided, $expected, $valid ) {
 		global $wp_settings_errors;
 
 		$old_wp_settings_errors = (array) $wp_settings_errors;
@@ -160,7 +159,7 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $actual );
 	}
 
-	public function data_sanitize_option_permalink_structure() {
+	public function permalink_structure_provider() {
 		return array(
 			array( '', '', true ),
 			array( '%postname', false, false ),
@@ -174,4 +173,5 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			array( new WP_Error( 'wpdb_get_table_charset_failure' ), false, false ), // @ticket 53986
 		);
 	}
+
 }

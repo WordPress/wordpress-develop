@@ -88,18 +88,16 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 
 		if ( is_object( $this->setting ) ) {
 			if ( $this->setting->default ) {
-				/*
-				 * Fake an attachment model - needs all fields used by template.
-				 * Note that the default value must be a URL, NOT an attachment ID.
-				 */
+				// Fake an attachment model - needs all fields used by template.
+				// Note that the default value must be a URL, NOT an attachment ID.
 				$ext  = substr( $this->setting->default, -3 );
-				$type = in_array( $ext, array( 'jpg', 'png', 'gif', 'bmp', 'webp', 'avif' ), true ) ? 'image' : 'document';
+				$type = in_array( $ext, array( 'jpg', 'png', 'gif', 'bmp', 'webp' ), true ) ? 'image' : 'document';
 
 				$default_attachment = array(
 					'id'    => 1,
 					'url'   => $this->setting->default,
 					'type'  => $type,
-					'icon'  => wp_mime_type_icon( $type, '.svg' ),
+					'icon'  => wp_mime_type_icon( $type ),
 					'title' => wp_basename( $this->setting->default ),
 				);
 
@@ -245,7 +243,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 			case 'image':
 				return array(
 					'select'       => __( 'Select image' ),
-					'site_icon'    => __( 'Select Site Icon' ),
+					'site_icon'    => __( 'Select site icon' ),
 					'change'       => __( 'Change image' ),
 					'default'      => __( 'Default' ),
 					'remove'       => __( 'Remove' ),

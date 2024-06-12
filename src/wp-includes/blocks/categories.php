@@ -8,15 +8,13 @@
 /**
  * Renders the `core/categories` block on server.
  *
- * @since 5.0.0
- *
  * @param array $attributes The block attributes.
  *
  * @return string Returns the categories list/dropdown markup.
  */
 function render_block_core_categories( $attributes ) {
 	static $block_id = 0;
-	++$block_id;
+	$block_id++;
 
 	$args = array(
 		'echo'         => false,
@@ -65,8 +63,6 @@ function render_block_core_categories( $attributes ) {
 /**
  * Generates the inline script for a categories dropdown field.
  *
- * @since 5.0.0
- *
  * @param string $dropdown_id ID of the dropdown field.
  *
  * @return string Returns the dropdown onChange redirection script.
@@ -74,7 +70,8 @@ function render_block_core_categories( $attributes ) {
 function build_dropdown_script_block_core_categories( $dropdown_id ) {
 	ob_start();
 	?>
-	<script>
+	<script type='text/javascript'>
+	/* <![CDATA[ */
 	( function() {
 		var dropdown = document.getElementById( '<?php echo esc_js( $dropdown_id ); ?>' );
 		function onCatChange() {
@@ -84,15 +81,14 @@ function build_dropdown_script_block_core_categories( $dropdown_id ) {
 		}
 		dropdown.onchange = onCatChange;
 	})();
+	/* ]]> */
 	</script>
 	<?php
-	return wp_get_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
+	return ob_get_clean();
 }
 
 /**
  * Registers the `core/categories` block on server.
- *
- * @since 5.0.0
  */
 function register_block_core_categories() {
 	register_block_type_from_metadata(

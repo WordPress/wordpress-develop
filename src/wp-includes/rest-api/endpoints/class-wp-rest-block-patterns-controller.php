@@ -25,18 +25,6 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 	private $remote_patterns_loaded;
 
 	/**
-	 * An array that maps old categories names to new ones.
-	 *
-	 * @since 6.2.0
-	 * @var array
-	 */
-	protected static $categories_migration = array(
-		'buttons' => 'call-to-action',
-		'columns' => 'text',
-		'query'   => 'posts',
-	);
-
-	/**
 	 * Constructs the controller.
 	 *
 	 * @since 6.0.0
@@ -96,7 +84,6 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 	 * Retrieves all block patterns.
 	 *
 	 * @since 6.0.0
-	 * @since 6.2.0 Added migration for old core pattern categories to the new ones.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -114,74 +101,34 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 		$response = array();
 		$patterns = WP_Block_Patterns_Registry::get_instance()->get_all_registered();
 		foreach ( $patterns as $pattern ) {
-			$migrated_pattern = $this->migrate_pattern_categories( $pattern );
-			$prepared_pattern = $this->prepare_item_for_response( $migrated_pattern, $request );
+			$prepared_pattern = $this->prepare_item_for_response( $pattern, $request );
 			$response[]       = $this->prepare_response_for_collection( $prepared_pattern );
 		}
 		return rest_ensure_response( $response );
 	}
 
 	/**
-	 * Migrates old core pattern categories to the new categories.
-	 *
-	 * Core pattern categories are revamped. Migration is needed to ensure
-	 * backwards compatibility.
-	 *
-	 * @since 6.2.0
-	 *
-	 * @param array $pattern Raw pattern as registered, before applying any changes.
-	 * @return array Migrated pattern.
-	 */
-	protected function migrate_pattern_categories( $pattern ) {
-		// No categories to migrate.
-		if (
-			! isset( $pattern['categories'] ) ||
-			! is_array( $pattern['categories'] )
-		) {
-			return $pattern;
-		}
-
-		foreach ( $pattern['categories'] as $index => $category ) {
-			// If the category exists as a key, then it needs migration.
-			if ( isset( static::$categories_migration[ $category ] ) ) {
-				$pattern['categories'][ $index ] = static::$categories_migration[ $category ];
-			}
-		}
-
-		return $pattern;
-	}
-
-	/**
 	 * Prepare a raw block pattern before it gets output in a REST API response.
 	 *
 	 * @since 6.0.0
-	 * @since 6.3.0 Added `source` property.
 	 *
 	 * @param array           $item    Raw pattern as registered, before any changes.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
-		// Resolve pattern blocks so they don't need to be resolved client-side
-		// in the editor, improving performance.
-		$blocks        = parse_blocks( $item['content'] );
-		$blocks        = resolve_pattern_blocks( $blocks );
-		$item['content'] = serialize_blocks( $blocks );
-
 		$fields = $this->get_fields_for_response( $request );
 		$keys   = array(
 			'name'          => 'name',
 			'title'         => 'title',
-			'content'       => 'content',
 			'description'   => 'description',
 			'viewportWidth' => 'viewport_width',
-			'inserter'      => 'inserter',
-			'categories'    => 'categories',
-			'keywords'      => 'keywords',
 			'blockTypes'    => 'block_types',
 			'postTypes'     => 'post_types',
-			'templateTypes' => 'template_types',
-			'source'        => 'source',
+			'categories'    => 'categories',
+			'keywords'      => 'keywords',
+			'content'       => 'content',
+			'inserter'      => 'inserter',
 		);
 		$data   = array();
 		foreach ( $keys as $item_key => $rest_key ) {
@@ -200,15 +147,10 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 	 * Retrieves the block pattern schema, conforming to JSON Schema.
 	 *
 	 * @since 6.0.0
-	 * @since 6.3.0 Added `source` property.
 	 *
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
-		if ( $this->schema ) {
-			return $this->add_additional_fields_schema( $this->schema );
-		}
-
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'block-pattern',
@@ -226,12 +168,6 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'content'        => array(
-					'description' => __( 'The pattern content.' ),
-					'type'        => 'string',
-					'readonly'    => true,
-					'context'     => array( 'view', 'edit', 'embed' ),
-				),
 				'description'    => array(
 					'description' => __( 'The pattern detailed description.' ),
 					'type'        => 'string',
@@ -244,9 +180,15 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'inserter'       => array(
-					'description' => __( 'Determines whether the pattern is visible in inserter.' ),
-					'type'        => 'boolean',
+				'block_types'    => array(
+					'description' => __( 'Block types that the pattern is intended to be used with.' ),
+					'type'        => 'array',
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'post_types'     => array(
+					'description' => __( ' An array of post types that the pattern is restricted to be used with.' ),
+					'type'        => 'array',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
@@ -262,43 +204,21 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'block_types'    => array(
-					'description' => __( 'Block types that the pattern is intended to be used with.' ),
-					'type'        => 'array',
-					'readonly'    => true,
-					'context'     => array( 'view', 'edit', 'embed' ),
-				),
-				'post_types'     => array(
-					'description' => __( 'An array of post types that the pattern is restricted to be used with.' ),
-					'type'        => 'array',
-					'readonly'    => true,
-					'context'     => array( 'view', 'edit', 'embed' ),
-				),
-				'template_types' => array(
-					'description' => __( 'An array of template types where the pattern fits.' ),
-					'type'        => 'array',
-					'readonly'    => true,
-					'context'     => array( 'view', 'edit', 'embed' ),
-				),
-				'source'         => array(
-					'description' => __( 'Where the pattern comes from e.g. core' ),
+				'content'        => array(
+					'description' => __( 'The pattern content.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
-					'enum'        => array(
-						'core',
-						'plugin',
-						'theme',
-						'pattern-directory/core',
-						'pattern-directory/theme',
-						'pattern-directory/featured',
-					),
+				),
+				'inserter'       => array(
+					'description' => __( 'Determines whether the pattern is visible in inserter.' ),
+					'type'        => 'boolean',
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 			),
 		);
 
-		$this->schema = $schema;
-
-		return $this->add_additional_fields_schema( $this->schema );
+		return $this->add_additional_fields_schema( $schema );
 	}
 }

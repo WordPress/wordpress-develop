@@ -208,4 +208,5 @@ class Tests_Image_Size extends WP_UnitTestCase {
 
 		$content_width = $_content_width;
 	}
+
 }

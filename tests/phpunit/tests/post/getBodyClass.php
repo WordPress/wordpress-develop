@@ -257,4 +257,5 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 		$this->assertContains( 'page', $class );
 		$this->assertContains( "page-id-{$page_id}", $class );
 	}
+
 }

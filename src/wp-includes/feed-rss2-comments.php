@@ -72,10 +72,7 @@ do_action( 'rss_tag_pre', 'rss2-comments' );
 
 	while ( have_comments() ) :
 		the_comment();
-		$comment_post = get_post( $comment->comment_post_ID );
-		/**
-		 * @global WP_Post $post Global post object.
-		 */
+		$comment_post    = get_post( $comment->comment_post_ID );
 		$GLOBALS['post'] = $comment_post;
 		?>
 	<item>
@@ -113,8 +110,8 @@ do_action( 'rss_tag_pre', 'rss2-comments' );
 		 *
 		 * @since 2.1.0
 		 *
-		 * @param int $comment_id      The ID of the comment being displayed.
-		 * @param int $comment_post_id The ID of the post the comment is connected to.
+		 * @param int $comment_ID The ID of the comment being displayed.
+		 * @param int $ID         The ID of the post the comment is connected to.
 		 */
 		do_action( 'commentrss2_item', $comment->comment_ID, $comment_post->ID );
 		?>

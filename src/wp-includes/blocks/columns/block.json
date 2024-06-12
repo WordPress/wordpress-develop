@@ -1,10 +1,9 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 3,
+	"apiVersion": 2,
 	"name": "core/columns",
 	"title": "Columns",
 	"category": "design",
-	"allowedBlocks": [ "core/column" ],
 	"description": "Display content in multiple columns, with blocks added to each column.",
 	"textdomain": "default",
 	"attributes": {
@@ -14,10 +13,6 @@
 		"isStackedOnMobile": {
 			"type": "boolean",
 			"default": true
-		},
-		"templateLock": {
-			"type": [ "string", "boolean" ],
-			"enum": [ "all", "insert", "contentOnly", false ]
 		}
 	},
 	"supports": {
@@ -27,8 +22,6 @@
 		"color": {
 			"gradients": true,
 			"link": true,
-			"heading": true,
-			"button": true,
 			"__experimentalDefaultControls": {
 				"background": true,
 				"text": true
@@ -42,11 +35,10 @@
 			"margin": [ "top", "bottom" ],
 			"padding": true,
 			"__experimentalDefaultControls": {
-				"padding": true,
-				"blockGap": true
+				"padding": true
 			}
 		},
-		"layout": {
+		"__experimentalLayout": {
 			"allowSwitching": false,
 			"allowInheriting": false,
 			"allowEditing": false,
@@ -79,11 +71,7 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
-		},
-		"interactivity": {
-			"clientNavigation": true
-		},
-		"shadow": true
+		}
 	},
 	"editorStyle": "wp-block-columns-editor",
 	"style": "wp-block-columns"

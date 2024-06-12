@@ -29,8 +29,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/documentation/article/tools-import-screen/">Documentation on Import</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/forums">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/article/tools-import-screen/">Documentation on Import</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
 if ( current_user_can( 'install_plugins' ) ) {
@@ -60,21 +60,16 @@ $parent_file = 'tools.php';
 
 <div class="wrap">
 <h1><?php echo esc_html( $title ); ?></h1>
-<?php
-if ( ! empty( $_GET['invalid'] ) ) :
-	$importer_not_installed = '<strong>' . __( 'Error:' ) . '</strong> ' . sprintf(
-		/* translators: %s: Importer slug. */
-		__( 'The %s importer is invalid or is not installed.' ),
-		'<strong>' . esc_html( $_GET['invalid'] ) . '</strong>'
-	);
-	wp_admin_notice(
-		$importer_not_installed,
-		array(
-			'additional_classes' => array( 'error' ),
-		)
-	);
-endif;
-?>
+<?php if ( ! empty( $_GET['invalid'] ) ) : ?>
+	<div class="error">
+		<p><strong><?php _e( 'Error:' ); ?></strong>
+			<?php
+			/* translators: %s: Importer slug. */
+			printf( __( 'The %s importer is invalid or is not installed.' ), '<strong>' . esc_html( $_GET['invalid'] ) . '</strong>' );
+			?>
+		</p>
+	</div>
+<?php endif; ?>
 <p><?php _e( 'If you have posts or comments in another system, WordPress can import those into this site. To get started, choose a system to import from below:' ); ?></p>
 
 <?php
@@ -163,7 +158,7 @@ if ( empty( $importers ) ) {
 						esc_attr( $data[0] ),
 						/* translators: %s: Importer name. */
 						esc_attr( sprintf( _x( 'Install %s now', 'plugin' ), $data[0] ) ),
-						_x( 'Install Now', 'plugin' )
+						__( 'Install Now' )
 					);
 				} else {
 					$action = sprintf(

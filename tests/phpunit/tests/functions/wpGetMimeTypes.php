@@ -3,8 +3,7 @@
 /**
  * Test wp_get_mime_types().
  *
- * @group functions
- *
+ * @group functions.php
  * @covers ::wp_get_mime_types
  */
 class Tests_Functions_wpGetMimeTypes extends WP_UnitTestCase {

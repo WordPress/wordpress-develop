@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 3,
+	"apiVersion": 2,
 	"name": "core/preformatted",
 	"title": "Preformatted",
 	"category": "text",
@@ -8,9 +8,10 @@
 	"textdomain": "default",
 	"attributes": {
 		"content": {
-			"type": "rich-text",
-			"source": "rich-text",
+			"type": "string",
+			"source": "html",
 			"selector": "pre",
+			"default": "",
 			"__unstablePreserveWhiteSpace": true,
 			"__experimentalRole": "content"
 		}
@@ -24,10 +25,6 @@
 				"text": true
 			}
 		},
-		"spacing": {
-			"padding": true,
-			"margin": true
-		},
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,
@@ -40,9 +37,6 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
-		},
-		"interactivity": {
-			"clientNavigation": true
 		}
 	},
 	"style": "wp-block-preformatted"

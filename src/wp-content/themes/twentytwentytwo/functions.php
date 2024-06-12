@@ -26,6 +26,7 @@ if ( ! function_exists( 'twentytwentytwo_support' ) ) :
 
 		// Enqueue editor styles.
 		add_editor_style( 'style.css' );
+
 	}
 
 endif;
@@ -55,6 +56,7 @@ if ( ! function_exists( 'twentytwentytwo_styles' ) ) :
 
 		// Enqueue theme stylesheet.
 		wp_enqueue_style( 'twentytwentytwo-style' );
+
 	}
 
 endif;

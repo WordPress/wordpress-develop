@@ -1,11 +1,10 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 3,
+	"apiVersion": 2,
 	"name": "core/list-item",
 	"title": "List item",
 	"category": "text",
 	"parent": [ "core/list" ],
-	"allowedBlocks": [ "core/list" ],
 	"description": "Create a list item.",
 	"textdomain": "default",
 	"attributes": {
@@ -13,39 +12,15 @@
 			"type": "string"
 		},
 		"content": {
-			"type": "rich-text",
-			"source": "rich-text",
+			"type": "string",
+			"source": "html",
 			"selector": "li",
+			"default": "",
 			"__experimentalRole": "content"
 		}
 	},
 	"supports": {
 		"className": false,
-		"__experimentalSelector": ".wp-block-list > li",
-		"splitting": true,
-		"spacing": {
-			"margin": true,
-			"padding": true,
-			"__experimentalDefaultControls": {
-				"margin": false,
-				"padding": false
-			}
-		},
-		"typography": {
-			"fontSize": true,
-			"lineHeight": true,
-			"__experimentalFontFamily": true,
-			"__experimentalFontWeight": true,
-			"__experimentalFontStyle": true,
-			"__experimentalTextTransform": true,
-			"__experimentalTextDecoration": true,
-			"__experimentalLetterSpacing": true,
-			"__experimentalDefaultControls": {
-				"fontSize": true
-			}
-		},
-		"interactivity": {
-			"clientNavigation": true
-		}
+		"__experimentalSelector": "li"
 	}
 }

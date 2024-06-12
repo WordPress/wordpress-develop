@@ -575,7 +575,7 @@ BLOB;
 
 		}
 
-		$ids_joined = implode( ',', $ids );
+		$ids_joined = join( ',', $ids );
 
 		$global_post_id = self::factory()->post->create(
 			array(
@@ -844,8 +844,8 @@ BLOB;
 
 		}
 
-		$ids1_joined = implode( ',', array_slice( $ids, 0, 3 ) );
-		$ids2_joined = implode( ',', array_slice( $ids, 3, 3 ) );
+		$ids1_joined = join( ',', array_slice( $ids, 0, 3 ) );
+		$ids2_joined = join( ',', array_slice( $ids, 3, 3 ) );
 
 		$blob = <<<BLOB
 [gallery ids="$ids1_joined"]
@@ -870,6 +870,7 @@ BLOB;
 			),
 			$galleries
 		);
+
 	}
 
 	/**
@@ -907,8 +908,8 @@ BLOB;
 
 		}
 
-		$ids1_joined = implode( ',', array_slice( $ids, 0, 3 ) );
-		$ids2_joined = implode( ',', array_slice( $ids, 3, 3 ) );
+		$ids1_joined = join( ',', array_slice( $ids, 0, 3 ) );
+		$ids2_joined = join( ',', array_slice( $ids, 3, 3 ) );
 		$blob        = <<<BLOB
 [gallery ids="$ids1_joined" type="type" foo="bar"]
 
@@ -936,6 +937,7 @@ BLOB;
 			),
 			$galleries
 		);
+
 	}
 
 	/**

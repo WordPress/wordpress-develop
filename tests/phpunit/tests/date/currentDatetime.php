@@ -3,7 +3,6 @@
 /**
  * @group date
  * @group datetime
- *
  * @covers ::current_datetime
  */
 class Tests_Date_CurrentDatetime extends WP_UnitTestCase {

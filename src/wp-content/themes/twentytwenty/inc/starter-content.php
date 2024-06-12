@@ -214,4 +214,5 @@ function twentytwenty_get_starter_content() {
 	 * @param array $starter_content Array of starter content.
 	 */
 	return apply_filters( 'twentytwenty_starter_content', $starter_content );
+
 }

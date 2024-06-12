@@ -2,7 +2,6 @@
 	position: relative;
 	border-left: none;
 	margin: var(--global--spacing-vertical) auto var(--global--spacing-vertical) var(--global--spacing-horizontal);
-	padding-left: 1em;
 
 	p {
 		font-family: var(--quote--font-family);
@@ -20,7 +19,7 @@
 		content: "\201C";
 		font-size: var(--quote--font-size);
 		line-height: var(--quote--line-height);
-		left: 8px;
+		left: calc(-0.5 * var(--global--spacing-horizontal));
 	}
 
 	.wp-block-quote__citation {

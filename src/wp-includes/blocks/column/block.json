@@ -1,9 +1,9 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 3,
+	"apiVersion": 2,
 	"name": "core/column",
 	"title": "Column",
-	"category": "design",
+	"category": "text",
 	"parent": [ "core/columns" ],
 	"description": "A single column within a columns block.",
 	"textdomain": "default",
@@ -23,27 +23,22 @@
 		}
 	},
 	"supports": {
-		"__experimentalOnEnter": true,
 		"anchor": true,
 		"reusable": false,
 		"html": false,
 		"color": {
 			"gradients": true,
-			"heading": true,
-			"button": true,
 			"link": true,
 			"__experimentalDefaultControls": {
 				"background": true,
 				"text": true
 			}
 		},
-		"shadow": true,
 		"spacing": {
 			"blockGap": true,
 			"padding": true,
 			"__experimentalDefaultControls": {
-				"padding": true,
-				"blockGap": true
+				"padding": true
 			}
 		},
 		"__experimentalBorder": {
@@ -69,9 +64,6 @@
 				"fontSize": true
 			}
 		},
-		"layout": true,
-		"interactivity": {
-			"clientNavigation": true
-		}
+		"__experimentalLayout": true
 	}
 }

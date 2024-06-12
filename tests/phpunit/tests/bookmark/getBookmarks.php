@@ -5,6 +5,8 @@
  */
 class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 	public function test_should_hit_cache() {
+		global $wpdb;
+
 		$bookmarks = self::factory()->bookmark->create_many( 2 );
 
 		$found1 = get_bookmarks(
@@ -13,7 +15,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries = get_num_queries();
+		$num_queries = $wpdb->num_queries;
 
 		$found2 = get_bookmarks(
 			array(
@@ -22,10 +24,12 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 		);
 
 		$this->assertSameSets( $found1, $found2 );
-		$this->assertSame( $num_queries, get_num_queries() );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 
 	public function test_adding_bookmark_should_bust_get_bookmarks_cache() {
+		global $wpdb;
+
 		$bookmarks = self::factory()->bookmark->create_many( 2 );
 
 		// Prime cache.
@@ -35,7 +39,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries = get_num_queries();
+		$num_queries = $wpdb->num_queries;
 
 		$bookmarks[] = wp_insert_link(
 			array(
@@ -51,13 +55,15 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 		);
 
 		$this->assertEqualSets( $bookmarks, wp_list_pluck( $found2, 'link_id' ) );
-		$this->assertGreaterThan( $num_queries, get_num_queries() );
+		$this->assertGreaterThan( $num_queries, $wpdb->num_queries );
 	}
 
 	/**
 	 * @ticket 18356
 	 */
 	public function test_orderby_rand_should_not_be_cached() {
+		global $wpdb;
+
 		$bookmarks = self::factory()->bookmark->create_many( 2 );
 
 		$found1 = get_bookmarks(
@@ -66,7 +72,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries = get_num_queries();
+		$num_queries = $wpdb->num_queries;
 
 		$found2 = get_bookmarks(
 			array(
@@ -76,7 +82,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 
 		// Equal sets != same order.
 		$this->assertEqualSets( $found1, $found2 );
-		$this->assertGreaterThan( $num_queries, get_num_queries() );
+		$this->assertGreaterThan( $num_queries, $wpdb->num_queries );
 	}
 
 	public function test_exclude_param_gets_properly_parsed_as_list() {

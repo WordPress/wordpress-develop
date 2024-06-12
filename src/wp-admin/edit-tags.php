@@ -302,14 +302,14 @@ if ( 'category' === $taxonomy || 'link_category' === $taxonomy || 'post_tag' ===
 	$help = '<p><strong>' . __( 'For more information:' ) . '</strong></p>';
 
 	if ( 'category' === $taxonomy ) {
-		$help .= '<p>' . __( '<a href="https://wordpress.org/documentation/article/posts-categories-screen/">Documentation on Categories</a>' ) . '</p>';
+		$help .= '<p>' . __( '<a href="https://wordpress.org/support/article/posts-categories-screen/">Documentation on Categories</a>' ) . '</p>';
 	} elseif ( 'link_category' === $taxonomy ) {
 		$help .= '<p>' . __( '<a href="https://codex.wordpress.org/Links_Link_Categories_Screen">Documentation on Link Categories</a>' ) . '</p>';
 	} else {
-		$help .= '<p>' . __( '<a href="https://wordpress.org/documentation/article/posts-tags-screen/">Documentation on Tags</a>' ) . '</p>';
+		$help .= '<p>' . __( '<a href="https://wordpress.org/support/article/posts-tags-screen/">Documentation on Tags</a>' ) . '</p>';
 	}
 
-	$help .= '<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>';
+	$help .= '<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>';
 
 	get_current_screen()->set_help_sidebar( $help );
 
@@ -348,16 +348,9 @@ if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 
 <hr class="wp-header-end">
 
-<?php
-if ( $message ) :
-	wp_admin_notice(
-		$message,
-		array(
-			'id'                 => 'message',
-			'additional_classes' => array( $class ),
-			'dismissible'        => true,
-		)
-	);
+<?php if ( $message ) : ?>
+<div id="message" class="<?php echo $class; ?> notice is-dismissible"><p><?php echo $message; ?></p></div>
+	<?php
 	$_SERVER['REQUEST_URI'] = remove_query_arg( array( 'message', 'error' ), $_SERVER['REQUEST_URI'] );
 endif;
 ?>

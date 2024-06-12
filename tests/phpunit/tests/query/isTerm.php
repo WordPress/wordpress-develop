@@ -25,6 +25,9 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
+		$GLOBALS['wp_the_query'] = new WP_Query();
+		$GLOBALS['wp_query']     = $GLOBALS['wp_the_query'];
+
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		create_initial_taxonomies();

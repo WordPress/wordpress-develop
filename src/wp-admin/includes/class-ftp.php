@@ -483,7 +483,7 @@ class ftp_base {
 			$this->PushError("restore", "cannot restore in ASCII mode");
 			return FALSE;
 		}
-		if(!$this->_exec("REST ".$from, "restore")) return FALSE;
+		if(!$this->_exec("REST ".$from, "resore")) return FALSE;
 		if(!$this->_checkCode()) return FALSE;
 		return TRUE;
 	}
@@ -797,7 +797,7 @@ class ftp_base {
 		$chunks=explode(';',$pattern);
 		foreach($chunks as $pattern) {
 			$escape=array('$','^','.','{','}','(',')','[',']','|');
-			while(str_contains($pattern,'**'))
+			while(strpos($pattern,'**')!==false)
 				$pattern=str_replace('**','*',$pattern);
 			foreach($escape as $probe)
 				$pattern=str_replace($probe,"\\$probe",$pattern);

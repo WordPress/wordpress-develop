@@ -4,7 +4,9 @@
  *
  * @package WordPress
  * @subpackage REST API
- *
+ */
+
+/**
  * @group restapi
  */
 class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
@@ -18,7 +20,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	protected static $supported_formats;
 	protected static $post_ids    = array();
-	protected static $terms       = array();
 	protected static $total_posts = 30;
 	protected static $per_page    = 50;
 
@@ -29,8 +30,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
-		self::$terms   = $factory->term->create_many( 15, array( 'taxonomy' => 'category' ) );
-		wp_set_object_terms( self::$post_id, self::$terms, 'category' );
 
 		self::$superadmin_id  = $factory->user->create(
 			array(
@@ -205,7 +204,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'page',
 				'per_page',
 				'search',
-				'search_columns',
 				'slug',
 				'status',
 				'sticky',
@@ -222,22 +220,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
-		$this->assertEqualSets( array( 'context', 'id', 'password', 'excerpt_length' ), $keys );
-	}
-
-	public function test_registered_get_items_embed() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'include', array( self::$post_id ) );
-		$response = rest_get_server()->dispatch( $request );
-		$response = rest_get_server()->response_to_data( $response, true );
-		$this->assertArrayHasKey( '_embedded', $response[0], 'The _embedded key must exist' );
-		$this->assertArrayHasKey( 'wp:term', $response[0]['_embedded'], 'The wp:term key must exist' );
-		$this->assertCount( 15, $response[0]['_embedded']['wp:term'][0], 'Should should be 15 terms and not the default 10' );
-		$i = 0;
-		foreach ( $response[0]['_embedded']['wp:term'][0] as $term ) {
-			$this->assertSame( self::$terms[ $i ], $term['id'], 'Check term id existing in response' );
-			++$i;
-		}
+		sort( $keys );
+		$this->assertSame( array( 'context', 'id', 'password' ), $keys );
 	}
 
 	/**
@@ -273,7 +257,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	/**
 	 * A valid query that returns 0 results should return an empty JSON list.
 	 *
-	 * @link https://github.com/WP-API/WP-API/issues/862
+	 * @issue 862
 	 */
 	public function test_get_items_empty_query() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
@@ -1544,40 +1528,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * Tests that Rest Post controller supports search columns.
-	 *
-	 * @ticket 43867
-	 * @covers WP_REST_Posts_Controller::get_items
-	 */
-	public function test_get_items_with_custom_search_columns() {
-		$id1 = self::factory()->post->create(
-			array(
-				'post_title'   => 'Title contain foo and bar',
-				'post_content' => 'Content contain bar',
-				'post_excerpt' => 'Excerpt contain baz',
-			)
-		);
-		$id2 = self::factory()->post->create(
-			array(
-				'post_title'   => 'Title contain baz',
-				'post_content' => 'Content contain foo and bar',
-				'post_excerpt' => 'Excerpt contain foo, bar and baz',
-			)
-		);
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'search', 'foo bar' );
-		$request->set_param( 'search_columns', array( 'post_title' ) );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status(), 'Response should have a status code 200.' );
-		$data = $response->get_data();
-		$this->assertCount( 1, $data, 'Response should contain one result.' );
-		$this->assertSame( $id1, $data[0]['id'], 'Result should match expected value.' );
-	}
-
-	/**
 	 * @ticket 55592
-	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 * @covers ::update_post_thumbnail_cache
 	 */
@@ -1615,7 +1566,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	/**
 	 * @ticket 55593
-	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 * @covers ::update_post_parent_caches
 	 */
@@ -1679,8 +1629,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// 3rd page.
 		self::factory()->post->create();
-		++$total_posts;
-		++$total_pages;
+		$total_posts++;
+		$total_pages++;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
@@ -2004,14 +1954,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
 	}
 
-	/**
-	 * Tests that authenticated users are only allowed to read password protected content
-	 * if they have the 'edit_post' meta capability for the post.
-	 */
 	public function test_get_post_draft_edit_context() {
 		$post_content = 'Hello World!';
-
-		// Create a password protected post as an Editor.
 		self::factory()->post->create(
 			array(
 				'post_title'    => 'Hola',
@@ -2021,8 +1965,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_author'   => self::$editor_id,
 			)
 		);
-
-		// Create a draft with the Latest Posts block as a Contributor.
 		$draft_id = self::factory()->post->create(
 			array(
 				'post_status'  => 'draft',
@@ -2030,18 +1972,11 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_content' => '<!-- wp:latest-posts {"displayPostContent":true} /--> <!-- wp:latest-posts {"displayPostContent":true,"displayPostContentRadio":"full_post"} /-->',
 			)
 		);
-
-		// Set the current user to Contributor and request the draft for editing.
 		wp_set_current_user( self::$contributor_id );
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $draft_id ) );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-
-		/*
-		 * Verify that the content of a password protected post created by an Editor
-		 * is not viewable by a Contributor.
-		 */
 		$this->assertStringNotContainsString( $post_content, $data['content']['rendered'] );
 	}
 
@@ -2295,8 +2230,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_filters_content_when_needed() {
 		$filter_count   = 0;
-		$filter_content = static function () use ( &$filter_count ) {
-			++$filter_count;
+		$filter_content = static function() use ( &$filter_count ) {
+			$filter_count++;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
@@ -2331,8 +2266,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_skips_content_filter_if_not_needed() {
 		$filter_count   = 0;
-		$filter_content = static function () use ( &$filter_count ) {
-			++$filter_count;
+		$filter_content = static function() use ( &$filter_count ) {
+			$filter_count++;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
@@ -2362,42 +2297,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 0, $filter_count );
 	}
 
-	/**
-	 * @ticket 59043
-	 *
-	 * @covers WP_REST_Posts_Controller::prepare_item_for_response
-	 */
-	public function test_prepare_item_override_excerpt_length() {
-		wp_set_current_user( self::$editor_id );
-
-		$post_id = self::factory()->post->create(
-			array(
-				'post_excerpt' => '',
-				'post_content' => 'Bacon ipsum dolor amet porchetta capicola sirloin prosciutto brisket shankle jerky. Ham hock filet mignon boudin ground round, prosciutto alcatra spare ribs meatball turducken pork beef ribs ham beef. Bacon pastrami short loin, venison tri-tip ham short ribs doner swine. Tenderloin pig tongue pork jowl doner. Pork loin rump t-bone, beef strip steak flank drumstick tri-tip short loin capicola jowl. Cow filet mignon hamburger doner rump. Short loin jowl drumstick, tongue tail beef ribs pancetta flank brisket landjaeger chuck venison frankfurter turkey.
-
-Brisket shank rump, tongue beef ribs swine fatback turducken capicola meatball picanha chicken cupim meatloaf turkey. Bacon biltong shoulder tail frankfurter boudin cupim turkey drumstick. Porchetta pig shoulder, jerky flank pork tail meatball hamburger. Doner ham hock ribeye tail jerky swine. Leberkas ribeye pancetta, tenderloin capicola doner turducken chicken venison ground round boudin pork chop. Tail pork loin pig spare ribs, biltong ribeye brisket pork chop cupim. Short loin leberkas spare ribs jowl landjaeger tongue kevin flank bacon prosciutto.
-
-Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket bacon pork chop. Cupim hamburger pork loin short loin. Boudin ball tip cupim ground round ham shoulder. Sausage rump cow tongue bresaola pork pancetta biltong tail chicken turkey hamburger. Kevin flank pork loin salami biltong. Alcatra landjaeger pastrami andouille kielbasa ham tenderloin drumstick sausage turducken tongue corned beef.',
-			)
-		);
-
-		$endpoint = new WP_REST_Posts_Controller( 'post' );
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
-		$request->set_param( 'context', 'edit' );
-		$request->set_param( '_fields', 'excerpt' );
-		$request->set_param( 'excerpt_length', 43 );
-		$response = $endpoint->prepare_item_for_response( get_post( $post_id ), $request );
-		$data     = $response->get_data();
-		$this->assertArrayHasKey( 'excerpt', $data, 'Response must contain an "excerpt" key.' );
-
-		// 43 words plus the ellipsis added via the 'excerpt_more' filter.
-		$this->assertCount(
-			44,
-			explode( ' ', $data['excerpt']['rendered'] ),
-			'Incorrect word count in the excerpt. Expected the excerpt to contain 44 words (43 words plus an ellipsis), but a different word count was found.'
-		);
-	}
-
 	public function test_create_item() {
 		wp_set_current_user( self::$editor_id );
 
@@ -2410,7 +2309,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->check_create_post_response( $response );
 	}
 
-	public function data_post_dates() {
+	public function post_dates_provider() {
 		$all_statuses = array(
 			'draft',
 			'publish',
@@ -2481,7 +2380,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	}
 
 	/**
-	 * @dataProvider data_post_dates
+	 * @dataProvider post_dates_provider
 	 */
 	public function test_create_post_date( $status, $params, $results ) {
 		wp_set_current_user( self::$editor_id );
@@ -3530,7 +3429,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	}
 
 	/**
-	 * @dataProvider data_post_dates
+	 * @dataProvider post_dates_provider
 	 */
 	public function test_update_post_date( $status, $params, $results ) {
 		wp_set_current_user( self::$editor_id );
@@ -4085,17 +3984,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertSame( $expected_output['excerpt']['raw'], $post->post_excerpt );
 	}
 
-	/**
-	 * @dataProvider data_post_roundtrip_as_author
-	 */
-	public function test_post_roundtrip_as_author( $raw, $expected ) {
-		wp_set_current_user( self::$author_id );
-
-		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
-		$this->verify_post_roundtrip( $raw, $expected );
-	}
-
-	public static function data_post_roundtrip_as_author() {
+	public static function post_roundtrip_provider() {
 		return array(
 			array(
 				// Raw values.
@@ -4190,6 +4079,16 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 				),
 			),
 		);
+	}
+
+	/**
+	 * @dataProvider post_roundtrip_provider
+	 */
+	public function test_post_roundtrip_as_author( $raw, $expected ) {
+		wp_set_current_user( self::$author_id );
+
+		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
+		$this->verify_post_roundtrip( $raw, $expected );
 	}
 
 	public function test_post_roundtrip_as_editor_unfiltered_html() {
@@ -4355,6 +4254,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayNotHasKey( '/wp/v2/invalid-controller', $routes );
 		_unregister_post_type( 'invalid-controller' );
+
 	}
 
 	public function test_get_item_schema() {
@@ -4362,7 +4262,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 27, $properties );
+		$this->assertCount( 26, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
@@ -4389,7 +4289,6 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertArrayHasKey( 'type', $properties );
 		$this->assertArrayHasKey( 'tags', $properties );
 		$this->assertArrayHasKey( 'categories', $properties );
-		$this->assertArrayHasKey( 'class_list', $properties );
 	}
 
 	/**
@@ -4419,7 +4318,6 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$expected_keys = array(
 			'author',
 			'categories',
-			'class_list',
 			'comment_status',
 			'content',
 			'date',
@@ -4458,7 +4356,6 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$expected_keys = array(
 			'author',
 			'categories',
-			'class_list',
 			'comment_status',
 			'content',
 			'date',
@@ -4672,15 +4569,15 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $response_data, $field_name ) {
-		return get_post_meta( $response_data['id'], $field_name, true );
+	public function additional_field_get_callback( $object ) {
+		return get_post_meta( $object['id'], 'my_custom_int', true );
 	}
 
-	public function additional_field_update_callback( $value, $post, $field_name ) {
+	public function additional_field_update_callback( $value, $post ) {
 		if ( 'returnError' === $value ) {
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
-		update_post_meta( $post->ID, $field_name, $value );
+		update_post_meta( $post->ID, 'my_custom_int', $value );
 	}
 
 	public function test_publish_action_ldo_registered() {
@@ -5083,6 +4980,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'permalink_template', $data );
 		$this->assertArrayNotHasKey( 'generated_slug', $data );
+
 	}
 
 	/**

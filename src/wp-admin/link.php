@@ -12,9 +12,7 @@
 /** Load WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
-$action  = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
-$cat_id  = ! empty( $_REQUEST['cat_id'] ) ? absint( $_REQUEST['cat_id'] ) : 0;
-$link_id = ! empty( $_REQUEST['link_id'] ) ? absint( $_REQUEST['link_id'] ) : 0;
+wp_reset_vars( array( 'action', 'cat_id', 'link_id' ) );
 
 if ( ! current_user_can( 'manage_links' ) ) {
 	wp_link_manager_disabled_message();
@@ -47,7 +45,7 @@ switch ( $action ) {
 			$link_id = (int) $link_id;
 
 			if ( wp_delete_link( $link_id ) ) {
-				++$deleted;
+				$deleted++;
 			}
 		}
 

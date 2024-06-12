@@ -1,8 +1,7 @@
 <?php
 
 /**
- * @group functions
- *
+ * @group functions.php
  * @covers ::wp_is_numeric_array
  */
 class Tests_Functions_wpIsNumericArray extends WP_UnitTestCase {

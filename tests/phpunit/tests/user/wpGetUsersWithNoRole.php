@@ -42,6 +42,7 @@ class Tests_User_wpGetUsersWithNoRole extends WP_UnitTestCase {
 			),
 			$users
 		);
+
 	}
 
 	/**
@@ -111,10 +112,10 @@ class Tests_User_wpGetUsersWithNoRole extends WP_UnitTestCase {
 	 */
 	public function test_get_users_with_no_role_matches_on_role_name() {
 		// Create a role with a display name which would not match the role name
-		// in a case-insensitive SQL query.
+		// in a case-insentive SQL query.
 		wp_roles()->add_role( 'somerole', 'Some role display name' );
 
-		self::factory()->user->create(
+		$someuser = self::factory()->user->create(
 			array(
 				'role' => 'somerole',
 			)
@@ -148,4 +149,5 @@ class Tests_User_wpGetUsersWithNoRole extends WP_UnitTestCase {
 
 		$this->assertEmpty( $users );
 	}
+
 }

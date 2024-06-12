@@ -31,7 +31,7 @@
 
 		topMenuItems = adminBar.querySelectorAll( 'li.menupop' );
 		allMenuItems = adminBar.querySelectorAll( '.ab-item' );
-		adminBarLogout = document.querySelector( '#wp-admin-bar-logout a' );
+		adminBarLogout = document.getElementById( 'wp-admin-bar-logout' );
 		adminBarSearchForm = document.getElementById( 'adminbarsearch' );
 		shortlink = document.getElementById( 'wp-admin-bar-get-shortlink' );
 		skipLink = adminBar.querySelector( '.screen-reader-shortcut' );
@@ -95,6 +95,11 @@
 			} );
 		}
 
+		if ( skipLink ) {
+			// Focus the target of skip link after pressing Enter.
+			skipLink.addEventListener( 'keydown', focusTargetAfterEnter );
+		}
+
 		if ( shortlink ) {
 			shortlink.addEventListener( 'click', clickShortlink );
 		}
@@ -144,8 +149,7 @@
 	function toggleHoverIfEnter( event ) {
 		var wrapper;
 
-		// Follow link if pressing Ctrl and/or Shift with Enter (opening in a new tab or window).
-		if ( event.which !== 13 || event.ctrlKey || event.shiftKey ) {
+		if ( event.which !== 13 ) {
 			return;
 		}
 
@@ -169,7 +173,36 @@
 	}
 
 	/**
-	 * Toggle hover class for mobile devices.
+	 * Focus the target of skip link after pressing Enter.
+	 *
+	 * @since 5.3.1
+	 *
+	 * @param {Event} event The keydown event.
+	 */
+	function focusTargetAfterEnter( event ) {
+		var id, userAgent;
+
+		if ( event.which !== 13 ) {
+			return;
+		}
+
+		id = event.target.getAttribute( 'href' );
+		userAgent = navigator.userAgent.toLowerCase();
+
+		if ( userAgent.indexOf( 'applewebkit' ) > -1 && id && id.charAt( 0 ) === '#' ) {
+			setTimeout( function() {
+				var target = document.getElementById( id.replace( '#', '' ) );
+
+				if ( target ) {
+					target.setAttribute( 'tabIndex', '0' );
+					target.focus();
+				}
+			}, 100 );
+		}
+	}
+
+	/**
+	 * Toogle hover class for mobile devices.
 	 *
 	 * @since 5.3.1
 	 *
@@ -303,11 +336,6 @@
 
 			element.className += className;
 		}
-
-		var menuItemToggle = element.querySelector( 'a' );
-		if ( className === 'hover' && menuItemToggle && menuItemToggle.hasAttribute( 'aria-expanded' ) ) {
-			menuItemToggle.setAttribute( 'aria-expanded', 'true' );
-		}
 	}
 
 	/**
@@ -337,11 +365,6 @@
 			}
 
 			element.className = classes.replace( /^[\s]+|[\s]+$/g, '' );
-		}
-
-		var menuItemToggle = element.querySelector( 'a' );
-		if ( className === 'hover' && menuItemToggle && menuItemToggle.hasAttribute( 'aria-expanded' ) ) {
-			menuItemToggle.setAttribute( 'aria-expanded', 'false' );
 		}
 	}
 

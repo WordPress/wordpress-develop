@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Effects Fade 1.13.3
- * https://jqueryui.com
+ * jQuery UI Effects Fade 1.13.2
+ * http://jqueryui.com
  *
- * Copyright OpenJS Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
- * https://jquery.org/license
+ * http://jquery.org/license
  */
 
 //>>label: Fade Effect
 //>>group: Effects
 //>>description: Fades the element.
-//>>docs: https://api.jqueryui.com/fade-effect/
-//>>demos: https://jqueryui.com/effect/
+//>>docs: http://api.jqueryui.com/fade-effect/
+//>>demos: http://jqueryui.com/effect/
 
 ( function( factory ) {
 	"use strict";
@@ -21,8 +21,7 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"../version",
-			"../effect"
+			"./effect"
 		], factory );
 	} else {
 

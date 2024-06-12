@@ -10,21 +10,21 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 	 */
 	private $test_block_name;
 
-	public function set_up() {
+	function set_up() {
 		parent::set_up();
 		$this->test_block_name = null;
 	}
 
-	public function tear_down() {
+	function tear_down() {
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
-		parent::tear_down();
+		parent::set_up();
 	}
 
 	/**
 	 * @ticket 54337
 	 */
-	public function test_color_slugs_with_numbers_are_kebab_cased_properly() {
+	function test_color_slugs_with_numbers_are_kebab_cased_properly() {
 		$this->test_block_name = 'test/color-slug-with-numbers';
 		register_block_type(
 			$this->test_block_name,
@@ -68,7 +68,7 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	public function test_color_with_skipped_serialization_block_supports() {
+	function test_color_with_skipped_serialization_block_supports() {
 		$this->test_block_name = 'test/color-with-skipped-serialization-block-supports';
 		register_block_type(
 			$this->test_block_name,
@@ -109,7 +109,7 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	public function test_gradient_with_individual_skipped_serialization_block_supports() {
+	function test_gradient_with_individual_skipped_serialization_block_supports() {
 		$this->test_block_name = 'test/gradient-with-individual-skipped-serialization-block-support';
 		register_block_type(
 			$this->test_block_name,

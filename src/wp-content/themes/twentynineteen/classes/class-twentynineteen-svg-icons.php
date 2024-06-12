@@ -454,4 +454,5 @@ class TwentyNineteen_SVG_Icons {
 </svg>',
 
 	);
+
 }

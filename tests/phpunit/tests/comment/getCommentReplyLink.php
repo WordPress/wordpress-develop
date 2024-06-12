@@ -87,4 +87,5 @@ class Tests_Comment_GetCommentReplyLink extends WP_UnitTestCase {
 
 		$this->assertNull( $actual );
 	}
+
 }

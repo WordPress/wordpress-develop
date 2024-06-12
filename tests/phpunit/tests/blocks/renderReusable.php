@@ -1,9 +1,15 @@
 <?php
 /**
- * Tests for synced pattern rendering.
+ * Reusable block rendering tests
  *
  * @package WordPress
  * @subpackage Blocks
+ * @since 5.0.0
+ */
+
+/**
+ * Tests for reusable block rendering.
+ *
  * @since 5.0.0
  *
  * @group blocks
@@ -83,7 +89,7 @@ class Tests_Blocks_RenderReusable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Make sure that a synced pattern can be rendered twice in a row.
+	 * Make sure that a reusable block can be rendered twice in a row.
 	 *
 	 * @ticket 52364
 	 */

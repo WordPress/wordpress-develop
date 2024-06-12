@@ -3,9 +3,8 @@
 /**
  * Tests for number_format_i18n()
  *
- * @group functions
+ * @group functions.php
  * @group i18n
- *
  * @covers ::number_format_i18n
  */
 class Tests_Functions_NumberFormatI18n extends WP_UnitTestCase {

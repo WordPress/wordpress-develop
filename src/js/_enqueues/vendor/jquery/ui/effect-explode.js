@@ -1,10 +1,10 @@
 /*!
- * jQuery UI Effects Explode 1.13.3
- * https://jqueryui.com
+ * jQuery UI Effects Explode 1.13.2
+ * http://jqueryui.com
  *
- * Copyright OpenJS Foundation and other contributors
+ * Copyright jQuery Foundation and other contributors
  * Released under the MIT license.
- * https://jquery.org/license
+ * http://jquery.org/license
  */
 
 //>>label: Explode Effect
@@ -12,8 +12,8 @@
 /* eslint-disable max-len */
 //>>description: Explodes an element in all directions into n pieces. Implodes an element to its original wholeness.
 /* eslint-enable max-len */
-//>>docs: https://api.jqueryui.com/explode-effect/
-//>>demos: https://jqueryui.com/effect/
+//>>docs: http://api.jqueryui.com/explode-effect/
+//>>demos: http://jqueryui.com/effect/
 
 ( function( factory ) {
 	"use strict";
@@ -23,8 +23,7 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"../version",
-			"../effect"
+			"./effect"
 		], factory );
 	} else {
 

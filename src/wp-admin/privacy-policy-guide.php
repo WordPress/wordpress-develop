@@ -14,15 +14,12 @@ if ( ! current_user_can( 'manage_privacy_options' ) ) {
 }
 
 if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
-	require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
+	include_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
 }
-
-// Used in the HTML title tag.
-$title = __( 'Privacy Policy Guide' );
 
 add_filter(
 	'admin_body_class',
-	static function ( $body_class ) {
+	static function( $body_class ) {
 		$body_class .= ' privacy-settings ';
 
 		return $body_class;
@@ -60,21 +57,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <hr class="wp-header-end">
 
-<?php
-wp_admin_notice(
-	__( 'The Privacy Settings require JavaScript.' ),
-	array(
-		'type'               => 'error',
-		'additional_classes' => array( 'hide-if-js' ),
-	)
-);
-?>
+<div class="notice notice-error hide-if-js">
+	<p><?php _e( 'The Privacy Settings require JavaScript.' ); ?></p>
+</div>
 
 <div class="privacy-settings-body hide-if-no-js">
 	<h2><?php _e( 'Privacy Policy Guide' ); ?></h2>
 	<h3 class="section-title"><?php _e( 'Introduction' ); ?></h3>
-	<p><?php _e( 'This text template will help you to create your website&#8217;s privacy policy.' ); ?></p>
-	<p><?php _e( 'The template contains a suggestion of sections you most likely will need. Under each section heading, you will find a short summary of what information you should provide, which will help you to get started. Some sections include suggested policy content, others will have to be completed with information from your theme and plugins.' ); ?></p>
+	<p><?php _e( 'This text template will help you to create your web site&#8217;s privacy policy.' ); ?></p>
+	<p><?php _e( 'The template contains a suggestion of sections you most likely will need. Under each section heading you will find a short summary of what information you should provide, which will help you to get started. Some sections include suggested policy content, others will have to be completed with information from your theme and plugins.' ); ?></p>
 	<p><?php _e( 'Please edit your privacy policy content, making sure to delete the summaries, and adding any information from your theme and plugins. Once you publish your policy page, remember to add it to your navigation menu.' ); ?></p>
 	<p><?php _e( 'It is your responsibility to write a comprehensive privacy policy, to make sure it reflects all national and international legal requirements on privacy, and to keep your policy current and accurate.' ); ?></p>
 	<div class="privacy-settings-accordion">
