@@ -879,7 +879,7 @@ function install_plugin_information() {
 	echo "</div>\n"; // #plugin-information-scrollable
 	echo "<div id='$tab-footer'>\n";
 	if ( ! empty( $api->download_link ) && ( current_user_can( 'install_plugins' ) || current_user_can( 'update_plugins' ) ) ) {
-		$button = wp_get_plugin_action_button( $api->name, $api, $compatible_php, $compatible_wp );
+		$button = wp_get_plugin_action_button( $api->name, $api, $compatible_php, $compatible_wp, 'plugin-information-modal' );
 		$button = str_replace( 'class="', 'class="right ', $button );
 
 		if ( ! str_contains( $button, _x( 'Activate', 'plugin' ) ) ) {
@@ -901,6 +901,7 @@ function install_plugin_information() {
  * Gets the markup for the plugin install action button.
  *
  * @since 6.5.0
+ * @since 6.6.0 Added the `$context` parameter.
  *
  * @param string       $name           Plugin name.
  * @param array|object $data           {
@@ -912,9 +913,11 @@ function install_plugin_information() {
  * }
  * @param bool         $compatible_php   The result of a PHP compatibility check.
  * @param bool         $compatible_wp    The result of a WP compatibility check.
+ * @param string       $context          Optional. The context the button will appear in.
+ *                                       Accepts 'plugin-information-modal'. Default empty string.
  * @return string The markup for the dependency row button.
  */
-function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible_wp ) {
+function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible_wp, $context = '' ) {
 	$button           = '';
 	$data             = (object) $data;
 	$status           = install_plugin_install_status( $data );
@@ -1009,14 +1012,17 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						$button_text = _x( 'Activate', 'plugin' );
 						/* translators: %s: Plugin name. */
 						$button_label = _x( 'Activate %s', 'plugin' );
-						$activate_url = add_query_arg(
-							array(
-								'_wpnonce' => wp_create_nonce( 'activate-plugin_' . $status['file'] ),
-								'action'   => 'activate',
-								'plugin'   => $status['file'],
-							),
-							network_admin_url( 'plugins.php' )
+
+						$query_args = array(
+							'_wpnonce' => wp_create_nonce( 'activate-plugin_' . $status['file'] ),
+							'action'   => 'activate',
+							'plugin'   => $status['file'],
 						);
+
+						if ( 'plugin-information-modal' === $context ) {
+							$query_args['redirect_to'] = wp_get_referer();
+						}
+						$activate_url = add_query_arg( $query_args, network_admin_url( 'plugins.php' ) );
 
 						if ( is_network_admin() ) {
 							$button_text = _x( 'Network Activate', 'plugin' );

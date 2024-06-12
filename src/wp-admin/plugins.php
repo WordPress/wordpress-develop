@@ -43,7 +43,6 @@ wp_enqueue_script( 'updates' );
 WP_Plugin_Dependencies::initialize();
 
 if ( $action ) {
-
 	switch ( $action ) {
 		case 'activate':
 			if ( ! current_user_can( 'activate_plugin', $plugin ) ) {
@@ -83,12 +82,56 @@ if ( $action ) {
 				wp_redirect( self_admin_url( 'import.php?import=' . str_replace( '-importer', '', dirname( $plugin ) ) ) );
 			} elseif ( isset( $_GET['from'] ) && 'press-this' === $_GET['from'] ) {
 				wp_redirect( self_admin_url( 'press-this.php' ) );
+			} elseif ( str_contains( wp_get_referer(), self_admin_url( 'plugin-install.php' ) ) ) {
+				/*
+				 * After activating from 'plugin-install.php', the user will be returned to the previous page.
+				 *
+				 * For backward compatibility, since 'load-plugins.php' callbacks and any other code
+				 * before now have already run, the user must first be redirected to 'plugins.php' again.
+				 *
+				 * This ensures that plugin functionality dependent on earlier code in this file still runs
+				 * after the plugin has been activated.
+				 */
+				$url = self_admin_url( 'plugins.php' );
+
+				if ( isset( $_GET['redirect_to'] ) ) {
+					// This will occur when a plugin is activated from within a modal.
+					$url = add_query_arg( 'redirect_to', wp_unslash( $_GET['redirect_to'] ), $url );
+				} else {
+					// This will occur when a plugin is activated from its plugin card.
+					$url = add_query_arg( 'redirect_to', urlencode( wp_get_referer() ), $url );
+				}
+
+				/*
+				 * On the re-loading of this file, the 'finish-activation' action will perform
+				 * the redirect to the previous page from which the plugin was activated.
+				 */
+				$url = add_query_arg( 'action', 'finish-activation', $url );
+
+				if ( ! is_wp_error( $result ) ) {
+					// This ensures the user gets feedback the plugin was successfully activated.
+					$url = add_query_arg( 'activate', 'true', $url );
+				}
+
+				wp_redirect( $url );
 			} else {
 				// Overrides the ?error=true one above.
 				wp_redirect( self_admin_url( "plugins.php?activate=true&plugin_status=$status&paged=$page&s=$s" ) );
 			}
 			exit;
+		case 'finish-activation':
+			if ( isset( $_GET['redirect_to'] ) ) {
+				$url = urldecode( wp_unslash( $_GET['redirect_to'] ) );
 
+				if ( isset( $_GET['activate'] ) ) {
+					// This ensures the user gets feedback the plugin was successfully activated.
+					$url = add_query_arg( 'activate', 'true', $url );
+				}
+
+				wp_redirect( $url );
+				exit;
+			}
+			break;
 		case 'activate-selected':
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				wp_die( __( 'Sorry, you are not allowed to activate plugins for this site.' ) );
