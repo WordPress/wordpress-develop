@@ -963,7 +963,7 @@ function wp_kses_version() {
  * It also matches stray `>` characters.
  *
  * @since 1.0.0
- * @since 6.6.0 Allow certain kinds of invalid HTML comments.
+ * @since 6.6.0 Recognize additional forms of invalid HTML which convert into comments.
  *
  * @global array[]|string $pass_allowed_html      An array of allowed HTML elements and attributes,
  *                                                or a context name such as 'post'.
@@ -1081,12 +1081,14 @@ function _wp_kses_split_callback( $matches ) {
  * @access private
  * @ignore
  * @since 1.0.0
+ * @since 6.6.0 Recognize additional forms of invalid HTML which convert into comments.
  *
  * @param string         $content           Content to filter.
  * @param array[]|string $allowed_html      An array of allowed HTML elements and attributes,
  *                                          or a context name such as 'post'. See wp_kses_allowed_html()
  *                                          for the list of accepted context names.
  * @param string[]       $allowed_protocols Array of allowed URL protocols.
+ *
  * @return string Fixed HTML element
  */
 function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
