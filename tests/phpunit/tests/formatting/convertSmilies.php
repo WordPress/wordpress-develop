@@ -400,7 +400,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 * @ticket 51019
 	 */
 	public function test_smilies_with_large_text_input() {
-		$text = '<p><img alt="" src="data:image/png;base64,' . str_repeat( "iVBORw0KGgoAAAAN", 99999 ) . '="></p> <3 ' ;
+		$text = '<p><img alt="" src="data:image/png;base64,' . str_repeat( 'iVBORw0KGgoAAAAN', 99999 ) . '="></p> <3' ;
 		$this->assertSame( $text, convert_smilies( $text ) );
 	}
 }
