@@ -984,13 +984,13 @@ function wp_kses_split( $content, $allowed_html, $allowed_protocols ) {
 
 	$token_pattern = <<<REGEX
 ~
-	(                         # Detect comments of various flavors before attempting to find tags.
-		(?:<!--.*?(--!?>|$))  # Well-formed HTML comments like `<!-- ... -->` and also with invalid `--!>` closer.
+	(                       # Detect comments of various flavors before attempting to find tags.
+		(?:<!--.*?(-->|$))  #  - Normative HTML comments.
 		|
-		</[^a-zA-Z][^>]*>     # Closing tags with invalid tag names.
+		</[^a-zA-Z][^>]*>   #  - Closing tags with invalid tag names.
 	)
 	|
-	(<[^>]*(>|$)|>)           # Tag-like spans of text.
+	(<[^>]*(>|$)|>)         # Tag-like spans of text.
 ~x
 REGEX;
 	return preg_replace_callback( $token_pattern, '_wp_kses_split_callback', $content );
