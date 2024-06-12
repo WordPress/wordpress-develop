@@ -1135,7 +1135,7 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	 * parsing rules differ from those for tags and text nodes.
 	 */
 	if ( str_starts_with( $content, '<!--' ) ) {
-		$content = str_replace( array( '<!--', '-->', '--!>' ), '', $content );
+		$content = str_replace( array( '<!--', '-->' ), '', $content );
 
 		while ( ( $newstring = wp_kses( $content, $allowed_html, $allowed_protocols ) ) !== $content ) {
 			$content = $newstring;
