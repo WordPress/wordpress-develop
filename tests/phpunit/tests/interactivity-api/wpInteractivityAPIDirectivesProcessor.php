@@ -421,7 +421,7 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 			$this->assertTrue( $p->has_and_visits_its_closer_tag() );
 		}
 
-		// Test an upercase tag.
+		// Test an uppercase tag.
 		$content = '<IMG src="example.jpg">';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
@@ -781,7 +781,7 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 
 	/**
 	 * Tests that skip_to_tag_closer skips to the next tag,
-	 * independant of the content.
+	 * independent of the content.
 	 *
 	 * @ticket 60517
 	 *

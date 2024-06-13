@@ -477,6 +477,109 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that bookmarks start and length correctly describe a given token in HTML.
+	 *
+	 * @ticket 61301
+	 *
+	 * @dataProvider data_html_nth_token_substring
+	 *
+	 * @param string $html            Input HTML.
+	 * @param int    $match_nth_token Which token to inspect from input HTML.
+	 * @param string $expected_match  Expected full raw token bookmark should capture.
+	 */
+	public function test_token_bookmark_span( string $html, int $match_nth_token, string $expected_match ) {
+		$processor = new class( $html ) extends WP_HTML_Tag_Processor {
+			/**
+			 * Returns the raw span of HTML for the currently-matched
+			 * token, or null if not paused on any token.
+			 *
+			 * @return string|null Raw HTML content of currently-matched token,
+			 *                     otherwise `null` if not matched.
+			 */
+			public function get_raw_token() {
+				if (
+					WP_HTML_Tag_Processor::STATE_READY === $this->parser_state ||
+					WP_HTML_Tag_Processor::STATE_INCOMPLETE_INPUT === $this->parser_state ||
+					WP_HTML_Tag_Processor::STATE_COMPLETE === $this->parser_state
+				) {
+					return null;
+				}
+
+				$this->set_bookmark( 'mark' );
+				$mark = $this->bookmarks['mark'];
+
+				return substr( $this->html, $mark->start, $mark->length );
+			}
+		};
+
+		for ( $i = 0; $i < $match_nth_token; $i++ ) {
+			$processor->next_token();
+		}
+
+		$raw_token = $processor->get_raw_token();
+		$this->assertIsString(
+			$raw_token,
+			"Failed to find raw token at position {$match_nth_token}: check test data provider."
+		);
+
+		$this->assertSame(
+			$expected_match,
+			$raw_token,
+			'Bookmarked wrong span of text for full matched token.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_html_nth_token_substring() {
+		return array(
+			// Tags.
+			'DIV start tag'                 => array( '<div>', 1, '<div>' ),
+			'DIV start tag with attributes' => array( '<div class="x" disabled>', 1, '<div class="x" disabled>' ),
+			'DIV end tag'                   => array( '</div>', 1, '</div>' ),
+			'DIV end tag with attributes'   => array( '</div class="x" disabled>', 1, '</div class="x" disabled>' ),
+			'Nested DIV'                    => array( '<div><div b>', 2, '<div b>' ),
+			'Sibling DIV'                   => array( '<div></div><div b>', 3, '<div b>' ),
+			'DIV after text'                => array( 'text <div>', 2, '<div>' ),
+			'DIV before text'               => array( '<div> text', 1, '<div>' ),
+			'DIV after comment'             => array( '<!-- comment --><div>', 2, '<div>' ),
+			'DIV before comment'            => array( '<div><!-- c --> ', 1, '<div>' ),
+			'Start "self-closing" tag'      => array( '<div />', 1, '<div />' ),
+			'Void tag'                      => array( '<img src="img.png">', 1, '<img src="img.png">' ),
+			'Void tag w/self-closing flag'  => array( '<img src="img.png" />', 1, '<img src="img.png" />' ),
+			'Void tag inside DIV'           => array( '<div><img src="img.png"></div>', 2, '<img src="img.png">' ),
+
+			// Special atomic tags.
+			'SCRIPT tag'                    => array( '<script>inside text</script>', 1, '<script>inside text</script>' ),
+			'SCRIPT double-escape'          => array( '<script><!-- <script> echo "</script>"; </script><div>', 1, '<script><!-- <script> echo "</script>"; </script>' ),
+
+			// Text.
+			'Text'                          => array( 'Just text', 1, 'Just text' ),
+			'Text in DIV'                   => array( '<div>Text<div>', 2, 'Text' ),
+			'Text before DIV'               => array( 'Text<div>', 1, 'Text' ),
+			'Text after DIV'                => array( '<div></div>Text', 3, 'Text' ),
+			'Text after comment'            => array( '<!-- comment -->Text', 2, 'Text' ),
+			'Text before comment'           => array( 'Text<!-- c --> ', 1, 'Text' ),
+
+			// Comments.
+			'Comment'                       => array( '<!-- comment -->', 1, '<!-- comment -->' ),
+			'Comment in DIV'                => array( '<div><!-- comment --><div>', 2, '<!-- comment -->' ),
+			'Comment before DIV'            => array( '<!-- comment --><div>', 1, '<!-- comment -->' ),
+			'Comment after DIV'             => array( '<div></div><!-- comment -->', 3, '<!-- comment -->' ),
+			'Comment after comment'         => array( '<!-- comment --><!-- comment -->', 2, '<!-- comment -->' ),
+			'Comment before comment'        => array( '<!-- comment --><!-- c --> ', 1, '<!-- comment -->' ),
+			'Abruptly closed comment'       => array( '<!-->', 1, '<!-->' ),
+			'Empty comment'                 => array( '<!---->', 1, '<!---->' ),
+			'Funky comment'                 => array( '</_ funk >', 1, '</_ funk >' ),
+			'PI lookalike comment'          => array( '<?processing instruction?>', 1, '<?processing instruction?>' ),
+			'CDATA lookalike comment'       => array( '<![CDATA[ see? data ]]>', 1, '<![CDATA[ see? data ]]>' ),
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
@@ -2746,7 +2849,7 @@ HTML
 			public function insert_after( $new_html ) {
 				$this->set_bookmark( 'here' );
 				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
-					$this->bookmarks['here']->start + $this->bookmarks['here']->length + 1,
+					$this->bookmarks['here']->start + $this->bookmarks['here']->length,
 					0,
 					$new_html
 				);

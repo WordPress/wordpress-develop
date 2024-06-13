@@ -328,6 +328,7 @@ function create_initial_post_types() {
 			'map_meta_cap'          => true,
 			'supports'              => array(
 				'title',
+				'excerpt',
 				'editor',
 				'revisions',
 				'custom-fields',
@@ -365,6 +366,7 @@ function create_initial_post_types() {
 				'filter_items_list'     => __( 'Filter templates list' ),
 				'items_list_navigation' => __( 'Templates list navigation' ),
 				'items_list'            => __( 'Templates list' ),
+				'item_updated'          => __( 'Template updated.' ),
 			),
 			'description'                     => __( 'Templates to include in your theme.' ),
 			'public'                          => false,
@@ -429,6 +431,7 @@ function create_initial_post_types() {
 				'filter_items_list'     => __( 'Filter template parts list' ),
 				'items_list_navigation' => __( 'Template parts list navigation' ),
 				'items_list'            => __( 'Template parts list' ),
+				'item_updated'          => __( 'Template part updated.' ),
 			),
 			'description'                     => __( 'Template parts to include in your templates.' ),
 			'public'                          => false,
@@ -473,15 +476,19 @@ function create_initial_post_types() {
 	register_post_type(
 		'wp_global_styles',
 		array(
-			'label'        => _x( 'Global Styles', 'post type general name' ),
-			'description'  => __( 'Global styles to include in themes.' ),
-			'public'       => false,
-			'_builtin'     => true, /* internal use only. don't use this when registering your own post type. */
-			'_edit_link'   => '/site-editor.php?canvas=edit', /* internal use only. don't use this when registering your own post type. */
-			'show_ui'      => false,
-			'show_in_rest' => false,
-			'rewrite'      => false,
-			'capabilities' => array(
+			'label'                           => _x( 'Global Styles', 'post type general name' ),
+			'description'                     => __( 'Global styles to include in themes.' ),
+			'public'                          => false,
+			'_builtin'                        => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'                      => '/site-editor.php?canvas=edit', /* internal use only. don't use this when registering your own post type. */
+			'show_ui'                         => false,
+			'show_in_rest'                    => true,
+			'rewrite'                         => false,
+			'rest_base'                       => 'global-styles',
+			'rest_controller_class'           => 'WP_REST_Global_Styles_Controller',
+			'revisions_rest_controller_class' => 'WP_REST_Global_Styles_Revisions_Controller',
+			'late_route_registration'         => true,
+			'capabilities'                    => array(
 				'read'                   => 'edit_theme_options',
 				'create_posts'           => 'edit_theme_options',
 				'edit_posts'             => 'edit_theme_options',
@@ -490,14 +497,16 @@ function create_initial_post_types() {
 				'edit_others_posts'      => 'edit_theme_options',
 				'delete_others_posts'    => 'edit_theme_options',
 			),
-			'map_meta_cap' => true,
-			'supports'     => array(
+			'map_meta_cap'                    => true,
+			'supports'                        => array(
 				'title',
 				'editor',
 				'revisions',
 			),
 		)
 	);
+	// Disable autosave endpoints for global styles.
+	remove_post_type_support( 'wp_global_styles', 'autosave' );
 
 	$navigation_post_edit_link = 'site-editor.php?' . build_query(
 		array(
@@ -567,14 +576,14 @@ function create_initial_post_types() {
 	register_post_type(
 		'wp_font_family',
 		array(
-			'labels'                         => array(
+			'labels'                => array(
 				'name'          => __( 'Font Families' ),
 				'singular_name' => __( 'Font Family' ),
 			),
-			'public'                         => false,
-			'_builtin'                       => true, /* internal use only. don't use this when registering your own post type. */
-			'hierarchical'                   => false,
-			'capabilities'                   => array(
+			'public'                => false,
+			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'          => false,
+			'capabilities'          => array(
 				'read'                   => 'edit_theme_options',
 				'read_private_posts'     => 'edit_theme_options',
 				'create_posts'           => 'edit_theme_options',
@@ -586,28 +595,27 @@ function create_initial_post_types() {
 				'delete_others_posts'    => 'edit_theme_options',
 				'delete_published_posts' => 'edit_theme_options',
 			),
-			'map_meta_cap'                   => true,
-			'query_var'                      => false,
-			'rewrite'                        => false,
-			'show_in_rest'                   => true,
-			'rest_base'                      => 'font-families',
-			'rest_controller_class'          => 'WP_REST_Font_Families_Controller',
-			// Disable autosave endpoints for font families.
-			'autosave_rest_controller_class' => 'stdClass',
+			'map_meta_cap'          => true,
+			'query_var'             => false,
+			'rewrite'               => false,
+			'show_in_rest'          => true,
+			'rest_base'             => 'font-families',
+			'rest_controller_class' => 'WP_REST_Font_Families_Controller',
+			'supports'              => array( 'title' ),
 		)
 	);
 
 	register_post_type(
 		'wp_font_face',
 		array(
-			'labels'                         => array(
+			'labels'                => array(
 				'name'          => __( 'Font Faces' ),
 				'singular_name' => __( 'Font Face' ),
 			),
-			'public'                         => false,
-			'_builtin'                       => true, /* internal use only. don't use this when registering your own post type. */
-			'hierarchical'                   => false,
-			'capabilities'                   => array(
+			'public'                => false,
+			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'          => false,
+			'capabilities'          => array(
 				'read'                   => 'edit_theme_options',
 				'read_private_posts'     => 'edit_theme_options',
 				'create_posts'           => 'edit_theme_options',
@@ -619,14 +627,13 @@ function create_initial_post_types() {
 				'delete_others_posts'    => 'edit_theme_options',
 				'delete_published_posts' => 'edit_theme_options',
 			),
-			'map_meta_cap'                   => true,
-			'query_var'                      => false,
-			'rewrite'                        => false,
-			'show_in_rest'                   => true,
-			'rest_base'                      => 'font-families/(?P<font_family_id>[\d]+)/font-faces',
-			'rest_controller_class'          => 'WP_REST_Font_Faces_Controller',
-			// Disable autosave endpoints for font faces.
-			'autosave_rest_controller_class' => 'stdClass',
+			'map_meta_cap'          => true,
+			'query_var'             => false,
+			'rewrite'               => false,
+			'show_in_rest'          => true,
+			'rest_base'             => 'font-families/(?P<font_family_id>[\d]+)/font-faces',
+			'rest_controller_class' => 'WP_REST_Font_Faces_Controller',
+			'supports'              => array( 'title' ),
 		)
 	);
 
@@ -1217,7 +1224,10 @@ function get_post_mime_type( $post = null ) {
  * @return string|false Post status on success, false on failure.
  */
 function get_post_status( $post = null ) {
-	$post = get_post( $post );
+	// Normalize the post object if necessary, skip normalization if called from get_sample_permalink().
+	if ( ! $post instanceof WP_Post || ! isset( $post->filter ) || 'sample' !== $post->filter ) {
+		$post = get_post( $post );
+	}
 
 	if ( ! is_object( $post ) ) {
 		return false;
@@ -1713,8 +1723,10 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         'editor', 'comments', 'revisions', 'trackbacks', 'author', 'excerpt',
  *                                                         'page-attributes', 'thumbnail', 'custom-fields', and 'post-formats'.
  *                                                         Additionally, the 'revisions' feature dictates whether the post type
- *                                                         will store revisions, and the 'comments' feature dictates whether the
- *                                                         comments count will show on the edit screen. A feature can also be
+ *                                                         will store revisions, the 'autosave' feature dictates whether the post type
+ *                                                         will be autosaved, and the 'comments' feature dictates whether the
+ *                                                         comments count will show on the edit screen. For backward compatibility reasons,
+ *                                                         adding 'editor' support implies 'autosave' support too. A feature can also be
  *                                                         specified as an array of arguments to provide additional information
  *                                                         about supporting that feature.
  *                                                         Example: `array( 'my_feature', array( 'field' => 'value' ) )`.
@@ -2071,6 +2083,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @since 6.3.0 Added the `item_trashed` label.
  * @since 6.4.0 Changed default values for the `add_new` label to include the type of content.
  *              This matches `add_new_item` and provides more context for better accessibility.
+ * @since 6.6.0 Added the `template_name` label.
  *
  * @access private
  *
@@ -2083,6 +2096,11 @@ function get_post_type_labels( $post_type_object ) {
 	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
 	$labels = _get_custom_object_labels( $post_type_object, $nohier_vs_hier_defaults );
+
+	if ( ! isset( $post_type_object->labels->template_name ) && isset( $post_type_object->labels->singular_name ) ) {
+			/* translators: %s: Post type name. */
+			$labels->template_name = sprintf( __( 'Single item: %s' ), $post_type_object->labels->singular_name );
+	}
 
 	$post_type = $post_type_object->name;
 
@@ -2192,7 +2210,8 @@ function _add_post_type_submenus() {
  * 'thumbnail', 'custom-fields', and 'post-formats'.
  *
  * Additionally, the 'revisions' feature dictates whether the post type will
- * store revisions, and the 'comments' feature dictates whether the comments
+ * store revisions, the 'autosave' feature dictates whether the post type
+ * will be autosaved, and the 'comments' feature dictates whether the comments
  * count will show on the edit screen.
  *
  * A third, optional parameter can also be passed along with a feature to provide
@@ -3403,7 +3422,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 		$post_mime_types = array_map( 'trim', explode( ',', $post_mime_types ) );
 	}
 
-	$wheres = array();
+	$where_clauses = array();
 
 	foreach ( (array) $post_mime_types as $mime_type ) {
 		$mime_type = preg_replace( '/\s/', '', $mime_type );
@@ -3431,14 +3450,14 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 		}
 
 		if ( str_contains( $mime_pattern, '%' ) ) {
-			$wheres[] = empty( $table_alias ) ? "post_mime_type LIKE '$mime_pattern'" : "$table_alias.post_mime_type LIKE '$mime_pattern'";
+			$where_clauses[] = empty( $table_alias ) ? "post_mime_type LIKE '$mime_pattern'" : "$table_alias.post_mime_type LIKE '$mime_pattern'";
 		} else {
-			$wheres[] = empty( $table_alias ) ? "post_mime_type = '$mime_pattern'" : "$table_alias.post_mime_type = '$mime_pattern'";
+			$where_clauses[] = empty( $table_alias ) ? "post_mime_type = '$mime_pattern'" : "$table_alias.post_mime_type = '$mime_pattern'";
 		}
 	}
 
-	if ( ! empty( $wheres ) ) {
-		$where = ' AND (' . implode( ' OR ', $wheres ) . ') ';
+	if ( ! empty( $where_clauses ) ) {
+		$where = ' AND (' . implode( ' OR ', $where_clauses ) . ') ';
 	}
 
 	return $where;
@@ -6857,6 +6876,11 @@ function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 		$icon = wp_cache_get( "mime_type_icon_$mime" );
 	}
 
+	// Check if preferred file format variable is present and is a validly formatted file extension.
+	if ( ! empty( $preferred_ext ) && is_string( $preferred_ext ) && ! str_starts_with( $preferred_ext, '.' ) ) {
+		$preferred_ext = '.' . strtolower( $preferred_ext );
+	}
+
 	$post_id = 0;
 	if ( empty( $icon ) ) {
 		$post_mimes = array();
@@ -7930,9 +7954,9 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 /**
  * Prime the cache containing the parent ID of various post objects.
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @since 6.4.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int[] $ids ID list.
  */

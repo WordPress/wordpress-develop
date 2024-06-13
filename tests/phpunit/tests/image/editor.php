@@ -448,6 +448,15 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 				),
 			),
 			array(
+				DIR_TESTDATA . '/images/avif-alpha-grid2x1.avif',
+				array(
+					'width'        => 199,
+					'height'       => 200,
+					'bit_depth'    => 8,
+					'num_channels' => 4,
+				),
+			),
+			array(
 				DIR_TESTDATA . '/images/colors_hdr_p3.avif',
 				array(
 					'width'        => 200,

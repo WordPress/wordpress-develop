@@ -165,7 +165,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			array_shift( $hierarchy );
 		} while ( ! empty( $hierarchy ) && empty( $fallback_template->content ) );
 
-		$response = $this->prepare_item_for_response( $fallback_template, $request );
+		// To maintain original behavior, return an empty object rather than a 404 error when no template is found.
+		$response = $fallback_template ? $this->prepare_item_for_response( $fallback_template, $request ) : new stdClass();
 
 		return rest_ensure_response( $response );
 	}
@@ -235,12 +236,28 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Checks if a given request has access to read templates.
 	 *
 	 * @since 5.8.0
+	 * @since 6.6.0 Allow users with edit_posts capability to read templates.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		return $this->permissions_check( $request );
+		if ( current_user_can( 'edit_posts' ) ) {
+			return true;
+		}
+		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+			if ( current_user_can( $post_type->cap->edit_posts ) ) {
+				return true;
+			}
+		}
+
+		return new WP_Error(
+			'rest_cannot_manage_templates',
+			__( 'Sorry, you are not allowed to access the templates on this site.' ),
+			array(
+				'status' => rest_authorization_required_code(),
+			)
+		);
 	}
 
 	/**
@@ -276,12 +293,28 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Checks if a given request has access to read a single template.
 	 *
 	 * @since 5.8.0
+	 * @since 6.6.0 Allow users with edit_posts capability to read individual templates.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		return $this->permissions_check( $request );
+		if ( current_user_can( 'edit_posts' ) ) {
+			return true;
+		}
+		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+			if ( current_user_can( $post_type->cap->edit_posts ) ) {
+				return true;
+			}
+		}
+
+		return new WP_Error(
+			'rest_cannot_manage_templates',
+			__( 'Sorry, you are not allowed to access the templates on this site.' ),
+			array(
+				'status' => rest_authorization_required_code(),
+			)
+		);
 	}
 
 	/**
@@ -532,7 +565,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return stdClass Changes to pass to wp_update_post.
+	 * @return stdClass|WP_Error Changes to pass to wp_update_post.
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$template = $request['id'] ? get_block_template( $request['id'], $this->post_type ) : null;
@@ -635,6 +668,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
+		// Resolve pattern blocks so they don't need to be resolved client-side
+		// in the editor, improving performance.
+		$blocks        = parse_blocks( $item->content );
+		$blocks        = resolve_pattern_blocks( $blocks );
+		$item->content = serialize_blocks( $blocks );
+
 		// Restores the more descriptive, specific name for use within this method.
 		$template = $item;
 

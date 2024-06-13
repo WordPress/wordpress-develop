@@ -5,6 +5,7 @@
 require_once ABSPATH . WPINC . '/blocks/archives.php';
 require_once ABSPATH . WPINC . '/blocks/avatar.php';
 require_once ABSPATH . WPINC . '/blocks/block.php';
+require_once ABSPATH . WPINC . '/blocks/button.php';
 require_once ABSPATH . WPINC . '/blocks/calendar.php';
 require_once ABSPATH . WPINC . '/blocks/categories.php';
 require_once ABSPATH . WPINC . '/blocks/comment-author-name.php';
@@ -28,7 +29,9 @@ require_once ABSPATH . WPINC . '/blocks/home-link.php';
 require_once ABSPATH . WPINC . '/blocks/image.php';
 require_once ABSPATH . WPINC . '/blocks/latest-comments.php';
 require_once ABSPATH . WPINC . '/blocks/latest-posts.php';
+require_once ABSPATH . WPINC . '/blocks/list.php';
 require_once ABSPATH . WPINC . '/blocks/loginout.php';
+require_once ABSPATH . WPINC . '/blocks/media-text.php';
 require_once ABSPATH . WPINC . '/blocks/navigation.php';
 require_once ABSPATH . WPINC . '/blocks/navigation-link.php';
 require_once ABSPATH . WPINC . '/blocks/navigation-submenu.php';

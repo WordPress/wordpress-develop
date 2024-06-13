@@ -415,7 +415,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that static dependencies of dynamic depenendencies are not preloaded.
+	 * Tests that static dependencies of dynamic dependencies are not preloaded.
 	 *
 	 * @ticket 56313
 	 *
