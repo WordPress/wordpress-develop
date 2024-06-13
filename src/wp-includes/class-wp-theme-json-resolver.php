@@ -218,8 +218,8 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		if ( $persistant_cache ) {
+			$cache_key = 'blocks_persistant_cache';
 			if ( null === static::$persistent_blocks_cache ) {
-				$cache_key                       = 'blocks_persistant_cache';
 				$cache                           = static::get_from_persitent_cache( $cache_key );
 				static::$persistent_blocks_cache = $cache ? $cache : static::$blocks_cache;
 			}
