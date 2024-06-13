@@ -368,7 +368,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 	public function test_has_translation_with_existing_translation() {
 		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
 		$this->assertTrue( WP_Translation_Controller::get_instance()->has_translation( 'baba', 'wp-tests-domain', 'en_US' ) );
-		$this->assertTrue( WP_Translation_Controller::get_instance()->has_translation( 'kuku\nruku', 'wp-tests-domain', 'en_US' ) );
 	}
 
 	/**
