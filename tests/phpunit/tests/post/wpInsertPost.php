@@ -1593,7 +1593,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		);
 
 		$queries_added_by_updating_post_with_tag_parameters_again = get_num_queries() - $queries_added_by_updating_post_with_tag_parameters - $starting_number_of_queries;
-		
+
 		$this->assertSame( $queries_added_by_updating_post_with_tag_parameters_again, $queries_added_by_updating_post_with_tag_parameters, 'The two inserts should perform the same amount of queries.' );
 
 		// We now update the post, but while NOT having tags as parameters.
@@ -1604,8 +1604,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		);
 
 		$queries_added_by_updating_post_with_no_tag_parameters = get_num_queries() - $queries_added_by_updating_post_with_tag_parameters_again - $queries_added_by_updating_post_with_tag_parameters - $starting_number_of_queries;
-		
-		$this->assertLessThan( $queries_added_by_updating_post_with_tag_parameters, $queries_added_by_updating_post_with_no_tag_parameters, 'Inserts without tag parameters should perform less amount of queries with ones with tag parameters.' );
 
+		$this->assertLessThan( $queries_added_by_updating_post_with_tag_parameters, $queries_added_by_updating_post_with_no_tag_parameters, 'Inserts without tag parameters should perform less amount of queries with ones with tag parameters.' );
 	}
 }
