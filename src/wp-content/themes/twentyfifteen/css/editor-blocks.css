@@ -748,6 +748,10 @@ p.has-drop-cap:not(:focus)::first-letter {
 	border-color: #eaeaea;
 }
 
+.wp-block-table.is-style-stripes tbody tr:nth-child(even) {
+	background: #fff;
+}
+
 figure.wp-block-table.is-style-stripes {
 	border-width: 0;
 }
