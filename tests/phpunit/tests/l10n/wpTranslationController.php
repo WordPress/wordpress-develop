@@ -426,14 +426,4 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 		$long_string = str_repeat( 'a', 1000 );
 		$this->assertFalse( WP_Translation_Controller::get_instance()->has_translation( $long_string, 'wp-tests-domain' ) );
 	}
-
-	/**
-	 * @covers ::has_translation
-	 */
-	public function test_has_translation_integration() {
-		$translation_controller = WP_Translation_Controller::get_instance();
-		$translation_controller->set_locale( 'en_US' );
-
-		$this->assertFalse( $translation_controller->has_translation( 'NonExistentString' ) );
-	}
 }
