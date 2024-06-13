@@ -103,8 +103,10 @@
 
 		open: function( editorId, url, text ) {
 			var ed,
+				$wrap = $( '#wpwrap' ),
 				$body = $( document.body );
 
+			$wrap.attr( 'aria-hidden', 'true' );
 			$body.addClass( 'modal-open' );
 			wpLink.modalOpen = true;
 
@@ -281,6 +283,7 @@
 
 		close: function( reset ) {
 			$( document.body ).removeClass( 'modal-open' );
+			$( '#wpwrap' ).removeAttr( 'aria-hidden' );
 			wpLink.modalOpen = false;
 
 			if ( reset !== 'noReset' ) {
