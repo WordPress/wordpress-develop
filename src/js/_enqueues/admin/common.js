@@ -1695,8 +1695,10 @@ $( function() {
 			// Modify functionality based on custom activate/deactivate event.
 			$document.on( 'wp-responsive-activate.wp-responsive', function() {
 				self.activate();
+				self.toggleAriaHasPopup( 'add' );
 			}).on( 'wp-responsive-deactivate.wp-responsive', function() {
 				self.deactivate();
+				self.toggleAriaHasPopup( 'remove' );
 			});
 
 			$( '#wp-admin-bar-menu-toggle a' ).attr( 'aria-expanded', 'false' );
@@ -1748,7 +1750,7 @@ $( function() {
 						setTimeout( function() {
 							var focusIsInToggle  = $.contains( toggleButton, focusedElement );
 							var focusIsInSidebar = $.contains( sidebar, focusedElement );
-							
+
 							if ( ! focusIsInToggle && ! focusIsInSidebar ) {
 								$( toggleButton ).trigger( 'click.wp-responsive' );
 							}
@@ -1835,6 +1837,34 @@ $( function() {
 			$adminmenu.removeData('wp-responsive');
 
 			this.maybeDisableSortables();
+		},
+
+		/**
+		 * Toggles the aria-haspopup attribute for the responsive admin menu.
+		 *
+		 * The aria-haspopup attribute is only necessary for the responsive admin.
+		 * See ticket https://core.trac.wordpress.org/ticket/43095
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param {string} action Whether to add or remove the aria-haspopup attribute.
+		 *
+		 * @return {void}
+		 */
+		toggleAriaHasPopup: function( action ) {
+			var elements = $adminmenu.find( '[data-ariahaspopup]' );
+
+			if ( action === 'add' ) {
+				elements.each( function() {
+					$( this ).attr( 'aria-haspopup', 'menu' );
+				} );
+
+				return;
+			}
+
+			elements.each( function() {
+				$( this ).removeAttr( 'aria-haspopup' )
+			} );
 		},
 
 		/**
