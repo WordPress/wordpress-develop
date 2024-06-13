@@ -63,7 +63,7 @@ class MagpieRSS {
 		# Check if PHP xml isn't compiled
 		#
 		if ( ! function_exists('xml_parser_create') ) {
-			wp_trigger_error( __METHOD__, "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." );
+			wp_trigger_error( '', "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." );
 			return;
 		}
 
@@ -388,7 +388,7 @@ class MagpieRSS {
 
 	function error( $errormsg, $lvl = E_USER_WARNING ) {
 		if ( MAGPIE_DEBUG ) {
-			wp_trigger_error( __METHOD__, $errormsg, $lvl);
+			wp_trigger_error('', $errormsg, $lvl);
 		} else {
 			error_log( $errormsg, 0);
 		}
@@ -824,7 +824,7 @@ class RSSCache {
 	function error ($errormsg, $lvl=E_USER_WARNING) {
 		$this->ERROR = $errormsg;
 		if ( MAGPIE_DEBUG ) {
-			wp_trigger_error( __METHOD__, $errormsg, $lvl);
+			wp_trigger_error( '', $errormsg, $lvl);
 		}
 		else {
 			error_log( $errormsg, 0);
