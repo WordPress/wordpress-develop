@@ -34,7 +34,7 @@ define('EBML_ID_DEFAULTDURATION',             0x03E383); //     [23][E3][83] -- 
 define('EBML_ID_CODECNAME',                   0x058688); //     [25][86][88] -- A human-readable string specifying the codec.
 define('EBML_ID_CODECDOWNLOADURL',            0x06B240); //     [26][B2][40] -- A URL to download about the codec used.
 define('EBML_ID_TIMECODESCALE',               0x0AD7B1); //     [2A][D7][B1] -- Timecode scale in nanoseconds (1.000.000 means all timecodes in the segment are expressed in milliseconds).
-define('EBML_ID_COLOURSPACE',                 0x0EB524); //     [2E][B5][24] -- Same value as in AVI (32 bits).
+define('EBML_ID_COLORSPACE',                  0x0EB524); //     [2E][B5][24] -- Same value as in AVI (32 bits).
 define('EBML_ID_GAMMAVALUE',                  0x0FB523); //     [2F][B5][23] -- Gamma Value.
 define('EBML_ID_CODECSETTINGS',               0x1A9697); //     [3A][96][97] -- A string describing the encoding setting used.
 define('EBML_ID_CODECINFOURL',                0x1B4040); //     [3B][40][40] -- A URL to find information about the codec used.
@@ -704,7 +704,7 @@ class getid3_matroska extends getid3_handler
 																	$track_entry[$sub_subelement['id_name']] = getid3_lib::BigEndian2Float($sub_subelement['data']);
 																	break;
 
-																case EBML_ID_COLOURSPACE:
+																case EBML_ID_COLORSPACE:
 																	$track_entry[$sub_subelement['id_name']] = getid3_lib::trimNullByte($sub_subelement['data']);
 																	break;
 
@@ -1748,7 +1748,7 @@ class getid3_matroska extends getid3_handler
 			$EBMLidList[EBML_ID_CODECNAME]                  = 'CodecName';
 			$EBMLidList[EBML_ID_CODECPRIVATE]               = 'CodecPrivate';
 			$EBMLidList[EBML_ID_CODECSETTINGS]              = 'CodecSettings';
-			$EBMLidList[EBML_ID_COLOURSPACE]                = 'ColourSpace';
+			$EBMLidList[EBML_ID_COLORSPACE]                 = 'ColorSpace';
 			$EBMLidList[EBML_ID_CONTENTCOMPALGO]            = 'ContentCompAlgo';
 			$EBMLidList[EBML_ID_CONTENTCOMPRESSION]         = 'ContentCompression';
 			$EBMLidList[EBML_ID_CONTENTCOMPSETTINGS]        = 'ContentCompSettings';
