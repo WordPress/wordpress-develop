@@ -2690,6 +2690,10 @@ class WP_Theme_JSON {
 
 				// Compute declarations for remaining styles not covered by feature level selectors.
 				$style_variation_declarations[ $style_variation['selector'] ] = static::compute_style_properties( $style_variation_node, $settings, null, $this->theme_json );
+				// Store custom CSS for the style variation.
+				if ( isset( $style_variation_node['css'] ) ) {
+					$style_variation_custom_css[ $style_variation['selector'] ] = $this->process_blocks_custom_css( $style_variation_node['css'], $style_variation['selector'] );
+				}
 			}
 		}
 		/*
@@ -2818,6 +2822,9 @@ class WP_Theme_JSON {
 		// 6. Generate and append the style variation rulesets.
 		foreach ( $style_variation_declarations as $style_variation_selector => $individual_style_variation_declarations ) {
 			$block_rules .= static::to_ruleset( ":root :where($style_variation_selector)", $individual_style_variation_declarations );
+			if ( isset( $style_variation_custom_css[ $style_variation_selector ] ) ) {
+				$block_rules .= $style_variation_custom_css[ $style_variation_selector ];
+			}
 		}
 
 		return $block_rules;
