@@ -67,6 +67,16 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 		$redirect = add_query_arg( array( 'update' => 'addexisting' ), 'user-new.php' );
 	} else {
 		if ( isset( $_POST['noconfirmation'] ) && current_user_can( 'manage_network_users' ) ) {
+
+			$roles = get_editable_roles();
+			if ( ! isset( $roles[ $_REQUEST['role'] ] ) ) {
+				wp_die(
+					'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
+					'<p>' . __( 'Sorry, you are not allowed to assign users to this role.' ) . '</p>',
+					403
+				);
+			}
+
 			$result = add_existing_user_to_blog(
 				array(
 					'user_id' => $user_id,
@@ -218,6 +228,16 @@ Please click the following link to confirm the invite:
 				add_filter( 'wpmu_signup_user_notification', '__return_false' );  // Disable confirmation email.
 				add_filter( 'wpmu_welcome_user_notification', '__return_false' ); // Disable welcome email.
 			}
+
+			$roles = get_editable_roles();
+			if ( ! isset( $roles[ $_REQUEST['role'] ] ) ) {
+				wp_die(
+					'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
+					'<p>' . __( 'Sorry, you are not allowed to assign users to this role.' ) . '</p>',
+					403
+				);
+			}
+
 			wpmu_signup_user(
 				$new_user_login,
 				$new_user_email,
