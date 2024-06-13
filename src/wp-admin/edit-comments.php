@@ -84,31 +84,31 @@ if ( $doaction ) {
 		switch ( $doaction ) {
 			case 'approve':
 				wp_set_comment_status( $comment_id, 'approve' );
-				$approved++;
+				++$approved;
 				break;
 			case 'unapprove':
 				wp_set_comment_status( $comment_id, 'hold' );
-				$unapproved++;
+				++$unapproved;
 				break;
 			case 'spam':
 				wp_spam_comment( $comment_id );
-				$spammed++;
+				++$spammed;
 				break;
 			case 'unspam':
 				wp_unspam_comment( $comment_id );
-				$unspammed++;
+				++$unspammed;
 				break;
 			case 'trash':
 				wp_trash_comment( $comment_id );
-				$trashed++;
+				++$trashed;
 				break;
 			case 'untrash':
 				wp_untrash_comment( $comment_id );
-				$untrashed++;
+				++$untrashed;
 				break;
 			case 'delete':
 				wp_delete_comment( $comment_id );
-				$deleted++;
+				++$deleted;
 				break;
 		}
 	}
@@ -216,7 +216,7 @@ get_current_screen()->add_help_tab(
 		'title'   => __( 'Moderating Comments' ),
 		'content' =>
 					'<p>' . __( 'A red bar on the left means the comment is waiting for you to moderate it.' ) . '</p>' .
-					'<p>' . __( 'In the <strong>Author</strong> column, in addition to the author&#8217;s name, email address, and blog URL, the commenter&#8217;s IP address is shown. Clicking on this link will show you all the comments made from this IP address.' ) . '</p>' .
+					'<p>' . __( 'In the <strong>Author</strong> column, in addition to the author&#8217;s name, email address, and site URL, the commenter&#8217;s IP address is shown. Clicking on this link will show you all the comments made from this IP address.' ) . '</p>' .
 					'<p>' . __( 'In the <strong>Comment</strong> column, hovering over any comment gives you options to approve, reply (and approve), quick edit, edit, spam mark, or trash that comment.' ) . '</p>' .
 					'<p>' . __( 'In the <strong>In response to</strong> column, there are three elements. The text is the name of the post that inspired the comment, and links to the post editor for that entry. The View Post link leads to that post on your live site. The small bubble with the number in it shows the number of approved comments that post has received. If there are pending comments, a red notification circle with the number of pending comments is displayed. Clicking the notification circle will filter the comments screen to show only pending comments on that post.' ) . '</p>' .
 					'<p>' . __( 'In the <strong>Submitted on</strong> column, the date and time the comment was left on your site appears. Clicking on the date/time link will take you to that comment on your live site.' ) . '</p>' .
@@ -301,7 +301,13 @@ if ( isset( $_REQUEST['error'] ) ) {
 			break;
 	}
 	if ( $error_msg ) {
-		echo '<div id="moderated" class="error"><p>' . $error_msg . '</p></div>';
+		wp_admin_notice(
+			$error_msg,
+			array(
+				'id'                 => 'moderated',
+				'additional_classes' => array( 'error' ),
+			)
+		);
 	}
 }
 
@@ -411,9 +417,13 @@ if ( isset( $_REQUEST['approved'] )
 			}
 		}
 
-		printf(
-			'<div id="moderated" class="updated notice is-dismissible"><p>%s</p></div>',
-			implode( "<br />\n", $messages )
+		wp_admin_notice(
+			implode( "<br />\n", $messages ),
+			array(
+				'id'                 => 'moderated',
+				'additional_classes' => array( 'updated' ),
+				'dismissible'        => true,
+			)
 		);
 	}
 }

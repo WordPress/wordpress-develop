@@ -29,13 +29,12 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 22985
+	 * @ticket 26381
 	 * @requires function imagejpeg
 	 *
-	 * @covers ::wp_insert_attachment
 	 * @covers ::wp_save_image
 	 */
-	public function testCropImageThumbnail() {
+	public function testCropImageIntoLargerOne() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 		$filename = DIR_TESTDATA . '/images/canola.jpg';
@@ -45,20 +44,15 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 		$id     = $this->_make_attachment( $upload );
 
 		$_REQUEST['action']  = 'image-editor';
-		$_REQUEST['context'] = 'edit-attachment';
 		$_REQUEST['postid']  = $id;
-		$_REQUEST['target']  = 'thumbnail';
-		$_REQUEST['do']      = 'save';
-		$_REQUEST['history'] = '[{"c":{"x":5,"y":8,"w":289,"h":322}}]';
+		$_REQUEST['do']      = 'scale';
+		$_REQUEST['fwidth']  = 700;
+		$_REQUEST['fheight'] = 500;
 
-		$media_meta = wp_get_attachment_metadata( $id );
-		$this->assertArrayHasKey( 'sizes', $media_meta, 'attachment should have size data' );
-		$this->assertArrayHasKey( 'medium', $media_meta['sizes'], 'attachment should have data for medium size' );
 		$ret = wp_save_image( $id );
 
-		$media_meta = wp_get_attachment_metadata( $id );
-		$this->assertArrayHasKey( 'sizes', $media_meta, 'cropped attachment should have size data' );
-		$this->assertArrayHasKey( 'medium', $media_meta['sizes'], 'cropped attachment should have data for medium size' );
+		$this->assertObjectHasProperty( 'error', $ret );
+		$this->assertSame( 'Images cannot be scaled to a size larger than the original.', $ret->error );
 	}
 
 	/**

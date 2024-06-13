@@ -937,6 +937,9 @@ EOF;
 	 * @ticket 48376
 	 * @ticket 55966
 	 * @ticket 56122
+	 * @ticket 58551
+	 * @ticket 60132
+	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
 	 * @param string $css      A string of CSS rules.
@@ -951,8 +954,8 @@ EOF;
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $css      A string of CSS rules.
-	 *         @string string $expected Expected string of CSS rules.
+	 *         @type string $css      A string of CSS rules.
+	 *         @type string $expected Expected string of CSS rules.
 	 *     }
 	 * }
 	 */
@@ -1047,9 +1050,9 @@ EOF;
 				'css'      => 'grid-template-rows: 40px 4em 40px;grid-auto-rows: min-content;grid-row-start: -1;grid-row-end: 3;grid-row-gap: 1em',
 				'expected' => 'grid-template-rows: 40px 4em 40px;grid-auto-rows: min-content;grid-row-start: -1;grid-row-end: 3;grid-row-gap: 1em',
 			),
-			// `grid` does not yet support functions or `\`.
+			// `grid` does not yet support `\`.
 			array(
-				'css'      => 'grid-template-columns: repeat(2, 50px 1fr);grid-template: 1em / 20% 20px 1fr',
+				'css'      => 'grid-template: 1em / 20% 20px 1fr',
 				'expected' => '',
 			),
 			// `flex` and `grid` alignments introduced in 5.3.
@@ -1321,6 +1324,35 @@ EOF;
 				'css'      => 'filter: url( my-file.svg#svg-blur );',
 				'expected' => 'filter: url( my-file.svg#svg-blur )',
 			),
+			// Support for `repeat` function.
+			array(
+				'css'      => 'grid-template-columns: repeat(4, minmax(0, 1fr))',
+				'expected' => 'grid-template-columns: repeat(4, minmax(0, 1fr))',
+			),
+			array(
+				'css'      => 'grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr))',
+				'expected' => 'grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr))',
+			),
+			// Malformed repeat, no closing `)`.
+			array(
+				'css'      => 'grid-template-columns: repeat(4, minmax(0, 1fr)',
+				'expected' => '',
+			),
+			// Malformed repeat, contains unsupported function.
+			array(
+				'css'      => 'grid-template-columns: repeat(4, unsupported(0, 1fr)',
+				'expected' => '',
+			),
+			// `writing-mode` introduced in 6.4.
+			array(
+				'css'      => 'writing-mode: vertical-rl',
+				'expected' => 'writing-mode: vertical-rl',
+			),
+			// `background-repeat` introduced in 6.5.
+			array(
+				'css'      => 'background-repeat: no-repeat',
+				'expected' => 'background-repeat: no-repeat',
+			),
 		);
 	}
 
@@ -1330,8 +1362,20 @@ EOF;
 	 * @ticket 33121
 	 */
 	public function test_wp_kses_attr_data_attribute_is_allowed() {
-		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data--invaild="gone"  data-also-invaild-="gone" data-two-hyphens="remains">Pens and pencils</div>';
+		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data-two-hyphens="remains">Pens and pencils</div>';
 		$expected = '<div data-foo="foo" data-bar="bar" data-two-hyphens="remains">Pens and pencils</div>';
+
+		$this->assertSame( $expected, wp_kses_post( $test ) );
+	}
+
+	/**
+	 * Data attributes with leading, trailing, and double "-" are globally accepted.
+	 *
+	 * @ticket 61052
+	 */
+	public function test_wp_kses_attr_data_attribute_hypens_allowed() {
+		$test     = '<div data--leading="remains" data-trailing-="remains" data-middle--double="remains">Pens and pencils</div>';
+		$expected = '<div data--leading="remains" data-trailing-="remains" data-middle--double="remains">Pens and pencils</div>';
 
 		$this->assertSame( $expected, wp_kses_post( $test ) );
 	}
@@ -1589,8 +1633,8 @@ EOF;
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $css      A string of CSS rules.
-	 *         @string string $expected Expected string of CSS rules.
+	 *         @type string $css      A string of CSS rules.
+	 *         @type string $expected Expected string of CSS rules.
 	 *     }
 	 * }
 	 */
@@ -1700,83 +1744,83 @@ EOF;
 	public function data_wp_kses_object_tag_allowed() {
 		return array(
 			'valid value for type'                    => array(
-				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'invalid value for type'                  => array(
-				'<object type="application/exe" data="https://example.org/foo.exe" />',
+				'<object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" />',
 				'',
 			),
 			'multiple type attributes, last invalid'  => array(
-				'<object type="application/pdf" type="application/exe" data="https://example.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'multiple type attributes, first uppercase, last invalid' => array(
-				'<object TYPE="application/pdf" type="application/exe" data="https://example.org/foo.pdf" />',
-				'<object TYPE="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object TYPE="application/pdf" type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object TYPE="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'multiple type attributes, last upper case and invalid' => array(
-				'<object type="application/pdf" TYPE="application/exe" data="https://example.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" TYPE="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'multiple type attributes, first invalid' => array(
-				'<object type="application/exe" type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/exe" type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'multiple type attributes, first upper case and invalid' => array(
-				'<object TYPE="application/exe" type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object TYPE="application/exe" type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'multiple type attributes, first invalid, last uppercase' => array(
-				'<object type="application/exe" TYPE="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/exe" TYPE="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'multiple object tags, last invalid'      => array(
-				'<object type="application/pdf" data="https://example.org/foo.pdf" /><object type="application/exe" data="https://example.org/foo.exe" />',
-				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" /><object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'multiple object tags, first invalid'     => array(
-				'<object type="application/exe" data="https://example.org/foo.exe" /><object type="application/pdf" data="https://example.org/foo.pdf" />',
-				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
+				'<object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" /><object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'type attribute with partially incorrect value' => array(
-				'<object type="application/pdfa" data="https://example.org/foo.pdf" />',
+				'<object type="application/pdfa" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'type attribute with empty value'         => array(
-				'<object type="" data="https://example.org/foo.pdf" />',
+				'<object type="" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'type attribute with no value'            => array(
-				'<object type data="https://example.org/foo.pdf" />',
+				'<object type data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'no type attribute'                       => array(
-				'<object data="https://example.org/foo.pdf" />',
+				'<object data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'different protocol in url'               => array(
-				'<object type="application/pdf" data="http://example.org/foo.pdf" />',
-				'<object type="application/pdf" data="http://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="http://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="http://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'query string on url'                     => array(
-				'<object type="application/pdf" data="https://example.org/foo.pdf?lol=.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf?lol=.pdf" />',
 				'',
 			),
 			'fragment on url'                         => array(
-				'<object type="application/pdf" data="https://example.org/foo.pdf#lol.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf#lol.pdf" />',
 				'',
 			),
 			'wrong extension'                         => array(
-				'<object type="application/pdf" data="https://example.org/foo.php" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.php" />',
 				'',
 			),
 			'protocol-relative url'                   => array(
-				'<object type="application/pdf" data="//example.org/foo.pdf" />',
+				'<object type="application/pdf" data="//' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'unsupported protocol'                    => array(
-				'<object type="application/pdf" data="ftp://example.org/foo.pdf" />',
+				'<object type="application/pdf" data="ftp://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 				'',
 			),
 			'relative url'                            => array(
@@ -1784,8 +1828,8 @@ EOF;
 				'',
 			),
 			'url with port number-like path'          => array(
-				'<object type="application/pdf" data="https://example.org/cat:8888/foo.pdf" />',
-				'<object type="application/pdf" data="https://example.org/cat:8888/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/cat:8888/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/cat:8888/foo.pdf" />',
 			),
 		);
 	}
@@ -1836,7 +1880,14 @@ EOF;
 	 * @return array        $param with a modified `url`.
 	 */
 	public function wp_kses_upload_dir_filter( $param ) {
-		$url_with_port_number = is_string( $param['url'] ) ? str_replace( 'example.org', 'example.org:8888', $param['url'] ) : $param['url'];
+		// Take care to replace the entire domain, including cases where it already has a port number.
+		$parsed         = parse_url( $param['url'] );
+		$replace_domain = $parsed['host'];
+		if ( isset( $parsed['port'] ) ) {
+			$replace_domain .= ':' . $parsed['port'];
+		}
+
+		$url_with_port_number = is_string( $param['url'] ) ? str_replace( $replace_domain, 'example.org:8888', $param['url'] ) : $param['url'];
 		$param['url']         = $url_with_port_number;
 		return $param;
 	}
@@ -2108,7 +2159,7 @@ HTML;
 			// $allowedentitynames values testing.
 			'nbsp'               => array(
 				'input'    => array( '', 'nbsp' ),
-				'expected' => utf8_encode( chr( 160 ) ),
+				'expected' => "\u{00A0}",
 			),
 			'iexcl'              => array(
 				'input'    => array( '', 'iexcl' ),

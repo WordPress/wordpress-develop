@@ -30,5 +30,4 @@ class Tests_XMLRPC_Message extends WP_UnitTestCase {
 		$this->assertSame( 'methodResponse', $message->messageType ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$this->assertSame( array( '1' ), $message->params );
 	}
-
 }

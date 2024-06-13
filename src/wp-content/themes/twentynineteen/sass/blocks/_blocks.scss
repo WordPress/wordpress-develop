@@ -163,7 +163,11 @@
 		}
 	}
 
-	//! Button
+	//! Buttons
+	.wp-block-buttons {
+		line-height: $font__line-height-heading;
+	}
+
 	.wp-block-button {
 
 		.wp-block-button__link {
@@ -171,12 +175,10 @@
 			border: none;
 			font-size: $font__size-sm;
 			@include font-family( $font__heading );
-			line-height: $font__line-height-heading;
 			box-sizing: border-box;
 			font-weight: bold;
 			text-decoration: none;
 			padding: ($size__spacing-unit * .76) $size__spacing-unit;
-			outline: none;
 			outline: none;
 
 			&:not(.has-background) {
@@ -191,6 +193,9 @@
 				color: white;
 				background: $color__background-button-hover;
 				cursor: pointer;
+				&:not(.has-background) {
+					background: $color__background-button-hover;
+				}
 			}
 
 			&:focus {
@@ -198,6 +203,9 @@
 				background: $color__background-button-hover;
 				outline: thin dotted;
 				outline-offset: -4px;
+				&:not(.has-background) {
+					background: $color__background-button-hover;
+				}
 			}
 		}
 
@@ -228,6 +236,14 @@
 			&:not(.has-background) {
 				color: $color__background-button-hover;
 			}
+		}
+	}
+
+	.wp-block-buttons,
+	.wp-block-button {
+
+		&.has-custom-font-size .wp-block-button__link {
+			font-size: 1em;
 		}
 	}
 
@@ -545,9 +561,9 @@
 			display: block;
 		}
 
-		// If an image does not have a left/center/right alignment, 
-		// it's a direct child of .wp-block-image.  If it has no other 
-		// alignment added, we want to make sure the image and its 
+		// If an image does not have a left/center/right alignment,
+		// it's a direct child of .wp-block-image.  If it has no other
+		// alignment added, we want to make sure the image and its
 		// caption do not extend beyond the width of the text column.
 		&:not(.alignwide):not(.alignfull) > img,
 		&:not(.alignwide):not(.alignfull) > a > img,
@@ -832,7 +848,7 @@
 	//! Group
 	.wp-block-group {
 
-		// When the Group block is standard/wide, we need to prevent full-aligned 
+		// When the Group block is standard/wide, we need to prevent full-aligned
 		// child blocks from expanding out of their container.
 		&:not(.alignfull) > .wp-block-group__inner-container > .alignfull,
 		&:not(.alignfull) > .wp-block-group__inner-container > .wp-block-image > img {
@@ -873,7 +889,7 @@
 				}
 			}
 
-			// If the Group block is full-width, it does not need this extra padding. 
+			// If the Group block is full-width, it does not need this extra padding.
 			&.alignfull {
 				padding-left: 0;
 				padding-right: 0;
@@ -888,7 +904,7 @@
 			&:not(.alignfull) > .wp-block-group__inner-container > .alignfull {
 				width: 100%;
 				max-width: 100%;
-				
+
 				@include media(tablet) {
 					width: calc( 100% + #{$size__spacing-unit * 2} );
 					max-width: calc( 100% + #{$size__spacing-unit * 2} );
@@ -896,7 +912,6 @@
 				}
 			}
 		}
-		
 	}
 
 	//! Latest Comments

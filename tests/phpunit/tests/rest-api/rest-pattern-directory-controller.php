@@ -310,7 +310,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		// Test that filter changes uncached values.
 		add_filter(
 			'rest_prepare_block_pattern',
-			static function( $response ) {
+			static function ( $response ) {
 				return 'initial value';
 			}
 		);
@@ -324,7 +324,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		// Test that filter changes cached values (the previous request primed the cache).
 		add_filter(
 			'rest_prepare_block_pattern',
-			static function( $response ) {
+			static function ( $response ) {
 				return 'modified the cache';
 			},
 			11
@@ -653,7 +653,6 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		} else {
 			$this->assertNotSame( $result_1, $result_2, $message );
 		}
-
 	}
 
 	/**

@@ -48,11 +48,11 @@ class Tests_Readme extends WP_UnitTestCase {
 		/*
 		 * Per https://www.mysql.com/support/, Oracle actively supports MySQL releases for 5 years from GA release.
 		 *
-		 * The currently recommended MySQL 5.7 branch moved from active support to extended support on 2020-10-21.
-		 * As WordPress core is not fully compatible with MySQL 8.0 at this time, the "supported" period here
+		 * The currently recommended MySQL 8.0 branch moved from active support to extended support on 2023-04-19.
+		 * As WordPress core may not be fully compatible with MySQL 8.1 at this time, the "supported" period here
 		 * is increased to 8 years to include extended support.
 		 *
-		 * TODO: Reduce this back to 5 years once MySQL 8.0 compatibility is achieved.
+		 * TODO: Reduce this back to 5 years once MySQL 8.1 compatibility is achieved.
 		 */
 		$mysql_eol    = gmdate( 'Y-m-d', strtotime( $mysql_matches[1] . ' +8 years' ) );
 		$current_date = gmdate( 'Y-m-d' );
@@ -94,6 +94,7 @@ class Tests_Readme extends WP_UnitTestCase {
 		$response = wp_remote_get( $url );
 
 		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$response_code = wp_remote_retrieve_response_code( $response );
 		$response_body = wp_remote_retrieve_body( $response );

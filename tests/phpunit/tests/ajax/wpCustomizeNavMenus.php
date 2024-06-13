@@ -107,7 +107,6 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 
 			$this->assertSame( $expected_results, $response );
 		}
-
 	}
 
 	/**
@@ -120,8 +119,8 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $role             The role that will test caps for.
-	 *         @array  array  $expected_results The expected results from the Ajax call.
+	 *         @type string $role             The role that will test caps for.
+	 *         @type array  $expected_results The expected results from the Ajax call.
 	 *     }
 	 * }
 	 */
@@ -192,8 +191,8 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array {
 	 *     @type array {
-	 * @array array $post_args        The arguments that will merged with the $_POST array.
-	 * @array array $expected_results The expected results from the Ajax call.
+	 *         @type array $post_args        The arguments that will merged with the $_POST array.
+	 *         @type array $expected_results The expected results from the Ajax call.
 	 *     }
 	 * }
 	 */
@@ -291,7 +290,6 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 		// Get the results.
 		$response = json_decode( $this->_last_response, true );
 		$this->assertSame( $success_status, $response['success'] );
-
 	}
 
 	/**
@@ -517,8 +515,8 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array {
 	 *     @type array {
-	 * @string string $role             The role that will test caps for.
-	 * @array  array  $expected_results The expected results from the Ajax call.
+	 *         @type string $role             The role that will test caps for.
+	 *         @type array  $expected_results The expected results from the Ajax call.
 	 *     }
 	 * }
 	 */
@@ -612,8 +610,8 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array {
 	 *     @type array {
-	 * @string string $post_args        The args that will be passed to Ajax.
-	 * @array  array  $expected_results The expected results from the Ajax call.
+	 *         @type string $post_args        The args that will be passed to Ajax.
+	 *         @type array  $expected_results The expected results from the Ajax call.
 	 *     }
 	 * }
 	 */

@@ -104,5 +104,4 @@ class Tests_Link_GetThePostsNavigation extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }
