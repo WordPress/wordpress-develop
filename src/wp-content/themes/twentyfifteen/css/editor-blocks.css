@@ -741,6 +741,17 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-align: right;
 }
 
+.wp-block-table th,
+.wp-block-table td,
+.wp-block-table.is-style-stripes th,
+.wp-block-table.is-style-stripes td {
+	border-color: #eaeaea;
+}
+
+figure.wp-block-table.is-style-stripes {
+	border-width: 0;
+}
+
 /* Verse */
 
 .editor-styles-wrapper .wp-block-verse {
