@@ -290,7 +290,7 @@ abstract class WP_REST_Meta_Fields {
 			);
 		}
 
-		$current_values = get_metadata( $meta_type, $object_id, $meta_key, false );
+		$current_values = get_metadata_raw( $meta_type, $object_id, $meta_key, false );
 		$subtype        = get_object_subtype( $meta_type, $object_id );
 
 		if ( ! is_array( $current_values ) ) {
