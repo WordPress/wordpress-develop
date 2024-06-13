@@ -361,4 +361,79 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 		$this->assertSame( 'Este es un plugin dummy', $actual );
 		$this->assertSame( 'This is a dummy plugin', $after );
 	}
+
+	/**
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_with_existing_translation() {
+		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
+		$this->assertTrue( WP_Translation_Controller::get_instance()->has_translation( 'baba', 'wp-tests-domain', 'en_US' ) );
+		$this->assertTrue( WP_Translation_Controller::get_instance()->has_translation( 'kuku ruku', 'wp-tests-domain', 'en_US' ) );
+	}
+
+	/**
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_with_no_translation() {
+		$this->assertFalse( WP_Translation_Controller::get_instance()->has_translation( 'Goodbye', 'wp-tests-domain', 'en_US' ) );
+	}
+
+	/**
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_with_different_textdomain() {
+		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
+		$this->assertFalse( WP_Translation_Controller::get_instance()->has_translation( 'baba', 'custom-domain', 'en_US' ) );
+	}
+
+	/**
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_with_different_locale() {
+		switch_to_locale( 'fr_FR' );
+		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
+		$this->assertFalse( WP_Translation_Controller::get_instance()->has_translation( 'baba', 'wp-tests-domain', 'fr_FR' ) );
+		restore_previous_locale();
+	}
+
+	/**
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_with_no_locale_provided() {
+		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
+		$this->assertTrue( WP_Translation_Controller::get_instance()->has_translation( 'baba', 'wp-tests-domain' ) );
+	}
+
+	/**
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_with_empty_string() {
+		$this->assertFalse( WP_Translation_Controller::get_instance()->has_translation( '', 'wp-tests-domain' ) );
+	}
+
+	/**
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_with_special_characters() {
+		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
+		$this->assertFalse( WP_Translation_Controller::get_instance()->has_translation( 'küku rükü', 'wp-tests-domain', 'en_US' ) );
+	}
+
+	/**
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_with_long_string() {
+		$long_string = str_repeat( 'a', 1000 );
+		$this->assertFalse( WP_Translation_Controller::get_instance()->has_translation( $long_string, 'wp-tests-domain' ) );
+	}
+
+	/**
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_integration() {
+		$translation_controller = WP_Translation_Controller::get_instance();
+		$translation_controller->set_locale( 'en_US' );
+
+		$this->assertFalse( $translation_controller->has_translation( 'NonExistentString' ) );
+	}
 }
