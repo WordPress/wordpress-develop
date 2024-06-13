@@ -623,7 +623,7 @@ switch ( $action ) {
 										$description = sprintf(
 											/* translators: %s: Gravatar URL. */
 											__( '<a href="%s">You can change your profile picture on Gravatar</a>.' ),
-											__( 'https://en.gravatar.com/' )
+											__( 'https://gravatar.com/' )
 										);
 									} else {
 										$description = '';
