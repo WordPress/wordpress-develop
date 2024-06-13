@@ -4104,12 +4104,12 @@ function wp_trim_words( $text, $num_words = 55, $more = null, $allow_tags = fals
 	);
 
 	$original_text = $text;
-	if( $allow_tags ) {
+	if ( $allow_tags ) {
 		$text = wp_kses( $text, $allowed_tags );
 	} else {
-		$text          = wp_strip_all_tags( $text );
+		$text = wp_strip_all_tags( $text );
 	}
-	$num_words     = (int) $num_words;
+	$num_words = (int) $num_words;
 
 	if ( str_starts_with( wp_get_word_count_type(), 'characters' ) && preg_match( '/^utf\-?8$/i', get_option( 'blog_charset' ) ) ) {
 		$text = trim( preg_replace( "/[\n\r\t ]+/", ' ', $text ), ' ' );
