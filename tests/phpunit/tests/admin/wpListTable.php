@@ -584,4 +584,21 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( $expected_html, $actual );
 	}
+
+	/**
+	 * Tests that `WP_List_Table::row_actions()` is returning an empty string
+	 * and not throwing a TypeError when a non-countable `$actions` param is passed.
+	 *
+	 * @ticket 58789
+	 *
+	 * @covers WP_List_Table::row_actions()
+	 */
+	public function test_row_actions_should_return_empty_string_when_non_countable_actions_is_passed() {
+		$row_actions = new ReflectionMethod( $this->list_table, 'row_actions' );
+		$row_actions->setAccessible( true );
+
+		$actual = $row_actions->invokeArgs( $this->list_table, array( '' ) );
+
+		$this->assertSame( '', $actual );
+	}
 }
