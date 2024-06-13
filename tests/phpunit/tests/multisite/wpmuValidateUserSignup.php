@@ -222,7 +222,7 @@ if ( is_multisite() ) :
 		}
 
 		public function test_ensure_editable_role() {
-			$exception    = null;
+			$exception = null;
 			try {
 				ensure_editable_role( 'editor' );
 			} catch ( WPDieException $e ) {
@@ -230,7 +230,7 @@ if ( is_multisite() ) :
 			}
 			$this->assertNull( $exception );
 
-			$exception    = null;
+			$exception = null;
 			try {
 				ensure_editable_role( 'non-existant' );
 			} catch ( WPDieException $e ) {
@@ -239,19 +239,25 @@ if ( is_multisite() ) :
 			$this->assertNotNull( $exception );
 			$this->assertStringContainsString( 'Sorry, you are not allowed to assign users to this role.', $exception->getMessage() );
 
-			$exception    = null;
+			$exception = null;
 			try {
-				add_filter( 'editable_roles', function ( $roles ) {
-					unset( $roles['administrator'] );
-					return $roles;
-				} );
+				add_filter(
+					'editable_roles',
+					function ( $roles ) {
+						unset( $roles['administrator'] );
+						return $roles;
+					}
+				);
 
 				ensure_editable_role( 'administrator' );
 
-				remove_filter( 'editable_roles', function ( $roles ) {
-					unset( $roles['administrator'] );
-					return $roles;
-				} );
+				remove_filter(
+					'editable_roles',
+					function ( $roles ) {
+						unset( $roles['administrator'] );
+						return $roles;
+					}
+				);
 			} catch ( WPDieException $e ) {
 				$exception = $e;
 			}
