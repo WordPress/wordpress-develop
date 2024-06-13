@@ -3199,7 +3199,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		$data    = array(
 			'meta' => array(
-				'with_multi_string_default'  => [ 'string default' ], // If not covered in array results in split on space
+				'with_multi_string_default'  => array( 'string default' ), // If not covered in array results in split on space
 				'with_multi_integer_default' => 42,
 				'with_multi_bool_default'    => true,
 			),
@@ -3225,11 +3225,11 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertCount( 1, $meta );
 		$this->assertSame( 'string default', $meta[0] );
 
-		$data    = array(
+		$data = array(
 			'meta' => array(
-				'with_multi_string_default'  => [ 'string default', 'string default 2' ],
-				'with_multi_integer_default' => [ 42, 43 ],
-				'with_multi_bool_default'    => [ true, false ],
+				'with_multi_string_default'  => array( 'string default', 'string default 2' ),
+				'with_multi_integer_default' => array( 42, 43 ),
+				'with_multi_bool_default'    => array( true, false ),
 			),
 		);
 
