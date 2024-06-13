@@ -220,7 +220,9 @@ class WP_Theme_JSON_Resolver {
 		if ( $persistant_cache ) {
 			$cache_key = 'blocks_persistant_cache';
 			if ( null === static::$persistent_blocks_cache ) {
-				$cache                           = static::get_from_persitent_cache( $cache_key );
+				$cache = static::get_from_persitent_cache( $cache_key );
+
+				// Initialize with `static::$blocks_cache` as child class may add a few more origins.
 				static::$persistent_blocks_cache = $cache ? $cache : static::$blocks_cache;
 			}
 		}
@@ -228,6 +230,7 @@ class WP_Theme_JSON_Resolver {
 		$registry = WP_Block_Type_Registry::get_instance();
 		$blocks   = $registry->get_all_registered();
 
+		// Keep persitant seperate from
 		$cache_variable = $persistant_cache ? 'persistent_blocks_cache' : 'blocks_cache';
 		$cache_variable = &static::${ $cache_variable };
 
@@ -743,6 +746,7 @@ class WP_Theme_JSON_Resolver {
 		static::$user                     = null;
 		static::$user_custom_post_type_id = null;
 		static::$i18n_schema              = null;
+		delete_persitent_cache();
 	}
 
 	/**
@@ -764,12 +768,12 @@ class WP_Theme_JSON_Resolver {
 	}
 
 	/**
-	 * Retrieves persistent cache data of this class for given key.
+	 * Set persistent cache for given key.
 	 *
 	 * @since 6.6.0
+	 *
 	 * @param string $cache_key The key to get the cache from.
 	 * @param mixed $value The value to set in the cache.
-	 *
 	 * @return bool True if the value was set, false otherwise.
 	 */
 	private static function set_persitent_cache( $cache_key, $value ) {
@@ -778,6 +782,18 @@ class WP_Theme_JSON_Resolver {
 		}
 		static::$persistent_all_cache[ $cache_key ] = $value;
 		return set_site_transient( 'wp_theme_json_resolver_cache', static::$persistent_all_cache, 10 * MINUTE_IN_SECONDS );
+	}
+
+	/**
+	 * Retrieves persistent cache data of this class for given key.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return bool True if the cache was deleted, false otherwise.
+	 */
+	private static function delete_persitent_cache() {
+		static::$persistent_all_cache = null;
+		return delete_site_transient( 'wp_theme_json_resolver_cache' );
 	}
 
 	/**
