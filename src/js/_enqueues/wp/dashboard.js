@@ -321,6 +321,7 @@ jQuery( function( $ ) {
 				.removeClass( 'hide-if-js' );
 
 			$container.on( 'click', '.community-events-toggle-location, .community-events-cancel', app.toggleLocationForm );
+			$container.on( 'click', '.community-events-location-clear', app.clearLocationForm );
 
 			/**
 			 * Filters events based on entered location.
@@ -354,6 +355,37 @@ jQuery( function( $ ) {
 			app.initialized = true;
 		},
 
+		getRequestParams: function () {
+			var requestParams = {},initiatedBy;
+			requestParams._wpnonce = communityEventsData.nonce;
+			requestParams.timezone = window.Intl ? window.Intl.DateTimeFormat().resolvedOptions().timeZone : '';
+			initiatedBy = requestParams.location ? 'user' : 'app';
+			return {requestParams: requestParams,initiatedBy: initiatedBy};
+		},
+
+		clearLocationForm: function() {
+			var params = app.getRequestParams(),
+				requestParams= params.requestParams,
+				initiatedBy = params.initiatedBy,
+				$clearSpinner = $('.community-events-reset-spinner');
+
+			$clearSpinner.addClass( 'is-active' );
+
+			wp.ajax.post('clear-community-events', requestParams)
+				.done(function () {
+					app.getEvents();
+				})
+				.fail(function () {
+					app.renderEventsTemplate({
+						'location': false,
+						'events': [],
+						'error': true
+					}, initiatedBy);
+				});
+
+			$( '.community-events-reset-location' ).attr( 'aria-hidden', 'true' );
+		},
+
 		/**
 		 * Toggles the visibility of the Edit Location form.
 		 *
@@ -366,6 +398,7 @@ jQuery( function( $ ) {
 		 */
 		toggleLocationForm: function( action ) {
 			var $toggleButton = $( '.community-events-toggle-location' ),
+				$clearButton  = $( '.community-events-clear-location' ),
 				$cancelButton = $( '.community-events-cancel' ),
 				$form         = $( '.community-events-form' ),
 				$target       = $();
@@ -384,6 +417,7 @@ jQuery( function( $ ) {
 			if ( 'hide' === action ) {
 				$toggleButton.attr( 'aria-expanded', 'false' );
 				$cancelButton.attr( 'aria-expanded', 'false' );
+				$clearButton.attr( 'aria-expanded', 'false' );
 				$form.attr( 'aria-hidden', 'true' );
 				/*
 				 * If the Cancel button has been clicked, bring the focus back
@@ -396,7 +430,10 @@ jQuery( function( $ ) {
 			} else {
 				$toggleButton.attr( 'aria-expanded', 'true' );
 				$cancelButton.attr( 'aria-expanded', 'true' );
+				$clearButton.attr( 'aria-expanded', 'true' );
 				$form.attr( 'aria-hidden', 'false' );
+				$( '#community-events-location' ).val( '' );
+				$( '#community-events-location' ).focus();
 			}
 		},
 
@@ -410,15 +447,15 @@ jQuery( function( $ ) {
 		 * @return {void}
 		 */
 		getEvents: function( requestParams ) {
-			var initiatedBy,
-				app = this,
-				$spinner = $( '.community-events-form' ).children( '.spinner' );
+			var app = this,
+				params = app.getRequestParams(),
+				initiatedBy = params.initiatedBy,
+				$spinner = $('.community-events-form').children('.spinner'),
+				$clearSpinner = $('.community-events-reset-spinner');
 
-			requestParams          = requestParams || {};
-			requestParams._wpnonce = communityEventsData.nonce;
-			requestParams.timezone = window.Intl ? window.Intl.DateTimeFormat().resolvedOptions().timeZone : '';
-
-			initiatedBy = requestParams.location ? 'user' : 'app';
+			requestParams = requestParams || params.requestParams;
+			requestParams._wpnonce = params.requestParams._wpnonce;
+			requestParams.timezone= params.requestParams.timezone;
 
 			$spinner.addClass( 'is-active' );
 
@@ -442,6 +479,7 @@ jQuery( function( $ ) {
 						}
 					}
 					app.renderEventsTemplate( response, initiatedBy );
+					$clearSpinner.removeClass( 'is-active' );
 				})
 
 				.fail( function() {
@@ -469,6 +507,7 @@ jQuery( function( $ ) {
 				elementVisibility,
 				$toggleButton    = $( '.community-events-toggle-location' ),
 				$locationMessage = $( '#community-events-location-message' ),
+				$clearButton     = $( '.community-events-clear-location' ),
 				$results         = $( '.community-events-results' );
 
 			templateParams.events = app.populateDynamicEventFields(
@@ -493,7 +532,8 @@ jQuery( function( $ ) {
 				'.community-events-could-not-locate' : false,
 				'#community-events-location-message' : false,
 				'.community-events-toggle-location'  : false,
-				'.community-events-results'          : false
+				'.community-events-results'          : false,
+				'.community-events-reset-location'   : false
 			};
 
 			/*
@@ -518,6 +558,7 @@ jQuery( function( $ ) {
 				elementVisibility['#community-events-location-message'] = true;
 				elementVisibility['.community-events-toggle-location']  = true;
 				elementVisibility['.community-events-results']          = true;
+				elementVisibility['.community-events-reset-location']   = false;
 
 			} else if ( templateParams.location.description ) {
 				template = wp.template( 'community-events-attend-event-near' );
@@ -545,6 +586,7 @@ jQuery( function( $ ) {
 				elementVisibility['#community-events-location-message'] = true;
 				elementVisibility['.community-events-toggle-location']  = true;
 				elementVisibility['.community-events-results']          = true;
+				elementVisibility['.community-events-reset-location']   = true;
 
 			} else if ( templateParams.unknownCity ) {
 				template = wp.template( 'community-events-could-not-locate' );
@@ -591,6 +633,7 @@ jQuery( function( $ ) {
 
 				elementVisibility['#community-events-location-message'] = true;
 				elementVisibility['.community-events-toggle-location']  = true;
+				elementVisibility['.community-events-reset-location']   = false;
 			}
 
 			// Set the visibility of toggleable elements.
@@ -599,6 +642,7 @@ jQuery( function( $ ) {
 			});
 
 			$toggleButton.attr( 'aria-expanded', elementVisibility['.community-events-toggle-location'] );
+			$clearButton.attr( 'aria-expanded', elementVisibility['.community-events-clear-location'] );
 
 			if ( templateParams.location && ( templateParams.location.ip || templateParams.location.latitude ) ) {
 				// Hide the form when there's a valid location.
