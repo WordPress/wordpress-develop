@@ -4086,7 +4086,7 @@ function wp_trim_words( $text, $num_words = 55, $more = null, $allow_tags = fals
 				'style' => array(),
 				'dir'   => array(),
 				'lang'  => array(),
-	
+
 			),
 			'span'   => array(
 				'class' => array(),
@@ -4106,7 +4106,7 @@ function wp_trim_words( $text, $num_words = 55, $more = null, $allow_tags = fals
 			),
 		);
 		$text = wp_kses( $text, $allowed_tags );
-		} else {
+	} else {
 		$text = wp_strip_all_tags( $text );
 	}
 	$num_words = (int) $num_words;
