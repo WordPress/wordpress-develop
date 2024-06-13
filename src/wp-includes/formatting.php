@@ -4048,8 +4048,62 @@ function wp_trim_words( $text, $num_words = 55, $more = null ) {
 		$more = __( '&hellip;' );
 	}
 
+	$allowed_tags = array(
+		'a'      => array(
+			'class' => array(),
+			'style' => array(),
+			'href'  => array(),
+			'id'    => array(),
+		),
+		'strong' => array(),
+		'b'      => array(),
+		'em'     => array(),
+		'img'    => array(
+			'class'  => array(),
+			'style'  => array(),
+			'src'    => array(),
+			'alt'    => array(),
+			'width'  => array(),
+			'height' => array(),
+		),
+		'mark'   => array(
+			'class' => array(),
+			'style' => array(),
+		),
+		'code'   => array(
+			'class' => array(),
+			'style' => array(),
+		),
+		'kbd'    => array(
+			'class' => array(),
+			'style' => array(),
+		),
+		'bdo'    => array(
+			'class' => array(),
+			'style' => array(),
+			'dir'   => array(),
+			'lang'  => array(),
+
+		),
+		'span'   => array(
+			'class' => array(),
+			'style' => array(),
+		),
+		'sup'    => array(
+			'class' => array(),
+			'style' => array(),
+		),
+		'sub'    => array(
+			'class' => array(),
+			'style' => array(),
+		),
+		's'      => array(
+			'class' => array(),
+			'style' => array(),
+		),
+	);
 	$original_text = $text;
-	$text          = wp_strip_all_tags( $text );
+	$text          = wp_kses( $text, $allowed_tags );
 	$num_words     = (int) $num_words;
 
 	if ( str_starts_with( wp_get_word_count_type(), 'characters' ) && preg_match( '/^utf\-?8$/i', get_option( 'blog_charset' ) ) ) {
