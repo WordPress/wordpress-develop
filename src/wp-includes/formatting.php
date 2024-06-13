@@ -4049,7 +4049,6 @@ function wp_trim_words( $text, $num_words = 55, $more = null, $allow_tags = fals
 		$more = __( '&hellip;' );
 	}
 
-	
 	$original_text = $text;
 	if ( $allow_tags ) {
 		$allowed_tags = array(
