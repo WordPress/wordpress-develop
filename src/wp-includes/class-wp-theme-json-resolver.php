@@ -36,10 +36,18 @@ class WP_Theme_JSON_Resolver {
 	/**
 	 * Container for keep track of persistent cached blocks.
 	 *
-	 * @since 6.1.0
+	 * @since 6.6.0
 	 * @var array
 	 */
 	private static $persistent_blocks_cache = null;
+
+	/**
+	 * Container to keep all related persitiant cache data.
+	 *
+	 * @since 6.6.0
+	 * @var array
+	 */
+	private static $persistent_all_cache = null;
 
 	/**
 	 * Container for data coming from core.
@@ -205,7 +213,7 @@ class WP_Theme_JSON_Resolver {
 		if ( $persistant_cache ) {
 			if ( null === static::$persistent_blocks_cache ) {
 				$cache_key                       = 'blocks_persistant_cache';
-				$cache                           = get_transient( $cache_key );
+				$cache                           = static::get_from_persitent_cache( $cache_key );
 				static::$persistent_blocks_cache = $cache ? $cache : static::$blocks_cache;
 			}
 		}
@@ -227,7 +235,7 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		if ( $persistant_cache ) {
-			set_transient( $cache_key, static::$persistent_blocks_cache, 10 * MINUTE_IN_SECONDS );
+			static::set_persitent_cache( $cache_key, static::$persistent_blocks_cache );
 		}
 
 		return false;
@@ -265,7 +273,7 @@ class WP_Theme_JSON_Resolver {
 		if ( $can_use_cached ) {
 			$cache_key = 'get_theme_data_cache_' . md5( wp_json_encode( $options ) );
 			if ( null === static::$theme ) {
-				$cache_value = get_transient( $cache_key );
+				$cache_value = static::get_from_persitent_cache( $cache_key );
 				if ( $cache_value ) {
 					static::$theme = $cache_value;
 				}
@@ -315,7 +323,7 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		if ( $can_use_cached && $has_theme_changed ) {
-			set_transient( $cache_key, static::$theme, 10 * MINUTE_IN_SECONDS );
+			static::set_persitent_cache( $cache_key, static::$theme );
 		}
 
 		if ( ! $options['with_supports'] ) {
@@ -728,6 +736,41 @@ class WP_Theme_JSON_Resolver {
 		static::$user                     = null;
 		static::$user_custom_post_type_id = null;
 		static::$i18n_schema              = null;
+	}
+
+	/**
+	 * Retrieves persistent cache data of this class for given key.
+	 *
+	 * @since 6.6.0
+	 * @param string $cache_key The key to get the cache from.
+	 * @return mixed The cache value.
+	 */
+	private static function get_from_persitent_cache( $cache_key ) {
+		if ( null === static::$persistent_all_cache ) {
+			$cache                        = get_site_transient( 'wp_theme_json_resolver_cache' );
+			static::$persistent_all_cache = $cache ? $cache : array();
+		}
+		if ( isset( static::$persistent_all_cache[ $cache_key ] ) ) {
+			return static::$persistent_all_cache[ $cache_key ];
+		}
+		return false;
+	}
+
+	/**
+	 * Retrieves persistent cache data of this class for given key.
+	 *
+	 * @since 6.6.0
+	 * @param string $cache_key The key to get the cache from.
+	 * @param mixed $value The value to set in the cache.
+	 *
+	 * @return bool True if the value was set, false otherwise.
+	 */
+	private static function set_persitent_cache( $cache_key, $value ) {
+		if ( null === static::$persistent_all_cache ) {
+			static::$persistent_all_cache = array();
+		}
+		static::$persistent_all_cache[ $cache_key ] = $value;
+		return set_site_transient( 'wp_theme_json_resolver_cache', static::$persistent_all_cache, 10 * MINUTE_IN_SECONDS );
 	}
 
 	/**
