@@ -149,32 +149,44 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$this->assertContains( 'one', $dep->queue );
 	}
 
-
 	/**
 	 * Data provider for test_get_etag
-	 * 
+	 *
 	 * @return array
 	 */
-	public function data_provider_get_etag(){
-		return [
-			"should accept one dependency" => [
-				"load" => [ "jquery" => "1.0.0" ],
-				"wp_version" => "",
-				"expected" => 'W/"d41d8cd98f00b204e9800998ecf8427e"'
-			],
-			"should accept empty array of dependencies" => [
-				"load" => [],
-				"wp_version" => "",
-				"expected" => 'W/"d41d8cd98f00b204e9800998ecf8427e"'
-			],
-		];
+	public function data_provider_get_etag() {
+		return array(
+			'should accept one dependency'              => array(
+				'load'       => array(
+					'abcd' => '1.0.2',
+				),
+				'wp_version' => '',
+				// md5 hash of WP:abcd:1.0.2;'.
+				'expected'   => 'W/"fea2fd8012dd8af0696ebafbaa68db85"',
+			),
+			'should accept empty array of dependencies' => array(
+				'load'       => array(),
+				'wp_version' => '',
+				// md hash of “WP:;”.
+				'expected'   => 'W/"f6457280f73cc597e76df87ee891457a"',
+			),
+			'should accept more then one dependency and wp version' => array(
+				'load'       => array(
+					'abcd' => '1.0.2',
+					'abdy' => '1.0.3',
+				),
+				'wp_version' => '5.4.3',
+				// md hash of “WP:5.4.3;abcd:1.0.2;abdy:1.0.3;”.
+				'expected'   => 'W/"88649143b0142d1491883065e9351178"',
+			),
+		);
 	}
 
 	/**
 	 * Tests get_etag method.
-	 * 
+	 *
 	 * @dataProvider data_provider_get_etag
-	 * 
+	 *
 	 * @param array $load List of scripts to load.
 	 * @param string $wp_version WordPress version.
 	 * @param string $expected Expected etag.
@@ -184,9 +196,11 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	public function test_get_etag( $load, $wp_version, $expected ) {
 		$instance = wp_scripts();
 
-		foreach( $load as $handle => $ver ){
-			wp_enqueue_script( $handle, "", [], $ver );
+		foreach ( $load as $handle => $ver ) {
+			// The src should not be empty.
+			wp_enqueue_script( $handle, 'https://example.cdn', array(), $ver );
 		}
-		$this->assertSame( $instance->get_etag( $wp_version, array_key( $load ) ), $expected );
+
+		$this->assertSame( $instance->get_etag( $wp_version, array_keys( $load ) ), $expected, 'md hash for ' );
 	}
 }
