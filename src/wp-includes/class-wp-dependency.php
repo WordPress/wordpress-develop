@@ -136,4 +136,34 @@ class _WP_Dependency {
 		$this->translations_path = $path;
 		return true;
 	}
+
+
+	/**
+	 * Get etag header for cache validation.
+	 * 
+	 * @param string $wp_version WordPress version.
+	 * @param string[] $load Array of script handles to load.
+	 * 
+	 * @return string Etag header.
+	 */
+	public function get_etag( $wp_version, $load ) {
+		$etag = "WP:{$wp_version};";
+
+		foreach ( $load as $handle ) {
+			if ( ! array_key_exists( $handle, $this->registered ) ) {
+				continue;
+			}
+
+			$ver   = $this->registered[ $handle ]->ver ? $this->registered[ $handle ]->ver : $wp_version;
+			$etag .= "{$handle}:{$ver};";
+		}
+
+		/*
+		* This is not intended to be cryptographically secure, just a fast way to get
+		* a fixed length string based on the script versions. As this file does not
+		* load the full WordPress environment, it is not possible to use the salted
+		* wp_hash() function.
+		*/
+		return 'W/"' . md5( $etag ) . '"';
+	}
 }
