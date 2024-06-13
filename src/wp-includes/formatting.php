@@ -5522,7 +5522,7 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 		 * rather than _doing_it_wrong(), which triggers an E_USER_NOTICE.
 		 */
 		wp_trigger_error(
-			__FUNCTION__,
+			'',
 			sprintf(
 				/* translators: 1: The function name, 2: The argument number, 3: The argument name, 4: The expected type, 5: The provided type. */
 				__( 'Warning: %1$s expects parameter %2$s (%3$s) to be a %4$s, %5$s given.' ),

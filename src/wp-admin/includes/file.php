@@ -2795,7 +2795,7 @@ function wp_opcache_invalidate_directory( $dir ) {
 				__( '%s expects a non-empty string.' ),
 				'<code>wp_opcache_invalidate_directory()</code>'
 			);
-			wp_trigger_error( __FUNCTION__, $error_message );
+			wp_trigger_error( '', $error_message );
 		}
 		return;
 	}

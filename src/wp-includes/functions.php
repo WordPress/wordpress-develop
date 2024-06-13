@@ -8760,7 +8760,7 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 function clean_dirsize_cache( $path ) {
 	if ( ! is_string( $path ) || empty( $path ) ) {
 		wp_trigger_error(
-			__FUNCTION__,
+			'',
 			sprintf(
 				/* translators: 1: Function name, 2: A variable type, like "boolean" or "integer". */
 				__( '%1$s only accepts a non-empty path string, received %2$s.' ),
