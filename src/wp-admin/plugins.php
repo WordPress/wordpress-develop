@@ -602,6 +602,19 @@ if ( current_user_can( 'update_plugins' ) && wp_is_auto_update_enabled_for_type(
 	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/documentation/article/plugins-themes-auto-updates/">Documentation on Auto-updates</a>' ) . '</p>';
 }
 
+if ( current_user_can( 'install_plugins' ) ) {
+	get_current_screen()->add_help_tab(
+		array(
+			'id'      => 'plugins-dependencies',
+			'title'   => __( 'Dependencies' ),
+			'content' =>
+				'<p>' . __( 'Plugin Dependencies aims to make the process of installing and activating addons (dependents) and the plugins they rely on (dependencies) consistent and easy.' ) . '</p>' .
+				'<p>' . __( 'If a dependency plugin is deleted via FTP or deployment, a notice will be displayed on the administration’s plugin screens, informing the user that there are missing dependencies to install and/or activate. Additionally, each dependent whose dependencies are no longer met will have an error notice in their plugin row.' ) . '</p>' .
+				'<p>' . __( 'In case plugin activation link is disabled, this is due to missing required dependencies for the said plugin.' ) . '</p>'
+		)
+	);
+}
+
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 	'<p>' . __( '<a href="https://wordpress.org/documentation/article/manage-plugins/">Documentation on Managing Plugins</a>' ) . '</p>' .
