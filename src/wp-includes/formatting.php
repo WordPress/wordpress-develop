@@ -4041,6 +4041,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
  * @param string $text      Text to trim.
  * @param int    $num_words Number of words. Default 55.
  * @param string $more      Optional. What to append if $text needs to be trimmed. Default '&hellip;'.
+ * @param bool   $allow_tags Optional. Whether to allow HTML tags in the text. Default false.
  * @return string Trimmed text.
  */
 function wp_trim_words( $text, $num_words = 55, $more = null, $allow_tags = false ) {
