@@ -241,9 +241,17 @@ if ( is_multisite() ) :
 
 			$exception    = null;
 			try {
-				add_filter( 'editable_roles', function( $roles ) { unset( $roles['administrator'] ); return $roles; } );
+				add_filter( 'editable_roles', function ( $roles ) {
+					unset( $roles['administrator'] );
+					return $roles;
+				} );
+
 				ensure_editable_role( 'administrator' );
-				remove_filter( 'editable_roles', function( $roles ) { unset( $roles['administrator'] ); return $roles; } );
+
+				remove_filter( 'editable_roles', function ( $roles ) {
+					unset( $roles['administrator'] );
+					return $roles;
+				} );
 			} catch ( WPDieException $e ) {
 				$exception = $e;
 			}
