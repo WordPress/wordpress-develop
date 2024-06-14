@@ -340,6 +340,10 @@ hr.wp-block-separator {
 	letter-spacing: normal;
 }
 
+.entry-content :where(.wp-block-navigation .open-on-click .wp-block-navigation-submenu__toggle:not(:hover):not(:focus)) {
+	box-shadow: 0 1px 0 0 currentColor;
+}
+
 .wp-block-navigation__responsive-container.is-menu-open {
 	padding: 0 1rem;
 }
