@@ -325,6 +325,25 @@ hr.wp-block-separator {
 	display: list-item;
 }
 
+/* Navigation */
+
+.wp-block-navigation-item .wp-block-navigation-submenu {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.wp-block-navigation button {
+	background: transparent;
+	padding-top: 0;
+	padding-bottom: 0;
+	outline-offset: 0;
+	letter-spacing: normal;
+}
+
+.wp-block-navigation__responsive-container.is-menu-open {
+	padding: 0 1rem;
+}
+
 /*--------------------------------------------------------------
 5.0 Blocks - Widget Blocks
 --------------------------------------------------------------*/
