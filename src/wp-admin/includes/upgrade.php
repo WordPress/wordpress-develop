@@ -257,7 +257,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 		$first_comment_email  = ! empty( $first_comment_email ) ? $first_comment_email : 'wapuu@wordpress.example';
 		$first_comment_url    = ! empty( $first_comment_url ) ? $first_comment_url : esc_url( __( 'https://wordpress.org/' ) );
 		$first_comment        = ! empty( $first_comment ) ? $first_comment : sprintf(
-			/* translators: %s: Gravatar URL. */
+			/* translators: %s: The localized Gravatar URL. */
 			__(
 				'Hi, this is a comment.
 To get started with moderating, editing, and deleting comments, please visit the Comments screen in the dashboard.
