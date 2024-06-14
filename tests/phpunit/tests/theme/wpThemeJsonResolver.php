@@ -1160,6 +1160,19 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 							),
 						),
 					),
+					// @ticket 61440
+					array(
+						'blockTypes' => array( 'core/group', 'core/columns' ),
+						'version'    => 3,
+						'slug'       => 'WithSlug',
+						'title'      => 'With Slug',
+						'styles'     => array(
+							'color' => array(
+								'background' => 'aliceblue',
+								'text'       => 'midnightblue',
+							),
+						),
+					),
 				),
 			),
 		);
