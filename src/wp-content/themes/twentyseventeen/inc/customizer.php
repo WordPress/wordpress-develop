@@ -144,7 +144,7 @@ function twentyseventeen_customize_register( $wp_customize ) {
 				'section'         => 'theme_options',
 				'type'            => 'dropdown-pages',
 				'allow_addition'  => true,
-				'active_callback' => 'twentyseventeen_is_static_front_page',
+				'active_callback' => 'twentyseventeen_is_frontpage',
 			)
 		);
 
@@ -221,9 +221,16 @@ function twentyseventeen_customize_partial_blogdescription() {
 
 /**
  * Return whether we're previewing the front page and it's a static page.
+ *
+ * This function is an alias for twentyseventeen_is_frontpage().
+ *
+ * @since Twenty Seventeen 1.0
+ * @since Twenty Seventeen 3.3 Converted function to an alias.
+ *
+ * @return bool Whether the current page is the front page and static.
  */
 function twentyseventeen_is_static_front_page() {
-	return ( is_front_page() && ! is_home() );
+	return twentyseventeen_is_frontpage();
 }
 
 /**
@@ -238,7 +245,7 @@ function twentyseventeen_is_view_with_layout_option() {
  * Bind JS handlers to instantly live-preview changes.
  */
 function twentyseventeen_customize_preview_js() {
-	wp_enqueue_script( 'twentyseventeen-customize-preview', get_theme_file_uri( '/assets/js/customize-preview.js' ), array( 'customize-preview' ), '20161002', true );
+	wp_enqueue_script( 'twentyseventeen-customize-preview', get_theme_file_uri( '/assets/js/customize-preview.js' ), array( 'customize-preview' ), '20161002', array( 'in_footer' => true ) );
 }
 add_action( 'customize_preview_init', 'twentyseventeen_customize_preview_js' );
 
@@ -246,6 +253,6 @@ add_action( 'customize_preview_init', 'twentyseventeen_customize_preview_js' );
  * Load dynamic logic for the customizer controls area.
  */
 function twentyseventeen_panels_js() {
-	wp_enqueue_script( 'twentyseventeen-customize-controls', get_theme_file_uri( '/assets/js/customize-controls.js' ), array(), '20161020', true );
+	wp_enqueue_script( 'twentyseventeen-customize-controls', get_theme_file_uri( '/assets/js/customize-controls.js' ), array(), '20161020', array( 'in_footer' => true ) );
 }
 add_action( 'customize_controls_enqueue_scripts', 'twentyseventeen_panels_js' );

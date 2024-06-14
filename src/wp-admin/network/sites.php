@@ -43,7 +43,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/documentation/article/network-admin-sites-screen/">Documentation on Site Management</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/#network-admin-sites-screen">Documentation on Site Management</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>'
 );
 
@@ -118,8 +118,20 @@ if ( isset( $_GET['action'] ) ) {
 					<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
 					<input type="hidden" name="_wp_http_referer" value="<?php echo esc_attr( wp_get_referer() ); ?>" />
 					<?php wp_nonce_field( $site_action . '_' . $id, '_wpnonce', false ); ?>
-					<p><?php printf( $manage_actions[ $site_action ], $site_address ); ?></p>
-					<?php submit_button( __( 'Confirm' ), 'primary' ); ?>
+					<?php
+					if ( 'deleteblog' === $site_action ) {
+						$submit = __( 'Delete this site permanently' );
+						?>
+						<div class="notice notice-warning inline">
+							<p><?php _e( 'Deleting a site is a permanent action that cannot be undone. This will delete the entire site and its uploads directory.' ); ?>
+						</div>
+						<?php
+					} else {
+						$submit = __( 'Confirm' );
+					}
+					?>
+					<p><?php printf( $manage_actions[ $site_action ], "<strong>{$site_address}</strong>" ); ?></p>
+					<?php submit_button( $submit, 'primary' ); ?>
 				</form>
 			</div>
 		<?php
@@ -358,7 +370,14 @@ if ( isset( $_GET['updated'] ) ) {
 	}
 
 	if ( ! empty( $msg ) ) {
-		$msg = '<div id="message" class="notice notice-success is-dismissible"><p>' . $msg . '</p></div>';
+		$msg = wp_get_admin_notice(
+			$msg,
+			array(
+				'type'        => 'success',
+				'dismissible' => true,
+				'id'          => 'message',
+			)
+		);
 	}
 }
 
@@ -371,7 +390,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <h1 class="wp-heading-inline"><?php _e( 'Sites' ); ?></h1>
 
 <?php if ( current_user_can( 'create_sites' ) ) : ?>
-	<a href="<?php echo esc_url( network_admin_url( 'site-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html_x( 'Add New', 'site' ); ?></a>
+	<a href="<?php echo esc_url( network_admin_url( 'site-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html__( 'Add New Site' ); ?></a>
 <?php endif; ?>
 
 <?php

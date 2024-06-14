@@ -127,6 +127,5 @@ if ( is_multisite() ) :
 				array( 'multiple///dirs', '/multiple///dirs/' ),
 			);
 		}
-
 	}
 endif;

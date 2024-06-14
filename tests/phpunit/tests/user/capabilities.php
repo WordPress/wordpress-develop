@@ -66,7 +66,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		parent::set_up();
 		// Keep track of users we create.
 		$this->flush_roles();
-
 	}
 
 	/**
@@ -182,7 +181,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'subscriber'              => array( 'subscriber' ),
 
 		);
-
 	}
 
 	private function _getMultiSitePrimitiveCaps() {
@@ -265,7 +263,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'subscriber'              => array( 'subscriber' ),
 
 		);
-
 	}
 
 	private function _getSingleSiteMetaCaps() {
@@ -453,12 +450,11 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$this->assertSame( array(), $diff, "User with {$role} role has capabilities that aren't being tested" );
 
 		}
-
 	}
 
 	/**
 	 * Test the tests. The administrator role has all primitive capabilities, therefore the
-	 * primitive capabilitity tests can be tested by checking that the list of tested
+	 * primitive capability tests can be tested by checking that the list of tested
 	 * capabilities matches those of the administrator role.
 	 *
 	 * @group capTestTests
@@ -747,7 +743,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		update_option( 'link_manager_enabled', '0' );
 		$this->assertSame( '0', get_option( 'link_manager_enabled' ) );
-
 	}
 
 	/**
@@ -761,7 +756,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$this->assertFalse( $user->has_cap( 'unfiltered_upload' ), "User with the {$role} role should not have the unfiltered_upload capability" );
 			$this->assertFalse( user_can( $user, 'unfiltered_upload' ), "User with the {$role} role should not have the unfiltered_upload capability" );
 		}
-
 	}
 
 	/**
@@ -917,7 +911,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$user->remove_role( 'contributor' );
 		// User should have one role now.
 		$this->assertSame( array( 'subscriber' ), $user->roles );
-
 	}
 
 	/**
@@ -999,7 +992,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Change the capabilites associated with a role and make sure the change
+	 * Change the capabilities associated with a role and make sure the change
 	 * is reflected in has_cap().
 	 */
 	public function test_role_add_cap() {
@@ -1037,11 +1030,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		remove_role( $role_name );
 		$this->flush_roles();
 		$this->assertFalse( $wp_roles->is_role( $role_name ) );
-
 	}
 
 	/**
-	 * Change the capabilites associated with a role and make sure the change
+	 * Change the capabilities associated with a role and make sure the change
 	 * is reflected in has_cap().
 	 */
 	public function test_role_remove_cap() {
@@ -1082,7 +1074,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		remove_role( $role_name );
 		$this->flush_roles();
 		$this->assertFalse( $wp_roles->is_role( $role_name ) );
-
 	}
 
 	/**
@@ -1121,7 +1112,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 				$this->assertFalse( $user_1->has_cap( $cap ), "User should not have the {$cap} capability" );
 			}
 		}
-
 	}
 
 	/**
@@ -1153,7 +1143,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Check the removed cap on both users.
 		$this->assertFalse( $user_1->has_cap( 'publish_posts' ) );
 		$this->assertFalse( $user_2->has_cap( 'publish_posts' ) );
-
 	}
 
 	/**
@@ -1217,7 +1206,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// User level should be empty.
 		$this->assertEmpty( $user->user_level );
-
 	}
 
 	/**
@@ -1547,7 +1535,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 				"Role: {$role}"
 			);
 		}
-
 	}
 
 	public function dataTaxonomies() {
@@ -1850,7 +1837,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Ensure contributor can't edit, un-trash, or delete the post.
 		$this->assertFalse( user_can( $contributor->ID, 'edit_post', $post->ID ) );
 		$this->assertFalse( user_can( $contributor->ID, 'delete_post', $post->ID ) );
-
 	}
 
 	/**
@@ -1981,7 +1967,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( user_can( $contributor->ID, 'edit_post', $author_post->ID ) );
 
 		_unregister_post_type( 'page_capability' );
-
 	}
 
 	public function test_non_logged_in_users_have_no_capabilities() {
@@ -2011,7 +1996,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		wp_logout();
 
 		$this->assertSame( 0, get_current_user_id() );
-
 	}
 
 	/**

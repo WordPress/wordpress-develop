@@ -284,7 +284,6 @@ function wp_dashboard() {
 	<?php
 	wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
 	wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false );
-
 }
 
 //
@@ -532,7 +531,7 @@ function wp_network_dashboard_right_now() {
 }
 
 /**
- * The Quick Draft widget display and creation of drafts.
+ * Displays the Quick Draft widget.
  *
  * @since 3.8.0
  *
@@ -574,9 +573,16 @@ function wp_dashboard_quick_press( $error_msg = false ) {
 
 	<form name="post" action="<?php echo esc_url( admin_url( 'post.php' ) ); ?>" method="post" id="quick-press" class="initial-form hide-if-no-js">
 
-		<?php if ( $error_msg ) : ?>
-		<div class="error"><?php echo $error_msg; ?></div>
-		<?php endif; ?>
+		<?php
+		if ( $error_msg ) {
+			wp_admin_notice(
+				$error_msg,
+				array(
+					'additional_classes' => array( 'error' ),
+				)
+			);
+		}
+		?>
 
 		<div class="input-text-wrap" id="title-wrap">
 			<label for="title">
@@ -920,7 +926,9 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 }
 
 /**
- * Callback function for Activity widget.
+ * Outputs the Activity widget.
+ *
+ * Callback function for {@see 'dashboard_activity'}.
  *
  * @since 3.8.0
  */
@@ -982,7 +990,7 @@ function wp_dashboard_recent_posts( $args ) {
 		'order'          => $args['order'],
 		'posts_per_page' => (int) $args['max'],
 		'no_found_rows'  => true,
-		'cache_results'  => false,
+		'cache_results'  => true,
 		'perm'           => ( 'future' === $args['status'] ) ? 'editable' : 'readable',
 	);
 
@@ -1080,7 +1088,11 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 		}
 
 		foreach ( $possible as $comment ) {
-			if ( ! current_user_can( 'read_post', $comment->comment_post_ID ) ) {
+			if ( ! current_user_can( 'edit_post', $comment->comment_post_ID )
+				&& ( post_password_required( $comment->comment_post_ID )
+					|| ! current_user_can( 'read_post', $comment->comment_post_ID ) )
+			) {
+				// The user has no access to the post and thus cannot see the comments.
 				continue;
 			}
 
@@ -1156,8 +1168,15 @@ function wp_dashboard_rss_output( $widget_id ) {
  * @return bool True on success, false on failure.
  */
 function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = array(), ...$args ) {
-	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p><div class="hide-if-js notice notice-error inline"><p>' . __( 'This widget requires JavaScript.' ) . '</p></div>';
 	$doing_ajax = wp_doing_ajax();
+	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p>';
+	$loading   .= wp_get_admin_notice(
+		__( 'This widget requires JavaScript.' ),
+		array(
+			'type'               => 'error',
+			'additional_classes' => array( 'inline', 'hide-if-js' ),
+		)
+	);
 
 	if ( empty( $check_urls ) ) {
 		$widgets = get_option( 'dashboard_widget_options' );
@@ -1227,10 +1246,9 @@ function wp_dashboard_trigger_widget_control( $widget_control_id = false ) {
 }
 
 /**
- * The RSS dashboard widget control.
+ * Sets up the RSS dashboard widget control and $args to be used as input to wp_widget_rss_form().
  *
- * Sets up $args to be used as input to wp_widget_rss_form(). Handles POST data
- * from RSS-type widgets.
+ * Handles POST data from RSS-type widgets.
  *
  * @since 2.5.0
  *
@@ -1297,7 +1315,7 @@ function wp_dashboard_events_news() {
 	<p class="community-events-footer">
 		<?php
 			printf(
-				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 				'https://make.wordpress.org/community/meetups-landing-page',
 				__( 'Meetups' ),
 				/* translators: Hidden accessibility text. */
@@ -1309,7 +1327,7 @@ function wp_dashboard_events_news() {
 
 		<?php
 			printf(
-				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 				'https://central.wordcamp.org/schedule/',
 				__( 'WordCamps' ),
 				/* translators: Hidden accessibility text. */
@@ -1321,7 +1339,7 @@ function wp_dashboard_events_news() {
 
 		<?php
 			printf(
-				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 				/* translators: If a Rosetta site exists (e.g. https://es.wordpress.org/news/), then use that. Otherwise, leave untranslated. */
 				esc_url( _x( 'https://wordpress.org/news/', 'Events and News dashboard widget' ) ),
 				__( 'News' ),
@@ -1340,25 +1358,19 @@ function wp_dashboard_events_news() {
  * @since 4.8.0
  */
 function wp_print_community_events_markup() {
-	?>
+	$community_events_notice  = '<p class="hide-if-js">' . ( 'This widget requires JavaScript.' ) . '</p>';
+	$community_events_notice .= '<p class="community-events-error-occurred" aria-hidden="true">' . __( 'An error occurred. Please try again.' ) . '</p>';
+	$community_events_notice .= '<p class="community-events-could-not-locate" aria-hidden="true"></p>';
 
-	<div class="community-events-errors notice notice-error inline hide-if-js">
-		<p class="hide-if-js">
-			<?php _e( 'This widget requires JavaScript.' ); ?>
-		</p>
+	wp_admin_notice(
+		$community_events_notice,
+		array(
+			'type'               => 'error',
+			'additional_classes' => array( 'community-events-errors', 'inline', 'hide-if-js' ),
+			'paragraph_wrap'     => false,
+		)
+	);
 
-		<p class="community-events-error-occurred" aria-hidden="true">
-			<?php _e( 'An error occurred. Please try again.' ); ?>
-		</p>
-
-		<p class="community-events-could-not-locate" aria-hidden="true"></p>
-	</div>
-
-	<div class="community-events-loading hide-if-no-js">
-		<?php _e( 'Loading&hellip;' ); ?>
-	</div>
-
-	<?php
 	/*
 	 * Hide the main element when the page first loads, because the content
 	 * won't be ready until wp.communityEvents.renderEventsTemplate() has run.
@@ -1446,6 +1458,15 @@ function wp_print_community_events_templates() {
 					<div class="dashicons event-icon" aria-hidden="true"></div>
 					<div class="event-info-inner">
 						<a class="event-title" href="{{ event.url }}">{{ event.title }}</a>
+						<# if ( event.type ) {
+							const titleCaseEventType = event.type.replace(
+								/\w\S*/g,
+								function ( type ) { return type.charAt(0).toUpperCase() + type.substr(1).toLowerCase(); }
+							);
+						#>
+							{{ 'wordcamp' === event.type ? 'WordCamp' : titleCaseEventType }}
+							<span class="ce-separator"></span>
+						<# } #>
 						<span class="event-city">{{ event.location.location }}</span>
 					</div>
 				</div>
@@ -1551,7 +1572,11 @@ function wp_dashboard_primary() {
 			 *
 			 * @param string $link The widget's secondary link URL.
 			 */
-			'link'         => apply_filters( 'dashboard_secondary_link', __( 'https://planet.wordpress.org/' ) ),
+			'link'         => apply_filters(
+				'dashboard_secondary_link',
+				/* translators: Link to the Planet website of the locale. */
+				__( 'https://planet.wordpress.org/' )
+			),
 
 			/**
 			 * Filters the secondary feed URL for the 'WordPress Events and News' dashboard widget.
@@ -1560,7 +1585,11 @@ function wp_dashboard_primary() {
 			 *
 			 * @param string $url The widget's secondary feed URL.
 			 */
-			'url'          => apply_filters( 'dashboard_secondary_feed', __( 'https://planet.wordpress.org/feed/' ) ),
+			'url'          => apply_filters(
+				'dashboard_secondary_feed',
+				/* translators: Link to the Planet feed of the locale. */
+				__( 'https://planet.wordpress.org/feed/' )
+			),
 
 			/**
 			 * Filters the secondary link title for the 'WordPress Events and News' dashboard widget.
@@ -1647,7 +1676,7 @@ function wp_dashboard_quota() {
 				number_format_i18n( $quota )
 			);
 			printf(
-				'<a href="%1$s">%2$s <span class="screen-reader-text">(%3$s)</span></a>',
+				'<a href="%1$s">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
 				/* translators: Hidden accessibility text. */
@@ -1663,7 +1692,7 @@ function wp_dashboard_quota() {
 				$percentused
 			);
 			printf(
-				'<a href="%1$s" class="musublink">%2$s <span class="screen-reader-text">(%3$s)</span></a>',
+				'<a href="%1$s" class="musublink">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
 				/* translators: Hidden accessibility text. */
@@ -1894,7 +1923,7 @@ function wp_dashboard_php_nag() {
 	<p class="button-container">
 		<?php
 		printf(
-			'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+			'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 			esc_url( wp_get_update_php_url() ),
 			__( 'Learn more about updating PHP' ),
 			/* translators: Hidden accessibility text. */
@@ -2023,7 +2052,9 @@ function wp_dashboard_site_health() {
 }
 
 /**
- * Empty function usable by plugins to output empty dashboard widget (to be populated later by JS).
+ * Outputs empty dashboard widget to be populated by JS later.
+ *
+ * Usable by plugins.
  *
  * @since 2.5.0
  */
@@ -2095,6 +2126,7 @@ function wp_welcome_panel() {
 			<?php if ( $is_block_theme ) : ?>
 				<h3><?php _e( 'Switch up your site&#8217;s look & feel with Styles' ); ?></h3>
 				<p><?php _e( 'Tweak your site, or give it a whole new look! Get creative &#8212; how about a new color palette or font?' ); ?></p>
+				<a href="<?php echo esc_url( admin_url( '/site-editor.php?path=%2Fwp_global_styles' ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
 			<?php else : ?>
 				<h3><?php _e( 'Discover a new way to build your site.' ); ?></h3>
 				<p><?php _e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>

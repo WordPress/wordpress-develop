@@ -86,7 +86,7 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_wp_strip_all_tags_should_cast_scalar_values_to_string()/
+	 * Data provider for test_wp_strip_all_tags_should_cast_scalar_values_to_string().
 	 *
 	 * @return array[]
 	 */
@@ -103,4 +103,3 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 		);
 	}
 }
-

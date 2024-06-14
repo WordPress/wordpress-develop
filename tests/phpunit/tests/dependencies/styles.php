@@ -160,7 +160,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test if inline styles work with concatination
+	 * Test if inline styles work with concatenation
 	 *
 	 * @global WP_Styles $wp_styles
 	 * @ticket 24813
@@ -186,7 +186,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 		wp_print_styles();
 		$this->assertSame( $expected, $wp_styles->print_html );
-
 	}
 
 	/**
@@ -279,7 +278,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 		// No styles left to print.
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
-
 	}
 
 	/**
@@ -304,7 +302,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_add_inline_style( 'handle', $style );
 
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
-
 	}
 
 	/**
@@ -319,7 +316,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
 
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
-
 	}
 
 	/**
@@ -535,6 +531,26 @@ CSS;
 
 		$css = file_get_contents( ABSPATH . WPINC . '/css/classic-themes.css' );
 		$this->assertSameSets( $GLOBALS['wp_styles']->registered['test-handle']->extra['after'], array( $css ), 'Source of style should set to after property' );
+	}
+
+	/**
+	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles_dequeue_styles() {
+		$filter = new MockAction();
+		add_filter( 'pre_wp_filesize', array( $filter, 'filter' ) );
+		wp_register_style( 'test-handle', '/' . WPINC . '/css/classic-themes.css' );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/classic-themes.css' );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_deregister_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertSame( 0, $filter->get_call_count() );
 	}
 
 	/**

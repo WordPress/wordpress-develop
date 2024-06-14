@@ -84,8 +84,10 @@ if ( $wp_customize->changeset_post_id() ) {
 	}
 }
 
+$url       = ! empty( $_REQUEST['url'] ) ? sanitize_text_field( $_REQUEST['url'] ) : '';
+$return    = ! empty( $_REQUEST['return'] ) ? sanitize_text_field( $_REQUEST['return'] ) : '';
+$autofocus = ! empty( $_REQUEST['autofocus'] ) ? sanitize_text_field( $_REQUEST['autofocus'] ) : '';
 
-wp_reset_vars( array( 'url', 'return', 'autofocus' ) );
 if ( ! empty( $url ) ) {
 	$wp_customize->set_preview_url( wp_unslash( $url ) );
 }
@@ -116,7 +118,7 @@ wp_enqueue_script( 'customize-controls' );
 wp_enqueue_style( 'customize-controls' );
 
 /**
- * Enqueue Customizer control scripts.
+ * Fires when enqueuing Customizer control scripts.
  *
  * @since 3.4.0
  */

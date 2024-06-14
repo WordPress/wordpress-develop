@@ -248,6 +248,11 @@ Description: Used to style blocks in the editor.
 	padding: 0;
 }
 
+.editor-styles-wrapper ol.has-background,
+.editor-styles-wrapper ul.has-background {
+	padding: 1.25em 2.375em;
+}
+
 /* Quotes */
 
 .rtl .editor-block-list__block blockquote {
@@ -318,6 +323,10 @@ Description: Used to style blocks in the editor.
 	font-size: 16px;
 	font-size: 1rem;
 	line-height: 1.75;
+}
+
+.wp-block-quote.has-text-color .wp-block-quote__citation {
+	color: inherit;
 }
 
 .wp-block-quote__citation:before {
@@ -555,6 +564,11 @@ Description: Used to style blocks in the editor.
 	text-transform: uppercase;
 }
 
+.wp-block-buttons[style*="text-transform"] .wp-block-button__link,
+.wp-block-button[style*="text-transform"] .wp-block-button__link {
+	text-transform: inherit;
+}
+
 .wp-block-button__link {
 	background: #1a1a1a;
 	color: #fff;
@@ -618,6 +632,13 @@ Description: Used to style blocks in the editor.
 
 .edit-post-visual-editor .wp-block-latest-posts.is-grid li {
 	margin-bottom: 16px;
+}
+
+/* Avatar & Post Author */
+
+.editor-styles-wrapper .avatar,
+.wp-block-post-author__avatar img {
+	border-radius: 50%;
 }
 
 /*--------------------------------------------------------------

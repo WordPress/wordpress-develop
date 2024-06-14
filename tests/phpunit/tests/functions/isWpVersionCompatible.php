@@ -3,7 +3,8 @@
 /**
  * Tests the is_wp_version_compatible() function.
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::is_wp_version_compatible
  */
 class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
@@ -24,7 +25,7 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_is_wp_version_compatible() {
 		global $wp_version;
@@ -42,46 +43,135 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 
 		return array(
 			// Happy paths.
-			'the same version'          => array(
+			'the same version'                => array(
 				'required' => $wp_version,
 				'expected' => true,
 			),
-			'a lower required version'  => array(
+			'a lower required version'        => array(
 				'required' => $lower_version,
 				'expected' => true,
 			),
-			'a higher required version' => array(
+			'a higher required version'       => array(
 				'required' => $higher_version,
 				'expected' => false,
 			),
 
+			// Acceptable versions containing '.0'.
+			'correct version ending with x.0' => array(
+				'required' => '5.0',
+				'expected' => true,
+			),
+			'correct version with x.0.x in middle of version' => array(
+				'required' => '5.0.1',
+				'expected' => true,
+			),
+
 			// Falsey values.
-			'false'                     => array(
+			'false'                           => array(
 				'required' => false,
 				'expected' => true,
 			),
-			'null'                      => array(
+			'null'                            => array(
 				'required' => null,
 				'expected' => true,
 			),
-			'0 int'                     => array(
+			'0 int'                           => array(
 				'required' => 0,
 				'expected' => true,
 			),
-			'0.0 float'                 => array(
+			'0.0 float'                       => array(
 				'required' => 0.0,
 				'expected' => true,
 			),
-			'0 string'                  => array(
+			'0 string'                        => array(
 				'required' => '0',
 				'expected' => true,
 			),
-			'empty string'              => array(
+			'empty string'                    => array(
 				'required' => '',
 				'expected' => true,
 			),
-			'empty array'               => array(
+			'empty array'                     => array(
 				'required' => array(),
+				'expected' => true,
+			),
+		);
+	}
+
+	/**
+	 * Tests that is_wp_version_compatible() gracefully handles incorrect version numbering.
+	 *
+	 * @dataProvider data_is_wp_version_compatible_should_gracefully_handle_trailing_point_zero_version_numbers
+	 *
+	 * @ticket 59448
+	 *
+	 * @param mixed  $required The minimum required WordPress version.
+	 * @param string $wp       The value for the $wp_version global variable.
+	 * @param bool   $expected The expected result.
+	 */
+	public function test_is_wp_version_compatible_should_gracefully_handle_trailing_point_zero_version_numbers( $required, $wp, $expected ) {
+		global $wp_version;
+		$original_version = $wp_version;
+		$wp_version       = $wp;
+
+		$actual = is_wp_version_compatible( $required );
+
+		// Reset the version before the assertion in case of failure.
+		$wp_version = $original_version;
+
+		$this->assertSame( $expected, $actual, 'The expected result was not returned.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_is_wp_version_compatible_should_gracefully_handle_trailing_point_zero_version_numbers() {
+		return array(
+			'an incorrect trailing .0 and the same version' => array(
+				'required' => '5.2.0',
+				'wp'       => '5.2',
+				'expected' => true,
+			),
+			'an incorrect trailing .0 and the same x.0 version' => array(
+				'required' => '5.0.0',
+				'wp'       => '5.0',
+				'expected' => true,
+			),
+			'an incorrect trailing .0 and space and same x.0 version' => array(
+				'required' => '5.0.0 ',
+				'wp'       => '5.0',
+				'expected' => true,
+			),
+			'incorrect preceding and trailing spaces trailing .0' => array(
+				'required' => ' 5.0.0 ',
+				'wp'       => '5.0',
+				'expected' => true,
+			),
+			'an incorrect trailing .0 on x.0.x version'    => array(
+				'required' => '5.0.1.0',
+				'wp'       => '5.0.1',
+				'expected' => true,
+			),
+			'an incorrect trailing .0 and an earlier version' => array(
+				'required' => '5.0.0',
+				'wp'       => '4.0',
+				'expected' => false,
+			),
+			'an incorrect trailing .0 and an earlier x.0 version' => array(
+				'required' => '5.0.0',
+				'wp'       => '4.0',
+				'expected' => false,
+			),
+			'an incorrect trailing .0 and a later version' => array(
+				'required' => '5.0.0',
+				'wp'       => '6.0',
+				'expected' => true,
+			),
+			'an incorrect trailing .0 and a later x.0 version' => array(
+				'required' => '5.0.0',
+				'wp'       => '6.0',
 				'expected' => true,
 			),
 		);
@@ -114,7 +204,7 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_is_wp_version_compatible_with_development_versions() {
 		global $wp_version;
