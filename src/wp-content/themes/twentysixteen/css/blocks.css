@@ -336,11 +336,11 @@ hr.wp-block-separator {
 .wp-block-navigation .wp-block-navigation__responsive-container-open,
 .wp-block-navigation .wp-block-navigation__responsive-container-close {
 	background: transparent;
+	border-radius: 0;
+	letter-spacing: normal;
+	outline-offset: 0;
 	padding-top: 0;
 	padding-bottom: 0;
-	outline-offset: 0;
-	letter-spacing: normal;
-	border-radius: 0;
 }
 
 .entry-content :where(.wp-block-navigation .open-on-click .wp-block-navigation-submenu__toggle:not(:hover):not(:focus)) {
