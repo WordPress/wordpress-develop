@@ -332,7 +332,9 @@ hr.wp-block-separator {
 	margin-right: 0;
 }
 
-.wp-block-navigation .wp-block-navigation-submenu__toggle {
+.wp-block-navigation .wp-block-navigation-submenu__toggle,
+.wp-block-navigation .wp-block-navigation__responsive-container-open,
+.wp-block-navigation .wp-block-navigation__responsive-container-close {
 	background: transparent;
 	padding-top: 0;
 	padding-bottom: 0;
