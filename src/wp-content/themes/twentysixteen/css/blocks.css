@@ -332,7 +332,7 @@ hr.wp-block-separator {
 	margin-right: 0;
 }
 
-.wp-block-navigation button {
+.wp-block-navigation .wp-block-navigation-submenu__toggle {
 	background: transparent;
 	padding-top: 0;
 	padding-bottom: 0;
