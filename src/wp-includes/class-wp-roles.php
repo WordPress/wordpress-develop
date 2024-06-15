@@ -159,11 +159,11 @@ class WP_Roles {
 		if ( empty( $role ) || isset( $this->roles[ $role ] ) ) {
 			return;
 		}
-		
+
 		// @ticket 53973, XSS sanitize
-		if( wp_kses( $role, '' ) !== $role || wp_kses( $display_name, '' ) !== $display_name ) {
-		        return;
-		}		
+		if ( wp_kses( $role, '' ) !== $role || wp_kses( $display_name, '' ) !== $display_name ) {
+            return;
+        }
 
 		$this->roles[ $role ] = array(
 			'name'         => $display_name,
