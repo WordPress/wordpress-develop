@@ -157,7 +157,7 @@ class WP_Roles {
 	 */
 	public function add_role( $role, $display_name, $capabilities = array() ) {
 		if ( empty( $role ) || isset( $this->roles[ $role ] ) ) {
-			return;
+            return;
 		}
 
 		// @ticket 53973, XSS sanitize
