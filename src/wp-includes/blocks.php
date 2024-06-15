@@ -1008,12 +1008,12 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
  * @since 6.6.0
  * @access private
  *
- * @param string $content Serialized content.
- * @param WP_Block_Template|WP_Post|array $context       A block template, template part, `wp_navigation` post object,
- *                                                       or pattern that the blocks belong to.
- * @param callable                        $callback      A function that will be called for each block to generate
- *                                                       the markup for a given list of blocks that are hooked to it.
- *                                                       Default: 'insert_hooked_blocks'.
+ * @param string                          $content  Serialized content.
+ * @param WP_Block_Template|WP_Post|array $context  A block template, template part, `wp_navigation` post object,
+ *                                                  or pattern that the blocks belong to.
+ * @param callable                        $callback A function that will be called for each block to generate
+ *                                                  the markup for a given list of blocks that are hooked to it.
+ *                                                  Default: 'insert_hooked_blocks'.
  * @return string The serialized markup.
  */
 function apply_block_hooks_to_content( $content, $context, $callback = 'insert_hooked_blocks' ) {
@@ -1064,7 +1064,7 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		return $post;
 	}
 
-	/**
+	/*
 	 * Skip meta generation when consumers intentionally update specific Navigation fields
 	 * and omit the content update.
 	 */
@@ -1072,7 +1072,7 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		return $post;
 	}
 
-	/**
+	/*
 	 * Skip meta generation when the post content is not a navigation block.
 	 */
 	if ( ! isset( $post->post_type ) || 'wp_navigation' !== $post->post_type ) {
@@ -1115,11 +1115,14 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 	return $post;
 }
 
-/*
+/**
  * Returns the markup for blocks hooked to the given anchor block in a specific relative position and then
  * adds a list of hooked block types to an anchor block's ignored hooked block types.
  *
  * This function is meant for internal use only.
+ *
+ * @since 6.6.0
+ * @access private
  *
  * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
  * @param string                          $relative_position   The relative position of the hooked blocks.
@@ -1149,7 +1152,7 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
 		return $response;
 	}
 
-	$attributes = array();
+	$attributes            = array();
 	$ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
 	if ( ! empty( $ignored_hooked_blocks ) ) {
 		$ignored_hooked_blocks  = json_decode( $ignored_hooked_blocks, true );
@@ -1581,13 +1584,13 @@ function resolve_pattern_blocks( $blocks ) {
 			$i += count( $blocks_to_insert );
 		} else {
 			if ( ! empty( $blocks[ $i ]['innerBlocks'] ) ) {
-				$prev_inner_content          = $inner_content;
-				$inner_content               = $blocks[ $i ]['innerContent'];
-				$blocks[ $i ]['innerBlocks'] = resolve_pattern_blocks(
+				$prev_inner_content           = $inner_content;
+				$inner_content                = $blocks[ $i ]['innerContent'];
+				$blocks[ $i ]['innerBlocks']  = resolve_pattern_blocks(
 					$blocks[ $i ]['innerBlocks']
 				);
 				$blocks[ $i ]['innerContent'] = $inner_content;
-				$inner_content               = $prev_inner_content;
+				$inner_content                = $prev_inner_content;
 			}
 			++$i;
 		}
