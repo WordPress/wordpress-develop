@@ -430,6 +430,10 @@ figcaption,
 	&[style*="font-weight"] .wp-block-button__link {
 		font-weight: inherit;
 	}
+
+	&[style*="text-decoration"] .wp-block-button__link {
+		text-decoration: inherit;
+	}
 }
 
 .wp-block-search {
