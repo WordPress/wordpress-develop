@@ -61,9 +61,17 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 	 * variation file within `/styles`, are added to the theme data.
 	 *
 	 * @ticket 61312
+	 * @ticket 61440
 	 */
 	public function test_add_registered_block_styles_to_theme_data() {
 		switch_theme( 'block-theme' );
+
+		/*
+		 * Trigger block style registration that occurs on `init` action.
+		 * do_action( 'init' ) could be used here however this direct call
+		 * means only the updates being tested are performed.
+		 */
+		wp_register_block_style_variations_from_theme();
 
 		$variation_styles_data = array(
 			'color'    => array(
@@ -91,6 +99,22 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 			),
 		);
 
+		/*
+		 * This style is to be deliberately overwritten by the theme.json partial
+		 * See `tests/phpunit/data/themedir1/block-theme/styles/block-style-variation-with-slug.json`.
+		 */
+		register_block_style(
+			'core/group',
+			array(
+				'name'       => 'WithSlug',
+				'style_data' => array(
+					'color' => array(
+						'background' => 'whitesmoke',
+						'text'       => 'black',
+					),
+				),
+			)
+		);
 		register_block_style(
 			'core/group',
 			array(
@@ -103,6 +127,13 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 		$group_styles = $theme_json['styles']['blocks']['core/group'] ?? array();
 		$expected     = array(
 			'variations' => array(
+				// @ticket 61440
+				'WithSlug'                => array(
+					'color' => array(
+						'background' => 'aliceblue',
+						'text'       => 'midnightblue',
+					),
+				),
 				'my-variation'            => $variation_styles_data,
 
 				/*
@@ -126,7 +157,8 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 		);
 
 		unregister_block_style( 'core/group', 'my-variation' );
+		unregister_block_style( 'core/group', 'WithSlug' );
 
-		$this->assertSameSetsWithIndex( $group_styles, $expected );
+		$this->assertSameSetsWithIndex( $expected, $group_styles );
 	}
 }
