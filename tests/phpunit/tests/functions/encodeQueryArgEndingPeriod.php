@@ -9,9 +9,9 @@
 class Tests_Functions__EncodeQueryArgEndingPeriod extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider data__encode_query_arg_ending_period
-	 *
 	 * @ticket 42957
+	 *
+	 * @dataProvider data__encode_query_arg_ending_period
 	 *
 	 * @param string $url      URL to test.
 	 * @param string $expected Expected result.
