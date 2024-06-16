@@ -8867,7 +8867,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  * If the URL ends with a period, replace it with %2E to avoid
  * misinterpretation from some email clients.
  *
- * @since 5.9.0
+ * @since 6.6.0
  *
  * @param string $url The URL to encode.
  * @return string The new encoded URL.
