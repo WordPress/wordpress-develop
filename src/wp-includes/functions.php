@@ -8872,7 +8872,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  * @param string $url The URL to encode.
  * @return string The new encoded URL.
  */
-function wp_url_encode_ending_period( $url ) {
+function _encode_query_arg_ending_period( $url ) {
 	if ( ! is_string( $url ) ) {
 		return '';
 	}
