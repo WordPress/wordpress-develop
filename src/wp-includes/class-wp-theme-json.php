@@ -1247,7 +1247,7 @@ class WP_Theme_JSON {
 	 * @since 5.8.0
 	 * @since 5.9.0 Removed the `$type` parameter, added the `$types` and `$origins` parameters.
 	 * @since 6.3.0 Add fallback layout styles for Post Template when block gap support isn't available.
-	 * @since 6.6.0 Added `skip_root_layout_styles` option to omit layout styles if desired.
+	 * @since 6.6.0 Added boolean `skip_root_layout_styles` option to omit layout styles if desired.
 	 *
 	 * @param string[] $types   Types of styles to load. Will load all by default. It accepts:
 	 *                          - `variables`: only the CSS Custom Properties for presets & custom ones.
