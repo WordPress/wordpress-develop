@@ -2447,6 +2447,7 @@ class WP_Theme_JSON {
 	 *     ]
 	 *
 	 * @since 5.8.0
+	 * @since 6.6.0 Added options array for modifying generated nodes.
 	 *
 	 * @param array $theme_json The tree to extract style nodes from.
 	 * @param array $selectors  List of selectors per block.
@@ -2499,7 +2500,7 @@ class WP_Theme_JSON {
 			return $nodes;
 		}
 
-		$block_nodes = static::get_block_nodes( $theme_json, $options );
+		$block_nodes = static::get_block_nodes( $theme_json, $selectors, $options );
 		foreach ( $block_nodes as $block_node ) {
 			$nodes[] = $block_node;
 		}
@@ -2570,8 +2571,10 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.1.0
 	 * @since 6.3.0 Refactored and stabilized selectors API.
+	 * @since 6.6.0 Added optional selectors and options for generating block nodes.
 	 *
 	 * @param array $theme_json The theme.json converted to an array.
+	 * @param array $selectors  Optional list of selectors per block.
 	 * @param array $options {
 	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
 	 *
@@ -2579,8 +2582,8 @@ class WP_Theme_JSON {
 	 * }
 	 * @return array The block nodes in theme.json.
 	 */
-	private static function get_block_nodes( $theme_json, $options = array() ) {
-		$selectors = static::get_blocks_metadata();
+	private static function get_block_nodes( $theme_json, $selectors = array(), $options = array() ) {
+		$selectors = empty( $selectors ) ? static::get_blocks_metadata() : $selectors;
 		$nodes     = array();
 		if ( ! isset( $theme_json['styles'] ) ) {
 			return $nodes;
