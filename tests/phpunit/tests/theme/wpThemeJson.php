@@ -5530,8 +5530,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 			),
 		);
+		$selectors  = array();
 
-		$block_nodes       = $func->invoke( null, $theme_json );
+		$block_nodes       = $func->invoke( null, $theme_json, $selectors );
 		$button_variations = $block_nodes[0]['variations'] ?? array();
 
 		$this->assertEquals( array(), $button_variations );
@@ -5565,9 +5566,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 			),
 		);
+		$selectors  = array();
 		$options    = array( 'block_style_variations' => true );
 
-		$block_nodes       = $func->invoke( null, $theme_json, $options );
+		$block_nodes       = $func->invoke( null, $theme_json, $selectors, $options );
 		$button_variations = $block_nodes[0]['variations'] ?? array();
 
 		$expected = array(
