@@ -6,7 +6,7 @@
  * @group  functions.php
  * @covers ::_encode_query_arg_ending_period
  */
-class Tests_Functions_WpUrlEncodeEndingPeriod extends WP_UnitTestCase {
+class Tests_Functions__EncodeQueryArgEndingPeriod extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data__encode_query_arg_ending_period
