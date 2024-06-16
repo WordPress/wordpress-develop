@@ -95,7 +95,7 @@ class WP_Recovery_Mode {
 		add_action( 'wp_logout', array( $this, 'exit_recovery_mode' ) );
 		add_action( 'login_form_' . self::EXIT_ACTION, array( $this, 'handle_exit_recovery_mode' ) );
 		add_action( 'recovery_mode_clean_expired_keys', array( $this, 'clean_expired_keys' ) );
-		add_action( 'wp_install', array( $this, 'remove_orphaned_recovery_mode_cron_event' ), 10, 1 );
+		add_action( 'wp_install', array( $this, 'remove_orphaned_recovery_mode_cron_event' ) );
 
 		if ( ! wp_next_scheduled( 'recovery_mode_clean_expired_keys' ) && ! wp_installing() ) {
 			wp_schedule_event( time(), 'daily', 'recovery_mode_clean_expired_keys' );
