@@ -8868,6 +8868,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  * misinterpretation from some email clients.
  *
  * @since 6.6.0
+ * @access private
  *
  * @param string $url The URL to encode.
  * @return string The new encoded URL.
