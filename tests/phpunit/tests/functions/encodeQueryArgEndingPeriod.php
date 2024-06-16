@@ -1,23 +1,23 @@
 <?php
 
 /**
- * Tests for wp_url_encode_ending_period()
+ * Tests for _encode_query_arg_ending_period()
  *
  * @group  functions.php
- * @covers ::wp_url_encode_ending_period
+ * @covers ::_encode_query_arg_ending_period
  */
 class Tests_Functions_WpUrlEncodeEndingPeriod extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider data_wp_url_encode_ending_period
+	 * @dataProvider data__encode_query_arg_ending_period
 	 *
 	 * @ticket 42957
 	 *
 	 * @param string $url      URL to test.
 	 * @param string $expected Expected result.
 	 */
-	public function test_wp_url_encode_ending_period( $url, $expected ) {
-		$this->assertSame( $expected, wp_url_encode_ending_period( $url ) );
+	public function test__encode_query_arg_ending_period( $url, $expected ) {
+		$this->assertSame( $expected, _encode_query_arg_ending_period( $url ) );
 	}
 
 	/**
@@ -25,7 +25,7 @@ class Tests_Functions_WpUrlEncodeEndingPeriod extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_url_encode_ending_period() {
+	public function data__encode_query_arg_ending_period() {
 		return array(
 			'empty string'            => array(
 				'input'    => '',
