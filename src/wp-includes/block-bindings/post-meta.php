@@ -47,7 +47,10 @@ function _block_bindings_post_meta_get_value( array $source_args, $block_instanc
 		return null;
 	}
 
-	return get_post_meta( $post_id, $source_args['key'], true );
+	$value = get_post_meta( $post_id, $source_args['key'], true );
+	$value = apply_filters( '_block_bindings_post_meta_value', $value, $source_args['key'], $post_id );
+
+	return $value;
 }
 
 /**
