@@ -1955,8 +1955,9 @@ HTML;
 	 */
 	public static function data_html_containing_various_kinds_of_html_comments() {
 		return array(
-			'Normative HTML comment'            => array( 'before<!-- this is a comment -->after', 'before<!-- this is a comment -->after' ),
-			'Closing tag with invalid tag name' => array( 'before<//not a tag>after', 'before<//not a tag>after' ),
+			'Normative HTML comment'                          => array( 'before<!-- this is a comment -->after', 'before<!-- this is a comment -->after' ),
+			'Closing tag with invalid tag name'               => array( 'before<//not a tag>after', 'before<//not a tag>after' ),
+			'Incorrectly opened comment (Markup declaration)' => array( 'before<!also not a tag>after', 'before<!also not a tag>after' ),
 		);
 	}
 
