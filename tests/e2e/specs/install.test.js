@@ -9,13 +9,14 @@ import { join } from 'node:path';
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
+let wpConfigOriginal;
+
 test.describe( 'WordPress installation process', () => {
 	const wpConfig = join(
 		process.cwd(),
 		'wp-config.php',
 	);
 
-	let wpConfigOriginal;
 
 	test.beforeEach( async () => {
 		wpConfigOriginal = readFileSync( wpConfig, 'utf-8' );
@@ -45,28 +46,28 @@ test.describe( 'WordPress installation process', () => {
 		// ).not.toBeVisible();
 
 		// First page: language selector. Keep default English (US).
-		await page.getByLabel( 'Continue' ).click();
+		await page.getByRole( 'button', { name: 'Continue' } ).click();
 
 		// Second page: enter site name, username & password.
 
-		await expect( page.getByLabel( 'Welcome' ) ).toBeVisible();
+		await expect( page.getByRole( 'heading', { name: 'Welcome' } ) ).toBeVisible();
 
 		// This information matches tools/local-env/scripts/install.js.
 
 		await page.getByLabel( 'Site Title' ).fill( 'WordPress Develop' );
 		await page.getByLabel( 'Username' ).fill( 'admin' );
-		await page.getByLabel( 'Password' ).fill( '' );
-		await page.getByLabel( 'Password' ).fill( 'password' );
+		await page.getByLabel( 'Password', { exact: true } ).fill( '' );
+		await page.getByLabel( 'Password', { exact: true } ).fill( 'password' );
 		await page.getByLabel( /Confirm use of weak password/ ).check()
 		await page.getByLabel( 'Your Email' ).fill( 'test@test.com' );
 
-		await page.getByLabel( 'Install WordPress' ).click();
+		await page.getByRole( 'button', { name: 'Install WordPress' } ).click();
 
 		// Installation finished, can now log in.
 
-		await expect( page.getByLabel( 'Success!' ) ).toBeVisible();
+		await expect( page.getByRole( 'heading', { name: 'Success!' } ) ).toBeVisible();
 
-		await page.getByLabel( 'Log In' ).click();
+		await page.getByRole( 'link', { name: 'Log In' } ).click();
 
 		await expect(
 			page,
@@ -74,12 +75,12 @@ test.describe( 'WordPress installation process', () => {
 		).toHaveURL( /wp-login\.php$/ );
 
 		await page.getByLabel( 'Username or Email Address' ).fill( 'admin' );
-		await page.getByLabel( 'Password' ).fill( 'password' );
+		await page.getByLabel( 'Password', { exact: true } ).fill( 'password' );
 
-		await page.getByLabel( 'Log In' ).click();
+		await page.getByRole( 'button', { name: 'Log In' } ).click();
 
 		await expect(
-			page.getByRole('heading', { name: 'Welcome to WordPress', level: 2 })
+			page.getByRole( 'heading', { name: 'Welcome to WordPress', level: 2 })
 		).toBeVisible();
 	} );
 } );
