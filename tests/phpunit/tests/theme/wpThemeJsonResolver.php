@@ -1268,6 +1268,22 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 							'url' => 'file:./assets/image.png',
 						),
 					),
+					'blocks'     => array(
+						'core/quote' => array(
+							'background' => array(
+								'backgroundImage' => array(
+									'url' => 'file:./assets/quote.png',
+								),
+							),
+						),
+						'core/verse' => array(
+							'background' => array(
+								'backgroundImage' => array(
+									'url' => 'file:./assets/verse.png',
+								),
+							),
+						),
+					),
 				),
 			)
 		);
@@ -1278,6 +1294,22 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				'background' => array(
 					'backgroundImage' => array(
 						'url' => 'https://example.org/wp-content/themes/example-theme/assets/image.png',
+					),
+				),
+				'blocks'     => array(
+					'core/quote' => array(
+						'background' => array(
+							'backgroundImage' => array(
+								'url' => 'https://example.org/wp-content/themes/example-theme/assets/quote.png',
+							),
+						),
+					),
+					'core/verse' => array(
+						'background' => array(
+							'backgroundImage' => array(
+								'url' => 'https://example.org/wp-content/themes/example-theme/assets/verse.png',
+							),
+						),
 					),
 				),
 			),
@@ -1304,6 +1336,22 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 							'url' => 'file:./assets/image.png',
 						),
 					),
+					'blocks'     => array(
+						'core/quote' => array(
+							'background' => array(
+								'backgroundImage' => array(
+									'url' => 'file:./example/img/quote.jpg',
+								),
+							),
+						),
+						'core/verse' => array(
+							'background' => array(
+								'backgroundImage' => array(
+									'url' => 'file:./example/img/verse.gif',
+								),
+							),
+						),
+					),
 				),
 			)
 		);
@@ -1314,6 +1362,18 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				'href'   => 'https://example.org/wp-content/themes/example-theme/assets/image.png',
 				'target' => 'styles.background.backgroundImage.url',
 				'type'   => 'image/png',
+			),
+			array(
+				'name'   => 'file:./assets/quote.jpg',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/assets/quote.jpg',
+				'target' => 'styles.blocks.core/quote.background.backgroundImage.url',
+				'type'   => 'image/jpeg',
+			),
+			array(
+				'name'   => 'file:./assets/verse.gif',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/assets/verse.gif',
+				'target' => 'styles.blocks.core/verse.background.backgroundImage.url',
+				'type'   => 'image/gif',
 			),
 		);
 
