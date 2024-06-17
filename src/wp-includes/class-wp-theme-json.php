@@ -2646,6 +2646,7 @@ class WP_Theme_JSON {
 	 * @since 6.1.0
 	 * @since 6.6.0 Setting a min-height of HTML when root styles have a background gradient or image.
 	 *              Updated general global styles specificity to 0-1-0.
+	 *              Fixed custom CSS output in block style variations.
 	 *
 	 * @param array $block_metadata Metadata about the block to get styles for.
 	 *
