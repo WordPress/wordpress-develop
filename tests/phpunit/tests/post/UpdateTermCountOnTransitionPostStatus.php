@@ -56,18 +56,6 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	}
 
 	/**
-	 * Tear down.
-	 */
-	public function tearDown(): void {
-		wp_delete_post( $this->post_id, true );
-		wp_delete_term( $this->term_id, $this->taxonomy );
-		unregister_post_type( $this->post_type );
-		unregister_taxonomy( $this->taxonomy );
-
-		parent::tearDown();
-	}
-
-	/**
 	 * Test that the term count is updated when a post is published.
 	 *
 	 * @ticket 42522
