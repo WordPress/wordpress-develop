@@ -474,6 +474,13 @@ function wp_register_block_style_variations_from_theme_json_data( $variations ) 
  * @access private
  */
 function wp_register_block_style_variations_from_theme() {
+	$has_partials_directory = is_dir( get_stylesheet_directory() . '/styles' ) || is_dir( get_template_directory() . '/styles' );
+
+	// Skip any registration of styles if no theme.json or variation partials.
+	if ( ! wp_theme_has_theme_json() && ! $has_partials_directory ) {
+		return;
+	}
+
 	// Partials from `/styles`.
 	$variations_partials = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
 	wp_register_block_style_variations_from_theme_json_data( $variations_partials );
