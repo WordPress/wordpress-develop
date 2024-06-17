@@ -1995,7 +1995,7 @@ function wp_get_word_count_type() {
  * The locales are returned in the format WordPress expects,
  * so "fr-CH" becomes "fr_CH" and "fr" becomes "fr_FR".
  *
- * @since 6.6.0
+ * @since 6.7.0
  *
  * @return string[] Locales list.
  */
