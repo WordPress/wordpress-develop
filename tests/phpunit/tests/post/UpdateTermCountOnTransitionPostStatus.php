@@ -12,12 +12,12 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	/**
 	 * @var int Post ID.
 	 */
-	protected $post_id;
+	protected static $post_id;
 
 	/**
 	 * @var int Term ID.
 	 */
-	protected $term_id;
+	protected static $term_id;
 
 	/**
 	 * @var string Post type.
