@@ -30,7 +30,7 @@ test.describe( 'Fatal error handler', () => {
 		unlinkSync( muPluginFile );
 	} );
 
-	test( 'should display fatal error notice', async ( { page } ) => {
+	test( 'should display fatal error notice', async ( { admin, page } ) => {
 		await admin.visitAdminPage( '/' );
 
 		await expect(
