@@ -2661,6 +2661,7 @@ class WP_Theme_JSON {
 
 		// If there are style variations, generate the declarations for them, including any feature selectors the block may have.
 		$style_variation_declarations = array();
+		$style_variation_custom_css   = array();
 		if ( ! empty( $block_metadata['variations'] ) ) {
 			foreach ( $block_metadata['variations'] as $style_variation ) {
 				$style_variation_node           = _wp_array_get( $this->theme_json, $style_variation['path'], array() );
@@ -2825,6 +2826,11 @@ class WP_Theme_JSON {
 			if ( isset( $style_variation_custom_css[ $style_variation_selector ] ) ) {
 				$block_rules .= $style_variation_custom_css[ $style_variation_selector ];
 			}
+		}
+
+		// 7. Generate and append any custom CSS rules pertaining to nested block style variations.
+		if ( isset( $node['css'] ) && ! $is_root_selector ) {
+			$block_rules .= $this->process_blocks_custom_css( $node['css'], $selector );
 		}
 
 		return $block_rules;
