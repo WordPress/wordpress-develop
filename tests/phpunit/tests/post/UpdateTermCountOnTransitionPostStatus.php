@@ -39,21 +39,25 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 		register_taxonomy( $this->taxonomy, $this->post_type, array( 'public' => true ) );
 	}
 
-		$this->post_id = self::factory()->post->create(
+	/**
+	 * Create shared fixtures.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$post_id = $factory->post->create(
 			array(
-				'post_type'   => $this->post_type,
+				'post_type'   => self::$post_type,
 				'post_status' => 'publish',
 			)
 		);
 
-		$this->term_id = self::factory()->term->create(
+		self::$term_id = $factory->term->create(
 			array(
-				'taxonomy' => $this->taxonomy,
+				'taxonomy' => self::$taxonomy,
 				'name'     => 'Test Category',
 			)
 		);
 
-		wp_set_object_terms( $this->post_id, $this->term_id, $this->taxonomy );
+		wp_set_object_terms( self::$post_id, self::$term_id, self::$taxonomy );
 	}
 
 	/**
