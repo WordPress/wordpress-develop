@@ -1936,11 +1936,13 @@ HTML;
 	 *
 	 * @ticket 61009
 	 *
+	 * @dataProvider data_html_containing_various_kinds_of_html_comments
+	 *
 	 * @param string $html_comment    HTML containing a comment; must not be a valid comment
 	 *                                but must be syntax which a browser interprets as a comment.
 	 * @param string $expected_output How `wp_kses()` ought to transform the comment.
 	 */
-	public function wp_kses_preserves_html_comments( $html_comment, $expected_output ) {
+	public function test_wp_kses_preserves_html_comments( $html_comment, $expected_output ) {
 		$this->assertSame(
 			$expected_output,
 			wp_kses( $html_comment, array() ),
@@ -1955,8 +1957,8 @@ HTML;
 	 */
 	public static function data_html_containing_various_kinds_of_html_comments() {
 		return array(
-			'Normative HTML comment'                          => array( 'before<!-- this is a comment -->after', 'before<!-- this is a comment -->after' ),
-			'Closing tag with invalid tag name'               => array( 'before<//not a tag>after', 'before<//not a tag>after' ),
+			'Normative HTML comment'            => array( 'before<!-- this is a comment -->after', 'before<!-- this is a comment -->after' ),
+			'Closing tag with invalid tag name' => array( 'before<//not a tag>after', 'before<//not a tag>after' ),
 			'Incorrectly opened comment (Markup declaration)' => array( 'before<!also not a tag>after', 'before<!also not a tag>after' ),
 		);
 	}
