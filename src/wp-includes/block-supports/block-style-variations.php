@@ -495,24 +495,5 @@ function wp_register_block_style_variations_from_theme() {
 	$variations_partials = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
 	wp_register_block_style_variations_from_theme_json_data( $variations_partials );
 
-	/*
-	 * Pull the data from the specific origin instead of the merged data.
-	 * This is because, for 6.6, we only support registering block style variations
-	 * for the 'theme' and 'custom' origins but not for 'default' (core theme.json)
-	 * or 'custom' (theme.json in a block).
-	 *
-	 * When/If we add support for every origin, we should switch to using the public API
-	 * instead, e.g.: wp_get_global_styles( array( 'blocks', 'variations' ) ).
-	 */
-
-	// theme.json of the theme.
-	$theme_json_theme = WP_Theme_JSON_Resolver::get_theme_data();
-	$variations_theme = $theme_json_theme->get_data()['styles']['blocks']['variations'] ?? array();
-	wp_register_block_style_variations_from_theme_json_data( $variations_theme );
-
-	// User data linked for this theme.
-	$theme_json_user = WP_Theme_JSON_Resolver::get_user_data();
-	$variations_user = $theme_json_user->get_data()['styles']['blocks']['variations'] ?? array();
-	wp_register_block_style_variations_from_theme_json_data( $variations_user );
 }
 add_action( 'init', 'wp_register_block_style_variations_from_theme' );

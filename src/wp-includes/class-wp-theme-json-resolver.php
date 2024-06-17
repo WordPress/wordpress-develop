@@ -247,6 +247,14 @@ class WP_Theme_JSON_Resolver {
 				$theme_json_data = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
 			}
 
+			// Register variations defined by the theme.
+			$variations = $theme_json_data['styles']['blocks']['variations'] ?? array();
+			wp_register_block_style_variations_from_theme_json_data( $variations );
+
+			// Process theme partials (theme.json files in the styles directory).
+			$variations = self::get_style_variations( 'block' );
+			wp_register_block_style_variations_from_theme_json_data( $variations );
+
 			/**
 			 * Filters the data provided by the theme for global styles and settings.
 			 *
@@ -528,6 +536,10 @@ class WP_Theme_JSON_Resolver {
 				unset( $decoded_data['isGlobalStylesUserThemeJSON'] );
 				$config = $decoded_data;
 			}
+
+			// Register variations defined by the user.
+			$variations = $config['styles']['blocks']['variations'] ?? array();
+			wp_register_block_style_variations_from_theme_json_data( $variations );
 		}
 
 		/** This filter is documented in wp-includes/class-wp-theme-json-resolver.php */
