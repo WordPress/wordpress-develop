@@ -31,9 +31,16 @@ test.describe( 'Fatal error handler', () => {
 	} );
 
 	test( 'should display fatal error notice', async ( { page } ) => {
-		await page.goto( '/' );
+		await admin.visitAdminPage( '/' );
+
 		await expect(
-			page.getByText( /There has been a critical error on this website\./ )
+			page.getByText( /^Fatal error:/ ),
+			'should display PHP error message'
+		).toBeVisible();
+
+		await expect(
+			page.getByText( /There has been a critical error on this website\./ ),
+			'should display WordPress fatal error handler message'
 		).toBeVisible();
 	} );
 } );
