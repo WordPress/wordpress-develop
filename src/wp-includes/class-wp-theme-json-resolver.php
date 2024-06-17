@@ -710,7 +710,6 @@ class WP_Theme_JSON_Resolver {
 	 * @since 6.6.0
 	 *
 	 * @param array $variation Theme.json shaped style variation object.
-	 *
 	 * @return string
 	 */
 	protected static function get_style_variation_scope( $variation ) {
@@ -781,7 +780,7 @@ class WP_Theme_JSON_Resolver {
 
 				if ( $variation_scope ) {
 					$translated = static::translate( $decoded_file, wp_get_theme()->get( 'TextDomain' ) );
-					$variation  = ( new WP_Theme_JSON_Gutenberg( $translated ) )->get_raw_data();
+					$variation  = ( new WP_Theme_JSON( $translated ) )->get_raw_data();
 
 					if ( empty( $variation['title'] ) ) {
 						$variation['title'] = basename( $path, '.json' );
