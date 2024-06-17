@@ -299,6 +299,7 @@ function wp_get_global_styles_custom_css() {
  * Adds global style rules to the inline style for each block.
  *
  * @since 6.1.0
+ * @since 6.7.0 Resolve relative paths in block styles.
  *
  * @global WP_Styles $wp_styles
  */
@@ -306,6 +307,7 @@ function wp_add_global_styles_for_blocks() {
 	global $wp_styles;
 
 	$tree        = WP_Theme_JSON_Resolver::get_merged_data();
+	$tree        = WP_Theme_JSON_Resolver::resolve_theme_file_uris( $tree );
 	$block_nodes = $tree->get_styles_block_nodes();
 
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
