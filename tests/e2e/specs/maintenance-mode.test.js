@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
+import { writeFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
