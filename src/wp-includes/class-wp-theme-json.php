@@ -2454,7 +2454,7 @@ class WP_Theme_JSON {
 	 * @param array $options {
 	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
 	 *
-	 *     @type bool   $block_style_variations  Includes style nodes for block style variations. Default false.
+	 *     @type bool $block_style_variations Includes style nodes for block style variations. Default false.
 	 * }
 	 * @return array An array of style nodes metadata.
 	 */
