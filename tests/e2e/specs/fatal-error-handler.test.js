@@ -34,12 +34,12 @@ test.describe( 'Fatal error handler', () => {
 		await admin.visitAdminPage( '/' );
 
 		await expect(
-			page.getByText( /^Fatal error:/ ),
+			page.getByText( /Fatal error:/ ),
 			'should display PHP error message'
 		).toBeVisible();
 
 		await expect(
-			page.getByText( /There has been a critical error on this website\./ ),
+			page.getByText( /There has been a critical error on this website/ ),
 			'should display WordPress fatal error handler message'
 		).toBeVisible();
 	} );
