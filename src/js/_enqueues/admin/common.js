@@ -1863,7 +1863,7 @@ $( function() {
 			}
 
 			elements.each( function() {
-				$( this ).removeAttr( 'aria-haspopup' ):
+				$( this ).removeAttr( 'aria-haspopup' );
 			} );
 		},
 
