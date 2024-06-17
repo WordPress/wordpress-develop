@@ -5567,7 +5567,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 		$selectors  = array();
-		$options    = array( 'block_style_variations' => true );
+		$options    = array( 'include_block_style_variations' => true );
 
 		$block_nodes       = $func->invoke( null, $theme_json, $selectors, $options );
 		$button_variations = $block_nodes[0]['variations'] ?? array();
