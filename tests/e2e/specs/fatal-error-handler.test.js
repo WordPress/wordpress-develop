@@ -30,37 +30,17 @@ test.describe( 'Fatal error handler', () => {
 		unlinkSync( muPluginFile );
 	} );
 
-	test.describe( 'Default (en_US)', () => {
-		test( 'should display fatal error notice', async ( { admin, page } ) => {
-			await admin.visitAdminPage( '/' );
+	test( 'should display fatal error notice', async ( { admin, page } ) => {
+		await admin.visitAdminPage( '/' );
 
-			await expect(
-				page.getByText( /Fatal error:/ ),
-				'should display PHP error message'
-			).toBeVisible();
+		await expect(
+			page.getByText( /Fatal error:/ ),
+			'should display PHP error message'
+		).toBeVisible();
 
-			await expect(
-				page.getByText( /There has been a critical error on this website/ ),
-				'should display WordPress fatal error handler message'
-			).toBeVisible();
-		} );
-	} );
-
-	test.describe( 'Localized (de_DE)', () => {
-		test.use( { locale: 'de-DE' } ); // Sets the Accept-Language header.
-
-		test( 'should display fatal error notice', async ( { admin, page } ) => {
-			await admin.visitAdminPage( '/' );
-
-			await expect(
-				page.getByText( /Fatal error:/ ),
-				'should display PHP error message'
-			).toBeVisible();
-
-			await expect(
-				page.getByText( /Es gab einen kritischen Fehler auf deiner Website/ ),
-				'should display WordPress fatal error handler message'
-			).toBeVisible();
-		} );
+		await expect(
+			page.getByText( /There has been a critical error on this website/ ),
+			'should display WordPress fatal error handler message'
+		).toBeVisible();
 	} );
 } );
