@@ -731,7 +731,7 @@ class WP_Theme_JSON_Resolver {
 		static::$user                     = null;
 		static::$user_custom_post_type_id = null;
 		static::$i18n_schema              = null;
-		delete_persitent_cache();
+		static::delete_persitent_cache();
 	}
 
 	/**
