@@ -10,7 +10,7 @@
 class Tests_dashboard_wp_check_browser_version extends WP_UnitTestCase {
 
 	public function set_up() {
-		/** Load WordPress dashboard API */
+		/* Load WordPress dashboard API */
 		require_once ABSPATH . 'wp-admin/includes/dashboard.php';
 	}
 
