@@ -1995,6 +1995,8 @@ function wp_get_word_count_type() {
  * The locales are returned in the format WordPress expects,
  * so "fr-CH" becomes "fr_CH" and "fr" becomes "fr_FR".
  *
+ * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language
+ *
  * @since 6.7.0
  *
  * @return string[] Locales list.
@@ -2004,7 +2006,8 @@ function get_locales_from_accept_language_header() {
 
 	if ( ! empty( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) && is_string( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
 		$matches = array();
-		preg_match_all( '((?P<code>[a-z-_A-Z]{2,5}|\*)([;q=]+?(?P<prio>1|0\.\d))?)', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches );
+		// Parses a header value such as "fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5".
+		preg_match_all( '((?P<code>[a-z-_A-Z]+|\*)([;q=]+?(?P<prio>1|0\.\d))?)', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches );
 
 		if ( empty( $matches['code'] ) ) {
 			return $locales;
@@ -2012,7 +2015,7 @@ function get_locales_from_accept_language_header() {
 
 		$codes = $matches['code'];
 
-		// An empty prio defaults to 1.
+		// An empty priority defaults to 1.
 		$prios = array_map(
 			static function ( $value ) {
 				if ( '' === $value ) {

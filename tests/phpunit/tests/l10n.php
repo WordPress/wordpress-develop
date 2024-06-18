@@ -628,7 +628,11 @@ class Tests_L10n extends WP_UnitTestCase {
 	 * @dataProvider data_get_locales_from_accept_language_header
 	 */
 	public function test_get_locales_from_accept_language_header( $input, $expected, $has_transient = false ) {
-		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = $input;
+		if ( 'missing' === $input ) {
+			unset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] );
+		} else {
+			$_SERVER['HTTP_ACCEPT_LANGUAGE'] = $input;
+		}
 
 		if ( $has_transient ) {
 			// Fetches available translations and stores them in a transient.
@@ -650,6 +654,10 @@ class Tests_L10n extends WP_UnitTestCase {
 	public static function data_get_locales_from_accept_language_header() {
 		return array(
 			'Missing header'                          => array(
+				'missing', // Will be handled specially in the test.
+				array(),
+			),
+			'Null header'                             => array(
 				null,
 				array(),
 			),
@@ -697,10 +705,31 @@ class Tests_L10n extends WP_UnitTestCase {
 				),
 				true,
 			),
-			'Multiple types, weighed'                 => array(
-				'fr-CH, fr;q=0.7, en;q=0.6, de;q=0.8, es-ES;q=0.5',
+			// en-GB-oxendict is supported by Chrome, ca-valencia by Firefox.
+			'Longer variants'                         => array(
+				'en-GB-oxendict, de-DE, ca-valencia, ca',
 				array(
-					'fr_CH',
+					'en_GB_oxendict',
+					'de_DE',
+					'ca_valencia',
+					'ca',
+					'ca_CA',
+				),
+			),
+			'Longer variants, with transient'         => array(
+				'en-GB-oxendict, de-DE, ca-valencia, ca',
+				array(
+					'de_DE',
+					// Absent because there is no language pack for ca_valencia yet, see https://make.wordpress.org/polyglots/teams/.
+					//'ca_valencia',
+					'ca',
+				),
+				true,
+			),
+			'Multiple types, weighed'                 => array(
+				'fr-BE, fr;q=0.7, en;q=0.6, de;q=0.8, es-ES;q=0.5',
+				array(
+					'fr_BE',
 					'de',
 					'de_DE',
 					'fr',
@@ -708,10 +737,9 @@ class Tests_L10n extends WP_UnitTestCase {
 				),
 			),
 			'Multiple types, weighed, with transient' => array(
-				'fr-CH, fr;q=0.7, en;q=0.6, de;q=0.8, es-ES;q=0.5',
+				'fr-BE, fr;q=0.7, en;q=0.6, de;q=0.8, es-ES;q=0.5',
 				array(
-					// Absent because WordPress is not fully translated into it.
-					// 'fr_CH',
+					'fr_BE',
 					'de_AT',
 					'de_CH',
 					'de_CH_informal',
@@ -724,9 +752,9 @@ class Tests_L10n extends WP_UnitTestCase {
 				true,
 			),
 			'Multiple types, weighed, with wildcard'  => array(
-				'fr-CH, fr;q=0.7, *;q=0.6, de;q=0.8, es-ES;q=0.5',
+				'fr-BE, fr;q=0.7, *;q=0.6, de;q=0.8, es-ES;q=0.5',
 				array(
-					'fr_CH',
+					'fr_BE',
 					'de',
 					'de_DE',
 					'fr',
@@ -734,10 +762,9 @@ class Tests_L10n extends WP_UnitTestCase {
 				),
 			),
 			'Multiple types, weighed, with wildcard, with transient' => array(
-				'fr-CH, fr;q=0.7, *;q=0.6, de;q=0.8, es-ES;q=0.5',
+				'fr-BE, fr;q=0.7, *;q=0.6, de;q=0.8, es-ES;q=0.5',
 				array(
-					// Absent because WordPress is not fully translated into it.
-					// 'fr_CH',
+					'fr_BE',
 					'de_AT',
 					'de_CH',
 					'de_CH_informal',
