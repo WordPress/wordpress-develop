@@ -178,7 +178,7 @@ class WP_Theme_JSON_Resolver {
 		 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
 		 * compatible class that is not a WP_Theme_JSON_Data object.
 		 */
-		if ( is_a( $theme_json, 'WP_Theme_JSON_Data' ) ) {
+		if ( $theme_json instanceof WP_Theme_JSON_Data ) {
 			static::$core = $theme_json->get_theme_json();
 		} else {
 			$config       = $theme_json->get_data();
@@ -269,7 +269,7 @@ class WP_Theme_JSON_Resolver {
 			 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
 			 * compatible class that is not a WP_Theme_JSON_Data object.
 			 */
-			if ( is_a( $theme_json, 'WP_Theme_JSON_Data' ) ) {
+			if ( $theme_json instanceof WP_Theme_JSON_Data ) {
 				static::$theme = $theme_json->get_theme_json();
 			} else {
 				$config        = $theme_json->get_data();
@@ -410,7 +410,7 @@ class WP_Theme_JSON_Resolver {
 		 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
 		 * compatible class that is not a WP_Theme_JSON_Data object.
 		 */
-		if ( is_a( $theme_json, 'WP_Theme_JSON_Data' ) ) {
+		if ( $theme_json instanceof WP_Theme_JSON_Data ) {
 			static::$blocks = $theme_json->get_theme_json();
 		} else {
 			$config         = $theme_json->get_data();
@@ -555,7 +555,7 @@ class WP_Theme_JSON_Resolver {
 				 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
 				 * compatible class that is not a WP_Theme_JSON_Data object.
 				 */
-				if ( is_a( $theme_json, 'WP_Theme_JSON_Data' ) ) {
+				if ( $theme_json instanceof WP_Theme_JSON_Data ) {
 					return $theme_json->get_theme_json();
 				} else {
 					$config = $theme_json->get_data();
@@ -584,7 +584,7 @@ class WP_Theme_JSON_Resolver {
 		 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
 		 * compatible class that is not a WP_Theme_JSON_Data object.
 		 */
-		if ( is_a( $theme_json, 'WP_Theme_JSON_Data' ) ) {
+		if ( $theme_json instanceof WP_Theme_JSON_Data ) {
 			static::$user = $theme_json->get_theme_json();
 		} else {
 			$config       = $theme_json->get_data();
