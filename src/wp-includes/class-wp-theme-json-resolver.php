@@ -196,7 +196,7 @@ class WP_Theme_JSON_Resolver {
 		if ( $can_use_cached ) {
 			$cache_key = 'registered_blocks_cache';
 			if ( static::is_block_cache_empty() ) {
-				$cache = static::get_from_persitent_cache( $cache_key );
+				$cache = static::get_cache_data( $cache_key );
 				if ( $cache ) {
 					static::$blocks_cache = $cache;
 				}
@@ -217,7 +217,7 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		if ( $can_use_cached ) {
-			static::set_persitent_cache( $cache_key, static::$blocks_cache );
+			static::set_cache_data( $cache_key, static::$blocks_cache );
 		}
 
 		return false;
@@ -255,7 +255,7 @@ class WP_Theme_JSON_Resolver {
 		if ( $can_use_cached ) {
 			$cache_key = 'get_theme_data_resolver';
 			if ( null === static::$theme ) {
-				$cache_value = static::get_from_persitent_cache( $cache_key );
+				$cache_value = static::get_cache_data( $cache_key );
 				if ( $cache_value ) {
 					/**
 					 * Filters the data provided by the theme for global styles and settings.
@@ -263,6 +263,7 @@ class WP_Theme_JSON_Resolver {
 					$theme_json    = apply_filters( 'wp_theme_json_data_theme', $cache_value );
 					static::$theme = $theme_json->get_theme_json();
 
+					$wp_theme = wp_get_theme();
 					if ( $wp_theme->parent() ) {
 						$parent_theme_json_file = $wp_theme->parent()->get_file_path( 'theme.json' );
 						if ( $theme_json_file !== $parent_theme_json_file && is_readable( $parent_theme_json_file ) ) {
@@ -289,7 +290,7 @@ class WP_Theme_JSON_Resolver {
 
 			$theme_json = new WP_Theme_JSON_Data( $theme_json_data, 'theme' );
 			if ( $can_use_cached ) {
-				static::set_persitent_cache( $cache_key, $theme_json );
+				static::set_cache_data( $cache_key, $theme_json );
 			}
 
 			/**
@@ -727,7 +728,7 @@ class WP_Theme_JSON_Resolver {
 	 * @param string $cache_key The key to get the cache from.
 	 * @return mixed The cache value.
 	 */
-	private static function get_from_persitent_cache( $cache_key ) {
+	private static function get_cache_data( $cache_key ) {
 		$cache = get_site_transient( 'wp_theme_json_resolver_cache' );
 		if ( $cache && isset( $cache[ $cache_key ] ) ) {
 			return $cache[ $cache_key ];
@@ -744,7 +745,7 @@ class WP_Theme_JSON_Resolver {
 	 * @param mixed $value The value to set in the cache.
 	 * @return bool True if the value was set, false otherwise.
 	 */
-	private static function set_persitent_cache( $cache_key, $value ) {
+	private static function set_cache_data( $cache_key, $value ) {
 		// This should be inexpensive as DB only happenes once per pageload.
 		$cache = get_site_transient( 'wp_theme_json_resolver_cache' );
 		if ( null === $cache ) {
