@@ -544,6 +544,10 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 				$variations = require $variations_path;
 				return $variations;
 			};
+			// The block instance's `variations` field is only allowed to be an array
+			// (of known block variations). We unset it so that the block instance will
+			// provide a getter that returns the result of the `variation_callback` instead.
+			unset( $settings['variations'] );
 		}
 	}
 

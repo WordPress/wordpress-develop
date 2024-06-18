@@ -977,15 +977,15 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		remove_filter( 'block_type_metadata', $filter_metadata_registration );
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result, 'The block was not registered' );
-		$this->assertSame( 'variations.php', $result->variations, 'The block variations are incorrect' );
-		$this->assertIsCallable( $result->variation_callback, 'The variation callback hasn\'t been set' );
 
+		$this->assertIsCallable( $result->variation_callback, 'The variation callback hasn\'t been set' );
 		$expected_variations = require DIR_TESTDATA . '/blocks/notice/variations.php';
 		$this->assertSame(
 			$expected_variations,
 			call_user_func( $result->variation_callback ),
 			'The variation callback hasn\'t been set correctly'
 		);
+		$this->assertSame( $expected_variations, $result->variations, 'The block variations are incorrect' );
 	}
 
 	/**
