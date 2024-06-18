@@ -193,11 +193,13 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		$can_use_cached = ! wp_is_development_mode( 'theme' );
-		if ( $can_use_cached && static::is_block_cache_empty() ) {
+		if ( $can_use_cached ) {
 			$cache_key = 'registered_blocks_cache';
-			if ( null === static::$persistent_blocks_cache ) {
+			if ( static::is_block_cache_empty() ) {
 				$cache = static::get_from_persitent_cache( $cache_key );
-
+				if ( $cache ) {
+					static::$blocks_cache = $cache;
+				}
 			}
 		}
 
@@ -212,6 +214,10 @@ class WP_Theme_JSON_Resolver {
 
 		foreach ( $blocks as $block_name => $block_type ) {
 			static::$blocks_cache[ $origin ][ $block_name ] = true;
+		}
+
+		if ( $can_use_cached ) {
+			static::set_persitent_cache( $cache_key, static::$blocks_cache );
 		}
 
 		return false;
