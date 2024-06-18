@@ -273,7 +273,7 @@ class WP_Theme_JSON_Resolver {
 
 		$can_use_cached = ! wp_is_development_mode( 'theme' );
 		if ( $can_use_cached ) {
-			$cache_key = 'get_theme_data_cache_' . md5( wp_json_encode( $options ) );
+			$cache_key = 'get_theme_data_resolver';
 			if ( null === static::$theme ) {
 				$cache_value = static::get_from_persitent_cache( $cache_key );
 				if ( $cache_value ) {
