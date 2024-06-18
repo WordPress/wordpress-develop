@@ -78,9 +78,9 @@ class Tests_dashboard_wp_check_browser_version extends WP_UnitTestCase {
 			'img_src'         => '',
 			'img_src_ssl'     => '',
 			'current_version' => '',
-			'upgrade'  => false,
-			'insecure' => false,
-			'mobile'   => true,
+			'upgrade'         => false,
+			'insecure'        => false,
+			'mobile'          => true,
 		);
 
 		$this->assertSame( $expected, wp_check_browser_version() );
