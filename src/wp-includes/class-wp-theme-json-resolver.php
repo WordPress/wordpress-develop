@@ -158,12 +158,30 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON Entity that holds core data.
 	 */
 	public static function get_core_data() {
+		$can_use_cached = ! wp_is_development_mode( 'theme' );
+		if ( $can_use_cached ) {
+			$cache_key = 'core_data';
+			if ( null === static::$core ) {
+				$cache_value = static::get_cache_data( $cache_key );
+				if ( $cache_value ) {
+					// Defined in this function below.
+					$theme_json   = apply_filters( 'wp_theme_json_data_default', $cache_value );
+					static::$core = $theme_json->get_theme_json();
+				}
+			}
+		}
+
 		if ( null !== static::$core && static::has_same_registered_blocks( 'core' ) ) {
 			return static::$core;
 		}
 
 		$config = static::read_json_file( __DIR__ . '/theme.json' );
 		$config = static::translate( $config );
+
+		$theme_json = new WP_Theme_JSON_Data( $config, 'default' );
+		if ( $can_use_cached ) {
+			static::set_cache_data( $cache_key, $theme_json );
+		}
 
 		/**
 		 * Filters the default data provided by WordPress for global styles & settings.
@@ -172,7 +190,7 @@ class WP_Theme_JSON_Resolver {
 		 *
 		 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 		 */
-		$theme_json   = apply_filters( 'wp_theme_json_data_default', new WP_Theme_JSON_Data( $config, 'default' ) );
+		$theme_json   = apply_filters( 'wp_theme_json_data_default', $theme_json );
 		static::$core = $theme_json->get_theme_json();
 		return static::$core;
 	}
@@ -253,13 +271,11 @@ class WP_Theme_JSON_Resolver {
 
 		$can_use_cached = ! wp_is_development_mode( 'theme' );
 		if ( $can_use_cached ) {
-			$cache_key = 'get_theme_data_resolver';
+			$cache_key = 'theme_data';
 			if ( null === static::$theme ) {
 				$cache_value = static::get_cache_data( $cache_key );
 				if ( $cache_value ) {
-					/**
-					 * Filters the data provided by the theme for global styles and settings.
-					 */
+					// Defined in this function below.
 					$theme_json    = apply_filters( 'wp_theme_json_data_theme', $cache_value );
 					static::$theme = $theme_json->get_theme_json();
 
