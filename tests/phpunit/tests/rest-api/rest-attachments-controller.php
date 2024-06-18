@@ -239,10 +239,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'video',
 			'image',
 			'audio',
+			'text',
 		);
-		if ( ! is_multisite() ) {
-			$media_types[] = 'text';
-		}
 		$this->assertSameSets( $media_types, $data['endpoints'][0]['args']['media_type']['enum'] );
 	}
 
