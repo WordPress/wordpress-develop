@@ -1998,10 +1998,15 @@ function wp_get_word_count_type() {
  * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language
  *
  * @since 6.7.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @return string[] Locales list.
  */
 function get_locales_from_accept_language_header() {
+	global $wpdb;
+
 	$locales = array();
 
 	if ( ! empty( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) && is_string( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
@@ -2038,10 +2043,17 @@ function get_locales_from_accept_language_header() {
 			}
 		);
 
-		// Get list of available translations without potentially deleting an expired transient and causing an HTTP request.
-		$translations = wp_using_ext_object_cache() ?
-			wp_cache_get( 'available_translations', 'site-transient' ) :
-			get_site_option( '_site_transient_available_translations' );
+		$translations = array();
+
+		/*
+		 * Get list of available translations without potentially deleting an expired transient and causing an HTTP request.
+		 * Only works if either the object cache or the database are already available.
+		 */
+		if ( wp_using_ext_object_cache() || wp_installing() ) {
+			$translations = wp_cache_get( 'available_translations', 'site-transient' );
+		} elseif ( isset( $wpdb ) ) {
+			$translations = get_site_option( '_site_transient_available_translations' );
+		}
 
 		$has_available_translations = is_array( $translations ) && ! empty( $translations );
 
