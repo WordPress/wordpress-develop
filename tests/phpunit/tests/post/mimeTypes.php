@@ -9,7 +9,7 @@
  * @covers ::get_available_post_mime_types
  */
 
-class Tests_Get_Available_Post_Mime_Types extends WP_UnitTestCase {
+class Tests_Post_GetAvailablePostMimeTypes extends WP_UnitTestCase {
 
 	public function tear_down() {
 		// Remove all uploads.
