@@ -2007,96 +2007,98 @@ function wp_get_word_count_type() {
 function get_locales_from_accept_language_header() {
 	global $wpdb;
 
+	if ( empty( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) || ! is_string( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
+		return array();
+	}
+
 	$locales = array();
 
-	if ( ! empty( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) && is_string( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
-		$matches = array();
-		// Parses a header value such as "fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5".
-		preg_match_all( '((?P<code>[a-z-_A-Z]+|\*)([;q=]+?(?P<prio>1|0\.\d))?)', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches );
+	$matches = array();
+	// Parses a header value such as "fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5".
+	preg_match_all( '((?P<code>[a-z-_A-Z]+|\*)([;q=]+?(?P<prio>1|0\.\d))?)', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches );
 
-		if ( empty( $matches['code'] ) ) {
-			return $locales;
+	if ( empty( $matches['code'] ) ) {
+		return $locales;
+	}
+
+	$codes = $matches['code'];
+
+	// An empty priority defaults to 1.
+	$prios = array_map(
+		static function ( $value ) {
+			if ( '' === $value ) {
+				return 1.0;
+			}
+
+			return (float) $value;
+		},
+		$matches['prio']
+	);
+
+	// Sort codes by priority.
+	usort(
+		$codes,
+		static function ( $a, $b ) use ( $codes, $prios ) {
+			$index_a = array_search( $a, $codes, true );
+			$index_b = array_search( $b, $codes, true );
+
+			return $prios[ $index_b ] <=> $prios[ $index_a ];
+		}
+	);
+
+	$translations = array();
+
+	/*
+	 * Get list of available translations without potentially deleting an expired transient and causing an HTTP request.
+	 * Only works if either the object cache or the database are already available.
+	 */
+	if ( wp_using_ext_object_cache() ) {
+		wp_start_object_cache();
+		$translations = wp_cache_get( 'available_translations', 'site-transient' );
+	} elseif ( isset( $wpdb ) ) {
+		$translations = get_site_option( '_site_transient_available_translations' );
+	}
+
+	$has_available_translations = is_array( $translations ) && ! empty( $translations );
+
+	foreach ( $codes as $code ) {
+		if ( '*' === $code ) {
+			// Ignore anything after the wildcard, as we can then just default to en_US.
+			break;
 		}
 
-		$codes = $matches['code'];
+		$locale = sanitize_locale_name( str_replace( '-', '_', $code ) );
 
-		// An empty priority defaults to 1.
-		$prios = array_map(
-			static function ( $value ) {
-				if ( '' === $value ) {
-					return 1.0;
-				}
-
-				return (float) $value;
-			},
-			$matches['prio']
-		);
-
-		// Sort codes by priority.
-		usort(
-			$codes,
-			static function ( $a, $b ) use ( $codes, $prios ) {
-				$index_a = array_search( $a, $codes, true );
-				$index_b = array_search( $b, $codes, true );
-
-				return $prios[ $index_b ] <=> $prios[ $index_a ];
-			}
-		);
-
-		$translations = array();
-
-		/*
-		 * Get list of available translations without potentially deleting an expired transient and causing an HTTP request.
-		 * Only works if either the object cache or the database are already available.
-		 */
-		if ( wp_using_ext_object_cache() || wp_installing() ) {
-			wp_start_object_cache();
-			$translations = wp_cache_get( 'available_translations', 'site-transient' );
-		} elseif ( isset( $wpdb ) ) {
-			$translations = get_site_option( '_site_transient_available_translations' );
+		if ( '' === $locale ) {
+			continue;
 		}
 
-		$has_available_translations = is_array( $translations ) && ! empty( $translations );
+		// If English is accepted, then there is no point in adding any other locales after it.
+		if ( 'en' === $locale ) {
+			break;
+		}
 
-		foreach ( $codes as $code ) {
-			if ( '*' === $code ) {
-				// Ignore anything after the wildcard, as we can then just default to en_US.
-				break;
+		if ( $has_available_translations ) {
+			$found = array_keys(
+				array_filter(
+					$translations,
+					static function ( $translation ) use ( $locale, $code ) {
+						return $locale === $translation['language'] || in_array( $code, $translation['iso'], true );
+					}
+				)
+			);
+			sort( $found );
+
+			if ( ! empty( $found ) ) {
+				array_push( $locales, ...$found );
 			}
+		} else {
 
-			$locale = sanitize_locale_name( str_replace( '-', '_', $code ) );
+			$locales[] = $locale;
 
-			if ( '' === $locale ) {
-				continue;
-			}
-
-			// If English is accepted, then there is no point in adding any other locales after it.
-			if ( 'en' === $locale ) {
-				break;
-			}
-
-			if ( $has_available_translations ) {
-				$found = array_keys(
-					array_filter(
-						$translations,
-						static function ( $translation ) use ( $locale ) {
-							return $locale === $translation['language'] || in_array( $locale, $translation['iso'], true );
-						}
-					)
-				);
-				sort( $found );
-
-				if ( ! empty( $found ) ) {
-					array_push( $locales, ...$found );
-				}
-			} else {
-
-				$locales[] = $locale;
-
-				// Fallback approximation, supporting cases like "el", but also "fr" -> "fr_FR",
-				if ( 2 === strlen( $locale ) ) {
-					$locales[] = $locale . '_' . strtoupper( $locale );
-				}
+			// Fallback approximation, supporting cases like "el", but also "fr" -> "fr_FR",
+			if ( 2 === strlen( $locale ) ) {
+				$locales[] = $locale . '_' . strtoupper( $locale );
 			}
 		}
 	}
