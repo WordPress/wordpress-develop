@@ -269,8 +269,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			WP_Theme_JSON_Resolver::get_theme_data();
 
 			// Register user-defined variations.
-			if ( isset( $request['styles']['blocks']['variations'] ) ) {
-				wp_register_block_style_variations_from_theme_json_data( $config['styles']['blocks']['variations'] ?? array() );
+			if ( ! empty( $config['styles']['blocks']['variations'] ) ) {
+				wp_register_block_style_variations_from_theme_json_data( $config['styles']['blocks']['variations'] );
 			}
 
 			if ( isset( $request['settings'] ) ) {
