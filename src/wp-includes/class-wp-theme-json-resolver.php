@@ -34,14 +34,6 @@ class WP_Theme_JSON_Resolver {
 	);
 
 	/**
-	 * Container for keep track of persistent cached blocks.
-	 *
-	 * @since 6.6.0
-	 * @var array
-	 */
-	private static $persistent_blocks_cache = null;
-
-	/**
 	 * Container to keep all related persitiant cache data.
 	 *
 	 * @since 6.6.0
@@ -200,44 +192,34 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @param string $origin Data source for which to cache the blocks.
 	 *                       Valid values are 'core', 'blocks', 'theme', and 'user'.
-	 * @param bool   $persistant_cache Optional. Whether to check the persistent cache. Default false.
 	 * @return bool True on success, false otherwise.
 	 */
-	protected static function has_same_registered_blocks( $origin, $persistant_cache = false ) {
+	protected static function has_same_registered_blocks( $origin ) {
 		// Bail out if the origin is invalid.
 		if ( ! isset( static::$blocks_cache[ $origin ] ) ) {
 			return false;
 		}
 
-		if ( $persistant_cache ) {
-			$cache_key = 'blocks_persistant_cache';
+		$can_use_cached = ! wp_is_development_mode( 'theme' );
+		if ( $can_use_cached && static::is_block_cache_empty() ) {
+			$cache_key = 'registered_blocks_cache';
 			if ( null === static::$persistent_blocks_cache ) {
 				$cache = static::get_from_persitent_cache( $cache_key );
 
-				// Initialize with `static::$blocks_cache` as child class may add a few more origins.
-				static::$persistent_blocks_cache = $cache ? $cache : static::$blocks_cache;
 			}
 		}
 
 		$registry = WP_Block_Type_Registry::get_instance();
 		$blocks   = $registry->get_all_registered();
 
-		// Keep persitant seperate from
-		$cache_variable = $persistant_cache ? 'persistent_blocks_cache' : 'blocks_cache';
-		$cache_variable = &static::${ $cache_variable };
-
 		// Is there metadata for all currently registered blocks?
-		$block_diff = array_diff_key( $blocks, $cache_variable[ $origin ] );
+		$block_diff = array_diff_key( $blocks, static::$blocks_cache[ $origin ] );
 		if ( empty( $block_diff ) ) {
 			return true;
 		}
 
 		foreach ( $blocks as $block_name => $block_type ) {
-			$cache_variable[ $origin ][ $block_name ] = true;
-		}
-
-		if ( $persistant_cache ) {
-			static::set_persitent_cache( $cache_key, static::$persistent_blocks_cache );
+			static::$blocks_cache[ $origin ][ $block_name ] = true;
 		}
 
 		return false;
@@ -297,9 +279,7 @@ class WP_Theme_JSON_Resolver {
 			}
 		}
 
-		$has_theme_changed          = false;
-		$has_same_registered_blocks = $can_use_cached ? static::has_same_registered_blocks( 'theme', true ) : static::has_same_registered_blocks( 'theme' );
-		if ( null === static::$theme || ! $has_same_registered_blocks ) {
+		if ( null === static::$theme || ! static::has_same_registered_blocks( 'theme' ) ) {
 			$wp_theme        = wp_get_theme();
 			$theme_json_file = $wp_theme->get_file_path( 'theme.json' );
 			if ( is_readable( $theme_json_file ) ) {
@@ -747,7 +727,6 @@ class WP_Theme_JSON_Resolver {
 			'theme'  => array(),
 			'user'   => array(),
 		);
-		static::$persistent_blocks_cache  = null;
 		static::$theme                    = null;
 		static::$user                     = null;
 		static::$user_custom_post_type_id = null;
@@ -964,5 +943,21 @@ class WP_Theme_JSON_Resolver {
 		$theme_json->merge( new WP_Theme_JSON( $resolved_theme_json_data ) );
 
 		return $theme_json;
+	}
+
+	/**
+	 * Checks if block cache is fully empty.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return bool True if block cache is empty, false otherwise.
+	 */
+	private static function is_block_cache_empty() {
+		foreach ( static::$blocks_cache as $origin => $blocks ) {
+			if ( ! empty( $blocks ) ) {
+				return false;
+			}
+		}
+		return true;
 	}
 }
