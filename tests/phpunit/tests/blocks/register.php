@@ -966,7 +966,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 */
 	public function test_register_block_type_from_metadata_with_variations_php_file() {
 		$filter_metadata_registration = static function ( $metadata ) {
-			$metadata['variations'] = 'variations.php';
+			$metadata['variations'] = 'file:./variations.php';
 			return $metadata;
 		};
 
