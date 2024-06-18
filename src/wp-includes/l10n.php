@@ -2050,6 +2050,7 @@ function get_locales_from_accept_language_header() {
 		 * Only works if either the object cache or the database are already available.
 		 */
 		if ( wp_using_ext_object_cache() || wp_installing() ) {
+			wp_start_object_cache();
 			$translations = wp_cache_get( 'available_translations', 'site-transient' );
 		} elseif ( isset( $wpdb ) ) {
 			$translations = get_site_option( '_site_transient_available_translations' );
