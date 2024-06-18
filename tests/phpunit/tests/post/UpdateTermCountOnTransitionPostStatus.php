@@ -22,12 +22,12 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	/**
 	 * @var string Post type.
 	 */
-	protected $post_type = 'post';
+	protected static $post_type = 'post';
 
 	/**
 	 * @var string Taxonomy name.
 	 */
-	protected $taxonomy = 'category';
+	protected static $taxonomy = 'category';
 
 	/**
 	 * Set up.
@@ -35,8 +35,8 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	public function set_up(): void {
 		parent::set_up();
 
-		register_post_type( $this->post_type, array( 'public' => true ) );
-		register_taxonomy( $this->taxonomy, $this->post_type, array( 'public' => true ) );
+		register_post_type( self::$post_type, array( 'public' => true ) );
+		register_taxonomy( self::$taxonomy, self::$post_type, array( 'public' => true ) );
 	}
 
 	/**
@@ -66,27 +66,27 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * @ticket 42522
 	 */
 	public function test_update_term_count_on_publish() {
-		$this->assertTermCount( 1, $this->term_id );
+		$this->assertTermCount( 1, self::$term_id );
 
 		// Change post status to draft.
 		wp_update_post(
 			array(
-				'ID'          => $this->post_id,
+				'ID'          => self::$post_id,
 				'post_status' => 'draft',
 			)
 		);
 
-		$this->assertTermCount( 0, $this->term_id );
+		$this->assertTermCount( 0, self::$term_id );
 
 		// Change post status back to publish.
 		wp_update_post(
 			array(
-				'ID'          => $this->post_id,
+				'ID'          => self::$post_id,
 				'post_status' => 'publish',
 			)
 		);
 
-		$this->assertTermCount( 1, $this->term_id );
+		$this->assertTermCount( 1, self::$term_id );
 	}
 
 	/**
@@ -95,12 +95,12 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * @ticket 42522
 	 */
 	public function test_update_term_count_on_trash() {
-		$this->assertTermCount( 1, $this->term_id );
+		$this->assertTermCount( 1, self::$term_id );
 
 		// Move post to trash.
-		wp_trash_post( $this->post_id );
+		wp_trash_post( self::$post_id );
 
-		$this->assertTermCount( 0, $this->term_id );
+		$this->assertTermCount( 0, self::$term_id );
 	}
 
 	/**
@@ -109,22 +109,22 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * @ticket 42522
 	 */
 	public function test_update_term_count_on_restore() {
-		$this->assertTermCount( 1, $this->term_id );
+		$this->assertTermCount( 1, self::$term_id );
 
 		// Move post to trash.
-		wp_trash_post( $this->post_id );
+		wp_trash_post( self::$post_id );
 
-		$this->assertTermCount( 0, $this->term_id, 'Post is in trash.' );
+		$this->assertTermCount( 0, self::$term_id, 'Post is in trash.' );
 
 		// Restore post from trash.
-		wp_untrash_post( $this->post_id );
+		wp_untrash_post( self::$post_id );
 
-		$this->assertTermCount( 0, $this->term_id, 'Post is in draft after untrashing.' );
+		$this->assertTermCount( 0, self::$term_id, 'Post is in draft after untrashing.' );
 
 		// re-publish post.
-		wp_publish_post( $this->post_id );
+		wp_publish_post( self::$post_id );
 
-		$this->assertTermCount( 1, $this->term_id, 'Post is in publish after publishing.' );
+		$this->assertTermCount( 1, self::$term_id, 'Post is in publish after publishing.' );
 	}
 
 	/**
@@ -133,12 +133,12 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * @ticket 42522
 	 */
 	public function test_update_term_count_on_delete() {
-		$this->assertTermCount( 1, $this->term_id );
+		$this->assertTermCount( 1, self::$term_id );
 
 		// Delete post permanently.
-		wp_delete_post( $this->post_id, true );
+		wp_delete_post( self::$post_id, true );
 
-		$this->assertTermCount( 0, $this->term_id );
+		$this->assertTermCount( 0, self::$term_id );
 	}
 
 	/**
@@ -147,12 +147,12 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * @ticket 42522
 	 */
 	public function test_update_term_count_on_remove_term() {
-		$this->assertTermCount( 1, $this->term_id );
+		$this->assertTermCount( 1, self::$term_id );
 
 		// Remove post from term.
-		wp_set_object_terms( $this->post_id, array(), $this->taxonomy );
+		wp_set_object_terms( self::$post_id, array(), self::$taxonomy );
 
-		$this->assertTermCount( 0, $this->term_id );
+		$this->assertTermCount( 0, self::$term_id );
 	}
 
 	/**
@@ -161,19 +161,19 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * @ticket 42522
 	 */
 	public function test_update_term_count_on_add_term() {
-		$this->assertTermCount( 1, $this->term_id );
+		$this->assertTermCount( 1, self::$term_id );
 
 		// Add post to another term.
 		$term_id2 = self::factory()->term->create(
 			array(
-				'taxonomy' => $this->taxonomy,
+				'taxonomy' => self::$taxonomy,
 				'name'     => 'Test Category 2',
 			)
 		);
 
-		wp_set_object_terms( $this->post_id, array( $this->term_id, $term_id2 ), $this->taxonomy );
+		wp_set_object_terms( self::$post_id, array( self::$term_id, $term_id2 ), self::$taxonomy );
 
-		$this->assertTermCount( 1, $this->term_id );
+		$this->assertTermCount( 1, self::$term_id );
 		$this->assertTermCount( 1, $term_id2 );
 	}
 
@@ -183,18 +183,18 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * @ticket 42522
 	 */
 	public function test_update_term_count_on_add_new_post_with_term() {
-		$this->assertTermCount( 1, $this->term_id );
+		$this->assertTermCount( 1, self::$term_id );
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_type'   => $this->post_type,
+				'post_type'   => self::$post_type,
 				'post_status' => 'publish',
 			)
 		);
 
-		wp_set_object_terms( $post_id, $this->term_id, $this->taxonomy );
+		wp_set_object_terms( $post_id, self::$term_id, self::$taxonomy );
 
-		$this->assertTermCount( 2, $this->term_id );
+		$this->assertTermCount( 2, self::$term_id );
 	}
 
 	/**
