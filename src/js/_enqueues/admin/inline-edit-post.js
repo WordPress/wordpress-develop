@@ -275,7 +275,7 @@ window.wp = window.wp || {};
 
 			// Move focus to a proper place when items are removed.
 			if ( $next.length ) {
-				$prev.trigger( 'focus' );
+				$next.trigger( 'focus' );
 			} else if ( $prev.length ) {
 				$prev.trigger( 'focus' );
 			} else {
