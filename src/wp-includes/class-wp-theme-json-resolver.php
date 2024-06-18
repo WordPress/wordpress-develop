@@ -34,14 +34,6 @@ class WP_Theme_JSON_Resolver {
 	);
 
 	/**
-	 * Container to keep all related persitiant cache data.
-	 *
-	 * @since 6.6.0
-	 * @var array
-	 */
-	private static $persistent_all_cache = null;
-
-	/**
 	 * Container for data coming from core.
 	 *
 	 * @since 5.8.0
@@ -719,7 +711,7 @@ class WP_Theme_JSON_Resolver {
 		static::$user                     = null;
 		static::$user_custom_post_type_id = null;
 		static::$i18n_schema              = null;
-		static::delete_persitent_cache();
+		delete_site_transient( 'wp_theme_json_resolver_cache' );
 	}
 
 	/**
@@ -730,12 +722,9 @@ class WP_Theme_JSON_Resolver {
 	 * @return mixed The cache value.
 	 */
 	private static function get_from_persitent_cache( $cache_key ) {
-		if ( null === static::$persistent_all_cache ) {
-			$cache                        = get_site_transient( 'wp_theme_json_resolver_cache' );
-			static::$persistent_all_cache = $cache ? $cache : array();
-		}
-		if ( isset( static::$persistent_all_cache[ $cache_key ] ) ) {
-			return static::$persistent_all_cache[ $cache_key ];
+		$cache = get_site_transient( 'wp_theme_json_resolver_cache' );
+		if ( $cache && isset( $cache[ $cache_key ] ) ) {
+			return $cache[ $cache_key ];
 		}
 		return false;
 	}
@@ -745,28 +734,18 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $cache_key The key to get the cache from.
+	 * @param string $cache_key Cache key.
 	 * @param mixed $value The value to set in the cache.
 	 * @return bool True if the value was set, false otherwise.
 	 */
 	private static function set_persitent_cache( $cache_key, $value ) {
-		if ( null === static::$persistent_all_cache ) {
-			static::$persistent_all_cache = array();
+		// This should be inexpensive as DB only happenes once per pageload.
+		$cache = get_site_transient( 'wp_theme_json_resolver_cache' );
+		if ( null === $cache ) {
+			$cache = array();
 		}
-		static::$persistent_all_cache[ $cache_key ] = $value;
-		return set_site_transient( 'wp_theme_json_resolver_cache', static::$persistent_all_cache, 10 * MINUTE_IN_SECONDS );
-	}
-
-	/**
-	 * Retrieves persistent cache data of this class for given key.
-	 *
-	 * @since 6.6.0
-	 *
-	 * @return bool True if the cache was deleted, false otherwise.
-	 */
-	private static function delete_persitent_cache() {
-		static::$persistent_all_cache = null;
-		return delete_site_transient( 'wp_theme_json_resolver_cache' );
+		$cache[ $cache_key ] = $value;
+		return set_site_transient( 'wp_theme_json_resolver_cache', $cache, 10 * MINUTE_IN_SECONDS );
 	}
 
 	/**
