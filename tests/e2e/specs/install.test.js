@@ -39,11 +39,10 @@ test.describe( 'WordPress installation process', () => {
 			'should redirect to the installation page'
 		).toHaveURL( /wp-admin\/install\.php$/ );
 
-		// Blocked by https://core.trac.wordpress.org/ticket/61312.
-		// await expect(
-		// 	page.getByText( /WordPress database error/ ),
-		// 	'should not have any database errors'
-		// ).not.toBeVisible();
+		await expect(
+			page.getByText( /WordPress database error/ ),
+			'should not have any database errors'
+		).not.toBeVisible();
 
 		// First page: language selector. Keep default English (US).
 		await page.getByRole( 'button', { name: 'Continue' } ).click();
