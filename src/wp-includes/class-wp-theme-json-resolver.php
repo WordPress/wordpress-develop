@@ -395,18 +395,6 @@ class WP_Theme_JSON_Resolver {
 		$registry = WP_Block_Type_Registry::get_instance();
 		$blocks   = $registry->get_all_registered();
 
-		if ( null !== static::$blocks && static::has_same_registered_blocks( 'blocks' ) ) {
-			$can_use_cached = ! wp_is_development_mode( 'theme' );
-			if ( $can_use_cached ) {
-				$cache_key = 'get_block_data_cache';
-				$cache     = get_transient( $cache_key );
-				if ( $cache ) {
-					static::$blocks = $cache;
-				}
-			}
-			return static::$blocks;
-		}
-
 		$config = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
 		foreach ( $blocks as $block_name => $block_type ) {
 			if ( isset( $block_type->supports['__experimentalStyle'] ) ) {
