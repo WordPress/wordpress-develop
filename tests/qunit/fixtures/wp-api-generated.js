@@ -10738,88 +10738,105 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "title": {
+                            "title": "Title",
                             "description": "Site title.",
                             "type": "string",
                             "required": false
                         },
                         "description": {
+                            "title": "Tagline",
                             "description": "Site tagline.",
                             "type": "string",
                             "required": false
                         },
                         "url": {
+                            "title": "",
                             "description": "Site URL.",
                             "type": "string",
                             "format": "uri",
                             "required": false
                         },
                         "email": {
+                            "title": "",
                             "description": "This address is used for admin purposes, like new user notification.",
                             "type": "string",
                             "format": "email",
                             "required": false
                         },
                         "timezone": {
+                            "title": "",
                             "description": "A city in the same timezone as you.",
                             "type": "string",
                             "required": false
                         },
                         "date_format": {
+                            "title": "",
                             "description": "A date format for all date strings.",
                             "type": "string",
                             "required": false
                         },
                         "time_format": {
+                            "title": "",
                             "description": "A time format for all time strings.",
                             "type": "string",
                             "required": false
                         },
                         "start_of_week": {
+                            "title": "",
                             "description": "A day number of the week that the week should start on.",
                             "type": "integer",
                             "required": false
                         },
                         "language": {
+                            "title": "",
                             "description": "WordPress locale code.",
                             "type": "string",
                             "required": false
                         },
                         "use_smilies": {
+                            "title": "",
                             "description": "Convert emoticons like :-) and :-P to graphics on display.",
                             "type": "boolean",
                             "required": false
                         },
                         "default_category": {
+                            "title": "",
                             "description": "Default post category.",
                             "type": "integer",
                             "required": false
                         },
                         "default_post_format": {
+                            "title": "",
                             "description": "Default post format.",
                             "type": "string",
                             "required": false
                         },
                         "posts_per_page": {
+                            "title": "Maximum posts per page",
                             "description": "Blog pages show at most.",
                             "type": "integer",
                             "required": false
                         },
                         "show_on_front": {
+                            "title": "Show on front",
                             "description": "What to show on the front page",
                             "type": "string",
                             "required": false
                         },
                         "page_on_front": {
+                            "title": "Page on front",
                             "description": "The ID of the page that should be displayed on the front page",
                             "type": "integer",
                             "required": false
                         },
                         "page_for_posts": {
+                            "title": "",
                             "description": "The ID of the page that should display the latest posts",
                             "type": "integer",
                             "required": false
                         },
                         "default_ping_status": {
+                            "title": "",
                             "description": "Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.",
                             "type": "string",
                             "enum": [
@@ -10829,6 +10846,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "default_comment_status": {
+                            "title": "Allow comments on new posts",
                             "description": "Allow people to submit comments on new posts.",
                             "type": "string",
                             "enum": [
@@ -10838,11 +10856,13 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "site_logo": {
+                            "title": "Logo",
                             "description": "Site logo.",
                             "type": "integer",
                             "required": false
                         },
                         "site_icon": {
+                            "title": "Icon",
                             "description": "Site icon.",
                             "type": "integer",
                             "required": false
