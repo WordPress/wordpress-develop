@@ -349,13 +349,19 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		$this->state->stack_of_open_elements->set_push_handler(
 			function ( WP_HTML_Token $token ) {
-				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::PUSH );
+				$is_virtual            = ! isset( $this->state->current_token ) || $this->is_tag_closer();
+				$same_node             = isset( $this->state->current_token ) && $token->node_name === $this->state->current_token->node_name;
+				$provenance            = ( ! $same_node || $is_virtual ) ? 'virtual' : 'real';
+				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::PUSH, $provenance );
 			}
 		);
 
 		$this->state->stack_of_open_elements->set_pop_handler(
 			function ( WP_HTML_Token $token ) {
-				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::POP );
+				$is_virtual            = ! isset( $this->state->current_token ) || ! $this->is_tag_closer();
+				$same_node             = isset( $this->state->current_token ) && $token->node_name === $this->state->current_token->node_name;
+				$provenance            = ( ! $same_node || $is_virtual ) ? 'virtual' : 'real';
+				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::POP, $provenance );
 			}
 		);
 
@@ -572,6 +578,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		return isset( $this->current_element )
 			? ( WP_HTML_Stack_Event::POP === $this->current_element->operation )
 			: parent::is_tag_closer();
+	}
+
+	/**
+	 * Indicates if the currently-matched token is virtual, created by a stack operation
+	 * while processing HTML, rather than a token found in the HTML text itself.
+	 *
+	 * @since 6.6
+	 *
+	 * @return bool Whether the current token is virtual.
+	 */
+	public function is_virtual() {
+		return 'virtual' === $this->current_element->provenance ?? null;
 	}
 
 	/**
