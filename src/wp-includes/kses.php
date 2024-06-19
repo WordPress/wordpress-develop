@@ -932,6 +932,11 @@ function wp_kses_allowed_html( $context = '' ) {
  * @return string Filtered content through {@see 'pre_kses'} hook.
  */
 function wp_kses_hook( $content, $allowed_html, $allowed_protocols ) {
+
+	if ( current_filter() === 'pre_term_name' ) {
+        return $content; // Bypass KSES for term names
+    }
+	
 	/**
 	 * Filters content to be run through KSES.
 	 *

@@ -1682,6 +1682,11 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
  * @return string The filtered and sanitized content result.
  */
 function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols = array() ) {
+
+	if ( current_filter() === 'pre_term_name' ) {
+        return $text;
+    }
+	
 	$result = '';
 
 	if ( str_contains( $text, '<!--' ) && str_contains( $text, '--->' ) ) {
