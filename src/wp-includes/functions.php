@@ -3862,6 +3862,9 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		<?php
 		if ( function_exists( 'wp_robots' ) && function_exists( 'wp_robots_no_robots' ) && function_exists( 'add_filter' ) ) {
 			add_filter( 'wp_robots', 'wp_robots_no_robots' );
+			// Prevent warnings because of $wp_query not existing.
+			remove_filter( 'wp_robots', 'wp_robots_noindex_embeds' );
+			remove_filter( 'wp_robots', 'wp_robots_noindex_search' );
 			wp_robots();
 		}
 		?>
@@ -4611,7 +4614,8 @@ function wp_json_file_decode( $filename, $options = array() ) {
 	$filename = wp_normalize_path( realpath( $filename ) );
 
 	if ( ! $filename ) {
-		trigger_error(
+		wp_trigger_error(
+			__FUNCTION__,
 			sprintf(
 				/* translators: %s: Path to the JSON file. */
 				__( "File %s doesn't exist!" ),
@@ -4625,7 +4629,8 @@ function wp_json_file_decode( $filename, $options = array() ) {
 	$decoded_file = json_decode( file_get_contents( $filename ), $options['associative'] );
 
 	if ( JSON_ERROR_NONE !== json_last_error() ) {
-		trigger_error(
+		wp_trigger_error(
+			__FUNCTION__,
 			sprintf(
 				/* translators: 1: Path to the JSON file, 2: Error message. */
 				__( 'Error when decoding a JSON file at path %1$s: %2$s' ),
@@ -4762,10 +4767,10 @@ function wp_is_serving_rest_request() {
  * the description. Probably should create a Codex page for it, so that it is
  * available.
  *
+ * @since 2.2.0
+ *
  * @global array $wpsmiliestrans
  * @global array $wp_smiliessearch
- *
- * @since 2.2.0
  */
 function smilies_init() {
 	global $wpsmiliestrans, $wp_smiliessearch;
@@ -5400,7 +5405,7 @@ function wp_widgets_add_menu() {
 	}
 
 	$menu_name = __( 'Widgets' );
-	if ( wp_is_block_theme() || current_theme_supports( 'block-template-parts' ) ) {
+	if ( wp_is_block_theme() ) {
 		$submenu['themes.php'][] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	} else {
 		$submenu['themes.php'][8] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
@@ -6068,11 +6073,11 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
 	$message = wp_kses(
 		$message,
 		array(
-			'a' => array( 'href' ),
-			'br',
-			'code',
-			'em',
-			'strong',
+			'a'      => array( 'href' => true ),
+			'br'     => array(),
+			'code'   => array(),
+			'em'     => array(),
+			'strong' => array(),
 		),
 		array( 'http', 'https' )
 	);
@@ -8757,7 +8762,8 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
  */
 function clean_dirsize_cache( $path ) {
 	if ( ! is_string( $path ) || empty( $path ) ) {
-		trigger_error(
+		wp_trigger_error(
+			'',
 			sprintf(
 				/* translators: 1: Function name, 2: A variable type, like "boolean" or "integer". */
 				__( '%1$s only accepts a non-empty path string, received %2$s.' ),
