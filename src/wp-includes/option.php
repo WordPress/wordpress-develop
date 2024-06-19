@@ -606,7 +606,7 @@ function wp_load_alloptions( $force_cache = false ) {
 
 	if ( ! $alloptions ) {
 		$suppress      = $wpdb->suppress_errors();
-		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload IN ( '" . implode( "', '", wp_autoload_values_to_autoload() ) . "' )" );
+		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload IN ( '" . implode( "', '", esc_sql( wp_autoload_values_to_autoload() ) ) . "' )" );
 
 		if ( ! $alloptions_db ) {
 			$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
@@ -643,50 +643,150 @@ function wp_load_alloptions( $force_cache = false ) {
 }
 
 /**
+ * Primes specific network options for the current network into the cache with a single database query.
+ *
+ * Only network options that do not already exist in cache will be loaded.
+ *
+ * If site is not multisite, then call wp_prime_option_caches().
+ *
+ * @since 6.6.0
+ *
+ * @see wp_prime_network_option_caches()
+ *
+ * @param string[] $options An array of option names to be loaded.
+ */
+function wp_prime_site_option_caches( array $options ) {
+	wp_prime_network_option_caches( null, $options );
+}
+
+/**
+ * Primes specific network options into the cache with a single database query.
+ *
+ * Only network options that do not already exist in cache will be loaded.
+ *
+ * If site is not multisite, then call wp_prime_option_caches().
+ *
+ * @since 6.6.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param int      $network_id ID of the network. Can be null to default to the current network ID.
+ * @param string[] $options    An array of option names to be loaded.
+ */
+function wp_prime_network_option_caches( $network_id, array $options ) {
+	global $wpdb;
+
+	if ( wp_installing() ) {
+		return;
+	}
+
+	if ( ! is_multisite() ) {
+		wp_prime_option_caches( $options );
+		return;
+	}
+
+	if ( $network_id && ! is_numeric( $network_id ) ) {
+		return;
+	}
+
+	$network_id = (int) $network_id;
+
+	// Fallback to the current network if a network ID is not specified.
+	if ( ! $network_id ) {
+		$network_id = get_current_network_id();
+	}
+
+	$cache_keys = array();
+	foreach ( $options as $option ) {
+		$cache_keys[ $option ] = "{$network_id}:{$option}";
+	}
+
+	$cache_group    = 'site-options';
+	$cached_options = wp_cache_get_multiple( array_values( $cache_keys ), $cache_group );
+
+	$notoptions_key = "$network_id:notoptions";
+	$notoptions     = wp_cache_get( $notoptions_key, $cache_group );
+
+	if ( ! is_array( $notoptions ) ) {
+		$notoptions = array();
+	}
+
+	// Filter options that are not in the cache.
+	$options_to_prime = array();
+	foreach ( $cache_keys as $option => $cache_key ) {
+		if (
+			( ! isset( $cached_options[ $cache_key ] ) || false === $cached_options[ $cache_key ] )
+			&& ! isset( $notoptions[ $option ] )
+		) {
+			$options_to_prime[] = $option;
+		}
+	}
+
+	// Bail early if there are no options to be loaded.
+	if ( empty( $options_to_prime ) ) {
+		return;
+	}
+
+	$query_args   = $options_to_prime;
+	$query_args[] = $network_id;
+	$results      = $wpdb->get_results(
+		$wpdb->prepare(
+			sprintf(
+				"SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN (%s) AND site_id = %s",
+				implode( ',', array_fill( 0, count( $options_to_prime ), '%s' ) ),
+				'%d'
+			),
+			$query_args
+		)
+	);
+
+	$data          = array();
+	$options_found = array();
+	foreach ( $results as $result ) {
+		$key                = $result->meta_key;
+		$cache_key          = $cache_keys[ $key ];
+		$data[ $cache_key ] = maybe_unserialize( $result->meta_value );
+		$options_found[]    = $key;
+	}
+	wp_cache_set_multiple( $data, $cache_group );
+	// If all options were found, no need to update `notoptions` cache.
+	if ( count( $options_found ) === count( $options_to_prime ) ) {
+		return;
+	}
+
+	$options_not_found = array_diff( $options_to_prime, $options_found );
+
+	// Add the options that were not found to the cache.
+	$update_notoptions = false;
+	foreach ( $options_not_found as $option_name ) {
+		if ( ! isset( $notoptions[ $option_name ] ) ) {
+			$notoptions[ $option_name ] = true;
+			$update_notoptions          = true;
+		}
+	}
+
+	// Only update the cache if it was modified.
+	if ( $update_notoptions ) {
+		wp_cache_set( $notoptions_key, $notoptions, $cache_group );
+	}
+}
+
+/**
  * Loads and primes caches of certain often requested network options if is_multisite().
  *
  * @since 3.0.0
  * @since 6.3.0 Also prime caches for network options when persistent object cache is enabled.
- *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @since 6.6.0 Uses wp_prime_network_option_caches().
  *
  * @param int $network_id Optional. Network ID of network for which to prime network options cache. Defaults to current network.
  */
 function wp_load_core_site_options( $network_id = null ) {
-	global $wpdb;
-
 	if ( ! is_multisite() || wp_installing() ) {
 		return;
 	}
+	$core_options = array( 'site_name', 'siteurl', 'active_sitewide_plugins', '_site_transient_timeout_theme_roots', '_site_transient_theme_roots', 'site_admins', 'can_compress_scripts', 'global_terms_enabled', 'ms_files_rewriting', 'WPLANG' );
 
-	if ( empty( $network_id ) ) {
-		$network_id = get_current_network_id();
-	}
-
-	$core_options = array( 'site_name', 'siteurl', 'active_sitewide_plugins', '_site_transient_timeout_theme_roots', '_site_transient_theme_roots', 'site_admins', 'can_compress_scripts', 'global_terms_enabled', 'ms_files_rewriting' );
-
-	if ( wp_using_ext_object_cache() ) {
-		$cache_keys = array();
-		foreach ( $core_options as $option ) {
-			$cache_keys[] = "{$network_id}:{$option}";
-		}
-		wp_cache_get_multiple( $cache_keys, 'site-options' );
-
-		return;
-	}
-
-	$core_options_in = "'" . implode( "', '", $core_options ) . "'";
-	$options         = $wpdb->get_results( $wpdb->prepare( "SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN ($core_options_in) AND site_id = %d", $network_id ) );
-
-	$data = array();
-	foreach ( $options as $option ) {
-		$key                = $option->meta_key;
-		$cache_key          = "{$network_id}:$key";
-		$option->meta_value = maybe_unserialize( $option->meta_value );
-
-		$data[ $cache_key ] = $option->meta_value;
-	}
-	wp_cache_set_multiple( $data, 'site-options' );
+	wp_prime_network_option_caches( $network_id, $core_options );
 }
 
 /**
@@ -1414,10 +1514,10 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 		wp_prime_option_caches( array( $transient_option, $transient_timeout ) );
 
 		if ( false === get_option( $transient_option ) ) {
-			$autoload = 'on';
+			$autoload = true;
 			if ( $expiration ) {
-				$autoload = 'off';
-				add_option( $transient_timeout, time() + $expiration, '', 'off' );
+				$autoload = false;
+				add_option( $transient_timeout, time() + $expiration, '', false );
 			}
 			$result = add_option( $transient_option, $value, '', $autoload );
 		} else {
@@ -1430,8 +1530,8 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 			if ( $expiration ) {
 				if ( false === get_option( $transient_timeout ) ) {
 					delete_option( $transient_option );
-					add_option( $transient_timeout, time() + $expiration, '', 'off' );
-					$result = add_option( $transient_option, $value, '', 'off' );
+					add_option( $transient_timeout, time() + $expiration, '', false );
+					$result = add_option( $transient_option, $value, '', false );
 					$update = false;
 				} else {
 					update_option( $transient_timeout, time() + $expiration );
@@ -2019,7 +2119,7 @@ function add_network_option( $network_id, $option, $value ) {
 	$notoptions_key = "$network_id:notoptions";
 
 	if ( ! is_multisite() ) {
-		$result = add_option( $option, $value, '', 'off' );
+		$result = add_option( $option, $value, '', false );
 	} else {
 		$cache_key = "$network_id:$option";
 
@@ -2265,7 +2365,7 @@ function update_network_option( $network_id, $option, $value ) {
 	}
 
 	if ( ! is_multisite() ) {
-		$result = update_option( $option, $value, 'off' );
+		$result = update_option( $option, $value, false );
 	} else {
 		$value = sanitize_option( $option, $value );
 
@@ -2415,7 +2515,9 @@ function get_site_transient( $transient ) {
 		$transient_option = '_site_transient_' . $transient;
 		if ( ! in_array( $transient, $no_timeout, true ) ) {
 			$transient_timeout = '_site_transient_timeout_' . $transient;
-			$timeout           = get_site_option( $transient_timeout );
+			wp_prime_site_option_caches( array( $transient_option, $transient_timeout ) );
+
+			$timeout = get_site_option( $transient_timeout );
 			if ( false !== $timeout && $timeout < time() ) {
 				delete_site_option( $transient_option );
 				delete_site_option( $transient_timeout );
@@ -2493,6 +2595,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
 	} else {
 		$transient_timeout = '_site_transient_timeout_' . $transient;
 		$option            = '_site_transient_' . $transient;
+		wp_prime_site_option_caches( array( $option, $transient_timeout ) );
 
 		if ( false === get_site_option( $option ) ) {
 			if ( $expiration ) {
@@ -2556,6 +2659,7 @@ function register_initial_settings() {
 				'name' => 'title',
 			),
 			'type'         => 'string',
+			'label'        => __( 'Title' ),
 			'description'  => __( 'Site title.' ),
 		)
 	);
@@ -2568,6 +2672,7 @@ function register_initial_settings() {
 				'name' => 'description',
 			),
 			'type'         => 'string',
+			'label'        => __( 'Tagline' ),
 			'description'  => __( 'Site tagline.' ),
 		)
 	);
@@ -2698,6 +2803,7 @@ function register_initial_settings() {
 		array(
 			'show_in_rest' => true,
 			'type'         => 'integer',
+			'label'        => __( 'Maximum posts per page' ),
 			'description'  => __( 'Blog pages show at most.' ),
 			'default'      => 10,
 		)
@@ -2709,6 +2815,7 @@ function register_initial_settings() {
 		array(
 			'show_in_rest' => true,
 			'type'         => 'string',
+			'label'        => __( 'Show on front' ),
 			'description'  => __( 'What to show on the front page' ),
 		)
 	);
@@ -2719,6 +2826,7 @@ function register_initial_settings() {
 		array(
 			'show_in_rest' => true,
 			'type'         => 'integer',
+			'label'        => __( 'Page on front' ),
 			'description'  => __( 'The ID of the page that should be displayed on the front page' ),
 		)
 	);
@@ -2757,6 +2865,7 @@ function register_initial_settings() {
 				),
 			),
 			'type'         => 'string',
+			'label'        => __( 'Allow comments on new posts' ),
 			'description'  => __( 'Allow people to submit comments on new posts.' ),
 		)
 	);
@@ -2771,6 +2880,7 @@ function register_initial_settings() {
  * @since 4.7.0 `$args` can be passed to set flags on the setting, similar to `register_meta()`.
  * @since 5.5.0 `$new_whitelist_options` was renamed to `$new_allowed_options`.
  *              Please consider writing more inclusive code.
+ * @since 6.6.0 Added the `label` argument.
  *
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
@@ -2784,6 +2894,7 @@ function register_initial_settings() {
  *
  *     @type string     $type              The type of data associated with this setting.
  *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
+ *     @type string     $label             A label of the data attached to this setting.
  *     @type string     $description       A description of the data attached to this setting.
  *     @type callable   $sanitize_callback A callback function that sanitizes the option's value.
  *     @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
@@ -2804,6 +2915,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 	$defaults = array(
 		'type'              => 'string',
 		'group'             => $option_group,
+		'label'             => '',
 		'description'       => '',
 		'sanitize_callback' => null,
 		'show_in_rest'      => false,

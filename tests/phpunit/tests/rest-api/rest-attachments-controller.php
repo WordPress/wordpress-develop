@@ -239,10 +239,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'video',
 			'image',
 			'audio',
+			'text',
 		);
-		if ( ! is_multisite() ) {
-			$media_types[] = 'text';
-		}
 		$this->assertSameSets( $media_types, $data['endpoints'][0]['args']['media_type']['enum'] );
 	}
 
@@ -1646,7 +1644,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 28, $properties );
+		$this->assertCount( 29, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
@@ -1681,6 +1679,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'type', $properties );
 		$this->assertArrayHasKey( 'missing_image_sizes', $properties );
 		$this->assertArrayHasKey( 'featured_media', $properties );
+		$this->assertArrayHasKey( 'class_list', $properties );
 	}
 
 	public function test_get_additional_field_registration() {
