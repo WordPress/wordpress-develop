@@ -131,6 +131,7 @@ final class WP_Autoload {
 		'wp_theme_json_schema'                        => 'wp-includes/class-wp-theme-json-schema.php',
 		'wp_theme_json'                               => 'wp-includes/class-wp-theme-json.php',
 		'wp_theme'                                    => 'wp-includes/class-wp-theme.php',
+		'wp_token_map'                                => 'wp-includes/class-wp-token-map.php',
 		'wp_user_meta_session_tokens'                 => 'wp-includes/class-wp-user-meta-session-tokens.php',
 		'wp_user_query'                               => 'wp-includes/class-wp-user-query.php',
 		'wp_user_request'                             => 'wp-includes/class-wp-user-request.php',
