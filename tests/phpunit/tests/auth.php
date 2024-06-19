@@ -422,6 +422,34 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that `user_activation_key` is cleared after a successful login.
+	 *
+	 * @ticket 58901
+	 *
+	 * @covers ::wp_signon
+	 */
+	public function test_user_activation_key_after_successful_login() {
+		global $wpdb;
+
+		$password_reset_key = get_password_reset_key( $this->user );
+		$user               = wp_signon(
+			array(
+				'user_login'    => self::USER_LOGIN,
+				'user_password' => self::USER_PASS,
+			)
+		);
+
+		$activation_key_from_database = $wpdb->get_var(
+			$wpdb->prepare( "SELECT user_activation_key FROM $wpdb->users WHERE ID = %d", $this->user->ID )
+		);
+
+		$this->assertNotWPError( $password_reset_key, 'The password reset key was not created.' );
+		$this->assertNotWPError( $user, 'The user was not authenticated.' );
+		$this->assertEmpty( $user->user_activation_key, 'The `user_activation_key` was not empty on the user object returned by `wp_signon()` function.' );
+		$this->assertEmpty( $activation_key_from_database, 'The `user_activation_key` was not empty in the database.' );
+	}
+
+	/**
 	 * Ensure users can log in using both their username and their email address.
 	 *
 	 * @ticket 9568

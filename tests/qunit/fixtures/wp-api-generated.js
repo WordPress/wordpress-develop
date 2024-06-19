@@ -7855,9 +7855,9 @@ mockedApiResponse.Schema = {
                         "theme_json_version": {
                             "description": "Version of the theme.json schema used for the typography settings.",
                             "type": "integer",
-                            "default": 2,
+                            "default": 3,
                             "minimum": 2,
-                            "maximum": 2,
+                            "maximum": 3,
                             "required": false
                         },
                         "font_family_settings": {
@@ -7924,9 +7924,9 @@ mockedApiResponse.Schema = {
                         "theme_json_version": {
                             "description": "Version of the theme.json schema used for the typography settings.",
                             "type": "integer",
-                            "default": 2,
+                            "default": 3,
                             "minimum": 2,
-                            "maximum": 2,
+                            "maximum": 3,
                             "required": false
                         },
                         "font_family_settings": {
@@ -8057,9 +8057,9 @@ mockedApiResponse.Schema = {
                         "theme_json_version": {
                             "description": "Version of the theme.json schema used for the typography settings.",
                             "type": "integer",
-                            "default": 2,
+                            "default": 3,
                             "minimum": 2,
-                            "maximum": 2,
+                            "maximum": 3,
                             "required": false
                         },
                         "font_face_settings": {
@@ -12322,6 +12322,15 @@ mockedApiResponse.PostsCollection = [
             1
         ],
         "tags": [],
+        "class_list": [
+            "post-4",
+            "post",
+            "type-post",
+            "status-publish",
+            "format-standard",
+            "hentry",
+            "category-uncategorized"
+        ],
         "_links": {
             "self": [
                 {
@@ -12421,7 +12430,16 @@ mockedApiResponse.PostModel = {
     "categories": [
         1
     ],
-    "tags": []
+    "tags": [],
+    "class_list": [
+        "post-4",
+        "post",
+        "type-post",
+        "status-publish",
+        "format-standard",
+        "hentry",
+        "category-uncategorized"
+    ]
 };
 
 mockedApiResponse.postRevisions = [
@@ -12613,6 +12631,13 @@ mockedApiResponse.PagesCollection = [
         "meta": {
             "meta_key": ""
         },
+        "class_list": [
+            "post-7",
+            "page",
+            "type-page",
+            "status-publish",
+            "hentry"
+        ],
         "_links": {
             "self": [
                 {
@@ -12696,7 +12721,14 @@ mockedApiResponse.PageModel = {
     "template": "",
     "meta": {
         "meta_key": ""
-    }
+    },
+    "class_list": [
+        "post-7",
+        "page",
+        "type-page",
+        "status-publish",
+        "hentry"
+    ]
 };
 
 mockedApiResponse.pageRevisions = [
@@ -12878,6 +12910,13 @@ mockedApiResponse.MediaCollection = [
         "meta": {
             "meta_key": ""
         },
+        "class_list": [
+            "post-10",
+            "attachment",
+            "type-attachment",
+            "status-inherit",
+            "hentry"
+        ],
         "description": {
             "rendered": "<p class=\"attachment\"><!-- <a...><img.../></a> --></p>"
         },
@@ -12940,6 +12979,13 @@ mockedApiResponse.MediaModel = {
     "meta": {
         "meta_key": ""
     },
+    "class_list": [
+        "post-10",
+        "attachment",
+        "type-attachment",
+        "status-inherit",
+        "hentry"
+    ],
     "description": {
         "rendered": "<p class=\"attachment\"><!-- <a...><img.../></a> --></p>"
     },

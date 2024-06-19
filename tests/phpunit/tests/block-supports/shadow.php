@@ -51,6 +51,8 @@ class Tests_Block_Supports_Shadow extends WP_UnitTestCase {
 	/**
 	 * Tests the generation of shadow block support styles.
 	 *
+	 * @ticket 60784
+	 *
 	 * @dataProvider data_generate_shadow_fixtures
 	 *
 	 * @param boolean|array $support Shadow block support configuration.
