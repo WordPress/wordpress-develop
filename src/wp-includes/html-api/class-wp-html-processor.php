@@ -575,8 +575,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether the current tag is a tag closer.
 	 */
 	public function is_tag_closer() {
-		return isset( $this->current_element )
-			? ( WP_HTML_Stack_Event::POP === $this->current_element->operation )
+		return $this->is_virtual()
+			? ( WP_HTML_Stack_Event::POP === $this->current_element->operation && '#tag' === $this->get_token_type() )
 			: parent::is_tag_closer();
 	}
 
@@ -589,7 +589,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether the current token is virtual.
 	 */
 	public function is_virtual() {
-		return 'virtual' === $this->current_element->provenance ?? null;
+		return (
+			isset( $this->current_element->provenance ) &&
+			'virtual' === $this->current_element->provenance
+		);
 	}
 
 	/**
@@ -1458,7 +1461,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		if ( isset( $this->current_element ) ) {
+		if ( $this->is_virtual() ) {
 			return $this->current_element->token->node_name;
 		}
 
@@ -1498,11 +1501,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null Name of the matched token.
 	 */
 	public function get_token_name() {
-		if ( isset( $this->current_element ) ) {
-			return $this->current_element->token->node_name;
-		}
-
-		return parent::get_token_name();
+		return $this->is_virtual()
+			? $this->current_element->token->node_name
+			: parent::get_token_name();
 	}
 
 	/**
@@ -1528,9 +1529,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null What kind of token is matched, or null.
 	 */
 	public function get_token_type() {
-		if ( isset( $this->current_element ) ) {
-			$node_name = $this->current_element->token->node_name;
-			if ( ctype_upper( $node_name[0] ) ) {
+		if ( $this->is_virtual() ) {
+			/*
+			 * This logic comes from the Tag Processor.
+			 *
+			 * @todo It would be ideal not to repeat this here, but it's not clearly
+			 *       better to allow passing a token name to `get_token_type()`.
+			 */
+			$node_name     = $this->current_element->token->node_name;
+			$starting_char = $node_name[0];
+			if ( 'A' <= $starting_char && 'Z' >= $starting_char ) {
 				return '#tag';
 			}
 
@@ -1564,25 +1572,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
 	 */
 	public function get_attribute( $name ) {
-		if ( isset( $this->current_element ) ) {
-			// Closing tokens cannot contain attributes.
-			if ( WP_HTML_Stack_Event::POP === $this->current_element->operation ) {
-				return null;
-			}
-
-			$node_name = $this->current_element->token->node_name;
-
-			// Only tags can contain attributes.
-			if ( 'A' > $node_name[0] || 'Z' < $node_name[0] ) {
-				return null;
-			}
-
-			if ( $this->current_element->token->bookmark_name === (string) $this->bookmark_counter ) {
-				return parent::get_attribute( $name );
-			}
-		}
-
-		return null;
+		return $this->is_virtual() ? null : parent::get_attribute( $name );
 	}
 
 	/**
@@ -1612,18 +1602,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
 	 */
 	public function get_attribute_names_with_prefix( $prefix ) {
-		if ( isset( $this->current_element ) ) {
-			if ( WP_HTML_Stack_Event::POP === $this->current_element->operation ) {
-				return null;
-			}
-
-			$mark = $this->bookmarks[ $this->current_element->token->bookmark_name ];
-			if ( 0 === $mark->length ) {
-				return null;
-			}
-		}
-
-		return parent::get_attribute_names_with_prefix( $prefix );
+		return $this->is_virtual() ? null : parent::get_attribute_names_with_prefix( $prefix );
 	}
 
 	/**
@@ -1647,17 +1626,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string
 	 */
 	public function get_modifiable_text() {
-		if ( isset( $this->current_element ) ) {
-			if ( WP_HTML_Stack_Event::POP === $this->current_element->operation ) {
-				return '';
-			}
-
-			$mark = $this->bookmarks[ $this->current_element->token->bookmark_name ];
-			if ( 0 === $mark->length ) {
-				return '';
-			}
-		}
-		return parent::get_modifiable_text();
+		return $this->is_virtual() ? '' : parent::get_modifiable_text();
 	}
 
 	/**
