@@ -231,6 +231,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.9.0
 	 * @since 6.2.0 Added validation of styles.css property.
+	 * @since 6.6.0 Added registration of block style variations from theme.json sources (theme.json, user theme.json, partials).
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return stdClass|WP_Error Prepared item on success. WP_Error on when the custom CSS is not valid.
@@ -263,6 +264,15 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			} elseif ( isset( $existing_config['styles'] ) ) {
 				$config['styles'] = $existing_config['styles'];
 			}
+
+			// Register theme-defined variations.
+			WP_Theme_JSON_Resolver::get_theme_data();
+
+			// Register user-defined variations.
+			if ( ! empty( $config['styles']['blocks']['variations'] ) ) {
+				wp_register_block_style_variations_from_theme_json_data( $config['styles']['blocks']['variations'] );
+			}
+
 			if ( isset( $request['settings'] ) ) {
 				$config['settings'] = $request['settings'];
 			} elseif ( isset( $existing_config['settings'] ) ) {

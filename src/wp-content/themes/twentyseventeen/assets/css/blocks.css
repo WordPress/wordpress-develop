@@ -313,7 +313,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 /* Comments */
 
 .wp-block-latest-comments article {
-	margin-bottom: 4em;
+	margin-bottom: 4rem;
 }
 
 .widget-area .wp-block-latest-comments article {
@@ -367,6 +367,17 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 .wp-block-query .wp-block-post-template > li {
 	border-top: none;
+}
+
+/* Site Logo */
+
+:root .entry-content .wp-block-site-logo a.custom-logo-link {
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+
+.entry-content .wp-block-site-logo img {
+	max-height: none;
 }
 
 /*--------------------------------------------------------------

@@ -45,6 +45,7 @@ jobs:
   # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container).
   # - Install WordPress within the Docker container.
   # - Install Gutenberg.
+  # - Install additional languages.
   # - Run the E2E tests.
   # - Uploads screenshots and HTML snapshots as an artifact.
   # - Ensures version-controlled files are not modified or deleted.
@@ -113,6 +114,12 @@ jobs:
       - name: Install Gutenberg
         if: ${{ inputs.install-gutenberg }}
         run: npm run env:cli -- plugin install gutenberg --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: Install additional languages
+        run: |
+          npm run env:cli -- language core install de_DE --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- language plugin install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- language theme install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Run E2E tests
         run: npm run test:e2e
