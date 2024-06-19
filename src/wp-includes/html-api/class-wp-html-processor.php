@@ -1481,6 +1481,27 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Indicates if the currently matched tag contains the self-closing flag.
+	 *
+	 * No HTML elements ought to have the self-closing flag and for those, the self-closing
+	 * flag will be ignored. For void elements this is benign because they "self close"
+	 * automatically. For non-void HTML elements though problems will appear if someone
+	 * intends to use a self-closing element in place of that element with an empty body.
+	 * For HTML foreign elements and custom elements the self-closing flag determines if
+	 * they self-close or not.
+	 *
+	 * This function does not determine if a tag is self-closing,
+	 * but only if the self-closing flag is present in the syntax.
+	 *
+	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 *
+	 * @return bool Whether the currently matched tag contains the self-closing flag.
+	 */
+	public function has_self_closing_flag() {
+		return $this->is_virtual() ? false : parent::has_self_closing_flag();
+	}
+
+	/**
 	 * Returns the node name represented by the token.
 	 *
 	 * This matches the DOM API value `nodeName`. Some values
@@ -1576,6 +1597,37 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Updates or creates a new attribute on the currently matched tag with the passed value.
+	 *
+	 * For boolean attributes special handling is provided:
+	 *  - When `true` is passed as the value, then only the attribute name is added to the tag.
+	 *  - When `false` is passed, the attribute gets removed if it existed before.
+	 *
+	 * For string attributes, the value is escaped using the `esc_attr` function.
+	 *
+	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 *
+	 * @param string      $name  The attribute name to target.
+	 * @param string|bool $value The new attribute value.
+	 * @return bool Whether an attribute value was set.
+	 */
+	public function set_attribute( $name, $value ) {
+		return $this->is_virtual() ? false : parent::set_attribute( $name, $value );
+	}
+
+	/**
+	 * Remove an attribute from the currently-matched tag.
+	 *
+	 * @since 6.6.0 Subclassed for HTML Processor.
+	 *
+	 * @param string $name The attribute name to remove.
+	 * @return bool Whether an attribute was removed.
+	 */
+	public function remove_attribute( $name ) {
+		return $this->is_virtual() ? false : parent::remove_attribute( $name );
+	}
+
+	/**
 	 * Gets lowercase names of all attributes matching a given prefix in the current tag.
 	 *
 	 * Note that matching is case-insensitive. This is in accordance with the spec:
@@ -1606,6 +1658,62 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Adds a new class name to the currently matched tag.
+	 *
+	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 *
+	 * @param string $class_name The class name to add.
+	 * @return bool Whether the class was set to be added.
+	 */
+	public function add_class( $class_name ) {
+		return $this->is_virtual() ? false : parent::add_class( $class_name );
+	}
+
+	/**
+	 * Removes a class name from the currently matched tag.
+	 *
+	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 *
+	 * @param string $class_name The class name to remove.
+	 * @return bool Whether the class was set to be removed.
+	 */
+	public function remove_class( $class_name ) {
+		return $this->is_virtual() ? false : parent::remove_class( $class_name );
+	}
+
+	/**
+	 * Returns if a matched tag contains the given ASCII case-insensitive class name.
+	 *
+	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 *
+	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
+	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
+	 */
+	public function has_class( $wanted_class ) {
+		return $this->is_virtual() ? null : parent::has_class( $wanted_class );
+	}
+
+	/**
+	 * Generator for a foreach loop to step through each class name for the matched tag.
+	 *
+	 * This generator function is designed to be used inside a "foreach" loop.
+	 *
+	 * Example:
+	 *
+	 *     $p = WP_HTML_Processor::create_fragment( "<div class='free &lt;egg&lt;\tlang-en'>" );
+	 *     $p->next_tag();
+	 *     foreach ( $p->class_list() as $class_name ) {
+	 *         echo "{$class_name} ";
+	 *     }
+	 *     // Outputs: "free <egg> lang-en "
+	 *
+	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 */
+	public function class_list() {
+		return $this->is_virtual() ? null : parent::class_list();
+	}
+
+	/**
 	 * Returns the modifiable text for a matched token, or an empty string.
 	 *
 	 * Modifiable text is text content that may be read and changed without
@@ -1627,6 +1735,29 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function get_modifiable_text() {
 		return $this->is_virtual() ? '' : parent::get_modifiable_text();
+	}
+
+	/**
+	 * Indicates what kind of comment produced the comment node.
+	 *
+	 * Because there are different kinds of HTML syntax which produce
+	 * comments, the Tag Processor tracks and exposes this as a type
+	 * for the comment. Nominally only regular HTML comments exist as
+	 * they are commonly known, but a number of unrelated syntax errors
+	 * also produce comments.
+	 *
+	 * @see self::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT
+	 * @see self::COMMENT_AS_CDATA_LOOKALIKE
+	 * @see self::COMMENT_AS_INVALID_HTML
+	 * @see self::COMMENT_AS_HTML_COMMENT
+	 * @see self::COMMENT_AS_PI_NODE_LOOKALIKE
+	 *
+	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 *
+	 * @return string|null
+	 */
+	public function get_comment_type() {
+		return $this->is_virtual() ? null : parent::get_comment_type();
 	}
 
 	/**
