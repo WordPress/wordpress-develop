@@ -13,7 +13,7 @@
  *
  * This class is for internal core usage and is not supposed to be used by extenders (plugins and/or themes).
  * This is a low-level API that may need to do breaking changes. Please,
- * use get_global_settings(), get_global_styles(), and get_global_stylesheet() instead.
+ * use wp_get_global_settings, wp_get_global_styles, and wp_get_global_stylesheet instead.
  *
  * @access private
  */
@@ -90,6 +90,14 @@ class WP_Theme_JSON_Resolver {
 	 * @var array
 	 */
 	protected static $theme_json_file_cache = array();
+
+	/**
+	 * Cache of parsed and translated style variation theme.json partials.
+	 *
+	 * @since 6.6.0
+	 * @var array
+	 */
+	protected static $style_variations_cache = array();
 
 	/**
 	 * Processes a file that adheres to the theme.json schema
@@ -707,7 +715,7 @@ class WP_Theme_JSON_Resolver {
 	}
 
 	/**
-	 * Determines if a supplied style variation matches the provided scope.
+	 * Determines the scope of a style variation.
 	 *
 	 * For backwards compatibility, if a variation does not define any scope
 	 * related property, e.g. `blockTypes`, it is assumed to be a theme style
@@ -715,38 +723,25 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param array  $variation Theme.json shaped style variation object.
-	 * @param string $scope     Scope to check e.g. theme, block etc.
-	 * @return boolean
+	 * @param array $variation Theme.json shaped style variation object.
+	 *
+	 * @return string
 	 */
-	private static function style_variation_has_scope( $variation, $scope ) {
-		if ( 'block' === $scope ) {
-			return isset( $variation['blockTypes'] );
+	protected static function get_style_variation_scope( $variation ) {
+		if ( isset( $variation['blockTypes'] ) ) {
+			return 'block';
 		}
 
-		if ( 'theme' === $scope ) {
-			return ! isset( $variation['blockTypes'] );
-		}
-
-		return false;
+		return 'theme';
 	}
 
 	/**
-	 * Returns the style variations defined by the theme.
+	 * Retrieves all style variation partials defined by the theme (parent and child).
 	 *
-	 * @since 6.0.0
-	 * @since 6.2.0 Returns parent theme variations if theme is a child.
-	 * @since 6.6.0 Added configurable scope parameter to allow filtering
-	 *              theme.json partial files by the scope to which they
-	 *              can be applied e.g. theme vs block etc.
-	 *              Added basic caching for read theme.json partial files.
-	 *
-	 * @param string $scope The scope or type of style variation to retrieve e.g. theme, block etc.
-	 * @return array
+	 * @since 6.6.0
 	 */
-	public static function get_style_variations( $scope = 'theme' ) {
+	protected static function get_style_variation_files() {
 		$variation_files    = array();
-		$variations         = array();
 		$base_directory     = get_stylesheet_directory() . '/styles';
 		$template_directory = get_template_directory() . '/styles';
 		if ( is_dir( $base_directory ) ) {
@@ -765,19 +760,62 @@ class WP_Theme_JSON_Resolver {
 			$variation_files = array_merge( $variation_files, $variation_files_parent );
 		}
 		ksort( $variation_files );
+
+		return $variation_files;
+	}
+
+	/**
+	 * Returns the style variations defined by the theme (parent and child).
+	 *
+	 * @since 6.2.0 Returns parent theme variations if theme is a child.
+	 * @since 6.6.0 Added cache and configurable scope parameter to allow
+	 *              filtering theme.json partial files by the scope to
+	 *              which they can be applied e.g. theme vs block etc.
+	 *
+	 * @param string $scope The scope or type of style variation to retrieve e.g. theme, block etc.
+	 * @return array
+	 */
+	public static function get_style_variations( $scope = 'theme' ) {
+		$theme_dir = get_stylesheet_directory();
+		$locale    = get_locale();
+
+		if (
+			isset( static::$style_variations_cache[ $theme_dir ][ $locale ][ $scope ] ) &&
+			// Variations depend on registered blocks.
+			null !== static::$blocks &&
+			static::has_same_registered_blocks( 'theme' )
+		) {
+			return static::$style_variations_cache[ $theme_dir ][ $locale ][ $scope ];
+		}
+
+		$variation_files = static::get_style_variation_files();
+		$variations      = array(
+			'theme' => array(),
+			'block' => array(),
+		);
+
 		foreach ( $variation_files as $path => $file ) {
 			$decoded_file = self::read_json_file( $path );
-			if ( is_array( $decoded_file ) && static::style_variation_has_scope( $decoded_file, $scope ) ) {
-				$translated = static::translate( $decoded_file, wp_get_theme()->get( 'TextDomain' ) );
-				$variation  = ( new WP_Theme_JSON( $translated ) )->get_raw_data();
-				if ( empty( $variation['title'] ) ) {
-					$variation['title'] = basename( $path, '.json' );
+			if ( is_array( $decoded_file ) ) {
+				$variation_scope = static::get_style_variation_scope( $decoded_file );
+
+				if ( $variation_scope ) {
+					$translated = static::translate( $decoded_file, wp_get_theme()->get( 'TextDomain' ) );
+					$variation  = ( new WP_Theme_JSON( $translated ) )->get_raw_data();
+
+					if ( empty( $variation['title'] ) ) {
+						$variation['title'] = basename( $path, '.json' );
+					}
+
+					$variations[ $variation_scope ][] = $variation;
 				}
-				$variations[] = $variation;
 			}
 		}
-		return $variations;
+		static::$style_variations_cache[ $theme_dir ][ $locale ] = $variations;
+
+		return static::$style_variations_cache[ $theme_dir ][ $locale ][ $scope ];
 	}
+
 
 	/**
 	 * Resolves relative paths in theme.json styles to theme absolute paths
