@@ -158,6 +158,7 @@ final class WP_Autoload {
 		'wp_html_processor_state'                     => 'wp-includes/html-api/class-wp-html-processor-state.php',
 		'wp_html_processor'                           => 'wp-includes/html-api/class-wp-html-processor.php',
 		'wp_html_span'                                => 'wp-includes/html-api/class-wp-html-span.php',
+		'wp_html_stack_event'                         => 'wp-includes/html-api/class-wp-html-stack-event.php',
 		'wp_html_tag_processor'                       => 'wp-includes/html-api/class-wp-html-tag-processor.php',
 		'wp_html_text_replacement'                    => 'wp-includes/html-api/class-wp-html-text-replacement.php',
 		'wp_html_token'                               => 'wp-includes/html-api/class-wp-html-token.php',
