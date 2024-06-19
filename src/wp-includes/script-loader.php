@@ -79,6 +79,7 @@ function wp_default_packages_vendor( $scripts ) {
 	$vendor_scripts = array(
 		'react',
 		'react-dom' => array( 'react' ),
+		'react-jsx-runtime' => array( 'react' ),
 		'regenerator-runtime',
 		'moment',
 		'lodash',
@@ -97,6 +98,7 @@ function wp_default_packages_vendor( $scripts ) {
 	$vendor_scripts_versions = array(
 		'react'                       => '18.3.1',
 		'react-dom'                   => '18.3.1',
+		'react-jsx-runtime'           => '18.3.1',
 		'regenerator-runtime'         => '0.14.0',
 		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.21',
