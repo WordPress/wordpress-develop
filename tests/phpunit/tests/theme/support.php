@@ -228,4 +228,16 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		add_theme_support( 'responsive-embeds' );
 		$this->assertTrue( current_theme_supports( 'responsive-embeds' ) );
 	}
+
+	/**
+	 * @ticket 56488
+	 *
+	 * @covers ::current_theme_supports
+	 */
+	public function test_default_test_for_additional_args() {
+		add_theme_support( 'random', array( 'arg1', 'arg2' ) );
+		$this->assertTrue( current_theme_supports( 'random' ) );
+		$this->assertTrue( current_theme_supports( 'random' ), 'arg1' );
+		$this->assertTrue( current_theme_supports( 'random' ), 'arg2' );
+	}
 }

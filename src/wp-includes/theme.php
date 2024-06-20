@@ -3187,8 +3187,15 @@ function current_theme_supports( $feature, ...$args ) {
 			$content_type = $args[0];
 			return in_array( $content_type, $_wp_theme_features[ $feature ][0], true );
 
+		case 'custom-logo':
+		case 'custom-header':
+		case 'custom-background':
+			// Specific capabilities can be registered by passing an array to add_theme_support().
+			return ( isset( $_wp_theme_features[ $feature ][0][ $args[0] ] ) && $_wp_theme_features[ $feature ][0][ $args[0] ] );
+
 		case 'html5':
 		case 'post-formats':
+		default:
 			/*
 			 * Specific post formats can be registered by passing an array of types
 			 * to add_theme_support().
@@ -3196,13 +3203,11 @@ function current_theme_supports( $feature, ...$args ) {
 			 * Specific areas of HTML5 support *must* be passed via an array to add_theme_support().
 			 */
 			$type = $args[0];
-			return in_array( $type, $_wp_theme_features[ $feature ][0], true );
-
-		case 'custom-logo':
-		case 'custom-header':
-		case 'custom-background':
-			// Specific capabilities can be registered by passing an array to add_theme_support().
-			return ( isset( $_wp_theme_features[ $feature ][0][ $args[0] ] ) && $_wp_theme_features[ $feature ][0][ $args[0] ] );
+			if ( is_array( $_wp_theme_features[ $feature ][0] ) ) {
+				return in_array( $type, $_wp_theme_features[ $feature ][0], true );
+			} else {
+				return $type === $_wp_theme_features[ $feature ][0];
+			}
 	}
 
 	/**
