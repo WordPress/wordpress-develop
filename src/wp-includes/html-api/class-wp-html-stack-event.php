@@ -59,6 +59,8 @@ class WP_HTML_Stack_Event {
 	/**
 	 * Indicates if the stack element is a real or virtual node.
 	 *
+	 * @since 6.6.0
+	 *
 	 * @var string
 	 */
 	public $provenance;
