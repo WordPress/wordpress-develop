@@ -38,6 +38,14 @@ class WP_REST_Request implements ArrayAccess {
 	protected $method = '';
 
 	/**
+	 * Embed
+	 *
+	 * @since 6.1.0
+	 * @var boolean|array
+	 */
+	protected $embed = false;
+
+	/**
 	 * Parameters passed to the request.
 	 *
 	 * These typically come from the `$_GET`, `$_POST` and `$_FILES`
@@ -148,6 +156,24 @@ class WP_REST_Request implements ArrayAccess {
 	 */
 	public function set_method( $method ) {
 		$this->method = strtoupper( $method );
+	}
+
+	/**
+	 * @since 6.1.0
+	 *
+	 * @return array|bool
+	 */
+	public function get_embed() {
+		return $this->embed;
+	}
+
+	/**
+	 * @since 6.1.0
+	 *
+	 * @param array|bool $embed Embed.
+	 */
+	public function set_embed( $embed ) {
+		$this->embed = $embed;
 	}
 
 	/**
@@ -1047,6 +1073,8 @@ class WP_REST_Request implements ArrayAccess {
 		if ( ! empty( $route ) ) {
 			$request = new WP_REST_Request( 'GET', $route );
 			$request->set_query_params( $query_params );
+			$embed = isset( $query_params['_embed'] ) ? rest_parse_embed_param( $query_params['_embed'] ) : false;
+			$request->set_embed( $embed );
 		}
 
 		/**
