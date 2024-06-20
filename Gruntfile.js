@@ -28,7 +28,7 @@ module.exports = function(grunt) {
 			'wp-content/themes/index.php',
 			'wp-content/themes/twenty*/**',
 			'wp-content/plugins/index.php',
-			'wp-content/plugins/hello.php',
+			'wp-content/plugins/hello-dolly/**',
 			'wp-content/plugins/akismet/**',
 			'!wp-content/themes/twenty*/node_modules/**',
 		],
