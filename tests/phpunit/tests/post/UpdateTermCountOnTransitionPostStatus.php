@@ -32,7 +32,7 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	/**
 	 * Set up.
 	 */
-	public function set_up(): void {
+	public function set_up() {
 		parent::set_up();
 
 		register_post_type( self::$post_type, array( 'public' => true ) );
