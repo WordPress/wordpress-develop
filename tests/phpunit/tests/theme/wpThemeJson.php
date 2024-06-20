@@ -14,6 +14,7 @@
  */
 class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
+
 	/**
 	 * Administrator ID.
 	 *
@@ -3928,6 +3929,67 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 		$this->assertSameSetsWithIndex( $expected, $sanitized_theme_json, 'Sanitized theme.json styles does not match' );
+	}
+
+	/**
+	 * @ticket 61451
+	 * @ticket 61312
+	 *
+	 */
+	public function test_unwraps_block_style_variations() {
+		register_block_style(
+			'core/paragraph',
+			array(
+				'name'  => 'myVariation',
+				'label' => 'My variation',
+			)
+		);
+		register_block_style(
+			'core/group',
+			array(
+				'name'  => 'myVariation',
+				'label' => 'My variation',
+			)
+		);
+
+		$input    = new WP_Theme_JSON(
+			array(
+				'version' => 3,
+				'styles'  => array(
+					'blocks' => array(
+						'variations' => array(
+							'myVariation' => array(
+								'title'      => 'My variation',
+								'blockTypes' => array( 'core/paragraph', 'core/group' ),
+								'color'      => array( 'background' => 'backgroundColor' ),
+							),
+						),
+					),
+				),
+			)
+		);
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'blocks' => array(
+					'core/paragraph' => array(
+						'variations' => array(
+							'myVariation' => array(
+								'color' => array( 'background' => 'backgroundColor' ),
+							),
+						),
+					),
+					'core/group'     => array(
+						'variations' => array(
+							'myVariation' => array(
+								'color' => array( 'background' => 'backgroundColor' ),
+							),
+						),
+					),
+				),
+			),
+		);
+		$this->assertSameSetsWithIndex( $expected, $input->get_raw_data(), 'Unwrapped block style variations do not match' );
 	}
 
 	/**

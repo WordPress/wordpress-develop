@@ -756,6 +756,7 @@ class WP_Theme_JSON {
 		}
 
 		$this->theme_json    = WP_Theme_JSON_Schema::migrate( $theme_json, $origin );
+		$this->theme_json    = static::unwrap_shared_block_style_variations( $this->theme_json );
 		$valid_block_names   = array_keys( static::get_blocks_metadata() );
 		$valid_element_names = array_keys( static::ELEMENTS );
 		$valid_variations    = static::get_valid_block_style_variations();
@@ -800,6 +801,63 @@ class WP_Theme_JSON {
 			$merged_spacing_sizes = static::merge_spacing_sizes( $spacing_scale_sizes, $spacing_sizes );
 			_wp_array_set( $this->theme_json, $sizes_path, $merged_spacing_sizes );
 		}
+	}
+
+	/**
+	 * Unwraps shared block style variations.
+	 *
+	 * Given the following input:
+	 *
+	 * {
+	 *   "styles": {
+	 *     "blocks": {
+	 *       "variations": {
+	 *         "blockTypes": [ "core/paragraph", "core/group" ],
+	 *         "color": { "background": "backgroundColor" }
+	 *       }
+	 *     }
+	 *   }
+	 * }
+	 *
+	 * It returns the following output:
+	 *
+	 * {
+	 *   "styles": {
+	 *     "blocks": {
+	 *       "variations": {
+	 *         "core/paragraph": { "color": { "background": "backgroundColor" } },
+	 *         "core/group": { "color": { "background": "backgroundColor" } }
+	 *       }
+	 *     }
+	 *   }
+	 * }
+	 */
+	private static function unwrap_shared_block_style_variations( $theme_json ) {
+		$new_theme_json = $theme_json;
+
+		if ( ! isset( $new_theme_json['styles']['blocks']['variations'] ) ) {
+			return $new_theme_json;
+		}
+
+		$variations = $new_theme_json['styles']['blocks']['variations'];
+		foreach ( $variations as $variation_name => $data ) {
+			if ( ! isset( $data['blockTypes'] ) ) {
+				// Skip shared variations that do not declare blockTypes.
+				continue;
+			}
+
+			$block_names = $data['blockTypes'];
+			unset( $data['blockTypes'] );
+			unset( $data['title'] );
+			foreach ( $block_names as $block_name ) {
+				// TODO: what if there was existing data for the block?
+				$new_theme_json['styles']['blocks'][ $block_name ]['variations'][ $variation_name ] = $data;
+			}
+		}
+
+		unset( $new_theme_json['styles']['blocks']['variations'] );
+
+		return $new_theme_json;
 	}
 
 	/**
