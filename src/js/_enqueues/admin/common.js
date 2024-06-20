@@ -1743,8 +1743,9 @@ $( function() {
 				if ( ! $adminmenu.data('wp-responsive') ) {
 					return;
 				}
-
+				let state = ( 'false' === $( this ).attr( 'aria-expanded' ) ) ? 'true' : 'false';
 				$( this ).parent( 'li' ).toggleClass( 'selected' );
+				$( this ).attr( 'aria-expanded', state );
 				$( this ).trigger( 'focus' );
 				event.preventDefault();
 			});
@@ -1835,14 +1836,14 @@ $( function() {
 
 			if ( action === 'add' ) {
 				elements.each( function() {
-					$( this ).attr( 'aria-haspopup', 'menu' );
+					$( this ).attr( 'aria-haspopup', 'menu' ).attr( 'aria-expanded', 'false' );
 				} );
 
 				return;
 			}
 
 			elements.each( function() {
-				$( this ).removeAttr( 'aria-haspopup' );
+				$( this ).removeAttr( 'aria-haspopup' ).removeAttr( 'aria-expanded' );
 			} );
 		},
 
