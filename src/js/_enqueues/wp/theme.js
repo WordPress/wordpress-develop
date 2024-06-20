@@ -494,6 +494,12 @@ themes.view.Theme = wp.Backbone.View.extend({
 			return;
 		}
 
+		// Prevent the modal from showing when the WP or PHP
+		// version is not compatible.
+		if ( this.$el.find( 'div.notice' ).length !== 0 ) {
+			return;
+		}
+
 		event.preventDefault();
 
 		event = event || window.event;
