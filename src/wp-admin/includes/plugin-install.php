@@ -283,7 +283,7 @@ function set_default_false_fields( $args ) {
 
 	return $args;
 }
-add_filter( 'plugins_api_args', 'set_default_false_fields', 10, 2 );
+add_filter( 'plugins_api_args', '_set_default_false_fields', 10, 2 );
 
 /**
  * Retrieves popular WordPress plugin tags.
