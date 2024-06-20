@@ -494,9 +494,10 @@ class WP_Dependencies {
 	/**
 	 * Get etag header for cache validation.
 	 *
+	 * @since 6.6.0
+	 *
 	 * @param string $wp_version WordPress version.
 	 * @param string[] $load Array of script handles to load.
-	 *
 	 * @return string Etag header.
 	 */
 	public function get_etag( $wp_version, $load ) {

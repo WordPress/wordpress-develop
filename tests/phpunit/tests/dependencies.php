@@ -203,4 +203,29 @@ class Tests_Dependencies extends WP_UnitTestCase {
 
 		$this->assertSame( $instance->get_etag( $wp_version, array_keys( $load ) ), $expected, 'md hash for ' );
 	}
+
+	/**
+	 * Tests get_etag method for WP_Styles.
+	 *
+	 * @covers WP_Dependencies::get_etag
+	 * @ticket 58433
+	 *
+	 * @dataProvider data_provider_get_etag
+	 *
+	 * @param array $load List of scripts to load.
+	 * @param string $wp_version WordPress version.
+	 * @param string $expected Expected etag.
+	 *
+	 * @return void
+	 */
+	public function test_get_etag_styles( $load, $wp_version, $expected ) {
+			$instance = wp_styles();
+
+		foreach ( $load as $handle => $ver ) {
+			// The src should not be empty.
+			wp_enqueue_style( $handle, 'https://example.cdn', array(), $ver );
+		}
+
+			$this->assertSame( $instance->get_etag( $wp_version, array_keys( $load ) ), $expected, 'md hash for ' );
+	}
 }
