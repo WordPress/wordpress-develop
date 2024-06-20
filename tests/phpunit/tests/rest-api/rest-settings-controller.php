@@ -358,6 +358,229 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertNull( $data['mycustomsettinginrest'] );
 	}
 
+	/**
+	 * @ticket 48885
+	 * @covers WP_REST_Settings_Controller::get_items
+	 */
+	public function test_get_item_with_read_permission_callbacks() {
+		register_setting(
+			'somegroup',
+			'mycustomsetting',
+			array(
+				'show_in_rest' => array(
+					'name'                     => 'mycustomsettinginrest',
+					'read_permission_callback' => '__return_true',
+				),
+				'type'         => 'string',
+			)
+		);
+
+		update_option( 'mycustomsetting', 'hello world' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertArrayHasKey( 'mycustomsettinginrest', $data );
+		$this->assertSame( 'hello world', $data['mycustomsettinginrest'] );
+	}
+
+
+	/**
+	 * @ticket 48885
+	 * @covers WP_REST_Settings_Controller::get_item_permissions_check
+	 */
+	public function test_get_item_with_read_permission_permission() {
+		wp_set_current_user( self::$administrator );
+		$user = get_user_by( 'id', self::$administrator );
+		$user->add_cap( 'custom_rest_cap' );
+
+		register_setting(
+			'somegroup',
+			'mycustomsetting',
+			array(
+				'show_in_rest' => array(
+					'name'                     => 'mycustomsettinginrest',
+					'read_permission_callback' => function () {
+						return current_user_can( 'custom_rest_cap' );
+					},
+				),
+				'type'         => 'string',
+			)
+		);
+
+		update_option( 'mycustomsetting', 'hello world' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertArrayHasKey( 'mycustomsettinginrest', $data );
+		$this->assertSame( 'hello world', $data['mycustomsettinginrest'] );
+	}
+
+	/**
+	 * @ticket 48885
+	 * @covers WP_REST_Settings_Controller::get_item_permissions_check
+	 */
+	public function test_get_item_with_read_permission_invalid_callbacks() {
+		register_setting(
+			'somegroup',
+			'mycustomsetting',
+			array(
+				'show_in_rest' => array(
+					'name'                     => 'mycustomsettinginrest',
+					'read_permission_callback' => 'invalid_callback',
+				),
+				'type'         => 'string',
+			)
+		);
+
+		update_option( 'mycustomsetting', 'hello world' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
+	}
+
+	/**
+	 * @ticket 48885
+	 * @covers WP_REST_Settings_Controller::get_item_permissions_check
+	 */
+	public function test_get_item_with_read_permission_callbacks_return_false() {
+		register_setting(
+			'somegroup',
+			'mycustomsetting',
+			array(
+				'show_in_rest' => array(
+					'name'                     => 'mycustomsettinginrest',
+					'read_permission_callback' => '__return_false',
+				),
+				'type'         => 'string',
+			)
+		);
+
+		update_option( 'mycustomsetting', 'hello world' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
+	}
+
+	/**
+	 * @ticket 48885
+	 * @covers WP_REST_Settings_Controller::update_item_permissions_check
+	 */
+	public function test_update_item_with_edit_permission_callbacks() {
+		register_setting(
+			'somegroup',
+			'mycustomsetting',
+			array(
+				'show_in_rest' => array(
+					'name'                     => 'mycustomsettinginrest',
+					'edit_permission_callback' => '__return_true',
+					'read_permission_callback' => '__return_true',
+				),
+				'type'         => 'string',
+			)
+		);
+
+		update_option( 'mycustomsetting', 'hello world' );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'mycustomsettinginrest', 'Updated value' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertArrayHasKey( 'mycustomsettinginrest', $data );
+		$this->assertSame( 'Updated value', $data['mycustomsettinginrest'] );
+	}
+
+	/**
+	 * @ticket 48885
+	 * @covers WP_REST_Settings_Controller::update_item_permissions_check
+	 */
+	public function test_update_item_with_edit_permission_permission() {
+		wp_set_current_user( self::$administrator );
+		$user = get_user_by( 'id', self::$administrator );
+		$user->add_cap( 'custom_rest_cap' );
+
+		register_setting(
+			'somegroup',
+			'mycustomsetting',
+			array(
+				'show_in_rest' => array(
+					'name'                     => 'mycustomsettinginrest',
+					'edit_permission_callback' => function () {
+						return current_user_can( 'custom_rest_cap' );
+					},
+					'read_permission_callback' => '__return_true',
+				),
+				'type'         => 'string',
+			)
+		);
+
+		update_option( 'mycustomsetting', 'hello world' );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'mycustomsettinginrest', 'Updated value' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertArrayHasKey( 'mycustomsettinginrest', $data );
+		$this->assertSame( 'Updated value', $data['mycustomsettinginrest'] );
+	}
+
+	/**
+	 * @ticket 48885
+	 * @covers WP_REST_Settings_Controller::update_item_permissions_check
+	 */
+	public function test_update_item_with_edit_permission_invalid_callbacks() {
+		register_setting(
+			'somegroup',
+			'mycustomsetting',
+			array(
+				'show_in_rest' => array(
+					'name'                     => 'mycustomsettinginrest',
+					'edit_permission_callback' => 'invalid_callback',
+				),
+				'type'         => 'string',
+			)
+		);
+
+		update_option( 'mycustomsetting', 'hello world' );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'mycustomsettinginrest', 'Updated value' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_update', $response, 401 );
+	}
+
+	/**
+	 * @ticket 48885
+	 * @covers WP_REST_Settings_Controller::update_item_permissions_check
+	 */
+	public function test_update_item_with_edit_permission_callbacks_return_false() {
+		register_setting(
+			'somegroup',
+			'mycustomsetting',
+			array(
+				'show_in_rest' => array(
+					'name'                     => 'mycustomsettinginrest',
+					'edit_permission_callback' => '__return_false',
+				),
+				'type'         => 'string',
+			)
+		);
+
+		update_option( 'mycustomsetting', 'hello world' );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'mycustomsettinginrest', 'Updated value' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_update', $response, 401 );
+	}
+
 	public function test_get_item_with_invalid_object_array_in_options() {
 		wp_set_current_user( self::$administrator );
 
