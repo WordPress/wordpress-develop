@@ -7,6 +7,38 @@
  * @since 5.9.0
  */
 
+class WP_HTML_Head_Scanner extends WP_HTML_Tag_Processor {
+	public function get_title_content_and_advance() {
+		if ( 'TITLE' !== $this->get_tag() || $this->is_tag_closer() ) {
+			return null;
+		}
+
+		$this->set_bookmark( 'title-opener' );
+		$from = $this->bookmarks['title-opener']->end + 1;
+
+		if ( ! $this->next_tag( array( 'tag_closers' => 'visit' ) ) || 'TITLE' !== $this->get_tag() ) {
+			// When missing a closing TITLE tag, the title becomes the full document after the opener.
+			return html_entity_decode(
+				substr( $this->html, $from ),
+				ENT_QUOTES,
+				get_bloginfo( 'charset' )
+			);
+		}
+
+		$this->set_bookmark( 'title-closer' );
+		$to   = $this->bookmarks['title-closer']->start;
+
+		$this->release_bookmark( 'title-opener' );
+		$this->release_bookmark( 'title-closer' );
+
+		return html_entity_decode(
+			substr( $this->html, $from, $to - $from ),
+			ENT_QUOTES,
+			get_bloginfo( 'charset' )
+		);
+	}
+}
+
 /**
  * Controller which provides REST endpoint for retrieving information
  * from a remote site's HTML response.
@@ -124,6 +156,115 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Fetches relevant information from the relevant HEAD elements in the response HTML.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $response_html HTML content in the response potentially containing meta information.
+	 * @param string $url           Used to build absolute URLs from relative URLs in the response data.
+	 *
+	 * @return array {
+	 *     Attributes extracted from the response HTML, each of which will be an empty string if not found in the HTML.
+	 *
+	 *     @type string $title       HTML page title.
+	 *     @type string $icon        URL to icon image specified by LINK element.
+	 *     @type string $description Open-graph description from META element.
+	 *     @type string $image       URL for open-graph image from META element.
+	 * }
+	 */
+	public function find_head_information( $response_html, $url ) {
+		$title       = null;
+		$icon        = null;
+		$description = null;
+		$image       = null;
+
+		$processor = new WP_HTML_Head_Scanner( $response_html );
+
+		while ( $processor->next_tag() && ! isset( $title, $icon, $description, $image ) ) {
+			$tag_name = $processor->get_tag();
+
+			if ( 'TITLE' === $tag_name && ! isset( $title ) ) {
+				$title_value = $processor->get_title_content_and_advance();
+				if ( is_string( $title_value ) ) {
+					$title = $this->prepare_metadata_for_output( trim( $title_value ) );
+				}
+				continue;
+			}
+
+			if ( 'LINK' === $tag_name && ! isset( $icon ) ) {
+				$rel = $processor->get_attribute( 'rel' );
+				if ( ! is_string( $rel ) ) {
+					continue;
+				}
+
+				$rel = trim( $rel );
+				if ( 'icon' !== $rel && 'icon shortcut' !== $rel && 'shortcut icon' !== $rel ) {
+					continue;
+				}
+
+				$href = $processor->get_attribute( 'href' );
+				if ( is_string( $href ) && ! empty( $href ) ) {
+					$icon = $this->get_icon( trim( $href ), $url );
+				}
+				continue;
+			}
+
+			if ( 'META' === $tag_name && ! isset( $description ) ) {
+				$name = $processor->get_attribute( 'name' );
+				if ( is_string( $name ) ) {
+					$name = trim( $name );
+				}
+
+				if ( 'og:description' === $name || 'description' === $name ) {
+					$content = $processor->get_attribute( 'content' );
+					if ( is_string( $content ) && ! empty( $content ) ) {
+						$description = $this->prepare_metadata_for_output( trim( $content ) );
+						continue;
+					}
+				}
+			}
+
+			if ( 'META' === $tag_name && ! isset( $image ) ) {
+				$property = $processor->get_attribute( 'property' );
+				if ( is_string( $property ) ) {
+					$property = trim( $property );
+				}
+
+				if ( 'og:image' === $property || 'og:image:url' === $property ) {
+					$content = $processor->get_attribute( 'content' );
+					if ( is_string( $content ) && ! empty( $content ) ) {
+						$image = $this->get_image( trim( $content ), $url );
+					}
+				}
+			}
+
+			/*
+			 * Stop looking for meta information once reaching the BODY.
+			 * It's possible that more LINK, META, or TITLE elements may
+			 * appear later on, and they would still apply in a browser,
+			 * but for the scraping here it's a pragmatic choice to stop
+			 * processing and give up. Those kinds of valid-yet-invalid
+			 * HTML constructions aren't supported here.
+			 *
+			 * It would be valid here to continue past this tag, but that
+			 * would likely incur an average performance penalty and only
+			 * recover a set of rare cases where the markup is malformed
+			 * in this specific manner.
+			 */
+			if ( 'BODY' === $tag_name ) {
+				break;
+			}
+		}
+
+		return array(
+			'title'       => $title ?? '',
+			'icon'        => $icon ?? '',
+			'description' => $description ?? '',
+			'image'       => $image ?? '',
+		);
+	}
+
+	/**
 	 * Retrieves the contents of the title tag from the HTML response.
 	 *
 	 * @since 5.9.0
@@ -158,16 +299,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 			$this->set_cache( $cache_key, $remote_url_response );
 		}
 
-		$html_head     = $this->get_document_head( $remote_url_response );
-		$meta_elements = $this->get_meta_with_content_elements( $html_head );
-
 		$data = $this->add_additional_fields_to_object(
-			array(
-				'title'       => $this->get_title( $html_head ),
-				'icon'        => $this->get_icon( $html_head, $url ),
-				'description' => $this->get_description( $meta_elements ),
-				'image'       => $this->get_image( $meta_elements, $url ),
-			),
+			$this->find_head_information( $remote_url_response, $url ),
 			$request
 		);
 
@@ -276,103 +409,33 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Parses the title tag contents from the provided HTML.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string $html The HTML from the remote website at URL.
-	 * @return string The title tag contents on success. Empty string if not found.
-	 */
-	private function get_title( $html ) {
-		$pattern = '#<title[^>]*>(.*?)<\s*/\s*title>#is';
-		preg_match( $pattern, $html, $match_title );
-
-		if ( empty( $match_title[1] ) || ! is_string( $match_title[1] ) ) {
-			return '';
-		}
-
-		$title = trim( $match_title[1] );
-
-		return $this->prepare_metadata_for_output( $title );
-	}
-
-	/**
 	 * Parses the site icon from the provided HTML.
 	 *
 	 * @since 5.9.0
+	 * @since 6.5.0 Expects `href` value as input instead of LINK tag HTML.
 	 *
-	 * @param string $html The HTML from the remote website at URL.
+	 * @param string $icon_href The value of the `href` attribute for the icon LINK element.
 	 * @param string $url  The target website URL.
 	 * @return string The icon URI on success. Empty string if not found.
 	 */
-	private function get_icon( $html, $url ) {
-		// Grab the icon's link element.
-		$pattern = '#<link\s[^>]*rel=(?:[\"\']??)\s*(?:icon|shortcut icon|icon shortcut)\s*(?:[\"\']??)[^>]*\/?>#isU';
-		preg_match( $pattern, $html, $element );
-		if ( empty( $element[0] ) || ! is_string( $element[0] ) ) {
-			return '';
-		}
-		$element = trim( $element[0] );
-
-		// Get the icon's href value.
-		$pattern = '#href=([\"\']??)([^\" >]*?)\\1[^>]*#isU';
-		preg_match( $pattern, $element, $icon );
-		if ( empty( $icon[2] ) || ! is_string( $icon[2] ) ) {
-			return '';
-		}
-		$icon = trim( $icon[2] );
-
+	private function get_icon( $icon_href, $url ) {
 		// If the icon is a data URL, return it.
-		$parsed_icon = parse_url( $icon );
+		$parsed_icon = wp_parse_url( $icon_href );
 		if ( isset( $parsed_icon['scheme'] ) && 'data' === $parsed_icon['scheme'] ) {
-			return $icon;
+			return $icon_href;
 		}
 
 		// Attempt to convert relative URLs to absolute.
 		if ( ! is_string( $url ) || '' === $url ) {
-			return $icon;
+			return $icon_href;
 		}
-		$parsed_url = parse_url( $url );
+		$parsed_url = wp_parse_url( $url );
 		if ( isset( $parsed_url['scheme'] ) && isset( $parsed_url['host'] ) ) {
-			$root_url = $parsed_url['scheme'] . '://' . $parsed_url['host'] . '/';
-			$icon     = WP_Http::make_absolute_url( $icon, $root_url );
+			$root_url  = $parsed_url['scheme'] . '://' . $parsed_url['host'] . '/';
+			$icon_href = WP_Http::make_absolute_url( $icon_href, $root_url );
 		}
 
-		return $icon;
-	}
-
-	/**
-	 * Parses the meta description from the provided HTML.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param array $meta_elements {
-	 *     A multi-dimensional indexed array on success, else empty array.
-	 *
-	 *     @type string[] $0 Meta elements with a content attribute.
-	 *     @type string[] $1 Content attribute's opening quotation mark.
-	 *     @type string[] $2 Content attribute's value for each meta element.
-	 * }
-	 * @return string The meta description contents on success. Empty string if not found.
-	 */
-	private function get_description( $meta_elements ) {
-		// Bail out if there are no meta elements.
-		if ( empty( $meta_elements[0] ) ) {
-			return '';
-		}
-
-		$description = $this->get_metadata_from_meta_element(
-			$meta_elements,
-			'name',
-			'(?:description|og:description)'
-		);
-
-		// Bail out if description not found.
-		if ( '' === $description ) {
-			return '';
-		}
-
-		return $this->prepare_metadata_for_output( $description );
+		return $icon_href;
 	}
 
 	/**
@@ -381,37 +444,26 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 * See: https://ogp.me/.
 	 *
 	 * @since 5.9.0
+	 * @since 6.5.0 Expects image URL input as value of `content` attribute instead of META tag HTML.
 	 *
-	 * @param array  $meta_elements {
-	 *     A multi-dimensional indexed array on success, else empty array.
-	 *
-	 *     @type string[] $0 Meta elements with a content attribute.
-	 *     @type string[] $1 Content attribute's opening quotation mark.
-	 *     @type string[] $2 Content attribute's value for each meta element.
-	 * }
-	 * @param string $url The target website URL.
+	 * @param string $image_url Value of the `content` attribute from the image META tag, supposedly containing an image URL.
+	 * @param string $url       The target website URL.
 	 * @return string The OG image on success. Empty string if not found.
 	 */
-	private function get_image( $meta_elements, $url ) {
-		$image = $this->get_metadata_from_meta_element(
-			$meta_elements,
-			'property',
-			'(?:og:image|og:image:url)'
-		);
-
+	private function get_image( $image_url, $url ) {
 		// Bail out if image not found.
-		if ( '' === $image ) {
+		if ( '' === $image_url ) {
 			return '';
 		}
 
 		// Attempt to convert relative URLs to absolute.
-		$parsed_url = parse_url( $url );
+		$parsed_url = wp_parse_url( $url );
 		if ( isset( $parsed_url['scheme'] ) && isset( $parsed_url['host'] ) ) {
-			$root_url = $parsed_url['scheme'] . '://' . $parsed_url['host'] . '/';
-			$image    = WP_Http::make_absolute_url( $image, $root_url );
+			$root_url  = $parsed_url['scheme'] . '://' . $parsed_url['host'] . '/';
+			$image_url = WP_Http::make_absolute_url( $image_url, $root_url );
 		}
 
-		return $image;
+		return $image_url;
 	}
 
 	/**
@@ -479,190 +531,5 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		$cache_expiration = apply_filters( 'rest_url_details_cache_expiration', $ttl );
 
 		return set_site_transient( $key, $data, $cache_expiration );
-	}
-
-	/**
-	 * Retrieves the head element section.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string $html The string of HTML to parse.
-	 * @return string The `<head>..</head>` section on success. Given `$html` if not found.
-	 */
-	private function get_document_head( $html ) {
-		$head_html = $html;
-
-		// Find the opening `<head>` tag.
-		$head_start = strpos( $html, '<head' );
-		if ( false === $head_start ) {
-			// Didn't find it. Return the original HTML.
-			return $html;
-		}
-
-		// Find the closing `</head>` tag.
-		$head_end = strpos( $head_html, '</head>' );
-		if ( false === $head_end ) {
-			// Didn't find it. Find the opening `<body>` tag.
-			$head_end = strpos( $head_html, '<body' );
-
-			// Didn't find it. Return the original HTML.
-			if ( false === $head_end ) {
-				return $html;
-			}
-		}
-
-		// Extract the HTML from opening tag to the closing tag. Then add the closing tag.
-		$head_html  = substr( $head_html, $head_start, $head_end );
-		$head_html .= '</head>';
-
-		return $head_html;
-	}
-
-	/**
-	 * Gets all the meta tag elements that have a 'content' attribute.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string $html The string of HTML to be parsed.
-	 * @return array {
-	 *     A multi-dimensional indexed array on success, else empty array.
-	 *
-	 *     @type string[] $0 Meta elements with a content attribute.
-	 *     @type string[] $1 Content attribute's opening quotation mark.
-	 *     @type string[] $2 Content attribute's value for each meta element.
-	 * }
-	 */
-	private function get_meta_with_content_elements( $html ) {
-		/*
-		 * Parse all meta elements with a content attribute.
-		 *
-		 * Why first search for the content attribute rather than directly searching for name=description element?
-		 * tl;dr The content attribute's value will be truncated when it contains a > symbol.
-		 *
-		 * The content attribute's value (i.e. the description to get) can have HTML in it and be well-formed as
-		 * it's a string to the browser. Imagine what happens when attempting to match for the name=description
-		 * first. Hmm, if a > or /> symbol is in the content attribute's value, then it terminates the match
-		 * as the element's closing symbol. But wait, it's in the content attribute and is not the end of the
-		 * element. This is a limitation of using regex. It can't determine "wait a minute this is inside of quotation".
-		 * If this happens, what gets matched is not the entire element or all of the content.
-		 *
-		 * Why not search for the name=description and then content="(.*)"?
-		 * The attribute order could be opposite. Plus, additional attributes may exist including being between
-		 * the name and content attributes.
-		 *
-		 * Why not lookahead?
-		 * Lookahead is not constrained to stay within the element. The first <meta it finds may not include
-		 * the name or content, but rather could be from a different element downstream.
-		 */
-		$pattern = '#<meta\s' .
-
-				/*
-				 * Allows for additional attributes before the content attribute.
-				 * Searches for anything other than > symbol.
-				 */
-				'[^>]*' .
-
-				/*
-				* Find the content attribute. When found, capture its value (.*).
-				*
-				* Allows for (a) single or double quotes and (b) whitespace in the value.
-				*
-				* Why capture the opening quotation mark, i.e. (["\']), and then backreference,
-				* i.e \1, for the closing quotation mark?
-				* To ensure the closing quotation mark matches the opening one. Why? Attribute values
-				* can contain quotation marks, such as an apostrophe in the content.
-				*/
-				'content=(["\']??)(.*)\1' .
-
-				/*
-				* Allows for additional attributes after the content attribute.
-				* Searches for anything other than > symbol.
-				*/
-				'[^>]*' .
-
-				/*
-				* \/?> searches for the closing > symbol, which can be in either /> or > format.
-				* # ends the pattern.
-				*/
-				'\/?>#' .
-
-				/*
-				* These are the options:
-				* - i : case insensitive
-				* - s : allows newline characters for the . match (needed for multiline elements)
-				* - U means non-greedy matching
-				*/
-				'isU';
-
-		preg_match_all( $pattern, $html, $elements );
-
-		return $elements;
-	}
-
-	/**
-	 * Gets the metadata from a target meta element.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param array  $meta_elements {
-	 *     A multi-dimensional indexed array on success, else empty array.
-	 *
-	 *     @type string[] $0 Meta elements with a content attribute.
-	 *     @type string[] $1 Content attribute's opening quotation mark.
-	 *     @type string[] $2 Content attribute's value for each meta element.
-	 * }
-	 * @param string $attr       Attribute that identifies the element with the target metadata.
-	 * @param string $attr_value The attribute's value that identifies the element with the target metadata.
-	 * @return string The metadata on success. Empty string if not found.
-	 */
-	private function get_metadata_from_meta_element( $meta_elements, $attr, $attr_value ) {
-		// Bail out if there are no meta elements.
-		if ( empty( $meta_elements[0] ) ) {
-			return '';
-		}
-
-		$metadata = '';
-		$pattern  = '#' .
-				/*
-				 * Target this attribute and value to find the metadata element.
-				 *
-				 * Allows for (a) no, single, double quotes and (b) whitespace in the value.
-				 *
-				 * Why capture the opening quotation mark, i.e. (["\']), and then backreference,
-				 * i.e \1, for the closing quotation mark?
-				 * To ensure the closing quotation mark matches the opening one. Why? Attribute values
-				 * can contain quotation marks, such as an apostrophe in the content.
-				 */
-				$attr . '=([\"\']??)\s*' . $attr_value . '\s*\1' .
-
-				/*
-				 * These are the options:
-				 * - i : case insensitive
-				 * - s : allows newline characters for the . match (needed for multiline elements)
-				 * - U means non-greedy matching
-				 */
-				'#isU';
-
-		// Find the metadata element.
-		foreach ( $meta_elements[0] as $index => $element ) {
-			preg_match( $pattern, $element, $match );
-
-			// This is not the metadata element. Skip it.
-			if ( empty( $match ) ) {
-				continue;
-			}
-
-			/*
-			 * Found the metadata element.
-			 * Get the metadata from its matching content array.
-			 */
-			if ( isset( $meta_elements[2][ $index ] ) && is_string( $meta_elements[2][ $index ] ) ) {
-				$metadata = trim( $meta_elements[2][ $index ] );
-			}
-
-			break;
-		}
-
-		return $metadata;
 	}
 }

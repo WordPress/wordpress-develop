@@ -487,13 +487,9 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	 */
 	public function test_get_title( $html, $expected ) {
 		$controller = new WP_REST_URL_Details_Controller();
-		$method     = $this->get_reflective_method( 'get_title' );
+		$info       = $controller->find_head_information( $this->wrap_html_in_doc( $html ), '' );
 
-		$actual = $method->invoke(
-			$controller,
-			$this->wrap_html_in_doc( $html )
-		);
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $info['title'] );
 	}
 
 	/**
@@ -521,9 +517,9 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				'<title >Testing &lt;title&gt;: with whitespace in opening tag</title>',
 				'Testing : with whitespace in opening tag',
 			),
-			'when whitepace in closing tag'  => array(
-				'<title>Testing &lt;title&gt;: with whitespace in closing tag</ title>',
-				'Testing : with whitespace in closing tag',
+			'when whitespace error in closing tag, such that no closing tag exists' => array(
+				'<title>Testing &lt;title&gt;: with whitespace in closing tag</ title><body>Surprise! This is still the title.</body>',
+				'Testing : with whitespace in closing tagSurprise! This is still the title.',
 			),
 			'with other elements'            => array(
 				'<meta name="viewport" content="width=device-width">
@@ -559,14 +555,9 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	 */
 	public function test_get_icon( $html, $expected, $target_url = 'https://wordpress.org' ) {
 		$controller = new WP_REST_URL_Details_Controller();
-		$method     = $this->get_reflective_method( 'get_icon' );
+		$info       = $controller->find_head_information( $this->wrap_html_in_doc( $html ), $target_url );
 
-		$actual = $method->invoke(
-			$controller,
-			$this->wrap_html_in_doc( $html ),
-			$target_url
-		);
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $info['icon'] );
 	}
 
 	/**
@@ -733,17 +724,9 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	 */
 	public function test_get_description( $html, $expected ) {
 		$controller = new WP_REST_URL_Details_Controller();
+		$info       = $controller->find_head_information( $this->wrap_html_in_doc( $html ), '' );
 
-		// Parse the meta elements from the given HTML.
-		$method        = $this->get_reflective_method( 'get_meta_with_content_elements' );
-		$meta_elements = $method->invoke(
-			$controller,
-			$this->wrap_html_in_doc( $html )
-		);
-
-		$method = $this->get_reflective_method( 'get_description' );
-		$actual = $method->invoke( $controller, $meta_elements );
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $info['description'] );
 	}
 
 	/**
@@ -844,8 +827,12 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				'Description: has HTML tags',
 			),
 			'with HTML tags and other attributes'        => array(
-				'<meta first="first" name="description" third="third" content="<strong>Description</strong>: has <em>HTML</em> tags" fifth="fifth>',
+				'<meta first="first" name="description" third="third" content="<strong>Description</strong>: has <em>HTML</em> tags" fifth="fifth">',
 				'Description: has HTML tags',
+			),
+			'broken, missing attribute quote'            => array(
+				'<meta first="first" name="description" third="third" content="<strong>Description</strong>: has <em>HTML</em> tags" fifth="fifth>',
+				'',
 			),
 			'with HTML entities'                         => array(
 				'<meta name="description" content="The &lt;strong&gt;description&lt;/strong&gt; meta &amp; its attribute value"',
@@ -885,17 +872,9 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	 */
 	public function test_get_image( $html, $expected, $target_url = 'https://wordpress.org' ) {
 		$controller = new WP_REST_URL_Details_Controller();
+		$info       = $controller->find_head_information( $this->wrap_html_in_doc( $html ), $target_url );
 
-		// Parse the meta elements from the given HTML.
-		$method        = $this->get_reflective_method( 'get_meta_with_content_elements' );
-		$meta_elements = $method->invoke(
-			$controller,
-			$this->wrap_html_in_doc( $html )
-		);
-
-		$method = $this->get_reflective_method( 'get_image' );
-		$actual = $method->invoke( $controller, $meta_elements, $target_url );
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $info['image'] );
 	}
 
 	/**
@@ -1183,20 +1162,5 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	 */
 	private function get_transient_name() {
 		return 'g_url_details_response_' . md5( static::URL_PLACEHOLDER );
-	}
-
-	/**
-	 * Get reflective access to a private/protected method on
-	 * the WP_REST_URL_Details_Controller class.
-	 *
-	 * @param string $method_name Method name for which to gain access.
-	 * @return ReflectionMethod
-	 * @throws ReflectionException Throws an exception if method does not exist.
-	 */
-	protected function get_reflective_method( $method_name ) {
-		$class  = new ReflectionClass( WP_REST_URL_Details_Controller::class );
-		$method = $class->getMethod( $method_name );
-		$method->setAccessible( true );
-		return $method;
 	}
 }
