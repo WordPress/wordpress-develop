@@ -8,9 +8,11 @@
  *
  * @since 6.5.0
  *
+ * @coversDefaultClass WP_Interactivity_API
+ *
  * @group interactivity-api
  */
-class Tests_WP_Interactivity_API_WP_Text extends WP_UnitTestCase {
+class Tests_Interactivity_API_WpInteractivityAPIWPText extends WP_UnitTestCase {
 	/**
 	 * Instance of WP_Interactivity_API.
 	 *
@@ -129,6 +131,8 @@ class Tests_WP_Interactivity_API_WP_Text extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 */
 	public function test_wp_text_fails_with_unbalanced_and_same_tags_inside_content() {
 		$html     = '<div data-wp-text="myPlugin::state.text">Text<div></div>';

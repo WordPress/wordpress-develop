@@ -6,6 +6,8 @@
  * @package WordPress
  * @subpackage Interactivity API
  *
+ * @coversDefaultClass WP_Interactivity_API
+ *
  * @group interactivity-api
  */
 class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {

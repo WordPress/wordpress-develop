@@ -322,7 +322,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				}
 
 				// Template file that doesn't exist.
-				$this->assertSame( '', get_query_template( 'nonexistant' ) );
+				$this->assertSame( '', get_query_template( 'nonexistent' ) );
 
 				// Template files that do exist.
 				foreach ( $theme['Template Files'] as $path ) {

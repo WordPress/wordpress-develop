@@ -258,7 +258,7 @@ EOT;
 	 *
 	 * @covers ::sanitize_url
 	 */
-	public function test_invalid_charaters() {
+	public function test_invalid_characters() {
 		$this->assertEmpty( sanitize_url( '"^<>{}`' ) );
 	}
 

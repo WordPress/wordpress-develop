@@ -174,7 +174,8 @@ function plugins_api( $action, $args = array() ) {
 
 		if ( $ssl && is_wp_error( $request ) ) {
 			if ( ! wp_is_json_request() ) {
-				trigger_error(
+				wp_trigger_error(
+					__FUNCTION__,
 					sprintf(
 						/* translators: %s: Support forums URL. */
 						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
@@ -320,6 +321,8 @@ function install_search_form( $deprecated = true ) {
 	?>
 	<form class="search-form search-plugins" method="get">
 		<input type="hidden" name="tab" value="search" />
+		<label for="search-plugins"><?php _e( 'Search Plugins' ); ?></label>
+		<input type="search" name="s" id="search-plugins" value="<?php echo esc_attr( $term ); ?>" class="wp-filter-search" />
 		<label class="screen-reader-text" for="typeselector">
 			<?php
 			/* translators: Hidden accessibility text. */
@@ -331,13 +334,6 @@ function install_search_form( $deprecated = true ) {
 			<option value="author"<?php selected( 'author', $type ); ?>><?php _e( 'Author' ); ?></option>
 			<option value="tag"<?php selected( 'tag', $type ); ?>><?php _ex( 'Tag', 'Plugin Installer' ); ?></option>
 		</select>
-		<label class="screen-reader-text" for="search-plugins">
-			<?php
-			/* translators: Hidden accessibility text. */
-			_e( 'Search Plugins' );
-			?>
-		</label>
-		<input type="search" name="s" id="search-plugins" value="<?php echo esc_attr( $term ); ?>" class="wp-filter-search" placeholder="<?php esc_attr_e( 'Search plugins...' ); ?>" />
 		<?php submit_button( __( 'Search Plugins' ), 'hide-if-js', false, false, array( 'id' => 'search-submit' ) ); ?>
 	</form>
 	<?php
@@ -917,7 +913,7 @@ function install_plugin_information() {
  * }
  * @param bool         $compatible_php   The result of a PHP compatibility check.
  * @param bool         $compatible_wp    The result of a WP compatibility check.
- * @return string $button The markup for the dependency row button.
+ * @return string The markup for the dependency row button. An empty string if the user does not have capabilities.
  */
 function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible_wp ) {
 	$button           = '';
@@ -947,23 +943,13 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 	$all_plugin_dependencies_installed = $installed_plugin_dependencies_count === $plugin_dependencies_count;
 	$all_plugin_dependencies_active    = $active_plugin_dependencies_count === $plugin_dependencies_count;
 
-	sprintf(
-		'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s">%s</a>',
-		esc_attr( $data->slug ),
-		esc_url( $status['url'] ),
-		/* translators: %s: Plugin name and version. */
-		esc_attr( sprintf( _x( 'Install %s now', 'plugin' ), $name ) ),
-		esc_attr( $name ),
-		_x( 'Install Now', 'plugin' )
-	);
-
 	if ( current_user_can( 'install_plugins' ) || current_user_can( 'update_plugins' ) ) {
 		switch ( $status['status'] ) {
 			case 'install':
 				if ( $status['url'] ) {
 					if ( $compatible_php && $compatible_wp && $all_plugin_dependencies_installed && ! empty( $data->download_link ) ) {
 						$button = sprintf(
-							'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s">%s</a>',
+							'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s" role="button">%s</a>',
 							esc_attr( $data->slug ),
 							esc_url( $status['url'] ),
 							/* translators: %s: Plugin name and version. */
@@ -984,7 +970,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 				if ( $status['url'] ) {
 					if ( $compatible_php && $compatible_wp ) {
 						$button = sprintf(
-							'<a class="update-now button aria-button-if-js" data-plugin="%s" data-slug="%s" href="%s" aria-label="%s" data-name="%s">%s</a>',
+							'<a class="update-now button aria-button-if-js" data-plugin="%s" data-slug="%s" href="%s" aria-label="%s" data-name="%s" role="button">%s</a>',
 							esc_attr( $status['file'] ),
 							esc_attr( $data->slug ),
 							esc_url( $status['url'] ),
@@ -1031,7 +1017,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						}
 
 						$button = sprintf(
-							'<a href="%1$s" data-name="%2$s" data-slug="%3$s" data-plugin="%4$s" class="button button-primary activate-now" aria-label="%5$s">%6$s</a>',
+							'<a href="%1$s" data-name="%2$s" data-slug="%3$s" data-plugin="%4$s" class="button button-primary activate-now" aria-label="%5$s" role="button">%6$s</a>',
 							esc_url( $activate_url ),
 							esc_attr( $name ),
 							esc_attr( $data->slug ),
@@ -1053,7 +1039,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 				}
 				break;
 		}
-
-		return $button;
 	}
+
+	return $button;
 }

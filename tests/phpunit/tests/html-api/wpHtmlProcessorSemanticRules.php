@@ -128,6 +128,9 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertSame( 'DIV', $processor->get_tag(), 'Did not stop at initial DIV tag.' );
 		$this->assertFalse( $processor->is_tag_closer(), 'Did not find that initial DIV tag is an opener.' );
 
+		$processor->step();
+		$this->assertSame( '#text', $processor->get_token_type(), 'Should have found the text node.' );
+
 		/*
 		 * When encountering the BUTTON closing tag, there is no BUTTON in the stack of open elements.
 		 * It should be ignored as there's no BUTTON to close.
@@ -384,7 +387,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertSame( 'CODE', $processor->get_tag(), "Expected to start test on CODE element but found {$processor->get_tag()} instead." );
 		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'SPAN', 'CODE' ), $processor->get_breadcrumbs(), 'Failed to produce expected DOM nesting.' );
 
-		$this->assertTrue( $processor->step(), 'Failed to advance past CODE tag to expected SPAN closer.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to advance past CODE tag to expected SPAN closer.' );
 		$this->assertTrue( $processor->is_tag_closer(), 'Expected to find closing SPAN, but found opener instead.' );
 		$this->assertSame( array( 'HTML', 'BODY', 'DIV' ), $processor->get_breadcrumbs(), 'Failed to advance past CODE tag to expected DIV opener.' );
 

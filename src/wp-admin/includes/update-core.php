@@ -753,7 +753,19 @@ $_old_files = array(
 	'wp-includes/navigation-fallback.php',
 	'wp-includes/blocks/navigation/view-modal.min.js',
 	'wp-includes/blocks/navigation/view-modal.js',
-	// 6.6
+	// 6.5
+	'wp-includes/ID3/license.commercial.txt',
+	'wp-includes/blocks/query/style-rtl.min.css',
+	'wp-includes/blocks/query/style.min.css',
+	'wp-includes/blocks/query/style-rtl.css',
+	'wp-includes/blocks/query/style.css',
+	'wp-admin/images/about-header-privacy.svg',
+	'wp-admin/images/about-header-about.svg',
+	'wp-admin/images/about-header-credits.svg',
+	'wp-admin/images/about-header-freedoms.svg',
+	'wp-admin/images/about-header-contribute.svg',
+	'wp-admin/images/about-header-background.svg',
+	// 6.7
 	'wp-content/plugins/hello.php',
 
 );
