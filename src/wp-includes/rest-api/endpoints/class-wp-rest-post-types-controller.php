@@ -246,6 +246,14 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			$data['rest_namespace'] = $namespace;
 		}
 
+		if ( rest_is_field_included( 'template', $fields ) && ! empty( $post_type->template ) ) {
+			$data['template'] = $post_type->template;
+		}
+
+		if ( rest_is_field_included( 'template_lock', $fields ) && ! empty( $post_type->template_lock ) && false !== $post_type->template_lock ) {
+			$data['template_lock'] = $post_type->template_lock;
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data    = $this->add_additional_fields_to_object( $data, $request );
 		$data    = $this->filter_response_by_context( $data, $context );
@@ -406,6 +414,19 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 					'type'        => array( 'string', 'null' ),
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
+				),
+				'template'       => array(
+					'type'        => 'array',
+					'description' => __( 'The block template associated with the post type, if it exists.', 'gutenberg' ),
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'template_lock'  => array(
+					'type'        => 'string',
+					'enum'        => array( 'all', 'insert', 'contentOnly' ),
+					'description' => __( 'The template_lock associated with the post type, if any.', 'gutenberg' ),
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 			),
 		);
