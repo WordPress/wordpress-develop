@@ -98,9 +98,16 @@ input#link_url {
 }
 
 #sample-permalink {
+	/*rtl:ignore*/
+	direction: ltr;
 	display: inline-block;
 	max-width: 100%;
 	word-wrap: break-word;
+}
+
+#sample-permalink .lrm {
+	-webkit-user-select: none;
+	user-select: none;
 }
 
 #edit-slug-box .cancel {

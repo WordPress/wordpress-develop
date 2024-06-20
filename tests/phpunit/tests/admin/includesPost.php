@@ -636,6 +636,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 47565
 	 * @ticket 35980
 	 */
 	public function test_get_sample_permalink_html_should_use_pretty_permalink_for_view_attachment_link_when_pretty_permalinks_are_enabled() {
@@ -657,6 +658,9 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$found = get_sample_permalink_html( $p );
 		$post  = get_post( $p );
 		$this->assertStringContainsString( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found );
+
+		// Remove wrapped `lrm;` entity from string before searching for decoded URL substring.
+		$found = str_replace( '/<span class="lrm">&lrm;</span>', '/', $found );
 		$this->assertStringContainsString( '>' . urldecode( get_permalink( $post ) ) . '<', $found );
 	}
 
