@@ -1046,6 +1046,26 @@ function remove_serialized_parent_block( $serialized_block ) {
 }
 
 /**
+ * Returns a mock parsed block array for a given block name.
+ *
+ * @since 6.7.0
+ * @access private
+ *
+ * @param string $block_name
+ * @param array $attrs
+ * @param array $inner_blocks
+ * @return array Parsed block.
+ */
+function _make_mock_parsed_block( $block_name, $attrs = array(), $inner_blocks = array() ) {
+	return array(
+		'blockName'    => $block_name,
+		'attrs'        => $attrs,
+		'innerBlocks'  => $inner_blocks,
+		'innerContent' => array_fill( 0, count( $inner_blocks ), null ),
+	);
+}
+
+/**
  * Updates the wp_postmeta with the list of ignored hooked blocks where the inner blocks are stored as post content.
  * Currently only supports `wp_navigation` post types.
  *
@@ -1072,14 +1092,20 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		return $post;
 	}
 
+	$post_type_to_block_name_map = array(
+		'wp_navigation'    => 'core/navigation',
+		'wp_template_part' => 'core/template-part',
+	);
+
 	/*
-	 * Skip meta generation when the post content is not a navigation block.
+	 * Skip meta generation when the post content is not in the above map.
 	 */
-	if ( ! isset( $post->post_type ) || 'wp_navigation' !== $post->post_type ) {
+	if ( ! isset( $post->post_type ) || ! isset( $post_type_to_block_name_map[ $post->post_type ] ) ) {
 		return $post;
 	}
 
-	$attributes = array();
+	$parent_block_name = $post_type_to_block_name_map[ $post->post_type ];
+	$attributes        = array();
 
 	$ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
 	if ( ! empty( $ignored_hooked_blocks ) ) {
@@ -1090,7 +1116,7 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 	}
 
 	$markup = get_comment_delimited_block_content(
-		'core/navigation',
+		$parent_block_name,
 		$attributes,
 		$post->post_content
 	);

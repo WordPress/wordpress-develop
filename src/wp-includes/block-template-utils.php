@@ -612,9 +612,19 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
 		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
 		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
+		$blocks               = parse_blocks( $template->content );
+		if ( 'wp_template_part' === $template->type ) {
+			/**
+			 * In order for hooked blocks to be inserted at positions first_child and last_child in a template part,
+			 * we need to create a mock template part block and traverse it.
+			*/
+			$mock_template_part_block = _make_mock_parsed_block( 'core/template-part', array(), $blocks );
+			$content                  = traverse_and_serialize_blocks( array( $mock_template_part_block ), $before_block_visitor, $after_block_visitor );
+			$template->content        = remove_serialized_parent_block( $content );
+		} else {
+			$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+		}
 	}
-	$blocks            = parse_blocks( $template->content );
-	$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 
 	return $template;
 }
@@ -999,7 +1009,19 @@ function _build_block_template_result_from_post( $post ) {
 		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
 		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
 		$blocks               = parse_blocks( $template->content );
-		$template->content    = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+		if ( 'wp_template_part' === $template->type ) {
+			/**
+			 * In order for hooked blocks to be inserted at positions first_child and last_child in a template part,
+			 * we need to create a mock template part block and traverse it.
+			*/
+			$existing_ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
+			$attributes                     = ! empty( $existing_ignored_hooked_blocks ) ? array( 'metadata' => array( 'ignoredHookedBlocks' => json_decode( $existing_ignored_hooked_blocks, true ) ) ) : array();
+			$mock_template_part_block       = _make_mock_parsed_block( 'core/template-part', $attributes, $blocks );
+			$content                        = traverse_and_serialize_blocks( array( $mock_template_part_block ), $before_block_visitor, $after_block_visitor );
+			$template->content              = remove_serialized_parent_block( $content );
+		} else {
+			$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+		}
 	}
 
 	return $template;
@@ -1600,12 +1622,21 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 		$post->post_author = get_current_user_id();
 	}
 
+	$wp_post = new WP_Post( $post );
+
 	if ( 'wp_template_part' === $post->post_type && ! isset( $terms['wp_template_part_area'] ) ) {
 		$area_terms                     = get_the_terms( $changes->ID, 'wp_template_part_area' );
 		$terms['wp_template_part_area'] = ! is_wp_error( $area_terms ) && ! empty( $area_terms ) ? $area_terms[0]->name : null;
+
+		/**
+		 * Hooked blocks that are ignored from a template part as first_child or last_child
+		 * are not inserted into the template part's content because they have no parent block.
+		 * Instead, they are inserted into the postmeta.
+		*/
+		update_ignored_hooked_blocks_postmeta( $wp_post );
 	}
 
-	$template = _build_block_template_object_from_post_object( new WP_Post( $post ), $terms, $meta );
+	$template = _build_block_template_object_from_post_object( $wp_post, $terms, $meta );
 
 	if ( is_wp_error( $template ) ) {
 		return $template;
