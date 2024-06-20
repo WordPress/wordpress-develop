@@ -237,6 +237,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_wp_class_doesnt_change_class_attribute_with_empty_value() {
 		$html    = '<div class="other-class" data-wp-class--some-class="">Text</div>';
@@ -251,6 +252,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_wp_class_doesnt_change_class_attribute_without_value() {
 		$html    = '<div class="other-class" data-wp-class--some-class>Text</div>';

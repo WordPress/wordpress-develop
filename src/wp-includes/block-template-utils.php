@@ -252,7 +252,7 @@ function _filter_block_template_part_area( $type ) {
 		$type,
 		WP_TEMPLATE_PART_AREA_UNCATEGORIZED
 	);
-	trigger_error( $warning_message, E_USER_NOTICE );
+	wp_trigger_error( __FUNCTION__, $warning_message );
 	return WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
 }
 
@@ -362,6 +362,11 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 		return null;
 	}
 
+	$default_template_types = array();
+	if ( 'wp_template' === $template_type ) {
+		$default_template_types = get_default_block_template_types();
+	}
+
 	// Prepare metadata from $query.
 	$slugs_to_include = isset( $query['slug__in'] ) ? $query['slug__in'] : array();
 	$slugs_to_skip    = isset( $query['slug__not_in'] ) ? $query['slug__not_in'] : array();
@@ -425,10 +430,17 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 
 			if ( 'wp_template' === $template_type ) {
 				$candidate = _add_block_template_info( $new_template_item );
+				$is_custom = ! isset( $default_template_types[ $candidate['slug'] ] );
+
 				if (
 					! $post_type ||
 					( $post_type && isset( $candidate['postTypes'] ) && in_array( $post_type, $candidate['postTypes'], true ) )
 				) {
+					$template_files[ $template_slug ] = $candidate;
+				}
+
+				// The custom templates with no associated post types are available for all post types.
+				if ( $post_type && ! isset( $candidate['postTypes'] ) && $is_custom ) {
 					$template_files[ $template_slug ] = $candidate;
 				}
 			}
@@ -598,8 +610,8 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	$after_block_visitor  = null;
 	$hooked_blocks        = get_hooked_blocks();
 	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
-		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
+		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
+		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
 	}
 	$blocks            = parse_blocks( $template->content );
 	$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
@@ -984,8 +996,8 @@ function _build_block_template_result_from_post( $post ) {
 
 	$hooked_blocks = get_hooked_blocks();
 	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
-		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
+		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
+		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
 		$blocks               = parse_blocks( $template->content );
 		$template->content    = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 	}
@@ -1265,7 +1277,7 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
  *
  * @since 5.9.0
  *
- * @param string $part The block template part to print. Either 'header' or 'footer'.
+ * @param string $part The block template part to print, for example 'header' or 'footer'.
  */
 function block_template_part( $part ) {
 	$template_part = get_block_template( get_stylesheet() . '//' . $part, 'wp_template_part' );
@@ -1599,11 +1611,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 		return $template;
 	}
 
-	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
-	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
-
-	$blocks                = parse_blocks( $changes->post_content );
-	$changes->post_content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+	$changes->post_content = apply_block_hooks_to_content( $changes->post_content, $template, 'set_ignored_hooked_blocks_metadata' );
 
 	return $changes;
 }

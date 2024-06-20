@@ -34,6 +34,12 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	public function set_up() {
 		parent::set_up();
 		switch_theme( 'tt1-blocks' );
+		add_filter( 'theme_file_uri', array( $this, 'filter_theme_file_uri' ) );
+	}
+
+	public function tear_down() {
+		remove_filter( 'theme_file_uri', array( $this, 'filter_theme_file_uri' ) );
+		parent::tear_down();
 	}
 
 	/**
@@ -79,6 +85,17 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		self::delete_user( self::$subscriber_id );
 	}
 
+	/*
+	 * This filter callback normalizes the return value from `get_theme_file_uri`
+	 * to guard against changes in test environments.
+	 * The test suite otherwise returns full system dir path, e.g.,
+	 * /var/www/tests/phpunit/includes/../data/themedir1/block-theme/assets/sugarloaf-mountain.jpg
+	 */
+	public function filter_theme_file_uri( $file ) {
+		$file_name = substr( strrchr( $file, '/' ), 1 );
+		return 'https://example.org/wp-content/themes/example-theme/assets/' . $file_name;
+	}
+
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::register_routes
 	 * @ticket 54596
@@ -119,6 +136,12 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		// Controller does not use get_context_param().
 	}
 
+	/**
+	 * Tests a GET request to the global styles variations endpoint.
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_theme_items
+	 * @ticket 61273
+	 */
 	public function test_get_theme_items() {
 		wp_set_current_user( self::$admin_id );
 		switch_theme( 'block-theme' );
@@ -127,8 +150,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$data     = $response->get_data();
 		$expected = array(
 			array(
-				'version'  => 2,
-				'title'    => 'variation-a',
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
 					'blocks' => array(
 						'core/paragraph' => array(
@@ -146,10 +168,10 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 						),
 					),
 				),
+				'title'    => 'variation-a',
 			),
 			array(
-				'version'  => 2,
-				'title'    => 'variation-b',
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
 					'blocks' => array(
 						'core/post-title' => array(
@@ -167,9 +189,34 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 						),
 					),
 				),
+				'styles'   => array(
+					'background' => array(
+						'backgroundImage' => array(
+							'url' => 'file:./assets/sugarloaf-mountain.jpg',
+						),
+					),
+				),
+				'title'    => 'variation-b',
+				'_links'   => array(
+					'curies'        => array(
+						array(
+							'name'      => 'wp',
+							'href'      => 'https://api.w.org/{rel}',
+							'templated' => true,
+						),
+					),
+					'wp:theme-file' => array(
+						array(
+							'href'   => 'https://example.org/wp-content/themes/example-theme/assets/sugarloaf-mountain.jpg',
+							'name'   => 'file:./assets/sugarloaf-mountain.jpg',
+							'target' => 'styles.background.backgroundImage.url',
+							'type'   => 'image/jpeg',
+						),
+					),
+				),
 			),
 			array(
-				'version'  => 2,
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'title'    => 'Block theme variation',
 				'settings' => array(
 					'color' => array(
@@ -553,6 +600,55 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_custom_css_illegal_markup', $response, 400 );
+	}
+
+	/**
+	 * Tests the submission of a custom block style variation that was defined
+	 * within a theme style variation and wouldn't be registered at the time
+	 * of saving via the API.
+	 *
+	 * @covers WP_REST_Global_Styles_Controller_Gutenberg::update_item
+	 * @ticket 61312
+	 */
+	public function test_update_item_with_custom_block_style_variations() {
+		wp_set_current_user( self::$admin_id );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+
+		$group_variations = array(
+			'fromThemeStyleVariation' => array(
+				'color' => array(
+					'background' => '#ffffff',
+					'text'       => '#000000',
+				),
+			),
+		);
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_body_params(
+			array(
+				'styles' => array(
+					'blocks' => array(
+						'variations' => array(
+							'fromThemeStyleVariation' => array(
+								'blockTypes' => array( 'core/group', 'core/columns' ),
+								'color'      => array(
+									'background' => '#000000',
+									'text'       => '#ffffff',
+								),
+							),
+						),
+						'core/group' => array(
+							'variations' => $group_variations,
+						),
+					),
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( $group_variations, $data['styles']['blocks']['core/group']['variations'] );
 	}
 
 	/**
