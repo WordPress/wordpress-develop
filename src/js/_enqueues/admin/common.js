@@ -903,27 +903,6 @@ $( function() {
 	});
 
 	/**
-	 * Handles the `aria-haspopup` attribute on the current menu item when it has a submenu.
-	 *
-	 * @since 4.4.0
-	 *
-	 * @return {void}
-	 */
-	function currentMenuItemHasPopup() {
-		var $current = $( 'a.wp-has-current-submenu' );
-
-		if ( 'folded' === menuState ) {
-			// When folded or auto-folded and not responsive view, the current menu item does have a fly-out sub-menu.
-			$current.attr( 'aria-haspopup', 'true' );
-		} else {
-			// When expanded or in responsive view, reset aria-haspopup.
-			$current.attr( 'aria-haspopup', 'false' );
-		}
-	}
-
-	$document.on( 'wp-menu-state-set wp-collapse-menu wp-responsive-activate wp-responsive-deactivate', currentMenuItemHasPopup );
-
-	/**
 	 * Ensures an admin submenu is within the visual viewport.
 	 *
 	 * @since 4.1.0
@@ -2064,7 +2043,6 @@ $( function() {
 	window.wpResponsive.init();
 	setPinMenu();
 	setMenuState();
-	currentMenuItemHasPopup();
 	makeNoticesDismissible();
 	aria_button_if_js();
 
