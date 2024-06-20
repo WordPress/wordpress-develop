@@ -334,25 +334,6 @@ function wp_resolve_block_style_variations_from_theme_json_partials( $theme_json
 }
 
 /**
- * Merges shared block style variations registered within the
- * `styles.blocks.variations` property of the primary theme.json file.
- *
- * @since 6.6.0
- * @access private
- *
- * @param WP_Theme_JSON_Data $theme_json Current theme.json data.
- *
- * @return WP_Theme_JSON_Data
- */
-function wp_resolve_block_style_variations_from_primary_theme_json( $theme_json ) {
-	$theme_json_data        = $theme_json->get_data();
-	$block_style_variations = $theme_json_data['styles']['blocks']['variations'] ?? array();
-	$variations_data        = wp_resolve_block_style_variations( $block_style_variations );
-
-	return wp_merge_block_style_variations_data( $variations_data, $theme_json );
-}
-
-/**
  * Merges block style variations registered via the block styles registry with a
  * style object, under their appropriate block types within theme.json styles.
  * Any variation values defined within the theme.json specific to a block type
@@ -400,7 +381,6 @@ add_filter( 'render_block', 'wp_render_block_style_variation_class_name', 10, 2 
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_block_style_variation_styles', 1 );
 
 // Resolve block style variations from all their potential sources. The order here is deliberate.
-add_filter( 'wp_theme_json_data_theme', 'wp_resolve_block_style_variations_from_primary_theme_json', 10, 1 );
 add_filter( 'wp_theme_json_data_theme', 'wp_resolve_block_style_variations_from_theme_json_partials', 10, 1 );
 add_filter( 'wp_theme_json_data_theme', 'wp_resolve_block_style_variations_from_styles_registry', 10, 1 );
 
