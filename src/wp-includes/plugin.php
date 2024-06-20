@@ -509,9 +509,6 @@ function do_action( $hook_name, ...$arg ) {
 
 	if ( empty( $arg ) ) {
 		$arg[] = '';
-	} elseif ( is_array( $arg[0] ) && 1 === count( $arg[0] ) && isset( $arg[0][0] ) && is_object( $arg[0][0] ) ) {
-		// Backward compatibility for PHP4-style passing of `array( &$this )` as action `$arg`.
-		$arg[0] = $arg[0][0];
 	}
 
 	$wp_filter[ $hook_name ]->do_action( $arg );
