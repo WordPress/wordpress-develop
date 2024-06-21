@@ -304,8 +304,8 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$controller = new WP_REST_Test_Controller();
 		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
 
-		$this->assertSame( $args['somestring']['validate_callback'], '__return_true' );
-		$this->assertSame( $args['sometextfield']['validate_callback'], 'rest_validate_request_arg' );
+		$this->assertSame( '__return_true', $args['somestring']['validate_callback'] );
+		$this->assertSame( 'rest_validate_request_arg', $args['sometextfield']['validate_callback'] );
 	}
 
 	public function test_get_endpoint_args_for_item_schema_sanitize_callback() {
