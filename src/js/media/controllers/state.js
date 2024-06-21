@@ -175,7 +175,7 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 			// Show action menu only if it is active and has more than one default element.
 			this.frame.$el.toggleClass( 'hide-menu', ! mode || actionMenuLength < 2 );
 		}
-		if ( ! mode || actionMenuLength < 2) {
+		if ( ! mode || actionMenuLength < 2 ) {
 			return;
 		}
 
