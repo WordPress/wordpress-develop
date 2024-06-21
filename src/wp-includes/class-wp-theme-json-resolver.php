@@ -172,8 +172,18 @@ class WP_Theme_JSON_Resolver {
 		 *
 		 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 		 */
-		$theme_json   = apply_filters( 'wp_theme_json_data_default', new WP_Theme_JSON_Data( $config, 'default' ) );
-		static::$core = $theme_json->get_theme_json();
+		$theme_json = apply_filters( 'wp_theme_json_data_default', new WP_Theme_JSON_Data( $config, 'default' ) );
+
+		/*
+		 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
+		 * compatible class that is not a WP_Theme_JSON_Data object.
+		 */
+		if ( $theme_json instanceof WP_Theme_JSON_Data ) {
+			static::$core = $theme_json->get_theme_json();
+		} else {
+			$config       = $theme_json->get_data();
+			static::$core = new WP_Theme_JSON( $config, 'default' );
+		}
 
 		return static::$core;
 	}
@@ -221,6 +231,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.9.0 Theme supports have been inlined and the `$theme_support_data` argument removed.
 	 * @since 6.0.0 Added an `$options` parameter to allow the theme data to be returned without theme supports.
 	 * @since 6.6.0 Add support for 'default-font-sizes' and 'default-spacing-sizes' theme supports.
+	 *              Register the block style variations coming from the partials and the theme.json.
 	 *
 	 * @param array $deprecated Deprecated. Not used.
 	 * @param array $options {
@@ -247,6 +258,14 @@ class WP_Theme_JSON_Resolver {
 				$theme_json_data = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
 			}
 
+			// Register variations defined by the theme.
+			$variations = $theme_json_data['styles']['blocks']['variations'] ?? array();
+			wp_register_block_style_variations_from_theme_json_data( $variations );
+
+			// Register variations defined by theme partials (theme.json files in the styles directory).
+			$variations = static::get_style_variations( 'block' );
+			wp_register_block_style_variations_from_theme_json_data( $variations );
+
 			/**
 			 * Filters the data provided by the theme for global styles and settings.
 			 *
@@ -254,8 +273,18 @@ class WP_Theme_JSON_Resolver {
 			 *
 			 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 			 */
-			$theme_json    = apply_filters( 'wp_theme_json_data_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
-			static::$theme = $theme_json->get_theme_json();
+			$theme_json = apply_filters( 'wp_theme_json_data_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
+
+			/*
+			 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
+			 * compatible class that is not a WP_Theme_JSON_Data object.
+			 */
+			if ( $theme_json instanceof WP_Theme_JSON_Data ) {
+				static::$theme = $theme_json->get_theme_json();
+			} else {
+				$config        = $theme_json->get_data();
+				static::$theme = new WP_Theme_JSON( $config );
+			}
 
 			if ( $wp_theme->parent() ) {
 				// Get parent theme.json.
@@ -377,8 +406,19 @@ class WP_Theme_JSON_Resolver {
 		 *
 		 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 		 */
-		$theme_json     = apply_filters( 'wp_theme_json_data_blocks', new WP_Theme_JSON_Data( $config, 'blocks' ) );
-		static::$blocks = $theme_json->get_theme_json();
+		$theme_json = apply_filters( 'wp_theme_json_data_blocks', new WP_Theme_JSON_Data( $config, 'blocks' ) );
+
+		/*
+		 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
+		 * compatible class that is not a WP_Theme_JSON_Data object.
+		 */
+		if ( $theme_json instanceof WP_Theme_JSON_Data ) {
+			static::$blocks = $theme_json->get_theme_json();
+		} else {
+			$config         = $theme_json->get_data();
+			static::$blocks = new WP_Theme_JSON( $config, 'blocks' );
+		}
+
 		return static::$blocks;
 	}
 
@@ -488,6 +528,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.9.0
 	 * @since 6.6.0 The 'isGlobalStylesUserThemeJSON' flag is left on the user data.
+	 *              Register the block style variations coming from the user data.
 	 *
 	 * @return WP_Theme_JSON Entity that holds styles for user data.
 	 */
@@ -513,7 +554,17 @@ class WP_Theme_JSON_Resolver {
 				 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 				 */
 				$theme_json = apply_filters( 'wp_theme_json_data_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
-				return $theme_json->get_theme_json();
+
+				/*
+				 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
+				 * compatible class that is not a WP_Theme_JSON_Data object.
+				 */
+				if ( $theme_json instanceof WP_Theme_JSON_Data ) {
+					return $theme_json->get_theme_json();
+				} else {
+					$config = $theme_json->get_data();
+					return new WP_Theme_JSON( $config, 'custom' );
+				}
 			}
 
 			/*
@@ -528,11 +579,25 @@ class WP_Theme_JSON_Resolver {
 				unset( $decoded_data['isGlobalStylesUserThemeJSON'] );
 				$config = $decoded_data;
 			}
+
+			// Register variations defined by the user.
+			$variations = $config['styles']['blocks']['variations'] ?? array();
+			wp_register_block_style_variations_from_theme_json_data( $variations );
 		}
 
 		/** This filter is documented in wp-includes/class-wp-theme-json-resolver.php */
-		$theme_json   = apply_filters( 'wp_theme_json_data_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
-		static::$user = $theme_json->get_theme_json();
+		$theme_json = apply_filters( 'wp_theme_json_data_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
+
+		/*
+		 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
+		 * compatible class that is not a WP_Theme_JSON_Data object.
+		 */
+		if ( $theme_json instanceof WP_Theme_JSON_Data ) {
+			static::$user = $theme_json->get_theme_json();
+		} else {
+			$config       = $theme_json->get_data();
+			static::$user = new WP_Theme_JSON( $config, 'custom' );
+		}
 
 		return static::$user;
 	}
@@ -725,6 +790,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 6.6.0 Added configurable scope parameter to allow filtering
 	 *              theme.json partial files by the scope to which they
 	 *              can be applied e.g. theme vs block etc.
+	 *              Added basic caching for read theme.json partial files.
 	 *
 	 * @param string $scope The scope or type of style variation to retrieve e.g. theme, block etc.
 	 * @return array
@@ -751,7 +817,7 @@ class WP_Theme_JSON_Resolver {
 		}
 		ksort( $variation_files );
 		foreach ( $variation_files as $path => $file ) {
-			$decoded_file = wp_json_file_decode( $path, array( 'associative' => true ) );
+			$decoded_file = self::read_json_file( $path );
 			if ( is_array( $decoded_file ) && static::style_variation_has_scope( $decoded_file, $scope ) ) {
 				$translated = static::translate( $decoded_file, wp_get_theme()->get( 'TextDomain' ) );
 				$variation  = ( new WP_Theme_JSON( $translated ) )->get_raw_data();
