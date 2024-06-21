@@ -257,6 +257,7 @@ function wp_add_global_styles_for_blocks() {
 	$block_nodes = $tree->get_styles_block_nodes();
 
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
+
 	if ( $can_use_cached ) {
 		// Hash global settings and block nodes together to optimize performance of key generation.
 		$hash = md5(
@@ -268,10 +269,13 @@ function wp_add_global_styles_for_blocks() {
 			)
 		);
 
-		$cache_key = "wp_styles_for_blocks:$hash";
-		$cached    = get_site_transient( $cache_key );
-		if ( ! is_array( $cached ) ) {
-			$cached = array();
+		$cache_key = 'wp_styles_for_blocks';
+		$cached    = get_transient( $cache_key );
+		if ( ! is_array( $cached ) || $cached['hash'] !== $hash ) {
+			$cached = array(
+				'hash'   => $hash,
+				'blocks' => array(),
+			);
 		}
 	}
 
@@ -283,12 +287,12 @@ function wp_add_global_styles_for_blocks() {
 			// Use the block name as the key for cached CSS data. Otherwise, use a hash of the metadata.
 			$cache_node_key = isset( $metadata['name'] ) ? $metadata['name'] : md5( wp_json_encode( $metadata ) );
 
-			if ( isset( $cached[ $cache_node_key ] ) ) {
-				$block_css = $cached[ $cache_node_key ];
+			if ( isset( $cached['blocks'][ $cache_node_key ] ) ) {
+				$block_css = $cached['blocks'][ $cache_node_key ];
 			} else {
-				$block_css                 = $tree->get_styles_for_block( $metadata );
-				$cached[ $cache_node_key ] = $block_css;
-				$update_cache              = true;
+				$block_css                           = $tree->get_styles_for_block( $metadata );
+				$cached['blocks'][ $cache_node_key ] = $block_css;
+				$update_cache                        = true;
 			}
 		} else {
 			$block_css = $tree->get_styles_for_block( $metadata );
@@ -340,7 +344,7 @@ function wp_add_global_styles_for_blocks() {
 	}
 
 	if ( $update_cache ) {
-		set_site_transient( $cache_key, $cached, HOUR_IN_SECONDS );
+		set_transient( $cache_key, $cached );
 	}
 }
 
