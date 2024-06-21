@@ -1074,6 +1074,15 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 			}
 		} );
 
+		editor.on( 'keydown', function( event ) {
+			if ( event.keyCode === 9 && event.shiftKey ) {
+				var toolbar = editor.theme.panel.find( '.toolbar:not(.menubar)' )[0];
+				if ( toolbar ) {
+					toolbar.focus( true );
+				}
+			}
+		});
+
 		editor.on( 'nodechange', function( event ) {
 			var collapsed = editor.selection.isCollapsed();
 
