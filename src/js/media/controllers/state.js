@@ -165,8 +165,6 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	_menu: function() {
 		var menu = this.frame.menu,
 			mode = this.get('menu'),
-			actionMenuItems,
-			actionMenuLength,
 			view,
             actionMenuItems = this.frame.menu.get('views'),
 			actionMenuLength = actionMenuItems ? actionMenuItems.views.get().length : 0;
