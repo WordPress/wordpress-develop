@@ -1296,7 +1296,7 @@ th.action-links {
 }
 
 .filtered-by .tags {
-	display: flex;
+    display: flex;
     align-items: flex-start;
     flex-wrap: wrap;
     gap: 3px;
@@ -1317,7 +1317,7 @@ th.action-links {
 }
 
 .filters-applied .filtered-by {
-	display: flex;
+    display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 10px;
