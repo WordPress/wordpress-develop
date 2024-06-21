@@ -66,11 +66,6 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 	public function test_add_registered_block_styles_to_theme_data() {
 		switch_theme( 'block-theme' );
 
-		// Register theme-defined variations.
-		WP_Theme_JSON_Resolver::get_theme_data();
-		// Register user-defined variations.
-		WP_Theme_JSON_Resolver::get_user_data();
-
 		$variation_styles_data = array(
 			'color'    => array(
 				'background' => 'darkslateblue',
@@ -157,6 +152,6 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 		unregister_block_style( 'core/group', 'my-variation' );
 		unregister_block_style( 'core/group', 'WithSlug' );
 
-		$this->assertSameSetsWithIndex( $expected, $group_styles );
+		$this->assertSameSetsWithIndex( $expected, $group_styles, 'Variation data does not match' );
 	}
 }
