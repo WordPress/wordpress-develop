@@ -2,55 +2,144 @@
   28.0 - Site Icon
 ------------------------------------------------------------------------------*/
 
-.site-icon-preview .favicon-preview {
-	margin: 5px 0 20px;
-	overflow: hidden;
+.site-icon-preview {
+	direction: initial;
+	display: flex;
+	height: 60px;
+	padding: 8px 0 0 8px;
+	align-items: flex-start;
 	position: relative;
-	max-width: 180px;
-}
-
-.site-icon-preview .favicon,
-.site-icon-preview .browser-title {
-	height: 16px;
-	left: 88px;
 	overflow: hidden;
-	position: absolute;
-	top: 16px;
+	box-sizing: border-box;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	background-color: #fff;
+	width: 275px;
+	margin: 0 0 16px 0;
 }
 
-.site-icon-preview .favicon {
-	width: 16px;
+.site-icon-preview.settings {
+	height: 88px;
+	padding: 16px 0 0 16px;
+	width: 350px;
 }
 
-.site-icon-preview .browser-title {
-	left: 109px;
-	width: 72px;
-	white-space: nowrap;
+.site-icon-preview.crop {
+	width: 258px;
+	height: 100%;
+	flex-direction: column;
+	gap: 16px;
 }
 
-.site-icon-preview .app-icon-preview {
-	background-color: #000;
-	border-radius: 16px;
-	height: 64px;
-	overflow: hidden;
-	width: 64px;
-	margin-top: 5px;
+.site-icon-preview.hidden {
+	visibility: none;
+	opacity: 0;
+	display: none;
 }
 
-/* rtl:ignore */
-.site-icon-preview .favicon,
-.site-icon-preview .app-icon-preview {
+.site-icon-preview .direction-wrap {
+	grid-template-columns: 44px 1fr;
+	gap: 8px;
+	display: grid;
 	direction: ltr;
+	height: 100%;
+	width: 100%;
 }
 
-.customize-control-site_icon .favicon-preview {
-	float: left;
-	margin-right: 12px;
-	margin-bottom: 0;
+.site-icon-preview.settings .direction-wrap {
+	grid-template-columns: 58px 1fr;
+	gap: 16px;
 }
 
-.customize-control-site_icon .app-icon-preview {
-	margin-top: 9px;
+.site-icon-preview:after {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 200%;
+	height: 200%;
+	transform: translateX(-25%) translateY(-25%);
+	filter: blur(6px);
+	opacity: 0.5;
+	background: var(--site-icon-url);
+}
+
+.site-icon-preview .app-icon-preview {
+	aspect-ratio: 1/1;
+	border-radius: 10px;
+	box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.5);
+	flex-shrink: 0;
+	width: 100%;
+	z-index: 1;
+}
+
+.site-icon-preview-browser {
+	direction: initial;
+	display: flex;
+	padding: 4px 4px 0 12px;
+	align-items: flex-start;
+	gap: 16px;
+	flex: 1 0 0;
+	z-index: 1;
+	border-top-left-radius: 10px;
+	border-top: 1px solid rgba(255, 255, 255, 0.20);
+	border-left: 1px solid rgba(255, 255, 255, 0.20);
+	background: linear-gradient(180deg, #dcdcdc 0%, #bdbdbd 100%);
+	box-shadow: 0px 10px 22px 0px rgba(0, 0, 0, 0.20);
+}
+
+.site-icon-preview .browser-buttons {
+	width: 48px;
+	height: 40px;
+	fill: #8C8F94;
+}
+
+.site-icon-preview-tab {
+	padding: 8px;
+	align-items: center;
+	gap: 8px;
+	flex: 1 0 0;
+	border-radius: 4px;
+	background-color: #f0f0f1;
+	box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+	display: grid;
+	grid-template-columns: 24px auto 24px;
+}
+
+.site-icon-preview-browser .browser-icon-preview {
+	width: 24px;
+	height: 24px;
+	box-shadow: 0 0 20px 0 rgba(0,0,0,0.1);
+}
+
+.site-icon-preview-tab > img,
+.site-icon-preview-tab > svg {
+	fill: #646970;
+	width: 24px;
+	height: 24px;
+}
+
+.site-icon-preview-site-title {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	font-weight: 500;
+}
+
+.site-icon-preview-crop-modal .image-preview-wrap.app-icon-preview {
+	width: 64px;
+	height: 64px;
+}
+
+.site-icon-preview-crop-modal .image-preview-wrap {
+	overflow: hidden;
+	aspect-ratio: 1/1;
+}
+
+.site-icon-preview-crop-modal .image-preview-wrap.browser {
+	width: 24px;
+	height: 24px;
 }
 
 .site-icon-section button.reset {
