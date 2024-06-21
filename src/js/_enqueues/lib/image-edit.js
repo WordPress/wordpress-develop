@@ -928,8 +928,6 @@
 		var t = this,
 			selW = $('#imgedit-sel-width-' + postid),
 			selH = $('#imgedit-sel-height-' + postid),
-			selX = $('#imgedit-start-x-' + postid),
-			selY = $('#imgedit-start-y-' + postid),
 			$image = $( image ),
 			$img;
 
@@ -1050,7 +1048,7 @@
 	 * @return {boolean}
 	 */
 	setCropSelection : function(postid, c) {
-		var sel;
+		var sel,
 			selW = $( '#imgedit-sel-width-' + postid ),
 			selH = $( '#imgedit-sel-height-' + postid ),
 			sizer = this.hold.sizer,
