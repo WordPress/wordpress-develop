@@ -659,6 +659,57 @@ function wp_prime_site_option_caches( array $options ) {
 	wp_prime_network_option_caches( null, $options );
 }
 
+
+/**
+ * Primes specific network options for the current network into the cache with a single database query.
+ *
+ * Only network options that do not already exist in cache will be loaded.
+ *
+ * If site is not multisite, then call wp_prime_option_caches().
+ *
+ * @since 6.6.0
+ *
+ * @see wp_prime_network_option_caches()
+ *
+ * @param string[] $options An array of option names to be loaded.
+ */
+function wp_prime_wp_admin_option_caches() {
+	$default_core_admin_options = array(
+		'auto_plugin_theme_update_emails',
+		'recently_activated',
+		'_wp_suggested_policy_text_has_changed',
+		'dashboard_widget_options',
+		'ftp_credentials',
+		'recently_edited',
+		'adminhash',
+		'nav_menu_options',
+		'active_plugins',
+		'uninstall_plugins',
+		'wp_force_deactivated_plugins',
+		'delete_blog_hash',
+		'allowedthemes',
+		'admin_email',
+		'recently_activated',
+		'https_detection_errors',
+		'fresh_site',
+		'upload_path',
+		'admin_email',
+		'admin_email_lifespan',
+	);
+	/**
+	 * Filters a list of options to be loaded for WP-admin pages.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param array $default_core_admin_options Array with admin options to be loaded.
+	 *
+	 * @return array Array with admin options to be loaded.
+	 */
+	$options = apply_filters( 'wp_prime_wp_admin_option_caches', $default_core_admin_options );
+	wp_prime_network_option_caches( null, $options );
+}
+
+
 /**
  * Primes specific network options into the cache with a single database query.
  *
