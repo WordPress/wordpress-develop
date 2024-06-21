@@ -27,8 +27,12 @@
 .site-icon-preview.crop {
 	width: 258px;
 	height: 100%;
-	flex-direction: column;
-	gap: 16px;
+	display: grid;
+	grid-template-columns: 8px 1fr;
+	grid-template-rows: 64px 1fr;
+	padding-left: 0;
+	row-gap: 16px;
+	direction: inherit;
 }
 
 .site-icon-preview.hidden {
@@ -130,7 +134,12 @@
 .site-icon-preview-crop-modal .image-preview-wrap.app-icon-preview {
 	width: 64px;
 	height: 64px;
-	margin: 0 8px 0 8px;
+	margin: 0;
+	grid-column: 2;
+}
+
+.site-icon-preview-crop-modal .site-icon-preview-browser {
+	grid-column: 2;
 }
 
 .site-icon-preview-crop-modal .image-preview-wrap {
