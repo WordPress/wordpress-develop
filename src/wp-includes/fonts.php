@@ -15,11 +15,13 @@
  * @param array[][] $fonts {
  *     Optional. The font-families and their font faces. Default empty array.
  *
- *     @type array {
+ *     @type array ...$0 {
  *         An indexed or associative (keyed by font-family) array of font variations for this font-family.
  *         Each font face has the following structure.
  *
- *         @type array {
+ *         @type array ...$0 {
+ *             The font face properties.
+ *
  *             @type string          $font-family             The font-family property.
  *             @type string|string[] $src                     The URL(s) to each resource containing the font data.
  *             @type string          $font-style              Optional. The font-style property. Default 'normal'.
@@ -140,20 +142,10 @@ function wp_font_dir( $create_dir = true ) {
 }
 
 /**
- * Returns the font directory for use by the font library.
+ * A callback function for use in the {@see 'upload_dir'} filter.
  *
- * This function is a callback for the {@see 'upload_dir'} filter. It is not
- * intended to be called directly. Use wp_get_font_dir() instead.
- *
- * The function can be used when extending the font library to modify the upload
- * destination for font files via the upload_dir filter. The recommended way to
- * do this is:
- *
- * ```php
- * add_filter( 'upload_dir', '_wp_filter_font_directory' );
- * // Your code to upload or sideload a font file.
- * remove_filter( 'upload_dir', '_wp_filter_font_directory' );
- * ```
+ * This function is intended for internal use only and should not be used by plugins and themes.
+ * Use wp_get_font_dir() instead.
  *
  * @since 6.5.0
  * @access private
@@ -238,7 +230,7 @@ function _wp_before_delete_font_face( $post_id, $post ) {
 	}
 
 	$font_files = get_post_meta( $post_id, '_wp_font_face_file', false );
-	$font_dir   = wp_get_font_dir()['path'];
+	$font_dir   = untrailingslashit( wp_get_font_dir()['basedir'] );
 
 	foreach ( $font_files as $font_file ) {
 		wp_delete_file( $font_dir . '/' . $font_file );

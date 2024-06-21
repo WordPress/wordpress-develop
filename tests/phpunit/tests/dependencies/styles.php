@@ -160,7 +160,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test if inline styles work with concatination
+	 * Test if inline styles work with concatenation
 	 *
 	 * @global WP_Styles $wp_styles
 	 * @ticket 24813
