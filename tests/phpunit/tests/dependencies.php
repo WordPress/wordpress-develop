@@ -193,7 +193,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_etag( $load, $wp_version, $expected ) {
+	public function test_get_etag_scripts( $load, $wp_version, $expected ) {
 		$instance = wp_scripts();
 
 		foreach ( $load as $handle => $ver ) {
