@@ -183,7 +183,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests get_etag method.
+	 * Tests get_etag method for WP_Scripts.
 	 *
 	 * @covers WP_Dependencies::get_etag
 	 * @ticket 58433
