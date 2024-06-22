@@ -136,8 +136,9 @@ function wp_render_block_style_variation_support_styles( $parsed_block ) {
 		array( 'styles' ),
 		array( 'custom' ),
 		array(
-			'skip_root_layout_styles' => true,
-			'scope'                   => ".$class_name",
+			'include_block_style_variations' => true,
+			'skip_root_layout_styles'        => true,
+			'scope'                          => ".$class_name",
 		)
 	);
 
@@ -460,41 +461,3 @@ function wp_register_block_style_variations_from_theme_json_data( $variations ) 
 		}
 	}
 }
-
-/**
- * Register shared block style variations defined by the theme.
- *
- * These can come in three forms:
- * - the theme's theme.json
- * - the theme's partials (standalone files in `/styles` that only define block style variations)
- * - the user's theme.json (for example, theme style variations the user selected)
- *
- * @since 6.6.0
- * @access private
- */
-function wp_register_block_style_variations_from_theme() {
-	// Partials from `/styles`.
-	$variations_partials = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
-	wp_register_block_style_variations_from_theme_json_data( $variations_partials );
-
-	/*
-	 * Pull the data from the specific origin instead of the merged data.
-	 * This is because, for 6.6, we only support registering block style variations
-	 * for the 'theme' and 'custom' origins but not for 'default' (core theme.json)
-	 * or 'custom' (theme.json in a block).
-	 *
-	 * When/If we add support for every origin, we should switch to using the public API
-	 * instead, e.g.: wp_get_global_styles( array( 'blocks', 'variations' ) ).
-	 */
-
-	// theme.json of the theme.
-	$theme_json_theme = WP_Theme_JSON_Resolver::get_theme_data();
-	$variations_theme = $theme_json_theme->get_data()['styles']['blocks']['variations'] ?? array();
-	wp_register_block_style_variations_from_theme_json_data( $variations_theme );
-
-	// User data linked for this theme.
-	$theme_json_user = WP_Theme_JSON_Resolver::get_user_data();
-	$variations_user = $theme_json_user->get_data()['styles']['blocks']['variations'] ?? array();
-	wp_register_block_style_variations_from_theme_json_data( $variations_user );
-}
-add_action( 'init', 'wp_register_block_style_variations_from_theme' );
