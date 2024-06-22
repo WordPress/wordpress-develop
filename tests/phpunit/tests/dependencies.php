@@ -222,13 +222,13 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_get_etag_styles( $load, $wp_version, $expected ) {
-			$instance = wp_styles();
+		$instance = wp_styles();
 
 		foreach ( $load as $handle => $ver ) {
 			// The src should not be empty.
 			wp_enqueue_style( $handle, 'https://example.cdn', array(), $ver );
 		}
 
-			$this->assertSame( $instance->get_etag( $wp_version, array_keys( $load ) ), $expected, 'md hash for ' );
+		$this->assertSame( $instance->get_etag( $wp_version, array_keys( $load ) ), $expected, 'md hash for ' );
 	}
 }
