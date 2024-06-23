@@ -120,7 +120,7 @@ function update_post_thumbnail_cache( $wp_query = null ) {
 		 *
 		 * See https://core.trac.wordpress.org/ticket/59521.
 		 */
-		if ( ! ( $post instanceof WP_Post ) ) {
+		if ( ! $post instanceof WP_Post ) {
 			$post = get_post( $post );
 		}
 

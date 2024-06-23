@@ -80,8 +80,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 			)
 		);
 
-		// Test case where `$query1->posts` should return Array of post IDs.
-		$query1 = new WP_Query(
+		// Test case where `$query2->posts` should return Array of post IDs.
+		$query2 = new WP_Query(
 			array(
 				'post_type' => 'any',
 				'post__in'  => array( self::$post->ID ),
@@ -96,12 +96,12 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 		$this->assertTrue( $query->thumbnails_cached );
 
-		// Check test cases for `$query1`.
-		$this->assertFalse( $query1->thumbnails_cached );
+		// Check test cases for `$query2`.
+		$this->assertFalse( $query2->thumbnails_cached );
 
-		update_post_thumbnail_cache( $query1 );
+		update_post_thumbnail_cache( $query2 );
 
-		$this->assertTrue( $query1->thumbnails_cached );
+		$this->assertTrue( $query2->thumbnails_cached );
 	}
 
 	/**
