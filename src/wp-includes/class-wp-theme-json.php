@@ -743,8 +743,8 @@ class WP_Theme_JSON {
 	 * Constructor.
 	 *
 	 * @since 5.8.0
-	 * @since 6.6.0 Key spacingScale by origin, and Pre-generate the
-	 *              spacingSizes from spacingScale.
+	 * @since 6.6.0 Key spacingScale by origin, and Pre-generate the spacingSizes from spacingScale.
+	 *              Added unwrapping of shared block style variations into block type variations if registered.
 	 *
 	 * @param array  $theme_json A structure that follows the theme.json schema.
 	 * @param string $origin     Optional. What source of data this object represents.
@@ -756,10 +756,10 @@ class WP_Theme_JSON {
 		}
 
 		$this->theme_json    = WP_Theme_JSON_Schema::migrate( $theme_json, $origin );
-		$this->theme_json    = static::unwrap_shared_block_style_variations( $this->theme_json );
 		$valid_block_names   = array_keys( static::get_blocks_metadata() );
 		$valid_element_names = array_keys( static::ELEMENTS );
 		$valid_variations    = static::get_valid_block_style_variations();
+		$this->theme_json    = static::unwrap_shared_block_style_variations( $this->theme_json, $valid_variations );
 		$this->theme_json    = static::sanitize( $this->theme_json, $valid_block_names, $valid_element_names, $valid_variations );
 		$this->theme_json    = static::maybe_opt_in_into_settings( $this->theme_json );
 
@@ -806,13 +806,12 @@ class WP_Theme_JSON {
 	/**
 	 * Unwraps shared block style variations.
 	 *
-	 * It takes the shared variations (styles.variations.variationName)
-	 * and applies them to all the blocks that have the given variation registered
+	 * It takes the shared variations (styles.variations.variationName) and
+	 * applies them to all the blocks that have the given variation registered
 	 * (styles.blocks.blockType.variations.variationName).
 	 *
-	 * For example, given the core/paragraph and core/group blocks have register the section-a
-	 * style variation, and given the following input:
-	 *
+	 * For example, given the `core/paragraph` and `core/group` blocks have
+	 * registered the `section-a` style variation, and given the following input:
 	 *
 	 * {
 	 *   "styles": {
@@ -843,25 +842,20 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param array $theme_json A structure that follows the theme.json schema.
+	 * @param array $theme_json       A structure that follows the theme.json schema.
+	 * @param array $valid_variations Valid block style variations.
 	 * @return array Theme json data with shared variation definitions unwrapped under appropriate block types.
 	 */
-	private static function unwrap_shared_block_style_variations( $theme_json ) {
-		if ( ! isset( $theme_json['styles']['variations'] ) ) {
-			return $theme_json;
-		}
-
-		$registered_styles = WP_Block_Styles_Registry::get_instance()->get_all_registered();
-
-		if ( empty( $registered_styles ) ) {
+	private static function unwrap_shared_block_style_variations( $theme_json, $valid_variations ) {
+		if ( empty( $theme_json['styles']['variations'] ) || empty( $valid_variations ) ) {
 			return $theme_json;
 		}
 
 		$new_theme_json = $theme_json;
 		$variations     = $new_theme_json['styles']['variations'];
 
-		foreach ( $registered_styles as $block_type => $registered_variations ) {
-			foreach ( $registered_variations as $variation_name => $variation_data ) {
+		foreach ( $valid_variations as $block_type => $registered_variations ) {
+			foreach ( $registered_variations as $variation_name ) {
 				$block_level_data = $new_theme_json['styles']['blocks'][ $block_type ]['variations'][ $variation_name ] ?? array();
 				$top_level_data   = $variations[ $variation_name ] ?? array();
 				$merged_data      = array_replace_recursive( $top_level_data, $block_level_data );

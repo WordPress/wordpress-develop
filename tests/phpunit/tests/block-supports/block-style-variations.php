@@ -62,6 +62,7 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 	 *
 	 * @ticket 61312
 	 * @ticket 61440
+	 * @ticket 61451
 	 */
 	public function test_add_registered_block_styles_to_theme_data() {
 		switch_theme( 'block-theme' );
@@ -120,14 +121,6 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 		$group_styles = $theme_json['styles']['blocks']['core/group'] ?? array();
 		$expected     = array(
 			'variations' => array(
-				// @ticket 61440
-				'WithSlug'                => array(
-					'color' => array(
-						'background' => 'aliceblue',
-						'text'       => 'midnightblue',
-					),
-				),
-				'my-variation'            => $variation_styles_data,
 
 				/*
 				 * The following block style variations are registered
@@ -146,6 +139,18 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 						'text'       => 'lightblue',
 					),
 				),
+
+				/*
+				 * Manually registered variations.
+				 * @ticket 61440
+				 */
+				'WithSlug'                => array(
+					'color' => array(
+						'background' => 'aliceblue',
+						'text'       => 'midnightblue',
+					),
+				),
+				'my-variation'            => $variation_styles_data,
 			),
 		);
 
