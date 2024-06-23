@@ -50,7 +50,7 @@ class Tests_Formatting_wpTrimWords extends WP_UnitTestCase {
 		$this->assertSame( $trimmed, wp_trim_words( $text ) );
 	}
 
-	public function test_doesnt_trim_short_text() {
+	public function test_does_not_trim_short_text() {
 		$text = 'This is some short text.';
 		$this->assertSame( $text, wp_trim_words( $text ) );
 	}

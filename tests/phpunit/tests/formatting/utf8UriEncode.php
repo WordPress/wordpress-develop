@@ -12,9 +12,25 @@ class Tests_Formatting_Utf8UriEncode extends WP_UnitTestCase {
 	 * are dealt with elsewhere.
 	 *
 	 * @dataProvider data
+	 *
+	 * @param string $utf8       String encoded in UTF-8 bytes.
+	 * @param string $urlencoded Expected percent-escaped form of input text.
 	 */
 	public function test_percent_encodes_non_reserved_characters( $utf8, $urlencoded ) {
-		$this->assertSame( $urlencoded, utf8_uri_encode( $utf8 ) );
+		/**
+		 * Casing of percent-encoding shouldn't matter; upper-case is nominal.
+		 *
+		 * @see https://url.spec.whatwg.org/#percent-encoded-bytes
+		 */
+		$comparable = preg_replace_callback(
+			'~%[A-F0-9]{2}~',
+			static function ( $escaped_match ) {
+				return strtolower( $escaped_match[0] );
+			},
+			utf8_uri_encode( $utf8 )
+		);
+
+		$this->assertSame( $urlencoded, $comparable );
 	}
 
 	/**
