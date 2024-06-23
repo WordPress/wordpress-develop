@@ -127,6 +127,74 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure get_transient() doesn't query the database for a transient without a timeout.
+	 *
+	 * @ticket 61193
+	 *
+	 * @covers ::get_transient
+	 */
+	public function test_autoloaded_transient_does_not_make_a_database_call() {
+		$key         = 'test_transient';
+		$option_name = '_transient_' . $key;
+		$value       = 'test_value';
+
+		// Set transient without a timeout.
+		set_transient( $key, $value );
+
+		// Clear the options caches.
+		wp_cache_delete( $option_name, 'options' );
+		wp_cache_delete( 'notoptions', 'options' );
+		wp_cache_delete( 'alloptions', 'options' );
+
+		// Prime the alloptions cache.
+		$alloptions = wp_load_alloptions();
+
+		// Ensure the transient is autoloaded.
+		$this->assertArrayHasKey( $option_name, $alloptions, 'Expected the transient to be autoloaded.' );
+
+		$before_queries = get_num_queries();
+		$this->assertSame( $value, get_transient( $key ) );
+		$transient_queries = get_num_queries() - $before_queries;
+		$this->assertSame( 0, $transient_queries, 'Expected no database queries to retrieve the transient.' );
+	}
+
+	/**
+	 * Ensure get_transient() doesn't query the database for a non-existent transient.
+	 *
+	 * @ticket 61193
+	 *
+	 * @covers ::get_transient
+	 */
+	public function test_non_existent_transient_does_not_make_a_database_call() {
+		$key         = 'non_existent_test_transient';
+		$option_name = '_transient_' . $key;
+
+		// Ensure the transient doesn't exist.
+		delete_transient( $key );
+
+		// Clear the options caches.
+		wp_cache_delete( $option_name, 'options' );
+		wp_cache_delete( 'notoptions', 'options' );
+		wp_cache_delete( 'alloptions', 'options' );
+
+		// Prime the alloptions & transient cache.
+		$alloptions = wp_load_alloptions();
+
+		// Ensure the transient is not autoloaded.
+		$this->assertArrayNotHasKey( $option_name, $alloptions, 'Expected the transient to not be autoloaded.' );
+
+		$before_queries = get_num_queries();
+		$this->assertFalse( get_transient( $key ) );
+		$transient_queries = get_num_queries() - $before_queries;
+		$this->assertSame( 1, $transient_queries, 'Expected one database queries to retrieve the transient on first request.' );
+
+		$before_queries = get_num_queries();
+		$this->assertFalse( get_transient( $key ) );
+		$transient_queries = get_num_queries() - $before_queries;
+		$this->assertSame( 0, $transient_queries, 'Expected no database queries to retrieve the transient on second request.' );
+	}
+
+	/**
 	 * Ensure set_transient() primes the option cache checking for an existing transient.
 	 *
 	 * @ticket 61193
