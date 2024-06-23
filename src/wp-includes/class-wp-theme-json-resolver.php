@@ -592,7 +592,6 @@ class WP_Theme_JSON_Resolver {
 				unset( $decoded_data['isGlobalStylesUserThemeJSON'] );
 				$config = $decoded_data;
 			}
-
 		}
 
 		/** This filter is documented in wp-includes/class-wp-theme-json-resolver.php */
@@ -895,7 +894,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param WP_Theme_JSON  $theme_json A theme json instance.
+	 * @param WP_Theme_JSON $theme_json A theme json instance.
 	 * @return WP_Theme_JSON Theme merged with resolved paths, if any found.
 	 */
 	public static function resolve_theme_file_uris( $theme_json ) {
@@ -992,5 +991,4 @@ class WP_Theme_JSON_Resolver {
 
 		return $data;
 	}
-
 }
