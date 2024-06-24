@@ -328,7 +328,7 @@ class WP_Token_Map {
 		foreach ( $groups as $group_key => $group ) {
 			usort(
 				$groups[ $group_key ],
-				static function ( string $a, string $b ): bool {
+				static function ( array $a, array $b ): int {
 					return self::longest_first_then_alphabetical( $a[0], $b[0] );
 				}
 			);
