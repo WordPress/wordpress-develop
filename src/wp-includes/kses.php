@@ -736,8 +736,6 @@ if ( ! CUSTOM_TAGS ) {
  *
  * @since 1.0.0
  *
- * @global array[]       $allowedtags       Array of KSES allowed HTML elements.
- *
  * @param string         $content           Text content to filter.
  * @param array[]|string $allowed_html      An array of allowed HTML elements and attributes,
  *                                          or a context name such as 'post'. See wp_kses_allowed_html()
@@ -747,17 +745,8 @@ if ( ! CUSTOM_TAGS ) {
  * @return string Filtered content containing only the allowed HTML.
  */
 function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
-	global $allowedtags;
-
 	if ( empty( $allowed_protocols ) ) {
 		$allowed_protocols = wp_allowed_protocols();
-	}
-
-	// Allow the 'target' and 'rel' attribute for anchor tags in term descriptions.
-	if ( 'pre_term_description' === $allowed_html ) {
-		$allowed_html                = $allowedtags;
-		$allowed_html['a']['rel']    = true;
-		$allowed_html['a']['target'] = true;
 	}
 
 	$content = wp_kses_no_null( $content, array( 'slash_zero' => 'keep' ) );
@@ -906,12 +895,14 @@ function wp_kses_allowed_html( $context = '' ) {
 			return $tags;
 
 		case 'user_description':
+		case 'pre_term_description':
 		case 'pre_user_description':
 			$tags                = $allowedtags;
 			$tags['a']['rel']    = true;
 			$tags['a']['target'] = true;
 			/** This filter is documented in wp-includes/kses.php */
 			return apply_filters( 'wp_kses_allowed_html', $tags, $context );
+
 
 		case 'strip':
 			/** This filter is documented in wp-includes/kses.php */
