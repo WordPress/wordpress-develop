@@ -756,6 +756,7 @@ function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
 	// Allow the 'target' attribute for anchor tags in term descriptions.
 	if ( 'pre_term_description' === $allowed_html ) {
 		$allowed_html                = $allowedtags;
+		$allowed_html['a']['rel']    = true;
 		$allowed_html['a']['target'] = true;
 	}
 
