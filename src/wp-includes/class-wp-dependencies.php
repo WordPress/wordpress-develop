@@ -513,11 +513,11 @@ class WP_Dependencies {
 		}
 
 		/*
-		* This is not intended to be cryptographically secure, just a fast way to get
-		* a fixed length string based on the script versions. As this file does not
-		* load the full WordPress environment, it is not possible to use the salted
-		* wp_hash() function.
-		*/
+		 * This is not intended to be cryptographically secure, just a fast way to get
+		 * a fixed length string based on the script versions. As this file does not
+		 * load the full WordPress environment, it is not possible to use the salted
+		 * wp_hash() function.
+		 */
 		return 'W/"' . md5( $etag ) . '"';
 	}
 }
