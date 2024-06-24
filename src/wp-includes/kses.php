@@ -903,7 +903,6 @@ function wp_kses_allowed_html( $context = '' ) {
 			/** This filter is documented in wp-includes/kses.php */
 			return apply_filters( 'wp_kses_allowed_html', $tags, $context );
 
-
 		case 'strip':
 			/** This filter is documented in wp-includes/kses.php */
 			return apply_filters( 'wp_kses_allowed_html', array(), $context );
