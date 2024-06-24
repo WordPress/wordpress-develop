@@ -222,8 +222,6 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * @param array $load List of scripts to load.
 	 * @param string $wp_version WordPress version.
 	 * @param string $expected Expected etag.
-	 *
-	 * @return void
 	 */
 	public function test_get_etag_styles( $load, $wp_version, $expected ) {
 		$instance = wp_styles();
