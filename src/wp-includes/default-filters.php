@@ -286,7 +286,7 @@ foreach (
 }
 
 // Misc filters.
-add_filter( 'wp_default_autoload_value', 'wp_filter_default_autoload_value_via_option_size', 10, 4 );
+add_filter( 'wp_default_autoload_value', 'wp_filter_default_autoload_value_via_option_size', 5, 4 ); // Allow the value to be overridden at the default priority.
 add_filter( 'option_ping_sites', 'privacy_ping_filter' );
 add_filter( 'option_blog_charset', '_wp_specialchars' ); // IMPORTANT: This must not be wp_specialchars() or esc_html() or it'll cause an infinite loop.
 add_filter( 'option_blog_charset', '_canonical_charset' );
@@ -756,5 +756,11 @@ add_action( 'init', '_wp_register_default_font_collections' );
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
+
+// Update ignoredHookedBlocks postmeta for wp_navigation post type.
+add_filter( 'rest_pre_insert_wp_navigation', 'update_ignored_hooked_blocks_postmeta' );
+
+// Inject hooked blocks into the wp_navigation post type REST response.
+add_filter( 'rest_prepare_wp_navigation', 'insert_hooked_blocks_into_rest_response', 10, 2 );
 
 unset( $filter, $action );

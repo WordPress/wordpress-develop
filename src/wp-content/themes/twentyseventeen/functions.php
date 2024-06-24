@@ -690,6 +690,28 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 endif;
 
 /**
+ * Show the featured image below the header on single posts and pages, unless the
+ * page is the front page.
+ *
+ * Use the filter `twentyseventeen_should_show_featured_image` in a child theme or
+ * plugin to change when the image is shown. This example prevents the image
+ * from showing:
+ *
+ *     add_filter(
+ *         'twentyseventeen_should_show_featured_image',
+ *         '__return_false'
+ *     );
+ *
+ * @since Twenty Seventeen 3.7
+ *
+ * @return bool Whether the post thumbnail should be shown.
+ */
+function twentyseventeen_should_show_featured_image() {
+	$show_featured_image = ( is_single() || ( is_page() && ! twentyseventeen_is_frontpage() ) ) && has_post_thumbnail( get_queried_object_id() );
+	return apply_filters( 'twentyseventeen_should_show_featured_image', $show_featured_image );
+}
+
+/**
  * Implement the Custom Header feature.
  */
 require get_parent_theme_file_path( '/inc/custom-header.php' );

@@ -1042,11 +1042,6 @@ template,
  * .entry-content children specific controls
  * - Adds special margin overrides for alignment utility classes
  */
-.entry-content > * {
-
-	/* Reset alignleft and alignright margins after alignfull */
-}
-
 .entry-content > *.alignleft,
 .entry-content > *.alignright,
 .entry-content > *.alignleft:first-child + *,
@@ -1215,8 +1210,6 @@ blockquote strong {
 
 blockquote:before {
 	content: "“";
-	font-size: 1.25rem;
-	line-height: 1.7;
 	position: absolute;
 	left: -12px;
 }
@@ -1225,7 +1218,6 @@ blockquote .wp-block-quote__citation,
 blockquote cite,
 blockquote footer {
 	color: #28303d;
-	font-size: 1rem;
 	font-style: normal;
 }
 @media only screen and (max-width: 481.98px) {
@@ -2503,8 +2495,11 @@ h6,
 	padding-left: 0;
 }
 
-.wp-block-latest-comments .wp-block-latest-comments__comment {
+.wp-block-latest-comments:where(:not([class*=-font-size]):not([style*=font-size])) .wp-block-latest-comments__comment {
 	font-size: 1.125rem;
+}
+
+.wp-block-latest-comments .wp-block-latest-comments__comment {
 	line-height: 1.7;
 
 	/* Vertical margins logic */
@@ -2525,12 +2520,12 @@ h6,
 }
 
 .wp-block-latest-comments .wp-block-latest-comments__comment-date {
-	color: #28303d;
-	font-size: 1.125rem;
+	color: inherit;
+	font-size: inherit;
 }
 
 .wp-block-latest-comments .wp-block-latest-comments__comment-excerpt p {
-	font-size: 1.125rem;
+	font-size: inherit;
 	line-height: 1.7;
 	margin: 0;
 }
@@ -2820,13 +2815,6 @@ dd {
 	padding-left: 50px;
 }
 
-.wp-block-media-text {
-
-	/**
-   * Block Options
-   */
-}
-
 .wp-block-media-text.alignfull {
 	margin-top: 0;
 	margin-bottom: 0;
@@ -2924,7 +2912,7 @@ dd {
 	left: 25px;
 	border-style: solid;
 	border-color: #28303d transparent;
-	border-width: 0 7px 10px 7px;
+	border-width: 0 7px 10px;
 }
 
 .wp-block-navigation > .wp-block-navigation__container > .has-child > .wp-block-navigation__container:after {
@@ -3140,17 +3128,39 @@ pre.wp-block-preformatted {
 
 .wp-block-quote {
 	border-left: none;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 1.25rem;
+	font-style: normal;
+	font-weight: 700;
+	line-height: 1.7;
 
 	/**
    * Block Options
    */
 }
 
+.wp-block-quote p {
+	font-family: inherit;
+	font-size: inherit;
+	font-style: inherit;
+	font-weight: inherit;
+	line-height: inherit;
+	letter-spacing: inherit;
+}
+
 .wp-block-quote:before {
 	content: "“";
-	font-size: 1.25rem;
-	line-height: 1.7;
 	left: 8px;
+}
+
+.wp-block-quote .wp-block-quote__citation,
+.wp-block-quote cite,
+.wp-block-quote footer {
+	font-family: inherit;
+	font-style: inherit;
+	font-weight: inherit;
+	line-height: inherit;
+	letter-spacing: inherit;
 }
 
 .has-background .wp-block-quote .wp-block-quote__citation,
@@ -3168,6 +3178,24 @@ pre.wp-block-preformatted {
 	color: currentColor;
 }
 
+.wp-block-quote:where(:not([style*=font-style])) .wp-block-quote__citation {
+	font-style: normal;
+}
+
+.wp-block-quote:where(:not([style*=font-style])) cite {
+	font-style: normal;
+}
+
+.wp-block-quote:where(:not([style*=font-style])) footer {
+	font-style: normal;
+}
+
+.wp-block-quote:where(:not([style*=font-weight])) .wp-block-quote__citation,
+.wp-block-quote:where(:not([style*=font-weight])) cite,
+.wp-block-quote:where(:not([style*=font-weight])) footer {
+	font-weight: normal;
+}
+
 .wp-block-quote.has-text-align-right {
 	margin: 30px 25px 30px auto;
 	padding-right: 0;
@@ -3180,9 +3208,6 @@ pre.wp-block-preformatted {
 
 .wp-block-quote.has-text-align-right p:before {
 	content: "”";
-	font-size: 1.25rem;
-	font-weight: normal;
-	line-height: 1.7;
 	margin-right: 5px;
 }
 
@@ -3476,6 +3501,7 @@ pre.wp-block-preformatted {
 	line-height: 1.7;
 	max-width: inherit;
 	margin-right: -3px;
+	margin-left: 0;
 	padding: 10px;
 }
 
@@ -4830,7 +4856,7 @@ h1.page-title {
 .comment-meta .comment-metadata {
 	color: #28303d;
 	font-size: 1rem;
-	padding: 8px 0 9px 0;
+	padding: 8px 0 9px;
 }
 
 .comment-meta .comment-metadata .edit-link {
@@ -5291,7 +5317,7 @@ h1.page-title {
 		left: 25px;
 		border-style: solid;
 		border-color: #28303d transparent;
-		border-width: 0 7px 10px 7px;
+		border-width: 0 7px 10px;
 	}
 
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu:after {
@@ -5832,7 +5858,7 @@ h1.page-title {
 @media only screen and (min-width: 822px) {
 
 	.comments-pagination {
-		margin: 90px auto 120px auto;
+		margin: 90px auto 120px;
 	}
 }
 

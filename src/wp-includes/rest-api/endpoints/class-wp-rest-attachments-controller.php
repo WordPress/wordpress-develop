@@ -304,6 +304,17 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$attachment->post_mime_type = $type;
 		$attachment->guid           = $url;
 
+		// If the title was not set, use the original filename.
+		if ( empty( $attachment->post_title ) && ! empty( $files['file']['name'] ) ) {
+			// Remove the file extension (after the last `.`)
+			$tmp_title = substr( $files['file']['name'], 0, strrpos( $files['file']['name'], '.' ) );
+
+			if ( ! empty( $tmp_title ) ) {
+				$attachment->post_title = $tmp_title;
+			}
+		}
+
+		// Fall back to the original approach.
 		if ( empty( $attachment->post_title ) ) {
 			$attachment->post_title = preg_replace( '/\.[^.]+$/', '', wp_basename( $file ) );
 		}
@@ -610,10 +621,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				case 'crop':
 					$size = $image_editor->get_size();
 
-					$crop_x = round( ( $size['width'] * $args['left'] ) / 100.0 );
-					$crop_y = round( ( $size['height'] * $args['top'] ) / 100.0 );
-					$width  = round( ( $size['width'] * $args['width'] ) / 100.0 );
-					$height = round( ( $size['height'] * $args['height'] ) / 100.0 );
+					$crop_x = (int) round( ( $size['width'] * $args['left'] ) / 100.0 );
+					$crop_y = (int) round( ( $size['height'] * $args['top'] ) / 100.0 );
+					$width  = (int) round( ( $size['width'] * $args['width'] ) / 100.0 );
+					$height = (int) round( ( $size['height'] * $args['height'] ) / 100.0 );
 
 					if ( $size['width'] !== $width && $size['height'] !== $height ) {
 						$result = $image_editor->crop( $crop_x, $crop_y, $width, $height );
