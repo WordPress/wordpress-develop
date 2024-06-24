@@ -925,7 +925,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param array $data   Array following the theme.json specification.
+	 * @param array $data       Array following the theme.json specification.
 	 * @param array $variations Shared block style variations.
 	 * @return array Theme json data including shared block style variation definitions.
 	 */
