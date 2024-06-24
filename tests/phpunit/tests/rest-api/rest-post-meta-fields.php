@@ -3167,6 +3167,52 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 
+		$default_object              = new stdClass();
+		$default_object->test_bool   = true;
+		$default_object->test_string = 'test string';
+
+		$default_object2              = new stdClass();
+		$default_object2->test_bool   = true;
+		$default_object2->test_string = 'test string 2';
+
+		register_post_meta(
+			'post',
+			'with_object_default',
+			array(
+				'type'         => 'object',
+				'single'       => true,
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'test_bool'   => array( 'type' => 'boolean' ),
+							'test_string' => array( 'type' => 'string' ),
+						),
+					),
+				),
+				'default'      => $default_object,
+			)
+		);
+
+		register_post_meta(
+			'post',
+			'with_multi_object_default',
+			array(
+				'type'         => 'object',
+				'single'       => false,
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'test_bool'   => array( 'type' => 'boolean' ),
+							'test_string' => array( 'type' => 'string' ),
+						),
+					),
+				),
+				'default'      => $default_object,
+			)
+		);
+
 		register_post_meta(
 			'post',
 			'with_string_default',
@@ -3196,6 +3242,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				'with_bool_default'    => true,
 				'with_integer_default' => 42,
 				'with_number_default'  => 42.99,
+				'with_object_default'  => $default_object,
 				'with_string_default'  => 'string default',
 			),
 		);
@@ -3220,6 +3267,11 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertCount( 1, $meta );
 		$this->assertSame( '42.99', $meta[0] );
 
+		$meta = get_metadata_raw( 'post', self::$post_id, 'with_object_default', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 1, $meta );
+		$this->assertSame( (array) $default_object, $meta[0] );
+
 		$meta = get_metadata_raw( 'post', self::$post_id, 'with_string_default', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
@@ -3227,11 +3279,12 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		//non-single keys with defaults
 
-		$data    = array(
+		$data = array(
 			'meta' => array(
 				'with_multi_bool_default'    => true,
 				'with_multi_integer_default' => 42,
 				'with_multi_number_default'  => 42.99,
+				'with_multi_object_default'  => array( $default_object ),
 				// If not wrapped in array results in split on space (two items "string" and "default")
 				'with_multi_string_default'  => array( 'string default' ),
 			),
@@ -3257,6 +3310,11 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertCount( 1, $meta );
 		$this->assertSame( '42.99', $meta[0] );
 
+		$meta = get_metadata_raw( 'post', self::$post_id, 'with_multi_object_default', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 1, $meta );
+		$this->assertSame( (array) $default_object, $meta[0] );
+
 		$meta = get_metadata_raw( 'post', self::$post_id, 'with_multi_string_default', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
@@ -3267,6 +3325,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				'with_multi_string_default'  => array( 'string default', 'string default 2' ),
 				'with_multi_integer_default' => array( 42, 43 ),
 				'with_multi_number_default'  => array( 42.99, 43.99 ),
+				'with_multi_object_default'  => array( $default_object, $default_object2 ),
 				'with_multi_bool_default'    => array( true, false ),
 			),
 		);
@@ -3294,6 +3353,12 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertCount( 2, $meta );
 		$this->assertSame( '42.99', $meta[0] );
 		$this->assertSame( '43.99', $meta[1] );
+
+		$meta = get_metadata_raw( 'post', self::$post_id, 'with_multi_object_default', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 2, $meta );
+		$this->assertSame( (array) $default_object, $meta[0] );
+		$this->assertSame( (array) $default_object2, $meta[1] );
 
 		$meta = get_metadata_raw( 'post', self::$post_id, 'with_multi_string_default', false );
 		$this->assertNotEmpty( $meta );
