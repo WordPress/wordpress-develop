@@ -896,8 +896,9 @@ function wp_kses_allowed_html( $context = '' ) {
 
 		case 'user_description':
 		case 'pre_user_description':
-			$tags             = $allowedtags;
-			$tags['a']['rel'] = true;
+			$tags                = $allowedtags;
+			$tags['a']['rel']    = true;
+			$tags['a']['target'] = true;
 			/** This filter is documented in wp-includes/kses.php */
 			return apply_filters( 'wp_kses_allowed_html', $tags, $context );
 
