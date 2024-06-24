@@ -1496,7 +1496,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether the currently matched tag contains the self-closing flag.
 	 */
-	public function has_self_closing_flag() {
+	public function has_self_closing_flag(): bool {
 		return $this->is_virtual() ? false : parent::has_self_closing_flag();
 	}
 
@@ -1610,7 +1610,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string|bool $value The new attribute value.
 	 * @return bool Whether an attribute value was set.
 	 */
-	public function set_attribute( $name, $value ) {
+	public function set_attribute( $name, $value ): bool {
 		return $this->is_virtual() ? false : parent::set_attribute( $name, $value );
 	}
 
@@ -1622,7 +1622,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $name The attribute name to remove.
 	 * @return bool Whether an attribute was removed.
 	 */
-	public function remove_attribute( $name ) {
+	public function remove_attribute( $name ): bool {
 		return $this->is_virtual() ? false : parent::remove_attribute( $name );
 	}
 
@@ -1664,7 +1664,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $class_name The class name to add.
 	 * @return bool Whether the class was set to be added.
 	 */
-	public function add_class( $class_name ) {
+	public function add_class( $class_name ): bool {
 		return $this->is_virtual() ? false : parent::add_class( $class_name );
 	}
 
@@ -1676,7 +1676,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $class_name The class name to remove.
 	 * @return bool Whether the class was set to be removed.
 	 */
-	public function remove_class( $class_name ) {
+	public function remove_class( $class_name ): bool {
 		return $this->is_virtual() ? false : parent::remove_class( $class_name );
 	}
 
@@ -1688,7 +1688,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
 	 */
-	public function has_class( $wanted_class ) {
+	public function has_class( $wanted_class ): ?bool {
 		return $this->is_virtual() ? null : parent::has_class( $wanted_class );
 	}
 
@@ -1755,7 +1755,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string|null
 	 */
-	public function get_comment_type() {
+	public function get_comment_type(): ?string {
 		return $this->is_virtual() ? null : parent::get_comment_type();
 	}
 
