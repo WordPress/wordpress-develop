@@ -6,16 +6,6 @@
 		"color": {
 			"palette": [
 				{
-					"color": "#202124",
-					"name": "Base",
-					"slug": "base"
-				},
-				{
-					"color": "#e8eaed",
-					"name": "Contrast",
-					"slug": "contrast"
-				},
-				{
 					"color": "#e3cbc0",
 					"name": "Primary",
 					"slug": "primary"
@@ -29,6 +19,16 @@
 					"color": "#303134",
 					"name": "Tertiary",
 					"slug": "tertiary"
+				},
+				{
+					"color": "#202124",
+					"name": "Dark Grey",
+					"slug": "dark-grey"
+				},
+				{
+					"color": "#e8eaed",
+					"name": "Light Grey",
+					"slug": "light-grey"
 				}
 			]
 		},
@@ -144,6 +144,10 @@
 				}
 			}
 		},
+		"color": {
+			"background": "var(--wp--preset--color--dark-grey)",
+			"text": "var(--wp--preset--color--light-grey)"
+		},
 		"elements": {
 			"button": {
 				"border": {
@@ -154,7 +158,9 @@
 				},
 				"color": {
 					"background": "var(--wp--preset--color--primary)",
-					"text": "var(--wp--preset--color--base)"
+					"text": {
+						"ref": "styles.color.background"
+					}
 				},
 				"spacing": {
 					"padding": {
@@ -172,34 +178,48 @@
 				},
 				":hover": {
 					"border": {
-						"color": "var(--wp--preset--color--contrast)"
+						"color": {
+							"ref": "styles.color.text"
+						}
 					},
 					"color": {
-						"background": "var(--wp--preset--color--contrast)",
+						"background": {
+							"ref": "styles.color.text"
+						},
 						"text": "var(--wp--preset--color--tertiary)"
 					}
 				},
 				":focus": {
 					"border": {
-						"color": "var(--wp--preset--color--contrast)"
+						"color": {
+							"ref": "styles.color.text"
+						}
 					},
 					"color": {
-						"background": "var(--wp--preset--color--contrast)",
+						"background": {
+							"ref": "styles.color.text"
+						},
 						"text": "var(--wp--preset--color--tertiary)"
 					}
 				},
 				":active": {
 					"border": {
-						"color": "var(--wp--preset--color--contrast)"
+						"color": {
+							"ref": "styles.color.text"
+						}
 					},
 					"color": {
-						"background": "var(--wp--preset--color--contrast)",
+						"background": {
+							"ref": "styles.color.text"
+						},
 						"text": "var(--wp--preset--color--tertiary)"
 					}
 				},
 				":visited": {
 					"color": {
-						"text": "var(--wp--preset--color--base)"
+						"text": {
+							"ref": "styles.color.background"
+						}
 					}
 				}
 			},
