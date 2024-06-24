@@ -631,8 +631,12 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$response   = array();
-		$variations = WP_Theme_JSON_Resolver::get_style_variations();
 
+		// Register theme-defined variations e.g. from block style variation partials under `/styles`.
+		$partials = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
+		wp_register_block_style_variations_from_theme_json_partials( $partials );
+
+		$variations = WP_Theme_JSON_Resolver::get_style_variations();
 		foreach ( $variations as $variation ) {
 			$variation_theme_json = new WP_Theme_JSON( $variation );
 			$resolved_theme_uris  = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $variation_theme_json );
