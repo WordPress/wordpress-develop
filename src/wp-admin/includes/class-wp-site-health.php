@@ -18,7 +18,7 @@ class WP_Site_Health {
 	private $mysql_server_version        = '';
 	private $mysql_required_version      = '5.5';
 	private $mysql_recommended_version   = '8.0';
-	private $mariadb_recommended_version = '10.4';
+	private $mariadb_recommended_version = '10.5';
 
 	public $php_memory_limit;
 
@@ -1844,14 +1844,14 @@ class WP_Site_Health {
 				__( 'Available disk space is critically low, less than %s available. Proceed with caution, updates may fail.' ),
 				size_format( 20 * MB_IN_BYTES )
 			);
-			$result['status']      = 'critical';
+			$result['status'] = 'critical';
 		} elseif ( $available_space < 100 * MB_IN_BYTES ) {
 			$result['description'] = sprintf(
 				/* translators: %s: Available disk space in MB or GB. */
 				__( 'Available disk space is low, less than %s available.' ),
 				size_format( 100 * MB_IN_BYTES )
 			);
-			$result['status']      = 'recommended';
+			$result['status'] = 'recommended';
 		}
 
 		return $result;
@@ -2771,7 +2771,7 @@ class WP_Site_Health {
 					'label' => __( 'Available disk space' ),
 					'test'  => 'available_updates_disk_space',
 				),
-				'autoloaded_options' => array(
+				'autoloaded_options'           => array(
 					'label' => __( 'Autoloaded options' ),
 					'test'  => 'autoloaded_options',
 				),

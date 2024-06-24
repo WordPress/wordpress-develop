@@ -2181,19 +2181,19 @@ function redirect_post( $post_id = '' ) {
 	if ( isset( $_POST['save'] ) || isset( $_POST['publish'] ) ) {
 		$status = get_post_status( $post_id );
 
-		if ( isset( $_POST['publish'] ) ) {
-			switch ( $status ) {
-				case 'pending':
-					$message = 8;
-					break;
-				case 'future':
-					$message = 9;
-					break;
-				default:
-					$message = 6;
-			}
-		} else {
-			$message = 'draft' === $status ? 10 : 1;
+		switch ( $status ) {
+			case 'pending':
+				$message = 8;
+				break;
+			case 'future':
+				$message = 9;
+				break;
+			case 'draft':
+				$message = 10;
+				break;
+			default:
+				$message = isset( $_POST['publish'] ) ? 6 : 1;
+				break;
 		}
 
 		$location = add_query_arg( 'message', $message, get_edit_post_link( $post_id, 'url' ) );
@@ -2345,7 +2345,7 @@ function get_block_editor_server_block_settings() {
  *
  * @global WP_Post   $post           Global post object.
  * @global WP_Screen $current_screen WordPress current screen object.
- * @global array     $wp_meta_boxes
+ * @global array     $wp_meta_boxes  Global meta box state.
  */
 function the_block_editor_meta_boxes() {
 	global $post, $current_screen, $wp_meta_boxes;
