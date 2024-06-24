@@ -573,7 +573,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether the current tag is a tag closer.
 	 */
-	public function is_tag_closer() {
+	public function is_tag_closer(): bool {
 		return $this->is_virtual()
 			? ( WP_HTML_Stack_Event::POP === $this->current_element->operation && '#tag' === $this->get_token_type() )
 			: parent::is_tag_closer();
@@ -1520,7 +1520,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string|null Name of the matched token.
 	 */
-	public function get_token_name() {
+	public function get_token_name(): ?string {
 		return $this->is_virtual()
 			? $this->current_element->token->node_name
 			: parent::get_token_name();
@@ -1548,7 +1548,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string|null What kind of token is matched, or null.
 	 */
-	public function get_token_type() {
+	public function get_token_type(): ?string {
 		if ( $this->is_virtual() ) {
 			/*
 			 * This logic comes from the Tag Processor.
