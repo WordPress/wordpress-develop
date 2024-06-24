@@ -186,7 +186,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * Tests get_etag method for WP_Scripts.
 	 *
 	 * @covers WP_Dependencies::get_etag
-	 * @ticket 58433
+	 * @ticket 58433,61485
 	 *
 	 * @dataProvider data_provider_get_etag
 	 *
