@@ -1067,7 +1067,7 @@ function _make_mock_parsed_block( $block_name, $attrs = array(), $inner_blocks =
 
 /**
  * Updates the wp_postmeta with the list of ignored hooked blocks where the inner blocks are stored as post content.
- * Currently only supports `wp_navigation` post types.
+ * Currently only supports `wp_navigation` and `wp_template_part` post types.
  *
  * @since 6.6.0
  * @access private
