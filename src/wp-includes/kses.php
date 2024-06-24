@@ -390,9 +390,8 @@ if ( ! CUSTOM_TAGS ) {
 	 */
 	$allowedtags = array(
 		'a'          => array(
-			'href'   => true,
-			'title'  => true,
-			'target' => true,
+			'href'  => true,
+			'title' => true,
 		),
 		'abbr'       => array(
 			'title' => true,
