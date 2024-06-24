@@ -1092,6 +1092,11 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		return $post;
 	}
 
+	/*
+	 * We only hook into filters for the `wp_navigation` and `wp_template_part` post types.
+	 * So if the post type is not set we can assume it's a `wp_template_part`.
+	 */
+	$post_type                   = isset( $post->post_type ) ? $post->post_type : 'wp_template_part';
 	$post_type_to_block_name_map = array(
 		'wp_navigation'    => 'core/navigation',
 		'wp_template_part' => 'core/template-part',
@@ -1100,11 +1105,11 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 	/*
 	 * Skip meta generation when the post content is not in the above map.
 	 */
-	if ( ! isset( $post->post_type ) || ! isset( $post_type_to_block_name_map[ $post->post_type ] ) ) {
+	if ( ! isset( $post_type_to_block_name_map[ $post_type ] ) ) {
 		return $post;
 	}
 
-	$parent_block_name = $post_type_to_block_name_map[ $post->post_type ];
+	$parent_block_name = $post_type_to_block_name_map[ $post_type ];
 	$attributes        = array();
 
 	$ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );

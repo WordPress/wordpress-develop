@@ -1622,21 +1622,12 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 		$post->post_author = get_current_user_id();
 	}
 
-	$wp_post = new WP_Post( $post );
-
 	if ( 'wp_template_part' === $post->post_type && ! isset( $terms['wp_template_part_area'] ) ) {
 		$area_terms                     = get_the_terms( $changes->ID, 'wp_template_part_area' );
 		$terms['wp_template_part_area'] = ! is_wp_error( $area_terms ) && ! empty( $area_terms ) ? $area_terms[0]->name : null;
-
-		/**
-		 * Hooked blocks that are ignored from a template part as first_child or last_child
-		 * are not inserted into the template part's content because they have no parent block.
-		 * Instead, they are inserted into the postmeta.
-		*/
-		update_ignored_hooked_blocks_postmeta( $wp_post );
 	}
 
-	$template = _build_block_template_object_from_post_object( $wp_post, $terms, $meta );
+	$template = _build_block_template_object_from_post_object( new WP_Post( $post ), $terms, $meta );
 
 	if ( is_wp_error( $template ) ) {
 		return $template;
