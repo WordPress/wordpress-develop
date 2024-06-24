@@ -156,7 +156,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column aligncenter">
 				<div class="about__image">
-					<a href="#" class="button button-primary button-hero">See everything new</a>
+					<a href="<?php esc_url( __( 'https://wordpress.org/download/releases/6-6/' ) ); ?>" class="button button-primary button-hero"><?php _e( 'See everything new' ); ?></a>
 				</div>
 			</div>
 		</div>
@@ -165,7 +165,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section has-3-columns">
 			<div class="column about__image is-vertically-aligned-top">
-				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=6.5' ) ); ?>" alt="" height="280" width="280" />
+				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=6.6' ) ); ?>" alt="" height="280" width="280" />
 			</div>
 			<div class="column is-vertically-aligned-center" style="grid-column-end:span 2">
 				<h3>
@@ -194,7 +194,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#ededed"/>
+						<rect width="48" height="48" rx="4"/>
 						<path d="M23 34v-4h-5l-2.293-2.293a1 1 0 0 1 0-1.414L18 24h5v-2h-7v-6h7v-2h2v2h5l2.293 2.293a1 1 0 0 1 0 1.414L30 22h-5v2h7v6h-7v4h-2Zm-5-14h11.175l.646-.646a.5.5 0 0 0 0-.708L29.175 18H18v2Zm.825 8H30v-2H18.825l-.646.646a.5.5 0 0 0 0 .708l.646.646Z" fill="#1e1e1e"/>
 					</svg>
 				</div>
@@ -203,8 +203,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: 1: WordPress Field Guide link, 2: WordPress version number. */
 						__( 'Explore the <a href="%1$s">WordPress %2$s Field Guide</a>. Learn about the changes in this release with detailed developer notes to help you build with WordPress.' ),
-						esc_url( __( 'https://make.wordpress.org/core/wordpress-6-5-field-guide/' ) ),
-						'6.5'
+						esc_url( __( 'https://make.wordpress.org/core/wordpress-6-6-field-guide/' ) ),
+						'6.6'
 					);
 					?>
 				</p>
@@ -212,7 +212,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#ededed"/>
+						<rect width="48" height="48" rx="4"/>
 						<path d="M28 19.75h-8v1.5h8v-1.5ZM20 23h8v1.5h-8V23ZM26 26.25h-6v1.5h6v-1.5Z" fill="#151515"/>
 						<path fill-rule="evenodd" clip-rule="evenodd" d="M29 16H19a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V18a2 2 0 0 0-2-2Zm-10 1.5h10a.5.5 0 0 1 .5.5v12a.5.5 0 0 1-.5.5H19a.5.5 0 0 1-.5-.5V18a.5.5 0 0 1 .5-.5Z" fill="#1e1e1e"/>
 					</svg>
@@ -225,9 +225,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						sprintf(
 							/* translators: %s: WordPress version number. */
 							esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
-							'6-5'
+							'6-6'
 						),
-						'6.5'
+						'6.6'
 					);
 					?>
 				</p>
