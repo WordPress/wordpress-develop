@@ -735,7 +735,7 @@ if ( ! CUSTOM_TAGS ) {
  * @see wp_allowed_protocols() for the default allowed protocols in link URLs.
  *
  * @since 1.0.0
- * 
+ *
  * @global array[]       $allowedtags       Array of KSES allowed HTML elements.
  *
  * @param string         $content           Text content to filter.
