@@ -461,7 +461,7 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 	<legend>
 		<span class="hidden" id="editlegend"><?php _e( 'Edit Comment' ); ?></span>
 		<span class="hidden" id="replyhead"><?php _e( 'Reply to Comment' ); ?></span>
-		<span class="hidden" id="addhead"><?php _e( 'Add new Comment' ); ?></span>
+		<span class="hidden" id="addhead"><?php _e( 'Add New Comment' ); ?></span>
 	</legend>
 
 	<div id="replycontainer">
@@ -512,9 +512,16 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 			<button type="button" class="cancel button"><?php _e( 'Cancel' ); ?></button>
 			<span class="waiting spinner"></span>
 		</p>
-		<div class="notice notice-error notice-alt inline hidden">
-			<p class="error"></p>
-		</div>
+		<?php
+		wp_admin_notice(
+			'<p class="error"></p>',
+			array(
+				'type'               => 'error',
+				'additional_classes' => array( 'notice-alt', 'inline', 'hidden' ),
+				'paragraph_wrap'     => false,
+			)
+		);
+		?>
 	</div>
 
 	<input type="hidden" name="action" id="action" value="" />
@@ -900,7 +907,7 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
  * @since 4.7.0 Added the `$post_type` parameter.
  *
  * @param string $default_template Optional. The template file name. Default empty.
- * @param string $post_type        Optional. Post type to get templates for. Default 'post'.
+ * @param string $post_type        Optional. Post type to get templates for. Default 'page'.
  */
 function page_template_dropdown( $default_template = '', $post_type = 'page' ) {
 	$templates = get_page_templates( null, $post_type );
@@ -1006,10 +1013,15 @@ function wp_import_upload_form( $action ) {
 	$size       = size_format( $bytes );
 	$upload_dir = wp_upload_dir();
 	if ( ! empty( $upload_dir['error'] ) ) :
-		?>
-		<div class="error"><p><?php _e( 'Before you can upload your import file, you will need to fix the following error:' ); ?></p>
-		<p><strong><?php echo $upload_dir['error']; ?></strong></p></div>
-		<?php
+		$upload_directory_error  = '<p>' . __( 'Before you can upload your import file, you will need to fix the following error:' ) . '</p>';
+		$upload_directory_error .= '<p><strong>' . $upload_dir['error'] . '</strong></p>';
+		wp_admin_notice(
+			$upload_directory_error,
+			array(
+				'additional_classes' => array( 'error' ),
+				'paragraph_wrap'     => false,
+			)
+		);
 	else :
 		?>
 <form enctype="multipart/form-data" id="import-upload-form" method="post" class="wp-upload-form" action="<?php echo esc_url( wp_nonce_url( $action, 'import-upload' ) ); ?>">
@@ -1038,7 +1050,7 @@ function wp_import_upload_form( $action ) {
  * @since 2.5.0
  * @since 4.4.0 The `$screen` parameter now accepts an array of screen IDs.
  *
- * @global array $wp_meta_boxes
+ * @global array $wp_meta_boxes Global meta box state.
  *
  * @param string                 $id            Meta box ID (used in the 'id' attribute for the meta box).
  * @param string                 $title         Title of the meta box.
@@ -1275,7 +1287,7 @@ function _get_plugin_from_callback( $callback ) {
  *
  * @since 2.5.0
  *
- * @global array $wp_meta_boxes
+ * @global array $wp_meta_boxes Global meta box state.
  *
  * @param string|WP_Screen $screen      The screen identifier. If you have used add_menu_page() or
  *                                      add_submenu_page() to create a new screen (and hence screen_id)
@@ -1355,7 +1367,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 						}
 					}
 
-					$i++;
+					++$i;
 					// get_hidden_meta_boxes() doesn't apply in the block editor.
 					$hidden_class = ( ! $screen->is_block_editor() && in_array( $box['id'], $hidden, true ) ) ? ' hide-if-js' : '';
 					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . '>' . "\n";
@@ -1427,16 +1439,17 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 					if ( WP_DEBUG && ! $block_compatible && 'edit' === $screen->parent_base && ! $screen->is_block_editor() && ! isset( $_GET['meta-box-loader'] ) ) {
 						$plugin = _get_plugin_from_callback( $box['callback'] );
 						if ( $plugin ) {
-							?>
-							<div class="error inline">
-								<p>
-									<?php
-										/* translators: %s: The name of the plugin that generated this meta box. */
-										printf( __( 'This meta box, from the %s plugin, is not compatible with the block editor.' ), "<strong>{$plugin['Name']}</strong>" );
-									?>
-								</p>
-							</div>
-							<?php
+							$meta_box_not_compatible_message = sprintf(
+								/* translators: %s: The name of the plugin that generated this meta box. */
+								__( 'This meta box, from the %s plugin, is not compatible with the block editor.' ),
+								"<strong>{$plugin['Name']}</strong>"
+							);
+							wp_admin_notice(
+								$meta_box_not_compatible_message,
+								array(
+									'additional_classes' => array( 'error', 'inline' ),
+								)
+							);
 						}
 					}
 
@@ -1451,7 +1464,6 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 	echo '</div>';
 
 	return $i;
-
 }
 
 /**
@@ -1460,7 +1472,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
  * @since 2.6.0
  * @since 4.4.0 The `$screen` parameter now accepts an array of screen IDs.
  *
- * @global array $wp_meta_boxes
+ * @global array $wp_meta_boxes Global meta box state.
  *
  * @param string                 $id      Meta box ID (used in the 'id' attribute for the meta box).
  * @param string|array|WP_Screen $screen  The screen or screens on which the meta box is shown (such as a
@@ -1551,7 +1563,7 @@ function do_accordion_sections( $screen, $context, $data_object ) {
 						continue;
 					}
 
-					$i++;
+					++$i;
 					$hidden_class = in_array( $box['id'], $hidden, true ) ? 'hide-if-js' : '';
 
 					$open_class = '';
@@ -2106,14 +2118,17 @@ function _admin_search_query() {
  *
  * @global string    $hook_suffix
  * @global string    $admin_body_class
+ * @global string    $body_id
  * @global WP_Locale $wp_locale        WordPress date and time locale object.
  *
  * @param string $title      Optional. Title of the Iframe page. Default empty.
  * @param bool   $deprecated Not used.
  */
 function iframe_header( $title = '', $deprecated = false ) {
+	global $hook_suffix, $admin_body_class, $body_id, $wp_locale;
+
 	show_admin_bar( false );
-	global $hook_suffix, $admin_body_class, $wp_locale;
+
 	$admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 
 	$current_screen = get_current_screen();
@@ -2167,10 +2182,7 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	?>
 </head>
 	<?php
-	/**
-	 * @global string $body_id
-	 */
-	$admin_body_id = isset( $GLOBALS['body_id'] ) ? 'id="' . $GLOBALS['body_id'] . '" ' : '';
+	$admin_body_id = isset( $body_id ) ? 'id="' . $body_id . '" ' : '';
 
 	/** This filter is documented in wp-admin/admin-header.php */
 	$admin_body_classes = apply_filters( 'admin_body_class', '' );
@@ -2528,22 +2540,22 @@ function compression_test() {
  *
  * @see get_submit_button()
  *
- * @param string       $text             The text of the button (defaults to 'Save Changes')
+ * @param string       $text             Optional. The text of the button. Defaults to 'Save Changes'.
  * @param string       $type             Optional. The type and CSS class(es) of the button. Core values
  *                                       include 'primary', 'small', and 'large'. Default 'primary'.
- * @param string       $name             The HTML name of the submit button. Defaults to "submit". If no
- *                                       id attribute is given in $other_attributes below, $name will be
- *                                       used as the button's id.
- * @param bool         $wrap             True if the output button should be wrapped in a paragraph tag,
- *                                       false otherwise. Defaults to true.
- * @param array|string $other_attributes Other attributes that should be output with the button, mapping
- *                                       attributes to their values, such as setting tabindex to 1, etc.
- *                                       These key/value attribute pairs will be output as attribute="value",
- *                                       where attribute is the key. Other attributes can also be provided
- *                                       as a string such as 'tabindex="1"', though the array format is
- *                                       preferred. Default null.
+ * @param string       $name             Optional. The HTML name of the submit button. If no `id` attribute
+ *                                       is given in the `$other_attributes` parameter, `$name` will be used
+ *                                       as the button's `id`. Default 'submit'.
+ * @param bool         $wrap             Optional. True if the output button should be wrapped in a paragraph tag,
+ *                                       false otherwise. Default true.
+ * @param array|string $other_attributes Optional. Other attributes that should be output with the button,
+ *                                       mapping attributes to their values, e.g. `array( 'id' => 'search-submit' )`.
+ *                                       These key/value attribute pairs will be output as `attribute="value"`,
+ *                                       where attribute is the key. Attributes can also be provided as a string,
+ *                                       e.g. `id="search-submit"`, though the array format is generally preferred.
+ *                                       Default empty string.
  */
-function submit_button( $text = null, $type = 'primary', $name = 'submit', $wrap = true, $other_attributes = null ) {
+function submit_button( $text = '', $type = 'primary', $name = 'submit', $wrap = true, $other_attributes = '' ) {
 	echo get_submit_button( $text, $type, $name, $wrap, $other_attributes );
 }
 
@@ -2552,20 +2564,20 @@ function submit_button( $text = null, $type = 'primary', $name = 'submit', $wrap
  *
  * @since 3.1.0
  *
- * @param string       $text             Optional. The text of the button. Default 'Save Changes'.
+ * @param string       $text             Optional. The text of the button. Defaults to 'Save Changes'.
  * @param string       $type             Optional. The type and CSS class(es) of the button. Core values
  *                                       include 'primary', 'small', and 'large'. Default 'primary large'.
- * @param string       $name             Optional. The HTML name of the submit button. Defaults to "submit".
- *                                       If no id attribute is given in $other_attributes below, `$name` will
- *                                       be used as the button's id. Default 'submit'.
- * @param bool         $wrap             Optional. True if the output button should be wrapped in a paragraph
- *                                       tag, false otherwise. Default true.
+ * @param string       $name             Optional. The HTML name of the submit button. If no `id` attribute
+ *                                       is given in the `$other_attributes` parameter, `$name` will be used
+ *                                       as the button's `id`. Default 'submit'.
+ * @param bool         $wrap             Optional. True if the output button should be wrapped in a paragraph tag,
+ *                                       false otherwise. Default true.
  * @param array|string $other_attributes Optional. Other attributes that should be output with the button,
- *                                       mapping attributes to their values, such as `array( 'tabindex' => '1' )`.
- *                                       These attributes will be output as `attribute="value"`, such as
- *                                       `tabindex="1"`. Other attributes can also be provided as a string such
- *                                       as `tabindex="1"`, though the array format is typically cleaner.
- *                                       Default empty.
+ *                                       mapping attributes to their values, e.g. `array( 'id' => 'search-submit' )`.
+ *                                       These key/value attribute pairs will be output as `attribute="value"`,
+ *                                       where attribute is the key. Attributes can also be provided as a string,
+ *                                       e.g. `id="search-submit"`, though the array format is generally preferred.
+ *                                       Default empty string.
  * @return string Submit button HTML.
  */
 function get_submit_button( $text = '', $type = 'primary large', $name = 'submit', $wrap = true, $other_attributes = '' ) {
@@ -2689,17 +2701,22 @@ function convert_to_screen( $hook_name ) {
  * @access private
  */
 function _local_storage_notice() {
-	?>
-	<div id="local-storage-notice" class="hidden notice is-dismissible">
-	<p class="local-restore">
-		<?php _e( 'The backup of this post in your browser is different from the version below.' ); ?>
-		<button type="button" class="button restore-backup"><?php _e( 'Restore the backup' ); ?></button>
-	</p>
-	<p class="help">
-		<?php _e( 'This will replace the current editor content with the last backup version. You can use undo and redo in the editor to get the old content back or to return to the restored version.' ); ?>
-	</p>
-	</div>
-	<?php
+	$local_storage_message  = '<p class="local-restore">';
+	$local_storage_message .= __( 'The backup of this post in your browser is different from the version below.' );
+	$local_storage_message .= '<button type="button" class="button restore-backup">' . __( 'Restore the backup' ) . '</button></p>';
+	$local_storage_message .= '<p class="help">';
+	$local_storage_message .= __( 'This will replace the current editor content with the last backup version. You can use undo and redo in the editor to get the old content back or to return to the restored version.' );
+	$local_storage_message .= '</p>';
+
+	wp_admin_notice(
+		$local_storage_message,
+		array(
+			'id'                 => 'local-storage-notice',
+			'additional_classes' => array( 'hidden' ),
+			'dismissible'        => true,
+			'paragraph_wrap'     => false,
+		)
+	);
 }
 
 /**
@@ -2777,9 +2794,12 @@ function wp_star_rating( $args = array() ) {
  * @since 4.2.0
  */
 function _wp_posts_page_notice() {
-	printf(
-		'<div class="notice notice-warning inline"><p>%s</p></div>',
-		__( 'You are currently editing the page that shows your latest posts.' )
+	wp_admin_notice(
+		__( 'You are currently editing the page that shows your latest posts.' ),
+		array(
+			'type'               => 'warning',
+			'additional_classes' => array( 'inline' ),
+		)
 	);
 }
 

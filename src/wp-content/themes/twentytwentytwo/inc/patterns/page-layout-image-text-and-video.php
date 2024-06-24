@@ -4,7 +4,7 @@
  */
 return array(
 	'title'      => __( 'Page layout with image, text and video', 'twentytwentytwo' ),
-	'categories' => array( 'pages' ),
+	'categories' => array( 'twentytwentytwo_pages' ),
 	'content'    => '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var(--wp--custom--spacing--large, 8rem)","bottom":"var(--wp--custom--spacing--large, 8rem)"}}},"backgroundColor":"primary","textColor":"background"} -->
 					<div class="wp-block-group alignfull has-background-color has-primary-background-color has-text-color has-background" style="padding-top:var(--wp--custom--spacing--large, 8rem);padding-bottom:var(--wp--custom--spacing--large, 8rem)"><!-- wp:group {"layout":{"inherit":true}} -->
 					<div class="wp-block-group"><!-- wp:heading {"level":1,"align":"wide","style":{"typography":{"fontSize":"clamp(3rem, 6vw, 4.5rem)"}}} -->
@@ -38,8 +38,8 @@ return array(
 					<!-- /wp:columns --></div>
 					<!-- /wp:group -->
 
-					<!-- wp:image {"align":"full","style":{"color":{}}} -->
-					<figure class="wp-block-image alignfull"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-transparent-a.png" alt="' . esc_attr__( 'An illustration of a bird in flight', 'twentytwentytwo' ) . '"/></figure>
+					<!-- wp:image {"align":"full","width":2400,"height":1178,"style":{"color":{}}} -->
+					<figure class="wp-block-image alignfull is-resized"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-transparent-a.png" alt="' . esc_attr__( 'An illustration of a bird in flight', 'twentytwentytwo' ) . '" width="2400" height="1178"/></figure>
 					<!-- /wp:image -->
 
 					<!-- wp:group {"align":"full","layout":{"inherit":true}} -->

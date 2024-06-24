@@ -149,6 +149,8 @@ final class _WP_Editors {
 	 *
 	 * @since 3.3.0
 	 *
+	 * @global WP_Screen $current_screen WordPress current screen object.
+	 *
 	 * @param string $content   Initial content for the editor.
 	 * @param string $editor_id HTML ID for the textarea and TinyMCE and Quicktags instances.
 	 *                          Should not contain square brackets.
@@ -511,9 +513,13 @@ final class _WP_Editors {
 							// Try to load langs/[locale].js and langs/[locale]_dlg.js.
 							if ( ! in_array( $name, $loaded_langs, true ) ) {
 								$path = str_replace( content_url(), '', $plugurl );
-								$path = WP_CONTENT_DIR . $path . '/langs/';
+								$path = realpath( WP_CONTENT_DIR . $path . '/langs/' );
 
-								$path = trailingslashit( realpath( $path ) );
+								if ( ! $path ) {
+									continue;
+								}
+
+								$path = trailingslashit( $path );
 
 								if ( @is_file( $path . $mce_locale . '.js' ) ) {
 									$strings .= @file_get_contents( $path . $mce_locale . '.js' ) . "\n";
@@ -1869,7 +1875,7 @@ final class _WP_Editors {
 		// `display: none` is required here, see #WP27605.
 		?>
 		<div id="wp-link-backdrop" style="display: none"></div>
-		<div id="wp-link-wrap" class="wp-core-ui" style="display: none" role="dialog" aria-labelledby="link-modal-title">
+		<div id="wp-link-wrap" class="wp-core-ui" style="display: none" role="dialog" aria-modal="true" aria-labelledby="link-modal-title">
 		<form id="wp-link" tabindex="-1">
 		<?php wp_nonce_field( 'internal-linking', '_ajax_linking_nonce', false ); ?>
 		<h1 id="link-modal-title"><?php _e( 'Insert/edit link' ); ?></h1>

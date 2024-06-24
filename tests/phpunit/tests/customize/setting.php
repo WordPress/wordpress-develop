@@ -610,7 +610,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		$this->manager->set_post_value( $setting->id, $value );
 		$setting->save();
 		$autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $setting->id ) );
-		$this->assertSame( 'yes', $autoload );
+		$this->assertSame( 'on', $autoload );
 		$this->assertSame( $value, get_option( $name ) );
 
 		$name    = 'autoloaded2';
@@ -626,7 +626,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		$this->manager->set_post_value( $setting->id, $value );
 		$setting->save();
 		$autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $setting->id ) );
-		$this->assertSame( 'yes', $autoload );
+		$this->assertSame( 'on', $autoload );
 		$this->assertSame( $value, get_option( $name ) );
 
 		$name    = 'not-autoloaded1';
@@ -642,7 +642,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		$this->manager->set_post_value( $setting->id, $value );
 		$setting->save();
 		$autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $setting->id ) );
-		$this->assertSame( 'no', $autoload );
+		$this->assertSame( 'off', $autoload );
 		$this->assertSame( $value, get_option( $name ) );
 
 		$id_base  = 'multi-not-autoloaded';
@@ -665,7 +665,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		$this->manager->set_post_value( $setting2->id, 'value2' );
 		$setting1->save();
 		$autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $id_base ) );
-		$this->assertSame( 'no', $autoload, 'Even though setting1 did not indicate autoload (thus normally true), since another multidimensional option setting of the base did say autoload=false, it should be autoload=no' );
+		$this->assertSame( 'off', $autoload, 'Even though setting1 did not indicate autoload (thus normally true), since another multidimensional option setting of the base did say autoload=false, it should be autoload=no' );
 	}
 
 	/**
@@ -765,4 +765,3 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		$this->assertSame( $override_value, $setting->value() );
 	}
 }
-
