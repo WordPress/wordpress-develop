@@ -735,6 +735,8 @@ if ( ! CUSTOM_TAGS ) {
  * @see wp_allowed_protocols() for the default allowed protocols in link URLs.
  *
  * @since 1.0.0
+ * 
+ * @global array[]       $allowedtags       Array of KSES allowed HTML elements.
  *
  * @param string         $content           Text content to filter.
  * @param array[]|string $allowed_html      An array of allowed HTML elements and attributes,
@@ -745,8 +747,16 @@ if ( ! CUSTOM_TAGS ) {
  * @return string Filtered content containing only the allowed HTML.
  */
 function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
+	global $allowedtags;
+
 	if ( empty( $allowed_protocols ) ) {
 		$allowed_protocols = wp_allowed_protocols();
+	}
+
+	// Allow the 'target' attribute for anchor tags in term descriptions.
+	if ( 'pre_term_description' === $allowed_html ) {
+		$allowed_html                = $allowedtags;
+		$allowed_html['a']['target'] = true;
 	}
 
 	$content = wp_kses_no_null( $content, array( 'slash_zero' => 'keep' ) );
