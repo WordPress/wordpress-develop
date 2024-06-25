@@ -1774,7 +1774,6 @@ function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = ar
 	return $value;
 }
 
-
 /**
  * Sanitizes the value of the Template Part block's `tagName` attribute.
  *
