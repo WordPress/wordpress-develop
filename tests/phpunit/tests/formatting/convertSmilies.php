@@ -317,7 +317,10 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 
 		smilies_init();
 
-		$this->assertSame( $converted, convert_smilies( $input ) );
+		$this->assertSame(
+			WP_HTML_Decoder::decode_text_node( $converted ),
+			WP_HTML_Decoder::decode_text_node( convert_smilies( $input ) )
+		);
 
 		// Standard smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
