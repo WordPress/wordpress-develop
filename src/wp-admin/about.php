@@ -61,8 +61,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'Color palettes & font sets' ); ?></h3>
-				<p><strong><?php _e( 'Add more design options to any block theme.' ); ?></strong></p>
-				<p><?php _e( 'Block theme authors can create unlimited individual color or font sets to offer more specific design options within the same theme. These sets provide more contained design possibilities, allowing for customization without changing the site&#8217;s broader styling, beyond color or typography settings.' ); ?></p>
+				<p><strong><?php _e( 'Add more design options to any block theme.' ); ?></strong> <?php _e( 'Block theme authors can create unlimited individual color or font sets to offer more specific design options within the same theme. These sets provide more contained design possibilities, allowing for customization without changing the site&#8217;s broader styling, beyond color or typography settings.' ); ?></p>
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
@@ -79,16 +78,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'Get more details from your style revisions' ); ?></h3>
-				<p><strong><?php _e( 'Simplify your workflow with a new layout built for pages.' ); ?></strong></p>
-				<p><?php _e( 'See all of your pages and a preview of any selected page before you edit via a new side-by-side layout in the Site Editor.' ); ?></p>
+				<p><strong><?php _e( 'Simplify your workflow with a new layout built for pages.' ); ?></strong> <?php _e( 'See all of your pages and a preview of any selected page before you edit via a new side-by-side layout in the Site Editor.' ); ?></p>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'Rollbacks for plugin auto-updates' ); ?></h3>
-				<p><strong><?php _e( 'Auto-update your plugins with peace of mind.' ); ?></strong></p>
-				<p><?php _e( 'Enjoy the ease of plugin auto-updates with the safety of rollbacks if anything goes wrong, improving your site&#8217;s security while minimizing potential downtime.' ); ?></p>
+				<p><strong><?php _e( 'Auto-update your plugins with peace of mind.' ); ?></strong> <?php _e( 'Enjoy the ease of plugin auto-updates with the safety of rollbacks if anything goes wrong, improving your site&#8217;s security while minimizing potential downtime.' ); ?></p>
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
@@ -105,8 +102,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'Overrides' ); ?></h3>
-				<p><strong><?php _e( 'Add the ability to customize content in synced patterns.' ); ?></strong></p>
-				<p><?php _e( 'Allow specific pieces of content to be customized in each instance of a synced pattern while keeping a consistent style for all instances, simplifying future updates. Currently, you can set overrides for Heading, Paragraph, Button, and Image blocks.' ); ?></p>
+				<p><strong><?php _e( 'Add the ability to customize content in synced patterns.' ); ?></strong> <?php _e( 'Allow specific pieces of content to be customized in each instance of a synced pattern while keeping a consistent style for all instances, simplifying future updates. Currently, you can set overrides for Heading, Paragraph, Button, and Image blocks.' ); ?></p>
 			</div>
 		</div>
 
