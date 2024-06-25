@@ -161,7 +161,7 @@ class Tests_Blocks_UpdateIgnoredHookedBlocksPostMeta extends WP_UnitTestCase {
 			'tests/my-block',
 			array(
 				'block_hooks' => array(
-					'core/navigation-link' => 'after',
+					'core/navigation' => 'last_child',
 				),
 			)
 		);
@@ -178,6 +178,10 @@ class Tests_Blocks_UpdateIgnoredHookedBlocksPostMeta extends WP_UnitTestCase {
 			$original_markup,
 			$post->post_content,
 			'Post content did not match the original markup.'
+		);
+		$this->assertNull(
+			json_decode( get_post_meta( self::$template_part_post->ID, '_wp_ignored_hooked_blocks', true ), true ),
+			'Block should not have been added to ignored hooked blocks post meta.'
 		);
 	}
 
