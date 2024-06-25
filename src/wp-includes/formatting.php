@@ -3511,8 +3511,7 @@ function convert_smilies( $html ) {
 
 	$processor = new class( $html ) extends WP_HTML_Tag_Processor {
 		/**
-		 * Replaces the contents of a text node with new HTML,
-		 * which runs through wp_kses_post() for sanitization.
+		 * Replaces the contents of a text node with new unsafe HTML.
 		 *
 		 * @param string $core_only_html Replacement HTML to put in the text node.
 		 * @return bool Whether the replacement was performed.
@@ -3531,7 +3530,7 @@ function convert_smilies( $html ) {
 			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
 				$here->start,
 				$here->length,
-				wp_kses_post( $core_only_html )
+				$core_only_html
 			);
 
 			return true;
