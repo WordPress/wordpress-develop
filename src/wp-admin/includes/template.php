@@ -970,7 +970,7 @@ function parent_dropdown( $default_page = 0, $parent_page = 0, $level = 0, $post
  * Prints out option HTML elements for role selectors.
  *
  * @since 2.1.0
- * @since 6.6.0 Added $editable_roles parameter.
+ * @since 6.7.0 Added $editable_roles parameter.
  *
  * @param string $selected       Slug for the role that should be already selected.
  * @param array  $editable_roles Array of roles to include in the dropdown. Defaults to all roles that the current user is allowed to edit.
