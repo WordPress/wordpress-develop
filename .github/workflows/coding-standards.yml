@@ -59,7 +59,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ phpcs, jshint ]
+    needs: [ jshint ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ needs.jshint.result == 'success' && 'success' || needs.jshint.result == 'cancelled' && 'cancelled' || 'failure' }}
@@ -74,14 +74,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-    needs: [ phpcs, jshint, slack-notifications ]
+    needs: [ jshint, slack-notifications ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
       github.event_name != 'pull_request' &&
       github.run_attempt < 2 &&
       (
-        needs.phpcs.result == 'cancelled' || needs.phpcs.result == 'failure' ||
         needs.jshint.result == 'cancelled' || needs.jshint.result == 'failure'
       )
 
