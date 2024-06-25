@@ -77,7 +77,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Get more details from your style revisions' ); ?></h3>
+				<h3><?php _e( 'Quick previews for pages' ); ?></h3>
 				<p><strong><?php _e( 'Simplify your workflow with a new layout built for pages.' ); ?></strong> <?php _e( 'See all of your pages and a preview of any selected page before you edit via a new side-by-side layout in the Site Editor.' ); ?></p>
 			</div>
 		</div>
