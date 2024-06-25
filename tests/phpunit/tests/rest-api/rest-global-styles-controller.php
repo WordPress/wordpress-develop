@@ -609,12 +609,25 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 *
 	 * @covers WP_REST_Global_Styles_Controller_Gutenberg::update_item
 	 * @ticket 61312
+	 * @ticket 61451
 	 */
 	public function test_update_item_with_custom_block_style_variations() {
 		wp_set_current_user( self::$admin_id );
 		if ( is_multisite() ) {
 			grant_super_admin( self::$admin_id );
 		}
+
+		/*
+		 * For variations to be resolved they have to have been registered
+		 * via either a theme.json partial or through the WP_Block_Styles_Registry.
+		 */
+		register_block_style(
+			'core/group',
+			array(
+				'name'  => 'fromThemeStyleVariation',
+				'label' => 'From Theme Style Variation',
+			)
+		);
 
 		$group_variations = array(
 			'fromThemeStyleVariation' => array(
@@ -629,16 +642,16 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$request->set_body_params(
 			array(
 				'styles' => array(
-					'blocks' => array(
-						'variations' => array(
-							'fromThemeStyleVariation' => array(
-								'blockTypes' => array( 'core/group', 'core/columns' ),
-								'color'      => array(
-									'background' => '#000000',
-									'text'       => '#ffffff',
-								),
+					'variations' => array(
+						'fromThemeStyleVariation' => array(
+							'blockTypes' => array( 'core/group', 'core/columns' ),
+							'color'      => array(
+								'background' => '#000000',
+								'text'       => '#ffffff',
 							),
 						),
+					),
+					'blocks'     => array(
 						'core/group' => array(
 							'variations' => $group_variations,
 						),
