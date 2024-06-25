@@ -57,13 +57,13 @@ jobs:
     # The job will run when pull requests are open, ready for review and:
     #
     # - A comment is added to the pull request.
-    # - A review is created or commented on.
+    # - A review is created or commented on (unless PR originates from a fork).
     # - The pull request is opened, synchronized, marked ready for review, or reopened.
     # - The `props-bot` label is added to the pull request.
     if: |
       (
         github.event_name == 'issue_comment' && github.event.issue.pull_request ||
-        contains( fromJSON( '["pull_request_review", "pull_request_review_comment"]' ), github.event_name ) ||
+        ( contains( fromJSON( '["pull_request_review", "pull_request_review_comment"]' ), github.event_name ) && ! github.event.pull_request.head.repo.fork ) ||
         github.event_name == 'pull_request_target' && github.event.action != 'labeled' ||
         'props-bot' == github.event.label.name
       ) &&

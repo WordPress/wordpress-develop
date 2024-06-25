@@ -568,7 +568,8 @@ function themes_api( $action, $args = array() ) {
 
 		if ( $ssl && is_wp_error( $request ) ) {
 			if ( ! wp_doing_ajax() ) {
-				trigger_error(
+				wp_trigger_error(
+					__FUNCTION__,
 					sprintf(
 						/* translators: %s: Support forums URL. */
 						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
@@ -1111,6 +1112,8 @@ function customize_themes_print_templates() {
  *
  * @since 5.2.0
  *
+ * @global WP_Paused_Extensions_Storage $_paused_themes
+ *
  * @param string $theme Path to the theme directory relative to the themes directory.
  * @return bool True, if in the list of paused themes. False, not in the list.
  */
@@ -1130,6 +1133,8 @@ function is_theme_paused( $theme ) {
  * Gets the error that was recorded for a paused theme.
  *
  * @since 5.2.0
+ *
+ * @global WP_Paused_Extensions_Storage $_paused_themes
  *
  * @param string $theme Path to the theme directory relative to the themes
  *                      directory.
@@ -1221,7 +1226,8 @@ function resume_theme( $theme, $redirect = '' ) {
  *
  * @since 5.2.0
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string                       $pagenow        The filename of the current screen.
+ * @global WP_Paused_Extensions_Storage $_paused_themes
  */
 function paused_themes_notice() {
 	if ( 'themes.php' === $GLOBALS['pagenow'] ) {

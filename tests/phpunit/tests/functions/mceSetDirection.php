@@ -7,7 +7,7 @@
  *
  * @covers ::_mce_set_direction
  */
-class Tests_Functions_mceSetDirection extends WP_UnitTestCase {
+class Tests_Functions_MceSetDirection extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60219
@@ -30,13 +30,13 @@ class Tests_Functions_mceSetDirection extends WP_UnitTestCase {
 		);
 
 		$actual = _mce_set_direction( $mce_init );
-		$this->assertSameSets( $mce_init, $actual );
+		$this->assertSameSets( $mce_init, $actual, 'An unexpected LTR result was returned.' );
 
 		$orig_text_dir             = $wp_locale->text_direction;
 		$wp_locale->text_direction = 'rtl';
 		$actual                    = _mce_set_direction( $mce_init );
 		$wp_locale->text_direction = $orig_text_dir;
 
-		$this->assertSameSets( $expected, $actual );
+		$this->assertSameSets( $expected, $actual, 'An unexpected RTL result was returned.' );
 	}
 }

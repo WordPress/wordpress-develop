@@ -90,7 +90,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	public function prepare_items() {
 		global $status, $plugins, $totals, $page, $orderby, $order, $s;
 
-		wp_reset_vars( array( 'orderby', 'order' ) );
+		$orderby = ! empty( $_REQUEST['orderby'] ) ? sanitize_text_field( $_REQUEST['orderby'] ) : '';
+		$order   = ! empty( $_REQUEST['order'] ) ? sanitize_text_field( $_REQUEST['order'] ) : '';
 
 		/**
 		 * Filters the full array of plugins to list in the Plugins list table.
@@ -452,8 +453,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		}
 		?>
 		<p class="search-box">
-			<label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?>:</label>
-			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s" value="<?php _admin_search_query(); ?>" placeholder="<?php esc_attr_e( 'Search installed plugins...' ); ?>" />
+			<label for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?></label>
+			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s" value="<?php _admin_search_query(); ?>" />
 			<?php submit_button( $text, 'hide-if-js', '', false, array( 'id' => 'search-submit' ) ); ?>
 		</p>
 		<?php
@@ -1567,19 +1568,35 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$links[] = $this->get_dependency_view_details_link( $name, $slug );
 		}
 
-		$dependency_note = __( 'Note: This plugin cannot be activated until the plugins that are required by it are activated.' );
-
-		$comma    = wp_get_list_item_separator();
-		$requires = sprintf(
+		$is_active = is_multisite() ? is_plugin_active_for_network( $dependent ) : is_plugin_active( $dependent );
+		$comma     = wp_get_list_item_separator();
+		$requires  = sprintf(
 			/* translators: %s: List of dependency names. */
 			__( '<strong>Requires:</strong> %s' ),
 			implode( $comma, $links )
 		);
 
+		$notice        = '';
+		$error_message = '';
+		if ( WP_Plugin_Dependencies::has_unmet_dependencies( $dependent ) ) {
+			if ( $is_active ) {
+				$error_message = __( 'This plugin is active but may not function correctly because required plugins are missing or inactive.' );
+			} else {
+				$error_message = __( 'This plugin cannot be activated because required plugins are missing or inactive.' );
+			}
+			$notice = wp_get_admin_notice(
+				$error_message,
+				array(
+					'type'               => 'error',
+					'additional_classes' => array( 'inline', 'notice-alt' ),
+				)
+			);
+		}
+
 		printf(
 			'<div class="requires"><p>%1$s</p><p>%2$s</p></div>',
 			$requires,
-			$dependency_note
+			$notice
 		);
 	}
 

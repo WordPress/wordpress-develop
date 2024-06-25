@@ -64,15 +64,15 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		$image_types = imagetypes();
 		switch ( $mime_type ) {
 			case 'image/jpeg':
-				return ( $image_types & IMG_JPG ) != 0;
+				return ( $image_types & IMG_JPG ) !== 0;
 			case 'image/png':
-				return ( $image_types & IMG_PNG ) != 0;
+				return ( $image_types & IMG_PNG ) !== 0;
 			case 'image/gif':
-				return ( $image_types & IMG_GIF ) != 0;
+				return ( $image_types & IMG_GIF ) !== 0;
 			case 'image/webp':
-				return ( $image_types & IMG_WEBP ) != 0;
+				return ( $image_types & IMG_WEBP ) !== 0;
 			case 'image/avif':
-				return ( $image_types & IMG_AVIF ) != 0;
+				return ( $image_types & IMG_AVIF ) !== 0 && function_exists( 'imageavif' );
 		}
 
 		return false;
@@ -188,7 +188,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @return true|WP_Error
 	 */
 	public function resize( $max_w, $max_h, $crop = false ) {
-		if ( ( $this->size['width'] == $max_w ) && ( $this->size['height'] == $max_h ) ) {
+		if ( ( $this->size['width'] === $max_w ) && ( $this->size['height'] === $max_h ) ) {
 			return true;
 		}
 
@@ -533,12 +533,16 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			if ( ! $this->make_image( $filename, 'imagejpeg', array( $image, $filename, $this->get_quality() ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
-		} elseif ( 'image/webp' == $mime_type ) {
-			if ( ! function_exists( 'imagewebp' ) || ! $this->make_image( $filename, 'imagewebp', array( $image, $filename, $this->get_quality() ) ) ) {
+		} elseif ( 'image/webp' === $mime_type ) {
+			if ( ! function_exists( 'imagewebp' )
+				|| ! $this->make_image( $filename, 'imagewebp', array( $image, $filename, $this->get_quality() ) )
+			) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
-		} elseif ( 'image/avif' == $mime_type ) {
-			if ( ! function_exists( 'imageavif' ) || ! $this->make_image( $filename, 'imageavif', array( $image, $filename, $this->get_quality() ) ) ) {
+		} elseif ( 'image/avif' === $mime_type ) {
+			if ( ! function_exists( 'imageavif' )
+				|| ! $this->make_image( $filename, 'imageavif', array( $image, $filename, $this->get_quality() ) )
+			) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
 		} else {

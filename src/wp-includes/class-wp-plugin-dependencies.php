@@ -369,10 +369,30 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function display_admin_notice_for_unmet_dependencies() {
 		if ( in_array( false, self::get_dependency_filepaths(), true ) ) {
+			$error_message = __( 'Some required plugins are missing or inactive.' );
+
+			if ( is_multisite() ) {
+				if ( current_user_can( 'manage_network_plugins' ) ) {
+					$error_message .= ' ' . sprintf(
+						/* translators: %s: Link to the network plugins page. */
+						__( '<a href="%s">Manage plugins</a>.' ),
+						esc_url( network_admin_url( 'plugins.php' ) )
+					);
+				} else {
+					$error_message .= ' ' . __( 'Please contact your network administrator.' );
+				}
+			} elseif ( 'plugins' !== get_current_screen()->base ) {
+				$error_message .= ' ' . sprintf(
+					/* translators: %s: Link to the plugins page. */
+					__( '<a href="%s">Manage plugins</a>.' ),
+					esc_url( admin_url( 'plugins.php' ) )
+				);
+			}
+
 			wp_admin_notice(
-				__( 'There are additional plugin dependencies that must be installed.' ),
+				$error_message,
 				array(
-					'type' => 'info',
+					'type' => 'warning',
 				)
 			);
 		}
@@ -406,7 +426,7 @@ class WP_Plugin_Dependencies {
 			wp_admin_notice(
 				sprintf(
 					'<p>%1$s</p><ul>%2$s</ul><p>%3$s</p>',
-					__( 'These plugins cannot be activated because their requirements are invalid. ' ),
+					__( 'These plugins cannot be activated because their requirements are invalid.' ),
 					$circular_dependency_lines,
 					__( 'Please contact the plugin authors for more information.' )
 				),
@@ -468,6 +488,7 @@ class WP_Plugin_Dependencies {
 			$status['activateUrl'] = add_query_arg( array( 'networkwide' => 1 ), $status['activateUrl'] );
 		}
 
+		self::initialize();
 		$dependencies = self::get_dependencies( $plugin_file );
 		if ( empty( $dependencies ) ) {
 			$status['message'] = __( 'The plugin has no required plugins.' );
@@ -533,8 +554,6 @@ class WP_Plugin_Dependencies {
 	 * Reads and stores dependency slugs from a plugin's 'Requires Plugins' header.
 	 *
 	 * @since 6.5.0
-	 *
-	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 */
 	protected static function read_dependencies_from_plugin_headers() {
 		self::$dependencies     = array();
@@ -694,7 +713,7 @@ class WP_Plugin_Dependencies {
 
 			self::$dependency_api_data[ $slug ] = (array) $information;
 			// plugins_api() returns 'name' not 'Name'.
-			self::$dependency_api_data[ $information->slug ]['Name'] = self::$dependency_api_data[ $information->slug ]['name'];
+			self::$dependency_api_data[ $slug ]['Name'] = self::$dependency_api_data[ $slug ]['name'];
 			set_site_transient( 'wp_plugin_dependencies_plugin_data', self::$dependency_api_data, 0 );
 		}
 

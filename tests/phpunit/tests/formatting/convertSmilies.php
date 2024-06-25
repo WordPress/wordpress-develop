@@ -55,8 +55,8 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 				"<strong;)>a little bit of this\na little bit:other: of that \xf0\x9f\x98\x80\n\xf0\x9f\x98\x80 a little bit of good\nyeah with a little bit of bad8O",
 			),
 			array(
-				'<strong style="here comes the sun :-D">and I say it\'s allright:D:D',
-				'<strong style="here comes the sun :-D">and I say it\'s allright:D:D',
+				'<strong style="here comes the sun :-D">and I say it\'s alright:D:D',
+				'<strong style="here comes the sun :-D">and I say it\'s alright:D:D',
 			),
 			array(
 				'<!-- Woo-hoo, I\'m a comment, baby! :x > -->',
@@ -254,7 +254,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 			smilies_init();
 		}
 
-		$orig_trans = $wpsmiliestrans; // Save original tranlations array.
+		$orig_trans = $wpsmiliestrans; // Save original translations array.
 
 		$wpsmiliestrans = array(
 			':)' => 'simple-smile.png',

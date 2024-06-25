@@ -139,7 +139,7 @@ function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 				__( 'About WordPress' ) .
 			'</span>',
 		'href'  => $about_url,
-		'meta' => array(
+		'meta'  => array(
 			'menu_title' => __( 'About WordPress' ),
 		),
 	);
@@ -286,7 +286,9 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 			'href'   => $profile_url,
 			'meta'   => array(
 				'class'      => $class,
+				/* translators: %s: Current user's display name. */
 				'menu_title' => sprintf( __( 'Howdy, %s' ), $current_user->display_name ),
+				'tabindex'   => ( false !== $profile_url ) ? '' : 0,
 			),
 		)
 	);
@@ -329,7 +331,9 @@ function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 		$user_info .= "<span class='username'>{$current_user->user_login}</span>";
 	}
 
-	$user_info .= "<span class='edit-profile'>" . __( 'Edit Profile' ) . '</span>';
+	if ( false !== $profile_url ) {
+		$user_info .= "<span class='display-name edit-profile'>" . __( 'Edit Profile' ) . '</span>';
+	}
 
 	$wp_admin_bar->add_node(
 		array(
@@ -389,7 +393,7 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 			'id'    => 'site-name',
 			'title' => $title,
 			'href'  => ( is_admin() || ! current_user_can( 'read' ) ) ? home_url( '/' ) : admin_url(),
-			'meta' => array(
+			'meta'  => array(
 				'menu_title' => $title,
 			),
 		)
@@ -413,7 +417,7 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 				array(
 					'parent' => 'site-name',
 					'id'     => 'edit-site',
-					'title'  => __( 'Edit Site' ),
+					'title'  => __( 'Manage Site' ),
 					'href'   => network_admin_url( 'site-info.php?id=' . get_current_blog_id() ),
 				)
 			);
@@ -450,9 +454,10 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
  * Adds the "Edit site" link to the Toolbar.
  *
  * @since 5.9.0
+ * @since 6.3.0 Added `$_wp_current_template_id` global for editing of current template directly from the admin bar.
+ * @since 6.6.0 Added the `canvas` query arg to the Site Editor link.
  *
  * @global string $_wp_current_template_id
- * @since 6.3.0 Added `$_wp_current_template_id` global for editing of current template directly from the admin bar.
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
@@ -477,6 +482,7 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
 				array(
 					'postType' => 'wp_template',
 					'postId'   => $_wp_current_template_id,
+					'canvas'   => 'edit',
 				),
 				admin_url( 'site-editor.php' )
 			),
@@ -489,8 +495,9 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
  *
  * @since 4.3.0
  *
- * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  * @global WP_Customize_Manager $wp_customize
+ *
+ * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
 function wp_admin_bar_customize_menu( $wp_admin_bar ) {
 	global $wp_customize;
@@ -989,7 +996,7 @@ function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
 			'id'    => 'new-content',
 			'title' => $title,
 			'href'  => admin_url( current( array_keys( $actions ) ) ),
-			'meta' => array(
+			'meta'  => array(
 				'menu_title' => _x( 'New', 'admin bar menu group label' ),
 			),
 		)

@@ -8,6 +8,8 @@
  *
  * @since 6.5.0
  *
+ * @coversDefaultClass WP_Interactivity_API
+ *
  * @group interactivity-api
  */
 class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
@@ -315,6 +317,7 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_wp_context_directive_doesnt_work_without_any_namespace() {
 		$html    = '

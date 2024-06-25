@@ -875,7 +875,7 @@
 
 		$card
 			.addClass( 'plugin-card-update-failed' )
-			.append( '<div class="notice notice-error notice-alt is-dismissible"><p>' + errorMessage + '</p></div>' );
+			.append( '<div class="notice notice-error notice-alt is-dismissible" role="alert"><p>' + errorMessage + '</p></div>' );
 
 		$card.on( 'click', '.notice.is-dismissible .notice-dismiss', function() {
 
@@ -2260,7 +2260,7 @@
 
 		// Remove any existing error.
 		$filesystemForm.find( '.notice' ).remove();
-		$filesystemForm.find( '#request-filesystem-credentials-title' ).after( '<div class="notice notice-alt notice-error"><p>' + message + '</p></div>' );
+		$filesystemForm.find( '#request-filesystem-credentials-title' ).after( '<div class="notice notice-alt notice-error" role="alert"><p>' + message + '</p></div>' );
 	};
 
 	/**
@@ -2637,41 +2637,16 @@
 		} );
 
 		/**
-		 * Click handler for plugin activations in plugin activation view.
+		 * Click handler for plugin activations in plugin activation modal view.
 		 *
 		 * @since 6.5.0
+		 * @since 6.5.4 Redirect the parent window to the activation URL.
 		 *
 		 * @param {Event} event Event interface.
 		 */
-		$pluginFilter.on( 'click', '.activate-now', function( event ) {
-			var $activateButton = $( event.target );
-
+		$document.on( 'click', '#plugin-information-footer .activate-now', function( event ) {
 			event.preventDefault();
-
-			if ( $activateButton.hasClass( 'activating-message' ) || $activateButton.hasClass( 'button-disabled' ) ) {
-				return;
-			}
-
-			$activateButton
-				.removeClass( 'activate-now button-primary' )
-				.addClass( 'activating-message' )
-				.attr(
-					'aria-label',
-					sprintf(
-						/* translators: %s: Plugin name. */
-						_x( 'Activating %s', 'plugin' ),
-						$activateButton.data( 'name' )
-					)
-				)
-				.text( __( 'Activating...' ) );
-
-			wp.updates.activatePlugin(
-				{
-					name: $activateButton.data( 'name' ),
-					slug: $activateButton.data( 'slug' ),
-					plugin: $activateButton.data( 'plugin' )
-				}
-			);
+			window.parent.location.href = $( event.target ).attr( 'href' );
 		});
 
 		/**
@@ -2938,13 +2913,41 @@
 
 				wp.updates.adminNotice = wp.template( 'wp-bulk-updates-admin-notice' );
 
+				var successMessage = null;
+
+				if ( success ) {
+					if ( 'plugin' === response.update ) {
+						successMessage = sprintf(
+							/* translators: %s: Number of plugins. */
+							_n( '%s plugin successfully updated.', '%s plugins successfully updated.', success ),
+							success
+						);
+					} else {
+						successMessage = sprintf(
+							/* translators: %s: Number of themes. */
+							_n( '%s theme successfully updated.', '%s themes successfully updated.', success ),
+							success
+						);
+					}
+				}
+
+				var errorMessage = null;
+
+				if ( error ) {
+					errorMessage = sprintf(
+						/* translators: %s: Number of failed updates. */
+						_n( '%s update failed.', '%s updates failed.', error ),
+						error
+					);
+				}
+
 				wp.updates.addAdminNotice( {
 					id:            'bulk-action-notice',
 					className:     'bulk-action-notice',
-					successes:     success,
-					errors:        error,
-					errorMessages: errorMessages,
-					type:          response.update
+					successMessage: successMessage,
+					errorMessage:   errorMessage,
+					errorMessages:  errorMessages,
+					type:           response.update
 				} );
 
 				$bulkActionNotice = $( '#bulk-action-notice' ).on( 'click', 'button', function() {

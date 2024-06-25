@@ -4,6 +4,7 @@
 remove_action( 'init', 'register_block_core_archives' );
 remove_action( 'init', 'register_block_core_avatar' );
 remove_action( 'init', 'register_block_core_block' );
+remove_action( 'init', 'register_block_core_button' );
 remove_action( 'init', 'register_block_core_calendar' );
 remove_action( 'init', 'register_block_core_categories' );
 remove_action( 'init', 'register_block_core_comment_author_name' );
@@ -27,7 +28,9 @@ remove_action( 'init', 'register_block_core_home_link' );
 remove_action( 'init', 'register_block_core_image' );
 remove_action( 'init', 'register_block_core_latest_comments' );
 remove_action( 'init', 'register_block_core_latest_posts' );
+remove_action( 'init', 'register_block_core_list' );
 remove_action( 'init', 'register_block_core_loginout' );
+remove_action( 'init', 'register_block_core_media_text' );
 remove_action( 'init', 'register_block_core_navigation' );
 remove_action( 'init', 'register_block_core_navigation_link' );
 remove_action( 'init', 'register_block_core_navigation_submenu' );
