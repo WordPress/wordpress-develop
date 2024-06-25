@@ -2811,7 +2811,7 @@ class WP_Site_Health {
 					'label' => __( 'Autoloaded options' ),
 					'test'  => 'autoloaded_options',
 				),
-				'insecure_registration' 	=> array(
+				'insecure_registration'        => array(
 					'label' => __( 'Open Registration with privileged default role' ),
 					'test'  => 'insecure_registration',
 				),
