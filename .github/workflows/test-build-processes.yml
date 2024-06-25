@@ -49,7 +49,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest ]
-        directory: [ 'src', 'build' ]
+        directory: [ 'build' ]
         include:
           # Only prepare artifacts once.
           - os: ubuntu-latest
@@ -79,7 +79,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ macos-13 ]
-        directory: [ 'src', 'build' ]
+        directory: [ 'build' ]
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
