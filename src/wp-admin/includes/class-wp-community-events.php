@@ -101,8 +101,8 @@ class WP_Community_Events {
 
 		$this->unsafe_client_ip = self::get_unsafe_client_ip();
 
-		if (!$this->user_location && $this->unsafe_client_ip) {
-			$this->user_location = ['ip' => $this->unsafe_client_ip];
+		if ( ! $this->user_location && $this->unsafe_client_ip ) {
+			$this->user_location = array( 'ip' => $this->unsafe_client_ip );
 		}
 
 		$cached_events = $this->get_cached_events();
