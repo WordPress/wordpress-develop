@@ -5241,20 +5241,20 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 		$styles = $result->get_raw_data()['styles'];
 
-		$this->assertEquals( 'var(--wp--preset--color--primary)', $styles['color']['background'], 'Top level: Assert the originally correct values are still correct.' );
-		$this->assertEquals( 'var(--wp--preset--color--secondary)', $styles['color']['text'], 'Top level: Assert the originally correct values are still correct.' );
+		$this->assertSame( 'var(--wp--preset--color--primary)', $styles['color']['background'], 'Top level: Assert the originally correct values are still correct.' );
+		$this->assertSame( 'var(--wp--preset--color--secondary)', $styles['color']['text'], 'Top level: Assert the originally correct values are still correct.' );
 
-		$this->assertEquals( 'var(--wp--preset--color--pri)', $styles['elements']['link']['color']['background'], 'Element top level: Assert the originally correct values are still correct.' );
-		$this->assertEquals( 'var(--wp--preset--color--sec)', $styles['elements']['link']['color']['text'], 'Element top level: Assert the originally correct values are still correct.' );
+		$this->assertSame( 'var(--wp--preset--color--pri)', $styles['elements']['link']['color']['background'], 'Element top level: Assert the originally correct values are still correct.' );
+		$this->assertSame( 'var(--wp--preset--color--sec)', $styles['elements']['link']['color']['text'], 'Element top level: Assert the originally correct values are still correct.' );
 
-		$this->assertEquals( 'var(--wp--preset--font-size--small)', $styles['blocks']['core/post-terms']['typography']['fontSize'], 'Top block level: Assert the originally correct values are still correct.' );
-		$this->assertEquals( 'var(--wp--preset--color--secondary)', $styles['blocks']['core/post-terms']['color']['background'], 'Top block level: Assert the internal variables are convert to CSS custom variables.' );
+		$this->assertSame( 'var(--wp--preset--font-size--small)', $styles['blocks']['core/post-terms']['typography']['fontSize'], 'Top block level: Assert the originally correct values are still correct.' );
+		$this->assertSame( 'var(--wp--preset--color--secondary)', $styles['blocks']['core/post-terms']['color']['background'], 'Top block level: Assert the internal variables are convert to CSS custom variables.' );
 
-		$this->assertEquals( 'var(--wp--preset--color--p)', $styles['blocks']['core/navigation']['elements']['link']['color']['background'], 'Elements block level: Assert the originally correct values are still correct.' );
-		$this->assertEquals( 'var(--wp--preset--color--s)', $styles['blocks']['core/navigation']['elements']['link']['color']['text'], 'Elements block level: Assert the originally correct values are still correct.' );
+		$this->assertSame( 'var(--wp--preset--color--p)', $styles['blocks']['core/navigation']['elements']['link']['color']['background'], 'Elements block level: Assert the originally correct values are still correct.' );
+		$this->assertSame( 'var(--wp--preset--color--s)', $styles['blocks']['core/navigation']['elements']['link']['color']['text'], 'Elements block level: Assert the originally correct values are still correct.' );
 
-		$this->assertEquals( 'var(--wp--preset--font-size--s)', $styles['blocks']['core/quote']['variations']['plain']['typography']['fontSize'], 'Style variations: Assert the originally correct values are still correct.' );
-		$this->assertEquals( 'var(--wp--preset--color--s)', $styles['blocks']['core/quote']['variations']['plain']['color']['background'], 'Style variations: Assert the internal variables are convert to CSS custom variables.' );
+		$this->assertSame( 'var(--wp--preset--font-size--s)', $styles['blocks']['core/quote']['variations']['plain']['typography']['fontSize'], 'Style variations: Assert the originally correct values are still correct.' );
+		$this->assertSame( 'var(--wp--preset--color--s)', $styles['blocks']['core/quote']['variations']['plain']['color']['background'], 'Style variations: Assert the internal variables are convert to CSS custom variables.' );
 	}
 
 	/**
@@ -5401,42 +5401,42 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$styles = $theme_json::resolve_variables( $theme_json )->get_raw_data()['styles'];
 
-		$this->assertEquals( $primary_color, $styles['color']['background'], 'Top level: Assert values are converted' );
-		$this->assertEquals( $raw_color_value, $styles['color']['text'], 'Top level: Assert raw values stay intact' );
+		$this->assertSame( $primary_color, $styles['color']['background'], 'Top level: Assert values are converted' );
+		$this->assertSame( $raw_color_value, $styles['color']['text'], 'Top level: Assert raw values stay intact' );
 
-		$this->assertEquals( $contrast_color, $styles['elements']['button']['color']['text'], 'Elements: color' );
-		$this->assertEquals( $small_font, $styles['elements']['button']['typography']['fontSize'], 'Elements: font-size' );
+		$this->assertSame( $contrast_color, $styles['elements']['button']['color']['text'], 'Elements: color' );
+		$this->assertSame( $small_font, $styles['elements']['button']['typography']['fontSize'], 'Elements: font-size' );
 
-		$this->assertEquals( $large_font, $styles['blocks']['core/quote']['typography']['fontSize'], 'Blocks: font-size' );
-		$this->assertEquals( $primary_color, $styles['blocks']['core/quote']['color']['background'], 'Blocks: color' );
-		$this->assertEquals( $raw_color_value, $styles['blocks']['core/post-terms']['color']['background'], 'Blocks: Raw color value stays intact' );
-		$this->assertEquals( $small_font, $styles['blocks']['core/post-terms']['typography']['fontSize'], 'Block core/post-terms: font-size' );
-		$this->assertEquals(
+		$this->assertSame( $large_font, $styles['blocks']['core/quote']['typography']['fontSize'], 'Blocks: font-size' );
+		$this->assertSame( $primary_color, $styles['blocks']['core/quote']['color']['background'], 'Blocks: color' );
+		$this->assertSame( $raw_color_value, $styles['blocks']['core/post-terms']['color']['background'], 'Blocks: Raw color value stays intact' );
+		$this->assertSame( $small_font, $styles['blocks']['core/post-terms']['typography']['fontSize'], 'Block core/post-terms: font-size' );
+		$this->assertSame(
 			"linear-gradient(90deg, $primary_color 0%, $secondary_color 35%, var(--wp--undefined--color--secondary) 100%)",
 			$styles['blocks']['core/more']['color']['background'],
 			'Blocks: multiple colors and undefined color'
 		);
-		$this->assertEquals( 'var(--undefined--font-size--small)', $styles['blocks']['core/more']['typography']['fontSize'], 'Blocks: undefined font-size ' );
-		$this->assertEquals( "calc($small_font + 20px)", $styles['blocks']['core/comment-content']['typography']['fontSize'], 'Blocks: font-size in random place' );
-		$this->assertEquals( $primary_color, $styles['blocks']['core/comment-content']['color']['text'], 'Blocks: text color with fallback' );
-		$this->assertEquals( $primary_color, $styles['blocks']['core/comment-content']['color']['background'], 'Blocks: background color with var as fallback' );
-		$this->assertEquals( $primary_color, $styles['blocks']['core/navigation']['elements']['link']['color']['background'], 'Block element: background color' );
-		$this->assertEquals( $secondary_color, $styles['blocks']['core/navigation']['elements']['link']['color']['text'], 'Block element: text color' );
-		$this->assertEquals( $large_font, $styles['blocks']['core/navigation']['elements']['link']['typography']['fontSize'], 'Block element: font-size' );
+		$this->assertSame( 'var(--undefined--font-size--small)', $styles['blocks']['core/more']['typography']['fontSize'], 'Blocks: undefined font-size ' );
+		$this->assertSame( "calc($small_font + 20px)", $styles['blocks']['core/comment-content']['typography']['fontSize'], 'Blocks: font-size in random place' );
+		$this->assertSame( $primary_color, $styles['blocks']['core/comment-content']['color']['text'], 'Blocks: text color with fallback' );
+		$this->assertSame( $primary_color, $styles['blocks']['core/comment-content']['color']['background'], 'Blocks: background color with var as fallback' );
+		$this->assertSame( $primary_color, $styles['blocks']['core/navigation']['elements']['link']['color']['background'], 'Block element: background color' );
+		$this->assertSame( $secondary_color, $styles['blocks']['core/navigation']['elements']['link']['color']['text'], 'Block element: text color' );
+		$this->assertSame( $large_font, $styles['blocks']['core/navigation']['elements']['link']['typography']['fontSize'], 'Block element: font-size' );
 
-		$this->assertEquals(
+		$this->assertSame(
 			"var(--undefined--color--primary, $small_font)",
 			$styles['blocks']['core/comments']['color']['text'],
 			'Blocks: text color with undefined var and fallback'
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			$primary_color,
 			$styles['blocks']['core/comments']['color']['background'],
 			'Blocks: background color with variable and undefined fallback'
 		);
 
-		$this->assertEquals( $small_font, $styles['blocks']['core/quote']['variations']['plain']['typography']['fontSize'], 'Block variations: font-size' );
-		$this->assertEquals( $secondary_color, $styles['blocks']['core/quote']['variations']['plain']['color']['background'], 'Block variations: color' );
+		$this->assertSame( $small_font, $styles['blocks']['core/quote']['variations']['plain']['typography']['fontSize'], 'Block variations: font-size' );
+		$this->assertSame( $secondary_color, $styles['blocks']['core/quote']['variations']['plain']['color']['background'], 'Block variations: color' );
 		/*
 		 * As with wp_get_global_styles(), WP_Theme_JSON::resolve_variables may be called with merged data from
 		 * WP_Theme_JSON_Resolver. WP_Theme_JSON_Resolver::get_block_data() sets blockGap for supported blocks to `null` if the value is not defined.
@@ -5445,7 +5445,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			$styles['blocks']['core/post-template']['spacing']['blockGap'],
 			'Blocks: Post Template spacing.blockGap should be null'
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			$spacing,
 			$styles['blocks']['core/columns']['spacing']['blockGap'],
 			'Blocks: Columns spacing.blockGap should match'
@@ -5471,7 +5471,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$actual = $func->invoke( null, 'custom', $selector );
 
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -5584,7 +5584,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -5621,7 +5621,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$block_nodes       = $func->invoke( null, $theme_json, $selectors );
 		$button_variations = $block_nodes[0]['variations'] ?? array();
 
-		$this->assertEquals( array(), $button_variations );
+		$this->assertSame( array(), $button_variations );
 	}
 
 	/**
@@ -5665,6 +5665,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected, $button_variations );
+		$this->assertSame( $expected, $button_variations );
 	}
 }
