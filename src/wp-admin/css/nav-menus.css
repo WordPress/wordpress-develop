@@ -21,6 +21,7 @@ ul.add-menu-item-tabs li {
 
 #nav-menu-meta .accordion-section-content {
 	padding: 18px 13px;
+	resize: vertical;
 }
 
 #nav-menu-meta .button-controls {
@@ -48,6 +49,8 @@ ul.add-menu-item-tabs li {
 #menu-settings-column .inside {
 	clear: both;
 	margin: 10px 0 0;
+	height: 100%;
+	max-height: inherit;
 }
 
 .metabox-holder-disabled .postbox,
@@ -174,7 +177,6 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 }
 
 .bulk-actions input.menu-items-delete {
-	-webkit-appearance: none;
 	appearance: none;
 	font-size: inherit;
 	border: 0;
@@ -704,7 +706,6 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 
 .no-js.nav-menus-php .item-edit .screen-reader-text {
 	position: static;
-	-webkit-clip-path: none;
 	clip-path: none;
 	width: auto;
 	height: auto;

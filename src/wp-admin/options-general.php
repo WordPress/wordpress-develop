@@ -32,7 +32,7 @@ if ( ! is_multisite() ) {
 		'<p>' . sprintf(
 			/* translators: %s: Documentation URL. */
 			__( 'Though the terms refer to two different concepts, in practice, they can be the same address or different. For example, you can have the core WordPress installation files in the root directory (<code>https://example.com</code>), in which case the two URLs would be the same. Or the <a href="%s">WordPress files can be in a subdirectory</a> (<code>https://example.com/wordpress</code>). In that case, the WordPress URL and the site URL would be different.' ),
-			__( 'https://wordpress.org/documentation/article/giving-wordpress-its-own-directory/' )
+			__( 'https://developer.wordpress.org/advanced-administration/server/wordpress-in-directory/' )
 		) . '</p>' .
 		'<p>' . sprintf(
 			/* translators: 1: http://, 2: https:// */
@@ -235,7 +235,7 @@ if ( ! is_multisite() ) {
 		printf(
 			/* translators: %s: Documentation URL. */
 			__( 'Enter the same address here unless you <a href="%s">want your site home page to be different from your WordPress installation directory</a>.' ),
-			__( 'https://wordpress.org/documentation/article/giving-wordpress-its-own-directory/' )
+			__( 'https://developer.wordpress.org/advanced-administration/server/wordpress-in-directory/' )
 		);
 		?>
 </p>
@@ -354,7 +354,7 @@ if ( str_contains( $tzstring, 'Etc/GMT' ) ) {
 
 if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 	$check_zone_info = false;
-	if ( 0 == $current_offset ) {
+	if ( 0 === (int) $current_offset ) {
 		$tzstring = 'UTC+0';
 	} elseif ( $current_offset < 0 ) {
 		$tzstring = 'UTC' . $current_offset;
@@ -554,7 +554,7 @@ foreach ( $time_formats as $format ) {
 global $wp_locale;
 
 for ( $day_index = 0; $day_index <= 6; $day_index++ ) :
-	$selected = ( get_option( 'start_of_week' ) == $day_index ) ? 'selected="selected"' : '';
+	$selected = ( (int) get_option( 'start_of_week' ) === $day_index ) ? 'selected="selected"' : '';
 	echo "\n\t<option value='" . esc_attr( $day_index ) . "' $selected>" . $wp_locale->get_weekday( $day_index ) . '</option>';
 endfor;
 ?>

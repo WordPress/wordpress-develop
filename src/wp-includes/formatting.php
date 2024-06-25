@@ -960,19 +960,7 @@ function _wp_specialchars( $text, $quote_style = ENT_NOQUOTES, $charset = false,
 		$quote_style = ENT_QUOTES;
 	}
 
-	// Store the site charset as a static to avoid multiple calls to wp_load_alloptions().
-	if ( ! $charset ) {
-		static $_charset = null;
-		if ( ! isset( $_charset ) ) {
-			$alloptions = wp_load_alloptions();
-			$_charset   = isset( $alloptions['blog_charset'] ) ? $alloptions['blog_charset'] : '';
-		}
-		$charset = $_charset;
-	}
-
-	if ( in_array( $charset, array( 'utf8', 'utf-8', 'UTF8' ), true ) ) {
-		$charset = 'UTF-8';
-	}
+	$charset = _canonical_charset( $charset ? $charset : get_option( 'blog_charset' ) );
 
 	$_quote_style = $quote_style;
 
@@ -1114,7 +1102,7 @@ function wp_check_invalid_utf8( $text, $strip = false ) {
 	// Store the site charset as a static to avoid multiple calls to get_option().
 	static $is_utf8 = null;
 	if ( ! isset( $is_utf8 ) ) {
-		$is_utf8 = in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true );
+		$is_utf8 = is_utf8_charset();
 	}
 	if ( ! $is_utf8 ) {
 		return $text;
@@ -2946,7 +2934,7 @@ function _make_url_clickable_cb( $matches ) {
 
 	if ( ')' === $matches[3] && strpos( $url, '(' ) ) {
 		/*
-		 * If the trailing character is a closing parethesis, and the URL has an opening parenthesis in it,
+		 * If the trailing character is a closing parenthesis, and the URL has an opening parenthesis in it,
 		 * add the closing parenthesis to the URL. Then we can let the parenthesis balancer do its thing below.
 		 */
 		$url   .= $matches[3];
@@ -3105,7 +3093,7 @@ function make_clickable( $text ) {
 		// Long strings might contain expensive edge cases...
 		if ( 10000 < strlen( $piece ) ) {
 			// ...break it up.
-			foreach ( _split_str_by_whitespace( $piece, 2100 ) as $chunk ) { // 2100: Extra room for scheme and leading and trailing paretheses.
+			foreach ( _split_str_by_whitespace( $piece, 2100 ) as $chunk ) { // 2100: Extra room for scheme and leading and trailing parentheses.
 				if ( 2101 < strlen( $chunk ) ) {
 					$r .= $chunk; // Too big, no whitespace: bail.
 				} else {
@@ -3121,12 +3109,12 @@ function make_clickable( $text ) {
 					[\\w]{1,20}+://                                # Scheme and hier-part prefix.
 					(?=\S{1,2000}\s)                               # Limit to URLs less than about 2000 characters long.
 					[\\w\\x80-\\xff#%\\~/@\\[\\]*(+=&$-]*+         # Non-punctuation URL character.
-					(?:                                            # Unroll the Loop: Only allow puctuation URL character if followed by a non-punctuation URL character.
+					(?:                                            # Unroll the Loop: Only allow punctuation URL character if followed by a non-punctuation URL character.
 						[\'.,;:!?)]                                    # Punctuation URL character.
 						[\\w\\x80-\\xff#%\\~/@\\[\\]*(+=&$-]++         # Non-punctuation URL character.
 					)*
 				)
-				(\)?)                                          # 3: Trailing closing parenthesis (for parethesis balancing post processing).
+				(\)?)                                          # 3: Trailing closing parenthesis (for parenthesis balancing post processing).
 			~xS';
 			/*
 			 * The regex is a non-anchored pattern and does not have a single fixed starting character.
@@ -4802,12 +4790,13 @@ EOF;
  * Escapes an HTML tag name.
  *
  * @since 2.5.0
+ * @since 6.5.5 Allow hyphens in tag names (i.e. custom elements).
  *
  * @param string $tag_name
  * @return string
  */
 function tag_escape( $tag_name ) {
-	$safe_tag = strtolower( preg_replace( '/[^a-zA-Z0-9_:]/', '', $tag_name ) );
+	$safe_tag = strtolower( preg_replace( '/[^a-zA-Z0-9-_:]/', '', $tag_name ) );
 	/**
 	 * Filters a string cleaned and escaped for output as an HTML tag.
 	 *
@@ -5530,10 +5519,11 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 	if ( ! is_scalar( $text ) ) {
 		/*
 		 * To maintain consistency with pre-PHP 8 error levels,
-		 * trigger_error() is used to trigger an E_USER_WARNING,
+		 * wp_trigger_error() is used to trigger an E_USER_WARNING,
 		 * rather than _doing_it_wrong(), which triggers an E_USER_NOTICE.
 		 */
-		trigger_error(
+		wp_trigger_error(
+			'',
 			sprintf(
 				/* translators: 1: The function name, 2: The argument number, 3: The argument name, 4: The expected type, 5: The provided type. */
 				__( 'Warning: %1$s expects parameter %2$s (%3$s) to be a %4$s, %5$s given.' ),

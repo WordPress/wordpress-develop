@@ -18,7 +18,7 @@ class WP_Script_Modules {
 	 * Holds the registered script modules, keyed by script module identifier.
 	 *
 	 * @since 6.5.0
-	 * @var array
+	 * @var array[]
 	 */
 	private $registered = array();
 
@@ -178,6 +178,10 @@ class WP_Script_Modules {
 		add_action( $position, array( $this, 'print_import_map' ) );
 		add_action( $position, array( $this, 'print_enqueued_script_modules' ) );
 		add_action( $position, array( $this, 'print_script_module_preloads' ) );
+
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_import_map' ) );
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_enqueued_script_modules' ) );
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_preloads' ) );
 	}
 
 	/**
@@ -191,7 +195,7 @@ class WP_Script_Modules {
 			wp_print_script_tag(
 				array(
 					'type' => 'module',
-					'src'  => $this->get_versioned_src( $script_module ),
+					'src'  => $this->get_src( $id ),
 					'id'   => $id . '-js-module',
 				)
 			);
@@ -212,7 +216,7 @@ class WP_Script_Modules {
 			if ( true !== $script_module['enqueue'] ) {
 				echo sprintf(
 					'<link rel="modulepreload" href="%s" id="%s">',
-					esc_url( $this->get_versioned_src( $script_module ) ),
+					esc_url( $this->get_src( $id ) ),
 					esc_attr( $id . '-js-modulepreload' )
 				);
 			}
@@ -264,7 +268,7 @@ class WP_Script_Modules {
 	private function get_import_map(): array {
 		$imports = array();
 		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ) ) as $id => $script_module ) {
-			$imports[ $id ] = $this->get_versioned_src( $script_module );
+			$imports[ $id ] = $this->get_src( $id );
 		}
 		return array( 'imports' => $imports );
 	}
@@ -274,7 +278,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return array Script modules marked for enqueue, keyed by script module identifier.
+	 * @return array[] Script modules marked for enqueue, keyed by script module identifier.
 	 */
 	private function get_marked_for_enqueue(): array {
 		$enqueued = array();
@@ -296,11 +300,10 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-
 	 * @param string[] $ids          The identifiers of the script modules for which to gather dependencies.
-	 * @param array    $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
+	 * @param string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
 	 *                               Default is both.
-	 * @return array List of dependencies, keyed by script module identifier.
+	 * @return array[] List of dependencies, keyed by script module identifier.
 	 */
 	private function get_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ) {
 		return array_reduce(
@@ -331,19 +334,33 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param array $script_module The script module.
+	 * @param string $id The script module identifier.
 	 * @return string The script module src with a version if relevant.
 	 */
-	private function get_versioned_src( array $script_module ): string {
-		$args = array();
+	private function get_src( string $id ): string {
+		if ( ! isset( $this->registered[ $id ] ) ) {
+			return '';
+		}
+
+		$script_module = $this->registered[ $id ];
+		$src           = $script_module['src'];
+
 		if ( false === $script_module['version'] ) {
-			$args['ver'] = get_bloginfo( 'version' );
+			$src = add_query_arg( 'ver', get_bloginfo( 'version' ), $src );
 		} elseif ( null !== $script_module['version'] ) {
-			$args['ver'] = $script_module['version'];
+			$src = add_query_arg( 'ver', $script_module['version'], $src );
 		}
-		if ( $args ) {
-			return add_query_arg( $args, $script_module['src'] );
-		}
-		return $script_module['src'];
+
+		/**
+		 * Filters the script module source.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param string $src Module source URL.
+		 * @param string $id  Module identifier.
+		 */
+		$src = apply_filters( 'script_module_loader_src', $src, $id );
+
+		return $src;
 	}
 }

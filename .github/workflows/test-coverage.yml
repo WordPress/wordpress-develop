@@ -123,7 +123,6 @@ jobs:
       - name: Docker debug information
         run: |
           docker -v
-          docker-compose -v
 
       - name: Start Docker environment
         run: |
@@ -134,11 +133,11 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker-compose run --rm mysql mysql --version
-          docker-compose run --rm php php --version
-          docker-compose run --rm php php -m
-          docker-compose run --rm php php -i
-          docker-compose run --rm php locale -a
+          docker compose run --rm mysql mysql --version
+          docker compose run --rm php php --version
+          docker compose run --rm php php -m
+          docker compose run --rm php php -i
+          docker compose run --rm php locale -a
 
       - name: Install WordPress
         run: npm run env:install
@@ -151,7 +150,7 @@ jobs:
         run: git diff --exit-code
 
       - name: Upload single site report to Codecov
-        if: ${{ ! matrix.multisite && github.event_name != 'pull_request' }}
+        if: ${{ ! matrix.multisite && matrix.format == 'clover' && github.event_name != 'pull_request' }}
         uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # v4.1.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -175,7 +174,7 @@ jobs:
         run: git diff --exit-code
 
       - name: Upload multisite report to Codecov
-        if: ${{ matrix.multisite && github.event_name != 'pull_request' }}
+        if: ${{ matrix.multisite && matrix.format == 'clover' && github.event_name != 'pull_request' }}
         uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # v4.1.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

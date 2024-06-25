@@ -18,7 +18,7 @@ class WP_Site_Health {
 	private $mysql_server_version        = '';
 	private $mysql_required_version      = '5.5';
 	private $mysql_recommended_version   = '8.0';
-	private $mariadb_recommended_version = '10.4';
+	private $mariadb_recommended_version = '10.5';
 
 	public $php_memory_limit;
 
@@ -1284,120 +1284,6 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Tests if the database server is capable of using utf8mb4.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @return array The test results.
-	 */
-	public function get_test_utf8mb4_support() {
-		if ( ! $this->mysql_server_version ) {
-			$this->prepare_sql_data();
-		}
-
-		$result = array(
-			'label'       => __( 'UTF8MB4 is supported' ),
-			'status'      => 'good',
-			'badge'       => array(
-				'label' => __( 'Performance' ),
-				'color' => 'blue',
-			),
-			'description' => sprintf(
-				'<p>%s</p>',
-				__( 'UTF8MB4 is the character set WordPress prefers for database storage because it safely supports the widest set of characters and encodings, including Emoji, enabling better support for non-English languages.' )
-			),
-			'actions'     => '',
-			'test'        => 'utf8mb4_support',
-		);
-
-		if ( ! $this->is_mariadb ) {
-			if ( version_compare( $this->mysql_server_version, '5.5.3', '<' ) ) {
-				$result['status'] = 'recommended';
-
-				$result['label'] = __( 'utf8mb4 requires a MySQL update' );
-
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: %s: Version number. */
-						__( 'WordPress&#8217; utf8mb4 support requires MySQL version %s or greater. Please contact your server administrator.' ),
-						'5.5.3'
-					)
-				);
-			} else {
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					__( 'Your MySQL version supports utf8mb4.' )
-				);
-			}
-		} else { // MariaDB introduced utf8mb4 support in 5.5.0.
-			if ( version_compare( $this->mysql_server_version, '5.5.0', '<' ) ) {
-				$result['status'] = 'recommended';
-
-				$result['label'] = __( 'utf8mb4 requires a MariaDB update' );
-
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: %s: Version number. */
-						__( 'WordPress&#8217; utf8mb4 support requires MariaDB version %s or greater. Please contact your server administrator.' ),
-						'5.5.0'
-					)
-				);
-			} else {
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					__( 'Your MariaDB version supports utf8mb4.' )
-				);
-			}
-		}
-
-		// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_client_info
-		$mysql_client_version = mysqli_get_client_info();
-
-		/*
-		 * libmysql has supported utf8mb4 since 5.5.3, same as the MySQL server.
-		 * mysqlnd has supported utf8mb4 since 5.0.9.
-		 */
-		if ( str_contains( $mysql_client_version, 'mysqlnd' ) ) {
-			$mysql_client_version = preg_replace( '/^\D+([\d.]+).*/', '$1', $mysql_client_version );
-			if ( version_compare( $mysql_client_version, '5.0.9', '<' ) ) {
-				$result['status'] = 'recommended';
-
-				$result['label'] = __( 'utf8mb4 requires a newer client library' );
-
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: 1: Name of the library, 2: Number of version. */
-						__( 'WordPress&#8217; utf8mb4 support requires MySQL client library (%1$s) version %2$s or newer. Please contact your server administrator.' ),
-						'mysqlnd',
-						'5.0.9'
-					)
-				);
-			}
-		} else {
-			if ( version_compare( $mysql_client_version, '5.5.3', '<' ) ) {
-				$result['status'] = 'recommended';
-
-				$result['label'] = __( 'utf8mb4 requires a newer client library' );
-
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: 1: Name of the library, 2: Number of version. */
-						__( 'WordPress&#8217; utf8mb4 support requires MySQL client library (%1$s) version %2$s or newer. Please contact your server administrator.' ),
-						'libmysql',
-						'5.5.3'
-					)
-				);
-			}
-		}
-
-		return $result;
-	}
-
-	/**
 	 * Tests if the site can communicate with WordPress.org.
 	 *
 	 * @since 5.2.0
@@ -1489,7 +1375,7 @@ class WP_Site_Health {
 			'actions'     => sprintf(
 				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				/* translators: Documentation explaining debugging in WordPress. */
-				esc_url( __( 'https://wordpress.org/documentation/article/debugging-in-wordpress/' ) ),
+				esc_url( __( 'https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/' ) ),
 				__( 'Learn more about debugging in WordPress.' ),
 				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
@@ -1953,11 +1839,19 @@ class WP_Site_Health {
 			$result['description'] = __( 'Could not determine available disk space for updates.' );
 			$result['status']      = 'recommended';
 		} elseif ( $available_space < 20 * MB_IN_BYTES ) {
-			$result['description'] = __( 'Available disk space is critically low, less than 20 MB available. Proceed with caution, updates may fail.' );
-			$result['status']      = 'critical';
+			$result['description'] = sprintf(
+				/* translators: %s: Available disk space in MB or GB. */
+				__( 'Available disk space is critically low, less than %s available. Proceed with caution, updates may fail.' ),
+				size_format( 20 * MB_IN_BYTES )
+			);
+			$result['status'] = 'critical';
 		} elseif ( $available_space < 100 * MB_IN_BYTES ) {
-			$result['description'] = __( 'Available disk space is low, less than 100 MB available.' );
-			$result['status']      = 'recommended';
+			$result['description'] = sprintf(
+				/* translators: %s: Available disk space in MB or GB. */
+				__( 'Available disk space is low, less than %s available.' ),
+				size_format( 100 * MB_IN_BYTES )
+			);
+			$result['status'] = 'recommended';
 		}
 
 		return $result;
@@ -2504,7 +2398,7 @@ class WP_Site_Health {
 			'label'       => '',
 			'actions'     => sprintf(
 				'<p><a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
-				__( 'https://wordpress.org/documentation/article/optimization/#Caching' ),
+				__( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#caching' ),
 				__( 'Learn more about page cache' ),
 				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
@@ -2613,7 +2507,7 @@ class WP_Site_Health {
 		$action_url = apply_filters(
 			'site_status_persistent_object_cache_url',
 			/* translators: Localized Support reference. */
-			__( 'https://wordpress.org/documentation/article/optimization/#persistent-object-cache' )
+			__( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#persistent-object-cache' )
 		);
 
 		$result = array(
@@ -2693,6 +2587,107 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Calculates total amount of autoloaded data.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return int Autoloaded data in bytes.
+	 */
+	public function get_autoloaded_options_size() {
+		$alloptions = wp_load_alloptions();
+
+		$total_length = 0;
+
+		foreach ( $alloptions as $option_value ) {
+			if ( is_array( $option_value ) || is_object( $option_value ) ) {
+				$option_value = maybe_serialize( $option_value );
+			}
+			$total_length += strlen( (string) $option_value );
+		}
+
+		return $total_length;
+	}
+
+	/**
+	 * Tests the number of autoloaded options.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_autoloaded_options() {
+		$autoloaded_options_size  = $this->get_autoloaded_options_size();
+		$autoloaded_options_count = count( wp_load_alloptions() );
+
+		$base_description = __( 'Autoloaded options are configuration settings for plugins and themes that are automatically loaded with every page load in WordPress. Having too many autoloaded options can slow down your site.' );
+
+		$result = array(
+			'label'       => __( 'Autoloaded options are acceptable' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				/* translators: 1: Number of autoloaded options, 2: Autoloaded options size. */
+				'<p>' . esc_html( $base_description ) . ' ' . __( 'Your site has %1$s autoloaded options (size: %2$s) in the options table, which is acceptable.' ) . '</p>',
+				$autoloaded_options_count,
+				size_format( $autoloaded_options_size )
+			),
+			'actions'     => '',
+			'test'        => 'autoloaded_options',
+		);
+
+		/**
+		 * Filters max bytes threshold to trigger warning in Site Health.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param int $limit Autoloaded options threshold size. Default 800000.
+		 */
+		$limit = apply_filters( 'site_status_autoloaded_options_size_limit', 800000 );
+
+		if ( $autoloaded_options_size < $limit ) {
+			return $result;
+		}
+
+		$result['status']      = 'critical';
+		$result['label']       = __( 'Autoloaded options could affect performance' );
+		$result['description'] = sprintf(
+			/* translators: 1: Number of autoloaded options, 2: Autoloaded options size. */
+			'<p>' . esc_html( $base_description ) . ' ' . __( 'Your site has %1$s autoloaded options (size: %2$s) in the options table, which could cause your site to be slow. You can review the options being autoloaded in your database and remove any options that are no longer needed by your site.' ) . '</p>',
+			$autoloaded_options_count,
+			size_format( $autoloaded_options_size )
+		);
+
+		/**
+		 * Filters description to be shown on Site Health warning when threshold is met.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param string $description Description message when autoloaded options bigger than threshold.
+		 */
+		$result['description'] = apply_filters( 'site_status_autoloaded_options_limit_description', $result['description'] );
+
+		$result['actions'] = sprintf(
+			/* translators: 1: HelpHub URL, 2: Link description. */
+			'<p><a target="_blank" rel="noopener" href="%1$s">%2$s</a></p>',
+			esc_url( __( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#autoloaded-options' ) ),
+			__( 'More info about optimizing autoloaded options' )
+		);
+
+		/**
+		 * Filters actionable information to tackle the problem. It can be a link to an external guide.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param string $actions Call to Action to be used to point to the right direction to solve the issue.
+		 */
+		$result['actions'] = apply_filters( 'site_status_autoloaded_options_action_to_perform', $result['actions'] );
+		return $result;
+	}
+
+	/**
 	 * Returns a set of tests that belong to the site status page.
 	 *
 	 * Each site status test is defined here, they may be `direct` tests, that run on page load, or `async` tests
@@ -2739,10 +2734,6 @@ class WP_Site_Health {
 					'label' => __( 'Database Server version' ),
 					'test'  => 'sql_server',
 				),
-				'utf8mb4_support'              => array(
-					'label' => __( 'MySQL utf8mb4 support' ),
-					'test'  => 'utf8mb4_support',
-				),
 				'ssl_support'                  => array(
 					'label' => __( 'Secure communication' ),
 					'test'  => 'ssl_support',
@@ -2779,6 +2770,10 @@ class WP_Site_Health {
 				'available_updates_disk_space' => array(
 					'label' => __( 'Available disk space' ),
 					'test'  => 'available_updates_disk_space',
+				),
+				'autoloaded_options'           => array(
+					'label' => __( 'Autoloaded options' ),
+					'test'  => 'autoloaded_options',
 				),
 			),
 			'async'  => array(
@@ -3443,12 +3438,12 @@ class WP_Site_Health {
 	 * @since 6.1.0
 	 *
 	 * @return WP_Error|array {
-	 *    Page cache detail or else a WP_Error if unable to determine.
+	 *     Page cache detail or else a WP_Error if unable to determine.
 	 *
-	 *    @type string   $status                 Page cache status. Good, Recommended or Critical.
-	 *    @type bool     $advanced_cache_present Whether page cache plugin is available or not.
-	 *    @type string[] $headers                Client caching response headers detected.
-	 *    @type float    $response_time          Response time of site.
+	 *     @type string   $status                 Page cache status. Good, Recommended or Critical.
+	 *     @type bool     $advanced_cache_present Whether page cache plugin is available or not.
+	 *     @type string[] $headers                Client caching response headers detected.
+	 *     @type float    $response_time          Response time of site.
 	 * }
 	 */
 	private function get_page_cache_detail() {
