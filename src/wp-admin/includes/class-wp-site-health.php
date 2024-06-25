@@ -1860,11 +1860,11 @@ class WP_Site_Health {
 	/**
 	 * Tests if registration is open to everyone and the default role is privileged.
 	 *
-	 * @since 6.6.0
+	 * @since 6.7.0
 	 *
 	 * @return array The test results.
 	 */
-	public function get_test_privileged_default_role_with_open_registration() {
+	public function get_test_insecure_registration() {
 		$users_can_register = get_option( 'users_can_register' );
 		$default_role       = get_option( 'default_role' );
 
@@ -1877,7 +1877,7 @@ class WP_Site_Health {
 			),
 			'description' => '<p>' . __( 'The combination of open registration setting and the default user role may lead to security issues.' ) . '</p>',
 			'actions'     => '',
-			'test'        => 'privileged_default_role_with_open_registration',
+			'test'        => 'insecure_registration',
 		);
 
 		if ( $users_can_register && in_array( $default_role, array( 'editor', 'administrator' ), true ) ) {
@@ -2807,13 +2807,13 @@ class WP_Site_Health {
 					'label' => __( 'Available disk space' ),
 					'test'  => 'available_updates_disk_space',
 				),
-				'privileged_default_role_with_open_registration' => array(
-					'label' => __( 'Open Registration with privileged default role' ),
-					'test'  => 'privileged_default_role_with_open_registration',
-				),
 				'autoloaded_options'           => array(
 					'label' => __( 'Autoloaded options' ),
 					'test'  => 'autoloaded_options',
+				),
+				'insecure_registration' 	=> array(
+					'label' => __( 'Open Registration with privileged default role' ),
+					'test'  => 'insecure_registration',
 				),
 			),
 			'async'  => array(
