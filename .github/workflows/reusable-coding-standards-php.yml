@@ -42,7 +42,7 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # v2.30.0
+        uses: shivammathur/setup-php@2e947f1f6932d141d076ca441d0e1e881775e95b # v2.31.0
         with:
           php-version: ${{ inputs.php-version }}
           coverage: none
@@ -55,7 +55,7 @@ jobs:
         run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> $GITHUB_OUTPUT
 
       - name: Cache PHPCS scan cache
-        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: |
             .cache/phpcs-src.json

@@ -101,7 +101,7 @@ jobs:
         run: git diff --exit-code
 
       - name: Upload ZIP as a GitHub Actions artifact
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         if: ${{ inputs.save-build || inputs.prepare-playground }}
         with:
           name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
@@ -117,7 +117,7 @@ jobs:
       # Uploads the PR number as an artifact for the Pull Request Commenting workflow to download and then
       # leave a comment detailing how to test the PR within WordPress Playground.
       - name: Upload PR number as artifact
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         if: ${{ inputs.prepare-playground && github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
         with:
           name: pr-number
