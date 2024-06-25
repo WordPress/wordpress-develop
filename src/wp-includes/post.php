@@ -2083,6 +2083,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @since 6.3.0 Added the `item_trashed` label.
  * @since 6.4.0 Changed default values for the `add_new` label to include the type of content.
  *              This matches `add_new_item` and provides more context for better accessibility.
+ * @since 6.6.0 Added the `template_name` label.
  *
  * @access private
  *
@@ -2095,6 +2096,11 @@ function get_post_type_labels( $post_type_object ) {
 	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
 	$labels = _get_custom_object_labels( $post_type_object, $nohier_vs_hier_defaults );
+
+	if ( ! isset( $post_type_object->labels->template_name ) && isset( $post_type_object->labels->singular_name ) ) {
+			/* translators: %s: Post type name. */
+			$labels->template_name = sprintf( __( 'Single item: %s' ), $post_type_object->labels->singular_name );
+	}
 
 	$post_type = $post_type_object->name;
 
@@ -8088,10 +8094,11 @@ function get_available_post_mime_types( $type = 'attachment' ) {
 	$mime_types = apply_filters( 'pre_get_available_post_mime_types', null, $type );
 
 	if ( ! is_array( $mime_types ) ) {
-		$mime_types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
+		$mime_types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s AND post_mime_type != ''", $type ) );
 	}
 
-	return $mime_types;
+	// Remove nulls from returned $mime_types.
+	return array_values( array_filter( $mime_types ) );
 }
 
 /**

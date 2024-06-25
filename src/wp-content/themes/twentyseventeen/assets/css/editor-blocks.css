@@ -646,7 +646,7 @@ html[lang="th"] .edit-post-visual-editor * {
 /* Pullquote */
 
 .wp-block-pullquote {
-	border: 0;
+	border: 0 solid;
 }
 
 .wp-block-pullquote.alignleft blockquote > .editor-rich-text p,
@@ -707,6 +707,12 @@ table.wp-block-table td:last-child {
 .rtl table.wp-block-table th,
 .rtl table.wp-block-table td {
 	text-align: right;
+}
+
+/* Calendar */
+
+.editor-styles-wrapper .wp-block-calendar th {
+	text-align: center;
 }
 
 /* Verse */
