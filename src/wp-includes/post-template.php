@@ -1076,7 +1076,7 @@ function _wp_link_page( $i ) {
 			$query_args['preview_id']    = wp_unslash( $_GET['preview_id'] );
 			$query_args['preview_nonce'] = wp_unslash( $_GET['preview_nonce'] );
 		}
-		
+
 		$url = get_preview_post_link( $post, $query_args, $url );
 	}
 
