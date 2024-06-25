@@ -584,7 +584,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Indicates if the currently-matched token is virtual, created by a stack operation
 	 * while processing HTML, rather than a token found in the HTML text itself.
 	 *
-	 * @since 6.6
+	 * @since 6.6.0
 	 *
 	 * @return bool Whether the current token is virtual.
 	 */
