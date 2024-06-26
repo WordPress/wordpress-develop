@@ -199,6 +199,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	/**
 	 * Test that the print_client_interactivity_data is deprecated and produces no output.
 	 *
+	 * @ticket 60356
 	 * @ticket 61512
 	 *
 	 * @covers ::print_client_interactivity_data
