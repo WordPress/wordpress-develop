@@ -3177,7 +3177,11 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 					WHERE post_type = %s AND post_status = 'private' AND post_author = %d
 				) AS filtered_posts
 				GROUP BY post_status
-			", $type, $type, get_current_user_id());
+			", 
+			$type, 
+			$type, 
+			get_current_user_id()
+			);
 		}
 	} else {
 		$query .= ' GROUP BY post_status';
