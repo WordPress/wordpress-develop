@@ -519,10 +519,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		if ( 0 === count( $this->element_queue ) && ! $this->step() ) {
-			while ( $this->state->stack_of_open_elements->pop() ) {
+		if ( 'done' !== $this->has_seen_context_node && 0 === count( $this->element_queue ) && ! $this->step() ) {
+			while ( 'context-node' !== $this->state->stack_of_open_elements->current_node()->bookmark_name && $this->state->stack_of_open_elements->pop() ) {
 				continue;
 			}
+			$this->has_seen_context_node = 'done';
+			return $this->next_token();
 		}
 
 		$this->current_element = array_shift( $this->element_queue );
@@ -537,7 +539,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		if ( ! isset( $this->current_element ) ) {
-			return $this->next_token();
+			if ( 'done' === $this->has_seen_context_node ) {
+				return false;
+			} else {
+				return $this->next_token();
+			}
 		}
 
 		if ( isset( $this->context_node ) && WP_HTML_Stack_Event::POP === $this->current_element->operation && $this->context_node === $this->current_element->token ) {
@@ -788,8 +794,42 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function get_breadcrumbs() {
 		$breadcrumbs = array();
+
 		foreach ( $this->state->stack_of_open_elements->walk_down() as $stack_item ) {
 			$breadcrumbs[] = $stack_item->node_name;
+		}
+
+		if ( ! $this->is_virtual() ) {
+			return $breadcrumbs;
+		}
+
+		foreach ( $this->element_queue as $queue_item ) {
+			if ( $this->current_element->token->bookmark_name === $queue_item->token->bookmark_name ) {
+				break;
+			}
+
+			if ( 'context-node' === $queue_item->token->bookmark_name ) {
+				break;
+			}
+
+			if ( 'real' === $queue_item->provenance ) {
+				break;
+			}
+
+			if ( WP_HTML_Stack_Event::PUSH === $queue_item->operation ) {
+				$breadcrumbs[] = $queue_item->token->node_name;
+			} else {
+				array_pop( $breadcrumbs );
+			}
+		}
+
+		if ( null !== parent::get_token_name() && ! parent::is_tag_closer() ) {
+			array_pop( $breadcrumbs );
+		}
+
+		// Add the virtual node we're at.
+		if ( WP_HTML_Stack_Event::PUSH === $this->current_element->operation ) {
+			$breadcrumbs[] = $this->current_element->token->node_name;
 		}
 
 		return $breadcrumbs;
