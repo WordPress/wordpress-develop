@@ -3241,7 +3241,43 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		register_post_meta(
 			'post',
-			'with_array_default',
+			'with_array_number_default',
+			array(
+				'type'         => 'array',
+				'single'       => true,
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'  => 'array',
+						'items' => array(
+							'type' => 'number',
+						),
+					),
+				),
+				'default'      => 42.99,
+			)
+		);
+
+		register_post_meta(
+			'post',
+			'with_multi_array_number_default',
+			array(
+				'type'         => 'array',
+				'single'       => false,
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'  => 'array',
+						'items' => array(
+							'type' => 'number',
+						),
+					),
+				),
+				'default'      => 42.99,
+			)
+		);
+
+		register_post_meta(
+			'post',
+			'with_array_string_default',
 			array(
 				'type'         => 'array',
 				'single'       => true,
@@ -3253,13 +3289,13 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 						),
 					),
 				),
-				'default'      => array( 'array string default' ),
+				'default'      => 'array string default',
 			)
 		);
 
 		register_post_meta(
 			'post',
-			'with_multi_array_default',
+			'with_multi_array_string_default',
 			array(
 				'type'         => 'array',
 				'single'       => false,
@@ -3271,7 +3307,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 						),
 					),
 				),
-				'default'      => array( 'array string default' ),
+				'default'      => 'array string default',
 			)
 		);
 
@@ -3306,7 +3342,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				'with_number_default'         => 42.99,
 				'with_object_integer_default' => (object) array( 'test_integer' => 42 ),
 				'with_object_string_default'  => (object) array( 'test_string' => 'object string default' ),
-				'with_array_default'          => array( 'array string default' ),
+				'with_array_number_default'   => array( 42.99 ),
+				'with_array_string_default'   => array( 'array string default' ),
 				'with_string_default'         => 'string default',
 			),
 		);
@@ -3343,7 +3380,12 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		// Array instead of object because objects coming from the DB are arrays and not objects
 		$this->assertSame( array( 'test_string' => 'object string default' ), $meta[0] );
 
-		$meta = get_metadata_raw( 'post', self::$post_id, 'with_array_default', false );
+		$meta = get_metadata_raw( 'post', self::$post_id, 'with_array_number_default', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 1, $meta );
+		$this->assertSame( array( 42.99 ), $meta[0] );
+
+		$meta = get_metadata_raw( 'post', self::$post_id, 'with_array_string_default', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
 		$this->assertSame( array( 'array string default' ), $meta[0] );
@@ -3362,7 +3404,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				'with_multi_number_default'         => 42.99,
 				'with_multi_object_integer_default' => array( (object) array( 'test_integer' => 42 ) ),
 				'with_multi_object_string_default'  => array( (object) array( 'test_string' => 'object string default' ) ),
-				'with_multi_array_default'          => array( array( 'array string default' ) ),
+				'with_multi_array_number_default'   => array( array( 42.99 ) ),
+				'with_multi_array_string_default'   => array( array( 'array string default' ) ),
 				// If not wrapped in array results in split on space (two items "string" and "default")
 				'with_multi_string_default'         => array( 'string default' ),
 			),
@@ -3400,7 +3443,12 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		// Array instead of object because objects coming from the DB are arrays and not objects
 		$this->assertSame( array( 'test_string' => 'object string default' ), $meta[0] );
 
-		$meta = get_metadata_raw( 'post', self::$post_id, 'with_multi_array_default', false );
+		$meta = get_metadata_raw( 'post', self::$post_id, 'with_multi_array_number_default', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 1, $meta );
+		$this->assertSame( array( 42.99 ), $meta[0] );
+
+		$meta = get_metadata_raw( 'post', self::$post_id, 'with_multi_array_string_default', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
 		$this->assertSame( array( 'array string default' ), $meta[0] );
@@ -3423,7 +3471,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 					(object) array( 'test_string' => 'object string default' ),
 					(object) array( 'test_string' => 'object string default 2' ),
 				),
-				'with_multi_array_default'          => array( array( 'array string default' ), array( 'array string default 2' ) ),
+				'with_multi_array_number_default'   => array( 42.99, 43.99 ),
+				'with_multi_array_string_default'   => array( array( 'array string default' ), array( 'array string default 2' ) ),
 				'with_multi_bool_default'           => array( true, false ),
 			),
 		);
@@ -3466,7 +3515,13 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertSame( array( 'test_string' => 'object string default' ), $meta[0] );
 		$this->assertSame( array( 'test_string' => 'object string default 2' ), $meta[1] );
 
-		$meta = get_metadata_raw( 'post', self::$post_id, 'with_multi_array_default', false );
+		$meta = get_metadata_raw( 'post', self::$post_id, 'with_multi_array_number_default', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 2, $meta );
+		$this->assertSame( array( 42.99 ), $meta[0] );
+		$this->assertSame( array( 43.99 ), $meta[1] );
+
+		$meta = get_metadata_raw( 'post', self::$post_id, 'with_multi_array_string_default', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 2, $meta );
 		$this->assertSame( array( 'array string default' ), $meta[0] );
