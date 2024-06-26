@@ -196,6 +196,34 @@ p {
 	margin-bottom: 0;
 }
 
+p.forgetmenot .tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+}
+
+p.forgetmenot .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 160px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -80px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+p.forgetmenot .tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
 .login .button-primary {
 	float: right;
 }
