@@ -587,7 +587,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether the current token is virtual.
 	 */
-	private function is_virtual() {
+	private function is_virtual(): bool {
 		return (
 			isset( $this->current_element->provenance ) &&
 			'virtual' === $this->current_element->provenance
