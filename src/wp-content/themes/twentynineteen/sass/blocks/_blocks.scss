@@ -396,7 +396,7 @@
 		}
 
 		cite {
-			display: inline-block;
+			display: block;
 			@include font-family( $font__heading );
 			line-height: 1.6;
 			text-transform: none;
