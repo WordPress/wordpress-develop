@@ -3164,7 +3164,8 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 		$post_type_object = get_post_type_object( $type );
 		if ( ! current_user_can( $post_type_object->cap->read_private_posts ) ) {
 			// Optimized query using UNION ALL for better performance
-			$query = $wpdb->prepare("
+			$query = $wpdb->prepare(
+			"
 				SELECT post_status, COUNT(*) AS num_posts
 				FROM (
 					SELECT post_status
