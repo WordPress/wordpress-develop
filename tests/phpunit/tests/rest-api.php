@@ -970,6 +970,11 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'/wp/v2/types//',
 			array( '/wp/v2/media///', 'OPTIONS' ),
 			'////',
+			'/wp/v2/types//?////',
+			'/wp/v2/types//?fields////',
+			'/wp/v2/types//?fields=////',
+			'/wp/v2/types//?_fields=foo,bar////',
+			'/wp/v2/types////?_fields=foo,bar&limit=1000////',
 		);
 
 		$preload_data = array_reduce(
@@ -978,7 +983,18 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array()
 		);
 
-		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS', '/' ) );
+		$expected_urls = array(
+			'/wp/v2/types',
+			'OPTIONS',
+			'/',
+			'/wp/v2/types/?////',
+			'/wp/v2/types/?fields////',
+			'/wp/v2/types/?fields=////',
+			'/wp/v2/types/?_fields=foo,bar////',
+			'/wp/v2/types/?_fields=foo,bar&limit=1000////',
+		);
+
+		$this->assertSame( array_keys( $preload_data ), $expected_urls );
 		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
 
 		$GLOBALS['wp_rest_server'] = $rest_server;

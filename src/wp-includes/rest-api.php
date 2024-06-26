@@ -2916,6 +2916,11 @@ function rest_preload_api_request( $memo, $path ) {
 		return $memo;
 	}
 
+	// Remove trailing slashes from the "path" part of the URL.
+	if ( ! empty( $path_parts['path'] ) ) {
+		$path_parts['path'] = untrailingslashit( $path_parts['path'] );;
+	}
+
 	$request = new WP_REST_Request( $method, $path_parts['path'] );
 	if ( ! empty( $path_parts['query'] ) ) {
 		parse_str( $path_parts['query'], $query_params );
