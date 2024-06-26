@@ -179,9 +179,9 @@ class Tests_Blocks_UpdateIgnoredHookedBlocksPostMeta extends WP_UnitTestCase {
 			$post->post_content,
 			'Post content did not match the original markup.'
 		);
-		$this->assertNull(
-			json_decode( get_post_meta( self::$template_part_post->ID, '_wp_ignored_hooked_blocks', true ), true ),
-			'Block should not have been added to ignored hooked blocks post meta.'
+		$this->assertFalse(
+			property_exists( $post, 'meta_input' ),
+			'Meta input should not be set.'
 		);
 	}
 
@@ -208,7 +208,7 @@ class Tests_Blocks_UpdateIgnoredHookedBlocksPostMeta extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array( 'tests/my-block' ),
-			json_decode( get_post_meta( self::$template_part_post->ID, '_wp_ignored_hooked_blocks', true ), true ),
+			json_decode( $post->meta_input['_wp_ignored_hooked_blocks'], true ),
 			'Block was not added to ignored hooked blocks metadata.'
 		);
 	}
