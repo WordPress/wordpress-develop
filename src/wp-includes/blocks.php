@@ -1118,9 +1118,25 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		$post->post_content
 	);
 
+	/**
+	 * We need to merge incoming changes with existing data so the block hooks API gets the correct context.
+	 * For `wp_template_part` post type, we need to convert the post object to a block template object.
+	 */
 	$existing_post = isset( $post->ID ) ? get_post( $post->ID ) : array();
-	// Merge the existing post object with the updated post object to pass to the block hooks algorithm for context.
-	$context          = (object) array_merge( (array) $existing_post, (array) $post );
+	$context       = (object) array_merge( (array) $existing_post, (array) $post );
+	// Convert the $context object to a WP_Post object.
+	$context = get_post( $context );
+	if ( 'wp_template_part' === $post_type ) {
+		// Convert the $context object to a WP_Block_Template object.
+		if ( isset( $post->ID ) ) {
+			$context = _build_block_template_result_from_post( $context );
+		} else {
+			$meta    = isset( $context->meta_input ) ? $context->meta_input : array();
+			$terms   = isset( $context->tax_input ) ? $context->tax_input : array();
+			$context = _build_block_template_object_from_post_object( get_post( $context ), $terms, $meta );
+		}
+	}
+
 	$serialized_block = apply_block_hooks_to_content( $markup, $context, 'set_ignored_hooked_blocks_metadata' );
 	$root_block       = parse_blocks( $serialized_block )[0];
 
