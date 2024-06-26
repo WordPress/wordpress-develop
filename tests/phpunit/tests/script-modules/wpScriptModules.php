@@ -734,7 +734,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60647
+	 * @ticket 61510
 	 */
 	public function test_print_script_module_data_prints_enqueued_module_data() {
 		$this->script_modules->enqueue( '@test/module', '/example.js' );
@@ -758,7 +758,7 @@ HTML;
 	}
 
 	/**
-	 * @ticket 60647
+	 * @ticket 61510
 	 */
 	public function test_print_script_module_data_prints_dependency_module_data() {
 		$this->script_modules->register( '@test/dependency', '/dependency.js' );
@@ -783,7 +783,7 @@ HTML;
 	}
 
 	/**
-	 * @ticket 60647
+	 * @ticket 61510
 	 */
 	public function test_print_script_module_data_does_not_print_nondependency_module_data() {
 		$this->script_modules->register( '@test/other', '/dependency.js' );
@@ -802,7 +802,7 @@ HTML;
 	}
 
 	/**
-	 * @ticket 60647
+	 * @ticket 61510
 	 */
 	public function test_print_script_module_data_does_not_print_empty_data() {
 		$this->script_modules->enqueue( '@test/module', '/example.js' );
@@ -819,7 +819,7 @@ HTML;
 	}
 
 	/**
-	 * @ticket 60647
+	 * @ticket 61510
 	 *
 	 * @dataProvider data_special_chars_script_encoding
 	 * @param string $input    Raw input string.
@@ -907,7 +907,7 @@ HTML;
 	}
 
 	/**
-	 * @ticket 60647
+	 * @ticket 61510
 	 *
 	 * @dataProvider data_invalid_script_module_data
 	 * @param mixed $data Data to return in filter.
