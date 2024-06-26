@@ -216,7 +216,7 @@ switch ( $action ) {
 			if ( IS_PROFILE_PAGE ) :
 				$message = '<strong>' . __( 'Profile updated.' ) . '</strong>';
 			else :
-				$message = '<strong>' . __( 'User updated.' ) . '</strong>';
+				$message = '<strong>' . __( 'User updated.' ) . '</strong> ';
 			endif;
 			if ( $wp_http_referer && ! str_contains( $wp_http_referer, 'user-new.php' ) && ! IS_PROFILE_PAGE ) :
 				$message .= '<a href="' . esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), self_admin_url( 'users.php' ) ) ) . '">' . __( '&larr; Go to Users' ) . '</a>';
