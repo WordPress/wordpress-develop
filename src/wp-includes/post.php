@@ -3157,7 +3157,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	}
 
 	// Default query to count posts
-	$query = $wpdb->prepare("SELECT post_status, COUNT(*) AS num_posts FROM {$wpdb->posts} WHERE post_type = %s", $type);
+	$query = $wpdb->prepare( "SELECT post_status, COUNT(*) AS num_posts FROM {$wpdb->posts} WHERE post_type = %s", $type );
 
 	// If the 'readable' parameter is set and the user is logged in
 	if ( 'readable' === $perm && is_user_logged_in() ) {
