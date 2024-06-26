@@ -3358,7 +3358,11 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 	$attr_strings = array();
 
 	foreach ( $html_atts as $k => $v ) {
-		$attr_strings[] = $k . '="' . esc_attr( $v ) . '"';
+		if ( in_array( $k, array( 'loop', 'autoplay', 'muted' ), true ) && true === $v ) {
+			$attr_strings[] = esc_attr( $k );
+		} else {
+			$attr_strings[] = $k . '="' . esc_attr( $v ) . '"';
+		}
 	}
 
 	$html = '';
