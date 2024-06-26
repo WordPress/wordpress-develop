@@ -1070,20 +1070,13 @@ function _make_mock_parsed_block( $block_name, $attrs = array(), $inner_blocks =
  * Currently only supports `wp_navigation` and `wp_template_part` post types.
  *
  * @since 6.6.0
+ * @since 6.7.0 Support `wp_template_part` post type.
  * @access private
  *
  * @param stdClass $post Post object.
  * @return stdClass The updated post object.
  */
 function update_ignored_hooked_blocks_postmeta( $post ) {
-	/*
-	 * In this scenario the user has likely tried to create a navigation via the REST API.
-	 * In which case we won't have a post ID to work with and store meta against.
-	 */
-	if ( empty( $post->ID ) ) {
-		return $post;
-	}
-
 	/*
 	 * Skip meta generation when consumers intentionally update specific Navigation fields
 	 * and omit the content update.
@@ -1109,14 +1102,13 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		return $post;
 	}
 
-	$parent_block_name = $post_type_to_block_name_map[ $post_type ];
-	$attributes        = array();
+	$parent_block_name              = $post_type_to_block_name_map[ $post_type ];
+	$attributes                     = array();
+	$existing_ignored_hooked_blocks = isset( $post->ID ) ? get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true ) : '';
 
-	$ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
-	if ( ! empty( $ignored_hooked_blocks ) ) {
-		$ignored_hooked_blocks  = json_decode( $ignored_hooked_blocks, true );
+	if ( ! empty( $existing_ignored_hooked_blocks ) ) {
 		$attributes['metadata'] = array(
-			'ignoredHookedBlocks' => $ignored_hooked_blocks,
+			'ignoredHookedBlocks' => json_decode( $existing_ignored_hooked_blocks, true ),
 		);
 	}
 
@@ -1126,7 +1118,7 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		$post->post_content
 	);
 
-	$existing_post = get_post( $post->ID );
+	$existing_post = isset( $post->ID ) ? get_post( $post->ID ) : array();
 	// Merge the existing post object with the updated post object to pass to the block hooks algorithm for context.
 	$context          = (object) array_merge( (array) $existing_post, (array) $post );
 	$serialized_block = apply_block_hooks_to_content( $markup, $context, 'set_ignored_hooked_blocks_metadata' );
@@ -1137,10 +1129,8 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		: array();
 
 	if ( ! empty( $ignored_hooked_blocks ) ) {
-		$existing_ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
 		if ( ! empty( $existing_ignored_hooked_blocks ) ) {
-			$existing_ignored_hooked_blocks = json_decode( $existing_ignored_hooked_blocks, true );
-			$ignored_hooked_blocks          = array_unique( array_merge( $ignored_hooked_blocks, $existing_ignored_hooked_blocks ) );
+			$ignored_hooked_blocks = array_unique( array_merge( $ignored_hooked_blocks, json_decode( $existing_ignored_hooked_blocks, true ) ) );
 		}
 
 		if ( ! isset( $post->meta_input ) ) {

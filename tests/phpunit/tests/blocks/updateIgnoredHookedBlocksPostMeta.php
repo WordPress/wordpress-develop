@@ -97,7 +97,7 @@ class Tests_Blocks_UpdateIgnoredHookedBlocksPostMeta extends WP_UnitTestCase {
 	/**
 	 * @ticket 60759
 	 */
-	public function test_update_ignored_hooked_blocks_postmeta_dont_modify_no_post_id() {
+	public function test_update_ignored_hooked_blocks_postmeta_modify_no_post_id() {
 		register_block_type(
 			'tests/my-block',
 			array(
@@ -118,6 +118,11 @@ class Tests_Blocks_UpdateIgnoredHookedBlocksPostMeta extends WP_UnitTestCase {
 			$original_markup,
 			$post->post_content,
 			'Post content did not match the original markup.'
+		);
+		$this->assertSame(
+			array( 'tests/my-block' ),
+			json_decode( $post->meta_input['_wp_ignored_hooked_blocks'], true ),
+			'Block was not added to ignored hooked blocks metadata.'
 		);
 	}
 
