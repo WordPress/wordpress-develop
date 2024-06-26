@@ -189,8 +189,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 *
 	 * @ticket 60356
 	 * @ticket 61512
-	 *
-	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_state_and_config_dont_print_when_empty() {
 		$filter = $this->get_script_data_filter_result();
@@ -243,9 +241,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 *
 	 * @ticket 60356
 	 * @ticket 61512
-	 *
-	 * @covers ::config
-	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_state_not_printed_when_empty() {
 		$filter = $this->get_script_data_filter_result(
@@ -262,8 +257,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 *
 	 * @ticket 60761
 	 * @ticket 61512
-	 *
-	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_state_not_printed_when_empty_array() {
 		$filter = $this->get_script_data_filter_result(
@@ -281,8 +274,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 *
 	 * @ticket 60761
 	 * @ticket 61512
-	 *
-	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_state_not_printed_when_only_empty_arrays() {
 		$filter = $this->get_script_data_filter_result(
@@ -299,8 +290,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 *
 	 * @ticket 60761
 	 * @ticket 61512
-	 *
-	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_state_printed_correctly_with_nested_empty_array() {
 		$filter = $this->get_script_data_filter_result(
@@ -317,8 +306,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 *
 	 * @ticket 60761
 	 * @ticket 61512
-	 *
-	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_config_not_printed_when_empty_array() {
 		$filter = $this->get_script_data_filter_result(
@@ -336,8 +323,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 *
 	 * @ticket 60761
 	 * @ticket 61512
-	 *
-	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_config_not_printed_when_only_empty_arrays() {
 		$filter = $this->get_script_data_filter_result(
@@ -354,8 +339,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 *
 	 * @ticket 60761
 	 * @ticket 61512
-	 *
-	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_config_printed_correctly_with_nested_empty_array() {
 		$filter = $this->get_script_data_filter_result(
