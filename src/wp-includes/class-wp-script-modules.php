@@ -372,7 +372,7 @@ class WP_Script_Modules {
 	 *
 	 * The data will be embedded in the page HTML and can be read by Script Modules on page load.
 	 *
-	 * @since 6.6.0
+	 * @since 6.7.0
 	 *
 	 * Data can be associated with a Script Module via the
 	 * {@see "script_module_data_{$module_id}"} filter.
@@ -430,7 +430,7 @@ class WP_Script_Modules {
 			 *   }
 			 *   initMyScriptModuleWithData( data );
 			 *
-			 * @since 6.6.0
+			 * @since 6.7.0
 			 *
 			 * @param array $data The data associated with the Script Module.
 			 */
