@@ -49,6 +49,7 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
+    needs: setup-wordpress
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
