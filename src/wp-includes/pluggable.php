@@ -2064,7 +2064,9 @@ if ( ! function_exists( 'wp_password_change_notification' ) ) :
 		 */
 		if ( 0 !== strcasecmp( $user->user_email, get_option( 'admin_email' ) ) ) {
 
-			$switched_locale = switch_to_locale( get_admin_locale() );
+			$admin_user = get_user_by( 'email', get_option( 'admin_email' ) );
+
+			$switched_locale = $admin_user && switch_to_user_locale( $admin_user );
 
 			/* translators: %s: User name. */
 			$message = sprintf( __( 'Password changed for user: %s' ), $user->user_login ) . "\r\n";
