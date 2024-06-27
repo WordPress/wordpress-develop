@@ -46,7 +46,6 @@ services:
     volumes:
       - ./tools/local-env/php-config.ini:/usr/local/etc/php/conf.d/php-config.ini
       - ./:/var/www
-      -
 
     # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
     init: true
