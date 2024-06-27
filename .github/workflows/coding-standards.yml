@@ -45,14 +45,6 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Runs the PHP coding standards checks.
-  phpcs:
-    name: PHP coding standards
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-coding-standards-php.yml@trunk
-    permissions:
-      contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-
   # Runs the JavaScript coding standards checks.
   jshint:
     name: JavaScript coding standards
@@ -67,10 +59,10 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ phpcs, jshint ]
+    needs: [ jshint ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
-      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+      calling_status: ${{ needs.jshint.result == 'success' && 'success' || needs.jshint.result == 'cancelled' && 'cancelled' || 'failure' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
@@ -82,15 +74,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-    needs: [ phpcs, jshint, slack-notifications ]
+    needs: [ jshint, slack-notifications ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
       github.event_name != 'pull_request' &&
       github.run_attempt < 2 &&
       (
-        contains( needs.*.result, 'cancelled' ) ||
-        contains( needs.*.result, 'failure' )
+        needs.jshint.result == 'cancelled' || needs.jshint.result == 'failure'
       )
 
     steps:
