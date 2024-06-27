@@ -86,12 +86,12 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -104,7 +104,7 @@ jobs:
 
       - name: Cache Composer dependencies
         if: ${{ env.COMPOSER_INSTALL == true }}
-        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         env:
           cache-name: cache-composer-dependencies
         with:
@@ -114,13 +114,13 @@ jobs:
       - name: Install Composer dependencies
         if: ${{ env.COMPOSER_INSTALL == true }}
         run: |
-          docker-compose run --rm php composer --version
-          docker-compose run --rm php composer install
+          docker compose run --rm php composer --version
+          docker compose run --rm php composer install
 
       - name: Docker debug information
         run: |
           docker -v
-          docker-compose -v
+          docker compose -v
 
       - name: Start Docker environment
         run: |
@@ -146,11 +146,11 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker-compose run --rm mysql mysql --version
-          docker-compose run --rm php php --version
-          docker-compose run --rm php php -m
-          docker-compose run --rm php php -i
-          docker-compose run --rm php locale -a
+          docker compose run --rm mysql mysql --version
+          docker compose run --rm php php --version
+          docker compose run --rm php php -m
+          docker compose run --rm php php -i
+          docker compose run --rm php locale -a
 
       - name: Install WordPress
         run: npm run env:install
