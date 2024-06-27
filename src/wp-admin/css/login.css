@@ -196,13 +196,13 @@ p {
 	margin-bottom: 0;
 }
 
-p.forgetmenot .tooltip {
+.login form .forgetmenot .tooltip {
     position: relative;
     display: inline-block;
     cursor: help;
 }
 
-p.forgetmenot .tooltip .tooltiptext {
+.login form .forgetmenot .tooltip .tooltiptext {
     visibility: hidden;
     width: 160px;
     background-color: #333;
@@ -219,7 +219,7 @@ p.forgetmenot .tooltip .tooltiptext {
     transition: opacity 0.3s;
 }
 
-p.forgetmenot .tooltip:hover .tooltiptext {
+.login form .forgetmenot .tooltip:hover .tooltiptext {
     visibility: visible;
     opacity: 1;
 }
