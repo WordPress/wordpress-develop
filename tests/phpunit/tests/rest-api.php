@@ -960,44 +960,41 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_rest_preload_api_request_removes_trailing_slashes
+	 *
 	 * @ticket 51636
+	 * @ticket 57048
+	 *
+	 * @param string $preload_path          The path to preload.
+	 * @param string $expected_preload_path Expected path after preloading.
 	 */
-	public function test_rest_preload_api_request_removes_trailing_slashes() {
+	public function test_rest_preload_api_request_removes_trailing_slashes( $preload_path, $expected_preload_path ) {
 		$rest_server               = $GLOBALS['wp_rest_server'];
 		$GLOBALS['wp_rest_server'] = null;
 
-		$preload_paths = array(
-			'/wp/v2/types//',
-			array( '/wp/v2/media///', 'OPTIONS' ),
-			'////',
-			'/wp/v2/types//?////',
-			'/wp/v2/types//?fields////',
-			'/wp/v2/types//?fields=////',
-			'/wp/v2/types//?_fields=foo,bar////',
-			'/wp/v2/types////?_fields=foo,bar&limit=1000////',
-		);
-
-		$preload_data = array_reduce(
-			$preload_paths,
-			'rest_preload_api_request',
-			array()
-		);
-
-		$expected_urls = array(
-			'/wp/v2/types',
-			'OPTIONS',
-			'/',
-			'/wp/v2/types/?////',
-			'/wp/v2/types/?fields////',
-			'/wp/v2/types/?fields=////',
-			'/wp/v2/types/?_fields=foo,bar////',
-			'/wp/v2/types/?_fields=foo,bar&limit=1000////',
-		);
-
-		$this->assertSame( array_keys( $preload_data ), $expected_urls );
-		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
+		$actual_preload_path = key( rest_preload_api_request( array(), $preload_path ) );
+		$this->assertSame( $expected_preload_path, $actual_preload_path );
 
 		$GLOBALS['wp_rest_server'] = $rest_server;
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_rest_preload_api_request_removes_trailing_slashes() {
+		return array(
+			'no query part'                     => array( '/wp/v2/types//', '/wp/v2/types' ),
+			'no query part, more slashes'       => array( '/wp/v2/media///', '/wp/v2/media' ),
+			'only slashes'                      => array( '////', '/' ),
+			'empty path'                        => array( '', '/' ),
+			'no query parameters'               => array( '/wp/v2/types//?////', '/wp/v2/types?' ),
+			'no query parameters, with slashes' => array( '/wp/v2/types//?fields////', '/wp/v2/types?fields' ),
+			'query parameters with no values'   => array( '/wp/v2/types//?fields=////', '/wp/v2/types?fields=' ),
+			'single query parameter'            => array( '/wp/v2/types//?_fields=foo,bar////', '/wp/v2/types?_fields=foo,bar' ),
+			'multiple query parameters'         => array( '/wp/v2/types////?_fields=foo,bar&limit=1000////', '/wp/v2/types?_fields=foo,bar&limit=1000' ),
+		);
 	}
 
 	/**
