@@ -62,6 +62,7 @@ jobs:
         with:
           name: built-wp-${{ github.sha }}
           path: |
+            build/*
             !*.git
             !*/node_modues/*
             !packagehash.txt
