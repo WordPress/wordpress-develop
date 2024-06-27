@@ -42,7 +42,7 @@ on:
         default: false
 env:
   LOCAL_PHP: ${{ inputs.php }}-fpm
-  LOCAL_PHPUNIT: ${{ input.phpunit && input.phpunit || input.php }}-fpm
+  LOCAL_PHPUNIT: ${{ inputs.phpunit && inputs.phpunit || inputs.php }}-fpm
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
@@ -101,7 +101,7 @@ jobs:
           cache-name: cache-composer-dependencies
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-php-${{ input.php }}-composer-${{ hashFiles('**/composer.lock') }}
+          key: ${{ runner.os }}-php-${{ inputs.php }}-composer-${{ hashFiles('**/composer.lock') }}
 
       - name: Install Composer dependencies
         if: ${{ env.COMPOSER_INSTALL == true }}
@@ -120,7 +120,7 @@ jobs:
 
       # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
       - name: Start the Memcached server.
-        if: ${{ input.memcached }}
+        if: ${{ inputs.memcached }}
         run: |
           cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
           docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
@@ -148,25 +148,25 @@ jobs:
         run: npm run env:install
 
       - name: Run slow PHPUnit tests
-        if: ${{ input.split_slow }}
+        if: ${{ inputs.split_slow }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
 
       - name: Run PHPUnit tests for single site excluding slow tests
-        if: ${{ input.php < '7.0' && ! input.split_slow && ! input.multisite }}
+        if: ${{ inputs.php < '7.0' && ! inputs.split_slow && ! inputs.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-required
 
       - name: Run PHPUnit tests for Multisite excluding slow tests
-        if: ${{ input.php < '7.0' && ! input.split_slow && input.multisite }}
+        if: ${{ inputs.php < '7.0' && ! inputs.split_slow && inputs.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-excluded,oembed-headers
 
       - name: Run PHPUnit tests
-        if: ${{ input.php >= '7.0' }}
+        if: ${{ inputs.php >= '7.0' }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
 
       - name: Run AJAX tests
-        if: ${{ ! input.multisite && ! input.split_slow }}
+        if: ${{ ! inputs.multisite && ! inputs.split_slow }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
 
       - name: Run external HTTP tests
-        if: ${{ ! input.multisite && ! input.split_slow }}
+        if: ${{ ! inputs.multisite && ! inputs.split_slow }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group external-http
