@@ -80,6 +80,7 @@ jobs:
       php: ${{ matrix.php }}
       phpunit: ${{ matrix.phpunit && matrix.phpunit || matrix.php }}-fpm
       multisite: ${{ matrix.multisite }}
+      split_slow: ${{ matrix.split_slow }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
 
