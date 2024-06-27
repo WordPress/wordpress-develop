@@ -127,7 +127,7 @@ function get_admin_locale() {
 		$locale = get_user_locale( $admin_user );
 	}
 
-	return $locale ? $locale : get_locale();
+	return $locale ?? get_locale();
 }
 
 /**
