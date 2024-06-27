@@ -606,24 +606,27 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$template->area = $template_file['area'];
 	}
 
+	$blocks               = parse_blocks( $template->content );
+	$hooked_blocks        = get_hooked_blocks();
+	$has_hooked_blocks    = ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' );
 	$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
 	$after_block_visitor  = null;
-	$hooked_blocks        = get_hooked_blocks();
-	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
+
+	if ( $has_hooked_blocks ) {
 		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
 		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
-		$blocks               = parse_blocks( $template->content );
-		if ( 'wp_template_part' === $template->type ) {
-			/**
-			 * In order for hooked blocks to be inserted at positions first_child and last_child in a template part,
-			 * we need to create a mock template part block and traverse it.
-			*/
-			$mock_template_part_block = _make_mock_parsed_block( 'core/template-part', array(), $blocks );
-			$content                  = traverse_and_serialize_blocks( array( $mock_template_part_block ), $before_block_visitor, $after_block_visitor );
-			$template->content        = remove_serialized_parent_block( $content );
-		} else {
-			$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
-		}
+	}
+
+	if ( 'wp_template_part' === $template->type && $has_hooked_blocks ) {
+		/**
+		 * In order for hooked blocks to be inserted at positions first_child and last_child in a template part,
+		 * we need to create a mock template part block and traverse it.
+		 */
+		$mock_template_part_block = _make_mock_parsed_block( 'core/template-part', array(), $blocks );
+		$content                  = traverse_and_serialize_blocks( array( $mock_template_part_block ), $before_block_visitor, $after_block_visitor );
+		$template->content        = remove_serialized_parent_block( $content );
+	} else {
+		$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 	}
 
 	return $template;
