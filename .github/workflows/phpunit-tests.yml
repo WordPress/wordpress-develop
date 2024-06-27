@@ -21,115 +21,35 @@ on:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-    # The concurrency group contains the workflow name and the branch name for pull requests
-    # or the commit hash for any other events.
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
-env:
-  LOCAL_DIR: build
-  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
-  COMPOSER_INSTALL: ${{ false }}
-  # Controls which npm script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
-  PHPUNIT_SCRIPT: php
-  LOCAL_PHP_MEMCACHED: ${{ false }}
-  SLOW_TESTS: 'external-http,media,restapi'
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
 
 jobs:
-  # Sets up WordPress for testing or development use.
   #
-  # Performs the following steps:
-  # - Cancels all previous workflow runs for pull requests that have not completed.
-  # - Checks out the repository.
-  # - Logs debug information about the GitHub Action runner.
-  # - Installs NodeJS.
-  # _ Installs npm dependencies.
-  # - Builds WordPress to run from the `build` directory.
-  # - Creates a ZIP file of compiled WordPress.
-  # - Uploads ZIP file as an artifact.
-  setup-wordpress:
-    name: Setup WordPress
-    runs-on: ubuntu-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-
-      - name: Log debug information
-        run: |
-          echo "$GITHUB_REF"
-          echo "$GITHUB_EVENT_NAME"
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
-          php --version
-          php -i
-          locale -a
-
-      - name: Set up Node.js
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build WordPress
-        run: npm run build
-
-      - name: Create ZIP artifact
-        uses: thedoctor0/zip-release@a24011d8d445e4da5935a7e73c1f98e22a439464 # v0.7.1
-        with:
-          filename: built-wp-${{ github.sha }}.zip
-          exclusions: '*.git* /*node_modules/* packagehash.txt'
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
-        with:
-          name: built-wp-${{ github.sha }}
-          path: built-wp-${{ github.sha }}.zip
-          if-no-files-found: error
-
-  # Runs the PHPUnit tests for WordPress.
+  # Creates a PHPUnit test job for each PHP combination.
   #
-  # Performs the following steps:
-  # - Sets environment variables.
-  # - Sets up the environment variables needed for testing with memcached (if desired).
-  # - Downloads the built WordPress artifact from the previous job.
-  # - Unzips the artifact.
-  # - Installs NodeJS.
-  # _ Installs npm dependencies.
-  # - Configures caching for Composer.
-  # _ Installs Composer dependencies (if desired).
-  # - Logs Docker debug information (about the Docker installation within the runner).
-  # - Starts the WordPress Docker container.
-  # - Starts the Memcached server after the Docker network has been created (if desired).
-  # - Logs general debug information about the runner.
-  # - Logs the running Docker containers.
-  # - Logs debug information from inside the WordPress Docker container.
-  # - Logs debug information about what's installed within the WordPress Docker containers.
-  # - Install WordPress within the Docker container.
-  # - Run the PHPUnit tests.
-  # - Checks out the WordPress Test reporter repository.
-  # - Reconnect the directory to the Git repository.
-  # - Submit the test results to the WordPress.org host test results.
   test-php:
-    name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.split_slow && ' slow tests' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
-    needs: setup-wordpress
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    name: PHP ${{ matrix.php }}
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-phpunit-tests-v1.yml@improve/reusable-workflows-for-old-branches
+    permissions:
+      contents: read
+    secrets: inherit
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
-        php: [ '5.3', '5.4', '5.5' ]
         os: [ ubuntu-latest ]
-        memcached: [ false ]
+        php: [ '5.3', '5.4', '5.5' ]
         split_slow: [ false, true ]
         multisite: [ false, true ]
+        memcached: [ false ]
+
         include:
           # Include jobs for PHP 7.3 with memcached.
           - php: '7.3'
@@ -219,141 +139,22 @@ jobs:
             split_slow: true
             multisite: true
 
-    env:
-      LOCAL_PHP: ${{ matrix.php }}-fpm
-      LOCAL_PHPUNIT: ${{ matrix.phpunit && matrix.phpunit || matrix.php }}-fpm
-      LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
-      PHPUNIT_CONFIG: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
-
-    steps:
-      - name: Configure environment variables
-        run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
-
-      - name: Download the built WordPress artifact
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: built-wp-${{ github.sha }}
-
-      - name: Unzip built artifact
-        run: unzip built-wp-${{ github.sha }}.zip
-
-      - name: Set up Node.js
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Cache Composer dependencies
-        if: ${{ env.COMPOSER_INSTALL == true }}
-        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
-        env:
-          cache-name: cache-composer-dependencies
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
-
-      - name: Install Composer dependencies
-        if: ${{ env.COMPOSER_INSTALL == true }}
-        run: |
-          docker-compose run --rm php composer --version
-          docker-compose run --rm php composer install
-
-      - name: Docker debug information
-        run: |
-          docker -v
-          docker-compose -v
-
-      - name: Start Docker environment
-        run: |
-          npm run env:start
-
-      # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
-      - name: Start the Memcached server.
-        if: ${{ matrix.memcached }}
-        run: |
-          cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
-          docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
-
-      - name: General debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
-
-      - name: Log running Docker containers
-        run: docker ps -a
-
-      - name: WordPress Docker container debug information
-        run: |
-          docker-compose run --rm mysql mysql --version
-          docker-compose run --rm php php --version
-          docker-compose run --rm php php -m
-          docker-compose run --rm php php -i
-          docker-compose run --rm php locale -a
-
-      - name: Install WordPress
-        run: npm run env:install
-
-      - name: Run slow PHPUnit tests
-        if: ${{ matrix.split_slow }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
-
-      - name: Run PHPUnit tests for single site excluding slow tests
-        if: ${{ matrix.php < '7.0' && ! matrix.split_slow && ! matrix.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-required
-
-      - name: Run PHPUnit tests for Multisite excluding slow tests
-        if: ${{ matrix.php < '7.0' && ! matrix.split_slow && matrix.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-excluded,oembed-headers
-
-      - name: Run PHPUnit tests
-        if: ${{ matrix.php >= '7.0' }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
-
-      - name: Run AJAX tests
-        if: ${{ ! matrix.multisite && ! matrix.split_slow }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
-
-      - name: Run ms-files tests as a multisite install
-        if: ${{ matrix.multisite && ! matrix.split_slow }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --group ms-files
-
-      - name: Run external HTTP tests
-        if: ${{ ! matrix.multisite && ! matrix.split_slow }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group external-http
-
-      - name: Checkout the WordPress Test Reporter
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && matrix.report }}
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-        with:
-          repository: 'WordPress/phpunit-test-runner'
-          path: 'test-runner'
-
-      - name: Set up the Git repository
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && matrix.report }}
-        run: |
-          git init
-          git remote add origin https://github.com/WordPress/wordpress-develop.git
-          git fetch
-          git reset origin/trunk
-
-      - name: Submit test results to the WordPress.org host test results
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && matrix.report }}
-        env:
-          WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
-        run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      phpunit: ${{ matrix.phpunit && matrix.phpunit || matrix.php }}
+      multisite: ${{ matrix.multisite }}
+      split_slow: ${{ matrix.split_slow }}
+      memcached: ${{ matrix.memcached }}
+      phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
 
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
-    needs: [ setup-wordpress, test-php ]
+    permissions:
+      actions: read
+      contents: read
+    needs: [ test-php ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ needs.test-php.result == 'success' && 'success' || needs.test-php.result == 'cancelled' && 'cancelled' || 'failure' }}
@@ -366,6 +167,8 @@ jobs:
   failed-workflow:
     name: Failed workflow tasks
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     needs: [ test-php, slack-notifications ]
     if: |
       always() &&
@@ -378,7 +181,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           retries: 2
           retry-exempt-status-codes: 418
