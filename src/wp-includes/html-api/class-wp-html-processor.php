@@ -1694,13 +1694,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Generator for a foreach loop to step through each class name for the matched tag.
+	 * Generator that yields each class name for the matched tag.
 	 *
-	 * This generator function is designed to be used inside a "foreach" loop.
+	 * Class names will be lowercased and unique class names will be yielded once.
 	 *
 	 * Example:
 	 *
-	 *     $p = WP_HTML_Processor::create_fragment( "<div class='free &lt;egg&lt;\tlang-en'>" );
+	 *     $p = new WP_HTML_Tag_Processor( "<div class='FREE &lt;egg&lt;\tlang-en'>" );
 	 *     $p->next_tag();
 	 *     foreach ( $p->class_list() as $class_name ) {
 	 *         echo "{$class_name} ";

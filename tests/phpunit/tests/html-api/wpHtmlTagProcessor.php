@@ -2212,6 +2212,20 @@ HTML;
 	}
 
 	/**
+	 * @ticket 61520
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_lowercases_class_names() {
+		$processor = new WP_HTML_Tag_Processor( '<div class="A a B b">' );
+		$processor->next_tag();
+
+		$found_classes = iterator_to_array( $processor->class_list() );
+
+		$this->assertSame( array( 'a', 'b' ), $found_classes, 'Found incorrect class_names with mixed casing attribute value.' );
+	}
+
+	/**
 	 * @ticket 59209
 	 *
 	 * @covers WP_HTML_Tag_Processor::has_class
