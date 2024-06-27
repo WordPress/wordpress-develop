@@ -159,6 +159,7 @@ jQuery( function($) {
 			}
 
 			$('input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):visible, textarea:visible', form).val('');
+			$('select', form).prop('selectedIndex',0);
 		});
 
 		return false;
