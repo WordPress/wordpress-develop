@@ -78,7 +78,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
-      phpunit: ${{ matrix.phpunit && matrix.phpunit || matrix.php }}-fpm
+      phpunit: ${{ matrix.phpunit && matrix.phpunit || matrix.php }}
       multisite: ${{ matrix.multisite }}
       split_slow: ${{ matrix.split_slow }}
       memcached: ${{ matrix.memcached }}
