@@ -70,7 +70,6 @@ jobs:
   # - Run the PHPUnit tests.
   test-php:
     name: PHP ${{ inputs.php }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.memcached && ' with memcached' || '' }}
-    needs: setup-wordpress
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
 
