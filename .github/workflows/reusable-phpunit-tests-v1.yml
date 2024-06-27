@@ -1,0 +1,172 @@
+##
+# A reusable workflow that runs the PHPUnit test suite with the specified configuration.
+##
+name: Run PHPUnit tests
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run tests on'
+        required: false
+        type: 'string'
+        default: 'ubuntu-latest'
+      php:
+        description: 'The version of PHP to use, in the format of X.Y'
+        required: true
+        type: 'string'
+      phpunit:
+        description: 'The PHPUnit version to use when running tests. See .env for details about valid values.'
+        required: false
+        type: 'string'
+        default: ${{ inputs.php }}-fpm
+      multisite:
+        description: 'Whether to run tests as multisite'
+        required: false
+        type: 'boolean'
+        default: false
+      memcached:
+        description: 'Whether to test with memcached enabled'
+        required: false
+        type: 'boolean'
+        default: false
+      phpunit-config:
+        description: 'The PHPUnit configuration file to use'
+        required: false
+        type: 'string'
+        default: 'phpunit.xml.dist'
+      allow-errors:
+        description: 'Whether to continue when test errors occur.'
+        required: false
+        type: boolean
+        default: false
+env:
+  LOCAL_PHP: ${{ inputs.php }}-fpm
+  LOCAL_PHPUNIT: ${{ input.phpunit && input.phpunit || input.php }}-fpm
+  LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
+  PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  SLOW_TESTS: 'external-http,media'
+
+jobs:
+  # Runs the PHPUnit tests for WordPress.
+  #
+  # Performs the following steps:
+  # - Sets environment variables.
+  # - Sets up the environment variables needed for testing with memcached (if desired).
+  # - Downloads the built WordPress artifact from the previous job.
+  # - Installs NodeJS.
+  # _ Installs npm dependencies.
+  # - Configures caching for Composer.
+  # _ Installs Composer dependencies (if desired).
+  # - Logs Docker debug information (about the Docker installation within the runner).
+  # - Starts the WordPress Docker container.
+  # - Starts the Memcached server after the Docker network has been created (if desired).
+  # - Logs general debug information about the runner.
+  # - Logs the running Docker containers.
+  # - Logs debug information from inside the WordPress Docker container.
+  # - Logs debug information about what's installed within the WordPress Docker containers.
+  # - Install WordPress within the Docker container.
+  # - Run the PHPUnit tests.
+  test-php:
+    name: PHP ${{ inputs.php }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.memcached && ' with memcached' || '' }}
+    needs: setup-wordpress
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Configure environment variables
+        run: |
+          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
+          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+
+      - name: Download the built WordPress artifact
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: built-wp-${{ github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Cache Composer dependencies
+        if: ${{ env.COMPOSER_INSTALL == true }}
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-${{ input.php }}-composer-${{ hashFiles('**/composer.lock') }}
+
+      - name: Install Composer dependencies
+        if: ${{ env.COMPOSER_INSTALL == true }}
+        run: |
+          docker-compose run --rm php composer --version
+          docker-compose run --rm php composer install
+
+      - name: Docker debug information
+        run: |
+          docker -v
+          docker-compose -v
+
+      - name: Start Docker environment
+        run: |
+          npm run env:start
+
+      # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
+      - name: Start the Memcached server.
+        if: ${{ input.memcached }}
+        run: |
+          cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
+          docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
+
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+
+      - name: Log running Docker containers
+        run: docker ps -a
+
+      - name: WordPress Docker container debug information
+        run: |
+          docker-compose run --rm mysql mysql --version
+          docker-compose run --rm php php --version
+          docker-compose run --rm php php -m
+          docker-compose run --rm php php -i
+          docker-compose run --rm php locale -a
+
+      - name: Install WordPress
+        run: npm run env:install
+
+      - name: Run slow PHPUnit tests
+        if: ${{ input.split_slow }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
+
+      - name: Run PHPUnit tests for single site excluding slow tests
+        if: ${{ input.php < '7.0' && ! input.split_slow && ! input.multisite }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-required
+
+      - name: Run PHPUnit tests for Multisite excluding slow tests
+        if: ${{ input.php < '7.0' && ! input.split_slow && input.multisite }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-excluded,oembed-headers
+
+      - name: Run PHPUnit tests
+        if: ${{ input.php >= '7.0' }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
+
+      - name: Run AJAX tests
+        if: ${{ ! input.multisite && ! input.split_slow }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
+
+      - name: Run external HTTP tests
+        if: ${{ ! input.multisite && ! input.split_slow }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group external-http
