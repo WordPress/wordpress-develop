@@ -972,7 +972,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$rest_server               = $GLOBALS['wp_rest_server'];
 		$GLOBALS['wp_rest_server'] = null;
 
-		$actual_preload_path = key( rest_preload_api_request( array(), $preload_path ) );
+		$actual_preload_path = rest_preload_api_request( array(), $preload_path );
+		if ( '' !== $preload_path ) {
+			$actual_preload_path = key( $actual_preload_path );
+		}
 		$this->assertSame( $expected_preload_path, $actual_preload_path );
 
 		$GLOBALS['wp_rest_server'] = $rest_server;
@@ -988,7 +991,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'no query part'                     => array( '/wp/v2/types//', '/wp/v2/types' ),
 			'no query part, more slashes'       => array( '/wp/v2/media///', '/wp/v2/media' ),
 			'only slashes'                      => array( '////', '/' ),
-			'empty path'                        => array( '', '/' ),
+			'empty path'                        => array( '', array() ),
 			'no query parameters'               => array( '/wp/v2/types//?////', '/wp/v2/types?' ),
 			'no query parameters, with slashes' => array( '/wp/v2/types//?fields////', '/wp/v2/types?fields' ),
 			'query parameters with no values'   => array( '/wp/v2/types//?fields=////', '/wp/v2/types?fields=' ),
