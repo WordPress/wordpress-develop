@@ -788,8 +788,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @todo make aware of queue of elements, because stack operations have already been done by now.
-	 *
 	 * @return string[]|null Array of tag names representing path to matched node, if matched, otherwise NULL.
 	 */
 	public function get_breadcrumbs() {
@@ -861,7 +859,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return int Nesting-depth of current location in the document.
 	 */
 	public function get_current_depth() {
-		return $this->state->stack_of_open_elements->count();
+		return count( $this->get_breadcrumbs() );
 	}
 
 	/**
