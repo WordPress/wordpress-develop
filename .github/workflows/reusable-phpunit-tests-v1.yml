@@ -56,6 +56,7 @@ jobs:
   # - Sets up the environment variables needed for testing with memcached (if desired).
   # - Downloads the built WordPress artifact from the previous job.
   # - Installs NodeJS.
+  # - Build WordPress
   # _ Installs npm dependencies.
   # - Configures caching for Composer.
   # _ Installs Composer dependencies (if desired).
@@ -92,6 +93,9 @@ jobs:
 
       - name: Install Dependencies
         run: npm ci
+
+      - name: Build WordPress
+        run: npm run build
 
       - name: Cache Composer dependencies
         if: ${{ env.COMPOSER_INSTALL == true }}
