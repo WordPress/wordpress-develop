@@ -859,7 +859,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return int Nesting-depth of current location in the document.
 	 */
 	public function get_current_depth() {
-		return count( $this->get_breadcrumbs() );
+		return $this->is_virtual()
+			? count( $this->get_breadcrumbs() )
+			: $this->state->stack_of_open_elements->count();
 	}
 
 	/**
