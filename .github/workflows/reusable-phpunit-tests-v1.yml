@@ -50,6 +50,7 @@ env:
   LOCAL_PHPUNIT: ${{ inputs.phpunit && inputs.phpunit || inputs.php }}-fpm
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
+  PHPUNIT_SCRIPT: php
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
   SLOW_TESTS: 'external-http,media'
 
