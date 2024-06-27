@@ -25,6 +25,11 @@ on:
         required: false
         type: 'boolean'
         default: false
+      split_slow:
+        description: 'Whether to run slow tests group.'
+        required: false
+        type: 'boolean'
+        default: false
       memcached:
         description: 'Whether to test with memcached enabled'
         required: false
