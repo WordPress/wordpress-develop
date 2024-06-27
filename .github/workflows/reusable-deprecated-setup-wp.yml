@@ -63,7 +63,7 @@ jobs:
           name: built-wp-${{ github.sha }}
           path: |
             build/*
-            !*.git
-            !*/node_modues/*
+            !*.git/**
+            !**/node_modules/**
             !packagehash.txt
           if-no-files-found: error
