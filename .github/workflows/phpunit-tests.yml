@@ -31,17 +31,8 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Sets up WordPress for testing or development use.
-  setup-wordpress:
-    name: Setup WordPress
-    uses: desrosj/wordpress-develop/.github/workflows/reusable-deprecated-setup-wp.yml@improve/reusable-workflows-for-old-branches
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-    permissions:
-      contents: read
-    secrets: inherit
-
   #
-  # Creates a PHPUnit test job for each PHP/MySQL combination.
+  # Creates a PHPUnit test job for each PHP combination.
   #
   test-php:
     name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
@@ -49,7 +40,6 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    needs: setup-wordpress
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
