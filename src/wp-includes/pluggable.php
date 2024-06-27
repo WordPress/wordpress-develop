@@ -2162,7 +2162,9 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 
 		if ( 'user' !== $notify && true === $send_notification_to_admin ) {
 
-			$switched_locale = switch_to_locale( get_admin_locale() );
+			$admin_user = get_user_by( 'email', get_option( 'admin_email' ) );
+
+			$switched_locale = $admin_user && switch_to_user_locale( $admin_user );
 
 			/* translators: %s: Site title. */
 			$message = sprintf( __( 'New user registration on your site %s:' ), $blogname ) . "\r\n\r\n";
