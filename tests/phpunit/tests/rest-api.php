@@ -965,8 +965,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @ticket 51636
 	 * @ticket 57048
 	 *
-	 * @param string $preload_path          The path to preload.
-	 * @param string $expected_preload_path Expected path after preloading.
+	 * @param string       $preload_path          The path to preload.
+	 * @param array|string $expected_preload_path Expected path after preloading.
 	 */
 	public function test_rest_preload_api_request_removes_trailing_slashes( $preload_path, $expected_preload_path ) {
 		$rest_server               = $GLOBALS['wp_rest_server'];
