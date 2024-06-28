@@ -1694,9 +1694,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Generator that yields each class name for the matched tag.
+	 * Generator for a foreach loop to step through each class name for the matched tag.
 	 *
-	 * Class names will be lowercased and unique class names will be yielded once.
+	 * This generator function is designed to be used inside a "foreach" loop.
+	 * This yields an ASCII-lowercased version of each class name.
 	 *
 	 * Example:
 	 *
