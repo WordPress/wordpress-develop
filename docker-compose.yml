@@ -32,7 +32,7 @@ services:
   # The PHP container.
   ##
   php:
-    image: wordpressdevelop/php:${LOCAL_PHP-5.6-fpm}
+    image: wordpressdevelop/php:${LOCAL_PHP-5.5-fpm}
 
     networks:
       - wpdevnet
@@ -54,7 +54,8 @@ services:
   # The MySQL container.
   ##
   mysql:
-    image: amd64/${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-5.6}
+    image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-5.6}
+    platform: linux/amd64
 
     networks:
       - wpdevnet
