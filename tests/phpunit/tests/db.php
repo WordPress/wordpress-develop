@@ -2456,7 +2456,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertTrue( $wpdb->use_mysqli );
 	}
 
-     /**
+	/**
 	 * Tests that the current value of `suppress_errors` is sent to the 'suppress_query_error' filter.
 	 *
 	 * @ticket 55414
