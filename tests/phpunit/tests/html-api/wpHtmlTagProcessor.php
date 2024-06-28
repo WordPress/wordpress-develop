@@ -2875,4 +2875,38 @@ HTML
 			'Should have properly applied the update from in front of the cursor.'
 		);
 	}
+
+	/**
+	 * @ticket TBD
+	 *
+	 * @covers ::add_class
+	 */
+	public function test_add_class_does_not_duplicate_case_insensitive_classes() {
+		$processor = new WP_HTML_Tag_Processor( '<div class="UPPER lower">' );
+		$processor->next_tag();
+		$processor->add_class( 'upper' );
+		$processor->add_class( 'LOWER' );
+		$this->assertSame(
+			'<div class="UPPER lower">',
+			$processor->get_updated_html(),
+			'::add_class added case-insensitive duplicate class names.'
+		);
+	}
+
+	/**
+	 * @ticket TBD
+	 *
+	 * @covers ::remove_class
+	 */
+	public function test_remove_class_removes_case_insensitive_matches() {
+		$processor = new WP_HTML_Tag_Processor( '<div class="REMOVE-a remove-A REMOVE-b remove-B Keep">' );
+		$processor->next_tag();
+		$processor->remove_class( 'remove-a' );
+		$processor->remove_class( 'REMOVE-B' );
+		$this->assertSame(
+			'<div class="Keep">',
+			$processor->get_updated_html(),
+			'::remove_class did not remove case-insensitive class name matches.'
+		);
+	}
 }
