@@ -53,7 +53,8 @@ services:
   # The MySQL container.
   ##
   mysql:
-    image: amd64/${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
+    image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
+    platform: linux/amd64
 
     networks:
       - wpdevnet
@@ -81,10 +82,10 @@ services:
       - wpdevnet
 
     environment:
-      LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
-      LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
-      PHP_FPM_UID: ${PHP_FPM_UID-1000}
-      PHP_FPM_GID: ${PHP_FPM_GID-1000}
+      - LOCAL_PHP_XDEBUG=${LOCAL_PHP_XDEBUG-false}
+      - LOCAL_PHP_MEMCACHED=${LOCAL_PHP_MEMCACHED-false}
+      - PHP_FPM_UID=${PHP_FPM_UID-1000}
+      - PHP_FPM_GID=${PHP_FPM_GID-1000}
 
     volumes:
       - ./:/var/www
