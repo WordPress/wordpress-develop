@@ -1700,7 +1700,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * Example:
 	 *
-	 *     $p = new WP_HTML_Tag_Processor( "<div class='FREE &lt;egg&lt;\tlang-en'>" );
+	 *     $p = WP_HTML_Processor::create_fragment( "<div class='FREE &lt;egg&lt;\tlang-en'>" );
 	 *     $p->next_tag();
 	 *     foreach ( $p->class_list() as $class_name ) {
 	 *         echo "{$class_name} ";
