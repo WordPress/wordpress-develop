@@ -679,12 +679,14 @@ class WP_HTML_Tag_Processor {
 	 *     // Add the `wp-block-group` class, remove the `wp-group` class.
 	 *     $classname_updates = array(
 	 *         // Indexed by a comparable class name.
-	 *         'wp-block-group' => WP_HTML_Tag_Processor::ADD_CLASS,
-	 *         'wp-group'       => WP_HTML_Tag_Processor::REMOVE_CLASS
+	 *         'wp-block-group' => [ WP_HTML_Tag_Processor::ADD_CLASS, 'wp-block-group'],
+	 *         'wp-group'       => [ WP_HTML_Tag_Processor::REMOVE_CLASS ],
 	 *     );
 	 *
 	 * @since 6.2.0
-	 * @var bool[]
+	 * @since 6.7.0 Changed the structure of values to an array
+	 *
+	 * @var array[]
 	 */
 	private $classname_updates = array();
 
@@ -2203,13 +2205,13 @@ class WP_HTML_Tag_Processor {
 
 			// If this class is marked for removal, start processing the next one.
 			$remove_class = (
-				isset( $this->classname_updates[ $name ] ) &&
-				self::REMOVE_CLASS === $this->classname_updates[ $name ]
+				isset( $this->classname_updates[ strtolower( $name ) ] ) &&
+				self::REMOVE_CLASS === $this->classname_updates[ strtolower( $name ) ][0]
 			);
 
 			// If a class has already been seen then skip it; it should not be added twice.
 			if ( ! $remove_class ) {
-				$this->classname_updates[ $name ] = self::SKIP_CLASS;
+				$this->classname_updates[ strtolower( $name ) ] = array( self::SKIP_CLASS );
 			}
 
 			if ( $remove_class ) {
@@ -2234,12 +2236,12 @@ class WP_HTML_Tag_Processor {
 		}
 
 		// Add new classes by appending those which haven't already been seen.
-		foreach ( $this->classname_updates as $name => $operation ) {
-			if ( self::ADD_CLASS === $operation ) {
+		foreach ( $this->classname_updates as $operation ) {
+			if ( self::ADD_CLASS === $operation[0] ) {
 				$modified = true;
 
 				$class .= strlen( $class ) > 0 ? ' ' : '';
-				$class .= $name;
+				$class .= $operation[1];
 			}
 		}
 
@@ -3126,7 +3128,10 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Adds a new class name to the currently matched tag.
 	 *
+	 * Adds unique CSS class names. Case insensitive duplicate classes will not be added.
+	 *
 	 * @since 6.2.0
+	 * @since 6.7.0 Class name matching for uniqueness is case-insensitive.
 	 *
 	 * @param string $class_name The class name to add.
 	 * @return bool Whether the class was set to be added.
@@ -3139,7 +3144,7 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		$this->classname_updates[ $class_name ] = self::ADD_CLASS;
+		$this->classname_updates[ strtolower( $class_name ) ] = array( self::ADD_CLASS, $class_name );
 
 		return true;
 	}
@@ -3147,7 +3152,10 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Removes a class name from the currently matched tag.
 	 *
+	 * Remove matching CSS class names. Case-insensitive matching class names will be removed.
+	 *
 	 * @since 6.2.0
+	 * @since 6.7.0 Class name matching for removal is case-insensitive.
 	 *
 	 * @param string $class_name The class name to remove.
 	 * @return bool Whether the class was set to be removed.
@@ -3161,7 +3169,7 @@ class WP_HTML_Tag_Processor {
 		}
 
 		if ( null !== $this->tag_name_starts_at ) {
-			$this->classname_updates[ $class_name ] = self::REMOVE_CLASS;
+			$this->classname_updates[ strtolower( $class_name ) ] = array( self::REMOVE_CLASS );
 		}
 
 		return true;
