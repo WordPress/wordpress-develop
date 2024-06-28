@@ -26,43 +26,18 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
-env:
-  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
-  # Controls which npm script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
-  PHPUNIT_SCRIPT: php
-  LOCAL_PHP_MEMCACHED: ${{ false }}
-  SLOW_TESTS: 'external-http,media,restapi'
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
 
 jobs:
-  # Runs the PHPUnit tests for WordPress.
-  #
-  # Performs the following steps:
-  # - Sets environment variables.
-  # - Sets up the environment variables needed for testing with memcached (if desired).
-  # - Installs Node.js.
-  # - Installs npm dependencies
-  # - Configures caching for Composer.
-  # - Installs Composer dependencies.
-  # - Logs Docker debug information (about the Docker installation within the runner).
-  # - Starts the WordPress Docker container.
-  # - Starts the Memcached server after the Docker network has been created (if desired).
-  # - Logs general debug information about the runner.
-  # - Logs the running Docker containers.
-  # - Logs debug information from inside the WordPress Docker container.
-  # - Logs debug information about what's installed within the WordPress Docker containers.
-  # - Install WordPress within the Docker container.
-  # - Run the PHPUnit tests.
-  # - Ensures version-controlled files are not modified or deleted.
-  # - Checks out the WordPress Test reporter repository.
-  # - Reconnect the directory to the Git repository.
-  # - Submit the test results to the WordPress.org host test results.
+  # Creates PHPUnit test jobs.
   test-php:
     name: PHP ${{ matrix.php }}
-    uses: desrosj/wordpress-develop/.github/workflows/reusable-phpunit-tests.yml@try/5.8-make-workflows-callable
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-phpunit-tests-v2.yml@improve/reusable-workflows-for-old-branches
     permissions:
       contents: read
-    secrets:
-        inherit
+    secrets: inherit
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
@@ -70,8 +45,20 @@ jobs:
         os: [ ubuntu-latest ]
         php: [ '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0' ]
         multisite: [ false, true ]
+        split_slow: [ false ]
         memcached: [ false ]
         include:
+          # Additional "slow" jobs for PHP 5.6.
+          - php: '5.6'
+            os: ubuntu-latest
+            memcached: false
+            multisite: false
+            split_slow: true
+          - php: '5.6'
+            os: ubuntu-latest
+            memcached: false
+            multisite: true
+            split_slow: true
           # Include jobs for PHP 7.4 with memcached.
           - php: '7.4'
             os: ubuntu-latest
@@ -91,6 +78,7 @@ jobs:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
       multisite: ${{ matrix.multisite }}
+      split_slow: ${{ matrix.split_slow }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: ${{ matrix.report || false }}
