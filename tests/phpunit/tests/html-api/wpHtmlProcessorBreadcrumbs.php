@@ -577,7 +577,7 @@ HTML
 	/**
 	 * Ensures that breadcrumbs are properly reported on virtual nodes.
 	 *
-	 * @dataProvider data_virtual_nodes_breadcrumbs_depth
+	 * @dataProvider data_virtual_nodes_breadcrumbs
 	 *
 	 * @ticket 61348
 	 */
@@ -594,7 +594,7 @@ HTML
 	/**
 	 * Ensures that get_current_depth reports the correct depth on virtual nodes.
 	 *
-	 * @dataProvider data_virtual_nodes_breadcrumbs_depth
+	 * @dataProvider data_virtual_nodes_breadcrumbs
 	 *
 	 * @ticket 61348
 	 */
@@ -613,7 +613,7 @@ HTML
 	 *
 	 * @return array[]
 	 */
-	public static function data_virtual_nodes_breadcrumbs_depth() {
+	public static function data_virtual_nodes_breadcrumbs() {
 		return array(
 			'Implied P tag opener on unmatched closer'    => array( '</p>', 1, array( 'HTML', 'BODY', 'P' ) ),
 			'Implied heading tag closer on heading child' => array( '<h1><h2>', 2, array( 'HTML', 'BODY' ) ),
