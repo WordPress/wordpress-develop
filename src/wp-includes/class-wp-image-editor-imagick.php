@@ -107,7 +107,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		 * Here, we just say no if you are missing it and aren't loading a jpeg.
 		 */
 		if ( ! method_exists( 'Imagick', 'setIteratorIndex' ) && 'image/jpeg' !== $mime_type ) {
-				return false;
+			return false;
 		}
 
 		// Imagick::queryFormats is not performant, so cache the results.
