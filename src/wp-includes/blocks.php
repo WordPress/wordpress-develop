@@ -1124,10 +1124,10 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 	 */
 	$existing_post = isset( $post->ID ) ? get_post( $post->ID ) : array();
 	$context       = (object) array_merge( (array) $existing_post, (array) $post );
-	// Convert the $context object to a WP_Post object.
+	// Given a post object ($context), get_post will return a WP_Post object.
 	$context = get_post( $context );
 	if ( 'wp_template_part' === $post_type ) {
-		// Convert the $context object to a WP_Block_Template object.
+		// Convert the $context WP_Post object to a WP_Block_Template object.
 		if ( isset( $post->ID ) ) {
 			$context = _build_block_template_result_from_post( $context );
 		} else {
