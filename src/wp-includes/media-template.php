@@ -1549,7 +1549,7 @@ function wp_print_media_templates() {
 			}
 		</style>
 		<h2><?php _ex( 'Site Icon Preview', 'noun' ); ?></h2>
-		<p><?php _e( 'As a browser icon and an app icon.' ); ?></p>
+		<p><?php _e( 'As an app icon and a browser icon.' ); ?></p>
 		<div class="site-icon-preview crop">
 			<div class="image-preview-wrap app-icon-preview">
 				<img id="preview-app-icon" src="{{ data.url }}" class="app-icon-preview" alt="<?php esc_attr_e( 'Preview as an app icon' ); ?>" />
