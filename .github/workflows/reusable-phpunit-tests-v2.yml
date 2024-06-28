@@ -59,26 +59,21 @@ jobs:
   #
   # Performs the following steps:
   # - Sets environment variables.
-  # - Sets up the environment variables needed for testing with memcached (if desired).
+  # - Checks out the repository.
   # - Installs Node.js.
   # - Installs npm dependencies
   # - Configures caching for Composer.
   # - Installs Composer dependencies.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
-  # - Starts the Memcached server after the Docker network has been created (if desired).
   # - Logs general debug information about the runner.
   # - Logs the running Docker containers.
   # - Logs debug information from inside the WordPress Docker container.
-  # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
   # - Ensures version-controlled files are not modified or deleted.
-  # - Checks out the WordPress Test reporter repository.
-  # - Reconnect the directory to the Git repository.
-  # - Submit the test results to the WordPress.org host test results.
   test-php:
-    name: PHP ${{ inputs.php }} / ${{ inputs.multisite && ' Multisite' || 'Single Site' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }}
+    name: PHP ${{ inputs.php }} / ${{ inputs.multisite && ' Multisite' || 'Single Site' }}${{ inputs.split_slow && ' slow tests' || '' }}${{ inputs.memcached && ' with memcached' || '' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
 
