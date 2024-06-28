@@ -79,6 +79,7 @@ jobs:
       php: ${{ matrix.php }}
       multisite: ${{ matrix.multisite }}
       split_slow: ${{ matrix.split_slow }}
+      test_ajax: ${{ matrix.multisite && false || true }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: ${{ matrix.report || false }}
