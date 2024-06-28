@@ -395,14 +395,14 @@ function get_the_category_rss( $type = null ) {
 	if ( ! empty( $categories ) ) {
 		foreach ( (array) $categories as $category ) {
 			$cat_name = sanitize_term_field( 'name', $category->name, $category->term_id, 'category', $filter );
-			$cats[$cat_name] = $category;
+			$cats[ $cat_name ] = $category;
 		}
 	}
 
 	if ( ! empty( $tags ) ) {
 		foreach ( (array) $tags as $tag ) {
 			$cat_name = sanitize_term_field( 'name', $tag->name, $tag->term_id, 'post_tag', $filter );
-			$cats[$cat_name] = $tag;
+			$cats[ $cat_name ] = $tag;
 		}
 	}
 
@@ -411,12 +411,12 @@ function get_the_category_rss( $type = null ) {
 			$the_list .= "\t\t<dc:subject><![CDATA[$cat_name]]></dc:subject>\n";
 		} elseif ( 'atom' === $type ) {
 			$blog_url = apply_filters( 'get_bloginfo_rss', get_bloginfo( 'url' ) );
-			$scheme   = esc_attr( $category->taxonomy == 'post_tag' ? $blog_url . "/tag/" : $blog_url . "/category/" );
+			$scheme   = esc_attr( 'post_tag' === $category->taxonomy ? $blog_url . '/tag/' : $blog_url . '/category/' );
 			$label    = esc_attr( $cat_name );
 
 			$the_list .= sprintf( '<category scheme="%1$s" term="%2$s" label="%3$s" />', esc_url( $scheme ), esc_attr( $cat_name ), esc_attr( $label ) );
 		} else {
-			$domain = $category->taxonomy =='post_tag' ? "tag" : "category";
+			$domain = 'post_tag' === $category->taxonomy ? 'tag' : 'category';
 			$the_list .= "\t\t<category domain=\"{$domain}\"><![CDATA[" . html_entity_decode( $cat_name, ENT_COMPAT, get_option( 'blog_charset' ) ) . "]]></category>\n";
 		}
 	}
