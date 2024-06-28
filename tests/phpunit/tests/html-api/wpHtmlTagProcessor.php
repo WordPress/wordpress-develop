@@ -2877,7 +2877,7 @@ HTML
 	}
 
 	/**
-	 * @ticket TBD
+	 * @ticket 61531
 	 *
 	 * @covers ::add_class
 	 */
@@ -2894,7 +2894,7 @@ HTML
 	}
 
 	/**
-	 * @ticket TBD
+	 * @ticket 61531
 	 *
 	 * @covers ::remove_class
 	 */
