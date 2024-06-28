@@ -5,7 +5,7 @@
  * @package WordPress
  * @subpackage HTML-API
  *
- * @since 6.4.0
+ * @since 6.7.0
  *
  * @group html-api
  *
@@ -13,89 +13,60 @@
  */
 class Tests_HtmlApi_WpHtmlProcessorComments extends WP_UnitTestCase {
 	/**
-	 * Ensures that normative Processing Instruction nodes are properly parsed.
+	 * Ensures that different types of comments are processed correctly.
 	 *
-	 * @ticket 60170
+	 * @ticket TBD
 	 *
-	 * @since 6.5.0
-	 *
-	 * @covers WP_HTML_Tag_Processor::next_token
+	 * @dataProvider data_comments
 	 */
-	public function test_basic_assertion_processing_instruction() {
-		$processor = WP_HTML_Processor::create_fragment( '<?wp-bit{"just": "kidding"}?>' );
-		$processor->next_token();
+	public function test_comment_processing( string $html, int $token_position, string $expected_token_name, ?string $expected_comment_type, string $expected_modifiable_text = '', string $expected_tag = null ) {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		for ( $i = 0; $i < $token_position; $i++ ) {
+			$processor->next_token();
+		}
 
 		$this->assertSame(
-			'#comment',
+			$expected_token_name,
 			$processor->get_token_name(),
-			"Should have found comment token but found {$processor->get_token_name()} instead."
+			"Found incorrect token name {$processor->get_token_name()}."
 		);
 
 		$this->assertSame(
-			WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE,
+			$expected_comment_type,
 			$processor->get_comment_type(),
-			'Should have detected a Processing Instruction-like invalid comment.'
+			"Found incorrect comment type {$processor->get_comment_type()}."
 		);
 
 		$this->assertSame(
-			'wp-bit',
-			$processor->get_tag(),
-			"Should have found PI target as tag name but found {$processor->get_tag()} instead."
-		);
-
-		$this->assertNull(
-			$processor->get_attribute( 'type' ),
-			'Should not have been able to query attributes on non-element token.'
-		);
-
-		$this->assertSame(
-			'{"just": "kidding"}',
+			$expected_modifiable_text,
 			$processor->get_modifiable_text(),
 			'Found incorrect modifiable text.'
+		);
+
+		$this->assertSame(
+			$expected_tag,
+			$processor->get_tag(),
+			"Found incorrect comment \"tag\" {$processor->get_tag()}."
 		);
 	}
 
 	/**
-	 * Ensures that normative Processing Instruction nodes are properly parsed.
+	 * Data provider.
 	 *
-	 * @ticket 60170
-	 *
-	 * @since 6.5.0
-	 *
-	 * @covers WP_HTML_Tag_Processor::next_token
+	 * @return array[]
 	 */
-	public function test_assertion_processing_instruction_descendant() {
-		$processor = WP_HTML_Processor::create_fragment( '<div><?wp-bit{"just": "kidding"}?></div>' );
-		$processor->next_token();
-		$processor->next_token();
-
-		$this->assertSame(
-			'#comment',
-			$processor->get_token_name(),
-			"Should have found comment token but found {$processor->get_token_name()} instead."
-		);
-
-		$this->assertSame(
-			WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE,
-			$processor->get_comment_type(),
-			'Should have detected a Processing Instruction-like invalid comment.'
-		);
-
-		$this->assertSame(
-			'wp-bit',
-			$processor->get_tag(),
-			"Should have found PI target as tag name but found {$processor->get_tag()} instead."
-		);
-
-		$this->assertNull(
-			$processor->get_attribute( 'type' ),
-			'Should not have been able to query attributes on non-element token.'
-		);
-
-		$this->assertSame(
-			'{"just": "kidding"}',
-			$processor->get_modifiable_text(),
-			'Found incorrect modifiable text.'
+	public static function data_comments() {
+		return array(
+			'Normative comment'              => array( '<!-- A comment. -->', 1, '#comment', WP_HTML_Processor::COMMENT_AS_HTML_COMMENT, ' A comment. ' ),
+			'Abruptly closed comment'        => array( '<!-->', 1, '#comment', WP_HTML_Processor::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT ),
+			'Invalid HTML comment !'         => array( '<! Bang opener >', 1, '#comment', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, ' Bang opener ' ),
+			'Invalid HTML comment ?'         => array( '<? Question opener >', 1, '#comment', WP_HTML_Processor::COMMENT_AS_INVALID_HTML, ' Question opener ' ),
+			'Funky comment # (empty)'        => array( '</#>', 1, '#funky-comment', null, '#' ),
+			'Funky comment #'                => array( '</# foo>', 1, '#funky-comment', null, '# foo' ),
+			'Funky comment •'                => array( '</• bar>', 1, '#funky-comment', null, '• bar' ),
+			'Processing instriction comment' => array( '<?pi-target Instruction body. ?>', 1, '#comment', WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE, ' Instruction body. ', 'pi-target' ),
+			'CDATA comment'                  => array( '<![CDATA[ cdata body ]]>', 1, '#comment', WP_HTML_Processor::COMMENT_AS_CDATA_LOOKALIKE, ' cdata body ' ),
 		);
 	}
 }
