@@ -2559,6 +2559,7 @@ HTML;
 
 	/**
 	 * @ticket 56299
+	 * @ticket TBD
 	 *
 	 * @covers WP_HTML_Tag_Processor::add_class
 	 * @covers WP_HTML_Tag_Processor::set_attribute
@@ -2617,6 +2618,14 @@ HTML;
 			'tag inside of CDATA'      => array(
 				'input'    => '<![CDATA[This <is> a <strong id="yes">HTML Tag</strong>]]><span>test</span>',
 				'expected' => '<![CDATA[This <is> a <strong class="firstTag" foo="bar" id="yes">HTML Tag</strong>]]><span class="secondTag">test</span>',
+			),
+			'tags already with added class names' => array(
+				'input'    => '<div class="firstTag"><div class="secondTag">',
+				'expected' => '<div foo="bar" class="firstTag"><div class="secondTag">',
+			),
+			'tags already with added class names mixed casing' => array(
+				'input'    => '<div class="FIRSTTAG"><div class="secondtag">',
+				'expected' => '<div foo="bar" class="FIRSTTAG"><div class="secondtag">',
 			),
 		);
 	}
