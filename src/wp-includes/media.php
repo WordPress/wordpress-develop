@@ -576,10 +576,8 @@ function image_resize_dimensions( $orig_w, $orig_h, $dest_w, $dest_h, $crop = fa
 		if ( $orig_h < $dest_h ) {
 			return false;
 		}
-	} else {
-		if ( $orig_w < $dest_w && $orig_h < $dest_h ) {
+	} elseif ( $orig_w < $dest_w && $orig_h < $dest_h ) {
 			return false;
-		}
 	}
 
 	if ( $crop ) {
@@ -1022,10 +1020,7 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 /**
  * Gets an HTML img element representing an image attachment.
  *
- * While `$size` will accept an array, it is better to register a size with
- * add_image_size() so that a cropped version is generated. It's much more
- * efficient than having to find the closest-sized image and then having the
- * browser scale down the image.
+ * Allows specifying custom list of thumbnail sizes to reduce bloat from all registered sizes.
  *
  * @since 2.5.0
  * @since 4.4.0 The `$srcset` and `$sizes` attributes were added.
@@ -1033,131 +1028,135 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
  * @since 6.1.0 The `$decoding` attribute was added.
  *
  * @param int          $attachment_id Image attachment ID.
- * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array
- *                                    of width and height values in pixels (in that order). Default 'thumbnail'.
+ * @param string|array $size          Optional. Image size or array of sizes. Accepts any registered image size name,
+ *                                    or an array of width and height values in pixels (in that order). Default 'thumbnail'.
  * @param bool         $icon          Optional. Whether the image should be treated as an icon. Default false.
- * @param string|array $attr {
- *     Optional. Attributes for the image markup.
- *
- *     @type string       $src           Image attachment URL.
- *     @type string       $class         CSS class name or space-separated list of classes.
- *                                       Default `attachment-$size_class size-$size_class`,
- *                                       where `$size_class` is the image size being requested.
- *     @type string       $alt           Image description for the alt attribute.
- *     @type string       $srcset        The 'srcset' attribute value.
- *     @type string       $sizes         The 'sizes' attribute value.
- *     @type string|false $loading       The 'loading' attribute value. Passing a value of false
- *                                       will result in the attribute being omitted for the image.
- *                                       Default determined by {@see wp_get_loading_optimization_attributes()}.
- *     @type string       $decoding      The 'decoding' attribute value. Possible values are
- *                                       'async' (default), 'sync', or 'auto'. Passing false or an empty
- *                                       string will result in the attribute being omitted.
- *     @type string       $fetchpriority The 'fetchpriority' attribute value, whether `high`, `low`, or `auto`.
- *                                       Default determined by {@see wp_get_loading_optimization_attributes()}.
- * }
+ * @param array        $attr          Optional. Attributes for the image markup.
+ *                                    @type string $src          Image attachment URL.
+ *                                    @type string $class        CSS class name or space-separated list of classes.
+ *                                                               Default `attachment-$size_class size-$size_class`.
+ *                                    @type string $alt          Image description for the alt attribute.
+ *                                    @type string $srcset       The 'srcset' attribute value.
+ *                                    @type string $sizes        The 'sizes' attribute value.
+ *                                    @type string|false $loading The 'loading' attribute value. Passing a value of false
+ *                                                               will omit the attribute.
+ *                                    @type string $decoding     The 'decoding' attribute value. Possible values are 'async',
+ *                                                               'sync', or 'auto'. Passing false or an empty string will omit it.
+ *                                    @type string $fetchpriority The 'fetchpriority' attribute value.
+ * @param bool         $use_custom_sizes Optional. Whether to use a custom list of sizes provided in the $size parameter.
+ *                                       Default false.
  * @return string HTML img element or empty string on failure.
  */
-function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = false, $attr = '' ) {
-	$html  = '';
-	$image = wp_get_attachment_image_src( $attachment_id, $size, $icon );
+function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = false, $attr = '', $use_custom_sizes = false ) {
+	$html   = '';
+	$images = array();
 
-	if ( $image ) {
-		list( $src, $width, $height ) = $image;
-
-		$attachment = get_post( $attachment_id );
-		$hwstring   = image_hwstring( $width, $height );
-		$size_class = $size;
-
-		if ( is_array( $size_class ) ) {
-			$size_class = implode( 'x', $size_class );
+	if ( $use_custom_sizes && is_array( $size ) ) {
+		// Custom sizes provided as array of sizes.
+		$custom_sizes = $size;
+		foreach ( $custom_sizes as $custom_size ) {
+			$images[] = wp_get_attachment_image_src( $attachment_id, $custom_size, $icon );
 		}
+	} else {
+		// Single size case.
+		$images[] = wp_get_attachment_image_src( $attachment_id, $size, $icon );
+	}
 
-		$default_attr = array(
-			'src'   => $src,
-			'class' => "attachment-$size_class size-$size_class",
-			'alt'   => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
-		);
+	foreach ( $images as $image ) {
+		if ( $image ) {
+			list( $src, $width, $height ) = $image;
 
-		/**
-		 * Filters the context in which wp_get_attachment_image() is used.
-		 *
-		 * @since 6.3.0
-		 *
-		 * @param string $context The context. Default 'wp_get_attachment_image'.
-		 */
-		$context = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
-		$attr    = wp_parse_args( $attr, $default_attr );
+			$attachment = get_post( $attachment_id );
+			$hwstring   = image_hwstring( $width, $height );
+			$size_class = is_array( $size ) ? implode( 'x', $size ) : $size;
 
-		$loading_attr              = $attr;
-		$loading_attr['width']     = $width;
-		$loading_attr['height']    = $height;
-		$loading_optimization_attr = wp_get_loading_optimization_attributes(
-			'img',
-			$loading_attr,
-			$context
-		);
+			$default_attr = array(
+				'src'   => $src,
+				'class' => "attachment-$size_class size-$size_class",
+				'alt'   => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
+			);
 
-		// Add loading optimization attributes if not available.
-		$attr = array_merge( $attr, $loading_optimization_attr );
+			/**
+			 * Filters the context in which wp_get_attachment_image() is used.
+			 *
+			 * @since 6.3.0
+			 *
+			 * @param string $context The context. Default 'wp_get_attachment_image'.
+			 */
+			$context = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
+			$attr    = wp_parse_args( $attr, $default_attr );
 
-		// Omit the `decoding` attribute if the value is invalid according to the spec.
-		if ( empty( $attr['decoding'] ) || ! in_array( $attr['decoding'], array( 'async', 'sync', 'auto' ), true ) ) {
-			unset( $attr['decoding'] );
-		}
+			$loading_attr              = $attr;
+			$loading_attr['width']     = $width;
+			$loading_attr['height']    = $height;
+			$loading_optimization_attr = wp_get_loading_optimization_attributes(
+				'img',
+				$loading_attr,
+				$context
+			);
 
-		/*
-		 * If the default value of `lazy` for the `loading` attribute is overridden
-		 * to omit the attribute for this image, ensure it is not included.
-		 */
-		if ( isset( $attr['loading'] ) && ! $attr['loading'] ) {
-			unset( $attr['loading'] );
-		}
+			// Add loading optimization attributes if not available.
+			$attr = array_merge( $attr, $loading_optimization_attr );
 
-		// If the `fetchpriority` attribute is overridden and set to false or an empty string.
-		if ( isset( $attr['fetchpriority'] ) && ! $attr['fetchpriority'] ) {
-			unset( $attr['fetchpriority'] );
-		}
+			// Omit the `decoding` attribute if the value is invalid according to the spec.
+			if ( empty( $attr['decoding'] ) || ! in_array( $attr['decoding'], array( 'async', 'sync', 'auto' ), true ) ) {
+				unset( $attr['decoding'] );
+			}
 
-		// Generate 'srcset' and 'sizes' if not already present.
-		if ( empty( $attr['srcset'] ) ) {
-			$image_meta = wp_get_attachment_metadata( $attachment_id );
+			/*
+			 * If the default value of `lazy` for the `loading` attribute is overridden
+			 * to omit the attribute for this image, ensure it is not included.
+			 */
+			if ( isset( $attr['loading'] ) && ! $attr['loading'] ) {
+				unset( $attr['loading'] );
+			}
 
-			if ( is_array( $image_meta ) ) {
-				$size_array = array( absint( $width ), absint( $height ) );
-				$srcset     = wp_calculate_image_srcset( $size_array, $src, $image_meta, $attachment_id );
-				$sizes      = wp_calculate_image_sizes( $size_array, $src, $image_meta, $attachment_id );
+			// If the `fetchpriority` attribute is overridden and set to false or an empty string.
+			if ( isset( $attr['fetchpriority'] ) && ! $attr['fetchpriority'] ) {
+				unset( $attr['fetchpriority'] );
+			}
 
-				if ( $srcset && ( $sizes || ! empty( $attr['sizes'] ) ) ) {
-					$attr['srcset'] = $srcset;
+			// Generate 'srcset' and 'sizes' if not already present.
+			if ( empty( $attr['srcset'] ) ) {
+				$image_meta = wp_get_attachment_metadata( $attachment_id );
 
-					if ( empty( $attr['sizes'] ) ) {
-						$attr['sizes'] = $sizes;
+				if ( is_array( $image_meta ) ) {
+					$size_array = array( absint( $width ), absint( $height ) );
+					$srcset     = wp_calculate_image_srcset( $size_array, $src, $image_meta, $attachment_id );
+					$sizes      = wp_calculate_image_sizes( $size_array, $src, $image_meta, $attachment_id );
+
+					if ( $srcset && ( $sizes || ! empty( $attr['sizes'] ) ) ) {
+						$attr['srcset'] = $srcset;
+
+						if ( empty( $attr['sizes'] ) ) {
+							$attr['sizes'] = $sizes;
+						}
 					}
 				}
 			}
+
+			/**
+			 * Filters the list of attachment image attributes.
+			 *
+			 * @since 2.8.0
+			 *
+			 * @param string[]     $attr       Array of attribute values for the image markup, keyed by attribute name.
+			 *                                 See wp_get_attachment_image().
+			 * @param WP_Post      $attachment Image attachment post.
+			 * @param string|int[] $size       Requested image size. Can be any registered image size name, or
+			 *                                 an array of width and height values in pixels (in that order).
+			 */
+			$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $attachment, $size );
+
+			$attr  = array_map( 'esc_attr', $attr );
+			$html .= rtrim( "<img $hwstring" );
+
+			foreach ( $attr as $name => $value ) {
+				$html .= " $name=" . '"' . $value . '"';
+			}
+
+			$html .= ' />';
 		}
-
-		/**
-		 * Filters the list of attachment image attributes.
-		 *
-		 * @since 2.8.0
-		 *
-		 * @param string[]     $attr       Array of attribute values for the image markup, keyed by attribute name.
-		 *                                 See wp_get_attachment_image().
-		 * @param WP_Post      $attachment Image attachment post.
-		 * @param string|int[] $size       Requested image size. Can be any registered image size name, or
-		 *                                 an array of width and height values in pixels (in that order).
-		 */
-		$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $attachment, $size );
-
-		$attr = array_map( 'esc_attr', $attr );
-		$html = rtrim( "<img $hwstring" );
-
-		foreach ( $attr as $name => $value ) {
-			$html .= " $name=" . '"' . $value . '"';
-		}
-
-		$html .= ' />';
 	}
 
 	/**
@@ -4311,7 +4310,6 @@ function wp_plupload_default_settings() {
  *     @type string $url                   Direct URL to the attachment file (from wp-content).
  *     @type int    $width                 If the attachment is an image, represents the width of the image in pixels.
  * }
- *
  */
 function wp_prepare_attachment_for_js( $attachment ) {
 	$attachment = get_post( $attachment );
