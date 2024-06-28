@@ -54,9 +54,6 @@ class WP_Customize_Site_Icon_Control extends WP_Customize_Cropped_Image_Control 
 		<# if ( data.label ) { #>
 			<span class="customize-control-title">{{ data.label }}</span>
 		<# } #>
-		<# if ( data.description ) { #>
-			<span class="description customize-control-description">{{{ data.description }}}</span>
-		<# } #>
 
 		<# if ( data.attachment && data.attachment.id ) { #>
 			<div class="attachment-media-view">
@@ -137,6 +134,9 @@ class WP_Customize_Site_Icon_Control extends WP_Customize_Cropped_Image_Control 
 					<# } #>
 				</div>
 			</div>
+		<# } #>
+		<# if ( data.description ) { #>
+			<span class="description customize-control-description">{{{ data.description }}}</span>
 		<# } #>
 		<?php
 	}

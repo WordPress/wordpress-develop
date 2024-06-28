@@ -393,6 +393,7 @@ body.trashing #publish-settings {
 	margin-bottom: 0;
 }
 
+#customize-control-site_icon .customize-control-description,
 #customize-control-changeset_scheduled_date .customize-control-description {
 	font-style: normal;
 }
