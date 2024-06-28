@@ -15,7 +15,7 @@ class Tests_HtmlApi_WpHtmlProcessorComments extends WP_UnitTestCase {
 	/**
 	 * Ensures that different types of comments are processed correctly.
 	 *
-	 * @ticket TBD
+	 * @ticket 61530
 	 *
 	 * @dataProvider data_comments
 	 */
