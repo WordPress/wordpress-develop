@@ -36,8 +36,6 @@
 }
 
 .site-icon-preview.hidden {
-	visibility: none;
-	opacity: 0;
 	display: none;
 }
 
