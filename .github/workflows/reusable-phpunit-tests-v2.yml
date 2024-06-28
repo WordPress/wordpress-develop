@@ -1,5 +1,9 @@
 ##
+# DEPRECATED
+#
 # A reusable workflow that runs the PHPUnit test suite with the specified configuration.
+#
+# This workflow is used by branches 5.2 through 5.8.
 ##
 name: Run PHPUnit tests
 
