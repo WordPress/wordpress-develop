@@ -2899,7 +2899,7 @@ HTML
 	 * @covers ::remove_class
 	 */
 	public function test_remove_class_removes_case_insensitive_matches() {
-		$processor = new WP_HTML_Tag_Processor( '<div class="REMOVE-a remove-A REMOVE-b remove-B Keep">' );
+		$processor = new WP_HTML_Tag_Processor( '<div class="Keep REMOVE-a remove-A REMOVE-b remove-B">' );
 		$processor->next_tag();
 		$processor->remove_class( 'remove-a' );
 		$processor->remove_class( 'REMOVE-B' );
