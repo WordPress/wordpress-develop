@@ -25,6 +25,11 @@ on:
         required: false
         type: 'boolean'
         default: false
+      test_ajax:
+        description: 'Whether to run AJAX tests.'
+        required: false
+        type: 'boolean'
+        default: true
       memcached:
         description: 'Whether to test with memcached enabled'
         required: false
@@ -174,7 +179,7 @@ jobs:
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
 
       - name: Run AJAX tests
-        if: ${{ ! inputs.split_slow }}
+        if: ${{ ! inputs.split_slow&& inputs.test_ajax }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
 
       - name: Run ms-files tests as a multisite install
