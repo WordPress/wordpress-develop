@@ -573,4 +573,52 @@ HTML
 			'Should have retained breadcrumbs from bookmarked location after seeking backwards to it.'
 		);
 	}
+
+	/**
+	 * Ensures that breadcrumbs are properly reported on virtual nodes.
+	 *
+	 * @dataProvider data_virtual_nodes_breadcrumbs_depth
+	 *
+	 * @ticket 61348
+	 */
+	public function test_breadcrumbs_on_virtual_nodes( $html, $token_position, $expected_breadcrumbs ) {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		for ( $i = 0; $i < $token_position; $i++ ) {
+			$processor->next_token();
+		}
+
+		$this->assertEquals( $expected_breadcrumbs, $processor->get_breadcrumbs(), "Found incorrect breadcrumbs in {$html}." );
+	}
+
+	/**
+	 * Ensures that get_current_depth reports the correct depth on virtual nodes.
+	 *
+	 * @dataProvider data_virtual_nodes_breadcrumbs_depth
+	 *
+	 * @ticket 61348
+	 */
+	public function test_depth_on_virtual_nodes( $html, $token_position, $expected_breadcrumbs ) {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		for ( $i = 0; $i < $token_position; $i++ ) {
+			$processor->next_token();
+		}
+
+		$this->assertSame( count( $expected_breadcrumbs ), $processor->get_current_depth(), "Found incorrect depth in {$html}." );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_virtual_nodes_breadcrumbs_depth() {
+		return array(
+			'Implied P tag opener on unmatched closer'    => array( '</p>', 1, array( 'HTML', 'BODY', 'P' ) ),
+			'Implied heading tag closer on heading child' => array( '<h1><h2>', 2, array( 'HTML', 'BODY' ) ),
+			'Implied A tag closer on A tag child'         => array( '<a><a>', 2, array( 'HTML', 'BODY' ) ),
+			'Implied A tag closer on A tag descendent'    => array( '<a><span><a>', 4, array( 'HTML', 'BODY' ) ),
+		);
+	}
 }
