@@ -113,6 +113,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		// Imagick::queryFormats is not performant, so cache the results.
 		$supports = wp_cache_get( 'imagick_supports' );
 
+		if ( ! $supports ) {
+			$supports = array();
+		}
+
 		if ( isset( $supports[ $imagick_extension ] ) ) {
 			return $supports[ $imagick_extension ];
 		}
