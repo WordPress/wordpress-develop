@@ -2896,6 +2896,22 @@ HTML
 	/**
 	 * @ticket 61531
 	 *
+	 * @covers ::add_class
+	 */
+	public function test_add_class_respects_provided_casing() {
+		$processor = new WP_HTML_Tag_Processor( '<div>' );
+		$processor->next_tag();
+		$processor->add_class( 'mIxEd-CaSiNg' );
+		$this->assertSame(
+			'<div class="mIxEd-CaSiNg">',
+			$processor->get_updated_html(),
+			'::add_class did not respect the provided class name casing.'
+		);
+	}
+
+	/**
+	 * @ticket 61531
+	 *
 	 * @covers ::remove_class
 	 */
 	public function test_remove_class_removes_case_insensitive_matches() {
