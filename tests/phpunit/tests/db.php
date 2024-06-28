@@ -2516,7 +2516,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	function data_suppress_errors_passed_to_filter() {
+	public function data_suppress_errors_passed_to_filter() {
 		return array(
 			'false' => array( 'suppress_errors' => false ),
 			'true'  => array( 'suppress_errors' => true ),
