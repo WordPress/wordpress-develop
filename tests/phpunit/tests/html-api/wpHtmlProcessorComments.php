@@ -66,6 +66,7 @@ class Tests_HtmlApi_WpHtmlProcessorComments extends WP_UnitTestCase {
 			'Funky comment #'                => array( '</# foo>', 1, '#funky-comment', '# foo' ),
 			'Funky comment •'                => array( '</• bar>', 1, '#funky-comment', '• bar' ),
 			'Processing instriction comment' => array( '<?pi-target Instruction body. ?>', 1, '#comment', ' Instruction body. ', WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE, 'pi-target' ),
+			'Processing instriction php'     => array( '<?php const HTML_COMMENT = true; ?>', 1, '#comment', ' const HTML_COMMENT = true; ', WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE, 'php' ),
 			'CDATA comment'                  => array( '<![CDATA[ cdata body ]]>', 1, '#comment', ' cdata body ', WP_HTML_Processor::COMMENT_AS_CDATA_LOOKALIKE ),
 		);
 	}
