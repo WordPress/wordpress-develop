@@ -2539,6 +2539,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'box-shadow',
 			'aspect-ratio',
 			'container-type',
+			'opacity',
 
 			// Custom CSS properties.
 			'--*',

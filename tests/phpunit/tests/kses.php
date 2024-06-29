@@ -1353,6 +1353,11 @@ EOF;
 				'css'      => 'background-repeat: no-repeat',
 				'expected' => 'background-repeat: no-repeat',
 			),
+			// `background-repeat` introduced in 6.7.
+			array(
+				'css'      => 'opacity: 10',
+				'expected' => 'opacity: 10',
+			),
 		);
 	}
 
