@@ -759,6 +759,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$has_active_dependents   = WP_Plugin_Dependencies::has_active_dependents( $plugin_file );
 		$has_unmet_dependencies  = WP_Plugin_Dependencies::has_unmet_dependencies( $plugin_file );
 		$has_circular_dependency = WP_Plugin_Dependencies::has_circular_dependency( $plugin_file );
+		$dependency_names        = WP_Plugin_Dependencies::get_dependency_names( $plugin_file );
 
 		if ( 'mustuse' === $context ) {
 			$is_active = true;
@@ -1113,7 +1114,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			! empty( $totals['upgrade'] ) &&
 			! empty( $plugin_data['update'] ) ||
 			! $compatible_php ||
-			! $compatible_wp
+			! $compatible_wp ||
+			! empty( $dependency_names )
 		) {
 			$class .= ' update';
 		}
@@ -1576,27 +1578,55 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			implode( $comma, $links )
 		);
 
-		$notice        = '';
-		$error_message = '';
-		if ( WP_Plugin_Dependencies::has_unmet_dependencies( $dependent ) ) {
-			if ( $is_active ) {
-				$error_message = __( 'This plugin is active but may not function correctly because required plugins are missing or inactive.' );
-			} else {
-				$error_message = __( 'This plugin cannot be activated because required plugins are missing or inactive.' );
-			}
-			$notice = wp_get_admin_notice(
-				$error_message,
-				array(
-					'type'               => 'error',
-					'additional_classes' => array( 'inline', 'notice-alt' ),
-				)
-			);
-		}
-
 		printf(
-			'<div class="requires"><p>%1$s</p><p>%2$s</p></div>',
-			$requires,
-			$notice
+			'<div class="requires"><p>%s</p></div>',
+			$requires
+		);
+
+		/**
+		 * Displays plugin dependencies information notice for a plugin.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param string $file Plugin basename.
+		 * @return void
+		 */
+		add_action(
+			"after_plugin_row_{$dependent}",
+			function ( $file ) {
+				/** @var WP_Plugins_List_Table $wp_list_table */
+				$wp_list_table = _get_list_table(
+					'WP_Plugins_List_Table',
+					array(
+						'screen' => get_current_screen(),
+					)
+				);
+
+				$is_active     = is_multisite() ? is_plugin_active_for_network( $file ) : is_plugin_active( $file );
+				$notice        = '';
+				$error_message = '';
+				if ( WP_Plugin_Dependencies::has_unmet_dependencies( $file ) ) {
+					if ( $is_active ) {
+						$error_message = __( 'This plugin is active but may not function correctly because required plugins are missing or inactive.' );
+					} else {
+						$error_message = __( 'This plugin cannot be activated because required plugins are missing or inactive.' );
+					}
+					$notice = wp_get_admin_notice(
+						$error_message,
+						array(
+							'type'               => 'error',
+							'additional_classes' => array( 'update-message', 'inline', 'notice-alt' ),
+						)
+					);
+
+					printf(
+						'<tr class="plugin-update-tr%s"><td colspan="%s" class="plugin-update colspanchange">%s</td></tr>',
+						( $is_active ) ? ' active' : '',
+						esc_attr( $wp_list_table->get_column_count() ),
+						wp_kses_post( $notice )
+					);
+				}
+			}
 		);
 	}
 
