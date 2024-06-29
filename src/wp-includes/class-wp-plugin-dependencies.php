@@ -677,7 +677,7 @@ class WP_Plugin_Dependencies {
 			/* Added by AV start */
 			//Check if non wp listed transient exists for this plugin, ignore the check
 
-			if(get_site_transient( "wp_plugin_non_wp_listed_plugin_timeout_{$slug}")){
+			if( get_site_transient( "wp_plugin_non_wp_listed_plugin_timeout_{$slug}") ) {
 				continue;
 			}
 			/* Added by AV ends */
