@@ -166,7 +166,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 /* Pullquote */
 
 .wp-block-pullquote {
-	border: 0;
+	border: 0 solid;
 }
 
 .wp-block-pullquote__citation,
@@ -200,6 +200,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 .wp-block-calendar th {
 	text-align: center;
+}
+
+.wp-block-buttons[style*="font-weight"] .wp-block-button__link,
+.wp-block-button[style*="font-weight"] .wp-block-button__link {
+	font-weight: inherit;
 }
 
 /*--------------------------------------------------------------
