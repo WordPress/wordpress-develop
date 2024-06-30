@@ -8860,40 +8860,6 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
 }
 
-
-/**
- * Replaces trailing period, if any, with encoded entity in URLs.
- *
- * If the URL ends with a period, replace it with %2E to avoid
- * misinterpretation from some email clients.
- *
- * @since 6.6.0
- * @access private
- *
- * @param string $url The URL to encode.
- * @return string The new encoded URL.
- */
-function _encode_query_arg_ending_period( $url ) {
-	if ( ! is_string( $url ) ) {
-		return '';
-	}
-
-	$url = trim( $url );
-	if ( '' === $url ) {
-		return '';
-	}
-
-	$url = rawurlencode( $url );
-
-	// If the URL ends in a period, replace it with %2E.
-	if ( str_ends_with( $url, '.' ) ) {
-		$url  = substr( $url, 0, strlen( $url ) - 1 );
-		$url .= '%2E';
-	}
-
-	return $url;
-}
-
 /**
  * Creates and returns the markup for an admin notice.
  *
