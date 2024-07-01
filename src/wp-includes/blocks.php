@@ -1084,16 +1084,23 @@ function _make_mock_parsed_block( $block_name, $attrs = array(), $inner_blocks =
 
 /**
  * Updates the wp_postmeta with the list of ignored hooked blocks where the inner blocks are stored as post content.
- * Currently only supports `wp_navigation` and `wp_template_part` post types.
+ * Currently only supports `wp_navigation` post types.
  *
  * @since 6.6.0
- * @since 6.7.0 Support `wp_template_part` post type.
  * @access private
  *
  * @param stdClass $post Post object.
  * @return stdClass The updated post object.
  */
 function update_ignored_hooked_blocks_postmeta( $post ) {
+	/*
+	 * In this scenario the user has likely tried to create a navigation via the REST API.
+	 * In which case we won't have a post ID to work with and store meta against.
+	 */
+	if ( empty( $post->ID ) ) {
+		return $post;
+	}
+
 	/*
 	 * Skip meta generation when consumers intentionally update specific Navigation fields
 	 * and omit the content update.
@@ -1103,57 +1110,31 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 	}
 
 	/*
-	 * We only hook into filters for the `wp_navigation` and `wp_template_part` post types.
-	 * So if the post type is not set we can assume it's a `wp_template_part`.
+	 * Skip meta generation when the post content is not a navigation block.
 	 */
-	$post_type                   = isset( $post->post_type ) ? $post->post_type : 'wp_template_part';
-	$post_type_to_block_name_map = array(
-		'wp_navigation'    => 'core/navigation',
-		'wp_template_part' => 'core/template-part',
-	);
-
-	/*
-	 * Skip meta generation when the post content is not in the above map.
-	 */
-	if ( ! isset( $post_type_to_block_name_map[ $post_type ] ) ) {
+	if ( ! isset( $post->post_type ) || 'wp_navigation' !== $post->post_type ) {
 		return $post;
 	}
 
-	$parent_block_name              = $post_type_to_block_name_map[ $post_type ];
-	$attributes                     = array();
-	$existing_ignored_hooked_blocks = isset( $post->ID ) ? get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true ) : '';
+	$attributes = array();
 
-	if ( ! empty( $existing_ignored_hooked_blocks ) ) {
+	$ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
+	if ( ! empty( $ignored_hooked_blocks ) ) {
+		$ignored_hooked_blocks  = json_decode( $ignored_hooked_blocks, true );
 		$attributes['metadata'] = array(
-			'ignoredHookedBlocks' => json_decode( $existing_ignored_hooked_blocks, true ),
+			'ignoredHookedBlocks' => $ignored_hooked_blocks,
 		);
 	}
 
 	$markup = get_comment_delimited_block_content(
-		$parent_block_name,
+		'core/navigation',
 		$attributes,
 		$post->post_content
 	);
 
-	/**
-	 * We need to merge incoming changes with existing data so the block hooks API gets the correct context.
-	 * For `wp_template_part` post type, we need to convert the post object to a block template object.
-	 */
-	$existing_post = isset( $post->ID ) ? get_post( $post->ID ) : array();
-	$context       = (object) array_merge( (array) $existing_post, (array) $post );
-	// Given a post object ($context), get_post will return a WP_Post object.
-	$context = get_post( $context );
-	if ( 'wp_template_part' === $post_type ) {
-		// Convert the $context WP_Post object to a WP_Block_Template object.
-		if ( isset( $post->ID ) ) {
-			$context = _build_block_template_result_from_post( $context );
-		} else {
-			$meta    = isset( $context->meta_input ) ? $context->meta_input : array();
-			$terms   = isset( $context->tax_input ) ? $context->tax_input : array();
-			$context = _build_block_template_object_from_post_object( get_post( $context ), $terms, $meta );
-		}
-	}
-
+	$existing_post = get_post( $post->ID );
+	// Merge the existing post object with the updated post object to pass to the block hooks algorithm for context.
+	$context          = (object) array_merge( (array) $existing_post, (array) $post );
 	$serialized_block = apply_block_hooks_to_content( $markup, $context, 'set_ignored_hooked_blocks_metadata' );
 	$root_block       = parse_blocks( $serialized_block )[0];
 
@@ -1162,8 +1143,10 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		: array();
 
 	if ( ! empty( $ignored_hooked_blocks ) ) {
+		$existing_ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
 		if ( ! empty( $existing_ignored_hooked_blocks ) ) {
-			$ignored_hooked_blocks = array_unique( array_merge( $ignored_hooked_blocks, json_decode( $existing_ignored_hooked_blocks, true ) ) );
+			$existing_ignored_hooked_blocks = json_decode( $existing_ignored_hooked_blocks, true );
+			$ignored_hooked_blocks          = array_unique( array_merge( $ignored_hooked_blocks, $existing_ignored_hooked_blocks ) );
 		}
 
 		if ( ! isset( $post->meta_input ) ) {
