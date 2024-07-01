@@ -339,11 +339,11 @@ class WP_Block {
 						/**
 						 * Replace the inner content of a figcaption element with the passed content.
 						 *
-						 * THIS IS A TEMPORARY SOLUTION IN CORE NOT TO BE EMULATED.
-						 * IT IS A TEMPORARY SOLUTION THAT JUST WORKS FOR THIS SPECIFIC
-						 * USE CASE UNTIL THE HTML PROCESSOR PROVIDES ITS OWN METHOD.
+						 * DO NOT COPY THIS METHOD.
+						 * THE HTML PROCESSOR WILL HAVE A PROPER METHOD.
+						 * USE IT INSTEAD.
 						 *
-						 * @since 6.6.0
+						 * @since 6.7.0
 						 *
 						 * @param string $new_content New content to insert in the figcaption element.
 						 * @return bool Whether the inner content was properly replaced.
