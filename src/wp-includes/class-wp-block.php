@@ -334,12 +334,12 @@ class WP_Block {
 			case 'html':
 			case 'rich-text':
 				// Create private anonymous class until the HTML API provides `set_inner_html` method.
-				$block_reader = new class($block_content) extends WP_HTML_Tag_Processor{
+				$bindings_processor = new class( $block_content, WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE ) extends WP_HTML_Processor {
 					public function set_inner_text( $new_content ) {
 						$tag_name = $this->get_tag();
 						// Get position of the opener tag.
 						$this->set_bookmark( 'opener_tag' );
-						$opener_tag_bookmark = $this->bookmarks['opener_tag'];
+						$opener_tag_bookmark = $this->bookmarks['_opener_tag'];
 
 						// Visit the closing tag.
 						if ( ! $this->next_tag(
@@ -354,7 +354,7 @@ class WP_Block {
 
 						// Get position of the closer tag.
 						$this->set_bookmark( 'closer_tag' );
-						$closer_tag_bookmark = $this->bookmarks['closer_tag'];
+						$closer_tag_bookmark = $this->bookmarks['_closer_tag'];
 
 						// Appends the new content.
 						$after_opener_tag        = $opener_tag_bookmark->start + $opener_tag_bookmark->length;
@@ -364,6 +364,7 @@ class WP_Block {
 						$this->release_bookmark( 'closer_tag' );
 					}
 				};
+				$block_reader       = $bindings_processor::create_fragment( $block_content );
 
 				if ( 'core/image' === $this->name && 'caption' === $attribute_name ) {
 					if ( $block_reader->next_tag( 'figcaption' ) ) {
