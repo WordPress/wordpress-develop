@@ -624,7 +624,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$content           = get_comment_delimited_block_content(
 			'core/template-part',
 			array(),
-			$changes->post_content
+			$template->content
 		);
 		$content           = traverse_and_serialize_blocks( parse_blocks( $content ), $before_block_visitor, $after_block_visitor );
 		$template->content = remove_serialized_parent_block( $content );
@@ -1029,7 +1029,7 @@ function _build_block_template_result_from_post( $post ) {
 			$content           = get_comment_delimited_block_content(
 				'core/template-part',
 				$attributes,
-				$changes->post_content
+				$template->content
 			);
 			$content           = traverse_and_serialize_blocks( parse_blocks( $content ), $before_block_visitor, $after_block_visitor );
 			$template->content = remove_serialized_parent_block( $content );
