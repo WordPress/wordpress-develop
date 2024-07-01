@@ -112,25 +112,6 @@ function get_user_locale( $user = 0 ) {
 }
 
 /**
- * Retrieves the locale of a user that is associated with the admin_email.
- *
- * If there is no user associated with the admin_email, defaults to the site_language.
- *
- * @since 6.7.0
- *
- * @return string The locale of the admin.
- */
-function get_admin_locale() {
-	$admin_email = get_option( 'admin_email' );
-	$admin_user  = get_user_by( 'email', $admin_email );
-	if ( $admin_user ) {
-		$locale = get_user_locale( $admin_user );
-	}
-
-	return $locale ?? get_locale();
-}
-
-/**
  * Determines the current locale desired for the request.
  *
  * @since 5.0.0
