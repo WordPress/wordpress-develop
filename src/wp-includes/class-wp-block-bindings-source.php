@@ -2,7 +2,6 @@
 /**
  * Block Bindings API: WP_Block_Bindings_Source class.
  *
- *
  * @package WordPress
  * @subpackage Block Bindings
  * @since 6.5.0
@@ -73,16 +72,19 @@ final class WP_Block_Bindings_Source {
 	/**
 	 * Retrieves the value from the source.
 	 *
-	 * @since 6.5.0
+	 * This function calls the callback function specified in the `$get_value_callback` property
+	 * with the given arguments and returns the result. It then applies the filter
+	 * `block_bindings_source_value` to the value before returning it.
 	 *
 	 * @param array    $source_args     Array containing source arguments used to look up the override value, i.e. {"key": "foo"}.
 	 * @param WP_Block $block_instance  The block instance.
 	 * @param string   $attribute_name  The name of the target attribute.
-	 *
+	 * 
 	 * @return mixed The value of the source.
 	 */
 	public function get_value( array $source_args, $block_instance, string $attribute_name ) {
-		return call_user_func_array( $this->get_value_callback, array( $source_args, $block_instance, $attribute_name ) );
+		$value = call_user_func_array( $this->get_value_callback, array( $source_args, $block_instance, $attribute_name ) );
+		return apply_filters( 'block_bindings_source_value', $value, $this->name, $source_args, $block_instance, $attribute_name );
 	}
 
 	/**
