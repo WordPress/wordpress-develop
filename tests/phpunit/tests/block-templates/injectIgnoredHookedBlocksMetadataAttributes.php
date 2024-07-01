@@ -86,12 +86,15 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 
 		inject_ignored_hooked_blocks_metadata_attributes( $changes );
 
-		$args              = $action->get_args();
-		$anchor_block_type = end( $args )[2];
-		$context           = end( $args )[3];
+		$args = $action->get_args();
 
-		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
+		$args_for_template_part = end( $args );
+		$relative_position      = $args_for_template_part[1];
+		$anchor_block_type      = $args_for_template_part[2];
+		$context                = $args_for_template_part[3];
 
+		$this->assertSame( 'last_child', $relative_position );
+		$this->assertSame( 'core/template-part', $anchor_block_type );
 		$this->assertInstanceOf( 'WP_Block_Template', $context );
 
 		$this->assertSame(
@@ -118,6 +121,14 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 			$context->area,
 			'The area field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
 		);
+
+		$args_for_anchor_block = prev( $args );
+		$relative_position     = $args_for_template_part[1];
+		$anchor_block_type     = $args_for_anchor_block[2];
+
+		$this->assertSame( 'last_child', $relative_position );
+		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
+		$this->assertSame( $context, $args_for_anchor_block[3] );
 	}
 
 	/**
