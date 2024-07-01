@@ -1636,7 +1636,36 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 		return $template;
 	}
 
-	$changes->post_content = apply_block_hooks_to_content( $changes->post_content, $template, 'set_ignored_hooked_blocks_metadata' );
+	if ( 'wp_template_part' === $post->post_type ) {
+		$attributes                     = array();
+		$existing_ignored_hooked_blocks = isset( $post->ID ) ? get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true ) : '';
+
+		if ( ! empty( $existing_ignored_hooked_blocks ) ) {
+			$attributes['metadata'] = array(
+				'ignoredHookedBlocks' => json_decode( $existing_ignored_hooked_blocks, true ),
+			);
+		}
+
+		$content = get_comment_delimited_block_content(
+			'core/template-part',
+			$attributes,
+			$changes->post_content
+		);
+		$content = apply_block_hooks_to_content( $content, $template, 'set_ignored_hooked_blocks_metadata' );
+		$changes->post_content = remove_serialized_parent_block( $content );
+
+		$wrapper_block_markup  = extract_serialized_parent_block( $content );
+		$wrapper_block         = parse_blocks( $wrapper_block_markup )[0];
+		$ignored_hooked_blocks = $wrapper_block['attrs']['metadata']['ignoredHookedBlocks'] ?? array();
+		if ( ! empty( $ignored_hooked_blocks ) ) {
+			if ( ! isset( $changes->meta_input ) ) {
+				$changes->meta_input = array();
+			}
+			$changes->meta_input['_wp_ignored_hooked_blocks'] = wp_json_encode( $ignored_hooked_blocks );
+		}
+	} else {
+		$changes->post_content = apply_block_hooks_to_content( $changes->post_content, $template, 'set_ignored_hooked_blocks_metadata' );
+	}
 
 	return $changes;
 }
