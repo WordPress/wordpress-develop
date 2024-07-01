@@ -1070,10 +1070,10 @@ function extract_serialized_parent_block( $serialized_block ) {
  * @since 6.7.0
  * @access private
  *
- * @param string $block_name
- * @param array $attrs
- * @param array $inner_blocks
- * @return array Parsed block.
+ * @param string $block_name   The block name for the mock parsed block.
+ * @param array  $attrs        Optional. Block attributes. Default empty array.
+ * @param array  $inner_blocks Optional. Inner blocks. Default empty array.
+ * @return array The mock parsed block array.
  */
 function _make_mock_parsed_block( $block_name, $attrs = array(), $inner_blocks = array() ) {
 	return array(
