@@ -1018,13 +1018,7 @@ function _build_block_template_result_from_post( $post ) {
 			 * we need to create a mock template part block and traverse it.
 			*/
 			$existing_ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
-			$attributes                     = ! empty( $existing_ignored_hooked_blocks )
-				? array(
-					'metadata' => array(
-						'ignoredHookedBlocks' => json_decode( $existing_ignored_hooked_blocks, true )
-						)
-					)
-				: array();
+			$attributes                     = ! empty( $existing_ignored_hooked_blocks ) ? array( 'metadata' => array( 'ignoredHookedBlocks' => json_decode( $existing_ignored_hooked_blocks, true ) ) ) : array();
 			$mock_template_part_block       = _make_mock_parsed_block( 'core/template-part', $attributes, $blocks );
 			$content                        = traverse_and_serialize_blocks( array( $mock_template_part_block ), $before_block_visitor, $after_block_visitor );
 			$template->content              = remove_serialized_parent_block( $content );
