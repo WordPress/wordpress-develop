@@ -1063,28 +1063,6 @@ function extract_serialized_parent_block( $serialized_block ) {
 }
 
 /**
- * Returns a mock parsed block array for a given block name.
- *
- * This function is meant for internal use only.
- *
- * @since 6.7.0
- * @access private
- *
- * @param string $block_name   The block name for the mock parsed block.
- * @param array  $attrs        Optional. Block attributes. Default empty array.
- * @param array  $inner_blocks Optional. Inner blocks. Default empty array.
- * @return array The mock parsed block array.
- */
-function _make_mock_parsed_block( $block_name, $attrs = array(), $inner_blocks = array() ) {
-	return array(
-		'blockName'    => $block_name,
-		'attrs'        => $attrs,
-		'innerBlocks'  => $inner_blocks,
-		'innerContent' => array_fill( 0, count( $inner_blocks ), null ),
-	);
-}
-
-/**
  * Updates the wp_postmeta with the list of ignored hooked blocks where the inner blocks are stored as post content.
  * Currently only supports `wp_navigation` post types.
  *
