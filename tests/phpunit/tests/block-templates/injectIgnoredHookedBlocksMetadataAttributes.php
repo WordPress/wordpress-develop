@@ -419,4 +419,37 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 			'The hooked block was not injected into the anchor block\'s ignoredHookedBlocks metadata.'
 		);
 	}
+
+	/**
+	 * @ticket 60854
+	 */
+	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_part_postmeta() {
+		register_block_type(
+			'tests/hooked-block',
+			array(
+				'block_hooks' => array(
+					'core/template-part' => 'last_child',
+				),
+			)
+		);
+
+		$id       = self::TEST_THEME . '//' . 'my_template_part';
+		$template = get_block_template( $id, 'wp_template_part' );
+
+		$changes               = new stdClass();
+		$changes->ID           = $template->wp_id;
+		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
+
+		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes );
+		$this->assertSame(
+			array( 'tests/hooked-block' ),
+			json_decode( $post->meta_input['_wp_ignored_hooked_blocks'], true ),
+			'The hooked block was not injected into the wp_template_part\'s _wp_ignored_hooked_blocks postmeta.'
+		);
+		$this->assertSame(
+			$changes->post_content,
+			$post->post_content,
+			'The template part\'s post content was modified.'
+		);
+	}
 }
