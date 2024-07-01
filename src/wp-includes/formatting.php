@@ -2709,6 +2709,10 @@ function slugify( string $sluggee ): string {
  * @return string The sanitized title.
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
+	if ( 'display' === $context ) {
+		return slugify( $title );
+	}
+
 	$title = strip_tags( $title );
 	// Preserve escaped octets.
 	$title = preg_replace( '|%([a-fA-F0-9][a-fA-F0-9])|', '---$1---', $title );
