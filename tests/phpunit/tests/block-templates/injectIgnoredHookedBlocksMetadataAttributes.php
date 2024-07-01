@@ -86,8 +86,7 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 
 		inject_ignored_hooked_blocks_metadata_attributes( $changes );
 
-		$args = $action->get_args();
-
+		$args               = $action->get_args();
 		$relative_positions = array_column( $args, 1 );
 		$anchor_block_types = array_column( $args, 2 );
 		$contexts           = array_column( $args, 3 );
@@ -122,11 +121,13 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 		$this->assertSame(
 			array_fill( 0, count( $contexts ), $context ),
 			$contexts,
-			"The context passed to the hooked_block_types filter is not the same for all calls."
+			"The context passed to the hooked_block_types filter should be the same for all calls."
 		);
-
-		$this->assertInstanceOf( 'WP_Block_Template', $context );
-
+		$this->assertInstanceOf(
+			'WP_Block_Template',
+			$context,
+			'The context passed to the hooked_block_types filter is not an instance of WP_Block_Template.'
+		);
 		$this->assertSame(
 			$changes->post_type,
 			$context->type,
@@ -235,14 +236,48 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 
 		inject_ignored_hooked_blocks_metadata_attributes( $changes );
 
-		$args              = $action->get_args();
-		$anchor_block_type = end( $args )[2];
-		$context           = end( $args )[3];
+		$args               = $action->get_args();
+		$relative_positions = array_column( $args, 1 );
+		$anchor_block_types = array_column( $args, 2 );
+		$contexts           = array_column( $args, 3 );
 
-		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
+		$this->assertSame(
+			array(
+				'before',
+				'after',
+				'first_child',
+				'before',
+				'after',
+				'last_child',
+			),
+			$relative_positions,
+			"The relative positions passed to the hooked_block_types filter are incorrect."
+		);
 
-		$this->assertInstanceOf( 'WP_Block_Template', $context );
+		$this->assertSame(
+			array(
+				'core/template-part',
+				'core/template-part',
+				'core/template-part',
+				'tests/anchor-block',
+				'tests/anchor-block',
+				'core/template-part',
+			),
+			$anchor_block_types,
+			"The anchor block types passed to the hooked_block_types filter are incorrect."
+		);
 
+		$context = $contexts[0];
+		$this->assertSame(
+			array_fill( 0, count( $contexts ), $context ),
+			$contexts,
+			"The context passed to the hooked_block_types filter should be the same for all calls."
+		);
+		$this->assertInstanceOf(
+			'WP_Block_Template',
+			$context,
+			'The context passed to the hooked_block_types filter is not an instance of WP_Block_Template.'
+		);
 		$this->assertSame(
 			$changes->post_name,
 			$context->slug,
@@ -352,14 +387,48 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 
 		inject_ignored_hooked_blocks_metadata_attributes( $changes );
 
-		$args              = $action->get_args();
-		$anchor_block_type = end( $args )[2];
-		$context           = end( $args )[3];
+		$args               = $action->get_args();
+		$relative_positions = array_column( $args, 1 );
+		$anchor_block_types = array_column( $args, 2 );
+		$contexts           = array_column( $args, 3 );
 
-		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
+		$this->assertSame(
+			array(
+				'before',
+				'after',
+				'first_child',
+				'before',
+				'after',
+				'last_child',
+			),
+			$relative_positions,
+			"The relative positions passed to the hooked_block_types filter are incorrect."
+		);
 
-		$this->assertInstanceOf( 'WP_Block_Template', $context );
+		$this->assertSame(
+			array(
+				'core/template-part',
+				'core/template-part',
+				'core/template-part',
+				'tests/anchor-block',
+				'tests/anchor-block',
+				'core/template-part',
+			),
+			$anchor_block_types,
+			"The anchor block types passed to the hooked_block_types filter are incorrect."
+		);
 
+		$context = $contexts[0];
+		$this->assertSame(
+			array_fill( 0, count( $contexts ), $context ),
+			$contexts,
+			"The context passed to the hooked_block_types filter should be the same for all calls."
+		);
+		$this->assertInstanceOf(
+			'WP_Block_Template',
+			$context,
+			'The context passed to the hooked_block_types filter is not an instance of WP_Block_Template.'
+		);
 		$this->assertSame(
 			$changes->post_name,
 			$context->slug,
