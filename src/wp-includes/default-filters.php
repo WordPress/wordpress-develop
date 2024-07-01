@@ -757,9 +757,8 @@ add_action( 'init', '_wp_register_default_font_collections' );
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 
-// Update ignoredHookedBlocks postmeta for wp_navigation and wp_template_part post types.
+// Update ignoredHookedBlocks postmeta for wp_navigation post type.
 add_filter( 'rest_pre_insert_wp_navigation', 'update_ignored_hooked_blocks_postmeta' );
-add_filter( 'rest_pre_insert_wp_template_part', 'update_ignored_hooked_blocks_postmeta' );
 
 // Inject hooked blocks into the wp_navigation post type REST response.
 add_filter( 'rest_prepare_wp_navigation', 'insert_hooked_blocks_into_rest_response', 10, 2 );
