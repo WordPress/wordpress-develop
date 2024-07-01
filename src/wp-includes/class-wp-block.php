@@ -337,18 +337,26 @@ class WP_Block {
 					// Create private anonymous class until the HTML API provides `set_inner_html` method.
 					$bindings_processor = new class( $block_content, WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE ) extends WP_HTML_Processor {
 						public function set_inner_text( $new_content ) {
-							$tag_name = $this->get_tag();
+							// Check that the processor is paused on an opener tag.
+							if (
+								WP_HTML_Processor::STATE_MATCHED_TAG !== $this->parser_state ||
+								$this->is_tag_closer()
+							) {
+								return false;
+							}
+
 							// Set position of the opener tag.
 							$this->set_bookmark( 'opener_tag' );
 
-							// Visit the closing tag.
+							// Visit the closing tag, and check it exists.
+							$tag_name = $this->get_tag();
 							if ( ! $this->next_tag(
 								array(
 									'tag_name'    => $tag_name,
 									'tag_closers' => 'visit',
 								)
 							) || ! $this->is_tag_closer() ) {
-								return null;
+								return false;
 							}
 
 							// Set position of the closer tag.
