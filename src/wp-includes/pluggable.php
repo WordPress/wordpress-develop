@@ -2066,7 +2066,11 @@ if ( ! function_exists( 'wp_password_change_notification' ) ) :
 
 			$admin_user = get_user_by( 'email', get_option( 'admin_email' ) );
 
-			$switched_locale = $admin_user && switch_to_user_locale( $admin_user );
+			if ( $admin_user ) {
+				$switched_locale = switch_to_user_locale( $admin_user );
+			} else {
+				$switched_locale = switch_to_locale( get_locale() );
+			}
 
 			/* translators: %s: User name. */
 			$message = sprintf( __( 'Password changed for user: %s' ), $user->user_login ) . "\r\n";
@@ -2164,7 +2168,11 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 
 			$admin_user = get_user_by( 'email', get_option( 'admin_email' ) );
 
-			$switched_locale = $admin_user && switch_to_user_locale( $admin_user );
+			if ( $admin_user ) {
+				$switched_locale = switch_to_user_locale( $admin_user );
+			} else {
+				$switched_locale = switch_to_locale( get_locale() );
+			}
 
 			/* translators: %s: Site title. */
 			$message = sprintf( __( 'New user registration on your site %s:' ), $blogname ) . "\r\n\r\n";
