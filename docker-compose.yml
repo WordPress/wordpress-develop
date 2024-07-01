@@ -133,3 +133,4 @@ networks:
   # Creating our own network allows us to connect between containers using their service name.
   wpdevnet:
     driver: bridge
+
