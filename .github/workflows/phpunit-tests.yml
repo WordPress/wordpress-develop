@@ -70,7 +70,6 @@ jobs:
             memcached: true
             multisite: true
             split_slow: false
-
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
