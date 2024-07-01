@@ -2552,8 +2552,6 @@ function slugify( string $sluggee ): string {
 		$state         = 0;
 		$code_point    = utf8_read_next_code_point( $sluggee, $at, $state, $matched_bytes );
 		$at           += $matched_bytes;
-		$code_point_hex = dechex( $code_point );
-		$char           = substr( $sluggee, $at - $matched_bytes, $matched_bytes );
 
 		/*
 		 * Replace invalid UTF-8 with a dash.
