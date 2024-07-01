@@ -54,7 +54,6 @@ jobs:
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     with:
       php-version: '7.3'
-      old-branch: true
 
   # Runs the JavaScript coding standards checks.
   jshint:
