@@ -4475,7 +4475,7 @@ function esc_sql( $data ) {
 function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	$original_url = $url;
 
-	if ( '' === $url || !empty($url)) {
+	if ( '' === $url || empty($url)) {
 		return $url;
 	}
 
