@@ -338,9 +338,8 @@ class WP_Block {
 					$bindings_processor = new class( $block_content, WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE ) extends WP_HTML_Processor {
 						public function set_inner_text( $new_content ) {
 							$tag_name = $this->get_tag();
-							// Get position of the opener tag.
+							// Set position of the opener tag.
 							$this->set_bookmark( 'opener_tag' );
-							$opener_tag_bookmark = $this->bookmarks['_opener_tag'];
 
 							// Visit the closing tag.
 							if ( ! $this->next_tag(
@@ -352,8 +351,11 @@ class WP_Block {
 								return null;
 							}
 
-							// Get position of the closer tag.
+							// Set position of the closer tag.
 							$this->set_bookmark( 'closer_tag' );
+
+							// Get opener and closer tag bookmarks.
+							$opener_tag_bookmark = $this->bookmarks['_opener_tag'];
 							$closer_tag_bookmark = $this->bookmarks['_closer_tag'];
 
 							// Appends the new content.
