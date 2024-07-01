@@ -17,6 +17,7 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/hooked-block' ) ) {
 			unregister_block_type( 'tests/hooked-block' );
 		}
+		delete_post_meta( self::$template_part_post->ID, '_wp_ignored_hooked_blocks' );
 
 		parent::tear_down();
 	}
