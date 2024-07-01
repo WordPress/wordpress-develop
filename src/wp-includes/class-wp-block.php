@@ -349,7 +349,6 @@ class WP_Block {
 									'tag_closers' => 'visit',
 								)
 							) || ! $this->is_tag_closer() ) {
-								$this->release_bookmark( 'opener_tag' );
 								return null;
 							}
 
@@ -361,8 +360,6 @@ class WP_Block {
 							$after_opener_tag        = $opener_tag_bookmark->start + $opener_tag_bookmark->length;
 							$inner_content_length    = $closer_tag_bookmark->start - $after_opener_tag;
 							$this->lexical_updates[] = new WP_HTML_Text_Replacement( $after_opener_tag, $inner_content_length, $new_content );
-							$this->release_bookmark( 'opener_tag' );
-							$this->release_bookmark( 'closer_tag' );
 						}
 					};
 					$block_reader       = $bindings_processor::create_fragment( $block_content );
