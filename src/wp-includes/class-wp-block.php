@@ -337,7 +337,7 @@ class WP_Block {
 					// Create private anonymous class until the HTML API provides `set_inner_html` method.
 					$bindings_processor = new class( $block_content, WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE ) extends WP_HTML_Processor {
 						/**
-						 * Replace the inner text of an HTML with the passed content.
+						 * Replace the inner content of a figcaption element with the passed content.
 						 *
 						 * THIS IS A TEMPORARY SOLUTION IN CORE NOT TO BE EMULATED.
 						 * IT IS A TEMPORARY SOLUTION THAT JUST WORKS FOR THIS SPECIFIC
@@ -345,10 +345,10 @@ class WP_Block {
 						 *
 						 * @since 6.6.0
 						 *
-						 * @param string $new_content New text to insert in the HTML element.
-						 * @return bool Whether the inner text was properly replaced.
+						 * @param string $new_content New content to insert in the figcaption element.
+						 * @return bool Whether the inner content was properly replaced.
 						 */
-						public function set_inner_text( $new_content ) {
+						public function set_content_between_figcaption_balanced_tags( $new_content ) {
 							/*
 							 * THIS IS A STOP-GAP MEASURE NOT TO BE EMULATED.
 							 *
@@ -357,6 +357,7 @@ class WP_Block {
 							 */
 							if (
 								WP_HTML_Processor::STATE_MATCHED_TAG !== $this->parser_state ||
+                'figcaption' !== $this->get_tag() ||
 								$this->is_tag_closer()
 							) {
 								return false;
