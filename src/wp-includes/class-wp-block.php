@@ -348,55 +348,41 @@ class WP_Block {
 						 * @param string $new_content New content to insert in the figcaption element.
 						 * @return bool Whether the inner content was properly replaced.
 						 */
-						public function set_content_between_figcaption_balanced_tags( $new_content ) {
-							/*
-							 * THIS IS A STOP-GAP MEASURE NOT TO BE EMULATED.
-							 *
-							 * Check that the processor is paused on an opener tag.
-							 *
-							 */
-							if (
-								WP_HTML_Processor::STATE_MATCHED_TAG !== $this->parser_state ||
-								'FIGCAPTION' !== $this->get_tag() ||
-								$this->is_tag_closer()
-							) {
+						public function set_figcaption_inner_text( $new_content ) {
+							// Check that the processor is paused on an opener tag.
+							if ( 'FIGCAPTION' !== $this->get_tag() || $this->is_tag_closer() ) {
 								return false;
 							}
 
-							// Set position of the opener tag.
-							$this->set_bookmark( 'opener_tag' );
+							// Once this element closes the depth will be one shallower than it is now.
+							$depth = $this->get_current_depth();
+							while ( $this->next_token() && $this->get_current_depth() >= $depth ) {
+								// This is inside the FIGCAPTION element.
+							}
 
-							/*
-							 * This is a best-effort guess to visit the closer tag and check it exists.
-							 * In the future, this code should rely on the HTML Processor for this kind of operation.
-							 */
-							$tag_name = $this->get_tag();
-							if ( ! $this->next_tag(
-								array(
-									'tag_name'    => $tag_name,
-									'tag_closers' => 'visit',
-								)
-							) || ! $this->is_tag_closer() ) {
+							if ( null !== $this->get_last_error() || $this->paused_at_incomplete_token() ) {
 								return false;
 							}
 
-							// Set position of the closer tag.
-							$this->set_bookmark( 'closer_tag' );
+							$this->set_bookmark( 'here' );
 
-							// Get opener and closer tag bookmarks.
-							$opener_tag_bookmark = $this->bookmarks['_opener_tag'];
-							$closer_tag_bookmark = $this->bookmarks['_closer_tag'];
+							$opening = $this->bookmarks[ $this->current_element->token->bookmark_name ];
+							$closing = $this->bookmarks['_here'];
+							$start   = $opening->start + $opening->length;
 
-							// Appends the new content.
-							$after_opener_tag        = $opener_tag_bookmark->start + $opener_tag_bookmark->length;
-							$inner_content_length    = $closer_tag_bookmark->start - $after_opener_tag;
-							$this->lexical_updates[] = new WP_HTML_Text_Replacement( $after_opener_tag, $inner_content_length, $new_content );
+							$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+								$start,
+								$closing->start - $start,
+								wp_kses_post( $new_content )
+							);
+
 							return true;
 						}
 					};
-					$block_reader       = $bindings_processor::create_fragment( $block_content );
+
+					$block_reader = $bindings_processor::create_fragment( $block_content );
 					if ( $block_reader->next_tag( 'figcaption' ) ) {
-						$block_reader->set_content_between_figcaption_balanced_tags( wp_kses_post( $source_value ) );
+						$block_reader->set_figcaption_inner_text( $source_value );
 					}
 					return $block_reader->get_updated_html();
 				}
