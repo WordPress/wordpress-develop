@@ -357,7 +357,7 @@ class WP_Block {
 							 */
 							if (
 								WP_HTML_Processor::STATE_MATCHED_TAG !== $this->parser_state ||
-                'figcaption' !== $this->get_tag() ||
+								'figcaption' !== $this->get_tag() ||
 								$this->is_tag_closer()
 							) {
 								return false;
@@ -396,7 +396,7 @@ class WP_Block {
 					};
 					$block_reader       = $bindings_processor::create_fragment( $block_content );
 					if ( $block_reader->next_tag( 'figcaption' ) ) {
-						$block_reader->set_inner_text( wp_kses_post( $source_value ) );
+						$block_reader->set_content_between_figcaption_balanced_tags( wp_kses_post( $source_value ) );
 					}
 					return $block_reader->get_updated_html();
 				}
