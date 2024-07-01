@@ -357,7 +357,7 @@ class WP_Block {
 							 */
 							if (
 								WP_HTML_Processor::STATE_MATCHED_TAG !== $this->parser_state ||
-								'figcaption' !== $this->get_tag() ||
+								'FIGCAPTION' !== $this->get_tag() ||
 								$this->is_tag_closer()
 							) {
 								return false;
