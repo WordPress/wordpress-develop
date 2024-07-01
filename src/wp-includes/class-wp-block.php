@@ -336,6 +336,18 @@ class WP_Block {
 				if ( 'core/image' === $this->name && 'caption' === $attribute_name ) {
 					// Create private anonymous class until the HTML API provides `set_inner_html` method.
 					$bindings_processor = new class( $block_content, WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE ) extends WP_HTML_Processor {
+						/**
+						 * Replace the inner text of an HTML with the passed content.
+						 *
+						 * THIS IS A STOP-GAP MEASURE IN CORE NOT TO BE EMULATED.
+						 * IT IS A TEMPORARY SOLUTION THAT JUST WORKS FOR THIS SPECIFIC
+						 * USE CASE UNTIL THE HTML PROCESSOR PROVIDES ITS OWN METHOD.
+						 *
+						 * @since 6.6.0
+						 *
+						 * @param string $new_content New text to insert in the HTML element.
+						 * @return bool Whether the inner text was properly replaced.
+						 */
 						public function set_inner_text( $new_content ) {
 							// Check that the processor is paused on an opener tag.
 							if (
@@ -348,7 +360,10 @@ class WP_Block {
 							// Set position of the opener tag.
 							$this->set_bookmark( 'opener_tag' );
 
-							// Visit the closing tag, and check it exists.
+							/*
+							 * This is a best-effort guess to visit the closer tag and check it exists.
+							 * In the future, this code should rely on the HTML Processor for this kind of operation.
+							 */
 							$tag_name = $this->get_tag();
 							if ( ! $this->next_tag(
 								array(
@@ -370,6 +385,7 @@ class WP_Block {
 							$after_opener_tag        = $opener_tag_bookmark->start + $opener_tag_bookmark->length;
 							$inner_content_length    = $closer_tag_bookmark->start - $after_opener_tag;
 							$this->lexical_updates[] = new WP_HTML_Text_Replacement( $after_opener_tag, $inner_content_length, $new_content );
+							return true;
 						}
 					};
 					$block_reader       = $bindings_processor::create_fragment( $block_content );
