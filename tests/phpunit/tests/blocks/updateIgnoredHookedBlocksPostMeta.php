@@ -19,27 +19,13 @@ class Tests_Blocks_UpdateIgnoredHookedBlocksPostMeta extends WP_UnitTestCase {
 	protected static $navigation_post;
 
 	/**
-	 * Post object.
-	 *
-	 * @var object
-	 */
-	protected static $template_part_post;
-
-	/**
 	 * Setup method.
 	 */
 	public static function wpSetUpBeforeClass() {
-		self::$navigation_post    = self::factory()->post->create_and_get(
+		self::$navigation_post = self::factory()->post->create_and_get(
 			array(
 				'post_type'    => 'wp_navigation',
 				'post_title'   => 'Navigation Menu',
-				'post_content' => 'Original content',
-			)
-		);
-		self::$template_part_post = self::factory()->post->create_and_get(
-			array(
-				'post_type'    => 'wp_template_part',
-				'post_title'   => 'Template Part block',
 				'post_content' => 'Original content',
 			)
 		);
@@ -97,7 +83,7 @@ class Tests_Blocks_UpdateIgnoredHookedBlocksPostMeta extends WP_UnitTestCase {
 	/**
 	 * @ticket 60759
 	 */
-	public function test_update_ignored_hooked_blocks_postmeta_modify_no_post_id() {
+	public function test_update_ignored_hooked_blocks_postmeta_dont_modify_no_post_id() {
 		register_block_type(
 			'tests/my-block',
 			array(
@@ -118,11 +104,6 @@ class Tests_Blocks_UpdateIgnoredHookedBlocksPostMeta extends WP_UnitTestCase {
 			$original_markup,
 			$post->post_content,
 			'Post content did not match the original markup.'
-		);
-		$this->assertSame(
-			array( 'tests/my-block' ),
-			json_decode( $post->meta_input['_wp_ignored_hooked_blocks'], true ),
-			'Block was not added to ignored hooked blocks metadata.'
 		);
 	}
 
@@ -161,7 +142,7 @@ class Tests_Blocks_UpdateIgnoredHookedBlocksPostMeta extends WP_UnitTestCase {
 	/**
 	 * @ticket 60759
 	 */
-	public function test_update_ignored_hooked_blocks_postmeta_dont_modify_if_incompatible_post_type() {
+	public function test_update_ignored_hooked_blocks_postmeta_dont_modify_if_not_navigation() {
 		register_block_type(
 			'tests/my-block',
 			array(
@@ -184,37 +165,32 @@ class Tests_Blocks_UpdateIgnoredHookedBlocksPostMeta extends WP_UnitTestCase {
 			$post->post_content,
 			'Post content did not match the original markup.'
 		);
-		$this->assertFalse(
-			property_exists( $post, 'meta_input' ),
-			'Meta input should not be set.'
-		);
 	}
 
 	/**
 	 * @ticket 60759
-	 * @ticket 60854
 	 */
-	public function test_update_ignored_hooked_blocks_postmeta_imply_tempate_part_if_no_post_type() {
+	public function test_update_ignored_hooked_blocks_postmeta_dont_modify_if_no_post_type() {
 		register_block_type(
 			'tests/my-block',
 			array(
 				'block_hooks' => array(
-					'core/template-part' => 'last_child',
+					'core/navigation' => 'last_child',
 				),
 			)
 		);
 
-		$original_markup    = '<!-- wp:paragraph --><p>test paragraph</p><!-- /wp:paragraph -->';
+		$original_markup    = '<!-- wp:navigation-link {"label":"News","type":"page","id":2,"url":"http://localhost:8888/?page_id=2","kind":"post-type"} /-->';
 		$post               = new stdClass();
-		$post->ID           = self::$template_part_post->ID;
+		$post->ID           = self::$navigation_post->ID;
 		$post->post_content = $original_markup;
 
 		$post = update_ignored_hooked_blocks_postmeta( $post );
 
 		$this->assertSame(
-			array( 'tests/my-block' ),
-			json_decode( $post->meta_input['_wp_ignored_hooked_blocks'], true ),
-			'Block was not added to ignored hooked blocks metadata.'
+			$original_markup,
+			$post->post_content,
+			'Post content did not match the original markup.'
 		);
 	}
 }
