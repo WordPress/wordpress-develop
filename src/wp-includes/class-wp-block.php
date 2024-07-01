@@ -339,7 +339,7 @@ class WP_Block {
 						/**
 						 * Replace the inner text of an HTML with the passed content.
 						 *
-						 * THIS IS A STOP-GAP MEASURE IN CORE NOT TO BE EMULATED.
+						 * THIS IS A TEMPORARY SOLUTION IN CORE NOT TO BE EMULATED.
 						 * IT IS A TEMPORARY SOLUTION THAT JUST WORKS FOR THIS SPECIFIC
 						 * USE CASE UNTIL THE HTML PROCESSOR PROVIDES ITS OWN METHOD.
 						 *
@@ -349,7 +349,12 @@ class WP_Block {
 						 * @return bool Whether the inner text was properly replaced.
 						 */
 						public function set_inner_text( $new_content ) {
-							// Check that the processor is paused on an opener tag.
+							/*
+							 * THIS IS A STOP-GAP MEASURE NOT TO BE EMULATED.
+							 *
+							 * Check that the processor is paused on an opener tag.
+							 *
+							 */
 							if (
 								WP_HTML_Processor::STATE_MATCHED_TAG !== $this->parser_state ||
 								$this->is_tag_closer()
