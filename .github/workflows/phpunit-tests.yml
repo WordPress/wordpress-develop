@@ -64,16 +64,12 @@ jobs:
             os: ubuntu-latest
             memcached: true
             multisite: false
+            split_slow: false
           - php: '7.3'
             os: ubuntu-latest
             memcached: true
             multisite: true
-          # Report the results of the PHP 7.3 without memcached job.
-          - php: '7.3'
-            os: ubuntu-latest
-            memcached: false
-            multisite: false
-            report: true
+            split_slow: false
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -82,7 +78,6 @@ jobs:
       test_ajax: ${{ ! matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
-      report: ${{ matrix.report || false }}
 
   slack-notifications:
     name: Slack Notifications
