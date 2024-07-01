@@ -64,12 +64,12 @@ jobs:
             os: ubuntu-latest
             memcached: true
             multisite: false
-            split_slow: true
+            split_slow: false
           - php: '7.4'
             os: ubuntu-latest
             memcached: true
             multisite: true
-            split_slow: true
+            split_slow: false
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
