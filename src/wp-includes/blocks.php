@@ -1065,6 +1065,8 @@ function extract_serialized_parent_block( $serialized_block ) {
 /**
  * Returns a mock parsed block array for a given block name.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.7.0
  * @access private
  *
