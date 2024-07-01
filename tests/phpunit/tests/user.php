@@ -140,7 +140,6 @@ class Tests_User extends WP_UnitTestCase {
 		// Correct key: deleted.
 		delete_user_meta( self::$author_id, $key, $val );
 		$this->assertSame( '', get_user_meta( self::$author_id, $key, true ) );
-
 	}
 
 	/**
@@ -1492,7 +1491,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Assert recipient is correct.
 		$this->assertSame( $new_email, $recipient->address, 'Admin email change notification recipient not as expected' );
 
-		// Assert that HTML entites have been decode in body and subject.
+		// Assert that HTML entities have been decode in body and subject.
 		$this->assertStringContainsString( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
 		$this->assertStringNotContainsString( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, $email->subject, 'Email subject does contains HTML entities' );
 	}
@@ -1795,7 +1794,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Assert recipient is correct.
 		$this->assertSame( 'new-email@test.dev', $recipient->address, 'User email change confirmation recipient not as expected' );
 
-		// Assert that HTML entites have been decoded in body and subject.
+		// Assert that HTML entities have been decoded in body and subject.
 		$this->assertStringContainsString( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
 		$this->assertStringNotContainsString( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, 'Email subject does contains HTML entities' );
 	}
@@ -1940,7 +1939,6 @@ class Tests_User extends WP_UnitTestCase {
 		// Contains location longitude.
 		$this->assertSame( 'Longitude', $actual['data'][1]['data'][3]['name'] );
 		$this->assertSame( '-84.5143900', $actual['data'][1]['data'][3]['value'] );
-
 	}
 
 	/**
@@ -2085,15 +2083,13 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertCount( 12, $actual['data'][0]['data'] );
 
 		// Check that the item added by the filter was retained.
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				wp_list_filter(
-					$actual['data'][0]['data'],
-					array(
-						'name'  => 'Test Additional Data Name',
-						'value' => 'Test Additional Data Value',
-					)
+			wp_list_filter(
+				$actual['data'][0]['data'],
+				array(
+					'name'  => 'Test Additional Data Name',
+					'value' => 'Test Additional Data Value',
 				)
 			)
 		);
@@ -2117,28 +2113,24 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertCount( 12, $actual['data'][0]['data'] );
 
 		// Check that the duplicate 'name' => 'User ID' was stripped.
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				wp_list_filter(
-					$actual['data'][0]['data'],
-					array(
-						'name' => 'User ID',
-					)
+			wp_list_filter(
+				$actual['data'][0]['data'],
+				array(
+					'name' => 'User ID',
 				)
 			)
 		);
 
 		// Check that the item added by the filter was retained.
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				wp_list_filter(
-					$actual['data'][0]['data'],
-					array(
-						'name'  => 'Test Additional Data Name',
-						'value' => 'Test Additional Data Value',
-					)
+			wp_list_filter(
+				$actual['data'][0]['data'],
+				array(
+					'name'  => 'Test Additional Data Name',
+					'value' => 'Test Additional Data Value',
 				)
 			)
 		);

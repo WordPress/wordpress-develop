@@ -26,9 +26,9 @@ a:active {
 
 a:focus {
 	color: #043959;
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: 0 0 0 2px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 h1, h2 {
@@ -70,10 +70,6 @@ fieldset {
 	border: 0;
 	padding: 0;
 	margin: 0;
-}
-
-label {
-	cursor: pointer;
 }
 
 #logo {
@@ -354,7 +350,6 @@ body.language-chooser {
 .screen-reader-text {
 	border: 0;
 	clip: rect(1px, 1px, 1px, 1px);
-	-webkit-clip-path: inset(50%);
 	clip-path: inset(50%);
 	height: 1px;
 	margin: -1px;

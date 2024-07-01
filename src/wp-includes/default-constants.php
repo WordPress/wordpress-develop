@@ -325,9 +325,10 @@ function wp_cookie_constants() {
 
 	/**
 	 * @since 2.0.0
+	 * @since 6.6.0 The value has changed from false to an empty string.
 	 */
 	if ( ! defined( 'COOKIE_DOMAIN' ) ) {
-		define( 'COOKIE_DOMAIN', false );
+		define( 'COOKIE_DOMAIN', '' );
 	}
 
 	if ( ! defined( 'RECOVERY_MODE_COOKIE' ) ) {
@@ -407,6 +408,8 @@ function wp_templating_constants() {
 	 * Filesystem path to the current active template directory.
 	 *
 	 * @since 1.5.0
+	 * @deprecated 6.4.0 Use get_template_directory() instead.
+	 * @see get_template_directory()
 	 */
 	define( 'TEMPLATEPATH', get_template_directory() );
 
@@ -414,6 +417,8 @@ function wp_templating_constants() {
 	 * Filesystem path to the current active template stylesheet directory.
 	 *
 	 * @since 2.1.0
+	 * @deprecated 6.4.0 Use get_stylesheet_directory() instead.
+	 * @see get_stylesheet_directory()
 	 */
 	define( 'STYLESHEETPATH', get_stylesheet_directory() );
 
@@ -427,7 +432,6 @@ function wp_templating_constants() {
 	 * @see WP_Theme::get_core_default_theme()
 	 */
 	if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
-		define( 'WP_DEFAULT_THEME', 'twentytwentythree' );
+		define( 'WP_DEFAULT_THEME', 'twentytwentyfour' );
 	}
-
 }

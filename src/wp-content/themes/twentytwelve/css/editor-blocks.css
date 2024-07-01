@@ -289,10 +289,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-style: italic;
 }
 
-.edit-post-visual-editor .wp-block-pullquote {
-	margin: 0;
-}
-
 .wp-block-pullquote .wp-block-pullquote__citation,
 .wp-block-pullquote cite {
 	font-size: 14px;
@@ -313,6 +309,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 .editor-styles-wrapper .has-text-color th {
 	color: inherit;
+}
+
+.editor-styles-wrapper .wp-block-table[style*="font-size"] *,
+.editor-styles-wrapper .wp-block-table[class*="-font-size"] * {
+	font-size: inherit;
 }
 
 .editor-block-list__block .wp-block-table th {

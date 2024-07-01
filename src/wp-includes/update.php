@@ -202,7 +202,8 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	$response = wp_remote_post( $url, $options );
 
 	if ( $ssl && is_wp_error( $response ) ) {
-		trigger_error(
+		wp_trigger_error(
+			__FUNCTION__,
 			sprintf(
 				/* translators: %s: Support forums URL. */
 				__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
@@ -440,7 +441,8 @@ function wp_update_plugins( $extra_stats = array() ) {
 	$raw_response = wp_remote_post( $url, $options );
 
 	if ( $ssl && is_wp_error( $raw_response ) ) {
-		trigger_error(
+		wp_trigger_error(
+			__FUNCTION__,
 			sprintf(
 				/* translators: %s: Support forums URL. */
 				__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
@@ -553,7 +555,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		}
 	}
 
-	$sanitize_plugin_update_payload = static function( &$item ) {
+	$sanitize_plugin_update_payload = static function ( &$item ) {
 		$item = (object) $item;
 
 		unset( $item->translations, $item->compatibility );
@@ -721,7 +723,8 @@ function wp_update_themes( $extra_stats = array() ) {
 	$raw_response = wp_remote_post( $url, $options );
 
 	if ( $ssl && is_wp_error( $raw_response ) ) {
-		trigger_error(
+		wp_trigger_error(
+			__FUNCTION__,
 			sprintf(
 				/* translators: %s: Support forums URL. */
 				__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
@@ -754,7 +757,7 @@ function wp_update_themes( $extra_stats = array() ) {
 			continue;
 		}
 
-		$hostname = wp_parse_url( esc_url_raw( $theme_data['UpdateURI'] ), PHP_URL_HOST );
+		$hostname = wp_parse_url( sanitize_url( $theme_data['UpdateURI'] ), PHP_URL_HOST );
 
 		/**
 		 * Filters the update response for a given theme hostname.

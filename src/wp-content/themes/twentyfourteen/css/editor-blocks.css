@@ -196,6 +196,10 @@ Description: Used to style blocks in the editor.
 	text-align: right;
 }
 
+.editor-styles-wrapper .wp-block-table:not(.is-style-stripes) table:not([class*="-text-color"]) * {
+	border-color: rgba(0, 0, 0, 0.1);
+}
+
 /* Quotes */
 
 .wp-block-freeform.block-library-rich-text__tinymce blockquote {
@@ -369,6 +373,19 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 .editor-styles-wrapper .wp-block-pullquote {
 	border: 0;
+}
+
+.wp-block-pullquote[class*="-font-size"] blockquote,
+.wp-block-pullquote[style*="font-size"] blockquote {
+	font-size: inherit;
+}
+
+.wp-block-pullquote[style*="font-style"] blockquote {
+	font-style: inherit;
+}
+
+.wp-block-pullquote[style*="font-weight"] blockquote {
+	font-weight: inherit;
 }
 
 .wp-block-pullquote .wp-block-pullquote__citation {

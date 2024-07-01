@@ -139,7 +139,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 				// First request will hit the database.
 				$num_queries = get_num_queries();
 				$this->assertSame( 'bar', get_term_meta( $terms[0], 'foo', true ) );
-				$num_queries++;
+				++$num_queries;
 				$this->assertSame( $num_queries, get_num_queries() );
 
 				// Second and third requests should be in cache.
@@ -148,7 +148,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 				$this->assertSame( $num_queries, get_num_queries() );
 
 				// Querying a term not primed should result in a hit.
-				$num_queries++;
+				++$num_queries;
 				$this->assertSame( 'bar', get_term_meta( $orphan_term, 'foo', true ) );
 				$this->assertSame( $num_queries, get_num_queries() );
 			}
@@ -208,11 +208,11 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 				// Requests will hit the database.
 				$num_queries = get_num_queries();
 				$this->assertSame( 'bar', get_term_meta( $terms[0], 'foo', true ) );
-				$num_queries++;
+				++$num_queries;
 				$this->assertSame( $num_queries, get_num_queries() );
 
 				$this->assertSame( 'bar', get_term_meta( $terms[1], 'foo', true ) );
-				$num_queries++;
+				++$num_queries;
 				$this->assertSame( $num_queries, get_num_queries() );
 			}
 		}

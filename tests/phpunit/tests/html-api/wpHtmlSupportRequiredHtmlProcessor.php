@@ -42,9 +42,9 @@ class Tests_HtmlApi_WpHtmlSupportRequiredHtmlProcessor extends WP_UnitTestCase {
 	 * @param string $tag_name the HTML Processor should abort when encountering this tag, e.g. "BUTTON".
 	 */
 	private function ensure_support_is_added_everywhere( $tag_name ) {
-		$p = WP_HTML_Processor::createFragment( "<$tag_name>" );
+		$processor = WP_HTML_Processor::create_fragment( "<$tag_name>" );
 
-		$this->assertFalse( $p->step(), "Must support terminating elements in specific scope check before adding support for the {$tag_name} element." );
+		$this->assertFalse( $processor->step(), "Must support terminating elements in specific scope check before adding support for the {$tag_name} element." );
 	}
 
 	/**
@@ -58,9 +58,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredHtmlProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::generate_implied_end_tags
 	 */
 	public function test_generate_implied_end_tags_needs_support() {
-		$this->ensure_support_is_added_everywhere( 'DD' );
-		$this->ensure_support_is_added_everywhere( 'DT' );
-		$this->ensure_support_is_added_everywhere( 'LI' );
 		$this->ensure_support_is_added_everywhere( 'OPTGROUP' );
 		$this->ensure_support_is_added_everywhere( 'OPTION' );
 		$this->ensure_support_is_added_everywhere( 'RB' );
@@ -82,9 +79,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredHtmlProcessor extends WP_UnitTestCase {
 	public function test_generate_implied_end_tags_thoroughly_needs_support() {
 		$this->ensure_support_is_added_everywhere( 'CAPTION' );
 		$this->ensure_support_is_added_everywhere( 'COLGROUP' );
-		$this->ensure_support_is_added_everywhere( 'DD' );
-		$this->ensure_support_is_added_everywhere( 'DT' );
-		$this->ensure_support_is_added_everywhere( 'LI' );
 		$this->ensure_support_is_added_everywhere( 'OPTGROUP' );
 		$this->ensure_support_is_added_everywhere( 'OPTION' );
 		$this->ensure_support_is_added_everywhere( 'RB' );

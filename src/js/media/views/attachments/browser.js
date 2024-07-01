@@ -378,7 +378,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 
 		if ( this.options.search ) {
-			// Search is an input, a visually hidden label element needs to be rendered before.
+			// Search is an input, a label element needs to be rendered before.
 			this.toolbar.set( 'searchLabel', new wp.media.view.Label({
 				value: l10n.searchLabel,
 				className: 'media-search-input-label',
@@ -423,6 +423,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		if ( ! this.collection.length ) {
 			this.toolbar.get( 'spinner' ).show();
+			this.toolbar.$( '.media-bg-overlay' ).show();
 			this.dfd = this.collection.more().done( function() {
 				if ( ! view.collection.length ) {
 					noItemsView.$el.removeClass( 'hidden' );
@@ -430,10 +431,12 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 					noItemsView.$el.addClass( 'hidden' );
 				}
 				view.toolbar.get( 'spinner' ).hide();
+				view.toolbar.$( '.media-bg-overlay' ).hide();
 			} );
 		} else {
 			noItemsView.$el.addClass( 'hidden' );
 			view.toolbar.get( 'spinner' ).hide();
+			this.toolbar.$( '.media-bg-overlay' ).hide();
 		}
 	},
 

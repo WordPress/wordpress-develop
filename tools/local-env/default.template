@@ -15,6 +15,12 @@ server {
 
 	absolute_redirect off;
 
+	if (!-e $request_filename) {
+		rewrite /wp-admin$ $scheme://$host$request_uri/ permanent;
+		rewrite ^(/[^/]+)?(/wp-.*) $2 last;
+		rewrite ^(/[^/]+)?(/.*\.php) $2 last;
+	}
+
 	location / {
 		try_files $uri $uri/ /index.php?$args;
 	}

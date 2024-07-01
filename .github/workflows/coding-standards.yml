@@ -45,129 +45,21 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Runs PHP coding standards checks.
-  #
-  # Violations are reported inline with annotations.
-  #
-  # Performs the following steps:
-  # - Checks out the repository.
-  # - Sets up PHP.
-  # - Configures caching for PHPCS scans.
-  # - Installs Composer dependencies.
-  # - Make Composer packages available globally.
-  # - Runs PHPCS on the full codebase with warnings suppressed.
-  # - Generate a report for displaying issues as pull request annotations.
-  # - Runs PHPCS on the `tests` directory without warnings suppressed.
-  # - Generate a report for displaying `test` directory issues as pull request annotations.
-  # - Ensures version-controlled files are not modified or deleted.
+  # Runs the PHP coding standards checks.
   phpcs:
     name: PHP coding standards
-    runs-on: ubuntu-latest
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-coding-standards-php.yml@trunk
     permissions:
       contents: read
-    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
-
-      - name: Set up PHP
-        uses: shivammathur/setup-php@d30ad8b1843ace22e6698ab99bbafaa747b6bd0d # v2.24.0
-        with:
-          php-version: '7.4'
-          coverage: none
-          tools: cs2pr
-
-      # This date is used to ensure that the PHPCS cache is cleared at least once every week.
-      # http://man7.org/linux/man-pages/man1/date.1.html
-      - name: "Get last Monday's date"
-        id: get-date
-        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> $GITHUB_OUTPUT
-
-      - name: Cache PHPCS scan cache
-        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0 # v3.2.6
-        with:
-          path: |
-            .cache/phpcs-src.json
-            .cache/phpcs-tests.json
-          key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcs-cache-${{ hashFiles('**/composer.json', 'phpcs.xml.dist') }}
-
-      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
-      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
-      - name: Install Composer dependencies
-        uses: ramsey/composer-install@83af392bf5f031813d25e6fe4cd626cdba9a2df6 # v2.2.0
-        with:
-          custom-cache-suffix: ${{ steps.get-date.outputs.date }}
-
-      - name: Make Composer packages available globally
-        run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
-
-      - name: Run PHPCS on all Core files
-        id: phpcs-core
-        run: phpcs -n --report-full --cache=./.cache/phpcs-src.json --report-checkstyle=./.cache/phpcs-report.xml
-
-      - name: Show PHPCS results in PR
-        if: ${{ always() && steps.phpcs-core.outcome == 'failure' }}
-        run: cs2pr ./.cache/phpcs-report.xml
-
-      - name: Check test suite files for warnings
-        id: phpcs-tests
-        run: phpcs tests --report-full --cache=./.cache/phpcs-tests.json --report-checkstyle=./.cache/phpcs-tests-report.xml
-
-      - name: Show test suite scan results in PR
-        if: ${{ always() && steps.phpcs-tests.outcome == 'failure' }}
-        run: cs2pr ./.cache/phpcs-tests-report.xml
-
-      - name: Ensure version-controlled files are not modified during the tests
-        run: git diff --exit-code
 
   # Runs the JavaScript coding standards checks.
-  #
-  # JSHint violations are not currently reported inline with annotations.
-  #
-  # Performs the following steps:
-  # - Checks out the repository.
-  # - Sets up Node.js.
-  # - Logs debug information about the GitHub Action runner.
-  # - Installs npm dependencies.
-  # - Run the WordPress JSHint checks.
-  # - Ensures version-controlled files are not modified or deleted.
   jshint:
     name: JavaScript coding standards
-    runs-on: ubuntu-latest
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-coding-standards-javascript.yml@trunk
     permissions:
       contents: read
-    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-    env:
-      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          git --version
-          svn --version
-
-      - name: Install npm Dependencies
-        run: npm ci
-
-      - name: Run JSHint
-        run: npm run grunt jshint
-
-      - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
 
   slack-notifications:
     name: Slack Notifications
@@ -178,7 +70,7 @@ jobs:
     needs: [ phpcs, jshint ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
-      calling_status: ${{ needs.phpcs.result == 'success' && needs.jshint.result == 'success' && 'success' || ( needs.phpcs.result == 'cancelled' || needs.jshint.result == 'cancelled' ) && 'cancelled' || 'failure' }}
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
@@ -197,13 +89,13 @@ jobs:
       github.event_name != 'pull_request' &&
       github.run_attempt < 2 &&
       (
-        needs.phpcs.result == 'cancelled' || needs.phpcs.result == 'failure' ||
-        needs.jshint.result == 'cancelled' || needs.jshint.result == 'failure'
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
       )
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           retries: 2
           retry-exempt-status-codes: 418

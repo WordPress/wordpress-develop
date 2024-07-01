@@ -52,6 +52,56 @@ class WP_HTML_Open_Elements {
 	private $has_p_in_button_scope = false;
 
 	/**
+	 * A function that will be called when an item is popped off the stack of open elements.
+	 *
+	 * The function will be called with the popped item as its argument.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @var Closure
+	 */
+	private $pop_handler = null;
+
+	/**
+	 * A function that will be called when an item is pushed onto the stack of open elements.
+	 *
+	 * The function will be called with the pushed item as its argument.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @var Closure
+	 */
+	private $push_handler = null;
+
+	/**
+	 * Sets a pop handler that will be called when an item is popped off the stack of
+	 * open elements.
+	 *
+	 * The function will be called with the pushed item as its argument.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param Closure $handler The handler function.
+	 */
+	public function set_pop_handler( Closure $handler ) {
+		$this->pop_handler = $handler;
+	}
+
+	/**
+	 * Sets a push handler that will be called when an item is pushed onto the stack of
+	 * open elements.
+	 *
+	 * The function will be called with the pushed item as its argument.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param Closure $handler The handler function.
+	 */
+	public function set_push_handler( Closure $handler ) {
+		$this->push_handler = $handler;
+	}
+
+	/**
 	 * Reports if a specific node is in the stack of open elements.
 	 *
 	 * @since 6.4.0
@@ -110,9 +160,16 @@ class WP_HTML_Open_Elements {
 	 * @param string[] $termination_list List of elements that terminate the search.
 	 * @return bool Whether the element was found in a specific scope.
 	 */
-	public function has_element_in_specific_scope( $tag_name, $termination_list ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function has_element_in_specific_scope( $tag_name, $termination_list ) {
 		foreach ( $this->walk_up() as $node ) {
 			if ( $node->node_name === $tag_name ) {
+				return true;
+			}
+
+			if (
+				'(internal: H1 through H6 - do not use)' === $tag_name &&
+				in_array( $node->node_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
+			) {
 				return true;
 			}
 
@@ -122,7 +179,7 @@ class WP_HTML_Open_Elements {
 			}
 
 			if ( in_array( $node->node_name, $termination_list, true ) ) {
-				return true;
+				return false;
 			}
 		}
 
@@ -159,18 +216,22 @@ class WP_HTML_Open_Elements {
 	 * Returns whether a particular element is in list item scope.
 	 *
 	 * @since 6.4.0
+	 * @since 6.5.0 Implemented: no longer throws on every invocation.
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-list-item-scope
-	 *
-	 * @throws WP_HTML_Unsupported_Exception Always until this function is implemented.
 	 *
 	 * @param string $tag_name Name of tag to check.
 	 * @return bool Whether given element is in scope.
 	 */
-	public function has_element_in_list_item_scope( $tag_name ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-		throw new WP_HTML_Unsupported_Exception( 'Cannot process elements depending on list item scope.' );
-
-		return false; // The linter requires this unreachable code until the function is implemented and can return.
+	public function has_element_in_list_item_scope( $tag_name ) {
+		return $this->has_element_in_specific_scope(
+			$tag_name,
+			array(
+				// There are more elements that belong here which aren't currently supported.
+				'OL',
+				'UL',
+			)
+		);
 	}
 
 	/**
@@ -199,7 +260,7 @@ class WP_HTML_Open_Elements {
 	 * @param string $tag_name Name of tag to check.
 	 * @return bool Whether given element is in scope.
 	 */
-	public function has_element_in_table_scope( $tag_name ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function has_element_in_table_scope( $tag_name ) {
 		throw new WP_HTML_Unsupported_Exception( 'Cannot process elements depending on table scope.' );
 
 		return false; // The linter requires this unreachable code until the function is implemented and can return.
@@ -217,7 +278,7 @@ class WP_HTML_Open_Elements {
 	 * @param string $tag_name Name of tag to check.
 	 * @return bool Whether given element is in scope.
 	 */
-	public function has_element_in_select_scope( $tag_name ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function has_element_in_select_scope( $tag_name ) {
 		throw new WP_HTML_Unsupported_Exception( 'Cannot process elements depending on select scope.' );
 
 		return false; // The linter requires this unreachable code until the function is implemented and can return.
@@ -247,8 +308,12 @@ class WP_HTML_Open_Elements {
 	 */
 	public function pop() {
 		$item = array_pop( $this->stack );
-
 		if ( null === $item ) {
+			return false;
+		}
+
+		if ( 'context-node' === $item->bookmark_name ) {
+			$this->stack[] = $item;
 			return false;
 		}
 
@@ -268,7 +333,18 @@ class WP_HTML_Open_Elements {
 	 */
 	public function pop_until( $tag_name ) {
 		foreach ( $this->walk_up() as $item ) {
+			if ( 'context-node' === $item->bookmark_name ) {
+				return true;
+			}
+
 			$this->pop();
+
+			if (
+				'(internal: H1 through H6 - do not use)' === $tag_name &&
+				in_array( $item->node_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
+			) {
+				return true;
+			}
 
 			if ( $tag_name === $item->node_name ) {
 				return true;
@@ -301,6 +377,10 @@ class WP_HTML_Open_Elements {
 	 * @return bool Whether the node was found and removed from the stack of open elements.
 	 */
 	public function remove_node( $token ) {
+		if ( 'context-node' === $token->bookmark_name ) {
+			return false;
+		}
+
 		foreach ( $this->walk_up() as $position_from_end => $item ) {
 			if ( $token->bookmark_name !== $item->bookmark_name ) {
 				continue;
@@ -361,10 +441,22 @@ class WP_HTML_Open_Elements {
 	 * see WP_HTML_Open_Elements::walk_down().
 	 *
 	 * @since 6.4.0
+	 * @since 6.5.0 Accepts $above_this_node to start traversal above a given node, if it exists.
+	 *
+	 * @param ?WP_HTML_Token $above_this_node Start traversing above this node, if provided and if the node exists.
 	 */
-	public function walk_up() {
+	public function walk_up( $above_this_node = null ) {
+		$has_found_node = null === $above_this_node;
+
 		for ( $i = count( $this->stack ) - 1; $i >= 0; $i-- ) {
-			yield $this->stack[ $i ];
+			$node = $this->stack[ $i ];
+
+			if ( ! $has_found_node ) {
+				$has_found_node = $node === $above_this_node;
+				continue;
+			}
+
+			yield $node;
 		}
 	}
 
@@ -399,6 +491,10 @@ class WP_HTML_Open_Elements {
 				$this->has_p_in_button_scope = true;
 				break;
 		}
+
+		if ( null !== $this->push_handler ) {
+			( $this->push_handler )( $item );
+		}
 	}
 
 	/**
@@ -428,5 +524,18 @@ class WP_HTML_Open_Elements {
 				$this->has_p_in_button_scope = $this->has_element_in_button_scope( 'P' );
 				break;
 		}
+
+		if ( null !== $this->pop_handler ) {
+			( $this->pop_handler )( $item );
+		}
+	}
+
+	/**
+	 * Wakeup magic method.
+	 *
+	 * @since 6.6.0
+	 */
+	public function __wakeup() {
+		throw new \LogicException( __CLASS__ . ' should never be unserialized' );
 	}
 }

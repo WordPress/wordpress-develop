@@ -25,6 +25,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	protected $meta;
 
 	/**
+	 * Whether the controller supports batching.
+	 *
+	 * @since 6.6.0
+	 * @var array
+	 */
+	protected $allow_batch = array( 'v1' => true );
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 4.7.0
@@ -61,7 +69,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
@@ -69,7 +78,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$this->namespace,
 			'/' . $this->rest_base . '/(?P<id>[\d]+)',
 			array(
-				'args'   => array(
+				'args'        => array(
 					'id' => array(
 						'description' => __( 'Unique identifier for the user.' ),
 						'type'        => 'integer',
@@ -107,7 +116,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
@@ -318,6 +328,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $prepared_args['search'] ) ) {
+			if ( ! current_user_can( 'list_users' ) ) {
+				$prepared_args['search_columns'] = array( 'ID', 'user_login', 'user_nicename', 'display_name' );
+			}
 			$prepared_args['search'] = '*' . $prepared_args['search'] . '*';
 		}
 		/**
@@ -345,7 +358,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		// Store pagination values for headers then unset for count query.
 		$per_page = (int) $prepared_args['number'];
-		$page     = ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
+		$page     = (int) ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
 
 		$prepared_args['fields'] = 'ID';
 
@@ -360,9 +373,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$response->header( 'X-WP-Total', (int) $total_users );
 
-		$max_pages = ceil( $total_users / $per_page );
+		$max_pages = (int) ceil( $total_users / $per_page );
 
-		$response->header( 'X-WP-TotalPages', (int) $max_pages );
+		$response->header( 'X-WP-TotalPages', $max_pages );
 
 		$base = add_query_arg( urlencode_deep( $request->get_query_params() ), rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ) );
 		if ( $page > 1 ) {
@@ -984,9 +997,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$user   = $item;
-		$data   = array();
+		$user = $item;
+
 		$fields = $this->get_fields_for_response( $request );
+		$data   = array();
 
 		if ( in_array( 'id', $fields, true ) ) {
 			$data['id'] = $user->ID;

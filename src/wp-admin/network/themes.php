@@ -135,11 +135,25 @@ if ( $action ) {
 				<div class="wrap">
 				<?php if ( 1 === $themes_to_delete ) : ?>
 					<h1><?php _e( 'Delete Theme' ); ?></h1>
-					<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'This theme may be active on other sites in the network.' ); ?></p></div>
+					<?php
+					wp_admin_notice(
+						'<strong>' . __( 'Caution:' ) . '</strong> ' . __( 'This theme may be active on other sites in the network.' ),
+						array(
+							'additional_classes' => array( 'error' ),
+						)
+					);
+					?>
 					<p><?php _e( 'You are about to remove the following theme:' ); ?></p>
 				<?php else : ?>
 					<h1><?php _e( 'Delete Themes' ); ?></h1>
-					<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'These themes may be active on other sites in the network.' ); ?></p></div>
+					<?php
+					wp_admin_notice(
+						'<strong>' . __( 'Caution:' ) . '</strong> ' . __( 'These themes may be active on other sites in the network.' ),
+						array(
+							'additional_classes' => array( 'error' ),
+						)
+					);
+					?>
 					<p><?php _e( 'You are about to remove the following themes:' ); ?></p>
 				<?php endif; ?>
 					<ul class="ul-disc">
@@ -349,7 +363,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 
 <?php if ( current_user_can( 'install_themes' ) ) : ?>
-	<a href="theme-install.php" class="page-title-action"><?php echo esc_html_x( 'Add New', 'theme' ); ?></a>
+	<a href="theme-install.php" class="page-title-action"><?php echo esc_html__( 'Add New Theme' ); ?></a>
 <?php endif; ?>
 
 <?php
@@ -446,7 +460,7 @@ if ( '' !== $message ) {
 ?>
 
 <form method="get">
-<?php $wp_list_table->search_box( __( 'Search Installed Themes' ), 'theme' ); ?>
+<?php $wp_list_table->search_box( __( 'Search installed themes' ), 'theme' ); ?>
 </form>
 
 <?php

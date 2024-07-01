@@ -135,8 +135,11 @@ function twentytwenty_theme_support() {
 	 * by the theme.
 	 */
 	$loader = new TwentyTwenty_Script_Loader();
-	add_filter( 'script_loader_tag', array( $loader, 'filter_script_loader_tag' ), 10, 2 );
-
+	if ( version_compare( $GLOBALS['wp_version'], '6.3', '<' ) ) {
+		add_filter( 'script_loader_tag', array( $loader, 'filter_script_loader_tag' ), 10, 2 );
+	} else {
+		add_filter( 'print_scripts_array', array( $loader, 'migrate_legacy_strategy_script_data' ), 100 );
+	}
 }
 
 add_action( 'after_setup_theme', 'twentytwenty_theme_support' );
@@ -179,6 +182,7 @@ require get_template_directory() . '/inc/block-patterns.php';
  * Register and Enqueue Styles.
  *
  * @since Twenty Twenty 1.0
+ * @since Twenty Twenty 2.6 Enqueue the CSS file for the variable font.
  */
 function twentytwenty_register_styles() {
 
@@ -186,6 +190,9 @@ function twentytwenty_register_styles() {
 
 	wp_enqueue_style( 'twentytwenty-style', get_stylesheet_uri(), array(), $theme_version );
 	wp_style_add_data( 'twentytwenty-style', 'rtl', 'replace' );
+
+	// Enqueue the CSS file for the variable font, Inter.
+	wp_enqueue_style( 'twentytwenty-fonts', get_theme_file_uri( '/assets/css/font-inter.css' ), array(), $theme_version, 'all' );
 
 	// Add output of Customizer settings as inline style.
 	$customizer_css = twentytwenty_get_customizer_css( 'front-end' );
@@ -195,7 +202,6 @@ function twentytwenty_register_styles() {
 
 	// Add print CSS.
 	wp_enqueue_style( 'twentytwenty-print-style', get_template_directory_uri() . '/print.css', null, $theme_version, 'print' );
-
 }
 
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_styles' );
@@ -213,9 +219,14 @@ function twentytwenty_register_scripts() {
 		wp_enqueue_script( 'comment-reply' );
 	}
 
-	wp_enqueue_script( 'twentytwenty-js', get_template_directory_uri() . '/assets/js/index.js', array(), $theme_version, false );
-	wp_script_add_data( 'twentytwenty-js', 'async', true );
-
+	/*
+	 * This script is intentionally printed in the head because it involves the page header. The `defer` script loading
+	 * strategy ensures that it does not block rendering; being in the head it will start loading earlier so that it
+	 * will execute sooner once the DOM has loaded. The $args array is not used here to avoid unintentional footer
+	 * placement in WP<6.3; the wp_script_add_data() call is used instead.
+	 */
+	wp_enqueue_script( 'twentytwenty-js', get_template_directory_uri() . '/assets/js/index.js', array(), $theme_version );
+	wp_script_add_data( 'twentytwenty-js', 'strategy', 'defer' );
 }
 
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_scripts' );
@@ -316,7 +327,7 @@ function twentytwenty_get_custom_logo( $html ) {
 			);
 
 			// Add a style attribute with the height, or append the height to the style attribute if the style attribute already exists.
-			if ( ! str_contains( $html, ' style=' ) ) {
+			if ( false === strpos( $html, ' style=' ) ) {
 				$search[]  = '/(src=)/';
 				$replace[] = "style=\"height: {$logo_height}px;\" src=";
 			} else {
@@ -330,7 +341,6 @@ function twentytwenty_get_custom_logo( $html ) {
 	}
 
 	return $html;
-
 }
 
 add_filter( 'get_custom_logo', 'twentytwenty_get_custom_logo' );
@@ -402,7 +412,6 @@ function twentytwenty_sidebar_registration() {
 			)
 		)
 	);
-
 }
 
 add_action( 'widgets_init', 'twentytwenty_sidebar_registration' );
@@ -411,11 +420,15 @@ add_action( 'widgets_init', 'twentytwenty_sidebar_registration' );
  * Enqueue supplemental block editor styles.
  *
  * @since Twenty Twenty 1.0
+ * @since Twenty Twenty 2.4 Removed a script related to the obsolete Squared style of Button blocks.
+ * @since Twenty Twenty 2.6 Enqueue the CSS file for the variable font.
  */
 function twentytwenty_block_editor_styles() {
 
+	$theme_version = wp_get_theme()->get( 'Version' );
+
 	// Enqueue the editor styles.
-	wp_enqueue_style( 'twentytwenty-block-editor-styles', get_theme_file_uri( '/assets/css/editor-style-block.css' ), array(), wp_get_theme()->get( 'Version' ), 'all' );
+	wp_enqueue_style( 'twentytwenty-block-editor-styles', get_theme_file_uri( '/assets/css/editor-style-block.css' ), array(), $theme_version, 'all' );
 	wp_style_add_data( 'twentytwenty-block-editor-styles', 'rtl', 'replace' );
 
 	// Add inline style from the Customizer.
@@ -424,31 +437,36 @@ function twentytwenty_block_editor_styles() {
 		wp_add_inline_style( 'twentytwenty-block-editor-styles', $customizer_css );
 	}
 
+	// Enqueue the CSS file for the variable font, Inter.
+	wp_enqueue_style( 'twentytwenty-fonts', get_theme_file_uri( '/assets/css/font-inter.css' ), array(), $theme_version, 'all' );
+
 	// Add inline style for non-latin fonts.
 	$custom_css = TwentyTwenty_Non_Latin_Languages::get_non_latin_css( 'block-editor' );
 	if ( $custom_css ) {
 		wp_add_inline_style( 'twentytwenty-block-editor-styles', $custom_css );
 	}
-
-	// Enqueue the editor script.
-	wp_enqueue_script( 'twentytwenty-block-editor-script', get_theme_file_uri( '/assets/js/editor-script-block.js' ), array( 'wp-blocks', 'wp-dom' ), wp_get_theme()->get( 'Version' ), true );
 }
 
-add_action( 'enqueue_block_editor_assets', 'twentytwenty_block_editor_styles', 1, 1 );
+if ( is_admin() && version_compare( $GLOBALS['wp_version'], '6.3', '>=' ) ) {
+	add_action( 'enqueue_block_assets', 'twentytwenty_block_editor_styles', 1, 1 );
+} else {
+	add_action( 'enqueue_block_editor_assets', 'twentytwenty_block_editor_styles', 1, 1 );
+}
 
 /**
  * Enqueue classic editor styles.
  *
  * @since Twenty Twenty 1.0
+ * @since Twenty Twenty 2.6 Enqueue the CSS file for the variable font.
  */
 function twentytwenty_classic_editor_styles() {
 
 	$classic_editor_styles = array(
 		'/assets/css/editor-style-classic.css',
+		'/assets/css/font-inter.css',
 	);
 
 	add_editor_style( $classic_editor_styles );
-
 }
 
 add_action( 'init', 'twentytwenty_classic_editor_styles' );
@@ -477,7 +495,6 @@ function twentytwenty_add_classic_editor_customizer_styles( $mce_init ) {
 	}
 
 	return $mce_init;
-
 }
 
 add_filter( 'tiny_mce_before_init', 'twentytwenty_add_classic_editor_customizer_styles' );
@@ -505,7 +522,6 @@ function twentytwenty_add_classic_editor_non_latin_styles( $mce_init ) {
 	}
 
 	return $mce_init;
-
 }
 
 add_filter( 'tiny_mce_before_init', 'twentytwenty_add_classic_editor_non_latin_styles' );
@@ -597,7 +613,6 @@ function twentytwenty_block_editor_settings() {
 	if ( '#ffffff' === strtolower( twentytwenty_get_color_for_area( 'content', 'text' ) ) ) {
 		add_theme_support( 'dark-editor-style' );
 	}
-
 }
 
 add_action( 'after_setup_theme', 'twentytwenty_block_editor_settings' );
@@ -625,13 +640,13 @@ function twentytwenty_customize_controls_enqueue_scripts() {
 	$theme_version = wp_get_theme()->get( 'Version' );
 
 	// Add main customizer js file.
-	wp_enqueue_script( 'twentytwenty-customize', get_template_directory_uri() . '/assets/js/customize.js', array( 'jquery' ), $theme_version, false );
+	wp_enqueue_script( 'twentytwenty-customize', get_template_directory_uri() . '/assets/js/customize.js', array( 'jquery' ), $theme_version );
 
 	// Add script for color calculations.
-	wp_enqueue_script( 'twentytwenty-color-calculations', get_template_directory_uri() . '/assets/js/color-calculations.js', array( 'wp-color-picker' ), $theme_version, false );
+	wp_enqueue_script( 'twentytwenty-color-calculations', get_template_directory_uri() . '/assets/js/color-calculations.js', array( 'wp-color-picker' ), $theme_version );
 
 	// Add script for controls.
-	wp_enqueue_script( 'twentytwenty-customize-controls', get_template_directory_uri() . '/assets/js/customize-controls.js', array( 'twentytwenty-color-calculations', 'customize-controls', 'underscore', 'jquery' ), $theme_version, false );
+	wp_enqueue_script( 'twentytwenty-customize-controls', get_template_directory_uri() . '/assets/js/customize-controls.js', array( 'twentytwenty-color-calculations', 'customize-controls', 'underscore', 'jquery' ), $theme_version );
 	wp_localize_script( 'twentytwenty-customize-controls', 'twentyTwentyBgColors', twentytwenty_get_customizer_color_vars() );
 }
 
@@ -647,7 +662,7 @@ add_action( 'customize_controls_enqueue_scripts', 'twentytwenty_customize_contro
 function twentytwenty_customize_preview_init() {
 	$theme_version = wp_get_theme()->get( 'Version' );
 
-	wp_enqueue_script( 'twentytwenty-customize-preview', get_theme_file_uri( '/assets/js/customize-preview.js' ), array( 'customize-preview', 'customize-selective-refresh', 'jquery' ), $theme_version, true );
+	wp_enqueue_script( 'twentytwenty-customize-preview', get_theme_file_uri( '/assets/js/customize-preview.js' ), array( 'customize-preview', 'customize-selective-refresh', 'jquery' ), $theme_version, array( 'in_footer' => true ) );
 	wp_localize_script( 'twentytwenty-customize-preview', 'twentyTwentyBgColors', twentytwenty_get_customizer_color_vars() );
 	wp_localize_script( 'twentytwenty-customize-preview', 'twentyTwentyPreviewEls', twentytwenty_get_elements_array() );
 
@@ -776,7 +791,7 @@ function twentytwenty_get_elements_array() {
 				'border-left-color'   => array( 'body:not(.overlay-header) .primary-menu ul ul:after' ),
 			),
 			'secondary'  => array(
-				'color' => array( '.site-description', 'body:not(.overlay-header) .toggle-inner .toggle-text', '.widget .post-date', '.widget .rss-date', '.widget_archive li', '.widget_categories li', '.widget cite', '.widget_pages li', '.widget_meta li', '.widget_nav_menu li', '.powered-by-wordpress', '.to-the-top', '.singular .entry-header .post-meta', '.singular:not(.overlay-header) .entry-header .post-meta a' ),
+				'color' => array( '.site-description', 'body:not(.overlay-header) .toggle-inner .toggle-text', '.widget .post-date', '.widget .rss-date', '.widget_archive li', '.widget_categories li', '.widget cite', '.widget_pages li', '.widget_meta li', '.widget_nav_menu li', '.powered-by-wordpress', '.footer-credits .privacy-policy', '.to-the-top', '.singular .entry-header .post-meta', '.singular:not(.overlay-header) .entry-header .post-meta a' ),
 			),
 			'borders'    => array(
 				'border-color'     => array( '.header-footer-group pre', '.header-footer-group fieldset', '.header-footer-group input', '.header-footer-group textarea', '.header-footer-group table', '.header-footer-group table *', '.footer-nav-widgets-wrapper', '#site-footer', '.menu-modal nav *', '.footer-widgets-outer-wrapper', '.footer-top' ),

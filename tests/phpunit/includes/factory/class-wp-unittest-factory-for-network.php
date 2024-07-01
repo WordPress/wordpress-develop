@@ -65,8 +65,6 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param int   $network_id ID of the network to update.
 	 * @param array $fields  The fields to update.
-	 *
-	 * @return void
 	 */
 	public function update_object( $network_id, $fields ) {}
 
