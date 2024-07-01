@@ -246,7 +246,7 @@ class WP_Block {
 		$supported_block_attributes = array(
 			'core/paragraph' => array( 'content' ),
 			'core/heading'   => array( 'content' ),
-			'core/image'     => array( 'id', 'url', 'title', 'alt' ),
+			'core/image'     => array( 'id', 'url', 'title', 'alt', 'caption' ),
 			'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
 		);
 
@@ -333,7 +333,44 @@ class WP_Block {
 		switch ( $block_type->attributes[ $attribute_name ]['source'] ) {
 			case 'html':
 			case 'rich-text':
-				$block_reader = new WP_HTML_Tag_Processor( $block_content );
+				// Create private anonymous class until the HTML API provides `set_inner_html` method.
+				$block_reader = new class($block_content) extends WP_HTML_Tag_Processor{
+					public function set_inner_text( $new_content ) {
+						$tag_name = $this->get_tag();
+						// Get position of the opener tag.
+						$this->set_bookmark( 'opener_tag' );
+						$opener_tag_bookmark = $this->bookmarks['opener_tag'];
+
+						// Visit the closing tag.
+						if ( ! $this->next_tag(
+							array(
+								'tag_name'    => $tag_name,
+								'tag_closers' => 'visit',
+							)
+						) || ! $this->is_tag_closer() ) {
+							$this->release_bookmark( 'opener_tag' );
+							return null;
+						}
+
+						// Get position of the closer tag.
+						$this->set_bookmark( 'closer_tag' );
+						$closer_tag_bookmark = $this->bookmarks['closer_tag'];
+
+						// Appends the new content.
+						$after_opener_tag        = $opener_tag_bookmark->start + $opener_tag_bookmark->length;
+						$inner_content_length    = $closer_tag_bookmark->start - $after_opener_tag;
+						$this->lexical_updates[] = new WP_HTML_Text_Replacement( $after_opener_tag, $inner_content_length, $new_content );
+						$this->release_bookmark( 'opener_tag' );
+						$this->release_bookmark( 'closer_tag' );
+					}
+				};
+
+				if ( 'core/image' === $this->name && 'caption' === $attribute_name ) {
+					if ( $block_reader->next_tag( 'figcaption' ) ) {
+						$block_reader->set_inner_text( wp_kses_post( $source_value ) );
+					}
+					return $block_reader->get_updated_html();
+				}
 
 				// TODO: Support for CSS selectors whenever they are ready in the HTML API.
 				// In the meantime, support comma-separated selectors by exploding them into an array.
