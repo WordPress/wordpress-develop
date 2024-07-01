@@ -36,7 +36,7 @@ jobs:
   # Creates a PHPUnit test job for each PHP/MySQL combination.
   #
   test-php:
-    name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
+    name: PHP ${{ matrix.php }}
     uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests.yml@trunk
     permissions:
       contents: read
