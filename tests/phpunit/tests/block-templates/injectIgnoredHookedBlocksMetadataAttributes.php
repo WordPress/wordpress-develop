@@ -88,13 +88,43 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 
 		$args = $action->get_args();
 
-		$args_for_template_part = end( $args );
-		$relative_position      = $args_for_template_part[1];
-		$anchor_block_type      = $args_for_template_part[2];
-		$context                = $args_for_template_part[3];
+		$relative_positions = array_column( $args, 1 );
+		$anchor_block_types = array_column( $args, 2 );
+		$contexts           = array_column( $args, 3 );
 
-		$this->assertSame( 'last_child', $relative_position );
-		$this->assertSame( 'core/template-part', $anchor_block_type );
+		$this->assertSame(
+			array(
+				'before',
+				'after',
+				'first_child',
+				'before',
+				'after',
+				'last_child',
+			),
+			$relative_positions,
+			"The relative positions passed to the hooked_block_types filter are incorrect."
+		);
+
+		$this->assertSame(
+			array(
+				'core/template-part',
+				'core/template-part',
+				'core/template-part',
+				'tests/anchor-block',
+				'tests/anchor-block',
+				'core/template-part',
+			),
+			$anchor_block_types,
+			"The anchor block types passed to the hooked_block_types filter are incorrect."
+		);
+
+		$context = $contexts[0];
+		$this->assertSame(
+			array_fill( 0, count( $contexts ), $context ),
+			$contexts,
+			"The context passed to the hooked_block_types filter is not the same for all calls."
+		);
+
 		$this->assertInstanceOf( 'WP_Block_Template', $context );
 
 		$this->assertSame(
@@ -121,14 +151,6 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 			$context->area,
 			'The area field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
 		);
-
-		$args_for_anchor_block = prev( $args );
-		$relative_position     = $args_for_template_part[1];
-		$anchor_block_type     = $args_for_anchor_block[2];
-
-		$this->assertSame( 'last_child', $relative_position );
-		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
-		$this->assertSame( $context, $args_for_anchor_block[3] );
 	}
 
 	/**
