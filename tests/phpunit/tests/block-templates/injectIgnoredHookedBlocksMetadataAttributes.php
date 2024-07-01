@@ -102,7 +102,7 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 				'last_child',
 			),
 			$relative_positions,
-			"The relative positions passed to the hooked_block_types filter are incorrect."
+			'The relative positions passed to the hooked_block_types filter are incorrect.'
 		);
 
 		$this->assertSame(
@@ -115,14 +115,14 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 				'core/template-part',
 			),
 			$anchor_block_types,
-			"The anchor block types passed to the hooked_block_types filter are incorrect."
+			'The anchor block types passed to the hooked_block_types filter are incorrect.'
 		);
 
 		$context = $contexts[0];
 		$this->assertSame(
 			array_fill( 0, count( $contexts ), $context ),
 			$contexts,
-			"The context passed to the hooked_block_types filter should be the same for all calls."
+			'The context passed to the hooked_block_types filter should be the same for all calls.'
 		);
 		$this->assertInstanceOf(
 			'WP_Block_Template',
@@ -253,7 +253,7 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 				'last_child',
 			),
 			$relative_positions,
-			"The relative positions passed to the hooked_block_types filter are incorrect."
+			'The relative positions passed to the hooked_block_types filter are incorrect.'
 		);
 
 		$this->assertSame(
@@ -266,14 +266,14 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 				'core/template-part',
 			),
 			$anchor_block_types,
-			"The anchor block types passed to the hooked_block_types filter are incorrect."
+			'The anchor block types passed to the hooked_block_types filter are incorrect.'
 		);
 
 		$context = $contexts[0];
 		$this->assertSame(
 			array_fill( 0, count( $contexts ), $context ),
 			$contexts,
-			"The context passed to the hooked_block_types filter should be the same for all calls."
+			'The context passed to the hooked_block_types filter should be the same for all calls.'
 		);
 		$this->assertInstanceOf(
 			'WP_Block_Template',
@@ -405,7 +405,7 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 				'last_child',
 			),
 			$relative_positions,
-			"The relative positions passed to the hooked_block_types filter are incorrect."
+			'The relative positions passed to the hooked_block_types filter are incorrect.'
 		);
 
 		$this->assertSame(
@@ -418,14 +418,14 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 				'core/template-part',
 			),
 			$anchor_block_types,
-			"The anchor block types passed to the hooked_block_types filter are incorrect."
+			'The anchor block types passed to the hooked_block_types filter are incorrect.'
 		);
 
 		$context = $contexts[0];
 		$this->assertSame(
 			array_fill( 0, count( $contexts ), $context ),
 			$contexts,
-			"The context passed to the hooked_block_types filter should be the same for all calls."
+			'The context passed to the hooked_block_types filter should be the same for all calls.'
 		);
 		$this->assertInstanceOf(
 			'WP_Block_Template',
