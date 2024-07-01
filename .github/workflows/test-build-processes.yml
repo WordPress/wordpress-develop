@@ -1,4 +1,4 @@
-name: PHPUnit Tests
+name: Test Build Processes
 
 on:
   push:
@@ -14,10 +14,17 @@ on:
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
+    paths:
+      # These files configure npm. Changes could affect the outcome.
+      - 'package*.json'
+      # JavaScript files are built using npm.
+      - '**.js'
+      # CSS and SCSS files are built using npm.
+      - '**.scss'
+      - '**.css'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/**.yml'
   workflow_dispatch:
-  # Once weekly On Sundays at 00:00 UTC.
-  schedule:
-    - cron: '0 0 * * 0'
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
@@ -31,53 +38,52 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Creates PHPUnit test jobs.
-  test-php:
-    name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v2.yml@trunk
+  # Tests the WordPress Core build process on multiple operating systems.
+  test-core-build-process:
+    name: Core running from ${{ matrix.directory }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trunk
     permissions:
       contents: read
-    secrets: inherit
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
-        php: [ '5.6', '7.0', '7.1', '7.2', '7.3', '7.4' ]
-        multisite: [ false, true ]
-        split_slow: [ false ]
-        memcached: [ false ]
+        os: [ ubuntu-latest, windows-latest ]
+        directory: [ 'src', 'build' ]
         include:
-          # Additional "slow" jobs for PHP 5.6.
-          - php: '5.6'
-            os: ubuntu-latest
-            memcached: false
-            multisite: false
-            split_slow: true
-          - php: '5.6'
-            os: ubuntu-latest
-            memcached: false
-            multisite: true
-            split_slow: true
-          # Include jobs for PHP 7.4 with memcached.
-          - php: '7.4'
-            os: ubuntu-latest
-            memcached: true
-            multisite: false
-            split_slow: false
-          - php: '7.4'
-            os: ubuntu-latest
-            memcached: true
-            multisite: true
-            split_slow: false
+          # Only prepare artifacts once.
+          - os: ubuntu-latest
+            directory: 'build'
+            prepare-playground: true
     with:
       os: ${{ matrix.os }}
-      php: ${{ matrix.php }}
-      multisite: ${{ matrix.multisite }}
-      split_slow: ${{ matrix.split_slow }}
-      test_ajax: ${{ ! matrix.multisite }}
-      memcached: ${{ matrix.memcached }}
-      phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      directory: ${{ matrix.directory }}
+      prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
+      test-emoji: false
+
+  # Tests the WordPress Core build process on MacOS.
+  #
+  # This is separate from the job above in order to use stricter conditions when determining when to run.
+  # This avoids unintentionally consuming excessive minutes, as MacOS jobs consume minutes at a 10x rate.
+  #
+  # The `matrix` and `runner` contexts are not available for use within `if` expressions. So there is
+  # currently no way to determine the OS being used on a given job.
+  # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
+  test-core-build-process-macos:
+    name: Core running from ${{ matrix.directory }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trunk
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ macos-13 ]
+        directory: [ 'src', 'build' ]
+    with:
+      os: ${{ matrix.os }}
+      directory: ${{ matrix.directory }}
+      test-emoji: false
 
   slack-notifications:
     name: Slack Notifications
@@ -85,7 +91,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ test-php ]
+    needs: [ test-core-build-process, test-core-build-process-macos ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
