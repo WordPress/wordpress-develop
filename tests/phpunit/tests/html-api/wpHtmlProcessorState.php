@@ -15,7 +15,7 @@ class Tests_HtmlApi_WpHtmlProcessorState extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_insertion_mode_cases
 	 *
-	 * @ticket TBD
+	 * @ticket 61549
 	 *
 	 * @param array $stack_of_open_elements   Stack of open elements.
 	 * @param string $expected_insertion_mode Expected insertion mode after running the algorithm.
@@ -69,7 +69,7 @@ class Tests_HtmlApi_WpHtmlProcessorState extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_insertion_mode_unsupported
 	 *
-	 * @ticket TBD
+	 * @ticket 61549
 	 *
 	 * @param array $stack_of_open_elements Stack of open elements.
 	 */
