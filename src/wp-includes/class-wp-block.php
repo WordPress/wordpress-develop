@@ -348,7 +348,7 @@ class WP_Block {
 						 * @param string $new_content New content to insert in the figcaption element.
 						 * @return bool Whether the inner content was properly replaced.
 						 */
-						public function set_figcaption_inner_text( $new_content ) {
+						public function set_figcaption_inner_html( $new_content ) {
 							// Check that the processor is paused on an opener tag.
 							if ( 'FIGCAPTION' !== $this->get_tag() || $this->is_tag_closer() ) {
 								return false;
@@ -386,7 +386,7 @@ class WP_Block {
 
 					$block_reader = $bindings_processor::create_fragment( $block_content );
 					if ( $block_reader->next_tag( 'figcaption' ) ) {
-						$block_reader->set_figcaption_inner_text( $source_value );
+						$block_reader->set_figcaption_inner_html( $source_value );
 					}
 					return $block_reader->get_updated_html();
 				}
