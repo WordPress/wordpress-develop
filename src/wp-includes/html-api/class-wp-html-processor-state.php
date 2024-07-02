@@ -320,6 +320,7 @@ class WP_HTML_Processor_State {
 						$this->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_CELL;
 						return;
 					}
+					break;
 
 					/*
 					* > 6. If _node_ is a `tr` element, then switch the insertion mode to "in row"
