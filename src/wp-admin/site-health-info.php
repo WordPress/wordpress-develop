@@ -53,7 +53,7 @@ wp_admin_notice(
 
 	<div class="site-health-copy-buttons">
 		<div class="copy-button-wrapper">
-			<button type="button" class="button copy-button" data-clipboard-text="<?php echo esc_attr( WP_Debug_Data::format( $info, 'debug' ) ); ?>">
+			<button type="button" class="button copy-button" data-clipboard-text="<?php echo esc_attr( WP_Debug_Data::format( $info, 'debug' ) ); ?>" disabled>
 				<?php _e( 'Copy site info to clipboard' ); ?>
 			</button>
 			<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
