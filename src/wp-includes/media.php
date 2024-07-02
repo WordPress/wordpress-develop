@@ -3355,14 +3355,10 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		}
 	}
 
-	$attr_strings = array();
-
-	foreach ( $html_atts as $k => $v ) {
-		if ( in_array( $k, array( 'loop', 'autoplay', 'muted' ), true ) && true === $v ) {
-			$attr_strings[] = esc_attr( $k );
-		} else {
-			$attr_strings[] = $k . '="' . esc_attr( $v ) . '"';
-		}
+	$audio_tag_builder = new WP_HTML_Tag_Processor( '<audio controls>' );
+	$audio_tag_builder->next_tag();
+	foreach ( $html_atts as $name => $value ) {
+		$audio_tag_builder->set_attribute( $name, $value );
 	}
 
 	$html = '';
@@ -3371,7 +3367,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		$html .= "<!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->\n";
 	}
 
-	$html .= sprintf( '<audio %s controls="controls">', implode( ' ', $attr_strings ) );
+	$html .= $audio_tag_builder->get_updated_html();
 
 	$fileurl = '';
 	$source  = '<source type="%s" src="%s" />';
