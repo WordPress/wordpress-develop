@@ -354,7 +354,7 @@ class WP_Block {
 								return false;
 							}
 
-							// Set position of the opener tag.
+							// Set position of the opening tag.
 							$this->set_bookmark( 'opening' );
 
 							// Once this element closes the depth will be one shallower than it is now.
@@ -367,7 +367,7 @@ class WP_Block {
 								return false;
 							}
 
-							// Set position of the opener tag.
+							// Set position of the closing tag.
 							$this->set_bookmark( 'closing' );
 
 							$opening = $this->bookmarks['_opening'];
