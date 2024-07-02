@@ -62,7 +62,7 @@ class WP_HTML_Processor_State {
 	/**
 	 * In select insertion mode for full HTML parser.
 	 *
-	 * @since 6.5.0
+	 * @since 6.7.0
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-inselect
 	 * @see WP_HTML_Processor_State::$insertion_mode
@@ -74,7 +74,7 @@ class WP_HTML_Processor_State {
 	/**
 	 * In select in table insertion mode for full HTML parser.
 	 *
-	 * @since 6.5.0
+	 * @since 6.7.0
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-inselectintable
 	 * @see WP_HTML_Processor_State::$insertion_mode
@@ -86,7 +86,7 @@ class WP_HTML_Processor_State {
 	/**
 	 * In table insertion mode for full HTML parser.
 	 *
-	 * @since 6.5.0
+	 * @since 6.7.0
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-intable
 	 * @see WP_HTML_Processor_State::$insertion_mode
@@ -98,7 +98,7 @@ class WP_HTML_Processor_State {
 	/**
 	 * In caption insertion mode for full HTML parser.
 	 *
-	 * @since 6.5.0
+	 * @since 6.7.0
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-incaption
 	 * @see WP_HTML_Processor_State::$insertion_mode
@@ -110,7 +110,7 @@ class WP_HTML_Processor_State {
 	/**
 	 * In table body insertion mode for full HTML parser.
 	 *
-	 * @since 6.5.0
+	 * @since 6.7.0
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-intablebody
 	 * @see WP_HTML_Processor_State::$insertion_mode
@@ -122,7 +122,7 @@ class WP_HTML_Processor_State {
 	/**
 	 * In row insertion mode for full HTML parser.
 	 *
-	 * @since 6.5.0
+	 * @since 6.7.0
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-inrow
 	 * @see WP_HTML_Processor_State::$insertion_mode
@@ -134,7 +134,7 @@ class WP_HTML_Processor_State {
 	/**
 	 * In cell insertion mode for full HTML parser.
 	 *
-	 * @since 6.5.0
+	 * @since 6.7.0
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-incell
 	 * @see WP_HTML_Processor_State::$insertion_mode
@@ -146,7 +146,7 @@ class WP_HTML_Processor_State {
 	/**
 	 * In column group insertion mode for full HTML parser.
 	 *
-	 * @since 6.5.0
+	 * @since 6.7.0
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-incolumngroup
 	 * @see WP_HTML_Processor_State::$insertion_mode
@@ -158,7 +158,7 @@ class WP_HTML_Processor_State {
 	/**
 	 * In frameset insertion mode for full HTML parser.
 	 *
-	 * @since 6.5.0
+	 * @since 6.7.0
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-inframeset
 	 * @see WP_HTML_Processor_State::$insertion_mode
@@ -166,6 +166,65 @@ class WP_HTML_Processor_State {
 	 * @var string
 	 */
 	const INSERTION_MODE_IN_FRAMESET = 'insertion-mode-in-frameset';
+
+	/**
+	 * In head insertion mode for full HTML parser.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-inhead
+	 * @see WP_HTML_Processor_State::$insertion_mode
+	 *
+	 * @var string
+	 */
+	const INSERTION_MODE_IN_HEAD = 'insertion-mode-in-head';
+
+	/**
+	 * Before head insertion mode for full HTML parser.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-beforehead
+	 * @see WP_HTML_Processor_State::$insertion_mode
+	 *
+	 * @var string
+	 */
+	const INSERTION_MODE_BEFORE_HEAD = 'insertion-mode-before-head';
+
+	/**
+	 * After head insertion mode for full HTML parser.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-afterhead
+	 * @see WP_HTML_Processor_State::$insertion_mode
+	 *
+	 * @var string
+	 */
+	const INSERTION_MODE_AFTER_HEAD = 'insertion-mode-after-head';
+
+	/**
+	 * In template insertion mode for full HTML parser.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-intemplate
+	 * @see WP_HTML_Processor_State::$insertion_mode
+	 *
+	 * @var string
+	 */
+	const INSERTION_MODE_IN_TEMPLATE = 'insertion-mode-in-template';
+
+	/**
+	 * The stack of template insertion modes.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @see https://html.spec.whatwg.org/#the-insertion-mode:stack-of-template-insertion-modes
+	 *
+	 * @var array<string>
+	 */
+	public $stack_of_template_insertion_modes = array();
 
 	/**
 	 * Tracks open elements while scanning HTML.
@@ -225,6 +284,17 @@ class WP_HTML_Processor_State {
 	public $context_node = null;
 
 	/**
+	 * HEAD element pointer.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#head-element-pointer
+	 *
+	 * @var WP_HTML_Token|null
+	 */
+	public $head_element = null;
+
+	/**
 	 * The frameset-ok flag indicates if a `FRAMESET` element is allowed in the current state.
 	 *
 	 * > The frameset-ok flag is set to "ok" when the parser is created. It is set to "not ok" after certain tokens are seen.
@@ -253,8 +323,6 @@ class WP_HTML_Processor_State {
 	 * Runs the reset the insertion mode appropriately algorithm.
 	 *
 	 * @since 6.7.0
-	 *
-	 * @throws WP_HTML_Unsupported_Exception When encoutering unsupported nodes.
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#reset-the-insertion-mode-appropriately
 	 */
@@ -369,14 +437,19 @@ class WP_HTML_Processor_State {
 				 * >     current template insertion mode and return.
 				 */
 				case 'TEMPLATE':
-					throw new WP_HTML_Unsupported_Exception( 'Cannot reset insertion mode at TEMPLATE node.' );
+					$this->insertion_mode = end( $this->stack_of_template_insertion_modes );
+					return;
 
 				/*
 				 * > 12. If _node_ is a `head` element and _last_ is false, then switch the
 				 * >     insertion mode to "in head" and return.
 				 */
 				case 'HEAD':
-					throw new WP_HTML_Unsupported_Exception( 'Cannot reset insertion mode at HEAD node.' );
+					if ( ! $last ) {
+						$this->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD;
+						return;
+					}
+					break;
 
 				/*
 				 * > 13. If _node_ is a `body` element, then switch the insertion mode to "in body"
@@ -398,10 +471,16 @@ class WP_HTML_Processor_State {
 				 * > 15. If _node_ is an `html` element, run these substeps:
 				 * >     1. If the head element pointer is null, switch the insertion mode to
 				 * >        "before head" and return. (fragment case)
-				 * >     2. Otherwise, the head element pointer is not null, switch the insertion mode to "after head" and return.
+				 * >     2. Otherwise, the head element pointer is not null, switch the insertion
+				 * >        mode to "after head" and return.
 				 */
 				case 'HTML':
-					throw new WP_HTML_Unsupported_Exception( 'Cannot reset insertion mode at HTML node.' );
+					if ( null === $this->head_element ) {
+						$this->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD;
+					} else {
+						$this->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD;
+					}
+					return;
 			}
 		}
 
