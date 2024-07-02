@@ -825,13 +825,18 @@ function get_dynamic_block_names() {
 }
 
 /**
- * Retrieves block types hooked into the given block, grouped by anchor block type and the relative position.
+ * Retrieves block types hooked into the given block via the block.json file, grouped by anchor block type and the relative position.
  *
  * @since 6.4.0
  *
  * @return array[] Array of block types grouped by anchor block type and the relative position.
  */
 function get_hooked_blocks() {
+	static $cached_result = null;
+	if ( ! defined( 'WP_RUN_CORE_TESTS' ) && null !== $cached_result ) {
+		return $cached_result;
+	}
+
 	$block_types   = WP_Block_Type_Registry::get_instance()->get_all_registered();
 	$hooked_blocks = array();
 	foreach ( $block_types as $block_type ) {
@@ -849,26 +854,39 @@ function get_hooked_blocks() {
 		}
 	}
 
+	$cached_result = $hooked_blocks;
+
 	return $hooked_blocks;
 }
 
 /**
- * Returns the markup for blocks hooked to the given anchor block in a specific relative position.
+ * Determines whether there are any blocks hooked to other blocks.
+ * Prefixed with maybe_ because the filter might be used but not have any hooked blocks.
  *
- * @since 6.5.0
- * @access private
+ * @since 6.7.0
  *
- * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
- * @param string                          $relative_position   The relative position of the hooked blocks.
- *                                                             Can be one of 'before', 'after', 'first_child', or 'last_child'.
- * @param array                           $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
- * @param WP_Block_Template|WP_Post|array $context             The block template, template part, or pattern that the anchor block belongs to.
- * @return string
+ * @return bool
  */
-function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
-	$anchor_block_type  = $parsed_anchor_block['blockName'];
-	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
-		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
+function maybe_has_hooked_blocks() {
+	$hooked_blocks = get_hooked_blocks();
+	return ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' );
+}
+
+/**
+ * For a given anchor block type and relative position, returns the list of block types hooked to it.
+ *
+ * @since 6.7.0
+ *
+ * @param string $anchor_block_type                The anchor block name.
+ * @param string $relative_position                Relative position e.g. `before`, `after`, `first_child`, `last_child`.
+ * @param WP_Block_Template|WP_Post|array $context The block template, template part, `wp_navigation` post type,
+ *                                                 or pattern that the anchor block belongs to.
+ * @return array[] Array of block types grouped by anchor block type and the relative position.
+ */
+function get_hooked_blocks_by_anchor_block( $anchor_block_type, $relative_position, $context ) {
+	$hooked_json_blocks = get_hooked_blocks();
+	$hooked_block_types = isset( $hooked_json_blocks[ $anchor_block_type ][ $relative_position ] )
+		? $hooked_json_blocks[ $anchor_block_type ][ $relative_position ]
 		: array();
 
 	/**
@@ -883,7 +901,34 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 	 * @param WP_Block_Template|WP_Post|array $context            The block template, template part, `wp_navigation` post type,
 	 *                                                            or pattern that the anchor block belongs to.
 	 */
-	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
+	$hooked_blocks = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
+
+	if ( ! is_array( $hooked_blocks ) ) {
+		return array();
+	}
+
+	return $hooked_blocks;
+}
+
+/**
+ * Returns the markup for blocks hooked to the given anchor block in a specific relative position.
+ *
+ * @since 6.5.0
+ * @since 6.7.0 Added the $deprecated parameter to deprecated the $hooked_blocks parameter.
+ * @access private
+ *
+ * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
+ * @param string                          $relative_position   The relative position of the hooked blocks.
+ *                                                             Can be one of 'before', 'after', 'first_child', or 'last_child'.
+ * @param WP_Block_Template|WP_Post|array $context             The block template, template part, or pattern that the anchor block belongs to.
+ * @return string
+ */
+function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $deprecated = null, $context ) {
+	if ( null !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '6.7.0' );
+	}
+	$anchor_block_type  = $parsed_anchor_block['blockName'];
+	$hooked_block_types = get_hooked_blocks_by_anchor_block( $anchor_block_type, $relative_position, $context );
 
 	$markup = '';
 	foreach ( $hooked_block_types as $hooked_block_type ) {
@@ -947,23 +992,23 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
  * This function is meant for internal use only.
  *
  * @since 6.5.0
+ * @since 6.7.0 Added the $deprecated parameter to deprecated the $hooked_blocks parameter.
  * @access private
  *
  * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
  * @param string                          $relative_position   The relative position of the hooked blocks.
  *                                                             Can be one of 'before', 'after', 'first_child', or 'last_child'.
- * @param array                           $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
+ * @param mixed                           $deprecated          Deprecated. Not used.
  * @param WP_Block_Template|WP_Post|array $context             The block template, template part, or pattern that the anchor block belongs to.
  * @return string Empty string.
  */
-function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
-	$anchor_block_type  = $parsed_anchor_block['blockName'];
-	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
-		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
-		: array();
+function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $deprecated = null, $context ) {
+	if ( null !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '6.7.0' );
+	}
 
-	/** This filter is documented in wp-includes/blocks.php */
-	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
+	$anchor_block_type  = $parsed_anchor_block['blockName'];
+	$hooked_block_types = get_hooked_blocks_by_anchor_block( $anchor_block_type, $relative_position, $context );
 	if ( empty( $hooked_block_types ) ) {
 		return '';
 	}
@@ -1017,15 +1062,14 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
  * @return string The serialized markup.
  */
 function apply_block_hooks_to_content( $content, $context, $callback = 'insert_hooked_blocks' ) {
-	$hooked_blocks = get_hooked_blocks();
-	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
+	if ( ! maybe_has_hooked_blocks() ) {
 		return $content;
 	}
 
 	$blocks = parse_blocks( $content );
 
-	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $context, $callback );
-	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $context, $callback );
+	$before_block_visitor = make_before_block_visitor( null, $context, $callback );
+	$after_block_visitor  = make_after_block_visitor( null, $context, $callback );
 
 	return traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 }
@@ -1146,18 +1190,23 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
  * This function is meant for internal use only.
  *
  * @since 6.6.0
+ * @since 6.7.0 Added the `$deprecated` parameter to deprecated the $hooked_blocks parameter.
  * @access private
  *
  * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
  * @param string                          $relative_position   The relative position of the hooked blocks.
  *                                                             Can be one of 'before', 'after', 'first_child', or 'last_child'.
- * @param array                           $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
+ * @param mixed                           $deprecated          Deprecated. Not used.
  * @param WP_Block_Template|WP_Post|array $context             The block template, template part, or pattern that the anchor block belongs to.
  * @return string
  */
-function insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
-	$markup  = insert_hooked_blocks( $parsed_anchor_block, $relative_position, $hooked_blocks, $context );
-	$markup .= set_ignored_hooked_blocks_metadata( $parsed_anchor_block, $relative_position, $hooked_blocks, $context );
+function insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $deprecated = null, $context ) {
+	if ( null !== $deprecated ) {
+		_deprecated_function( __FUNCTION__, '6.7.0' );
+	}
+
+	$markup  = insert_hooked_blocks( $parsed_anchor_block, $relative_position, $deprecated, $context );
+	$markup .= set_ignored_hooked_blocks_metadata( $parsed_anchor_block, $relative_position, $deprecated, $context );
 
 	return $markup;
 }
@@ -1214,9 +1263,10 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
  *
  * @since 6.4.0
  * @since 6.5.0 Added $callback argument.
+ * @since 6.7.0 Added the $deprecated parameter to deprecated the $hooked_blocks parameter.
  * @access private
  *
- * @param array                           $hooked_blocks An array of blocks hooked to another given block.
+ * @param mixed                           $deprecated    Deprecated. Not used.
  * @param WP_Block_Template|WP_Post|array $context       A block template, template part, `wp_navigation` post object,
  *                                                       or pattern that the blocks belong to.
  * @param callable                        $callback      A function that will be called for each block to generate
@@ -1225,7 +1275,10 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks before it.
  */
-function make_before_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
+function make_before_block_visitor( $deprecated = null, $context, $callback = 'insert_hooked_blocks' ) {
+	if ( null !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '6.7.0' );
+	}
 	/**
 	 * Injects hooked blocks before the given block, injects the `theme` attribute into Template Part blocks, and returns the serialized markup.
 	 *
@@ -1238,7 +1291,7 @@ function make_before_block_visitor( $hooked_blocks, $context, $callback = 'inser
 	 * @param array $prev         The previous sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
 	 */
-	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context, $callback ) {
+	return function ( &$block, &$parent_block = null, $prev = null ) use ( $deprecated, $context, $callback ) {
 		_inject_theme_attribute_in_template_part_block( $block );
 
 		$markup = '';
@@ -1247,13 +1300,13 @@ function make_before_block_visitor( $hooked_blocks, $context, $callback = 'inser
 			// Candidate for first-child insertion.
 			$markup .= call_user_func_array(
 				$callback,
-				array( &$parent_block, 'first_child', $hooked_blocks, $context )
+				array( &$parent_block, 'first_child', $deprecated, $context )
 			);
 		}
 
 		$markup .= call_user_func_array(
 			$callback,
-			array( &$block, 'before', $hooked_blocks, $context )
+			array( &$block, 'before', $deprecated, $context )
 		);
 
 		return $markup;
@@ -1271,9 +1324,10 @@ function make_before_block_visitor( $hooked_blocks, $context, $callback = 'inser
  *
  * @since 6.4.0
  * @since 6.5.0 Added $callback argument.
+ * @since 6.7.0 Added the $deprecated parameter to deprecated the $hooked_blocks parameter.
  * @access private
  *
- * @param array                           $hooked_blocks An array of blocks hooked to another block.
+ * @param mixed                           $deprecated    Deprecated. Not used.
  * @param WP_Block_Template|WP_Post|array $context       A block template, template part, `wp_navigation` post object,
  *                                                       or pattern that the blocks belong to.
  * @param callable                        $callback      A function that will be called for each block to generate
@@ -1282,7 +1336,10 @@ function make_before_block_visitor( $hooked_blocks, $context, $callback = 'inser
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks after it.
  */
-function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
+function make_after_block_visitor( $deprecated = null, $context, $callback = 'insert_hooked_blocks' ) {
+	if ( null !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '6.7.0' );
+	}
 	/**
 	 * Injects hooked blocks after the given block, and returns the serialized markup.
 	 *
@@ -1294,17 +1351,17 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
 	 * @param array $next         The next sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
 	 */
-	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context, $callback ) {
+	return function ( &$block, &$parent_block = null, $next = null ) use ( $deprecated, $context, $callback ) {
 		$markup = call_user_func_array(
 			$callback,
-			array( &$block, 'after', $hooked_blocks, $context )
+			array( &$block, 'after', $deprecated, $context )
 		);
 
 		if ( $parent_block && ! $next ) {
 			// Candidate for last-child insertion.
 			$markup .= call_user_func_array(
 				$callback,
-				array( &$parent_block, 'last_child', $hooked_blocks, $context )
+				array( &$parent_block, 'last_child', $deprecated, $context )
 			);
 		}
 

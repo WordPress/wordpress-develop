@@ -165,17 +165,16 @@ final class WP_Block_Patterns_Registry {
 	 * @since 6.4.0
 	 *
 	 * @param array $pattern       Registered pattern properties.
-	 * @param array $hooked_blocks The list of hooked blocks.
 	 * @return string The content of the block pattern.
 	 */
-	private function prepare_content( $pattern, $hooked_blocks ) {
+	private function prepare_content( $pattern ) {
 		$content = $pattern['content'];
 
 		$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
 		$after_block_visitor  = null;
-		if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-			$before_block_visitor = make_before_block_visitor( $hooked_blocks, $pattern, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
-			$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $pattern, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
+		if ( maybe_has_hooked_blocks() ) {
+			$before_block_visitor = make_before_block_visitor( null, $pattern, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
+			$after_block_visitor  = make_after_block_visitor( null, $pattern, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
 		}
 		$blocks  = parse_blocks( $content );
 		$content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
@@ -222,7 +221,7 @@ final class WP_Block_Patterns_Registry {
 
 		$pattern            = $this->registered_patterns[ $pattern_name ];
 		$pattern['content'] = $this->get_content( $pattern_name );
-		$pattern['content'] = $this->prepare_content( $pattern, get_hooked_blocks() );
+		$pattern['content'] = $this->prepare_content( $pattern );
 
 		return $pattern;
 	}
@@ -237,14 +236,13 @@ final class WP_Block_Patterns_Registry {
 	 *                 and per style.
 	 */
 	public function get_all_registered( $outside_init_only = false ) {
-		$patterns      = $outside_init_only
+		$patterns = $outside_init_only
 				? $this->registered_patterns_outside_init
 				: $this->registered_patterns;
-		$hooked_blocks = get_hooked_blocks();
 
 		foreach ( $patterns as $index => $pattern ) {
 			$pattern['content']            = $this->get_content( $pattern['name'], $outside_init_only );
-			$patterns[ $index ]['content'] = $this->prepare_content( $pattern, $hooked_blocks );
+			$patterns[ $index ]['content'] = $this->prepare_content( $pattern );
 		}
 
 		return array_values( $patterns );
