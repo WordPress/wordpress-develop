@@ -18,14 +18,12 @@ class Tests_HtmlApi_WpHtmlProcessorState extends WP_UnitTestCase {
 	 * @ticket TBD
 	 *
 	 * @param array $stack_of_open_elements   Stack of open elements.
-	 * @param string $insertion_mode          Initial insertion mode.
 	 * @param string $expected_insertion_mode Expected insertion mode after running the algorithm.
 	 */
 	public function test_reset_insertion_mode(
 		array $stack_of_open_elements,
 		string $expected_insertion_mode
-	) {
-
+	): void {
 		$state               = new WP_HTML_Processor_State();
 		$state->context_node = array( 'BODY', array() );
 
@@ -43,9 +41,9 @@ class Tests_HtmlApi_WpHtmlProcessorState extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array{ 0: array<string>, 1: string, 2: string }
+	 * @return array[]
 	 */
-	public static function data_insertion_mode_cases() {
+	public static function data_insertion_mode_cases(): array {
 		return array(
 			'SELECT last element'         => array( array( 'SELECT' ), WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT ),
 			'SELECT'                      => array( array( 'HTML', 'BODY', 'SELECT' ), WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT ),
@@ -65,6 +63,43 @@ class Tests_HtmlApi_WpHtmlProcessorState extends WP_UnitTestCase {
 			'BODY'                        => array( array( 'HTML', 'BODY' ), WP_HTML_Processor_State::INSERTION_MODE_IN_BODY ),
 			'FRAMESET'                    => array( array( 'HTML', 'BODY', 'FRAMESET' ), WP_HTML_Processor_State::INSERTION_MODE_IN_FRAMESET ),
 			'Last element (DIV)'          => array( array( 'DIV' ), WP_HTML_Processor_State::INSERTION_MODE_IN_BODY ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_insertion_mode_unsupported
+	 *
+	 * @ticket TBD
+	 *
+	 * @param array $stack_of_open_elements Stack of open elements.
+	 */
+	public function test_reset_insertion_mode_unsupported( array $stack_of_open_elements ): void {
+		$this->expectException( WP_HTML_Unsupported_Exception::class );
+
+		$state               = new WP_HTML_Processor_State();
+		$state->context_node = array( 'BODY', array() );
+
+		foreach ( $stack_of_open_elements as $i => $tag_name ) {
+			if ( ! ctype_upper( $tag_name ) ) {
+				throw new Error( 'Expected upper case tag names.' );
+			}
+			$state->stack_of_open_elements->push( new WP_HTML_Token( $i, $tag_name, false ) );
+		}
+		$state->reset_insertion_mode();
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * These tests should be migrated to the supported tests as support for more elements is added.
+	 *
+	 * @return array[]
+	 */
+	public static function data_insertion_mode_unsupported(): array {
+		return array(
+			'TEMPLATE requires template insertion mode stack' => array( array( 'HTML', 'BODY', 'TEMPLATE' ) ),
+			'HEAD requires more insertion modes' => array( array( 'HTML', 'HEAD' ) ),
+			'HTML requires head pointer and insertion modes' => array( array( 'HTML' ) ),
 		);
 	}
 }
