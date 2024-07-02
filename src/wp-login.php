@@ -368,7 +368,7 @@ function login_footer( $input_id = '' ) {
 		if ( ! empty( $languages ) ) {
 			?>
 			<div class="language-switcher">
-				<form id="language-switcher" method="get">
+				<form id="language-switcher" action="" method="get">
 
 					<label for="language-switcher-locales">
 						<span class="dashicons dashicons-translation" aria-hidden="true"></span>
@@ -990,13 +990,16 @@ switch ( $action ) {
 		 */
 		do_action( 'validate_password_reset', $errors, $user );
 
+		if( isset( $_GET['user'] ) )
+			$username = wp_unslash( $_GET['user'] );
+
 		if ( ( ! $errors->has_errors() ) && isset( $_POST['pass1'] ) && ! empty( $_POST['pass1'] ) ) {
 			reset_password( $user, $_POST['pass1'] );
 			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
 			login_header(
 				__( 'Password Reset' ),
 				wp_get_admin_notice(
-					__( 'Your password has been reset.' ) . ' <a href="' . esc_url( wp_login_url() ) . '">' . __( 'Log in' ) . '</a>',
+					__( 'Your password has been reset.' ) . ' <a href="' . esc_url( wp_login_url() ) . "?" . 'user=' . $username . '">' . __( 'Log in' ) . '</a>',
 					array(
 						'type'               => 'info',
 						'additional_classes' => array( 'message', 'reset-pass' ),
@@ -1022,8 +1025,10 @@ switch ( $action ) {
 			$errors
 		);
 
+		if( isset( $_GET['user'] ) )
+			$username = wp_unslash( $_GET['user'] );
 		?>
-		<form name="resetpassform" id="resetpassform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=resetpass', 'login_post' ) ); ?>" method="post" autocomplete="off">
+		<form name="resetpassform" id="resetpassform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=resetpass&user=' . $username, 'login_post' ) ); ?>" method="post" autocomplete="off">
 			<input type="hidden" id="user_login" value="<?php echo esc_attr( $rp_login ); ?>" autocomplete="off" />
 
 			<div class="user-pass1-wrap">
@@ -1499,6 +1504,9 @@ switch ( $action ) {
 		}
 
 		wp_enqueue_script( 'user-profile' );
+		if( isset( $_GET['user'] ) ) {
+			$user_login = wp_unslash( $_GET['user'] );
+		}
 		?>
 
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
