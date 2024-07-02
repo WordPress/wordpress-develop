@@ -111,7 +111,7 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 		$this->assertStringEndsWith( '<!-- wp:tests/my-block /-->', $template_part->content );
 	}
 
-	/*
+	/**
 	 * @ticket 59646
 	 * @ticket 60506
 	 * @ticket 60854
@@ -133,7 +133,7 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 		$this->assertStringStartsWith( '<!-- wp:tests/my-block /-->', $template_part->content );
 	}
 
-	/*
+	/**
 	 * @ticket 59646
 	 * @ticket 60506
 	 * @ticket 60854
