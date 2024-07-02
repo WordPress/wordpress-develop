@@ -255,7 +255,7 @@ function plugins_api( $action, $args = array() ) {
  * @param object $args The arguments object.
  * @return object The modified $args object with default false values for specific fields.
  */
-function set_default_false_fields( $args ) {
+function _set_default_false_fields( $args ) {
 	$fields_with_default_false = array(
 		'description',
 		'sections',
