@@ -180,22 +180,23 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * Allow tests to be skipped on some automated runs.
+	 * Allows tests to be skipped on some automated runs.
 	 *
-	 * For test runs on Travis for something other than trunk/master
-	 * we want to skip tests that only need to run for master.
+	 * For test runs on GitHub Actions for something other than trunk,
+	 * we want to skip tests that only need to run for trunk.
 	 */
 	public function skipOnAutomatedBranches() {
-		// https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
-		$travis_branch       = getenv( 'TRAVIS_BRANCH' );
-		$travis_pull_request = getenv( 'TRAVIS_PULL_REQUEST' );
+		// https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
+		$github_event_name = getenv( 'GITHUB_EVENT_NAME' );
+		$github_ref        = getenv( 'GITHUB_REF' );
 
-		if ( ! $travis_branch || ! $travis_pull_request ) {
-			return;
-		}
+		if ( $github_event_name ) {
+			// We're on GitHub Actions.
+			$skipped = array( 'pull_request', 'pull_request_target' );
 
-		if ( 'master' !== $travis_branch || 'false' !== $travis_pull_request ) {
-			$this->markTestSkipped( 'For automated test runs, this test is only run on trunk/master' );
+			if ( in_array( $github_event_name, $skipped, true ) || 'refs/heads/trunk' !== $github_ref ) {
+				$this->markTestSkipped( 'For automated test runs, this test is only run on trunk' );
+			}
 		}
 	}
 
