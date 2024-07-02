@@ -1008,12 +1008,12 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
  * @since 6.6.0
  * @access private
  *
- * @param string $content Serialized content.
- * @param WP_Block_Template|WP_Post|array $context       A block template, template part, `wp_navigation` post object,
- *                                                       or pattern that the blocks belong to.
- * @param callable                        $callback      A function that will be called for each block to generate
- *                                                       the markup for a given list of blocks that are hooked to it.
- *                                                       Default: 'insert_hooked_blocks'.
+ * @param string                          $content  Serialized content.
+ * @param WP_Block_Template|WP_Post|array $context  A block template, template part, `wp_navigation` post object,
+ *                                                  or pattern that the blocks belong to.
+ * @param callable                        $callback A function that will be called for each block to generate
+ *                                                  the markup for a given list of blocks that are hooked to it.
+ *                                                  Default: 'insert_hooked_blocks'.
  * @return string The serialized markup.
  */
 function apply_block_hooks_to_content( $content, $context, $callback = 'insert_hooked_blocks' ) {
@@ -1064,7 +1064,7 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		return $post;
 	}
 
-	/**
+	/*
 	 * Skip meta generation when consumers intentionally update specific Navigation fields
 	 * and omit the content update.
 	 */
@@ -1072,7 +1072,7 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		return $post;
 	}
 
-	/**
+	/*
 	 * Skip meta generation when the post content is not a navigation block.
 	 */
 	if ( ! isset( $post->post_type ) || 'wp_navigation' !== $post->post_type ) {
@@ -1095,7 +1095,10 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		$post->post_content
 	);
 
-	$serialized_block = apply_block_hooks_to_content( $markup, get_post( $post->ID ), 'set_ignored_hooked_blocks_metadata' );
+	$existing_post = get_post( $post->ID );
+	// Merge the existing post object with the updated post object to pass to the block hooks algorithm for context.
+	$context          = (object) array_merge( (array) $existing_post, (array) $post );
+	$serialized_block = apply_block_hooks_to_content( $markup, $context, 'set_ignored_hooked_blocks_metadata' );
 	$root_block       = parse_blocks( $serialized_block )[0];
 
 	$ignored_hooked_blocks = isset( $root_block['attrs']['metadata']['ignoredHookedBlocks'] )
@@ -1108,18 +1111,25 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 			$existing_ignored_hooked_blocks = json_decode( $existing_ignored_hooked_blocks, true );
 			$ignored_hooked_blocks          = array_unique( array_merge( $ignored_hooked_blocks, $existing_ignored_hooked_blocks ) );
 		}
-		update_post_meta( $post->ID, '_wp_ignored_hooked_blocks', json_encode( $ignored_hooked_blocks ) );
+
+		if ( ! isset( $post->meta_input ) ) {
+			$post->meta_input = array();
+		}
+		$post->meta_input['_wp_ignored_hooked_blocks'] = json_encode( $ignored_hooked_blocks );
 	}
 
 	$post->post_content = remove_serialized_parent_block( $serialized_block );
 	return $post;
 }
 
-/*
+/**
  * Returns the markup for blocks hooked to the given anchor block in a specific relative position and then
  * adds a list of hooked block types to an anchor block's ignored hooked block types.
  *
  * This function is meant for internal use only.
+ *
+ * @since 6.6.0
+ * @access private
  *
  * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
  * @param string                          $relative_position   The relative position of the hooked blocks.
@@ -1149,7 +1159,7 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
 		return $response;
 	}
 
-	$attributes = array();
+	$attributes            = array();
 	$ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
 	if ( ! empty( $ignored_hooked_blocks ) ) {
 		$ignored_hooked_blocks  = json_decode( $ignored_hooked_blocks, true );
@@ -1581,13 +1591,13 @@ function resolve_pattern_blocks( $blocks ) {
 			$i += count( $blocks_to_insert );
 		} else {
 			if ( ! empty( $blocks[ $i ]['innerBlocks'] ) ) {
-				$prev_inner_content          = $inner_content;
-				$inner_content               = $blocks[ $i ]['innerContent'];
-				$blocks[ $i ]['innerBlocks'] = resolve_pattern_blocks(
+				$prev_inner_content           = $inner_content;
+				$inner_content                = $blocks[ $i ]['innerContent'];
+				$blocks[ $i ]['innerBlocks']  = resolve_pattern_blocks(
 					$blocks[ $i ]['innerBlocks']
 				);
 				$blocks[ $i ]['innerContent'] = $inner_content;
-				$inner_content               = $prev_inner_content;
+				$inner_content                = $prev_inner_content;
 			}
 			++$i;
 		}
@@ -1722,7 +1732,7 @@ function _filter_block_content_callback( $matches ) {
  * @return array The filtered and sanitized block object result.
  */
 function filter_block_kses( $block, $allowed_html, $allowed_protocols = array() ) {
-	$block['attrs'] = filter_block_kses_value( $block['attrs'], $allowed_html, $allowed_protocols );
+	$block['attrs'] = filter_block_kses_value( $block['attrs'], $allowed_html, $allowed_protocols, $block );
 
 	if ( is_array( $block['innerBlocks'] ) ) {
 		foreach ( $block['innerBlocks'] as $i => $inner_block ) {
@@ -1738,6 +1748,7 @@ function filter_block_kses( $block, $allowed_html, $allowed_protocols = array() 
  * non-allowable HTML.
  *
  * @since 5.3.1
+ * @since 6.5.5 Added the `$block_context` parameter.
  *
  * @param string[]|string $value             The attribute value to filter.
  * @param array[]|string  $allowed_html      An array of allowed HTML elements and attributes,
@@ -1745,14 +1756,18 @@ function filter_block_kses( $block, $allowed_html, $allowed_protocols = array() 
  *                                           for the list of accepted context names.
  * @param string[]        $allowed_protocols Optional. Array of allowed URL protocols.
  *                                           Defaults to the result of wp_allowed_protocols().
+ * @param array           $block_context     Optional. The block the attribute belongs to, in parsed block array format.
  * @return string[]|string The filtered and sanitized result.
  */
-function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = array() ) {
+function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = array(), $block_context = null ) {
 	if ( is_array( $value ) ) {
 		foreach ( $value as $key => $inner_value ) {
-			$filtered_key   = filter_block_kses_value( $key, $allowed_html, $allowed_protocols );
-			$filtered_value = filter_block_kses_value( $inner_value, $allowed_html, $allowed_protocols );
+			$filtered_key   = filter_block_kses_value( $key, $allowed_html, $allowed_protocols, $block_context );
+			$filtered_value = filter_block_kses_value( $inner_value, $allowed_html, $allowed_protocols, $block_context );
 
+			if ( isset( $block_context['blockName'] ) && 'core/template-part' === $block_context['blockName'] ) {
+				$filtered_value = filter_block_core_template_part_attributes( $filtered_value, $filtered_key, $allowed_html );
+			}
 			if ( $filtered_key !== $key ) {
 				unset( $value[ $key ] );
 			}
@@ -1764,6 +1779,28 @@ function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = ar
 	}
 
 	return $value;
+}
+
+/**
+ * Sanitizes the value of the Template Part block's `tagName` attribute.
+ *
+ * @since 6.5.5
+ *
+ * @param string         $attribute_value The attribute value to filter.
+ * @param string         $attribute_name  The attribute name.
+ * @param array[]|string $allowed_html    An array of allowed HTML elements and attributes,
+ *                                        or a context name such as 'post'. See wp_kses_allowed_html()
+ *                                        for the list of accepted context names.
+ * @return string The sanitized attribute value.
+ */
+function filter_block_core_template_part_attributes( $attribute_value, $attribute_name, $allowed_html ) {
+	if ( empty( $attribute_value ) || 'tagName' !== $attribute_name ) {
+		return $attribute_value;
+	}
+	if ( ! is_array( $allowed_html ) ) {
+		$allowed_html = wp_kses_allowed_html( $allowed_html );
+	}
+	return isset( $allowed_html[ $attribute_value ] ) ? $attribute_value : '';
 }
 
 /**
