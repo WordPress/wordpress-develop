@@ -327,21 +327,32 @@ class WP_HTML_Processor_State {
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#reset-the-insertion-mode-appropriately
 	 */
 	public function reset_insertion_mode(): void {
+		// Set the first node.
+		$first_node = null;
+		foreach ( $this->stack_of_open_elements->walk_down() as $first_node ) {
+			break;
+		}
+
 		/*
 		 * > 1. Let _last_ be false.
-		 * > 2. Let _node_ be the last node in the stack of open elements.
-		 * > 3. _Loop_: If _node_ is the first node in the stack of open elements, then set _last_
-		 * >            to true, and, if the parser was created as part of the HTML fragment parsing
-		 * >            algorithm (fragment case), set node to the context element passed to
-		 * >            that algorithm.
-		 * > …
 		 */
-		$last       = false;
-		$last_index = $this->stack_of_open_elements->count() - 1;
-		foreach ( $this->stack_of_open_elements->walk_up() as $i => $node ) {
-			if ( $i === $last_index ) {
+		$last = false;
+		foreach ( $this->stack_of_open_elements->walk_up() as $node ) {
+			/*
+			 * > 2. Let _node_ be the last node in the stack of open elements.
+			 * > 3. _Loop_: If _node_ is the first node in the stack of open elements, then set _last_
+			 * >            to true, and, if the parser was created as part of the HTML fragment parsing
+			 * >            algorithm (fragment case), set node to the context element passed to
+			 * >            that algorithm.
+			 * > …
+			 */
+			if ( $node === $first_node ) {
 				$last = true;
+				if ( isset( $this->context_node ) ) {
+					$node = new WP_HTML_Token( 'context-node', $this->context_node[0], false );
+				}
 			}
+
 			switch ( $node->node_name ) {
 				/*
 				 * > 4. If node is a `select` element, run these substeps:
