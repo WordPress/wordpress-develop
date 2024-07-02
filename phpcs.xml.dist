@@ -2,6 +2,8 @@
 <ruleset name="WordPress Coding Standards">
 	<description>Apply WordPress Coding Standards to all Core files</description>
 
+	<arg name="cache" value=".cache/phpcs.json"/>
+
 	<rule ref="WordPress-Core"/>
 	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
 
