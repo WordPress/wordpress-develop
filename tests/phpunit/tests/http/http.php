@@ -114,7 +114,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				),
 			),
 
-			// < PHP 5.4.7: Schemeless URL.
+			// Schemeless URL.
 			array(
 				'//example.com/path/',
 				array(
@@ -138,7 +138,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				),
 			),
 
-			// < PHP 5.4.7: Scheme separator in the URL.
+			// Scheme separator in the URL.
 			array(
 				'http://example.com/http://example.net/',
 				array(
@@ -149,7 +149,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			),
 			array( '/path/http://example.net/', array( 'path' => '/path/http://example.net/' ) ),
 
-			// < PHP 5.4.7: IPv6 literals in schemeless URLs are handled incorrectly.
+			// IPv6 literals in schemeless URLs.
 			array(
 				'//[::FFFF::127.0.0.1]/',
 				array(
