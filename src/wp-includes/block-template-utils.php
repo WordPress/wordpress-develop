@@ -565,6 +565,76 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
 }
 
 /**
+ * Gets the contents for the given template file path.
+ *
+ * @since 6.4.0
+ * @access private
+ *
+ * @param string $template_file_path Absolute path to a theme template file.
+ * @return string The template file contents.
+ */
+function _get_block_template_file_content( $template_file_path ) {
+	$theme = is_theme_file( $template_file_path );
+	// Bypass cache if the file is not within the theme directory.
+	if ( ! $theme ) {
+		return file_get_contents( $template_file_path );
+	}
+	$template_file_path = wp_normalize_path( $template_file_path );
+
+	$cache_group   = 'theme_files';
+	$cache_key     = 'wp_theme_template_contents_' . md5( $theme->get_stylesheet() );
+	$transient_key = "{$cache_group}_{$cache_key}";
+
+	/*
+	 * Bypass cache while developing a theme.
+	 * If there is an existing cache, it should be deleted.
+	 * This ensures that no stale cache values can be served when temporarily
+	 * enabling "theme" development mode and then disabling it again.
+	 */
+	if ( wp_is_development_mode( 'theme' ) ) {
+		if ( wp_using_ext_object_cache() ) {
+			wp_cache_delete( $cache_key, $cache_group );
+		} else {
+			delete_site_transient( $transient_key );
+		}
+
+		return file_get_contents( $template_file_path );
+	}
+
+	// Check theme template cache first (if cached version matches the current theme version).
+	if ( wp_using_ext_object_cache() ) {
+		$template_data = wp_cache_get( $cache_key, $cache_group );
+	} else {
+		$template_data = get_site_transient( $transient_key );
+	}
+
+	if ( is_array( $template_data ) && $template_data['version'] === $theme->get( 'Version' ) ) {
+		if ( isset( $template_data['template_content'][ $template_file_path ] ) ) {
+			return $template_data['template_content'][ $template_file_path ];
+		}
+	} else {
+		$template_data = array(
+			'version'          => $theme->get( 'Version' ),
+			'template_content' => array(),
+		);
+	}
+
+	// Retrieve fresh file contents if not found in cache.
+	$template_data['template_content'][ $template_file_path ] = file_get_contents( $template_file_path );
+
+	/** This filter is documented in wp-includes/theme.php */
+	$cache_expiration = (int) apply_filters( 'wp_cache_themes_persistently', 1800, 'theme_template_file_content' );
+
+	if ( wp_using_ext_object_cache() ) {
+		wp_cache_set( $cache_key, $template_data, $cache_group, $cache_expiration );
+	} else {
+		set_site_transient( $transient_key, $template_data, $cache_expiration );
+	}
+
+	return $template_data['template_content'][ $template_file_path ];
+}
+
+/**
  * Builds a unified template object based on a theme file.
  *
  * @since 5.9.0
@@ -578,11 +648,11 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
 function _build_block_template_result_from_file( $template_file, $template_type ) {
 	$default_template_types = get_default_block_template_types();
 	$theme                  = get_stylesheet();
+	$file_content           = _get_block_template_file_content( $template_file['path'] );
 
 	$template                 = new WP_Block_Template();
 	$template->id             = $theme . '//' . $template_file['slug'];
 	$template->theme          = $theme;
-	$template->content        = file_get_contents( $template_file['path'] );
 	$template->slug           = $template_file['slug'];
 	$template->source         = 'theme';
 	$template->type           = $template_type;
@@ -613,7 +683,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
 		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
 	}
-	$blocks            = parse_blocks( $template->content );
+	$blocks            = parse_blocks( $file_content );
 	$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 
 	return $template;
