@@ -354,6 +354,9 @@ class WP_Block {
 								return false;
 							}
 
+							// Set position of the opener tag.
+							$this->set_bookmark( 'opening' );
+
 							// Once this element closes the depth will be one shallower than it is now.
 							$depth = $this->get_current_depth();
 							while ( $this->next_token() && $this->get_current_depth() >= $depth ) {
@@ -364,10 +367,11 @@ class WP_Block {
 								return false;
 							}
 
-							$this->set_bookmark( 'here' );
+							// Set position of the opener tag.
+							$this->set_bookmark( 'closing' );
 
-							$opening = $this->bookmarks[ $this->current_element->token->bookmark_name ];
-							$closing = $this->bookmarks['_here'];
+							$opening = $this->bookmarks['_opening'];
+							$closing = $this->bookmarks['_closing'];
 							$start   = $opening->start + $opening->length;
 
 							$this->lexical_updates[] = new WP_HTML_Text_Replacement(
