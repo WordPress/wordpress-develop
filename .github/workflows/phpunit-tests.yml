@@ -45,62 +45,24 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        php: [ '5.3', '5.4', '5.5' ]
-        split_slow: [ false, true ]
+        php: [ '5.3', '5.4', '5.5', '7.1', '7.2', '7.3' ]
+        split_slow: [ false ]
         multisite: [ false, true ]
         memcached: [ false ]
 
         include:
           # Include jobs for PHP 7.3 with memcached.
           - php: '7.3'
-            phpunit: '6-php-7.3'
             os: ubuntu-latest
             memcached: true
             split_slow: false
             multisite: false
           - php: '7.3'
-            phpunit: '6-php-7.3'
             os: ubuntu-latest
             memcached: true
             split_slow: false
             multisite: true
           # Include jobs that require specific versions of PHPUnit.
-          - php: '7.3'
-            phpunit: '6-php-7.3'
-            os: ubuntu-latest
-            memcached: false
-            split_slow: false
-            multisite: false
-          - php: '7.3'
-            phpunit: '6-php-7.3'
-            os: ubuntu-latest
-            memcached: false
-            split_slow: false
-            multisite: true
-          - php: '7.2'
-            phpunit: '6-php-7.2'
-            os: ubuntu-latest
-            memcached: false
-            split_slow: false
-            multisite: false
-          - php: '7.2'
-            phpunit: '6-php-7.2'
-            os: ubuntu-latest
-            memcached: false
-            split_slow: false
-            multisite: true
-          - php: '7.1'
-            phpunit: '6-php-7.1'
-            os: ubuntu-latest
-            memcached: false
-            split_slow: false
-            multisite: false
-          - php: '7.1'
-            phpunit: '6-php-7.1'
-            os: ubuntu-latest
-            memcached: false
-            split_slow: false
-            multisite: true
           - php: '7.0'
             phpunit: '6-php-7.0'
             os: ubuntu-latest
