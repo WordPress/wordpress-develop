@@ -410,6 +410,7 @@ function get_the_category_rss( $type = null ) {
 		if ( 'rdf' === $type ) {
 			$the_list .= "\t\t<dc:subject><![CDATA[$cat_name]]></dc:subject>\n";
 		} elseif ( 'atom' === $type ) {
+			/** This filter is documented in wp-includes/feed.php */
 			$blog_url = apply_filters( 'get_bloginfo_rss', get_bloginfo( 'url' ) );
 			$scheme   = esc_attr( 'post_tag' === $category->taxonomy ? $blog_url . '/tag/' : $blog_url . '/category/' );
 			$label    = esc_attr( $cat_name );
