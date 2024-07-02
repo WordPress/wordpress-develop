@@ -3638,13 +3638,19 @@ function wp_video_shortcode( $attr, $content = '' ) {
 		}
 	}
 
+	$video_tag_builder = new WP_HTML_Tag_Processor( '<video controls>' );
+	$video_tag_builder->next_tag();
+	foreach ( $html_atts as $name => $value ) {
+		$video_tag_builder->set_attribute( $name, $value );
+	}
+
 	$html = '';
 
 	if ( 'mediaelement' === $library && 1 === $instance ) {
 		$html .= "<!--[if lt IE 9]><script>document.createElement('video');</script><![endif]-->\n";
 	}
 
-	$html .= sprintf( '<video %s controls="controls">', implode( ' ', $attr_strings ) );
+	$html .= $video_tag_builder->get_updated_html();
 
 	$fileurl = '';
 	$source  = '<source type="%s" src="%s" />';
