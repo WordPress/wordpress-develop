@@ -168,7 +168,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 				'load'               => array(),
 				'wp_version'         => '',
 				'hash_source_string' => 'WP:;',
-				'expected'           => 'W/"f6457280f73cc597e76df87ee891457a',
+				'expected'           => 'W/"f6457280f73cc597e76df87ee891457a"',
 			),
 			'should accept more then one dependency and wp version' => array(
 				'load'               => array(
