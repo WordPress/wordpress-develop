@@ -75,17 +75,10 @@ class Tests_HtmlApi_WpHtmlSupportRequiredHtmlProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::generate_implied_end_tags_thoroughly
 	 */
 	public function test_generate_implied_end_tags_thoroughly_needs_support() {
-		$this->ensure_support_is_added_everywhere( 'CAPTION' );
-		$this->ensure_support_is_added_everywhere( 'COLGROUP' );
 		$this->ensure_support_is_added_everywhere( 'RB' );
 		$this->ensure_support_is_added_everywhere( 'RP' );
 		$this->ensure_support_is_added_everywhere( 'RT' );
 		$this->ensure_support_is_added_everywhere( 'RTC' );
-		$this->ensure_support_is_added_everywhere( 'TBODY' );
-		$this->ensure_support_is_added_everywhere( 'TD' );
-		$this->ensure_support_is_added_everywhere( 'TFOOT' );
-		$this->ensure_support_is_added_everywhere( 'TH' );
 		$this->ensure_support_is_added_everywhere( 'HEAD' );
-		$this->ensure_support_is_added_everywhere( 'TR' );
 	}
 }
