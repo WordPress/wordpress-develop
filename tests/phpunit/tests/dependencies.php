@@ -150,7 +150,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_get_etag
+	 * Data provider for test_get_etag.
 	 *
 	 * @return array
 	 */
