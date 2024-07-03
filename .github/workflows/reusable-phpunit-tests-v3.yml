@@ -188,7 +188,7 @@ jobs:
       - name: Check if the HTML API was modified
         id: html-api-changes
         if: ${{ inputs.html5lib-tests }}
-        uses: tj-actions/changed-files@v44
+        uses: tj-actions/changed-files@cc733854b1f224978ef800d29e4709d5ee2883e4 # v45.5.5
         with:
           files: |
             src/wp-includes/html-api/**.php
@@ -198,7 +198,7 @@ jobs:
             .github/workflows/reusable-phpunit-tests.yml
 
       - name: Run html5lib tests
-        if: ${{ inputs.html5lib-tests && steps.html-api-changes.outputs.any_changed }}
+        if: ${{ inputs.html5lib-tests && steps.html-api-changes.outputs.any_changed == 'true' }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group html-api-html5lib-tests
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
