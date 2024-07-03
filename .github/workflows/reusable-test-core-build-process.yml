@@ -16,6 +16,11 @@ on:
         required: false
         type: 'string'
         default: 'src'
+      debug:
+        description: 'Whether to enable SCRIPT_DEBUG'
+        required: false
+        type: 'boolean'
+        default: false
       test-emoji:
         description: 'Whether to run the grunt precommit:emoji script.'
         required: false
@@ -34,6 +39,7 @@ on:
 
 env:
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  LOCAL_SCRIPT_DEBUG: ${{ inputs.debug }}
 
 jobs:
   # Verifies that installing npm dependencies and building WordPress works as expected.

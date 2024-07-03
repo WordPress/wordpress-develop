@@ -31,7 +31,7 @@ jobs:
   # Tests the WordPress Core build process on multiple operating systems.
   test-core-build-process:
     name: Core running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trac/56615
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -40,10 +40,12 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         directory: [ 'src', 'build' ]
+        debug: [ true, false ]
         include:
           # Only prepare artifacts for Playground once.
           - os: ubuntu-latest
             directory: 'build'
+            debug: ${{ matrix.debug }}
             save-build: true
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
 
@@ -63,7 +65,7 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-core-build-process-macos:
     name: Core running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trac/56615
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -72,9 +74,11 @@ jobs:
       matrix:
         os: [ macos-latest ]
         directory: [ 'src', 'build' ]
+        debug: [ true, false ]
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      debug: ${{ matrix.debug }}
 
   # Tests the Gutenberg plugin build process on multiple operating systems when run within a wordpress-develop checkout.
   test-gutenberg-build-process:
@@ -88,9 +92,11 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         directory: [ 'src', 'build' ]
+        debug: [ true, false ]
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      debug: ${{ matrix.debug }}
 
   # Tests the Gutenberg plugin build process on MacOS when run within a wordpress-develop checkout.
   #
@@ -111,9 +117,11 @@ jobs:
       matrix:
         os: [ macos-latest ]
         directory: [ 'src', 'build' ]
+        debug: [ true, false ]
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      debug: ${{ matrix.debug }}
 
   slack-notifications:
     name: Slack Notifications
