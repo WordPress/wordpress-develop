@@ -3103,7 +3103,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		if (
 			// > If the current node is an HTML element whose tag name is subject
-			$current_node && $subject === $current_node->node_name &&
+			isset( $current_node ) && $subject === $current_node->node_name &&
 			// > the current node is not in the list of active formatting elements
 			! $this->state->active_formatting_elements->contains_node( $current_node )
 		) {
@@ -3111,12 +3111,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return;
 		}
 
-		$outer_loop_counter = 0;
-		while ( $budget-- > 0 ) {
-			if ( $outer_loop_counter++ >= 8 ) {
-				return;
-			}
-
+		for ( $outer_loop_counter = 0; $outer_loop_counter < 8; $outer_loop_counter++ ) {
 			/*
 			 * > Let formatting element be the last element in the list of active formatting elements that:
 			 * >   - is between the end of the list and the last marker in the list,
@@ -3137,8 +3132,35 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			// > If there is no such element, then return and instead act as described in the "any other end tag" entry above.
 			if ( null === $formatting_element ) {
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( 'Cannot run adoption agency when "any other end tag" is required.' );
+				/*
+				 * > Any other end tag
+				 */
+
+				/*
+				 * Find the corresponding tag opener in the stack of open elements, if
+				 * it exists before reaching a special element, which provides a kind
+				 * of boundary in the stack. For example, a `</custom-tag>` should not
+				 * close anything beyond its containing `P` or `DIV` element.
+				 */
+				foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+					if ( $subject === $node->node_name ) {
+						break;
+					}
+
+					if ( self::is_special( $node->node_name ) ) {
+						// This is a parse error, ignore the token.
+						return;
+					}
+				}
+
+				$this->generate_implied_end_tags( $subject );
+
+				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+					$this->state->stack_of_open_elements->pop();
+					if ( $node === $item ) {
+						return;
+					}
+				}
 			}
 
 			// > If formatting element is not in the stack of open elements, then this is a parse error; remove the element from the list, and return.
@@ -3153,21 +3175,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			}
 
 			/*
+			 * > If formatting element is not the current node, this is a parse error. (But do not return.)
+			 */
+
+			/*
 			 * > Let furthest block be the topmost node in the stack of open elements that is lower in the stack
 			 * > than formatting element, and is an element in the special category. There might not be one.
 			 */
-			$is_above_formatting_element = true;
-			$furthest_block              = null;
-			foreach ( $this->state->stack_of_open_elements->walk_down() as $item ) {
-				if ( $is_above_formatting_element && $formatting_element->bookmark_name !== $item->bookmark_name ) {
-					continue;
-				}
-
-				if ( $is_above_formatting_element ) {
-					$is_above_formatting_element = false;
-					continue;
-				}
-
+			$furthest_block = null;
+			foreach ( $this->state->stack_of_open_elements->walk_down( $formatting_element ) as $item ) {
 				if ( self::is_special( $item->node_name ) ) {
 					$furthest_block = $item;
 					break;
@@ -3183,19 +3199,84 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
 					$this->state->stack_of_open_elements->pop();
 
-					if ( $formatting_element->bookmark_name === $item->bookmark_name ) {
+					if ( $formatting_element === $item ) {
 						$this->state->active_formatting_elements->remove_node( $formatting_element );
 						return;
 					}
 				}
 			}
 
-			$this->last_error = self::ERROR_UNSUPPORTED;
-			throw new WP_HTML_Unsupported_Exception( 'Cannot extract common ancestor in adoption agency algorithm.' );
-		}
+			/*
+			 * > Let common ancestor be the element immediately above formatting element in the stack of open elements.
+			 */
+			$common_ancestor = null;
+			foreach ( $this->state->stack_of_open_elements->walk_up( $formatting_element ) as $item ) {
+				$common_ancestor = $item;
+				break;
+			}
 
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( 'Cannot run adoption agency when looping required.' );
+			/*
+			 * Let a bookmark note the position of formatting element in the list of active formatting elements relative to the elements on either side of it in the list.
+			 */
+			$formatting_element_index = 0;
+			foreach ( $this->state->active_formatting_elements->walk_down() as $item ) {
+				if ( $formatting_element === $item ) {
+					break;
+				}
+
+				++$formatting_element_index;
+			}
+
+			/*
+			 * > Let node and last node be furthest block.
+			 */
+			$node      = $furthest_block;
+			$last_node = $furthest_block;
+
+			$inner_loop_counter = 0;
+			while ( $budget-- > 0 ) {
+				++$inner_loop_counter;
+
+				if ( $this->state->stack_of_open_elements->contains_node( $node ) ) {
+					foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $item ) {
+						$node = $item;
+						break;
+					}
+				} else {
+					$this->bail( 'Cannot adjust node pointer above removed node.' );
+				}
+
+				if ( $formatting_element === $node ) {
+					break;
+				}
+
+				if ( $inner_loop_counter > 3 && $this->state->active_formatting_elements->contains_node( $node ) ) {
+					$this->state->active_formatting_elements->remove_node( $node );
+				}
+
+				if ( ! $this->state->active_formatting_elements->contains_node( $node ) ) {
+					$this->state->stack_of_open_elements->remove_node( $node );
+					continue;
+				}
+
+				/*
+				 * > Create an element for the token for which the element node was created,
+				 * in the HTML namespace, with common ancestor as the intended parent;
+				 * replace the entry for node in the list of active formatting elements
+				 * with an entry for the new element, replace the entry for node in the
+				 * stack of open elements with an entry for the new element, and let node
+				 * be the new element.
+				 */
+				$this->bail( 'Cannot create and reference new element for which no token exists.' );
+			}
+
+			/*
+			 * > Insert whatever last node ended up being in the previous step at the appropriate
+			 * > palce for inserting a node, but using common ancestor as the override target.
+			 */
+
+			$this->bail( 'Cannot create and reference new element for which no token exists.' );
+		}
 	}
 
 	/**
