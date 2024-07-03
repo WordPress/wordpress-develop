@@ -335,7 +335,10 @@ class WP_Block {
 			case 'rich-text':
 				if ( 'core/image' === $this->name && 'caption' === $attribute_name ) {
 					// Create private anonymous class until the HTML API provides `set_inner_html` method.
-					$bindings_processor = new class( $block_content, WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE ) extends WP_HTML_Processor {
+					$bindings_processor_builder = new class(
+						'Do not use this, it will not work. It is only here to create a subclass and call the static creator method',
+						WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE
+					) extends WP_HTML_Processor {
 						/**
 						 * Replace the inner content of a figcaption element with the passed content.
 						 *
@@ -384,7 +387,7 @@ class WP_Block {
 						}
 					};
 
-					$block_reader = $bindings_processor::create_fragment( $block_content );
+					$block_reader = $bindings_processor_builder::create_fragment( $block_content );
 					if ( $block_reader->next_tag( 'figcaption' ) ) {
 						$block_reader->set_figcaption_inner_html( $source_value );
 					}
