@@ -9,6 +9,8 @@ class Test_Widget_Descriptions extends WP_UnitTestCase {
 
 	/**
 	 * Tests that html_entity_decode handles null description correctly.
+	 *
+	 * @ticket 61179
 	 */
 	public function test_html_entity_decode_with_null_description() {
 		$item = $this->create_mock_item( null );
@@ -18,6 +20,8 @@ class Test_Widget_Descriptions extends WP_UnitTestCase {
 
 	/**
 	 * Tests that html_entity_decode handles empty string description correctly.
+	 *
+	 * @ticket 61179
 	 */
 	public function test_html_entity_decode_with_empty_description() {
 		$item = $this->create_mock_item( '' );
@@ -27,6 +31,8 @@ class Test_Widget_Descriptions extends WP_UnitTestCase {
 
 	/**
 	 * Tests that html_entity_decode handles valid string description correctly.
+	 *
+	 * @ticket 61179
 	 */
 	public function test_html_entity_decode_with_valid_description() {
 		$item = $this->create_mock_item( 'Sample Description' );
