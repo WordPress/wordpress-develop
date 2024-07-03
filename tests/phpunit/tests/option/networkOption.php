@@ -57,6 +57,25 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that calling delete_option() update nooptions when option deleted.
+	 *
+	 * @ticket 61484
+	 *
+	 * @covers ::delete_network_option
+	 */
+	public function test_check_delete_network_option_updates_notoptions() {
+		add_network_option(  1,'foo', 'value1' );
+
+		delete_network_option( 1, 'foo' );
+
+		$before = get_num_queries();
+		get_network_option( 1,'foo' );
+		$after = get_num_queries();
+
+		$this->assertSame( $after, $before, 'The notoptions cache was not hit.' );
+	}
+
+	/**
 	 * @ticket 22846
 	 * @group ms-excluded
 	 *
