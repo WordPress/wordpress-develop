@@ -1636,11 +1636,10 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 		}
 
 		$description = $item->get_description();
+		$desc        = '';
 		if ( ! empty( $description ) ) {
 			$desc = html_entity_decode( $description, ENT_QUOTES, get_option( 'blog_charset' ) );
 			$desc = esc_attr( wp_trim_words( $desc, 55, ' [&hellip;]' ) );
-		} else {
-			$desc = '';
 		}
 
 		$summary = '';
