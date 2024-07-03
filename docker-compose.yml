@@ -31,7 +31,7 @@ services:
   # The PHP container.
   ##
   php:
-    image: wordpressdevelop/php:${LOCAL_PHP-latest}
+    image: wordpressdevelop/php:${LOCAL_PHP-8.0-fpm}
 
     networks:
       - wpdevnet
@@ -53,7 +53,7 @@ services:
   # The MySQL container.
   ##
   mysql:
-    image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
+    image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-5.7}
     platform: linux/amd64
 
     networks:
@@ -76,7 +76,7 @@ services:
   # The WP CLI container.
   ##
   cli:
-    image: wordpressdevelop/cli:${LOCAL_PHP-latest}
+    image: wordpressdevelop/cli:${LOCAL_PHP-8.0-fpm}
 
     networks:
       - wpdevnet
@@ -97,7 +97,7 @@ services:
   # The PHPUnit container.
   ##
   phpunit:
-    image: wordpressdevelop/phpunit:${LOCAL_PHPUNIT-latest}
+    image: wordpressdevelop/phpunit:${LOCAL_PHPUNIT-8.0-fpm}
 
     networks:
       - wpdevnet
