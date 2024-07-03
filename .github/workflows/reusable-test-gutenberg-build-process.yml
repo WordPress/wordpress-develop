@@ -16,10 +16,16 @@ on:
         required: false
         type: 'string'
         default: 'src'
+      debug:
+        description: 'Whether to enable SCRIPT_DEBUG'
+        required: false
+        type: 'boolean'
+        default: false
 
 env:
   GUTENBERG_DIRECTORY: ${{ inputs.directory == 'build' && 'build' || 'src' }}/wp-content/plugins/gutenberg
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  LOCAL_SCRIPT_DEBUG: ${{ inputs.debug }}
   NODE_OPTIONS: '--max-old-space-size=8192'
 
 jobs:
