@@ -2307,7 +2307,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > 16. If _last_ is true, then switch the insertion mode to "in body"
 		 * >     and return. (fragment case)
 		 *
-		 * `$last` will always be true here, we've reached the end of the stack.
+		 * This is only reachable if `$last` is true, as per the fragment parsing case.
 		 */
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
 	}
