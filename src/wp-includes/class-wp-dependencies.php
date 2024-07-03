@@ -494,7 +494,7 @@ class WP_Dependencies {
 	/**
 	 * Get etag header for cache validation.
 	 *
-	 * @since 6.6.0
+	 * @since 6.7.0
 	 *
 	 * @param string   $wp_version WordPress version.
 	 * @param string[] $load       Array of script or style handles to load.
