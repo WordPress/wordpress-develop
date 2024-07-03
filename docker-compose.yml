@@ -32,7 +32,7 @@ services:
   # The PHP container.
   ##
   php:
-    image: wordpressdevelop/php:${LOCAL_PHP-latest}
+    image: wordpressdevelop/php:${LOCAL_PHP-7.4-fpm}
 
     networks:
       - wpdevnet
@@ -62,7 +62,7 @@ services:
   # The MySQL container.
   ##
   mysql:
-    image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
+    image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-5.7}
     platform: linux/amd64
 
     networks:
@@ -121,7 +121,7 @@ services:
   # The PHPUnit container.
   ##
   phpunit:
-    image: wordpressdevelop/phpunit:${LOCAL_PHPUNIT-latest}
+    image: wordpressdevelop/phpunit:${LOCAL_PHPUNIT-7.4-fpm}
 
     networks:
       - wpdevnet
