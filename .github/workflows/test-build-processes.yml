@@ -45,13 +45,14 @@ jobs:
           # Only prepare artifacts for Playground once.
           - os: ubuntu-latest
             directory: 'build'
-            debug: ${{ matrix.debug }}
+            debug: false
             save-build: true
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
 
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      debug: ${{ matrix.debug }}
       save-build: ${{ matrix.save-build && matrix.save-build || false }}
       prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
 
