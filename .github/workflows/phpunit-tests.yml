@@ -89,12 +89,18 @@ jobs:
             memcached: false
             multisite: true
             split_slow: false
-          # Include job for PHP 7.0 with memcached.
+          # Include jobs for PHP 7.0 with memcached.
           - php: '7.0'
             phpunit: '5-php-7.0'
             os: ubuntu-latest
             memcached: true
             multisite: false
+            split_slow: false
+          - php: '7.0'
+            phpunit: '5-php-7.0'
+            os: ubuntu-latest
+            memcached: true
+            multisite: true
             split_slow: false
 
     with:
