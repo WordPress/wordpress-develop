@@ -2159,7 +2159,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			if ( $node === $first_node ) {
 				$last = true;
 				if ( isset( $this->context_node ) ) {
-					$node = new WP_HTML_Token( 'context-node', $this->context_node[0], false );
+					$node = $this->context_node;
 				}
 			}
 
