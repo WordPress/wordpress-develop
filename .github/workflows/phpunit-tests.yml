@@ -36,7 +36,7 @@ jobs:
   #
   test-php:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests.yml@trunk
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
     permissions:
       contents: read
     secrets: inherit
