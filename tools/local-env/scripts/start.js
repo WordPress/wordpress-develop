@@ -5,7 +5,7 @@ const { execSync } = require( 'child_process' );
 dotenvExpand( dotenv.config() );
 
 // Start the local-env containers.
-execSync( 'docker-compose up -d wordpress-develop', { stdio: 'inherit' } );
+execSync( 'docker compose up -d wordpress-develop', { stdio: 'inherit' } );
 
 // If Docker Toolbox is being used, we need to manually forward LOCAL_PORT to the Docker VM.
 if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {
