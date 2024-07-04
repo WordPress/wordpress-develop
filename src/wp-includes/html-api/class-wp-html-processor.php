@@ -2192,6 +2192,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Closes elements that have implied end tags.
 	 *
 	 * @since 6.4.0
+	 * @since 6.7.0 Support "option" and "optgroup".
 	 *
 	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
 	 *
@@ -2202,6 +2203,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'DD',
 			'DT',
 			'LI',
+			'OPTGROUP',
+			'OPTION',
 			'P',
 		);
 
@@ -2230,6 +2233,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'DD',
 			'DT',
 			'LI',
+			'OPTGROUP',
+			'OPTION',
 			'P',
 		);
 
