@@ -1351,15 +1351,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->frameset_ok = false;
 
-				// If the insertion mode is one of
-				// - "in table"
-				// - "in caption"
-				// - "in table body"
-				// - "in row"
-				// - "in cell"
-				// then switch the insertion mode to "in select in table"
-				//
-				// Otherwise, switch the insertion mode to "in select".
+				/*
+				 * If the insertion mode is one of
+				 * - "in table"
+				 * - "in caption"
+				 * - "in table body"
+				 * - "in row"
+				 * - "in cell"
+				 * then switch the insertion mode to "in select in table"
+				 *
+				 * Otherwise, switch the insertion mode to "in select".
+				 */
 				switch ( $this->state->insertion_mode ) {
 					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE:
 					case WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION:
