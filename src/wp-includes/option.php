@@ -2294,7 +2294,7 @@ function delete_network_option( $network_id, $option ) {
 		do_action( 'delete_site_option', $option, $network_id );
 
 		$notoptions_key = "$network_id:notoptions";
-		$notoptions = wp_cache_get( $notoptions_key, 'site-options' ); // Yes, again... we need it to be fresh.
+		$notoptions     = wp_cache_get( $notoptions_key, 'site-options' );
 
 		if ( ! is_array( $notoptions ) ) {
 			$notoptions = array();
