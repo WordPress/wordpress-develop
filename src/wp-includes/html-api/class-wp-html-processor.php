@@ -1618,6 +1618,29 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->state->stack_of_open_elements->pop();
 				$this->reset_insertion_mode();
 				return true;
+
+			/*
+			 * > A start tag whose tag name is one of: "input", "keygen", "textarea"
+			 */
+			case '+INPUT':
+			case '+KEYGEN':
+			case '+TEXTAREA':
+				// Parse error.
+				if ( ! $this->state->stack_of_open_elements->has_element_in_select_scope( 'SELECT' ) ) {
+					return $this->step();
+				}
+				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
+				$this->reset_insertion_mode();
+				return $this->step( self::REPROCESS_CURRENT_NODE );
+
+			/*
+			 * > A start tag whose tag name is one of: "script", "template"
+			 * > An end tag whose tag name is "template"
+			 */
+			case '+SCRIPT':
+			case '+TEMPLATE':
+			case '-TEMPLATE':
+				return $this->step_in_head();
 		}
 
 		$this->last_error = self::ERROR_UNSUPPORTED;
