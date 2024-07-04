@@ -1496,20 +1496,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 	}
 
-	/**
+	/*
 	 * Parses next element in the 'in head' insertion mode.
 	 *
-	 * this internal function performs the 'in select' insertion mode
-	 * logic for the generalized wp_html_processor::step() function.
+	 * This internal function performs the 'in head' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
 	 * @since 6.7.0
 	 *
-	 * @throws wp_html_unsupported_exception when encountering unsupported html input.
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inselect
-	 * @see wp_html_processor::step
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inhead
+	 * @see WP_HTML_Processor::step
 	 *
-	 * @return bool whether an element was found.
+	 * @return bool Whether an element was found.
 	 */
 	private function step_in_head() {
 		$this->last_error = self::ERROR_UNSUPPORTED;
