@@ -2261,7 +2261,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			) {
 				break;
 			}
-			$this->state->stack_of_open_elements->remove_node( $item );
+			$this->state->stack_of_open_elements->pop();
 		}
 	}
 
@@ -2287,7 +2287,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			) {
 				break;
 			}
-			$this->state->stack_of_open_elements->remove_node( $item );
+			$this->state->stack_of_open_elements->pop();
 		}
 	}
 
@@ -2311,7 +2311,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			) {
 				break;
 			}
-			$this->state->stack_of_open_elements->remove_node( $item );
+			$this->state->stack_of_open_elements->pop();
 		}
 	}
 
