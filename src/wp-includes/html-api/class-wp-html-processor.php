@@ -1547,8 +1547,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "option"
 			 */
 			case '+OPTION':
-				$current_node = $this->state->stack_of_open_elements->current_node();
-				if ( $current_node && 'OPTION' === $current_node->node_name ) {
+				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
 					$this->state->stack_of_open_elements->pop();
 				}
 				$this->insert_html_element( $this->state->current_token );
@@ -1557,17 +1556,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A start tag whose tag name is "optgroup"
 			 * > A start tag whose tag name is "hr"
+			 *
+			 * These rules are identical except for the treatment of the self-closing flag and
+			 * the subsequent pop of the HR void element, all of which is handled elsewhere in the processor.
 			 */
 			case '+OPTGROUP':
 			case '+HR':
-				$current_node = $this->state->stack_of_open_elements->current_node();
-				if ( $current_node && 'OPTION' === $current_node->node_name ) {
+				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
 					$this->state->stack_of_open_elements->pop();
-					// If we've popped, update the current_node
-					$current_node = $this->state->stack_of_open_elements->current_node();
 				}
 
-				if ( $current_node && 'OPTGROUP' === $current_node->node_name ) {
+				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTGROUP' ) ) {
 					$this->state->stack_of_open_elements->pop();
 				}
 
@@ -1601,11 +1600,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is "option"
 			 */
 			case '-OPTION':
-				$current_node = $this->state->stack_of_open_elements->current_node();
-				if ( $current_node && 'OPTION' === $current_node->node_name ) {
+				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
 					$this->state->stack_of_open_elements->pop();
 					return true;
 				}
+				// Parse error: ignore the token.
 				return $this->step();
 
 			/*
