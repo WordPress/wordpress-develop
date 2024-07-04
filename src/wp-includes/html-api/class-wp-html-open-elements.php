@@ -272,6 +272,7 @@ class WP_HTML_Open_Elements {
 	 * Returns whether a particular element is in scope.
 	 *
 	 * @since 6.4.0
+	 * @since 6.7.0 Add handling for all HTML elements.
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-scope
 	 *
@@ -282,13 +283,27 @@ class WP_HTML_Open_Elements {
 		return $this->has_element_in_specific_scope(
 			$tag_name,
 			array(
-
+				'APPLET',
+				'CAPTION',
+				'HTML',
+				'TABLE',
+				'TD',
+				'TH',
+				'MARQUEE',
+				'OBJECT',
+				'TEMPLATE',
 				/*
-				 * Because it's not currently possible to encounter
-				 * one of the termination elements, they don't need
-				 * to be listed here. If they were, they would be
-				 * unreachable and only waste CPU cycles while
-				 * scanning through HTML.
+				 * Foreign content not yet supported
+				 *
+				 * - MathML mi
+				 * - MathML mo
+				 * - MathML mn
+				 * - MathML ms
+				 * - MathML mtext
+				 * - MathML annotation-xml
+				 * - SVG foreignObject
+				 * - SVG desc
+				 * - SVG title
 				 */
 			)
 		);
