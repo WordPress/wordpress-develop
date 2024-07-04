@@ -145,6 +145,28 @@ class WP_HTML_Open_Elements {
 	}
 
 	/**
+	 * Checks if the node at the top of the stack matches provided node name.
+	 *
+	 * @example
+	 *   // Is the current node a text node:
+	 *   $stack->current_node_is( '#text' );
+	 *
+	 *   // Is the current node a DIV element:
+	 *   $stack->current_node_is( 'DIV' );
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param  string $node_name The node name to match. Provide a tag name for tags or a
+	 *                           token name for other types of tokens.
+	 * @return bool True if there are nodes on the stack and the top node has
+	 *              a matching node_name.
+	 */
+	public function current_node_is( string $node_name ): bool {
+		$current_node = end( $this->stack );
+		return $current_node && $current_node->node_name === $node_name;
+	}
+
+	/**
 	 * Returns whether an element is in a specific scope.
 	 *
 	 * ## HTML Support
