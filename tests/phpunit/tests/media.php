@@ -6073,7 +6073,7 @@ EOF;
 			if (
 				'the_content' === $context &&
 				isset( $attr['src'] ) &&
-				$attr['src'] === 'https://example.org/a-specific-image.jpg'
+				'https://example.org/a-specific-image.jpg' === $attr['src']
 			) {
 				$loading_attrs['fetchpriority'] = 'high';
 			} else {
