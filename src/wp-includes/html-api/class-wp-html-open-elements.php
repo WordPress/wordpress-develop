@@ -288,19 +288,19 @@ class WP_HTML_Open_Elements {
 	/**
 	 * Returns whether a particular element is in table scope.
 	 *
-	 * @since 6.4.0
+	 * @since 6.4.0 Stub implementation (throws).
+	 * @since 6.7.0 Full implementation.
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-table-scope
-	 *
-	 * @throws WP_HTML_Unsupported_Exception Always until this function is implemented.
 	 *
 	 * @param string $tag_name Name of tag to check.
 	 * @return bool Whether given element is in scope.
 	 */
 	public function has_element_in_table_scope( $tag_name ) {
-		throw new WP_HTML_Unsupported_Exception( 'Cannot process elements depending on table scope.' );
-
-		return false; // The linter requires this unreachable code until the function is implemented and can return.
+		return $this->has_element_in_specific_scope(
+			$tag_name,
+			array( 'HTML', 'TABLE', 'TEMPLATE' )
+		);
 	}
 
 	/**
