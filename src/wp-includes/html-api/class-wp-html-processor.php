@@ -1577,23 +1577,21 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is "optgroup"
 			 */
 			case '-OPTGROUP':
-				$walker       = $this->state->stack_of_open_elements->walk_up();
-				$current_node = $walker->current();
-				if ( ! $current_node ) {
-					return $this->step();
-				}
-				if ( 'OPTGROUP' === $current_node->node_name ) {
-					$this->state->stack_of_open_elements->pop();
-					return true;
+				$current_node = $this->state->stack_of_open_elements->current_node();
+				if ( $current_node && 'OPTION' === $current_node->node_name ) {
+					foreach ( $this->state->stack_of_open_elements->walk_up( $current_node ) as $parent ) {
+						break;
+					}
+					if ( $parent && 'OPTGROUP' === $parent->node_name ) {
+						$this->state->stack_of_open_elements->pop();
+					}
 				}
 
-				$walker->next();
-				$current_node_parent = $walker->current();
-				if ( 'OPTION' === $current_node->node_name && 'OPTGROUP' === $current_node_parent->node_name ) {
-					$this->state->stack_of_open_elements->pop();
+				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTGROUP' ) ) {
 					$this->state->stack_of_open_elements->pop();
 					return true;
 				}
+				// Parse error: ignore the token.
 				return $this->step();
 
 			/*
