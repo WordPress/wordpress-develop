@@ -1742,20 +1742,36 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_table() {
-		$tag_name = $this->get_tag();
-		$op_sigil = $this->is_tag_closer() ? '-' : '+';
-		$op       = "{$op_sigil}{$tag_name}";
+		$token_name = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$token_name}";
+
 
 		switch ( $op ) {
 			/*
 			 * > A character token, if the current node is table, tbody, template, tfoot, thead, or tr element
 			 */
+			case '#text':
+				$this->last_error = self::ERROR_UNSUPPORTED;
+				throw new WP_HTML_Unsupported_Exception( "Text in tables is not supported." );
+
 			/*
 			 * > A comment token
 			 */
+			case '#comment':
+			case '#funky-comment':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+
 			/*
 			 * > A DOCTYPE token
 			 */
+			case 'html':
+				// Parse error. Ignore the token.
+				return $this->step();
+
 			/*
 			 * > A start tag whose tag name is "caption"
 			 */
@@ -1873,7 +1889,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+INPUT':
 				$type_attribute = $this->get_attribute( 'type' );
 				if ( ! is_string( $type_attribute ) || 'hidden' !== strtolower( $type_attribute ) ) {
-					goto in_table_anything_else;
+					break;
 				}
 				// parse error
 				$this->insert_html_element( $this->state->current_token );
@@ -1897,16 +1913,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end-of-file token
 			 */
 
-			/*
-			 * > Anything else
-			 * > Parse error. Enable foster parenting, process the token using the rules for the
-			 * > "in body" insertion mode, and then disable foster parenting.
-			 */
-			default:
-				in_table_anything_else:
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
 		}
+
+		/*
+		 * > Anything else
+		 * > Parse error. Enable foster parenting, process the token using the rules for the
+		 * > "in body" insertion mode, and then disable foster parenting.
+		 */
+		$this->last_error = self::ERROR_UNSUPPORTED;
+		throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
 	}
 
 	/**
