@@ -5554,6 +5554,28 @@ EOF;
 	}
 
 	/**
+	 * @ticket 61436
+	 *
+	 * @covers ::wp_get_loading_optimization_attributes
+	 */
+	public function test_wp_get_loading_optimization_attributes_image_src_matched() {
+		add_filter( 'wp_get_loading_optimization_attributes', array( $this, 'set_fetchpriority_high_on_specific_image' ), 10, 4 );
+		$attr = array(
+			'src' => 'https://example.org/a-specific-image.jpg',
+		);
+
+		// fetchpriority is high when image src is matched.
+		$this->assertSameSetsWithIndex(
+			array(
+				'decoding'      => 'async',
+				'fetchpriority' => 'high',
+			),
+			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
+			'fetchpriority should be high when src is matched.'
+		);
+	}
+
+	/**
 	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
@@ -6036,6 +6058,29 @@ EOF;
 				return $threshold;
 			}
 		);
+	}
+
+	/**
+	 * Change fetchpriority high when the image src is matched.
+	 *
+	 * @param array $loading_attrs The loading attrs like fetchpriority.
+	 * @param string $tag_name The tag name.
+	 * @param array $attr Array of the attributes for the tag.
+	 * @param string $context Context for the element for which the loading optimization attribute is requested.
+	 */
+	public function set_fetchpriority_high_on_specific_image( $loading_attrs, $tag_name, $attr, $context ) {
+		if ( 'img' === $tag_name ) {
+			if (
+				'the_content' === $context &&
+				isset( $attr['src'] ) &&
+				$attr['src'] === 'https://example.org/a-specific-image.jpg'
+			) {
+				$loading_attrs['fetchpriority'] = 'high';
+			} else {
+				unset( $loading_attrs['fetchpriority'] );
+			}
+		}
+		return $loading_attrs;
 	}
 
 	/**
