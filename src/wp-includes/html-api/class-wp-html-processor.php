@@ -1541,8 +1541,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "html"
 			 */
 			case '+HTML':
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
+				return $this->step_in_body();
 
 			/*
 			 * > A start tag whose tag name is "option"
