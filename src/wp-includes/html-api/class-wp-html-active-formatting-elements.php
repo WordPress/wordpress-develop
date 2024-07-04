@@ -188,4 +188,31 @@ class WP_HTML_Active_Formatting_Elements {
 	public function set_marker() {
 		$this->push( new WP_HTML_Token( null, 'marker', false ) );
 	}
+
+	/**
+	 * Clears the list of active formatting elements up to the last marker.
+	 *
+	 * > When the steps below require the UA to clear the list of active formatting elements up to
+	 * > the last marker, the UA must perform the following steps:
+	 * >
+	 * > 1. Let entry be the last (most recently added) entry in the list of active
+	 * >    formatting elements.
+	 * > 2. Remove entry from the list of active formatting elements.
+	 * > 3. If entry was a marker, then stop the algorithm at this point.
+	 * >    The list has been cleared up to the last marker.
+	 * > 4. Go to step 1.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#clear-the-list-of-active-formatting-elements-up-to-the-last-marker
+	 *
+	 * @since 6.7.0
+	 */
+	public function clear_up_to_last_marker(): void {
+		foreach ( $this->walk_up() as $item ) {
+			$is_marker = 'marker' === $item->node_name;
+			array_pop( $this->stack );
+			if ( $is_marker ) {
+				break;
+			}
+		}
+	}
 }
