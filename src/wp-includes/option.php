@@ -1222,9 +1222,8 @@ function delete_option( $option ) {
 
 		if ( ! is_array( $notoptions ) ) {
 			$notoptions = array();
-		} else{
-			$notoptions[ $option ] = true;
 		}
+		$notoptions[ $option ] = true;
 
 		wp_cache_set( 'notoptions', $notoptions, 'options' );
 	}
