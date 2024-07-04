@@ -269,8 +269,8 @@ class WP_HTML_Open_Elements {
 	/**
 	 * Returns whether a particular element is in select scope.
 	 *
-	 * @since 6.4.0 - Stub, always throws.
-	 * @since 6.5.0 - Implemented.
+	 * @since 6.4.0 Stub implementation (throws).
+	 * @since 6.7.0 Full implementation.
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-select-scope
 	 *
