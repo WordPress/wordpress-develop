@@ -1643,8 +1643,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return $this->step_in_head();
 		}
 
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
+		/*
+		 * > Anything else
+		 * >   Parse error: ignore the token.
+		 */
+		return $this->step();
 	}
 
 	/*
