@@ -1508,11 +1508,35 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_select() {
-		$tag_name = $this->get_tag();
-		$op_sigil = $this->is_tag_closer() ? '-' : '+';
-		$op       = "{$op_sigil}{$tag_name}";
+		$token_name = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$token_name}";
 
 		switch ( $op ) {
+			/*
+			 * > Any other character token
+			 */
+			case '#text':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// Parse error. Ignore the token.
+				return $this->step();
+
 			/*
 			 * > A start tag whose tag name is "html"
 			 */
