@@ -1482,7 +1482,7 @@ switch ( $action ) {
 		login_header( __( 'Log In' ), '', $errors );
 
 		if ( isset( $_POST['log'] ) ) {
-			$user_login = ( 'incorrect_password' === $errors->get_error_code() || 'empty_password' === $errors->get_error_code() ) ? wp_unslash( $_POST['log'] ) : '';
+			$user_login = ( 'incorrect_password' === $errors->get_error_code() || 'empty_password' === $errors->get_error_code() ) ? esc_attr( wp_unslash( $_POST['log'] ) ) : '';
 		}
 
 		$rememberme = ! empty( $_POST['rememberme'] );
