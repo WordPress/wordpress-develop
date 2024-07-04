@@ -156,15 +156,11 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-the-specific-scope
 	 *
-	 * @param string   $tag_name             Name of tag check.
-	 * @param string[] $termination_list     List of elements that terminate the search.
-	 * @param string   $termination_behavior Optional. "include" or "exclude". If "include"
-	 *                                       (default), the terminate when any tag in
-	 *                                       `$termination_list` is reached. Otherwise,
-	 *                                       terminate when any _other_ tag is reached.
+	 * @param string   $tag_name         Name of tag check.
+	 * @param string[] $termination_list List of elements that terminate the search.
 	 * @return bool Whether the element was found in a specific scope.
 	 */
-	public function has_element_in_specific_scope( $tag_name, $termination_list, $termination_behavior = 'include' ) {
+	public function has_element_in_specific_scope( $tag_name, $termination_list ) {
 		foreach ( $this->walk_up() as $node ) {
 			if ( $node->node_name === $tag_name ) {
 				return true;
@@ -182,10 +178,7 @@ class WP_HTML_Open_Elements {
 					return false;
 			}
 
-			$terminate = 'include' === $termination_behavior
-				? in_array( $node->node_name, $termination_list, true )
-				: ! in_array( $node->node_name, $termination_list, true );
-			if ( $terminate ) {
+			if ( in_array( $node->node_name, $termination_list, true ) ) {
 				return false;
 			}
 		}
@@ -290,11 +283,20 @@ class WP_HTML_Open_Elements {
 	 * @return bool Whether given element is in scope.
 	 */
 	public function has_element_in_select_scope( $tag_name ) {
-		return $this->has_element_in_specific_scope(
-			$tag_name,
-			array( 'OPTION', 'OPTGROUP' ),
-			'exclude'
-		);
+		foreach ( $this->walk_up() as $node ) {
+			if ( $node->node_name === $tag_name ) {
+				return true;
+			}
+
+			if (
+				'OPTION' !== $node->node_name &&
+				'OPTGROUP' !== $node->node_name
+			) {
+				return false;
+			}
+		}
+
+		return false;
 	}
 
 	/**
