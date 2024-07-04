@@ -493,8 +493,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$before = get_num_queries();
 		get_option( 'foo' );
-		$after = get_num_queries();
+		$queries = get_num_queries() - $before;
 
-		$this->assertSame( $after, $before, 'The notoptions cache was not hit.' );
+		$this->assertSame( 0, $queries, 'get_option should not make any database queries.' );
 	}
 }
