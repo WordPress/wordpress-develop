@@ -757,6 +757,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case WP_HTML_Processor_State::INSERTION_MODE_IN_BODY:
 					return $this->step_in_body();
 
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD:
+					return $this->step_in_head();
+
 				case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT:
 					return $this->step_in_select();
 
@@ -1490,6 +1493,26 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Parses next element in the 'in head' insertion mode.
+	 *
+	 * this internal function performs the 'in select' insertion mode
+	 * logic for the generalized wp_html_processor::step() function.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @throws wp_html_unsupported_exception when encountering unsupported html input.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inselect
+	 * @see wp_html_processor::step
+	 *
+	 * @return bool whether an element was found.
+	 */
+	private function step_in_head() {
+		$this->last_error = self::ERROR_UNSUPPORTED;
+		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
