@@ -2055,7 +2055,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 				$this->clear_stack_to_table_row_context();
 				$this->state->stack_of_open_elements->pop();
-				$this->state->insertion_mode = $this->state::INSERTION_MODE_IN_TABLE_BODY;
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
 				return true;
 
 			/*
@@ -2076,7 +2076,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 				$this->clear_stack_to_table_row_context();
 				$this->state->stack_of_open_elements->pop();
-				$this->state->insertion_mode = $this->state::INSERTION_MODE_IN_TABLE_BODY;
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
 			/*
@@ -2095,7 +2095,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 				$this->clear_stack_to_table_row_context();
 				$this->state->stack_of_open_elements->pop();
-				$this->state->insertion_mode = $this->state::INSERTION_MODE_IN_TABLE_BODY;
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
 			/*
