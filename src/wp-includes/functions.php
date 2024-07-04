@@ -3862,6 +3862,9 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		<?php
 		if ( function_exists( 'wp_robots' ) && function_exists( 'wp_robots_no_robots' ) && function_exists( 'add_filter' ) ) {
 			add_filter( 'wp_robots', 'wp_robots_no_robots' );
+			// Prevent warnings because of $wp_query not existing.
+			remove_filter( 'wp_robots', 'wp_robots_noindex_embeds' );
+			remove_filter( 'wp_robots', 'wp_robots_noindex_search' );
 			wp_robots();
 		}
 		?>
@@ -6195,6 +6198,11 @@ function validate_file( $file, $allowed_files = array() ) {
 	if ( ! is_scalar( $file ) || '' === $file ) {
 		return 0;
 	}
+
+	// Normalize path for Windows servers.
+	$file = wp_normalize_path( $file );
+	// Normalize path for $allowed_files as well so it's an apples to apples comparison.
+	$allowed_files = array_map( 'wp_normalize_path', $allowed_files );
 
 	// `../` on its own is not allowed:
 	if ( '../' === $file ) {
