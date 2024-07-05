@@ -1351,18 +1351,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->frameset_ok = false;
 
-				/*
-				 * If the insertion mode is one of
-				 * - "in table"
-				 * - "in caption"
-				 * - "in table body"
-				 * - "in row"
-				 * - "in cell"
-				 * then switch the insertion mode to "in select in table"
-				 *
-				 * Otherwise, switch the insertion mode to "in select".
-				 */
 				switch ( $this->state->insertion_mode ) {
+					/*
+					 * > If the insertion mode is one of "in table", "in caption", "in table body", "in row",
+					 * > or "in cell", then switch the insertion mode to "in select in table".
+					 */
 					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE:
 					case WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION:
 					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY:
@@ -1370,6 +1363,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					case WP_HTML_Processor_State::INSERTION_MODE_IN_CELL:
 						$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE;
 						break;
+
+					/*
+					 * > Otherwise, switch the insertion mode to "in select".
+					 */
 					default:
 						$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT;
 						break;
@@ -1496,13 +1493,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 	}
 
-	/*
+	/**
 	 * Parses next element in the 'in head' insertion mode.
 	 *
 	 * This internal function performs the 'in head' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0
+	 * @since 6.7.0 Stub implementation.
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -1542,6 +1539,23 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > Any other character token
 			 */
 			case '#text':
+				$current_token = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+
+				/*
+				 * > A character token that is U+0000 NULL
+				 *
+				 * If a text node only comprises null bytes then it should be
+				 * entirely ignored and should not return to calling code.
+				 */
+				if (
+					1 <= $current_token->length &&
+					"\x00" === $this->html[ $current_token->start ] &&
+					strspn( $this->html, "\x00", $current_token->start, $current_token->length ) === $current_token->length
+				) {
+					// Parse error: ignore the token.
+					return $this->step();
+				}
+
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -1558,7 +1572,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A DOCTYPE token
 			 */
 			case 'html':
-				// Parse error. Ignore the token.
+				// Parse error: ignore the token.
 				return $this->step();
 
 			/*
@@ -1615,6 +1629,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->state->stack_of_open_elements->pop();
 					return true;
 				}
+
 				// Parse error: ignore the token.
 				return $this->step();
 
@@ -1626,31 +1641,36 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->state->stack_of_open_elements->pop();
 					return true;
 				}
+
 				// Parse error: ignore the token.
 				return $this->step();
 
 			/*
 			 * > An end tag whose tag name is "select"
 			 * > A start tag whose tag name is "select"
+			 *
+			 * > It just gets treated like an end tag.
 			 */
 			case '-SELECT':
 			case '+SELECT':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_select_scope( 'SELECT' ) ) {
+					// Parse error: ignore the token.
 					return $this->step();
 				}
 				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-				$this->state->stack_of_open_elements->pop();
 				$this->reset_insertion_mode();
 				return true;
 
 			/*
 			 * > A start tag whose tag name is one of: "input", "keygen", "textarea"
+			 *
+			 * All three of these tags are considered a parse error when found in this insertion mode.
 			 */
 			case '+INPUT':
 			case '+KEYGEN':
 			case '+TEXTAREA':
-				// Parse error.
 				if ( ! $this->state->stack_of_open_elements->has_element_in_select_scope( 'SELECT' ) ) {
+					// Ignore the token.
 					return $this->step();
 				}
 				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
@@ -2262,7 +2282,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Closes elements that have implied end tags.
 	 *
 	 * @since 6.4.0
-	 * @since 6.7.0 Support "option" and "optgroup".
+	 * @since 6.7.0 Full spec support.
 	 *
 	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
 	 *
@@ -2276,11 +2296,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'OPTGROUP',
 			'OPTION',
 			'P',
+			'RB',
+			'RP',
+			'RT',
+			'RTC',
 		);
 
-		$current_node = $this->state->stack_of_open_elements->current_node();
+		$no_exclusions = ! isset( $except_for_this_element );
+
 		while (
-			$current_node && $current_node->node_name !== $except_for_this_element &&
+			( $no_exclusions || ! $this->state->stack_of_open_elements->current_node_is( $except_for_this_element ) ) &&
 			in_array( $this->state->stack_of_open_elements->current_node(), $elements_with_implied_end_tags, true )
 		) {
 			$this->state->stack_of_open_elements->pop();
@@ -2294,18 +2319,31 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * different from generating end tags in the normal sense.
 	 *
 	 * @since 6.4.0
+	 * @since 6.7.0 Full spec support.
 	 *
 	 * @see WP_HTML_Processor::generate_implied_end_tags
 	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
 	 */
 	private function generate_implied_end_tags_thoroughly() {
 		$elements_with_implied_end_tags = array(
+			'CAPTION',
+			'COLGROUP',
 			'DD',
 			'DT',
 			'LI',
 			'OPTGROUP',
 			'OPTION',
 			'P',
+			'RB',
+			'RP',
+			'RT',
+			'RTC',
+			'TBODY',
+			'TD',
+			'TFOOT',
+			'TH',
+			'THEAD',
+			'TR',
 		);
 
 		while ( in_array( $this->state->stack_of_open_elements->current_node(), $elements_with_implied_end_tags, true ) ) {
