@@ -1934,7 +1934,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		return $this->step();
 	}
 
-
 	/**
 	 * Parses next element in the 'in select in table' insertion mode.
 	 *
