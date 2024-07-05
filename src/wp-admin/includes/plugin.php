@@ -1517,7 +1517,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 
 	if (
 		null === $position ||
-		( ! isset( $submenu[ $parent_slug ] ) || $position >= count( $submenu[ $parent_slug ] ) )
+		( ! isset( $submenu[ $parent_slug ] ) )
 	) {
 		$submenu[ $parent_slug ][] = $new_sub_menu;
 	} else {
@@ -1527,15 +1527,12 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 			// For negative or `0` positions, prepend the submenu.
 			array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
 		} else {
-			$position = absint( $position );
-			// Grab all of the items before the insertion point.
-			$before_items = array_slice( $submenu[ $parent_slug ], 0, $position, true );
-			// Grab all of the items after the insertion point.
-			$after_items = array_slice( $submenu[ $parent_slug ], $position, null, true );
-			// Add the new item.
-			$before_items[] = $new_sub_menu;
-			// Merge the items.
-			$submenu[ $parent_slug ] = array_merge( $before_items, $after_items );
+			// Generate a float value to avoid conflicts.
+			$position_collision_avoider               = count( $submenu[ $parent_slug ] ) * 0.001;
+			$position                                 = $position + $position_collision_avoider;
+			// Convert the float to a string to use as an array key.
+			$position_key                             = (string) $position;
+			$submenu[ $parent_slug ][ $position_key ] = $new_sub_menu;
 		}
 	}
 
