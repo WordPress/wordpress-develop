@@ -823,9 +823,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case WP_HTML_Processor_State::INSERTION_MODE_IN_FOREIGN_CONTENT:
 					return $this->step_in_foreign_content();
 
+				// This should be unreachable but PHP doesn't have total type checking on switch.
 				default:
 					$this->last_error = self::ERROR_UNSUPPORTED;
-					throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+					throw new WP_HTML_Unsupported_Exception( "Found unrecognized insertion mode '{$this->state->insertion_mode}'." );
 			}
 		} catch ( WP_HTML_Unsupported_Exception $e ) {
 			/*
