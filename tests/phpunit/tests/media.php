@@ -5574,7 +5574,7 @@ EOF;
 			'fetchpriority should be high when src is matched.'
 		);
 	}
-	
+
 	/**
 	 * @ticket 58235
 	 *
