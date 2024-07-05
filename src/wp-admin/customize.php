@@ -84,9 +84,17 @@ if ( $wp_customize->changeset_post_id() ) {
 	}
 }
 
-$url       = ! empty( $_REQUEST['url'] ) ? sanitize_text_field( $_REQUEST['url'] ) : '';
-$return    = ! empty( $_REQUEST['return'] ) ? sanitize_text_field( $_REQUEST['return'] ) : '';
-$autofocus = ! empty( $_REQUEST['autofocus'] ) ? sanitize_text_field( $_REQUEST['autofocus'] ) : '';
+$url    = ! empty( $_REQUEST['url'] ) ? sanitize_text_field( $_REQUEST['url'] ) : '';
+$return = ! empty( $_REQUEST['return'] ) ? sanitize_text_field( $_REQUEST['return'] ) : '';
+
+/**
+ * Since `$_REQUEST['autofocus'] is an array, we need to sanitize both the keys and values separately.
+ * Merge the sanitized keys & values together using `array_combine`
+ * Set `$autofocus` to the new combined array or an empty array.
+ */
+$autofocus_array_keys   = ! empty( $_REQUEST['autofocus'] ) ? array_map( 'sanitize_key', array_keys( $_REQUEST['autofocus'] ) ) : array(); // Sanitizing the Keys
+$autofocus_array_values = ! empty( $_REQUEST['autofocus'] ) ? array_map( 'sanitize_text_field', array_values( $_REQUEST['autofocus'] ) ) : array(); // Sanitizing the values
+$autofocus              = ( ! empty( $autofocus_array_keys ) && ! empty( $autofocus_array_values ) ) ? array_combine( $autofocus_array_keys, $autofocus_array_values ) : array(); // Combining the keys and values.
 
 if ( ! empty( $url ) ) {
 	$wp_customize->set_preview_url( wp_unslash( $url ) );
