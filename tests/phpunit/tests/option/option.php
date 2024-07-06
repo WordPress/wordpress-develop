@@ -490,7 +490,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		add_option( 'foo', 'value1' );
 
 		delete_option( 'foo' );
-		
 		$notoptions = wp_cache_get( 'notoptions', 'options' );
 		$this->assertIsArray( $notoptions, 'The notoptions cache is expected to be an array.' );
 		$this->assertTrue( $notoptions['foo'], 'The deleted options is expected to be in notoptions.' );
