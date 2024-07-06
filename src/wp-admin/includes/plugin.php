@@ -1521,23 +1521,33 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	) {
 		$submenu[ $parent_slug ][] = $new_sub_menu;
 	} else {
-		// Test for a negative position.
-		$position = max( $position, 0 );
-		if ( 0 === $position ) {
-			// For negative or `0` positions, prepend the submenu.
-			array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
+		if ( $position >= count( $submenu[ $parent_slug ] ) ) {
+			$submenu[ $parent_slug ][ $position ] = $new_sub_menu;
+			// ksort( $submenu[ $parent_slug ] );
+			error_log(print_r($submenu[ $parent_slug ], true));
 		} else {
-			// Generate a float value to avoid conflicts.
-			$position_collision_avoider               = count( $submenu[ $parent_slug ] ) * 0.001;
-			$position                                 = $position + $position_collision_avoider;
-			// Convert the float to a string to use as an array key.
-			$position_key                             = (string) $position;
-			$submenu[ $parent_slug ][ $position_key ] = $new_sub_menu;
+			// Test for a negative position.
+			$position = max( $position, 0 );
+			if ( 0 === $position ) {
+				// For negative or `0` positions, prepend the submenu.
+				array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
+			} else {
+				$position = absint( $position );
+				// Grab all of the items before the insertion point.
+				$before_items = array_slice( $submenu[ $parent_slug ], 0, $position, true );
+				// Grab all of the items after the insertion point.
+				$after_items = array_slice( $submenu[ $parent_slug ], $position, null, true );
+				// Add the new item.
+				$before_items[] = $new_sub_menu;
+				// Merge the items.
+				$submenu[ $parent_slug ] = array_merge( $before_items, $after_items );
+			}
 		}
 	}
 
 	// Sort the parent array.
 	ksort( $submenu[ $parent_slug ] );
+	error_log(print_r($submenu[ $parent_slug ], true));
 
 	$hookname = get_plugin_page_hookname( $menu_slug, $parent_slug );
 	if ( ! empty( $callback ) && ! empty( $hookname ) ) {
