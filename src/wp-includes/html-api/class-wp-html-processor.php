@@ -1015,8 +1015,60 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_initial() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$token_name = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$token_name}";
+
+		/*
+		 * > A character token that is one of U+0009 CHARACTER TABULATION,
+		 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+		 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+		 *
+		 * Parse error: ignore the token.
+		 */
+		if ( '#text' === $op ) {
+			$text = $this->get_modifiable_text();
+			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				return $this->step();
+			}
+		}
+
+		switch ( $op ) {
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				$contents = $this->get_modifiable_text();
+				if ( ' html' !== $contents ) {
+					/*
+					 * @todo When the HTML Tag Processor fully parses the DOCTYPE declaration,
+					 *       this code should examine the contents to set the compatability mode.
+					 */
+					$this->bail( 'Cannot process any DOCTYPE other than a normative HTML5 doctype.' );
+				}
+
+				/*
+				 * > Then, switch the insertion mode to "before html".
+				 */
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML;
+				return true;
+		}
+
+		/*
+		 * > Anything else
+		 */
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -1025,7 +1077,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This internal function performs the 'before html' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0 Stub implementation.
+	 * @since 6.7.0
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -1035,8 +1087,89 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_before_html() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$token_name = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$is_closer  = parent::is_tag_closer();
+		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$token_name}";
+
+		/*
+		 * > A character token that is one of U+0009 CHARACTER TABULATION,
+		 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+		 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+		 *
+		 * Parse error: ignore the token.
+		 */
+		if ( '#text' === $op ) {
+			$text = $this->get_modifiable_text();
+			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				return $this->step();
+			}
+		}
+
+		$is_excluded_closing_tag = false;
+
+		switch ( $op ) {
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD;
+				return true;
+
+			/*
+			 * > An end tag whose tag name is one of: "head", "body", "html", "br"
+			 */
+			case '-HEAD':
+			case '-BODY':
+			case '-HTML':
+			case '-BR':
+				/*
+				 * > Act as described in the "anything else" entry below.
+				 */
+				$is_excluded_closing_tag = true;
+				break;
+		}
+
+		/*
+		 * > Any other end tag
+		 */
+		if ( $is_closer && ! $is_excluded_closing_tag ) {
+			// Parse error: ignore the token.
+			return $this->step();
+		}
+
+		/*
+		 * > Anything else.
+		 *
+		 * > Create an html element whose node document is the Document object.
+		 * > Append it to the Document object. Put this element in the stack of open elements.
+		 * > Switch the insertion mode to "before head", then reprocess the token.
+		 */
+		$currently_at      = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+		$new_bookmark      = $this->bookmark_token();
+		$this->bookmarks[] = new WP_HTML_Span( $currently_at->start, 0 );
+		$html_element      = new WP_HTML_Token( $new_bookmark, 'HTML', false );
+		$this->state->stack_of_open_elements->push( $html_element );
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -1055,8 +1188,90 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_before_head() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$token_name = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$is_closer  = parent::is_tag_closer();
+		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$token_name}";
+
+		/*
+		 * > A character token that is one of U+0009 CHARACTER TABULATION,
+		 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+		 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+		 *
+		 * Parse error: ignore the token.
+		 */
+		if ( '#text' === $op ) {
+			$text = $this->get_modifiable_text();
+			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				return $this->step();
+			}
+		}
+
+		$is_excluded_closing_tag = false;
+
+		switch ( $op ) {
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > A start tag whose tag name is "head"
+			 */
+			case '+HEAD':
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->head_element   = $this->state->current_token;
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD;
+				return true;
+
+			/*
+			 * > An end tag whose tag name is one of: "head", "body", "html", "br"
+			 * > Act as described in the "anything else" entry below.
+			 */
+			case '-HEAD':
+			case '-BODY':
+			case '-HTML':
+			case '-BR':
+				$is_excluded_closing_tag = true;
+				break;
+		}
+
+		if ( $is_closer && ! $is_excluded_closing_tag ) {
+			// Parse error: ignore the token.
+			return $this->step();
+		}
+
+		/*
+		 * > Anything else
+		 *
+		 * > Insert an HTML element for a "head" start tag token with no attributes.
+		 */
+		$currently_at      = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+		$new_bookmark      = $this->bookmark_token();
+		$this->bookmarks[] = new WP_HTML_Span( $currently_at->start, 0 );
+		$head_element      = new WP_HTML_Token( $new_bookmark, 'HEAD', false );
+		$this->state->stack_of_open_elements->push( $head_element );
+		$this->state->head_element   = $head_element;
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -1075,8 +1290,177 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_head() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$token_name = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$is_closer  = parent::is_tag_closer();
+		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$token_name}";
+
+		/*
+		 * > A character token that is one of U+0009 CHARACTER TABULATION,
+		 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+		 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+		 */
+		if ( '#text' === $op ) {
+			$text = $this->get_modifiable_text();
+			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				// Insert the character.
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+			}
+		}
+
+		$is_excluded_closing_tag = false;
+
+		switch ( $op ) {
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > A start tag whose tag name is one of: "base", "basefont", "bgsound", "link"
+			 */
+			case '+BASE':
+			case '+BASEFONT':
+			case '+BGSOUND':
+			case '+LINK':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "meta"
+			 */
+			case '+META':
+				$this->insert_html_element( $this->state->current_token );
+
+				/*
+				 * > If the active speculative HTML parser is null, then:
+				 * >   - If the element has a charset attribute, and getting an encoding from
+				 * >     its value results in an encoding, and the confidence is currently
+				 * >     tentative, then change the encoding to the resulting encoding.
+				 */
+				$charset = $this->get_attribute( 'charset' );
+				if ( is_string( $charset ) && 'tentative' === $this->state->encoding_confidence ) {
+					$this->bail( 'Cannot yet process META tags with charset to determine encoding.' );
+				}
+
+				/*
+				 * >   - Otherwise, if the element has an http-equiv attribute whose value is
+				 * >     an ASCII case-insensitive match for the string "Content-Type", and
+				 * >     the element has a content attribute, and applying the algorithm for
+				 * >     extracting a character encoding from a meta element to that attribute's
+				 * >     value returns an encoding, and the confidence is currently tentative,
+				 * >     then change the encoding to the extracted encoding.
+				 */
+				$http_equiv = $this->get_attribute( 'http-equiv' );
+				$content    = $this->get_attribute( 'content' );
+				if (
+					is_string( $http_equiv ) &&
+					is_string( $content ) &&
+					0 === strcasecmp( $http_equiv, 'Content-Type' ) &&
+					'tentative' === $this->state->encoding_confidence
+				) {
+					$this->bail( 'Cannot yet process META tags with http-equiv Content-Type to determine encoding.' );
+				}
+
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "title"
+			 */
+			case '+TITLE':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "noscript", if the scripting flag is enabled
+			 * > A start tag whose tag name is one of: "noframes", "style"
+			 *
+			 * The scripting flag is never enabled in this parser.
+			 */
+			case '+NOFRAMES':
+			case '+STYLE':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "noscript", if the scripting flag is disabled
+			 */
+			case '+NOSCRIPT':
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD_NOSCRIPT;
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "script"
+			 */
+			case '+SCRIPT':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > An end tag whose tag name is "head"
+			 */
+			case '-HEAD':
+				$this->state->stack_of_open_elements->pop();
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD;
+				return true;
+
+			/*
+			 * > An end tag whose tag name is one of: "body", "html", "br"
+			 */
+			case '-BODY':
+			case '-HTML':
+			case '-BR':
+				/*
+				 * > Act as described in the "anything else" entry below.
+				 */
+				$is_excluded_closing_tag = true;
+				break;
+
+			/*
+			 * > A start tag whose tag name is "template"
+			 * >
+			 * > An end tag whose tag name is "template"
+			 */
+			case '+TEMPLATE':
+			case '-TEMPLATE':
+				$this->bail( 'Cannot process TEMPLATE elements in the HEAD.' );
+		}
+
+		/*
+		 * > A start tag whose tag name is "head"
+		 * > Any other end tag
+		 */
+		if ( '+HEAD' === $op || ( $is_closer && ! $is_excluded_closing_tag ) ) {
+			// Parse error: ignore the token.
+			return $this->step();
+		}
+
+		/*
+		 * > Anything else
+		 */
+		$this->state->stack_of_open_elements->pop();
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -1095,8 +1479,99 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_head_noscript() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$token_name = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$is_closer  = parent::is_tag_closer();
+		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$token_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > An end tag whose tag name is "noscript"
+			 */
+			case '-NOSCRIPT':
+				$this->state->stack_of_open_elements->pop();
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD;
+				return true;
+		}
+
+		/*
+		 * > A character token that is one of U+0009 CHARACTER TABULATION,
+		 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+		 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+		 *
+		 * Parse error: ignore the token.
+		 */
+		if ( '#text' === $op ) {
+			$text = $this->get_modifiable_text();
+			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				return $this->step_in_head();
+			}
+		}
+
+		$is_excluded_closing_tag = false;
+
+		switch ( $op ) {
+			/*
+			 * > A comment token
+			 * >
+			 * > A start tag whose tag name is one of: "basefont", "bgsound",
+			 * > "link", "meta", "noframes", "style"
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+			case '+BASEFONT':
+			case '+BGSOUND':
+			case '+LINK':
+			case '+META':
+			case '+NOFRAMES':
+			case '+STYLE':
+				return $this->step_in_head();
+
+			/*
+			 * > An end tag whose tag name is "br"
+			 *
+			 * This should never happen, as the Tag Processor prevents showing a BR closing tag.
+			 */
+			case '-BR':
+				/*
+				 * > Act as described in the "anything else" entry below.
+				 */
+				$is_excluded_closing_tag = true;
+				break;
+		}
+
+		/*
+		 * > A start tag whose tag name is one of: "head", "noscript"
+		 * > Any other end tag
+		 */
+		if ( '+HEAD' === $op || '+NOSCRIPT' === $op || ( $is_closer && ! $is_excluded_closing_tag ) ) {
+			// Parse error: ignore the token.
+			return $this->step();
+		}
+
+		/*
+		 * > Anything else
+		 *
+		 * Anything here is a parse error.
+		 */
+		$this->state->stack_of_open_elements->pop();
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -1115,8 +1590,135 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_head() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$token_name = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$is_closer  = parent::is_tag_closer();
+		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$token_name}";
+
+		/*
+		 * > A character token that is one of U+0009 CHARACTER TABULATION,
+		 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+		 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+		 */
+		if ( '#text' === $op ) {
+			$text = $this->get_modifiable_text();
+			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				// Insert the character.
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+			}
+		}
+
+		$is_excluded_closing_tag = false;
+
+		switch ( $op ) {
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > A start tag whose tag name is "body"
+			 */
+			case '+BODY':
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->frameset_ok    = false;
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "frameset"
+			 */
+			case '+FRAMESET':
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_FRAMESET;
+				return true;
+
+			/*
+			 * > A start tag whose tag name is one of: "base", "basefont", "bgsound",
+			 * > "link", "meta", "noframes", "script", "style", "template", "title"
+			 *
+			 * Anything here is a parse error.
+			 */
+			case '+BASE':
+			case '+BASEFONT':
+			case '+BGSOUND':
+			case '+LINK':
+			case '+META':
+			case '+NOFRAMES':
+			case '+SCRIPT':
+			case '+STYLE':
+			case '+TEMPLATE':
+			case '+TITLE':
+				/*
+				 * > Push the node pointed to by the head element pointer onto the stack of open elements.
+				 * > Process the token using the rules for the "in head" insertion mode.
+				 * > Remove the node pointed to by the head element pointer from the stack of open elements. (It might not be the current node at this point.)
+				 */
+				$this->bail( 'Cannot process elements after HEAD which reopen the HEAD element.' );
+
+			/*
+			 * > An end tag whose tag name is "template"
+			 */
+			case '-TEMPLATE':
+				return $this->step_in_head();
+
+			/*
+			 * > An end tag whose tag name is one of: "body", "html", "br"
+			 */
+			case '-BODY':
+			case '-HTML':
+			case '-BR':
+				/*
+				 * > Act as described in the "anything else" entry below.
+				 */
+				$is_excluded_closing_tag = true;
+				break;
+		}
+
+		/*
+		 * > A start tag whose tag name is "head"
+		 * > Any other end tag
+		 */
+		if ( '+HEAD' === $op || ( $is_closer && ! $is_excluded_closing_tag ) ) {
+			// Parse error: ignore the token.
+			return $this->step();
+		}
+
+		/*
+		 * > Anything else
+		 * > Insert an HTML element for a "body" start tag token with no attributes.
+		 */
+		$currently_at      = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+		$new_bookmark      = $this->bookmark_token();
+		$this->bookmarks[] = new WP_HTML_Span( $currently_at->start + $currently_at->length, 0 );
+		$this->state->stack_of_open_elements->push(
+			new WP_HTML_Token(
+				$new_bookmark,
+				'BODY',
+				false
+			)
+		);
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
