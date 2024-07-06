@@ -40,7 +40,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		'menuitem-element/line0012' => 'Bug.',
 		'tests1/line0342'           => "Closing P tag implicitly creates opener, which we don't visit.",
 		'tests1/line0720'           => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests1/line0833'           => 'Bug.',
 		'tests15/line0001'          => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests15/line0022'          => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests2/line0650'           => 'Whitespace only test never enters "in body" parsing mode.',
@@ -51,14 +50,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		'tests23/line0101'          => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests25/line0169'          => 'Bug.',
 		'tests26/line0263'          => 'Bug: An active formatting element should be created for a trailing text node.',
-		'tests7/line0354'           => 'Bug.',
-		'tests8/line0001'           => 'Bug.',
-		'tests8/line0020'           => 'Bug.',
-		'tests8/line0037'           => 'Bug.',
-		'tests8/line0052'           => 'Bug.',
-		'webkit01/line0174'         => 'Bug.',
 	);
-
 
 	/**
 	 * Verify the parsing results of the HTML Processor against the
