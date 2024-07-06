@@ -1521,16 +1521,14 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	) {
 		$submenu[ $parent_slug ][] = $new_sub_menu;
 	} else {
-		if ( $position >= count( $submenu[ $parent_slug ] ) ) {
-			$submenu[ $parent_slug ][ $position ] = $new_sub_menu;
-			// ksort( $submenu[ $parent_slug ] );
-			error_log(print_r($submenu[ $parent_slug ], true));
+		// Test for a negative position.
+		$position = max( $position, 0 );
+		if ( 0 === $position ) {
+			// For negative or `0` positions, prepend the submenu.
+			array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
 		} else {
-			// Test for a negative position.
-			$position = max( $position, 0 );
-			if ( 0 === $position ) {
-				// For negative or `0` positions, prepend the submenu.
-				array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
+			if ( $position >= count( $submenu[ $parent_slug ] ) ) {
+				$submenu[ $parent_slug ][ $position ] = $new_sub_menu;
 			} else {
 				$position = absint( $position );
 				// Grab all of the items before the insertion point.
@@ -1547,7 +1545,6 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 
 	// Sort the parent array.
 	ksort( $submenu[ $parent_slug ] );
-	error_log(print_r($submenu[ $parent_slug ], true));
 
 	$hookname = get_plugin_page_hookname( $menu_slug, $parent_slug );
 	if ( ! empty( $callback ) && ! empty( $hookname ) ) {
