@@ -2257,11 +2257,11 @@ function get_temp_dir() {
  * @return bool Whether the path is writable.
  */
 function wp_is_writable( $path ) {
-	if ( 'WIN' === strtoupper( substr( PHP_OS, 0, 3 ) ) ) {
+	if ( PHP_OS_FAMILY === 'Windows' ) {
 		return win_is_writable( $path );
-	} else {
-		return @is_writable( $path );
 	}
+
+	return @is_writable( $path );
 }
 
 /**
