@@ -1528,7 +1528,17 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 			array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
 		} else {
 			if ( $position >= count( $submenu[ $parent_slug ] ) ) {
-				$submenu[ $parent_slug ][ $position ] = $new_sub_menu;
+				// If the passed position value exceeds the number of items in array.
+				if ( ! array_key_exists( $position, $submenu[ $parent_slug ] ) ) {
+					$submenu[ $parent_slug ][ $position ] = $new_sub_menu;
+				} else {
+					// Add decimal points in case an array already exists. Example: 200.1, 200.2 etc.
+					$suffix = 1;
+					while ( array_key_exists( "{$position}.{$suffix}", $submenu[ $parent_slug ] ) ) {
+						$suffix++;
+					}
+					$submenu[ $parent_slug ][ "{$position}.{$suffix}" ] = $new_sub_menu;
+				}
 			} else {
 				$position = absint( $position );
 				// Grab all of the items before the insertion point.
