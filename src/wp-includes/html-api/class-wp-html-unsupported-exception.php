@@ -1,4 +1,4 @@
-<?php
+<?php declare( strict_types=1 );
 /**
  * HTML API: WP_HTML_Unsupported_Exception class
  *
@@ -27,5 +27,21 @@
  * @see WP_HTML_Processor
  */
 class WP_HTML_Unsupported_Exception extends Exception {
+	public $token_name;
+	public $token_at;
 
+	public $token;
+	public $stack_of_open_elements = array();
+	public $active_formatting_elements = array();
+
+	public function __construct( string $message, string $token_name, int $token_at, string $token, array $stack_of_open_elements, array $active_formatting_elements ) {
+		parent::__construct( $message );
+
+		$this->token_name = $token_name;
+		$this->token_at   = $token_at;
+		$this->token      = $token;
+
+		$this->stack_of_open_elements     = $stack_of_open_elements;
+		$this->active_formatting_elements = $active_formatting_elements;
+	}
 }
