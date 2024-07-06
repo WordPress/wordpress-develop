@@ -337,6 +337,34 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Creates an HTML processor in the full parsing mode.
+	 *
+	 * It's likely that a fragment parser is more appropriate, unless sending an
+	 * entire HTML document from start to finish. Consider a fragment parser with
+	 * a context node of `<body>`.
+	 *
+	 * Since UTF-8 is the only currently-accepted charset, if working with a
+	 * document that isn't UTF-8, it's important to convert the document before
+	 * creating the processor: pass in the converted HTML.
+	 *
+	 * @param string      $html                    Input HTML document to process.
+	 * @param string|null $known_definite_encoding Optional. If provided, specifies the charset used
+	 *                                             in the input byte stream. Currently must be UTF-8.
+	 * @return static|null The created processor if successful, otherwise null.
+	 */
+	public static function create_full_parser( $html, $known_definite_encoding = 'UTF-8' ) {
+		if ( 'UTF-8' !== $known_definite_encoding ) {
+			return null;
+		}
+
+		$processor                             = new static( $html, self::CONSTRUCTOR_UNLOCK_CODE );
+		$processor->state->encoding            = $known_definite_encoding;
+		$processor->state->encoding_confidence = 'certain';
+
+		return $processor;
+	}
+
+	/**
 	 * Constructor.
 	 *
 	 * Do not use this method. Use the static creator methods instead.
@@ -3363,6 +3391,53 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'TRACK' === $tag_name ||
 			'WBR' === $tag_name
 		);
+	}
+
+	/**
+	 * Gets an encoding from a given string.
+	 *
+	 * This is an algorithm defined in the WHAT-WG specification.
+	 *
+	 * Example:
+	 *
+	 *     'UTF-8' === self::get_encoding( 'utf8' );
+	 *     'UTF-8' === self::get_encoding( "  \tUTF-8 " );
+	 *     null    === self::get_encoding( 'UTF-7' );
+	 *     null    === self::get_encoding( 'utf8; charset=' );
+	 *
+	 * @see https://encoding.spec.whatwg.org/#concept-encoding-get
+	 *
+	 * @todo As this parser only supports UTF-8, only the UTF-8
+	 *       encodings are detected. Add more as desired, but the
+	 *       parser will bail on non-UTF-8 encodings.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $label A string which may specify a known encoding.
+	 * @return string|null Known encoding if matched, otherwise null.
+	 */
+	protected static function get_encoding( string $label ): ?string {
+		/*
+		 * > Remove any leading and trailing ASCII whitespace from label.
+		 */
+		$label = trim( $label, " \t\f\r\n" );
+
+		/*
+		 * > If label is an ASCII case-insensitive match for any of the labels listed in the
+		 * > table below, then return the corresponding encoding; otherwise return failure.
+		 */
+		switch ( strtolower( $label ) ) {
+			case 'unicode-1-1-utf-8':
+			case 'unicode11utf8':
+			case 'unicode20utf8':
+			case 'utf-8':
+			case 'utf8':
+			case 'x-unicode20utf8':
+				return 'UTF-8';
+
+			default:
+				return null;
+		}
 	}
 
 	/*
