@@ -160,10 +160,18 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		// Initially, assume we're 2 levels deep at: html > body > [position]
 		$indent_level = 2;
 		$indent       = '  ';
+		$was_text     = null;
+		$text_node    = '';
 
 		while ( $processor->next_token() ) {
 			if ( ! is_null( $processor->get_last_error() ) ) {
 				return null;
+			}
+
+			if ( $was_text && '#text' !== $processor->get_token_name() ) {
+				$output   .= "{$text_node}\"\n";
+				$was_text  = false;
+				$text_node = '';
 			}
 
 			switch ( $processor->get_token_type() ) {
@@ -198,12 +206,27 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 							}
 							$output .= str_repeat( $indent, $tag_indent + 1 ) . "{$attribute_name}=\"{$val}\"\n";
 						}
+
+						// Self-contained tags contain their inner contents as modifiable text.
+						$modifiable_text = $processor->get_modifiable_text();
+						if ( '' !== $modifiable_text ) {
+							$was_text = true;
+							if ( '' === $text_node ) {
+								$text_node = str_repeat( $indent, $indent_level ) . '"';
+							}
+							$text_node .= $modifiable_text;
+							--$indent_level;
+						}
 					}
 
 					break;
 
 				case '#text':
-					$output .= str_repeat( $indent, $indent_level ) . "\"{$processor->get_modifiable_text()}\"\n";
+					$was_text = true;
+					if ( '' === $text_node ) {
+						$text_node .= str_repeat( $indent, $indent_level ) . '"';
+					}
+					$text_node .= $processor->get_modifiable_text();
 					break;
 
 				case '#comment':
@@ -236,6 +259,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 		if ( $processor->paused_at_incomplete_token() ) {
 			return null;
+		}
+
+		if ( '' !== $text_node ) {
+			$output .= "${text_node}\"\n";
 		}
 
 		// Tests always end with a trailing newline.
