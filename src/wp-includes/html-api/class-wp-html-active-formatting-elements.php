@@ -44,6 +44,22 @@ class WP_HTML_Active_Formatting_Elements {
 	private $stack = array();
 
 	/**
+	 * Returns the node at the given index in the list of active formatting elements.
+	 *
+	 * Do not use this method; it is meant to be used only by the HTML Processor.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @access private
+	 *
+	 * @param int $index Number of nodes from the top node to return.
+	 * @return WP_HTML_Token|null Node at the given index in the stack, if one exists, otherwise null.
+	 */
+	public function at( $index ) {
+		return $this->stack[ $index ];
+	}
+
+	/**
 	 * Reports if a specific node is in the stack of active formatting elements.
 	 *
 	 * @since 6.4.0
@@ -84,6 +100,22 @@ class WP_HTML_Active_Formatting_Elements {
 		$current_node = end( $this->stack );
 
 		return $current_node ? $current_node : null;
+	}
+
+	/**
+	 * Inserts a "marker" at the end of the list of active formatting elements.
+	 *
+	 * > The markers are inserted when entering applet, object, marquee,
+	 * > template, td, th, and caption elements, and are used to prevent
+	 * > formatting from "leaking" into applet, object, marquee, template,
+	 * > td, th, and caption elements.
+	 *
+	 * @see https://html.spec.whatwg.org/#concept-parser-marker
+	 *
+	 * @since 6.7.0
+	 */
+	public function insert_marker() {
+		$this->push( new WP_HTML_Token( null, 'marker', false ) );
 	}
 
 	/**
