@@ -2694,7 +2694,8 @@ class WP_HTML_Tag_Processor {
 	public function is_tag_closer() {
 		return (
 			self::STATE_MATCHED_TAG === $this->parser_state &&
-			$this->is_closing_tag
+			$this->is_closing_tag &&
+			'BR' !== $this->get_tag()
 		);
 	}
 

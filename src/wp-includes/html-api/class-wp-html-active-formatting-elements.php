@@ -87,6 +87,22 @@ class WP_HTML_Active_Formatting_Elements {
 	}
 
 	/**
+	 * Inserts a "marker" at the end of the list of active formatting elements.
+	 *
+	 * > The markers are inserted when entering applet, object, marquee,
+	 * > template, td, th, and caption elements, and are used to prevent
+	 * > formatting from "leaking" into applet, object, marquee, template,
+	 * > td, th, and caption elements.
+	 *
+	 * @see https://html.spec.whatwg.org/#concept-parser-marker
+	 *
+	 * @since 6.7.0
+	 */
+	public function insert_marker() {
+		$this->push( new WP_HTML_Token( null, 'marker', false ) );
+	}
+
+	/**
 	 * Pushes a node onto the stack of active formatting elements.
 	 *
 	 * @since 6.4.0

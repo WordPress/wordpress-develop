@@ -312,6 +312,31 @@ class WP_HTML_Processor_State {
 	const INSERTION_MODE_IN_FOREIGN_CONTENT = 'insertion-mode-in-foreign-content';
 
 	/**
+	 * No-quirks mode document compatability mode.
+	 *
+	 * > In no-quirks mode, the behavior is (hopefully) the desired behavior
+	 * > described by the modern HTML and CSS specifications.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	const NO_QUIRKS_MODE = 'no-quirks-mode';
+
+	/**
+	 * Quirks mode document compatability mode.
+	 *
+	 * > In quirks mode, layout emulates behavior in Navigator 4 and Internet
+	 * > Explorer 5. This is essential in order to support websites that were
+	 * > built before the widespread adoption of web standards.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	const QUIRKS_MODE = 'quirks-mode';
+
+	/**
 	 * The stack of template insertion modes.
 	 *
 	 * @since 6.7.0
@@ -369,6 +394,18 @@ class WP_HTML_Processor_State {
 	public $insertion_mode = self::INSERTION_MODE_INITIAL;
 
 	/**
+	 * Indicates if the document is in quirks mode or no-quirks mode.
+	 *
+	 * @see self::QUIRKS_MODE
+	 * @see self::NO_QUIRKS_MODE
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	public $compat_mode = self::NO_QUIRKS_MODE;
+
+	/**
 	 * Context node initializing fragment parser, if created as a fragment parser.
 	 *
 	 * @since 6.4.0
@@ -389,6 +426,22 @@ class WP_HTML_Processor_State {
 	 * @var WP_HTML_Token|null
 	 */
 	public $head_element = null;
+
+	/**
+	 * FORM element pointer.
+	 *
+	 * > points to the last form element that was opened and whose end tag has
+	 * > not yet been seen. It is used to make form controls associate with
+	 * > forms in the face of dramatically bad markup, for historical reasons.
+	 * > It is ignored inside template elements.
+	 *
+	 * @see https://html.spec.whatwg.org/#form-element-pointer
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var WP_HTML_Token|null
+	 */
+	public $form_element = null;
 
 	/**
 	 * The frameset-ok flag indicates if a `FRAMESET` element is allowed in the current state.
