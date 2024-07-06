@@ -1517,7 +1517,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 
 	if (
 		null === $position ||
-		( ! isset( $submenu[ $parent_slug ] ) )
+		( ! isset( $submenu[ $parent_slug ] ) || ( $parent_slug === $menu_slug ) )
 	) {
 		$submenu[ $parent_slug ][] = $new_sub_menu;
 	} else {

@@ -299,8 +299,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		// Verify the menu was inserted at the expected position.
 		$this->assertSame( 'main_slug', $submenu['main_slug'][0][2] );
-		$this->assertSame( 'submenu_page2', $submenu['main_slug'][1][2] );
-		$this->assertSame( 'submenu_page3', $submenu['main_slug'][2][2] );
+		$this->assertSame( 'submenu_page2', $submenu['main_slug'][2][2] );
+		$this->assertSame( 'submenu_page3', $submenu['main_slug'][3][2] );
 	}
 
 	/**
