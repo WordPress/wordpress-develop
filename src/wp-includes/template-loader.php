@@ -75,6 +75,15 @@ if ( wp_using_themes() ) {
 	);
 	$template      = false;
 
+	/**
+	 * Filters the array of the current $tag_templates before loop.
+	 *
+	 * @since 6.2.x
+	 *
+	 * @param string $tag_templates The array of the tag_templates to loop.
+	 */
+	$tag_templates = apply_filters( 'tag_templates', $tag_templates ); 
+
 	// Loop through each of the template conditionals, and find the appropriate template file.
 	foreach ( $tag_templates as $tag => $template_getter ) {
 		if ( call_user_func( $tag ) ) {
