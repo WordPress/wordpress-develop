@@ -1340,14 +1340,14 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 						'core/quote' => array(
 							'background' => array(
 								'backgroundImage' => array(
-									'url' => 'file:./example/img/quote.jpg',
+									'url' => 'file:./assets/quote.jpg',
 								),
 							),
 						),
 						'core/verse' => array(
 							'background' => array(
 								'backgroundImage' => array(
-									'url' => 'file:./example/img/verse.gif',
+									'url' => 'file:./assets/verse.gif',
 								),
 							),
 						),
