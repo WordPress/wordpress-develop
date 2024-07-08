@@ -145,12 +145,49 @@ class WP_HTML_Open_Elements {
 	}
 
 	/**
+	 * Indicates if the current node is of a given type or name.
+	 *
+	 * It's possible to pass either a node type or a node name to this function.
+	 * In the case there is no current element it will always return `false`.
+	 *
+	 * Example:
+	 *
+	 *     // Is the current node a text node?
+	 *     $stack->current_node_is( '#text' );
+	 *
+	 *     // Is the current node a DIV element?
+	 *     $stack->current_node_is( 'DIV' );
+	 *
+	 *     // Is the current node any element/tag?
+	 *     $stack->current_node_is( '#tag' );
+	 *
+	 * @see WP_HTML_Tag_Processor::get_token_type
+	 * @see WP_HTML_Tag_Processor::get_token_name
+	 *
+	 * @since 6.7.0
+	 *
+	 * @access private
+	 *
+	 * @param string $identity Check if the current node has this name or type (depending on what is provided).
+	 * @return bool Whether there is a current element that matches the given identity, whether a token name or type.
+	 */
+	public function current_node_is( string $identity ): bool {
+		$current_node = end( $this->stack );
+		if ( false === $current_node ) {
+			return false;
+		}
+
+		$current_node_name = $current_node->node_name;
+
+		return (
+			$current_node_name === $identity ||
+			( '#doctype' === $identity && 'html' === $current_node_name ) ||
+			( '#tag' === $identity && ctype_upper( $current_node_name ) )
+		);
+	}
+
+	/**
 	 * Returns whether an element is in a specific scope.
-	 *
-	 * ## HTML Support
-	 *
-	 * This function skips checking for the termination list because there
-	 * are no supported elements which appear in the termination list.
 	 *
 	 * @since 6.4.0
 	 *
@@ -269,19 +306,38 @@ class WP_HTML_Open_Elements {
 	/**
 	 * Returns whether a particular element is in select scope.
 	 *
-	 * @since 6.4.0
+	 * This test differs from the others like it, in that its rules are inverted.
+	 * Instead of arriving at a match when one of any tag in a termination group
+	 * is reached, this one terminates if any other tag is reached.
+	 *
+	 * > The stack of open elements is said to have a particular element in select scope when it has
+	 * > that element in the specific scope consisting of all element types except the following:
+	 * >   - optgroup in the HTML namespace
+	 * >   - option in the HTML namespace
+	 *
+	 * @since 6.4.0 Stub implementation (throws).
+	 * @since 6.7.0 Full implementation.
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-select-scope
 	 *
-	 * @throws WP_HTML_Unsupported_Exception Always until this function is implemented.
-	 *
 	 * @param string $tag_name Name of tag to check.
-	 * @return bool Whether given element is in scope.
+	 * @return bool Whether the given element is in SELECT scope.
 	 */
 	public function has_element_in_select_scope( $tag_name ) {
-		throw new WP_HTML_Unsupported_Exception( 'Cannot process elements depending on select scope.' );
+		foreach ( $this->walk_up() as $node ) {
+			if ( $node->node_name === $tag_name ) {
+				return true;
+			}
 
-		return false; // The linter requires this unreachable code until the function is implemented and can return.
+			if (
+				'OPTION' !== $node->node_name &&
+				'OPTGROUP' !== $node->node_name
+			) {
+				return false;
+			}
+		}
+
+		return false;
 	}
 
 	/**
