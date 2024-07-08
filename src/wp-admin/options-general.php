@@ -121,13 +121,15 @@ $tagline_description = sprintf(
 
 	// Handle alt text for site icon on page load.
 	$site_icon_id           = (int) get_option( 'site_icon' );
-	$site_icon_url          = get_site_icon_url();
 	$app_icon_alt_value     = '';
 	$browser_icon_alt_value = '';
 
+	// Store icon URL as variables for use in multiple places.
+	$site_icon_url = get_site_icon_url();
+
 	if ( $site_icon_id ) {
 		$img_alt            = get_post_meta( $site_icon_id, '_wp_attachment_image_alt', true );
-		$filename           = wp_basename( get_site_icon_url() );
+		$filename           = wp_basename( $site_icon_url );
 		$app_icon_alt_value = sprintf(
 			/* translators: %s: The selected image filename. */
 			__( 'App icon preview: The current image has no alternative text. The file name is: %s' ),
