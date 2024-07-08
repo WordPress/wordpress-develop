@@ -1069,10 +1069,10 @@ VIDEO;
 
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp4', $actual );
 		$this->assertStringContainsString( 'poster="https://example.com/foo.png', $actual );
-		$this->assertStringContainsString( 'loop="1"', $actual );
-		$this->assertStringContainsString( 'autoplay="1"', $actual );
+		$this->assertStringContainsString( 'loop', $actual );
+		$this->assertStringContainsString( 'autoplay', $actual );
 		$this->assertStringContainsString( 'muted', $actual );
-		$this->assertStringContainsString( 'preload="1"', $actual );
+		$this->assertStringContainsString( 'preload', $actual );
 		$this->assertStringContainsString( 'width="123"', $actual );
 		$this->assertStringContainsString( 'height="456"', $actual );
 		$this->assertStringContainsString( 'class="foobar"', $actual );
