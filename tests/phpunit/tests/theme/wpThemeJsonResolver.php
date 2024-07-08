@@ -1257,6 +1257,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Theme_JSON_Resolver::resolve_theme_file_uris
 	 * @ticket 61273
+	 * @ticket 61588
 	 */
 	public function test_resolve_theme_file_uris() {
 		$theme_json = new WP_Theme_JSON(
@@ -1325,6 +1326,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Theme_JSON_Resolver::get_resolved_theme_uris
 	 * @ticket 61273
+	 * @ticket 61588
 	 */
 	public function test_get_resolved_theme_uris() {
 		$theme_json = new WP_Theme_JSON(
