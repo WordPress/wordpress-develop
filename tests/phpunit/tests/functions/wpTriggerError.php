@@ -82,20 +82,35 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 	 */
 	public function data_should_trigger_error() {
 		return array(
-			'function name and message are given' => array(
+			'function name and message are given'          => array(
 				'function_name'    => 'some_function',
 				'message'          => 'expected the function name and message',
 				'expected_message' => 'some_function(): expected the function name and message',
 			),
-			'message is given'                    => array(
+			'message is given'                             => array(
 				'function_name'    => '',
 				'message'          => 'expect only the message',
 				'expected_message' => 'expect only the message',
 			),
-			'function name is given'              => array(
+			'function name is given'                       => array(
 				'function_name'    => 'some_function',
 				'message'          => '',
 				'expected_message' => 'some_function(): ',
+			),
+			'allowed HTML elements are present in message' => array(
+				'function_name'    => 'some_function',
+				'message'          => '<strong>expected</strong> the function name and message',
+				'expected_message' => 'some_function(): <strong>expected</strong> the function name and message',
+			),
+			'HTML links are present in message'            => array(
+				'function_name'    => 'some_function',
+				'message'          => '<a href="https://example.com">expected the function name and message</a>',
+				'expected_message' => 'some_function(): <a href="https://example.com">expected the function name and message</a>',
+			),
+			'disallowed HTML elements are present in message' => array(
+				'function_name'    => 'some_function',
+				'message'          => '<script>alert("expected the function name and message")</script>',
+				'expected_message' => 'some_function(): alert("expected the function name and message")',
 			),
 		);
 	}
