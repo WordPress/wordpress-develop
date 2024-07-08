@@ -85,10 +85,10 @@
 	flex: 1 0 0;
 	z-index: 1;
 	border-top-left-radius: 10px;
-	border-top: 1px solid rgba(255, 255, 255, 0.20);
-	border-left: 1px solid rgba(255, 255, 255, 0.20);
+	border-top: 1px solid rgba(255, 255, 255, 0.2);
+	border-left: 1px solid rgba(255, 255, 255, 0.2);
 	background: linear-gradient(180deg, #dcdcdc 0%, #bdbdbd 100%);
-	box-shadow: 0px 10px 22px 0px rgba(0, 0, 0, 0.20);
+	box-shadow: 0px 10px 22px 0px rgba(0, 0, 0, 0.2);
 }
 
 .site-icon-preview .browser-buttons {
@@ -112,7 +112,7 @@
 .site-icon-preview-browser .browser-icon-preview {
 	width: 24px;
 	height: 24px;
-	box-shadow: 0 0 20px 0 rgba(0,0,0,0.1);
+	box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.1);
 }
 
 .site-icon-preview-tab > img,
