@@ -873,7 +873,8 @@ class WP_Theme_JSON_Resolver {
 			isset( $background_image_url ) &&
 			is_string( $background_image_url ) &&
 			// Skip if the src doesn't start with the placeholder, as there's nothing to replace.
-			str_starts_with( $background_image_url, $placeholder ) ) {
+			str_starts_with( $background_image_url, $placeholder )
+		) {
 			$file_type          = wp_check_filetype( $background_image_url );
 			$src_url            = str_replace( $placeholder, '', $background_image_url );
 			$resolved_theme_uri = array(
@@ -893,12 +894,12 @@ class WP_Theme_JSON_Resolver {
 				if ( ! isset( $block_styles['background']['backgroundImage']['url'] ) ) {
 					continue;
 				}
-				$background_image_url = $block_styles['background']['backgroundImage']['url'] ?? null;
+				$background_image_url = $block_styles['background']['backgroundImage']['url'];
 				if (
-					isset( $background_image_url ) &&
 					is_string( $background_image_url ) &&
 					// Skip if the src doesn't start with the placeholder, as there's nothing to replace.
-					str_starts_with( $background_image_url, $placeholder ) ) {
+					str_starts_with( $background_image_url, $placeholder )
+				) {
 					$file_type          = wp_check_filetype( $background_image_url );
 					$src_url            = str_replace( $placeholder, '', $background_image_url );
 					$resolved_theme_uri = array(
