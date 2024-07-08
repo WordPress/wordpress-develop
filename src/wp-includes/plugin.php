@@ -315,6 +315,16 @@ function remove_filter( $hook_name, $callback, $priority = 10 ) {
 
 	$r = false;
 
+	/*
+	 * Block the removal of the '_wp_filter_font_directory' callback from the `upload_dir` filter.
+	 * This is a temporary solution to prevent plugins from removing
+	 * the 'font_dir' filter and the /fonts directory.
+	 * See https://core.trac.wordpress.org/ticket/60835 for more information.
+	 */
+	if ( 'upload_dir' === $hook_name && '_wp_filter_font_directory' === $callback ) {
+		return $r;
+	}
+
 	if ( isset( $wp_filter[ $hook_name ] ) ) {
 		$r = $wp_filter[ $hook_name ]->remove_filter( $hook_name, $callback, $priority );
 
