@@ -146,4 +146,17 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 		// This will never be hit if an infinite loop is triggered.
 		$this->assertTrue( true );
 	}
+
+	/**
+	 * Ensure getting font directory doesn't interfere with the uploads directory.
+	 *
+	 * @ticket 60835
+	 */
+	public function test_fonts_dir_does_not_interfere_with_uploads_dir() {
+		$upload_dir_1 = wp_get_upload_dir();
+		wp_get_font_dir();
+		$upload_dir_2 = wp_get_upload_dir();
+
+		$this->assertSame( $upload_dir_1, $upload_dir_2, 'Getting font directory should not modify future gets of the uploads directory.' );
+	}
 }
