@@ -46,6 +46,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 		$origin = 'theme';
 	}
 
+	$theme = wp_get_theme();
 	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
 	 * See `wp_cache_add_non_persistent_groups` in src/wp-includes/load.php and other places.
@@ -73,13 +74,13 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 
 	$settings = false;
 	if ( $can_use_cached ) {
-		$settings = wp_cache_get( $cache_key, $cache_group );
+		$settings = $theme->cache_get( $cache_key, $cache_group );
 	}
 
 	if ( false === $settings ) {
 		$settings = WP_Theme_JSON_Resolver::get_merged_data( $origin )->get_settings();
 		if ( $can_use_cached ) {
-			wp_cache_set( $cache_key, $settings, $cache_group );
+			$theme->cache_add( $cache_key, $settings, $cache_group );
 		}
 	}
 
@@ -154,6 +155,7 @@ function wp_get_global_stylesheet( $types = array() ) {
 	 * developer's workflow.
 	 */
 	$can_use_cached = empty( $types ) && ! wp_is_development_mode( 'theme' );
+	$theme = wp_get_theme();
 
 	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
@@ -174,7 +176,7 @@ function wp_get_global_stylesheet( $types = array() ) {
 	$cache_group = 'theme_json';
 	$cache_key   = 'wp_get_global_stylesheet';
 	if ( $can_use_cached ) {
-		$cached = wp_cache_get( $cache_key, $cache_group );
+		$cached = $theme->cache_get( $cache_key, $cache_group );
 		if ( $cached ) {
 			return $cached;
 		}
@@ -237,7 +239,7 @@ function wp_get_global_stylesheet( $types = array() ) {
 
 	$stylesheet = $styles_variables . $styles_rest;
 	if ( $can_use_cached ) {
-		wp_cache_set( $cache_key, $stylesheet, $cache_group );
+		$theme->cache_add( $cache_key, $stylesheet, $cache_group );
 	}
 
 	return $stylesheet;
@@ -259,7 +261,7 @@ function wp_get_global_styles_custom_css() {
 	 * developer's workflow.
 	 */
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
-
+	$theme = wp_get_theme();
 	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
 	 * @see `wp_cache_add_non_persistent_groups()`.
@@ -279,7 +281,7 @@ function wp_get_global_styles_custom_css() {
 	$cache_key   = 'wp_get_global_styles_custom_css';
 	$cache_group = 'theme_json';
 	if ( $can_use_cached ) {
-		$cached = wp_cache_get( $cache_key, $cache_group );
+		$cached = $theme->cache_get( $cache_key, $cache_group );
 		if ( $cached ) {
 			return $cached;
 		}
@@ -289,7 +291,7 @@ function wp_get_global_styles_custom_css() {
 	$stylesheet = $tree->get_custom_css();
 
 	if ( $can_use_cached ) {
-		wp_cache_set( $cache_key, $stylesheet, $cache_group );
+		$theme->cache_add( $cache_key, $stylesheet, $cache_group );
 	}
 
 	return $stylesheet;
@@ -483,13 +485,9 @@ function wp_theme_has_theme_json() {
  *
  * @since 6.2.0
  */
-function wp_clean_theme_json_cache() {
-	wp_cache_delete( 'wp_get_global_stylesheet', 'theme_json' );
-	wp_cache_delete( 'wp_get_global_styles_svg_filters', 'theme_json' );
-	wp_cache_delete( 'wp_get_global_settings_custom', 'theme_json' );
-	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
-	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
-	wp_cache_delete( 'wp_get_theme_data_template_parts', 'theme_json' );
+function wp_clean_theme_json_cache( $stylesheet = '' ) {
+	$theme = wp_get_theme( $stylesheet );
+	$theme->delete_theme_json_cache();
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }
 
@@ -530,9 +528,10 @@ function wp_get_theme_data_template_parts() {
 	$cache_key      = 'wp_get_theme_data_template_parts';
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
+	$theme    = wp_get_theme();
 	$metadata = false;
 	if ( $can_use_cached ) {
-		$metadata = wp_cache_get( $cache_key, $cache_group );
+		$metadata = $theme->cache_get( $cache_key, $cache_group );
 		if ( false !== $metadata ) {
 			return $metadata;
 		}
@@ -541,7 +540,7 @@ function wp_get_theme_data_template_parts() {
 	if ( false === $metadata ) {
 		$metadata = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
 		if ( $can_use_cached ) {
-			wp_cache_set( $cache_key, $metadata, $cache_group );
+			$theme->cache_add( $cache_key, $metadata, $cache_group );
 		}
 	}
 
