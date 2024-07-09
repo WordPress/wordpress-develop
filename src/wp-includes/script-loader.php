@@ -2529,29 +2529,6 @@ function wp_enqueue_global_styles() {
 }
 
 /**
- * Enqueues the global styles custom css defined via theme.json.
- *
- * @since 6.2.0
- * @deprecated 6.7.0 Use {@see 'wp_enqueue_global_styles'} instead.
- */
-function wp_enqueue_global_styles_custom_css() {
-	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_enqueue_global_styles' );
-	if ( ! wp_is_block_theme() ) {
-		return;
-	}
-
-	// Don't enqueue Customizer's custom CSS separately.
-	remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
-
-	$custom_css  = wp_get_custom_css();
-	$custom_css .= wp_get_global_styles_custom_css();
-
-	if ( ! empty( $custom_css ) ) {
-		wp_add_inline_style( 'global-styles', $custom_css );
-	}
-}
-
-/**
  * Checks if the editor scripts and styles for all registered block types
  * should be enqueued on the current screen.
  *
