@@ -5288,6 +5288,28 @@ EOF;
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
 		}
+
+		// Repeat the size tests with AVIF images.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
+		$avif_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
+
+		// The main (scaled) image: the JPEG should be smaller than the AVIF.
+		$this->assertLessThan( $avif_sizes['filesize'], $jpeg_sizes['filesize'], 'The JPEG should be smaller than the AVIF.' );
+
+		// Sub-sizes: for each size, the JPEGs should be smaller than the AVIF.
+		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $avif_sizes['sizes'] );
+		foreach ( $sizes_to_compare as $size => $size_data ) {
+			$this->assertLessThan( $avif_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
+		}
+
+		// Set the compression quality to a lower setting and test again, verifying that file sizes are all smaller.
+		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low' ), 10 );
+		$smaller_avif_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
+		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low' ), 10 );
+		foreach ( $sizes_to_compare as $size => $size_data ) {
+			$this->assertLessThan( $smaller_avif_sizes['sizes'][ $size ]['filesize'], $avif_sizes['sizes'][ $size ]['filesize'] );
+		}
 	}
 
 	/**
@@ -6007,6 +6029,13 @@ EOF;
 	}
 
 	/**
+	 * Output AVIF images.
+	 */
+	public function image_editor_output_avif() {
+		return array( 'image/jpeg' => 'image/avif' );
+	}
+
+	/**
 	 * Changes the quality using very low quality for JPEGs and very high quality
 	 * for WebPs, used to verify the filter is applying correctly.
 	 *
@@ -6022,6 +6051,13 @@ EOF;
 		} else {
 			return 30;
 		}
+	}
+
+	/**
+	 * Output only low quality images.
+	 */
+	public function image_editor_change_quality_low( $quality ) {
+		return 15;
 	}
 
 	/**
