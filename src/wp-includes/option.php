@@ -2845,8 +2845,9 @@ function register_initial_settings() {
 		'reading',
 		'page_for_posts',
 		array(
-			'type'        => 'integer',
-			'description' => __( 'The ID of the page that should display the latest posts' ),
+			'show_in_rest' => true,
+			'type'         => 'integer',
+			'description'  => __( 'The ID of the page that should display the latest posts' ),
 		)
 	);
 
