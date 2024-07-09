@@ -603,6 +603,14 @@ add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
 // Global styles custom CSS.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles_custom_css' );
 
+// Block template.
+add_filter( 'the_block_template_html', 'shortcode_unautop', 7 );
+add_filter( 'the_block_template_html', 'do_shortcode', 8 );
+add_filter( 'the_block_template_html', 'do_block_template_blocks', 9 );
+add_filter( 'the_block_template_html', 'wptexturize' );
+add_filter( 'the_block_template_html', 'wp_filter_content_tags' );
+add_filter( 'the_block_template_html', 'convert_smilies', 20 );
+
 // Block supports, and other styles parsed and stored in the Style Engine.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_stored_styles' );
 add_action( 'wp_footer', 'wp_enqueue_stored_styles', 1 );

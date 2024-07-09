@@ -207,16 +207,14 @@ function _block_template_render_title_tag() {
  *
  * @access private
  * @since 5.8.0
+ * @since 6.6.0 Block template content now runs through a 'the_block_template_html' filter.
  *
- * @global string   $_wp_current_template_id
- * @global string   $_wp_current_template_content
- * @global WP_Embed $wp_embed                     WordPress Embed object.
- * @global WP_Query $wp_query                     WordPress Query object.
+ * @global string $_wp_current_template_content
  *
  * @return string Block template markup.
  */
 function get_the_block_template_html() {
-	global $_wp_current_template_id, $_wp_current_template_content, $wp_embed, $wp_query;
+	global $_wp_current_template_content;
 
 	if ( ! $_wp_current_template_content ) {
 		if ( is_user_logged_in() ) {
@@ -225,10 +223,36 @@ function get_the_block_template_html() {
 		return;
 	}
 
-	$content = $wp_embed->run_shortcode( $_wp_current_template_content );
-	$content = $wp_embed->autoembed( $content );
-	$content = shortcode_unautop( $content );
-	$content = do_shortcode( $content );
+	$content = $_wp_current_template_content;
+
+	/**
+	 * Filters the block template content.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $content The entire block template content.
+	 */
+	$content = apply_filters( 'the_block_template_html', $content );
+	$content = str_replace( ']]>', ']]&gt;', $content );
+
+	// Wrap block template in .wp-site-blocks to allow for specific descendant styles
+	// (e.g. `.wp-site-blocks > *`).
+	return '<div class="wp-site-blocks">' . $content . '</div>';
+}
+
+/**
+ * Parses dynamic blocks from the block template and re-renders them.
+ *
+ * @since 6.6.0
+ *
+ * @global WP_Query $wp_query
+ * @global string   $_wp_current_template_id
+ *
+ * @param string $content Block template content.
+ * @return string Updated block template content.
+ */
+function do_block_template_blocks( $content ) {
+	global $wp_query, $_wp_current_template_id;
 
 	/*
 	 * Most block themes omit the `core/query` and `core/post-template` blocks in their singular content templates.
@@ -257,20 +281,13 @@ function get_the_block_template_html() {
 	) {
 		while ( have_posts() ) {
 			the_post();
+
 			$content = do_blocks( $content );
 		}
-	} else {
-		$content = do_blocks( $content );
+		return $content;
 	}
 
-	$content = wptexturize( $content );
-	$content = convert_smilies( $content );
-	$content = wp_filter_content_tags( $content, 'template' );
-	$content = str_replace( ']]>', ']]&gt;', $content );
-
-	// Wrap block template in .wp-site-blocks to allow for specific descendant styles
-	// (e.g. `.wp-site-blocks > *`).
-	return '<div class="wp-site-blocks">' . $content . '</div>';
+	return do_blocks( $content );
 }
 
 /**
