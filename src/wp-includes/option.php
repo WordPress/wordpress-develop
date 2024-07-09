@@ -2801,7 +2801,7 @@ function register_initial_settings() {
 		'writing',
 		'empty_trash_days',
 		array(
-			'show_in_rest' => true,
+			'show_in_rest' => false,
 			'type'         => 'string',
 			'description'  => __( 'Empty trash after selected days' ),
 		)
@@ -2845,7 +2845,6 @@ function register_initial_settings() {
 		'reading',
 		'page_for_posts',
 		array(
-			'show_in_rest' => true,
 			'type'         => 'integer',
 			'description'  => __( 'The ID of the page that should display the latest posts' ),
 		)
