@@ -225,6 +225,7 @@
 			// Clear the selection and move focus back to the trigger.
 			event.clearSelection();
 
+			// Checking if the previousSuccessElement is present, adding the hidden class to it.
 			if ( previousSuccessElement && ! previousSuccessElement.hasClass( 'hidden' ) ) {
 				previousSuccessElement.addClass( 'hidden' );
 			}
@@ -236,6 +237,7 @@
 			// Hide success visual feedback after 3 seconds since last success and unfocus the trigger.
 			copyAttachmentURLSuccessTimeout = setTimeout( function() {
 				successElement.addClass( 'hidden' );
+				previousSuccessElement = null; // setting previousSuccessElement to null.
 			}, 3000 );
 
 			previousSuccessElement = successElement;
