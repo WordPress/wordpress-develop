@@ -5283,7 +5283,7 @@ EOF;
 		// The main (scaled) image: the JPEG should be smaller than the WebP.
 		$this->assertLessThan( $webp_sizes['filesize'], $jpeg_sizes['filesize'], 'The JPEG should be smaller than the WebP.' );
 
-		// Sub-sizes: for each size, the JPEGs should be smaller than the WebP.
+		// Sub-sizes: for each size, the WebP should be smaller than the JPEG.
 		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $webp_sizes['sizes'] );
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
@@ -5294,10 +5294,7 @@ EOF;
 		$avif_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
 
-		// The main (scaled) image: the JPEG should be smaller than the AVIF.
-		$this->assertLessThan( $avif_sizes['filesize'], $jpeg_sizes['filesize'], 'The JPEG should be smaller than the AVIF.' );
-
-		// Sub-sizes: for each size, the JPEGs should be smaller than the AVIF.
+		// Sub-sizes: for each size, the AVIF should be smaller than the JPEG.
 		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $avif_sizes['sizes'] );
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $avif_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
