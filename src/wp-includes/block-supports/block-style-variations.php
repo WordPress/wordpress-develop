@@ -118,8 +118,10 @@ function wp_render_block_style_variation_support_styles( $parsed_block ) {
 		return $parsed_block;
 	}
 
-	// Recursively resolve any ref values with the appropriate value within the
-	// theme_json data.
+	/*
+	 * Recursively resolve any ref values with the appropriate value within the
+	 * theme_json data.
+	 */
 	wp_resolve_block_style_variation_ref_values( $variation_data, $theme_json );
 
 	$variation_instance = wp_create_block_style_variation_instance_name( $parsed_block, $variation );
