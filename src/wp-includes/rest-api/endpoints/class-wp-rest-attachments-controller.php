@@ -626,7 +626,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					$width  = (int) round( ( $size['width'] * $args['width'] ) / 100.0 );
 					$height = (int) round( ( $size['height'] * $args['height'] ) / 100.0 );
 
-					if ( $size['width'] !== $width && $size['height'] !== $height ) {
+					if ( $size['width'] !== $width || $size['height'] !== $height ) {
 						$result = $image_editor->crop( $crop_x, $crop_y, $width, $height );
 
 						if ( is_wp_error( $result ) ) {
@@ -1207,7 +1207,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				continue;
 			}
 
-			list( $type, $attr_parts ) = explode( ';', $value, 2 );
+			list( , $attr_parts ) = explode( ';', $value, 2 );
 
 			$attr_parts = explode( ';', $attr_parts );
 			$attributes = array();
