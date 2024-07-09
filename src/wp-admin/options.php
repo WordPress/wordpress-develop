@@ -152,6 +152,7 @@ $allowed_options            = array(
 		'default_email_category',
 		'default_link_category',
 		'default_post_format',
+		'empty_trash_days',
 	),
 );
 $allowed_options['misc']    = array();
