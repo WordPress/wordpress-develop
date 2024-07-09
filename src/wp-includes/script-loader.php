@@ -2532,8 +2532,10 @@ function wp_enqueue_global_styles() {
  * Enqueues the global styles custom css defined via theme.json.
  *
  * @since 6.2.0
+ * @deprecated 6.7.0 Use {@see 'wp_enqueue_global_styles'} instead.
  */
 function wp_enqueue_global_styles_custom_css() {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_enqueue_global_styles' );
 	if ( ! wp_is_block_theme() ) {
 		return;
 	}

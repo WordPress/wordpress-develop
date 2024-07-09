@@ -247,10 +247,12 @@ function wp_get_global_stylesheet( $types = array() ) {
  * Gets the global styles custom CSS from theme.json.
  *
  * @since 6.2.0
+ * @deprecated 6.7.0 Use {@see 'wp_get_global_stylesheet'} instead.
  *
  * @return string The global styles custom CSS.
  */
 function wp_get_global_styles_custom_css() {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_get_global_stylesheet' );
 	if ( ! wp_theme_has_theme_json() ) {
 		return '';
 	}
