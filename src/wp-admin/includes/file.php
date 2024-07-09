@@ -1562,8 +1562,6 @@ function wp_zip_file_is_valid( $file ) {
 	}
 
 	// Fall through to PclZip if ZipArchive is not available, or encountered an error opening the file.
-	require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
-
 	$archive          = new PclZip( $file );
 	$archive_is_valid = is_array( $archive->properties() );
 
