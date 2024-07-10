@@ -483,6 +483,62 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 }
 
 /**
+ * Copy parent attachment properties to newly cropped image.
+ *
+ * @since 6.5.0
+ *
+ * @param string $cropped              Path to the cropped image file.
+ * @param int    $parent_attachment_id Parent file Attachment ID.
+ * @param string $context              Control calling the function.
+ * @return array Properties of attachment.
+ */
+function wp_copy_parent_attachment_properties( $cropped, $parent_attachment_id, $context = '' ) {
+	$parent          = get_post( $parent_attachment_id );
+	$parent_url      = wp_get_attachment_url( $parent->ID );
+	$parent_basename = wp_basename( $parent_url );
+	$url             = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
+
+	$size       = wp_getimagesize( $cropped );
+	$image_type = $size ? $size['mime'] : 'image/jpeg';
+
+	$sanitized_post_title = sanitize_file_name( $parent->post_title );
+	$use_original_title   = (
+		( '' !== trim( $parent->post_title ) ) &&
+		/*
+		 * Check if the original image has a title other than the "filename" default,
+		 * meaning the image had a title when originally uploaded or its title was edited.
+		 */
+		( $parent_basename !== $sanitized_post_title ) &&
+		( pathinfo( $parent_basename, PATHINFO_FILENAME ) !== $sanitized_post_title )
+	);
+	$use_original_description = ( '' !== trim( $parent->post_content ) );
+
+	$attachment = array(
+		'post_title'     => $use_original_title ? $parent->post_title : wp_basename( $cropped ),
+		'post_content'   => $use_original_description ? $parent->post_content : $url,
+		'post_mime_type' => $image_type,
+		'guid'           => $url,
+		'context'        => $context,
+	);
+
+	// Copy the image caption attribute (post_excerpt field) from the original image.
+	if ( '' !== trim( $parent->post_excerpt ) ) {
+		$attachment['post_excerpt'] = $parent->post_excerpt;
+	}
+
+	// Copy the image alt text attribute from the original image.
+	if ( '' !== trim( $parent->_wp_attachment_image_alt ) ) {
+		$attachment['meta_input'] = array(
+			'_wp_attachment_image_alt' => wp_slash( $parent->_wp_attachment_image_alt ),
+		);
+	}
+
+	$attachment['post_parent'] = $parent_attachment_id;
+
+	return $attachment;
+}
+
+/**
  * Generates attachment meta data and create image sub-sizes for images.
  *
  * @since 2.1.0
@@ -863,22 +919,51 @@ function wp_read_image_metadata( $file ) {
 			$exif = array();
 		}
 
+		$exif_description = '';
+		$exif_usercomment = '';
 		if ( ! empty( $exif['ImageDescription'] ) ) {
-			mbstring_binary_safe_encoding();
-			$description_length = strlen( $exif['ImageDescription'] );
-			reset_mbstring_encoding();
+			$exif_description = trim( $exif['ImageDescription'] );
+		}
 
+		if ( ! empty( $exif['COMPUTED']['UserComment'] ) ) {
+			$exif_usercomment = trim( $exif['COMPUTED']['UserComment'] );
+		}
+
+		if ( $exif_description ) {
+			mbstring_binary_safe_encoding();
+			$description_length = strlen( $exif_description );
+			reset_mbstring_encoding();
 			if ( empty( $meta['title'] ) && $description_length < 80 ) {
 				// Assume the title is stored in ImageDescription.
-				$meta['title'] = trim( $exif['ImageDescription'] );
+				$meta['title'] = $exif_description;
 			}
 
-			if ( empty( $meta['caption'] ) && ! empty( $exif['COMPUTED']['UserComment'] ) ) {
-				$meta['caption'] = trim( $exif['COMPUTED']['UserComment'] );
+			// If both user comments and description are present.
+			if ( empty( $meta['caption'] ) && $exif_description && $exif_usercomment ) {
+				if ( ! empty( $meta['title'] ) && $exif_description === $meta['title'] ) {
+					$caption = $exif_usercomment;
+				} else {
+					if ( $exif_description === $exif_usercomment ) {
+						$caption = $exif_description;
+					} else {
+						$caption = trim( $exif_description . ' ' . $exif_usercomment );
+					}
+				}
+				$meta['caption'] = $caption;
+			}
+
+			if ( empty( $meta['caption'] ) && $exif_usercomment ) {
+				$meta['caption'] = $exif_usercomment;
 			}
 
 			if ( empty( $meta['caption'] ) ) {
-				$meta['caption'] = trim( $exif['ImageDescription'] );
+				$meta['caption'] = $exif_description;
+			}
+		} elseif ( empty( $meta['caption'] ) && $exif_usercomment ) {
+			$meta['caption']    = $exif_usercomment;
+			$description_length = strlen( $exif_usercomment );
+			if ( empty( $meta['title'] ) && $description_length < 80 ) {
+				$meta['title'] = trim( $exif_usercomment );
 			}
 		} elseif ( empty( $meta['caption'] ) && ! empty( $exif['Comments'] ) ) {
 			$meta['caption'] = trim( $exif['Comments'] );
@@ -977,7 +1062,7 @@ function file_is_valid_image( $path ) {
  * @return bool True if suitable, false if not suitable.
  */
 function file_is_displayable_image( $path ) {
-	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO, IMAGETYPE_WEBP );
+	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO, IMAGETYPE_WEBP, IMAGETYPE_AVIF );
 
 	$info = wp_getimagesize( $path );
 	if ( empty( $info ) ) {

@@ -123,6 +123,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-transform: none;
 }
 
+.wp-block-quote.has-text-color cite,
+.wp-block-quote.has-background cite {
+	color: inherit;
+}
+
 .wp-block-quote em,
 .wp-block-quote i {
 	font-style: normal;
@@ -222,6 +227,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-size: 12px;
 	font-weight: 700;
 	line-height: 1.5;
+	margin-top: 2em;
 	padding: 0.7917em 1.5em;
 	text-transform: uppercase;
 	vertical-align: baseline;
@@ -332,6 +338,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-style: normal;
 	line-height: 1.6;
 	text-transform: none;
+}
+
+.wp-block-pullquote[class*="-text-color"] blockquote cite,
+.wp-block-pullquote[style*="color"] blockquote cite {
+	color: inherit;
 }
 
 @media screen and (min-width: 46.25em) {
@@ -470,7 +481,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 	}
 }
 
-/* Seperators */
+/* Separators */
 
 .wp-block-separator {
 	border: 0;

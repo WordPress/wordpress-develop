@@ -77,7 +77,16 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			$this->assertSame( get_page_template_slug( $post->ID ), $data['template'] );
 		}
 
-		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
+		if (
+			post_type_supports( $post->post_type, 'thumbnail' ) ||
+			(
+				'attachment' === $post->post_type &&
+				(
+					post_type_supports( 'attachment:audio', 'thumbnail' ) ||
+					post_type_supports( 'attachment:video', 'thumbnail' )
+				)
+			)
+		) {
 			$this->assertSame( (int) get_post_thumbnail_id( $post->ID ), $data['featured_media'] );
 		} else {
 			$this->assertArrayNotHasKey( 'featured_media', $data );

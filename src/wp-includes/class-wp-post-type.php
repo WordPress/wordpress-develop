@@ -670,9 +670,20 @@ final class WP_Post_Type {
 				}
 			}
 			unset( $this->supports );
+
+			/*
+			 * 'editor' support implies 'autosave' support for backward compatibility.
+			 * 'autosave' support needs to be explicitly removed if not desired.
+			 */
+			if (
+				post_type_supports( $this->name, 'editor' ) &&
+				! post_type_supports( $this->name, 'autosave' )
+			) {
+				add_post_type_support( $this->name, 'autosave' );
+			}
 		} elseif ( false !== $this->supports ) {
 			// Add default features.
-			add_post_type_support( $this->name, array( 'title', 'editor' ) );
+			add_post_type_support( $this->name, array( 'title', 'editor', 'autosave' ) );
 		}
 	}
 
@@ -922,7 +933,7 @@ final class WP_Post_Type {
 			return null;
 		}
 
-		if ( 'attachment' === $this->name ) {
+		if ( ! post_type_supports( $this->name, 'autosave' ) ) {
 			return null;
 		}
 

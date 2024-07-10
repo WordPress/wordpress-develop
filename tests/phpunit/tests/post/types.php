@@ -217,16 +217,19 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21586
+	 * @ticket 41172
 	 */
 	public function test_post_type_with_no_support() {
 		register_post_type( 'foo', array( 'supports' => array() ) );
-		$this->assertTrue( post_type_supports( 'foo', 'editor' ) );
-		$this->assertTrue( post_type_supports( 'foo', 'title' ) );
+		$this->assertTrue( post_type_supports( 'foo', 'editor' ), 'Editor support should be enabled by default.' );
+		$this->assertTrue( post_type_supports( 'foo', 'title' ), 'Title support should be enabled by default.' );
+		$this->assertTrue( post_type_supports( 'foo', 'autosave' ), 'Autosaves support should be enabled by default.' );
 		_unregister_post_type( 'foo' );
 
 		register_post_type( 'foo', array( 'supports' => false ) );
-		$this->assertFalse( post_type_supports( 'foo', 'editor' ) );
-		$this->assertFalse( post_type_supports( 'foo', 'title' ) );
+		$this->assertFalse( post_type_supports( 'foo', 'editor' ), 'Editor support should be disabled.' );
+		$this->assertFalse( post_type_supports( 'foo', 'title' ), 'Title support should be disabled.' );
+		$this->assertFalse( post_type_supports( 'foo', 'autosave' ), 'Autosaves support should be disabled.' );
 		_unregister_post_type( 'foo' );
 	}
 
@@ -432,9 +435,10 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$this->assertSameSetsWithIndex(
 			array(
-				'editor' => true,
-				'author' => true,
-				'title'  => true,
+				'editor'   => true,
+				'author'   => true,
+				'title'    => true,
+				'autosave' => true,
 			),
 			$_wp_post_type_features['foo']
 		);
@@ -586,7 +590,60 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	/**
 	 * @ticket 34010
 	 */
-	public function test_get_post_types_by_support_non_existant_feature() {
+	public function test_get_post_types_by_support_non_existent_feature() {
 		$this->assertSameSets( array(), get_post_types_by_support( 'somefeature' ) );
+	}
+
+	/**
+	 * @ticket 41172
+	 */
+	public function test_post_type_supports_autosave_based_on_editor_support() {
+		$this->assertFalse( post_type_supports( 'attachment', 'autosave' ) );
+
+		register_post_type( 'foo', array( 'supports' => array( 'editor' ) ) );
+		$this->assertTrue( post_type_supports( 'foo', 'autosave' ) );
+		_unregister_post_type( 'foo' );
+
+		register_post_type( 'foo', array( 'supports' => array( 'title' ) ) );
+		$this->assertFalse( post_type_supports( 'foo', 'autosave' ) );
+		_unregister_post_type( 'foo' );
+	}
+
+	/**
+	 * @ticket 41172
+	 */
+	public function test_removing_autosave_support_removes_rest_api_controller() {
+		register_post_type(
+			'foo',
+			array(
+				'show_in_rest' => true,
+				'supports'     => array( 'editor' ),
+			)
+		);
+
+		$post_type_object = get_post_type_object( 'foo' );
+		$this->assertInstanceOf( 'WP_REST_Autosaves_Controller', $post_type_object->get_autosave_rest_controller(), 'Autosave controller should be set by default.' );
+
+		remove_post_type_support( 'foo', 'autosave' );
+		$post_type_object = get_post_type_object( 'foo' );
+		$this->assertSame( null, $post_type_object->get_autosave_rest_controller(), 'Autosave controller should be removed.' );
+		_unregister_post_type( 'foo' );
+	}
+
+	/**
+	 * @ticket 41172
+	 */
+	public function test_removing_editor_support_does_not_remove_autosave_support() {
+		register_post_type(
+			'foo',
+			array(
+				'show_in_rest' => true,
+				'supports'     => array( 'editor' ),
+			)
+		);
+		remove_post_type_support( 'foo', 'editor' );
+
+		$this->assertFalse( post_type_supports( 'foo', 'editor' ), 'Post type should not support editor.' );
+		$this->assertTrue( post_type_supports( 'foo', 'autosave' ), 'Post type should still support autosaves.' );
 	}
 }

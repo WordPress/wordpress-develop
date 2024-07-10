@@ -84,7 +84,7 @@ function twentyseventeen_setup() {
 	/*
 	 * Enable support for Post Formats.
 	 *
-	 * See: https://wordpress.org/documentation/article/post-formats/
+	 * See: https://developer.wordpress.org/advanced-administration/wordpress/post-formats/
 	 */
 	add_theme_support(
 		'post-formats',
@@ -120,7 +120,7 @@ function twentyseventeen_setup() {
 	$font_stylesheet = str_replace(
 		array( get_template_directory_uri() . '/', get_stylesheet_directory_uri() . '/' ),
 		'',
-		twentyseventeen_fonts_url()
+		(string) twentyseventeen_fonts_url()
 	);
 	add_editor_style( array( 'assets/css/editor-style.css', $font_stylesheet ) );
 
@@ -452,7 +452,7 @@ function twentyseventeen_scripts() {
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), $font_version );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20231107' );
+	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20240402' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20220912' );
@@ -580,6 +580,7 @@ add_filter( 'wp_calculate_image_sizes', 'twentyseventeen_content_image_sizes_att
  * Filters the `sizes` value in the header image markup.
  *
  * @since Twenty Seventeen 1.0
+ * @since Twenty Seventeen 3.7 Added larger image size for small screens.
  *
  * @param string $html   The HTML image tag markup being filtered.
  * @param object $header The custom header object returned by 'get_custom_header()'.
@@ -588,7 +589,7 @@ add_filter( 'wp_calculate_image_sizes', 'twentyseventeen_content_image_sizes_att
  */
 function twentyseventeen_header_image_tag( $html, $header, $attr ) {
 	if ( isset( $attr['sizes'] ) ) {
-		$html = str_replace( $attr['sizes'], '100vw', $html );
+		$html = str_replace( $attr['sizes'], '(max-width: 767px) 200vw, 100vw', $html );
 	}
 	return $html;
 }
@@ -687,6 +688,28 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 		return __( ', ', 'twentyseventeen' );
 	}
 endif;
+
+/**
+ * Show the featured image below the header on single posts and pages, unless the
+ * page is the front page.
+ *
+ * Use the filter `twentyseventeen_should_show_featured_image` in a child theme or
+ * plugin to change when the image is shown. This example prevents the image
+ * from showing:
+ *
+ *     add_filter(
+ *         'twentyseventeen_should_show_featured_image',
+ *         '__return_false'
+ *     );
+ *
+ * @since Twenty Seventeen 3.7
+ *
+ * @return bool Whether the post thumbnail should be shown.
+ */
+function twentyseventeen_should_show_featured_image() {
+	$show_featured_image = ( is_single() || ( is_page() && ! twentyseventeen_is_frontpage() ) ) && has_post_thumbnail( get_queried_object_id() );
+	return apply_filters( 'twentyseventeen_should_show_featured_image', $show_featured_image );
+}
 
 /**
  * Implement the Custom Header feature.

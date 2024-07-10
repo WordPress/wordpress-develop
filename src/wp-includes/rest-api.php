@@ -209,7 +209,7 @@ function rest_api_register_rewrites() {
  * @since 4.4.0
  */
 function rest_api_default_filters() {
-	if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+	if ( wp_is_serving_rest_request() ) {
 		// Deprecated reporting.
 		add_action( 'deprecated_function_run', 'rest_handle_deprecated_function', 10, 3 );
 		add_filter( 'deprecated_function_trigger_error', '__return_false' );
@@ -323,14 +323,6 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Block_Types_Controller();
 	$controller->register_routes();
 
-	// Global Styles revisions.
-	$controller = new WP_REST_Global_Styles_Revisions_Controller();
-	$controller->register_routes();
-
-	// Global Styles.
-	$controller = new WP_REST_Global_Styles_Controller();
-	$controller->register_routes();
-
 	// Settings.
 	$controller = new WP_REST_Settings_Controller();
 	$controller->register_routes();
@@ -391,6 +383,10 @@ function create_initial_rest_routes() {
 	// Navigation Fallback.
 	$controller = new WP_REST_Navigation_Fallback_Controller();
 	$controller->register_routes();
+
+	// Font Collections.
+	$font_collections_controller = new WP_REST_Font_Collections_Controller();
+	$font_collections_controller->register_routes();
 }
 
 /**
@@ -876,7 +872,7 @@ function _rest_array_intersect_key_recursive( $array1, $array2 ) {
 }
 
 /**
- * Filters the REST API response to include only a white-listed set of response object fields.
+ * Filters the REST API response to include only an allow-listed set of response object fields.
  *
  * @since 4.8.0
  *
@@ -1011,7 +1007,11 @@ function rest_output_link_wp_head() {
 	$resource = rest_get_queried_resource_route();
 
 	if ( $resource ) {
-		printf( '<link rel="alternate" type="application/json" href="%s" />', esc_url( rest_url( $resource ) ) );
+		printf(
+			'<link rel="alternate" title="%1$s" type="application/json" href="%2$s" />',
+			_x( 'JSON', 'REST API resource link name' ),
+			esc_url( rest_url( $resource ) )
+		);
 	}
 }
 
@@ -1036,7 +1036,14 @@ function rest_output_link_header() {
 	$resource = rest_get_queried_resource_route();
 
 	if ( $resource ) {
-		header( sprintf( 'Link: <%s>; rel="alternate"; type="application/json"', sanitize_url( rest_url( $resource ) ) ), false );
+		header(
+			sprintf(
+				'Link: <%1$s>; rel="alternate"; title="%2$s"; type="application/json"',
+				sanitize_url( rest_url( $resource ) ),
+				_x( 'JSON', 'REST API resource link name' )
+			),
+			false
+		);
 	}
 }
 
@@ -1273,7 +1280,7 @@ function rest_get_avatar_sizes() {
  * @param string $date      RFC3339 timestamp.
  * @param bool   $force_utc Optional. Whether to force UTC timezone instead of using
  *                          the timestamp's timezone. Default false.
- * @return int Unix timestamp.
+ * @return int|false Unix timestamp on success, false on failure.
  */
 function rest_parse_date( $date, $force_utc = false ) {
 	if ( $force_utc ) {
@@ -1295,7 +1302,7 @@ function rest_parse_date( $date, $force_utc = false ) {
  * @since 5.4.0
  *
  * @param string $color 3 or 6 digit hex color (with #).
- * @return string|false
+ * @return string|false Color value on success, false on failure.
  */
 function rest_parse_hex_color( $color ) {
 	$regex = '|^#([A-Fa-f0-9]{3}){1,2}$|';
@@ -3388,4 +3395,39 @@ function rest_convert_error_to_response( $error ) {
 	}
 
 	return new WP_REST_Response( $data, $status );
+}
+
+/**
+ * Checks whether a REST API endpoint request is currently being handled.
+ *
+ * This may be a standalone REST API request, or an internal request dispatched from within a regular page load.
+ *
+ * @since 6.5.0
+ *
+ * @global WP_REST_Server $wp_rest_server REST server instance.
+ *
+ * @return bool True if a REST endpoint request is currently being handled, false otherwise.
+ */
+function wp_is_rest_endpoint() {
+	/* @var WP_REST_Server $wp_rest_server */
+	global $wp_rest_server;
+
+	// Check whether this is a standalone REST request.
+	$is_rest_endpoint = wp_is_serving_rest_request();
+	if ( ! $is_rest_endpoint ) {
+		// Otherwise, check whether an internal REST request is currently being handled.
+		$is_rest_endpoint = isset( $wp_rest_server )
+			&& $wp_rest_server->is_dispatching();
+	}
+
+	/**
+	 * Filters whether a REST endpoint request is currently being handled.
+	 *
+	 * This may be a standalone REST API request, or an internal request dispatched from within a regular page load.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param bool $is_request_endpoint Whether a REST endpoint request is currently being handled.
+	 */
+	return (bool) apply_filters( 'wp_is_rest_endpoint', $is_rest_endpoint );
 }

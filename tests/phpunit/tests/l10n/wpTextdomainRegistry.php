@@ -18,21 +18,21 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 		$this->instance = new WP_Textdomain_Registry();
 	}
 
+	public function tear_down() {
+		wp_cache_delete( md5( WP_LANG_DIR . '/foobar/' ), 'translation_files' );
+		wp_cache_delete( md5( WP_LANG_DIR . '/plugins/' ), 'translation_files' );
+		wp_cache_delete( md5( WP_LANG_DIR . '/themes/' ), 'translation_files' );
+		wp_cache_delete( md5( WP_LANG_DIR . '/' ), 'translation_files' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @covers ::has
 	 * @covers ::get
 	 * @covers ::set_custom_path
 	 */
 	public function test_set_custom_path() {
-		$reflection          = new ReflectionClass( $this->instance );
-		$reflection_property = $reflection->getProperty( 'cached_mo_files' );
-		$reflection_property->setAccessible( true );
-
-		$this->assertEmpty(
-			$reflection_property->getValue( $this->instance ),
-			'Cache not empty by default'
-		);
-
 		$this->instance->set_custom_path( 'foo', WP_LANG_DIR . '/bar' );
 
 		$this->assertTrue(
@@ -48,10 +48,9 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 			$this->instance->get( 'foo', 'de_DE' ),
 			'Custom path for textdomain not returned'
 		);
-		$this->assertArrayHasKey(
-			WP_LANG_DIR . '/bar',
-			$reflection_property->getValue( $this->instance ),
-			'Custom path missing from cache'
+		$this->assertNotFalse(
+			wp_cache_get( md5( WP_LANG_DIR . '/bar/' ), 'translation_files' ),
+			'List of files in custom path not cached'
 		);
 	}
 
@@ -60,21 +59,11 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 	 * @dataProvider data_domains_locales
 	 */
 	public function test_get( $domain, $locale, $expected ) {
-		$reflection          = new ReflectionClass( $this->instance );
-		$reflection_property = $reflection->getProperty( 'cached_mo_files' );
-		$reflection_property->setAccessible( true );
-
 		$actual = $this->instance->get( $domain, $locale );
 		$this->assertSame(
 			$expected,
 			$actual,
 			'Expected languages directory path not matching actual one'
-		);
-
-		$this->assertArrayHasKey(
-			WP_LANG_DIR . '/plugins',
-			$reflection_property->getValue( $this->instance ),
-			'Default plugins path missing from cache'
 		);
 	}
 
@@ -91,37 +80,116 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_language_files_from_path
+	 */
+	public function test_get_language_files_from_path_caches_results() {
+		$this->instance->get_language_files_from_path( WP_LANG_DIR . '/foobar/' );
+		$this->instance->get_language_files_from_path( WP_LANG_DIR . '/plugins/' );
+		$this->instance->get_language_files_from_path( WP_LANG_DIR . '/themes/' );
+		$this->instance->get_language_files_from_path( WP_LANG_DIR . '/' );
+
+		$this->assertNotFalse( wp_cache_get( md5( WP_LANG_DIR . '/plugins/' ), 'translation_files' ) );
+		$this->assertNotFalse( wp_cache_get( md5( WP_LANG_DIR . '/themes/' ), 'translation_files' ) );
+		$this->assertNotFalse( wp_cache_get( md5( WP_LANG_DIR . '/foobar/' ), 'translation_files' ) );
+		$this->assertNotFalse( wp_cache_get( md5( WP_LANG_DIR . '/' ), 'translation_files' ) );
+	}
+
+	/**
+	 * @covers ::get_language_files_from_path
+	 */
+	public function test_get_language_files_from_path_short_circuit() {
+		add_filter( 'pre_get_language_files_from_path', '__return_empty_array' );
+		$result = $this->instance->get_language_files_from_path( WP_LANG_DIR . '/plugins/' );
+		remove_filter( 'pre_get_language_files_from_path', '__return_empty_array' );
+
+		$cache = wp_cache_get( md5( WP_LANG_DIR . '/plugins/' ), 'translation_files' );
+
+		$this->assertEmpty( $result );
+		$this->assertFalse( $cache );
+	}
+
+	/**
+	 * @covers ::invalidate_mo_files_cache
+	 */
+	public function test_invalidate_mo_files_cache() {
+		$this->instance->get_language_files_from_path( WP_LANG_DIR . '/plugins/' );
+		$this->instance->get_language_files_from_path( WP_LANG_DIR . '/themes/' );
+		$this->instance->get_language_files_from_path( WP_LANG_DIR . '/' );
+
+		$this->instance->invalidate_mo_files_cache(
+			null,
+			array(
+				'type'         => 'translation',
+				'translations' => array(
+					(object) array(
+						'type'     => 'plugin',
+						'slug'     => 'internationalized-plugin',
+						'language' => 'de_DE',
+						'version'  => '99.9.9',
+					),
+					(object) array(
+						'type'     => 'theme',
+						'slug'     => 'internationalized-theme',
+						'language' => 'de_DE',
+						'version'  => '99.9.9',
+					),
+					(object) array(
+						'type'     => 'core',
+						'slug'     => 'default',
+						'language' => 'es_ES',
+						'version'  => '99.9.9',
+					),
+				),
+			)
+		);
+
+		$this->assertFalse( wp_cache_get( md5( WP_LANG_DIR . '/plugins/' ), 'translation_files' ) );
+		$this->assertFalse( wp_cache_get( md5( WP_LANG_DIR . '/themes/' ), 'translation_files' ) );
+		$this->assertFalse( wp_cache_get( md5( WP_LANG_DIR . '/' ), 'translation_files' ) );
+	}
+
 	public function data_domains_locales() {
 		return array(
-			'Non-existent plugin'            => array(
+			'Non-existent plugin'                      => array(
 				'unknown-plugin',
 				'en_US',
 				false,
 			),
-			'Non-existent plugin with de_DE' => array(
+			'Non-existent plugin with de_DE'           => array(
 				'unknown-plugin',
 				'de_DE',
 				false,
 			),
-			'Available de_DE translations'   => array(
+			'Available de_DE translations'             => array(
 				'internationalized-plugin',
 				'de_DE',
 				WP_LANG_DIR . '/plugins/',
 			),
-			'Available es_ES translations'   => array(
+			'Available es_ES translations'             => array(
 				'internationalized-plugin',
 				'es_ES',
 				WP_LANG_DIR . '/plugins/',
 			),
-			'Unavailable fr_FR translations' => array(
+			'Unavailable fr_FR translations'           => array(
 				'internationalized-plugin',
 				'fr_FR',
 				false,
 			),
-			'Unavailable en_US translations' => array(
+			'Unavailable en_US translations'           => array(
 				'internationalized-plugin',
 				'en_US',
 				false,
+			),
+			'Available de_DE translations (.l10n.php)' => array(
+				'internationalized-plugin-2',
+				'de_DE',
+				WP_LANG_DIR . '/plugins/',
+			),
+			'Available es_ES translations (.l10n.php)' => array(
+				'internationalized-plugin-2',
+				'es_ES',
+				WP_LANG_DIR . '/plugins/',
 			),
 		);
 	}

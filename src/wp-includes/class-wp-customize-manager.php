@@ -100,7 +100,7 @@ final class WP_Customize_Manager {
 	 * @since 4.5.0
 	 * @var array
 	 */
-	protected $components = array( 'widgets', 'nav_menus' );
+	protected $components = array( 'nav_menus' );
 
 	/**
 	 * Registered instances of WP_Customize_Section.
@@ -284,6 +284,11 @@ final class WP_Customize_Manager {
 		}
 		if ( ! isset( $args['messenger_channel'] ) && isset( $_REQUEST['customize_messenger_channel'] ) ) {
 			$args['messenger_channel'] = sanitize_key( wp_unslash( $_REQUEST['customize_messenger_channel'] ) );
+		}
+
+		// Do not load 'widgets' component if a block theme is activated.
+		if ( ! wp_is_block_theme() ) {
+			$this->components[] = 'widgets';
 		}
 
 		$this->original_stylesheet = get_stylesheet();
@@ -3079,25 +3084,26 @@ final class WP_Customize_Manager {
 			return false;
 		}
 
+		$previous_status = $post->post_status;
+
 		/** This filter is documented in wp-includes/post.php */
-		$check = apply_filters( 'pre_trash_post', null, $post );
+		$check = apply_filters( 'pre_trash_post', null, $post, $previous_status );
 		if ( null !== $check ) {
 			return $check;
 		}
 
 		/** This action is documented in wp-includes/post.php */
-		do_action( 'wp_trash_post', $post_id );
+		do_action( 'wp_trash_post', $post_id, $previous_status );
 
-		add_post_meta( $post_id, '_wp_trash_meta_status', $post->post_status );
+		add_post_meta( $post_id, '_wp_trash_meta_status', $previous_status );
 		add_post_meta( $post_id, '_wp_trash_meta_time', time() );
 
-		$old_status = $post->post_status;
 		$new_status = 'trash';
 		$wpdb->update( $wpdb->posts, array( 'post_status' => $new_status ), array( 'ID' => $post->ID ) );
 		clean_post_cache( $post->ID );
 
 		$post->post_status = $new_status;
-		wp_transition_post_status( $new_status, $old_status, $post );
+		wp_transition_post_status( $new_status, $previous_status, $post );
 
 		/** This action is documented in wp-includes/post.php */
 		do_action( "edit_post_{$post->post_type}", $post->ID, $post );
@@ -3119,7 +3125,7 @@ final class WP_Customize_Manager {
 		wp_trash_post_comments( $post_id );
 
 		/** This action is documented in wp-includes/post.php */
-		do_action( 'trashed_post', $post_id );
+		do_action( 'trashed_post', $post_id, $previous_status );
 
 		return $post;
 	}
@@ -5197,10 +5203,9 @@ final class WP_Customize_Manager {
 				array(
 					'label'       => __( 'Site Icon' ),
 					'description' => sprintf(
-						'<p>' . __( 'Site Icons are what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. Upload one here!' ) . '</p>' .
-						/* translators: %s: Site icon size in pixels. */
-						'<p>' . __( 'Site Icons should be square and at least %s pixels.' ) . '</p>',
-						'<strong>512 &times; 512</strong>'
+						/* translators: %s: Site Icon size in pixels. */
+						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least %s pixels.' ) . '</p>',
+						'<code>512 &times; 512</code>'
 					),
 					'section'     => 'title_tagline',
 					'priority'    => 60,
@@ -5695,7 +5700,7 @@ final class WP_Customize_Manager {
 		$section_description .= __( 'Add your own CSS code here to customize the appearance and layout of your site.' );
 		$section_description .= sprintf(
 			' <a href="%1$s" class="external-link" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span></a>',
-			esc_url( __( 'https://wordpress.org/documentation/article/css/' ) ),
+			esc_url( __( 'https://developer.wordpress.org/advanced-administration/wordpress/css/' ) ),
 			__( 'Learn more about CSS' ),
 			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
@@ -6136,8 +6141,7 @@ final class WP_Customize_Manager {
 	 * This method exists because the partial object and context data are passed
 	 * into a partial's render_callback so we cannot use get_custom_logo() as
 	 * the render_callback directly since it expects a blog ID as the first
-	 * argument. When WP no longer supports PHP 5.3, this method can be removed
-	 * in favor of an anonymous function.
+	 * argument.
 	 *
 	 * @see WP_Customize_Manager::register_controls()
 	 *

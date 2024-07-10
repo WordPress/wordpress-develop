@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.5/theme.json",
 	"version": 2,
 	"patterns": [
 		"three-columns-of-services",
@@ -247,7 +247,7 @@
 				{
 					"fontFamily": "Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol",
 					"name": "System Serif",
-					"slug": "system-Serif"
+					"slug": "system-serif"
 				}
 			],
 			"fontSizes": [
@@ -795,9 +795,7 @@
 					},
 					"outline": {
 						"color": "var(--wp--preset--color--contrast)",
-						"offset": "2px",
-						"style": "dotted",
-						"width": "1px"
+						"offset": "2px"
 					},
 					"border": {
 						"color": "var(--wp--preset--color--contrast-2)"
@@ -908,7 +906,8 @@
 			"fontStyle": "normal",
 			"fontWeight": "400",
 			"lineHeight": "1.55"
-		}
+		},
+		"css": ":where(.wp-site-blocks *:focus){outline-width:2px;outline-style:solid}"
 	},
 	"templateParts": [
 		{
@@ -941,12 +940,12 @@
 		{
 			"name": "page-with-sidebar",
 			"postTypes": ["page"],
-			"title": "Page With Sidebar"
+			"title": "Page with Sidebar"
 		},
 		{
 			"name": "page-wide",
 			"postTypes": ["page"],
-			"title": "Page with wide Image"
+			"title": "Page with Wide Image"
 		},
 		{
 			"name": "single-with-sidebar",

@@ -12,8 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * @global string       $post_type
- * @global WP_Post_Type $post_type_object
+ * @global string       $post_type        Global post type.
+ * @global WP_Post_Type $post_type_object Global post type object.
  * @global WP_Post      $post             Global post object.
  */
 global $post_type, $post_type_object, $post;
@@ -377,7 +377,7 @@ if ( 'post' === $post_type ) {
 	'</li>';
 
 	if ( current_theme_supports( 'post-formats' ) && post_type_supports( 'post', 'post-formats' ) ) {
-		$publish_box .= '<li>' . __( '<strong>Format</strong> &mdash; Post Formats designate how your theme will display a specific post. For example, you could have a <em>standard</em> blog post with a title and paragraphs, or a short <em>aside</em> that omits the title and contains a short text blurb. Your theme could enable all or some of 10 possible formats. <a href="https://wordpress.org/documentation/article/post-formats/#supported-formats">Learn more about each post format</a>.' ) . '</li>';
+		$publish_box .= '<li>' . __( '<strong>Format</strong> &mdash; Post Formats designate how your theme will display a specific post. For example, you could have a <em>standard</em> blog post with a title and paragraphs, or a short <em>aside</em> that omits the title and contains a short text blurb. Your theme could enable all or some of 10 possible formats. <a href="https://developer.wordpress.org/advanced-administration/wordpress/post-formats/#supported-formats">Learn more about each post format</a>.' ) . '</li>';
 	}
 
 	if ( current_theme_supports( 'post-thumbnails' ) && post_type_supports( 'post', 'thumbnail' ) ) {
@@ -649,11 +649,20 @@ if ( post_type_supports( $post_type, 'editor' ) ) {
 		echo '<span id="last-edit">';
 		$last_user = get_userdata( get_post_meta( $post->ID, '_edit_last', true ) );
 		if ( $last_user ) {
-			/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time. */
-			printf( __( 'Last edited by %1$s on %2$s at %3$s' ), esc_html( $last_user->display_name ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );
+			printf(
+				/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time. */
+				__( 'Last edited by %1$s on %2$s at %3$s' ),
+				esc_html( $last_user->display_name ),
+				mysql2date( __( 'F j, Y' ), $post->post_modified ),
+				mysql2date( __( 'g:i a' ), $post->post_modified )
+			);
 		} else {
-			/* translators: 1: Post edited date, 2: Post edited time. */
-			printf( __( 'Last edited on %1$s at %2$s' ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );
+			printf(
+				/* translators: 1: Post edited date, 2: Post edited time. */
+				__( 'Last edited on %1$s at %2$s' ),
+				mysql2date( __( 'F j, Y' ), $post->post_modified ),
+				mysql2date( __( 'g:i a' ), $post->post_modified )
+			);
 		}
 		echo '</span>';
 	}

@@ -136,6 +136,20 @@ function _register_core_block_patterns_and_categories() {
 		)
 	);
 	register_block_pattern_category(
+		'videos',
+		array(
+			'label'       => _x( 'Videos', 'Block pattern category' ),
+			'description' => __( 'Different layouts containing videos.' ),
+		)
+	);
+	register_block_pattern_category(
+		'audio',
+		array(
+			'label'       => _x( 'Audio', 'Block pattern category' ),
+			'description' => __( 'Different layouts containing audio.' ),
+		)
+	);
+	register_block_pattern_category(
 		'posts',
 		array(
 			'label'       => _x( 'Posts', 'Block pattern category' ),
@@ -377,13 +391,7 @@ function _register_theme_block_patterns() {
 				continue;
 			}
 
-			// The actual pattern content is the output of the file.
-			ob_start();
-			include $file_path;
-			$pattern_data['content'] = ob_get_clean();
-			if ( ! $pattern_data['content'] ) {
-				continue;
-			}
+			$pattern_data['filePath'] = $file_path;
 
 			// Translate the pattern metadata.
 			// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain,WordPress.WP.I18n.LowLevelTranslationFunction

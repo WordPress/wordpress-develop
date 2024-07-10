@@ -1,5 +1,6 @@
 {
-	"version": 1,
+	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"version": 3,
 	"title": "Block theme",
 	"settings": {
 		"color": {
@@ -41,12 +42,26 @@
 				}
 			],
 			"customFontSize": false,
-			"customLineHeight": true
+			"lineHeight": true
 		},
 		"spacing": {
-			"units": ["rem"],
-			"customPadding": true,
+			"units": [ "rem" ],
+			"padding": true,
 			"blockGap": true
+		},
+		"shadow": {
+			"presets": [
+				{
+					"name": "Natural",
+					"slug": "natural",
+					"shadow": "2px 2px 3px #000"
+				},
+				{
+					"name": "Test",
+					"slug": "test",
+					"shadow": "2px 2px 3px #000"
+				}
+			]
 		},
 		"blocks": {
 			"core/paragraph": {
@@ -62,8 +77,8 @@
 			}
 		}
 	},
-	"styles" : {
-		"blocks" :{
+	"styles": {
+		"blocks": {
 			"core/post-featured-image": {
 				"shadow": "10px 10px 5px 0px rgba(0,0,0,0.66)",
 				"filter": {
@@ -121,7 +136,7 @@
 		{
 			"name": "custom-single-post-template",
 			"title": "Custom Single Post template",
-			"postTypes": ["post"]
+			"postTypes": [ "post" ]
 		}
 	],
 	"templateParts": [

@@ -145,7 +145,8 @@ function get_core_checksums( $version, $locale ) {
 	$response = wp_remote_get( $url, $options );
 
 	if ( $ssl && is_wp_error( $response ) ) {
-		trigger_error(
+		wp_trigger_error(
+			__FUNCTION__,
 			sprintf(
 				/* translators: %s: Support forums URL. */
 				__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
@@ -923,48 +924,14 @@ function wp_print_admin_notice_templates() {
 		<div <# if ( data.id ) { #>id="{{ data.id }}"<# } #> class="notice {{ data.className }}"><p>{{{ data.message }}}</p></div>
 	</script>
 	<script id="tmpl-wp-bulk-updates-admin-notice" type="text/html">
-		<div id="{{ data.id }}" class="{{ data.className }} notice <# if ( data.errors ) { #>notice-error<# } else { #>notice-success<# } #>">
+		<div id="{{ data.id }}" class="{{ data.className }} notice <# if ( data.errorMessage ) { #>notice-error<# } else { #>notice-success<# } #>">
 			<p>
-				<# if ( data.successes ) { #>
-					<# if ( 1 === data.successes ) { #>
-						<# if ( 'plugin' === data.type ) { #>
-							<?php
-							/* translators: %s: Number of plugins. */
-							printf( __( '%s plugin successfully updated.' ), '{{ data.successes }}' );
-							?>
-						<# } else { #>
-							<?php
-							/* translators: %s: Number of themes. */
-							printf( __( '%s theme successfully updated.' ), '{{ data.successes }}' );
-							?>
-						<# } #>
-					<# } else { #>
-						<# if ( 'plugin' === data.type ) { #>
-							<?php
-							/* translators: %s: Number of plugins. */
-							printf( __( '%s plugins successfully updated.' ), '{{ data.successes }}' );
-							?>
-						<# } else { #>
-							<?php
-							/* translators: %s: Number of themes. */
-							printf( __( '%s themes successfully updated.' ), '{{ data.successes }}' );
-							?>
-						<# } #>
-					<# } #>
+				<# if ( data.successMessage ) { #>
+					{{{ data.successMessage }}}
 				<# } #>
-				<# if ( data.errors ) { #>
+				<# if ( data.errorMessage ) { #>
 					<button class="button-link bulk-action-errors-collapsed" aria-expanded="false">
-						<# if ( 1 === data.errors ) { #>
-							<?php
-							/* translators: %s: Number of failed updates. */
-							printf( __( '%s update failed.' ), '{{ data.errors }}' );
-							?>
-						<# } else { #>
-							<?php
-							/* translators: %s: Number of failed updates. */
-							printf( __( '%s updates failed.' ), '{{ data.errors }}' );
-							?>
-						<# } #>
+						{{{ data.errorMessage }}}
 						<span class="screen-reader-text">
 							<?php
 							/* translators: Hidden accessibility text. */
@@ -975,7 +942,7 @@ function wp_print_admin_notice_templates() {
 					</button>
 				<# } #>
 			</p>
-			<# if ( data.errors ) { #>
+			<# if ( data.errorMessages ) { #>
 				<ul class="bulk-action-errors hidden">
 					<# _.each( data.errorMessages, function( errorMessage ) { #>
 						<li>{{ errorMessage }}</li>
@@ -1076,7 +1043,7 @@ function wp_recovery_mode_nag() {
  *
  * @since 5.5.0
  *
- * @param string $type The type of update being checked: 'theme' or 'plugin'.
+ * @param string $type The type of update being checked: Either 'theme' or 'plugin'.
  * @return bool True if auto-updates are enabled for `$type`, false otherwise.
  */
 function wp_is_auto_update_enabled_for_type( $type ) {
@@ -1116,7 +1083,7 @@ function wp_is_auto_update_enabled_for_type( $type ) {
  *
  * @since 5.6.0
  *
- * @param string    $type   The type of update being checked: 'theme' or 'plugin'.
+ * @param string    $type   The type of update being checked: Either 'theme' or 'plugin'.
  * @param bool|null $update Whether to update. The value of null is internally used
  *                          to detect whether nothing has hooked into this filter.
  * @param object    $item   The update offer.

@@ -495,6 +495,8 @@ JS;
 	 * @return array[]
 	 */
 	public function data_provider_to_test_various_strategy_dependency_chains() {
+		$wp_tests_domain = WP_TESTS_DOMAIN;
+
 		return array(
 			'async-dependent-with-one-blocking-dependency' => array(
 				'set_up'          => function () {
@@ -881,8 +883,8 @@ HTML
 					wp_enqueue_script( 'theme-functions', 'https://example.com/theme-functions.js', array( 'jquery' ), null, array( 'strategy' => 'defer' ) );
 				},
 				'expected_markup' => <<<HTML
-<script type='text/javascript' src='http://example.org/wp-includes/js/jquery/jquery.js' id='jquery-core-js' defer data-wp-strategy='defer'></script>
-<script type='text/javascript' src='http://example.org/wp-includes/js/jquery/jquery-migrate.js' id='jquery-migrate-js' defer data-wp-strategy='defer'></script>
+<script type='text/javascript' src='http://$wp_tests_domain/wp-includes/js/jquery/jquery.js' id='jquery-core-js' defer data-wp-strategy='defer'></script>
+<script type='text/javascript' src='http://$wp_tests_domain/wp-includes/js/jquery/jquery-migrate.js' id='jquery-migrate-js' defer data-wp-strategy='defer'></script>
 <script type='text/javascript' src='https://example.com/theme-functions.js' id='theme-functions-js' defer data-wp-strategy='defer'></script>
 HTML
 				,
@@ -2072,7 +2074,7 @@ HTML
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
-		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-polyfill-inert,regenerator-runtime,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$wp_version}'></script>\n";
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-dom-ready,wp-hooks&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n.min.js' id='wp-i18n-js'></script>\n";
@@ -3105,6 +3107,36 @@ HTML
 	}
 
 	/**
+	 * Test that get_script_polyfill() returns the correct polyfill.
+	 *
+	 * @ticket 60348
+	 *
+	 * @covers ::wp_get_script_polyfill
+	 *
+	 * @global WP_Scripts $wp_scripts WP_Scripts instance.
+	 */
+	public function test_wp_get_script_polyfill() {
+		global $wp_scripts;
+		$script_name = 'wp-polyfill-importmap';
+		$test_script = 'HTMLScriptElement.supports && HTMLScriptElement.supports("importmap")';
+		$script_url  = 'https://example.com/wp-polyfill-importmap.js';
+		wp_register_script( $script_name, $script_url );
+
+		$polyfill = wp_get_script_polyfill(
+			$wp_scripts,
+			array(
+				$test_script => $script_name,
+			)
+		);
+
+		wp_deregister_script( $script_name );
+
+		$expected = '( ' . $test_script . ' ) || document.write( \'<script src="' . $script_url . '"></scr\' + \'ipt>\' );';
+
+		$this->assertEquals( $expected, $polyfill );
+	}
+
+	/**
 	 * Data provider for test_wp_scripts_move_to_footer.
 	 *
 	 * @return array[]
@@ -3351,5 +3383,42 @@ HTML
 			),
 
 		);
+	}
+
+	/**
+	 * @ticket 60048
+	 *
+	 * @covers ::wp_default_packages_vendor
+	 *
+	 * @dataProvider data_wp_default_packages_vendor
+	 */
+	public function test_wp_default_packages_vendor( $script ) {
+		global $wp_scripts;
+		$package_json = $this->_scripts_from_package_json();
+
+		wp_default_packages_vendor( $wp_scripts );
+
+		$this->assertSame( $package_json[ $script ], $wp_scripts->query( $script, 'registered' )->ver );
+	}
+
+	public function data_wp_default_packages_vendor() {
+		return array(
+			array( 'script' => 'lodash' ),
+			array( 'script' => 'moment' ),
+			array( 'script' => 'react' ),
+			array( 'script' => 'react-dom' ),
+			array( 'script' => 'regenerator-runtime' ),
+		);
+	}
+
+	/**
+	 * Helper to return dependencies from package.json.
+	 */
+	private function _scripts_from_package_json() {
+		$package = file_get_contents( ABSPATH . '../package.json' );
+		$data    = json_decode( $package, true );
+
+		$provider = array();
+		return $data['dependencies'];
 	}
 }
