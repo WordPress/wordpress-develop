@@ -6,13 +6,6 @@
 	clear: both;
 
 	display: flow-root; // stylelint-disable-line declaration-block-no-duplicate-properties
-
-	&:before,
-	&:after {
-		content: "";
-		display: block;
-		clear: both;
-	}
 	// End IE clearfix.
 
 	.wp-block-group__inner-container {
