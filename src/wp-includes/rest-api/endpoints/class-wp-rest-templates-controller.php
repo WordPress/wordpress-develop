@@ -872,7 +872,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				return $author->get( 'display_name' );
 		}
 
-		// / Ensure that the method always returns a string.
+		// Ensure that the method always returns a string.
 		return '';
 	}
 
