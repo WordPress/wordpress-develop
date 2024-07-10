@@ -129,10 +129,6 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			$args['ID'] = $s;
 		} else {
 			$args['search'] = $s;
-
-			if ( ! is_subdomain_install() ) {
-				$args['search_columns'] = array( 'path' );
-			}
 		}
 
 		$order_by = isset( $_REQUEST['orderby'] ) ? $_REQUEST['orderby'] : '';
@@ -141,11 +137,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		} elseif ( 'lastupdated' === $order_by ) {
 			$order_by = 'last_updated';
 		} elseif ( 'blogname' === $order_by ) {
-			if ( is_subdomain_install() ) {
-				$order_by = 'domain';
-			} else {
-				$order_by = 'path';
-			}
+			$order_by = 'domain path';
 		} elseif ( 'blog_id' === $order_by ) {
 			$order_by = 'id';
 		} elseif ( ! $order_by ) {
