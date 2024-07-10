@@ -231,7 +231,6 @@ class WP_Plugin_Dependencies {
 	 * @return bool Whether the plugin has unmet dependencies.
 	 */
 	public static function has_unmet_dependencies( $plugin_file ) {
-
 		if ( ! isset( self::$dependencies[ $plugin_file ] ) ) {
 			return false;
 		}
