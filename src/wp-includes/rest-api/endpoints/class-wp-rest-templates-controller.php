@@ -865,13 +865,15 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			case 'site':
 				return get_bloginfo( 'name' );
 			case 'user':
-			default:
 				$author = get_user_by( 'id', $template_object->author );
 				if ( ! $author ) {
 					return __( 'Unknown author' );
 				}
 				return $author->get( 'display_name' );
 		}
+
+		// / Ensure that the method always returns a string.
+		return '';
 	}
 
 
