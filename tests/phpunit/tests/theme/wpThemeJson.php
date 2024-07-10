@@ -5035,15 +5035,34 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 57536
-	 * @ticket 61165
+	 * Tests that base custom CSS is generated correctly.
+	 *
+	 * @ticket 61395
 	 */
-	public function test_get_custom_css_handles_global_custom_css() {
+	public function test_get_stylesheet_handles_base_custom_css() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
-					'css'    => 'body {color:purple;}',
+					'css' => 'body {color:purple;}',
+				),
+			)
+		);
+
+		$custom_css = 'body {color:purple;}';
+		$this->assertSame( $custom_css, $theme_json->get_stylesheet( array( 'custom-css' ) ) );
+	}
+
+	/**
+	 * Tests that block custom CSS is generated correctly.
+	 *
+	 * @ticket 61395
+	 */
+	public function test_get_styles_for_block_handles_block_custom_css() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
 					'blocks' => array(
 						'core/paragraph' => array(
 							'css' => 'color:red;',
@@ -5053,8 +5072,17 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$custom_css = 'body {color:purple;}:root :where(p){color:red;}';
-		$this->assertSame( $custom_css, $theme_json->get_custom_css() );
+		$paragraph_node = array(
+			'name'      => 'core/paragraph',
+			'path'      => array( 'styles', 'blocks', 'core/paragraph' ),
+			'selector'  => 'p',
+			'selectors' => array(
+				'root' => 'p',
+			),
+		);
+
+		$custom_css = ':root :where(p){color:red;}';
+		$this->assertSame( $custom_css, $theme_json->get_styles_for_block( $paragraph_node ) );
 	}
 
 	/**
