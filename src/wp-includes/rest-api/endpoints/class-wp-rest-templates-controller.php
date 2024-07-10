@@ -872,7 +872,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				return $author->get( 'display_name' );
 		}
 
-		// Ensure that the method always returns a string.
+		/*
+		 * Ensure a string data type is always returned as the default and
+		 * a fail-safe in case `$original_source` is not one of the cases.
+		 */
 		return '';
 	}
 
