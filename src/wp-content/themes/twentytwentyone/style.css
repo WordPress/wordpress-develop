@@ -5911,3 +5911,10 @@ footer {
 .is-IE .post-thumbnail .wp-post-image {
 	min-width: auto;
 }
+
+.is-IE .wp-block-group:before,
+.is-IE .wp-block-group:after {
+	content: "";
+	display: block;
+	clear: both;
+}
