@@ -1817,6 +1817,14 @@ class WP_Site_Health {
 	 * @return array The test results.
 	 */
 	public function get_test_available_updates_disk_space() {
+		global $wp_filesystem;
+
+		$upgrade_dir_exists = $wp_filesystem->is_dir( WP_CONTENT_DIR . '/upgrade' );
+
+		if ( ! $upgrade_dir_exists ) {
+			$wp_filesystem->mkdir( WP_CONTENT_DIR . '/upgrade/', FS_CHMOD_DIR );
+		}
+
 		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR . '/upgrade/' ) : false;
 
 		$result = array(
