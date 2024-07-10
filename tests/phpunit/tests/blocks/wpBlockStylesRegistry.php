@@ -47,7 +47,7 @@ class Tests_Blocks_wpBlockStylesRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_block_style_with_string_block_name() {
 		$name             = 'core/paragraph';
-		$style_properties = array( 
+		$style_properties = array(
 			'name' => 'fancy',
 			'label' => 'Fancy',
 		);
@@ -65,7 +65,7 @@ class Tests_Blocks_wpBlockStylesRegistry extends WP_UnitTestCase {
 		$names            = array( 'core/paragraph', 'core/group' );
 		$style_properties = array(
 			'name' => 'plain',
-			'label' => 'Plain'
+			'label' => 'Plain',
 		);
 		$result           = $this->registry->register( $names, $style_properties );
 		$this->assertTrue( $result );
