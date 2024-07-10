@@ -1533,6 +1533,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-BR':
 				$this->bail( 'Closing BR tags require unimplemented special handling.' );
+				// This return required because PHPCS can't determine that the call to bail() throws.
+				return false;
 
 			/*
 			 * > A start tag whose tag name is one of: "area", "br", "embed", "img", "keygen", "wbr"
