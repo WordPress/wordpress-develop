@@ -1152,7 +1152,29 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
+		$post_type = isset( $query_args['post_type'] ) ? $query_args['post_type'] : '';
+		// Conditionally prime meta data.
+		if ( ! $this->custom_should_prime_meta( 'post', $post_type ) ) {
+			$query_args['update_post_meta_cache'] = false;
+		}
+
 		return $query_args;
+	}
+
+	protected function custom_should_prime_meta( $object_type, $object_subtype ) {
+		global $wp_meta_keys;
+
+		if ( ! isset( $wp_meta_keys[ $object_type ] ) ) {
+			return false;
+		}
+
+		foreach ( $wp_meta_keys[ $object_type ] as $meta_key => $meta ) {
+			if ( empty( $object_subtype ) || $meta['object_subtype'] === $object_subtype ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
