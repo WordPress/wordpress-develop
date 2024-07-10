@@ -1,15 +1,15 @@
-.tooltip-container {
+.wp-tooltip-container {
     position: relative;
     display: inline-block;
 }
 
-.tooltip-button {
+.wp-tooltip-button {
     background: none;
     border: none;
     cursor: pointer;
 }
 
-.tooltip-content {
+.wp-tooltip-content {
     display: none;
     position: absolute;
     background-color: #fff;

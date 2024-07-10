@@ -9016,7 +9016,7 @@ function wp_admin_notice( $message, $args = array() ) {
 /**
  * Outputs the tooltip for a specific field.
  *
- * @since 6.5.0
+ * @since 6.7.0
  *
  * @param string $field_id            The unique identifier for the tooltip container.
  * @param string $tooltip_text        The text content to be displayed in the tooltip.
@@ -9024,11 +9024,11 @@ function wp_admin_notice( $message, $args = array() ) {
  */
 function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help' ) {
 	?>
-	<div class="tooltip-container <?php echo esc_attr( $field_id ); ?>">
-		<button type="button" class="tooltip-button" aria-describedby="<?php echo esc_attr( $field_id ); ?>-tooltip" aria-label="<?php echo esc_attr( $tooltip_button_label ); ?>">
+	<div class="wp-tooltip-container <?php echo esc_attr( $field_id ); ?>">
+		<button type="button" class="wp-tooltip-button" aria-describedby="<?php echo esc_attr( $field_id ); ?>-tooltip" aria-label="<?php echo esc_attr( $tooltip_button_label ); ?>">
 			<span class="dashicons dashicons-editor-help"></span>
 		</button>
-		<div id="<?php echo esc_attr( $field_id ); ?>-tooltip" class="tooltip-content">
+		<div id="<?php echo esc_attr( $field_id ); ?>-tooltip" class="wp-tooltip-content">
 			<div class="tooltip-arrow"></div>
 			<p><?php echo esc_html( $tooltip_text ); ?></p>
 		</div>
@@ -9038,9 +9038,9 @@ function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help' )
 	/**
 	 * Enqueues the Styles and Scripts for the Tooltip.
 	 *
-	 * @since 6.5.0
+	 * @since 6.7.0
 	 *
 	 */
-	wp_enqueue_style( 'tooltip-style', includes_url( '/css/wp-tooltip.css' ), array(), '1.0' );
-	wp_enqueue_script( 'tooltip-script', includes_url( '/js/wp-tooltip.js' ), array( 'jquery' ), '1.0', true );
+	wp_enqueue_style( 'wp-tooltip' );
+	wp_enqueue_script( 'wp-tooltip' );
 }

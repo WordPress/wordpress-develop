@@ -7,11 +7,11 @@
 
 document.addEventListener('DOMContentLoaded', function () {
     // Select all tooltip containers on the page
-    var tooltipContainers = document.querySelectorAll('.tooltip-container');
+    var tooltipContainers = document.querySelectorAll('.wp-tooltip-container');
 
     tooltipContainers.forEach(function (tooltipContainer) {
-        var tooltipButton = tooltipContainer.querySelector('.tooltip-button');
-        var tooltipContent = tooltipContainer.querySelector('.tooltip-content');
+        var tooltipButton = tooltipContainer.querySelector('.wp-tooltip-button');
+        var tooltipContent = tooltipContainer.querySelector('.wp-tooltip-content');
 
         tooltipButton.addEventListener('click', function () {
             // Toggle the display of the tooltip content
