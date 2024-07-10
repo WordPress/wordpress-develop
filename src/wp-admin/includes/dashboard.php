@@ -91,6 +91,9 @@ function wp_dashboard_setup() {
 	// WordPress Events and News.
 	wp_add_dashboard_widget( 'dashboard_primary', __( 'WordPress Events and News' ), 'wp_dashboard_events_news' );
 
+	// WordPress mobile apps.
+	wp_add_dashboard_widget( 'dashboard_mobile_apps', __( 'WordPress mobile apps' ), 'wp_dashboard_mobile_apps' );
+
 	if ( is_network_admin() ) {
 
 		/**
@@ -1348,6 +1351,50 @@ function wp_dashboard_events_news() {
 			);
 		?>
 	</p>
+
+	<?php
+}
+
+/**
+ * Renders the WordPress mobile apps dashboard widget.
+ *
+ * @since 6.4.0
+ */
+function wp_dashboard_mobile_apps() {
+	?>
+
+	<div class="wordpress-mobile-apps">
+		<p>
+			<?php _e( 'The power of publishing in your hands any time, anywhere.' ); ?>
+		</p>
+		<p>
+			<?php
+			printf(
+				'<a href="%1$s" target="_blank"><img src="%2$s" alt="%3$s"></a>',
+				'https://apps.apple.com/app/apple-store/id335703880',
+				esc_url( admin_url( '/images/badge-apple.png' ) ),
+				__( 'Download on the Apple App Store' )
+			);
+			?>
+			<?php
+			printf(
+				'<a href="%1$s" target="_blank"><img src="%2$s" alt="%3$s"></a>',
+				'https://play.google.com/store/apps/details?id=org.wordpress.android',
+				esc_url( admin_url( '/images/badge-google-play.png' ) ),
+				__( 'Get it on Google Play' )
+			);
+			?>
+		</p>
+		<p>
+			<?php
+			printf(
+				'<a href="%1$s" class="button-link" target="_blank">%2$s <span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+				'https://wordpress.org/mobile/',
+				__( 'Read more about apps' )
+			);
+			?>
+		</p>
+	</div>
 
 	<?php
 }

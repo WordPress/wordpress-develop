@@ -712,6 +712,16 @@ body #dashboard-widgets .postbox form .submit {
 	font-weight: 400;
 }
 
+/* Dashboard mobile apps */
+
+#dashboard-widgets .wordpress-mobile-apps img {
+	width: 100px;
+}
+
+#dashboard-widgets .wordpress-mobile-apps img:first-child {
+	margin-right: 10px;
+}
+
 /* Dashboard right now - Colors */
 
 #dashboard_right_now .sub {
