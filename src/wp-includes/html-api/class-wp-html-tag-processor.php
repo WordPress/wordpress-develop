@@ -2882,6 +2882,117 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Sets the modifiable text for the matched token, if matched.
+	 *
+	 * @param string $plaintext_content New text content to represent in the matched token.
+	 * @return bool Whether the text was able to update.
+	 */
+	public function set_modifiable_text( string $plaintext_content ): bool {
+		if ( self::STATE_TEXT_NODE === $this->parser_state ) {
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+				$this->text_starts_at,
+				$this->text_length,
+				htmlspecialchars( $plaintext_content, ENT_QUOTES | ENT_HTML5 )
+			);
+
+			return true;
+		}
+
+		// Comment data is not encoded.
+		if (
+			self::STATE_COMMENT === $this->parser_state &&
+			self::COMMENT_AS_HTML_COMMENT === $this->comment_type
+		) {
+			// Check if the text could close the comment.
+			if ( 1 === preg_match( '/--!?>/', $plaintext_content ) ) {
+				return false;
+			}
+
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+				$this->text_starts_at,
+				$this->text_length,
+				$plaintext_content
+			);
+
+			return true;
+		}
+
+		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
+			return false;
+		}
+
+		switch ( $this->get_tag() ) {
+			case 'SCRIPT':
+				/*
+				 * This is over-protective, but ensures the update doesn't break
+				 * out of the SCRIPT element. A more thorough check would need to
+				 * ensure that the script closing tag doesn't exist, and isn't
+				 * also "hidden" inside the script double-escaped state.
+				 *
+				 * It may seem like replacing `</script` with `<\/script` would
+				 * properly escape these things, but this could mask regex patterns
+				 * that previously worked. Resolve this by not sending `</script`
+				 */
+				if ( false !== stripos( $plaintext_content, '</script' ) ) {
+					return false;
+				}
+
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$this->text_starts_at,
+					$this->text_length,
+					$plaintext_content
+				);
+
+				return true;
+
+			case 'STYLE':
+				$plaintext_content = preg_replace_callback(
+					'~</(?P<TAG_NAME>style)~i',
+					static function ( $tag_match ) {
+						return "\\3c\\2f{$tag_match['TAG_NAME']}";
+					},
+					$plaintext_content
+				);
+
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$this->text_starts_at,
+					$this->text_length,
+					$plaintext_content
+				);
+
+				return true;
+
+			case 'TEXTAREA':
+			case 'TITLE':
+				$plaintext_content = preg_replace_callback(
+					"~</(?P<TAG_NAME>{$this->get_tag()})~i",
+					static function ( $tag_match ) {
+						return "&lt;/{$tag_match['TAG_NAME']}";
+					},
+					$plaintext_content
+				);
+
+				/*
+				 * These don't _need_ to be escaped, but since they are decoded it's
+				 * safe to leave them escaped and this can prevent other code from
+				 * naively detecting tags within the contents.
+				 *
+				 * @todo It would be useful to prefix a multiline replacement text
+				 *       with a newline, but not necessary. This is for aesthetics.
+				 */
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$this->text_starts_at,
+					$this->text_length,
+					$plaintext_content
+				);
+
+				return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Updates or creates a new attribute on the currently matched tag with the passed value.
 	 *
 	 * For boolean attributes special handling is provided:
