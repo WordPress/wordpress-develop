@@ -61,7 +61,7 @@ class Tests_Load_WpIsType extends WP_UnitTestCase {
 			),
 			'testIsArray' => array(
 				'array',
-				[],
+				array(),
 				true,
 			),
 			'testIsNotArray' => array(
@@ -71,7 +71,7 @@ class Tests_Load_WpIsType extends WP_UnitTestCase {
 			),
 			'testIsObject' => array(
 				'object',
-				(object) [],
+				(object) array(),
 				true,
 			),
 			'testIsNotObject' => array(
