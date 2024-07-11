@@ -262,7 +262,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
 		}
 
-		// Don't overwrite the "update_post_meta_cache" value if it is already defined.
+		// Don't overwrite the "update_comment_meta_cache" value if it is already defined.
 		if ( ! isset( $prepared_args['update_comment_meta_cache'] ) ) {
 			$object_subtype         = isset( $prepared_args['post_type'] ) ? $prepared_args['post_type'] : '';
 			$should_prime_meta_keys = ! empty( get_registered_meta_keys( 'comment', $object_subtype ) );
