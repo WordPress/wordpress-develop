@@ -564,13 +564,13 @@ class Tests_Filters extends WP_UnitTestCase {
 	public function data_apply_filters_typed() {
 		return array(
 			'testShouldDiscardNotMatchingTypesCallbacks' => array(
-				'type' => 'boolean',
-				'value' => true,
+				'type'      => 'boolean',
+				'value'     => true,
 				'callbacks' => array(
 					'__return_false',
 					'__return_empty_string',
 				),
-				'expected' => false,
+				'expected'  => false,
 			),
 		);
 	}
@@ -599,12 +599,12 @@ class Tests_Filters extends WP_UnitTestCase {
 	public function data_apply_filters_typesafe() {
 		return array(
 			'testShouldDiscardNotMatchingTypesCallbacks' => array(
-				'value' => true,
+				'value'     => true,
 				'callbacks' => array(
 					'__return_false',
 					'__return_zero',
 				),
-				'expected' => false,
+				'expected'  => false,
 			),
 		);
 	}
