@@ -9018,7 +9018,7 @@ function wp_admin_notice( $message, $args = array() ) {
  *
  * @since 6.7.0
  *
- * @return string The current WordPress version.
+ * @return string The current WordPress Version.
  */
 function wp_get_wp_version() {
 	require ABSPATH . WPINC . '/version.php';
