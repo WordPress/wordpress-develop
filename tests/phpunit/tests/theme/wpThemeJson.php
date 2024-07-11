@@ -395,6 +395,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 60365
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 61630
 	 */
 	public function test_get_stylesheet() {
 		$theme_json = new WP_Theme_JSON(
@@ -835,6 +836,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 61630
 	 */
 	public function test_get_styles_for_block_handles_whitelisted_element_pseudo_selectors() {
 		$theme_json = new WP_Theme_JSON(
@@ -938,6 +940,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 61630
 	 */
 	public function test_get_stylesheet_ignores_pseudo_selectors_on_non_whitelisted_elements() {
 		$theme_json = new WP_Theme_JSON(
@@ -978,6 +981,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 61630
 	 */
 	public function test_get_stylesheet_ignores_non_whitelisted_pseudo_selectors() {
 		$theme_json = new WP_Theme_JSON(
@@ -1022,6 +1026,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 61630
 	 */
 	public function test_get_stylesheet_handles_priority_of_elements_vs_block_elements_pseudo_selectors() {
 		$theme_json = new WP_Theme_JSON(
@@ -1359,6 +1364,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @ticket 61118
 	 * @ticket 61165
+	 * @ticket 61630
 	 */
 	public function test_get_stylesheet_generates_fluid_typography_values() {
 		register_block_type(
@@ -4946,6 +4952,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 61630
 	 */
 	public function test_get_shadow_styles_for_blocks() {
 		$theme_json = new WP_Theme_JSON(
