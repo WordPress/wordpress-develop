@@ -79,6 +79,69 @@ class Tests_Hooks_ApplyFilters extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51525
+	 *
+	 * @dataProvider data_apply_filters_typed
+	 */
+	public function test_apply_filters_typed( $type, $value, $callbacks, $expected ) {
+		$hook      = new WP_Hook();
+		$hook_name = __FUNCTION__;
+
+		foreach ( $callbacks as $callback ) {
+			$hook->add_filter( $hook_name, $callback, 1, 1 );
+		}
+
+		$return = $hook->apply_filters_typed( $type, $value, array( $value ) );
+
+		$this->assertSame( $expected, $return );
+	}
+
+	public function data_apply_filters_typed() {
+		return array(
+			'testShouldDiscardNotMatchingTypesCallbacks' => array(
+				'type' => 'boolean',
+				'value' => true,
+				'callbacks' => array(
+					'__return_false',
+					'__return_empty_string',
+				),
+				'expected' => false,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 51525
+	 *
+	 * @dataProvider data_apply_filters_typesafe
+	 */
+	public function test_apply_filters_typesafe( $value, $callbacks, $expected ) {
+		$hook      = new WP_Hook();
+		$hook_name = __FUNCTION__;
+
+		foreach ( $callbacks as $callback ) {
+			$hook->add_filter( $hook_name, $callback, 1, 1 );
+		}
+
+		$return = $hook->apply_filters_typesafe( $value, array( $value ) );
+
+		$this->assertSame( $expected, $return );
+	}
+
+	public function data_apply_filters_typesafe() {
+		return array(
+			'testShouldDiscardNotMatchingTypesCallbacks' => array(
+				'value' => true,
+				'callbacks' => array(
+					'__return_false',
+					'__return_zero',
+				),
+				'expected' => false,
+			),
+		);
+	}
+
+	/**
 	 * Happy path data provider.
 	 *
 	 * @return array[]
