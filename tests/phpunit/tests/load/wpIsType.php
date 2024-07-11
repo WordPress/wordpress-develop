@@ -19,67 +19,67 @@ class Tests_Load_WpIsType extends WP_UnitTestCase {
 
 	public function data_wp_is_type() {
 		return array(
-			'testIsBool' => array(
+			'testIsBool'        => array(
 				'boolean',
 				true,
 				true,
 			),
-			'testIsNotBool' => array(
+			'testIsNotBool'     => array(
 				'boolean',
 				1,
 				false,
 			),
-			'testIsInt' => array(
+			'testIsInt'         => array(
 				'integer',
 				1,
 				true,
 			),
-			'testIsNotInt' => array(
+			'testIsNotInt'      => array(
 				'integer',
 				1.1,
 				false,
 			),
-			'testIsFloat' => array(
+			'testIsFloat'       => array(
 				'double',
 				1.1,
 				true,
 			),
-			'testIsNotFloat' => array(
+			'testIsNotFloat'    => array(
 				'double',
 				1,
 				false,
 			),
-			'testIsString' => array(
+			'testIsString'      => array(
 				'string',
 				'1',
 				true,
 			),
-			'testIsNotString' => array(
+			'testIsNotString'   => array(
 				'string',
 				1,
 				false,
 			),
-			'testIsArray' => array(
+			'testIsArray'       => array(
 				'array',
 				array(),
 				true,
 			),
-			'testIsNotArray' => array(
+			'testIsNotArray'    => array(
 				'array',
 				1,
 				false,
 			),
-			'testIsObject' => array(
+			'testIsObject'      => array(
 				'object',
 				(object) array(),
 				true,
 			),
-			'testIsNotObject' => array(
+			'testIsNotObject'   => array(
 				'object',
 				1,
 				false,
 			),
-			'testIsResource' => array(
+			'testIsResource'    => array(
 				'resource',
 				fopen( 'php://memory', 'r' ),
 				true,
@@ -89,12 +89,12 @@ class Tests_Load_WpIsType extends WP_UnitTestCase {
 				1,
 				false,
 			),
-			'testIsNull' => array(
+			'testIsNull'        => array(
 				'NULL',
 				null,
 				true,
 			),
-			'testIsNotNull' => array(
+			'testIsNotNull'     => array(
 				'NULL',
 				1,
 				false,
