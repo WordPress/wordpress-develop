@@ -191,7 +191,7 @@ function determine_locale() {
  * @return string Translated text.
  */
 function translate( $text, $domain = 'default' ) {
-	static $translated = [];
+	static $translated = array();
 
 	if ( isset( $translated[ $text.$domain ] ) ) {
 		return $translated[ $text.$domain ];
