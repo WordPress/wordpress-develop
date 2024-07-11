@@ -283,6 +283,8 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	/**
 	 * The function should not send an email when the request ID does not exist.
 	 * 
+	 * @since 6.7.0
+	 * 
 	 * @ticket 46560
 	 */
 	public function test_should_not_send_email_when_request_id_does_not_exist() {
@@ -295,6 +297,8 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 	/**
 	 * The function should not send an email when the ID passed is not a user request.
+	 * 
+	 * @since 6.7.0
 	 * 
 	 * @ticket 46560
 	 */
