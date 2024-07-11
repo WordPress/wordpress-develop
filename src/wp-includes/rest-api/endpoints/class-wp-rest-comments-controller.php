@@ -267,8 +267,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$object_subtype         = isset( $prepared_args['post_type'] ) ? $prepared_args['post_type'] : '';
 			$should_prime_meta_keys = ! empty( get_registered_meta_keys( 'comment', $object_subtype ) );
 			/**
-			 * Performance optimization. If there are no registered meta keys,
-			 * set "update_comment_meta_cache" to false to avoid unnecessary priming of meta data.
+			 * Performance optimization: if there are no registered meta keys,
+			 * set "update_comment_meta_cache" to false to avoid unnecessary priming of metadata.
 			 */
 			if ( ! $should_prime_meta_keys ) {
 				$prepared_args['update_comment_meta_cache'] = false;
