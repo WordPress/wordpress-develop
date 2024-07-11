@@ -1789,7 +1789,7 @@ function is_wp_error( $thing ) {
  * @return bool Whether the variable is of the type.
  */
 function wp_is_type( $type, $value ) {
-	switch( $type ) {
+	switch ( $type ) {
 		case 'boolean':
 			return is_bool( $value );
 		case 'integer':
