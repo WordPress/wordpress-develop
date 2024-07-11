@@ -5297,7 +5297,7 @@ EOF;
 		// Sub-sizes: for each size, the AVIF should be smaller than the JPEG.
 		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $avif_sizes['sizes'] );
 		foreach ( $sizes_to_compare as $size => $size_data ) {
-			$this->assertLessThan( $avif_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
+			$this->assertLessThan(  $jpeg_sizes['sizes'][ $size ]['filesize'], $avif_sizes['sizes'][ $size ]['filesize'] );
 		}
 
 		// Set the compression quality to a lower setting and test again, verifying that file sizes are all smaller.
@@ -5305,7 +5305,7 @@ EOF;
 		$smaller_avif_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
 		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low' ), 10 );
 		foreach ( $sizes_to_compare as $size => $size_data ) {
-			$this->assertLessThan( $smaller_avif_sizes['sizes'][ $size ]['filesize'], $avif_sizes['sizes'][ $size ]['filesize'] );
+			$this->assertLessThan( $avif_sizes['sizes'][ $size ]['filesize'], $smaller_avif_sizes['sizes'][ $size ]['filesize'] );
 		}
 	}
 
