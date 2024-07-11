@@ -1152,29 +1152,20 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$post_type = isset( $query_args['post_type'] ) ? $query_args['post_type'] : '';
-		// Conditionally prime meta data.
-		if ( ! $this->custom_should_prime_meta( 'post', $post_type ) ) {
-			$query_args['update_post_meta_cache'] = false;
-		}
-
-		return $query_args;
-	}
-
-	protected function custom_should_prime_meta( $object_type, $object_subtype ) {
-		global $wp_meta_keys;
-
-		if ( ! isset( $wp_meta_keys[ $object_type ] ) ) {
-			return false;
-		}
-
-		foreach ( $wp_meta_keys[ $object_type ] as $meta_key => $meta ) {
-			if ( empty( $object_subtype ) || $meta['object_subtype'] === $object_subtype ) {
-				return true;
+		// Don't overwrite the "update_post_meta_cache" value if it is already defined.
+		if ( ! isset( $query_args['update_post_meta_cache'] ) ) {
+			$object_subtype         = isset( $query_args['post_type'] ) ? $query_args['post_type'] : '';
+			$should_prime_meta_keys = ! empty( get_registered_meta_keys( 'post', $object_subtype ) );
+			/**
+			 * Performance optimization. If there are no registered meta keys,
+			 * set "update_post_meta_cache" to false to avoid unnecessary priming of meta data.
+			 */
+			if ( ! $should_prime_meta_keys ) {
+				$query_args['update_post_meta_cache'] = false;
 			}
 		}
 
-		return false;
+		return $query_args;
 	}
 
 	/**
