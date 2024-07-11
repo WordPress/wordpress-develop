@@ -171,7 +171,7 @@ function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters( $hook_name, $value, ...$args ) {
-        return apply_filters_typed( 'mixed', $hook_name, $value, ...$args );
+	return apply_filters_typed( 'mixed', $hook_name, $value, ...$args );
 }
 
 /**
@@ -183,7 +183,7 @@ function apply_filters( $hook_name, $value, ...$args ) {
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters_typesafe( $hook_name, $value, ...$args ) {
-        return apply_filters_typed( gettype( $value ), $hook_name, $value, ...$args );
+	return apply_filters_typed( gettype( $value ), $hook_name, $value, ...$args );
 }
 
 /**
@@ -210,7 +210,7 @@ function apply_filters_typed( $type, $hook_name, $value, ...$args ) {
 
 		$all_args = func_get_args(); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
 		// Don't pass the type to the 'all' actions.
-        array_shift( $all_args );
+		array_shift( $all_args );
 		_wp_call_all_hook( $all_args );
 	}
 

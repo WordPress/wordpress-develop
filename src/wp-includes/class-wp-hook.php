@@ -312,7 +312,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	*/
 	public function apply_filters_typesafe( $value, $args ) {
 		return $this->apply_filters_typed( gettype( $value ), $value, $args );
-	 }
+	}
 
 	/**
 	 * Calls the callback functions that have been added to a filter hook in a typed manner.
