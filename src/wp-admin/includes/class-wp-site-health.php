@@ -729,7 +729,7 @@ class WP_Site_Health {
 		$result = array(
 			'label'       => sprintf(
 				/* translators: %s: The current PHP version. */
-				__( 'Your site is running the current version of PHP (%s)' ),
+				__( 'Your site is running at least the minimum recommended version of PHP (%s)' ),
 				PHP_VERSION
 			),
 			'status'      => 'good',
