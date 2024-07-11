@@ -353,7 +353,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 				} else {
 					$next_value = call_user_func_array( $the_['function'], array_slice( $args, 0, (int) $the_['accepted_args'] ) );
                 }
-                if ( ! is_type( $type, $next_value ) ) {
+                if ( ! wp_is_type( $type, $next_value ) ) {
                         _doing_it_wrong(
                                 $the_['function'],
                                 sprintf(
@@ -361,7 +361,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
                                         $type,
                                         gettype( $next_value )
                                 ),
-                                '5.8'
+                                '6.x'
                         );
                 } else {
                 	$value = $next_value;
