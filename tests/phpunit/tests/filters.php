@@ -545,8 +545,10 @@ class Tests_Filters extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_apply_filters_typed
 	 */
-	public function test_apply_filters_typed( $type, $value, $callbacks, $expected ) {
+	public function test_apply_filters_typed( $type, $value, $callbacks, $doing_it_wrong, $expected ) {
 		$hook_name = __FUNCTION__;
+
+		$this->setExpectedIncorrectUsage( $doing_it_wrong );
 
 		foreach ( $callbacks as $callback ) {
 			add_filter( $hook_name, $callback, 1, 1 );
@@ -564,13 +566,14 @@ class Tests_Filters extends WP_UnitTestCase {
 	public function data_apply_filters_typed() {
 		return array(
 			'testShouldDiscardNotMatchingTypesCallbacks' => array(
-				'type'      => 'boolean',
-				'value'     => true,
-				'callbacks' => array(
+				'type'           => 'boolean',
+				'value'          => true,
+				'callbacks'      => array(
 					'__return_false',
 					'__return_empty_string',
 				),
-				'expected'  => false,
+				'doing_it_wrong' => '__return_empty_string',
+				'expected'       => false,
 			),
 		);
 	}
@@ -580,8 +583,10 @@ class Tests_Filters extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_apply_filters_typesafe
 	 */
-	public function test_apply_filters_typesafe( $value, $callbacks, $expected ) {
+	public function test_apply_filters_typesafe( $value, $callbacks, $doing_it_wrong, $expected ) {
 		$hook_name = __FUNCTION__;
+
+		$this->setExpectedIncorrectUsage( $doing_it_wrong );
 
 		foreach ( $callbacks as $callback ) {
 			add_filter( $hook_name, $callback, 1, 1 );
@@ -599,12 +604,13 @@ class Tests_Filters extends WP_UnitTestCase {
 	public function data_apply_filters_typesafe() {
 		return array(
 			'testShouldDiscardNotMatchingTypesCallbacks' => array(
-				'value'     => true,
-				'callbacks' => array(
+				'value'          => true,
+				'callbacks'      => array(
 					'__return_false',
 					'__return_zero',
 				),
-				'expected'  => false,
+				'doing_it_wrong' => '__return_zero',
+				'expected'       => false,
 			),
 		);
 	}
