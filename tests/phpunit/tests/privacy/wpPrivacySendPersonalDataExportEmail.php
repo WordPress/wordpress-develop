@@ -305,7 +305,7 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	public function test_should_not_send_email_when_id_is_not_a_user_request() {
 		$request_id = wp_insert_post(
 			array(
-				'post_type'   => 'post',
+				'post_type' => 'post',
 			)
 		);
 
