@@ -193,8 +193,8 @@ function determine_locale() {
 function translate( $text, $domain = 'default' ) {
 	static $translated = array();
 
-	if ( isset( $translated[ $text.$domain ] ) ) {
-		return $translated[ $text.$domain ];
+	if ( isset( $translated[ $text . $domain ] ) ) {
+		return $translated[ $text . $domain ];
 	}
 
 	$translations = get_translations_for_domain( $domain );
@@ -224,7 +224,7 @@ function translate( $text, $domain = 'default' ) {
 	 */
 	$translation = apply_filters( "gettext_{$domain}", $translation, $text, $domain );
 
-	$translated[ $text.$domain ] = $translation;
+	$translated[ $text . $domain ] = $translation;
 
 	return $translation;
 }
