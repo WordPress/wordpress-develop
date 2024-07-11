@@ -95,7 +95,6 @@ class Tests_Hooks_ApplyFilters extends WP_UnitTestCase {
 
 		$return = $hook->apply_filters_typed( $type, $value, array( $value ) );
 
-
 		$this->assertSame( $expected, $return );
 	}
 
