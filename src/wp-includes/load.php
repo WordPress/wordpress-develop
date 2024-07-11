@@ -1782,38 +1782,45 @@ function is_wp_error( $thing ) {
  *
  * Returns whether `$value` is certain type.
  *
- * @since 6.x.0
+ * @since 6.x
  *
  * @param string $type  The type to check.
  * @param mixed  $value The variable to check.
  * @return bool Whether the variable is of the type.
  */
-function is_type( $type, $value ) {
-        switch( $type ) {
-                case 'boolean':
-                        return is_bool( $value );
-                case 'integer':
-                        return is_int( $value );
-                case 'double':
-                        return is_float( $value );
-                case 'string':
-                        return is_string( $value );
-                case 'array':
-                        return is_array( $value );
-                case 'object':
-                        return is_object( $value );
-                case 'resource':
-                case 'resource (closed)':
-                        return is_resource( $value );
-                case 'NULL':
-                        return is_null( $value );
-                case 'unknown_type':
-                        return false;
-                case 'mixed':
-                        return true;
-                default:
-                        return is_a( $value, $type ) || is_subclass_of( $value, $type );
-        }
+function wp_is_type( $type, $value ) {
+	switch( $type ) {
+		case 'boolean':
+			return is_bool( $value );
+		case 'integer':
+			return is_int( $value );
+		case 'double':
+			return is_float( $value );
+		case 'string':
+			return is_string( $value );
+		case 'array':
+			return is_array( $value );
+		case 'object':
+			return is_object( $value );
+		case 'resource':
+		case 'resource (closed)':
+			return is_resource( $value );
+		case 'NULL':
+			return is_null( $value );
+		case 'unknown_type':
+			return false;
+		default:
+			/**
+			 * Filters whether the variable is of the type.
+			 * The dynamic portion of the hook name, `$type`, refers to the type of the variable.
+			 *
+			 * @since 6.x
+			 *
+			 * @param bool  $is_type Is the variable of the type. Default false.
+			 * @param mixed $value The variable to check.
+			 */
+			return apply_filters( "wp_is_type_{$type}", false, $value );
+	}
 }
 
 
