@@ -9012,3 +9012,16 @@ function wp_admin_notice( $message, $args = array() ) {
 
 	echo wp_kses_post( wp_get_admin_notice( $message, $args ) );
 }
+
+/**
+ * Returns the current WordPress Version.
+ *
+ * @since 6.7.0
+ *
+ * @return string The current WordPress version.
+ */
+function wp_get_wp_version() {
+	require ABSPATH . WPINC . '/version.php';
+
+	return $wp_version;
+}
