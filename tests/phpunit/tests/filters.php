@@ -552,7 +552,7 @@ class Tests_Filters extends WP_UnitTestCase {
 			add_filter( $hook_name, $callback, 1, 1 );
 		}
 
-		$return = apply_filters_typed( $type, $value, array( $value ) );
+		$return = apply_filters_typed( $type, $hook_name, $value );
 
 		foreach ( $callbacks as $callback ) {
 			remove_filter( $hook_name, $callback );
@@ -587,7 +587,7 @@ class Tests_Filters extends WP_UnitTestCase {
 			add_filter( $hook_name, $callback, 1, 1 );
 		}
 
-		$return = apply_filters_typesafe( $value, array( $value ) );
+		$return = apply_filters_typesafe( $hook_name, $value );
 
 		foreach ( $callbacks as $callback ) {
 			remove_filter( $hook_name, $callback );
