@@ -259,7 +259,7 @@ function wp_add_global_styles_for_blocks() {
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
 	if ( $can_use_cached ) {
-		// Hash the merged WP_Theme_JSON data to bust cache is settings or styles change.
+		// Hash the merged WP_Theme_JSON data to bust cache on settings or styles change.
 		$cache_hash = md5( wp_json_encode( $tree->get_raw_data() ) );
 		$cache_key  = 'wp_styles_for_blocks';
 		$cached     = get_transient( $cache_key );
