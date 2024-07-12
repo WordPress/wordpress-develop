@@ -295,6 +295,18 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			}
 		}
 
+		// Don't overwrite the "update_term_meta_cache" value if it is already defined.
+		if ( ! isset( $prepared_args['update_term_meta_cache'] ) ) {
+			$should_prime_meta_keys = ! empty( get_registered_meta_keys( 'term', $taxonomy_obj->name ) );
+			/**
+			 * Performance optimization: if there are no registered meta keys,
+			 * set "update_term_meta_cache" to false to avoid unnecessary priming of metadata.
+			 */
+			if ( ! $should_prime_meta_keys ) {
+				$prepared_args['update_term_meta_cache'] = false;
+			}
+		}
+
 		/**
 		 * Filters get_terms() arguments when querying terms via the REST API.
 		 *
