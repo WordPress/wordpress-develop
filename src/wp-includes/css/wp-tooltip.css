@@ -12,7 +12,8 @@
 .wp-tooltip-content {
     display: none;
     position: absolute;
-    background-color: #fff;
+    background-color: #2271B1;
+    color: white;
     border: 1px solid #ccc;
     padding: 5px;
     z-index: 1000;
@@ -21,21 +22,7 @@
     width: 150px;
     text-align: center;
     top: auto;
-    bottom: 140%;
+    bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
-    margin-top: -10px;
-}
-
-.tooltip-arrow {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -10px;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid #fff;
-    transform: rotate(180deg) scaleX(-1);
 }

@@ -9018,8 +9018,8 @@ function wp_admin_notice( $message, $args = array() ) {
  *
  * @since 6.7.0
  *
- * @param string $field_id            The unique identifier for the tooltip container.
- * @param string $tooltip_text        The text content to be displayed in the tooltip.
+ * @param string $field_id             The unique identifier for the tooltip container.
+ * @param string $tooltip_text                   The text content to be displayed in the tooltip.
  * @param string $tooltip_button_label Optional. The label for the tooltip button. Default is 'Help'.
  */
 function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help' ) {
@@ -9029,7 +9029,6 @@ function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help' )
 			<span class="dashicons dashicons-editor-help"></span>
 		</button>
 		<div id="<?php echo esc_attr( $field_id ); ?>-tooltip" class="wp-tooltip-content">
-			<div class="tooltip-arrow"></div>
 			<p><?php echo esc_html( $tooltip_text ); ?></p>
 		</div>
 	</div>
