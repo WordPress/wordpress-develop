@@ -3299,10 +3299,9 @@ class WP_Query {
 		if ( null === $this->posts ) {
 			if ( 1 === $q['posts_per_page'] ) {
 				$split_the_query = false;
-			 }
-			else {
+			} else {
 				$split_the_query = (
-					$q['posts_per_page'] != 1
+					1 !== $q['posts_per_page'] 
 					&&
 					$is_unfiltered_query
 					&& (
