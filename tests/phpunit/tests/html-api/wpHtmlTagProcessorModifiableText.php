@@ -96,7 +96,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorModifiableText extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	private static function data_tokens_with_basic_modifiable_text_updates() {
+	public static function data_tokens_with_basic_modifiable_text_updates() {
 		return array(
 			'Text node (start)'       => array( 'Text', 1, 'Blubber', 'Blubber' ),
 			'Text node (middle)'      => array( '<em>Bold move</em>', 2, 'yo', '<em>yo</em>' ),
