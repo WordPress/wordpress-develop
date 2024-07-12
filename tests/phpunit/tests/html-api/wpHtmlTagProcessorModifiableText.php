@@ -6,8 +6,6 @@
  * @subpackage HTML-API
  */
 
-declare( strict_types = 1 );
-
 /**
  * @group html-api
  *
@@ -47,7 +45,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorModifiableText extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	private static function data_tokens_not_supporting_modifiable_text_updates() {
+	public static function data_tokens_not_supporting_modifiable_text_updates() {
 		return array(
 			'Before parsing'               => array( 'nothing to see here', 0 ),
 			'After parsing'                => array( 'nothing here either', 2 ),
