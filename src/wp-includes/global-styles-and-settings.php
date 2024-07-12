@@ -247,6 +247,7 @@ function wp_get_global_stylesheet( $types = array() ) {
  * Adds global style rules to the inline style for each block.
  *
  * @since 6.1.0
+ * @since 6.6.0 Added caching for global block styles.
  *
  * @global WP_Styles $wp_styles
  */
@@ -255,6 +256,7 @@ function wp_add_global_styles_for_blocks() {
 
 	$tree        = WP_Theme_JSON_Resolver::get_merged_data();
 	$block_nodes = $tree->get_styles_block_nodes();
+	$style_data  = $tree->get_raw_data();
 
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 	if ( $can_use_cached ) {
@@ -282,12 +284,15 @@ function wp_add_global_styles_for_blocks() {
 		if ( $can_use_cached ) {
 			// Use the block name as the key for cached CSS data. Otherwise, use a hash of the metadata.
 			$cache_node_key = isset( $metadata['name'] ) ? $metadata['name'] : md5( wp_json_encode( $metadata ) );
+			// Use hash of styles data as key so cache can be invalidated when a block's styles change.
+			$block_style_data      = isset( $metadata['path'] ) ? _wp_array_get( $style_data, $metadata['path'], array() ) : array();
+			$cache_node_styles_key = md5( wp_json_encode( $block_style_data ) );
 
-			if ( isset( $cached[ $cache_node_key ] ) ) {
-				$block_css = $cached[ $cache_node_key ];
+			if ( isset( $cached[ $cache_node_key ][ $cache_node_styles_key ] ) ) {
+				$block_css = $cached[ $cache_node_key ][ $cache_node_styles_key ];
 			} else {
 				$block_css                 = $tree->get_styles_for_block( $metadata );
-				$cached[ $cache_node_key ] = $block_css;
+				$cached[ $cache_node_key ] = array( $cache_node_styles_key => $block_css );
 				$update_cache              = true;
 			}
 		} else {
