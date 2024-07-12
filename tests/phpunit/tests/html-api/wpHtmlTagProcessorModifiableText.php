@@ -4,9 +4,6 @@
  *
  * @package WordPress
  * @subpackage HTML-API
- */
-
-/**
  * @group html-api
  *
  * @coversDefaultClass WP_HTML_Tag_Processor
@@ -15,7 +12,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorModifiableText extends WP_UnitTestCase {
 	/**
 	 * Ensures that modifiable text updates are not applied where they aren't supported.
 	 *
-	 * @ticket {TICKET_NUMBER}
+	 * @ticket 61617
 	 *
 	 * @dataProvider data_tokens_not_supporting_modifiable_text_updates
 	 *
@@ -62,7 +59,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorModifiableText extends WP_UnitTestCase {
 	/**
 	 * Ensures that modifiable text updates are applied as expected to supported nodes.
 	 *
-	 * @ticket {TICKET_NUMBER}
+	 * @ticket 61617
 	 *
 	 * @dataProvider data_tokens_with_basic_modifiable_text_updates
 	 *

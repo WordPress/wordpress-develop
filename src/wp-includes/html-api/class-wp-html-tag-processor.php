@@ -2884,7 +2884,47 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Sets the modifiable text for the matched token, if matched.
 	 *
+	 * Modifiable text is text content that may be read and changed without
+	 * changing the HTML structure of the document around it. This includes
+	 * the contents of `#text` nodes in the HTML as well as the inner
+	 * contents of HTML comments, Processing Instructions, and others, even
+	 * though these nodes aren't part of a parsed DOM tree. They also contain
+	 * the contents of SCRIPT and STYLE tags, of TEXTAREA tags, and of any
+	 * other section in an HTML document which cannot contain HTML markup (DATA).
+	 *
+	 * Not all modifiable text may be set by this method, and not all content
+	 * may be set as modifiable text. In the case that this fails it will return
+	 * `false` indicating as much. For instance, it will not allow inserting the
+	 * string `</script` into a SCRIPT element, because the rules for escaping
+	 * that safely are complicated. Similarly, it will not allow setting content
+	 * into a comment which would prematurely terminate the comment.
+	 *
+	 * Example:
+	 *
+	 *     // Add a preface to all STYLE contents.
+	 *     while ( $processor->next_tag( 'STYLE' ) ) {
+	 *         $style = $processor->get_modifiable_text();
+	 *         $processor->set_modifiable_text( "// Made with love on the World Wide Web\n{$style}" );
+	 *     }
+	 *
+	 *     // Replace smiley text with Emoji smilies.
+	 *     while ( $processor->next_token() ) {
+	 *         if ( '#text' !== $processor->get_token_name() ) {
+	 *             continue;
+	 *         }
+	 *
+	 *         $chunk = $processor->get_modifiable_text();
+	 *         if ( ! str_contains( $chunk, ':)' ) ) {
+	 *             continue;
+	 *         }
+	 *
+	 *         $processor->set_modifiable_text( str_replace( ':)', '🙂', $chunk ) );
+	 *     }
+	 *
+	 * @since 6.7.0
+	 *
 	 * @param string $plaintext_content New text content to represent in the matched token.
+	 *
 	 * @return bool Whether the text was able to update.
 	 */
 	public function set_modifiable_text( string $plaintext_content ): bool {
