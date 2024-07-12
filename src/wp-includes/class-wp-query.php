@@ -3301,7 +3301,7 @@ class WP_Query {
 				$split_the_query = false;
 			} else {
 				$split_the_query = (
-					1 !== $q['posts_per_page'] 
+					1 !== $q['posts_per_page']
 					&&
 					$is_unfiltered_query
 					&& (
