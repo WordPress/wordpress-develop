@@ -258,7 +258,7 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 			)
 		);
 
-		$action    = new MockAction();
+		$action = new MockAction();
 
 		add_filter( 'split_the_query', array( $action, 'filter' ) );
 
