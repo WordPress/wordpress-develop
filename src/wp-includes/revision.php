@@ -1107,7 +1107,7 @@ function _wp_upgrade_revisions_of_post( $post, $revisions ) {
  * @param mixed  $value     Meta value to filter.
  * @param int    $object_id Object ID.
  * @param string $meta_key  Meta key to filter a value for.
- * @param bool   $single    Whether to return a single value. Default false.
+ * @param bool   $single    Whether to return a single value.
  * @return mixed Original meta value if the meta key isn't revisioned, the object doesn't exist,
  *               the post type is a revision or the post ID doesn't match the object ID.
  *               Otherwise, the revisioned meta value is returned for the preview.
