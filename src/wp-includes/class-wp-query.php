@@ -3297,7 +3297,7 @@ class WP_Query {
 		$is_unfiltered_query = $old_request == $this->request && "{$wpdb->posts}.*" === $fields;
 
 		if ( null === $this->posts ) {
-			if ( $q['posts_per_page'] == 1 ) {
+			if ( 1 === $q['posts_per_page'] ) {
 				$split_the_query = false;
 			 }
 			else {

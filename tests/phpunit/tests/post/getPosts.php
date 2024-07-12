@@ -3,7 +3,7 @@
 /**
  * @group post
  * @group query
- * 
+ *
  * @covers ::get_posts
  */
 class Tests_Post_GetPosts extends WP_UnitTestCase {
@@ -171,9 +171,9 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 * 
+	 *
 	 * Test case to ensure that the split the query is false when posts_per_page is = 1
-	 * 
+	 *
 	 * @ticket 57416
 	 */
 	public function test_one_post_per_page_no_split_query() {
@@ -199,13 +199,12 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 		remove_filter( 'split_the_query', array( $this, 'filter_split_the_query' ) );
 
 		$this->assertEquals( false, $this->split_the_query_result );
-
 	}
 
 	/**
-	 * 
+	 *
 	 * Test case to ensure that the split the query is true when posts_per_page is > 1
-	 * 
+	 *
 	 * @ticket 57416
 	 */
 	public function test_two_posts_per_page_split_query() {
@@ -242,9 +241,9 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 * 
+	 *
 	 *  Test that the split_query filter is called
-	 * 
+	 *
 	 * @ticket 57416
 	 */
 	public function test_filter_split_query_is_called() {
@@ -274,4 +273,3 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 		remove_filter( 'split_the_query', array( $action, 'filter' ) );
 	}
 }
-
