@@ -85,13 +85,13 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 
 		wp_register_style( 'global-styles', false, array(), true, true );
 
-		$cache_key                = $this->get_wp_styles_for_blocks_cache_key();
-		$styles_for_blocks_before = get_site_transient( $cache_key );
+		$cache_key                = 'wp_styles_for_blocks';
+		$styles_for_blocks_before = get_transient( $cache_key );
 		$this->assertFalse( $styles_for_blocks_before );
 
 		wp_add_global_styles_for_blocks();
 
-		$styles_for_blocks_after = get_site_transient( $cache_key );
+		$styles_for_blocks_after = get_transient( $cache_key );
 		$this->assertNotEmpty( $styles_for_blocks_after );
 	}
 
@@ -113,8 +113,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		// Initial register of global styles.
 		wp_add_global_styles_for_blocks();
 
-		$cache_key                 = $this->get_wp_styles_for_blocks_cache_key();
-		$styles_for_blocks_initial = get_site_transient( $cache_key );
+		$styles_for_blocks_initial = get_transient( 'wp_styles_for_blocks' );
 
 		// Cleanup.
 		$_wp_tests_development_mode = $orig_dev_mode;
@@ -133,8 +132,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		// Initial register of global styles.
 		wp_add_global_styles_for_blocks();
 
-		$cache_key                 = $this->get_wp_styles_for_blocks_cache_key();
-		$styles_for_blocks_initial = get_site_transient( $cache_key );
+		$styles_for_blocks_initial = get_transient( 'wp_styles_for_blocks' );
 		$this->assertNotEmpty( $styles_for_blocks_initial, 'Initial cache was not set.' );
 
 		$this->set_up_third_party_block();
@@ -145,8 +143,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		 */
 		wp_add_global_styles_for_blocks();
 
-		$cache_key                 = $this->get_wp_styles_for_blocks_cache_key();
-		$styles_for_blocks_updated = get_site_transient( $cache_key );
+		$styles_for_blocks_updated = get_transient( 'wp_styles_for_blocks' );
 		$this->assertNotEmpty( $styles_for_blocks_updated, 'Updated cache was not set.' );
 
 		$this->assertNotEquals(
@@ -333,26 +330,5 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	private function get_global_styles() {
 		$actual = wp_styles()->get_data( 'global-styles', 'after' );
 		return is_array( $actual ) ? $actual : array();
-	}
-
-	/**
-	 * Get cache key for `wp_styles_for_blocks`.
-	 *
-	 * @return string The cache key.
-	 */
-	private function get_wp_styles_for_blocks_cache_key() {
-		$tree        = WP_Theme_JSON_Resolver::get_merged_data();
-		$block_nodes = $tree->get_styles_block_nodes();
-		// md5 is a costly operation, so we hashing global settings and block_node in a single call.
-		$hash = md5(
-			wp_json_encode(
-				array(
-					'global_setting' => wp_get_global_settings(),
-					'block_nodes'    => $block_nodes,
-				)
-			)
-		);
-
-		return "wp_styles_for_blocks:$hash";
 	}
 }
