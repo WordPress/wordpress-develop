@@ -33,32 +33,32 @@ function edit_link( $link_id = 0 ) {
 			403
 		);
 	}
-	
-	$link_url   = isset( $_POST['link_url'] ) ? esc_url_raw( $_POST['link_url'] ) : '';
-	$link_name  = isset( $_POST['link_name'] ) ? sanitize_text_field( $_POST['link_name'] ) : '';
-	$link_image = isset( $_POST['link_image'] ) ? esc_url_raw( $_POST['link_image'] ) : '';
-	$link_rss   = isset( $_POST['link_rss'] ) ? esc_url_raw( $_POST['link_rss'] ) : '';
-	$link_visible = isset( $_POST['link_visible'] ) && $_POST['link_visible'] === 'N' ? 'N' : 'Y';
-	
+
+	$link_url    = isset( $_POST['link_url'] ) ? esc_url_raw( $_POST['link_url'] ) : '';
+	$link_name   = isset( $_POST['link_name'] ) ? sanitize_text_field( $_POST['link_name'] ) : '';
+	$link_image  = isset( $_POST['link_image'] ) ? esc_url_raw( $_POST['link_image'] ) : '';
+	$link_rss    = isset( $_POST['link_rss'] ) ? esc_url_raw( $_POST['link_rss'] ) : '';
+	$link_visible = isset( $_POST['link_visible'] ) && 'N' === $_POST['link_visible'] ? 'N' : 'Y';
+
 	if ( empty( $link_url ) || empty( $link_name ) ) {
 		return new WP_Error( 'missing_data', __( 'Link URL and Name cannot be empty.' ) );
 	}
-	
+
 	$link_data = compact( 'link_url', 'link_name', 'link_image', 'link_rss', 'link_visible' );
-	
+
 	if ( ! empty( $link_id ) ) {
 		$link_data['link_id'] = $link_id;
-		$result = wp_update_link( $link_data );
+		$result                = wp_update_link( $link_data );
 	} else {
 		$result = wp_insert_link( $link_data );
 	}
-	
+
 	if ( is_wp_error( $result ) ) {
-			return $result;
-	} elseif ( $result === 0 ) {
+		return $result;
+	} elseif ( 0 === $result ) {
 		return new WP_Error( 'db_error', __( 'There was an error updating/inserting the link.' ) );
 	}
-	
+
 	return $result;
 }
 
