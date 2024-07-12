@@ -5283,13 +5283,41 @@ EOF;
 		// The main (scaled) image: the JPEG should be smaller than the WebP.
 		$this->assertLessThan( $webp_sizes['filesize'], $jpeg_sizes['filesize'], 'The JPEG should be smaller than the WebP.' );
 
-		// Sub-sizes: for each size, the WebP should be smaller than the JPEG.
+		// Sub-sizes: for each size, the JPEG should be smaller than the WEBP.
 		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $webp_sizes['sizes'] );
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
 		}
+		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low_jpeg' ), 10, 2 );
 
-		// Repeat the size tests with AVIF images.
+	}
+
+	/**
+	 * Test AVIF quality filters.
+	 *
+	 * @ticket 61614
+	 */
+	public function test_quality_with_avif_conversion_file_sizes() {
+		$temp_dir = get_temp_dir();
+		$file     = $temp_dir . '/33772.jpg';
+		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
+
+		$editor = wp_get_image_editor( $file );
+		// Only continue if the server supports AVIF.
+		if ( ! $editor->supports_mime_type( 'image/avif' ) ) {
+			$this->markTestSkipped( 'AVIF is not supported by the selected image editor.' );
+		}
+
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => $file,
+			)
+		);
+
+		$jpeg_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
+
+		// Test sizes with AVIF images.
 		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
 		$avif_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
