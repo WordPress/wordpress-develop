@@ -88,13 +88,15 @@ document.addEventListener( 'DOMContentLoaded', function () {
 		var fitsRight =
 			viewportWidth - containerRect.right >= contentRect.width;
 
-		var defaultPosition = container.classList.contains( 'position-top' )
-			? 'top'
-			: container.classList.contains( 'position-bottom' )
-			? 'bottom'
-			: container.classList.contains( 'position-left' )
-			? 'left'
-			: 'right';
+		var defaultPosition = 'right';
+
+		if ( container.classList.contains( 'position-top' ) ) {
+			defaultPosition = 'top';
+		} else if ( container.classList.contains( 'position-bottom' ) ) {
+			defaultPosition = 'bottom';
+		} else if ( container.classList.contains( 'position-left' ) ) {
+			defaultPosition = 'left';
+		}
 
 		var newPosition = defaultPosition;
 
