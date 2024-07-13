@@ -9019,12 +9019,20 @@ function wp_admin_notice( $message, $args = array() ) {
  * @since 6.7.0
  *
  * @param string $field_id             The unique identifier for the tooltip container.
- * @param string $tooltip_text                   The text content to be displayed in the tooltip.
+ * @param string $tooltip_text         The text content to be displayed in the tooltip.
  * @param string $tooltip_button_label Optional. The label for the tooltip button. Default is 'Help'.
+ * @param string $position             Optional. The default position of the tooltip. Default is 'right'.
  */
-function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help' ) {
+function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help', $position = 'right' ) {
+	$valid_positions = array( 'top', 'right', 'bottom', 'left' );
+
+	// Validate position input.
+	if ( ! in_array( $position, $valid_positions, true ) ) {
+		$position = 'right';
+	}
+
 	?>
-	<div class="wp-tooltip-container <?php echo esc_attr( $field_id ); ?>">
+	<div class="wp-tooltip-container <?php echo esc_attr( $field_id ); ?> <?php echo esc_attr( 'position-' . $position ); ?>">
 		<button type="button" class="wp-tooltip-button" aria-describedby="<?php echo esc_attr( $field_id ); ?>-tooltip" aria-label="<?php echo esc_attr( $tooltip_button_label ); ?>">
 			<span class="dashicons dashicons-editor-help"></span>
 		</button>

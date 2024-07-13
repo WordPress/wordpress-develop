@@ -65,6 +65,12 @@ document.addEventListener( 'DOMContentLoaded', function () {
 				tooltipContent.style.display = 'none';
 			}
 		} );
+
+		tooltipContainer.addEventListener( 'focusout', function ( event ) {
+			if ( ! tooltipContainer.contains( event.relatedTarget ) ) {
+				hideTooltip();
+			}
+		} );
 	} );
 
 	// Function to adjust tooltip position based on screen availability
@@ -82,43 +88,35 @@ document.addEventListener( 'DOMContentLoaded', function () {
 		var fitsRight =
 			viewportWidth - containerRect.right >= contentRect.width;
 
-		// Default position is top
-		var newPosition = 'top';
+		var defaultPosition = container.classList.contains( 'position-top' )
+			? 'top'
+			: container.classList.contains( 'position-bottom' )
+			? 'bottom'
+			: container.classList.contains( 'position-left' )
+			? 'left'
+			: 'right';
 
-		// Choose position based on available space
-		if ( ! fitsAbove && fitsBelow ) {
+		var newPosition = defaultPosition;
+
+		if ( defaultPosition === 'top' && ! fitsAbove && fitsBelow ) {
 			newPosition = 'bottom';
-		} else if ( ! fitsBelow && fitsAbove ) {
+		} else if ( defaultPosition === 'bottom' && ! fitsBelow && fitsAbove ) {
 			newPosition = 'top';
-		} else if ( ! fitsLeft && fitsRight ) {
+		} else if ( defaultPosition === 'left' && ! fitsLeft && fitsRight ) {
 			newPosition = 'right';
-		} else if ( ! fitsRight && fitsLeft ) {
+		} else if ( defaultPosition === 'right' && ! fitsRight && fitsLeft ) {
 			newPosition = 'left';
 		}
 
 		// Apply position adjustments
-		if ( newPosition === 'top' ) {
-			content.style.top = 'auto';
-			content.style.bottom = '100%';
-			content.style.left = '50%';
-			content.style.transform = 'translateX(-50%)';
-		} else if ( newPosition === 'bottom' ) {
-			content.style.top = '100%';
-			content.style.bottom = 'auto';
-			content.style.left = '50%';
-			content.style.transform = 'translateX(-50%)';
-		} else if ( newPosition === 'left' ) {
-			content.style.top = '50%';
-			content.style.bottom = 'auto';
-			content.style.left = 'auto';
-			content.style.right = '100%';
-			content.style.transform = 'translateY(-50%)';
-		} else if ( newPosition === 'right' ) {
-			content.style.top = '50%';
-			content.style.bottom = 'auto';
-			content.style.left = '100%';
-			content.style.right = 'auto';
-			content.style.transform = 'translateY(-50%)';
-		}
+		container.classList.remove(
+			'adjusted-position-top',
+			'adjusted-position-bottom',
+			'adjusted-position-left',
+			'adjusted-position-right'
+		);
+
+		// Add the new position class
+		container.classList.add( 'adjusted-position-' + newPosition );
 	}
 } );
