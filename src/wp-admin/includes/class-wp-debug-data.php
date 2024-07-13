@@ -33,23 +33,23 @@ class WP_Debug_Data {
 	 * @return array The debug data for the site.
 	 */
 	public static function debug_data(): array {
-		add_filter( 'debug_information', [ __CLASS__, 'wp_core' ], 0 );
-		add_filter( 'debug_information', [ __CLASS__, 'wp_paths_sizes' ], 1 );
-		add_filter( 'debug_information', [ __CLASS__, 'wp_dropins' ], 2 );
-		add_filter( 'debug_information', [ __CLASS__, 'wp_active_theme' ], 3 );
-		add_filter( 'debug_information', [ __CLASS__, 'wp_parent_theme' ], 3 );
-		add_filter( 'debug_information', [ __CLASS__, 'wp_themes_inactive' ], 3 );
-		add_filter( 'debug_information', [ __CLASS__, 'wp_mu_plugins' ], 4 );
-		add_filter( 'debug_information', [ __CLASS__, 'wp_plugins' ], 4 );
-		add_filter( 'debug_information', [ __CLASS__, 'wp_media' ], 5 );
-		add_filter( 'debug_information', [ __CLASS__, 'wp_server' ], 6 );
-		add_filter( 'debug_information', [ __CLASS__, 'wp_database' ], 7 );
-		add_filter( 'debug_information', [ __CLASS__, 'wp_constants' ], 8 );
-		add_filter( 'debug_information', [ __CLASS__, 'wp_filesystem' ], 9 );
+		add_filter( 'debug_information', array( __CLASS__, 'wp_core' ), 0 );
+		add_filter( 'debug_information', array( __CLASS__, 'wp_paths_sizes' ), 1 );
+		add_filter( 'debug_information', array( __CLASS__, 'wp_dropins' ), 2 );
+		add_filter( 'debug_information', array( __CLASS__, 'wp_active_theme' ), 3 );
+		add_filter( 'debug_information', array( __CLASS__, 'wp_parent_theme' ), 3 );
+		add_filter( 'debug_information', array( __CLASS__, 'wp_themes_inactive' ), 3 );
+		add_filter( 'debug_information', array( __CLASS__, 'wp_mu_plugins' ), 4 );
+		add_filter( 'debug_information', array( __CLASS__, 'wp_plugins' ), 4 );
+		add_filter( 'debug_information', array( __CLASS__, 'wp_media' ), 5 );
+		add_filter( 'debug_information', array( __CLASS__, 'wp_server' ), 6 );
+		add_filter( 'debug_information', array( __CLASS__, 'wp_database' ), 7 );
+		add_filter( 'debug_information', array( __CLASS__, 'wp_constants' ), 8 );
+		add_filter( 'debug_information', array( __CLASS__, 'wp_filesystem' ), 9 );
 
 		// Remove accordion for Directories and Sizes if in Multisite.
 		if ( is_multisite() ) {
-			remove_filter( 'debug_information', [ __CLASS__, 'wp_paths_sizes' ], 1 );
+			remove_filter( 'debug_information', array( __CLASS__, 'wp_paths_sizes' ), 1 );
 		}
 
 		/**
