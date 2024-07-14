@@ -2140,12 +2140,6 @@ input[type=reset]:disabled,
 	outline-offset: 2px;
 }
 
-.wp-block-group {
-	display: block;
-	clear: both;
-	display: flow-root;
-}
-
 .wp-block-group .wp-block-group__inner-container {
 	margin-left: auto;
 	margin-right: auto;
