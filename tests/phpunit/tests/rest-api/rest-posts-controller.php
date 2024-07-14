@@ -27,6 +27,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	private $attachments_created = false;
 
+	private $captured_query_vars;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 		self::$terms   = $factory->term->create_many( 15, array( 'taxonomy' => 'category' ) );
@@ -110,12 +112,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
+		// Reset captured query vars before each test.
+		$this->captured_query_vars = null;
+
 		add_role( 'private_reader', 'Private Reader' );
 		$role = get_role( 'private_reader' );
 		$role->add_cap( 'read_private_posts' );
 
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
 		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
+		add_filter( 'rest_post_query', array( $this, 'capture_query_vars' ), 10, 2 );
 	}
 
 	public function tear_down() {
@@ -5393,6 +5399,34 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	}
 
 	/**
+	 * @ticket 57749
+	 *
+	 * @covers WP_REST_Posts_Controller::prepare_items_query
+	 */
+	public function test_post_meta_cache_is_primed_when_there_are_registered_keys() {
+		global $wp_meta_keys;
+		$wp_meta_keys = array();
+
+		register_post_meta(
+			'post',
+			'test_meta_key',
+			array(
+				'show_in_rest' => true,
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		rest_get_server()->dispatch( $request );
+
+		unregister_post_meta( 'post', 'test_meta_key' );
+
+		$meta_cache_is_primed = ! array_key_exists( 'update_post_meta_cache', $this->captured_query_vars ) || true === $this->captured_query_vars['update_post_meta_cache'];
+
+		// Check if the captured query vars have 'update_post_meta_cache' set to true
+		$this->assertTrue( $meta_cache_is_primed, 'Failed asserting that the meta cache is primed when custom meta key is present.' );
+	}
+
+	/**
 	 * Internal function used to disable an insert query which
 	 * will trigger a wpdb error for testing purposes.
 	 */
@@ -5425,5 +5459,11 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 			'context'     => array( 'new_context' ),
 		);
 		return $schema;
+	}
+
+	public function capture_query_vars( $args, $request ) {
+		// Capture the query vars.
+		$this->captured_query_vars = $args;
+		return $args;
 	}
 }
