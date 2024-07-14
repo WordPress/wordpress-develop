@@ -393,10 +393,10 @@ class WP_Debug_Data {
 	 * Populate the active theme section of the debug data.
 	 *
 	 * @since tbd
+	 *
 	 * @global array $_wp_theme_features
 	 *
 	 * @param array $info The debug information to be added to the core information page.
-	 *
 	 * @return array
 	 */
 	public static function wp_active_theme( array $info ): array {
