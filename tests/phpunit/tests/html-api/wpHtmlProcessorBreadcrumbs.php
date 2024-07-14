@@ -189,15 +189,12 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'NOFRAMES', // Neutralized.
 			'NOSCRIPT',
 			'OBJECT',
-			'OPTGROUP',
-			'OPTION',
 			'PLAINTEXT', // Neutralized.
 			'RB', // Neutralized.
 			'RP',
 			'RT',
 			'RTC', // Neutralized.
 			'SCRIPT',
-			'SELECT',
 			'STYLE',
 			'SVG',
 			'TABLE',

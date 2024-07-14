@@ -7,6 +7,8 @@ on:
       - trunk
     paths:
       - '.github/workflows/test-old-branches.yml'
+      - '.github/workflows/reusable-phpunit-tests-v1.yml'
+      - '.github/workflows/reusable-phpunit-tests-v2.yml'
   # Run twice a month on the 1st and 15th at 00:00 UTC.
   schedule:
     - cron: '0 0 1 * *'
@@ -34,7 +36,7 @@ jobs:
             'coding-standards.yml',
             'javascript-tests.yml',
             'phpunit-tests.yml',
-            'test-npm.yml'
+            'test-build-processes.yml'
         ]
         branch: [
             '6.6', '6.5', '6.4', '6.3', '6.2', '6.1','6.0',
@@ -101,10 +103,6 @@ jobs:
             workflow: 'performance.yml'
           - branch: '6.2'
             workflow: 'performance.yml'
-
-          # Build Process testing was introduced in 6.5.
-          - branch: '6.5'
-            workflow: 'test-build-processes.yml'
 
     # Run all branches monthly, but only the currently supported one twice per month.
     steps:

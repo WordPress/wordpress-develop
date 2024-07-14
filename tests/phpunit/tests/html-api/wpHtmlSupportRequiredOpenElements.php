@@ -308,9 +308,5 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		 * FOREIGNOBJECT, DESC, TITLE.
 		 */
 		$this->ensure_support_is_added_everywhere( 'SVG' );
-
-		// These elements are specific to SELECT scope.
-		$this->ensure_support_is_added_everywhere( 'OPTGROUP' );
-		$this->ensure_support_is_added_everywhere( 'OPTION' );
 	}
 }
