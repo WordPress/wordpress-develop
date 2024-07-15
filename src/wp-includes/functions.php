@@ -3120,6 +3120,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 					'image/tiff' => 'tif',
 					'image/webp' => 'webp',
 					'image/avif' => 'avif',
+					'image/heic' => 'heic',
 				)
 			);
 
@@ -3299,6 +3300,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
  * @since 4.7.1
  * @since 5.8.0 Added support for WebP images.
  * @since 6.5.0 Added support for AVIF images.
+ * @since 6.7.0 Added support for HEIC images.
  *
  * @param string $file Full path to the file.
  * @return string|false The actual mime type or false if the type cannot be determined.

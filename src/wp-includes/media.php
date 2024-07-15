@@ -4220,6 +4220,11 @@ function wp_plupload_default_settings() {
 		$defaults['avif_upload_error'] = true;
 	}
 
+	// Check if HEIC images can be edited.
+	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/heic' ) ) ) {
+		$defaults['heic_upload_error'] = true;
+	}
+
 	/**
 	 * Filters the Plupload default settings.
 	 *
