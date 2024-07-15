@@ -350,7 +350,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string      $html                                  HTML to process.
 	 * @param string|null $use_the_static_create_methods_instead This constructor should not be called manually.
 	 */
-	public function __construct( string $html, ?string $use_the_static_create_methods_instead = null ) {
+	public function __construct( $html, $use_the_static_create_methods_instead = null ) {
 		parent::__construct( $html );
 
 		if ( self::CONSTRUCTOR_UNLOCK_CODE !== $use_the_static_create_methods_instead ) {
