@@ -9025,7 +9025,7 @@ function wp_admin_notice( $message, $args = array() ) {
  * 									   Accepted values: 'right', 'left', 'up' and 'down'.
  */
 function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help', $position = 'right' ) {
-	$error_arg = '';
+    $error_arg = '';
 
 	if ( ! is_string( $field_id ) || '' === $field_id ) {
 		$error_arg = '$field_id';
@@ -9083,13 +9083,13 @@ function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help', 
 	 *
 	 * @since 6.7.0
 	 *
-	 * @param string $icon_url             The URL to the icon to be used for this tooltip.
-     *                                     * Pass a base64-encoded SVG using a data URI, which will be colored to match
-     *                                	     the color scheme. This should begin with 'data:image/svg+xml;base64,'.
- 	 *                              	   * Pass the name of a Dashicons helper class to use a font icon,
- 	 *										 e.g. 'dashicons-editor-help'.
- 	 *                              	   * Pass 'none' to leave span.wp-tooltip-button-span empty so an icon can be added via CSS.
-	 * @param string $field_id             The unique identifier for the tooltip container.
+	 * @param string $icon_url The URL to the icon to be used for this tooltip.
+	 *                         * Pass a base64-encoded SVG using a data URI, which will be colored to match
+	 *                         the color scheme. This should begin with 'data:image/svg+xml;base64,'.
+	 *                         * Pass the name of a Dashicons helper class to use a font icon,
+	 *                         e.g. 'dashicons-editor-help'.
+	 *                         * Pass 'none' to leave span.wp-tooltip-button-span empty so an icon can be added via CSS.
+	 * @param string $field_id The unique identifier for the tooltip container.
 	 */
 	$icon_url = apply_filters( 'wp_tooltip_icon', $icon_url, $field_id );
 	$icon_url = set_url_scheme( $icon_url );
