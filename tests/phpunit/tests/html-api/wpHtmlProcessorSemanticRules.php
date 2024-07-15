@@ -387,7 +387,16 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertSame( 'CODE', $processor->get_tag(), "Expected to start test on CODE element but found {$processor->get_tag()} instead." );
 		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'SPAN', 'CODE' ), $processor->get_breadcrumbs(), 'Failed to produce expected DOM nesting.' );
 
-		$this->assertTrue( $processor->next_token(), 'Failed to advance past CODE tag to expected SPAN closer.' );
+		$this->assertTrue(
+			$processor->next_tag(
+				array(
+					'tag_name'    => 'SPAN',
+					'tag_closers' => 'visit',
+				)
+			),
+			'Failed to advance past CODE tag to expected SPAN closer.'
+		);
+		$this->assertSame( 'SPAN', $processor->get_tag() );
 		$this->assertTrue( $processor->is_tag_closer(), 'Expected to find closing SPAN, but found opener instead.' );
 		$this->assertSame( array( 'HTML', 'BODY', 'DIV' ), $processor->get_breadcrumbs(), 'Failed to advance past CODE tag to expected DIV opener.' );
 
