@@ -9025,7 +9025,7 @@ function wp_admin_notice( $message, $args = array() ) {
  * 									   Accepted values: 'right', 'left', 'up' and 'down'.
  */
 function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help', $position = 'right' ) {
-    $error_arg = '';
+	$error_arg = '';
 
 	if ( ! is_string( $field_id ) || '' === $field_id ) {
 		$error_arg = '$field_id';
@@ -9109,8 +9109,9 @@ function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help', 
 			__FUNCTION__,
 			sprintf(
 				/* translators: %s: Invalid $icon_html passed in 'pre_wp_tooltip_rendered' hook. */
-				__( 'The passed "%s" argument in the "%s" filter is invalid.' ),
-				'$icon_html', 'pre_wp_tooltip_rendered'
+				__( 'The passed "%1$s" argument in the "%2$s" filter is invalid.' ),
+				'$icon_html',
+				'pre_wp_tooltip_rendered'
 			),
 			'6.7.0'
 		);
@@ -9128,11 +9129,11 @@ function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help', 
 	 * @param string $tooltip_button_label The label for the tooltip button.
 	 * @param string $position             The default position of the tooltip.
 	 * @param string $icon_url             The URL to the icon to be used for this tooltip.
-     *                                     * Pass a base64-encoded SVG using a data URI, which will be colored to match
-     *                                	     the color scheme. This should begin with 'data:image/svg+xml;base64,'.
- 	 *                              	   * Pass the name of a Dashicons helper class to use a font icon,
- 	 *                                		 e.g. 'dashicons-editor-help'.
- 	 *                              	   * Pass 'none' to leave span.wp-tooltip-button-span empty so an icon can be added via CSS.
+	 *                                     Pass a base64-encoded SVG using a data URI, which will be colored to match
+	 *                                     the color scheme. This should begin with 'data:image/svg+xml;base64,'.
+	 *                                     Pass the name of a Dashicons helper class to use a font icon,
+	 *                                     e.g. 'dashicons-editor-help'.
+	 *                                     Pass 'none' to leave span.wp-tooltip-button-span empty so an icon can be added via CSS.
 	 */
 	add_action( 'pre_wp_tooltip_rendered', $field_id, $tooltip_text, $tooltip_button_label, $position, $icon_url );
 
