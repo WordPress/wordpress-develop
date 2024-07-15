@@ -1082,7 +1082,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	private function step_after_head() {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
->>>>>>> upstream/trunk
 	}
 
 	/**
