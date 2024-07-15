@@ -390,7 +390,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * a private method into WP_HTML_Token classes without
 		 * exposing it to any public API.
 		 */
-		$this->release_internal_bookmark_on_destruct = function ( $name ): void {
+		$this->release_internal_bookmark_on_destruct = function ( string $name ): void {
 			parent::release_bookmark( $name );
 		};
 	}
