@@ -9025,7 +9025,6 @@ function wp_admin_notice( $message, $args = array() ) {
  * 									   Accepted values: 'right', 'left', 'up' and 'down'.
  */
 function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help', $position = 'right' ) {
-
 	if ( ! is_string( $field_id ) || '' === $field_id ) {
 		$error_arg = '$field_id';
 	} elseif ( ! is_string( $tooltip_text ) || '' === $tooltip_text ) {
