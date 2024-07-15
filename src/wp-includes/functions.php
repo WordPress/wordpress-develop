@@ -9025,7 +9025,6 @@ function wp_admin_notice( $message, $args = array() ) {
  * 									   Accepted values: 'right', 'left', 'up' and 'down'.
  */
 function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help', $position = 'right' ) {
-
 	$error_arg = '';
 
 	if ( ! is_string( $field_id ) || '' === $field_id ) {
@@ -9077,10 +9076,8 @@ function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help', 
 	wp_enqueue_style( 'wp-tooltip' );
 	wp_enqueue_script( 'wp-tooltip' );
 
-	// $icon_url = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdib3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjYTdhYWFkIiBkPSJNMTcuNiA4LjVoLTcuNXYzaDQuNGMtLjQgMi4xLTIuMyAzLjUtNC40IDMuNC0yLjYtLjEtNC42LTIuMS00LjctNC43LS4xLTIuNyAyLTUgNC43LTUuMSAxLjEgMCAyLjIuNCAzLjEgMS4ybDIuMy0yLjJDMTQuMSAyLjcgMTIuMSAyIDEwLjIgMmMtNC40IDAtOCAzLjYtOCA4czMuNiA4IDggOGM0LjYgMCA3LjctMy4yIDcuNy03LjgtLjEtLjYtLjEtMS4xLS4zLTEuN3oiIGZpbGxydWxlPSJldmVub2RkIiBjbGlwcnVsZT0iZXZlbm9kZCI+PC9wYXRoPjwvc3ZnPg==";
 	$icon_url = 'dashicons-editor-help';
-	// $icon_url = 'https://weenyjob.com/wp-content/uploads/2023/12/Copy-of-Untitled.png';
-	// $icon_url = 'none1';
+
 	/**
 	 * Filters $icon_url before the tooltip is rendered in the HTML.
 	 *
@@ -9090,12 +9087,12 @@ function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help', 
      *                                     * Pass a base64-encoded SVG using a data URI, which will be colored to match
      *                                	     the color scheme. This should begin with 'data:image/svg+xml;base64,'.
  	 *                              	   * Pass the name of a Dashicons helper class to use a font icon,
- 	 *                                		 e.g. 'dashicons-editor-help'.
+ 	 *										 e.g. 'dashicons-editor-help'.
  	 *                              	   * Pass 'none' to leave span.wp-tooltip-button-span empty so an icon can be added via CSS.
 	 * @param string $field_id             The unique identifier for the tooltip container.
 	 */
 	$icon_url = apply_filters( 'wp_tooltip_icon', $icon_url, $field_id );
-	$icon_url   = set_url_scheme( $icon_url );
+	$icon_url = set_url_scheme( $icon_url );
 
 	if ( str_starts_with( $icon_url, 'dashicons-' ) ) {
 		$icon = 'class="dashicons ' . sanitize_html_class( $icon_url ) . '"';
