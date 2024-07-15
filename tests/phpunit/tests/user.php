@@ -2243,4 +2243,31 @@ class Tests_User extends WP_UnitTestCase {
 			'assert username in signups for more than two days to have been deleted.'
 		);
 	}
+
+	/**
+	 * @ticket 17904
+	 * @group ms-excluded
+	 */
+	public function test_is_username_reserved_single_site() {
+		add_filter(
+			'is_username_reserved',
+			function ( $is_reserved, $username ) {
+				return 'testsuser1' === $username;
+			},
+			10,
+			2
+		);
+
+		$this->assertEquals(
+			false,
+			is_username_reserved( 'testsuser' ),
+			'assert usernames are not reserved on single site installation.'
+		);
+
+		$this->assertEquals(
+			true,
+			is_username_reserved( 'testsuser1' ),
+			'assert is_username_reserved filter allow to mark usernames as reserved.'
+		);
+	}
 }
