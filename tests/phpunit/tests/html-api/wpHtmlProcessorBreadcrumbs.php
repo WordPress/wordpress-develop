@@ -594,7 +594,7 @@ HTML
 			$this->assertTrue( $processor->is_tag_closer(), "Found opener when closer expected at {$processor->get_token_name()}." );
 		}
 
-		$this->assertEquals( $expected_breadcrumbs, $processor->get_breadcrumbs(), "Found incorrect breadcrumbs in {$html}." );
+		$this->assertSame( $expected_breadcrumbs, $processor->get_breadcrumbs(), "Found incorrect breadcrumbs in {$html}." );
 	}
 
 	/**
