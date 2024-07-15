@@ -571,7 +571,7 @@ class WP_Token_Map {
 	/**
 	 * Finds a match for a short word at the index.
 	 *
-	 * @since 6.6.0.
+	 * @since 6.6.0
 	 *
 	 * @param string   $text                       String in which to search for a lookup key.
 	 * @param int      $offset                     Optional. How many bytes into the string where the lookup key ought to start. Default 0.
