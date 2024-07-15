@@ -121,7 +121,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
 		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
-		add_filter( 'rest_post_query', array( $this, 'capture_query_vars' ), 10, 2 );
+		add_filter( 'pre_get_posts', array( $this, 'capture_query_vars' ), 10, 2 );
 	}
 
 	public function tear_down() {
@@ -5423,7 +5423,33 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$meta_cache_is_primed = ! array_key_exists( 'update_post_meta_cache', $this->captured_query_vars ) || true === $this->captured_query_vars['update_post_meta_cache'];
 
 		// Check if the captured query vars have 'update_post_meta_cache' set to true
-		$this->assertTrue( $meta_cache_is_primed, 'Failed asserting that the meta cache is primed when custom meta key is present.' );
+		$this->assertTrue(
+			$meta_cache_is_primed,
+			'Meta cache is not primed as expected when a custom meta key is registered.'
+		);
+	}
+
+	/**
+	 * @ticket 57749
+	 *
+	 * @covers WP_REST_Posts_Controller::prepare_items_query
+	 */
+	public function test_post_meta_cache_is_not_primed_when_there_are_no_registered_keys() {
+		global $wp_meta_keys;
+		$wp_meta_keys = array();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		rest_get_server()->dispatch( $request );
+
+		$this->assertArrayHasKey(
+			'update_post_meta_cache',
+			$this->captured_query_vars,
+			'Query vars should contain the key "update_post_meta_cache".'
+		);
+		$this->assertFalse(
+			$this->captured_query_vars['update_post_meta_cache'],
+			'The "update_post_meta_cache" key should be false when no meta keys are registered.'
+		);
 	}
 
 	/**
@@ -5461,9 +5487,11 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		return $schema;
 	}
 
-	public function capture_query_vars( $args, $request ) {
+	public function capture_query_vars( WP_Query $query ) {
 		// Capture the query vars.
-		$this->captured_query_vars = $args;
-		return $args;
+		if ( null !== $this->captured_query_vars ) {
+			return;
+		}
+		$this->captured_query_vars = $query->query_vars;
 	}
 }
