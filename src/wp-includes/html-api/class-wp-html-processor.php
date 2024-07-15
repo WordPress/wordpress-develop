@@ -752,9 +752,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *       this returns false for self-closing elements in the
 	 *       SVG and MathML namespace.
 	 *
-	 * @param  ?WP_HTML_Token $node Node to examine instead of current node, if provided.
-	 * @return bool Whether to expect a closer for the currently-matched node,
-	 *              or `null` if not matched on any token.
+	 * @param WP_HTML_Token $node Node to examine instead of current node, if provided.
+	 *
+	 * @return bool|null Whether to expect a closer for the currently-matched node,
+	 *                   or `null` if not matched on any token.
 	 */
 	public function expects_closer( $node = null ) {
 		$token_name = $node->node_name ?? $this->get_token_name();
