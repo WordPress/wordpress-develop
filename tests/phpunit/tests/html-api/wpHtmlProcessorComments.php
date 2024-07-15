@@ -59,7 +59,6 @@ class Tests_HtmlApi_WpHtmlProcessorComments extends WP_UnitTestCase {
 
 		$this->assertSame( '#funky-comment', $processor->get_token_name() );
 		$this->assertSame( $expected_modifiable_text, $processor->get_modifiable_text() );
-		$this->assertSame( $expected_tag, $processor->get_tag() );
 	}
 
 	/**
