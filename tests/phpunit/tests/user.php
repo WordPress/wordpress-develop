@@ -2191,17 +2191,17 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 17904
 	 * @group ms-required
 	 */
-	public function test_is_username_reserved() {
+	public function test_is_username_reserved_no_signup() {
+		$this->assertEquals( false, is_username_reserved( 'testsuser' ) );
+	}
+
+	/**
+	 * @ticket 17904
+	 * @group ms-required
+	 */
+	public function test_is_username_reserved_existing_signup() {
 		global $wpdb;
 
-		// New username
-		$this->assertEquals(
-			false,
-			is_username_reserved( 'testsuser' ),
-			'assert username not in signups to be available.'
-		);
-
-		// Existing signup username
 		$wpdb->insert(
 			$wpdb->signups,
 			array(
@@ -2223,8 +2223,15 @@ class Tests_User extends WP_UnitTestCase {
 			$wpdb->get_var( $wpdb->prepare( "SELECT count(signup_id) FROM $wpdb->signups WHERE user_login = %s", 'testsuser1' ) ),
 			"assert username in signups for less than two days to haven't be deleted."
 		);
+	}
 
-		// Expired signup username
+	/**
+	 * @ticket 17904
+	 * @group ms-required
+	 */
+	public function test_is_username_reserved_expired_signup() {
+		global $wpdb;
+
 		$wpdb->insert(
 			$wpdb->signups,
 			array(
@@ -2236,7 +2243,11 @@ class Tests_User extends WP_UnitTestCase {
 				'%s',
 			)
 		);
-		$this->assertEquals( false, is_username_reserved( 'testsuser2' ), 'assert username in signups for more than two days to be available.' );
+		$this->assertEquals(
+			false,
+			is_username_reserved( 'testsuser2' ),
+			'assert username in signups for more than two days to be available.'
+		);
 		$this->assertEquals(
 			0,
 			$wpdb->get_var( $wpdb->prepare( "SELECT count(signup_id) FROM $wpdb->signups WHERE user_login = %s", 'testsuser2' ) ),
