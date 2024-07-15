@@ -189,6 +189,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private $last_error = null;
 
 	/**
+	 * Stores context for why the parser bailed on unsupported HTML, if it did.
+	 *
+	 * @see self::get_unsupported_exception
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var WP_HTML_Unsupported_Exception|null
+	 */
+	private $unsupported_exception = null;
+
+	/**
 	 * Releases a bookmark when PHP garbage-collects its wrapping WP_HTML_Token instance.
 	 *
 	 * This function is created inside the class constructor so that it can be passed to
@@ -210,6 +221,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @var WP_HTML_Stack_Event[]
 	 */
 	private $element_queue = array();
+
+	/**
+	 * Stores the current breadcrumbs.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string[]
+	 */
+	private $breadcrumbs = array();
 
 	/**
 	 * Current stack event, if set, representing a matched token.
@@ -310,8 +330,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			false
 		);
 
-		$processor->state->stack_of_open_elements->push( $context_node );
 		$processor->context_node = $context_node;
+		$processor->breadcrumbs  = array( 'HTML', $context_node->node_name );
 
 		return $processor;
 	}
@@ -376,6 +396,45 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Stops the parser and terminates its execution when encountering unsupported markup.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception Halts execution of the parser.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $message Explains support is missing in order to parse the current node.
+	 *
+	 * @return mixed
+	 */
+	private function bail( string $message ) {
+		$here  = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+		$token = substr( $this->html, $here->start, $here->length );
+
+		$open_elements = array();
+		foreach ( $this->state->stack_of_open_elements->stack as $item ) {
+			$open_elements[] = $item->node_name;
+		}
+
+		$active_formats = array();
+		foreach ( $this->state->active_formatting_elements->walk_down() as $item ) {
+			$active_formats[] = $item->node_name;
+		}
+
+		$this->last_error = self::ERROR_UNSUPPORTED;
+
+		$this->unsupported_exception = new WP_HTML_Unsupported_Exception(
+			$message,
+			$this->state->current_token->node_name,
+			$here->start,
+			$token,
+			$open_elements,
+			$active_formats
+		);
+
+		throw $this->unsupported_exception;
+	}
+
+	/**
 	 * Returns the last error, if any.
 	 *
 	 * Various situations lead to parsing failure but this class will
@@ -400,6 +459,21 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function get_last_error() {
 		return $this->last_error;
+	}
+
+	/**
+	 * Returns context for why the parser aborted due to unsupported HTML, if it did.
+	 *
+	 * This is meant for debugging purposes, not for production use.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @see self::$unsupported_exception
+	 *
+	 * @return WP_HTML_Unsupported_Exception|null
+	 */
+	public function get_unsupported_exception() {
+		return $this->unsupported_exception;
 	}
 
 	/**
@@ -523,44 +597,46 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		if ( 'done' !== $this->has_seen_context_node && 0 === count( $this->element_queue ) && ! $this->step() ) {
-			while ( 'context-node' !== $this->state->stack_of_open_elements->current_node()->bookmark_name && $this->state->stack_of_open_elements->pop() ) {
-				continue;
-			}
-			$this->has_seen_context_node = 'done';
-			return $this->next_token();
+		/*
+		 * Prime the events if there are none.
+		 *
+		 * @todo In some cases, probably related to the adoption agency
+		 *       algorithm, this call to step() doesn't create any new
+		 *       events. Calling it again creates them. Figure out why
+		 *       this is and if it's inherent or if it's a bug. Looping
+		 *       until there are events or until there are no more
+		 *       tokens works in the meantime and isn't obviously wrong.
+		 */
+		while ( empty( $this->element_queue ) && $this->step() ) {
+			continue;
 		}
 
+		// Process the next event on the queue.
 		$this->current_element = array_shift( $this->element_queue );
-		while ( isset( $this->context_node ) && ! $this->has_seen_context_node ) {
-			if ( isset( $this->current_element ) ) {
-				if ( $this->context_node === $this->current_element->token && WP_HTML_Stack_Event::PUSH === $this->current_element->operation ) {
-					$this->has_seen_context_node = true;
-					return $this->next_token();
-				}
-			}
-			$this->current_element = array_shift( $this->element_queue );
-		}
-
 		if ( ! isset( $this->current_element ) ) {
-			if ( 'done' === $this->has_seen_context_node ) {
-				return false;
-			} else {
-				return $this->next_token();
-			}
-		}
-
-		if ( isset( $this->context_node ) && WP_HTML_Stack_Event::POP === $this->current_element->operation && $this->context_node === $this->current_element->token ) {
-			$this->element_queue   = array();
-			$this->current_element = null;
 			return false;
 		}
 
+		$is_pop = WP_HTML_Stack_Event::POP === $this->current_element->operation;
+
+		/*
+		 * The root node only exists in the fragment parser, and closing it
+		 * indicates that the parse is complete. Stop before popping if from
+		 * the breadcrumbs.
+		 */
+		if ( 'root-node' === $this->current_element->token->bookmark_name ) {
+			return ! $is_pop && $this->next_token();
+		}
+
+		// Adjust the breadcrumbs for this event.
+		if ( $is_pop ) {
+			array_pop( $this->breadcrumbs );
+		} else {
+			$this->breadcrumbs[] = $this->current_element->token->node_name;
+		}
+
 		// Avoid sending close events for elements which don't expect a closing.
-		if (
-			WP_HTML_Stack_Event::POP === $this->current_element->operation &&
-			! static::expects_closer( $this->current_element->token )
-		) {
+		if ( $is_pop && ! static::expects_closer( $this->current_element->token ) ) {
 			return $this->next_token();
 		}
 
@@ -643,10 +719,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+		for ( $i = count( $this->breadcrumbs ) - 1; $i >= 0; $i-- ) {
+			$node  = $this->breadcrumbs[ $i ];
 			$crumb = strtoupper( current( $breadcrumbs ) );
 
-			if ( '*' !== $crumb && $node->node_name !== $crumb ) {
+			if ( '*' !== $crumb && $node !== $crumb ) {
 				return false;
 			}
 
@@ -829,8 +906,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				// This should be unreachable but PHP doesn't have total type checking on switch.
 				default:
-					$this->last_error = self::ERROR_UNSUPPORTED;
-					throw new WP_HTML_Unsupported_Exception( "Found unrecognized insertion mode '{$this->state->insertion_mode}'." );
+					$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
 			}
 		} catch ( WP_HTML_Unsupported_Exception $e ) {
 			/*
@@ -862,46 +938,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string[]|null Array of tag names representing path to matched node, if matched, otherwise NULL.
 	 */
 	public function get_breadcrumbs() {
-		$breadcrumbs = array();
-
-		foreach ( $this->state->stack_of_open_elements->walk_down() as $stack_item ) {
-			$breadcrumbs[] = $stack_item->node_name;
-		}
-
-		if ( ! $this->is_virtual() ) {
-			return $breadcrumbs;
-		}
-
-		foreach ( $this->element_queue as $queue_item ) {
-			if ( $this->current_element->token->bookmark_name === $queue_item->token->bookmark_name ) {
-				break;
-			}
-
-			if ( 'context-node' === $queue_item->token->bookmark_name ) {
-				break;
-			}
-
-			if ( 'real' === $queue_item->provenance ) {
-				break;
-			}
-
-			if ( WP_HTML_Stack_Event::PUSH === $queue_item->operation ) {
-				$breadcrumbs[] = $queue_item->token->node_name;
-			} else {
-				array_pop( $breadcrumbs );
-			}
-		}
-
-		if ( null !== parent::get_token_name() && ! parent::is_tag_closer() ) {
-			array_pop( $breadcrumbs );
-		}
-
-		// Add the virtual node we're at.
-		if ( WP_HTML_Stack_Event::PUSH === $this->current_element->operation ) {
-			$breadcrumbs[] = $this->current_element->token->node_name;
-		}
-
-		return $breadcrumbs;
+		return $this->breadcrumbs;
 	}
 
 	/**
@@ -930,9 +967,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return int Nesting-depth of current location in the document.
 	 */
 	public function get_current_depth() {
-		return $this->is_virtual()
-			? count( $this->get_breadcrumbs() )
-			: $this->state->stack_of_open_elements->count();
+		return count( $this->breadcrumbs );
 	}
 
 	/**
@@ -951,8 +986,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_initial() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -971,8 +1005,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_before_html() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -991,8 +1024,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_before_head() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -1011,8 +1043,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_head() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -1031,8 +1062,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_head_noscript() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -1051,8 +1081,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_head() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -1474,8 +1503,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * >   than the end tag token that it actually is.
 			 */
 			case '-BR':
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( 'Closing BR tags require unimplemented special handling.' );
+				$this->bail( 'Closing BR tags require unimplemented special handling.' );
+				// This return required because PHPCS can't determine that the call to bail() throws.
+				return false;
 
 			/*
 			 * > A start tag whose tag name is one of: "area", "br", "embed", "img", "keygen", "wbr"
@@ -1631,8 +1661,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'TITLE':
 			case 'TR':
 			case 'XMP':
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( "Cannot process {$token_name} element." );
+				$this->bail( "Cannot process {$token_name} element." );
 		}
 
 		if ( ! parent::is_tag_closer() ) {
@@ -1694,8 +1723,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_table() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -1714,8 +1742,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_table_text() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -1734,8 +1761,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_caption() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -1754,8 +1780,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_column_group() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -1774,8 +1799,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_table_body() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -1794,8 +1818,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_row() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -1814,8 +1837,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_cell() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -2015,8 +2037,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_select_in_table() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -2035,8 +2056,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_template() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -2055,8 +2075,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_body() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -2075,8 +2094,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_frameset() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -2095,8 +2113,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_frameset() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -2115,8 +2132,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_after_body() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -2135,8 +2151,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_after_frameset() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -2155,8 +2170,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_foreign_content() {
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/*
@@ -2552,7 +2566,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			? $this->bookmarks[ $this->state->current_token->bookmark_name ]->start
 			: 0;
 		$bookmark_starts_at   = $this->bookmarks[ $actual_bookmark_name ]->start;
-		$bookmark_length      = $this->bookmarks[ $actual_bookmark_name ]->length;
 		$direction            = $bookmark_starts_at > $processor_started_at ? 'forward' : 'backward';
 
 		/*
@@ -2610,6 +2623,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$this->state->frameset_ok    = true;
 			$this->element_queue         = array();
 			$this->current_element       = null;
+
+			if ( isset( $this->context_node ) ) {
+				$this->breadcrumbs = array_slice( $this->breadcrumbs, 0, 2 );
+			} else {
+				$this->breadcrumbs = array();
+			}
 		}
 
 		// When moving forwards, reparse the document until reaching the same location as the original bookmark.
@@ -2859,8 +2878,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( 'Cannot reconstruct active formatting elements when advancing and rewinding is required.' );
+		$this->bail( 'Cannot reconstruct active formatting elements when advancing and rewinding is required.' );
 	}
 
 	/**
@@ -3096,8 +3114,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			// > If there is no such element, then return and instead act as described in the "any other end tag" entry above.
 			if ( null === $formatting_element ) {
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( 'Cannot run adoption agency when "any other end tag" is required.' );
+				$this->bail( 'Cannot run adoption agency when "any other end tag" is required.' );
 			}
 
 			// > If formatting element is not in the stack of open elements, then this is a parse error; remove the element from the list, and return.
@@ -3149,12 +3166,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 
-			$this->last_error = self::ERROR_UNSUPPORTED;
-			throw new WP_HTML_Unsupported_Exception( 'Cannot extract common ancestor in adoption agency algorithm.' );
+			$this->bail( 'Cannot extract common ancestor in adoption agency algorithm.' );
 		}
 
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( 'Cannot run adoption agency when looping required.' );
+		$this->bail( 'Cannot run adoption agency when looping required.' );
 	}
 
 	/**
