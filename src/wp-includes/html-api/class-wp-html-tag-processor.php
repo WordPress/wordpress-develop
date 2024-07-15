@@ -762,7 +762,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $html HTML to process.
 	 */
-	public function __construct( string $html ) {
+	public function __construct( $html ) {
 		$this->html = $html;
 	}
 
@@ -1112,7 +1112,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
 	 */
-	public function has_class( string $wanted_class ): ?bool {
+	public function has_class( $wanted_class ): ?bool {
 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
 			return null;
 		}
@@ -1209,7 +1209,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $name Identifies this particular bookmark.
 	 * @return bool Whether the bookmark was successfully created.
 	 */
-	public function set_bookmark( string $name ): bool {
+	public function set_bookmark( $name ): bool {
 		// It only makes sense to set a bookmark if the parser has paused on a concrete token.
 		if (
 			self::STATE_COMPLETE === $this->parser_state ||
@@ -1242,7 +1242,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $name Name of the bookmark to remove.
 	 * @return bool Whether the bookmark already existed before removal.
 	 */
-	public function release_bookmark( string $name ): bool {
+	public function release_bookmark( $name ): bool {
 		if ( ! array_key_exists( $name, $this->bookmarks ) ) {
 			return false;
 		}
@@ -2351,7 +2351,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Name to identify a bookmark that potentially exists.
 	 * @return bool Whether that bookmark exists.
 	 */
-	public function has_bookmark( string $bookmark_name ): bool {
+	public function has_bookmark( $bookmark_name ): bool {
 		return array_key_exists( $bookmark_name, $this->bookmarks );
 	}
 
@@ -2366,7 +2366,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
 	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
 	 */
-	public function seek( string $bookmark_name ): bool {
+	public function seek( $bookmark_name ): bool {
 		if ( ! array_key_exists( $bookmark_name, $this->bookmarks ) ) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -2506,7 +2506,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $name Name of attribute whose value is requested.
 	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
 	 */
-	public function get_attribute( string $name ) {
+	public function get_attribute( $name ) {
 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
 			return null;
 		}
@@ -2586,7 +2586,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $prefix Prefix of requested attribute names.
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
 	 */
-	public function get_attribute_names_with_prefix( string $prefix ): ?array {
+	public function get_attribute_names_with_prefix( $prefix ): ?array {
 		if (
 			self::STATE_MATCHED_TAG !== $this->parser_state ||
 			$this->is_closing_tag
@@ -2897,7 +2897,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string|bool $value The new attribute value.
 	 * @return bool Whether an attribute value was set.
 	 */
-	public function set_attribute( string $name, $value ): bool {
+	public function set_attribute( $name, $value ): bool {
 		if (
 			self::STATE_MATCHED_TAG !== $this->parser_state ||
 			$this->is_closing_tag
@@ -3040,7 +3040,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $name The attribute name to remove.
 	 * @return bool Whether an attribute was removed.
 	 */
-	public function remove_attribute( string $name ): bool {
+	public function remove_attribute( $name ): bool {
 		if (
 			self::STATE_MATCHED_TAG !== $this->parser_state ||
 			$this->is_closing_tag
@@ -3118,7 +3118,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $class_name The class name to add.
 	 * @return bool Whether the class was set to be added.
 	 */
-	public function add_class( string $class_name ): bool {
+	public function add_class( $class_name ): bool {
 		if (
 			self::STATE_MATCHED_TAG !== $this->parser_state ||
 			$this->is_closing_tag
@@ -3139,7 +3139,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $class_name The class name to remove.
 	 * @return bool Whether the class was set to be removed.
 	 */
-	public function remove_class( string $class_name ): bool {
+	public function remove_class( $class_name ): bool {
 		if (
 			self::STATE_MATCHED_TAG !== $this->parser_state ||
 			$this->is_closing_tag
