@@ -5479,12 +5479,15 @@ function _wp_add_additional_image_sizes() {
  * Callback to enable showing of the user error when uploading .heic images.
  *
  * @since 5.5.0
+ * @since 6.7.0 Error is only shown if HEIC auto-conversion is disabled.
  *
  * @param array[] $plupload_settings The settings for Plupload.js.
  * @return array[] Modified settings for Plupload.js.
  */
 function wp_show_heic_upload_error( $plupload_settings ) {
-	$plupload_settings['heic_upload_error'] = true;
+	if ( ! has_filter( 'wp_handle_upload_prefilter', 'wp_auto_convert_heic_images' ) ) {
+		$plupload_settings['heic_upload_error'] = true;
+	}
 	return $plupload_settings;
 }
 
@@ -6064,4 +6067,64 @@ function wp_high_priority_element_flag( $value = null ) {
 	}
 
 	return $high_priority_element;
+}
+
+/**
+ * Replaces HEIC image files with a JPEG version during upload. This function
+ * is hooked into the 'wp_handle_upload_prefilter' filter.
+ *
+ * Implementation is based on the HEIC Support plugin written by Corey Salzano
+ * <csalzano@duck.com> and available at: https://wordpress.org/plugins/heic-support/
+ *
+ * @since 6.7.0
+ * @access private
+ *
+ * @param array $file Reference to a single element from `$_FILES`.
+ * @return array The modified file array.
+ */
+function wp_auto_convert_heic_images( $file ) {
+	// Does $file look like an uploaded file?
+	if ( empty( $file['tmp_name'] ) || empty( $file['name'] ) ) {
+		return $file;
+	}
+
+	// Is this image even an heic?
+	$wp_filetype = wp_check_filetype_and_ext( $file['tmp_name'], $file['name'] );
+	if ( empty( $wp_filetype['type'] ) || 'image/heic' !== $wp_filetype['type'] ) {
+		return $file;
+	}
+
+	// Is ImageMagick available?
+	if ( ! class_exists( 'Imagick' ) ) {
+		return $file;
+	}
+
+	// Is HEIC supported by ImageMagick?
+	if ( empty( Imagick::queryFormats( 'HEIC' ) ) ) {
+		return $file;
+	}
+
+	$imagick = new Imagick();
+	try {
+		if ( $imagick->readImage( $file['tmp_name'] ) ) {
+			$imagick->setImageFormat( 'jpeg' );
+			$file['type'] = 'image/jpeg';
+			$file['name'] = preg_replace( '/\.heic$/i', '', $file['name'] ) . '.jpeg';
+			$imagick->writeImage( $file['tmp_name'] );
+			$file['size'] = wp_filesize( $file['tmp_name'] );
+		}
+	} catch ( ImagickException $ie ) {
+		error_log(
+			sprintf(
+				/* translators: 1: File name, 2: Error code, 3: Error message */
+				__( 'ImageMagick error while converting HEIC image: %1$s, Error code: %2$s, Error message: %3$s' ),
+				$file['tmp_name'],
+				$ie->getCode(),
+				$ie->getMessage()
+			)
+		);
+		return $file;
+	}
+
+	return $file;
 }
