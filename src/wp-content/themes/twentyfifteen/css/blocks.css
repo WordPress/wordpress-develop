@@ -383,9 +383,15 @@ p.has-drop-cap:not(:focus)::first-letter {
 /* Table */
 
 .wp-block-table th,
-.wp-block-table td {
+.wp-block-table td,
+.wp-block-table.is-style-stripes th,
+.wp-block-table.is-style-stripes td {
 	border-color: #eaeaea;
 	border-width: 0 1px 1px 0;
+}
+
+figure.wp-block-table.is-style-stripes {
+	border-width: 0;
 }
 
 /*--------------------------------------------------------------
