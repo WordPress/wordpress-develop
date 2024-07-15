@@ -23,29 +23,10 @@ class Tests_HtmlApi_WpHtmlProcessorComments extends WP_UnitTestCase {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 		$processor->next_token();
 
-		$this->assertSame(
-			$expected_token_name,
-			$processor->get_token_name(),
-			"Found incorrect token name {$processor->get_token_name()}."
-		);
-
-		$this->assertSame(
-			$expected_comment_type,
-			$processor->get_comment_type(),
-			"Found incorrect comment type {$processor->get_comment_type()}."
-		);
-
-		$this->assertSame(
-			$expected_modifiable_text,
-			$processor->get_modifiable_text(),
-			'Found incorrect modifiable text.'
-		);
-
-		$this->assertSame(
-			$expected_tag,
-			$processor->get_tag(),
-			"Found incorrect comment \"tag\" {$processor->get_tag()}."
-		);
+		$this->assertSame( $expected_token_name, $processor->get_token_name() );
+		$this->assertSame( $expected_comment_type, $processor->get_comment_type() );
+		$this->assertSame( $expected_modifiable_text, $processor->get_modifiable_text() );
+		$this->assertSame( $expected_tag, $processor->get_tag() );
 	}
 
 	/**
