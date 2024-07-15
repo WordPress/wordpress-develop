@@ -403,8 +403,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @param string $message Explains support is missing in order to parse the current node.
-	 *
-	 * @return mixed
 	 */
 	private function bail( string $message ) {
 		$here  = $this->bookmarks[ $this->state->current_token->bookmark_name ];
@@ -985,7 +983,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_initial() {
+	private function step_initial(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -1004,7 +1002,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_before_html() {
+	private function step_before_html(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -1023,7 +1021,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_before_head() {
+	private function step_before_head(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -1042,7 +1040,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_head() {
+	private function step_in_head(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -1061,7 +1059,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_head_noscript() {
+	private function step_in_head_noscript(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -1080,7 +1078,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_after_head() {
+	private function step_after_head(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -1722,7 +1720,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_table() {
+	private function step_in_table(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -1741,7 +1739,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_table_text() {
+	private function step_in_table_text(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -1760,7 +1758,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_caption() {
+	private function step_in_caption(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -1779,7 +1777,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_column_group() {
+	private function step_in_column_group(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -1798,7 +1796,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_table_body() {
+	private function step_in_table_body(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -1817,7 +1815,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_row() {
+	private function step_in_row(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -1836,7 +1834,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_cell() {
+	private function step_in_cell(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -1855,7 +1853,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_select() {
+	private function step_in_select(): bool {
 		$token_name = $this->get_token_name();
 		$token_type = $this->get_token_type();
 		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
@@ -2036,7 +2034,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_select_in_table() {
+	private function step_in_select_in_table(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -2055,7 +2053,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_template() {
+	private function step_in_template(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -2074,7 +2072,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_after_body() {
+	private function step_after_body(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -2093,7 +2091,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_frameset() {
+	private function step_in_frameset(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -2112,7 +2110,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_after_frameset() {
+	private function step_after_frameset(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -2131,7 +2129,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_after_after_body() {
+	private function step_after_after_body(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -2150,7 +2148,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_after_after_frameset() {
+	private function step_after_after_frameset(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
@@ -2169,7 +2167,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_foreign_content() {
+	private function step_in_foreign_content(): bool {
 		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
