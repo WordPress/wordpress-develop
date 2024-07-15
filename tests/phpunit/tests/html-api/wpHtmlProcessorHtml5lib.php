@@ -275,7 +275,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		/**
 		 * Represents which section of the test case is being parsed.
 		 *
-		 * @var ?string
+		 * @var string|null
 		 */
 		$state = null;
 

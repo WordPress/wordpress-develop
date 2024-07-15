@@ -241,14 +241,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @var ?WP_HTML_Stack_Event
+	 * @var WP_HTML_Stack_Event|null
 	 */
 	private $current_element = null;
 
 	/**
 	 * Context node if created as a fragment parser.
 	 *
-	 * @var ?WP_HTML_Token
+	 * @var WP_HTML_Token|null
 	 */
 	private $context_node = null;
 
