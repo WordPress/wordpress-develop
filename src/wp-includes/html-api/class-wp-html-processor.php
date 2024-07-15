@@ -184,7 +184,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @var ?string
+	 * @var string|null
 	 */
 	private $last_error = null;
 
@@ -208,7 +208,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @var ?Closure
+	 * @var Closure|null
 	 */
 	private $release_internal_bookmark_on_destruct = null;
 

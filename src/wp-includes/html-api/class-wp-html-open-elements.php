@@ -58,7 +58,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @var ?Closure
+	 * @var Closure|null
 	 */
 	private $pop_handler = null;
 
@@ -69,7 +69,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @var ?Closure
+	 * @var Closure|null
 	 */
 	private $push_handler = null;
 
