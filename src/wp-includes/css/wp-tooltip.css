@@ -14,6 +14,11 @@
 	cursor: pointer;
 }
 
+.wp-tooltip-button-span {
+	vertical-align: top;
+    text-align: center;
+}
+
 .wp-tooltip-content {
 	display: none;
 	position: absolute;
