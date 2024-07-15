@@ -4519,7 +4519,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		$post_name = wp_add_trashed_suffix_to_post_name_for_post( $post_id );
 	}
 
-	$post_name = wp_unique_post_slug( $post_name, $post_id, $post_status, $post_type, $post_parent );
+	$post_name = wp_unique_post_slug( $post_name, $post_id, $post_status, $post_type, $post_parent, $postarr['file'] ?? null );
 
 	// Don't unslash.
 	$post_mime_type = isset( $postarr['post_mime_type'] ) ? $postarr['post_mime_type'] : '';
@@ -5155,9 +5155,10 @@ function wp_resolve_post_date( $post_date = '', $post_date_gmt = '' ) {
  * @param string $post_status No uniqueness checks are made if the post is still draft or pending.
  * @param string $post_type   Post type.
  * @param int    $post_parent Post parent ID.
+ * @param string $file        The file path (optional).
  * @return string Unique slug for the post, based on $post_name (with a -1, -2, etc. suffix)
  */
-function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_parent ) {
+function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_parent, $file = null ) {
 	if ( in_array( $post_status, array( 'draft', 'pending', 'auto-draft' ), true )
 		|| ( 'inherit' === $post_status && 'revision' === $post_type ) || 'user_request' === $post_type
 	) {
@@ -5194,9 +5195,12 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 	}
 
 	if ( 'attachment' === $post_type ) {
+		// Extracting the file extension.
+		$file_extension = $file ? pathinfo( $file, PATHINFO_EXTENSION ) : null;
+
 		// Attachment slugs must be unique across all types.
 		$check_sql       = "SELECT post_name FROM $wpdb->posts WHERE post_name = %s AND ID != %d LIMIT 1";
-		$slug            = "$post_type-" . $slug;
+		$slug            = ( $file_extension && ! empty( $file_extension ) ) ? $slug . "-$file_extension" : $slug . "-$post_type";
 		$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $slug, $post_id ) );
 
 		/**
