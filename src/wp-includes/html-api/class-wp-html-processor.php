@@ -1626,6 +1626,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'TH':
 			case 'THEAD':
 			case 'TR':
+				// @todo Indicate a parse error once it's possible.
 				return $this->step();
 		}
 
@@ -1766,7 +1767,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A DOCTYPE token
 			 */
 			case 'html':
-				// Parse error. Ignore the token.
+				// @todo Indicate a parse error once it's possible.
 				return $this->step();
 
 			/*
@@ -1840,7 +1841,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-TABLE':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TABLE' ) ) {
-					// parse error
+					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
 				$this->state->stack_of_open_elements->pop_until( 'TABLE' );
@@ -1861,7 +1862,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TH':
 			case '-THEAD':
 			case '-TR':
-				// parse error
+				// @todo Indicate a parse error once it's possible.
 				return $this->step();
 
 			/*
@@ -1887,7 +1888,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( ! is_string( $type_attribute ) || 'hidden' !== strtolower( $type_attribute ) ) {
 					break;
 				}
-				// parse error
+				// @todo Indicate a parse error once it's possible.
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -1912,6 +1913,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Anything else
 		 * > Parse error. Enable foster parenting, process the token using the rules for the
 		 * > "in body" insertion mode, and then disable foster parenting.
+		 *
+		 * @todo Indicate a parse error once it's possible.
 		 */
 		$this->bail( 'Foster parenting is not supported.' );
 	}
