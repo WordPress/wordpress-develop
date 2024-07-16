@@ -391,6 +391,17 @@ class WP_HTML_Processor_State {
 	public $head_element = null;
 
 	/**
+	 * FORM element pointer.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#form-element-pointer
+	 *
+	 * @var WP_HTML_Token|null
+	 */
+	public $form_element = null;
+
+	/**
 	 * The frameset-ok flag indicates if a `FRAMESET` element is allowed in the current state.
 	 *
 	 * > The frameset-ok flag is set to "ok" when the parser is created. It is set to "not ok" after certain tokens are seen.

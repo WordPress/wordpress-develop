@@ -1896,12 +1896,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+FORM':
 				if (
 					$this->state->stack_of_open_elements->has_element_in_scope( 'TEMPLATE' ) ||
-					$this->has_element_pointer( 'FORM' )
+					isset( $this->state->form_element )
 				) {
 					return $this->step();
 				}
 				$this->insert_html_element( $this->state->current_token );
-				$this->set_element_pointer( 'FORM' );
+				$this->state->form_element = $this->state->current_token;
 				return true;
 		}
 
@@ -3180,14 +3180,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function has_bookmark( $bookmark_name ) {
 		return parent::has_bookmark( "_{$bookmark_name}" );
-	}
-
-	private function set_element_pointer( string $tag_name ) {
-		return parent::set_bookmark( "element_pointer_{$tag_name}" );
-	}
-
-	private function has_element_pointer( string $tag_name ) {
-		return parent::has_bookmark( "element_pointer_{$tag_name}" );
 	}
 
 	/*
