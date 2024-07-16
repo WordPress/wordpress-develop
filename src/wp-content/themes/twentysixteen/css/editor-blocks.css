@@ -27,6 +27,10 @@ Description: Used to style blocks in the editor.
 	line-height: 1.75;
 }
 
+.rtl .editor-styles-wrapper {
+	font-family: Arial, Tahoma, sans-serif;
+}
+
 .edit-post-visual-editor .editor-block-list__block {
 	color: #1a1a1a;
 }
@@ -262,16 +266,12 @@ Description: Used to style blocks in the editor.
 
 /* Captions */
 
-[class^="wp-block-"] figcaption {
+figure[class*="wp-block-"] > figcaption {
 	color: #686868;
 	font-style: italic;
 	line-height: 1.6153846154;
 	padding-top: 0.5384615385em;
-	text-align: left;
-}
-
-.rtl [class^="wp-block-"] figcaption {
-	text-align: right;
+	text-align: start;
 }
 
 /*--------------------------------------------------------------
@@ -499,10 +499,15 @@ Description: Used to style blocks in the editor.
 
 /* Pullquote */
 
-.editor-block-list__block .wp-block-pullquote blockquote {
+.editor-styles-wrapper .wp-block-pullquote blockquote {
 	border: 0;
 	margin: 0;
 	padding: 0;
+}
+
+.editor-styles-wrapper .wp-block-pullquote:where([style*="border-width"]) blockquote {
+	padding-left: 1rem;
+	padding-right: 1rem;
 }
 
 .wp-block-pullquote blockquote > .editor-rich-text p {
@@ -555,18 +560,17 @@ Description: Used to style blocks in the editor.
 
 /* Buttons */
 
-.wp-block-button .wp-block-button__link {
-	font-family: Montserrat, "Helvetica Neue", sans-serif;
+.wp-block-buttons {
 	font-weight: 700;
 	letter-spacing: 0.046875em;
 	line-height: 1;
-	padding: 0.84375em 1.3125em 0.78125em;
 	text-transform: uppercase;
 }
 
-.wp-block-buttons[style*="text-transform"] .wp-block-button__link,
-.wp-block-button[style*="text-transform"] .wp-block-button__link {
-	text-transform: inherit;
+.wp-block-button .wp-block-button__link {
+	box-shadow: none;
+	font-family: Montserrat, "Helvetica Neue", sans-serif;
+	padding: 0.84375em 1.3125em 0.78125em;
 }
 
 .wp-block-button__link {

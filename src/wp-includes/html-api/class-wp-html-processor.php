@@ -101,7 +101,7 @@
  *
  *  - Containers: ADDRESS, BLOCKQUOTE, DETAILS, DIALOG, DIV, FOOTER, HEADER, MAIN, MENU, SPAN, SUMMARY.
  *  - Custom elements: All custom elements are supported. :)
- *  - Form elements: BUTTON, DATALIST, FIELDSET, INPUT, LABEL, LEGEND, METER, PROGRESS, SEARCH.
+ *  - Form elements: BUTTON, DATALIST, FIELDSET, INPUT, LABEL, LEGEND, METER, OPTGROUP, OPTION, PROGRESS, SEARCH, SELECT.
  *  - Formatting elements: B, BIG, CODE, EM, FONT, I, PRE, SMALL, STRIKE, STRONG, TT, U, WBR.
  *  - Heading elements: H1, H2, H3, H4, H5, H6, HGROUP.
  *  - Links: A.
@@ -189,6 +189,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private $last_error = null;
 
 	/**
+	 * Stores context for why the parser bailed on unsupported HTML, if it did.
+	 *
+	 * @see self::get_unsupported_exception
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var WP_HTML_Unsupported_Exception|null
+	 */
+	private $unsupported_exception = null;
+
+	/**
 	 * Releases a bookmark when PHP garbage-collects its wrapping WP_HTML_Token instance.
 	 *
 	 * This function is created inside the class constructor so that it can be passed to
@@ -210,6 +221,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @var WP_HTML_Stack_Event[]
 	 */
 	private $element_queue = array();
+
+	/**
+	 * Stores the current breadcrumbs.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string[]
+	 */
+	private $breadcrumbs = array();
 
 	/**
 	 * Current stack event, if set, representing a matched token.
@@ -310,8 +330,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			false
 		);
 
-		$processor->state->stack_of_open_elements->push( $context_node );
 		$processor->context_node = $context_node;
+		$processor->breadcrumbs  = array( 'HTML', $context_node->node_name );
 
 		return $processor;
 	}
@@ -376,6 +396,45 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Stops the parser and terminates its execution when encountering unsupported markup.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception Halts execution of the parser.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $message Explains support is missing in order to parse the current node.
+	 *
+	 * @return mixed
+	 */
+	private function bail( string $message ) {
+		$here  = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+		$token = substr( $this->html, $here->start, $here->length );
+
+		$open_elements = array();
+		foreach ( $this->state->stack_of_open_elements->stack as $item ) {
+			$open_elements[] = $item->node_name;
+		}
+
+		$active_formats = array();
+		foreach ( $this->state->active_formatting_elements->walk_down() as $item ) {
+			$active_formats[] = $item->node_name;
+		}
+
+		$this->last_error = self::ERROR_UNSUPPORTED;
+
+		$this->unsupported_exception = new WP_HTML_Unsupported_Exception(
+			$message,
+			$this->state->current_token->node_name,
+			$here->start,
+			$token,
+			$open_elements,
+			$active_formats
+		);
+
+		throw $this->unsupported_exception;
+	}
+
+	/**
 	 * Returns the last error, if any.
 	 *
 	 * Various situations lead to parsing failure but this class will
@@ -400,6 +459,21 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function get_last_error() {
 		return $this->last_error;
+	}
+
+	/**
+	 * Returns context for why the parser aborted due to unsupported HTML, if it did.
+	 *
+	 * This is meant for debugging purposes, not for production use.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @see self::$unsupported_exception
+	 *
+	 * @return WP_HTML_Unsupported_Exception|null
+	 */
+	public function get_unsupported_exception() {
+		return $this->unsupported_exception;
 	}
 
 	/**
@@ -466,6 +540,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					continue;
 				}
 
+				if ( isset( $query['tag_name'] ) && $query['tag_name'] !== $this->get_token_name() ) {
+					continue;
+				}
+
 				if ( isset( $needs_class ) && ! $this->has_class( $needs_class ) ) {
 					continue;
 				}
@@ -519,38 +597,46 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		if ( 0 === count( $this->element_queue ) && ! $this->step() ) {
-			while ( $this->state->stack_of_open_elements->pop() ) {
-				continue;
-			}
+		/*
+		 * Prime the events if there are none.
+		 *
+		 * @todo In some cases, probably related to the adoption agency
+		 *       algorithm, this call to step() doesn't create any new
+		 *       events. Calling it again creates them. Figure out why
+		 *       this is and if it's inherent or if it's a bug. Looping
+		 *       until there are events or until there are no more
+		 *       tokens works in the meantime and isn't obviously wrong.
+		 */
+		while ( empty( $this->element_queue ) && $this->step() ) {
+			continue;
 		}
 
+		// Process the next event on the queue.
 		$this->current_element = array_shift( $this->element_queue );
-		while ( isset( $this->context_node ) && ! $this->has_seen_context_node ) {
-			if ( isset( $this->current_element ) ) {
-				if ( $this->context_node === $this->current_element->token && WP_HTML_Stack_Event::PUSH === $this->current_element->operation ) {
-					$this->has_seen_context_node = true;
-					return $this->next_token();
-				}
-			}
-			$this->current_element = array_shift( $this->element_queue );
-		}
-
 		if ( ! isset( $this->current_element ) ) {
-			return $this->next_token();
-		}
-
-		if ( isset( $this->context_node ) && WP_HTML_Stack_Event::POP === $this->current_element->operation && $this->context_node === $this->current_element->token ) {
-			$this->element_queue   = array();
-			$this->current_element = null;
 			return false;
 		}
 
+		$is_pop = WP_HTML_Stack_Event::POP === $this->current_element->operation;
+
+		/*
+		 * The root node only exists in the fragment parser, and closing it
+		 * indicates that the parse is complete. Stop before popping if from
+		 * the breadcrumbs.
+		 */
+		if ( 'root-node' === $this->current_element->token->bookmark_name ) {
+			return ! $is_pop && $this->next_token();
+		}
+
+		// Adjust the breadcrumbs for this event.
+		if ( $is_pop ) {
+			array_pop( $this->breadcrumbs );
+		} else {
+			$this->breadcrumbs[] = $this->current_element->token->node_name;
+		}
+
 		// Avoid sending close events for elements which don't expect a closing.
-		if (
-			WP_HTML_Stack_Event::POP === $this->current_element->operation &&
-			! static::expects_closer( $this->current_element->token )
-		) {
+		if ( $is_pop && ! static::expects_closer( $this->current_element->token ) ) {
 			return $this->next_token();
 		}
 
@@ -633,10 +719,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+		for ( $i = count( $this->breadcrumbs ) - 1; $i >= 0; $i-- ) {
+			$node  = $this->breadcrumbs[ $i ];
 			$crumb = strtoupper( current( $breadcrumbs ) );
 
-			if ( '*' !== $crumb && $node->node_name !== $crumb ) {
+			if ( '*' !== $crumb && $node !== $crumb ) {
 				return false;
 			}
 
@@ -748,12 +835,78 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		try {
 			switch ( $this->state->insertion_mode ) {
+				case WP_HTML_Processor_State::INSERTION_MODE_INITIAL:
+					return $this->step_initial();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML:
+					return $this->step_before_html();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD:
+					return $this->step_before_head();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD:
+					return $this->step_in_head();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD_NOSCRIPT:
+					return $this->step_in_head_noscript();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD:
+					return $this->step_after_head();
+
 				case WP_HTML_Processor_State::INSERTION_MODE_IN_BODY:
 					return $this->step_in_body();
 
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE:
+					return $this->step_in_table();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_TEXT:
+					return $this->step_in_table_text();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION:
+					return $this->step_in_caption();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP:
+					return $this->step_in_column_group();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY:
+					return $this->step_in_table_body();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_ROW:
+					return $this->step_in_row();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_CELL:
+					return $this->step_in_cell();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT:
+					return $this->step_in_select();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE:
+					return $this->step_in_select_in_table();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE:
+					return $this->step_in_template();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY:
+					return $this->step_after_body();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_FRAMESET:
+					return $this->step_in_frameset();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_FRAMESET:
+					return $this->step_after_frameset();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY:
+					return $this->step_after_after_body();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET:
+					return $this->step_after_after_frameset();
+
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_FOREIGN_CONTENT:
+					return $this->step_in_foreign_content();
+
+				// This should be unreachable but PHP doesn't have total type checking on switch.
 				default:
-					$this->last_error = self::ERROR_UNSUPPORTED;
-					throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+					$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
 			}
 		} catch ( WP_HTML_Unsupported_Exception $e ) {
 			/*
@@ -782,17 +935,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @todo make aware of queue of elements, because stack operations have already been done by now.
-	 *
 	 * @return string[]|null Array of tag names representing path to matched node, if matched, otherwise NULL.
 	 */
 	public function get_breadcrumbs() {
-		$breadcrumbs = array();
-		foreach ( $this->state->stack_of_open_elements->walk_down() as $stack_item ) {
-			$breadcrumbs[] = $stack_item->node_name;
-		}
-
-		return $breadcrumbs;
+		return $this->breadcrumbs;
 	}
 
 	/**
@@ -821,7 +967,121 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return int Nesting-depth of current location in the document.
 	 */
 	public function get_current_depth() {
-		return $this->state->stack_of_open_elements->count();
+		return count( $this->breadcrumbs );
+	}
+
+	/**
+	 * Parses next element in the 'initial' insertion mode.
+	 *
+	 * This internal function performs the 'initial' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#the-initial-insertion-mode
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_initial() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'before html' insertion mode.
+	 *
+	 * This internal function performs the 'before html' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#the-before-html-insertion-mode
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_before_html() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'before head' insertion mode.
+	 *
+	 * This internal function performs the 'before head' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#the-before-head-insertion-mode
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_before_head() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'in head' insertion mode.
+	 *
+	 * This internal function performs the 'in head' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inhead
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_head() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'in head noscript' insertion mode.
+	 *
+	 * This internal function performs the 'in head noscript' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-inheadnoscript
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_head_noscript() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'after head' insertion mode.
+	 *
+	 * This internal function performs the 'after head' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#the-after-head-insertion-mode
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_after_head() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/**
@@ -989,7 +1249,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				$this->generate_implied_end_tags();
-				if ( $this->state->stack_of_open_elements->current_node()->node_name !== $token_name ) {
+				if ( ! $this->state->stack_of_open_elements->current_node_is( $token_name ) ) {
 					// @todo Record parse error: this error doesn't impact parsing.
 				}
 				$this->state->stack_of_open_elements->pop_until( $token_name );
@@ -1054,7 +1314,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				$this->generate_implied_end_tags();
 
-				if ( $this->state->stack_of_open_elements->current_node()->node_name !== $token_name ) {
+				if ( ! $this->state->stack_of_open_elements->current_node_is( $token_name ) ) {
 					// @todo Record parse error: this error doesn't impact parsing.
 				}
 
@@ -1080,7 +1340,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( $is_li ? 'LI' === $node->node_name : ( 'DD' === $node->node_name || 'DT' === $node->node_name ) ) {
 					$node_name = $is_li ? 'LI' : $node->node_name;
 					$this->generate_implied_end_tags( $node_name );
-					if ( $node_name !== $this->state->stack_of_open_elements->current_node()->node_name ) {
+					if ( ! $this->state->stack_of_open_elements->current_node_is( $node_name ) ) {
 						// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
 					}
 
@@ -1157,7 +1417,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				$this->generate_implied_end_tags( $token_name );
 
-				if ( $token_name !== $this->state->stack_of_open_elements->current_node()->node_name ) {
+				if ( ! $this->state->stack_of_open_elements->current_node_is( $token_name ) ) {
 					// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
 				}
 
@@ -1243,8 +1503,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * >   than the end tag token that it actually is.
 			 */
 			case '-BR':
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( 'Closing BR tags require unimplemented special handling.' );
+				$this->bail( 'Closing BR tags require unimplemented special handling.' );
+				// This return required because PHPCS can't determine that the call to bail() throws.
+				return false;
 
 			/*
 			 * > A start tag whose tag name is one of: "area", "br", "embed", "img", "keygen", "wbr"
@@ -1296,6 +1557,48 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TRACK':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
+
+			/*
+			 * > A start tag whose tag name is "select"
+			 */
+			case '+SELECT':
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->frameset_ok = false;
+
+				switch ( $this->state->insertion_mode ) {
+					/*
+					 * > If the insertion mode is one of "in table", "in caption", "in table body", "in row",
+					 * > or "in cell", then switch the insertion mode to "in select in table".
+					 */
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE:
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION:
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY:
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_ROW:
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_CELL:
+						$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE;
+						break;
+
+					/*
+					 * > Otherwise, switch the insertion mode to "in select".
+					 */
+					default:
+						$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT;
+						break;
+				}
+				return true;
+
+			/*
+			 * > A start tag whose tag name is one of: "optgroup", "option"
+			 */
+			case '+OPTGROUP':
+			case '+OPTION':
+				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
+					$this->state->stack_of_open_elements->pop();
+				}
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				return true;
 		}
 
 		/*
@@ -1338,8 +1641,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'NOFRAMES':
 			case 'NOSCRIPT':
 			case 'OBJECT':
-			case 'OPTGROUP':
-			case 'OPTION':
 			case 'PLAINTEXT':
 			case 'RB':
 			case 'RP':
@@ -1347,7 +1648,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'RTC':
 			case 'SARCASM':
 			case 'SCRIPT':
-			case 'SELECT':
 			case 'STYLE':
 			case 'SVG':
 			case 'TABLE':
@@ -1361,8 +1661,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'TITLE':
 			case 'TR':
 			case 'XMP':
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( "Cannot process {$token_name} element." );
+				$this->bail( "Cannot process {$token_name} element." );
 		}
 
 		if ( ! parent::is_tag_closer() ) {
@@ -1406,6 +1705,472 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Parses next element in the 'in table' insertion mode.
+	 *
+	 * This internal function performs the 'in table' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-intable
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_table() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'in table text' insertion mode.
+	 *
+	 * This internal function performs the 'in table text' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-intabletext
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_table_text() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'in caption' insertion mode.
+	 *
+	 * This internal function performs the 'in caption' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-incaption
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_caption() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'in column group' insertion mode.
+	 *
+	 * This internal function performs the 'in column group' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-incolgroup
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_column_group() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'in table body' insertion mode.
+	 *
+	 * This internal function performs the 'in table body' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-intbody
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_table_body() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'in row' insertion mode.
+	 *
+	 * This internal function performs the 'in row' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-intr
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_row() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'in cell' insertion mode.
+	 *
+	 * This internal function performs the 'in cell' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-intd
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_cell() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'in select' insertion mode.
+	 *
+	 * This internal function performs the 'in select' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inselect
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_select() {
+		$token_name = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$token_name}";
+
+		switch ( $op ) {
+			/*
+			 * > Any other character token
+			 */
+			case '#text':
+				$current_token = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+
+				/*
+				 * > A character token that is U+0000 NULL
+				 *
+				 * If a text node only comprises null bytes then it should be
+				 * entirely ignored and should not return to calling code.
+				 */
+				if (
+					1 <= $current_token->length &&
+					"\x00" === $this->html[ $current_token->start ] &&
+					strspn( $this->html, "\x00", $current_token->start, $current_token->length ) === $current_token->length
+				) {
+					// Parse error: ignore the token.
+					return $this->step();
+				}
+
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > A start tag whose tag name is "option"
+			 */
+			case '+OPTION':
+				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
+					$this->state->stack_of_open_elements->pop();
+				}
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "optgroup"
+			 * > A start tag whose tag name is "hr"
+			 *
+			 * These rules are identical except for the treatment of the self-closing flag and
+			 * the subsequent pop of the HR void element, all of which is handled elsewhere in the processor.
+			 */
+			case '+OPTGROUP':
+			case '+HR':
+				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
+					$this->state->stack_of_open_elements->pop();
+				}
+
+				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTGROUP' ) ) {
+					$this->state->stack_of_open_elements->pop();
+				}
+
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > An end tag whose tag name is "optgroup"
+			 */
+			case '-OPTGROUP':
+				$current_node = $this->state->stack_of_open_elements->current_node();
+				if ( $current_node && 'OPTION' === $current_node->node_name ) {
+					foreach ( $this->state->stack_of_open_elements->walk_up( $current_node ) as $parent ) {
+						break;
+					}
+					if ( $parent && 'OPTGROUP' === $parent->node_name ) {
+						$this->state->stack_of_open_elements->pop();
+					}
+				}
+
+				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTGROUP' ) ) {
+					$this->state->stack_of_open_elements->pop();
+					return true;
+				}
+
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > An end tag whose tag name is "option"
+			 */
+			case '-OPTION':
+				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
+					$this->state->stack_of_open_elements->pop();
+					return true;
+				}
+
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > An end tag whose tag name is "select"
+			 * > A start tag whose tag name is "select"
+			 *
+			 * > It just gets treated like an end tag.
+			 */
+			case '-SELECT':
+			case '+SELECT':
+				if ( ! $this->state->stack_of_open_elements->has_element_in_select_scope( 'SELECT' ) ) {
+					// Parse error: ignore the token.
+					return $this->step();
+				}
+				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
+				$this->reset_insertion_mode();
+				return true;
+
+			/*
+			 * > A start tag whose tag name is one of: "input", "keygen", "textarea"
+			 *
+			 * All three of these tags are considered a parse error when found in this insertion mode.
+			 */
+			case '+INPUT':
+			case '+KEYGEN':
+			case '+TEXTAREA':
+				if ( ! $this->state->stack_of_open_elements->has_element_in_select_scope( 'SELECT' ) ) {
+					// Ignore the token.
+					return $this->step();
+				}
+				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
+				$this->reset_insertion_mode();
+				return $this->step( self::REPROCESS_CURRENT_NODE );
+
+			/*
+			 * > A start tag whose tag name is one of: "script", "template"
+			 * > An end tag whose tag name is "template"
+			 */
+			case '+SCRIPT':
+			case '+TEMPLATE':
+			case '-TEMPLATE':
+				return $this->step_in_head();
+		}
+
+		/*
+		 * > Anything else
+		 * >   Parse error: ignore the token.
+		 */
+		return $this->step();
+	}
+
+	/**
+	 * Parses next element in the 'in select in table' insertion mode.
+	 *
+	 * This internal function performs the 'in select in table' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-inselectintable
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_select_in_table() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'in template' insertion mode.
+	 *
+	 * This internal function performs the 'in template' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-intemplate
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_template() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'after body' insertion mode.
+	 *
+	 * This internal function performs the 'after body' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-afterbody
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_after_body() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'in frameset' insertion mode.
+	 *
+	 * This internal function performs the 'in frameset' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-inframeset
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_frameset() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'after frameset' insertion mode.
+	 *
+	 * This internal function performs the 'after frameset' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-afterframeset
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_after_frameset() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'after after body' insertion mode.
+	 *
+	 * This internal function performs the 'after after body' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#the-after-after-body-insertion-mode
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_after_after_body() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'after after frameset' insertion mode.
+	 *
+	 * This internal function performs the 'after after frameset' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#the-after-after-frameset-insertion-mode
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_after_after_frameset() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	}
+
+	/**
+	 * Parses next element in the 'in foreign content' insertion mode.
+	 *
+	 * This internal function performs the 'in foreign content' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.7.0 Stub implementation.
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/#parsing-main-inforeign
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_foreign_content() {
+		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
 	}
 
 	/*
@@ -1801,7 +2566,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			? $this->bookmarks[ $this->state->current_token->bookmark_name ]->start
 			: 0;
 		$bookmark_starts_at   = $this->bookmarks[ $actual_bookmark_name ]->start;
-		$bookmark_length      = $this->bookmarks[ $actual_bookmark_name ]->length;
 		$direction            = $bookmark_starts_at > $processor_started_at ? 'forward' : 'backward';
 
 		/*
@@ -1859,6 +2623,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$this->state->frameset_ok    = true;
 			$this->element_queue         = array();
 			$this->current_element       = null;
+
+			if ( isset( $this->context_node ) ) {
+				$this->breadcrumbs = array_slice( $this->breadcrumbs, 0, 2 );
+			} else {
+				$this->breadcrumbs = array();
+			}
 		}
 
 		// When moving forwards, reparse the document until reaching the same location as the original bookmark.
@@ -1996,6 +2766,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Closes elements that have implied end tags.
 	 *
 	 * @since 6.4.0
+	 * @since 6.7.0 Full spec support.
 	 *
 	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
 	 *
@@ -2006,13 +2777,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'DD',
 			'DT',
 			'LI',
+			'OPTGROUP',
+			'OPTION',
 			'P',
+			'RB',
+			'RP',
+			'RT',
+			'RTC',
 		);
 
-		$current_node = $this->state->stack_of_open_elements->current_node();
+		$no_exclusions = ! isset( $except_for_this_element );
+
 		while (
-			$current_node && $current_node->node_name !== $except_for_this_element &&
-			in_array( $this->state->stack_of_open_elements->current_node(), $elements_with_implied_end_tags, true )
+			( $no_exclusions || ! $this->state->stack_of_open_elements->current_node_is( $except_for_this_element ) ) &&
+			in_array( $this->state->stack_of_open_elements->current_node()->node_name, $elements_with_implied_end_tags, true )
 		) {
 			$this->state->stack_of_open_elements->pop();
 		}
@@ -2025,19 +2803,34 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * different from generating end tags in the normal sense.
 	 *
 	 * @since 6.4.0
+	 * @since 6.7.0 Full spec support.
 	 *
 	 * @see WP_HTML_Processor::generate_implied_end_tags
 	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
 	 */
 	private function generate_implied_end_tags_thoroughly() {
 		$elements_with_implied_end_tags = array(
+			'CAPTION',
+			'COLGROUP',
 			'DD',
 			'DT',
 			'LI',
+			'OPTGROUP',
+			'OPTION',
 			'P',
+			'RB',
+			'RP',
+			'RT',
+			'RTC',
+			'TBODY',
+			'TD',
+			'TFOOT',
+			'TH',
+			'THEAD',
+			'TR',
 		);
 
-		while ( in_array( $this->state->stack_of_open_elements->current_node(), $elements_with_implied_end_tags, true ) ) {
+		while ( in_array( $this->state->stack_of_open_elements->current_node()->node_name, $elements_with_implied_end_tags, true ) ) {
 			$this->state->stack_of_open_elements->pop();
 		}
 	}
@@ -2085,8 +2878,190 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( 'Cannot reconstruct active formatting elements when advancing and rewinding is required.' );
+		$this->bail( 'Cannot reconstruct active formatting elements when advancing and rewinding is required.' );
+	}
+
+	/**
+	 * Runs the reset the insertion mode appropriately algorithm.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#reset-the-insertion-mode-appropriately
+	 */
+	public function reset_insertion_mode(): void {
+		// Set the first node.
+		$first_node = null;
+		foreach ( $this->state->stack_of_open_elements->walk_down() as $first_node ) {
+			break;
+		}
+
+		/*
+		 * > 1. Let _last_ be false.
+		 */
+		$last = false;
+		foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+			/*
+			 * > 2. Let _node_ be the last node in the stack of open elements.
+			 * > 3. _Loop_: If _node_ is the first node in the stack of open elements, then set _last_
+			 * >            to true, and, if the parser was created as part of the HTML fragment parsing
+			 * >            algorithm (fragment case), set node to the context element passed to
+			 * >            that algorithm.
+			 * > …
+			 */
+			if ( $node === $first_node ) {
+				$last = true;
+				if ( isset( $this->context_node ) ) {
+					$node = $this->context_node;
+				}
+			}
+
+			switch ( $node->node_name ) {
+				/*
+				 * > 4. If node is a `select` element, run these substeps:
+				 * >   1. If _last_ is true, jump to the step below labeled done.
+				 * >   2. Let _ancestor_ be _node_.
+				 * >   3. _Loop_: If _ancestor_ is the first node in the stack of open elements,
+				 * >      jump to the step below labeled done.
+				 * >   4. Let ancestor be the node before ancestor in the stack of open elements.
+				 * >   …
+				 * >   7. Jump back to the step labeled _loop_.
+				 * >   8. _Done_: Switch the insertion mode to "in select" and return.
+				 */
+				case 'SELECT':
+					if ( ! $last ) {
+						foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $ancestor ) {
+							switch ( $ancestor->node_name ) {
+								/*
+								 * > 5. If _ancestor_ is a `template` node, jump to the step below
+								 * >    labeled _done_.
+								 */
+								case 'TEMPLATE':
+									break 2;
+
+								/*
+								 * > 6. If _ancestor_ is a `table` node, switch the insertion mode to
+								 * >    "in select in table" and return.
+								 */
+								case 'TABLE':
+									$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE;
+									return;
+							}
+						}
+					}
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT;
+					return;
+
+				/*
+				 * > 5. If _node_ is a `td` or `th` element and _last_ is false, then switch the
+				 * >    insertion mode to "in cell" and return.
+				 */
+				case 'TD':
+				case 'TH':
+					if ( ! $last ) {
+						$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_CELL;
+						return;
+					}
+					break;
+
+					/*
+					* > 6. If _node_ is a `tr` element, then switch the insertion mode to "in row"
+					* >    and return.
+					*/
+				case 'TR':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
+					return;
+
+				/*
+				 * > 7. If _node_ is a `tbody`, `thead`, or `tfoot` element, then switch the
+				 * >    insertion mode to "in table body" and return.
+				 */
+				case 'TBODY':
+				case 'THEAD':
+				case 'TFOOT':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
+					return;
+
+				/*
+				 * > 8. If _node_ is a `caption` element, then switch the insertion mode to
+				 * >    "in caption" and return.
+				 */
+				case 'CAPTION':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION;
+					return;
+
+				/*
+				 * > 9. If _node_ is a `colgroup` element, then switch the insertion mode to
+				 * >    "in column group" and return.
+				 */
+				case 'COLGROUP':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP;
+					return;
+
+				/*
+				 * > 10. If _node_ is a `table` element, then switch the insertion mode to
+				 * >     "in table" and return.
+				 */
+				case 'TABLE':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
+					return;
+
+				/*
+				 * > 11. If _node_ is a `template` element, then switch the insertion mode to the
+				 * >     current template insertion mode and return.
+				 */
+				case 'TEMPLATE':
+					$this->state->insertion_mode = end( $this->state->stack_of_template_insertion_modes );
+					return;
+
+				/*
+				 * > 12. If _node_ is a `head` element and _last_ is false, then switch the
+				 * >     insertion mode to "in head" and return.
+				 */
+				case 'HEAD':
+					if ( ! $last ) {
+						$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD;
+						return;
+					}
+					break;
+
+				/*
+				 * > 13. If _node_ is a `body` element, then switch the insertion mode to "in body"
+				 * >     and return.
+				 */
+				case 'BODY':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+					return;
+
+				/*
+				 * > 14. If _node_ is a `frameset` element, then switch the insertion mode to
+				 * >     "in frameset" and return. (fragment case)
+				 */
+				case 'FRAMESET':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_FRAMESET;
+					return;
+
+				/*
+				 * > 15. If _node_ is an `html` element, run these substeps:
+				 * >     1. If the head element pointer is null, switch the insertion mode to
+				 * >        "before head" and return. (fragment case)
+				 * >     2. Otherwise, the head element pointer is not null, switch the insertion
+				 * >        mode to "after head" and return.
+				 */
+				case 'HTML':
+					$this->state->insertion_mode = isset( $this->state->head_element )
+						? WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD
+						: WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD;
+					return;
+			}
+		}
+
+		/*
+		 * > 16. If _last_ is true, then switch the insertion mode to "in body"
+		 * >     and return. (fragment case)
+		 *
+		 * This is only reachable if `$last` is true, as per the fragment parsing case.
+		 */
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
 	}
 
 	/**
@@ -2139,8 +3114,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			// > If there is no such element, then return and instead act as described in the "any other end tag" entry above.
 			if ( null === $formatting_element ) {
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( 'Cannot run adoption agency when "any other end tag" is required.' );
+				$this->bail( 'Cannot run adoption agency when "any other end tag" is required.' );
 			}
 
 			// > If formatting element is not in the stack of open elements, then this is a parse error; remove the element from the list, and return.
@@ -2192,12 +3166,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 
-			$this->last_error = self::ERROR_UNSUPPORTED;
-			throw new WP_HTML_Unsupported_Exception( 'Cannot extract common ancestor in adoption agency algorithm.' );
+			$this->bail( 'Cannot extract common ancestor in adoption agency algorithm.' );
 		}
 
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( 'Cannot run adoption agency when looping required.' );
+		$this->bail( 'Cannot run adoption agency when looping required.' );
 	}
 
 	/**

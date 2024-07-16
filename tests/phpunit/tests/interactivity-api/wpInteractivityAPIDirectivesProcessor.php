@@ -24,14 +24,14 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$content = '<template>Text</template>';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
-		$this->assertEquals( 'Text', $p->get_content_between_balanced_template_tags() );
+		$this->assertSame( 'Text', $p->get_content_between_balanced_template_tags() );
 
 		$content = '<template>Text</template><template>More text</template>';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
-		$this->assertEquals( 'Text', $p->get_content_between_balanced_template_tags() );
+		$this->assertSame( 'Text', $p->get_content_between_balanced_template_tags() );
 		$p->next_tag();
-		$this->assertEquals( 'More text', $p->get_content_between_balanced_template_tags() );
+		$this->assertSame( 'More text', $p->get_content_between_balanced_template_tags() );
 	}
 
 	/**
@@ -46,7 +46,7 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$content = '<template></template>';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
-		$this->assertEquals( '', $p->get_content_between_balanced_template_tags() );
+		$this->assertSame( '', $p->get_content_between_balanced_template_tags() );
 	}
 
 	/**
@@ -81,12 +81,12 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$content = '<template><span>Content</span><strong>More Content</strong></template>';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
-		$this->assertEquals( '<span>Content</span><strong>More Content</strong>', $p->get_content_between_balanced_template_tags() );
+		$this->assertSame( '<span>Content</span><strong>More Content</strong>', $p->get_content_between_balanced_template_tags() );
 
 		$content = '<template><template>Content</template><img src="example.jpg"></template>';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
-		$this->assertEquals( '<template>Content</template><img src="example.jpg">', $p->get_content_between_balanced_template_tags() );
+		$this->assertSame( '<template>Content</template><img src="example.jpg">', $p->get_content_between_balanced_template_tags() );
 	}
 
 	/**
@@ -131,7 +131,7 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$content = '<template>Missing opening span</span></template>';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
-		$this->assertEquals( 'Missing opening span</span>', $p->get_content_between_balanced_template_tags() );
+		$this->assertSame( 'Missing opening span</span>', $p->get_content_between_balanced_template_tags() );
 	}
 
 	/**
@@ -163,10 +163,10 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
 		$p->get_content_between_balanced_template_tags();
-		$this->assertEquals( 'TEMPLATE', $p->get_tag() );
+		$this->assertSame( 'TEMPLATE', $p->get_tag() );
 		$this->assertTrue( $p->is_tag_closer() );
 		$p->next_tag();
-		$this->assertEquals( 'DIV', $p->get_tag() );
+		$this->assertSame( 'DIV', $p->get_tag() );
 	}
 
 	/**
@@ -479,13 +479,13 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$this->assertTrue( $result );
 		$this->assertEquals( $content_1 . $content_2, $p );
 		$p->next_tag( array( 'tag_closers' => 'visit' ) );
-		$this->assertEquals( 'content-2', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'content-2', $p->get_attribute( 'class' ) );
 		$p->next_tag( array( 'tag_closers' => 'visit' ) );
 		$result = $p->append_content_after_template_tag_closer( $content_3 );
 		$this->assertTrue( $result );
 		$p->next_tag( array( 'tag_closers' => 'visit' ) );
 		$this->assertEquals( $content_1 . $content_2 . $content_3, $p );
-		$this->assertEquals( 'content-3', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'content-3', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -509,7 +509,7 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$this->assertTrue( $result );
 		$this->assertEquals( $content_1 . $content_2 . $content_3, $p );
 		$p->next_tag( array( 'tag_closers' => 'visit' ) );
-		$this->assertEquals( 'content-3', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'content-3', $p->get_attribute( 'class' ) );
 
 		$p = new WP_Interactivity_API_Directives_Processor( $content_1 . $content_3 );
 		$p->next_tag( array( 'tag_closers' => 'visit' ) );
@@ -518,7 +518,7 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$this->assertTrue( $result );
 		$this->assertEquals( $content_1 . $content_4 . $content_3, $p );
 		$p->next_tag( array( 'tag_closers' => 'visit' ) );
-		$this->assertEquals( 'content-4', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'content-4', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -558,16 +558,16 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$this->assertTrue( $result );
 		$this->assertEquals( $content_1 . $content_2, $p );
 		$p->next_tag( array( 'tag_closers' => 'visit' ) );
-		$this->assertEquals( 'content-2', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'content-2', $p->get_attribute( 'class' ) );
 		// Rewinds to the first template.
 		$p->seek( 'first template' );
 		$p->release_bookmark( 'first template' );
-		$this->assertEquals( 'content-1', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'content-1', $p->get_attribute( 'class' ) );
 		$p->next_tag( array( 'tag_closers' => 'visit' ) );
 		$result = $p->append_content_after_template_tag_closer( $content_3 );
 		$this->assertEquals( $content_1 . $content_3 . $content_2, $p );
 		$p->next_tag( array( 'tag_closers' => 'visit' ) );
-		$this->assertEquals( 'content-3', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'content-3', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -615,9 +615,9 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$this->assertTrue( $result );
 		$this->assertEquals( $content_1 . $content_2, $p );
 		$p->next_tag();
-		$this->assertEquals( 'content-2-template-1', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'content-2-template-1', $p->get_attribute( 'class' ) );
 		$p->next_tag();
-		$this->assertEquals( 'content-2-template-2', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'content-2-template-2', $p->get_attribute( 'class' ) );
 		$p->next_tag( array( 'tag_closers' => 'visit' ) );
 		$result = $p->append_content_after_template_tag_closer( $content_3 );
 		$this->assertTrue( $result );
@@ -640,7 +640,7 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$result = $p->append_content_after_template_tag_closer( '' );
 		$this->assertFalse( $result );
 		$this->assertEquals( $content, $p );
-		$this->assertEquals( 'TEMPLATE', $p->get_tag() ); // It didn't move.
+		$this->assertSame( 'TEMPLATE', $p->get_tag() ); // It didn't move.
 		$this->assertTrue( $p->is_tag_closer() ); // It didn't move.
 	}
 
@@ -694,7 +694,7 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
 		$this->assertTrue( $p->next_balanced_tag_closer_tag() );
-		$this->assertEquals( 'DIV', $p->get_tag() );
+		$this->assertSame( 'DIV', $p->get_tag() );
 		$this->assertTrue( $p->is_tag_closer() );
 	}
 
@@ -731,14 +731,14 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
 		$this->assertTrue( $p->next_balanced_tag_closer_tag() );
-		$this->assertEquals( 'DIV', $p->get_tag() );
+		$this->assertSame( 'DIV', $p->get_tag() );
 		$this->assertTrue( $p->is_tag_closer() );
 
 		$content = '<div><div>Nested content</div></div>';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
 		$this->assertTrue( $p->next_balanced_tag_closer_tag() );
-		$this->assertEquals( 'DIV', $p->get_tag() );
+		$this->assertSame( 'DIV', $p->get_tag() );
 		$this->assertTrue( $p->is_tag_closer() );
 		$this->assertFalse( $p->next_tag() ); // No more content.
 	}
@@ -793,7 +793,7 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$p->next_tag();
 		$this->assertTrue( $p->skip_to_tag_closer() );
 		$this->assertTrue( $p->is_tag_closer() );
-		$this->assertEquals( 'DIV', $p->get_tag() );
+		$this->assertSame( 'DIV', $p->get_tag() );
 	}
 
 	/**
