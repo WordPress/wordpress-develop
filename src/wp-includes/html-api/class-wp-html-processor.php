@@ -1752,7 +1752,19 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A character token, if the current node is table, tbody, template, tfoot, thead, or tr element
 			 */
 			case '#text':
-				return $this->step_in_table_text();
+				$current_token = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+				if (
+					strspn( $this->html, "\u{0000}\u{0009}\u{000A}\u{000C}\u{000D}\u{0020}", $current_token->start, $current_token->length ) === $current_token->length
+				) {
+					if ( strspn( $this->html, "\u{0000}", $current_token->start, $current_token->length ) === $current_token->length ) {
+						// @todo Indicate a parse error once it's possible.
+						return $this->step();
+					}
+					$this->insert_html_element( $this->state->current_token );
+					return true;
+				}
+				$this->bail( 'Foster parenting is not supported.' );
+				break;
 
 			/*
 			 * > A comment token
