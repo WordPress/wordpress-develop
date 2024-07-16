@@ -1903,11 +1903,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->insert_html_element( $this->state->current_token );
 				$this->set_element_pointer( 'FORM' );
 				return true;
-
-			/*
-			 * > An end-of-file token
-			 */
-
 		}
 
 		/*
