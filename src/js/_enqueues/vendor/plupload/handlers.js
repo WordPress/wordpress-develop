@@ -613,11 +613,6 @@ jQuery( document ).ready( function( $ ) {
 					wpQueueError( pluploadL10n.noneditable_image );
 					up.removeFile( file );
 					return;
-				} else if ( file.type === 'image/heic' && up.settings.heic_upload_error ) {
-					// Disallow uploading of heic images if the server cannot edit them.
-					wpQueueError( pluploadL10n.noneditable_image );
-					up.removeFile( file );
-					return;
 				}
 
 				fileQueued( file );
