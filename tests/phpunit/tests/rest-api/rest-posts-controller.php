@@ -27,8 +27,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	private $attachments_created = false;
 
-	private $captured_query_vars;
-
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 		self::$terms   = $factory->term->create_many( 15, array( 'taxonomy' => 'category' ) );
@@ -112,16 +110,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
-		// Reset captured query vars before each test.
-		$this->captured_query_vars = null;
-
 		add_role( 'private_reader', 'Private Reader' );
 		$role = get_role( 'private_reader' );
 		$role->add_cap( 'read_private_posts' );
 
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
 		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
-		add_filter( 'pre_get_posts', array( $this, 'capture_query_vars' ), 10, 2 );
 	}
 
 	public function tear_down() {
@@ -5426,12 +5420,20 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 			)
 		);
 
+		$action = new MockAction();
+		add_filter( 'pre_get_posts', array( $action, 'action' ), 10, 2 );
+
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		rest_get_server()->dispatch( $request );
 
 		unregister_post_meta( 'post', 'test_meta_key' );
 
-		$meta_cache_is_primed = ! array_key_exists( 'update_post_meta_cache', $this->captured_query_vars ) || true === $this->captured_query_vars['update_post_meta_cache'];
+		if ( empty( $action->get_args()[0][0]->query_vars ) || ! is_array( $action->get_args()[0][0]->query_vars ) ) {
+			$this->fail( 'Query vars were not captured.' );
+		}
+
+		$query_vars           = $action->get_args()[0][0]->query_vars;
+		$meta_cache_is_primed = ! array_key_exists( 'update_post_meta_cache', $query_vars ) || true === $query_vars['update_post_meta_cache'];
 
 		// Check if the captured query vars have 'update_post_meta_cache' set to true
 		$this->assertTrue(
@@ -5449,16 +5451,27 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		global $wp_meta_keys;
 		$wp_meta_keys = array();
 
+		$action = new MockAction();
+		add_filter( 'pre_get_posts', array( $action, 'action' ), 10, 2 );
+
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		rest_get_server()->dispatch( $request );
 
+		unregister_post_meta( 'post', 'test_meta_key' );
+
+		if ( empty( $action->get_args()[0][0]->query_vars ) || ! is_array( $action->get_args()[0][0]->query_vars ) ) {
+			$this->fail( 'Query vars were not captured.' );
+		}
+
+		$query_vars = $action->get_args()[0][0]->query_vars;
+
 		$this->assertArrayHasKey(
 			'update_post_meta_cache',
-			$this->captured_query_vars,
+			$query_vars,
 			'Query vars should contain the key "update_post_meta_cache".'
 		);
 		$this->assertFalse(
-			$this->captured_query_vars['update_post_meta_cache'],
+			$query_vars['update_post_meta_cache'],
 			'The "update_post_meta_cache" key should be false when no meta keys are registered.'
 		);
 	}
@@ -5496,14 +5509,5 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 			'context'     => array( 'new_context' ),
 		);
 		return $schema;
-	}
-
-	public function capture_query_vars( WP_Query $query ) {
-		// Capture the query variables only if they haven't been captured already
-		// as only the first query is relevant.
-		if ( null !== $this->captured_query_vars ) {
-			return;
-		}
-		$this->captured_query_vars = $query->query_vars;
 	}
 }
