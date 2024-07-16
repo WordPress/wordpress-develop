@@ -257,21 +257,25 @@ function wp_add_global_styles_for_blocks() {
 	$block_nodes = $tree->get_styles_block_nodes();
 
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
+	$update_cache   = false;
 
 	if ( $can_use_cached ) {
 		// Hash the merged WP_Theme_JSON data to bust cache on settings or styles change.
 		$cache_hash = md5( wp_json_encode( $tree->get_raw_data() ) );
 		$cache_key  = 'wp_styles_for_blocks';
 		$cached     = get_transient( $cache_key );
+
+		// Reset the cached data if there is no value or if the hash has changed.
 		if ( ! is_array( $cached ) || $cached['hash'] !== $cache_hash ) {
 			$cached = array(
 				'hash'   => $cache_hash,
 				'blocks' => array(),
 			);
+
+			// Update the cache if the hash has changed.
+			$update_cache = true;
 		}
 	}
-
-	$update_cache = false;
 
 	foreach ( $block_nodes as $metadata ) {
 
@@ -284,7 +288,9 @@ function wp_add_global_styles_for_blocks() {
 			} else {
 				$block_css                           = $tree->get_styles_for_block( $metadata );
 				$cached['blocks'][ $cache_node_key ] = $block_css;
-				$update_cache                        = true;
+
+				// Update the cache if the cache contents have changed.
+				$update_cache = true;
 			}
 		} else {
 			$block_css = $tree->get_styles_for_block( $metadata );
