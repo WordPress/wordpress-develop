@@ -174,7 +174,8 @@ function plugins_api( $action, $args = array() ) {
 
 		if ( $ssl && is_wp_error( $request ) ) {
 			if ( ! wp_is_json_request() ) {
-				trigger_error(
+				wp_trigger_error(
+					__FUNCTION__,
 					sprintf(
 						/* translators: %s: Support forums URL. */
 						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
@@ -912,7 +913,7 @@ function install_plugin_information() {
  * }
  * @param bool         $compatible_php   The result of a PHP compatibility check.
  * @param bool         $compatible_wp    The result of a WP compatibility check.
- * @return string The markup for the dependency row button.
+ * @return string The markup for the dependency row button. An empty string if the user does not have capabilities.
  */
 function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible_wp ) {
 	$button           = '';
@@ -941,16 +942,6 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 	}
 	$all_plugin_dependencies_installed = $installed_plugin_dependencies_count === $plugin_dependencies_count;
 	$all_plugin_dependencies_active    = $active_plugin_dependencies_count === $plugin_dependencies_count;
-
-	sprintf(
-		'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s" role="button">%s</a>',
-		esc_attr( $data->slug ),
-		esc_url( $status['url'] ),
-		/* translators: %s: Plugin name and version. */
-		esc_attr( sprintf( _x( 'Install %s now', 'plugin' ), $name ) ),
-		esc_attr( $name ),
-		_x( 'Install Now', 'plugin' )
-	);
 
 	if ( current_user_can( 'install_plugins' ) || current_user_can( 'update_plugins' ) ) {
 		switch ( $status['status'] ) {
@@ -1048,7 +1039,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 				}
 				break;
 		}
-
-		return $button;
 	}
+
+	return $button;
 }
