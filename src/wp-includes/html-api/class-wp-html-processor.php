@@ -986,7 +986,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_initial() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_INITIAL . ' state.' );
 	}
 
 	/**
@@ -1005,7 +1005,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_before_html() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML . ' state.' );
 	}
 
 	/**
@@ -1024,7 +1024,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_before_head() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD . ' state.' );
 	}
 
 	/**
@@ -1043,7 +1043,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_head() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD . ' state.' );
 	}
 
 	/**
@@ -1062,7 +1062,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_head_noscript() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD_NOSCRIPT . ' state.' );
 	}
 
 	/**
@@ -1081,7 +1081,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_head() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD . ' state.' );
 	}
 
 	/**
@@ -1723,7 +1723,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_table() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE . ' state.' );
 	}
 
 	/**
@@ -1742,7 +1742,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_table_text() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_TEXT . ' state.' );
 	}
 
 	/**
@@ -1761,7 +1761,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_caption() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION . ' state.' );
 	}
 
 	/**
@@ -1780,7 +1780,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_column_group() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP . ' state.' );
 	}
 
 	/**
@@ -1799,7 +1799,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_table_body() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY . ' state.' );
 	}
 
 	/**
@@ -1818,7 +1818,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_row() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_ROW . ' state.' );
 	}
 
 	/**
@@ -1837,7 +1837,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_cell() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_CELL . ' state.' );
 	}
 
 	/**
@@ -2037,7 +2037,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_select_in_table() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE . ' state.' );
 	}
 
 	/**
@@ -2056,7 +2056,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_template() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE . ' state.' );
 	}
 
 	/**
@@ -2075,7 +2075,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_body() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY . ' state.' );
 	}
 
 	/**
@@ -2094,7 +2094,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_frameset() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_FRAMESET . ' state.' );
 	}
 
 	/**
@@ -2113,7 +2113,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_frameset() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_FRAMESET . ' state.' );
 	}
 
 	/**
@@ -2132,7 +2132,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_after_body() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY . ' state.' );
 	}
 
 	/**
@@ -2151,7 +2151,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_after_frameset() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET . ' state.' );
 	}
 
 	/**
@@ -2170,7 +2170,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_foreign_content() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_FOREIGN_CONTENT . ' state.' );
 	}
 
 	/*
