@@ -354,27 +354,43 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers wp_interactivity_data_wp_context
+	 * @covers       wp_interactivity_data_wp_context
+	 * @dataProvider data_wp_interactivity_data_wp_context_with_different_arrays
+	 *
+	 * @param array  $context  Context to encode.
+	 * @param string $expected Expected function output.
 	 */
-	public function test_wp_interactivity_data_wp_context_with_different_arrays() {
-		$this->assertSame( 'data-wp-context=\'{}\'', wp_interactivity_data_wp_context( array() ) );
-		$this->assertSame(
-			'data-wp-context=\'{"a":1,"b":"2","c":true}\'',
-			wp_interactivity_data_wp_context(
-				array(
+	public function test_wp_interactivity_data_wp_context_with_different_arrays( $context, $expected ) {
+		$this->assertSame( $expected, wp_interactivity_data_wp_context( $context ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_interactivity_data_wp_context_with_different_arrays() {
+		return array(
+			'empty array'                                  => array(
+				'context'  => array(),
+				'expected' => 'data-wp-context=\'{}\'',
+			),
+			'associative array with mixed values'          => array(
+				'context'  => array(
 					'a' => 1,
 					'b' => '2',
 					'c' => true,
-				)
-			)
-		);
-		$this->assertSame(
-			'data-wp-context=\'{"a":[1,2]}\'',
-			wp_interactivity_data_wp_context( array( 'a' => array( 1, 2 ) ) )
-		);
-		$this->assertSame(
-			'data-wp-context=\'[1,2]\'',
-			wp_interactivity_data_wp_context( array( 1, 2 ) )
+				),
+				'expected' => 'data-wp-context=\'{"a":1,"b":"2","c":true}\'',
+			),
+			'associative array with nested array as value' => array(
+				'context'  => array( 'a' => array( 1, 2 ) ),
+				'expected' => 'data-wp-context=\'{"a":[1,2]}\'',
+			),
+			'array without keys, integer values'           => array(
+				'context'  => array( 1, 2 ),
+				'expected' => 'data-wp-context=\'[1,2]\'',
+			),
 		);
 	}
 
