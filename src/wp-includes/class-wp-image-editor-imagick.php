@@ -206,7 +206,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			switch ( $this->mime_type ) {
 				case 'image/jpeg':
 					$this->image->setImageCompressionQuality( $quality );
-					$this->image->setCompressionQuality( $quality );
 					$this->image->setImageCompression( imagick::COMPRESSION_JPEG );
 					break;
 				case 'image/webp':
@@ -219,12 +218,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 						$this->image->setOption( 'webp:lossless', 'true' );
 					} else {
 						$this->image->setImageCompressionQuality( $quality );
-						$this->image->setCompressionQuality( $quality );
 					}
 					break;
 				default:
 					$this->image->setImageCompressionQuality( $quality );
-					$this->image->setCompressionQuality( $quality );
 			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_quality_error', $e->getMessage() );
