@@ -1772,7 +1772,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "caption"
 			 */
 			case '+CAPTION':
-				$this->clear_stack_to_table_context();
+				$this->state->stack_of_open_elements->clear_to_table_context();
 				$this->state->active_formatting_elements->insert_marker();
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION;
@@ -1782,7 +1782,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "colgroup"
 			 */
 			case '+COLGROUP':
-				$this->clear_stack_to_table_context();
+				$this->state->stack_of_open_elements->clear_to_table_context();
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP;
 				return true;
@@ -1791,7 +1791,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "col"
 			 */
 			case '+COL':
-				$this->clear_stack_to_table_context();
+				$this->state->stack_of_open_elements->clear_to_table_context();
 				$this->insert_html_element(
 					new WP_HTML_Token( null, 'COLGROUP', false )
 				);
@@ -1804,7 +1804,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TBODY':
 			case '+TFOOT':
 			case '+THEAD':
-				$this->clear_stack_to_table_context();
+				$this->state->stack_of_open_elements->clear_to_table_context();
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
 				return true;
@@ -1815,7 +1815,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TD':
 			case '+TH':
 			case '+TR':
-				$this->clear_stack_to_table_context();
+				$this->state->stack_of_open_elements->clear_to_table_context();
 				$this->insert_html_element(
 					new WP_HTML_Token( null, 'TBODY', false )
 				);
@@ -1995,7 +1995,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "tr"
 			 */
 			case '+TR':
-				$this->clear_stack_to_table_body_context();
+				$this->state->stack_of_open_elements->clear_to_table_body_context();
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
 				return true;
@@ -2006,7 +2006,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TH':
 			case '+TD':
 				// @todo Indicate a parse error once it's possible.
-				$this->clear_stack_to_table_body_context();
+				$this->state->stack_of_open_elements->clear_to_table_body_context();
 				$this->insert_html_element(
 					new WP_HTML_Token( null, 'TR', false )
 				);
@@ -2048,7 +2048,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
-				$this->clear_stack_to_table_body_context();
+				$this->state->stack_of_open_elements->clear_to_table_body_context();
 				$this->state->stack_of_open_elements->pop();
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
@@ -2101,7 +2101,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+TH':
 			case '+TD':
-				$this->clear_stack_to_table_row_context();
+				$this->state->stack_of_open_elements->clear_to_table_row_context();
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_CELL;
 				$this->state->active_formatting_elements->insert_marker();
@@ -2115,7 +2115,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
-				$this->clear_stack_to_table_row_context();
+				$this->state->stack_of_open_elements->clear_to_table_row_context();
 				$this->state->stack_of_open_elements->pop();
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
 				return true;
@@ -2136,7 +2136,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
-				$this->clear_stack_to_table_row_context();
+				$this->state->stack_of_open_elements->clear_to_table_row_context();
 				$this->state->stack_of_open_elements->pop();
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
@@ -2155,7 +2155,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					// ignore the token.
 					return $this->step();
 				}
-				$this->clear_stack_to_table_row_context();
+				$this->state->stack_of_open_elements->clear_to_table_row_context();
 				$this->state->stack_of_open_elements->pop();
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
@@ -2632,80 +2632,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		return "{$this->bookmark_counter}";
-	}
-
-	/**
-	 * Clear the stack back to a table context.
-	 *
-	 * > When the steps above require the UA to clear the stack back to a table context, it means
-	 * > that the UA must, while the current node is not a table, template, or html element, pop
-	 * > elements from the stack of open elements.
-	 *
-	 * @todo move this to open elements class.
-	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#clear-the-stack-back-to-a-table-context
-	 */
-	private function clear_stack_to_table_context() {
-		foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
-			if (
-				'TABLE' === $item->node_name ||
-				'TEMPLATE' === $item->node_name ||
-				'HTML' === $item->node_name
-			) {
-				break;
-			}
-			$this->state->stack_of_open_elements->pop();
-		}
-	}
-
-	/**
-	 * Clear the stack back to a table body context.
-	 *
-	 * > When the steps above require the UA to clear the stack back to a table body context, it
-	 * > means that the UA must, while the current node is not a tbody, tfoot, thead, template, or
-	 * > html element, pop elements from the stack of open elements.
-	 *
-	 * @todo move this to open elements class.
-	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#clear-the-stack-back-to-a-table-body-context
-	 */
-	private function clear_stack_to_table_body_context() {
-		foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
-			if (
-				'TBODY' === $item->node_name ||
-				'TFOOT' === $item->node_name ||
-				'THEAD' === $item->node_name ||
-				'TEMPLATE' === $item->node_name ||
-				'HTML' === $item->node_name
-			) {
-				break;
-			}
-			$this->state->stack_of_open_elements->pop();
-		}
-	}
-
-	/**
-	 * Clear the stack back to a table row context.
-	 *
-	 * > When the steps above require the UA to clear the stack back to a table row context, it
-	 * > means that the UA must, while the current node is not a tr, template, or html element, pop
-	 * > elements from the stack of open elements.
-	 *
-	 * @todo move this to open elements class.
-	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#clear-the-stack-back-to-a-table-row-context
-	 */
-	private function clear_stack_to_table_row_context() {
-		foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
-			if (
-				'TR' === $item->node_name ||
-				'TEMPLATE' === $item->node_name ||
-				'HTML' === $item->node_name
-			) {
-				break;
-			}
-			$this->state->stack_of_open_elements->pop();
-		}
 	}
 
 	/*
