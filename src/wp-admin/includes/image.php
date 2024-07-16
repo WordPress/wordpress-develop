@@ -556,7 +556,7 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 	$support   = false;
 	$mime_type = get_post_mime_type( $attachment );
 
-	if ( $mime_type = 'image/heic' || ( preg_match( '!^image/!', $mime_type ) && file_is_displayable_image( $file ) ) ) {
+	if ( 'image/heic' === $mime_type || ( preg_match( '!^image/!', $mime_type ) && file_is_displayable_image( $file ) ) ) {
 		// Make thumbnails and other intermediate sizes.
 		$metadata = wp_create_image_subsizes( $file, $attachment_id );
 	} elseif ( wp_attachment_is( 'video', $attachment ) ) {
