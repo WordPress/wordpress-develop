@@ -512,3 +512,8 @@ if ( ! defined( 'IMAGETYPE_AVIF' ) ) {
 if ( ! defined( 'IMG_AVIF' ) ) {
 	define( 'IMG_AVIF', IMAGETYPE_AVIF );
 }
+
+// IMAGETYPE_HEIF constant is not yet defined in PHP as of PHP 8.3.
+if ( ! defined( 'IMAGETYPE_HEIF' ) ) {
+	define( 'IMAGETYPE_HEIF', 99 );
+}
