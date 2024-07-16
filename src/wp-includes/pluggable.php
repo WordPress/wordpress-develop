@@ -2067,7 +2067,7 @@ if ( ! function_exists( 'wp_password_change_notification' ) ) :
 			$admin_user = get_user_by( 'email', get_option( 'admin_email' ) );
 
 			if ( $admin_user ) {
-				$switched_locale = switch_to_user_locale( $admin_user );
+				$switched_locale = switch_to_user_locale( $admin_user->ID );
 			} else {
 				$switched_locale = switch_to_locale( get_locale() );
 			}
@@ -2169,7 +2169,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			$admin_user = get_user_by( 'email', get_option( 'admin_email' ) );
 
 			if ( $admin_user ) {
-				$switched_locale = switch_to_user_locale( $admin_user );
+				$switched_locale = switch_to_user_locale( $admin_user->ID );
 			} else {
 				$switched_locale = switch_to_locale( get_locale() );
 			}
