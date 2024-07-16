@@ -254,7 +254,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		}
 
 		if ( '' !== $text_node ) {
-			$output .= "${text_node}\"\n";
+			$output .= "{$text_node}\"\n";
 		}
 
 		// Tests always end with a trailing newline.
