@@ -1615,17 +1615,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A start tag whose tag name is one of: "caption", "col", "colgroup", "frame", "head", "tbody", "td", "tfoot", "th", "thead", "tr"
 			 */
-			case 'CAPTION':
-			case 'COL':
-			case 'COLGROUP':
-			case 'FRAME':
-			case 'HEAD':
-			case 'TBODY':
-			case 'TD':
-			case 'TFOOT':
-			case 'TH':
-			case 'THEAD':
-			case 'TR':
+			case '+CAPTION':
+			case '+COL':
+			case '+COLGROUP':
+			case '+FRAME':
+			case '+HEAD':
+			case '+TBODY':
+			case '+TD':
+			case '+TFOOT':
+			case '+TH':
+			case '+THEAD':
+			case '+TR':
 				// @todo Indicate a parse error once it's possible.
 				return $this->step();
 		}
