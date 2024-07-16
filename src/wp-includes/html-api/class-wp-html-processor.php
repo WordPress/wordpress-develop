@@ -2108,6 +2108,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TD':
 				$this->clear_stack_to_table_row_context();
 				$this->insert_html_element( $this->state->current_token );
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_CELL;
 				$this->state->active_formatting_elements->insert_marker();
 				return true;
 
