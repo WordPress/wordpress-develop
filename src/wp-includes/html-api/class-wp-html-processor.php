@@ -2010,7 +2010,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+TH':
 			case '+TD':
-				// parse error
+				// @todo Indicate a parse error once it's possible.
 				$this->clear_stack_to_table_body_context();
 				$this->insert_html_element(
 					new WP_HTML_Token( null, 'TR', false )
@@ -2027,7 +2027,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if (
 					! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name )
 				) {
-					// parse error
+					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
 				$this->state->stack_of_open_elements->pop();
@@ -2050,7 +2050,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					! $this->state->stack_of_open_elements->has_element_in_table_scope( 'THEAD' ) &&
 					! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TFOOT' )
 				) {
-					// parse error
+					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
 				$this->clear_stack_to_table_body_context();
@@ -2069,7 +2069,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TD':
 			case '-TH':
 			case '-TR':
-				// parse error
+				// @todo Indicate a parse error once it's possible.
 				return $this->step();
 		}
 
@@ -2117,7 +2117,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-TR':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TR' ) ) {
-					// this is a parse error; ignore the token.
+					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
 				$this->clear_stack_to_table_row_context();
@@ -2138,7 +2138,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TR':
 			case '-TABLE':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TR' ) ) {
-					// this is a parse error; ignore the token.
+					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
 				$this->clear_stack_to_table_row_context();
@@ -2153,7 +2153,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TFOOT':
 			case '-THEAD':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
-					// this is a parse error; ignore the token.
+					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TR' ) ) {
@@ -2175,7 +2175,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-HTML':
 			case '-TD':
 			case '-TH':
-				// this is a parse error; ignore the token.
+				// @todo Indicate a parse error once it's possible.
 				return $this->step();
 		}
 
@@ -2213,15 +2213,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TD':
 			case '-TH':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
-					// this is a parse error; ignore the token.
+					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
 				$this->generate_implied_end_tags();
-				/*
-				 * @todo report a parse error when supported.
-				 *
-				 * if ( ! $this->state->stack_of_open_elements->current_node()->node_name ) {}
-				 */
+				if ( ! $this->state->stack_of_open_elements->current_node()->node_name ) {
+					// @todo Indicate a parse error once it's possible.
+				}
 				$this->state->stack_of_open_elements->pop_until( $tag_name );
 				$this->state->active_formatting_elements->clear_up_to_last_marker();
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
@@ -2259,7 +2257,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-COL':
 			case '-COLGROUP':
 			case '-HTML':
-				// Parse error. Ignore the token.
+				// @todo Indicate a parse error once it's possible.
 				return $this->step();
 
 			/*
@@ -2271,7 +2269,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-THEAD':
 			case '-TR':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
-					// Parse error. Ignore the token.
+					// @todo Indicate a parse error once it's possible.
 					return $this->step();
 				}
 				$this->close_cell();
