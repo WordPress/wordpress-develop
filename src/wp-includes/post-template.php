@@ -836,6 +836,14 @@ function get_body_class( $css_class = '' ) {
 		}
 	}
 
+	// Add 'wp-theme-<name>' to default body classes.
+	$classes[] = 'wp-theme-' . sanitize_html_class( get_option( 'template' ) );
+
+	if ( is_child_theme() ) {
+		// Add 'wp-child-theme-<name>' to the body classes
+		$classes[] = 'wp-child-theme-' . sanitize_html_class( get_option( 'stylesheet' ) );
+	}
+
 	if ( ! empty( $css_class ) ) {
 		if ( ! is_array( $css_class ) ) {
 			$css_class = preg_split( '#\s+#', $css_class );
