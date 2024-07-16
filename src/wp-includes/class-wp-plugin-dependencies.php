@@ -488,6 +488,7 @@ class WP_Plugin_Dependencies {
 			$status['activateUrl'] = add_query_arg( array( 'networkwide' => 1 ), $status['activateUrl'] );
 		}
 
+		self::initialize();
 		$dependencies = self::get_dependencies( $plugin_file );
 		if ( empty( $dependencies ) ) {
 			$status['message'] = __( 'The plugin has no required plugins.' );
@@ -553,8 +554,6 @@ class WP_Plugin_Dependencies {
 	 * Reads and stores dependency slugs from a plugin's 'Requires Plugins' header.
 	 *
 	 * @since 6.5.0
-	 *
-	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 */
 	protected static function read_dependencies_from_plugin_headers() {
 		self::$dependencies     = array();

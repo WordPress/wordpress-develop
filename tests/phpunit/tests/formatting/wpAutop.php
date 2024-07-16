@@ -567,7 +567,7 @@ line 5</p>';
 	}
 
 	/**
-	 * wpautop() should convert multiple line breaks into a paragraph regarless of <br /> format
+	 * wpautop() should convert multiple line breaks into a paragraph regardless of <br /> format
 	 *
 	 * @ticket 33377
 	 */

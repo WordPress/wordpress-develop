@@ -113,7 +113,16 @@ class WP_Block {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param array                  $block             Array of parsed block properties.
+	 * @param array                  $block             {
+	 *     A representative array of a single parsed block object. See WP_Block_Parser_Block.
+	 *
+	 *     @type string   $blockName    Name of block.
+	 *     @type array    $attrs        Attributes from block comment delimiters.
+	 *     @type array    $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                  have the same structure as this one.
+	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array    $innerContent List of string fragments and null markers where inner blocks were found.
+	 * }
 	 * @param array                  $available_context Optional array of ancestry context values.
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
 	 */
@@ -227,6 +236,7 @@ class WP_Block {
 	 * block with the values of the `text_custom_field` and `url_custom_field` post meta.
 	 *
 	 * @since 6.5.0
+	 * @since 6.6.0 Handle the `__default` attribute for pattern overrides.
 	 *
 	 * @return array The computed block attributes for the provided block bindings.
 	 */
@@ -250,7 +260,33 @@ class WP_Block {
 			return $computed_attributes;
 		}
 
-		foreach ( $parsed_block['attrs']['metadata']['bindings'] as $attribute_name => $block_binding ) {
+		$bindings = $parsed_block['attrs']['metadata']['bindings'];
+
+		/*
+		 * If the default binding is set for pattern overrides, replace it
+		 * with a pattern override binding for all supported attributes.
+		 */
+		if (
+			isset( $bindings['__default']['source'] ) &&
+			'core/pattern-overrides' === $bindings['__default']['source']
+		) {
+			$updated_bindings = array();
+
+			/*
+			 * Build a binding array of all supported attributes.
+			 * Note that this also omits the `__default` attribute from the
+			 * resulting array.
+			 */
+			foreach ( $supported_block_attributes[ $parsed_block['blockName'] ] as $attribute_name ) {
+				// Retain any non-pattern override bindings that might be present.
+				$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
+					? $bindings[ $attribute_name ]
+					: array( 'source' => 'core/pattern-overrides' );
+			}
+			$bindings = $updated_bindings;
+		}
+
+		foreach ( $bindings as $attribute_name => $block_binding ) {
 			// If the attribute is not in the supported list, process next attribute.
 			if ( ! in_array( $attribute_name, $supported_block_attributes[ $this->name ], true ) ) {
 				continue;
@@ -372,13 +408,10 @@ class WP_Block {
 				}
 				$amended_content->set_attribute( $block_type->attributes[ $attribute_name ]['attribute'], $source_value );
 				return $amended_content->get_updated_html();
-				break;
 
 			default:
 				return $block_content;
-				break;
 		}
-		return;
 	}
 
 
@@ -399,6 +432,29 @@ class WP_Block {
 	 */
 	public function render( $options = array() ) {
 		global $post;
+
+		/*
+		 * There can be only one root interactive block at a time because the rendered HTML of that block contains
+		 * the rendered HTML of all its inner blocks, including any interactive block.
+		 */
+		static $root_interactive_block = null;
+		/**
+		 * Filters whether Interactivity API should process directives.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param bool $enabled Whether the directives processing is enabled.
+		 */
+		$interactivity_process_directives_enabled = apply_filters( 'interactivity_process_directives', true );
+		if (
+			$interactivity_process_directives_enabled && null === $root_interactive_block && (
+				( isset( $this->block_type->supports['interactivity'] ) && true === $this->block_type->supports['interactivity'] ) ||
+				! empty( $this->block_type->supports['interactivity']['interactive'] )
+			)
+		) {
+			$root_interactive_block = $this;
+		}
+
 		$options = wp_parse_args(
 			$options,
 			array(
@@ -523,6 +579,12 @@ class WP_Block {
 		 * @param WP_Block $instance      The block instance.
 		 */
 		$block_content = apply_filters( "render_block_{$this->name}", $block_content, $this->parsed_block, $this );
+
+		if ( $root_interactive_block === $this ) {
+			// The root interactive block has finished rendering. Time to process directives.
+			$block_content          = wp_interactivity_process_directives( $block_content );
+			$root_interactive_block = null;
+		}
 
 		return $block_content;
 	}

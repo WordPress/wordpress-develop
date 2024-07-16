@@ -15,11 +15,13 @@
  * @param array[][] $fonts {
  *     Optional. The font-families and their font faces. Default empty array.
  *
- *     @type array {
+ *     @type array ...$0 {
  *         An indexed or associative (keyed by font-family) array of font variations for this font-family.
  *         Each font face has the following structure.
  *
- *         @type array {
+ *         @type array ...$0 {
+ *             The font face properties.
+ *
  *             @type string          $font-family             The font-family property.
  *             @type string|string[] $src                     The URL(s) to each resource containing the font data.
  *             @type string          $font-style              Optional. The font-style property. Default 'normal'.
@@ -228,7 +230,7 @@ function _wp_before_delete_font_face( $post_id, $post ) {
 	}
 
 	$font_files = get_post_meta( $post_id, '_wp_font_face_file', false );
-	$font_dir   = wp_get_font_dir()['path'];
+	$font_dir   = untrailingslashit( wp_get_font_dir()['basedir'] );
 
 	foreach ( $font_files as $font_file ) {
 		wp_delete_file( $font_dir . '/' . $font_file );

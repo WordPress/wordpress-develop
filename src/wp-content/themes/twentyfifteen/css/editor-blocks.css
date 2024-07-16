@@ -518,6 +518,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-transform: none;
 }
 
+.wp-block-quote.has-text-color cite,
+.wp-block-quote.has-background cite {
+	color: inherit;
+}
+
 .wp-block-quote em,
 .wp-block-quote i {
 	font-style: normal;
@@ -667,17 +672,22 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding: 0;
 }
 
+.wp-block-code {
+	font-family: Inconsolata, monospace;
+}
+
 /* Pullquote */
 
 .wp-block-pullquote,
-.editor-block-list__block .wp-block-pullquote blockquote {
-	border: 0;
+.editor-styles-wrapper .wp-block-pullquote blockquote {
+	border: 0 solid;
+	color: inherit;
 	margin: 0;
 	padding-left: 0;
 }
 
 .wp-block-pullquote .wp-block-pullquote__citation {
-	color: #333;
+	color: inherit;
 	font-family: "Noto Sans", sans-serif;
 	font-size: 15px;
 	font-style: normal;
@@ -729,12 +739,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 .rtl .editor-block-list__block .wp-block-table th {
 	text-align: right;
-}
-
-/* Verse */
-
-.editor-styles-wrapper .wp-block-verse {
-	font-family: inherit;
 }
 
 /*--------------------------------------------------------------
@@ -806,6 +810,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 /* Separator */
 
 .wp-block-separator {
+	border: 0;
 	max-width: 100px;
 }
 

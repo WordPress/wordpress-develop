@@ -917,7 +917,6 @@ hr.wp-block-separator.is-style-dots::before {
 
 .editor-styles-wrapper .wp-block-verse pre,
 .editor-styles-wrapper pre.wp-block-verse {
-	font-family: NonBreakingSpaceOverride, "Hoefler Text", Garamond, "Times New Roman", serif;
 	font-size: 0.9em;
 }
 
@@ -940,6 +939,11 @@ hr.wp-block-separator.is-style-dots::before {
 .wp-block-buttons[style*="text-transform"] .wp-block-button__link,
 .wp-block-button[style*="text-transform"] .wp-block-button__link {
 	text-transform: inherit;
+}
+
+.wp-block-buttons[style*="letter-spacing"] .wp-block-button__link,
+.wp-block-button[style*="letter-spacing"] .wp-block-button__link {
+	letter-spacing: inherit;
 }
 
 .editor-styles-wrapper .wp-block-button .wp-block-button__link.mce-content-body {

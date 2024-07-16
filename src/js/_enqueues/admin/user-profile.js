@@ -5,6 +5,7 @@
 /* global ajaxurl, pwsL10n, userProfileL10n */
 (function($) {
 	var updateLock = false,
+		isSubmitting = false,
 		__ = wp.i18n.__,
 		$pass1Row,
 		$pass1,
@@ -15,6 +16,8 @@
 		$submitButtons,
 		$submitButton,
 		currentPass,
+		$form,
+		originalFormContent,
 		$passwordWrapper;
 
 	function generatePassword() {
@@ -148,7 +151,9 @@
 	 * @param {string}        message The message to insert.
 	 */
 	function addInlineNotice( $this, success, message ) {
-		var resultDiv = $( '<div />' );
+		var resultDiv = $( '<div />', {
+			role: 'alert'
+		} );
 
 		// Set up the notice div.
 		resultDiv.addClass( 'notice inline' );
@@ -454,6 +459,12 @@
 
 		bindPasswordForm();
 		bindPasswordResetLink();
+		$submitButtons.on( 'click', function() {
+			isSubmitting = true;
+		});
+
+		$form = $( '#your-profile, #createuser' );
+		originalFormContent = $form.serialize();
 	});
 
 	$( '#destroy-sessions' ).on( 'click', function( e ) {
@@ -465,10 +476,10 @@
 		}).done( function( response ) {
 			$this.prop( 'disabled', true );
 			$this.siblings( '.notice' ).remove();
-			$this.before( '<div class="notice notice-success inline"><p>' + response.message + '</p></div>' );
+			$this.before( '<div class="notice notice-success inline" role="alert"><p>' + response.message + '</p></div>' );
 		}).fail( function( response ) {
 			$this.siblings( '.notice' ).remove();
-			$this.before( '<div class="notice notice-error inline"><p>' + response.message + '</p></div>' );
+			$this.before( '<div class="notice notice-error inline" role="alert"><p>' + response.message + '</p></div>' );
 		});
 
 		e.preventDefault();
@@ -481,7 +492,10 @@
 		if ( true === updateLock ) {
 			return __( 'Your new password has not been saved.' );
 		}
-	} );
+		if ( originalFormContent !== $form.serialize() && ! isSubmitting ) {
+			return __( 'The changes you made will be lost if you navigate away from this page.' );
+		}
+	});
 
 	/*
 	 * We need to generate a password as soon as the Reset Password page is loaded,

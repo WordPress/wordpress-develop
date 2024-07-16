@@ -234,4 +234,68 @@ HTML;
 			'The block content should be updated with the value returned by the source.'
 		);
 	}
+
+	/**
+	 * Tests that including symbols and numbers works well with bound attributes.
+	 *
+	 * @ticket 61385
+	 *
+	 * @covers WP_Block::process_block_bindings
+	 */
+	public function test_using_symbols_in_block_bindings_value() {
+		$get_value_callback = function () {
+			return '$12.50';
+		};
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => $get_value_callback,
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source"}}}} -->
+<p>Default content</p>
+<!-- /wp:paragraph -->
+HTML;
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
+
+		$this->assertSame(
+			'<p>$12.50</p>',
+			trim( $result ),
+			'The block content should properly show the symbol and numbers.'
+		);
+	}
+
+	/**
+	 * Tests if the `__default` attribute is replaced with real attribues for
+	 * pattern overrides.
+	 *
+	 * @ticket 61333
+	 *
+	 * @covers WP_Block::process_block_bindings
+	 */
+	public function test_default_binding_for_pattern_overrides() {
+		$expected_content = 'This is the content value';
+
+		$block_content = <<<HTML
+<!-- wp:paragraph {"metadata":{"bindings":{"__default":{"source":"core/pattern-overrides"}},"name":"Test"}} -->
+<p>This should not appear</p>
+<!-- /wp:paragraph -->
+HTML;
+
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0], array( 'pattern/overrides' => array( 'Test' => array( 'content' => $expected_content ) ) ) );
+		$result        = $block->render();
+
+		$this->assertSame(
+			"<p>$expected_content</p>",
+			trim( $result ),
+			'The `__default` attribute should be replaced with the real attribute prior to the callback.'
+		);
+	}
 }

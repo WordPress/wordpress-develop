@@ -97,6 +97,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$get_item_args = array(
 			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
 		);
+		if ( isset( $schema['properties']['excerpt'] ) ) {
+			$get_item_args['excerpt_length'] = array(
+				'description' => __( 'Override the default excerpt length.' ),
+				'type'        => 'integer',
+			);
+		}
 		if ( isset( $schema['properties']['password'] ) ) {
 			$get_item_args['password'] = array(
 				'description' => __( 'The password for the post if it is password protected.' ),
@@ -177,7 +183,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @param bool    $required Whether the post requires a password check.
 	 * @param WP_Post $post     The post been password checked.
-	 * @return bool Result of password check taking in to account REST API considerations.
+	 * @return bool Result of password check taking into account REST API considerations.
 	 */
 	public function check_password_required( $required, $post ) {
 		if ( ! $required ) {
@@ -1872,6 +1878,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'excerpt', $fields ) ) {
+			if ( isset( $request['excerpt_length'] ) ) {
+				$excerpt_length          = $request['excerpt_length'];
+				$override_excerpt_length = static function () use ( $excerpt_length ) {
+					return $excerpt_length;
+				};
+
+				add_filter(
+					'excerpt_length',
+					$override_excerpt_length,
+					20
+				);
+			}
+
 			/** This filter is documented in wp-includes/post-template.php */
 			$excerpt = apply_filters( 'get_the_excerpt', $post->post_excerpt, $post );
 
@@ -1883,6 +1902,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'rendered'  => post_password_required( $post ) ? '' : $excerpt,
 				'protected' => (bool) $post->post_password,
 			);
+
+			if ( isset( $override_excerpt_length ) ) {
+				remove_filter(
+					'excerpt_length',
+					$override_excerpt_length,
+					20
+				);
+			}
 		}
 
 		if ( $has_password_filter ) {
@@ -1971,6 +1998,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					$data['generated_slug'] = $sample_permalink[1];
 				}
 			}
+
+			if ( rest_is_field_included( 'class_list', $fields ) ) {
+				$data['class_list'] = get_post_class( array(), $post->ID );
+			}
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -2020,7 +2051,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * By default, WordPress will show password protected posts with a title of
 	 * "Protected: %s", as the REST API communicates the protected status of a post
-	 * in a machine readable format, we remove the "Protected: " prefix.
+	 * in a machine-readable format, we remove the "Protected: " prefix.
 	 *
 	 * @since 4.7.0
 	 *
@@ -2325,6 +2356,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'        => 'string',
 				'context'     => array( 'edit' ),
 				'readonly'    => true,
+			);
+
+			$schema['properties']['class_list'] = array(
+				'description' => __( 'An array of the class names for the post container element.' ),
+				'type'        => 'array',
+				'context'     => array( 'view', 'edit' ),
+				'readonly'    => true,
+				'items'       => array(
+					'type' => 'string',
+				),
 			);
 		}
 

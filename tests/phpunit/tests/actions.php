@@ -613,7 +613,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	/**
 	 * @ticket 17817
 	 *
-	 * This specificaly addresses the concern raised at
+	 * This specifically addresses the concern raised at
 	 * https://core.trac.wordpress.org/ticket/17817#comment:52
 	 *
 	 * @covers ::remove_filter
