@@ -429,4 +429,28 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertFalse( $processor->next_tag(), 'Found a BR tag that should not be handled.' );
 		$this->assertSame( WP_HTML_Processor::ERROR_UNSUPPORTED, $processor->get_last_error() );
 	}
+
+	/*******************************************************************
+	 * RULES FOR "IN TABLE" MODE
+	 *******************************************************************/
+
+	/**
+	 * Ensure that form elements in tables (but not cells) are immediately popped off the stack.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_table_form_element_immediately_popped() {
+		$processor = WP_HTML_Processor::create_fragment( '<table><form><!--comment-->' );
+
+		// There should be a FORM opener and a (virtual) FORM closer.
+		$this->assertTrue( $processor->next_tag( 'FORM' ) );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( 'FORM', $processor->get_token_name() );
+		$this->assertTrue( $processor->is_tag_closer() );
+
+		// Followed by the comment token.
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( '#comment', $processor->get_token_name() );
+		$this->assertsame( array( 'HTML', 'BODY', 'TABLE', '#comment' ), $processor->get_breadcrumbs() );
+	}
 }
