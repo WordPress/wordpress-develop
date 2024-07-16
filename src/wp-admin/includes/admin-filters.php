@@ -16,6 +16,7 @@ add_action( 'welcome_panel', 'wp_welcome_panel' );
 
 // Media hooks.
 add_action( 'attachment_submitbox_misc_actions', 'attachment_submitbox_metadata' );
+add_filter( 'plupload_init', 'wp_show_heic_upload_error' );
 
 add_action( 'media_upload_image', 'wp_media_upload_handler' );
 add_action( 'media_upload_audio', 'wp_media_upload_handler' );
