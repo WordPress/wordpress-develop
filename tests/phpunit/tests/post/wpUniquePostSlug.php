@@ -118,8 +118,8 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 		$two  = self::factory()->post->create( $args );
 
 		$this->assertSame( 'some-slug', get_post( $one )->post_name );
-		$this->assertSame( 'image', get_post( $attachment )->post_name );
-		$this->assertSame( 'image-2', get_post( $two )->post_name );
+		$this->assertSame( 'image-jpg', get_post( $attachment )->post_name );
+		$this->assertSame( 'image', get_post( $two )->post_name );
 
 		// 'image' can be a child of image-2.
 		$this->assertSame( 'image', wp_unique_post_slug( 'image', 0, 'publish', 'post-type-1', $two ) );
