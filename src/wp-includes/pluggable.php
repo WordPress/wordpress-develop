@@ -2058,7 +2058,6 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 			}
 		}
 
-
 		return true;
 	}
 endif;
