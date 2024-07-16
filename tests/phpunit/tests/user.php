@@ -2281,4 +2281,78 @@ class Tests_User extends WP_UnitTestCase {
 			'assert is_username_reserved filter allow to mark usernames as reserved.'
 		);
 	}
+
+	/**
+	 * @ticket 17904
+	 */
+	public function test_wp_validate_user_login() {
+		$this->assertTrue( wp_validate_user_login( 'testsuser' ) );
+	}
+
+	/**
+	 * @ticket 17904
+	 */
+	public function test_wp_validate_user_login_invalid_username() {
+		add_filter( 'validate_username', '__return_false' );
+
+		$validation_errors = wp_validate_user_login( 'testsuser' );
+		$this->assertWPError(
+			$validation_errors,
+			'assert wp_validate_user_login return a WP_Error when username is invalid.'
+		);
+	}
+
+	/**
+	 * @ticket 17904
+	 */
+	public function test_wp_validate_user_login_username_exists() {
+		add_filter( 'username_exists', '__return_true' );
+
+		$validation_errors = wp_validate_user_login( 'testsuser' );
+		$this->assertWPError(
+			$validation_errors,
+			'assert wp_validate_user_login return a WP_Error when username already exist.'
+		);
+	}
+
+	/**
+	 * @ticket 17904
+	 * @group ms-required
+	 */
+	public function test_wp_validate_user_login_username_is_reserved() {
+		global $wpdb;
+
+		$wpdb->insert(
+			$wpdb->signups,
+			array(
+				'user_login' => 'testsuser',
+				'registered' => gmdate( 'Y-m-d H:i:s', strtotime( 'now' ) ),
+			),
+			array(
+				'%s',
+				'%s',
+			)
+		);
+
+		$validation_errors = wp_validate_user_login( 'testsuser' );
+		$this->assertWPError(
+			$validation_errors,
+			'assert wp_validate_user_login return a WP_Error when username is_reserved.'
+		);
+	}
+
+	/**
+	 * @ticket 17904
+	 */
+	public function test_wp_validate_user_login_existing_wp_error() {
+		add_filter( 'validate_username', '__return_false' );
+
+		$errors            = new WP_Error( 'initial-error', 'Initial error' );
+		$validation_errors = wp_validate_user_login( 'testsuser', $errors );
+		$this->assertCount(
+			2,
+			$validation_errors->get_error_codes(),
+			'assert wp_validate_user_login will use existing WP_Error if provided.'
+		);
+	}
 }
