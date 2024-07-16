@@ -453,13 +453,40 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers wp_interactivity_data_wp_context
+	 * @covers       wp_interactivity_data_wp_context
+	 * @dataProvider data_wp_interactivity_data_wp_context_with_json_flags
+	 *
+	 * @param array  $context  Context to encode.
+	 * @param string $expected Expected function output.
 	 */
-	public function test_wp_interactivity_data_wp_context_with_json_flags() {
-		$this->assertSame( 'data-wp-context=\'{"tag":"\u003Cfoo\u003E"}\'', wp_interactivity_data_wp_context( array( 'tag' => '<foo>' ) ) );
-		$this->assertSame( 'data-wp-context=\'{"apos":"\u0027bar\u0027"}\'', wp_interactivity_data_wp_context( array( 'apos' => "'bar'" ) ) );
-		$this->assertSame( 'data-wp-context=\'{"quot":"\u0022baz\u0022"}\'', wp_interactivity_data_wp_context( array( 'quot' => '"baz"' ) ) );
-		$this->assertSame( 'data-wp-context=\'{"amp":"T\u0026T"}\'', wp_interactivity_data_wp_context( array( 'amp' => 'T&T' ) ) );
+	public function test_wp_interactivity_data_wp_context_with_json_flags( $context, $expected ) {
+		$this->assertSame( $expected, wp_interactivity_data_wp_context( $context ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_interactivity_data_wp_context_with_json_flags() {
+		return array(
+			'value contains <> brackets'        => array(
+				'context'  => array( 'tag' => '<foo>' ),
+				'expected' => 'data-wp-context=\'{"tag":"\u003Cfoo\u003E"}\'',
+			),
+			'value contains single quote chars' => array(
+				'context'  => array( 'apos' => "'bar'" ),
+				'expected' => 'data-wp-context=\'{"apos":"\u0027bar\u0027"}\'',
+			),
+			'value contains double quote chars' => array(
+				'context'  => array( 'quot' => '"baz"' ),
+				'expected' => 'data-wp-context=\'{"quot":"\u0022baz\u0022"}\'',
+			),
+			'value contains & ampersand'        => array(
+				'context'  => array( 'amp' => 'T&T' ),
+				'expected' => 'data-wp-context=\'{"amp":"T\u0026T"}\'',
+			),
+		);
 	}
 
 	/**
