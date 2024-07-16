@@ -1915,8 +1915,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Parse error. Enable foster parenting, process the token using the rules for the
 		 * > "in body" insertion mode, and then disable foster parenting.
 		 */
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
+		$this->bail("Foster parenting is unsupported.");
 	}
 
 	/**
