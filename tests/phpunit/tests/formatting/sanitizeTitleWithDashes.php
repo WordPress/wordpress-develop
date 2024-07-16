@@ -363,4 +363,15 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 53910
+	 */
+	function test_removes_encoded_values_before_trimming_title() {
+		$title  = 'this-very-long-title-is-to-help-demonstrate-that-';
+		$title .= 'partial-encoded-values-remain-when-you-try-to-use-';
+		$title .= 'sanitize-title-with-dashes-on-encoded-strings-trimmed-';
+		$title .= 'to-200-chars-instead-of-using-max-and-strlen';
+		$this->assertSame( $title, sanitize_title_with_dashes( $title . '%e2%80%98', '', 'save' ) );
+	}
 }
