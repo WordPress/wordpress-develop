@@ -1741,7 +1741,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_table() {
+	private function step_in_table(): bool {
 		$token_name = $this->get_token_name();
 		$token_type = $this->get_token_type();
 		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
@@ -1991,7 +1991,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_table_body() {
+	private function step_in_table_body(): bool {
 		$tag_name = $this->get_tag();
 		$op_sigil = $this->is_tag_closer() ? '-' : '+';
 		$op       = "{$op_sigil}{$tag_name}";
@@ -2096,7 +2096,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_row() {
+	private function step_in_row(): bool {
 		$tag_name = $this->get_tag();
 		$op_sigil = $this->is_tag_closer() ? '-' : '+';
 		$op       = "{$op_sigil}{$tag_name}";
@@ -2202,7 +2202,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_cell() {
+	private function step_in_cell(): bool {
 		$tag_name = $this->get_tag();
 		$op_sigil = $this->is_tag_closer() ? '-' : '+';
 		$op       = "{$op_sigil}{$tag_name}";
