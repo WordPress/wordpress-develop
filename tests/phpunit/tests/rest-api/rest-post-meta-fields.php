@@ -3096,13 +3096,26 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * Ensures that REST API calls with post meta containing the default value for the
+	 * registered meta field stores the default value into the database.
+	 *
+	 * When the default value isn't persisted in the database, a read of the post meta
+	 * at some point in the future might return a different value if the code setting the
+	 * default changed. This ensures that once a value is intentionally saved into the
+	 * database that it will remain durably in future reads.
+	 *
 	 * @ticket 55600
-	 * @dataProvider data_skalar_default
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Ignored in this test.
 	 */
-	public function test_skalar_singular_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
+	public function test_scalar_singular_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
 		$this->grant_write_permission();
 
-		$meta_key_single = 'with_' . $type . '_default';
+		$meta_key_single = "with_{$type}_default";
 
 		register_post_meta(
 			'post',
@@ -3125,24 +3138,45 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
 
-		$meta = get_metadata_raw( 'post', self::$post_id, $meta_key_single, false );
-		$this->assertNotEmpty( $meta );
-		$this->assertCount( 1, $meta );
-		$this->assertSame( (string) $default_value, $meta[0] );
+		$this->assertSame(
+			array( (string) $default_value ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_single, false ),
+			'Should have stored a single meta value with string-cast version of default value.'
+		);
 	}
 
 	/**
+	 * Ensures that REST API calls with multi post meta values (containing the default)
+	 * for the registered meta field stores the default value into the database.
+	 *
+	 * When the default value isn't persisted in the database, a read of the post meta
+	 * at some point in the future might return a different value if the code setting the
+	 * default changed. This ensures that once a value is intentionally saved into the
+	 * database that it will remain durably in future reads.
+	 *
+	 * Further, the total count of stored values may be wrong if the default value
+	 * is culled from the results of a "multi" read.
+	 *
 	 * @ticket 55600
-	 * @dataProvider data_skalar_default
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Appropriate value for given type that doesn't match the default value.
 	 */
-	public function test_skalar_multi_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
+	public function test_scalar_multi_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
 		$this->grant_write_permission();
 
-		$meta_key_multiple = 'with_multi_' . $type . '_default';
+		$meta_key_multiple = "with_multi_{$type}_default";
 
-		// register non-singular post meta for type
+		// Register non-singular post meta for type.
 		register_post_meta(
 			'post',
 			$meta_key_multiple,
@@ -3154,6 +3188,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 
+		// Write the default value as the sole value.
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$request->set_body_params(
 			array(
@@ -3164,13 +3199,19 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
 
-		$meta = get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false );
-		$this->assertNotEmpty( $meta );
-		$this->assertCount( 1, $meta );
-		$this->assertSame( (string) $default_value, $meta[0] );
+		$this->assertSame(
+			array( (string) $default_value ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false ),
+			'Should have stored a single meta value with string-cast version of default value.'
+		);
 
+		// Write multiple values, including the default, to ensure it remains.
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$request->set_body_params(
 			array(
@@ -3184,25 +3225,42 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
 
-		$meta = get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false );
-		$this->assertNotEmpty( $meta );
-		$this->assertCount( 2, $meta );
-		$this->assertSame( (string) $default_value, $meta[0] );
-		$this->assertSame( (string) $alternative_value, $meta[1] );
+		$this->assertSame(
+			array( (string) $default_value, (string) $alternative_value ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false ),
+			'Should have stored both the default and non-default string-cast values.'
+		);
 	}
 
 	/**
+	 * Ensures that REST API calls with post meta containing an object as the default
+	 * value for the registered meta field stores the default value into the database.
+	 *
+	 * When the default value isn't persisted in the database, a read of the post meta
+	 * at some point in the future might return a different value if the code setting the
+	 * default changed. This ensures that once a value is intentionally saved into the
+	 * database that it will remain durably in future reads.
+	 *
 	 * @ticket 55600
-	 * @dataProvider data_skalar_default
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Ignored in this test.
 	 */
 	public function test_object_singular_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
 		$this->grant_write_permission();
 
-		$meta_key_single = 'with_' . $type . '_default';
+		$meta_key_single = "with_{$type}_default";
 
-		// register singular post meta for type
+		// Register singular post meta for type.
 		register_post_meta(
 			'post',
 			$meta_key_single,
@@ -3231,25 +3289,46 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
 
-		$meta = get_metadata_raw( 'post', self::$post_id, $meta_key_single, false );
-		$this->assertNotEmpty( $meta );
-		$this->assertCount( 1, $meta );
-		// Array instead of object because objects coming from the DB are arrays and not objects
-		$this->assertSame( array( $type => $default_value ), $meta[0] );
+		// Objects stored into the database are read back as arrays.
+		$this->assertSame(
+			array( array( $type => $default_value ) ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_single, false ),
+			'Should have stored a single meta value with an object representing the default value.'
+		);
 	}
 
 	/**
+	 * Ensures that REST API calls with multi post meta values (containing an object as
+	 * the default) for the registered meta field stores the default value into the database.
+	 *
+	 * When the default value isn't persisted in the database, a read of the post meta
+	 * at some point in the future might return a different value if the code setting the
+	 * default changed. This ensures that once a value is intentionally saved into the
+	 * database that it will remain durably in future reads.
+	 *
+	 * Further, the total count of stored values may be wrong if the default value
+	 * is culled from the results of a "multi" read.
+	 *
 	 * @ticket 55600
-	 * @dataProvider data_skalar_default
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Appropriate value for given type that doesn't match the default value.
 	 */
 	public function test_object_multi_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
 		$this->grant_write_permission();
 
-		$meta_key_multiple = 'with_multi_' . $type . '_default';
+		$meta_key_multiple = "with_multi_{$type}_default";
 
-		// register non-singular post meta for type
+		// Register non-singular post meta for type.
 		register_post_meta(
 			'post',
 			$meta_key_multiple,
@@ -3278,13 +3357,18 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
 
-		$meta = get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false );
-		$this->assertNotEmpty( $meta );
-		$this->assertCount( 1, $meta );
-		// Array instead of object because objects coming from the DB are arrays and not objects
-		$this->assertSame( array( $type => $default_value ), $meta[0] );
+		// Objects stored into the database are read back as arrays.
+		$this->assertSame(
+			array( array( $type => $default_value ) ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false ),
+			'Should have stored a single meta value with an object representing the default value.'
+		);
 
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$request->set_body_params(
@@ -3299,26 +3383,43 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
 
-		$meta = get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false );
-		$this->assertNotEmpty( $meta );
-		$this->assertCount( 2, $meta );
-		// Array instead of object because objects coming from the DB are arrays and not objects
-		$this->assertSame( array( $type => $default_value ), $meta[0] );
-		$this->assertSame( array( $type => $alternative_value ), $meta[1] );
+		// Objects stored into the database are read back as arrays.
+		$this->assertSame(
+			array( array( $type => $default_value ), array( $type => $alternative_value ) ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false ),
+			'Should have stored a single meta value with an object representing the default value.'
+		);
 	}
 
 	/**
+	 * Ensures that REST API calls with post meta containing a list array as the default
+	 * value for the registered meta field stores the default value into the database.
+	 *
+	 * When the default value isn't persisted in the database, a read of the post meta
+	 * at some point in the future might return a different value if the code setting the
+	 * default changed. This ensures that once a value is intentionally saved into the
+	 * database that it will remain durably in future reads.
+	 *
 	 * @ticket 55600
-	 * @dataProvider data_skalar_default
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Ignored in this test.
 	 */
 	public function test_array_singular_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
 		$this->grant_write_permission();
 
-		$meta_key_single = 'with_' . $type . '_default';
+		$meta_key_single = "with_{$type}_default";
 
-		// register singular post meta for type
+		// Register singular post meta for type.
 		register_post_meta(
 			'post',
 			$meta_key_single,
@@ -3347,24 +3448,45 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
 
-		$meta = get_metadata_raw( 'post', self::$post_id, $meta_key_single, false );
-		$this->assertNotEmpty( $meta );
-		$this->assertCount( 1, $meta );
-		$this->assertSame( array( $default_value ), $meta[0] );
+		$this->assertSame(
+			array( array( $default_value ) ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_single, false ),
+			'Should have stored a single meta value with an array containing only the default value.'
+		);
 	}
 
 	/**
+	 * Ensures that REST API calls with multi post meta values (containing a list array as
+	 * the default) for the registered meta field stores the default value into the database.
+	 *
+	 * When the default value isn't persisted in the database, a read of the post meta
+	 * at some point in the future might return a different value if the code setting the
+	 * default changed. This ensures that once a value is intentionally saved into the
+	 * database that it will remain durably in future reads.
+	 *
+	 * Further, the total count of stored values may be wrong if the default value
+	 * is culled from the results of a "multi" read.
+	 *
 	 * @ticket 55600
-	 * @dataProvider data_skalar_default
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Appropriate value for given type that doesn't match the default value.
 	 */
 	public function test_array_multi_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
 		$this->grant_write_permission();
 
-		$meta_key_multiple = 'with_multi_' . $type . '_default';
+		$meta_key_multiple = "with_multi_{$type}_default";
 
-		// register non-singular post meta for type
+		// Register non-singular post meta for type.
 		register_post_meta(
 			'post',
 			$meta_key_multiple,
@@ -3393,12 +3515,17 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
 
-		$meta = get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false );
-		$this->assertNotEmpty( $meta );
-		$this->assertCount( 1, $meta );
-		$this->assertSame( array( $default_value ), $meta[0] );
+		$this->assertSame(
+			array( array( $default_value ) ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false ),
+			'Should have stored a single meta value with an object representing the default value.'
+		);
 
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$request->set_body_params(
@@ -3413,13 +3540,17 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
 
-		$meta = get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false );
-		$this->assertNotEmpty( $meta );
-		$this->assertCount( 2, $meta );
-		$this->assertSame( array( $default_value ), $meta[0] );
-		$this->assertSame( array( $alternative_value ), $meta[1] );
+		$this->assertSame(
+			array( array( $default_value ), array( $alternative_value ) ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false ),
+			'Should have stored a single meta value with an object representing the default value.'
+		);
 	}
 
 	/**
@@ -3845,14 +3976,19 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Provide data for the tests of saving default values
+	 * Data provider.
+	 *
+	 * Provides example default values of scalar types;
+	 * in contrast to arrays, objects, etc...
+	 *
+	 * @return array[]
 	 */
-	public function data_skalar_default() {
+	public static function data_scalar_default_values() {
 		return array(
-			array( 'boolean', true, false ),
-			array( 'integer', 42, 43 ),
-			array( 'number', 42.99, 43.99 ),
-			array( 'string', 'string', 'string2' ),
+			'boolean default' => array( 'boolean', true, false ),
+			'integer default' => array( 'integer', 42, 43 ),
+			'number default'  => array( 'number', 42.99, 43.99 ),
+			'string default'  => array( 'string', 'string', 'string2' ),
 		);
 	}
 }

@@ -268,6 +268,7 @@ abstract class WP_REST_Meta_Fields {
 	 * Alters the list of values in the database to match the list of provided values.
 	 *
 	 * @since 4.7.0
+	 * @since 6.7.0 Stores values into DB even if provided registered default value.
 	 *
 	 * @param int    $object_id Object ID to update.
 	 * @param string $meta_key  Key for the custom field.
@@ -367,6 +368,7 @@ abstract class WP_REST_Meta_Fields {
 	 * Updates a meta value for an object.
 	 *
 	 * @since 4.7.0
+	 * @since 6.7.0 Stores values into DB even if provided registered default value.
 	 *
 	 * @param int    $object_id Object ID to update.
 	 * @param string $meta_key  Key for the custom field.
