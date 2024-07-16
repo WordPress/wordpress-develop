@@ -2025,7 +2025,7 @@ function email_exists( $email ) {
  *
  * @since 2.0.1
  * @since 4.4.0 Empty sanitized usernames are now considered invalid.
- * @since 6.5.0 New argument $wp_error has been added.
+ * @since 6.7.0 New argument $wp_error has been added.
  *
  * @param string $username Username to validate.
  * @param bool   $wp_error Whether to return a WP_Error if the username is invalid.
@@ -2115,7 +2115,7 @@ function validate_username( $username, $wp_error = false ) {
  * In multisite, this checks if a signup with the provided username already exists. If the signup has been registered
  * more than two days ago, it'll be deleted and the username considered available again.
  *
- * @since 6.5.0
+ * @since 6.7.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -2143,7 +2143,7 @@ function is_username_reserved( $username ) {
 		/**
 		 * Filters whether the username is reserved or not.
 		 *
-		 * @since 6.5.0
+		 * @since 6.7.0
 		 *
 		 * @param bool $reserved Whether given username is reserved.
 		 * @param string $username Username to check.
@@ -2162,7 +2162,7 @@ function is_username_reserved( $username ) {
  * - {@see username_exists}
  * - {@see is_username_reserved}
  *
- * @since 6.5.0
+ * @since 6.7.0
  *
  * @param string   $user_login User login to validate.
  * @param WP_Error $errors    Existing WP_Error object to use. If null, a new WP_Error object will be created and returned.
