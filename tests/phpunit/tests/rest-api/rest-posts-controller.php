@@ -5457,8 +5457,6 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		rest_get_server()->dispatch( $request );
 
-		unregister_post_meta( 'post', 'test_meta_key' );
-
 		if ( empty( $action->get_args()[0][0]->query_vars ) || ! is_array( $action->get_args()[0][0]->query_vars ) ) {
 			$this->fail( 'Query vars were not captured.' );
 		}
