@@ -400,28 +400,48 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers wp_interactivity_data_wp_context
+	 * @covers       wp_interactivity_data_wp_context
+	 * @dataProvider data_wp_interactivity_data_wp_context_with_different_arrays_and_a_namespace
+	 *
+	 * @param array  $context  Context to encode.
+	 * @param string $store    Store namespace.
+	 * @param string $expected Expected function output.
 	 */
-	public function test_wp_interactivity_data_wp_context_with_different_arrays_and_a_namespace() {
-		$this->assertSame( 'data-wp-context=\'myPlugin::{}\'', wp_interactivity_data_wp_context( array(), 'myPlugin' ) );
-		$this->assertSame(
-			'data-wp-context=\'myPlugin::{"a":1,"b":"2","c":true}\'',
-			wp_interactivity_data_wp_context(
-				array(
+	public function test_wp_interactivity_data_wp_context_with_different_arrays_and_a_namespace( $context, $store, $expected ) {
+		$this->assertSame( $expected, wp_interactivity_data_wp_context( $context, $store ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_interactivity_data_wp_context_with_different_arrays_and_a_namespace() {
+		return array(
+			'empty array'                                  => array(
+				'context'  => array(),
+				'store'    => 'myPlugin',
+				'expected' => 'data-wp-context=\'myPlugin::{}\'',
+			),
+			'associative array with mixed values'          => array(
+				'context'  => array(
 					'a' => 1,
 					'b' => '2',
 					'c' => true,
 				),
-				'myPlugin'
-			)
-		);
-		$this->assertSame(
-			'data-wp-context=\'myPlugin::{"a":[1,2]}\'',
-			wp_interactivity_data_wp_context( array( 'a' => array( 1, 2 ) ), 'myPlugin' )
-		);
-		$this->assertSame(
-			'data-wp-context=\'myPlugin::[1,2]\'',
-			wp_interactivity_data_wp_context( array( 1, 2 ), 'myPlugin' )
+				'store'    => 'myPlugin',
+				'expected' => 'data-wp-context=\'myPlugin::{"a":1,"b":"2","c":true}\'',
+			),
+			'associative array with nested array as value' => array(
+				'context'  => array( 'a' => array( 1, 2 ) ),
+				'store'    => 'myPlugin',
+				'expected' => 'data-wp-context=\'myPlugin::{"a":[1,2]}\'',
+			),
+			'array without keys, integer values'           => array(
+				'context'  => array( 1, 2 ),
+				'store'    => 'myPlugin',
+				'expected' => 'data-wp-context=\'myPlugin::[1,2]\'',
+			),
 		);
 	}
 
