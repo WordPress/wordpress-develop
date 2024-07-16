@@ -332,16 +332,18 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 				),
 			)
 		);
-		function test_render_block_data( $parsed_block ) {
+
+		$test_render_block_data = static function ( $parsed_block ) {
 			$parsed_block['testKey'] = true;
 			return $parsed_block;
-		}
-		add_filter( 'render_block_data', 'test_render_block_data' );
+		};
+
+		add_filter( 'render_block_data', $test_render_block_data );
 		$post_content      = '<!-- wp:test/custom-directive-block /-->';
 		$processed_content = do_blocks( $post_content );
 		$processor         = new WP_HTML_Tag_Processor( $processed_content );
 		$processor->next_tag( array( 'data-wp-interactive' => 'nameSpace' ) );
-		remove_filter( 'render_block_data', 'test_render_block_data' );
+		remove_filter( 'render_block_data', $test_render_block_data );
 		unregister_block_type( 'test/custom-directive-block' );
 		$this->assertSame( 'test', $processor->get_attribute( 'value' ) );
 	}
