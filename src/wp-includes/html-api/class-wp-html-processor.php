@@ -3090,7 +3090,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#text':
 				$current_token = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 				if (
-					strspn( $this->html, "\u{0009}\u{000A}\u{000C}\u{000D}\u{0020}", $current_token->start, $current_token->length ) === $current_token->length
+					// U+0000 (NULL) Is not mentiond but is included here. Null bytes should be completely ignored.
+					strspn( $this->html, "\u{0000}\u{0009}\u{000A}\u{000C}\u{000D}\u{0020}", $current_token->start, $current_token->length ) === $current_token->length
 				) {
 					$this->insert_html_element( $this->state->current_token );
 					return true;
