@@ -1903,6 +1903,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->form_element = $this->state->current_token;
+				// > Pop that form element off the stack of open elements.
+				$this->state->stack_of_open_elements->pop();
 				return true;
 		}
 
