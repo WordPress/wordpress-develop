@@ -385,7 +385,7 @@ abstract class WP_Image_Editor {
 		 * @param string $filename  Path to the image.
 		 * @param string $mime_type The source image mime type.
 		 */
-		$output_format = apply_filters( 'image_editor_output_format', array( 'image/heif' => 'image/jpeg' ), $filename, $mime_type );
+		$output_format = apply_filters( 'image_editor_output_format', array( 'image/heic' => 'image/jpeg' ), $filename, $mime_type );
 
 		if ( isset( $output_format[ $mime_type ] )
 			&& $this->supports_mime_type( $output_format[ $mime_type ] )
