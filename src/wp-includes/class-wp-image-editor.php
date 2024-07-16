@@ -374,7 +374,7 @@ abstract class WP_Image_Editor {
 		 * @see WP_Image_Editor::get_output_format()
 		 *
 		 * @since 5.8.0
-		 * @since 6.7.0 The default was changed from array() to array( 'image/heif' => 'image/jpeg' ).
+		 * @since 6.7.0 The default was changed from array() to array( 'image/heic' => 'image/jpeg' ).
 		 *
 		 * @param string[] $output_format {
 		 *     An array of mime type mappings. Maps a source mime type to a new
