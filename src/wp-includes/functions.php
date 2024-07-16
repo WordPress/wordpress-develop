@@ -3374,6 +3374,15 @@ function wp_get_image_mime( $file ) {
 		) {
 			$mime = 'image/avif';
 		}
+
+		if (
+			isset( $magic[1] ) &&
+			isset( $magic[2] ) &&
+			'ftyp' === hex2bin( $magic[1] ) &&
+			( 'heic' === hex2bin( $magic[2] ) || 'heif' === hex2bin( $magic[2] ) )
+		) {
+			$mime = 'image/heic';
+		}
 	} catch ( Exception $e ) {
 		$mime = false;
 	}
