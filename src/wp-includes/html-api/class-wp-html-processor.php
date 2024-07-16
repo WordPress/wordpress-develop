@@ -1746,14 +1746,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
 		$op         = "{$op_sigil}{$token_name}";
 
-
 		switch ( $op ) {
 			/*
 			 * > A character token, if the current node is table, tbody, template, tfoot, thead, or tr element
 			 */
 			case '#text':
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( "Text in tables is not supported." );
+				return $this->step_in_table_text();
 
 			/*
 			 * > A comment token
@@ -1875,8 +1873,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TEMPLATE':
 			case '-TEMPLATE':
 				// > Process the token using the rules for the "in head" insertion mode.
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
+				return $this->step_in_head();
 
 			/*
 			 * > A start tag whose tag name is "input"
