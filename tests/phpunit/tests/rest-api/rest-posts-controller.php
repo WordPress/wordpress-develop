@@ -1655,6 +1655,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$filter = new MockAction();
 		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
 
+		// Register a meta key to ensure the parent post cache is primed. See @ticket 57749.
+		register_post_meta(
+			'attachment',
+			'test_attachment_key',
+			array(
+				'show_in_rest' => true,
+			)
+		);
+
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		rest_get_server()->dispatch( $request );
 
