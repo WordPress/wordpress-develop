@@ -2834,7 +2834,7 @@ class WP_HTML_Tag_Processor {
 			return '';
 		}
 
-		$text = substr( $this->html, $this->text_starts_at, $this->text_length );
+		$text = str_replace( "\0", '', substr( $this->html, $this->text_starts_at, $this->text_length ) );
 
 		// Comment data is not decoded.
 		if (
