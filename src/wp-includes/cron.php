@@ -228,6 +228,9 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
  *                           hook's callback function. Each value in the array
  *                           is passed to the callback as an individual parameter.
  *                           The array keys are ignored. Default empty array.
+ *                           Note: it's useful to remember here the array values type,
+ *                           so when calling the `wp_next_scheduled` function, ensure
+ *                           the arguments values type match (e.g., 1 !== '1').
  * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if event successfully scheduled. False or WP_Error on failure.
  */
@@ -826,6 +829,8 @@ function wp_get_scheduled_event( $hook, $args = array(), $timestamp = null ) {
  * @param array  $args Optional. Array containing each separate argument to pass to the hook's callback function.
  *                     Although not passed to a callback, these arguments are used to uniquely identify the
  *                     event, so they should be the same as those used when originally scheduling the event.
+ *                     Note: not passing any $args while the original scheduled event has defined some, will always
+ *                     return `false`, and that might not be the desired result.
  *                     Default empty array.
  * @return int|false The Unix timestamp of the next time the event will occur. False if the event doesn't exist.
  */
