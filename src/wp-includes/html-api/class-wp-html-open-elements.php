@@ -292,8 +292,9 @@ class WP_HTML_Open_Elements {
 				'MARQUEE',
 				'OBJECT',
 				'TEMPLATE',
+
 				/*
-				 * Foreign content not yet supported
+				 * @todo Foreign content not yet supported.
 				 *
 				 * - MathML mi
 				 * - MathML mo
@@ -327,6 +328,31 @@ class WP_HTML_Open_Elements {
 				// There are more elements that belong here which aren't currently supported.
 				'OL',
 				'UL',
+
+				// All the element types listed above for the has an element in scope algorithm.
+				'APPLET',
+				'CAPTION',
+				'HTML',
+				'TABLE',
+				'TD',
+				'TH',
+				'MARQUEE',
+				'OBJECT',
+				'TEMPLATE',
+
+				/*
+				 * @todo Foreign content not yet supported.
+				 *
+				 * - MathML mi
+				 * - MathML mo
+				 * - MathML mn
+				 * - MathML ms
+				 * - MathML mtext
+				 * - MathML annotation-xml
+				 * - SVG foreignObject
+				 * - SVG desc
+				 * - SVG title
+				 */
 			)
 		);
 	}
@@ -342,7 +368,37 @@ class WP_HTML_Open_Elements {
 	 * @return bool Whether given element is in scope.
 	 */
 	public function has_element_in_button_scope( $tag_name ) {
-		return $this->has_element_in_specific_scope( $tag_name, array( 'BUTTON' ) );
+		return $this->has_element_in_specific_scope(
+			$tag_name,
+			array(
+				'BUTTON',
+
+				// All the element types listed above for the has an element in scope algorithm.
+				'APPLET',
+				'CAPTION',
+				'HTML',
+				'TABLE',
+				'TD',
+				'TH',
+				'MARQUEE',
+				'OBJECT',
+				'TEMPLATE',
+
+				/*
+				 * @todo Foreign content not yet supported.
+				 *
+				 * - MathML mi
+				 * - MathML mo
+				 * - MathML mn
+				 * - MathML ms
+				 * - MathML mtext
+				 * - MathML annotation-xml
+				 * - SVG foreignObject
+				 * - SVG desc
+				 * - SVG title
+				 */
+			)
+		);
 	}
 
 	/**
