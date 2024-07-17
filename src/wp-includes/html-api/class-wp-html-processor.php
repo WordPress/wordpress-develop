@@ -1143,13 +1143,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-HTML':
 			case '-BR':
 				goto anything_else;
+				break;
 
 			/*
 			 * > A start tag whose tag name is "template"
 			 */
 			case '+TEMPLATE':
 				$this->state->active_formatting_elements->insert_marker();
-				$this->state->frameset_ok = false;
+				$this->state->frameset_ok    = false;
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE;
 				array_push(
 					$this->state->stack_of_template_insertion_modes,
