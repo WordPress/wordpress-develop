@@ -98,7 +98,7 @@ class WP_HTML_Active_Formatting_Elements {
 	 *
 	 * @since 6.7.0
 	 */
-	public function insert_marker() {
+	public function insert_marker(): void {
 		$this->push( new WP_HTML_Token( null, 'marker', false ) );
 	}
 

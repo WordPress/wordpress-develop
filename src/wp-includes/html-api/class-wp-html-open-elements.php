@@ -118,7 +118,7 @@ class WP_HTML_Open_Elements {
 	 * @return string|null Name of the node on the stack at the given location,
 	 *                     or `null` if the location isn't on the stack.
 	 */
-	public function at( int $nth ) {
+	public function at( int $nth ): ?string {
 		foreach ( $this->walk_down() as $item ) {
 			if ( 0 === --$nth ) {
 				return $item->node_name;
@@ -136,7 +136,7 @@ class WP_HTML_Open_Elements {
 	 * @param string $node_name Name of node for which to check.
 	 * @return bool Whether a node of the given name is in the stack of open elements.
 	 */
-	public function contains( $node_name ) {
+	public function contains( $node_name ): bool {
 		foreach ( $this->walk_up() as $item ) {
 			if ( $node_name === $item->node_name ) {
 				return true;
