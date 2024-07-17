@@ -5592,7 +5592,7 @@ function wp_getimagesize( $filename, ?array &$image_info = null ) {
 		}
 	}
 
-	// For PHP versions that don't support HEIC images, extract the size infor using Imagick when available.
+	// For PHP versions that don't support HEIC images, extract the size info using Imagick when available.
 	if ( 'image/heic' === wp_get_image_mime( $filename ) ) {
 		$editor = wp_get_image_editor( $filename );
 		if ( is_wp_error( $editor ) ) {
