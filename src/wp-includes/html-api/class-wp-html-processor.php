@@ -1141,8 +1141,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * It is probably inter-element whitespace, but it may also
 				 * contain character references which decode only to whitespace.
 				 */
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) !== strspn( $text, " \t\n\f\r" ) ) {
+				if ( ! $this->is_text_whitespace() ) {
 					$this->state->frameset_ok = false;
 				}
 
@@ -2501,6 +2500,25 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function get_modifiable_text() {
 		return $this->is_virtual() ? '' : parent::get_modifiable_text();
+	}
+
+	/**
+	 * Checks whether a text node or atomic element contains only whitespace.
+	 *
+	 * HTML entities will be decoded as necessary before the check is performed.
+	 *
+	 * The whitespace check is performed according to the HTML specification:
+	 * > ASCII whitespace is U+0009 TAB, U+000A LF, U+000C FF, U+000D CR, or U+0020 SPACE.
+	 * @see https://infra.spec.whatwg.org/#ascii-whitespace
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return bool True if the text only contains whitespace.
+	 */
+	public function is_text_whitespace() {
+		$text   = $this->get_modifiable_text();
+		$length = strlen( $text );
+		return $length === strspn( $text, "\x09\x0A\x0C\x0D\x20", 0, $length );
 	}
 
 	/**
