@@ -102,6 +102,33 @@ class WP_HTML_Open_Elements {
 	}
 
 	/**
+	 * Returns the name of the node at the nth position on the stack
+	 * of open elements, or `null` if no such position exists.
+	 *
+	 * Note that this uses a 1-based index, which represents the
+	 * "nth item" on the stack, counting from the top, where the
+	 * top-most element is the 1st, the second is the 2nd, etc...
+	 *
+	 * @todo Skip over "marker" entries on the stack, if appropriate.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param int $nth Retrieve the nth item on the stack, with 1 being
+	 *                 the top element, 2 being the second, etc...
+	 * @return string|null Name of the node on the stack at the given location,
+	 *                     or `null` if the location isn't on the stack.
+	 */
+	public function at( int $nth ): ?string {
+		foreach ( $this->walk_down() as $item ) {
+			if ( 0 === --$nth ) {
+				return $item->node_name;
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * Reports if a node of a given name is in the stack of open elements.
 	 *
 	 * @since 6.7.0
