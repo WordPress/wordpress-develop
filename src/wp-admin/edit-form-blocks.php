@@ -14,11 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * @global string       $post_type
- * @global WP_Post_Type $post_type_object
+ * @global string       $post_type        Global post type.
+ * @global WP_Post_Type $post_type_object Global post type object.
  * @global WP_Post      $post             Global post object.
- * @global string       $title
- * @global array        $wp_meta_boxes
+ * @global string       $title            The title of the current screen.
+ * @global array        $wp_meta_boxes    Global meta box state.
  */
 global $post_type, $post_type_object, $post, $title, $wp_meta_boxes;
 
@@ -72,6 +72,9 @@ $preload_paths = array(
 	sprintf( '%s/autosaves?context=edit', $rest_path ),
 	'/wp/v2/settings',
 	array( '/wp/v2/settings', 'OPTIONS' ),
+	'/wp/v2/global-styles/themes/' . get_stylesheet(),
+	'/wp/v2/themes?context=edit&status=active',
+	'/wp/v2/global-styles/' . WP_Theme_JSON_Resolver::get_user_global_styles_post_id() . '?context=edit',
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
