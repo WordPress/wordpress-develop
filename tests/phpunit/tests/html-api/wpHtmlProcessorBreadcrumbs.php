@@ -168,8 +168,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public static function data_unsupported_elements() {
 		$unsupported_elements = array(
 			'APPLET', // Deprecated.
-			'BASE',
-			'BGSOUND', // Deprecated; self-closing if self-closing flag provided, otherwise normal.
 			'BODY',
 			'CAPTION',
 			'COL',
@@ -180,7 +178,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'HEAD',
 			'HTML',
 			'IFRAME',
-			'LINK',
 			'MARQUEE', // Deprecated.
 			'MATH',
 			'META',
@@ -200,7 +197,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'TABLE',
 			'TBODY',
 			'TD',
-			'TEMPLATE',
 			'TEXTAREA',
 			'TFOOT',
 			'TH',
