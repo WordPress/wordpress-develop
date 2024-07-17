@@ -302,7 +302,22 @@ ul.wp-tab-bar li {
 	height: auto;
 	width: auto;
 	vertical-align: top;
-	background-image: linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7), linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7);
+	background-image: linear-gradient(
+			45deg,
+			#c3c4c7 25%,
+			transparent 25%,
+			transparent 75%,
+			#c3c4c7 75%,
+			#c3c4c7
+		),
+		linear-gradient(
+			45deg,
+			#c3c4c7 25%,
+			transparent 25%,
+			transparent 75%,
+			#c3c4c7 75%,
+			#c3c4c7
+		);
 	background-position: 0 0, 10px 10px;
 	background-size: 20px 20px;
 }
@@ -323,7 +338,7 @@ form#tags-filter {
 }
 
 #side-sortables input#post_password {
-	width: 94%
+	width: 94%;
 }
 
 #side-sortables .tagsdiv #newtag {
@@ -354,7 +369,8 @@ form#tags-filter {
 }
 
 #content-resize-handle {
-	background: transparent url(../images/resize.gif) no-repeat scroll right bottom;
+	background: transparent url(../images/resize.gif) no-repeat scroll right
+		bottom;
 	width: 12px;
 	cursor: row-resize;
 }
@@ -446,13 +462,18 @@ form#tags-filter {
 	line-height: 2.33333333; /* 28px */
 }
 
-#aa, #jj, #hh, #mn {
+#aa,
+#jj,
+#hh,
+#mn {
 	padding: 6px 1px;
 	font-size: 12px;
 	line-height: 1.16666666; /* 14px */
 }
 
-#jj, #hh, #mn {
+#jj,
+#hh,
+#mn {
 	width: 2em;
 }
 
@@ -948,7 +969,7 @@ form#tags-filter {
 .privacy-settings-view-passed[aria-expanded="true"] .icon,
 .health-check-accordion-trigger[aria-expanded="true"] .icon,
 .site-health-view-passed[aria-expanded="true"] .icon {
-	transform: translateY(-30%) rotate(-135deg)
+	transform: translateY(-30%) rotate(-135deg);
 }
 
 .privacy-settings-accordion-panel,
@@ -1001,10 +1022,22 @@ form#tags-filter {
 	pointer-events: none;
 }
 
-.privacy-settings-accordion-panel .wp-suggested-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice p),
-.privacy-settings-accordion-panel .wp-suggested-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice p),
-.privacy-settings-accordion-panel > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice p),
-.privacy-settings-accordion-panel div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice p) {
+.privacy-settings-accordion-panel
+	.wp-suggested-text
+	> *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice
+		p),
+.privacy-settings-accordion-panel
+	.wp-suggested-text
+	div
+	> *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice
+		p),
+.privacy-settings-accordion-panel
+	> *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice
+		p),
+.privacy-settings-accordion-panel
+	div
+	> *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice
+		p) {
 	margin: 0;
 	padding: 1em;
 	border-left: 2px solid #787c82;
@@ -1012,7 +1045,6 @@ form#tags-filter {
 
 /* Media queries */
 @media screen and (max-width: 782px) {
-
 	.privacy-settings-body,
 	.health-check-body {
 		margin: 0 12px;
@@ -1041,7 +1073,6 @@ form#tags-filter {
 }
 
 @media only screen and (max-width: 1004px) {
-
 	.privacy-settings-body,
 	.health-check-body {
 		margin: 0 22px;
@@ -1286,7 +1317,7 @@ label.post-format-icon {
 .taxonomydiv div.tabs-panel {
 	min-height: 42px;
 	/* Allow space for content after tab panels in nav menu editor. */
-	max-height: calc( 100% - 75px );
+	max-height: calc(100% - 75px);
 	height: 100%;
 	overflow: auto;
 	padding: 0 0.9em;
@@ -1309,7 +1340,6 @@ div.tabs-panel-active:focus {
 }
 
 #front-page-warning,
-#front-static-pages ul,
 ul.export-filters,
 .inline-editor ul.cat-checklist ul,
 .categorydiv ul.categorychecklist ul,
@@ -1317,6 +1347,10 @@ ul.export-filters,
 .posttypediv ul.categorychecklist ul,
 .taxonomydiv ul.categorychecklist ul {
 	margin-left: 18px;
+}
+
+#front-static-pages ul {
+	margin-left: 24px;
 }
 
 ul.categorychecklist li {
@@ -1525,7 +1559,7 @@ p.popular-tags a {
 }
 
 .comment-ays .comment-content a[href]:after {
-	content: "(" attr( href ) ")";
+	content: "(" attr(href) ")";
 	display: inline-block;
 	padding: 0 4px;
 	color: #646970;
@@ -1681,12 +1715,12 @@ table.links-table {
 
 .focus-on #adminmenuback,
 .focus-on #adminmenuwrap {
-	transform: translateX( -100% );
+	transform: translateX(-100%);
 }
 
 .focus-off #adminmenuback,
 .focus-off #adminmenuwrap {
-	transform: translateX( 0 );
+	transform: translateX(0);
 	transition-duration: 0.2s;
 	transition-property: transform;
 	transition-timing-function: ease-in-out;
@@ -1698,11 +1732,11 @@ table.links-table {
 /**
  * HiDPI Displays
  */
-@media print,
-  (min-resolution: 120dpi) {
+@media print, (min-resolution: 120dpi) {
 	#content-resize-handle,
 	#post-body .wp_themeSkin .mceStatusbar a.mceResize {
-		background: transparent url(../images/resize-2x.gif) no-repeat scroll right bottom;
+		background: transparent url(../images/resize-2x.gif) no-repeat scroll
+			right bottom;
 		background-size: 11px 11px;
 	}
 
@@ -1727,13 +1761,19 @@ table.links-table {
 		margin: 0;
 	}
 
-	.post-type-attachment #wpbody-content #post-body.columns-2 #postbox-container-1 {
+	.post-type-attachment
+		#wpbody-content
+		#post-body.columns-2
+		#postbox-container-1 {
 		margin-right: 0;
 		width: 100%;
 	}
 
 	.post-type-attachment #poststuff #postbox-container-1 .empty-container,
-	.post-type-attachment #poststuff #postbox-container-1 #side-sortables:empty {
+	.post-type-attachment
+		#poststuff
+		#postbox-container-1
+		#side-sortables:empty {
 		outline: none;
 		height: 0;
 		min-height: 0;
@@ -1785,7 +1825,10 @@ table.links-table {
 
 	/* Increase min-height while dragging for the #side-sortables and any potential sortables area with custom ID. */
 	.is-dragging-metaboxes #poststuff #postbox-container-1 .empty-container,
-	.is-dragging-metaboxes #poststuff #postbox-container-1 #side-sortables:empty,
+	.is-dragging-metaboxes
+		#poststuff
+		#postbox-container-1
+		#side-sortables:empty,
 	.is-dragging-metaboxes #poststuff #post-body.columns-2 #side-sortables,
 	.is-dragging-metaboxes #poststuff #post-body.columns-2 .meta-box-sortables {
 		height: auto;
@@ -1894,7 +1937,7 @@ table.links-table {
 		margin-top: 15px;
 	}
 
-	.category-add input[type=text],
+	.category-add input[type="text"],
 	.category-add select {
 		max-width: none;
 		margin-bottom: 15px;
@@ -1983,7 +2026,9 @@ table.links-table {
 	}
 
 	.wp-media-buttons .add_media span.wp-media-buttons-icon:before,
-	.wp-media-buttons #insert-jetpack-contact-form span.jetpack-contact-form-icon:before {
+	.wp-media-buttons
+		#insert-jetpack-contact-form
+		span.jetpack-contact-form-icon:before {
 		font-size: 20px !important;
 	}
 
