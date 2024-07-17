@@ -7503,20 +7503,7 @@ function get_tag_regex( $tag ) {
  * @return bool Whether the slug represents the UTF-8 encoding.
  */
 function is_utf8_charset( $blog_charset = null ) {
-	$charset_to_examine = $blog_charset ?? get_option( 'blog_charset' );
-
-	/*
-	 * Only valid string values count: the absence of a charset
-	 * does not imply any charset, let alone UTF-8.
-	 */
-	if ( ! is_string( $charset_to_examine ) ) {
-		return false;
-	}
-
-	return (
-		0 === strcasecmp( 'UTF-8', $charset_to_examine ) ||
-		0 === strcasecmp( 'UTF8', $charset_to_examine )
-	);
+	return _is_utf8_charset( $blog_charset ?? get_option( 'blog_charset' ) );
 }
 
 /**
