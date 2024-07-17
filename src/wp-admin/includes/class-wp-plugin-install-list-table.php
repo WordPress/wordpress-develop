@@ -464,6 +464,9 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		}
 	}
 
+	/**
+	 * Function to display rows.
+	 */
 	public function display_rows() {
 		$plugins_allowedtags = array(
 			'a'       => array(
