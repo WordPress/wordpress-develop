@@ -342,7 +342,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'AREA'   => array( 'AREA' ),
 			'BASE'   => array( 'BASE' ),
 			'BR'     => array( 'BR' ),
-			'COL'    => array( 'COL' ),
 			'EMBED'  => array( 'EMBED' ),
 			'HR'     => array( 'HR' ),
 			'IMG'    => array( 'IMG' ),
