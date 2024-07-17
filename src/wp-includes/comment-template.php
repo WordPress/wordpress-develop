@@ -2260,7 +2260,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 		// Check if the `$is_parsed_type_array` is true and not empty.
 		if ( $is_parsed_type_array && ! empty( $parsed_args['type'] ) ) {
 			$comments_by_type = separate_comments( $comments );
-			
+
 			// Loop through each type.
 			foreach ( $parsed_args['type'] as $type ) {
 
@@ -2332,7 +2332,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 							$_comments = $comments;
 							break;
 						}
-		
+
 						if ( empty( $comments_by_type[ $type ] ) ) {
 							continue;
 						}
@@ -2342,11 +2342,11 @@ function wp_list_comments( $args = array(), $comments = null ) {
 					}
 				} elseif ( ! $is_parsed_type_array && 'all' !== $parsed_args['type'] ) {
 					$comments_by_type = separate_comments( $comments );
-		
+
 					if ( empty( $comments_by_type[ $parsed_args['type'] ] ) ) {
 						return;
 					}
-		
+
 					$_comments = $comments_by_type[ $parsed_args['type'] ];
 				} else {
 					$_comments = $comments;
@@ -2373,7 +2373,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 						$_comments = $wp_query->comments;
 						break;
 					}
-	
+
 					if ( empty( $wp_query->comments_by_type[ $type ] ) ) {
 						continue;
 					}
