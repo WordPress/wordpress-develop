@@ -2650,6 +2650,7 @@ input[type="button"]:hover,
 input[type="reset"]:hover,
 input[type="submit"]:hover {
   background: #111;
+  color: #fff;
   cursor: pointer;
 }
 
@@ -2668,6 +2669,7 @@ input[type="button"]:focus,
 input[type="reset"]:focus,
 input[type="submit"]:focus {
   background: #111;
+  color: #fff;
   outline: thin dotted;
   outline-offset: -4px;
 }
