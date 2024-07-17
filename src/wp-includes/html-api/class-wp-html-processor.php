@@ -1034,7 +1034,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This internal function performs the 'in head' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0 Stub implementation.
+	 * @since 6.7.0
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -1044,7 +1044,161 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_head() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+		$token_name = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$token_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION,
+			 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 */
+			case '#text':
+				$this->bail(
+					'No support for parsing whitespace text in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD . ' state.'
+				);
+				break;
+
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// @todo Indicate a parse error once it's possible.
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > A start tag whose tag name is one of: "base", "basefont", "bgsound", "link"
+			 */
+			case '+BASE':
+			case '+BASEFONT':
+			case '+BGSOUND':
+			case '+LINK':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "meta"
+			 */
+			case '+META':
+				$this->bail( "Cannot process {$token_name} element." );
+				break;
+
+			/*
+			 * > A start tag whose tag name is "title"
+			 *
+			 * This rule is not applies, the scripting flag is never enabled:
+			 * > A start tag whose tag name is "noscript", if the scripting flag is enabled
+			 *
+			 * > A start tag whose tag name is one of: "noframes", "style"
+			 */
+			case '+TITLE':
+			case '+NOFRAMES':
+			case '+STYLE':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "noscript", if the scripting flag is disabled
+			 */
+			case '+NOSCRIPT':
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD_NOSCRIPT;
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "script"
+			 */
+			case '+SCRIPT':
+				$this->bail( "Cannot process {$token_name} element." );
+				break;
+
+			/*
+			 * > An end tag whose tag name is "head"
+			 */
+			case '-HEAD':
+				$this->state->stack_of_open_elements->pop();
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD;
+				return true;
+
+			/*
+			 * > An end tag whose tag name is one of: "body", "html", "br"
+			 */
+			case '-BODY':
+			case '-HTML':
+			case '-BR':
+				goto anything_else;
+
+			/*
+			 * > A start tag whose tag name is "template"
+			 */
+			case '+TEMPLATE':
+				$this->state->active_formatting_elements->insert_marker();
+				$this->state->frameset_ok = false;
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE;
+				array_push(
+					$this->state->stack_of_template_insertion_modes,
+					WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE
+				);
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > An end tag whose tag name is "template"
+			 */
+			case '-TEMPLATE':
+				if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
+					// @todo Indicate a parse error once it's possible.
+					return $this->step();
+				}
+				$this->generate_implied_end_tags_thoroughly();
+				if ( ! $this->state->stack_of_open_elements->current_node_is( 'TEMPLATE' ) ) {
+					// @todo Indicate a parse error once it's possible.
+				}
+				$this->state->stack_of_open_elements->pop_until( 'TEMPLATE' );
+				$this->state->active_formatting_elements->clear_up_to_last_marker();
+				array_pop( $this->state->stack_of_template_insertion_modes );
+				$this->reset_insertion_mode();
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "head"
+			 */
+			case '+HEAD':
+				// @todo Indicate a parse error once it's possible.
+				return $this->step();
+		}
+
+		/*
+		 * > Any other end tag
+		 */
+		if ( '-' === $op[0] ) {
+			// @todo Indicate a parse error once it's possible.
+			return $this->step();
+		}
+
+		anything_else:
+		/*
+		 * > Anything else
+		 */
+		$this->state->stack_of_open_elements->pop();
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
