@@ -64,7 +64,7 @@ if ( null === $result || ( is_wp_error( $result ) && 'invalid_key' === $result->
 
 nocache_headers();
 
-if ( is_object( $wp_object_cache ) ) {
+if ( is_object( $wp_object_cache ) && property_exists( $wp_object_cache, 'cache_enabled' ) ) {
 	$wp_object_cache->cache_enabled = false;
 }
 
