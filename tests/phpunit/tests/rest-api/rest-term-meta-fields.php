@@ -1338,8 +1338,8 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 	 *
 	 * @dataProvider data_term_meta_cache_is_primed_when_there_are_registered_keys
 	 *
-	 * @param string $taxonomy Taxonomy being tested.
-	 * @param string $route    REST API route to query for the test.
+	 * @param string $taxonomy The taxonomy being tested.
+	 * @param string $route    The REST API route to query for the test.
 	 */
 	public function test_term_meta_cache_is_primed_when_there_are_registered_keys( $taxonomy, $route ) {
 		global $wp_meta_keys;
@@ -1382,8 +1382,8 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 	 *
 	 * @covers WP_REST_Terms_Controller::get_items
 	 *
-	 * @param string $taxonomy Taxonomy being tested.
-	 * @param string $route    REST API route to query for the test.
+	 * @param string $taxonomy The taxonomy being tested.
+	 * @param string $route    The REST API route to query for the test.
 	*/
 	public function test_term_meta_cache_is_not_primed_when_there_are_no_registered_keys( $taxonomy, $route ) {
 		global $wp_meta_keys;
