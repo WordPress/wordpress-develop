@@ -3390,4 +3390,76 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 403, $response->get_status() );
 	}
+
+	/**
+	 * @ticket 57749
+	 *
+	 * @covers WP_REST_Comments_Controller::get_items
+	 */
+	public function test_comment_meta_cache_is_primed_when_there_are_registered_keys() {
+		global $wp_meta_keys;
+		$wp_meta_keys = array();
+
+		register_meta(
+			'comment',
+			'test_meta_key',
+			array(
+				'show_in_rest' => true,
+			)
+		);
+
+		$action = new MockAction();
+		add_filter( 'pre_get_comments', array( $action, 'action' ), 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		rest_get_server()->dispatch( $request );
+
+		unregister_meta_key( 'comment', 'test_meta_key' );
+
+		if ( empty( $action->get_args()[0][0]->query_vars ) || ! is_array( $action->get_args()[0][0]->query_vars ) ) {
+			$this->fail( 'Query vars were not captured.' );
+		}
+
+		$query_vars           = $action->get_args()[0][0]->query_vars;
+		$meta_cache_is_primed = ! array_key_exists( 'update_comment_meta_cache', $query_vars ) || true === $query_vars['update_comment_meta_cache'];
+
+		// Check if the captured query vars have 'update_comment_meta_cache' set to true.
+		$this->assertTrue(
+			$meta_cache_is_primed,
+			'Meta cache is not primed as expected when a custom meta key is registered.'
+		);
+	}
+
+	/**
+	 * @ticket 57749
+	 *
+	 * @covers WP_REST_Comments_Controller::get_items
+	 */
+	public function test_comment_meta_cache_is_not_primed_when_there_are_no_registered_keys() {
+		global $wp_meta_keys;
+		$wp_meta_keys = array();
+
+		$action = new MockAction();
+		add_filter( 'pre_get_comments', array( $action, 'action' ), 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		rest_get_server()->dispatch( $request );
+
+		if ( empty( $action->get_args()[0][0]->query_vars ) || ! is_array( $action->get_args()[0][0]->query_vars ) ) {
+			$this->fail( 'Query vars were not captured.' );
+		}
+
+		$query_vars = $action->get_args()[0][0]->query_vars;
+
+		$this->assertArrayHasKey(
+			'update_comment_meta_cache',
+			$query_vars,
+			'Query vars should contain the key "update_comment_meta_cache".'
+		);
+
+		$this->assertFalse(
+			$query_vars['update_comment_meta_cache'],
+			'The "update_comment_meta_cache" key should be false when no meta keys are registered.'
+		);
+	}
 }
