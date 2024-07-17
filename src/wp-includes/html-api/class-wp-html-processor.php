@@ -1107,12 +1107,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$op         = "{$op_sigil}{$token_name}";
 
 		switch ( $op ) {
-			case '#comment':
-			case '#funky-comment':
-			case '#presumptuous-tag':
-				$this->insert_html_element( $this->state->current_token );
-				return true;
-
 			case '#text':
 				$this->reconstruct_active_formatting_elements();
 
@@ -1149,10 +1143,77 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A DOCTYPE token
+			 * > Parse error. Ignore the token.
+			 */
 			case 'html':
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
+					/*
+					 * > Otherwise, for each attribute on the token, check to see if the attribute
+					 * > is already present on the top element of the stack of open elements. If
+					 * > it is not, add the attribute and its corresponding value to that element.
+					 *
+					 * This parser does not currently support this behavior: ignore the token.
+					 */
+				}
+
+				// Ignore the token.
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is one of: "base", "basefont", "bgsound", "link",
+			 * > "meta", "noframes", "script", "style", "template", "title"
+			 * >
+			 * > An end tag whose tag name is "template"
+			 */
+			case '+BASE':
+			case '+BASEFONT':
+			case '+BGSOUND':
+			case '+LINK':
+			case '+META':
+			case '+NOFRAMES':
+			case '+SCRIPT':
+			case '+STYLE':
+			case '+TEMPLATE':
+			case '+TITLE':
+			case '-TEMPLATE':
+				return $this->step_in_head();
+
+			/*
+			 * > A start tag whose tag name is "body"
+			 *
+			 * This tag in the IN BODY insertion mode is a parse error.
+			 */
+			case '+BODY':
+				if (
+					1 === $this->state->stack_of_open_elements->count() ||
+					'BODY' !== $this->state->stack_of_open_elements->at( 2 ) ||
+					$this->state->stack_of_open_elements->contains( 'TEMPLATE' )
+				) {
+					// Ignore the token.
+					return $this->step();
+				}
+
 				/*
-				 * > A DOCTYPE token
-				 * > Parse error. Ignore the token.
+				 * > Otherwise, set the frameset-ok flag to "not ok"; then, for each attribute
+				 * > on the token, check to see if the attribute is already present on the body
+				 * > element (the second element) on the stack of open elements, and if it is
+				 * > not, add the attribute and its corresponding value to that element.
+				 *
+				 * This parser does not currently support this behavior: ignore the token.
 				 */
 				return $this->step();
 
