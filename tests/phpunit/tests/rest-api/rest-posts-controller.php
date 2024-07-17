@@ -5435,7 +5435,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$query_vars           = $action->get_args()[0][0]->query_vars;
 		$meta_cache_is_primed = ! array_key_exists( 'update_post_meta_cache', $query_vars ) || true === $query_vars['update_post_meta_cache'];
 
-		// Check if the captured query vars have 'update_post_meta_cache' set to true
+		// Check if the captured query vars have 'update_post_meta_cache' set to true.
 		$this->assertTrue(
 			$meta_cache_is_primed,
 			'Meta cache is not primed as expected when a custom meta key is registered.'
