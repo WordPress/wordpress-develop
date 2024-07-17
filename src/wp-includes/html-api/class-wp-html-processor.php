@@ -1753,18 +1753,31 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A character token, if the current node is table, tbody, template, tfoot, thead, or tr element
 			 */
 			case '#text':
-				$current_token = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 				if (
-					strspn( $this->html, "\u{0000}\u{0009}\u{000A}\u{000C}\u{000D}\u{0020}", $current_token->start, $current_token->length ) === $current_token->length
+					$this->state->stack_of_open_elements->current_node_is( 'TABLE' ) ||
+					$this->state->stack_of_open_elements->current_node_is( 'TBODY' ) ||
+					$this->state->stack_of_open_elements->current_node_is( 'TEMPLATE' ) ||
+					$this->state->stack_of_open_elements->current_node_is( 'TFOOT' ) ||
+					$this->state->stack_of_open_elements->current_node_is( 'THEAD' ) ||
+					$this->state->stack_of_open_elements->current_node_is( 'TR' )
 				) {
-					if ( strspn( $this->html, "\u{0000}", $current_token->start, $current_token->length ) === $current_token->length ) {
+					$text = str_replace( "\0", '', $this->get_modifiable_text() );
+					// Ignore text nodes that are entirely U+0000 NULL.
+					if ( '' === $text ) {
 						// @todo Indicate a parse error once it's possible.
 						return $this->step();
 					}
-					$this->insert_html_element( $this->state->current_token );
-					return true;
+
+					// Whitespace-only text nodes are inserted in-place.
+					if ( strlen( $text ) === strspn( $text, "\u{0009}\u{000A}\u{000C}\u{000D}\u{0020}", 0, strlen( $text ) ) ) {
+						$this->insert_html_element( $this->state->current_token );
+						return true;
+					}
+
+					// Non-whitespace would trigger fostering, unsupported at this time.
+					$this->bail( 'Foster parenting is not supported.' );
+					break;
 				}
-				$this->bail( 'Foster parenting is not supported.' );
 				break;
 
 			/*
