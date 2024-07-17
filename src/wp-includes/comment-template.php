@@ -2366,7 +2366,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 				}
 
 				// Loop through each type.
-				foreach( $parsed_args['type'] as $type ) {
+				foreach ( $parsed_args['type'] as $type ) {
 
 					// Possible situation.
 					if ( 'all' === $type ) {
@@ -2381,7 +2381,6 @@ function wp_list_comments( $args = array(), $comments = null ) {
 					// Merge the existing `$_comments` array with the `$comments_by_type[ $type ]` array.
 					$_comments = array_merge( $_comments ?? array(), $wp_query->comments_by_type[ $type ] );
 				}
-				
 			} elseif ( ! $is_parsed_type_array && 'all' !== $parsed_args['type'] ) {
 				if ( empty( $wp_query->comments_by_type ) ) {
 					$wp_query->comments_by_type = separate_comments( $wp_query->comments );
