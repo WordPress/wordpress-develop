@@ -5856,9 +5856,9 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	 *
 	 * @since unreleased
 	 *
-	 * @param string $cache_key Default cache key.
-	 * @param string $page_path Page path.
-	 * @param string $post_type Post type or array of post types.
+	 * @param string       $cache_key Default cache key.
+	 * @param string       $page_path Page path.
+	 * @param string|array $post_type Post type or array of post types.
 	 */
 	$cache_key = apply_filters( 'page_by_path_cache_key', "get_page_by_path:$hash:$last_changed", $page_path, $post_type );
 
@@ -5933,9 +5933,9 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	 *
 	 * @since unreleased
 	 *
-	 * @param int    $foundid   ID found for the (path, post type) pair.
-	 * @param string $page_path Page path.
-	 * @param string $post_type Post type or array of post types.
+	 * @param int          $foundid   ID found for the (path, post type) pair.
+	 * @param string       $page_path Page path.
+	 * @param string|array $post_type Post type or array of post types.
 	 */
 	$foundid = apply_filters( 'page_by_path_id', $foundid, $page_path, $post_type );
 
