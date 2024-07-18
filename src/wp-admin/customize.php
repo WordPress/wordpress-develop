@@ -96,7 +96,7 @@ if ( ! empty( $url ) ) {
 if ( ! empty( $return ) ) {
 	$wp_customize->set_return_url( $return );
 }
-if ( ! empty( $autofocus ) && is_array( $autofocus ) ) {
+if ( ! empty( $autofocus ) ) {
 	$wp_customize->set_autofocus( $autofocus );
 }
 
