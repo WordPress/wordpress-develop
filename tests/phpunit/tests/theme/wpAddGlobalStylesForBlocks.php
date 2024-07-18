@@ -76,9 +76,9 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that the block cache is set for global styles.
+	 * Tests that the block cache is set for global styles.
 	 *
-	 * @ticket 59595
+	 * @ticket 61679
 	 */
 	public function test_styles_for_blocks_cache_is_set() {
 		$this->set_up_third_party_block();
@@ -96,9 +96,9 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	}
 
 	/**
-	 * Confirm that the block cache is skipped when in dev mode for themes.
+	 * Tests that the block cache is skipped when in dev mode for themes.
 	 *
-	 * @ticket 59595
+	 * @ticket 61679
 	 */
 	public function test_styles_for_blocks_skips_cache_in_dev_mode() {
 		global $_wp_tests_development_mode;
@@ -122,9 +122,9 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	}
 
 	/**
-	 * Confirm that the block cache is updated if the block meta has changed.
+	 * Tests that the block cache is updated if the block meta has changed.
 	 *
-	 * @ticket 59595
+	 * @ticket 61679
 	 */
 	public function test_styles_for_blocks_cache_is_skipped() {
 		wp_register_style( 'global-styles', false, array(), true, true );
