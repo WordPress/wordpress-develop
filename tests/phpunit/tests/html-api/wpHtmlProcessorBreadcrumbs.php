@@ -587,14 +587,14 @@ HTML
 			$processor->next_token();
 		}
 
-		$this->assertSame( $expected_tag_name, $processor->get_tag(), "Found incorrect tag name {$processor->get_tag()}." );
+		$this->assertSame( $expected_tag_name, $processor->get_tag(), "Found incorrect tag name {$processor->get_token_name()}." );
 		if ( 'open' === $expect_open_close ) {
-			$this->assertFalse( $processor->is_tag_closer(), "Found closer when opener expected at {$processor->get_tag()}." );
+			$this->assertFalse( $processor->is_tag_closer(), "Found closer when opener expected at {$processor->get_token_name()}." );
 		} else {
-			$this->assertTrue( $processor->is_tag_closer(), "Found opener when closer expected at {$processor->get_tag()}." );
+			$this->assertTrue( $processor->is_tag_closer(), "Found opener when closer expected at {$processor->get_token_name()}." );
 		}
 
-		$this->assertEquals( $expected_breadcrumbs, $processor->get_breadcrumbs(), "Found incorrect breadcrumbs in {$html}." );
+		$this->assertSame( $expected_breadcrumbs, $processor->get_breadcrumbs(), "Found incorrect breadcrumbs in {$html}." );
 	}
 
 	/**
