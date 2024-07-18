@@ -1111,6 +1111,10 @@ th.action-links {
         gap: 0.5rem;
 }
 
+.wp-filter .favorites-form .favorites-account input {
+	margin: 0;
+}
+
 /* Use flexbox only on the plugins install page. The `filter-links` and search form children will become flex items. */
 .plugin-install-php .wp-filter {
 	display: flex;
