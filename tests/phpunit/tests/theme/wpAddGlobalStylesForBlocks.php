@@ -87,12 +87,12 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 
 		$cache_key                = 'wp_styles_for_blocks';
 		$styles_for_blocks_before = get_transient( $cache_key );
-		$this->assertFalse( $styles_for_blocks_before );
+		$this->assertFalse( $styles_for_blocks_before, 'No block styles should be cached yet.' );
 
 		wp_add_global_styles_for_blocks();
 
 		$styles_for_blocks_after = get_transient( $cache_key );
-		$this->assertNotEmpty( $styles_for_blocks_after );
+		$this->assertNotEmpty( $styles_for_blocks_after, 'No block styles were cached.' );
 	}
 
 	/**
