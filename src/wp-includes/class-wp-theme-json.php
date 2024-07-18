@@ -1423,6 +1423,12 @@ class WP_Theme_JSON {
 			$stylesheet .= $this->get_preset_classes( $setting_nodes, $origins );
 		}
 
+		// Load the custom CSS last so it has the highest specificity.
+		if ( in_array( 'custom-css', $types, true ) ) {
+			// Add the global styles root CSS.
+			$stylesheet .= _wp_array_get( $this->theme_json, array( 'styles', 'css' ) );
+		}
+
 		return $stylesheet;
 	}
 
@@ -1467,10 +1473,12 @@ class WP_Theme_JSON {
 	 * Returns the global styles custom CSS.
 	 *
 	 * @since 6.2.0
+	 * @deprecated 6.7.0 Use {@see 'get_stylesheet'} instead.
 	 *
 	 * @return string The global styles custom CSS.
 	 */
 	public function get_custom_css() {
+		_deprecated_function( __METHOD__, '6.7.0', 'get_stylesheet' );
 		// Add the global styles root CSS.
 		$stylesheet = isset( $this->theme_json['styles']['css'] ) ? $this->theme_json['styles']['css'] : '';
 
@@ -2692,6 +2700,7 @@ class WP_Theme_JSON {
 				'duotone'    => $duotone_selector,
 				'features'   => $feature_selectors,
 				'variations' => $variation_selectors,
+				'css'        => $selector,
 			);
 
 			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
@@ -2879,8 +2888,23 @@ class WP_Theme_JSON {
 			$declarations = static::update_separator_declarations( $declarations );
 		}
 
+		/*
+		 * Top-level element styles using element-only specificity selectors should
+		 * not get wrapped in `:root :where()` to maintain backwards compatibility.
+		 *
+		 * Pseudo classes, e.g. :hover, :focus etc., are a class-level selector so
+		 * still need to be wrapped in `:root :where` to cap specificity for nested
+		 * variations etc. Pseudo selectors won't match the ELEMENTS selector exactly.
+		 */
+		$element_only_selector = $current_element &&
+			isset( static::ELEMENTS[ $current_element ] ) &&
+			// buttons, captions etc. still need `:root :where()` as they are class based selectors.
+			! isset( static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES[ $current_element ] ) &&
+			static::ELEMENTS[ $current_element ] === $selector;
+
 		// 2. Generate and append the rules that use the general selector.
-		$block_rules .= static::to_ruleset( ":root :where($selector)", $declarations );
+		$general_selector = $element_only_selector ? $selector : ":root :where($selector)";
+		$block_rules     .= static::to_ruleset( $general_selector, $declarations );
 
 		// 3. Generate and append the rules that use the duotone selector.
 		if ( isset( $block_metadata['duotone'] ) && ! empty( $declarations_duotone ) ) {
@@ -2908,7 +2932,7 @@ class WP_Theme_JSON {
 			}
 		}
 
-		// 7. Generate and append any custom CSS rules pertaining to nested block style variations.
+		// 7. Generate and append any custom CSS rules.
 		if ( isset( $node['css'] ) && ! $is_root_selector ) {
 			$block_rules .= $this->process_blocks_custom_css( $node['css'], $selector );
 		}
@@ -2962,10 +2986,10 @@ class WP_Theme_JSON {
 			$css .= '.has-global-padding { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }';
 			// Alignfull children of the container with left and right padding have negative margins so they can still be full width.
 			$css .= '.has-global-padding > .alignfull { margin-right: calc(var(--wp--style--root--padding-right) * -1); margin-left: calc(var(--wp--style--root--padding-left) * -1); }';
-			// Nested children of the container with left and right padding that are not wide or full aligned do not get padding, unless they are direct children of an alignfull flow container.
-			$css .= '.has-global-padding :where(:not(.alignfull.is-layout-flow) > .has-global-padding:not(.wp-block-block, .alignfull, .alignwide)) { padding-right: 0; padding-left: 0; }';
+			// Nested children of the container with left and right padding that are not full aligned do not get padding, unless they are direct children of an alignfull flow container.
+			$css .= '.has-global-padding :where(:not(.alignfull.is-layout-flow) > .has-global-padding:not(.wp-block-block, .alignfull)) { padding-right: 0; padding-left: 0; }';
 			// Alignfull direct children of the containers that are targeted by the rule above do not need negative margins.
-			$css .= '.has-global-padding :where(:not(.alignfull.is-layout-flow) > .has-global-padding:not(.wp-block-block, .alignfull, .alignwide)) > .alignfull { margin-left: 0; margin-right: 0; }';
+			$css .= '.has-global-padding :where(:not(.alignfull.is-layout-flow) > .has-global-padding:not(.wp-block-block, .alignfull)) > .alignfull { margin-left: 0; margin-right: 0; }';
 		}
 
 		$css .= '.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }';
