@@ -1299,7 +1299,7 @@ th.action-links {
         display: flex;
         align-items: flex-start;
         flex-wrap: wrap;
-        gap: 3px;
+	gap: 8px;
 }
 
 .filtered-by .tag {
