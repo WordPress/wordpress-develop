@@ -101,7 +101,7 @@ class Tests_Comment_GetCommentAuthor extends WP_UnitTestCase {
 			),
 			'with author ID'             => array(
 				'comment_props' => (object) array(
-					'user_id' => 1, // populates in the test with an actual user ID.
+					'user_id' => 1, // Populates in the test with an actual user ID.
 				),
 				'expected'      => 'Tester3',
 				'user_data'     => array(
