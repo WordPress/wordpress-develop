@@ -239,7 +239,7 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 *  Test that the split_query filter is called
+	 * Test that the split_query filter is called.
 	 *
 	 * @ticket 57416
 	 */
