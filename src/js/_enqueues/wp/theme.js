@@ -118,7 +118,7 @@ themes.view.Appearance = wp.Backbone.View.extend({
 		// Render and append after screen title.
 		view.render();
 		this.searchContainer
-			.find('.search-box')
+			.find( '.search-box' )
 			.append( $.parseHTML( '<label for="wp-filter-search-input">' + l10n.search + '</label>' ) )
 			.append( view.el );
 
