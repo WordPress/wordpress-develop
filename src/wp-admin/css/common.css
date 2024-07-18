@@ -1300,9 +1300,9 @@ th.action-links {
 }
 
 .filtered-by .tags {
-        display: flex;
-        align-items: flex-start;
-        flex-wrap: wrap;
+	display: flex;
+	align-items: flex-start;
+	flex-wrap: wrap;
 	gap: 8px;
 }
 
