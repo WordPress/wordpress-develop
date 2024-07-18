@@ -171,7 +171,6 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * Test case to ensure that the split the query is false when posts_per_page is = 1
 	 *
 	 * @ticket 57416
