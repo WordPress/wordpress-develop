@@ -110,6 +110,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          fetch-depth: 2
 
       - name: Retrieve previous commit SHA
         run: echo "TARGET_SHA=$(git rev-parse HEAD^1)" >> $GITHUB_ENV
