@@ -7496,6 +7496,9 @@ function get_tag_regex( $tag ) {
  *     $is_utf8 = is_utf8_charset();
  *
  * @since 6.6.0
+ * @since 6.6.1 A wrapper for _is_utf8_charset
+ *
+ * @see _is_utf8_charset
  *
  * @param string|null $blog_charset Optional. Slug representing a text character encoding, or "charset".
  *                                  E.g. "UTF-8", "Windows-1252", "ISO-8859-1", "SJIS".

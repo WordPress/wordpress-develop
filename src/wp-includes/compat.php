@@ -56,6 +56,9 @@ function _wp_can_use_pcre_u( $set = null ) {
  *     // Only strings match.
  *     false === _is_utf8_charset( [ 'charset' => 'utf-8' ] );
  *
+ * `is_utf8_charset` should be used outside of this file.
+ *
+ * @ignore
  * @since 6.6.1
  *
  * @param string $charset_slug Slug representing a text character encoding, or "charset".
