@@ -146,7 +146,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		$styles_for_blocks_updated = get_transient( 'wp_styles_for_blocks' );
 		$this->assertNotEmpty( $styles_for_blocks_updated, 'Updated cache was not set.' );
 
-		$this->assertNotEquals(
+		$this->assertNotSame(
 			$styles_for_blocks_initial,
 			$styles_for_blocks_updated,
 			'Block style cache was not updated.'
