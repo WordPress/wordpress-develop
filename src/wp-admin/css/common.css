@@ -1105,10 +1105,10 @@ th.action-links {
 }
 
 .wp-filter .favorites-form .favorites-account {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.5rem;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.5rem;
 }
 
 .wp-filter .favorites-form .favorites-account input {
