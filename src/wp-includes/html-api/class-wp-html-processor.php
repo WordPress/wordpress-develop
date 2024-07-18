@@ -1768,8 +1768,26 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 						return $this->step();
 					}
 
-					// Whitespace-only text nodes are inserted in-place.
-					if ( strlen( $text ) === strspn( $text, "\u{0009}\u{000A}\u{000C}\u{000D}\u{0020}", 0, strlen( $text ) ) ) {
+					/*
+					 * This follows the rules for "in table text" insertion mode.
+					 *
+					 * Whitespace-only text nodes are inserted in-place. Otherwise
+					 * foster parenting is enabled and the nodes would be
+					 * inserted out-of-place.
+					 *
+					 * > If any of the tokens in the pending table character tokens
+                                         * > list are character tokens that are not ASCII whitespace,
+                                         * > then this is a parse error: reprocess the character tokens
+                                         * > in the pending table character tokens list using the rules
+                                         * > given in the "anything else" entry in the "in table"
+                                         * > insertion mode.
+                                         * >
+                                         * > Otherwise, insert the characters given by the pending table
+                                         * > character tokens list.
+					 *
+					 * @see https://html.spec.whatwg.org/#parsing-main-intabletext
+                                         */
+					if ( strlen( $text ) === strspn( $text, "\x09\x0A\x0C\x0D\x20", 0, strlen( $text ) ) ) {
 						$this->insert_html_element( $this->state->current_token );
 						return true;
 					}
