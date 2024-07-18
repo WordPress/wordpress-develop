@@ -123,8 +123,8 @@ themes.view.Appearance = wp.Backbone.View.extend({
 			.append( view.el );
 
 		this.searchContainer.on( 'submit', function( event ) {
-				event.preventDefault();
-			});
+			event.preventDefault();
+		});
 	},
 
 	// Checks when the user gets close to the bottom
