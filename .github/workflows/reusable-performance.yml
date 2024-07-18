@@ -45,7 +45,7 @@ env:
   BASE_TAG: ${{ inputs.BASE_TAG }}
   LOCAL_DIR: ${{ inputs.LOCAL_DIR }}
   TARGET_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || '' }}
-  TARGET_SHA: ''
+  TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
 
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   LOCAL_PHP: ${{ inputs.php-version }}${{ 'latest' != inputs.php-version && '-fpm' || '' }}
@@ -54,7 +54,7 @@ jobs:
   # Performs the following steps:
   # - Configure environment variables.
   # - Checkout repository.
-  # - Determine the target SHA value.
+  # - Determine the target SHA value (on `workflow_dispatch` only).
   # - Set up Node.js.
   # - Log debug information.
   # - Install npm dependencies.
@@ -110,9 +110,10 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
-          fetch-depth: 2
+          fetch-depth: ${{ github.event_name == 'workflow_dispatch' && '2' || '1' }}
 
-      - name: Retrieve previous commit SHA
+      - name: Retrieve previous commit SHA (if necessary)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: echo "TARGET_SHA=$(git rev-parse HEAD^1)" >> $GITHUB_ENV
 
       - name: Set up Node.js
