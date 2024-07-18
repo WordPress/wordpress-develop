@@ -96,8 +96,7 @@ themes.view.Appearance = wp.Backbone.View.extend({
 	},
 
 	// Defines search element container.
-	//searchContainer: $( '.search-form .search-box' ),//Bug => //Submit only works with Form and not with <p> tag
-	searchContainer: $( '.search-form' ),//Fix
+	searchContainer: $( '.search-form' ),
 
 	// Search input and view
 	// for current theme collection.
