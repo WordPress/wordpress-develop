@@ -287,12 +287,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.4.0
 	 * @since 6.6.0 Returns `static` instead of `self` so it can create subclass instances.
 	 *
-	 * @param string $html     Input HTML fragment to process.
-	 * @param string $context  Context element for the fragment, must be default of `<body>`.
-	 * @param string $encoding Text encoding of the document; must be default of 'UTF-8'.
+	 * @param string $html        Input HTML fragment to process.
+	 * @param string $context     Context element for the fragment, must be default of `<body>`.
+	 * @param string $encoding    Optional. Text encoding of the document; must be default of 'UTF-8'.
+	 * @param string $compat_mode Optional. Set document compatibility mode (quirks). Should be
+	 *                            'quirks-mode' or 'no-quirks-mode'. Default: 'no-quirks-mode'.
 	 * @return static|null The created processor if successful, otherwise null.
 	 */
-	public static function create_fragment( $html, $context = '<body>', $encoding = 'UTF-8' ) {
+	public static function create_fragment( $html, $context = '<body>', $encoding = 'UTF-8', $compat_mode = WP_HTML_Processor_State::NO_QUIRKS_MODE ) {
 		if ( '<body>' !== $context || 'UTF-8' !== $encoding ) {
 			return null;
 		}
@@ -302,6 +304,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$processor->state->insertion_mode      = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
 		$processor->state->encoding            = $encoding;
 		$processor->state->encoding_confidence = 'certain';
+
+		if ( WP_HTML_Processor_State::QUIRKS_MODE === $compat_mode ) {
+			$processor->state->compat_mode = WP_HTML_Processor_State::QUIRKS_MODE;
+		}
 
 		// @todo Create "fake" bookmarks for non-existent but implied nodes.
 		$processor->bookmarks['root-node']    = new WP_HTML_Span( 0, 0 );
