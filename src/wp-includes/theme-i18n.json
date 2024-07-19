@@ -1,5 +1,6 @@
 {
 	"title": "Style variation name",
+	"description": "Style variation description",
 	"settings": {
 		"typography": {
 				"fontSizes": [
@@ -34,6 +35,13 @@
 			"spacingSizes": [
 				{
 					"name": "Space size name"
+				}
+			]
+		},
+		"dimensions": {
+			"aspectRatios": [
+				{
+					"name": "Aspect ratio name"
 				}
 			]
 		},

@@ -12,17 +12,34 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @var WP_List_Table $list_table
 	 */
-	protected static $list_table;
+	private $list_table;
+
+	/**
+	 * Original value of $GLOBALS['hook_suffix'].
+	 *
+	 * @var string
+	 */
+	private static $original_hook_suffix;
 
 	public static function set_up_before_class() {
-		global $hook_suffix;
-
 		parent::set_up_before_class();
 
-		require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+		static::$original_hook_suffix = $GLOBALS['hook_suffix'];
 
+		require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+	}
+
+	public function set_up() {
+		parent::set_up();
+		global $hook_suffix;
 		$hook_suffix      = '_wp_tests';
-		self::$list_table = new WP_List_Table();
+		$this->list_table = new WP_List_Table();
+	}
+
+	public function clean_up_global_scope() {
+		global $hook_suffix;
+		$hook_suffix = static::$original_hook_suffix;
+		parent::clean_up_global_scope();
 	}
 
 	/**
@@ -124,7 +141,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the "get_views_links()" method.
+	 * Tests the `WP_List_Table::get_views_links()` method.
 	 *
 	 * @ticket 42066
 	 *
@@ -142,10 +159,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 * @param array $expected
 	 */
 	public function test_get_views_links( $link_data, $expected ) {
-		$get_views_links = new ReflectionMethod( self::$list_table, 'get_views_links' );
+		$get_views_links = new ReflectionMethod( $this->list_table, 'get_views_links' );
 		$get_views_links->setAccessible( true );
 
-		$actual = $get_views_links->invokeArgs( self::$list_table, array( $link_data ) );
+		$actual = $get_views_links->invokeArgs( $this->list_table, array( $link_data ) );
 
 		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
@@ -238,7 +255,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that "get_views_links()" throws a _doing_it_wrong().
+	 * Tests that `WP_List_Table::get_views_links()` throws a `_doing_it_wrong()`.
 	 *
 	 * @ticket 42066
 	 *
@@ -257,9 +274,9 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 * }
 	 */
 	public function test_get_views_links_doing_it_wrong( $link_data ) {
-		$get_views_links = new ReflectionMethod( self::$list_table, 'get_views_links' );
+		$get_views_links = new ReflectionMethod( $this->list_table, 'get_views_links' );
 		$get_views_links->setAccessible( true );
-		$get_views_links->invokeArgs( self::$list_table, array( $link_data ) );
+		$get_views_links->invokeArgs( $this->list_table, array( $link_data ) );
 	}
 
 	/**
@@ -343,5 +360,228 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 				),
 			),
 		);
+	}
+
+	/**
+	 * @dataProvider data_compat_fields
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__get()
+	 *
+	 * @param string $property_name Property name to get.
+	 * @param mixed $expected       Expected value.
+	 */
+	public function test_should_get_compat_fields( $property_name, $expected ) {
+		$list_table = new WP_List_Table( array( 'plural' => '_wp_tests__get' ) );
+
+		if ( 'screen' === $property_name ) {
+			$this->assertInstanceOf( $expected, $list_table->$property_name );
+		} else {
+			$this->assertSame( $expected, $list_table->$property_name );
+		}
+	}
+
+	/**
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__get()
+	 */
+	public function test_should_throw_deprecation_when_getting_dynamic_property() {
+		$this->expectDeprecation();
+		$this->expectDeprecationMessage(
+			'WP_List_Table::__get(): ' .
+			'The property `undeclared_property` is not declared. Getting a dynamic property is ' .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.'
+		);
+		$this->assertNull( $this->list_table->undeclared_property, 'Getting a dynamic property should return null from WP_List_Table::__get()' );
+	}
+
+	/**
+	 * @dataProvider data_compat_fields
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__set()
+	 *
+	 * @param string $property_name Property name to set.
+	 */
+	public function test_should_set_compat_fields_defined_property( $property_name ) {
+		$value                            = uniqid();
+		$this->list_table->$property_name = $value;
+
+		$this->assertSame( $value, $this->list_table->$property_name );
+	}
+
+	/**
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__set()
+	 */
+	public function test_should_throw_deprecation_when_setting_dynamic_property() {
+		$this->expectDeprecation();
+		$this->expectDeprecationMessage(
+			'WP_List_Table::__set(): ' .
+			'The property `undeclared_property` is not declared. Setting a dynamic property is ' .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.'
+		);
+		$this->list_table->undeclared_property = 'some value';
+	}
+
+	/**
+	 * @dataProvider data_compat_fields
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__isset()
+	 *
+	 * @param string $property_name Property name to check.
+	 * @param mixed $expected       Expected value.
+	 */
+	public function test_should_isset_compat_fields( $property_name, $expected ) {
+		$actual = isset( $this->list_table->$property_name );
+		if ( is_null( $expected ) ) {
+			$this->assertFalse( $actual );
+		} else {
+			$this->assertTrue( $actual );
+		}
+	}
+
+	/**
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__isset()
+	 */
+	public function test_should_throw_deprecation_when_isset_of_dynamic_property() {
+		$this->expectDeprecation();
+		$this->expectDeprecationMessage(
+			'WP_List_Table::__isset(): ' .
+			'The property `undeclared_property` is not declared. Checking `isset()` on a dynamic property ' .
+			'is deprecated since version 6.4.0! Instead, declare the property on the class.'
+		);
+		$this->assertFalse( isset( $this->list_table->undeclared_property ), 'Checking a dynamic property should return false from WP_List_Table::__isset()' );
+	}
+
+	/**
+	 * @dataProvider data_compat_fields
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__unset()
+	 *
+	 * @param string $property_name Property name to unset.
+	 */
+	public function test_should_unset_compat_fields_defined_property( $property_name ) {
+		unset( $this->list_table->$property_name );
+		$this->assertFalse( isset( $this->list_table->$property_name ) );
+	}
+
+	/**
+	 * @ticket 58896
+	 *
+	 * @covers WP_List_Table::__unset()
+	 */
+	public function test_should_throw_deprecation_when_unset_of_dynamic_property() {
+		$this->expectDeprecation();
+		$this->expectDeprecationMessage(
+			'WP_List_Table::__unset(): ' .
+			'A property `undeclared_property` is not declared. Unsetting a dynamic property is ' .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.'
+		);
+		unset( $this->list_table->undeclared_property );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_compat_fields() {
+		return array(
+			'_args'            => array(
+				'property_name' => '_args',
+				'expected'      => array(
+					'plural'   => '_wp_tests__get',
+					'singular' => '',
+					'ajax'     => false,
+					'screen'   => null,
+				),
+			),
+			'_pagination_args' => array(
+				'property_name' => '_pagination_args',
+				'expected'      => array(),
+			),
+			'screen'           => array(
+				'property_name' => 'screen',
+				'expected'      => WP_Screen::class,
+			),
+			'_actions'         => array(
+				'property_name' => '_actions',
+				'expected'      => null,
+			),
+			'_pagination'      => array(
+				'property_name' => '_pagination',
+				'expected'      => null,
+			),
+		);
+	}
+
+	/**
+	 * Tests that `WP_List_Table::search_box()` works correctly with an `orderby` array with multiple values.
+	 *
+	 * @ticket 59494
+	 *
+	 * @covers WP_List_Table::search_box()
+	 */
+	public function test_search_box_working_with_array_of_orderby_multiple_values() {
+		$_REQUEST['s']       = 'search term';
+		$_REQUEST['orderby'] = array(
+			'menu_order' => 'ASC',
+			'title'      => 'ASC',
+		);
+
+		$actual = get_echo( array( $this->list_table, 'search_box' ), array( 'Search Posts', 'post' ) );
+
+		$expected_html1 = '<input type="hidden" name="orderby[menu_order]" value="ASC" />';
+		$expected_html2 = '<input type="hidden" name="orderby[title]" value="ASC" />';
+
+		$this->assertStringContainsString( $expected_html1, $actual );
+		$this->assertStringContainsString( $expected_html2, $actual );
+	}
+
+	/**
+	 * Tests that `WP_List_Table::search_box()` works correctly with an `orderby` array with a single value.
+	 *
+	 * @ticket 59494
+	 *
+	 * @covers WP_List_Table::search_box()
+	 */
+	public function test_search_box_working_with_array_of_orderby_single_value() {
+		// Test with one 'orderby' element.
+		$_REQUEST['s']       = 'search term';
+		$_REQUEST['orderby'] = array(
+			'title' => 'ASC',
+		);
+
+		$actual = get_echo( array( $this->list_table, 'search_box' ), array( 'Search Posts', 'post' ) );
+
+		$expected_html = '<input type="hidden" name="orderby[title]" value="ASC" />';
+
+		$this->assertStringContainsString( $expected_html, $actual );
+	}
+
+	/**
+	 * Tests that `WP_List_Table::search_box()` works correctly with `orderby` set to a string.
+	 *
+	 * @ticket 59494
+	 *
+	 * @covers WP_List_Table::search_box()
+	 */
+	public function test_search_box_works_with_orderby_string() {
+		// Test with one 'orderby' element.
+		$_REQUEST['s']       = 'search term';
+		$_REQUEST['orderby'] = 'title';
+
+		$actual = get_echo( array( $this->list_table, 'search_box' ), array( 'Search Posts', 'post' ) );
+
+		$expected_html = '<input type="hidden" name="orderby" value="title" />';
+
+		$this->assertStringContainsString( $expected_html, $actual );
 	}
 }

@@ -120,8 +120,8 @@ function getMismatchedNonWordPressDependencies() {
 	;
 
 	// Ensure that all the conflicts can be resolved with the same version
-	const unresolvableConflicts = Object.entries( groupBy( versionConflicts, ( [name] ) => name ) )
-		.map( ( [name, group] ) => [name, group.map( ( [, { required }] ) => required )] )
+	const unresolvableConflicts = Object.entries( groupBy( versionConflicts, ( {name} ) => name ) )
+		.map( ( [name, group] ) => [name, uniq( group.map( ( { required } ) => required ) )] )
 		.filter( ( [, group] ) => group.length > 1 );
 	if ( unresolvableConflicts.length > 0 ) {
 		console.error( "Can't resolve some conflicts automatically." );

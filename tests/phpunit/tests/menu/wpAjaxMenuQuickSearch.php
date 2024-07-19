@@ -3,7 +3,7 @@
 /**
  * @group menu
  */
-class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
+class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 
 	/**
 	 * Test search returns results for pages.

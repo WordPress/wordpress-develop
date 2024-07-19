@@ -518,6 +518,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-transform: none;
 }
 
+.wp-block-quote.has-text-color cite,
+.wp-block-quote.has-background cite {
+	color: inherit;
+}
+
 .wp-block-quote em,
 .wp-block-quote i {
 	font-style: normal;
@@ -667,17 +672,22 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding: 0;
 }
 
+.wp-block-code {
+	font-family: Inconsolata, monospace;
+}
+
 /* Pullquote */
 
 .wp-block-pullquote,
-.editor-block-list__block .wp-block-pullquote blockquote {
-	border: 0;
+.editor-styles-wrapper .wp-block-pullquote blockquote {
+	border: 0 solid;
+	color: inherit;
 	margin: 0;
 	padding-left: 0;
 }
 
 .wp-block-pullquote .wp-block-pullquote__citation {
-	color: #333;
+	color: inherit;
 	font-family: "Noto Sans", sans-serif;
 	font-size: 15px;
 	font-style: normal;
@@ -731,12 +741,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-align: right;
 }
 
-/* Verse */
-
-.editor-styles-wrapper .wp-block-verse {
-	font-family: inherit;
-}
-
 /*--------------------------------------------------------------
 5.0 Blocks - Layout Elements
 --------------------------------------------------------------*/
@@ -757,6 +761,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 .wp-block-button__link {
 	background-color: #333;
 	color: #fff;
+}
+
+.wp-block-buttons[style*="text-transform"] .wp-block-button__link,
+.wp-block-button[style*="text-transform"] .wp-block-button__link {
+	text-transform: inherit;
 }
 
 .is-style-outline .wp-block-button__link {
@@ -798,13 +807,15 @@ p.has-drop-cap:not(:focus)::first-letter {
 	}
 }
 
-/* Seperator */
+/* Separator */
 
 .wp-block-separator {
+	border: 0;
 	max-width: 100px;
 }
 
-.wp-block-separator.is-style-wide {
+.wp-block-separator.is-style-wide,
+.wp-block-separator.is-style-dots {
 	max-width: 100%;
 }
 

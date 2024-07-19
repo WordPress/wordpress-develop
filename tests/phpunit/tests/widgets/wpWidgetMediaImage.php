@@ -478,7 +478,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'width="100"', $output );
 		$this->assertStringContainsString( 'height="100"', $output );
 
-		// Embeded images.
+		// Embedded images.
 		ob_start();
 		$widget->render_media(
 			array(
@@ -494,6 +494,8 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 
 		// Custom image class.
 		$this->assertStringContainsString( 'src="http://example.org/url/to/image.jpg"', $output );
+		$this->assertStringContainsString( 'decoding="async"', $output );
+		$this->assertStringContainsString( 'loading="lazy"', $output );
 
 		// Link settings.
 		ob_start();

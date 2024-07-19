@@ -16,6 +16,39 @@ class Tests_Locale extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57427
+	 *
+	 * @dataProvider data_property_initializes_to_array
+	 *
+	 * @param string $name Property name to test.
+	 */
+	public function test_property_initializes_to_array( $name ) {
+		$this->assertIsArray( $this->locale->$name, "WP_Locale::{$name} property should be an array" );
+
+		// Test a custom implementation when `init()` is not invoked in the constructor.
+		$wp_locale = new Custom_WP_Locale();
+		$this->assertIsArray( $wp_locale->$name, "Custom_WP_Locale::{$name} property should be an array" );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_property_initializes_to_array() {
+		return array(
+			'weekday'         => array( 'weekday' ),
+			'weekday_initial' => array( 'weekday_initial' ),
+			'weekday_abbrev'  => array( 'weekday_abbrev' ),
+			'month'           => array( 'month' ),
+			'month_genitive'  => array( 'month_genitive' ),
+			'month_abbrev'    => array( 'month_abbrev' ),
+			'meridiem'        => array( 'meridiem' ),
+			'number_format'   => array( 'number_format' ),
+		);
+	}
+
+	/**
 	 * @covers WP_Locale::get_weekday
 	 */
 	public function test_get_weekday() {
@@ -139,5 +172,69 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->assertTrue( $this->locale->is_rtl() );
 		$this->locale->text_direction = 'ltr';
 		$this->assertFalse( $this->locale->is_rtl() );
+	}
+
+	/**
+	 * Tests that `WP_Locale::get_word_count_type()` returns
+	 * the appropriate value.
+	 *
+	 * @ticket 56698
+	 *
+	 * @covers WP_Locale::get_word_count_type
+	 *
+	 * @dataProvider data_get_word_count_type
+	 *
+	 * @param string $word_count_type The word count type.
+	 * @param string $expected        The expected return value.
+	 */
+	public function test_get_word_count_type( $word_count_type, $expected ) {
+		if ( is_string( $word_count_type ) ) {
+			$this->locale->word_count_type = $word_count_type;
+
+		}
+
+		$this->assertSame( $expected, $this->locale->get_word_count_type() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_word_count_type() {
+		return array(
+			'default'                   => array(
+				'word_count_type' => null,
+				'expected'        => 'words',
+			),
+			'empty string'              => array(
+				'word_count_type' => '',
+				'expected'        => 'words',
+			),
+			'an invalid option - "foo"' => array(
+				'word_count_type' => 'foo',
+				'expected'        => 'words',
+			),
+			'a valid option - "words"'  => array(
+				'word_count_type' => 'words',
+				'expected'        => 'words',
+			),
+			'a valid option - "characters_excluding_spaces"' => array(
+				'word_count_type' => 'characters_excluding_spaces',
+				'expected'        => 'characters_excluding_spaces',
+			),
+			'a valid option - "characters_including_spaces"' => array(
+				'word_count_type' => 'characters_including_spaces',
+				'expected'        => 'characters_including_spaces',
+			),
+		);
+	}
+}
+
+class Custom_WP_Locale extends WP_Locale {
+	public function __construct() {
+		// Do not initialize to test property initialization.
+		// $this->init();
+		$this->register_globals();
 	}
 }
