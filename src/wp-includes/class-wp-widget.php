@@ -598,7 +598,7 @@ class WP_Widget {
 	 */
 	public function save_settings( $settings ) {
 		$settings['_multiwidget'] = 1;
-		update_option( $this->option_name, $settings, true );
+		update_option( $this->option_name, $settings, wp_use_widgets_block_editor() );
 	}
 
 	/**
