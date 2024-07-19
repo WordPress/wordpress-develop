@@ -531,4 +531,131 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$processor = WP_HTML_Processor::create_fragment( '<svg><script />' );
 		$this->assertTrue( $processor->next_tag( 'script' ) );
 	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when removing CSS classes in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::remove_class
+	 */
+	public function test_remove_class_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_fragment( '<span class="UPPER"></span>' );
+		$processor->next_tag();
+		$processor->remove_class( 'upper' );
+		$this->assertSame( '<span class="UPPER"></span>', $processor->get_updated_html() );
+
+		$processor->remove_class( 'UPPER' );
+		$this->assertSame( '<span ></span>', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when adding CSS classes in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::add_class
+	 */
+	public function test_add_class_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_fragment( '<span class="UPPER"></span>' );
+		$processor->next_tag();
+		$processor->add_class( 'UPPER' );
+		$this->assertSame( '<span class="UPPER"></span>', $processor->get_updated_html() );
+
+		$processor->add_class( 'upper' );
+		$this->assertSame( '<span class="UPPER upper"></span>', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when checking has CSS classes in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::has_class
+	 */
+	public function test_has_class_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_fragment( '<span class="UPPER"></span>' );
+		$processor->next_tag();
+		$this->assertFalse( $processor->has_class( 'upper' ) );
+		$this->assertTrue( $processor->has_class( 'UPPER' ) );
+	}
+
+	/**
+	 * Ensures that the tag processor lists unique CSS class names in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::class_list
+	 */
+	public function test_class_list_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_fragment( '<span class="A A a B b É É é"></span>' );
+		$processor->next_tag();
+		$class_list = iterator_to_array( $processor->class_list() );
+		$this->assertSame(
+			array( 'A', 'a', 'B', 'b', 'É', 'é' ),
+			$class_list
+		);
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when removing CSS classes in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::remove_class
+	 */
+	public function test_remove_class_quirks_mode() {
+		$processor = WP_HTML_Processor::create_fragment( '<span class="UPPER"></span>', '<body>', 'UTF-8', WP_HTML_Processor_State::QUIRKS_MODE );
+		$processor->next_tag();
+		$processor->remove_class( 'upper' );
+		$this->assertSame( '<span class="UPPER"></span>', $processor->get_updated_html() );
+
+		$processor->remove_class( 'UPPER' );
+		$this->assertSame( '<span ></span>', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when adding CSS classes in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::add_class
+	 */
+	public function test_add_class_quirks_mode() {
+		$processor = WP_HTML_Processor::create_fragment( '<span class="UPPER"></span>', '<body>', 'UTF-8', WP_HTML_Processor_State::QUIRKS_MODE );
+		$processor->next_tag();
+		$processor->add_class( 'upper' );
+		$this->assertSame( '<span class="UPPER"></span>', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when checking has CSS classes in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::has_class
+	 */
+	public function test_has_class_quirks_mode() {
+		$processor = WP_HTML_Processor::create_fragment( '<span class="UPPER"></span>', '<body>', 'UTF-8', WP_HTML_Processor_State::QUIRKS_MODE );
+		$processor->next_tag();
+		$this->assertTrue( $processor->has_class( 'upper' ) );
+		$this->assertTrue( $processor->has_class( 'UPPER' ) );
+	}
+
+	/**
+	 * Ensures that the tag processor lists unique CSS class names in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::class_list
+	 */
+	public function test_class_list_quirks_mode() {
+		$processor = WP_HTML_Processor::create_fragment( '<span class="A A a B b É É é"></span>', '<body>', 'UTF-8', WP_HTML_Processor_State::QUIRKS_MODE );
+		$processor->next_tag();
+		$class_list = iterator_to_array( $processor->class_list() );
+		$this->assertSame(
+			array( 'A', 'a', 'B', 'b', 'É', 'é' ),
+			$class_list
+		);
+	}
 }
