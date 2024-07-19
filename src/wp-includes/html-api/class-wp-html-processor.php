@@ -4645,13 +4645,38 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Returns if a matched tag contains the given ASCII case-insensitive class name.
 	 *
+	 *
+	 * > When matching against a document which is in quirks mode, class names must be matched
+	 * > ASCII case-insensitively; class selectors are otherwise case-sensitive, only matching
+	 * > class names they are identical to.
+	 *
+	 * @see https://www.w3.org/TR/selectors-4/#class-html
+	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 * @since 6.7.0 Matches are case sensitive in no-quirks mode (the default).
 	 *
 	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
 	 */
 	public function has_class( $wanted_class ): ?bool {
-		return $this->is_virtual() ? null : parent::has_class( $wanted_class );
+		if ( $this->is_virtual() ) {
+			return false;
+		}
+
+		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
+			return null;
+		}
+
+		$compare_func = WP_HTML_Processor_State::QUIRKS_MODE === $this->state->compat_mode ?
+			'strcasecmp' :
+			'strcmp';
+
+		foreach ( $this->class_list() as $class_name ) {
+			if ( 0 === $compare_func( $class_name, $wanted_class ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
