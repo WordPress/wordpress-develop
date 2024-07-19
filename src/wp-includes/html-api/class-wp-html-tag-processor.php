@@ -2688,6 +2688,7 @@ class WP_HTML_Tag_Processor {
 	 *     $p->is_tag_closer() === true;
 	 *
 	 * @since 6.2.0
+	 * @since 6.7.0 Reports all BR tags as opening tags.
 	 *
 	 * @return bool Whether the current tag is a tag closer.
 	 */
@@ -2695,6 +2696,14 @@ class WP_HTML_Tag_Processor {
 		return (
 			self::STATE_MATCHED_TAG === $this->parser_state &&
 			$this->is_closing_tag &&
+
+			/*
+			 * The BR tag can only exist as an opening tag. If something like `</br>`
+			 * appears then the HTML parser will treat it as an opening tag with no
+			 * attributes. The BR tag is unique in this way.
+			 *
+			 * @see https://html.spec.whatwg.org/#parsing-main-inbody
+			 */
 			'BR' !== $this->get_tag()
 		);
 	}
