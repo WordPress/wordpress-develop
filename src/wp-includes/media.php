@@ -1369,7 +1369,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 		// Since the `Host:` header might contain a port we should
 		// compare it against the image URL using the same port.
 		$parsed = parse_url( $image_baseurl );
-		$domain = $parsed['host'];
+		$domain = isset( $parsed['host'] ) ? $parsed['host'] : '';
 		if ( isset( $parsed['port'] ) ) {
 			$domain .= ':' . $parsed['port'];
 		}
