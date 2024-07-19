@@ -1752,18 +1752,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
-			 * > An end tag whose tag name is "br"
-			 * >   Parse error. Drop the attributes from the token, and act as described in the next
-			 * >   entry; i.e. act as if this was a "br" start tag token with no attributes, rather
-			 * >   than the end tag token that it actually is.
-			 *
-			 * Note that this is handled elsewhere, so it should not be possible to reach this code.
-			 */
-			case '-BR':
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( 'Closing BR tags require unimplemented special handling.' );
-
-			/*
 			 * > A start tag whose tag name is one of: "area", "br", "embed", "img", "keygen", "wbr"
 			 */
 			case '+AREA':
