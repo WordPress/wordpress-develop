@@ -396,6 +396,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 60936
 	 * @ticket 61165
 	 * @ticket 61630
+	 * @ticket 61704
 	 */
 	public function test_get_stylesheet() {
 		$theme_json = new WP_Theme_JSON(
@@ -1365,6 +1366,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 61118
 	 * @ticket 61165
 	 * @ticket 61630
+	 * @ticket 61704
 	 */
 	public function test_get_stylesheet_generates_fluid_typography_values() {
 		register_block_type(
@@ -3548,6 +3550,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 61704
 	 */
 	public function test_get_property_value_valid() {
 		$theme_json = new WP_Theme_JSON(
@@ -3630,6 +3633,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 61704
 	 * @expectedIncorrectUsage get_property_value
 	 */
 	public function test_get_property_value_loop() {
@@ -3666,6 +3670,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 61704
 	 * @expectedIncorrectUsage get_property_value
 	 */
 	public function test_get_property_value_recursion() {
@@ -3701,6 +3706,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 61704
 	 * @expectedIncorrectUsage get_property_value
 	 */
 	public function test_get_property_value_self() {
@@ -3726,6 +3732,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 60936
 	 * @ticket 61304
 	 * @ticket 61165
+	 * @ticket 61704
 	 */
 	public function test_get_styles_for_block_with_padding_aware_alignments() {
 		$theme_json = new WP_Theme_JSON(
@@ -3763,6 +3770,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 61704
 	 */
 	public function test_get_styles_for_block_without_padding_aware_alignments() {
 		$theme_json = new WP_Theme_JSON(
@@ -4998,6 +5006,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 61123
 	 * @ticket 61165
 	 * @ticket 61720
+	 * @ticket 61704
 	 */
 	public function test_get_top_level_background_image_styles() {
 		$theme_json = new WP_Theme_JSON(
