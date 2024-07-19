@@ -1142,7 +1142,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * contain character references which decode only to whitespace.
 				 */
 				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) !== strspn( $text, " \t\n\f\r" ) ) {
+				if ( strlen( $text ) !== strspn( $text, "\t\n\f\r " ) ) {
 					$this->state->frameset_ok = false;
 				}
 
@@ -1787,10 +1787,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 * >
 					 * > Otherwise, insert the characters given by the pending table
 					 * > character tokens list.
+					 * > …
+					 * > ASCII whitespace is U+0009 TAB, U+000A LF, U+000C FF, U+000D CR, or U+0020 SPACE.
 					 *
 					 * @see https://html.spec.whatwg.org/#parsing-main-intabletext
 					 */
-					if ( strlen( $text ) === strspn( $text, "\x09\x0A\x0C\x0D\x20", 0, strlen( $text ) ) ) {
+					if ( strlen( $text ) === strspn( $text, "\t\n\f\r ", 0, strlen( $text ) ) ) {
 						$this->insert_html_element( $this->state->current_token );
 						return true;
 					}
