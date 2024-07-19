@@ -658,4 +658,17 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			$class_list
 		);
 	}
+
+	/**
+	 * Ensures that the tag processor matches class names with null bytes correctly.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::has_class
+	 */
+	public function test_has_class_null_byte_class_name() {
+		$processor = WP_HTML_Processor::create_fragment( "<span class='null-byte-\0-there'></span>" );
+		$processor->next_tag();
+		$this->assertTrue( $processor->has_class( 'null-byte-�-there' ) );
+	}
 }
