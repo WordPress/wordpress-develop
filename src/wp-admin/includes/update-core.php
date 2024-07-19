@@ -765,7 +765,6 @@ $_old_files = array(
 	'wp-admin/images/about-header-freedoms.svg',
 	'wp-admin/images/about-header-contribute.svg',
 	'wp-admin/images/about-header-background.svg',
-
 );
 
 /**
