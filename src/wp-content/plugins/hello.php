@@ -14,7 +14,7 @@ Author URI: http://ma.tt/
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	die();
 }
 
 function hello_dolly_get_lyric() {
