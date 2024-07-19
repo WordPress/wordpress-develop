@@ -1558,4 +1558,53 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$this->assertSame( 'future', get_post_status( $post_id ) );
 	}
+
+	/**
+	 * @ticket 59354
+	 * @covers ::wp_insert_post
+	 */
+	public function test_extra_queries_when_updating_tags() {
+		// First we creat a post with a tag, for the basis of our test.
+		$post_id = wp_insert_post(
+			array(
+				'post_title' => 'title',
+				'tags_input' => 'new_tag',
+			)
+		);
+
+		$starting_number_of_queries = get_num_queries();
+
+		// We now update the post, while having tags as parameters.
+		$post_id = wp_insert_post(
+			array(
+				'post_title' => 'title',
+				'tags_input' => 'new_tag',
+			)
+		);
+
+		$queries_added_by_updating_post_with_tag_parameters = get_num_queries() - $starting_number_of_queries;
+
+		// We now update the post, again while having tags as parameters.
+		$post_id = wp_insert_post(
+			array(
+				'post_title' => 'title',
+				'tags_input' => 'new_tag',
+			)
+		);
+
+		$queries_added_by_updating_post_with_tag_parameters_again = get_num_queries() - $queries_added_by_updating_post_with_tag_parameters - $starting_number_of_queries;
+
+		$this->assertSame( $queries_added_by_updating_post_with_tag_parameters_again, $queries_added_by_updating_post_with_tag_parameters, 'The two inserts should perform the same amount of queries.' );
+
+		// We now update the post, but while NOT having tags as parameters.
+		$post_id = wp_insert_post(
+			array(
+				'post_title' => 'title',
+			)
+		);
+
+		$queries_added_by_updating_post_with_no_tag_parameters = get_num_queries() - $queries_added_by_updating_post_with_tag_parameters_again - $queries_added_by_updating_post_with_tag_parameters - $starting_number_of_queries;
+
+		$this->assertLessThan( $queries_added_by_updating_post_with_tag_parameters, $queries_added_by_updating_post_with_no_tag_parameters, 'Inserts without tag parameters should perform less amount of queries with ones with tag parameters.' );
+	}
 }
