@@ -1762,7 +1762,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->state->stack_of_open_elements->current_node_is( 'TR' )
 				) {
 					$text = str_replace( "\0", '', $this->get_modifiable_text() );
-					// Ignore text nodes that are entirely U+0000 NULL.
+					/*
+					 * If the text is empty after processing HTML entities and stripping
+					 * U+0000 NULL bytes then ignore the token.
+					 */
 					if ( '' === $text ) {
 						// @todo Indicate a parse error once it's possible.
 						return $this->step();
