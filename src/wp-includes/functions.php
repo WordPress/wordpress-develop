@@ -2257,11 +2257,11 @@ function get_temp_dir() {
  * @return bool Whether the path is writable.
  */
 function wp_is_writable( $path ) {
-	if ( 'WIN' === strtoupper( substr( PHP_OS, 0, 3 ) ) ) {
+	if ( 'Windows' === PHP_OS_FAMILY ) {
 		return win_is_writable( $path );
-	} else {
-		return @is_writable( $path );
 	}
+
+	return @is_writable( $path );
 }
 
 /**
@@ -7496,26 +7496,17 @@ function get_tag_regex( $tag ) {
  *     $is_utf8 = is_utf8_charset();
  *
  * @since 6.6.0
+ * @since 6.6.1 A wrapper for _is_utf8_charset
  *
- * @param ?string $blog_charset Slug representing a text character encoding, or "charset".
- *                              E.g. "UTF-8", "Windows-1252", "ISO-8859-1", "SJIS".
+ * @see _is_utf8_charset
+ *
+ * @param string|null $blog_charset Optional. Slug representing a text character encoding, or "charset".
+ *                                  E.g. "UTF-8", "Windows-1252", "ISO-8859-1", "SJIS".
+ *                                  Default value is to infer from "blog_charset" option.
  * @return bool Whether the slug represents the UTF-8 encoding.
  */
 function is_utf8_charset( $blog_charset = null ) {
-	$charset_to_examine = $blog_charset ?? get_option( 'blog_charset' );
-
-	/*
-	 * Only valid string values count: the absence of a charset
-	 * does not imply any charset, let alone UTF-8.
-	 */
-	if ( ! is_string( $charset_to_examine ) ) {
-		return false;
-	}
-
-	return (
-		0 === strcasecmp( 'UTF-8', $charset_to_examine ) ||
-		0 === strcasecmp( 'UTF8', $charset_to_examine )
-	);
+	return _is_utf8_charset( $blog_charset ?? get_option( 'blog_charset' ) );
 }
 
 /**
@@ -7644,8 +7635,10 @@ function wp_validate_boolean( $value ) {
  * Deletes a file.
  *
  * @since 4.2.0
+ * @since 6.7.0 A return value was added.
  *
  * @param string $file The path to the file to delete.
+ * @return bool True on success, false on failure.
  */
 function wp_delete_file( $file ) {
 	/**
@@ -7656,9 +7649,12 @@ function wp_delete_file( $file ) {
 	 * @param string $file Path to the file to delete.
 	 */
 	$delete = apply_filters( 'wp_delete_file', $file );
+
 	if ( ! empty( $delete ) ) {
-		@unlink( $delete );
+		return @unlink( $delete );
 	}
+
+	return false;
 }
 
 /**
@@ -7691,9 +7687,7 @@ function wp_delete_file_from_directory( $file, $directory ) {
 		return false;
 	}
 
-	wp_delete_file( $file );
-
-	return true;
+	return wp_delete_file( $file );
 }
 
 /**
