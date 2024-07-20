@@ -34,7 +34,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array The debug data for the site.
 	 */
-	public static function debug_data() {
+	public static function debug_data(): array {
 		global $wpdb, $_wp_theme_features;
 
 		// Save few function calls.
@@ -338,50 +338,6 @@ class WP_Debug_Data {
 					'label' => 'DB_COLLATE',
 					'value' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : __( 'Undefined' ) ),
 					'debug' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : 'undefined' ),
-				),
-			),
-		);
-
-		$is_writable_abspath            = wp_is_writable( ABSPATH );
-		$is_writable_wp_content_dir     = wp_is_writable( WP_CONTENT_DIR );
-		$is_writable_upload_dir         = wp_is_writable( $upload_dir['basedir'] );
-		$is_writable_wp_plugin_dir      = wp_is_writable( WP_PLUGIN_DIR );
-		$is_writable_template_directory = wp_is_writable( get_theme_root( get_template() ) );
-		$is_writable_fonts_dir          = wp_is_writable( wp_get_font_dir()['basedir'] );
-
-		$info['wp-filesystem'] = array(
-			'label'       => __( 'Filesystem Permissions' ),
-			'description' => __( 'Shows whether WordPress is able to write to the directories it needs access to.' ),
-			'fields'      => array(
-				'wordpress'  => array(
-					'label' => __( 'The main WordPress directory' ),
-					'value' => ( $is_writable_abspath ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_abspath ? 'writable' : 'not writable' ),
-				),
-				'wp-content' => array(
-					'label' => __( 'The wp-content directory' ),
-					'value' => ( $is_writable_wp_content_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_wp_content_dir ? 'writable' : 'not writable' ),
-				),
-				'uploads'    => array(
-					'label' => __( 'The uploads directory' ),
-					'value' => ( $is_writable_upload_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_upload_dir ? 'writable' : 'not writable' ),
-				),
-				'plugins'    => array(
-					'label' => __( 'The plugins directory' ),
-					'value' => ( $is_writable_wp_plugin_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_wp_plugin_dir ? 'writable' : 'not writable' ),
-				),
-				'themes'     => array(
-					'label' => __( 'The themes directory' ),
-					'value' => ( $is_writable_template_directory ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_template_directory ? 'writable' : 'not writable' ),
-				),
-				'fonts'      => array(
-					'label' => __( 'The fonts directory' ),
-					'value' => ( $is_writable_fonts_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_fonts_dir ? 'writable' : 'not writable' ),
 				),
 			),
 		);
@@ -1413,16 +1369,7 @@ class WP_Debug_Data {
 			);
 		}
 
-		// Add more filesystem checks.
-		if ( defined( 'WPMU_PLUGIN_DIR' ) && is_dir( WPMU_PLUGIN_DIR ) ) {
-			$is_writable_wpmu_plugin_dir = wp_is_writable( WPMU_PLUGIN_DIR );
-
-			$info['wp-filesystem']['fields']['mu-plugins'] = array(
-				'label' => __( 'The must use plugins directory' ),
-				'value' => ( $is_writable_wpmu_plugin_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
-				'debug' => ( $is_writable_wpmu_plugin_dir ? 'writable' : 'not writable' ),
-			);
-		}
+		add_filter( 'debug_information', array( __CLASS__, 'wp_filesystem' ), 9 );
 
 		/**
 		 * Filters the debug information shown on the Tools -> Site Health -> Info screen.
@@ -1485,6 +1432,77 @@ class WP_Debug_Data {
 		 * }
 		 */
 		$info = apply_filters( 'debug_information', $info );
+
+		return $info;
+	}
+
+	/**
+	 * Populate the file system section of the debug data.
+	 *
+	 * @since tbd
+	 *
+	 * @param array $info The debug information to be added to the core information page.
+	 *
+	 * @return array
+	 */
+	public static function wp_filesystem( array $info ): array {
+		$upload_dir                     = wp_upload_dir();
+		$is_writable_abspath            = wp_is_writable( ABSPATH );
+		$is_writable_wp_content_dir     = wp_is_writable( WP_CONTENT_DIR );
+		$is_writable_upload_dir         = wp_is_writable( $upload_dir['basedir'] );
+		$is_writable_wp_plugin_dir      = wp_is_writable( WP_PLUGIN_DIR );
+		$is_writable_template_directory = wp_is_writable( get_theme_root( get_template() ) );
+		$is_writable_fonts_dir          = wp_is_writable( wp_get_font_dir()['basedir'] );
+
+		$fields = array(
+			'wordpress'  => array(
+				'label' => __( 'The main WordPress directory' ),
+				'value' => ( $is_writable_abspath ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_abspath ? 'writable' : 'not writable' ),
+			),
+			'wp-content' => array(
+				'label' => __( 'The wp-content directory' ),
+				'value' => ( $is_writable_wp_content_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_wp_content_dir ? 'writable' : 'not writable' ),
+			),
+			'uploads'    => array(
+				'label' => __( 'The uploads directory' ),
+				'value' => ( $is_writable_upload_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_upload_dir ? 'writable' : 'not writable' ),
+			),
+			'plugins'    => array(
+				'label' => __( 'The plugins directory' ),
+				'value' => ( $is_writable_wp_plugin_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_wp_plugin_dir ? 'writable' : 'not writable' ),
+			),
+			'themes'     => array(
+				'label' => __( 'The themes directory' ),
+				'value' => ( $is_writable_template_directory ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_template_directory ? 'writable' : 'not writable' ),
+			),
+			'fonts'      => array(
+				'label' => __( 'The fonts directory' ),
+				'value' => ( $is_writable_fonts_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_fonts_dir ? 'writable' : 'not writable' ),
+			),
+		);
+
+		// Add more filesystem checks.
+		if ( defined( 'WPMU_PLUGIN_DIR' ) && is_dir( WPMU_PLUGIN_DIR ) ) {
+			$is_writable_wpmu_plugin_dir = wp_is_writable( WPMU_PLUGIN_DIR );
+
+			$fields['mu-plugins'] = array(
+				'label' => __( 'The must use plugins directory' ),
+				'value' => ( $is_writable_wpmu_plugin_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_wpmu_plugin_dir ? 'writable' : 'not writable' ),
+			);
+		}
+
+		$info['wp-filesystem'] = array(
+			'label'       => __( 'Filesystem Permissions' ),
+			'description' => __( 'Shows whether WordPress is able to write to the directories it needs access to.' ),
+			'fields'      => $fields,
+		);
 
 		return $info;
 	}
