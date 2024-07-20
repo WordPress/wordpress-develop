@@ -1119,8 +1119,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		switch ( $op ) {
 			case '#text':
-				$this->reconstruct_active_formatting_elements();
-
 				$current_token = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 
 				/*
@@ -1140,6 +1138,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
+
+				$this->reconstruct_active_formatting_elements();
 
 				/*
 				 * Whitespace-only text does not affect the frameset-ok flag.
