@@ -1247,6 +1247,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Otherwise, run the following steps:
 				 */
 				$this->bail( 'Cannot process non-ignored FRAMESET tags.' );
+				break;
 
 			/*
 			 * > An end tag whose tag name is "body"
@@ -1469,6 +1470,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 *       is the rest of the input document as plaintext.
 				 */
 				$this->bail( 'Cannot process PLAINTEXT elements.' );
+				break;
 
 			/*
 			 * > A start tag whose tag name is "button"
@@ -1838,6 +1840,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * Note that this is handled elsewhere, so it should not be possible to reach this code.
 				 */
 				$this->bail( "Cannot process an IMAGE tag. (Don't ask.)" );
+				break;
 
 			/*
 			 * > A start tag whose tag name is "textarea"
@@ -1994,6 +1997,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 */
 
 				$this->bail( 'Cannot process MATH element, opening foreign content.' );
+				break;
 
 			/*
 			 * > A start tag whose tag name is "svg"
@@ -2009,6 +2013,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 */
 
 				$this->bail( 'Cannot process SVG element, opening foreign content.' );
+				break;
 
 			/*
 			 * > A start tag whose tag name is one of: "caption", "col", "colgroup",
