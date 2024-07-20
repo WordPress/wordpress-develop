@@ -1226,6 +1226,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 *
 				 * This parser does not currently support this behavior: ignore the token.
 				 */
+				$this->state->frameset_ok = false;
 				return $this->step();
 
 			/*
@@ -1493,6 +1494,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > "button", "center", "details", "dialog", "dir", "div", "dl", "fieldset",
 			 * > "figcaption", "figure", "footer", "header", "hgroup", "listing", "main",
 			 * > "menu", "nav", "ol", "pre", "search", "section", "summary", "ul"
+			 *
+			 * @todo This needs to check if the element in scope is an HTML element, meaning that
+			 *       when SVG and MathML support is added, this needs to differentiate between an
+			 *       HTML element of the given name, such as `<center>`, and a foreign element of
+			 *       the same given name.
 			 */
 			case '-ADDRESS':
 			case '-ARTICLE':
@@ -1762,6 +1768,31 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
+			 * > A end tag token whose tag name is one of: "applet", "marquee", "object"
+			 *
+			 * @todo This needs to check if the element in scope is an HTML element, meaning that
+			 *       when SVG and MathML support is added, this needs to differentiate between an
+			 *       HTML element of the given name, such as `<object>`, and a foreign element of
+			 *       the same given name.
+			 */
+			case '-APPLET':
+			case '-MARQUEE':
+			case '-OBJECT':
+				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $token_name ) ) {
+					// Parse error: ignore the token.
+					return $this->step();
+				}
+
+				$this->generate_implied_end_tags();
+				if ( ! $this->state->stack_of_open_elements->current_node_is( $token_name ) ) {
+					// This is a parse error.
+				}
+
+				$this->state->stack_of_open_elements->pop_until( $token_name );
+				$this->state->active_formatting_elements->clear_up_to_last_marker();
+				return true;
+
+			/*
 			 * > A start tag whose tag name is "table"
 			 */
 			case '+TABLE':
@@ -1776,6 +1807,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->state->frameset_ok    = false;
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
 				return true;
+
+			/*
+			 * > An end tag whose tag name is "br"
+			 *
+			 * This is prevented from happening because the Tag Processor
+			 * reports all closing BR tags as if they were opening tags.
+			 */
 
 			/*
 			 * > A start tag whose tag name is one of: "area", "br", "embed", "img", "keygen", "wbr"
@@ -2053,6 +2091,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * close anything beyond its containing `P` or `DIV` element.
 			 */
 			foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+				/*
+				 * @todo This needs to check if the element in scope is an HTML element, meaning that
+				 *       when SVG and MathML support is added, this needs to differentiate between an
+				 *       HTML element of the given name, such as `<object>`, and a foreign element of
+				 *       the same given name.
+				 */
 				if ( $token_name === $node->node_name ) {
 					break;
 				}
