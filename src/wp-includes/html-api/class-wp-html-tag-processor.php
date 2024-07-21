@@ -756,6 +756,20 @@ class WP_HTML_Tag_Processor {
 	protected $seek_count = 0;
 
 	/**
+	 * Whether the parser should skip over an immediately-following linefeed
+	 * character, as is the case with LISTING, PRE, and TEXTAREA.
+	 *
+	 * > If the next token is a U+000A LINE FEED (LF) character token, then
+	 * > ignore that token and move on to the next one. (Newlines at the start
+	 * > of [these] elements are ignored as an authoring convenience.)
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var bool
+	 */
+	private $skip_next_linefeed = false;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 6.2.0
@@ -883,6 +897,11 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
+		// A text node does not disable this, but everything else does.
+		if ( self::STATE_TEXT_NODE !== $this->parser_state ) {
+			$this->skip_next_linefeed = false;
+		}
+
 		/*
 		 * For legacy reasons the rest of this function handles tags and their
 		 * attributes. If the processor has reached the end of the document
@@ -926,20 +945,23 @@ class WP_HTML_Tag_Processor {
 		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
 
 		/*
-		 * For non-DATA sections which might contain text that looks like HTML tags but
-		 * isn't, scan with the appropriate alternative mode. Looking at the first letter
-		 * of the tag name as a pre-check avoids a string allocation when it's not needed.
+		 * Certain tags require additional processing. The first-letter pre-check
+		 * avoids unnecessary string allocation when comparing the tag names.
+		 *
+		 *  - IFRAME
+		 *  - LISTING (deprecated)
+		 *  - NOEMBED (deprecated)
+		 *  - NOFRAMES (deprecated)
+		 *  - PRE
+		 *  - SCRIPT
+		 *  - STYLE
+		 *  - TEXTAREA
+		 *  - TITLE
+		 *  - XMP (deprecated)
 		 */
-		$t = $this->html[ $this->tag_name_starts_at ];
 		if (
 			$this->is_closing_tag ||
-			! (
-				'i' === $t || 'I' === $t ||
-				'n' === $t || 'N' === $t ||
-				's' === $t || 'S' === $t ||
-				't' === $t || 'T' === $t ||
-				'x' === $t || 'X' === $t
-			)
+			1 !== strspn( $this->html, 'iIlLnNpPsStTxX', $this->tag_name_starts_at, 1 )
 		) {
 			return true;
 		}
@@ -947,6 +969,25 @@ class WP_HTML_Tag_Processor {
 		$tag_name = $this->get_tag();
 
 		/*
+		 * For LISTING, PRE, and TEXTAREA, the first linefeed of an immediately-following
+		 * text node is ignored as an authoring convenience.
+		 *
+		 * @see static::skip_next_linefeed
+		 */
+		if ( 'LISTING' === $tag_name || 'PRE' === $tag_name ) {
+			$this->skip_next_linefeed = true;
+		}
+
+		/*
+		 * There are certain elements whose children are not DATA but are instead
+		 * RCDATA or RAWTEXT. These cannot contain other elements, and the contents
+		 * are parsed as plaintext, with character references decoded in RCDATA but
+		 * not in RAWTEXT.
+		 *
+		 * These elements are described here as "self-contained" or special atomic
+		 * elements whose end tag is consumed with the opening tag, and they will
+		 * contain modifiable text inside of them.
+		 *
 		 * Preserve the opening tag pointers, as these will be overwritten
 		 * when finding the closing tag. They will be reset after finding
 		 * the closing to tag to point to the opening of the special atomic
@@ -2836,15 +2877,29 @@ class WP_HTML_Tag_Processor {
 	 * have an empty string (e.g. a comment with no contents).
 	 *
 	 * @since 6.5.0
+	 * @since 6.7.0 Replaces NULL bytes (U+0000) and newlines appropriately.
 	 *
 	 * @return string
 	 */
 	public function get_modifiable_text(): string {
-		if ( null === $this->text_starts_at ) {
+		if ( null === $this->text_starts_at || 0 === $this->text_length ) {
 			return '';
 		}
 
 		$text = substr( $this->html, $this->text_starts_at, $this->text_length );
+
+		/*
+		 * Pre-processing the input stream would normally happen before
+		 * any parsing is done, but deferring it means it's possible to
+		 * skip in most cases. When getting the modifiable text, however
+		 * it's important to apply the pre-processing steps, which is
+		 * normalizing newlines.
+		 *
+		 * @see https://html.spec.whatwg.org/#preprocessing-the-input-stream
+		 * @see https://infra.spec.whatwg.org/#normalize-newlines
+		 */
+		$text = str_replace( "\r\n", "\n", $text );
+		$text = str_replace( "\r", "\n", $text );
 
 		// Comment data is not decoded.
 		if (
@@ -2853,10 +2908,10 @@ class WP_HTML_Tag_Processor {
 			self::STATE_DOCTYPE === $this->parser_state ||
 			self::STATE_FUNKY_COMMENT === $this->parser_state
 		) {
-			return $text;
+			return str_replace( "\x00", "\u{FFFD}", $text );
 		}
 
-		$tag_name = $this->get_tag();
+		$tag_name = $this->get_token_name();
 		if (
 			// Script data is not decoded.
 			'SCRIPT' === $tag_name ||
@@ -2868,29 +2923,35 @@ class WP_HTML_Tag_Processor {
 			'STYLE' === $tag_name ||
 			'XMP' === $tag_name
 		) {
-			return $text;
+			return str_replace( "\x00", "\u{FFFD}", $text );
 		}
 
 		$decoded = WP_HTML_Decoder::decode_text_node( $text );
 
 		/*
-		 * TEXTAREA skips a leading newline, but this newline may appear not only as the
-		 * literal character `\n`, but also as a character reference, such as in the
-		 * following markup: `<textarea>&#x0a;Content</textarea>`.
+		 * Skip the first line feed after LISTING, PRE, and TEXTAREA opening tags.
 		 *
-		 * For these cases it's important to first decode the text content before checking
-		 * for a leading newline and removing it.
+		 * Note that this first newline may come in the form of a character
+		 * reference, such as `&#x0a;`, and so it's important to perform
+		 * this transformation only after decoding the raw text content.
 		 */
 		if (
-			self::STATE_MATCHED_TAG === $this->parser_state &&
-			'TEXTAREA' === $tag_name &&
-			strlen( $decoded ) > 0 &&
-			"\n" === $decoded[0]
+			( "\n" === ( $decoded[0] ?? '' ) ) &&
+			( ( $this->skip_next_linefeed && '#text' === $tag_name ) || 'TEXTAREA' === $tag_name )
 		) {
-			return substr( $decoded, 1 );
+			$decoded = substr( $decoded, 1 );
 		}
+		$this->skip_next_linefeed = false;
 
-		return $decoded;
+		/*
+		 * Only in normative text nodes does the NULL byte (U+0000) get removed.
+		 * In all other contexts it's replaced by the replacement character (U+FFFD)
+		 * for security reasons (to avoid joining together strings that were safe
+		 * when separated, but not when joined).
+		 */
+		return '#text' === $tag_name
+			? str_replace( "\x00", '', $decoded )
+			: str_replace( "\x00", "\u{FFFD}", $decoded );
 	}
 
 	/**

@@ -2909,45 +2909,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * have an empty string (e.g. a comment with no contents).
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @since 6.7.0 Replaces NULL bytes (U+0000) appropriately.
 	 *
 	 * @return string
 	 */
 	public function get_modifiable_text(): string {
-		if ( $this->is_virtual() ) {
-			return '';
-		}
-
-		// Without null bytes there's nothing to transform.
-		$text = parent::get_modifiable_text();
-		if ( ! str_contains( $text, "\x00" ) ) {
-			return $text;
-		}
-
-		/*
-		 * Text nodes in normal DATA strips null bytes while everything
-		 * else replaces them with U+FFFD. Non-DATA sections are RCDATA
-		 * and RAWTEXT, SCRIPT, and comment content.
-		 *
-		 * @todo In foreign content the null byte is replaced by U+FFFD.
-		 */
-		$token_name = $this->get_token_name();
-		switch ( $token_name ) {
-			case '#comment':
-			case '#funky-comment':
-			case 'IFRAME':
-			case 'NOEMBED':
-			case 'NOFRAMES':
-			case 'SCRIPT':
-			case 'STYLE':
-			case 'TEXTAREA':
-			case 'TITLE':
-			case 'XMP':
-				return str_replace( "\x00", "\u{FFFD}", $text );
-
-			default:
-				return str_replace( "\x00", '', $text );
-		}
+		return $this->is_virtual() ? '' : parent::get_modifiable_text();
 	}
 
 	/**
