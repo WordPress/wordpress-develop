@@ -23,8 +23,6 @@ class WP_Debug_Data {
 	/**
 	 * Add the callbacks to the `debug_information` filter.
 	 *
-	 * Fires on the {@see 'init_admin'} action.
-	 *
 	 * @since tbd
 	 */
 	public static function init_filters(): void {
