@@ -21,6 +21,17 @@ class WP_Debug_Data {
 	}
 
 	/**
+	 * Add the callbacks to the `debug_information` filter.
+	 *
+	 * Fires on the {@see 'init_admin'} action.
+	 *
+	 * @since tbd
+	 */
+	public static function init_filters(): void {
+		add_filter( 'debug_information', array( __CLASS__, 'wp_filesystem' ), 9 );
+	}
+
+	/**
 	 * Static function for generating site debug data when required.
 	 *
 	 * @since 5.2.0
@@ -1369,7 +1380,16 @@ class WP_Debug_Data {
 			);
 		}
 
-		add_filter( 'debug_information', array( __CLASS__, 'wp_filesystem' ), 9 );
+		self::init_filters();
+
+		/**
+		 * Fires before the debug information is gathered.
+		 *
+		 * This hook allows you to alter, add, or remove debug information before it is gathered.
+		 *
+		 * @since tbd
+		 */
+		do_action( 'pre_debug_information' );
 
 		/**
 		 * Filters the debug information shown on the Tools -> Site Health -> Info screen.
@@ -1438,6 +1458,8 @@ class WP_Debug_Data {
 
 	/**
 	 * Populate the file system section of the debug data.
+	 *
+	 * Using the {@see 'debug_information'} filter for this.
 	 *
 	 * @since tbd
 	 *
