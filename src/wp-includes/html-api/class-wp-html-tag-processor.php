@@ -976,6 +976,7 @@ class WP_HTML_Tag_Processor {
 		 */
 		if ( 'LISTING' === $tag_name || 'PRE' === $tag_name ) {
 			$this->skip_next_linefeed = true;
+			return true;
 		}
 
 		/*
