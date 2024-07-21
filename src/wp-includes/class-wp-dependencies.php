@@ -508,7 +508,7 @@ class WP_Dependencies {
 				continue;
 			}
 
-			$ver   = $this->registered[ $handle ]->ver ? $this->registered[ $handle ]->ver : $wp_version;
+			$ver   = $this->registered[ $handle ]->ver ?? $wp_version;
 			$etag .= "{$handle}:{$ver};";
 		}
 
