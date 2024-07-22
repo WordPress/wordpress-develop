@@ -4997,6 +4997,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @ticket 61123
 	 * @ticket 61165
+	 * @ticket 61720
 	 */
 	public function test_get_top_level_background_image_styles() {
 		$theme_json = new WP_Theme_JSON(
@@ -5029,16 +5030,16 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'background' => array(
-						'backgroundImage'    => "url('http://example.org/image.png')",
-						'backgroundSize'     => 'contain',
-						'backgroundRepeat'   => 'no-repeat',
-						'backgroundPosition' => 'center center',
+						'backgroundImage'      => "url('http://example.org/image.png')",
+						'backgroundSize'       => 'contain',
+						'backgroundRepeat'     => 'no-repeat',
+						'backgroundPosition'   => 'center center',
+						'backgroundAttachment' => 'fixed',
 					),
 				),
 			)
 		);
 
-		$expected_styles = "html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}:root :where(body){background-image: url('http://example.org/image.png');background-position: center center;background-repeat: no-repeat;background-size: contain;}";
 		$this->assertSame( $expected_styles, $theme_json->get_styles_for_block( $body_node ), 'Styles returned from "::get_stylesheet()" with top-level background image as string type do not match expectations' );
 	}
 

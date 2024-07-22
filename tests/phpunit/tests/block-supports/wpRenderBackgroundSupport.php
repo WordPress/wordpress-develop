@@ -69,6 +69,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	 * @ticket 59357
 	 * @ticket 60175
 	 * @ticket 61123
+	 * @ticket 61720
 	 *
 	 * @covers ::wp_render_background_support
 	 *
