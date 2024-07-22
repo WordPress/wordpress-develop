@@ -654,7 +654,10 @@ mockedApiResponse.Schema = {
                         },
                         "old_slug": {
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "required": false
                         },
                         "status": {
@@ -943,7 +946,10 @@ mockedApiResponse.Schema = {
                         },
                         "old_slug": {
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "required": false
                         },
                         "status": {
@@ -1387,7 +1393,10 @@ mockedApiResponse.Schema = {
                         },
                         "old_slug": {
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "required": false
                         },
                         "status": {
@@ -1867,7 +1876,10 @@ mockedApiResponse.Schema = {
                         },
                         "old_slug": {
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "required": false
                         },
                         "status": {
@@ -2128,7 +2140,10 @@ mockedApiResponse.Schema = {
                         },
                         "old_slug": {
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "required": false
                         },
                         "status": {
@@ -2544,7 +2559,10 @@ mockedApiResponse.Schema = {
                         },
                         "old_slug": {
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "required": false
                         },
                         "status": {
@@ -2988,7 +3006,10 @@ mockedApiResponse.Schema = {
                         },
                         "old_slug": {
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "required": false
                         },
                         "status": {
@@ -3200,7 +3221,10 @@ mockedApiResponse.Schema = {
                         },
                         "old_slug": {
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "required": false
                         },
                         "status": {
@@ -4620,6 +4644,14 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "old_slug": {
+                            "description": "An alphanumeric identifier for the object unique to its type.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "required": false
+                        },
                         "status": {
                             "description": "A named status for the post.",
                             "type": "string",
@@ -4827,6 +4859,14 @@ mockedApiResponse.Schema = {
                         "slug": {
                             "description": "An alphanumeric identifier for the post unique to its type.",
                             "type": "string",
+                            "required": false
+                        },
+                        "old_slug": {
+                            "description": "An alphanumeric identifier for the object unique to its type.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "required": false
                         },
                         "status": {
@@ -5191,6 +5231,14 @@ mockedApiResponse.Schema = {
                         "slug": {
                             "description": "An alphanumeric identifier for the post unique to its type.",
                             "type": "string",
+                            "required": false
+                        },
+                        "old_slug": {
+                            "description": "An alphanumeric identifier for the object unique to its type.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "required": false
                         },
                         "status": {
@@ -7149,7 +7197,10 @@ mockedApiResponse.Schema = {
                         },
                         "old_slug": {
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "required": false
                         },
                         "status": {
@@ -7335,7 +7386,10 @@ mockedApiResponse.Schema = {
                         },
                         "old_slug": {
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "required": false
                         },
                         "status": {
@@ -7677,7 +7731,10 @@ mockedApiResponse.Schema = {
                         },
                         "old_slug": {
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
                             "required": false
                         },
                         "status": {
@@ -12349,7 +12406,6 @@ mockedApiResponse.PostsCollection = [
         "modified": "2017-02-14T00:00:00",
         "modified_gmt": "2017-02-14T00:00:00",
         "slug": "restapi-client-fixture-post",
-        "old_slug": "",
         "status": "publish",
         "type": "post",
         "link": "http://example.org/?p=4",
@@ -12459,7 +12515,6 @@ mockedApiResponse.PostModel = {
     "modified": "2017-02-14T00:00:00",
     "modified_gmt": "2017-02-14T00:00:00",
     "slug": "restapi-client-fixture-post",
-    "old_slug": "",
     "status": "publish",
     "type": "post",
     "link": "http://example.org/?p=4",
@@ -12664,7 +12719,6 @@ mockedApiResponse.PagesCollection = [
         "modified": "2017-02-14T00:00:00",
         "modified_gmt": "2017-02-14T00:00:00",
         "slug": "restapi-client-fixture-page",
-        "old_slug": "",
         "status": "publish",
         "type": "page",
         "link": "http://example.org/?page_id=7",
@@ -12756,7 +12810,6 @@ mockedApiResponse.PageModel = {
     "modified": "2017-02-14T00:00:00",
     "modified_gmt": "2017-02-14T00:00:00",
     "slug": "restapi-client-fixture-page",
-    "old_slug": "",
     "status": "publish",
     "type": "page",
     "link": "http://example.org/?page_id=7",
@@ -12955,7 +13008,6 @@ mockedApiResponse.MediaCollection = [
         "modified": "2017-02-14T00:00:00",
         "modified_gmt": "2017-02-14T00:00:00",
         "slug": "restapi-client-fixture-attachment",
-        "old_slug": "",
         "status": "inherit",
         "type": "attachment",
         "link": "http://example.org/?attachment_id=10",
@@ -13025,7 +13077,6 @@ mockedApiResponse.MediaModel = {
     "modified": "2017-02-14T00:00:00",
     "modified_gmt": "2017-02-14T00:00:00",
     "slug": "restapi-client-fixture-attachment",
-    "old_slug": "",
     "status": "inherit",
     "type": "attachment",
     "link": "http://example.org/?attachment_id=10",
