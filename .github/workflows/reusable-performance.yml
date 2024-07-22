@@ -54,6 +54,7 @@ jobs:
   # Performs the following steps:
   # - Configure environment variables.
   # - Checkout repository.
+  # - Determine the target SHA value (on `workflow_dispatch` only).
   # - Set up Node.js.
   # - Log debug information.
   # - Install npm dependencies.
@@ -109,6 +110,12 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          fetch-depth: ${{ github.event_name == 'workflow_dispatch' && '2' || '1' }}
+
+      # The `workflow_dispatch` event is the only one missing the needed SHA to target.
+      - name: Retrieve previous commit SHA (if necessary)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: echo "TARGET_SHA=$(git rev-parse HEAD^1)" >> $GITHUB_ENV
 
       - name: Set up Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2

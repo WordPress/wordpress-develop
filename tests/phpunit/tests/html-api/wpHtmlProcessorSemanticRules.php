@@ -406,27 +406,22 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that support isn't accidentally partially added for the closing BR tag `</br>`.
-	 *
-	 * This tag closer has special rules and support shouldn't be added without implementing full support.
+	 * Ensures that closing `</br>` tags are appropriately treated as opening tags with no attributes.
 	 *
 	 * > An end tag whose tag name is "br"
 	 * >   Parse error. Drop the attributes from the token, and act as described in the next entry;
 	 * >   i.e. act as if this was a "br" start tag token with no attributes, rather than the end
 	 * >   tag token that it actually is.
 	 *
-	 * When this handling is implemented, this test should be removed. It's not incorporated
-	 * into the existing unsupported tag behavior test because the opening tag is supported;
-	 * only the closing tag isn't.
-	 *
 	 * @covers WP_HTML_Processor::step_in_body
 	 *
 	 * @ticket 60283
 	 */
 	public function test_br_end_tag_unsupported() {
-		$processor = WP_HTML_Processor::create_fragment( '</br>' );
+		$processor = WP_HTML_Processor::create_fragment( '</br id="an-opener" html>' );
 
-		$this->assertFalse( $processor->next_tag(), 'Found a BR tag that should not be handled.' );
-		$this->assertSame( WP_HTML_Processor::ERROR_UNSUPPORTED, $processor->get_last_error() );
+		$this->assertTrue( $processor->next_tag(), 'Failed to find the expected opening BR tag.' );
+		$this->assertFalse( $processor->is_tag_closer(), 'Should have treated the tag as an opening tag.' );
+		$this->assertNull( $processor->get_attribute_names_with_prefix( '' ), 'Should have ignored any attributes on the tag.' );
 	}
 }
