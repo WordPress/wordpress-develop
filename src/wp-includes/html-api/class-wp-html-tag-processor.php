@@ -967,7 +967,7 @@ class WP_HTML_Tag_Processor {
 		 * For LISTING, PRE, and TEXTAREA, the first linefeed of an immediately-following
 		 * text node is ignored as an authoring convenience.
 		 *
-		 * @see static::skip_next_linefeed
+		 * @see static::skip_newline_at
 		 */
 		if ( 'LISTING' === $tag_name || 'PRE' === $tag_name ) {
 			$this->skip_newline_at = $this->bytes_already_parsed;

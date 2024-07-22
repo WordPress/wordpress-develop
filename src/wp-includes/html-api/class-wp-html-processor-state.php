@@ -447,6 +447,8 @@ class WP_HTML_Processor_State {
 	 * > forms in the face of dramatically bad markup, for historical reasons.
 	 * > It is ignored inside template elements.
 	 *
+	 * @todo This may be invalidated by a seek operation.
+	 *
 	 * @see https://html.spec.whatwg.org/#form-element-pointer
 	 *
 	 * @since 6.7.0
