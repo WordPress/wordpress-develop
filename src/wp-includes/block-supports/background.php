@@ -42,6 +42,7 @@ function wp_register_background_support( $block_type ) {
  * @since 6.4.0
  * @since 6.5.0 Added support for `backgroundPosition` and `backgroundRepeat` output.
  * @since 6.6.0 Removed requirement for `backgroundImage.source`. A file/url is the default.
+ * @since 6.7.0 Added support for `backgroundAttachment` output.
  *
  * @access private
  *

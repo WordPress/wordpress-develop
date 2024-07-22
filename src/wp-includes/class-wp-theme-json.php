@@ -226,6 +226,7 @@ class WP_Theme_JSON {
 	 * @since 6.4.0 Added `writing-mode` property.
 	 * @since 6.5.0 Added `aspect-ratio` property.
 	 * @since 6.6.0 Added `background-[image|position|repeat|size]` properties.
+	 * @since 6.7.0 Added `background-attachment` property.
 	 *
 	 * @var array
 	 */
