@@ -1675,6 +1675,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Remove the node pointed to by the head element pointer from the stack of open elements. (It might not be the current node at this point.)
 				 */
 				$this->bail( 'Cannot process elements after HEAD which reopen the HEAD element.' );
+				/*
+				 * Do not leave this break in when adding support; it's here to prevent
+				 * WPCS from getting confused at the switch structure without a return,
+				 * because it doesn't know that `bail()` always throws.
+				 */
+				break;
 
 			/*
 			 * > An end tag whose tag name is "template"
