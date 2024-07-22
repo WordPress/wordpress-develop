@@ -480,7 +480,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that calling delete_option() update notoptions when option deleted.
+	 * Tests that calling delete_option() updates notoptions when option deleted.
 	 *
 	 * @ticket 61484
 	 *
