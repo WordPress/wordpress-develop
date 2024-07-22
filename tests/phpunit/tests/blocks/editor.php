@@ -725,27 +725,31 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	 * @ticket 61641
 	 */
 	public function test_get_block_editor_settings_block_bindings_sources() {
-		$block_editor_context              = new WP_Block_Editor_Context();
-		$settings                          = get_block_editor_settings( array(), $block_editor_context );
-		$registered_block_bindings_sources = get_all_registered_block_bindings_sources();
-
-		foreach ( $registered_block_bindings_sources as $name => $properties ) {
-			// Check all the registered sources are exposed.
-			$this->assertArrayHasKey( $name, $settings['blockBindingsSources'] );
-
-			// Check only the expected properties are included, and they have the proper value.
-			$expected_properties = array(
-				'label' => $properties->label,
-			);
-			// Add optional properties if they are defined.
-			if ( ! empty( $properties->uses_context ) ) {
-				$expected_properties['usesContext'] = $properties->uses_context;
-			}
-
-			$this->assertSameSets(
-				$expected_properties,
-				$settings['blockBindingsSources'][ $name ]
-			);
-		}
+		$block_editor_context = new WP_Block_Editor_Context();
+		register_block_bindings_source(
+			'test/source-one',
+			array(
+				'label'              => 'Source One',
+				'get_value_callback' => function () {},
+				'uses_context'       => array( 'postId' ),
+			)
+		);
+		register_block_bindings_source(
+			'test/source-two',
+			array(
+				'label'              => 'Source Two',
+				'get_value_callback' => function () {},
+			)
+		);
+		$settings        = get_block_editor_settings( array(), $block_editor_context );
+		$exposed_sources = $settings['blockBindingsSources'];
+		// It is expected to have 4 sources: the 2 registered sources in the test, and the 2 core sources.
+		$this->assertCount( 4, $exposed_sources );
+		$source_one = $exposed_sources['test/source-one'];
+		$this->assertSame( 'Source One', $source_one['label'] );
+		$this->assertSameSets( array( 'postId' ), $source_one['usesContext'] );
+		$source_two = $exposed_sources['test/source-two'];
+		$this->assertSame( 'Source Two', $source_two['label'] );
+		$this->assertArrayNotHasKey( 'usesContext', $source_two );
 	}
 }
