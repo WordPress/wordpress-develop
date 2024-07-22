@@ -84,11 +84,11 @@ if ( $wp_customize->changeset_post_id() ) {
 	}
 }
 
-$url    = ! empty( $_REQUEST['url'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['url'] ) ) : '';
-$return = ! empty( $_REQUEST['return'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['return'] ) ) : '';
+$url       = ! empty( $_REQUEST['url'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['url'] ) ) : '';
+$return    = ! empty( $_REQUEST['return'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['return'] ) ) : '';
 $autofocus = ! empty( $_REQUEST['autofocus'] ) && is_array( $_REQUEST['autofocus'] )
 	? array_map( 'sanitize_text_field', wp_unslash( $_REQUEST['autofocus'] ) )
-	: array(); // Since `$_REQUEST['autofocus']` is an array.
+	: array();
 
 if ( ! empty( $url ) ) {
 	$wp_customize->set_preview_url( $url );
