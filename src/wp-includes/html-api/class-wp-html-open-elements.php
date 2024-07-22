@@ -290,7 +290,7 @@ class WP_HTML_Open_Elements {
 	 * >   - SVG title
 	 *
 	 * @since 6.4.0
-	 * @since 6.7.0 Full implementation.
+	 * @since 6.7.0 Supports all required HTML elements.
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-scope
 	 *
@@ -328,7 +328,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @since 6.4.0
 	 * @since 6.5.0 Implemented: no longer throws on every invocation.
-	 * @since 6.7.0 Full implementation.
+	 * @since 6.7.0 Supports all required HTML elements.
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-list-item-scope
 	 *
@@ -367,7 +367,7 @@ class WP_HTML_Open_Elements {
 	 * >   - button in the HTML namespace
 	 *
 	 * @since 6.4.0
-	 * @since 6.7.0 Full implementation.
+	 * @since 6.7.0 Supports all required HTML elements.
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-button-scope
 	 *
