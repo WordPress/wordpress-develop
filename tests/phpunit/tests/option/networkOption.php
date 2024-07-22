@@ -77,7 +77,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 		$before = get_num_queries();
 		get_network_option( 1, 'foo' );
-		$after = get_num_queries();
+		$queries = get_num_queries() - $before;
 
 		$this->assertSame( $after, $before, 'The notoptions cache was not hit.' );
 	}
