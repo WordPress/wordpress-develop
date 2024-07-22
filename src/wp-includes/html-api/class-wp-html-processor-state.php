@@ -396,6 +396,18 @@ class WP_HTML_Processor_State {
 	/**
 	 * Indicates if the document is in quirks mode or no-quirks mode.
 	 *
+	 * Impact on HTML parsing:
+	 *
+	 *  - In `NO_QUIRKS_MODE` CSS class and ID selectors match in a byte-for-byte
+	 *    manner, otherwise for backwards compatability, class selectors are to
+	 *    match in an ASCII case-insensitive manner.
+	 *
+	 *  - When not in `QUIRKS_MODE`, a TABLE start tag implicitly closes an open P tag
+	 *    if one is in scope and open, otherwise the TABLE becomes a child of the P.
+	 *
+	 * `QUIRKS_MODE` impacts many styling-related aspects of an HTML document, but
+	 * none of the other changes modifies how the HTML is parsed or selected.
+	 *
 	 * @see self::QUIRKS_MODE
 	 * @see self::NO_QUIRKS_MODE
 	 *

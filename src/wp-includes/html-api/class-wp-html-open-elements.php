@@ -109,8 +109,6 @@ class WP_HTML_Open_Elements {
 	 * "nth item" on the stack, counting from the top, where the
 	 * top-most element is the 1st, the second is the 2nd, etc...
 	 *
-	 * @todo Skip over "marker" entries on the stack, if appropriate.
-	 *
 	 * @since 6.7.0
 	 *
 	 * @param int $nth Retrieve the nth item on the stack, with 1 being
