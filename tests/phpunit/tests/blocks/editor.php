@@ -720,4 +720,21 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 61641
+	 */
+	public function test_get_block_editor_settings_block_bindings_sources() {
+		$block_editor_context              = new WP_Block_Editor_Context();
+		$settings                          = get_block_editor_settings( array(), $block_editor_context );
+		$registered_block_bindings_sources = get_all_registered_block_bindings_sources();
+
+		foreach ( $registered_block_bindings_sources as $name => $properties ) {
+			$registered_properties = get_object_vars( $properties );
+			// Remove name property as it is not part of the settings.
+			unset( $registered_properties['name'] );
+			$settings_properties = $settings['blockBindingsSources'][ $name ];
+			$this->assertSameSets( $registered_properties, $settings_properties );
+		}
+	}
 }
