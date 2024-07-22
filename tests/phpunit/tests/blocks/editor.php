@@ -730,11 +730,22 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$registered_block_bindings_sources = get_all_registered_block_bindings_sources();
 
 		foreach ( $registered_block_bindings_sources as $name => $properties ) {
-			$registered_properties = get_object_vars( $properties );
-			// Remove name property as it is not part of the settings.
-			unset( $registered_properties['name'] );
-			$settings_properties = $settings['blockBindingsSources'][ $name ];
-			$this->assertSameSets( $registered_properties, $settings_properties );
+			// Check all the registered sources are exposed.
+			$this->assertArrayHasKey( $name, $settings['blockBindingsSources'] );
+
+			// Check only the expected properties are included, and they have the proper value.
+			$expected_properties = array(
+				'label' => $properties->label,
+			);
+			// Add optional properties if they are defined.
+			if ( ! empty( $properties->uses_context ) ) {
+				$expected_properties['usesContext'] = $properties->uses_context;
+			}
+
+			$this->assertSameSets(
+				$expected_properties,
+				$settings['blockBindingsSources'][ $name ]
+			);
 		}
 	}
 }
