@@ -1797,7 +1797,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+TABLE':
 				if (
-					WP_HTML_Processor_State::QUIRKS_MODE !== $this->state->compat_mode &&
+					WP_HTML_Processor_State::QUIRKS_MODE !== $this->state->document_mode &&
 					$this->state->stack_of_open_elements->has_p_in_button_scope()
 				) {
 					$this->close_a_p_element();

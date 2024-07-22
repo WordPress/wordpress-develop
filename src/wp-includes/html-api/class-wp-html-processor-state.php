@@ -403,7 +403,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @var string
 	 */
-	public $compat_mode = self::NO_QUIRKS_MODE;
+	public $document_mode = self::NO_QUIRKS_MODE;
 
 	/**
 	 * Context node initializing fragment parser, if created as a fragment parser.
