@@ -57,7 +57,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that calling delete_option() update nooptions when option deleted.
+	 * Tests that calling delete_network_option() updates nooptions when option deleted.
 	 *
 	 * @group ms-required
 	 *
