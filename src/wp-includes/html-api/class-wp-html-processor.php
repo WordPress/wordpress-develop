@@ -97,22 +97,11 @@
  * will abort early and stop all processing. This draconian measure ensures
  * that the HTML Processor won't break any HTML it doesn't fully understand.
  *
- * The following list specifies the HTML tags that _are_ supported:
+ * The HTML Processor supports all elements other than a specific set:
  *
- *  - Containers: ADDRESS, BLOCKQUOTE, DETAILS, DIALOG, DIV, FOOTER, HEADER, MAIN, MENU, SPAN, SUMMARY.
- *  - Custom elements: All custom elements are supported. :)
- *  - Form elements: BUTTON, DATALIST, FIELDSET, INPUT, LABEL, LEGEND, METER, OPTGROUP, OPTION, PROGRESS, SEARCH, SELECT.
- *  - Formatting elements: B, BIG, CODE, EM, FONT, I, PRE, SMALL, STRIKE, STRONG, TT, U, WBR.
- *  - Heading elements: H1, H2, H3, H4, H5, H6, HGROUP.
- *  - Links: A.
- *  - Lists: DD, DL, DT, LI, OL, UL.
- *  - Media elements: AUDIO, CANVAS, EMBED, FIGCAPTION, FIGURE, IMG, MAP, PICTURE, SOURCE, TRACK, VIDEO.
- *  - Paragraph: BR, P.
- *  - Phrasing elements: ABBR, AREA, BDI, BDO, CITE, DATA, DEL, DFN, INS, MARK, OUTPUT, Q, SAMP, SUB, SUP, TIME, VAR.
- *  - Sectioning elements: ARTICLE, ASIDE, HR, NAV, SECTION.
- *  - Templating elements: SLOT.
- *  - Text decoration: RUBY.
- *  - Deprecated elements: ACRONYM, BLINK, CENTER, DIR, ISINDEX, KEYGEN, LISTING, MULTICOL, NEXTID, PARAM, SPACER.
+ *  - Any element inside a TABLE.
+ *  - Any element inside foreign content, including SVG and MATH.
+ *  - Any element outside the IN BODY insertion mode, e.g. doctype declarations, meta, links.
  *
  * ### Supported markup
  *
@@ -121,15 +110,16 @@
  * may in fact belong _before_ the table in the DOM. If the HTML Processor encounters
  * such a case it will stop processing.
  *
- * The following list specifies HTML markup that _is_ supported:
+ * The following list illustrates some common examples of unexpected HTML inputs that
+ * the HTML Processor properly parses and represents:
  *
- *  - Markup involving only those tags listed above.
- *  - Fully-balanced and non-overlapping tags.
- *  - HTML with unexpected tag closers.
- *  - Some unbalanced or overlapping tags.
- *  - P tags after unclosed P tags.
- *  - BUTTON tags after unclosed BUTTON tags.
- *  - A tags after unclosed A tags that don't involve any active formatting elements.
+ *  - HTML with optional tags omitted, e.g. `<p>one<p>two`.
+ *  - HTML with unexpected tag closers, e.g. `<p>one </span> more</p>`.
+ *  - Non-void tags with self-closing flag, e.g. `<div/>the DIV is still open.</div>`.
+ *  - Heading elements which close open heading elements of another level, e.g. `<h1>Closed by </h2>`.
+ *  - Elements containing text that looks like other tags but isn't, e.g. `<title>The <img> is plaintext</title>`.
+ *  - SCRIPT and STYLE tags containing text that looks like HTML but isn't, e.g. `<script>document.write('<p>Hi</p>');</script>`.
+ *  - SCRIPT content which has been escaped, e.g. `<script><!-- document.write('<script>console.log("hi")</script>') --></script>`.
  *
  * ### Unsupported Features
  *

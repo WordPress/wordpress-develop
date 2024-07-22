@@ -129,7 +129,7 @@
  *     $processor = new WP_HTML_Tag_Processor( '<style>// this is everything</style><div>' );
  *     true === $processor->next_tag( 'DIV' );
  *
- * #### Special elements
+ * #### Special self-contained elements
  *
  * Some HTML elements are handled in a special way; their start and end tags
  * act like a void tag. These are special because their contents can't contain
