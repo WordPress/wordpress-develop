@@ -2872,6 +2872,13 @@ class WP_HTML_Tag_Processor {
 	 * that a token has modifiable text, and a token with modifiable text may
 	 * have an empty string (e.g. a comment with no contents).
 	 *
+	 * Limitations:
+	 *
+	 *  - This function will not strip the leading newline appropriately
+	 *    after seeking into a LISTING or PRE element. To ensure that the
+	 *    newline is treated properly, seek to the LISTING or PRE opening
+	 *    tag instead of to the first text node inside the element.
+	 *
 	 * @since 6.5.0
 	 * @since 6.7.0 Replaces NULL bytes (U+0000) and newlines appropriately.
 	 *
