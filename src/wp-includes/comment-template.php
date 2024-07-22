@@ -237,7 +237,7 @@ function get_comment_author_link( $comment_id = 0 ) {
 		$comment_id = $comment->comment_ID;
 	} elseif ( is_scalar( $comment_id ) ) {
 		$comment_id = (string) $comment_id;
-	} else{
+	} else {
 		$comment_id = '';
 	}
 
