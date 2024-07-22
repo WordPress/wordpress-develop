@@ -77,6 +77,9 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 		);
 
 		$registered = get_all_registered_block_bindings_sources();
+		unregister_block_bindings_source( 'test/source-one' );
+		unregister_block_bindings_source( 'test/source-two' );
+		unregister_block_bindings_source( 'test/source-three' );
 		$this->assertEquals( $expected, $registered );
 	}
 

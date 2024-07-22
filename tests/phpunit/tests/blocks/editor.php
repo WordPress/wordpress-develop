@@ -743,6 +743,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		);
 		$settings        = get_block_editor_settings( array(), $block_editor_context );
 		$exposed_sources = $settings['blockBindingsSources'];
+		unregister_block_bindings_source( 'test/source-one' );
+		unregister_block_bindings_source( 'test/source-two' );
 		// It is expected to have 4 sources: the 2 registered sources in the test, and the 2 core sources.
 		$this->assertCount( 4, $exposed_sources );
 		$source_one = $exposed_sources['test/source-one'];
