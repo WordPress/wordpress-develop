@@ -2298,9 +2298,8 @@ function delete_network_option( $network_id, $option ) {
 
 		if ( ! is_array( $notoptions ) ) {
 			$notoptions = array();
-		} else {
-			$notoptions[ $option ] = true;
 		}
+		$notoptions[ $option ] = true;
 		wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
 
 		return true;
