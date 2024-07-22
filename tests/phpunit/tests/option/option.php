@@ -510,7 +510,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 */
 	public function test_update_option_clears_the_notoptions_cache() {
 		$option_name = 'ticket_61484_option_to_be_created';
-		$notoptions = wp_cache_get( 'notoptions', 'options' );
+		$notoptions  = wp_cache_get( 'notoptions', 'options' );
 		if ( ! is_array( $notoptions ) ) {
 			$notoptions = array();
 		}
@@ -533,7 +533,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 */
 	public function test_add_option_clears_the_notoptions_cache() {
 		$option_name = 'ticket_61484_option_to_be_created';
-		$notoptions = wp_cache_get( 'notoptions', 'options' );
+		$notoptions  = wp_cache_get( 'notoptions', 'options' );
 		if ( ! is_array( $notoptions ) ) {
 			$notoptions = array();
 		}

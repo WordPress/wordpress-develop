@@ -264,7 +264,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$option_name = 'ticket_61484_option_to_be_created';
 		$cache_key   = is_multisite() ? '1:notoptions' : 'notoptions';
 		$cache_group = is_multisite() ? 'site-options' : 'options';
-		$notoptions = wp_cache_get( $cache_key, $cache_group );
+		$notoptions  = wp_cache_get( $cache_key, $cache_group );
 		if ( ! is_array( $notoptions ) ) {
 			$notoptions = array();
 		}
@@ -289,7 +289,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$option_name = 'ticket_61484_option_to_be_created';
 		$cache_key   = is_multisite() ? '1:notoptions' : 'notoptions';
 		$cache_group = is_multisite() ? 'site-options' : 'options';
-		$notoptions = wp_cache_get( $cache_key, $cache_group );
+		$notoptions  = wp_cache_get( $cache_key, $cache_group );
 		if ( ! is_array( $notoptions ) ) {
 			$notoptions = array();
 		}
