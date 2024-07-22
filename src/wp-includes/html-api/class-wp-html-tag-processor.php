@@ -765,9 +765,9 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @var bool
+	 * @var int|null
 	 */
-	private $skip_next_linefeed = false;
+	private $skip_newline_at = null;
 
 	/**
 	 * Constructor.
@@ -897,11 +897,6 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		// A text node does not disable this, but everything else does.
-		if ( self::STATE_TEXT_NODE !== $this->parser_state ) {
-			$this->skip_next_linefeed = false;
-		}
-
 		/*
 		 * For legacy reasons the rest of this function handles tags and their
 		 * attributes. If the processor has reached the end of the document
@@ -975,7 +970,7 @@ class WP_HTML_Tag_Processor {
 		 * @see static::skip_next_linefeed
 		 */
 		if ( 'LISTING' === $tag_name || 'PRE' === $tag_name ) {
-			$this->skip_next_linefeed = true;
+			$this->skip_newline_at = $this->bytes_already_parsed;
 			return true;
 		}
 
@@ -2938,11 +2933,10 @@ class WP_HTML_Tag_Processor {
 		 */
 		if (
 			( "\n" === ( $decoded[0] ?? '' ) ) &&
-			( ( $this->skip_next_linefeed && '#text' === $tag_name ) || 'TEXTAREA' === $tag_name )
+			( ( $this->skip_newline_at === $this->token_starts_at && '#text' === $tag_name ) || 'TEXTAREA' === $tag_name )
 		) {
 			$decoded = substr( $decoded, 1 );
 		}
-		$this->skip_next_linefeed = false;
 
 		/*
 		 * Only in normative text nodes does the NULL byte (U+0000) get removed.
