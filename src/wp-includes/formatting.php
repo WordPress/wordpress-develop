@@ -4037,7 +4037,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
  * to the number of individual characters.
  *
  * @since 3.3.0
- * @since 6.6.0 Added the $allow_tags parameter.
+ * @since 6.7.0 Added the $allow_tags parameter.
  *
  * @param string $text      Text to trim.
  * @param int    $num_words Number of words. Default 55.
