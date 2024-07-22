@@ -2325,8 +2325,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				),
 				'old_slug'         => array(
 					'description' => __( 'An alphanumeric identifier for the object unique to its type.' ),
-					'type'        => 'string',
-					'context'     => array( 'view', 'edit', 'embed' ),
+					'type'        => array( 'string', 'null' ),
+					'context'     => array( 'edit' ),
 					'arg_options' => array(
 						'sanitize_callback' => array( $this, 'sanitize_slug' ),
 					),
