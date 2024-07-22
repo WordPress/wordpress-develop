@@ -500,4 +500,50 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $queries, 'get_option should not make any database queries.' );
 	}
+
+	/**
+	 * Tests that calling update_option() clears the notoptions cache.
+	 *
+	 * @ticket 61484
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_clears_the_notoptions_cache() {
+		$option_name = 'ticket_61484_option_to_be_created';
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+		if ( ! is_array( $notoptions ) ) {
+			$notoptions = array();
+		}
+		$notoptions[ $option_name ] = true;
+		wp_cache_set( 'notoptions', $notoptions, 'options' );
+		$this->assertArrayHasKey( $option_name, wp_cache_get( 'notoptions', 'options' ), 'The "foobar" option should be in the notoptions cache.' );
+
+		update_option( $option_name, 'baz' );
+
+		$updated_notoptions = wp_cache_get( 'notoptions', 'options' );
+		$this->assertArrayNotHasKey( $option_name, $updated_notoptions, 'The "foobar" option should not be in the notoptions cache after updating it.' );
+	}
+
+	/**
+	 * Tests that calling add_option() clears the notoptions cache.
+	 *
+	 * @ticket 61484
+	 *
+	 * @covers ::add_option
+	 */
+	public function test_add_option_clears_the_notoptions_cache() {
+		$option_name = 'ticket_61484_option_to_be_created';
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+		if ( ! is_array( $notoptions ) ) {
+			$notoptions = array();
+		}
+		$notoptions[ $option_name ] = true;
+		wp_cache_set( 'notoptions', $notoptions, 'options' );
+		$this->assertArrayHasKey( $option_name, wp_cache_get( 'notoptions', 'options' ), 'The "foobar" option should be in the notoptions cache.' );
+
+		add_option( $option_name, 'baz' );
+
+		$updated_notoptions = wp_cache_get( 'notoptions', 'options' );
+		$this->assertArrayNotHasKey( $option_name, $updated_notoptions, 'The "foobar" option should not be in the notoptions cache after adding it.' );
+	}
 }
