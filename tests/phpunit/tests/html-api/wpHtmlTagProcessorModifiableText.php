@@ -44,7 +44,8 @@ class Tests_HtmlApi_WpHtmlTagProcessorModifiableText extends WP_UnitTestCase {
 	 * happens appropriately after seeking.
 	 */
 	public function test_get_modifiable_text_ignores_newlines_after_seeking() {
-		$processor = new WP_HTML_Tag_Processor( <<<HTML
+		$processor = new WP_HTML_Tag_Processor(
+			<<<HTML
 <span>\nhere</span>
 <listing>\ngone</listing>
 <pre>reset last known ignore-point</pre>
