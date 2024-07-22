@@ -4362,7 +4362,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 27, $properties );
+		$this->assertCount( 28, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
@@ -4433,6 +4433,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 			'meta',
 			'modified',
 			'modified_gmt',
+			'old_slug',
 			'ping_status',
 			'slug',
 			'status',
@@ -4473,6 +4474,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 			'meta',
 			'modified',
 			'modified_gmt',
+			'old_slug',
 			'password',
 			'permalink_template',
 			'ping_status',
@@ -4502,6 +4504,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 			'featured_media',
 			'id',
 			'link',
+			'old_slug',
 			'slug',
 			'title',
 			'type',
