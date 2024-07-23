@@ -182,8 +182,6 @@ if ( has_action( "wp_ajax_all_{$action}" ) ) {
 	 *
 	 * The dynamic portion of the hook name, `$action`, refers
 	 * to the name of the Ajax action callback being fired.
-	 *
-	 * @since 6.6.0
 	 */
 	do_action( "wp_ajax_all_{$action}" );
 	wp_die();
