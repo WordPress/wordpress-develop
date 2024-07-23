@@ -828,7 +828,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$autosaves_controller = new WP_REST_Autosaves_Controller( 'post' );
 		$response             = $autosaves_controller->create_post_autosave(
 			array(
-				'ID' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+				'ID' => $autosave_post_id,
 			)
 		);
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
