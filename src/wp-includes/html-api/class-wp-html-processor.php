@@ -2327,7 +2327,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+INPUT':
 				$type_attribute = $this->get_attribute( 'type' );
 				if ( ! is_string( $type_attribute ) || 'hidden' !== strtolower( $type_attribute ) ) {
-					break;
+					goto anything_else;
 				}
 				// @todo Indicate a parse error once it's possible.
 				$this->insert_html_element( $this->state->current_token );
@@ -2357,6 +2357,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 *
 		 * @todo Indicate a parse error once it's possible.
 		 */
+		anything_else:
 		$this->bail( 'Foster parenting is not supported.' );
 	}
 
