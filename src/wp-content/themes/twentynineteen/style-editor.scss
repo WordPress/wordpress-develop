@@ -393,6 +393,7 @@ figcaption,
 		@include font-family( $font__heading );
 		font-size: $font__size-sm;
 		font-weight: bold;
+		padding: ($font__size_base * .76) $font__size_base;
 
 		&:not(.has-text-color) {
 			color: #fff;
@@ -755,6 +756,11 @@ ul.wp-block-archives,
 
 }
 
+.wp-block[data-align="center"] > .wp-block-archives,
+.wp-block[data-align="center"] > .wp-block-categories {
+	text-align: center;
+}
+
 /** === Latest Posts === */
 .wp-block-latest-posts {
 
@@ -852,7 +858,6 @@ ul.wp-block-archives,
 
 .wp-block-freeform {
 
-	/* Add style for galleries in classic-editor block */
 	blockquote {
 		border-left: 2px solid $color__link;
 

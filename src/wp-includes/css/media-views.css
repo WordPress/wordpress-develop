@@ -382,6 +382,11 @@
 	margin: 0 0 10px;
 }
 
+.attachment-details h2 {
+	display: grid;
+	grid-template-columns: auto 5em;
+}
+
 .media-sidebar .collection-settings .setting {
 	margin: 1px 0;
 }
@@ -1723,6 +1728,12 @@
 	vertical-align: middle;
 }
 
+.media-frame .media-sidebar .settings-save-status .spinner {
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
 .media-frame.mode-grid .spinner {
 	margin: 0;
 	float: none;
@@ -1752,7 +1763,7 @@
 }
 
 .attachment-details .settings-save-status {
-	float: right;
+	text-align: right;
 	text-transform: none;
 	font-weight: 400;
 }
@@ -2477,7 +2488,6 @@
 	/* Visually hide the menu heading keeping it available to assistive technologies. */
 	.media-frame-menu-heading {
 		clip: rect(1px, 1px, 1px, 1px);
-		-webkit-clip-path: inset(50%);
 		clip-path: inset(50%);
 		height: 1px;
 		overflow: hidden;
