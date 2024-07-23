@@ -2685,14 +2685,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TH':
 			case '+THEAD':
 			case '+TR':
-				// Assert: The stack of open elements has a td or th element in table scope.
-				if (
-					! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TD' ) &&
-					! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TH' )
-				) {
-					throw new Exception( 'Assertion failed @todo better message' );
-				}
-
 				$this->close_cell();
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
