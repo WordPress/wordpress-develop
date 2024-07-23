@@ -4328,7 +4328,7 @@ function is_avatar_comment_type( $comment_type ) {
  * Retrieves default data about the avatar.
  *
  * @since 4.2.0
- * @since x.x.x Gravatar URLs always use HTTPS.
+ * @since 6.7.0 Gravatar URLs always use HTTPS.
  *
  * @param mixed $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
  *                           user email, WP_User object, WP_Post object, or WP_Comment object.
