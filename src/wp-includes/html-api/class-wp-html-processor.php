@@ -2495,7 +2495,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
-			 * > A start tag whose tag name is one of: "caption", "col", "colgroup","tbody", "tfoot", "thead"
+			 * > A start tag whose tag name is one of: "caption", "col", "colgroup", "tbody", "tfoot", "thead"
 			 * > An end tag whose tag name is "table"
 			 */
 			case '+CAPTION':
