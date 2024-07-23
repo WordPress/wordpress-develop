@@ -2145,7 +2145,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->state->stack_of_open_elements->current_node_is( 'THEAD' ) ||
 					$this->state->stack_of_open_elements->current_node_is( 'TR' )
 				) {
-					$text = str_replace( "\0", '', $this->get_modifiable_text() );
+					$text = $this->get_modifiable_text();
 					/*
 					 * If the text is empty after processing HTML entities and stripping
 					 * U+0000 NULL bytes then ignore the token.
