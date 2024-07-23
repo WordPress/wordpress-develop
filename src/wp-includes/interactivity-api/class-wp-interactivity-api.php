@@ -530,32 +530,32 @@ final class WP_Interactivity_API {
 			} else {
 				return null;
 			}
-		}
 
-		if ( $current instanceof Closure ) {
-			/*
-			 * This state getter's namespace is added to the stack so that
-			 * `state()` or `get_config()` read that namespace when called
-			 * without specifying one.
-			 */
-			array_push( $this->namespace_stack, $ns );
-			try {
-				$current = $current();
-			} catch ( Throwable $e ) {
-				_doing_it_wrong(
-					__METHOD__,
-					sprintf(
-						/* translators: 1: Path pointing to an Interactivity API state property, 2: Namespace for an Interactivity API store. */
-						__( 'Uncaught error executing a derived state callback with path "%1$s" and namespace "%2$s".' ),
-						$path,
-						$ns
-					),
-					'6.6.0'
-				);
-				return null;
-			} finally {
-				// Remove the property's namespace from the stack.
-				array_pop( $this->namespace_stack );
+			if ( $current instanceof Closure ) {
+				/*
+				 * This state getter's namespace is added to the stack so that
+				 * `state()` or `get_config()` read that namespace when called
+				 * without specifying one.
+				 */
+				array_push( $this->namespace_stack, $ns );
+				try {
+					$current = $current();
+				} catch ( Throwable $e ) {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: 1: Path pointing to an Interactivity API state property, 2: Namespace for an Interactivity API store. */
+							__( 'Uncaught error executing a derived state callback with path "%1$s" and namespace "%2$s".' ),
+							$path,
+							$ns
+						),
+						'6.6.0'
+					);
+					return null;
+				} finally {
+					// Remove the property's namespace from the stack.
+					array_pop( $this->namespace_stack );
+				}
 			}
 		}
 
