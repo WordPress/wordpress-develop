@@ -237,8 +237,8 @@ p.has-drop-cap:not(:focus)::first-letter {
 	overflow-x: visible;
 }
 
-.wp-block-table th,
-.wp-block-table td {
+.wp-block-table:where(:not(.is-style-stripes)) th,
+.wp-block-table:where(:not(.is-style-stripes)) td {
 	border-color: rgba(0, 0, 0, 0.1);
 	border-width: 0 1px 1px 0;
 }
@@ -377,9 +377,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 	color: #41a62a;
 }
 
-.wp-block-latest-comments__comment-excerpt p:last-child {
-}
-
 .wp-block-latest-comments__comment-date {
 	text-transform: uppercase;
 }
@@ -395,6 +392,13 @@ p.has-drop-cap:not(:focus)::first-letter {
 .wp-block-latest-posts.is-grid {
 	margin-left: 0;
 	margin-right: 0;
+}
+
+/* Search */
+
+html :where(.wp-block-search__button-inside .wp-block-search__inside-wrapper) {
+	border: 1px solid #949494;
+	padding: 4px;
 }
 
 /*--------------------------------------------------------------

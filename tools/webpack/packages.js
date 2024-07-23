@@ -95,9 +95,9 @@ module.exports = function (
 		'wp-polyfill-inert.js': 'wicg-inert/dist/inert.js',
 		'wp-polyfill-importmap.js': 'es-module-shims/dist/es-module-shims.wasm.js',
 		'moment.js': 'moment/moment.js',
+		'regenerator-runtime.js': 'regenerator-runtime/runtime.js',
 		'react.js': 'react/umd/react.development.js',
 		'react-dom.js': 'react-dom/umd/react-dom.development.js',
-		'regenerator-runtime.js': 'regenerator-runtime/runtime.js',
 	};
 
 	const minifiedVendors = {

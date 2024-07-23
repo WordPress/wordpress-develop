@@ -90,7 +90,8 @@ function wp_default_packages_vendor( $scripts ) {
 
 	$vendor_scripts = array(
 		'react',
-		'react-dom' => array( 'react' ),
+		'react-dom'         => array( 'react' ),
+		'react-jsx-runtime' => array( 'react' ),
 		'regenerator-runtime',
 		'moment',
 		'lodash',
@@ -109,6 +110,7 @@ function wp_default_packages_vendor( $scripts ) {
 	$vendor_scripts_versions = array(
 		'react'                       => '18.3.1',
 		'react-dom'                   => '18.3.1',
+		'react-jsx-runtime'           => '18.3.1',
 		'regenerator-runtime'         => '0.14.0',
 		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.21',
@@ -142,7 +144,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'moment',
 		sprintf(
 			"moment.updateLocale( '%s', %s );",
-			get_user_locale(),
+			esc_js( get_user_locale() ),
 			wp_json_encode(
 				array(
 					'months'         => array_values( $wp_locale->month ),
@@ -280,10 +282,6 @@ function wp_default_packages_scripts( $scripts ) {
 	 *     'api-fetch.js' => array(...
 	 */
 	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
-
-	// Add the private version of the Interactivity API manually.
-	$scripts->add( 'wp-interactivity', '/wp-includes/js/dist/interactivity.min.js' );
-	did_action( 'init' ) && $scripts->add_data( 'wp-interactivity', 'strategy', 'defer' );
 
 	foreach ( $assets as $file_name => $package_data ) {
 		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
@@ -2506,6 +2504,20 @@ function wp_enqueue_global_styles() {
 
 	$stylesheet = wp_get_global_stylesheet();
 
+	if ( $is_block_theme ) {
+		/*
+		* Dequeue the Customizer's custom CSS
+		* and add it before the global styles custom CSS.
+		*/
+		remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
+		// Get the custom CSS from the Customizer and add it to the global stylesheet.
+		$custom_css  = wp_get_custom_css();
+		$stylesheet .= $custom_css;
+
+		// Add the global styles custom CSS at the end.
+		$stylesheet .= wp_get_global_stylesheet( array( 'custom-css' ) );
+	}
+
 	if ( empty( $stylesheet ) ) {
 		return;
 	}
@@ -2516,27 +2528,6 @@ function wp_enqueue_global_styles() {
 
 	// Add each block as an inline css.
 	wp_add_global_styles_for_blocks();
-}
-
-/**
- * Enqueues the global styles custom css defined via theme.json.
- *
- * @since 6.2.0
- */
-function wp_enqueue_global_styles_custom_css() {
-	if ( ! wp_is_block_theme() ) {
-		return;
-	}
-
-	// Don't enqueue Customizer's custom CSS separately.
-	remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
-
-	$custom_css  = wp_get_custom_css();
-	$custom_css .= wp_get_global_styles_custom_css();
-
-	if ( ! empty( $custom_css ) ) {
-		wp_add_inline_style( 'global-styles', $custom_css );
-	}
 }
 
 /**
