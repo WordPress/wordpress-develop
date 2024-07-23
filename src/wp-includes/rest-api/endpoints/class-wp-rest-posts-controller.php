@@ -183,7 +183,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @param bool    $required Whether the post requires a password check.
 	 * @param WP_Post $post     The post been password checked.
-	 * @return bool Result of password check taking in to account REST API considerations.
+	 * @return bool Result of password check taking into account REST API considerations.
 	 */
 	public function check_password_required( $required, $post ) {
 		if ( ! $required ) {
@@ -1844,10 +1844,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 
 			$data['title']['rendered'] = get_the_title( $post->ID );
 
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 		}
 
 		$has_password_filter = false;
@@ -1998,6 +2000,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					$data['generated_slug'] = $sample_permalink[1];
 				}
 			}
+
+			if ( rest_is_field_included( 'class_list', $fields ) ) {
+				$data['class_list'] = get_post_class( array(), $post->ID );
+			}
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -2043,15 +2049,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Overwrites the default protected title format.
+	 * Overwrites the default protected and private title format.
 	 *
-	 * By default, WordPress will show password protected posts with a title of
-	 * "Protected: %s", as the REST API communicates the protected status of a post
-	 * in a machine readable format, we remove the "Protected: " prefix.
+	 * By default, WordPress will show password protected or private posts with a title of
+	 * "Protected: %s" or "Private: %s", as the REST API communicates the status of a post
+	 * in a machine-readable format, we remove the prefix.
 	 *
 	 * @since 4.7.0
 	 *
-	 * @return string Protected title format.
+	 * @return string Title format.
 	 */
 	public function protected_title_format() {
 		return '%s';
@@ -2352,6 +2358,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'        => 'string',
 				'context'     => array( 'edit' ),
 				'readonly'    => true,
+			);
+
+			$schema['properties']['class_list'] = array(
+				'description' => __( 'An array of the class names for the post container element.' ),
+				'type'        => 'array',
+				'context'     => array( 'view', 'edit' ),
+				'readonly'    => true,
+				'items'       => array(
+					'type' => 'string',
+				),
 			);
 		}
 

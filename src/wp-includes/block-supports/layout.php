@@ -14,6 +14,7 @@
  * also be updated.
  *
  * @since 6.3.0
+ * @since 6.6.0 Updated specificity for compatibility with 0-1-0 global styles specificity.
  * @access private
  *
  * @return array[] Layout definitions.
@@ -51,13 +52,13 @@ function wp_get_layout_definitions() {
 			),
 			'spacingStyles' => array(
 				array(
-					'selector' => ' > :first-child:first-child',
+					'selector' => ' > :first-child',
 					'rules'    => array(
 						'margin-block-start' => '0',
 					),
 				),
 				array(
-					'selector' => ' > :last-child:last-child',
+					'selector' => ' > :last-child',
 					'rules'    => array(
 						'margin-block-end' => '0',
 					),
@@ -116,13 +117,13 @@ function wp_get_layout_definitions() {
 			),
 			'spacingStyles' => array(
 				array(
-					'selector' => ' > :first-child:first-child',
+					'selector' => ' > :first-child',
 					'rules'    => array(
 						'margin-block-start' => '0',
 					),
 				),
 				array(
-					'selector' => ' > :last-child:last-child',
+					'selector' => ' > :last-child',
 					'rules'    => array(
 						'margin-block-end' => '0',
 					),
@@ -150,7 +151,7 @@ function wp_get_layout_definitions() {
 					),
 				),
 				array(
-					'selector' => ' > *',
+					'selector' => ' > :is(*, div)', // :is(*, div) instead of just * increases the specificity by 001.
 					'rules'    => array(
 						'margin' => '0',
 					),
@@ -172,7 +173,7 @@ function wp_get_layout_definitions() {
 			'displayMode'   => 'grid',
 			'baseStyles'    => array(
 				array(
-					'selector' => ' > *',
+					'selector' => ' > :is(*, div)', // :is(*, div) instead of just * increases the specificity by 001.
 					'rules'    => array(
 						'margin' => '0',
 					),
@@ -222,6 +223,8 @@ function wp_register_layout_support( $block_type ) {
  * @since 5.9.0
  * @since 6.1.0 Added `$block_spacing` param, use style engine to enqueue styles.
  * @since 6.3.0 Added grid layout type.
+ * @since 6.6.0 Removed duplicated selector from layout styles.
+ *              Enabled negative margins for alignfull children of blocks with custom padding.
  * @access private
  *
  * @param string               $selector                      CSS selector.
@@ -261,7 +264,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 						),
 					),
 					array(
-						'selector'     => "$selector$selector > * + *",
+						'selector'     => "$selector > * + *",
 						'declarations' => array(
 							'margin-block-start' => $gap_value,
 							'margin-block-end'   => '0',
@@ -305,32 +308,40 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 					'declarations' => array( 'max-width' => 'none' ),
 				)
 			);
+		}
 
-			if ( isset( $block_spacing ) ) {
-				$block_spacing_values = wp_style_engine_get_styles(
-					array(
-						'spacing' => $block_spacing,
-					)
+		if ( isset( $block_spacing ) ) {
+			$block_spacing_values = wp_style_engine_get_styles(
+				array(
+					'spacing' => $block_spacing,
+				)
+			);
+
+			/*
+			 * Handle negative margins for alignfull children of blocks with custom padding set.
+			 * They're added separately because padding might only be set on one side.
+			 */
+			if ( isset( $block_spacing_values['declarations']['padding-right'] ) ) {
+				$padding_right = $block_spacing_values['declarations']['padding-right'];
+				// Add unit if 0.
+				if ( '0' === $padding_right ) {
+					$padding_right = '0px';
+				}
+				$layout_styles[] = array(
+					'selector'     => "$selector > .alignfull",
+					'declarations' => array( 'margin-right' => "calc($padding_right * -1)" ),
 				);
-
-				/*
-				 * Handle negative margins for alignfull children of blocks with custom padding set.
-				 * They're added separately because padding might only be set on one side.
-				 */
-				if ( isset( $block_spacing_values['declarations']['padding-right'] ) ) {
-					$padding_right   = $block_spacing_values['declarations']['padding-right'];
-					$layout_styles[] = array(
-						'selector'     => "$selector > .alignfull",
-						'declarations' => array( 'margin-right' => "calc($padding_right * -1)" ),
-					);
+			}
+			if ( isset( $block_spacing_values['declarations']['padding-left'] ) ) {
+				$padding_left = $block_spacing_values['declarations']['padding-left'];
+				// Add unit if 0.
+				if ( '0' === $padding_left ) {
+					$padding_left = '0px';
 				}
-				if ( isset( $block_spacing_values['declarations']['padding-left'] ) ) {
-					$padding_left    = $block_spacing_values['declarations']['padding-left'];
-					$layout_styles[] = array(
-						'selector'     => "$selector > .alignfull",
-						'declarations' => array( 'margin-left' => "calc($padding_left * -1)" ),
-					);
-				}
+				$layout_styles[] = array(
+					'selector'     => "$selector > .alignfull",
+					'declarations' => array( 'margin-left' => "calc($padding_left * -1)" ),
+				);
 			}
 		}
 
@@ -370,7 +381,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 						),
 					),
 					array(
-						'selector'     => "$selector$selector > * + *",
+						'selector'     => "$selector > * + *",
 						'declarations' => array(
 							'margin-block-start' => $gap_value,
 							'margin-block-end'   => '0',
@@ -549,6 +560,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
  * @since 5.8.0
  * @since 6.3.0 Adds compound class to layout wrapper for global spacing styles.
  * @since 6.3.0 Check for layout support via the `layout` key with fallback to `__experimentalLayout`.
+ * @since 6.6.0 Removed duplicate container class from layout styles.
  * @access private
  *
  * @param string $block_content Rendered block content.
@@ -795,7 +807,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		$has_block_gap_support = isset( $block_gap );
 
 		$style = wp_get_layout_style(
-			".$container_class.$container_class",
+			".$container_class",
 			$used_layout,
 			$has_block_gap_support,
 			$gap_value,
@@ -947,6 +959,7 @@ add_filter( 'render_block', 'wp_render_layout_support_flag', 10, 2 );
  * to avoid breaking styles relying on that div.
  *
  * @since 5.8.0
+ * @since 6.6.1 Removed inner container from Grid variations.
  * @access private
  *
  * @param string $block_content Rendered block content.
@@ -963,7 +976,7 @@ function wp_restore_group_inner_container( $block_content, $block ) {
 	if (
 		wp_theme_has_theme_json() ||
 		1 === preg_match( $group_with_inner_container_regex, $block_content ) ||
-		( isset( $block['attrs']['layout']['type'] ) && 'flex' === $block['attrs']['layout']['type'] )
+		( isset( $block['attrs']['layout']['type'] ) && ( 'flex' === $block['attrs']['layout']['type'] || 'grid' === $block['attrs']['layout']['type'] ) )
 	) {
 		return $block_content;
 	}

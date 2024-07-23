@@ -123,7 +123,6 @@
 .ui-helper-hidden-accessible {
 	border: 0;
 	clip: rect(1px, 1px, 1px, 1px);
-	-webkit-clip-path: inset(50%);
 	clip-path: inset(50%);
 	height: 1px;
 	margin: -1px;
@@ -1517,25 +1516,6 @@ div.error {
 
 #plugin-information-footer .notice {
     margin-top: -5px;
-}
-
-#plugin-information-footer #plugin-activated-successfully {
-	margin-bottom: 0;
-}
-
-#plugin-information-footer #plugin-activated-successfully p {
-	display: flex;
-	gap: 1em;
-	align-items: center;
-	justify-content: space-between;
-	margin: 0;
-}
-
-#plugin-information-footer #plugin-activated-successfully .refresh-page {
-	flex-grow: 0;
-	line-height: 2.15384615;
-	min-height: 0;
-	margin-bottom: 0;
 }
 
 .update-message p:before,
