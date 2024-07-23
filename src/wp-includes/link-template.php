@@ -1597,7 +1597,7 @@ function get_delete_post_link( $post = 0, $deprecated = '', $force_delete = fals
  * @since 2.3.0
  *
  * @param int|WP_Comment $comment_id Optional. Comment ID or WP_Comment object.
- * @param string $context Optional. How to output the '&' character default '&amp;'.
+ * @param string         $context    Optional. Could be 'display' or 'null'. Default null.
  * @return string|void The edit comment link URL for the given comment.
  */
 function get_edit_comment_link( $comment_id = 0, $context = null ) {
