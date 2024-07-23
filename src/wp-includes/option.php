@@ -2608,7 +2608,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
 	 */
 	$expiration = apply_filters( "expiration_of_site_transient_{$transient}", $expiration, $value, $transient );
 
-	$result = set_site_transient_nohook($transient, $value, $expiration);
+	$result = set_site_transient_nohook( $transient, $value, $expiration );
 
 	if ( $result ) {
 
@@ -2647,8 +2647,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
  * @param $expiration
  * @return bool
  */
-function set_site_transient_nohook( $transient, $value, $expiration ): bool
-{
+function set_site_transient_nohook( $transient, $value, $expiration ) {
 	if ( wp_using_ext_object_cache() || wp_installing() ) {
 		$result = wp_cache_set( $transient, $value, 'site-transient', $expiration );
 	} else {
