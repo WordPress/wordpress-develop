@@ -2231,9 +2231,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+COL':
 				$this->state->stack_of_open_elements->clear_to_table_context();
-				$this->insert_html_element(
-					new WP_HTML_Token( null, 'COLGROUP', false )
-				);
+				/*
+				 * > Insert an HTML element for a "colgroup" start tag token with no attributes,
+				 * > then switch the insertion mode to "in column group".
+				 */
+				$this->insert_html_element( new WP_HTML_Token( null, 'COLGROUP', false ) );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
