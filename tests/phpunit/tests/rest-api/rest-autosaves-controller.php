@@ -807,6 +807,10 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		);
 		$request->set_body_params( $body_parameters );
 
+		/**
+		 * It's hard to programmatically create an invalid $autosave_id,
+		 * so mocking the ::create_post_autosave() method seems like a more reasonable solution.
+		 */
 		$autosaves_controller = $this->getMockBuilder( WP_REST_Autosaves_Controller::class )
 									->setConstructorArgs( array( 'post' ) )
 									->onlyMethods( array( 'create_post_autosave' ) )
