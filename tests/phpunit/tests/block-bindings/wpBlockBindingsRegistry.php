@@ -269,9 +269,6 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 		);
 
 		$registered = $this->registry->get_all_registered();
-		$this->registry->unregister( 'test/source-one' );
-		$this->registry->unregister( 'test/source-two' );
-		$this->registry->unregister( 'test/source-three' );
 		$this->assertEquals( $expected, $registered );
 	}
 
