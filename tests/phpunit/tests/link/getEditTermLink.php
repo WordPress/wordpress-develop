@@ -196,10 +196,9 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 
 		get_edit_term_link( $term, $taxonomy );
 	}
-	
 	/**
 	 * This function checks if the return URL of `get_edit_term_link()` when called without taxonomy matches with the expected output or not.
-	 * 
+	 *
 	 * @ticket 61726
 	 *
 	 * @return void
