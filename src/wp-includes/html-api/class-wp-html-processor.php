@@ -2146,7 +2146,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 						'TEMPLATE' === $current_node_name ||
 						'TFOOT' === $current_node_name ||
 						'THEAD' === $current_node_name ||
-						'TR'=== $current_node_name
+						'TR' === $current_node_name
 					)
 				) {
 					$text = $this->get_modifiable_text();
