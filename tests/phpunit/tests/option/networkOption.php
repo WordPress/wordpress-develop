@@ -309,6 +309,26 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test adding a previously known notoption returns the correct value.
+	 *
+	 * @ticket 61730
+	 *
+	 * @covers ::add_network_option
+	 * @covers ::delete_network_option
+	 */
+	public function test_adding_previous_notoption_returns_correct_value() {
+		$option_name = 'ticket_61730_option_to_be_created';
+
+		add_network_option( 1, $option_name, 'baz' );
+		delete_network_option( 1, $option_name );
+
+		$this->assertFalse( get_network_option( 1, $option_name ), 'The option should not be found.' );
+
+		add_network_option( 1, $option_name, 'foo' );
+		$this->assertSame( 'foo', get_network_option( 1, $option_name ), 'The option should return the newly set value.' );
+	}
+
+	/**
 	 * Test `get_network_option()` does not use network notoptions cache for single sites.
 	 *
 	 * @ticket 61730
