@@ -1786,6 +1786,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "table"
 			 */
 			case '+TABLE':
+				/*
+				 * > If the Document is not set to quirks mode, and the stack of open elements
+				 * > has a p element in button scope, then close a p element.
+				 */
 				if (
 					WP_HTML_Processor_State::QUIRKS_MODE !== $this->state->document_mode &&
 					$this->state->stack_of_open_elements->has_p_in_button_scope()
