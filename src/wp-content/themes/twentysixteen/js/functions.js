@@ -169,7 +169,9 @@
 								return;
 							}
 
-							element.addClass( 'below-entry-meta' );
+							if ( caption.hasClass( 'alignleft' ) || caption.hasClass( 'alignright' ) || caption.hasClass( 'aligncenter' ) ) {
+								element.addClass( 'below-entry-meta' );
+							}
 
 							if ( caption.hasClass( 'wp-caption' ) ) {
 								caption.addClass( 'below-entry-meta' );
