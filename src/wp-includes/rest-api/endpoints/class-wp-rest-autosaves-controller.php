@@ -248,6 +248,10 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		}
 
 		$autosave = $this->get_post( $autosave_id );
+		if ( is_wp_error( $autosave ) ) {
+			return $autosave;
+		}
+
 		$request->set_param( 'context', 'edit' );
 
 		$response = $this->prepare_item_for_response( $autosave, $request );
@@ -515,7 +519,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		}
 
 		$post = get_post( (int) $id );
-		if ( empty( $post ) || empty( $post->ID ) || $this->parent_post_type !== $post->post_type ) {
+		if ( empty( $post ) || empty( $post->ID ) ) {
 			return $error;
 		}
 
