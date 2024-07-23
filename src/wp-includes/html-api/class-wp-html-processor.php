@@ -2137,13 +2137,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A character token, if the current node is table, tbody, template, tfoot, thead, or tr element
 			 */
 			case '#text':
+				$current_node      = $this->state->stack_of_open_elements->current_node();
+				$current_node_name = $current_node ? $current_node->node_name : null;
 				if (
-					$this->state->stack_of_open_elements->current_node_is( 'TABLE' ) ||
-					$this->state->stack_of_open_elements->current_node_is( 'TBODY' ) ||
-					$this->state->stack_of_open_elements->current_node_is( 'TEMPLATE' ) ||
-					$this->state->stack_of_open_elements->current_node_is( 'TFOOT' ) ||
-					$this->state->stack_of_open_elements->current_node_is( 'THEAD' ) ||
-					$this->state->stack_of_open_elements->current_node_is( 'TR' )
+					$current_node_name && (
+						'TABLE' === $current_node_name ||
+						'TBODY' === $current_node_name ||
+						'TEMPLATE' === $current_node_name ||
+						'TFOOT' === $current_node_name ||
+						'THEAD' === $current_node_name ||
+						'TR'=== $current_node_name
+					)
 				) {
 					$text = $this->get_modifiable_text();
 					/*
