@@ -196,6 +196,26 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 
 		get_edit_term_link( $term, $taxonomy );
 	}
+	
+	/**
+	 * This function checks if the return URL of `get_edit_term_link()` when called without taxonomy matches with the expected output or not.
+	 * 
+	 * @ticket 61726
+	 *
+	 * @return void
+	 */
+	public function test_get_edit_term_link_without_taxonomy() {
+		$term1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'bar',
+			)
+		);
+
+		$actual   = get_edit_term_link( $term1 );
+		$expected = 'http://' . WP_TESTS_DOMAIN . '/wp-admin/term.php?taxonomy=wptests_tax&tag_ID=' . $term1 . '&post_type=post';
+		$this->assertSame( $expected, $actual );
+	}
 
 	/**
 	 * Data provider.
