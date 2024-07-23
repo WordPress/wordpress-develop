@@ -2184,7 +2184,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 *
 					 * @see https://html.spec.whatwg.org/#parsing-main-intabletext
 					 */
-					if ( strlen( $text ) === strspn( $text, "\t\n\f\r ", 0, strlen( $text ) ) ) {
+					if ( strlen( $text ) === strspn( $text, "\t\n\f\r " ) ) {
 						$this->insert_html_element( $this->state->current_token );
 						return true;
 					}
