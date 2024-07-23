@@ -514,11 +514,12 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			array( 'status' => 404 )
 		);
 
-		if ( (int) $id <= 0 ) {
+		$id = (int) $id;
+		if ( $id <= 0 ) {
 			return $error;
 		}
 
-		$post = get_post( (int) $id );
+		$post = get_post( $id );
 		if ( empty( $post ) || empty( $post->ID ) ) {
 			return $error;
 		}
