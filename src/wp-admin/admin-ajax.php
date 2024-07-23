@@ -184,7 +184,7 @@ if ( has_action( "wp_ajax_all_{$action}" ) ) {
 	 * to the name of the Ajax action callback being fired.
 	 */
 	do_action( "wp_ajax_all_{$action}" );
-	wp_die();
+	wp_die( '0' );
 }
 
 if ( is_user_logged_in() ) {
