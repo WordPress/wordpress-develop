@@ -792,6 +792,8 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	 *
 	 * @covers WP_REST_Autosaves_Controller::create_item
 	 * @covers WP_REST_Autosaves_Controller::get_post
+	 *
+	 * @param int $autosave_revision_id The autosave revision ID.
 	 */
 	public function test_invalid_autosave_revision_id_should_trigger_error_response( $autosave_revision_id ) {
 		wp_set_current_user( self::$editor_id );
@@ -823,12 +825,14 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	 *
 	 * @covers WP_REST_Autosaves_Controller::create_post_autosave
 	 * @covers WP_REST_Autosaves_Controller::get_post
+	 *
+	 * @param int $parent_post_id Parent post ID.
 	 */
-	public function test_invalid_revision_id_should_trigger_error_response( $autosave_post_id ) {
+	public function test_invalid_parent_post_id_should_trigger_error_response( $parent_post_id ) {
 		$autosaves_controller = new WP_REST_Autosaves_Controller( 'post' );
 		$response             = $autosaves_controller->create_post_autosave(
 			array(
-				'ID' => $autosave_post_id,
+				'ID' => $parent_post_id,
 			)
 		);
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
