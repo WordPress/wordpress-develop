@@ -784,4 +784,56 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( $autosave['id'], $data['id'], 'Original autosave was not returned' );
 	}
+
+	/**
+	 * @ticket 52925
+	 *
+	 * @covers WP_REST_Autosaves_Controller::create_item
+	 * @covers WP_REST_Autosaves_Controller::get_post
+	 */
+	public function test_create_item_invalid_integration() {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$params = $this->set_post_data(
+			array(
+				'id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+			)
+		);
+		$request->set_body_params( $params );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+	}
+
+	/**
+	 * @ticket 52925
+	 *
+	 * @covers WP_REST_Autosaves_Controller::create_item
+	 * @covers WP_REST_Autosaves_Controller::get_post
+	 */
+	public function test_create_item_invalid_unit() {
+		$autosaves_controller = new WP_REST_Autosaves_Controller( 'post' );
+		$response             = $autosaves_controller->create_item(
+			array(
+				'id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+			)
+		);
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+	}
+
+	/**
+	 * @ticket 52925
+	 *
+	 * @covers WP_REST_Autosaves_Controller::create_post_autosave
+	 * @covers WP_REST_Autosaves_Controller::get_post
+	 */
+	public function test_create_post_autosave_invalid() {
+		$autosaves_controller = new WP_REST_Autosaves_Controller( 'post' );
+		$response             = $autosaves_controller->create_post_autosave(
+			array(
+				'ID' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+			)
+		);
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+	}
 }
