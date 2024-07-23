@@ -49,6 +49,22 @@ jobs:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
       install-gutenberg: false
 
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
+    needs: [ e2e-tests ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
   failed-workflow:
     name: Failed workflow tasks
     runs-on: ubuntu-latest
