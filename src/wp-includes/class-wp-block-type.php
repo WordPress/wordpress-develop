@@ -273,6 +273,24 @@ class WP_Block_Type {
 	);
 
 	/**
+	 * Stabilized block supports.
+	 *
+	 * @since 6.7.0
+	 * @var array
+	 */
+	private $stabilized_supports = array(
+		'typography' => array(
+			'__experimentalFontFamily'     => 'fontFamily',
+			'__experimentalFontStyle'      => 'fontStyle',
+			'__experimentalFontWeight'     => 'fontWeight',
+			'__experimentalLetterSpacing'  => 'letterSpacing',
+			'__experimentalTextDecoration' => 'textDecoration',
+			'__experimentalTextTransform'  => 'textTransform',
+			'__experimentalWritingMode'    => 'writingMode',
+		),
+	);
+
+	/**
 	 * Attributes supported by every block.
 	 *
 	 * @since 6.0.0 Added `lock`.
@@ -559,6 +577,29 @@ class WP_Block_Type {
 		foreach ( static::GLOBAL_ATTRIBUTES as $attr_key => $attr_schema ) {
 			if ( ! array_key_exists( $attr_key, $args['attributes'] ) ) {
 				$args['attributes'][ $attr_key ] = $attr_schema;
+			}
+		}
+
+		// Stabilize experimental block supports.
+		if ( isset( $args['supports'] ) && is_array( $args['supports'] ) ) {
+			foreach ( $this->stabilized_supports as $feature => $mapping ) {
+				if ( isset( $args['supports'][ $feature ] ) ) {
+					if ( is_array( $mapping ) ) {
+						foreach ( $mapping as $old => $new ) {
+							if (
+								isset( $args['supports'][ $feature ][ $old ] ) &&
+								! isset( $args['supports'][ $feature ][ $new ] )
+							) {
+								$args['supports'][ $feature ][ $new ] = $args['supports'][ $feature ][ $old ];
+							}
+						}
+					} elseif (
+						is_string( $mapping ) &&
+						! isset( $args['supports'][ $mapping ] )
+					) {
+						$args['supports'][ $mapping ] = $args['supports'][ $feature ];
+					}
+				}
 			}
 		}
 
