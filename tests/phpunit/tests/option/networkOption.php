@@ -73,6 +73,11 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$this->assertIsArray( $notoptions, 'The notoptions cache is expected to be an array.' );
 		$this->assertTrue( $notoptions['foo'], 'The deleted options is expected to be in notoptions.' );
 
+		if ( ! is_multisite() ) {
+			$network_notoptions = wp_cache_get( '1:notoptions', 'site-options' );
+			$this->assertTrue( empty( $network_notoptions['foo'] ), 'The deleted option is not expected to be in network notoptions on a non-multisite.' );
+		}
+
 		$before = get_num_queries();
 		get_network_option( 1, 'foo' );
 		$queries = get_num_queries() - $before;
