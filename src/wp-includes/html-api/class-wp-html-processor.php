@@ -97,22 +97,11 @@
  * will abort early and stop all processing. This draconian measure ensures
  * that the HTML Processor won't break any HTML it doesn't fully understand.
  *
- * The following list specifies the HTML tags that _are_ supported:
+ * The HTML Processor supports all elements other than a specific set:
  *
- *  - Containers: ADDRESS, BLOCKQUOTE, DETAILS, DIALOG, DIV, FOOTER, HEADER, MAIN, MENU, SPAN, SUMMARY.
- *  - Custom elements: All custom elements are supported. :)
- *  - Form elements: BUTTON, DATALIST, FIELDSET, INPUT, LABEL, LEGEND, METER, OPTGROUP, OPTION, PROGRESS, SEARCH, SELECT.
- *  - Formatting elements: B, BIG, CODE, EM, FONT, I, PRE, SMALL, STRIKE, STRONG, TT, U, WBR.
- *  - Heading elements: H1, H2, H3, H4, H5, H6, HGROUP.
- *  - Links: A.
- *  - Lists: DD, DL, DT, LI, OL, UL.
- *  - Media elements: AUDIO, CANVAS, EMBED, FIGCAPTION, FIGURE, IMG, MAP, PICTURE, SOURCE, TRACK, VIDEO.
- *  - Paragraph: BR, P.
- *  - Phrasing elements: ABBR, AREA, BDI, BDO, CITE, DATA, DEL, DFN, INS, MARK, OUTPUT, Q, SAMP, SUB, SUP, TIME, VAR.
- *  - Sectioning elements: ARTICLE, ASIDE, HR, NAV, SECTION.
- *  - Templating elements: SLOT.
- *  - Text decoration: RUBY.
- *  - Deprecated elements: ACRONYM, BLINK, CENTER, DIR, ISINDEX, KEYGEN, LISTING, MULTICOL, NEXTID, PARAM, SPACER.
+ *  - Any element inside a TABLE.
+ *  - Any element inside foreign content, including SVG and MATH.
+ *  - Any element outside the IN BODY insertion mode, e.g. doctype declarations, meta, links.
  *
  * ### Supported markup
  *
@@ -121,15 +110,30 @@
  * may in fact belong _before_ the table in the DOM. If the HTML Processor encounters
  * such a case it will stop processing.
  *
- * The following list specifies HTML markup that _is_ supported:
+ * The following list illustrates some common examples of unexpected HTML inputs that
+ * the HTML Processor properly parses and represents:
  *
- *  - Markup involving only those tags listed above.
- *  - Fully-balanced and non-overlapping tags.
- *  - HTML with unexpected tag closers.
- *  - Some unbalanced or overlapping tags.
- *  - P tags after unclosed P tags.
- *  - BUTTON tags after unclosed BUTTON tags.
- *  - A tags after unclosed A tags that don't involve any active formatting elements.
+ *  - HTML with optional tags omitted, e.g. `<p>one<p>two`.
+ *  - HTML with unexpected tag closers, e.g. `<p>one </span> more</p>`.
+ *  - Non-void tags with self-closing flag, e.g. `<div/>the DIV is still open.</div>`.
+ *  - Heading elements which close open heading elements of another level, e.g. `<h1>Closed by </h2>`.
+ *  - Elements containing text that looks like other tags but isn't, e.g. `<title>The <img> is plaintext</title>`.
+ *  - SCRIPT and STYLE tags containing text that looks like HTML but isn't, e.g. `<script>document.write('<p>Hi</p>');</script>`.
+ *  - SCRIPT content which has been escaped, e.g. `<script><!-- document.write('<script>console.log("hi")</script>') --></script>`.
+ *
+ * ### Unsupported Features
+ *
+ * This parser does not report parse errors.
+ *
+ * Normally, when additional HTML or BODY tags are encountered in a document, if there
+ * are any additional attributes on them that aren't found on the previous elements,
+ * the existing HTML and BODY elements adopt those missing attribute values. This
+ * parser does not add those additional attributes.
+ *
+ * In certain situations, elements are moved to a different part of the document in
+ * a process called "adoption" and "fostering." Because the nodes move to a location
+ * in the document that the parser had already processed, this parser does not support
+ * these situations and will bail.
  *
  * @since 6.4.0
  *
@@ -159,7 +163,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @var WP_HTML_Processor_State
 	 */
-	private $state = null;
+	private $state;
 
 	/**
 	 * Used to create unique bookmark names.
@@ -208,7 +212,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @var closure
+	 * @var Closure|null
 	 */
 	private $release_internal_bookmark_on_destruct = null;
 
@@ -368,7 +372,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$this->state = new WP_HTML_Processor_State();
 
 		$this->state->stack_of_open_elements->set_push_handler(
-			function ( WP_HTML_Token $token ) {
+			function ( WP_HTML_Token $token ): void {
 				$is_virtual            = ! isset( $this->state->current_token ) || $this->is_tag_closer();
 				$same_node             = isset( $this->state->current_token ) && $token->node_name === $this->state->current_token->node_name;
 				$provenance            = ( ! $same_node || $is_virtual ) ? 'virtual' : 'real';
@@ -377,7 +381,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		);
 
 		$this->state->stack_of_open_elements->set_pop_handler(
-			function ( WP_HTML_Token $token ) {
+			function ( WP_HTML_Token $token ): void {
 				$is_virtual            = ! isset( $this->state->current_token ) || ! $this->is_tag_closer();
 				$same_node             = isset( $this->state->current_token ) && $token->node_name === $this->state->current_token->node_name;
 				$provenance            = ( ! $same_node || $is_virtual ) ? 'virtual' : 'real';
@@ -390,7 +394,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * a private method into WP_HTML_Token classes without
 		 * exposing it to any public API.
 		 */
-		$this->release_internal_bookmark_on_destruct = function ( $name ) {
+		$this->release_internal_bookmark_on_destruct = function ( string $name ): void {
 			parent::release_bookmark( $name );
 		};
 	}
@@ -403,8 +407,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @param string $message Explains support is missing in order to parse the current node.
-	 *
-	 * @return mixed
 	 */
 	private function bail( string $message ) {
 		$here  = $this->bookmarks[ $this->state->current_token->bookmark_name ];
@@ -457,7 +459,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string|null The last error, if one exists, otherwise null.
 	 */
-	public function get_last_error() {
+	public function get_last_error(): ?string {
 		return $this->last_error;
 	}
 
@@ -500,7 +502,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * }
 	 * @return bool Whether a tag was matched.
 	 */
-	public function next_tag( $query = null ) {
+	public function next_tag( $query = null ): bool {
 		$visit_closers = isset( $query['tag_closers'] ) && 'visit' === $query['tag_closers'];
 
 		if ( null === $query ) {
@@ -590,7 +592,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool
 	 */
-	public function next_token() {
+	public function next_token(): bool {
 		$this->current_element = null;
 
 		if ( isset( $this->last_error ) ) {
@@ -643,7 +645,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		return true;
 	}
 
-
 	/**
 	 * Indicates if the current tag token is a tag closer.
 	 *
@@ -660,7 +661,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether the current tag is a tag closer.
 	 */
-	public function is_tag_closer() {
+	public function is_tag_closer(): bool {
 		return $this->is_virtual()
 			? ( WP_HTML_Stack_Event::POP === $this->current_element->operation && '#tag' === $this->get_token_type() )
 			: parent::is_tag_closer();
@@ -674,7 +675,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether the current token is virtual.
 	 */
-	private function is_virtual() {
+	private function is_virtual(): bool {
 		return (
 			isset( $this->current_element->provenance ) &&
 			'virtual' === $this->current_element->provenance
@@ -706,7 +707,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *                              May also contain the wildcard `*` which matches a single element, e.g. `array( 'SECTION', '*' )`.
 	 * @return bool Whether the currently-matched tag is found at the given nested structure.
 	 */
-	public function matches_breadcrumbs( $breadcrumbs ) {
+	public function matches_breadcrumbs( $breadcrumbs ): bool {
 		// Everything matches when there are zero constraints.
 		if ( 0 === count( $breadcrumbs ) ) {
 			return true;
@@ -757,7 +758,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool|null Whether to expect a closer for the currently-matched node,
 	 *                   or `null` if not matched on any token.
 	 */
-	public function expects_closer( $node = null ) {
+	public function expects_closer( $node = null ): ?bool {
 		$token_name = $node->node_name ?? $this->get_token_name();
 		if ( ! isset( $token_name ) ) {
 			return null;
@@ -788,7 +789,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $node_to_process Whether to parse the next node or reprocess the current node.
 	 * @return bool Whether a tag was matched.
 	 */
-	public function step( $node_to_process = self::PROCESS_NEXT_NODE ) {
+	public function step( $node_to_process = self::PROCESS_NEXT_NODE ): bool {
 		// Refuse to proceed if there was a previous error.
 		if ( null !== $this->last_error ) {
 			return false;
@@ -938,7 +939,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string[]|null Array of tag names representing path to matched node, if matched, otherwise NULL.
 	 */
-	public function get_breadcrumbs() {
+	public function get_breadcrumbs(): ?array {
 		return $this->breadcrumbs;
 	}
 
@@ -967,7 +968,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return int Nesting-depth of current location in the document.
 	 */
-	public function get_current_depth() {
+	public function get_current_depth(): int {
 		return count( $this->breadcrumbs );
 	}
 
@@ -986,8 +987,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_initial() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_initial(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_INITIAL . ' state.' );
 	}
 
 	/**
@@ -1005,8 +1006,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_before_html() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_before_html(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML . ' state.' );
 	}
 
 	/**
@@ -1024,8 +1025,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_before_head() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_before_head(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD . ' state.' );
 	}
 
 	/**
@@ -1043,8 +1044,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_head() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_in_head(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD . ' state.' );
 	}
 
 	/**
@@ -1062,8 +1063,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_head_noscript() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_in_head_noscript(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD_NOSCRIPT . ' state.' );
 	}
 
 	/**
@@ -1081,8 +1082,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_after_head() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_after_head(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD . ' state.' );
 	}
 
 	/**
@@ -1100,22 +1101,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_body() {
+	private function step_in_body(): bool {
 		$token_name = $this->get_token_name();
 		$token_type = $this->get_token_type();
 		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
 		$op         = "{$op_sigil}{$token_name}";
 
 		switch ( $op ) {
-			case '#comment':
-			case '#funky-comment':
-			case '#presumptuous-tag':
-				$this->insert_html_element( $this->state->current_token );
-				return true;
-
 			case '#text':
-				$this->reconstruct_active_formatting_elements();
-
 				$current_token = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 
 				/*
@@ -1136,41 +1129,160 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 
+				$this->reconstruct_active_formatting_elements();
+
 				/*
 				 * Whitespace-only text does not affect the frameset-ok flag.
 				 * It is probably inter-element whitespace, but it may also
 				 * contain character references which decode only to whitespace.
 				 */
 				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) !== strspn( $text, "\t\n\f\r " ) ) {
+				if ( strlen( $text ) !== strspn( $text, " \t\n\f\r" ) ) {
 					$this->state->frameset_ok = false;
 				}
 
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A DOCTYPE token
+			 * > Parse error. Ignore the token.
+			 */
 			case 'html':
-				/*
-				 * > A DOCTYPE token
-				 * > Parse error. Ignore the token.
-				 */
 				return $this->step();
 
 			/*
-			 * > A start tag whose tag name is "button"
+			 * > A start tag whose tag name is "html"
 			 */
-			case '+BUTTON':
-				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'BUTTON' ) ) {
-					// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
-					$this->generate_implied_end_tags();
-					$this->state->stack_of_open_elements->pop_until( 'BUTTON' );
+			case '+HTML':
+				if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
+					/*
+					 * > Otherwise, for each attribute on the token, check to see if the attribute
+					 * > is already present on the top element of the stack of open elements. If
+					 * > it is not, add the attribute and its corresponding value to that element.
+					 *
+					 * This parser does not currently support this behavior: ignore the token.
+					 */
 				}
 
-				$this->reconstruct_active_formatting_elements();
-				$this->insert_html_element( $this->state->current_token );
-				$this->state->frameset_ok = false;
+				// Ignore the token.
+				return $this->step();
 
+			/*
+			 * > A start tag whose tag name is one of: "base", "basefont", "bgsound", "link",
+			 * > "meta", "noframes", "script", "style", "template", "title"
+			 * >
+			 * > An end tag whose tag name is "template"
+			 */
+			case '+BASE':
+			case '+BASEFONT':
+			case '+BGSOUND':
+			case '+LINK':
+			case '+META':
+			case '+NOFRAMES':
+			case '+SCRIPT':
+			case '+STYLE':
+			case '+TEMPLATE':
+			case '+TITLE':
+			case '-TEMPLATE':
+				return $this->step_in_head();
+
+			/*
+			 * > A start tag whose tag name is "body"
+			 *
+			 * This tag in the IN BODY insertion mode is a parse error.
+			 */
+			case '+BODY':
+				if (
+					1 === $this->state->stack_of_open_elements->count() ||
+					'BODY' !== $this->state->stack_of_open_elements->at( 2 ) ||
+					$this->state->stack_of_open_elements->contains( 'TEMPLATE' )
+				) {
+					// Ignore the token.
+					return $this->step();
+				}
+
+				/*
+				 * > Otherwise, set the frameset-ok flag to "not ok"; then, for each attribute
+				 * > on the token, check to see if the attribute is already present on the body
+				 * > element (the second element) on the stack of open elements, and if it is
+				 * > not, add the attribute and its corresponding value to that element.
+				 *
+				 * This parser does not currently support this behavior: ignore the token.
+				 */
+				$this->state->frameset_ok = false;
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "frameset"
+			 *
+			 * This tag in the IN BODY insertion mode is a parse error.
+			 */
+			case '+FRAMESET':
+				if (
+					1 === $this->state->stack_of_open_elements->count() ||
+					'BODY' !== $this->state->stack_of_open_elements->at( 2 ) ||
+					false === $this->state->frameset_ok
+				) {
+					// Ignore the token.
+					return $this->step();
+				}
+
+				/*
+				 * > Otherwise, run the following steps:
+				 */
+				$this->bail( 'Cannot process non-ignored FRAMESET tags.' );
+				break;
+
+			/*
+			 * > An end tag whose tag name is "body"
+			 */
+			case '-BODY':
+				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'BODY' ) ) {
+					// Parse error: ignore the token.
+					return $this->step();
+				}
+
+				/*
+				 * > Otherwise, if there is a node in the stack of open elements that is not either a
+				 * > dd element, a dt element, an li element, an optgroup element, an option element,
+				 * > a p element, an rb element, an rp element, an rt element, an rtc element, a tbody
+				 * > element, a td element, a tfoot element, a th element, a thread element, a tr
+				 * > element, the body element, or the html element, then this is a parse error.
+				 *
+				 * There is nothing to do for this parse error, so don't check for it.
+				 */
+
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY;
 				return true;
+
+			/*
+			 * > An end tag whose tag name is "html"
+			 */
+			case '-HTML':
+				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'BODY' ) ) {
+					// Parse error: ignore the token.
+					return $this->step();
+				}
+
+				/*
+				 * > Otherwise, if there is a node in the stack of open elements that is not either a
+				 * > dd element, a dt element, an li element, an optgroup element, an option element,
+				 * > a p element, an rb element, an rp element, an rt element, an rtc element, a tbody
+				 * > element, a td element, a tfoot element, a th element, a thread element, a tr
+				 * > element, the body element, or the html element, then this is a parse error.
+				 *
+				 * There is nothing to do for this parse error, so don't check for it.
+				 */
+
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY;
+				return $this->step( self::REPROCESS_CURRENT_NODE );
 
 			/*
 			 * > A start tag whose tag name is one of: "address", "article", "aside",
@@ -1211,52 +1323,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
-			 * > An end tag whose tag name is one of: "address", "article", "aside", "blockquote",
-			 * > "button", "center", "details", "dialog", "dir", "div", "dl", "fieldset",
-			 * > "figcaption", "figure", "footer", "header", "hgroup", "listing", "main",
-			 * > "menu", "nav", "ol", "pre", "search", "section", "summary", "ul"
-			 */
-			case '-ADDRESS':
-			case '-ARTICLE':
-			case '-ASIDE':
-			case '-BLOCKQUOTE':
-			case '-BUTTON':
-			case '-CENTER':
-			case '-DETAILS':
-			case '-DIALOG':
-			case '-DIR':
-			case '-DIV':
-			case '-DL':
-			case '-FIELDSET':
-			case '-FIGCAPTION':
-			case '-FIGURE':
-			case '-FOOTER':
-			case '-HEADER':
-			case '-HGROUP':
-			case '-LISTING':
-			case '-MAIN':
-			case '-MENU':
-			case '-NAV':
-			case '-OL':
-			case '-PRE':
-			case '-SEARCH':
-			case '-SECTION':
-			case '-SUMMARY':
-			case '-UL':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $token_name ) ) {
-					// @todo Report parse error.
-					// Ignore the token.
-					return $this->step();
-				}
-
-				$this->generate_implied_end_tags();
-				if ( ! $this->state->stack_of_open_elements->current_node_is( $token_name ) ) {
-					// @todo Record parse error: this error doesn't impact parsing.
-				}
-				$this->state->stack_of_open_elements->pop_until( $token_name );
-				return true;
-
-			/*
 			 * > A start tag whose tag name is one of: "h1", "h2", "h3", "h4", "h5", "h6"
 			 */
 			case '+H1':
@@ -1291,35 +1357,39 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
 					$this->close_a_p_element();
 				}
+
+				/*
+				 * > If the next token is a U+000A LINE FEED (LF) character token,
+				 * > then ignore that token and move on to the next one. (Newlines
+				 * > at the start of pre blocks are ignored as an authoring convenience.)
+				 *
+				 * This is handled in `get_modifiable_text()`.
+				 */
+
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->frameset_ok = false;
 				return true;
 
 			/*
-			 * > An end tag whose tag name is one of: "h1", "h2", "h3", "h4", "h5", "h6"
+			 * > A start tag whose tag name is "form"
 			 */
-			case '-H1':
-			case '-H2':
-			case '-H3':
-			case '-H4':
-			case '-H5':
-			case '-H6':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( '(internal: H1 through H6 - do not use)' ) ) {
-					/*
-					 * This is a parse error; ignore the token.
-					 *
-					 * @todo Indicate a parse error once it's possible.
-					 */
+			case '+FORM':
+				$stack_contains_template = $this->state->stack_of_open_elements->contains( 'TEMPLATE' );
+
+				if ( isset( $this->state->form_element ) && ! $stack_contains_template ) {
+					// Parse error: ignore the token.
 					return $this->step();
 				}
 
-				$this->generate_implied_end_tags();
-
-				if ( ! $this->state->stack_of_open_elements->current_node_is( $token_name ) ) {
-					// @todo Record parse error: this error doesn't impact parsing.
+				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+					$this->close_a_p_element();
 				}
 
-				$this->state->stack_of_open_elements->pop_until( '(internal: H1 through H6 - do not use)' );
+				$this->insert_html_element( $this->state->current_token );
+				if ( ! $stack_contains_template ) {
+					$this->state->form_element = $this->state->current_token;
+				}
+
 				return true;
 
 			/*
@@ -1380,6 +1450,150 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
+			case '+PLAINTEXT':
+				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+					$this->close_a_p_element();
+				}
+
+				/*
+				 * @todo This may need to be handled in the Tag Processor and turn into
+				 *       a single self-contained tag like TEXTAREA, whose modifiable text
+				 *       is the rest of the input document as plaintext.
+				 */
+				$this->bail( 'Cannot process PLAINTEXT elements.' );
+				break;
+
+			/*
+			 * > A start tag whose tag name is "button"
+			 */
+			case '+BUTTON':
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'BUTTON' ) ) {
+					// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
+					$this->generate_implied_end_tags();
+					$this->state->stack_of_open_elements->pop_until( 'BUTTON' );
+				}
+
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->frameset_ok = false;
+
+				return true;
+
+			/*
+			 * > An end tag whose tag name is one of: "address", "article", "aside", "blockquote",
+			 * > "button", "center", "details", "dialog", "dir", "div", "dl", "fieldset",
+			 * > "figcaption", "figure", "footer", "header", "hgroup", "listing", "main",
+			 * > "menu", "nav", "ol", "pre", "search", "section", "summary", "ul"
+			 *
+			 * @todo This needs to check if the element in scope is an HTML element, meaning that
+			 *       when SVG and MathML support is added, this needs to differentiate between an
+			 *       HTML element of the given name, such as `<center>`, and a foreign element of
+			 *       the same given name.
+			 */
+			case '-ADDRESS':
+			case '-ARTICLE':
+			case '-ASIDE':
+			case '-BLOCKQUOTE':
+			case '-BUTTON':
+			case '-CENTER':
+			case '-DETAILS':
+			case '-DIALOG':
+			case '-DIR':
+			case '-DIV':
+			case '-DL':
+			case '-FIELDSET':
+			case '-FIGCAPTION':
+			case '-FIGURE':
+			case '-FOOTER':
+			case '-HEADER':
+			case '-HGROUP':
+			case '-LISTING':
+			case '-MAIN':
+			case '-MENU':
+			case '-NAV':
+			case '-OL':
+			case '-PRE':
+			case '-SEARCH':
+			case '-SECTION':
+			case '-SUMMARY':
+			case '-UL':
+				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $token_name ) ) {
+					// @todo Report parse error.
+					// Ignore the token.
+					return $this->step();
+				}
+
+				$this->generate_implied_end_tags();
+				if ( ! $this->state->stack_of_open_elements->current_node_is( $token_name ) ) {
+					// @todo Record parse error: this error doesn't impact parsing.
+				}
+				$this->state->stack_of_open_elements->pop_until( $token_name );
+				return true;
+
+			/*
+			 * > An end tag whose tag name is "form"
+			 */
+			case '-FORM':
+				if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
+					$node                      = $this->state->form_element;
+					$this->state->form_element = null;
+
+					/*
+					 * > If node is null or if the stack of open elements does not have node
+					 * > in scope, then this is a parse error; return and ignore the token.
+					 *
+					 * @todo It's necessary to check if the form token itself is in scope, not
+					 *       simply whether any FORM is in scope.
+					 */
+					if (
+						null === $node ||
+						! $this->state->stack_of_open_elements->has_element_in_scope( 'FORM' )
+					) {
+						// Parse error: ignore the token.
+						return $this->step();
+					}
+
+					$this->generate_implied_end_tags();
+					if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
+						// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
+						$this->bail( 'Cannot close a FORM when other elements remain open as this would throw off the breadcrumbs for the following tokens.' );
+					}
+
+					$this->state->stack_of_open_elements->remove_node( $node );
+				} else {
+					/*
+					 * > If the stack of open elements does not have a form element in scope,
+					 * > then this is a parse error; return and ignore the token.
+					 *
+					 * Note that unlike in the clause above, this is checking for any FORM in scope.
+					 */
+					if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'FORM' ) ) {
+						// Parse error: ignore the token.
+						return $this->step();
+					}
+
+					$this->generate_implied_end_tags();
+
+					if ( ! $this->state->stack_of_open_elements->current_node_is( 'FORM' ) ) {
+						// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
+					}
+
+					$this->state->stack_of_open_elements->pop_until( 'FORM' );
+					return true;
+				}
+				break;
+
+			/*
+			 * > An end tag whose tag name is "p"
+			 */
+			case '-P':
+				if ( ! $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+					$this->insert_html_element( $this->state->current_token );
+				}
+
+				$this->close_a_p_element();
+				return true;
+
 			/*
 			 * > An end tag whose tag name is "li"
 			 * > An end tag whose tag name is one of: "dd", "dt"
@@ -1426,17 +1640,35 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
-			 * > An end tag whose tag name is "p"
+			 * > An end tag whose tag name is one of: "h1", "h2", "h3", "h4", "h5", "h6"
 			 */
-			case '-P':
-				if ( ! $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
-					$this->insert_html_element( $this->state->current_token );
+			case '-H1':
+			case '-H2':
+			case '-H3':
+			case '-H4':
+			case '-H5':
+			case '-H6':
+				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( '(internal: H1 through H6 - do not use)' ) ) {
+					/*
+					 * This is a parse error; ignore the token.
+					 *
+					 * @todo Indicate a parse error once it's possible.
+					 */
+					return $this->step();
 				}
 
-				$this->close_a_p_element();
+				$this->generate_implied_end_tags();
+
+				if ( ! $this->state->stack_of_open_elements->current_node_is( $token_name ) ) {
+					// @todo Record parse error: this error doesn't impact parsing.
+				}
+
+				$this->state->stack_of_open_elements->pop_until( '(internal: H1 through H6 - do not use)' );
 				return true;
 
-			// > A start tag whose tag name is "a"
+			/*
+			 * > A start tag whose tag name is "a"
+			 */
 			case '+A':
 				foreach ( $this->state->active_formatting_elements->walk_up() as $item ) {
 					switch ( $item->node_name ) {
@@ -1478,6 +1710,22 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
+			 * > A start tag whose tag name is "nobr"
+			 */
+			case '+NOBR':
+				$this->reconstruct_active_formatting_elements();
+
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'NOBR' ) ) {
+					// Parse error.
+					$this->run_adoption_agency_algorithm();
+					$this->reconstruct_active_formatting_elements();
+				}
+
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->active_formatting_elements->push( $this->state->current_token );
+				return true;
+
+			/*
 			 * > An end tag whose tag name is one of: "a", "b", "big", "code", "em", "font", "i",
 			 * > "nobr", "s", "small", "strike", "strong", "tt", "u"
 			 */
@@ -1498,12 +1746,53 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
+			 * > A start tag whose tag name is one of: "applet", "marquee", "object"
+			 */
+			case '+APPLET':
+			case '+MARQUEE':
+			case '+OBJECT':
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->active_formatting_elements->insert_marker();
+				$this->state->frameset_ok = false;
+				return true;
+
+			/*
+			 * > A end tag token whose tag name is one of: "applet", "marquee", "object"
+			 *
+			 * @todo This needs to check if the element in scope is an HTML element, meaning that
+			 *       when SVG and MathML support is added, this needs to differentiate between an
+			 *       HTML element of the given name, such as `<object>`, and a foreign element of
+			 *       the same given name.
+			 */
+			case '-APPLET':
+			case '-MARQUEE':
+			case '-OBJECT':
+				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $token_name ) ) {
+					// Parse error: ignore the token.
+					return $this->step();
+				}
+
+				$this->generate_implied_end_tags();
+				if ( ! $this->state->stack_of_open_elements->current_node_is( $token_name ) ) {
+					// This is a parse error.
+				}
+
+				$this->state->stack_of_open_elements->pop_until( $token_name );
+				$this->state->active_formatting_elements->clear_up_to_last_marker();
+				return true;
+
+			/*
 			 * > A start tag whose tag name is "table"
 			 */
 			case '+TABLE':
-				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+				if (
+					WP_HTML_Processor_State::QUIRKS_MODE !== $this->state->document_mode &&
+					$this->state->stack_of_open_elements->has_p_in_button_scope()
+				) {
 					$this->close_a_p_element();
 				}
+
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->frameset_ok    = false;
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
@@ -1511,14 +1800,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > An end tag whose tag name is "br"
-			 * >   Parse error. Drop the attributes from the token, and act as described in the next
-			 * >   entry; i.e. act as if this was a "br" start tag token with no attributes, rather
-			 * >   than the end tag token that it actually is.
+			 *
+			 * This is prevented from happening because the Tag Processor
+			 * reports all closing BR tags as if they were opening tags.
 			 */
-			case '-BR':
-				$this->bail( 'Closing BR tags require unimplemented special handling.' );
-				// This return required because PHPCS can't determine that the call to bail() throws.
-				return false;
 
 			/*
 			 * > A start tag whose tag name is one of: "area", "br", "embed", "img", "keygen", "wbr"
@@ -1540,15 +1825,26 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+INPUT':
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
-				$type_attribute = $this->get_attribute( 'type' );
+
 				/*
 				 * > If the token does not have an attribute with the name "type", or if it does,
 				 * > but that attribute's value is not an ASCII case-insensitive match for the
 				 * > string "hidden", then: set the frameset-ok flag to "not ok".
 				 */
+				$type_attribute = $this->get_attribute( 'type' );
 				if ( ! is_string( $type_attribute ) || 'hidden' !== strtolower( $type_attribute ) ) {
 					$this->state->frameset_ok = false;
 				}
+
+				return true;
+
+			/*
+			 * > A start tag whose tag name is one of: "param", "source", "track"
+			 */
+			case '+PARAM':
+			case '+SOURCE':
+			case '+TRACK':
+				$this->insert_html_element( $this->state->current_token );
 				return true;
 
 			/*
@@ -1563,11 +1859,80 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
-			 * > A start tag whose tag name is one of: "param", "source", "track"
+			 * > A start tag whose tag name is "image"
 			 */
-			case '+PARAM':
-			case '+SOURCE':
-			case '+TRACK':
+			case '+IMAGE':
+				/*
+				 * > Parse error. Change the token's tag name to "img" and reprocess it. (Don't ask.)
+				 *
+				 * Note that this is handled elsewhere, so it should not be possible to reach this code.
+				 */
+				$this->bail( "Cannot process an IMAGE tag. (Don't ask.)" );
+				break;
+
+			/*
+			 * > A start tag whose tag name is "textarea"
+			 */
+			case '+TEXTAREA':
+				$this->insert_html_element( $this->state->current_token );
+
+				/*
+				 * > If the next token is a U+000A LINE FEED (LF) character token, then ignore
+				 * > that token and move on to the next one. (Newlines at the start of
+				 * > textarea elements are ignored as an authoring convenience.)
+				 *
+				 * This is handled in `get_modifiable_text()`.
+				 */
+
+				$this->state->frameset_ok = false;
+
+				/*
+				 * > Switch the insertion mode to "text".
+				 *
+				 * As a self-contained node, this behavior is handled in the Tag Processor.
+				 */
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "xmp"
+			 */
+			case '+XMP':
+				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+					$this->close_a_p_element();
+				}
+
+				$this->reconstruct_active_formatting_elements();
+				$this->state->frameset_ok = false;
+
+				/*
+				 * > Follow the generic raw text element parsing algorithm.
+				 *
+				 * As a self-contained node, this behavior is handled in the Tag Processor.
+				 */
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * A start tag whose tag name is "iframe"
+			 */
+			case '+IFRAME':
+				$this->state->frameset_ok = false;
+
+				/*
+				 * > Follow the generic raw text element parsing algorithm.
+				 *
+				 * As a self-contained node, this behavior is handled in the Tag Processor.
+				 */
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "noembed"
+			 * > A start tag whose tag name is "noscript", if the scripting flag is enabled
+			 *
+			 * The scripting flag is never enabled in this parser.
+			 */
+			case '+NOEMBED':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -1614,7 +1979,73 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
-			 * > A start tag whose tag name is one of: "caption", "col", "colgroup", "frame", "head", "tbody", "td", "tfoot", "th", "thead", "tr"
+			 * > A start tag whose tag name is one of: "rb", "rtc"
+			 */
+			case '+RB':
+			case '+RTC':
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'RUBY' ) ) {
+					$this->generate_implied_end_tags();
+
+					if ( $this->state->stack_of_open_elements->current_node_is( 'RUBY' ) ) {
+						// @todo Indicate a parse error once it's possible.
+					}
+				}
+
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is one of: "rp", "rt"
+			 */
+			case '+RP':
+			case '+RT':
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'RUBY' ) ) {
+					$this->generate_implied_end_tags( 'RTC' );
+
+					$current_node_name = $this->state->stack_of_open_elements->current_node()->node_name;
+					if ( 'RTC' === $current_node_name || 'RUBY' === $current_node_name ) {
+						// @todo Indicate a parse error once it's possible.
+					}
+				}
+
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "math"
+			 */
+			case '+MATH':
+				$this->reconstruct_active_formatting_elements();
+
+				/*
+				 * @todo Adjust MathML attributes for the token. (This fixes the case of MathML attributes that are not all lowercase.)
+				 * @todo Adjust foreign attributes for the token. (This fixes the use of namespaced attributes, in particular XLink.)
+				 *
+				 * These ought to be handled in the attribute methods.
+				 */
+
+				$this->bail( 'Cannot process MATH element, opening foreign content.' );
+				break;
+
+			/*
+			 * > A start tag whose tag name is "svg"
+			 */
+			case '+SVG':
+				$this->reconstruct_active_formatting_elements();
+
+				/*
+				 * @todo Adjust SVG attributes for the token. (This fixes the case of SVG attributes that are not all lowercase.)
+				 * @todo Adjust foreign attributes for the token. (This fixes the use of namespaced attributes, in particular XLink in SVG.)
+				 *
+				 * These ought to be handled in the attribute methods.
+				 */
+
+				$this->bail( 'Cannot process SVG element, opening foreign content.' );
+				break;
+
+			/*
+			 * > A start tag whose tag name is one of: "caption", "col", "colgroup",
+			 * > "frame", "head", "tbody", "td", "tfoot", "th", "thead", "tr"
 			 */
 			case '+CAPTION':
 			case '+COL':
@@ -1627,61 +2058,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TH':
 			case '+THEAD':
 			case '+TR':
-				// @todo Indicate a parse error once it's possible.
+				// Parse error. Ignore the token.
 				return $this->step();
-		}
-
-		/*
-		 * These tags require special handling in the 'in body' insertion mode
-		 * but that handling hasn't yet been implemented.
-		 *
-		 * As the rules for each tag are implemented, the corresponding tag
-		 * name should be removed from this list. An accompanying test should
-		 * help ensure this list is maintained.
-		 *
-		 * @see Tests_HtmlApi_WpHtmlProcessor::test_step_in_body_fails_on_unsupported_tags
-		 *
-		 * Since this switch structure throws a WP_HTML_Unsupported_Exception, it's
-		 * possible to handle "any other start tag" and "any other end tag" below,
-		 * as that guarantees execution doesn't proceed for the unimplemented tags.
-		 *
-		 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody
-		 */
-		switch ( $token_name ) {
-			case 'APPLET':
-			case 'BASE':
-			case 'BASEFONT':
-			case 'BGSOUND':
-			case 'BODY':
-			case 'FORM':
-			case 'FRAME':
-			case 'FRAMESET':
-			case 'HEAD':
-			case 'HTML':
-			case 'IFRAME':
-			case 'LINK':
-			case 'MARQUEE':
-			case 'MATH':
-			case 'META':
-			case 'NOBR':
-			case 'NOEMBED':
-			case 'NOFRAMES':
-			case 'NOSCRIPT':
-			case 'OBJECT':
-			case 'PLAINTEXT':
-			case 'RB':
-			case 'RP':
-			case 'RT':
-			case 'RTC':
-			case 'SARCASM':
-			case 'SCRIPT':
-			case 'STYLE':
-			case 'SVG':
-			case 'TEMPLATE':
-			case 'TEXTAREA':
-			case 'TITLE':
-			case 'XMP':
-				$this->bail( "Cannot process {$token_name} element." );
 		}
 
 		if ( ! parent::is_tag_closer() ) {
@@ -1703,6 +2081,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * close anything beyond its containing `P` or `DIV` element.
 			 */
 			foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+				/*
+				 * @todo This needs to check if the element in scope is an HTML element, meaning that
+				 *       when SVG and MathML support is added, this needs to differentiate between an
+				 *       HTML element of the given name, such as `<object>`, and a foreign element of
+				 *       the same given name.
+				 */
 				if ( $token_name === $node->node_name ) {
 					break;
 				}
@@ -1983,8 +2367,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_table_text() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_in_table_text(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_TEXT . ' state.' );
 	}
 
 	/**
@@ -2002,8 +2386,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_caption() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_in_caption(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION . ' state.' );
 	}
 
 	/**
@@ -2021,8 +2405,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_column_group() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_in_column_group(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP . ' state.' );
 	}
 
 	/**
@@ -2348,7 +2732,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_select() {
+	private function step_in_select(): bool {
 		$token_name = $this->get_token_name();
 		$token_type = $this->get_token_type();
 		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
@@ -2529,8 +2913,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_select_in_table() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_in_select_in_table(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE . ' state.' );
 	}
 
 	/**
@@ -2548,8 +2932,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_template() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_in_template(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE . ' state.' );
 	}
 
 	/**
@@ -2567,8 +2951,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_after_body() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_after_body(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY . ' state.' );
 	}
 
 	/**
@@ -2586,8 +2970,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_frameset() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_in_frameset(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_FRAMESET . ' state.' );
 	}
 
 	/**
@@ -2605,8 +2989,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_after_frameset() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_after_frameset(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_FRAMESET . ' state.' );
 	}
 
 	/**
@@ -2624,8 +3008,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_after_after_body() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_after_after_body(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY . ' state.' );
 	}
 
 	/**
@@ -2643,8 +3027,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_after_after_frameset() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_after_after_frameset(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET . ' state.' );
 	}
 
 	/**
@@ -2662,8 +3046,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an element was found.
 	 */
-	private function step_in_foreign_content() {
-		$this->bail( "No support for parsing in the '{$this->state->insertion_mode}' state." );
+	private function step_in_foreign_content(): bool {
+		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_FOREIGN_CONTENT . ' state.' );
 	}
 
 	/*
@@ -2714,7 +3098,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string|null Name of currently matched tag in input HTML, or `null` if none found.
 	 */
-	public function get_tag() {
+	public function get_tag(): ?string {
 		if ( null !== $this->last_error ) {
 			return null;
 		}
@@ -2755,7 +3139,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether the currently matched tag contains the self-closing flag.
 	 */
-	public function has_self_closing_flag() {
+	public function has_self_closing_flag(): bool {
 		return $this->is_virtual() ? false : parent::has_self_closing_flag();
 	}
 
@@ -2779,7 +3163,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string|null Name of the matched token.
 	 */
-	public function get_token_name() {
+	public function get_token_name(): ?string {
 		return $this->is_virtual()
 			? $this->current_element->token->node_name
 			: parent::get_token_name();
@@ -2807,7 +3191,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string|null What kind of token is matched, or null.
 	 */
-	public function get_token_type() {
+	public function get_token_type(): ?string {
 		if ( $this->is_virtual() ) {
 			/*
 			 * This logic comes from the Tag Processor.
@@ -2869,7 +3253,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string|bool $value The new attribute value.
 	 * @return bool Whether an attribute value was set.
 	 */
-	public function set_attribute( $name, $value ) {
+	public function set_attribute( $name, $value ): bool {
 		return $this->is_virtual() ? false : parent::set_attribute( $name, $value );
 	}
 
@@ -2881,7 +3265,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $name The attribute name to remove.
 	 * @return bool Whether an attribute was removed.
 	 */
-	public function remove_attribute( $name ) {
+	public function remove_attribute( $name ): bool {
 		return $this->is_virtual() ? false : parent::remove_attribute( $name );
 	}
 
@@ -2911,7 +3295,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $prefix Prefix of requested attribute names.
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
 	 */
-	public function get_attribute_names_with_prefix( $prefix ) {
+	public function get_attribute_names_with_prefix( $prefix ): ?array {
 		return $this->is_virtual() ? null : parent::get_attribute_names_with_prefix( $prefix );
 	}
 
@@ -2923,7 +3307,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $class_name The class name to add.
 	 * @return bool Whether the class was set to be added.
 	 */
-	public function add_class( $class_name ) {
+	public function add_class( $class_name ): bool {
 		return $this->is_virtual() ? false : parent::add_class( $class_name );
 	}
 
@@ -2935,7 +3319,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $class_name The class name to remove.
 	 * @return bool Whether the class was set to be removed.
 	 */
-	public function remove_class( $class_name ) {
+	public function remove_class( $class_name ): bool {
 		return $this->is_virtual() ? false : parent::remove_class( $class_name );
 	}
 
@@ -2947,7 +3331,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
 	 */
-	public function has_class( $wanted_class ) {
+	public function has_class( $wanted_class ): ?bool {
 		return $this->is_virtual() ? null : parent::has_class( $wanted_class );
 	}
 
@@ -2991,7 +3375,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string
 	 */
-	public function get_modifiable_text() {
+	public function get_modifiable_text(): string {
 		return $this->is_virtual() ? '' : parent::get_modifiable_text();
 	}
 
@@ -3014,7 +3398,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string|null
 	 */
-	public function get_comment_type() {
+	public function get_comment_type(): ?string {
 		return $this->is_virtual() ? null : parent::get_comment_type();
 	}
 
@@ -3029,7 +3413,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Name of the bookmark to remove.
 	 * @return bool Whether the bookmark already existed before removal.
 	 */
-	public function release_bookmark( $bookmark_name ) {
+	public function release_bookmark( $bookmark_name ): bool {
 		return parent::release_bookmark( "_{$bookmark_name}" );
 	}
 
@@ -3050,7 +3434,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
 	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
 	 */
-	public function seek( $bookmark_name ) {
+	public function seek( $bookmark_name ): bool {
 		// Flush any pending updates to the document before beginning.
 		$this->get_updated_html();
 
@@ -3221,7 +3605,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Identifies this particular bookmark.
 	 * @return bool Whether the bookmark was successfully created.
 	 */
-	public function set_bookmark( $bookmark_name ) {
+	public function set_bookmark( $bookmark_name ): bool {
 		return parent::set_bookmark( "_{$bookmark_name}" );
 	}
 
@@ -3233,7 +3617,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Name to identify a bookmark that potentially exists.
 	 * @return bool Whether that bookmark exists.
 	 */
-	public function has_bookmark( $bookmark_name ) {
+	public function has_bookmark( $bookmark_name ): bool {
 		return parent::has_bookmark( "_{$bookmark_name}" );
 	}
 
@@ -3250,7 +3634,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @see https://html.spec.whatwg.org/#close-a-p-element
 	 */
-	private function close_a_p_element() {
+	private function close_a_p_element(): void {
 		$this->generate_implied_end_tags( 'P' );
 		$this->state->stack_of_open_elements->pop_until( 'P' );
 	}
@@ -3265,7 +3649,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @param string|null $except_for_this_element Perform as if this element doesn't exist in the stack of open elements.
 	 */
-	private function generate_implied_end_tags( $except_for_this_element = null ) {
+	private function generate_implied_end_tags( ?string $except_for_this_element = null ): void {
 		$elements_with_implied_end_tags = array(
 			'DD',
 			'DT',
@@ -3301,7 +3685,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see WP_HTML_Processor::generate_implied_end_tags
 	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
 	 */
-	private function generate_implied_end_tags_thoroughly() {
+	private function generate_implied_end_tags_thoroughly(): void {
 		$elements_with_implied_end_tags = array(
 			'CAPTION',
 			'COLGROUP',
@@ -3343,7 +3727,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether any formatting elements needed to be reconstructed.
 	 */
-	private function reconstruct_active_formatting_elements() {
+	private function reconstruct_active_formatting_elements(): bool {
 		/*
 		 * > If there are no entries in the list of active formatting elements, then there is nothing
 		 * > to reconstruct; stop this algorithm.
@@ -3566,7 +3950,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @see https://html.spec.whatwg.org/#adoption-agency-algorithm
 	 */
-	private function run_adoption_agency_algorithm() {
+	private function run_adoption_agency_algorithm(): void {
 		$budget       = 1000;
 		$subject      = $this->get_tag();
 		$current_node = $this->state->stack_of_open_elements->current_node();
@@ -3702,7 +4086,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @param WP_HTML_Token $token Name of bookmark pointing to element in original input HTML.
 	 */
-	private function insert_html_element( $token ) {
+	private function insert_html_element( WP_HTML_Token $token ): void {
 		$this->state->stack_of_open_elements->push( $token );
 	}
 
@@ -3720,7 +4104,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $tag_name Name of element to check.
 	 * @return bool Whether the element of the given name is in the special category.
 	 */
-	public static function is_special( $tag_name ) {
+	public static function is_special( $tag_name ): bool {
 		$tag_name = strtoupper( $tag_name );
 
 		return (
@@ -3835,7 +4219,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $tag_name Name of HTML tag to check.
 	 * @return bool Whether the given tag is an HTML Void Element.
 	 */
-	public static function is_void( $tag_name ) {
+	public static function is_void( $tag_name ): bool {
 		$tag_name = strtoupper( $tag_name );
 
 		return (
