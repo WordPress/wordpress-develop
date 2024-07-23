@@ -247,7 +247,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return $autosave_id;
 		}
 
-		$autosave = get_post( $autosave_id );
+		$autosave = $this->get_post( $autosave_id );
 		$request->set_param( 'context', 'edit' );
 
 		$response = $this->prepare_item_for_response( $autosave, $request );
@@ -362,7 +362,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	public function create_post_autosave( $post_data, array $meta = array() ) {
 
 		$post_id = (int) $post_data['ID'];
-		$post    = get_post( $post_id );
+		$post    = $this->get_post( $post_id );
 
 		if ( is_wp_error( $post ) ) {
 			return $post;
@@ -493,5 +493,32 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		return array(
 			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
 		);
+	}
+
+	/**
+	 * Gets the post, if the ID is valid.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param int $id Supplied ID.
+	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
+	 */
+	protected function get_post( $id ) {
+		$error = new WP_Error(
+			'rest_post_invalid_id',
+			__( 'Invalid post ID.' ),
+			array( 'status' => 404 )
+		);
+
+		if ( (int) $id <= 0 ) {
+			return $error;
+		}
+
+		$post = get_post( (int) $id );
+		if ( empty( $post ) || empty( $post->ID ) || $this->parent_post_type !== $post->post_type ) {
+			return $error;
+		}
+
+		return $post;
 	}
 }
