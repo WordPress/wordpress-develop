@@ -2257,9 +2257,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TH':
 			case '+TR':
 				$this->state->stack_of_open_elements->clear_to_table_context();
-				$this->insert_html_element(
-					new WP_HTML_Token( null, 'TBODY', false )
-				);
+				/*
+				 * > Insert an HTML element for a "tbody" start tag token with no attributes,
+				 * > then switch the insertion mode to "in table body".
+				 */
+				$this->insert_html_element( new WP_HTML_Token( null, 'TBODY', false ) );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
