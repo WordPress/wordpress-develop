@@ -21,15 +21,6 @@ class WP_Debug_Data {
 	}
 
 	/**
-	 * Add the callbacks to the `debug_information` filter.
-	 *
-	 * @since tbd
-	 */
-	public static function init_filters(): void {
-		add_filter( 'debug_information', array( __CLASS__, 'wp_filesystem' ), 9 );
-	}
-
-	/**
 	 * Static function for generating site debug data when required.
 	 *
 	 * @since 5.2.0
@@ -1378,7 +1369,7 @@ class WP_Debug_Data {
 			);
 		}
 
-		self::init_filters();
+		$info['wp-filesystem'] = self::get_wp_filesystem();
 
 		/**
 		 * Filters the debug information shown on the Tools -> Site Health -> Info screen.
@@ -1450,11 +1441,9 @@ class WP_Debug_Data {
 	 *
 	 * @since tbd
 	 *
-	 * @param array $info The debug information to be added to the core information page.
-	 *
 	 * @return array
 	 */
-	public static function wp_filesystem( array $info ): array {
+	private static function get_wp_filesystem(): array {
 		$upload_dir                     = wp_upload_dir();
 		$is_writable_abspath            = wp_is_writable( ABSPATH );
 		$is_writable_wp_content_dir     = wp_is_writable( WP_CONTENT_DIR );
@@ -1507,13 +1496,11 @@ class WP_Debug_Data {
 			);
 		}
 
-		$info['wp-filesystem'] = array(
+		return array(
 			'label'       => __( 'Filesystem Permissions' ),
 			'description' => __( 'Shows whether WordPress is able to write to the directories it needs access to.' ),
 			'fields'      => $fields,
 		);
-
-		return $info;
 	}
 
 	/**
