@@ -35,7 +35,7 @@ function wp_register_typography_support( $block_type ) {
 	$has_text_columns_support    = isset( $typography_supports['textColumns'] ) ? $typography_supports['textColumns'] : false;
 	$has_text_decoration_support = isset( $typography_supports['textDecoration'] ) ? $typography_supports['textDecoration'] : false;
 	$has_text_transform_support  = isset( $typography_supports['textTransform'] ) ? $typography_supports['textTransform'] : false;
-	$has_writing_mode_support    = isset( $typography_supports['writingMode'] ) ? $typography_supports['writingMode'] : false;
+	$has_writing_mode_support    = isset( $typography_supports['__experimentalWritingMode'] ) ? $typography_supports['__experimentalWritingMode'] : false;
 
 	$has_typography_support = $has_font_family_support
 		|| $has_font_size_support
@@ -112,7 +112,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 	$has_text_columns_support    = isset( $typography_supports['textColumns'] ) ? $typography_supports['textColumns'] : false;
 	$has_text_decoration_support = isset( $typography_supports['textDecoration'] ) ? $typography_supports['textDecoration'] : false;
 	$has_text_transform_support  = isset( $typography_supports['textTransform'] ) ? $typography_supports['textTransform'] : false;
-	$has_writing_mode_support    = isset( $typography_supports['writingMode'] ) ? $typography_supports['writingMode'] : false;
+	$has_writing_mode_support    = isset( $typography_supports['__experimentalWritingMode'] ) ? $typography_supports['__experimentalWritingMode'] : false;
 
 	// Whether to skip individual block support features.
 	$should_skip_font_size       = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'fontSize' );

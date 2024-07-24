@@ -286,7 +286,6 @@ class WP_Block_Type {
 			'__experimentalLetterSpacing'  => 'letterSpacing',
 			'__experimentalTextDecoration' => 'textDecoration',
 			'__experimentalTextTransform'  => 'textTransform',
-			'__experimentalWritingMode'    => 'writingMode',
 		),
 	);
 
