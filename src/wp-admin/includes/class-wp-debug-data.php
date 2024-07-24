@@ -1437,7 +1437,7 @@ class WP_Debug_Data {
 	}
 
 	/**
-	 * Get the file system section of the debug data.
+	 * Gets the file system section of the debug data.
 	 *
 	 * @since tbd
 	 *
