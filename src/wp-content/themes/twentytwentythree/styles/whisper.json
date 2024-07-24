@@ -83,6 +83,20 @@
 	},
 	"styles": {
 		"blocks": {
+			"core/image": {
+				"elements": {
+					"link": {
+						"border": {
+							"width": "0"
+						},
+						":hover": {
+							"color": {
+								"background": "transparent"
+							}
+						}
+					}
+				}
+			},
 			"core/navigation": {
 				"color": {
 					"text": "var(--wp--preset--color--contrast)"
