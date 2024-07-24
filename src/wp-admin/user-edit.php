@@ -621,8 +621,9 @@ switch ( $action ) {
 									<?php
 									if ( IS_PROFILE_PAGE ) {
 										$description = sprintf(
-											/* translators: %s: The localized Gravatar URL. */
+											/* translators: %s: Gravatar URL. */
 											__( '<a href="%s">You can change your profile picture on Gravatar</a>.' ),
+											/* translators: The localized Gravatar URL. */
 											__( 'https://gravatar.com/' )
 										);
 									} else {
