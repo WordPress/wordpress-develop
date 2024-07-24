@@ -5045,6 +5045,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61588
+	 * @ticket 61720
 	 */
 	public function test_get_block_background_image_styles() {
 		$theme_json = new WP_Theme_JSON(
@@ -5054,10 +5055,11 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'blocks' => array(
 						'core/group' => array(
 							'background' => array(
-								'backgroundImage'    => "url('http://example.org/group.png')",
-								'backgroundSize'     => 'cover',
-								'backgroundRepeat'   => 'no-repeat',
-								'backgroundPosition' => 'center center',
+								'backgroundImage'      => "url('http://example.org/group.png')",
+								'backgroundSize'       => 'cover',
+								'backgroundRepeat'     => 'no-repeat',
+								'backgroundPosition'   => 'center center',
+								'backgroundAttachment' => 'fixed',
 							),
 						),
 						'core/quote' => array(
@@ -5096,7 +5098,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$group_styles = ":root :where(.wp-block-group){background-image: url('http://example.org/group.png');background-position: center center;background-repeat: no-repeat;background-size: cover;}";
+		$group_styles = ":root :where(.wp-block-group){background-image: url('http://example.org/group.png');background-position: center center;background-repeat: no-repeat;background-size: cover;background-attachment: fixed;}";
 		$this->assertSame( $group_styles, $theme_json->get_styles_for_block( $group_node ), 'Styles returned from "::get_styles_for_block()" with block-level background styles as string type do not match expectations' );
 	}
 
