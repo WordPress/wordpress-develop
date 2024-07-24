@@ -1597,10 +1597,10 @@ function get_delete_post_link( $post = 0, $deprecated = '', $force_delete = fals
  * @since 2.3.0
  *
  * @param int|WP_Comment $comment_id Optional. Comment ID or WP_Comment object.
- * @param string         $context    Optional. Could be 'display' or 'null'. Default null.
+ * @param string         $context    Optional. Could be output the '&' character or 'display' default '&amp;'.
  * @return string|void The edit comment link URL for the given comment.
  */
-function get_edit_comment_link( $comment_id = 0, $context = null ) {
+function get_edit_comment_link( $comment_id = 0, $context = 'display' ) {
 	$comment = get_comment( $comment_id );
 
 	if ( ! current_user_can( 'edit_comment', $comment->comment_ID ) ) {
@@ -1608,9 +1608,9 @@ function get_edit_comment_link( $comment_id = 0, $context = null ) {
 	}
 
 	if ( 'display' === $context ) {
-		$action = 'comment.php?action=editcomment&c=';
-	} else {
 		$action = 'comment.php?action=editcomment&amp;c=';
+	} else {
+		$action = 'comment.php?action=editcomment&c=';
 	}
 
 	$location = admin_url( $action ) . $comment->comment_ID;
