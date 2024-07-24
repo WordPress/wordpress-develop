@@ -311,6 +311,9 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 
 		$expected = new WP_Block_Bindings_Source( $source_two_name, $source_two_properties );
 		$result   = $this->registry->get_registered( 'test/source-two' );
+		$this->registry->unregister( 'test/source-one' );
+		$this->registry->unregister( 'test/source-two' );
+		$this->registry->unregister( 'test/source-three' );
 
 		$this->assertEquals(
 			$expected,
@@ -380,6 +383,8 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 		);
 
 		$new_uses_context = $block_registry->get_registered( 'core/paragraph' )->uses_context;
+		unregister_block_bindings_source( 'test/source-one' );
+		unregister_block_bindings_source( 'test/source-two' );
 		// Checks that the resulting `uses_context` contains the values from both sources.
 		$this->assertContains( 'commonContext', $new_uses_context );
 		$this->assertContains( 'sourceOneContext', $new_uses_context );
