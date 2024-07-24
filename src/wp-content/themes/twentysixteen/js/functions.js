@@ -168,6 +168,7 @@
 							if ( '.wp-block-image img' === param && element.is( '[width]' ) && element.attr( 'width' ) < 840 ) {
 								return;
 							}
+							element.addClass( 'below-entry-meta' );
 
 							if ( caption.hasClass( 'wp-caption' ) ) {
 								caption.addClass( 'below-entry-meta' );
