@@ -664,9 +664,9 @@ if ( isset( $_GET['error'] ) ) {
 		);
 		$errmsg .= ' ' . __( 'If you notice &#8220;headers already sent&#8221; messages, problems with syndication feeds or other issues, try deactivating or removing this plugin.' );
 	} elseif ( 'resuming' === $_GET['error'] ) {
-		$errmsg = __( 'Plugin could not be resumed because it triggered a <strong>fatal error</strong>.' );
+		$errmsg = sprintf( __( '%s Plugin could not be resumed because it triggered a <strong>fatal error</strong>.' ), $plugin );
 	} else {
-		$errmsg = __( 'Plugin could not be activated because it triggered a <strong>fatal error</strong>.' );
+		$errmsg = sprintf( __( '%s Plugin could not be activated because it triggered a <strong>fatal error</strong>.' ), $plugin );
 	}
 
 	if ( ! isset( $_GET['main'] ) && ! isset( $_GET['charsout'] )
