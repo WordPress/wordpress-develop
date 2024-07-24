@@ -43,7 +43,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array The debug data for the site.
 	 */
-	public static function debug_data(): array {
+	public static function debug_data() {
 		global $wpdb, $_wp_theme_features;
 
 		// Save few function calls.
@@ -1381,15 +1381,6 @@ class WP_Debug_Data {
 		self::init_filters();
 
 		/**
-		 * Fires before the debug information is gathered.
-		 *
-		 * This hook allows you to alter, add, or remove debug information before it is gathered.
-		 *
-		 * @since tbd
-		 */
-		do_action( 'pre_debug_information' );
-
-		/**
 		 * Filters the debug information shown on the Tools -> Site Health -> Info screen.
 		 *
 		 * Plugin or themes may wish to introduce their own debug information without creating
@@ -1455,9 +1446,7 @@ class WP_Debug_Data {
 	}
 
 	/**
-	 * Populate the file system section of the debug data.
-	 *
-	 * Using the {@see 'debug_information'} filter for this.
+	 * Get the file system section of the debug data.
 	 *
 	 * @since tbd
 	 *
