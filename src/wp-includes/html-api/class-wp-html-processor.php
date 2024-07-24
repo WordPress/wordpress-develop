@@ -2356,10 +2356,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				// This FORM is special because it immediately closes and cannot have other children.
-				$this->state->current_token->has_self_closing_flag = true;
-
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->form_element = $this->state->current_token;
+				$this->state->stack_of_open_elements->pop();
 				return true;
 		}
 
