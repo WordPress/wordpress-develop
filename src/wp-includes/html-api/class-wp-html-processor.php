@@ -765,7 +765,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		return ! (
-			( $node->has_self_closing_flag ?? false ) ||
 			// Comments, text nodes, and other atomic tokens.
 			'#' === $token_name[0] ||
 			// Doctype declarations.
