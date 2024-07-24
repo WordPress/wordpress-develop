@@ -8,11 +8,14 @@
  *
  * @group feed
  */
-class Tests_Feeds_RSS2 extends WP_UnitTestCase {
+class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	public static $user_id;
 	public static $posts;
 	public static $category;
 	public static $post_date;
+
+	private $post_count;
+	private $excerpt_only;
 
 	/**
 	 * Setup a new user and attribute some posts.
@@ -58,13 +61,16 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		foreach ( self::$posts as $post ) {
 			wp_set_object_terms( $post, self::$category->slug, 'category' );
 		}
+
+		// Assign a tagline option.
+		update_option( 'blogdescription', 'Just another WordPress site' );
 	}
 
 	/**
 	 * Setup.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->post_count   = (int) get_option( 'posts_per_rss' );
 		$this->excerpt_only = get_option( 'rss_use_excerpt' );
@@ -76,9 +82,16 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down.
+	 */
+	public static function wpTearDownAfterClass() {
+		delete_option( 'blogdescription' );
+	}
+
+	/**
 	 * This is a bit of a hack used to buffer feed content.
 	 */
-	function do_rss2() {
+	private function do_rss2() {
 		ob_start();
 		// Nasty hack! In the future it would better to leverage do_feed( 'rss2' ).
 		global $post;
@@ -97,7 +110,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 * Test the <rss> element to make sure its present and populated
 	 * with the expected child elements and attributes.
 	 */
-	function test_rss_element() {
+	public function test_rss_element() {
 		$this->go_to( '/?feed=rss2' );
 		$feed = $this->do_rss2();
 		$xml  = xml_to_array( $feed );
@@ -106,7 +119,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 
 		$this->assertSame( '2.0', $rss[0]['attributes']['version'] );
 		$this->assertSame( 'http://purl.org/rss/1.0/modules/content/', $rss[0]['attributes']['xmlns:content'] );
@@ -114,7 +127,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$this->assertSame( 'http://purl.org/dc/elements/1.1/', $rss[0]['attributes']['xmlns:dc'] );
 
 		// RSS should have exactly one child element (channel).
-		$this->assertSame( 1, count( $rss[0]['child'] ) );
+		$this->assertCount( 1, $rss[0]['child'] );
 	}
 
 	/**
@@ -122,7 +135,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @return [type] [description]
 	 */
-	function test_channel_element() {
+	public function test_channel_element() {
 		$this->go_to( '/?feed=rss2' );
 		$feed = $this->do_rss2();
 		$xml  = xml_to_array( $feed );
@@ -131,7 +144,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$channel = xml_find( $xml, 'rss', 'channel' );
 
 		// The channel should be free of attributes.
-		$this->assertTrue( empty( $channel[0]['attributes'] ) );
+		$this->assertArrayNotHasKey( 'attributes', $channel[0] );
 
 		// Verify the channel is present and contains a title child element.
 		$title = xml_find( $xml, 'rss', 'channel', 'title' );
@@ -152,7 +165,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 39141
 	 */
-	function test_channel_pubdate_element_translated() {
+	public function test_channel_pubdate_element_translated() {
 		$original_locale = $GLOBALS['wp_locale'];
 		/* @var WP_Locale $locale */
 		$locale = clone $GLOBALS['wp_locale'];
@@ -172,10 +185,10 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 
 		// Verify the date is untranslated.
 		$pubdate = xml_find( $xml, 'rss', 'channel', 'lastBuildDate' );
-		$this->assertNotContains( 'Tue_Translated', $pubdate[0]['content'] );
+		$this->assertStringNotContainsString( 'Tue_Translated', $pubdate[0]['content'] );
 	}
 
-	function test_item_elements() {
+	public function test_item_elements() {
 		$this->go_to( '/?feed=rss2' );
 		$feed = $this->do_rss2();
 		$xml  = xml_to_array( $feed );
@@ -233,7 +246,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 			}
 			$cats = array_filter( $cats );
 			// Should be the same number of categories.
-			$this->assertSame( count( $cats ), count( $categories ) );
+			$this->assertCount( count( $cats ), $categories );
 
 			// ..with the same names.
 			foreach ( $cats as $id => $cat ) {
@@ -266,7 +279,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	/**
 	 * @ticket 9134
 	 */
-	function test_items_comments_closed() {
+	public function test_items_comments_closed() {
 		add_filter( 'comments_open', '__return_false' );
 
 		$this->go_to( '/?feed=rss2' );
@@ -301,7 +314,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 30210
 	 */
-	function test_valid_home_feed_endpoint() {
+	public function test_valid_home_feed_endpoint() {
 		// An example of a valid home feed endpoint.
 		$this->go_to( 'feed/' );
 
@@ -320,7 +333,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -329,7 +342,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 30210
 	 */
-	function test_valid_taxonomy_feed_endpoint() {
+	public function test_valid_taxonomy_feed_endpoint() {
 		// An example of an valid taxonomy feed endpoint.
 		$this->go_to( 'category/foo/feed/' );
 
@@ -348,7 +361,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -357,7 +370,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 30210
 	 */
-	function test_valid_main_comment_feed_endpoint() {
+	public function test_valid_main_comment_feed_endpoint() {
 		// Generate a bunch of comments.
 		foreach ( self::$posts as $post ) {
 			self::factory()->comment->create_post_comments( $post, 3 );
@@ -381,7 +394,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -390,7 +403,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 30210
 	 */
-	function test_valid_archive_feed_endpoint() {
+	public function test_valid_archive_feed_endpoint() {
 		// An example of an valid date archive feed endpoint.
 		$this->go_to( '2003/05/27/feed/' );
 
@@ -409,7 +422,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -418,7 +431,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 30210
 	 */
-	function test_valid_single_post_comment_feed_endpoint() {
+	public function test_valid_single_post_comment_feed_endpoint() {
 		// An example of an valid date archive feed endpoint.
 		$this->go_to( get_post_comments_feed_link( self::$posts[0] ) );
 
@@ -437,7 +450,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -446,7 +459,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 30210
 	 */
-	function test_valid_search_feed_endpoint() {
+	public function test_valid_search_feed_endpoint() {
 		// An example of an valid search feed endpoint.
 		$this->go_to( '?s=Lorem&feed=rss' );
 
@@ -465,7 +478,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/**
@@ -473,7 +486,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 4575
 	 *
-	 * @dataProvider data_test_get_feed_build_date
+	 * @dataProvider data_get_feed_build_date
 	 */
 	public function test_get_feed_build_date( $url, $element ) {
 		$this->go_to( $url );
@@ -487,11 +500,131 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	}
 
 
-	public function data_test_get_feed_build_date() {
+	public function data_get_feed_build_date() {
 		return array(
 			array( '/?feed=rss2', 'rss' ),
 			array( '/?feed=commentsrss2', 'rss' ),
 		);
+	}
 
+	/**
+	 * Test that the Last-Modified is a post's date when a more recent comment exists,
+	 * but the "withcomments=1" query var is not passed.
+	 *
+	 * @ticket 47968
+	 *
+	 * @covers WP::send_headers
+	 */
+	public function test_feed_last_modified_should_be_a_post_date_when_withcomments_is_not_passed() {
+		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
+		$yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
+
+		// Create a post dated last week.
+		$post_id = self::factory()->post->create( array( 'post_date' => $last_week ) );
+
+		// Create a comment dated yesterday.
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_date'    => $yesterday,
+			)
+		);
+
+		// The Last-Modified header should have the post's date when "withcomments" is not passed.
+		add_filter(
+			'wp_headers',
+			function ( $headers ) use ( $last_week ) {
+				$this->assertSame(
+					strtotime( $headers['Last-Modified'] ),
+					strtotime( $last_week ),
+					'Last-Modified was not the date of the post'
+				);
+				return $headers;
+			}
+		);
+
+		$this->go_to( '/?feed=rss2' );
+	}
+
+	/**
+	 * Test that the Last-Modified is a comment's date when a more recent comment exists,
+	 * and the "withcomments=1" query var is passed.
+	 *
+	 * @ticket 47968
+	 *
+	 * @covers WP::send_headers
+	 */
+	public function test_feed_last_modified_should_be_the_date_of_a_comment_that_is_the_latest_update_when_withcomments_is_passed() {
+		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
+		$yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
+
+		// Create a post dated last week.
+		$post_id = self::factory()->post->create( array( 'post_date' => $last_week ) );
+
+		// Create a comment dated yesterday.
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_date'    => $yesterday,
+			)
+		);
+
+		// The Last-Modified header should have the comment's date when "withcomments=1" is passed.
+		add_filter(
+			'wp_headers',
+			function ( $headers ) use ( $yesterday ) {
+				$this->assertSame(
+					strtotime( $headers['Last-Modified'] ),
+					strtotime( $yesterday ),
+					'Last-Modified was not the date of the comment'
+				);
+				return $headers;
+			}
+		);
+
+		$this->go_to( '/?feed=rss2&withcomments=1' );
+	}
+
+	/**
+	 * Test that the Last-Modified is the latest post's date when an earlier post and comment exist,
+	 * and the "withcomments=1" query var is passed.
+	 *
+	 * @ticket 47968
+	 *
+	 * @covers WP::send_headers
+	 */
+	public function test_feed_last_modified_should_be_the_date_of_a_post_that_is_the_latest_update_when_withcomments_is_passed() {
+		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
+		$yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
+		$today     = gmdate( 'Y-m-d H:i:s' );
+
+		// Create a post dated last week.
+		$post_id = self::factory()->post->create( array( 'post_date' => $last_week ) );
+
+		// Create a comment dated yesterday.
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_date'    => $yesterday,
+			)
+		);
+
+		// Create a post dated today.
+		self::factory()->post->create( array( 'post_date' => $today ) );
+
+		// The Last-Modified header should have the date from today's post when it is the latest update.
+		add_filter(
+			'wp_headers',
+			function ( $headers ) use ( $today ) {
+				$this->assertSame(
+					strtotime( $headers['Last-Modified'] ),
+					strtotime( $today ),
+					'Last-Modified was not the date of the most recent post'
+				);
+				return $headers;
+			}
+		);
+
+		$this->go_to( '/?feed=rss2&withcomments=1' );
 	}
 }

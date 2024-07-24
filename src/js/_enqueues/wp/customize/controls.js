@@ -6,6 +6,12 @@
 (function( exports, $ ){
 	var Container, focus, normalizedTransitionendEventName, api = wp.customize;
 
+	var reducedMotionMediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
+	var isReducedMotion = reducedMotionMediaQuery.matches;
+	reducedMotionMediaQuery.addEventListener( 'change' , function handleReducedMotionChange( event ) {
+		isReducedMotion = event.matches;
+	});
+
 	api.OverlayNotification = api.Notification.extend(/** @lends wp.customize.OverlayNotification.prototype */{
 
 		/**
@@ -689,10 +695,22 @@
 	 * @param {Function} [params.completeCallback]
 	 */
 	focus = function ( params ) {
-		var construct, completeCallback, focus, focusElement;
+		var construct, completeCallback, focus, focusElement, sections;
 		construct = this;
 		params = params || {};
 		focus = function () {
+			// If a child section is currently expanded, collapse it.
+			if ( construct.extended( api.Panel ) ) {
+				sections = construct.sections();
+				if ( 1 < sections.length ) {
+					sections.forEach( function ( section ) {
+						if ( section.expanded() ) {
+							section.collapse();
+						}
+					} );
+				}
+			}
+
 			var focusContainer;
 			if ( ( construct.extended( api.Panel ) || construct.extended( api.Section ) ) && construct.expanded && construct.expanded() ) {
 				focusContainer = construct.contentContainer;
@@ -1264,11 +1282,14 @@
 		 * @return {void}
 		 */
 		_animateChangeExpanded: function( completeCallback ) {
-			// Return if CSS transitions are not supported.
-			if ( ! normalizedTransitionendEventName ) {
-				if ( completeCallback ) {
-					completeCallback();
-				}
+			// Return if CSS transitions are not supported or if reduced motion is enabled.
+			if ( ! normalizedTransitionendEventName || isReducedMotion ) {
+				// Schedule the callback until the next tick to prevent focus loss.
+				_.defer( function () {
+					if ( completeCallback ) {
+						completeCallback();
+					}
+				} );
 				return;
 			}
 
@@ -1778,7 +1799,7 @@
 						section.closeDetails();
 					} else {
 
-						// Escape from the inifinite scroll list.
+						// Escape from the infinite scroll list.
 						section.headerContainer.find( '.customize-themes-section-title' ).focus();
 					}
 					event.stopPropagation(); // Prevent section from being collapsed.
@@ -1896,7 +1917,7 @@
 			section.contentContainer.on( 'click', '.feature-filter-toggle', function( e ) {
 				var $themeContainer = $( '.customize-themes-full-container' ),
 					$filterToggle = $( e.currentTarget );
-				section.filtersHeight = $filterToggle.parent().next( '.filter-drawer' ).height();
+				section.filtersHeight = $filterToggle.parents( '.themes-filter-bar' ).next( '.filter-drawer' ).height();
 
 				if ( 0 < $themeContainer.scrollTop() ) {
 					$themeContainer.animate( { scrollTop: 0 }, 400 );
@@ -1911,7 +1932,7 @@
 					.attr( 'aria-expanded', function( i, attr ) {
 						return 'true' === attr ? 'false' : 'true';
 					})
-					.parent().next( '.filter-drawer' ).slideToggle( 180, 'linear' );
+					.parents( '.themes-filter-bar' ).next( '.filter-drawer' ).slideToggle( 180, 'linear' );
 
 				if ( $filterToggle.hasClass( 'open' ) ) {
 					var marginOffset = 1018 < window.innerWidth ? 50 : 76;
@@ -3718,7 +3739,7 @@
 		ready: function() {
 			var control = this, newItem;
 			if ( 'dropdown-pages' === control.params.type && control.params.allow_addition ) {
-				newItem = control.container.find( '.new-content-item' );
+				newItem = control.container.find( '.new-content-item-wrapper' );
 				newItem.hide(); // Hide in JS to preserve flex display when showing.
 				control.container.on( 'click', '.add-new-toggle', function( e ) {
 					$( e.currentTarget ).slideUp( 180 );
@@ -3845,7 +3866,7 @@
 			var control = this, container, notifications, hasError = false;
 
 			if ( 'undefined' !== typeof console && console.warn ) {
-				console.warn( '[DEPRECATED] wp.customize.Control.prototype.renderNotifications() is deprecated in favor of instantating a wp.customize.Notifications and calling its render() method.' );
+				console.warn( '[DEPRECATED] wp.customize.Control.prototype.renderNotifications() is deprecated in favor of instantiating a wp.customize.Notifications and calling its render() method.' );
 			}
 
 			container = control.getNotificationsContainerElement();
@@ -4064,7 +4085,7 @@
 			}
 
 			toggle = control.container.find( '.add-new-toggle' );
-			container = control.container.find( '.new-content-item' );
+			container = control.container.find( '.new-content-item-wrapper' );
 			input = control.container.find( '.create-item-input' );
 			title = input.val();
 			select = control.container.find( 'select' );
@@ -7178,7 +7199,7 @@
 			} ) );
 
 			/**
-			 * Return whether the pubish settings section should be active.
+			 * Return whether the publish settings section should be active.
 			 *
 			 * @return {boolean} Is section active.
 			 */
@@ -7779,11 +7800,11 @@
 			},
 
 			/**
-			 * Builds the front preview url with the current state of customizer.
+			 * Builds the front preview URL with the current state of customizer.
 			 *
-			 * @since 4.9
+			 * @since 4.9.0
 			 *
-			 * @return {string} Preview url.
+			 * @return {string} Preview URL.
 			 */
 			getFrontendPreviewUrl: function() {
 				var previewer = this, params, urlParser;
@@ -8314,6 +8335,33 @@
 			}
 
 			/**
+			 * Displays a Site Editor notification when a block theme is activated.
+			 *
+			 * @since 4.9.0
+			 *
+			 * @param {string} [notification] - A notification to display.
+			 * @return {void}
+			 */
+			function addSiteEditorNotification( notification ) {
+				api.notifications.add( new api.Notification( 'site_editor_block_theme_notice', {
+					message: notification,
+					type: 'info',
+					dismissible: false,
+					render: function() {
+						var notification = api.Notification.prototype.render.call( this ),
+							button = notification.find( 'button.switch-to-editor' );
+
+						button.on( 'click', function( event ) {
+							event.preventDefault();
+							location.assign( button.data( 'action' ) );
+						} );
+
+						return notification;
+					}
+				} ) );
+			}
+
+			/**
 			 * Dismiss autosave.
 			 *
 			 * @return {void}
@@ -8387,6 +8435,10 @@
 			if ( api.settings.changeset.latestAutoDraftUuid || api.settings.changeset.hasAutosaveRevision ) {
 				addAutosaveRestoreNotification();
 			}
+			var shouldDisplayBlockThemeNotification = !! parseInt( $( '#customize-info' ).data( 'block-theme' ), 10 );
+			if (shouldDisplayBlockThemeNotification) {
+				addSiteEditorNotification( api.l10n.blockThemeNotification );
+			}
 		})();
 
 		// Check if preview url is valid and load the preview frame.
@@ -8449,6 +8501,13 @@
 			 * This ensures that ESC meant to collapse a modal dialog or a TinyMCE toolbar won't collapse something else.
 			 */
 			if ( ! $( event.target ).is( 'body' ) && ! $.contains( $( '#customize-controls' )[0], event.target ) ) {
+				return;
+			}
+
+			// Abort if we're inside of a block editor instance.
+			if ( event.target.closest( '.block-editor-writing-flow' ) !== null ||
+				event.target.closest( '.block-editor-block-list__block-popover' ) !== null
+			) {
 				return;
 			}
 

@@ -46,14 +46,14 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 				$this->assertEmpty( $data['parent'] );
 			}
 		} else {
-			$this->assertFalse( isset( $data['parent'] ) );
+			$this->assertArrayNotHasKey( 'parent', $data );
 		}
 
 		// Page attributes.
 		if ( $post_type_obj->hierarchical && post_type_supports( $post->post_type, 'page-attributes' ) ) {
 			$this->assertSame( $post->menu_order, $data['menu_order'] );
 		} else {
-			$this->assertFalse( isset( $data['menu_order'] ) );
+			$this->assertArrayNotHasKey( 'menu_order', $data );
 		}
 
 		// Comments.
@@ -61,8 +61,8 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			$this->assertSame( $post->comment_status, $data['comment_status'] );
 			$this->assertSame( $post->ping_status, $data['ping_status'] );
 		} else {
-			$this->assertFalse( isset( $data['comment_status'] ) );
-			$this->assertFalse( isset( $data['ping_status'] ) );
+			$this->assertArrayNotHasKey( 'comment_status', $data );
+			$this->assertArrayNotHasKey( 'ping_status', $data );
 		}
 
 		if ( 'post' === $post->post_type ) {
@@ -77,10 +77,19 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			$this->assertSame( get_page_template_slug( $post->ID ), $data['template'] );
 		}
 
-		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
+		if (
+			post_type_supports( $post->post_type, 'thumbnail' ) ||
+			(
+				'attachment' === $post->post_type &&
+				(
+					post_type_supports( 'attachment:audio', 'thumbnail' ) ||
+					post_type_supports( 'attachment:video', 'thumbnail' )
+				)
+			)
+		) {
 			$this->assertSame( (int) get_post_thumbnail_id( $post->ID ), $data['featured_media'] );
 		} else {
-			$this->assertFalse( isset( $data['featured_media'] ) );
+			$this->assertArrayNotHasKey( 'featured_media', $data );
 		}
 
 		// Check post format.
@@ -92,21 +101,23 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 				$this->assertSame( get_post_format( $post->ID ), $data['format'] );
 			}
 		} else {
-			$this->assertFalse( isset( $data['format'] ) );
+			$this->assertArrayNotHasKey( 'format', $data );
 		}
 
 		// Check filtered values.
 		if ( post_type_supports( $post->post_type, 'title' ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 			$this->assertSame( get_the_title( $post->ID ), $data['title']['rendered'] );
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 			if ( 'edit' === $context ) {
 				$this->assertSame( $post->post_title, $data['title']['raw'] );
 			} else {
-				$this->assertFalse( isset( $data['title']['raw'] ) );
+				$this->assertArrayNotHasKey( 'raw', $data['title'] );
 			}
 		} else {
-			$this->assertFalse( isset( $data['title'] ) );
+			$this->assertArrayNotHasKey( 'title', $data );
 		}
 
 		if ( post_type_supports( $post->post_type, 'editor' ) ) {
@@ -118,10 +129,10 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			if ( 'edit' === $context ) {
 				$this->assertSame( $post->post_content, $data['content']['raw'] );
 			} else {
-				$this->assertFalse( isset( $data['content']['raw'] ) );
+				$this->assertArrayNotHasKey( 'raw', $data['content'] );
 			}
 		} else {
-			$this->assertFalse( isset( $data['content'] ) );
+			$this->assertArrayNotHasKey( 'content', $data );
 		}
 
 		if ( post_type_supports( $post->post_type, 'excerpt' ) ) {
@@ -134,10 +145,10 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			if ( 'edit' === $context ) {
 				$this->assertSame( $post->post_excerpt, $data['excerpt']['raw'] );
 			} else {
-				$this->assertFalse( isset( $data['excerpt']['raw'] ) );
+				$this->assertArrayNotHasKey( 'raw', $data['excerpt'] );
 			}
 		} else {
-			$this->assertFalse( isset( $data['excerpt'] ) );
+			$this->assertArrayNotHasKey( 'excerpt', $data );
 		}
 
 		$this->assertSame( $post->post_status, $data['status'] );
@@ -149,7 +160,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 
 		$taxonomies = wp_list_filter( get_object_taxonomies( $post->post_type, 'objects' ), array( 'show_in_rest' => true ) );
 		foreach ( $taxonomies as $taxonomy ) {
-			$this->assertTrue( isset( $data[ $taxonomy->rest_base ] ) );
+			$this->assertArrayHasKey( $taxonomy->rest_base, $data );
 			$terms = wp_get_object_terms( $post->ID, $taxonomy->name, array( 'fields' => 'ids' ) );
 			sort( $terms );
 			sort( $data[ $taxonomy->rest_base ] );
@@ -193,10 +204,9 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			foreach ( $taxonomies as $key => $taxonomy ) {
 				$this->assertSame( $taxonomy->name, $links['https://api.w.org/term'][ $num ]['attributes']['taxonomy'] );
 				$this->assertSame( add_query_arg( 'post', $data['id'], rest_url( 'wp/v2/' . $taxonomy->rest_base ) ), $links['https://api.w.org/term'][ $num ]['href'] );
-				$num++;
+				++$num;
 			}
 		}
-
 	}
 
 	protected function check_get_posts_response( $response, $context = 'view' ) {
@@ -240,7 +250,6 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
 		$this->check_post_data( $post, $data, $context, $response->get_links() );
-
 	}
 
 	protected function check_create_post_response( $response ) {

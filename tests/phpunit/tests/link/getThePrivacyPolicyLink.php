@@ -1,20 +1,14 @@
 <?php
 /**
- * Define a class to test the `get_the_privacy_policy_link()` function.
+ * Test cases for the `get_the_privacy_policy_link()` function.
  *
  * @package WordPress
  * @subpackage UnitTests
  * @since 4.9.6
- */
-
-/**
- * Test cases for the `get_the_privacy_policy_link()` function.
  *
  * @group link
  * @group privacy
  * @covers ::get_the_privacy_policy_link
- *
- * @since 4.9.6
  */
 class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	/**
@@ -80,7 +74,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 		$actual_link = get_the_privacy_policy_link();
 
 		$this->assertStringStartsWith( '<a', $actual_link );
-		$this->assertContains( self::$privacy_policy_url, $actual_link );
+		$this->assertStringContainsString( self::$privacy_policy_url, $actual_link );
 		$this->assertStringEndsWith( '>' . WP_TESTS_DOMAIN . ' Privacy Policy</a>', $actual_link );
 	}
 
@@ -94,7 +88,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 		$actual_link = get_the_privacy_policy_link( self::$before, self::$after );
 
 		$this->assertStringStartsWith( self::$before . '<a', $actual_link );
-		$this->assertContains( self::$privacy_policy_url, $actual_link );
+		$this->assertStringContainsString( self::$privacy_policy_url, $actual_link );
 		$this->assertStringEndsWith( '</a>' . self::$after, $actual_link );
 	}
 
@@ -115,7 +109,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	 * @ticket 44192
 	 */
 	public function test_function_should_return_empty_string_when_privacy_page_title_empty() {
-		$nameless_page_id = $this->factory->post->create(
+		$nameless_page_id = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
 				'post_title' => '',
@@ -159,5 +153,16 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	 */
 	public static function modify_link_markup( $link, $privacy_policy_url ) {
 		return 'Policy: ' . $privacy_policy_url;
+	}
+
+	/**
+	 * Tests that `get_the_privacy_policy_link()` adds `rel="privacy-policy"`.
+	 *
+	 * @ticket 56345
+	 */
+	public function test_get_the_privacy_policy_link_should_add_rel_privacy_policy() {
+		update_option( 'wp_page_for_privacy_policy', self::$privacy_policy_page_id );
+
+		$this->assertStringContainsString( 'rel="privacy-policy"', get_the_privacy_policy_link() );
 	}
 }

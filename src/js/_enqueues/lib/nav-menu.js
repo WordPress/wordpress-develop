@@ -45,6 +45,11 @@
 
 			this.attachMenuEditListeners();
 
+			this.attachBulkSelectButtonListeners();
+			this.attachMenuCheckBoxListeners();
+			this.attachMenuItemDeleteButton();
+			this.attachPendingMenuItemsListForDeletion();
+
 			this.attachQuickSearchListeners();
 			this.attachThemeLocationsListeners();
 			this.attachMenuSaveSubmitListeners();
@@ -306,7 +311,8 @@
 				nextItemDepth = parseInt( nextItem.menuItemDepth(), 10 ) + 1,
 				prevItem = thisItem.prev(),
 				prevItemDepth = parseInt( prevItem.menuItemDepth(), 10 ),
-				prevItemId = prevItem.getItemData()['menu-item-db-id'];
+				prevItemId = prevItem.getItemData()['menu-item-db-id'],
+				a11ySpeech = menus[ 'moved' + dir.charAt(0).toUpperCase() + dir.slice(1) ];
 
 			switch ( dir ) {
 			case 'up':
@@ -394,6 +400,10 @@
 			api.registerChange();
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
+
+			if ( a11ySpeech ) {
+				wp.a11y.speak( a11ySpeech );
+			}
 		},
 
 		initAccessibility : function() {
@@ -439,12 +449,13 @@
 			}
 
 			var thisLink, thisLinkText, primaryItems, itemPosition, title,
-				parentItem, parentItemId, parentItemName, subItems,
+				parentItem, parentItemId, parentItemName, subItems, totalSubItems,
 				$this = $( itemToRefresh ),
 				menuItem = $this.closest( 'li.menu-item' ).first(),
 				depth = menuItem.menuItemDepth(),
 				isPrimaryMenuItem = ( 0 === depth ),
 				itemName = $this.closest( '.menu-item-handle' ).find( '.menu-item-title' ).text(),
+				menuItemType = $this.closest( '.menu-item-handle' ).find( '.item-controls' ).find( '.item-type' ).text(),
 				position = parseInt( menuItem.index(), 10 ),
 				prevItemDepth = ( isPrimaryMenuItem ) ? depth : parseInt( depth - 1, 10 ),
 				prevItemNameLeft = menuItem.prevAll('.menu-item-depth-' + prevItemDepth).first().find( '.menu-item-title' ).text(),
@@ -493,18 +504,22 @@
 				primaryItems = $( '.menu-item-depth-0' ),
 				itemPosition = primaryItems.index( menuItem ) + 1,
 				totalMenuItems = primaryItems.length,
-
 				// String together help text for primary menu items.
-				title = menus.menuFocus.replace( '%1$s', itemName ).replace( '%2$d', itemPosition ).replace( '%3$d', totalMenuItems );
+				title = menus.menuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalMenuItems );
 			} else {
 				parentItem = menuItem.prevAll( '.menu-item-depth-' + parseInt( depth - 1, 10 ) ).first(),
 				parentItemId = parentItem.find( '.menu-item-data-db-id' ).val(),
 				parentItemName = parentItem.find( '.menu-item-title' ).text(),
 				subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemId + '"]' ),
+				totalSubItems = subItems.length,
 				itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
 
 				// String together help text for sub menu items.
-				title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$d', itemPosition ).replace( '%3$s', parentItemName );
+				if ( depth < 2 ) {
+					title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalSubItems ).replace( '%5$s', parentItemName );
+				} else {
+					title = menus.subMenuMoreDepthFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalSubItems ).replace( '%5$s', parentItemName ).replace( '%6$d', depth );
+				}
 			}
 
 			$this.attr( 'aria-label', title );
@@ -722,6 +737,7 @@
 
 					api.refreshKeyboardAccessibility();
 					api.refreshAdvancedAccessibility();
+					api.refreshAdvancedAccessibilityOfItem( ui.item.find( 'a.item-edit' ) );
 				},
 				change: function(e, ui) {
 					// Make sure the placeholder is inside the menu.
@@ -862,6 +878,196 @@
 			});
 		},
 
+		/**
+		 * Handle toggling bulk selection checkboxes for menu items.
+		 *
+		 * @since 5.8.0
+		 */ 
+		attachBulkSelectButtonListeners : function() {
+			var that = this;
+
+			$( '.bulk-select-switcher' ).on( 'change', function() {
+				if ( this.checked ) {
+					$( '.bulk-select-switcher' ).prop( 'checked', true );
+					that.enableBulkSelection();
+				} else {
+					$( '.bulk-select-switcher' ).prop( 'checked', false );
+					that.disableBulkSelection();
+				}
+			});
+		},
+
+		/**
+		 * Enable bulk selection checkboxes for menu items.
+		 *
+		 * @since 5.8.0
+		 */ 
+		enableBulkSelection : function() {
+			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
+
+			$( '#menu-to-edit' ).addClass( 'bulk-selection' );
+			$( '#nav-menu-bulk-actions-top' ).addClass( 'bulk-selection' );
+			$( '#nav-menu-bulk-actions-bottom' ).addClass( 'bulk-selection' );
+
+			$.each( checkbox, function() {
+				$(this).prop( 'disabled', false );
+			});
+		},
+
+		/**
+		 * Disable bulk selection checkboxes for menu items.
+		 *
+		 * @since 5.8.0
+		 */ 
+		disableBulkSelection : function() {
+			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
+
+			$( '#menu-to-edit' ).removeClass( 'bulk-selection' );
+			$( '#nav-menu-bulk-actions-top' ).removeClass( 'bulk-selection' );
+			$( '#nav-menu-bulk-actions-bottom' ).removeClass( 'bulk-selection' );
+
+			if ( $( '.menu-items-delete' ).is( '[aria-describedby="pending-menu-items-to-delete"]' ) ) {
+				$( '.menu-items-delete' ).removeAttr( 'aria-describedby' );
+			}
+
+			$.each( checkbox, function() {
+				$(this).prop( 'disabled', true ).prop( 'checked', false );
+			});
+
+			$( '.menu-items-delete' ).addClass( 'disabled' );
+			$( '#pending-menu-items-to-delete ul' ).empty();
+		},
+
+		/**
+		 * Listen for state changes on bulk action checkboxes.
+		 *
+		 * @since 5.8.0
+		 */ 
+		attachMenuCheckBoxListeners : function() {
+			var that = this;
+
+			$( '#menu-to-edit' ).on( 'change', '.menu-item-checkbox', function() {
+				that.setRemoveSelectedButtonStatus();
+			});
+		},
+
+		/**
+		 * Create delete button to remove menu items from collection.
+		 *
+		 * @since 5.8.0
+		 */ 
+		attachMenuItemDeleteButton : function() {
+			var that = this;
+
+			$( document ).on( 'click', '.menu-items-delete', function( e ) {
+				var itemsPendingDeletion, itemsPendingDeletionList, deletionSpeech;
+
+				e.preventDefault();
+
+				if ( ! $(this).hasClass( 'disabled' ) ) {
+					$.each( $( '.menu-item-checkbox:checked' ), function( index, element ) {
+						$( element ).parents( 'li' ).find( 'a.item-delete' ).trigger( 'click' );
+					});
+
+					$( '.menu-items-delete' ).addClass( 'disabled' );
+					$( '.bulk-select-switcher' ).prop( 'checked', false );
+
+					itemsPendingDeletion     = '';
+					itemsPendingDeletionList = $( '#pending-menu-items-to-delete ul li' );
+
+					$.each( itemsPendingDeletionList, function( index, element ) {
+						var itemName = $( element ).find( '.pending-menu-item-name' ).text();
+						var itemSpeech = menus.menuItemDeletion.replace( '%s', itemName );
+
+						itemsPendingDeletion += itemSpeech;
+						if ( ( index + 1 ) < itemsPendingDeletionList.length ) {
+							itemsPendingDeletion += ', ';
+						}
+					});
+
+					deletionSpeech = menus.itemsDeleted.replace( '%s', itemsPendingDeletion );
+					wp.a11y.speak( deletionSpeech, 'polite' );
+					that.disableBulkSelection();
+				}
+			});
+		},
+
+		/**
+		 * List menu items awaiting deletion.
+		 *
+		 * @since 5.8.0
+		 */ 
+		attachPendingMenuItemsListForDeletion : function() {
+			$( '#post-body-content' ).on( 'change', '.menu-item-checkbox', function() {
+				var menuItemName, menuItemType, menuItemID, listedMenuItem;
+
+				if ( ! $( '.menu-items-delete' ).is( '[aria-describedby="pending-menu-items-to-delete"]' ) ) {
+					$( '.menu-items-delete' ).attr( 'aria-describedby', 'pending-menu-items-to-delete' );
+				}
+
+				menuItemName = $(this).next().text();
+				menuItemType = $(this).parent().next( '.item-controls' ).find( '.item-type' ).text();
+				menuItemID   = $(this).attr( 'data-menu-item-id' );
+
+				listedMenuItem = $( '#pending-menu-items-to-delete ul' ).find( '[data-menu-item-id=' + menuItemID + ']' );
+				if ( listedMenuItem.length > 0 ) {
+					listedMenuItem.remove();
+				}
+
+				if ( this.checked === true ) {
+					$( '#pending-menu-items-to-delete ul' ).append(
+						'<li data-menu-item-id="' + menuItemID + '">' +
+							'<span class="pending-menu-item-name">' + menuItemName + '</span> ' +
+							'<span class="pending-menu-item-type">(' + menuItemType + ')</span>' +
+							'<span class="separator"></span>' +
+						'</li>'
+					);
+				}
+
+				$( '#pending-menu-items-to-delete li .separator' ).html( ', ' );
+				$( '#pending-menu-items-to-delete li .separator' ).last().html( '.' );
+			});
+		},
+
+		/**
+		 * Set status of bulk delete checkbox.
+		 *
+		 * @since 5.8.0
+		 */ 
+		setBulkDeleteCheckboxStatus : function() {
+			var that = this;
+			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
+
+			$.each( checkbox, function() {
+				if ( $(this).prop( 'disabled' ) ) {
+					$(this).prop( 'disabled', false );
+				} else {
+					$(this).prop( 'disabled', true );
+				}
+
+				if ( $(this).is( ':checked' ) ) {
+					$(this).prop( 'checked', false );
+				}
+			});
+
+			that.setRemoveSelectedButtonStatus();
+		},
+
+		/**
+		 * Set status of menu items removal button.
+		 *
+		 * @since 5.8.0
+		 */ 
+		setRemoveSelectedButtonStatus : function() {
+			var button = $( '.menu-items-delete' );
+
+			if ( $( '.menu-item-checkbox:checked' ).length > 0 ) {
+				button.removeClass( 'disabled' );
+			} else {
+				button.addClass( 'disabled' );
+			}
+		},
+
 		attachMenuSaveSubmitListeners : function() {
 			/*
 			 * When a navigation menu is saved, store a JSON representation of all form data
@@ -908,7 +1114,7 @@
 
 				searchTimer = setTimeout( function() {
 					api.updateQuickSearchResults( $this );
- 				}, 500 );
+				}, 500 );
 			}).on( 'blur', '.quick-search', function() {
 				api.lastSearch = '';
 			});
@@ -1029,6 +1235,7 @@
 			$menuMarkup.hideAdvancedMenuItemFields().appendTo( api.targetList );
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
+			wp.a11y.speak( menus.itemAdded );
 			$( document ).trigger( 'menu-item-added', [ $menuMarkup ] );
 		},
 
@@ -1044,6 +1251,7 @@
 			$menuMarkup.hideAdvancedMenuItemFields().prependTo( api.targetList );
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
+			wp.a11y.speak( menus.itemAdded );
 			$( document ).trigger( 'menu-item-added', [ $menuMarkup ] );
 		},
 
@@ -1318,6 +1526,7 @@
 						ins.removeClass( 'menu-instructions-inactive' );
 					}
 					api.refreshAdvancedAccessibility();
+					wp.a11y.speak( menus.itemRemoved );
 				});
 		},
 
@@ -1353,5 +1562,20 @@
 			}
 		});
 	});
+
+	// Show bulk action.
+	$( document ).on( 'menu-item-added', function() {
+		if ( ! $( '.bulk-actions' ).is( ':visible' ) ) {
+			$( '.bulk-actions' ).show();
+		}
+	} );
+
+	// Hide bulk action.
+	$( document ).on( 'menu-removing-item', function( e, el ) {
+		var menuElement = $( el ).parents( '#menu-to-edit' );
+		if ( menuElement.find( 'li' ).length === 1 && $( '.bulk-actions' ).is( ':visible' ) ) {
+			$( '.bulk-actions' ).hide();
+		}
+	} );
 
 })(jQuery);

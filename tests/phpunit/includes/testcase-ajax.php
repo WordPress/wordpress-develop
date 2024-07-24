@@ -115,8 +115,8 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		'wp-privacy-erase-personal-data',
 	);
 
-	public static function setUpBeforeClass() {
-		parent::setUpBeforeClass();
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
 
 		remove_action( 'admin_init', '_maybe_update_core' );
 		remove_action( 'admin_init', '_maybe_update_plugins' );
@@ -133,10 +133,10 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Sets up the test fixture.
 	 *
-	 * Overrides wp_die(), pretends to be Ajax, and suppresses E_WARNINGs.
+	 * Overrides wp_die(), pretends to be Ajax, and suppresses warnings.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter( 'wp_die_ajax_handler', array( $this, 'getDieHandler' ), 1, 1 );
@@ -156,16 +156,16 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * Resets $_POST, removes the wp_die() override, restores error reporting.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		$_POST = array();
 		$_GET  = array();
 		unset( $GLOBALS['post'] );
 		unset( $GLOBALS['comment'] );
-		remove_filter( 'wp_die_ajax_handler', array( $this, 'getDieHandler' ), 1, 1 );
+		remove_filter( 'wp_die_ajax_handler', array( $this, 'getDieHandler' ), 1 );
 		remove_action( 'clear_auth_cookie', array( $this, 'logout' ) );
 		error_reporting( $this->_error_level );
 		set_current_screen( 'front' );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

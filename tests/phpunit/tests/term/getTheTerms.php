@@ -14,7 +14,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 22560
 	 */
-	function test_object_term_cache() {
+	public function test_object_term_cache() {
 		$post_id = self::$post_ids[0];
 
 		$terms_1 = array( 'foo', 'bar', 'baz' );
@@ -22,7 +22,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 
 		// Cache should be empty after a set.
 		$tt_1 = wp_set_object_terms( $post_id, $terms_1, $this->taxonomy );
-		$this->assertSame( 3, count( $tt_1 ) );
+		$this->assertCount( 3, $tt_1 );
 		$this->assertFalse( wp_cache_get( $post_id, $this->taxonomy . '_relationships' ) );
 
 		// wp_get_object_terms() does not prime the cache.
@@ -39,18 +39,18 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		// get_the_terms() does prime the cache.
 		$terms = get_the_terms( $post_id, $this->taxonomy );
 		$cache = wp_cache_get( $post_id, $this->taxonomy . '_relationships' );
-		$this->assertInternalType( 'array', $cache );
+		$this->assertIsArray( $cache );
 
 		// Cache should be empty after a set.
 		$tt_2 = wp_set_object_terms( $post_id, $terms_2, $this->taxonomy );
-		$this->assertSame( 2, count( $tt_2 ) );
+		$this->assertCount( 2, $tt_2 );
 		$this->assertFalse( wp_cache_get( $post_id, $this->taxonomy . '_relationships' ) );
 	}
 
 	/**
 	 * @ticket 24189
 	 */
-	function test_object_term_cache_when_term_changes() {
+	public function test_object_term_cache_when_term_changes() {
 		$post_id = self::$post_ids[0];
 		$tag_id  = self::factory()->tag->create(
 			array(
@@ -168,7 +168,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 34723
 	 */
-	function test_get_the_terms_should_return_wp_error_when_taxonomy_is_unregistered() {
+	public function test_get_the_terms_should_return_wp_error_when_taxonomy_is_unregistered() {
 		$p     = self::$post_ids[0];
 		$terms = get_the_terms( $p, 'this-taxonomy-does-not-exist' );
 		$this->assertWPError( $terms );
@@ -195,10 +195,9 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36814
+	 * @ticket 57701
 	 */
-	public function test_uncached_terms_should_be_primed_with_a_single_query() {
-		global $wpdb;
-
+	public function test_uncached_terms_should_not_be_primed_with_a_single_query_by_default() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		$terms = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
@@ -210,14 +209,13 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		// Clean cache for two of the terms.
 		clean_term_cache( array( $terms[0], $terms[1] ), 'wptests_tax', false );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$found       = get_the_terms( self::$post_ids[0], 'wptests_tax' );
 
 		$this->assertSameSets( $terms, wp_list_pluck( $found, 'term_id' ) );
 
-		$num_queries++;
-		$this->assertSame( $num_queries, $wpdb->num_queries );
-
+		// Two extra queries are expected as the cache is not primed and hence terms need to be queried.
+		$this->assertSame( 1, get_num_queries() - $num_queries );
 	}
 
 	/**
@@ -248,7 +246,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		// Re-activate term counting so this doesn't affect other tests.
 		wp_defer_term_counting( false );
 
-		$this->assertTrue( is_array( $terms ) );
+		$this->assertIsArray( $terms );
 		$this->assertSame( array( $term_id ), wp_list_pluck( $terms, 'term_id' ) );
 	}
 
@@ -283,7 +281,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		// Re-activate term counting so this doesn't affect other tests.
 		wp_defer_term_counting( false );
 
-		$this->assertTrue( is_array( $terms ) );
+		$this->assertIsArray( $terms );
 		$this->assertSame( array( $term_ids[1] ), wp_list_pluck( $terms, 'term_id' ) );
 	}
 }

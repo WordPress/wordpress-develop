@@ -1,8 +1,15 @@
 <phpunit
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/9.2/phpunit.xsd"
 		bootstrap="includes/bootstrap.php"
 		backupGlobals="false"
 		colors="true"
 		beStrictAboutTestsThatDoNotTestAnything="true"
+		beStrictAboutOutputDuringTests="true"
+		convertErrorsToExceptions="true"
+		convertWarningsToExceptions="true"
+		convertNoticesToExceptions="true"
+		convertDeprecationsToExceptions="true"
 		>
 	<php>
 		<const name="WP_TESTS_MULTISITE" value="1" />
@@ -26,19 +33,9 @@
 			<group>ms-excluded</group>
 			<group>external-http</group>
 			<group>oembed-headers</group>
+			<group>html-api-html5lib-tests</group>
 		</exclude>
 	</groups>
-	<listeners>
-		<listener class="SpeedTrapListener" file="tests/phpunit/includes/listener-loader.php">
-			<arguments>
-				<array>
-					<element key="slowThreshold">
-						<integer>150</integer>
-					</element>
-				</array>
-			</arguments>
-		</listener>
-	</listeners>
 	<filter>
 		<whitelist addUncoveredFilesFromWhitelist="true">
 			<directory suffix=".php">../../src</directory>
@@ -46,7 +43,6 @@
 				<!-- Third party library exclusions. -->
 				<directory suffix=".php">../../src/wp-includes/ID3</directory>
 				<directory suffix=".php">../../src/wp-includes/IXR</directory>
-				<directory suffix=".php">../../src/wp-includes/random_compat</directory>
 				<directory suffix=".php">../../src/wp-includes/PHPMailer</directory>
 				<directory suffix=".php">../../src/wp-includes/Requests</directory>
 				<directory suffix=".php">../../src/wp-includes/SimplePie</directory>

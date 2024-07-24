@@ -4,6 +4,7 @@
  * @group date
  * @group datetime
  * @group post
+ *
  * @covers ::the_date
  * @covers ::the_weekday_date
  */
@@ -80,7 +81,7 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 	}
 
 	public function count_hook( $input ) {
-		$this->hooks_called[ current_filter() ] ++;
+		++$this->hooks_called[ current_filter() ];
 
 		return $input;
 	}
@@ -88,7 +89,7 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 	/**
 	 * @ticket 33750
 	 */
-	function test_the_date() {
+	public function test_the_date() {
 		ob_start();
 		the_date();
 		$actual = ob_get_clean();
@@ -128,7 +129,7 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 	/**
 	 * @ticket 47354
 	 */
-	function test_the_weekday_date() {
+	public function test_the_weekday_date() {
 		ob_start();
 		the_weekday_date();
 		$actual = ob_get_clean();

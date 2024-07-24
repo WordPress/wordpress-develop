@@ -23,7 +23,7 @@ if ( post_password_required() ) {
 	<?php if ( have_comments() ) : ?>
 		<h2 class="comments-title">
 			<?php
-			if ( 1 === get_comments_number() ) {
+			if ( '1' === get_comments_number() ) {
 				printf(
 					/* translators: %s: The post title. */
 					_x( 'One thought on &ldquo;%s&rdquo;', 'comments title', 'twentythirteen' ),
@@ -31,7 +31,7 @@ if ( post_password_required() ) {
 				);
 			} else {
 				printf(
-					/* translators: %1$s: The number of comments. %2$s: The post title. */
+					/* translators: 1: The number of comments, 2: The post title. */
 					_nx( '%1$s thought on &ldquo;%2$s&rdquo;', '%1$s thoughts on &ldquo;%2$s&rdquo;', get_comments_number(), 'comments title', 'twentythirteen' ),
 					number_format_i18n( get_comments_number() ),
 					'<span>' . get_the_title() . '</span>'
@@ -56,8 +56,13 @@ if ( post_password_required() ) {
 			// Are there comments to navigate through?
 		if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) :
 			?>
-		<nav class="navigation comment-navigation" role="navigation">
-		<h1 class="screen-reader-text section-heading"><?php _e( 'Comment navigation', 'twentythirteen' ); ?></h1>
+		<nav class="navigation comment-navigation">
+		<h1 class="screen-reader-text section-heading">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Comment navigation', 'twentythirteen' );
+			?>
+		</h1>
 		<div class="nav-previous"><?php previous_comments_link( __( '&larr; Older Comments', 'twentythirteen' ) ); ?></div>
 		<div class="nav-next"><?php next_comments_link( __( 'Newer Comments &rarr;', 'twentythirteen' ) ); ?></div>
 		</nav><!-- .comment-navigation -->

@@ -2,8 +2,9 @@
 /**
  * Twenty Sixteen Theme: Block Patterns
  *
- * @package Twenty Sixteen
- * @since 2.2
+ * @package WordPress
+ * @subpackage Twenty_Sixteen
+ * @since Twenty Sixteen 2.3
  */
 
 /**
@@ -53,7 +54,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- /wp:spacer -->
 
             <!-- wp:heading {"level":1,"style":{"typography":{"fontSize":55}}} -->
-            <h1 style="font-size:55px">' . esc_html__( 'Twenty Sixteen' ) . '</h1>
+            <h1 style="font-size:55px">' . esc_html__( 'Twenty Sixteen', 'twentysixteen' ) . '</h1>
             <!-- /wp:heading -->
 
             <!-- wp:spacer {"height":30} -->
@@ -69,7 +70,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 
             <!-- wp:column -->
             <div class="wp-block-column"><!-- wp:paragraph -->
-            <p>' . esc_html__( 'The theme features a harmonious fluid grid using a mobile-first approach. The layout is a modern take on the horizontal masthead with an optional right sidebar. ', 'twentysixteen' ) . '</p>
+            <p>' . esc_html__( 'The theme features a harmonious fluid grid using a mobile-first approach. The layout is a modern take on the horizontal masthead with an optional right sidebar.', 'twentysixteen' ) . '</p>
             <!-- /wp:paragraph --></div>
             <!-- /wp:column --></div>
             <!-- /wp:columns -->

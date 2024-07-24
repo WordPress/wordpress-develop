@@ -30,7 +30,7 @@ class Walker_Comment extends Walker {
 	 * Database fields to use.
 	 *
 	 * @since 2.7.0
-	 * @var array
+	 * @var string[]
 	 *
 	 * @see Walker::$db_fields
 	 * @todo Decouple this
@@ -150,27 +150,31 @@ class Walker_Comment extends Walker {
 
 			unset( $children_elements[ $id ] );
 		}
-
 	}
 
 	/**
 	 * Starts the element output.
 	 *
 	 * @since 2.7.0
+	 * @since 5.9.0 Renamed `$comment` to `$data_object` and `$id` to `$current_object_id`
+	 *              to match parent class for PHP 8 named parameter support.
 	 *
 	 * @see Walker::start_el()
 	 * @see wp_list_comments()
 	 * @global int        $comment_depth
 	 * @global WP_Comment $comment       Global comment object.
 	 *
-	 * @param string     $output  Used to append additional content. Passed by reference.
-	 * @param WP_Comment $comment Comment data object.
-	 * @param int        $depth   Optional. Depth of the current comment in reference to parents. Default 0.
-	 * @param array      $args    Optional. An array of arguments. Default empty array.
-	 * @param int        $id      Optional. ID of the current comment. Default 0 (unused).
+	 * @param string     $output            Used to append additional content. Passed by reference.
+	 * @param WP_Comment $data_object       Comment data object.
+	 * @param int        $depth             Optional. Depth of the current comment in reference to parents. Default 0.
+	 * @param array      $args              Optional. An array of arguments. Default empty array.
+	 * @param int        $current_object_id Optional. ID of the current comment. Default 0.
 	 */
-	public function start_el( &$output, $comment, $depth = 0, $args = array(), $id = 0 ) {
-		$depth++;
+	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$comment = $data_object;
+
+		++$depth;
 		$GLOBALS['comment_depth'] = $depth;
 		$GLOBALS['comment']       = $comment;
 
@@ -200,7 +204,7 @@ class Walker_Comment extends Walker {
 		}
 
 		if ( 'comment' === $comment->comment_type ) {
-			remove_filter( 'comment_text', array( $this, 'filter_comment_text' ), 40, 2 );
+			remove_filter( 'comment_text', array( $this, 'filter_comment_text' ), 40 );
 		}
 	}
 
@@ -208,19 +212,25 @@ class Walker_Comment extends Walker {
 	 * Ends the element output, if needed.
 	 *
 	 * @since 2.7.0
+	 * @since 5.9.0 Renamed `$comment` to `$data_object` to match parent class for PHP 8 named parameter support.
 	 *
 	 * @see Walker::end_el()
 	 * @see wp_list_comments()
 	 *
-	 * @param string     $output  Used to append additional content. Passed by reference.
-	 * @param WP_Comment $comment The current comment object. Default current comment.
-	 * @param int        $depth   Optional. Depth of the current comment. Default 0.
-	 * @param array      $args    Optional. An array of arguments. Default empty array.
+	 * @param string     $output      Used to append additional content. Passed by reference.
+	 * @param WP_Comment $data_object Comment data object.
+	 * @param int        $depth       Optional. Depth of the current comment. Default 0.
+	 * @param array      $args        Optional. An array of arguments. Default empty array.
 	 */
-	public function end_el( &$output, $comment, $depth = 0, $args = array() ) {
+	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {
 		if ( ! empty( $args['end-callback'] ) ) {
 			ob_start();
-			call_user_func( $args['end-callback'], $comment, $args, $depth );
+			call_user_func(
+				$args['end-callback'],
+				$data_object, // The current comment object.
+				$args,
+				$depth
+			);
 			$output .= ob_get_clean();
 			return;
 		}
@@ -268,7 +278,7 @@ class Walker_Comment extends Walker {
 		$commenter          = wp_get_current_commenter();
 		$show_pending_links = ! empty( $commenter['comment_author'] );
 
-		if ( $comment && '0' == $comment->comment_approved && ! $show_pending_links ) {
+		if ( $comment && '0' === $comment->comment_approved && ! $show_pending_links ) {
 			$comment_text = wp_kses( $comment_text, array() );
 		}
 
@@ -310,14 +320,14 @@ class Walker_Comment extends Walker {
 		<?php endif; ?>
 		<div class="comment-author vcard">
 			<?php
-			if ( 0 != $args['avatar_size'] ) {
+			if ( 0 !== $args['avatar_size'] ) {
 				echo get_avatar( $comment, $args['avatar_size'] );
 			}
 			?>
 			<?php
 			$comment_author = get_comment_author_link( $comment );
 
-			if ( '0' == $comment->comment_approved && ! $show_pending_links ) {
+			if ( '0' === $comment->comment_approved && ! $show_pending_links ) {
 				$comment_author = get_comment_author( $comment );
 			}
 
@@ -328,7 +338,7 @@ class Walker_Comment extends Walker {
 			);
 			?>
 		</div>
-		<?php if ( '0' == $comment->comment_approved ) : ?>
+		<?php if ( '0' === $comment->comment_approved ) : ?>
 		<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
 		<br />
 		<?php endif; ?>
@@ -413,14 +423,14 @@ class Walker_Comment extends Walker {
 				<footer class="comment-meta">
 					<div class="comment-author vcard">
 						<?php
-						if ( 0 != $args['avatar_size'] ) {
+						if ( 0 !== $args['avatar_size'] ) {
 							echo get_avatar( $comment, $args['avatar_size'] );
 						}
 						?>
 						<?php
 						$comment_author = get_comment_author_link( $comment );
 
-						if ( '0' == $comment->comment_approved && ! $show_pending_links ) {
+						if ( '0' === $comment->comment_approved && ! $show_pending_links ) {
 							$comment_author = get_comment_author( $comment );
 						}
 
@@ -450,7 +460,7 @@ class Walker_Comment extends Walker {
 						?>
 					</div><!-- .comment-metadata -->
 
-					<?php if ( '0' == $comment->comment_approved ) : ?>
+					<?php if ( '0' === $comment->comment_approved ) : ?>
 					<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
 					<?php endif; ?>
 				</footer><!-- .comment-meta -->
@@ -460,7 +470,7 @@ class Walker_Comment extends Walker {
 				</div><!-- .comment-content -->
 
 				<?php
-				if ( '1' == $comment->comment_approved || $show_pending_links ) {
+				if ( '1' === $comment->comment_approved || $show_pending_links ) {
 					comment_reply_link(
 						array_merge(
 							$args,

@@ -2,13 +2,51 @@
 
 /**
  * @group taxonomy
+ * @covers ::get_term_link
  */
 class Tests_Term_GetTermLink extends WP_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public static $terms;
 
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::register_custom_taxonomy();
+
+		$taxonomies = array( 'category', 'post_tag', 'wptests_tax' );
+		foreach ( $taxonomies as $taxonomy ) {
+			self::$terms[ $taxonomy ] = $factory->term->create_and_get( array( 'taxonomy' => $taxonomy ) );
+		}
+	}
+
+	public function set_up() {
+		parent::set_up();
+		self::register_custom_taxonomy();
+	}
+
+	/**
+	 * Helper to register a custom taxonomy for use in tests.
+	 *
+	 * @since 5.9.0
+	 */
+	private static function register_custom_taxonomy() {
 		register_taxonomy( 'wptests_tax', 'post' );
+	}
+
+	/**
+	 * Helper to get the term for the given taxonomy.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
+	 * @param bool   $use_id   Whether to return term ID or term object.
+	 * @return WP_Term|int Term ID if `$use_id` is true, WP_Term instance otherwise.
+	 */
+	private function get_term( $taxonomy, $use_id ) {
+		$term = self::$terms[ $taxonomy ];
+		if ( $use_id ) {
+			$term = $term->term_id;
+		}
+
+		return $term;
 	}
 
 	public function test_integer_should_be_interpreted_as_term_id() {
@@ -28,7 +66,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		$term = (int) $t1;
 
 		$actual = get_term_link( $term, 'wptests_tax' );
-		$this->assertContains( 'wptests_tax=foo', $actual );
+		$this->assertStringContainsString( 'wptests_tax=foo', $actual );
 	}
 
 	public function test_numeric_string_should_be_interpreted_as_term_slug() {
@@ -48,7 +86,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		$term = (string) $t1;
 
 		$actual = get_term_link( $term, 'wptests_tax' );
-		$this->assertContains( 'wptests_tax=' . $term, $actual );
+		$this->assertStringContainsString( 'wptests_tax=' . $term, $actual );
 	}
 
 	public function test_invalid_term_should_return_wp_error() {
@@ -60,7 +98,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		$c = self::factory()->category->create();
 
 		$actual = get_term_link( $c, 'category' );
-		$this->assertContains( 'cat=' . $c, $actual );
+		$this->assertStringContainsString( 'cat=' . $c, $actual );
 	}
 
 	public function test_taxonomy_with_query_var_should_use_that_query_var_with_term_slug() {
@@ -80,7 +118,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		);
 
 		$actual = get_term_link( $t, 'wptests_tax2' );
-		$this->assertContains( 'foo=bar', $actual );
+		$this->assertStringContainsString( 'foo=bar', $actual );
 	}
 
 	public function test_taxonomy_without_query_var_should_use_taxonomy_query_var_and_term_query_var_with_term_slug() {
@@ -100,8 +138,8 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		);
 
 		$actual = get_term_link( $t, 'wptests_tax2' );
-		$this->assertContains( 'taxonomy=wptests_tax2', $actual );
-		$this->assertContains( 'term=bar', $actual );
+		$this->assertStringContainsString( 'taxonomy=wptests_tax2', $actual );
+		$this->assertStringContainsString( 'term=bar', $actual );
 	}
 
 	/**
@@ -131,7 +169,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 
 		remove_permastruct( 'wptests_tax2' );
 
-		$this->assertContains( '/foo/bar/', $actual );
+		$this->assertStringContainsString( '/foo/bar/', $actual );
 	}
 
 	public function test_taxonomy_permastruct_with_hierarchical_rewrite_should_put_term_ancestors_in_link() {
@@ -168,7 +206,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 
 		$actual = get_term_link( $t2, 'wptests_tax2' );
 
-		$this->assertContains( '/foo/term1/term2/', $actual );
+		$this->assertStringContainsString( '/foo/term1/term2/', $actual );
 	}
 
 	public function test_taxonomy_permastruct_with_nonhierarchical_rewrite_should_not_put_term_ancestors_in_link() {
@@ -205,6 +243,91 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 
 		$actual = get_term_link( $t2, 'wptests_tax2' );
 
-		$this->assertContains( '/foo/term2/', $actual );
+		$this->assertStringContainsString( '/foo/term2/', $actual );
+	}
+
+	/**
+	 * @dataProvider data_term_link_filter_should_receive_term_object
+	 *
+	 * @ticket 50225
+	 *
+	 * @param string $taxonomy Taxonomy being tested.
+	 * @param bool   $use_id   Whether to pass term ID or term object to `get_term_link()`.
+	 */
+	public function test_term_link_filter_should_receive_term_object( $taxonomy, $use_id ) {
+		$term = $this->get_term( $taxonomy, $use_id );
+
+		add_filter(
+			'term_link',
+			function ( $location, $term ) {
+				$this->assertInstanceOf( 'WP_Term', $term );
+			},
+			10,
+			2
+		);
+
+		get_term_link( $term, $taxonomy );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_term_link_filter_should_receive_term_object() {
+		return array(
+			'category passing term_id'              => array(
+				'taxonomy' => 'category',
+				'use_id'   => true,
+			),
+			'category passing term object'          => array(
+				'taxonomy' => 'category',
+				'use_id'   => false,
+			),
+			'post_tag passing term_id'              => array(
+				'taxonomy' => 'post_tag',
+				'use_id'   => true,
+			),
+			'post_tag passing term object'          => array(
+				'taxonomy' => 'post_tag',
+				'use_id'   => false,
+			),
+			'a custom taxonomy passing term_id'     => array(
+				'taxonomy' => 'wptests_tax',
+				'use_id'   => true,
+			),
+			'a custom taxonomy passing term object' => array(
+				'taxonomy' => 'wptests_tax',
+				'use_id'   => false,
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider data_get_term_feed_link_should_use_term_taxonomy_when_term_id_is_passed
+	 *
+	 * @ticket 50225
+	 *
+	 * @param string $taxonomy Taxonomy being tested.
+	 */
+	public function test_get_term_feed_link_should_use_term_taxonomy_when_term_id_is_passed( $taxonomy ) {
+		$term = $this->get_term( $taxonomy, true );
+
+		$term_feed_link = get_term_feed_link( $term, $taxonomy );
+		$this->assertIsString( $term_feed_link );
+
+		$term_feed_link = get_term_feed_link( $term, '' );
+		$this->assertIsString( $term_feed_link );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_term_feed_link_should_use_term_taxonomy_when_term_id_is_passed() {
+		$taxonomies = array( 'category', 'post_tag', 'wptests_tax' );
+
+		return $this->text_array_to_dataprovider( $taxonomies );
 	}
 }

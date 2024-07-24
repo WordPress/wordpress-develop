@@ -275,7 +275,7 @@ function wp_privacy_generate_personal_data_export_group_html( $group_data, $grou
 		foreach ( (array) $group_item_data as $group_item_datum ) {
 			$value = $group_item_datum['value'];
 			// If it looks like a link, make it a link.
-			if ( false === strpos( $value, ' ' ) && ( 0 === strpos( $value, 'http://' ) || 0 === strpos( $value, 'https://' ) ) ) {
+			if ( ! str_contains( $value, ' ' ) && ( str_starts_with( $value, 'http://' ) || str_starts_with( $value, 'https://' ) ) ) {
 				$value = '<a href="' . esc_url( $value ) . '">' . esc_html( $value ) . '</a>';
 			}
 
@@ -413,6 +413,16 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	// Convert the groups to JSON format.
 	$groups_json = wp_json_encode( $groups );
 
+	if ( false === $groups_json ) {
+		$error_message = sprintf(
+			/* translators: %s: Error message. */
+			__( 'Unable to encode the personal data for export. Error: %s' ),
+			json_last_error_msg()
+		);
+
+		wp_send_json_error( $error_message );
+	}
+
 	/*
 	 * Handle the JSON export.
 	 */
@@ -525,7 +535,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 		wp_delete_file( $archive_pathname );
 	}
 
-	$zip = new ZipArchive;
+	$zip = new ZipArchive();
 	if ( true === $zip->open( $archive_pathname, ZipArchive::CREATE ) ) {
 		if ( ! $zip->addFile( $json_report_pathname, 'export.json' ) ) {
 			$error = __( 'Unable to archive the personal data export file (JSON format).' );
@@ -585,12 +595,10 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 
 	// Localize message content for user; fallback to site default for visitors.
 	if ( ! empty( $request->user_id ) ) {
-		$locale = get_user_locale( $request->user_id );
+		$switched_locale = switch_to_user_locale( $request->user_id );
 	} else {
-		$locale = get_locale();
+		$switched_locale = switch_to_locale( get_locale() );
 	}
-
-	$switched_locale = switch_to_locale( $locale );
 
 	/** This filter is documented in wp-includes/functions.php */
 	$expiration      = apply_filters( 'wp_privacy_export_expiration', 3 * DAY_IN_SECONDS );
@@ -696,10 +704,10 @@ All at ###SITENAME###
 	$content = apply_filters( 'wp_privacy_personal_data_email_content', $email_text, $request_id, $email_data );
 
 	$content = str_replace( '###EXPIRATION###', $expiration_date, $content );
-	$content = str_replace( '###LINK###', esc_url_raw( $export_file_url ), $content );
+	$content = str_replace( '###LINK###', sanitize_url( $export_file_url ), $content );
 	$content = str_replace( '###EMAIL###', $request_email, $content );
 	$content = str_replace( '###SITENAME###', $site_name, $content );
-	$content = str_replace( '###SITEURL###', esc_url_raw( $site_url ), $content );
+	$content = str_replace( '###SITEURL###', sanitize_url( $site_url ), $content );
 
 	$headers = '';
 

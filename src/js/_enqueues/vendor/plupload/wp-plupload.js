@@ -358,6 +358,16 @@ window.wp = window.wp || {};
 						data:    {},
 						file:    file
 					});
+				} else if ( file.type === 'image/webp' && up.settings.webp_upload_error ) {
+					// Disallow uploading of WebP images if the server cannot edit them.
+					error( pluploadL10n.noneditable_image, {}, file, 'no-retry' );
+					up.removeFile( file );
+					return;
+				} else if ( file.type === 'image/avif' && up.settings.avif_upload_error ) {
+					// Disallow uploading of AVIF images if the server cannot edit them.
+					error( pluploadL10n.noneditable_image, {}, file, 'no-retry' );
+					up.removeFile( file );
+					return;
 				}
 
 				// Generate attributes for a new `Attachment` model.

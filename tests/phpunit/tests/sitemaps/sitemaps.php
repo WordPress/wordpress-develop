@@ -1,6 +1,6 @@
 <?php
 /**
- * Sitemaps: Sitemaps_Tests class
+ * Sitemaps: Tests_Sitemaps_Sitemaps class
  *
  * Main test class.
  *
@@ -15,7 +15,7 @@
  *
  * @group sitemaps
  */
-class Test_Sitemaps extends WP_UnitTestCase {
+class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 	/**
 	 * List of user IDs.
@@ -95,7 +95,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	/**
 	 * Helper function to get all sitemap entries data.
 	 *
-	 * @return array A list of sitemap entires.
+	 * @return array A list of sitemap entries.
 	 */
 	public function _get_sitemap_entries() {
 		$entries = array();
@@ -251,13 +251,16 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		$post_list = $providers['posts']->get_url_list( 1, 'page' );
 
+		$post_list_sorted = wp_list_sort( $post_list, 'lastmod', 'DESC' );
+
 		$expected = $this->_get_expected_url_list( 'page', self::$pages );
 
 		// Add the homepage to the front of the URL list.
 		array_unshift(
 			$expected,
 			array(
-				'loc' => home_url( '/' ),
+				'loc'     => home_url( '/' ),
+				'lastmod' => $post_list_sorted[0]['lastmod'],
 			)
 		);
 
@@ -378,7 +381,8 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		return array_map(
 			static function ( $post ) {
 				return array(
-					'loc' => get_permalink( $post ),
+					'loc'     => get_permalink( $post ),
+					'lastmod' => get_post_modified_time( DATE_W3C, true, $post ),
 				);
 			},
 			$posts
@@ -404,7 +408,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		$robots_text    = apply_filters( 'robots_txt', '', true );
 		$sitemap_string = 'Sitemap: http://' . WP_TESTS_DOMAIN . '/?sitemap=index';
 
-		$this->assertContains( $sitemap_string, $robots_text, 'Sitemap URL not included in robots text.' );
+		$this->assertStringContainsString( $sitemap_string, $robots_text, 'Sitemap URL not included in robots text.' );
 	}
 
 	/**
@@ -414,7 +418,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		$robots_text    = apply_filters( 'robots_txt', '', false );
 		$sitemap_string = 'Sitemap: http://' . WP_TESTS_DOMAIN . '/?sitemap=index';
 
-		$this->assertNotContains( $sitemap_string, $robots_text );
+		$this->assertStringNotContainsString( $sitemap_string, $robots_text );
 	}
 
 	/**
@@ -431,7 +435,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		// Clean up permalinks.
 		$this->set_permalink_structure();
 
-		$this->assertContains( $sitemap_string, $robots_text, 'Sitemap URL not included in robots text.' );
+		$this->assertStringContainsString( $sitemap_string, $robots_text, 'Sitemap URL not included in robots text.' );
 	}
 
 	/**
@@ -442,7 +446,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		$robots_text    = apply_filters( 'robots_txt', '', true );
 		$sitemap_string = "\nSitemap: ";
 
-		$this->assertContains( $sitemap_string, $robots_text, 'Sitemap URL not prefixed with "\n".' );
+		$this->assertStringContainsString( $sitemap_string, $robots_text, 'Sitemap URL not prefixed with "\n".' );
 	}
 
 	/**

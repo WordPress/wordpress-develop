@@ -21,6 +21,7 @@ ul.add-menu-item-tabs li {
 
 #nav-menu-meta .accordion-section-content {
 	padding: 18px 13px;
+	resize: vertical;
 }
 
 #nav-menu-meta .button-controls {
@@ -48,6 +49,26 @@ ul.add-menu-item-tabs li {
 #menu-settings-column .inside {
 	clear: both;
 	margin: 10px 0 0;
+	height: 100%;
+	max-height: inherit;
+}
+
+#menu-settings-column .categorydiv,
+#menu-settings-column .customlinkdiv,
+#menu-settings-column .posttypediv,
+#menu-settings-column .taxonomydiv {
+	max-height: inherit;
+	height: 100%;
+}
+
+#menu-settings-column .wp-tab-panel,
+#menu-settings-column .categorydiv div.tabs-panel,
+#menu-settings-column .customlinkdiv div.tabs-panel,
+#menu-settings-column .posttypediv div.tabs-panel,
+#menu-settings-column .taxonomydiv div.tabs-panel {
+	/* Allow space for content after tab panels in nav menu editor. */
+	max-height: calc( 100% - 75px );
+	height: 100%;
 }
 
 .metabox-holder-disabled .postbox,
@@ -95,6 +116,102 @@ ul.add-menu-item-tabs li {
 
 .menu-edit #post-body-content h3 {
 	margin: 1em 0 10px;
+}
+
+#nav-menu-bulk-actions-top {
+	margin: 1em 0;
+}
+
+#nav-menu-bulk-actions-bottom {
+	margin: 1em 0;
+	margin: calc( 1em + 9px ) 0;
+}
+
+.bulk-actions input.button {
+	margin-right: 12px;
+}
+
+.bulk-select-button {
+	position: relative;
+	display: inline-block;
+	padding: 0 10px;
+	font-size: 13px;
+	line-height: 2.15384615;
+	height: auto;
+	min-height: 30px;
+	background: #f6f7f7;
+	vertical-align: top;
+	border: 1px solid #dcdcde;
+	margin: 0;
+	cursor: pointer;
+	border-radius: 3px;
+	white-space: nowrap;
+	box-sizing: border-box;
+}
+
+.bulk-selection .bulk-select-button {
+	color: #2271b1;
+	border-color: #2271b1;
+	background: #f6f7f7;
+	vertical-align: top;
+}
+
+#pending-menu-items-to-delete {
+	display: none;
+}
+
+.bulk-selection #pending-menu-items-to-delete {
+	display: block;
+	margin-top: 1em;
+}
+
+#pending-menu-items-to-delete p {
+	margin-bottom: 0;
+}
+
+#pending-menu-items-to-delete ul {
+	margin-top: 0;
+	list-style: none;
+}
+
+#pending-menu-items-to-delete ul li {
+	display: inline;
+}
+
+input.bulk-select-switcher + .bulk-select-button-label {
+	vertical-align: inherit;
+}
+
+label.bulk-select-button:hover,
+label.bulk-select-button:active,
+label.bulk-select-button:focus-within {
+	background: #f0f0f1;
+	border-color: #0a4b78;
+	color: #0a4b78;
+}
+
+input.bulk-select-switcher:focus + .bulk-select-button-label {
+	color: #0a4b78;
+}
+
+.bulk-actions input.menu-items-delete {
+	appearance: none;
+	font-size: inherit;
+	border: 0;
+	line-height: 2.1em;
+	background: none;
+	cursor: pointer;
+	text-decoration: underline;
+	color: #b32d2e;
+}
+
+.bulk-actions input.menu-items-delete:hover {
+	color: #b32d2e;
+	border: none;
+}
+
+.bulk-actions input.menu-items-delete.disabled {
+	display: none;
 }
 
 .menu-settings {
@@ -204,7 +321,7 @@ ul.add-menu-item-tabs li {
 
 #select-nav-menu-container {
 	text-align: right;
-	padding: 0 10px 3px 10px;
+	padding: 0 10px 3px;
 	margin-bottom: 5px;
 }
 
@@ -334,7 +451,7 @@ ul.add-menu-item-tabs li {
 }
 
 #manage-menu .inside {
-	padding: 0px 0px;
+	padding: 0;
 }
 
 /* Custom Links */
@@ -455,8 +572,8 @@ ul.add-menu-item-tabs li {
 }
 
 #menu-to-edit .menu-item-invalid .menu-item-handle {
-	background: #facfd2;
-	border-color: #ffabaf;
+	background: #fcf0f1;
+	border-color: #d63638;
 }
 
 .no-js .menu-item-edit-active .item-edit {
@@ -479,6 +596,15 @@ ul.add-menu-item-tabs li {
 	display: block;
 	/* @todo: responsive view. */
 	margin-right: 13em;
+}
+
+.menu-item-handle .menu-item-checkbox {
+	display: none;
+}
+
+.bulk-selection .menu-item-handle .menu-item-checkbox {
+	display: inline-block;
+	margin-right: 6px;
 }
 
 .menu-item-handle .menu-item-title.no-title {
@@ -506,7 +632,7 @@ li.menu-item.ui-sortable-helper .menu-item-transport .menu-item-bar {
 }
 
 /* WARNING: The factor of 30px is hardcoded into the nav-menus JavaScript. */
-.menu-item-depth-0 { margin-left: 0px; }
+.menu-item-depth-0 { margin-left: 0; }
 .menu-item-depth-1 { margin-left: 30px; }
 .menu-item-depth-2 { margin-left: 60px; }
 .menu-item-depth-3 { margin-left: 90px; }
@@ -519,7 +645,7 @@ li.menu-item.ui-sortable-helper .menu-item-transport .menu-item-bar {
 .menu-item-depth-10 { margin-left: 300px; }
 .menu-item-depth-11 { margin-left: 330px; }
 
-.menu-item-depth-0 .menu-item-transport { margin-left: 0px; }
+.menu-item-depth-0 .menu-item-transport { margin-left: 0; }
 .menu-item-depth-1 .menu-item-transport { margin-left: -30px; }
 .menu-item-depth-2 .menu-item-transport { margin-left: -60px; }
 .menu-item-depth-3 .menu-item-transport { margin-left: -90px; }
@@ -598,7 +724,6 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 
 .no-js.nav-menus-php .item-edit .screen-reader-text {
 	position: static;
-	-webkit-clip-path: none;
 	clip-path: none;
 	width: auto;
 	height: auto;
@@ -626,9 +751,9 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 }
 
 .nav-menus-php .item-edit:focus:before {
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: 0 0 0 2px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 /* Menu editing */
@@ -731,20 +856,13 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 
 /* Major/minor publishing actions (classes) */
 .nav-menus-php .major-publishing-actions {
-	clear: both;
 	padding: 10px 0;
-	line-height: 2.15384615;
+	display: flex;
+	align-items: center;
 }
 
-.nav-menus-php .major-publishing-actions .publishing-action {
-	text-align: right;
-	float: right;
-}
-
-/* Same as the Publish Meta Box #delete-action */
-.nav-menus-php .delete-action {
-	float: left;
-	line-height: 2.1;
+.nav-menus-php .major-publishing-actions > * {
+	margin-right: 10px;
 }
 
 .nav-menus-php .major-publishing-actions .form-invalid {
@@ -891,14 +1009,13 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 }
 
 @media only screen and (min-width: 783px) {
-    @supports ((position: -webkit-sticky) or (position: sticky)) and (scroll-margin-bottom: 130px) {
-		
+    @supports (position: sticky) and (scroll-margin-bottom: 130px) {
+
 		#nav-menu-footer {
-                position: -webkit-sticky;
                 position: sticky;
 				bottom: 0;
 				z-index: 10;
-				box-shadow: 0 -1px 0 0px #ddd;
+				box-shadow: 0 -1px 0 0 #ddd;
         }
 
         #save_menu_header {
@@ -911,5 +1028,9 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	/* menu locations */
 	#menu-locations-wrap .widefat {
 		width: 100%;
+	}
+
+	.bulk-select-button {
+		padding: 5px 10px;
 	}
 }

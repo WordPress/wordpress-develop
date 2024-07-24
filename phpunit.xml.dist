@@ -1,8 +1,15 @@
 <phpunit
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/9.2/phpunit.xsd"
 		bootstrap="tests/phpunit/includes/bootstrap.php"
 		backupGlobals="false"
 		colors="true"
 		beStrictAboutTestsThatDoNotTestAnything="true"
+		beStrictAboutOutputDuringTests="true"
+		convertErrorsToExceptions="true"
+		convertWarningsToExceptions="true"
+		convertNoticesToExceptions="true"
+		convertDeprecationsToExceptions="true"
 		>
 	<testsuites>
 		<!-- Default test suite to run all tests. -->
@@ -21,6 +28,7 @@
 			<group>ms-files</group>
 			<group>ms-required</group>
 			<group>external-http</group>
+			<group>html-api-html5lib-tests</group>
 		</exclude>
 	</groups>
 	<logging>
@@ -29,17 +37,6 @@
 	<php>
 		<const name="WP_RUN_CORE_TESTS" value="1" />
 	</php>
-	<listeners>
-		<listener class="SpeedTrapListener" file="tests/phpunit/includes/listener-loader.php">
-			<arguments>
-				<array>
-					<element key="slowThreshold">
-						<integer>150</integer>
-					</element>
-				</array>
-			</arguments>
-		</listener>
-	</listeners>
 	<filter>
 		<whitelist addUncoveredFilesFromWhitelist="true">
 			<directory suffix=".php">src</directory>
@@ -47,7 +44,6 @@
 				<!-- Third party library exclusions. -->
 				<directory suffix=".php">src/wp-includes/ID3</directory>
 				<directory suffix=".php">src/wp-includes/IXR</directory>
-				<directory suffix=".php">src/wp-includes/random_compat</directory>
 				<directory suffix=".php">src/wp-includes/PHPMailer</directory>
 				<directory suffix=".php">src/wp-includes/Requests</directory>
 				<directory suffix=".php">src/wp-includes/SimplePie</directory>

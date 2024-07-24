@@ -9,6 +9,8 @@ if (class_exists('ParagonIE_Sodium_Core_Util', false)) {
  */
 abstract class ParagonIE_Sodium_Core_Util
 {
+    const U32_MAX = 0xFFFFFFFF;
+
     /**
      * @param int $integer
      * @param int $size (16, 32, 64)
@@ -31,6 +33,28 @@ abstract class ParagonIE_Sodium_Core_Util
                 +
             (($negative >> $realSize) & 1)
         );
+    }
+
+    /**
+     * @param string $a
+     * @param string $b
+     * @return string
+     * @throws SodiumException
+     */
+    public static function andStrings($a, $b)
+    {
+        /* Type checks: */
+        if (!is_string($a)) {
+            throw new TypeError('Argument 1 must be a string');
+        }
+        if (!is_string($b)) {
+            throw new TypeError('Argument 2 must be a string');
+        }
+        $len = self::strlen($a);
+        if (self::strlen($b) !== $len) {
+            throw new SodiumException('Both strings must be of equal length to combine with bitwise AND');
+        }
+        return $a & $b;
     }
 
     /**
@@ -287,33 +311,48 @@ abstract class ParagonIE_Sodium_Core_Util
     }
 
     /**
+     * Catch hash_update() failures and throw instead of silently proceeding
+     *
+     * @param HashContext|resource &$hs
+     * @param string $data
+     * @return void
+     * @throws SodiumException
+     * @psalm-suppress PossiblyInvalidArgument
+     */
+    protected static function hash_update(&$hs, $data)
+    {
+        if (!hash_update($hs, $data)) {
+            throw new SodiumException('hash_update() failed');
+        }
+    }
+
+    /**
      * Convert a hexadecimal string into a binary string without cache-timing
      * leaks
      *
      * @internal You should not use this directly from another application
      *
      * @param string $hexString
+     * @param string $ignore
      * @param bool $strictPadding
      * @return string (raw binary)
      * @throws RangeException
      * @throws TypeError
      */
-    public static function hex2bin($hexString, $strictPadding = false)
+    public static function hex2bin($hexString, $ignore = '', $strictPadding = false)
     {
         /* Type checks: */
         if (!is_string($hexString)) {
             throw new TypeError('Argument 1 must be a string, ' . gettype($hexString) . ' given.');
         }
+        if (!is_string($ignore)) {
+            throw new TypeError('Argument 2 must be a string, ' . gettype($hexString) . ' given.');
+        }
 
-        /** @var int $hex_pos */
         $hex_pos = 0;
-        /** @var string $bin */
         $bin = '';
-        /** @var int $c_acc */
         $c_acc = 0;
-        /** @var int $hex_len */
         $hex_len = self::strlen($hexString);
-        /** @var int $state */
         $state = 0;
         if (($hex_len & 1) !== 0) {
             if ($strictPadding) {
@@ -331,20 +370,18 @@ abstract class ParagonIE_Sodium_Core_Util
             ++$hex_pos;
             /** @var int $c */
             $c = $chunk[$hex_pos];
-            /** @var int $c_num */
             $c_num = $c ^ 48;
-            /** @var int $c_num0 */
             $c_num0 = ($c_num - 10) >> 8;
-            /** @var int $c_alpha */
             $c_alpha = ($c & ~32) - 55;
-            /** @var int $c_alpha0 */
             $c_alpha0 = (($c_alpha - 10) ^ ($c_alpha - 16)) >> 8;
             if (($c_num0 | $c_alpha0) === 0) {
+                if ($ignore && $state === 0 && strpos($ignore, self::intToChr($c)) !== false) {
+                    continue;
+                }
                 throw new RangeException(
                     'hex2bin() only expects hexadecimal characters'
                 );
             }
-            /** @var int $c_val */
             $c_val = ($c_num0 & $c_num) | ($c_alpha & $c_alpha0);
             if ($state === 0) {
                 $c_acc = $c_val * 16;
@@ -366,7 +403,6 @@ abstract class ParagonIE_Sodium_Core_Util
      */
     public static function intArrayToString(array $ints)
     {
-        /** @var array<int, int> $args */
         $args = $ints;
         foreach ($args as $i => $v) {
             $args[$i] = (int) ($v & 0xff);
@@ -442,7 +478,7 @@ abstract class ParagonIE_Sodium_Core_Util
         }
         /** @var array<int, int> $unpacked */
         $unpacked = unpack('V', $string);
-        return (int) ($unpacked[1] & 0xffffffff);
+        return (int) $unpacked[1];
     }
 
     /**
@@ -570,6 +606,7 @@ abstract class ParagonIE_Sodium_Core_Util
             $a <<= 1;
             $b >>= 1;
         }
+        $c = (int) @($c & -1);
 
         /**
          * If $b was negative, we then apply the same value to $c here.
@@ -596,7 +633,11 @@ abstract class ParagonIE_Sodium_Core_Util
     {
         $high = 0;
         /** @var int $low */
-        $low = $num & 0xffffffff;
+        if (PHP_INT_SIZE === 4) {
+            $low = (int) $num;
+        } else {
+            $low = $num & 0xffffffff;
+        }
 
         if ((+(abs($num))) >= 1) {
             if ($num > 0) {
@@ -913,6 +954,10 @@ abstract class ParagonIE_Sodium_Core_Util
         static $mbstring = null;
 
         if ($mbstring === null) {
+            if (!defined('MB_OVERLOAD_STRING')) {
+                $mbstring = false;
+                return $mbstring;
+            }
             $mbstring = extension_loaded('mbstring')
                 && defined('MB_OVERLOAD_STRING')
                 &&

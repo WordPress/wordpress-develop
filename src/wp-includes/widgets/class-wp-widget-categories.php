@@ -26,6 +26,7 @@ class WP_Widget_Categories extends WP_Widget {
 			'classname'                   => 'widget_categories',
 			'description'                 => __( 'A list or dropdown of categories.' ),
 			'customize_selective_refresh' => true,
+			'show_instance_in_rest'       => true,
 		);
 		parent::__construct( 'categories', __( 'Categories' ), $widget_ops );
 	}
@@ -91,11 +92,10 @@ class WP_Widget_Categories extends WP_Widget {
 
 			echo '</form>';
 
-			$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
+			ob_start();
 			?>
 
-<script<?php echo $type_attr; ?>>
-/* <![CDATA[ */
+<script>
 (function() {
 	var dropdown = document.getElementById( "<?php echo esc_js( $dropdown_id ); ?>" );
 	function onCatChange() {
@@ -105,10 +105,10 @@ class WP_Widget_Categories extends WP_Widget {
 	}
 	dropdown.onchange = onCatChange;
 })();
-/* ]]> */
 </script>
 
 			<?php
+			wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 		} else {
 			$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
 
@@ -119,7 +119,7 @@ class WP_Widget_Categories extends WP_Widget {
 				// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
 				$title      = trim( strip_tags( $title ) );
 				$aria_label = $title ? $title : $default_title;
-				echo '<nav role="navigation" aria-label="' . esc_attr( $aria_label ) . '">';
+				echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
 			}
 			?>
 
@@ -202,5 +202,4 @@ class WP_Widget_Categories extends WP_Widget {
 		</p>
 		<?php
 	}
-
 }

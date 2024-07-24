@@ -25,8 +25,13 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
      * @throws SodiumException
      * @throws TypeError
      */
-    public static function box($inputFile, $outputFile, $nonce, $keyPair)
-    {
+    public static function box(
+        $inputFile,
+        $outputFile,
+        $nonce,
+        #[\SensitiveParameter]
+        $keyPair
+    ) {
         /* Type checks: */
         if (!is_string($inputFile)) {
             throw new TypeError('Argument 1 must be a string, ' . gettype($inputFile) . ' given.');
@@ -91,8 +96,13 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
      * @throws SodiumException
      * @throws TypeError
      */
-    public static function box_open($inputFile, $outputFile, $nonce, $keypair)
-    {
+    public static function box_open(
+        $inputFile,
+        $outputFile,
+        $nonce,
+        #[\SensitiveParameter]
+        $keypair
+    ) {
         /* Type checks: */
         if (!is_string($inputFile)) {
             throw new TypeError('Argument 1 must be a string, ' . gettype($inputFile) . ' given.');
@@ -161,8 +171,12 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
      * @throws SodiumException
      * @throws TypeError
      */
-    public static function box_seal($inputFile, $outputFile, $publicKey)
-    {
+    public static function box_seal(
+        $inputFile,
+        $outputFile,
+        #[\SensitiveParameter]
+        $publicKey
+    ) {
         /* Type checks: */
         if (!is_string($inputFile)) {
             throw new TypeError('Argument 1 must be a string, ' . gettype($inputFile) . ' given.');
@@ -265,8 +279,12 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
      * @throws SodiumException
      * @throws TypeError
      */
-    public static function box_seal_open($inputFile, $outputFile, $ecdhKeypair)
-    {
+    public static function box_seal_open(
+        $inputFile,
+        $outputFile,
+        #[\SensitiveParameter]
+        $ecdhKeypair
+    ) {
         /* Type checks: */
         if (!is_string($inputFile)) {
             throw new TypeError('Argument 1 must be a string, ' . gettype($inputFile) . ' given.');
@@ -350,8 +368,12 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
      * @throws TypeError
      * @psalm-suppress FailedTypeResolution
      */
-    public static function generichash($filePath, $key = '', $outputLength = 32)
-    {
+    public static function generichash(
+        $filePath,
+        #[\SensitiveParameter]
+        $key = '',
+        $outputLength = 32
+    ) {
         /* Type checks: */
         if (!is_string($filePath)) {
             throw new TypeError('Argument 1 must be a string, ' . gettype($filePath) . ' given.');
@@ -428,8 +450,13 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
      * @throws SodiumException
      * @throws TypeError
      */
-    public static function secretbox($inputFile, $outputFile, $nonce, $key)
-    {
+    public static function secretbox(
+        $inputFile,
+        $outputFile,
+        $nonce,
+        #[\SensitiveParameter]
+        $key
+    ) {
         /* Type checks: */
         if (!is_string($inputFile)) {
             throw new TypeError('Argument 1 must be a string, ' . gettype($inputFile) . ' given..');
@@ -493,8 +520,13 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
      * @throws SodiumException
      * @throws TypeError
      */
-    public static function secretbox_open($inputFile, $outputFile, $nonce, $key)
-    {
+    public static function secretbox_open(
+        $inputFile,
+        $outputFile,
+        $nonce,
+        #[\SensitiveParameter]
+        $key
+    ) {
         /* Type checks: */
         if (!is_string($inputFile)) {
             throw new TypeError('Argument 1 must be a string, ' . gettype($inputFile) . ' given.');
@@ -560,8 +592,11 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
      * @throws SodiumException
      * @throws TypeError
      */
-    public static function sign($filePath, $secretKey)
-    {
+    public static function sign(
+        $filePath,
+        #[\SensitiveParameter]
+        $secretKey
+    ) {
         /* Type checks: */
         if (!is_string($filePath)) {
             throw new TypeError('Argument 1 must be a string, ' . gettype($filePath) . ' given.');
@@ -597,7 +632,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         $az[31] = self::intToChr((self::chrToInt($az[31]) & 63) | 64);
 
         $hs = hash_init('sha512');
-        hash_update($hs, self::substr($az, 32, 32));
+        self::hash_update($hs, self::substr($az, 32, 32));
         /** @var resource $hs */
         $hs = self::updateHashWithFile($hs, $fp, $size);
 
@@ -616,8 +651,8 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         );
 
         $hs = hash_init('sha512');
-        hash_update($hs, self::substr($sig, 0, 32));
-        hash_update($hs, self::substr($pk, 0, 32));
+        self::hash_update($hs, self::substr($sig, 0, 32));
+        self::hash_update($hs, self::substr($pk, 0, 32));
         /** @var resource $hs */
         $hs = self::updateHashWithFile($hs, $fp, $size);
 
@@ -656,8 +691,11 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
      * @throws TypeError
      * @throws Exception
      */
-    public static function verify($sig, $filePath, $publicKey)
-    {
+    public static function verify(
+        $sig,
+        $filePath,
+        $publicKey
+    ) {
         /* Type checks: */
         if (!is_string($sig)) {
             throw new TypeError('Argument 1 must be a string, ' . gettype($sig) . ' given.');
@@ -728,8 +766,8 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         $A = ParagonIE_Sodium_Core_Ed25519::ge_frombytes_negate_vartime($publicKey);
 
         $hs = hash_init('sha512');
-        hash_update($hs, self::substr($sig, 0, 32));
-        hash_update($hs, self::substr($publicKey, 0, 32));
+        self::hash_update($hs, self::substr($sig, 0, 32));
+        self::hash_update($hs, self::substr($publicKey, 0, 32));
         /** @var resource $hs */
         $hs = self::updateHashWithFile($hs, $fp, $size);
         /** @var string $hDigest */
@@ -1083,7 +1121,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
      * Update a hash context with the contents of a file, without
      * loading the entire file into memory.
      *
-     * @param resource|object $hash
+     * @param resource|HashContext $hash
      * @param resource $fp
      * @param int $size
      * @return resource|object Resource on PHP < 7.2, HashContext object on PHP >= 7.2
@@ -1133,7 +1171,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
             }
             /** @var string $message */
             /** @psalm-suppress InvalidArgument */
-            hash_update($hash, $message);
+            self::hash_update($hash, $message);
         }
         // Reset file pointer's position
         fseek($fp, $originalPosition, SEEK_SET);
@@ -1154,19 +1192,15 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
      */
     private static function sign_core32($filePath, $secretKey)
     {
-        /** @var int|bool $size */
         $size = filesize($filePath);
         if (!is_int($size)) {
             throw new SodiumException('Could not obtain the file size');
         }
-        /** @var int $size */
 
-        /** @var resource|bool $fp */
         $fp = fopen($filePath, 'rb');
         if (!is_resource($fp)) {
             throw new SodiumException('Could not open input file for reading');
         }
-        /** @var resource $fp */
 
         /** @var string $az */
         $az = hash('sha512', self::substr($secretKey, 0, 32), true);
@@ -1175,37 +1209,27 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         $az[31] = self::intToChr((self::chrToInt($az[31]) & 63) | 64);
 
         $hs = hash_init('sha512');
-        hash_update($hs, self::substr($az, 32, 32));
+        self::hash_update($hs, self::substr($az, 32, 32));
         /** @var resource $hs */
         $hs = self::updateHashWithFile($hs, $fp, $size);
 
-        /** @var string $nonceHash */
         $nonceHash = hash_final($hs, true);
-
-        /** @var string $pk */
         $pk = self::substr($secretKey, 32, 32);
-
-        /** @var string $nonce */
         $nonce = ParagonIE_Sodium_Core32_Ed25519::sc_reduce($nonceHash) . self::substr($nonceHash, 32);
-
-        /** @var string $sig */
         $sig = ParagonIE_Sodium_Core32_Ed25519::ge_p3_tobytes(
             ParagonIE_Sodium_Core32_Ed25519::ge_scalarmult_base($nonce)
         );
 
         $hs = hash_init('sha512');
-        hash_update($hs, self::substr($sig, 0, 32));
-        hash_update($hs, self::substr($pk, 0, 32));
+        self::hash_update($hs, self::substr($sig, 0, 32));
+        self::hash_update($hs, self::substr($pk, 0, 32));
         /** @var resource $hs */
         $hs = self::updateHashWithFile($hs, $fp, $size);
 
-        /** @var string $hramHash */
         $hramHash = hash_final($hs, true);
 
-        /** @var string $hram */
         $hram = ParagonIE_Sodium_Core32_Ed25519::sc_reduce($hramHash);
 
-        /** @var string $sigAfter */
         $sigAfter = ParagonIE_Sodium_Core32_Ed25519::sc_muladd($hram, $az, $nonce);
 
         /** @var string $sig */
@@ -1243,6 +1267,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         if (ParagonIE_Sodium_Core32_Ed25519::small_order($sig)) {
             throw new SodiumException('Signature is on too small of an order');
         }
+
         if ((self::chrToInt($sig[63]) & 224) !== 0) {
             throw new SodiumException('Invalid signature');
         }
@@ -1278,8 +1303,8 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         $A = ParagonIE_Sodium_Core32_Ed25519::ge_frombytes_negate_vartime($publicKey);
 
         $hs = hash_init('sha512');
-        hash_update($hs, self::substr($sig, 0, 32));
-        hash_update($hs, self::substr($publicKey, 0, 32));
+        self::hash_update($hs, self::substr($sig, 0, 32));
+        self::hash_update($hs, self::substr($publicKey, 0, 32));
         /** @var resource $hs */
         $hs = self::updateHashWithFile($hs, $fp, $size);
         /** @var string $hDigest */
@@ -1527,12 +1552,6 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
         /** @var int $pos */
         $pos = self::ftell($ifp);
 
-        /** @var int $iter */
-        $iter = 1;
-
-        /** @var int $incr */
-        $incr = self::BUFFER_SIZE >> 6;
-
         while ($mlen > 0) {
             $blockSize = $mlen > self::BUFFER_SIZE
                 ? self::BUFFER_SIZE
@@ -1543,7 +1562,6 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
             }
             $state->update($ciphertext);
             $mlen -= $blockSize;
-            $iter += $incr;
         }
         $res = ParagonIE_Sodium_Core32_Util::verify_16($tag, $state->finish());
 

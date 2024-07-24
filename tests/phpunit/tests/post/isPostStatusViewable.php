@@ -10,7 +10,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 	 *
 	 * @global $wp_post_statuses
 	 */
-	static function wpTearDownAfterClass() {
+	public static function wpTearDownAfterClass() {
 		global $wp_post_statuses;
 		unset( $wp_post_statuses['wp_tests_ps'] );
 	}
@@ -48,7 +48,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 	 */
 	public function data_custom_post_statuses() {
 		return array(
-			// 0. False for non-publically queryable types.
+			// 0. False for non-publicly queryable types.
 			array(
 				array(
 					'publicly_queryable' => false,
@@ -57,7 +57,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				false,
 			),
-			// 1. True for publically queryable types.
+			// 1. True for publicly queryable types.
 			array(
 				array(
 					'publicly_queryable' => true,
@@ -105,7 +105,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 	 * @param mixed $status   Post status to check.
 	 * @param bool  $expected Expected viewable status.
 	 */
-	function test_built_unregistered_in_status_types( $status, $expected ) {
+	public function test_built_unregistered_in_status_types( $status, $expected ) {
 		// Test status passed as string.
 		$this->assertSame( $expected, is_post_status_viewable( $status ) );
 		// Test status passed as object.

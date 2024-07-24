@@ -2,6 +2,8 @@
 
 /**
  * @group comment
+ *
+ * @covers ::get_comment_reply_link
  */
 class Tests_Comment_GetCommentReplyLink extends WP_UnitTestCase {
 	/**
@@ -64,7 +66,7 @@ class Tests_Comment_GetCommentReplyLink extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( $expected_url, $comment_reply_link );
+		$this->assertStringContainsString( $expected_url, $comment_reply_link );
 	}
 
 	/**
@@ -85,5 +87,4 @@ class Tests_Comment_GetCommentReplyLink extends WP_UnitTestCase {
 
 		$this->assertNull( $actual );
 	}
-
 }

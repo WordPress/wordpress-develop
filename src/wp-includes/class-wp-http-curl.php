@@ -15,7 +15,10 @@
  * Requires the Curl extension to be installed.
  *
  * @since 2.7.0
+ * @deprecated 6.4.0 Use WP_Http
+ * @see WP_Http
  */
+#[AllowDynamicProperties]
 class WP_Http_Curl {
 
 	/**
@@ -77,6 +80,9 @@ class WP_Http_Curl {
 			'headers'     => array(),
 			'body'        => null,
 			'cookies'     => array(),
+			'decompress'  => false,
+			'stream'      => false,
+			'filename'    => null,
 		);
 
 		$parsed_args = wp_parse_args( $args, $defaults );
@@ -115,7 +121,7 @@ class WP_Http_Curl {
 			/** This filter is documented in wp-includes/class-wp-http-streams.php */
 			$ssl_verify = apply_filters( 'https_local_ssl_verify', $ssl_verify, $url );
 		} elseif ( ! $is_local ) {
-			/** This filter is documented in wp-includes/class-http.php */
+			/** This filter is documented in wp-includes/class-wp-http.php */
 			$ssl_verify = apply_filters( 'https_ssl_verify', $ssl_verify, $url );
 		}
 
@@ -256,8 +262,9 @@ class WP_Http_Curl {
 		}
 
 		curl_exec( $handle );
-		$theHeaders          = WP_Http::processHeaders( $this->headers, $url );
-		$theBody             = $this->body;
+
+		$processed_headers   = WP_Http::processHeaders( $this->headers, $url );
+		$body                = $this->body;
 		$bytes_written_total = $this->bytes_written_total;
 
 		$this->headers             = '';
@@ -267,9 +274,9 @@ class WP_Http_Curl {
 		$curl_error = curl_errno( $handle );
 
 		// If an error occurred, or, no response.
-		if ( $curl_error || ( 0 == strlen( $theBody ) && empty( $theHeaders['headers'] ) ) ) {
-			if ( CURLE_WRITE_ERROR /* 23 */ == $curl_error ) {
-				if ( ! $this->max_body_length || $this->max_body_length != $bytes_written_total ) {
+		if ( $curl_error || ( 0 === strlen( $body ) && empty( $processed_headers['headers'] ) ) ) {
+			if ( CURLE_WRITE_ERROR /* 23 */ === $curl_error ) {
+				if ( ! $this->max_body_length || $this->max_body_length !== $bytes_written_total ) {
 					if ( $parsed_args['stream'] ) {
 						curl_close( $handle );
 						fclose( $this->stream_handle );
@@ -299,24 +306,26 @@ class WP_Http_Curl {
 		}
 
 		$response = array(
-			'headers'  => $theHeaders['headers'],
+			'headers'  => $processed_headers['headers'],
 			'body'     => null,
-			'response' => $theHeaders['response'],
-			'cookies'  => $theHeaders['cookies'],
+			'response' => $processed_headers['response'],
+			'cookies'  => $processed_headers['cookies'],
 			'filename' => $parsed_args['filename'],
 		);
 
 		// Handle redirects.
-		$redirect_response = WP_HTTP::handle_redirects( $url, $parsed_args, $response );
+		$redirect_response = WP_Http::handle_redirects( $url, $parsed_args, $response );
 		if ( false !== $redirect_response ) {
 			return $redirect_response;
 		}
 
-		if ( true === $parsed_args['decompress'] && true === WP_Http_Encoding::should_decode( $theHeaders['headers'] ) ) {
-			$theBody = WP_Http_Encoding::decompress( $theBody );
+		if ( true === $parsed_args['decompress']
+			&& true === WP_Http_Encoding::should_decode( $processed_headers['headers'] )
+		) {
+			$body = WP_Http_Encoding::decompress( $body );
 		}
 
-		$response['body'] = $theBody;
+		$response['body'] = $body;
 
 		return $response;
 	}
@@ -324,8 +333,8 @@ class WP_Http_Curl {
 	/**
 	 * Grabs the headers of the cURL request.
 	 *
-	 * Each header is sent individually to this callback, so we append to the `$header` property
-	 * for temporary storage
+	 * Each header is sent individually to this callback, and is appended to the `$header` property
+	 * for temporary storage.
 	 *
 	 * @since 3.2.0
 	 *
@@ -341,14 +350,14 @@ class WP_Http_Curl {
 	/**
 	 * Grabs the body of the cURL request.
 	 *
-	 * The contents of the document are passed in chunks, so we append to the `$body`
+	 * The contents of the document are passed in chunks, and are appended to the `$body`
 	 * property for temporary storage. Returning a length shorter than the length of
 	 * `$data` passed in will cause cURL to abort the request with `CURLE_WRITE_ERROR`.
 	 *
 	 * @since 3.6.0
 	 *
-	 * @param resource $handle  cURL handle.
-	 * @param string   $data    cURL request body.
+	 * @param resource $handle cURL handle.
+	 * @param string   $data   cURL request body.
 	 * @return int Total bytes of data written.
 	 */
 	private function stream_body( $handle, $data ) {

@@ -135,21 +135,26 @@ window.wp = window.wp || {};
 	 * @global
 	 */
 	window.WPRemoveThumbnail = function(nonce){
-		$.post(ajaxurl, {
-			action: 'set-post-thumbnail', post_id: $( '#post_ID' ).val(), thumbnail_id: -1, _ajax_nonce: nonce, cookie: encodeURIComponent( document.cookie )
-		},
+		$.post(
+			ajaxurl, {
+				action: 'set-post-thumbnail',
+				post_id: $( '#post_ID' ).val(),
+				thumbnail_id: -1,
+				_ajax_nonce: nonce,
+				cookie: encodeURIComponent( document.cookie )
+			},
 			/**
 			 * Handle server response
 			 *
 			 * @param {string} str Response, will be '0' when an error occurred otherwise contains link to add Featured Image.
 			 */
 			function(str){
-			if ( str == '0' ) {
-				alert( __( 'Could not set that as the thumbnail image. Try a different attachment.' ) );
-			} else {
-				WPSetThumbnailHTML(str);
+				if ( str == '0' ) {
+					alert( __( 'Could not set that as the thumbnail image. Try a different attachment.' ) );
+				} else {
+					WPSetThumbnailHTML(str);
+				}
 			}
-		}
 		);
 	};
 
@@ -207,7 +212,9 @@ window.wp = window.wp || {};
 							height: 64,
 							alt: '',
 							src: received.lock_error.avatar_src,
-							srcset: received.lock_error.avatar_src_2x ? received.lock_error.avatar_src_2x + ' 2x' : undefined
+							srcset: received.lock_error.avatar_src_2x ?
+								received.lock_error.avatar_src_2x + ' 2x' :
+								undefined
 						} );
 						wrap.find('div.post-locked-avatar').empty().append( avatar );
 					}
@@ -504,7 +511,7 @@ jQuery( function($) {
 			// See https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event.
 			return __( 'The changes you made will be lost if you navigate away from this page.' );
 		}
-	}).on( 'unload.edit-post', function( event ) {
+	}).on( 'pagehide.edit-post', function( event ) {
 		if ( ! releaseLock ) {
 			return;
 		}
@@ -666,11 +673,15 @@ jQuery( function($) {
 		});
 
 		// Sync checked items between "All {taxonomy}" and "Most used" lists.
-		$('#' + taxonomy + 'checklist, #' + taxonomy + 'checklist-pop').on( 'click', 'li.popular-category > label input[type="checkbox"]', function() {
-			var t = $(this), c = t.is(':checked'), id = t.val();
-			if ( id && t.parents('#taxonomy-'+taxonomy).length )
-				$('#in-' + taxonomy + '-' + id + ', #in-popular-' + taxonomy + '-' + id).prop( 'checked', c );
-		});
+		$('#' + taxonomy + 'checklist, #' + taxonomy + 'checklist-pop').on(
+			'click',
+			'li.popular-category > label input[type="checkbox"]',
+			function() {
+				var t = $(this), c = t.is(':checked'), id = t.val();
+				if ( id && t.parents('#taxonomy-'+taxonomy).length )
+					$('#in-' + taxonomy + '-' + id + ', #in-popular-' + taxonomy + '-' + id).prop( 'checked', c );
+			}
+		);
 
 	}); // End cats.
 
@@ -749,11 +760,28 @@ jQuery( function($) {
 				mm = $('#mm').val(), jj = $('#jj').val(), hh = $('#hh').val(), mn = $('#mn').val();
 
 			attemptedDate = new Date( aa, mm - 1, jj, hh, mn );
-			originalDate = new Date( $('#hidden_aa').val(), $('#hidden_mm').val() -1, $('#hidden_jj').val(), $('#hidden_hh').val(), $('#hidden_mn').val() );
-			currentDate = new Date( $('#cur_aa').val(), $('#cur_mm').val() -1, $('#cur_jj').val(), $('#cur_hh').val(), $('#cur_mn').val() );
+			originalDate = new Date(
+				$('#hidden_aa').val(),
+				$('#hidden_mm').val() -1,
+				$('#hidden_jj').val(),
+				$('#hidden_hh').val(),
+				$('#hidden_mn').val()
+			);
+			currentDate = new Date(
+				$('#cur_aa').val(),
+				$('#cur_mm').val() -1,
+				$('#cur_jj').val(),
+				$('#cur_hh').val(),
+				$('#cur_mn').val()
+			);
 
 			// Catch unexpected date problems.
-			if ( attemptedDate.getFullYear() != aa || (1 + attemptedDate.getMonth()) != mm || attemptedDate.getDate() != jj || attemptedDate.getMinutes() != mn ) {
+			if (
+				attemptedDate.getFullYear() != aa ||
+				(1 + attemptedDate.getMonth()) != mm ||
+				attemptedDate.getDate() != jj ||
+				attemptedDate.getMinutes() != mn
+			) {
 				$timestampdiv.find('.timestamp-wrap').addClass('form-invalid');
 				return false;
 			} else {
@@ -761,7 +789,7 @@ jQuery( function($) {
 			}
 
 			// Determine what the publish should be depending on the date and post status.
-			if ( attemptedDate > currentDate && $('#original_post_status').val() != 'future' ) {
+			if ( attemptedDate > currentDate ) {
 				publishOn = __( 'Schedule for:' );
 				$('#publish').val( _x( 'Schedule', 'post action/button label' ) );
 			} else if ( attemptedDate <= currentDate && $('#original_post_status').val() != 'publish' ) {
@@ -820,7 +848,10 @@ jQuery( function($) {
 			);
 
 			// Show or hide the "Save Draft" button.
-			if ( $('option:selected', postStatus).val() == 'private' || $('option:selected', postStatus).val() == 'publish' ) {
+			if (
+				$('option:selected', postStatus).val() == 'private' ||
+				$('option:selected', postStatus).val() == 'publish'
+			) {
 				$('#save-post').hide();
 			} else {
 				$('#save-post').show();
@@ -858,7 +889,7 @@ jQuery( function($) {
 		});
 
 		// Set the selected visibility as current.
-		$postVisibilitySelect.find('.save-post-visibility').on( 'click', function( event ) { // Crazyhorse - multiple OK cancels.
+		$postVisibilitySelect.find('.save-post-visibility').on( 'click', function( event ) { // Crazyhorse branch - multiple OK cancels.
 			var visibilityLabel = '', selectedVisibility = $postVisibilitySelect.find('input:radio:checked').val();
 
 			$postVisibilitySelect.slideUp('fast');
@@ -914,7 +945,7 @@ jQuery( function($) {
 		});
 
 		// Save the changed timestamp.
-		$timestampdiv.find('.save-timestamp').on( 'click', function( event ) { // Crazyhorse - multiple OK cancels.
+		$timestampdiv.find('.save-timestamp').on( 'click', function( event ) { // Crazyhorse branch - multiple OK cancels.
 			if ( updateText() ) {
 				$timestampdiv.slideUp('fast');
 				$timestampdiv.siblings('a.edit-timestamp').show().trigger( 'focus' );
@@ -972,7 +1003,7 @@ jQuery( function($) {
 	 * @return {void}
 	 */
 	function editPermalink() {
-		var i, slug_value,
+		var i, slug_value, slug_label,
 			$el, revert_e,
 			c = 0,
 			real_slug = $('#post_name'),
@@ -994,7 +1025,10 @@ jQuery( function($) {
 		$el = $( '#editable-post-name' );
 		revert_e = $el.html();
 
-		buttons.html( '<button type="button" class="save button button-small">' + __( 'OK' ) + '</button> <button type="button" class="cancel button-link">' + __( 'Cancel' ) + '</button>' );
+		buttons.html(
+			'<button type="button" class="save button button-small">' + __( 'OK' ) + '</button> ' +
+			'<button type="button" class="cancel button-link">' + __( 'Cancel' ) + '</button>'
+		);
 
 		// Save permalink changes.
 		buttons.children( '.save' ).on( 'click', function() {
@@ -1048,8 +1082,12 @@ jQuery( function($) {
 				c++;
 		}
 		slug_value = ( c > full.length / 4 ) ? '' : full;
+		slug_label = __( 'URL Slug' );
 
-		$el.html( '<input type="text" id="new-post-slug" value="' + slug_value + '" autocomplete="off" />' ).children( 'input' ).on( 'keydown', function( e ) {
+		$el.html(
+			'<label for="new-post-slug" class="screen-reader-text">' + slug_label + '</label>' +
+			'<input type="text" id="new-post-slug" value="' + slug_value + '" autocomplete="off" spellcheck="false" />'
+		).children( 'input' ).on( 'keydown', function( e ) {
 			var key = e.which;
 			// On [Enter], just save the new slug, don't save the post.
 			if ( 13 === key ) {
@@ -1135,7 +1173,7 @@ jQuery( function($) {
 		}
 
 		/**
-		 * When the dragging stopped make sure we return focus and do a sanity check on the height.
+		 * When the dragging stopped make sure we return focus and do a confidence check on the height.
 		 */
 		function endDrag() {
 			var height, toolbarHeight;
@@ -1160,7 +1198,7 @@ jQuery( function($) {
 
 			$document.off( '.wp-editor-resize' );
 
-			// Sanity check: normalize height to stay within acceptable ranges.
+			// Confidence check: normalize height to stay within acceptable ranges.
 			if ( height && height > 50 && height < 5000 ) {
 				setUserSetting( 'ed_size', height );
 			}
@@ -1223,7 +1261,12 @@ jQuery( function($) {
 	$textarea.on( 'keydown.wp-autosave', function( event ) {
 		// Key [S] has code 83.
 		if ( event.which === 83 ) {
-			if ( event.shiftKey || event.altKey || ( isMac && ( ! event.metaKey || event.ctrlKey ) ) || ( ! isMac && ! event.ctrlKey ) ) {
+			if (
+				event.shiftKey ||
+				event.altKey ||
+				( isMac && ( ! event.metaKey || event.ctrlKey ) ) ||
+				( ! isMac && ! event.ctrlKey )
+			) {
 				return;
 			}
 
@@ -1260,8 +1303,6 @@ jQuery( function($) {
 
 		// Clear the selection and move focus back to the trigger.
 		event.clearSelection();
-		// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
-		triggerElement.trigger( 'focus' );
 
 		// Show success visual feedback.
 		clearTimeout( copyAttachmentURLSuccessTimeout );

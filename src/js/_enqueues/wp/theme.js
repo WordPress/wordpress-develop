@@ -96,7 +96,7 @@ themes.view.Appearance = wp.Backbone.View.extend({
 	},
 
 	// Defines search element container.
-	searchContainer: $( '.search-form' ),
+	searchContainer: $( '.search-form .search-box' ),
 
 	// Search input and view
 	// for current theme collection.
@@ -118,7 +118,7 @@ themes.view.Appearance = wp.Backbone.View.extend({
 		// Render and append after screen title.
 		view.render();
 		this.searchContainer
-			.append( $.parseHTML( '<label class="screen-reader-text" for="wp-filter-search-input">' + l10n.search + '</label>' ) )
+			.append( $.parseHTML( '<label for="wp-filter-search-input">' + l10n.search + '</label>' ) )
 			.append( view.el )
 			.on( 'submit', function( event ) {
 				event.preventDefault();
@@ -404,11 +404,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 		var data = this.model.toJSON();
 
 		// Render themes using the html template.
-		this.$el.html( this.html( data ) ).attr({
-			tabindex: 0,
-			'aria-describedby' : data.id + '-action ' + data.id + '-name',
-			'data-slug': data.id
-		});
+		this.$el.html( this.html( data ) ).attr( 'data-slug', data.id );
 
 		// Renders active theme styles.
 		this.activeTheme();
@@ -626,6 +622,9 @@ themes.view.Theme = wp.Backbone.View.extend({
 			if ( _this.model.get( 'id' ) === response.slug ) {
 				_this.model.set( { 'installed': true } );
 			}
+			if ( response.blockTheme ) {
+				_this.model.set( { 'block_theme': true } );
+			}
 		} );
 
 		wp.updates.installTheme( {
@@ -764,7 +763,7 @@ themes.view.Details = wp.Backbone.View.extend({
 
 				// Return focus to the theme div.
 				if ( themes.focusedTheme ) {
-					themes.focusedTheme.trigger( 'focus' );
+					themes.focusedTheme.find('.more-details').trigger( 'focus' );
 				}
 			});
 		}
@@ -927,7 +926,7 @@ themes.view.Preview = themes.view.Details.extend({
 
 		currentPreviewDevice = this.$el.data( 'current-preview-device' );
 		if ( currentPreviewDevice ) {
-			self.tooglePreviewDeviceButtons( currentPreviewDevice );
+			self.togglePreviewDeviceButtons( currentPreviewDevice );
 		}
 
 		themes.router.navigate( themes.router.baseUrl( themes.router.themePath + this.model.get( 'id' ) ), { replace: false } );
@@ -952,7 +951,7 @@ themes.view.Preview = themes.view.Details.extend({
 
 			// Return focus to the theme div.
 			if ( themes.focusedTheme ) {
-				themes.focusedTheme.trigger( 'focus' );
+				themes.focusedTheme.find('.more-details').trigger( 'focus' );
 			}
 		}).removeClass( 'iframe-ready' );
 
@@ -989,10 +988,10 @@ themes.view.Preview = themes.view.Details.extend({
 			.addClass( 'preview-' + device )
 			.data( 'current-preview-device', device );
 
-		this.tooglePreviewDeviceButtons( device );
+		this.togglePreviewDeviceButtons( device );
 	},
 
-	tooglePreviewDeviceButtons: function( newDevice ) {
+	togglePreviewDeviceButtons: function( newDevice ) {
 		var $devices = $( '.wp-full-overlay-footer .devices' );
 
 		$devices.find( 'button' )
@@ -1301,7 +1300,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 		// Find the next model within the collection.
 		nextModel = self.collection.at( self.collection.indexOf( model ) + 1 );
 
-		// Sanity check which also serves as a boundary test.
+		// Confidence check which also serves as a boundary test.
 		if ( nextModel !== undefined ) {
 
 			// We have a new theme...
@@ -1360,7 +1359,6 @@ themes.view.Search = wp.Backbone.View.extend({
 	searching: false,
 
 	attributes: {
-		placeholder: l10n.searchPlaceholder,
 		type: 'search',
 		'aria-describedby': 'live-search-desc'
 	},
@@ -1695,7 +1693,13 @@ themes.view.Installer = themes.view.Appearance.extend({
 	browse: function( section ) {
 		// Create a new collection with the proper theme data
 		// for each section.
-		this.collection.query( { browse: section } );
+		if ( 'block-themes' === section ) {
+			// Get the themes by sending Ajax POST request to api.wordpress.org/themes
+			// or searching the local cache.
+			this.collection.query( { tag: 'full-site-editing' } );
+		} else {
+			this.collection.query( { browse: section } );
+		}
 	},
 
 	// Sorting navigation.
@@ -1965,7 +1969,7 @@ themes.RunInstaller = {
 		// Set up the view.
 		// Passes the default 'section' as an option.
 		this.view = new themes.view.Installer({
-			section: 'featured',
+			section: 'popular',
 			SearchView: themes.view.InstallerSearch
 		});
 
@@ -2032,12 +2036,12 @@ themes.RunInstaller = {
 		/*
 		 * Handles sorting / browsing routes.
 		 * Also handles the root URL triggering a sort request
-		 * for `featured`, the default view.
+		 * for `popular`, the default view.
 		 */
 		themes.router.on( 'route:sort', function( sort ) {
 			if ( ! sort ) {
-				sort = 'featured';
-				themes.router.navigate( themes.router.baseUrl( '?browse=featured' ), { replace: true } );
+				sort = 'popular';
+				themes.router.navigate( themes.router.baseUrl( '?browse=popular' ), { replace: true } );
 			}
 			self.view.sort( sort );
 

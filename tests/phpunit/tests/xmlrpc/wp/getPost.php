@@ -9,16 +9,16 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 	public $post_date_ts;
 	public $post_custom_field;
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->post_date_ts            = strtotime( '+1 day' );
 		$this->post_data               = array(
-			'post_title'   => rand_str(),
-			'post_content' => rand_str( 2000 ),
-			'post_excerpt' => rand_str( 100 ),
+			'post_title'   => 'Post Title',
+			'post_content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+			'post_excerpt' => 'Post Excerpt',
 			'post_author'  => $this->make_user_by_role( 'author' ),
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $this->post_date_ts ),
+			'post_date'    => date_format( date_create( "@{$this->post_date_ts}" ), 'Y-m-d H:i:s' ),
 		);
 		$this->post_id                 = wp_insert_post( $this->post_data );
 		$this->post_custom_field       = array(
@@ -28,13 +28,13 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->post_custom_field['id'] = add_post_meta( $this->post_id, $this->post_custom_field['key'], $this->post_custom_field['value'] );
 	}
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'username', 'password', 1 ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
 
-	function test_valid_post() {
+	public function test_valid_post() {
 		add_theme_support( 'post-thumbnails' );
 
 		$fields = array( 'post', 'custom_fields' );
@@ -42,26 +42,26 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		// Check data types.
-		$this->assertInternalType( 'string', $result['post_id'] );
-		$this->assertInternalType( 'string', $result['post_title'] );
+		$this->assertIsString( $result['post_id'] );
+		$this->assertIsString( $result['post_title'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['post_date'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['post_date_gmt'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['post_modified'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['post_modified_gmt'] );
-		$this->assertInternalType( 'string', $result['post_status'] );
-		$this->assertInternalType( 'string', $result['post_type'] );
-		$this->assertInternalType( 'string', $result['post_name'] );
-		$this->assertInternalType( 'string', $result['post_author'] );
-		$this->assertInternalType( 'string', $result['post_password'] );
-		$this->assertInternalType( 'string', $result['post_excerpt'] );
-		$this->assertInternalType( 'string', $result['post_content'] );
-		$this->assertInternalType( 'string', $result['link'] );
-		$this->assertInternalType( 'string', $result['comment_status'] );
-		$this->assertInternalType( 'string', $result['ping_status'] );
-		$this->assertInternalType( 'bool', $result['sticky'] );
-		$this->assertInternalType( 'string', $result['post_format'] );
-		$this->assertInternalType( 'array', $result['post_thumbnail'] );
-		$this->assertInternalType( 'array', $result['custom_fields'] );
+		$this->assertIsString( $result['post_status'] );
+		$this->assertIsString( $result['post_type'] );
+		$this->assertIsString( $result['post_name'] );
+		$this->assertIsString( $result['post_author'] );
+		$this->assertIsString( $result['post_password'] );
+		$this->assertIsString( $result['post_excerpt'] );
+		$this->assertIsString( $result['post_content'] );
+		$this->assertIsString( $result['link'] );
+		$this->assertIsString( $result['comment_status'] );
+		$this->assertIsString( $result['ping_status'] );
+		$this->assertIsBool( $result['sticky'] );
+		$this->assertIsString( $result['post_format'] );
+		$this->assertIsArray( $result['post_thumbnail'] );
+		$this->assertIsArray( $result['custom_fields'] );
 
 		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['post_id'] );
@@ -79,17 +79,17 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		remove_theme_support( 'post-thumbnails' );
 	}
 
-	function test_no_fields() {
+	public function test_no_fields() {
 		$fields = array();
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id, $fields ) );
 		$this->assertNotIXRError( $result );
 
 		// When no fields are requested, only the IDs should be returned.
-		$this->assertSame( 1, count( $result ) );
+		$this->assertCount( 1, $result );
 		$this->assertSame( array( 'post_id' ), array_keys( $result ) );
 	}
 
-	function test_default_fields() {
+	public function test_default_fields() {
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id ) );
 		$this->assertNotIXRError( $result );
 
@@ -99,7 +99,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertArrayHasKey( 'custom_fields', $result );
 	}
 
-	function test_date() {
+	public function test_date() {
 		$fields = array( 'post' );
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id, $fields ) );
 		$this->assertNotIXRError( $result );
@@ -122,7 +122,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * @ticket 21308
 	 */
-	function test_valid_page() {
+	public function test_valid_page() {
 		$this->make_user_by_role( 'editor' );
 
 		$parent_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
@@ -137,11 +137,11 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'editor', 'editor', $child_page_id ) );
 		$this->assertNotIXRError( $result );
 
-		$this->assertInternalType( 'string', $result['post_id'] );
-		$this->assertInternalType( 'string', $result['post_parent'] );
-		$this->assertInternalType( 'int', $result['menu_order'] );
-		$this->assertInternalType( 'string', $result['guid'] );
-		$this->assertInternalType( 'string', $result['post_mime_type'] );
+		$this->assertIsString( $result['post_id'] );
+		$this->assertIsString( $result['post_parent'] );
+		$this->assertIsInt( $result['menu_order'] );
+		$this->assertIsString( $result['guid'] );
+		$this->assertIsString( $result['post_mime_type'] );
 
 		$this->assertSame( 'page', $result['post_type'] );
 		$this->assertEquals( $parent_page_id, $result['post_parent'] );

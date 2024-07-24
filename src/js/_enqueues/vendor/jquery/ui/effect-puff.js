@@ -1,25 +1,28 @@
 /*!
- * jQuery UI Effects Puff 1.12.1
- * http://jqueryui.com
+ * jQuery UI Effects Puff 1.13.3
+ * https://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
- * http://jquery.org/license
+ * https://jquery.org/license
  */
 
 //>>label: Puff Effect
 //>>group: Effects
 //>>description: Creates a puff effect by scaling the element up and hiding it at the same time.
-//>>docs: http://api.jqueryui.com/puff-effect/
-//>>demos: http://jqueryui.com/effect/
+//>>docs: https://api.jqueryui.com/puff-effect/
+//>>demos: https://jqueryui.com/effect/
 
 ( function( factory ) {
+	"use strict";
+
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"./effect",
+			"../version",
+			"../effect",
 			"./effect-scale"
 		], factory );
 	} else {
@@ -27,7 +30,8 @@
 		// Browser globals
 		factory( jQuery );
 	}
-}( function( $ ) {
+} )( function( $ ) {
+"use strict";
 
 return $.effects.define( "puff", "hide", function( options, done ) {
 	var newOptions = $.extend( true, {}, options, {
@@ -38,4 +42,4 @@ return $.effects.define( "puff", "hide", function( options, done ) {
 	$.effects.effect.scale.call( this, newOptions, done );
 } );
 
-} ) );
+} );

@@ -29,15 +29,15 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/network-admin-sites-screen/">Documentation on Site Management</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support Forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/#network-admin-sites-screen">Documentation on Site Management</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>'
 );
 
 if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 	check_admin_referer( 'add-blog', '_wpnonce_add-blog' );
 
 	if ( ! is_array( $_POST['blog'] ) ) {
-		wp_die( __( 'Can&#8217;t create an empty site.' ) );
+		wp_die( __( 'Cannot create an empty site.' ) );
 	}
 
 	$blog   = $_POST['blog'];
@@ -56,7 +56,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 			wp_die(
 				sprintf(
 					/* translators: %s: Reserved names list. */
-					__( 'The following words are reserved for use by WordPress functions and cannot be used as blog names: %s' ),
+					__( 'The following words are reserved for use by WordPress functions and cannot be used as site names: %s' ),
 					'<code>' . implode( '</code>, <code>', $subdirectory_reserved_names ) . '</code>'
 				)
 			);
@@ -81,6 +81,10 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 				$meta['WPLANG'] = $language;
 			}
 		}
+	}
+
+	if ( empty( $title ) ) {
+		wp_die( __( 'Missing site title.' ) );
 	}
 
 	if ( empty( $domain ) ) {
@@ -174,6 +178,7 @@ if ( isset( $_GET['update'] ) ) {
 	}
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Add New Site' );
 $parent_file = 'sites.php';
 
@@ -187,25 +192,30 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <h1 id="add-new-site"><?php _e( 'Add New Site' ); ?></h1>
 <?php
 if ( ! empty( $messages ) ) {
+	$notice_args = array(
+		'type'        => 'success',
+		'dismissible' => true,
+		'id'          => 'message',
+	);
+
 	foreach ( $messages as $msg ) {
-		echo '<div id="message" class="updated notice is-dismissible"><p>' . $msg . '</p></div>';
+		wp_admin_notice( $msg, $notice_args );
 	}
 }
 ?>
-<p>
-<?php
-printf(
-	/* translators: %s: Asterisk symbol (*). */
-	__( 'Required fields are marked %s' ),
-	'<span class="required">*</span>'
-);
-?>
-</p>
-<form method="post" action="<?php echo network_admin_url( 'site-new.php?action=add-site' ); ?>" novalidate="novalidate">
+<p><?php echo wp_required_field_message(); ?></p>
+<form method="post" action="<?php echo esc_url( network_admin_url( 'site-new.php?action=add-site' ) ); ?>" novalidate="novalidate">
 <?php wp_nonce_field( 'add-blog', '_wpnonce_add-blog' ); ?>
 	<table class="form-table" role="presentation">
 		<tr class="form-field form-required">
-			<th scope="row"><label for="site-address"><?php _e( 'Site Address (URL)' ); ?> <span class="required">*</span></label></th>
+			<th scope="row">
+				<label for="site-address">
+					<?php
+					_e( 'Site Address (URL)' );
+					echo ' ' . wp_required_field_indicator();
+					?>
+				</label>
+			</th>
 			<td>
 			<?php if ( is_subdomain_install() ) { ?>
 				<input name="blog[domain]" type="text" class="regular-text ltr" id="site-address" aria-describedby="site-address-desc" autocapitalize="none" autocorrect="off" required /><span class="no-break">.<?php echo preg_replace( '|^www\.|', '', get_network()->domain ); ?></span>
@@ -221,7 +231,14 @@ printf(
 			</td>
 		</tr>
 		<tr class="form-field form-required">
-			<th scope="row"><label for="site-title"><?php _e( 'Site Title' ); ?> <span class="required">*</span></label></th>
+			<th scope="row">
+				<label for="site-title">
+					<?php
+					_e( 'Site Title' );
+					echo ' ' . wp_required_field_indicator();
+					?>
+				</label>
+			</th>
 			<td><input name="blog[title]" type="text" class="regular-text" id="site-title" required /></td>
 		</tr>
 		<?php
@@ -256,7 +273,14 @@ printf(
 			</tr>
 		<?php endif; // Languages. ?>
 		<tr class="form-field form-required">
-			<th scope="row"><label for="admin-email"><?php _e( 'Admin Email' ); ?> <span class="required">*</span></label></th>
+			<th scope="row">
+				<label for="admin-email">
+					<?php
+					_e( 'Admin Email' );
+					echo ' ' . wp_required_field_indicator();
+					?>
+				</label>
+			</th>
 			<td><input name="blog[email]" type="email" class="regular-text wp-suggest-user" id="admin-email" data-autocomplete-type="search" data-autocomplete-field="user_email" aria-describedby="site-admin-email" required /></td>
 		</tr>
 		<tr class="form-field">

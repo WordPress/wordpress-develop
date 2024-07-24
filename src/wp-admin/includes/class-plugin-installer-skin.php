@@ -24,6 +24,12 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	private $is_downgrading = false;
 
 	/**
+	 * Constructor.
+	 *
+	 * Sets up the plugin installer skin.
+	 *
+	 * @since 2.8.0
+	 *
 	 * @param array $args
 	 */
 	public function __construct( $args = array() ) {
@@ -46,7 +52,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform before installing a plugin.
+	 * Performs an action before installing a plugin.
 	 *
 	 * @since 2.8.0
 	 */
@@ -66,7 +72,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 * @since 5.5.0
 	 *
 	 * @param WP_Error $wp_error WP_Error object.
-	 * @return bool
+	 * @return bool True if the error should be hidden, false otherwise.
 	 */
 	public function hide_process_failed( $wp_error ) {
 		if (
@@ -81,7 +87,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform following a plugin install.
+	 * Performs an action following a plugin install.
 	 *
 	 * @since 2.8.0
 	 */
@@ -121,7 +127,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['network_activate'] = sprintf(
 				'<a class="button button-primary" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( 'plugins.php?action=activate&amp;networkwide=1&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ),
-				__( 'Network Activate' )
+				_x( 'Network Activate', 'plugin' )
 			);
 			unset( $install_actions['activate_plugin'] );
 		}
@@ -177,7 +183,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Check if the plugin can be overwritten and output the HTML for overwriting a plugin on upload.
+	 * Checks if the plugin can be overwritten and outputs the HTML for overwriting a plugin on upload.
 	 *
 	 * @since 5.5.0
 	 *
@@ -208,7 +214,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			return false;
 		}
 
-		echo '<h2 class="update-from-upload-heading">' . esc_html( __( 'This plugin is already installed.' ) ) . '</h2>';
+		echo '<h2 class="update-from-upload-heading">' . esc_html__( 'This plugin is already installed.' ) . '</h2>';
 
 		$this->is_downgrading = version_compare( $current_plugin_data['Version'], $new_plugin_data['Version'], '>' );
 
@@ -221,8 +227,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		);
 
 		$table  = '<table class="update-from-upload-comparison"><tbody>';
-		$table .= '<tr><th></th><th>' . esc_html( __( 'Current' ) ) . '</th>';
-		$table .= '<th>' . esc_html( __( 'Uploaded' ) ) . '</th></tr>';
+		$table .= '<tr><th></th><th>' . esc_html_x( 'Current', 'plugin' ) . '</th>';
+		$table .= '<th>' . esc_html_x( 'Uploaded', 'plugin' ) . '</th></tr>';
 
 		$is_same_plugin = true; // Let's consider only these rows.
 
@@ -256,7 +262,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		$install_actions = array();
 		$can_update      = true;
 
-		$blocked_message  = '<p>' . esc_html( __( 'The plugin cannot be updated due to the following:' ) ) . '</p>';
+		$blocked_message  = '<p>' . esc_html__( 'The plugin cannot be updated due to the following:' ) . '</p>';
 		$blocked_message .= '<ul class="ul-disc">';
 
 		$requires_php = isset( $new_plugin_data['RequiresPHP'] ) ? $new_plugin_data['RequiresPHP'] : null;
@@ -266,7 +272,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$error = sprintf(
 				/* translators: 1: Current PHP version, 2: Version required by the uploaded plugin. */
 				__( 'The PHP version on your server is %1$s, however the uploaded plugin requires %2$s.' ),
-				phpversion(),
+				PHP_VERSION,
 				$requires_php
 			);
 
@@ -293,13 +299,13 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are uploading an older version of a current plugin. You can continue to install the older version, but be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://wordpress.org/support/article/wordpress-backups/' )
+					__( 'https://developer.wordpress.org/advanced-administration/security/backup/' )
 				);
 			} else {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are updating a plugin. Be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://wordpress.org/support/article/wordpress-backups/' )
+					__( 'https://developer.wordpress.org/advanced-administration/security/backup/' )
 				);
 			}
 
@@ -310,7 +316,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['overwrite_plugin'] = sprintf(
 				'<a class="button button-primary update-from-upload-overwrite" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( add_query_arg( 'overwrite', $overwrite, $this->url ), 'plugin-upload' ),
-				__( 'Replace current with uploaded' )
+				_x( 'Replace current with uploaded', 'plugin' )
 			);
 		} else {
 			echo $blocked_message;

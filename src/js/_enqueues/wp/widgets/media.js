@@ -158,7 +158,7 @@ wp.mediaWidgets = ( function( $ ) {
 							}
 						} else {
 							if ( ! noticeContainer.length ) {
-								noticeContainer = $( '<div class="media-widget-embed-notice notice notice-error notice-alt"></div>' );
+								noticeContainer = $( '<div class="media-widget-embed-notice notice notice-error notice-alt" role="alert"></div>' );
 								noticeContainer.hide();
 								embedLinkView.views.parent.$el.prepend( noticeContainer );
 							}
@@ -1212,7 +1212,7 @@ wp.mediaWidgets = ( function( $ ) {
 			return;
 		}
 
-		idBase = widgetForm.find( '> .widget-control-actions > .id_base' ).val();
+		idBase = widgetForm.find( '.id_base' ).val();
 
 		ControlConstructor = component.controlConstructors[ idBase ];
 		if ( ! ControlConstructor ) {

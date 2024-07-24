@@ -46,8 +46,10 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return;
 	}
 
-	// If we're not in wp-admin and the post has been published and preview nonce
-	// is non-existent or invalid then no need for preview in query.
+	/*
+	 * If we're not in wp-admin and the post has been published and preview nonce
+	 * is non-existent or invalid then no need for preview in query.
+	 */
 	if ( is_preview() && get_query_var( 'p' ) && 'publish' === get_post_status( get_query_var( 'p' ) ) ) {
 		if ( ! isset( $_GET['preview_id'] )
 			|| ! isset( $_GET['preview_nonce'] )
@@ -314,7 +316,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 					$redirect['query'] = remove_query_arg( 'year', $redirect['query'] );
 				}
 			}
-		} elseif ( is_author() && ! empty( $_GET['author'] ) && preg_match( '|^[0-9]+$|', $_GET['author'] ) ) {
+		} elseif ( is_author() && ! empty( $_GET['author'] )
+			&& is_string( $_GET['author'] ) && preg_match( '|^[0-9]+$|', $_GET['author'] )
+		) {
 			$author = get_userdata( get_query_var( 'author' ) );
 
 			if ( false !== $author
@@ -331,7 +335,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$term_count = 0;
 
 			foreach ( $wp_query->tax_query->queried_terms as $tax_query ) {
-				$term_count += count( $tax_query['terms'] );
+				if ( isset( $tax_query['terms'] ) && is_countable( $tax_query['terms'] ) ) {
+					$term_count += count( $tax_query['terms'] );
+				}
 			}
 
 			$obj = $wp_query->get_queried_object();
@@ -387,7 +393,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 					}
 				}
 			}
-		} elseif ( is_single() && strpos( $wp_rewrite->permalink_structure, '%category%' ) !== false ) {
+		} elseif ( is_single() && str_contains( $wp_rewrite->permalink_structure, '%category%' ) ) {
 			$category_name = get_query_var( 'category_name' );
 
 			if ( $category_name ) {
@@ -516,7 +522,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 			if ( ! empty( $addl_path )
 				&& $wp_rewrite->using_index_permalinks()
-				&& strpos( $redirect['path'], '/' . $wp_rewrite->index . '/' ) === false
+				&& ! str_contains( $redirect['path'], '/' . $wp_rewrite->index . '/' )
 			) {
 				$redirect['path'] = trailingslashit( $redirect['path'] ) . $wp_rewrite->index . '/';
 			}
@@ -539,6 +545,28 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			wp_redirect( $redirect_url, 301 );
 			die();
 		}
+	}
+
+	$is_attachment_redirect = false;
+
+	if ( is_attachment() && ! get_option( 'wp_attachment_pages_enabled' ) ) {
+		$attachment_id        = get_query_var( 'attachment_id' );
+		$attachment_post      = get_post( $attachment_id );
+		$attachment_parent_id = $attachment_post ? $attachment_post->post_parent : 0;
+
+		$attachment_url = wp_get_attachment_url( $attachment_id );
+		if ( $attachment_url !== $redirect_url ) {
+			/*
+			* If an attachment is attached to a post, it inherits the parent post's status. Fetch the
+			* parent post to check its status later.
+			*/
+			if ( $attachment_parent_id ) {
+				$redirect_obj = get_post( $attachment_parent_id );
+			}
+			$redirect_url = $attachment_url;
+		}
+
+		$is_attachment_redirect = true;
 	}
 
 	$redirect['query'] = preg_replace( '#^\??&*?#', '', $redirect['query'] );
@@ -646,6 +674,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	// Trailing slashes.
 	if ( is_object( $wp_rewrite ) && $wp_rewrite->using_permalinks()
+		&& ! $is_attachment_redirect
 		&& ! is_404() && ( ! is_front_page() || is_front_page() && get_query_var( 'paged' ) > 1 )
 	) {
 		$user_ts_type = '';
@@ -675,7 +704,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	// Strip multiple slashes out of the URL.
-	if ( strpos( $redirect['path'], '//' ) > -1 ) {
+	if ( str_contains( $redirect['path'], '//' ) ) {
 		$redirect['path'] = preg_replace( '|/+|', '/', $redirect['path'] );
 	}
 
@@ -687,8 +716,10 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	$original_host_low = strtolower( $original['host'] );
 	$redirect_host_low = strtolower( $redirect['host'] );
 
-	// Ignore differences in host capitalization, as this can lead to infinite redirects.
-	// Only redirect no-www <=> yes-www.
+	/*
+	 * Ignore differences in host capitalization, as this can lead to infinite redirects.
+	 * Only redirect no-www <=> yes-www.
+	 */
 	if ( $original_host_low === $redirect_host_low
 		|| ( 'www.' . $original_host_low !== $redirect_host_low
 			&& 'www.' . $redirect_host_low !== $original_host_low )
@@ -734,8 +765,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return;
 	}
 
-	// Hex encoded octets are case-insensitive.
-	if ( false !== strpos( $requested_url, '%' ) ) {
+	// Hex-encoded octets are case-insensitive.
+	if ( str_contains( $requested_url, '%' ) ) {
 		if ( ! function_exists( 'lowercase_octets' ) ) {
 			/**
 			 * Converts the first hex-encoded octet match to lowercase.
@@ -847,11 +878,17 @@ function _remove_qs_args_if_not_in_url( $query_string, array $args_to_check, $ur
  * @return string The altered URL.
  */
 function strip_fragment_from_url( $url ) {
-	$parsed_url = parse_url( $url );
+	$parsed_url = wp_parse_url( $url );
 
 	if ( ! empty( $parsed_url['host'] ) ) {
-		// This mirrors code in redirect_canonical(). It does not handle every case.
-		$url = $parsed_url['scheme'] . '://' . $parsed_url['host'];
+		$url = '';
+
+		if ( ! empty( $parsed_url['scheme'] ) ) {
+			$url = $parsed_url['scheme'] . ':';
+		}
+
+		$url .= '//' . $parsed_url['host'];
+
 		if ( ! empty( $parsed_url['port'] ) ) {
 			$url .= ':' . $parsed_url['port'];
 		}
@@ -912,6 +949,9 @@ function redirect_guess_404_permalink() {
 	}
 
 	if ( get_query_var( 'name' ) ) {
+		$publicly_viewable_statuses   = array_filter( get_post_stati(), 'is_post_status_viewable' );
+		$publicly_viewable_post_types = array_filter( get_post_types( array( 'exclude_from_search' => false ) ), 'is_post_type_viewable' );
+
 		/**
 		 * Filters whether to perform a strict guess for a 404 redirect.
 		 *
@@ -932,13 +972,19 @@ function redirect_guess_404_permalink() {
 		// If any of post_type, year, monthnum, or day are set, use them to refine the query.
 		if ( get_query_var( 'post_type' ) ) {
 			if ( is_array( get_query_var( 'post_type' ) ) ) {
-				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+				$post_types = array_intersect( get_query_var( 'post_type' ), $publicly_viewable_post_types );
+				if ( empty( $post_types ) ) {
+					return false;
+				}
 				$where .= " AND post_type IN ('" . join( "', '", esc_sql( get_query_var( 'post_type' ) ) ) . "')";
 			} else {
+				if ( ! in_array( get_query_var( 'post_type' ), $publicly_viewable_post_types, true ) ) {
+					return false;
+				}
 				$where .= $wpdb->prepare( ' AND post_type = %s', get_query_var( 'post_type' ) );
 			}
 		} else {
-			$where .= " AND post_type IN ('" . implode( "', '", get_post_types( array( 'public' => true ) ) ) . "')";
+			$where .= " AND post_type IN ('" . implode( "', '", esc_sql( $publicly_viewable_post_types ) ) . "')";
 		}
 
 		if ( get_query_var( 'year' ) ) {
@@ -952,7 +998,7 @@ function redirect_guess_404_permalink() {
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$post_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE $where AND post_status = 'publish'" );
+		$post_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE $where AND post_status IN ('" . implode( "', '", esc_sql( $publicly_viewable_statuses ) ) . "')" );
 
 		if ( ! $post_id ) {
 			return false;
@@ -1002,6 +1048,7 @@ function wp_redirect_admin_locations() {
 
 	$logins = array(
 		home_url( 'wp-login.php', 'relative' ),
+		home_url( 'login.php', 'relative' ),
 		home_url( 'login', 'relative' ),
 		site_url( 'login', 'relative' ),
 	);

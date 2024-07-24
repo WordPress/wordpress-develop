@@ -5,7 +5,7 @@
  *
  * @group user
  */
-class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
+class Tests_User_wpDropdownUsers extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31251
@@ -13,7 +13,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 	public function test_default_value_of_show_should_be_display_name() {
 
 		// Create a user with a different display_name.
-		$u = $this->factory->user->create(
+		$u = self::factory()->user->create(
 			array(
 				'user_login'   => 'foo',
 				'display_name' => 'Foo Person',
@@ -28,7 +28,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 
 		$expected = "<option value='$u'>Foo Person</option>";
 
-		$this->assertContains( $expected, $found );
+		$this->assertStringContainsString( $expected, $found );
 	}
 
 	/**
@@ -37,7 +37,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 	public function test_show_should_display_display_name_show_is_specified_as_empty() {
 
 		// Create a user with a different display_name.
-		$u = $this->factory->user->create(
+		$u = self::factory()->user->create(
 			array(
 				'user_login'   => 'foo',
 				'display_name' => 'Foo Person',
@@ -54,7 +54,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 
 		$expected = "<option value='$u'>Foo Person</option>";
 
-		$this->assertContains( $expected, $found );
+		$this->assertStringContainsString( $expected, $found );
 	}
 
 	/**
@@ -63,7 +63,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 	public function test_show_should_display_user_property_when_the_value_of_show_is_a_valid_user_property() {
 
 		// Create a user with a different display_name.
-		$u = $this->factory->user->create(
+		$u = self::factory()->user->create(
 			array(
 				'user_login'   => 'foo',
 				'display_name' => 'Foo Person',
@@ -80,7 +80,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 
 		$expected = "<option value='$u'>foo</option>";
 
-		$this->assertContains( $expected, $found );
+		$this->assertStringContainsString( $expected, $found );
 	}
 
 	/**
@@ -89,7 +89,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 	public function test_show_display_name_with_login() {
 
 		// Create a user with a different display_name.
-		$u = $this->factory->user->create(
+		$u = self::factory()->user->create(
 			array(
 				'user_login'   => 'foo',
 				'display_name' => 'Foo Person',
@@ -106,7 +106,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 
 		$expected = "<option value='$u'>Foo Person (foo)</option>";
 
-		$this->assertContains( $expected, $found );
+		$this->assertStringContainsString( $expected, $found );
 	}
 
 	/**
@@ -126,7 +126,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 		);
 
 		$user1 = get_userdata( $users[1] );
-		$this->assertContains( $user1->user_login, $found );
+		$this->assertStringContainsString( $user1->user_login, $found );
 	}
 
 	/**
@@ -142,7 +142,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( (string) PHP_INT_MAX, $found );
+		$this->assertStringNotContainsString( (string) PHP_INT_MAX, $found );
 	}
 
 	/**
@@ -160,8 +160,8 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( $u1->user_login, $found );
-		$this->assertContains( $u2->user_login, $found );
+		$this->assertStringNotContainsString( $u1->user_login, $found );
+		$this->assertStringContainsString( $u2->user_login, $found );
 	}
 
 	/**
@@ -179,8 +179,8 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( $u1->user_login, $found );
-		$this->assertContains( $u2->user_login, $found );
+		$this->assertStringNotContainsString( $u1->user_login, $found );
+		$this->assertStringContainsString( $u2->user_login, $found );
 	}
 
 	/**
@@ -198,7 +198,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( $u1->user_login, $found );
-		$this->assertContains( $u2->user_login, $found );
+		$this->assertStringNotContainsString( $u1->user_login, $found );
+		$this->assertStringContainsString( $u2->user_login, $found );
 	}
 }

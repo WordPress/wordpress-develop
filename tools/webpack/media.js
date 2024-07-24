@@ -1,12 +1,15 @@
-const UglifyJsPlugin = require( 'uglifyjs-webpack-plugin' );
+/**
+ * External dependencies
+ */
+const TerserPlugin = require( 'terser-webpack-plugin' );
 
-var path            = require( 'path' ),
-	admin_files     = {};
-
-const baseDir = path.join( __dirname, '../../' );
+/**
+ * Internal dependencies
+ */
+const { baseDir } = require( './shared' );
 
 module.exports = function( env = { environment: 'production', watch: false, buildTarget: false } ) {
-	const include_files = {
+	const entry = {
 		[ env.buildTarget + 'wp-includes/js/media-audiovideo.js' ]: ['./src/js/_enqueues/wp/media/audiovideo.js'],
 		[ env.buildTarget + 'wp-includes/js/media-audiovideo.min.js' ]: ['./src/js/_enqueues/wp/media/audiovideo.js'],
 		[ env.buildTarget + 'wp-includes/js/media-grid.js' ]: ['./src/js/_enqueues/wp/media/grid.js'],
@@ -18,19 +21,22 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	};
 
 	const mediaConfig = {
+		target: 'browserslist',
 		mode: "production",
 		cache: true,
-		entry: Object.assign( admin_files, include_files ),
+		entry,
 		output: {
 			path: baseDir,
 			filename: '[name]',
 		},
 		optimization: {
 			minimize: true,
+			moduleIds: 'deterministic',
 			minimizer: [
-				new UglifyJsPlugin( {
+				new TerserPlugin( {
 					include: /\.min\.js$/,
-				} )
+					extractComments: false,
+				} ),
 			]
 		},
 		watch: env.watch,
