@@ -183,6 +183,20 @@
 					}
 				}
 			},
+			"core/post-featured-image": {
+				"elements": {
+					"link": {
+						"border": {
+							"width": "0"
+						},
+						":hover": {
+							"color": {
+								"background": "transparent"
+							}
+						}
+					}
+				}
+			},
 			"core/post-title": {
 				"elements": {
 					"link": {
