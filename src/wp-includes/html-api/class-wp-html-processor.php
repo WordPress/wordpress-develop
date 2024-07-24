@@ -4105,15 +4105,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Runs the close cell algorithm.
+	 * Runs the "close the cell" algorithm.
 	 *
-	 * Where the steps above say to close the cell, they mean to run the following algorithm:
-	 *
-	 * > 1. Generate implied end tags.
-	 * > 2. If the current node is not now a td element or a th element, then this is a parse error.
-	 * > 3. Pop elements from the stack of open elements stack until a td element or a th element has been popped from the stack.
-	 * > 4. Clear the list of active formatting elements up to the last marker.
-	 * > 5. Switch the insertion mode to "in row".
+	 * > Where the steps above say to close the cell, they mean to run the following algorithm:
+	 * >   1. Generate implied end tags.
+	 * >   2. If the current node is not now a td element or a th element, then this is a parse error.
+	 * >   3. Pop elements from the stack of open elements stack until a td element or a th element has been popped from the stack.
+	 * >   4. Clear the list of active formatting elements up to the last marker.
+	 * >   5. Switch the insertion mode to "in row".
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#close-the-cell
 	 *
