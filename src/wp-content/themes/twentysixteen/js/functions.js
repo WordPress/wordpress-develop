@@ -169,10 +169,6 @@
 								return;
 							}
 
-							if ( caption.hasClass( 'alignleft' ) || caption.hasClass( 'alignright' ) || caption.hasClass( 'aligncenter' ) ) {
-								element.addClass( 'below-entry-meta' );
-							}
-
 							if ( caption.hasClass( 'wp-caption' ) ) {
 								caption.addClass( 'below-entry-meta' );
 								caption.removeAttr( 'style' );
@@ -180,6 +176,13 @@
 
 							if ( figcaption ) {
 								figcaption.addClass( 'below-entry-meta' );
+							}
+
+							let $isResized = $( '.is-resized' );
+
+							if ($isResized.hasClass( 'alignleft' ) || $isResized.hasClass('alignright') || $isResized.hasClass('aligncenter')) {
+								element.removeClass('below-entry-meta');
+								figcaption.removeClass('below-entry-meta');
 							}
 						}
 					} );
