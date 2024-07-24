@@ -648,6 +648,8 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		$editor_settings['postContentAttributes'] = $post_content_block_attributes;
 	}
 
+	$editor_settings['defaultRenderingMode'] = 'post-only';
+
 	/**
 	 * Filters the settings to pass to the block editor for all editor type.
 	 *
