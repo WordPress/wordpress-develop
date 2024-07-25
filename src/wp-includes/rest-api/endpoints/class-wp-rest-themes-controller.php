@@ -201,7 +201,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$current_theme = wp_get_theme();
 		$status        = $request['status'];
 
-		foreach ( $active_themes as $theme_name => $theme ) {
+		foreach ( $active_themes as $theme ) {
 			$theme_status = ( $this->is_same_theme( $theme, $current_theme ) ) ? 'active' : 'inactive';
 			if ( is_array( $status ) && ! in_array( $theme_status, $status, true ) ) {
 				continue;
@@ -475,7 +475,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'readonly'    => true,
 				),
-				'template_uri'       => array(
+				'template_uri'   => array(
 					'description' => __( 'The uri for the theme\'s template directory. If this is a child theme, this refers to the parent theme, otherwise this is the same as the theme\'s stylesheet directory.' ),
 					'type'        => 'string',
 					'format'      => 'uri',

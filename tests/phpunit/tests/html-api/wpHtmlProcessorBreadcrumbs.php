@@ -40,6 +40,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'ABBR',
 			'ACRONYM', // Neutralized.
 			'ADDRESS',
+			'APPLET', // Deprecated.
 			'AREA',
 			'ARTICLE',
 			'ASIDE',
@@ -72,6 +73,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'FIGCAPTION',
 			'FIGURE',
 			'FONT',
+			'FORM',
 			'FOOTER',
 			'H1',
 			'H2',
@@ -95,17 +97,25 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'MAIN',
 			'MAP',
 			'MARK',
+			'MARQUEE', // Deprecated.
 			'MENU',
 			'METER',
 			'MULTICOL', // Deprecated.
 			'NAV',
 			'NEXTID', // Deprecated.
+			'NOBR', // Neutralized.
+			'NOSCRIPT',
+			'OBJECT',
 			'OL',
 			'OUTPUT',
 			'P',
 			'PICTURE',
 			'PROGRESS',
 			'Q',
+			'RB', // Neutralized.
+			'RP',
+			'RT',
+			'RTC', // Neutralized.
 			'RUBY',
 			'SAMP',
 			'SEARCH',
@@ -119,6 +129,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'SUB',
 			'SUMMARY',
 			'SUP',
+			'TABLE',
 			'TIME',
 			'TT',
 			'U',
@@ -167,49 +178,26 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 */
 	public static function data_unsupported_elements() {
 		$unsupported_elements = array(
-			'APPLET', // Deprecated.
 			'BASE',
 			'BGSOUND', // Deprecated; self-closing if self-closing flag provided, otherwise normal.
 			'BODY',
-			'CAPTION',
-			'COL',
-			'COLGROUP',
-			'FORM',
 			'FRAME',
 			'FRAMESET',
 			'HEAD',
 			'HTML',
 			'IFRAME',
 			'LINK',
-			'MARQUEE', // Deprecated.
 			'MATH',
 			'META',
-			'NOBR', // Neutralized.
 			'NOEMBED', // Neutralized.
 			'NOFRAMES', // Neutralized.
-			'NOSCRIPT',
-			'OBJECT',
-			'OPTGROUP',
-			'OPTION',
 			'PLAINTEXT', // Neutralized.
-			'RB', // Neutralized.
-			'RP',
-			'RT',
-			'RTC', // Neutralized.
 			'SCRIPT',
-			'SELECT',
 			'STYLE',
 			'SVG',
-			'TABLE',
-			'TBODY',
-			'TD',
 			'TEMPLATE',
 			'TEXTAREA',
-			'TFOOT',
-			'TH',
-			'THEAD',
 			'TITLE',
-			'TR',
 			'XMP', // Deprecated, use PRE instead.
 		);
 
@@ -571,6 +559,70 @@ HTML
 			array( 'HTML', 'BODY', 'DIV', 'IMG' ),
 			$processor->get_breadcrumbs(),
 			'Should have retained breadcrumbs from bookmarked location after seeking backwards to it.'
+		);
+	}
+
+	/**
+	 * Ensures that breadcrumbs are properly reported on virtual nodes.
+	 *
+	 * @ticket 61348
+	 *
+	 * @dataProvider data_virtual_nodes_breadcrumbs
+	 *
+	 * @covers WP_HTML_Processor::get_breadcrumbs
+	 */
+	public function test_breadcrumbs_on_virtual_nodes( string $html, int $token_position, string $expected_tag_name, string $expect_open_close, array $expected_breadcrumbs ) {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		for ( $i = 0; $i < $token_position; $i++ ) {
+			$processor->next_token();
+		}
+
+		$this->assertSame( $expected_tag_name, $processor->get_tag(), "Found incorrect tag name {$processor->get_token_name()}." );
+		if ( 'open' === $expect_open_close ) {
+			$this->assertFalse( $processor->is_tag_closer(), "Found closer when opener expected at {$processor->get_token_name()}." );
+		} else {
+			$this->assertTrue( $processor->is_tag_closer(), "Found opener when closer expected at {$processor->get_token_name()}." );
+		}
+
+		$this->assertSame( $expected_breadcrumbs, $processor->get_breadcrumbs(), "Found incorrect breadcrumbs in {$html}." );
+	}
+
+	/**
+	 * Ensures that get_current_depth reports the correct depth on virtual nodes.
+	 *
+	 * @ticket 61348
+	 *
+	 * @dataProvider data_virtual_nodes_breadcrumbs
+	 *
+	 * @covers WP_HTML_Processor::get_current_depth
+	 */
+	public function test_depth_on_virtual_nodes( string $html, int $token_position, string $expected_tag_name, string $expect_open_close, array $expected_breadcrumbs ) {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		for ( $i = 0; $i < $token_position; $i++ ) {
+			$processor->next_token();
+		}
+
+		$this->assertSame( count( $expected_breadcrumbs ), $processor->get_current_depth(), "Found incorrect depth in {$html}." );
+	}
+
+	/**
+	 * Data provider for virtual nodes breadcrumbs with the following shape of arrays:
+	 *     0: string        Input html.
+	 *     1: int           Token index to seek.
+	 *     2: string        Expected tag name.
+	 *     3: string        'open' or 'close' indicating an opener or closer is expected.
+	 *     4: array<string> Expected breadcrumbs.
+	 *
+	 * @return array[]
+	 */
+	public static function data_virtual_nodes_breadcrumbs() {
+		return array(
+			'Implied P tag opener on unmatched closer'    => array( '</p>', 1, 'P', 'open', array( 'HTML', 'BODY', 'P' ) ),
+			'Implied heading tag closer on heading child' => array( '<h1><h2>', 2, 'H1', 'close', array( 'HTML', 'BODY' ) ),
+			'Implied A tag closer on A tag child'         => array( '<a><a>', 2, 'A', 'close', array( 'HTML', 'BODY' ) ),
+			'Implied A tag closer on A tag descendent'    => array( '<a><span><a>', 4, 'A', 'close', array( 'HTML', 'BODY' ) ),
 		);
 	}
 }

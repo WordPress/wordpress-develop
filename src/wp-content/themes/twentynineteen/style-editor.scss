@@ -393,6 +393,7 @@ figcaption,
 		@include font-family( $font__heading );
 		font-size: $font__size-sm;
 		font-weight: bold;
+		padding: ($font__size_base * .76) $font__size_base;
 
 		&:not(.has-text-color) {
 			color: #fff;
@@ -753,6 +754,11 @@ ul.wp-block-archives,
 		margin-bottom: ( -.75 * $size__spacing-unit );
 	}
 
+}
+
+.wp-block[data-align="center"] > .wp-block-archives,
+.wp-block[data-align="center"] > .wp-block-categories {
+	text-align: center;
 }
 
 /** === Latest Posts === */
