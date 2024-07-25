@@ -399,6 +399,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		// Templates in the current theme.
 		$templates = array(
 			'parts/small-header.html',
+			'templates/custom-hero-template.html',
 			'templates/custom-single-post-template.html',
 			'templates/index.html',
 			'templates/page-home.html',

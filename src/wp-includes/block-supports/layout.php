@@ -14,6 +14,7 @@
  * also be updated.
  *
  * @since 6.3.0
+ * @since 6.6.0 Updated specificity for compatibility with 0-1-0 global styles specificity.
  * @access private
  *
  * @return array[] Layout definitions.
@@ -51,13 +52,13 @@ function wp_get_layout_definitions() {
 			),
 			'spacingStyles' => array(
 				array(
-					'selector' => ' > :first-child:first-child',
+					'selector' => ' > :first-child',
 					'rules'    => array(
 						'margin-block-start' => '0',
 					),
 				),
 				array(
-					'selector' => ' > :last-child:last-child',
+					'selector' => ' > :last-child',
 					'rules'    => array(
 						'margin-block-end' => '0',
 					),
@@ -116,13 +117,13 @@ function wp_get_layout_definitions() {
 			),
 			'spacingStyles' => array(
 				array(
-					'selector' => ' > :first-child:first-child',
+					'selector' => ' > :first-child',
 					'rules'    => array(
 						'margin-block-start' => '0',
 					),
 				),
 				array(
-					'selector' => ' > :last-child:last-child',
+					'selector' => ' > :last-child',
 					'rules'    => array(
 						'margin-block-end' => '0',
 					),
@@ -150,7 +151,7 @@ function wp_get_layout_definitions() {
 					),
 				),
 				array(
-					'selector' => ' > *',
+					'selector' => ' > :is(*, div)', // :is(*, div) instead of just * increases the specificity by 001.
 					'rules'    => array(
 						'margin' => '0',
 					),
@@ -172,7 +173,7 @@ function wp_get_layout_definitions() {
 			'displayMode'   => 'grid',
 			'baseStyles'    => array(
 				array(
-					'selector' => ' > *',
+					'selector' => ' > :is(*, div)', // :is(*, div) instead of just * increases the specificity by 001.
 					'rules'    => array(
 						'margin' => '0',
 					),
@@ -222,6 +223,8 @@ function wp_register_layout_support( $block_type ) {
  * @since 5.9.0
  * @since 6.1.0 Added `$block_spacing` param, use style engine to enqueue styles.
  * @since 6.3.0 Added grid layout type.
+ * @since 6.6.0 Removed duplicated selector from layout styles.
+ *              Enabled negative margins for alignfull children of blocks with custom padding.
  * @access private
  *
  * @param string               $selector                      CSS selector.
@@ -261,7 +264,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 						),
 					),
 					array(
-						'selector'     => "$selector$selector > * + *",
+						'selector'     => "$selector > * + *",
 						'declarations' => array(
 							'margin-block-start' => $gap_value,
 							'margin-block-end'   => '0',
@@ -305,32 +308,40 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 					'declarations' => array( 'max-width' => 'none' ),
 				)
 			);
+		}
 
-			if ( isset( $block_spacing ) ) {
-				$block_spacing_values = wp_style_engine_get_styles(
-					array(
-						'spacing' => $block_spacing,
-					)
+		if ( isset( $block_spacing ) ) {
+			$block_spacing_values = wp_style_engine_get_styles(
+				array(
+					'spacing' => $block_spacing,
+				)
+			);
+
+			/*
+			 * Handle negative margins for alignfull children of blocks with custom padding set.
+			 * They're added separately because padding might only be set on one side.
+			 */
+			if ( isset( $block_spacing_values['declarations']['padding-right'] ) ) {
+				$padding_right = $block_spacing_values['declarations']['padding-right'];
+				// Add unit if 0.
+				if ( '0' === $padding_right ) {
+					$padding_right = '0px';
+				}
+				$layout_styles[] = array(
+					'selector'     => "$selector > .alignfull",
+					'declarations' => array( 'margin-right' => "calc($padding_right * -1)" ),
 				);
-
-				/*
-				 * Handle negative margins for alignfull children of blocks with custom padding set.
-				 * They're added separately because padding might only be set on one side.
-				 */
-				if ( isset( $block_spacing_values['declarations']['padding-right'] ) ) {
-					$padding_right   = $block_spacing_values['declarations']['padding-right'];
-					$layout_styles[] = array(
-						'selector'     => "$selector > .alignfull",
-						'declarations' => array( 'margin-right' => "calc($padding_right * -1)" ),
-					);
+			}
+			if ( isset( $block_spacing_values['declarations']['padding-left'] ) ) {
+				$padding_left = $block_spacing_values['declarations']['padding-left'];
+				// Add unit if 0.
+				if ( '0' === $padding_left ) {
+					$padding_left = '0px';
 				}
-				if ( isset( $block_spacing_values['declarations']['padding-left'] ) ) {
-					$padding_left    = $block_spacing_values['declarations']['padding-left'];
-					$layout_styles[] = array(
-						'selector'     => "$selector > .alignfull",
-						'declarations' => array( 'margin-left' => "calc($padding_left * -1)" ),
-					);
-				}
+				$layout_styles[] = array(
+					'selector'     => "$selector > .alignfull",
+					'declarations' => array( 'margin-left' => "calc($padding_left * -1)" ),
+				);
 			}
 		}
 
@@ -370,7 +381,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 						),
 					),
 					array(
-						'selector'     => "$selector$selector > * + *",
+						'selector'     => "$selector > * + *",
 						'declarations' => array(
 							'margin-block-start' => $gap_value,
 							'margin-block-end'   => '0',
@@ -489,7 +500,10 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 
 			$layout_styles[] = array(
 				'selector'     => $selector,
-				'declarations' => array( 'grid-template-columns' => 'repeat(auto-fill, minmax(min(' . $minimum_column_width . ', 100%), 1fr))' ),
+				'declarations' => array(
+					'grid-template-columns' => 'repeat(auto-fill, minmax(min(' . $minimum_column_width . ', 100%), 1fr))',
+					'container-type'        => 'inline-size',
+				),
 			);
 		}
 
@@ -546,6 +560,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
  * @since 5.8.0
  * @since 6.3.0 Adds compound class to layout wrapper for global spacing styles.
  * @since 6.3.0 Check for layout support via the `layout` key with fallback to `__experimentalLayout`.
+ * @since 6.6.0 Removed duplicate container class from layout styles.
  * @access private
  *
  * @param string $block_content Rendered block content.
@@ -555,37 +570,92 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 function wp_render_layout_support_flag( $block_content, $block ) {
 	$block_type            = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
 	$block_supports_layout = block_has_support( $block_type, 'layout', false ) || block_has_support( $block_type, '__experimentalLayout', false );
-	$layout_from_parent    = isset( $block['attrs']['style']['layout']['selfStretch'] ) ? $block['attrs']['style']['layout']['selfStretch'] : null;
+	$child_layout          = isset( $block['attrs']['style']['layout'] ) ? $block['attrs']['style']['layout'] : null;
 
-	if ( ! $block_supports_layout && ! $layout_from_parent ) {
+	if ( ! $block_supports_layout && ! $child_layout ) {
 		return $block_content;
 	}
 
 	$outer_class_names = array();
 
-	if ( 'fixed' === $layout_from_parent || 'fill' === $layout_from_parent ) {
-		$container_content_class = wp_unique_id( 'wp-container-content-' );
+	// Child layout specific logic.
+	if ( $child_layout ) {
+		$container_content_class   = wp_unique_prefixed_id( 'wp-container-content-' );
+		$child_layout_declarations = array();
+		$child_layout_styles       = array();
 
-		$child_layout_styles = array();
+		$self_stretch = isset( $child_layout['selfStretch'] ) ? $child_layout['selfStretch'] : null;
 
-		if ( 'fixed' === $layout_from_parent && isset( $block['attrs']['style']['layout']['flexSize'] ) ) {
+		if ( 'fixed' === $self_stretch && isset( $child_layout['flexSize'] ) ) {
+			$child_layout_declarations['flex-basis'] = $child_layout['flexSize'];
+			$child_layout_declarations['box-sizing'] = 'border-box';
+		} elseif ( 'fill' === $self_stretch ) {
+			$child_layout_declarations['flex-grow'] = '1';
+		}
+
+		if ( isset( $child_layout['columnSpan'] ) ) {
+			$column_span                              = $child_layout['columnSpan'];
+			$child_layout_declarations['grid-column'] = "span $column_span";
+		}
+		if ( isset( $child_layout['rowSpan'] ) ) {
+			$row_span                              = $child_layout['rowSpan'];
+			$child_layout_declarations['grid-row'] = "span $row_span";
+		}
+		$child_layout_styles[] = array(
+			'selector'     => ".$container_content_class",
+			'declarations' => $child_layout_declarations,
+		);
+
+		/*
+		 * If columnSpan is set, and the parent grid is responsive, i.e. if it has a minimumColumnWidth set,
+		 * the columnSpan should be removed on small grids. If there's a minimumColumnWidth, the grid is responsive.
+		 * But if the minimumColumnWidth value wasn't changed, it won't be set. In that case, if columnCount doesn't
+		 * exist, we can assume that the grid is responsive.
+		 */
+		if ( isset( $child_layout['columnSpan'] ) && ( isset( $block['parentLayout']['minimumColumnWidth'] ) || ! isset( $block['parentLayout']['columnCount'] ) ) ) {
+			$column_span_number  = floatval( $child_layout['columnSpan'] );
+			$parent_column_width = isset( $block['parentLayout']['minimumColumnWidth'] ) ? $block['parentLayout']['minimumColumnWidth'] : '12rem';
+			$parent_column_value = floatval( $parent_column_width );
+			$parent_column_unit  = explode( $parent_column_value, $parent_column_width );
+
+			/*
+			 * If there is no unit, the width has somehow been mangled so we reset both unit and value
+			 * to defaults.
+			 * Additionally, the unit should be one of px, rem or em, so that also needs to be checked.
+			 */
+			if ( count( $parent_column_unit ) <= 1 ) {
+				$parent_column_unit  = 'rem';
+				$parent_column_value = 12;
+			} else {
+				$parent_column_unit = $parent_column_unit[1];
+
+				if ( ! in_array( $parent_column_unit, array( 'px', 'rem', 'em' ), true ) ) {
+					$parent_column_unit = 'rem';
+				}
+			}
+
+			/*
+			 * A default gap value is used for this computation because custom gap values may not be
+			 * viable to use in the computation of the container query value.
+			 */
+			$default_gap_value     = 'px' === $parent_column_unit ? 24 : 1.5;
+			$container_query_value = $column_span_number * $parent_column_value + ( $column_span_number - 1 ) * $default_gap_value;
+			$container_query_value = $container_query_value . $parent_column_unit;
+
 			$child_layout_styles[] = array(
+				'rules_group'  => "@container (max-width: $container_query_value )",
 				'selector'     => ".$container_content_class",
 				'declarations' => array(
-					'flex-basis' => $block['attrs']['style']['layout']['flexSize'],
-					'box-sizing' => 'border-box',
-				),
-			);
-		} elseif ( 'fill' === $layout_from_parent ) {
-			$child_layout_styles[] = array(
-				'selector'     => ".$container_content_class",
-				'declarations' => array(
-					'flex-grow' => '1',
+					'grid-column' => '1/-1',
 				),
 			);
 		}
 
-		wp_style_engine_get_stylesheet_from_css_rules(
+		/*
+		 * Add to the style engine store to enqueue and render layout styles.
+		 * Return styles here just to check if any exist.
+		 */
+		$child_css = wp_style_engine_get_stylesheet_from_css_rules(
 			$child_layout_styles,
 			array(
 				'context'  => 'block-supports',
@@ -593,7 +663,9 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 			)
 		);
 
-		$outer_class_names[] = $container_content_class;
+		if ( $child_css ) {
+			$outer_class_names[] = $container_content_class;
+		}
 	}
 
 	// Prep the processor for modifying the block output.
@@ -735,7 +807,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		$has_block_gap_support = isset( $block_gap );
 
 		$style = wp_get_layout_style(
-			".$container_class.$container_class",
+			".$container_class",
 			$used_layout,
 			$has_block_gap_support,
 			$gap_value,
@@ -851,6 +923,27 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	return $processor->get_updated_html();
 }
 
+/**
+ * Check if the parent block exists and if it has a layout attribute.
+ * If it does, add the parent layout to the parsed block
+ *
+ * @since 6.6.0
+ * @access private
+ *
+ * @param array    $parsed_block The parsed block.
+ * @param array    $source_block The source block.
+ * @param WP_Block $parent_block The parent block.
+ * @return array The parsed block with parent layout attribute if it exists.
+ */
+function wp_add_parent_layout_to_parsed_block( $parsed_block, $source_block, $parent_block ) {
+	if ( $parent_block && isset( $parent_block->parsed_block['attrs']['layout'] ) ) {
+		$parsed_block['parentLayout'] = $parent_block->parsed_block['attrs']['layout'];
+	}
+	return $parsed_block;
+}
+
+add_filter( 'render_block_data', 'wp_add_parent_layout_to_parsed_block', 10, 3 );
+
 // Register the block support.
 WP_Block_Supports::get_instance()->register(
 	'layout',
@@ -866,6 +959,7 @@ add_filter( 'render_block', 'wp_render_layout_support_flag', 10, 2 );
  * to avoid breaking styles relying on that div.
  *
  * @since 5.8.0
+ * @since 6.6.1 Removed inner container from Grid variations.
  * @access private
  *
  * @param string $block_content Rendered block content.
@@ -882,7 +976,7 @@ function wp_restore_group_inner_container( $block_content, $block ) {
 	if (
 		wp_theme_has_theme_json() ||
 		1 === preg_match( $group_with_inner_container_regex, $block_content ) ||
-		( isset( $block['attrs']['layout']['type'] ) && 'flex' === $block['attrs']['layout']['type'] )
+		( isset( $block['attrs']['layout']['type'] ) && ( 'flex' === $block['attrs']['layout']['type'] || 'grid' === $block['attrs']['layout']['type'] ) )
 	) {
 		return $block_content;
 	}

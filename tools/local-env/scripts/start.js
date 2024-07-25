@@ -19,7 +19,7 @@ try {
 const containers = ( process.env.LOCAL_PHP_MEMCACHED === 'true' )
 	? 'wordpress-develop memcached'
 	: 'wordpress-develop';
-execSync( `docker-compose up -d ${containers}`, { stdio: 'inherit' } );
+execSync( `docker compose up -d ${containers}`, { stdio: 'inherit' } );
 
 // If Docker Toolbox is being used, we need to manually forward LOCAL_PORT to the Docker VM.
 if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {

@@ -20,13 +20,13 @@ Description: Used to style blocks.
 
 /* Captions */
 
-[class^="wp-block-"]:not(.wp-block-gallery) figcaption {
+[class^="wp-block-"]:not(.wp-block-gallery) > figcaption {
 	font-style: italic;
 	margin-bottom: 1.5em;
 	text-align: left;
 }
 
-.rtl [class^="wp-block-"]:not(.wp-block-gallery) figcaption {
+.rtl [class^="wp-block-"]:not(.wp-block-gallery) > figcaption {
 	text-align: right;
 }
 
@@ -166,7 +166,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 /* Pullquote */
 
 .wp-block-pullquote {
-	border: 0;
+	border: 0 solid;
 }
 
 .wp-block-pullquote__citation,
@@ -194,6 +194,17 @@ p.has-drop-cap:not(:focus)::first-letter {
 .rtl .wp-block-table th,
 .rtl .wp-block-table td {
 	text-align: right;
+}
+
+/* Calendar */
+
+.wp-block-calendar th {
+	text-align: center;
+}
+
+.wp-block-buttons[style*="font-weight"] .wp-block-button__link,
+.wp-block-button[style*="font-weight"] .wp-block-button__link {
+	font-weight: inherit;
 }
 
 /*--------------------------------------------------------------
@@ -313,7 +324,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 /* Comments */
 
 .wp-block-latest-comments article {
-	margin-bottom: 4em;
+	margin-bottom: 4rem;
 }
 
 .widget-area .wp-block-latest-comments article {
@@ -335,7 +346,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 .wp-block-latest-comments a {
 	-webkit-box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 1);
 	box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 1);
-
 }
 
 .wp-block-latest-comments .wp-block-latest-comments__comment {
@@ -364,15 +374,21 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-transform: uppercase;
 }
 
-.editor-block-list__block .wp-block-latest-comments__comment-excerpt p {
-	font-size: 14px;
-	font-size: 0.875rem;
-}
-
 /* Query Loop & Post Template */
 
 .wp-block-query .wp-block-post-template > li {
 	border-top: none;
+}
+
+/* Site Logo */
+
+:root .entry-content .wp-block-site-logo a.custom-logo-link {
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+
+.entry-content .wp-block-site-logo img {
+	max-height: none;
 }
 
 /*--------------------------------------------------------------

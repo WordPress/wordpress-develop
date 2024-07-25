@@ -888,7 +888,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			DIR_TESTDATA . '/blocks/notice',
 			array(
 				'name'  => 'tests/notice-with-overrides',
-				'title' => 'Overriden title',
+				'title' => 'Overridden title',
 				'style' => array( 'tests-notice-style-overridden' ),
 			)
 		);
@@ -896,7 +896,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Block_Type', $result, 'The block was not registered' );
 		$this->assertSame( 2, $result->api_version, 'The API version is incorrect' );
 		$this->assertSame( 'tests/notice-with-overrides', $result->name, 'The block name was not overridden' );
-		$this->assertSame( 'Overriden title', $result->title, 'The block title was not overridden' );
+		$this->assertSame( 'Overridden title', $result->title, 'The block title was not overridden' );
 		$this->assertSameSets(
 			array( 'tests-notice-editor-script' ),
 			$result->editor_script_handles,
@@ -937,7 +937,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			'no block.json file and no name argument' => array(
 				'file' => '', // No block.json file.
 				'args' => array(
-					'title' => 'Overriden title',
+					'title' => 'Overridden title',
 					'style' => array( 'tests-notice-style-overridden' ),
 				),
 			),
@@ -950,11 +950,42 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 				// A file that exists but is empty. This will bypass the file_exists() check.
 				'file' => DIR_TESTDATA . '/blocks/notice/block.js',
 				'args' => array(
-					'title' => 'Overriden title',
+					'title' => 'Overridden title',
 					'style' => array( 'tests-notice-style-overridden' ),
 				),
 			),
 		);
+	}
+
+	/**
+	 * Tests registering a block with variations from a PHP file.
+	 *
+	 * @ticket 61280
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 */
+	public function test_register_block_type_from_metadata_with_variations_php_file() {
+		$filter_metadata_registration = static function ( $metadata ) {
+			$metadata['variations'] = 'file:./variations.php';
+			return $metadata;
+		};
+
+		add_filter( 'block_type_metadata', $filter_metadata_registration, 10, 2 );
+		$result = register_block_type_from_metadata(
+			DIR_TESTDATA . '/blocks/notice'
+		);
+		remove_filter( 'block_type_metadata', $filter_metadata_registration );
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result, 'The block was not registered' );
+
+		$this->assertIsCallable( $result->variation_callback, 'The variation callback hasn\'t been set' );
+		$expected_variations = require DIR_TESTDATA . '/blocks/notice/variations.php';
+		$this->assertSame(
+			$expected_variations,
+			call_user_func( $result->variation_callback ),
+			'The variation callback hasn\'t been set correctly'
+		);
+		$this->assertSame( $expected_variations, $result->variations, 'The block variations are incorrect' );
 	}
 
 	/**
