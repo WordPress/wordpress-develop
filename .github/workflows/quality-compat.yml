@@ -30,6 +30,7 @@ permissions: {}
 jobs:
   quality-compat:
     name: Check that Compat only contains acceptable functions
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
