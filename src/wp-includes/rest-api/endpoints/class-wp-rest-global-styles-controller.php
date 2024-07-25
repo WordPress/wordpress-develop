@@ -231,6 +231,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.9.0
 	 * @since 6.2.0 Added validation of styles.css property.
+	 * @since 6.6.0 Added registration of block style variations from theme.json sources (theme.json, user theme.json, partials).
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return stdClass|WP_Error Prepared item on success. WP_Error on when the custom CSS is not valid.
@@ -263,6 +264,11 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			} elseif ( isset( $existing_config['styles'] ) ) {
 				$config['styles'] = $existing_config['styles'];
 			}
+
+			// Register theme-defined variations e.g. from block style variation partials under `/styles`.
+			$variations = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
+			wp_register_block_style_variations_from_theme_json_partials( $variations );
+
 			if ( isset( $request['settings'] ) ) {
 				$config['settings'] = $request['settings'];
 			} elseif ( isset( $existing_config['settings'] ) ) {
@@ -289,6 +295,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * Prepare a global styles config output for response.
 	 *
 	 * @since 5.9.0
+	 * @since 6.6.0 Added custom relative theme file URIs to `_links`.
 	 *
 	 * @param WP_Post         $post    Global Styles post object.
 	 * @param WP_REST_Request $request Request object.
@@ -298,8 +305,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		$raw_config                       = json_decode( $post->post_content, true );
 		$is_global_styles_user_theme_json = isset( $raw_config['isGlobalStylesUserThemeJSON'] ) && true === $raw_config['isGlobalStylesUserThemeJSON'];
 		$config                           = array();
+		$theme_json                       = null;
 		if ( $is_global_styles_user_theme_json ) {
-			$config = ( new WP_Theme_JSON( $raw_config, 'custom' ) )->get_raw_data();
+			$theme_json = new WP_Theme_JSON( $raw_config, 'custom' );
+			$config     = $theme_json->get_raw_data();
 		}
 
 		// Base fields for every post.
@@ -318,10 +327,12 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		}
 		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 
 			$data['title']['rendered'] = get_the_title( $post->ID );
 
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 		}
 
 		if ( rest_is_field_included( 'settings', $fields ) ) {
@@ -341,6 +352,15 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 
 		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
 			$links = $this->prepare_links( $post->ID );
+
+			// Only return resolved URIs for get requests to user theme JSON.
+			if ( $theme_json ) {
+				$resolved_theme_uris = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $theme_json );
+				if ( ! empty( $resolved_theme_uris ) ) {
+					$links['https://api.w.org/theme-file'] = $resolved_theme_uris;
+				}
+			}
+
 			$response->add_links( $links );
 			if ( ! empty( $links['self']['href'] ) ) {
 				$actions = $this->get_available_actions( $post, $request );
@@ -515,6 +535,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * Returns the given theme global styles config.
 	 *
 	 * @since 5.9.0
+	 * @since 6.6.0 Added custom relative theme file URIs to `_links`.
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 * @return WP_REST_Response|WP_Error
@@ -549,11 +570,15 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		$response = rest_ensure_response( $data );
 
 		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
-			$links = array(
+			$links               = array(
 				'self' => array(
 					'href' => rest_url( sprintf( '%s/%s/themes/%s', $this->namespace, $this->rest_base, $request['stylesheet'] ) ),
 				),
 			);
+			$resolved_theme_uris = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $theme );
+			if ( ! empty( $resolved_theme_uris ) ) {
+				$links['https://api.w.org/theme-file'] = $resolved_theme_uris;
+			}
 			$response->add_links( $links );
 		}
 
@@ -591,6 +616,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 6.0.0
 	 * @since 6.2.0 Returns parent theme variations, if they exist.
+	 * @since 6.6.0 Added custom relative theme file URIs to `_links` for each item.
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 *
@@ -606,9 +632,28 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$variations = WP_Theme_JSON_Resolver::get_style_variations();
+		$response   = array();
 
-		return rest_ensure_response( $variations );
+		// Register theme-defined variations e.g. from block style variation partials under `/styles`.
+		$partials = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
+		wp_register_block_style_variations_from_theme_json_partials( $partials );
+
+		$variations = WP_Theme_JSON_Resolver::get_style_variations();
+		foreach ( $variations as $variation ) {
+			$variation_theme_json = new WP_Theme_JSON( $variation );
+			$resolved_theme_uris  = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $variation_theme_json );
+			$data                 = rest_ensure_response( $variation );
+			if ( ! empty( $resolved_theme_uris ) ) {
+				$data->add_links(
+					array(
+						'https://api.w.org/theme-file' => $resolved_theme_uris,
+					)
+				);
+			}
+			$response[] = $this->prepare_response_for_collection( $data );
+		}
+
+		return rest_ensure_response( $response );
 	}
 
 	/**
