@@ -1,4 +1,4 @@
-name: PHP Compatibility
+name: compat.php Quality Check
 
 on:
   # PHP compatibility testing was introduced in WordPress 5.5.
