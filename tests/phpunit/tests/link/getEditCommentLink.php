@@ -13,7 +13,7 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 		self::$comment_ids = array(
 			'valid'   => $factory->comment->create( array( 'comment_content' => 'Test comment' ) ),
 			'invalid' => 12345, // Invalid comment ID
-        );
+		);
 
 		self::$user_ids = array(
 			'admin'      => $factory->user->create( array( 'role' => 'administrator' ) ),
@@ -28,7 +28,7 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 
 	public function test_get_edit_comment_link_display_context() {
 		$comment_id   = self::$comment_ids['valid'];
-        $expected_url = admin_url( 'comment.php?action=editcomment&amp;c=' . $comment_id );
+		$expected_url = admin_url( 'comment.php?action=editcomment&amp;c=' . $comment_id );
 		$actual_url   = get_edit_comment_link( $comment_id, 'display' );
 
 		$this->assertSame( $expected_url, $actual_url );
@@ -68,18 +68,19 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 
 		add_filter(
 			'get_edit_comment_link',
-			function( $location, $comment_id, $context ) use ( $expected_url, $expected_url_view ) {
-			// Ensure the filtered URL matches the expected URL
-				if ( 'display' === $context ) {
-					$location = admin_url( 'comment.php?action=editcomment&amp;c=' ) . $comment_id;
-					$this->assertSame( $expected_url, $location );
-				} else {
-					$location = admin_url( 'comment.php?action=editcomment&c=' ) . $comment_id;
-					$this->assertSame( $expected_url_view, $location );
-				}
-				return $location; // Return unchanged
-			},
-			10, 3
+				function( $location, $comment_id, $context ) use ( $expected_url, $expected_url_view ) {
+				// Ensure the filtered URL matches the expected URL
+					if ( 'display' === $context ) {
+						$location = admin_url( 'comment.php?action=editcomment&amp;c=' ) . $comment_id;
+						$this->assertSame( $expected_url, $location );
+					} else {
+						$location = admin_url( 'comment.php?action=editcomment&c=' ) . $comment_id;
+						$this->assertSame( $expected_url_view, $location );
+					}
+					return $location; // Return unchanged
+				},
+			10,
+			3
 		);
 
 		$actual_url_display = get_edit_comment_link( $comment_id, 'display' );
