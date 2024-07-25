@@ -221,7 +221,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 					break;
 				case 'image/avif':
 					$this->image->setOption( 'heic:speed', 7 );
-					// Fall thru to set quality.
+					$this->image->setImageCompressionQuality( $quality );
+					break;
 				default:
 					$this->image->setImageCompressionQuality( $quality );
 			}
