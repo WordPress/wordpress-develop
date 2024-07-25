@@ -87,7 +87,6 @@ function wp_resolve_block_style_variation_ref_values( &$variation_data, $theme_j
  * different filter.
  *
  * @since 6.6.0
- * @since 6.6.2 Reorder the dependencies for 'block-style-variation-styles' styles.
  * @access private
  *
  * @param array $parsed_block The parsed block.
