@@ -3,9 +3,9 @@
 /**
  * @group comment
  *
- * @covers ::get_comment_author
+ * @covers ::get_comment_author_link
  */
-class Tests_Comment_GetCommentAuthor extends WP_UnitTestCase {
+class Tests_Comment_GetCommentAuthorLink extends WP_UnitTestCase {
 
 	private static $comment;
 	private static $non_existent_comment_id;
@@ -20,45 +20,46 @@ class Tests_Comment_GetCommentAuthor extends WP_UnitTestCase {
 		);
 	}
 
-	public function get_comment_author_filter( $comment_author, $comment_id, $comment ) {
+	public function get_comment_author_link_filter( $comment_author_link, $comment_author, $comment_id ) {
 		$this->assertSame( $comment_id, self::$comment->comment_ID, 'Comment IDs do not match.' );
 		$this->assertIsString( $comment_id, '$comment_id parameter is not a string.' );
 
-		return $comment_author;
+		return $comment_author_link;
 	}
 
-	public function test_comment_author_passes_correct_comment_id_for_comment_object() {
-		add_filter( 'get_comment_author', array( $this, 'get_comment_author_filter' ), 99, 3 );
+	public function test_comment_author_link_passes_correct_comment_id_for_comment_object() {
+		add_filter( 'get_comment_author_link', array( $this, 'get_comment_author_link_filter' ), 99, 3 );
 
-		get_comment_author( self::$comment );
+		get_comment_author_link( self::$comment );
 	}
 
-	public function test_comment_author_passes_correct_comment_id_for_int() {
-		add_filter( 'get_comment_author', array( $this, 'get_comment_author_filter' ), 99, 3 );
+	public function test_comment_author_link_passes_correct_comment_id_for_int() {
+		add_filter( 'get_comment_author_link', array( $this, 'get_comment_author_link_filter' ), 99, 3 );
 
-		get_comment_author( (int) self::$comment->comment_ID );
+		get_comment_author_link( (int) self::$comment->comment_ID );
 	}
 
-	public function get_comment_author_filter_non_existent_id( $comment_author, $comment_id, $comment ) {
+	public function get_comment_author_link_filter_non_existent_id( $comment_author_link, $comment_author, $comment_id ) {
 		$this->assertSame( $comment_id, (string) self::$non_existent_comment_id, 'Comment IDs do not match.' );
 		$this->assertIsString( $comment_id, '$comment_id parameter is not a string.' );
 
-		return $comment_author;
+		return $comment_author_link;
 	}
 
 	/**
 	 * @ticket 60475
 	 */
-	public function test_comment_author_passes_correct_comment_id_for_non_existent_comment() {
-		add_filter( 'get_comment_author', array( $this, 'get_comment_author_filter_non_existent_id' ), 99, 3 );
+	public function test_comment_author_link_passes_correct_comment_id_for_non_existent_comment() {
+		add_filter( 'get_comment_author_link', array( $this, 'get_comment_author_link_filter_non_existent_id' ), 99, 3 );
 
 		self::$non_existent_comment_id = self::$comment->comment_ID + 1;
 
-		get_comment_author( self::$non_existent_comment_id ); // Non-existent comment ID.
+		get_comment_author_link( self::$non_existent_comment_id ); // Non-existent comment ID.
 	}
 
 	/**
 	 * @ticket 61681
+	 * @ticket 61715
 	 *
 	 * @dataProvider data_should_return_author_when_given_object_without_comment_id
 	 *
@@ -74,7 +75,7 @@ class Tests_Comment_GetCommentAuthor extends WP_UnitTestCase {
 
 		$comment = new WP_Comment( $comment_props );
 
-		$this->assertSame( $expected, get_comment_author( $comment ) );
+		$this->assertSame( $expected, get_comment_author_link( $comment ) );
 	}
 
 	/**
