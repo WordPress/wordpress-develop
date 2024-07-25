@@ -290,11 +290,11 @@ class Walker {
 	 * @return string XHTML of the specified page of elements.
 	 */
 	public function paged_walk( $elements, $max_depth, $page_num, $per_page, ...$args ) {
+		$max_depth = (int) $max_depth;
+
 		if ( empty( $elements ) || $max_depth < -1 ) {
 			return '';
 		}
-
-		$max_depth = (int) $max_depth;
 
 		$output = '';
 
