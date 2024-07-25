@@ -56,7 +56,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ php-compatibility ]
+    needs: [ quality-compat ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
