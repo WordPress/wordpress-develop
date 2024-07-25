@@ -87,6 +87,7 @@ function wp_resolve_block_style_variation_ref_values( &$variation_data, $theme_j
  * different filter.
  *
  * @since 6.6.0
+ * @since 6.6.2 Reorder the dependencies for 'block-style-variation-styles' styles.
  * @access private
  *
  * @param array $parsed_block The parsed block.
@@ -196,7 +197,7 @@ function wp_render_block_style_variation_support_styles( $parsed_block ) {
 		return $parsed_block;
 	}
 
-	wp_register_style( 'block-style-variation-styles', false, array( 'global-styles', 'wp-block-library' ) );
+	wp_register_style( 'block-style-variation-styles', false, array( 'wp-block-library', 'global-styles' ) );
 	wp_add_inline_style( 'block-style-variation-styles', $variation_styles );
 
 	/*
