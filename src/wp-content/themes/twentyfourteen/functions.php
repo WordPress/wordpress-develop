@@ -218,6 +218,16 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 
 		// Indicate widget sidebars can use selective refresh in the Customizer.
 		add_theme_support( 'customize-selective-refresh-widgets' );
+
+		// Enable support for custom logo.
+		add_theme_support(
+			'custom-logo',
+			array(
+				'height'      => 240,
+				'width'       => 240,
+				'flex-height' => true,
+			)
+		);
 	}
 endif; // twentyfourteen_setup()
 add_action( 'after_setup_theme', 'twentyfourteen_setup' );

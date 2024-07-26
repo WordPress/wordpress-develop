@@ -125,6 +125,16 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 		// Add default posts and comments RSS feed links to head.
 		add_theme_support( 'automatic-feed-links' );
 
+		// Enable support for custom logo.
+		add_theme_support(
+			'custom-logo',
+			array(
+				'height'      => 240,
+				'width'       => 240,
+				'flex-height' => true,
+			)
+		);
+
 		/*
 		 * Make theme available for translation.
 		 * Translations can be filed in the /languages/ directory.
