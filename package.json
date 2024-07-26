@@ -165,7 +165,7 @@
 		"react": "18.3.1",
 		"react-dom": "18.3.1",
 		"react-is": "18.3.1",
-		"regenerator-runtime": "0.14.0",
+		"regenerator-runtime": "0.14.1",
 		"underscore": "1.13.6",
 		"whatwg-fetch": "3.6.17",
 		"wicg-inert": "3.1.2"

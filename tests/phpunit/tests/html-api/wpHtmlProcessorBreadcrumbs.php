@@ -181,9 +181,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'BASE',
 			'BGSOUND', // Deprecated; self-closing if self-closing flag provided, otherwise normal.
 			'BODY',
-			'CAPTION',
-			'COL',
-			'COLGROUP',
 			'FRAME',
 			'FRAMESET',
 			'HEAD',
@@ -198,15 +195,9 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'SCRIPT',
 			'STYLE',
 			'SVG',
-			'TBODY',
-			'TD',
 			'TEMPLATE',
 			'TEXTAREA',
-			'TFOOT',
-			'TH',
-			'THEAD',
 			'TITLE',
-			'TR',
 			'XMP', // Deprecated, use PRE instead.
 		);
 
