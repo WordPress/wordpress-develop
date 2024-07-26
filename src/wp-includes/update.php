@@ -985,7 +985,7 @@ function _maybe_update_core() {
 
 	if ( isset( $current->last_checked, $current->version_checked )
 		&& 12 * HOUR_IN_SECONDS > ( time() - $current->last_checked )
-		&& $current->version_checked === wp_get_wp_version()
+		&& wp_get_wp_version() === $current->version_checked
 	) {
 		return;
 	}
