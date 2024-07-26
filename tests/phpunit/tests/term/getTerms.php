@@ -3563,4 +3563,63 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		wp_cache_delete( 'last_changed', 'terms' );
 	}
+
+	/**
+	 * @ticket 56351
+	 * @covers ::get_terms()
+	 */
+	public function test_get_terms_unsplit_terms() {
+		// Create an unsplit term.
+		global $wpdb;
+
+		$wpdb->insert(
+			$wpdb->terms,
+			array(
+				'name' => '56351 Unsplit term',
+				'slug' => '56351-unsplit-term',
+			)
+		);
+		$term_id = $wpdb->insert_id;
+
+		$wpdb->insert(
+			$wpdb->term_taxonomy,
+			array(
+				'term_id'  => $term_id,
+				'taxonomy' => 'post_tag',
+				'parent'   => 0,
+				'count'    => 0,
+			)
+		);
+		$tag_tt_id = $wpdb->insert_id;
+
+		$wpdb->insert(
+			$wpdb->term_taxonomy,
+			array(
+				'term_id'  => $term_id,
+				'taxonomy' => 'category',
+				'parent'   => 0,
+				'count'    => 0,
+			)
+		);
+		$category_tt_id = $wpdb->insert_id;
+
+		$tag_query = get_terms(
+			array(
+				'slug'       => '56351-unsplit-term',
+				'taxonomy'   => 'post_tag',
+				'hide_empty' => false,
+			)
+		);
+
+		$category_query = get_terms(
+			array(
+				'slug'       => '56351-unsplit-term',
+				'taxonomy'   => 'category',
+				'hide_empty' => false,
+			)
+		);
+
+		$this->assertSame( $tag_tt_id, $tag_query[0]->term_taxonomy_id, "Unsplit term's term_taxonomy_id incorrect for tag taxonomy." );
+		$this->assertSame( $category_tt_id, $category_query[0]->term_taxonomy_id, "Unsplit term's term_taxonomy_id incorrect for category taxonomy." );
+	}
 }
