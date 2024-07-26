@@ -2400,7 +2400,7 @@ function upgrade_650() {
 	}
 }
 /**
- * Executes changes made in WordPress 6.5.0.
+ * Executes changes made in WordPress 6.7.0.
  *
  * @ignore
  * @since 6.7.0
