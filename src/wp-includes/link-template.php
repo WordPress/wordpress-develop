@@ -4359,7 +4359,7 @@ function is_avatar_comment_type( $comment_type ) {
  *                                  - 'X' (even more mature than above)
  *                                  Default is the value of the 'avatar_rating' option.
  *     @type string $scheme         URL scheme to use. See set_url_scheme() for accepted values.
- *                                  For Gravatars this setting is ignored and https is used to avoid
+ *                                  For Gravatars this setting is ignored and HTTPS is used to avoid
  *                                  unnecessary redirects. The setting is retained for systems using
  *                                  the {@see 'pre_get_avatar_data'} filter to customize avatars.
  *                                  Default null.
@@ -4522,10 +4522,10 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	);
 
 	/*
-	 * Gravatars are always served over https.
+	 * Gravatars are always served over HTTPS.
 	 *
-	 * The Gravatar website redirects http requests to https URLs so always
-	 * use the https scheme to avoid unnecessary redirects.
+	 * The Gravatar website redirects HTTP requests to HTTPS URLs so always
+	 * use the HTTPS scheme to avoid unnecessary redirects.
 	 */
 	$url = 'https://secure.gravatar.com/avatar/' . $email_hash;
 
