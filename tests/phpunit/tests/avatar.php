@@ -60,6 +60,8 @@ class Tests_Avatar extends WP_UnitTestCase {
 	 *
 	 * @ticket 21195
 	 * @ticket 37454
+	 *
+	 * @covers ::get_avatar_url
 	 */
 	public function test_get_avatar_url_scheme() {
 		$url = get_avatar_url( 1 );
