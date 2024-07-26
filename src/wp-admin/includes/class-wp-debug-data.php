@@ -1439,7 +1439,7 @@ class WP_Debug_Data {
 	/**
 	 * Gets the file system section of the debug data.
 	 *
-	 * @since tbd
+	 * @since 6.7.0
 	 *
 	 * @return array
 	 */
