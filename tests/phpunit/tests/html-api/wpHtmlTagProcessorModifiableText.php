@@ -207,4 +207,56 @@ HTML
 			'TITLE (escape+attrs)'    => array( 'a<title>has no need to escape</title>b', 2, 'but it does for </title not an="attribute">', 'a<title>but it does for &lt;/title not an="attribute"></title>b' ),
 		);
 	}
+
+	/**
+	 * Ensures that updates with potentially-compromising values aren't accepted.
+	 *
+	 * For example, a modifiable text update should be allowed which would break
+	 * the structure of the containing element, such as in a script or comment.
+	 *
+	 * @ticket 61617
+	 *
+	 * @dataProvider data_unallowed_modifiable_text_updates
+	 *
+	 * @param string $html_with_nonempty_modifiable_text Will be used to find the test element.
+	 * @param string $invalid_update                     Update containing possibly-compromising text.
+	 */
+	public function test_rejects_updates_with_unallowed_substrings( string $html_with_nonempty_modifiable_text, string $invalid_update ) {
+		$processor = new WP_HTML_Tag_Processor( $html_with_nonempty_modifiable_text );
+
+		while ( '' === $processor->get_modifiable_text() && $processor->next_token() ) {
+			continue;
+		}
+
+		$original_text = $processor->get_modifiable_text();
+		$this->assertNotEmpty( $original_text, 'Should have found non-empty text: check test setup.' );
+
+		$this->assertFalse(
+			$processor->set_modifiable_text( $invalid_update ),
+			'Should have reject possibly-compromising modifiable text update.'
+		);
+
+		// Flush updates.
+		$processor->get_updated_html();
+
+		$this->assertSame(
+			$original_text,
+			$processor->get_modifiable_text(),
+			'Should have preserved the original modifiable text before the rejected update.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_unallowed_modifiable_text_updates() {
+		return array(
+			'Comment with -->'                 => array( '<!-- this is a comment -->', 'Comments end in -->' ),
+			'Comment with --!>'                => array( '<!-- this is a comment -->', 'Invalid but legitimate comments end in --!>' ),
+			'SCRIPT with </script>'            => array( '<script>Replace me</script>', 'Just a </script>' ),
+			'SCRIPT with </script attributes>' => array( '<script>Replace me</script>', 'before</script id=sneak>after' ),
+		);
+	}
 }
