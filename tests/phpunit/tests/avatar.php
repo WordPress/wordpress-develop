@@ -56,7 +56,7 @@ class Tests_Avatar extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the get_avatar_url always returns an HTTPs scheme for gravatars.
+	 * Ensures the get_avatar_url always returns an HTTPS scheme for gravatars.
 	 *
 	 * @ticket 21195
 	 * @ticket 37454
