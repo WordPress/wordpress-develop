@@ -3118,7 +3118,14 @@ function feed_links( $args = array() ) {
 		'comstitle' => __( '%1$s %2$s Comments Feed' ),
 	);
 
-	$args = wp_parse_args( $args, $defaults );
+	/**
+	 * Filters feed links arguments.
+	 *
+	 * @since NEXT
+	 *
+	 * @param array $defaults An array of default feed links arguments.
+	 */
+	$args = wp_parse_args( $args, apply_filters( 'feed_links', $defaults ) );
 
 	/**
 	 * Filters whether to display the posts feed link.
@@ -3180,7 +3187,14 @@ function feed_links_extra( $args = array() ) {
 		'posttypetitle' => __( '%1$s %2$s %3$s Feed' ),
 	);
 
-	$args = wp_parse_args( $args, $defaults );
+	/**
+	 * Filters extra feed links arguments.
+	 *
+	 * @since NEXT
+	 *
+	 * @param array $defaults An array of default extra feed links arguments.
+	 */
+	$args = wp_parse_args( $args, apply_filters( 'feed_links_extra', $defaults ) );
 
 	if ( is_singular() ) {
 		$id   = 0;
