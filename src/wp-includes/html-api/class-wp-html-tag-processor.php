@@ -2889,7 +2889,9 @@ class WP_HTML_Tag_Processor {
 			return '';
 		}
 
-		$text = substr( $this->html, $this->text_starts_at, $this->text_length );
+		$text = isset( $this->lexical_updates['modifiable-text'] )
+			? $this->lexical_updates['modifiable-text']->text
+			: substr( $this->html, $this->text_starts_at, $this->text_length );
 
 		/*
 		 * Pre-processing the input stream would normally happen before
@@ -3004,7 +3006,7 @@ class WP_HTML_Tag_Processor {
 	 */
 	public function set_modifiable_text( string $plaintext_content ): bool {
 		if ( self::STATE_TEXT_NODE === $this->parser_state ) {
-			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+			$this->lexical_updates['modifiable-text'] = new WP_HTML_Text_Replacement(
 				$this->text_starts_at,
 				$this->text_length,
 				htmlspecialchars( $plaintext_content, ENT_QUOTES | ENT_HTML5 )
@@ -3023,7 +3025,7 @@ class WP_HTML_Tag_Processor {
 				return false;
 			}
 
-			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+			$this->lexical_updates['modifiable-text'] = new WP_HTML_Text_Replacement(
 				$this->text_starts_at,
 				$this->text_length,
 				$plaintext_content
@@ -3052,7 +3054,7 @@ class WP_HTML_Tag_Processor {
 					return false;
 				}
 
-				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+				$this->lexical_updates['modifiable-text'] = new WP_HTML_Text_Replacement(
 					$this->text_starts_at,
 					$this->text_length,
 					$plaintext_content
@@ -3069,7 +3071,7 @@ class WP_HTML_Tag_Processor {
 					$plaintext_content
 				);
 
-				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+				$this->lexical_updates['modifiable-text'] = new WP_HTML_Text_Replacement(
 					$this->text_starts_at,
 					$this->text_length,
 					$plaintext_content
@@ -3095,7 +3097,7 @@ class WP_HTML_Tag_Processor {
 				 * @todo It would be useful to prefix a multiline replacement text
 				 *       with a newline, but not necessary. This is for aesthetics.
 				 */
-				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+				$this->lexical_updates['modifiable-text'] = new WP_HTML_Text_Replacement(
 					$this->text_starts_at,
 					$this->text_length,
 					$plaintext_content

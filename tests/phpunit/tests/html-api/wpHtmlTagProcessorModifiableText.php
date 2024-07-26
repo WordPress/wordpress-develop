@@ -40,6 +40,90 @@ class Tests_HtmlApi_WpHtmlTagProcessorModifiableText extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that updates to modifiable text that are shorter than the
+	 * original text do not cause the parser to lose its orientation.
+	 *
+	 * @ticket 61617
+	 */
+	public function test_setting_shorter_modifiable_text() {
+		$processor = new WP_HTML_Tag_Processor( '<div><textarea>very long text</textarea><div id="not a <span>">' );
+
+		// Find the test node in the middle.
+		while ( 'TEXTAREA' !== $processor->get_token_name() && $processor->next_token() ) {
+			continue;
+		}
+
+		$this->assertSame(
+			'TEXTAREA',
+			$processor->get_token_name(),
+			'Failed to find the test TEXTAREA node; check the test setup.'
+		);
+
+		$processor->set_modifiable_text( 'short' );
+		$processor->get_updated_html();
+		$this->assertSame(
+			'short',
+			$processor->get_modifiable_text(),
+			'Should have updated modifiable text to something shorter than the original.'
+		);
+
+		$this->assertTrue(
+			$processor->next_token(),
+			'Should have advanced to the last token in the input.'
+		);
+
+		$this->assertSame(
+			'DIV',
+			$processor->get_token_name(),
+			'Should have recognized the final DIV in the input.'
+		);
+
+		$this->assertSame(
+			'not a <span>',
+			$processor->get_attribute( 'id' ),
+			'Should have read in the id from the last DIV as "not a <span>"'
+		);
+	}
+
+	/**
+	 * Ensures that reads to modifiable text after setting it reads the updated
+	 * enqueued values, and not the original value.
+	 *
+	 * @ticket 61617
+	 */
+	public function test_modifiable_text_reads_updates_after_setting() {
+		$processor = new WP_HTML_Tag_Processor( 'This is text<!-- this is not -->' );
+
+		$processor->next_token();
+		$this->assertSame(
+			'#text',
+			$processor->get_token_name(),
+			'Failed to find first text node: check test setup.'
+		);
+
+		$update = 'This is new text';
+		$processor->set_modifiable_text( $update );
+		$this->assertSame(
+			$update,
+			$processor->get_modifiable_text(),
+			'Failed to read updated enqueued value of text node.'
+		);
+
+		$processor->next_token();
+		$this->assertSame(
+			'#comment',
+			$processor->get_token_name(),
+			'Failed to advance to comment: check test setup.'
+		);
+
+		$this->assertSame(
+			' this is not ',
+			$processor->get_modifiable_text(),
+			'Failed to read modifiable text for next token; did it read the old enqueued value from the previous token?'
+		);
+	}
+
+	/**
 	 * Ensures that when ignoring a newline after LISTING and PRE tags, that this
 	 * happens appropriately after seeking.
 	 */
