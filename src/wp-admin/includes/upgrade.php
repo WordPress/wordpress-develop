@@ -2434,8 +2434,7 @@ function upgrade_670() {
 			'admin_email_lifespan',
 		);
 
-		$autoload = array_fill_keys( $options_ids, 'no' );
-		wp_set_option_autoload_values( $autoload );
+		wp_set_options_autoload( $options_ids, 'no' );
 	}
 }
 /**
