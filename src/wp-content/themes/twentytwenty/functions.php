@@ -613,6 +613,9 @@ function twentytwenty_block_editor_settings() {
 	if ( '#ffffff' === strtolower( twentytwenty_get_color_for_area( 'content', 'text' ) ) ) {
 		add_theme_support( 'dark-editor-style' );
 	}
+
+	// Add support for block border controls.
+	add_theme_support( 'border' );
 }
 
 add_action( 'after_setup_theme', 'twentytwenty_block_editor_settings' );
@@ -751,24 +754,27 @@ function twentytwenty_get_elements_array() {
 		'content'       => array(
 			'accent'     => array(
 				'color'            => array( '.color-accent', '.color-accent-hover:hover', '.color-accent-hover:focus', ':root .has-accent-color', '.has-drop-cap:not(:focus):first-letter', '.wp-block-button.is-style-outline', 'a' ),
-				'border-color'     => array( 'blockquote', '.border-color-accent', '.border-color-accent-hover:hover', '.border-color-accent-hover:focus' ),
+				'border-color'     => array( 'blockquote', '.border-color-accent', '.border-color-accent-hover:hover', '.border-color-accent-hover:focus', ':root .has-accent-border-color' ),
 				'background-color' => array( 'button', '.button', '.faux-button', '.wp-block-button__link', '.wp-block-file .wp-block-file__button', 'input[type="button"]', 'input[type="reset"]', 'input[type="submit"]', '.bg-accent', '.bg-accent-hover:hover', '.bg-accent-hover:focus', ':root .has-accent-background-color', '.comment-reply-link' ),
 				'fill'             => array( '.fill-children-accent', '.fill-children-accent *' ),
 			),
 			'background' => array(
 				'color'            => array( ':root .has-background-color', 'button', '.button', '.faux-button', '.wp-block-button__link', '.wp-block-file__button', 'input[type="button"]', 'input[type="reset"]', 'input[type="submit"]', '.wp-block-button', '.comment-reply-link', '.has-background.has-primary-background-color:not(.has-text-color)', '.has-background.has-primary-background-color *:not(.has-text-color)', '.has-background.has-accent-background-color:not(.has-text-color)', '.has-background.has-accent-background-color *:not(.has-text-color)' ),
 				'background-color' => array( ':root .has-background-background-color' ),
+				'border-color'     => array( ':root .has-background-border-color' ),
 			),
 			'text'       => array(
 				'color'            => array( 'body', '.entry-title a', ':root .has-primary-color' ),
 				'background-color' => array( ':root .has-primary-background-color' ),
+				'border-color'     => array( ':root .has-primary-border-color' ),
 			),
 			'secondary'  => array(
 				'color'            => array( 'cite', 'figcaption', '.wp-caption-text', '.post-meta', '.entry-content .wp-block-archives li', '.entry-content .wp-block-categories li', '.entry-content .wp-block-latest-posts li', '.wp-block-latest-comments__comment-date', '.wp-block-latest-posts__post-date', '.wp-block-embed figcaption', '.wp-block-image figcaption', '.wp-block-pullquote cite', '.comment-metadata', '.comment-respond .comment-notes', '.comment-respond .logged-in-as', '.pagination .dots', '.entry-content hr:not(.has-background)', 'hr.styled-separator', ':root .has-secondary-color' ),
 				'background-color' => array( ':root .has-secondary-background-color' ),
+				'border-color'     => array( ':root .has-secondary-border-color' ),
 			),
 			'borders'    => array(
-				'border-color'        => array( 'pre', 'fieldset', 'input', 'textarea', 'table', 'table *', 'hr' ),
+				'border-color'        => array( 'pre', 'fieldset', 'input', 'textarea', 'table', 'table *', 'hr', ':root .has-subtle-background-border-color' ),
 				'background-color'    => array( 'caption', 'code', 'code', 'kbd', 'samp', '.wp-block-table.is-style-stripes tbody tr:nth-child(odd)', ':root .has-subtle-background-background-color' ),
 				'border-bottom-color' => array( '.wp-block-table.is-style-stripes' ),
 				'border-top-color'    => array( '.wp-block-latest-posts.is-grid li' ),
