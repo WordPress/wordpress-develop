@@ -273,6 +273,14 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
 </td>
 </tr>
 
+<tr>
+<th scope="row"><?php _e( 'Disable User Password Change Notification' ); ?></th>
+<td> <fieldset><legend class="screen-reader-text"><span><?php _e( 'Disable User Password Change Notification' ); ?></span></legend><label for="disable_psw_change_email">
+<input name="disable_psw_change_email" type="checkbox" id="disable_psw_change_email" value="1" <?php checked( '1', get_option( 'disable_psw_change_email' ) ); ?> />
+	<?php _e( 'Otherwise the admin will receive an email notification of any user\'s password changed' ); ?></label>
+</fieldset></td>
+</tr>
+
 <?php if ( ! is_multisite() ) { ?>
 
 <tr>
