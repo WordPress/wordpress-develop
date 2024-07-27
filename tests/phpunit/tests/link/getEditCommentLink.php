@@ -79,8 +79,8 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 				}
 					return $location; // Return unchanged
 			},
-		10,
-		3
+			10,
+			3
 		);
 
 		$actual_url_display = get_edit_comment_link( $comment_id, 'display' );
