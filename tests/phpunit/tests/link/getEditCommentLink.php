@@ -68,19 +68,19 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 
 		add_filter(
 			'get_edit_comment_link',
-				function( $location, $comment_id, $context ) use ( $expected_url, $expected_url_view ) {
+			function ( $location, $comment_id, $context ) use ( $expected_url, $expected_url_view ) {
 				// Ensure the filtered URL matches the expected URL
-					if ( 'display' === $context ) {
-						$location = admin_url( 'comment.php?action=editcomment&amp;c=' ) . $comment_id;
-						$this->assertSame( $expected_url, $location );
-					} else {
-						$location = admin_url( 'comment.php?action=editcomment&c=' ) . $comment_id;
-						$this->assertSame( $expected_url_view, $location );
-					}
+				if ( 'display' === $context ) {
+					$location = admin_url( 'comment.php?action=editcomment&amp;c=' ) . $comment_id;
+					$this->assertSame( $expected_url, $location );
+				} else {
+					$location = admin_url( 'comment.php?action=editcomment&c=' ) . $comment_id;
+					$this->assertSame( $expected_url_view, $location );
+				}
 					return $location; // Return unchanged
-				},
-			10,
-			3
+			},
+		10,
+		3
 		);
 
 		$actual_url_display = get_edit_comment_link( $comment_id, 'display' );
