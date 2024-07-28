@@ -6366,7 +6366,7 @@ function wp_insert_attachment( $args, $file = false, $parent_post_id = 0, $wp_er
 	 * Slugs used for an attachment can not be subsequently used for a page or other
 	 * heirachical post type.
 	 */
-	$generated_post_name = sha1( basename( $file ) . " ({$data['post_mime_type']})" );
+	$generated_post_name = sha1( basename( $file ) );
 	$use_generated_slug  = 0 === absint( get_option( 'wp_attachment_pages_enabled' ) );
 
 	/**
