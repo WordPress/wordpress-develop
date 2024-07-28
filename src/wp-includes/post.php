@@ -6367,7 +6367,10 @@ function wp_insert_attachment( $args, $file = false, $parent_post_id = 0, $wp_er
 	 * heirachical post type.
 	 */
 	$generated_post_name = sha1( basename( $file ) );
-	$use_generated_slug  = 0 === absint( get_option( 'wp_attachment_pages_enabled' ) );
+	$use_generated_slug  = (
+		0 === absint( get_option( 'wp_attachment_pages_enabled' ) )
+		&& ( ! defined( 'WP_IMPORTING' ) || ! WP_IMPORTING )
+	);
 
 	/**
 	 * Filters whether to use the generated post slug for the attachment.
@@ -6375,7 +6378,8 @@ function wp_insert_attachment( $args, $file = false, $parent_post_id = 0, $wp_er
 	 * @since 6.7.0
 	 *
 	 * @param bool   $use_generated_slug  Whether to use the generated post slug for the attachment.
-	 *                                    Defaults to false if attachment pages are enabled, true otherwise.
+	 *                                    Defaults to false during imports or if attachment pages are enabled.
+	 *                                    Otherwise, defaults to true.
 	 * @param string $generated_post_name The generated post slug.
 	 * @param string $file                The file path.
 	 * @param array  $data                Arguments passed to wp_insert_post().
