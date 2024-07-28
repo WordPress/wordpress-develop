@@ -582,7 +582,11 @@ function wp_debug_mode() {
 	}
 
 	if ( WP_DEBUG ) {
-		error_reporting( E_ALL );
+		if ( WP_DEBUG_LEVEL ) {
+			error_reporting( WP_DEBUG_LEVEL );
+		} else {
+			error_reporting( E_ALL );
+		}
 
 		if ( WP_DEBUG_DISPLAY ) {
 			ini_set( 'display_errors', 1 );
