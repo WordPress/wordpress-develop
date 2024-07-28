@@ -5196,7 +5196,6 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 	if ( 'attachment' === $post_type ) {
 		// Attachment slugs must be unique across all types.
 		$check_sql       = "SELECT post_name FROM $wpdb->posts WHERE post_name = %s AND ID != %d LIMIT 1";
-		$slug            = ( 0 === absint( get_option( 'wp_attachment_pages_enabled' ) ) ) ? wp_generate_uuid4() : $slug;
 		$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $slug, $post_id ) );
 
 		/**
@@ -6356,6 +6355,36 @@ function wp_insert_attachment( $args, $file = false, $parent_post_id = 0, $wp_er
 	}
 
 	$data['post_type'] = 'attachment';
+
+	/*
+	 * Generate a post slug for the attachment based on the file data.
+	 *
+	 * For sites that do not show the attachment page, a slug is generated based on
+	 * the file data. This is done to avoid the attachment page reserving a "nice"
+	 * slug for content that will never be displayed.
+	 *
+	 * Slugs used for an attachment can not be subsequently used for a page or other
+	 * heirachical post type.
+	 */
+	$generated_post_name = sha1( basename( $file ) . " ({$data['post_mime_type']})" );
+	$use_generated_slug  = 0 === absint( get_option( 'wp_attachment_pages_enabled' ) );
+
+	/**
+	 * Filters whether to use the generated post slug for the attachment.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param bool   $use_generated_slug  Whether to use the generated post slug for the attachment.
+	 *                                    Defaults to false if attachment pages are enabled, true otherwise.
+	 * @param string $generated_post_name The generated post slug.
+	 * @param string $file                The file path.
+	 * @param array  $data                Arguments passed to wp_insert_post().
+	 */
+	$use_generated_slug = apply_filters( 'wp_insert_attachment_generate_post_slug', $use_generated_slug, $generated_post_name, $file, $data );
+
+	if ( $use_generated_slug ) {
+		$data['post_name'] = $generated_post_name;
+	}
 
 	return wp_insert_post( $data, $wp_error, $fire_after_hooks );
 }
