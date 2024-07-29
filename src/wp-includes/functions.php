@@ -9023,7 +9023,7 @@ function wp_get_wp_version() {
 	// memoizing the wp_version value till the lifetime of a web request.
 	static $wp_version;
 
-	if ( empty( $wp_version ) ) {
+	if ( ! isset( $wp_version ) ) {
 		require ABSPATH . WPINC . '/version.php';
 	}
 
