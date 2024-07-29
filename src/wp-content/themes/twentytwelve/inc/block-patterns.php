@@ -74,11 +74,12 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			'title'         => esc_html__( 'Left-aligned Large Quote', 'twentytwelve' ),
 			'categories'    => array( 'twentytwelve' ),
 			'viewportWidth' => 700,
-			'content'       => '<!-- wp:quote {"style":{"typography":{"fontSize":"40px","lineHeight":1.5}}} -->
-				 <blockquote class="wp-block-quote alignleft large-quote"><p style="font-size:40px;line-height:1.5"><strong><em>' . esc_html__( '"Few people are capable of expressing with equanimity opinions which differ from the prejudices of their social environment. Most people are even incapable of forming such opinions."', 'twentytwelve' ) . '</em></strong></p>
-				<!-- /wp:quote --><!-- wp:quote -->
-				<p><cite>' . esc_html__( '—  Albert Einstein', 'twentytwelve' ) . '</cite></p></blockquote>
-				<!-- /wp:quote -->',
+			'content'       => '<!-- wp:paragraph {"style":{"typography":{"fontSize":"40px","lineHeight":1.5}}} -->
+				<blockquote class="wp-block-quote alignleft" style="font-size:40px;line-height:1.5;"><p><strong><em>' . esc_html__( '"Few people are capable of expressing with equanimity opinions which differ from the prejudices of their social environment. Most people are even incapable of forming such opinions."', 'twentytwelve' ) . '</em></strong></p></blockquote>
+				<!-- /wp:paragraph --><!-- wp:paragraph -->
+				<p><em>' . esc_html__( '—  Albert Einstein', 'twentytwelve' ) . '</em></p>
+				
+				<!-- /wp:paragraph -->',
 		)
 	);
 
