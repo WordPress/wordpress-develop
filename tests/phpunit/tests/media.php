@@ -3637,14 +3637,16 @@ EOF;
 	 * @dataProvider data_attachment_permalinks_based_on_parent_status
 	 * @ticket 51776
 	 *
-	 * @param string $post_key     Post as keyed in the shared fixture array.
-	 * @param string $expected_url Expected permalink.
-	 * @param bool   $expected_404 Whether the page is expected to return a 404 result.
-	 *
+	 * @param string $post_key                 Post as keyed in the shared fixture array.
+	 * @param string $expected_url             Expected permalink.
+	 * @param bool   $expected_404             Whether the page is expected to return a 404 result.
+	 * @param bool   $attachment_pages_enabled Whether attachment pages are enabled.
 	 */
-	public function test_attachment_permalinks_based_on_parent_status( $post_key, $expected_url, $expected_404 ) {
+	public function test_attachment_permalinks_based_on_parent_status( $post_key, $expected_url, $expected_404, $attachment_pages_enabled = true ) {
 		$this->set_permalink_structure( '/%postname%' );
-		$post = get_post( self::$post_ids[ $post_key ] );
+		$post                    = get_post( self::$post_ids[ $post_key ] );
+		$attachment_option_value = $attachment_pages_enabled ? '1' : '0';
+		update_option( 'wp_attachment_pages_enabled', $attachment_option_value );
 
 		/*
 		 * The dataProvider runs before the fixures are set up, therefore the
@@ -3673,11 +3675,13 @@ EOF;
 	 */
 	public function data_attachment_permalinks_based_on_parent_status() {
 		return array(
-			array( 'draft-attachment', '/?attachment_id=%ID%', true ),
-			array( 'publish-attachment', '/publish-post/publish-attachment', false ),
-			array( 'future-attachment', '/future-post/future-attachment', false ),
-			array( 'auto-draft-attachment', '/?attachment_id=%ID%', true ),
-			array( 'trash-attachment', '/?attachment_id=%ID%', false ),
+			'draft'                            => array( 'draft-attachment', '/?attachment_id=%ID%', true ),
+			'publish (attachment pages on)'    => array( 'publish-attachment', '/publish-post/publish-attachment', false ),
+			'future (attachment pages on)'     => array( 'future-attachment', '/future-post/future-attachment', false ),
+			'publish (attachment pages off)'   => array( 'publish-attachment', '/publish-post/da39a3ee5e6b4b0d3255bfef95601890afd80709', false, false ),
+			'future (attachment pages off)'    => array( 'future-attachment', '/future-post/da39a3ee5e6b4b0d3255bfef95601890afd80709-2', false, false ),
+			'auto-draft (attachment pages on)' => array( 'auto-draft-attachment', '/?attachment_id=%ID%', true ),
+			'trash (attachment pages on)'      => array( 'trash-attachment', '/?attachment_id=%ID%', false ),
 		);
 	}
 

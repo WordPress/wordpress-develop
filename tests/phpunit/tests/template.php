@@ -369,7 +369,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_attachment_template_hierarchy() {
+	public function test_attachment_template_hierarchy_attachment_pages_on() {
+		// Enable attachment pages.
+		update_option( 'wp_attachment_pages_enabled', 1 );
 		$attachment = self::factory()->attachment->create_and_get(
 			array(
 				'post_name'      => 'attachment-name-😀',
@@ -393,10 +395,36 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	public function test_attachment_template_hierarchy_attachment_pages_off() {
+		// Enable attachment pages.
+		update_option( 'wp_attachment_pages_enabled', 0 );
+		$attachment = self::factory()->attachment->create_and_get(
+			array(
+				'post_name'      => 'attachment-name-😀',
+				'file'           => 'image.jpg',
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+		$this->assertTemplateHierarchy(
+			get_permalink( $attachment ),
+			array(
+				'image-jpeg.php',
+				'jpeg.php',
+				'image.php',
+				'attachment.php',
+				'single-attachment-42573d7391a7bc9dcdef39375562aa088c386c85.php',
+				'single-attachment.php',
+				'single.php',
+				'singular.php',
+			)
+		);
+	}
+
 	/**
 	 * @ticket 18375
 	 */
-	public function test_attachment_template_hierarchy_with_template() {
+	public function test_attachment_template_hierarchy_with_template_attachment_pages_on() {
+		update_option( 'wp_attachment_pages_enabled', 1 );
 		$attachment = self::factory()->attachment->create_and_get(
 			array(
 				'post_name'      => 'attachment-name-😀',
@@ -416,6 +444,36 @@ class Tests_Template extends WP_UnitTestCase {
 				'attachment.php',
 				'single-attachment-attachment-name-😀.php',
 				'single-attachment-attachment-name-%f0%9f%98%80.php',
+				'single-attachment.php',
+				'single.php',
+				'singular.php',
+			)
+		);
+	}
+
+	/**
+	 * @ticket 18375
+	 */
+	public function test_attachment_template_hierarchy_with_template_attachment_pages_off() {
+		update_option( 'wp_attachment_pages_enabled', 0 );
+		$attachment = self::factory()->attachment->create_and_get(
+			array(
+				'post_name'      => 'attachment-name-😀',
+				'file'           => 'image.jpg',
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+
+		add_post_meta( $attachment, '_wp_page_template', 'templates/cpt.php' );
+
+		$this->assertTemplateHierarchy(
+			get_permalink( $attachment ),
+			array(
+				'image-jpeg.php',
+				'jpeg.php',
+				'image.php',
+				'attachment.php',
+				'single-attachment-42573d7391a7bc9dcdef39375562aa088c386c85.php',
 				'single-attachment.php',
 				'single.php',
 				'singular.php',

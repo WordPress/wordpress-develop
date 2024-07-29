@@ -92,8 +92,9 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	/**
 	 * @ticket 18962
 	 */
-	public function test_wp_unique_post_slug_with_hierarchy_and_attachments() {
+	public function test_wp_unique_post_slug_with_hierarchy_and_attachments_attachment_pages_on() {
 		register_post_type( 'post-type-1', array( 'hierarchical' => true ) );
+		update_option( 'wp_attachment_pages_enabled', 1 );
 
 		$args = array(
 			'post_type'   => 'post-type-1',
@@ -120,6 +121,45 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 		$this->assertSame( 'some-slug', get_post( $one )->post_name );
 		$this->assertSame( 'image', get_post( $attachment )->post_name );
 		$this->assertSame( 'image-2', get_post( $two )->post_name );
+
+		// 'image' can be a child of image-2.
+		$this->assertSame( 'image', wp_unique_post_slug( 'image', 0, 'publish', 'post-type-1', $two ) );
+
+		_unregister_post_type( 'post-type-1' );
+	}
+
+	/**
+	 * @ticket 18962
+	 */
+	public function test_wp_unique_post_slug_with_hierarchy_and_attachments_attachment_pages_off() {
+		register_post_type( 'post-type-1', array( 'hierarchical' => true ) );
+		update_option( 'wp_attachment_pages_enabled', 0 );
+
+		$args = array(
+			'post_type'   => 'post-type-1',
+			'post_name'   => 'some-slug',
+			'post_status' => 'publish',
+		);
+		$one  = self::factory()->post->create( $args );
+
+		$args       = array(
+			'post_mime_type' => 'image/jpeg',
+			'post_type'      => 'attachment',
+			'post_name'      => 'image',
+		);
+		$attachment = self::factory()->attachment->create_object( 'image.jpg', $one, $args );
+
+		$args = array(
+			'post_type'   => 'post-type-1',
+			'post_name'   => 'image',
+			'post_status' => 'publish',
+			'post_parent' => $one,
+		);
+		$two  = self::factory()->post->create( $args );
+
+		$this->assertSame( 'some-slug', get_post( $one )->post_name );
+		$this->assertSame( '42573d7391a7bc9dcdef39375562aa088c386c85', get_post( $attachment )->post_name );
+		$this->assertSame( '42573d7391a7bc9dcdef39375562aa088c386c85-2', get_post( $two )->post_name );
 
 		// 'image' can be a child of image-2.
 		$this->assertSame( 'image', wp_unique_post_slug( 'image', 0, 'publish', 'post-type-1', $two ) );
