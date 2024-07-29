@@ -1052,20 +1052,25 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private function step_in_head(): bool {
 		$token_name = $this->get_token_name();
 		$token_type = $this->get_token_type();
-		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
+		$is_closer  = parent::is_tag_closer();
+		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
 		$op         = "{$op_sigil}{$token_name}";
 
-		switch ( $op ) {
-			/*
-			 * > A character token that is one of U+0009 CHARACTER TABULATION,
-			 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-			 */
-			case '#text':
-				$this->bail(
-					'No support for parsing whitespace text in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD . ' state.'
-				);
-				break;
+		/*
+		 * > A character token that is one of U+0009 CHARACTER TABULATION,
+		 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+		 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+		 */
+		if ( '#text' === $op ) {
+			$text = $this->get_modifiable_text();
+			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				// Insert the character.
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+			}
+		}
 
+		switch ( $op ) {
 			/*
 			 * > A comment token
 			 */
@@ -1079,7 +1084,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A DOCTYPE token
 			 */
 			case 'html':
-				// @todo Indicate a parse error once it's possible.
+				// Parse error: ignore the token.
 				return $this->step();
 
 			/*
@@ -1102,18 +1107,52 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "meta"
 			 */
 			case '+META':
-				$this->bail( "Cannot process {$token_name} element." );
-				break;
+				$this->insert_html_element( $this->state->current_token );
+
+				/*
+				 * > If the active speculative HTML parser is null, then:
+				 * >   - If the element has a charset attribute, and getting an encoding from
+				 * >     its value results in an encoding, and the confidence is currently
+				 * >     tentative, then change the encoding to the resulting encoding.
+				 */
+				$charset = $this->get_attribute( 'charset' );
+				if ( is_string( $charset ) ) {
+					$this->bail( 'Cannot yet process META tags with charset to determine encoding.' );
+				}
+
+				/*
+				 * >   - Otherwise, if the element has an http-equiv attribute whose value is
+				 * >     an ASCII case-insensitive match for the string "Content-Type", and
+				 * >     the element has a content attribute, and applying the algorithm for
+				 * >     extracting a character encoding from a meta element to that attribute's
+				 * >     value returns an encoding, and the confidence is currently tentative,
+				 * >     then change the encoding to the extracted encoding.
+				 */
+				$http_equiv = $this->get_attribute( 'http-equiv' );
+				$content    = $this->get_attribute( 'content' );
+				if (
+					is_string( $http_equiv ) &&
+					is_string( $content ) &&
+					0 === strcasecmp( $http_equiv, 'Content-Type' )
+				) {
+					$this->bail( 'Cannot yet process META tags with http-equiv Content-Type to determine encoding.' );
+				}
+
+				return true;
 
 			/*
 			 * > A start tag whose tag name is "title"
-			 *
-			 * This rule is not applies, the scripting flag is never enabled:
-			 * > A start tag whose tag name is "noscript", if the scripting flag is enabled
-			 *
-			 * > A start tag whose tag name is one of: "noframes", "style"
 			 */
 			case '+TITLE':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "noscript", if the scripting flag is enabled
+			 * > A start tag whose tag name is one of: "noframes", "style"
+			 *
+			 * The scripting flag is never enabled in this parser.
+			 */
 			case '+NOFRAMES':
 			case '+STYLE':
 				$this->insert_html_element( $this->state->current_token );
@@ -1131,8 +1170,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "script"
 			 */
 			case '+SCRIPT':
-				$this->bail( "Cannot process {$token_name} element." );
-				break;
+				$this->insert_html_element( $this->state->current_token );
+				return true;
 
 			/*
 			 * > An end tag whose tag name is "head"
@@ -1148,7 +1187,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-BODY':
 			case '-HTML':
 			case '-BR':
-				goto anything_else;
+				/*
+				 * > Act as described in the "anything else" entry below.
+				 */
+				goto in_head_anything_else;
 				break;
 
 			/*
@@ -1192,17 +1234,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		/*
+		 * > A start tag whose tag name is "head"
 		 * > Any other end tag
 		 */
-		if ( '-' === $op[0] ) {
-			// @todo Indicate a parse error once it's possible.
+		if ( $is_closer ) {
+			// Parse error: ignore the token.
 			return $this->step();
 		}
 
-		anything_else:
 		/*
 		 * > Anything else
 		 */
+		in_head_anything_else:
 		$this->state->stack_of_open_elements->pop();
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
