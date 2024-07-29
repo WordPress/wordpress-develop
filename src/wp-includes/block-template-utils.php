@@ -355,7 +355,7 @@ function _get_block_template_file( $template_type, $slug ) {
  *     @type string   $post_type    Post type to get the templates for.
  * }
  *
- * @return array Template
+ * @return array|null Template files on success, null if `$template_type` is not matched.
  */
 function _get_block_templates_files( $template_type, $query = array() ) {
 	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
@@ -1600,6 +1600,10 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated = null ) {
 	if ( null !== $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '6.5.3' );
+	}
+
+	if ( ! isset( $changes->post_content ) ) {
+		return $changes;
 	}
 
 	$hooked_blocks = get_hooked_blocks();

@@ -96,6 +96,8 @@ module.exports = function (
 		'wp-polyfill-importmap.js': 'es-module-shims/dist/es-module-shims.wasm.js',
 		'moment.js': 'moment/moment.js',
 		'regenerator-runtime.js': 'regenerator-runtime/runtime.js',
+		'react.js': 'react/umd/react.development.js',
+		'react-dom.js': 'react-dom/umd/react-dom.development.js',
 	};
 
 	const minifiedVendors = {
@@ -109,6 +111,8 @@ module.exports = function (
 			'objectFitPolyfill/dist/objectFitPolyfill.min.js',
 		'wp-polyfill-inert.min.js': 'wicg-inert/dist/inert.min.js',
 		'moment.min.js': 'moment/min/moment.min.js',
+		'react.min.js': 'react/umd/react.production.min.js',
+		'react-dom.min.js': 'react-dom/umd/react-dom.production.min.js',
 	};
 
 	const minifyVendors = {

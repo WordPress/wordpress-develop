@@ -958,6 +958,37 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests registering a block with variations from a PHP file.
+	 *
+	 * @ticket 61280
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 */
+	public function test_register_block_type_from_metadata_with_variations_php_file() {
+		$filter_metadata_registration = static function ( $metadata ) {
+			$metadata['variations'] = 'file:./variations.php';
+			return $metadata;
+		};
+
+		add_filter( 'block_type_metadata', $filter_metadata_registration, 10, 2 );
+		$result = register_block_type_from_metadata(
+			DIR_TESTDATA . '/blocks/notice'
+		);
+		remove_filter( 'block_type_metadata', $filter_metadata_registration );
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result, 'The block was not registered' );
+
+		$this->assertIsCallable( $result->variation_callback, 'The variation callback hasn\'t been set' );
+		$expected_variations = require DIR_TESTDATA . '/blocks/notice/variations.php';
+		$this->assertSame(
+			$expected_variations,
+			call_user_func( $result->variation_callback ),
+			'The variation callback hasn\'t been set correctly'
+		);
+		$this->assertSame( $expected_variations, $result->variations, 'The block variations are incorrect' );
+	}
+
+	/**
 	 * Tests that the function returns the registered block when the `block.json`
 	 * is found in the fixtures directory.
 	 *
