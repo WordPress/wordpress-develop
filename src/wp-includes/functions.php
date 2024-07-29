@@ -9020,7 +9020,12 @@ function wp_admin_notice( $message, $args = array() ) {
  * @return string The current WordPress Version.
  */
 function wp_get_wp_version() {
-	require ABSPATH . WPINC . '/version.php';
+	// memoizing the wp_version value till the lifetime of a web request.
+	static $wp_version;
+
+	if ( empty( $wp_version ) ) {
+		require ABSPATH . WPINC . '/version.php';
+	}
 
 	return $wp_version;
 }
