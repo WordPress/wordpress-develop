@@ -628,7 +628,8 @@ switch ( $action ) {
 										$description = sprintf(
 											/* translators: %s: Gravatar URL. */
 											__( '<a href="%s">You can change your profile picture on Gravatar</a>.' ),
-											__( 'https://en.gravatar.com/' )
+											/* translators: The localized Gravatar URL. */
+											__( 'https://gravatar.com/' )
 										);
 									} else {
 										$description = '';
@@ -858,7 +859,7 @@ switch ( $action ) {
 									<?php
 									printf(
 										/* translators: %s: Documentation URL. */
-										__( 'If this is a development website you can <a href="%s" target="_blank">set the environment type accordingly</a> to enable application passwords.' ),
+										__( 'If this is a development website, you can <a href="%s">set the environment type accordingly</a> to enable application passwords.' ),
 										__( 'https://developer.wordpress.org/apis/wp-config-php/#wp-environment-type' )
 									);
 									?>
