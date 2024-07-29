@@ -184,6 +184,24 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
+			'inline_valid_aspect_ratio_style'              => array(
+				'block_styles'    => array(
+					'dimensions' => array(
+						'aspectRatio' => '4/3',
+						'minHeight'   => 'unset',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'aspect-ratio:4/3;min-height:unset;',
+					'declarations' => array(
+						'aspect-ratio' => '4/3',
+						'min-height'   => 'unset',
+					),
+					'classnames'   => 'has-aspect-ratio',
+				),
+			),
+
 			'inline_valid_shadow_style'                    => array(
 				'block_styles'    => array(
 					'shadow' => 'inset 5em 1em gold',
@@ -730,5 +748,69 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
 
 		$this->assertSame( '.gandalf{color:white;height:190px;border-style:dotted;padding:10px;margin-bottom:100px;}.dumbledore{color:grey;height:90px;border-style:dotted;}.rincewind{color:grey;height:90px;border-style:dotted;}', $compiled_stylesheet );
+	}
+
+	/**
+	 * Tests returning a generated stylesheet from a set of nested rules and merging their declarations.
+	 *
+	 * @ticket 61099
+	 *
+	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
+	 */
+	public function test_should_merge_declarations_for_rules_groups() {
+		$css_rules = array(
+			array(
+				'selector'     => '.saruman',
+				'rules_group'  => '@container (min-width: 700px)',
+				'declarations' => array(
+					'color'        => 'white',
+					'height'       => '100px',
+					'border-style' => 'solid',
+					'align-self'   => 'stretch',
+				),
+			),
+			array(
+				'selector'     => '.saruman',
+				'rules_group'  => '@container (min-width: 700px)',
+				'declarations' => array(
+					'color'       => 'black',
+					'font-family' => 'The-Great-Eye',
+				),
+			),
+		);
+
+		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
+
+		$this->assertSame( '@container (min-width: 700px){.saruman{color:black;height:100px;border-style:solid;align-self:stretch;font-family:The-Great-Eye;}}', $compiled_stylesheet );
+	}
+
+	/**
+	 * Tests returning a generated stylesheet from a set of nested rules.
+	 *
+	 * @ticket 61099
+	 *
+	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
+	 */
+	public function test_should_return_stylesheet_with_nested_rules() {
+		$css_rules = array(
+			array(
+				'rules_group'  => '.foo',
+				'selector'     => '@media (orientation: landscape)',
+				'declarations' => array(
+					'background-color' => 'blue',
+				),
+			),
+			array(
+				'rules_group'  => '.foo',
+				'selector'     => '@media (min-width > 1024px)',
+				'declarations' => array(
+					'background-color' => 'cotton-blue',
+				),
+			),
+		);
+
+		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
+
+		$this->assertSame( '.foo{@media (orientation: landscape){background-color:blue;}}.foo{@media (min-width > 1024px){background-color:cotton-blue;}}', $compiled_stylesheet );
 	}
 }

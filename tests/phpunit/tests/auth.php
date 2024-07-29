@@ -115,16 +115,22 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * Tests hooking into wp_set_password().
 	 *
 	 * @ticket 57436
+	 * @ticket 61541
 	 *
 	 * @covers ::wp_set_password
 	 */
 	public function test_wp_set_password_action() {
 		$action = new MockAction();
 
-		add_action( 'wp_set_password', array( $action, 'action' ) );
-		wp_set_password( 'A simple password', self::$user_id );
+		$previous_user_pass = get_user_by( 'id', $this->user->ID )->user_pass;
+
+		add_action( 'wp_set_password', array( $action, 'action' ), 10, 3 );
+		wp_set_password( 'A simple password', $this->user->ID );
 
 		$this->assertSame( 1, $action->get_call_count() );
+
+		// Check that the old data passed through the hook is correct.
+		$this->assertSame( $previous_user_pass, $action->get_args()[0][2]->user_pass );
 	}
 
 	/**
@@ -149,8 +155,8 @@ class Tests_Auth extends WP_UnitTestCase {
 		$password = "pass with new line \n";
 		$this->assertTrue( wp_check_password( 'pass with new line', wp_hash_password( $password ) ) );
 
-		$password = "pass with vertial tab o_O\x0B";
-		$this->assertTrue( wp_check_password( 'pass with vertial tab o_O', wp_hash_password( $password ) ) );
+		$password = "pass with vertical tab o_O\x0B";
+		$this->assertTrue( wp_check_password( 'pass with vertical tab o_O', wp_hash_password( $password ) ) );
 	}
 
 	/**
@@ -424,20 +430,51 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that `user_activation_key` is cleared after a successful login.
+	 *
+	 * @ticket 58901
+	 *
+	 * @covers ::wp_signon
+	 */
+	public function test_user_activation_key_after_successful_login() {
+		global $wpdb;
+
+		$password_reset_key = get_password_reset_key( $this->user );
+		$user               = wp_signon(
+			array(
+				'user_login'    => self::USER_LOGIN,
+				'user_password' => self::USER_PASS,
+			)
+		);
+
+		$activation_key_from_database = $wpdb->get_var(
+			$wpdb->prepare( "SELECT user_activation_key FROM $wpdb->users WHERE ID = %d", $this->user->ID )
+		);
+
+		$this->assertNotWPError( $password_reset_key, 'The password reset key was not created.' );
+		$this->assertNotWPError( $user, 'The user was not authenticated.' );
+		$this->assertEmpty( $user->user_activation_key, 'The `user_activation_key` was not empty on the user object returned by `wp_signon()` function.' );
+		$this->assertEmpty( $activation_key_from_database, 'The `user_activation_key` was not empty in the database.' );
+	}
+
+	/**
 	 * Ensure users can log in using both their username and their email address.
 	 *
 	 * @ticket 9568
 	 */
 	public function test_log_in_using_email() {
-		$user_args = array(
-			'user_login' => 'johndoe',
-			'user_email' => 'mail@example.com',
-			'user_pass'  => 'password',
-		);
-		self::factory()->user->create( $user_args );
+		$this->assertInstanceOf( 'WP_User', wp_authenticate( self::USER_EMAIL, self::USER_PASS ) );
+		$this->assertInstanceOf( 'WP_User', wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
+	}
 
-		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_email'], $user_args['user_pass'] ) );
-		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_login'], $user_args['user_pass'] ) );
+	/**
+	 * @ticket 60700
+	 */
+	public function test_authenticate_filter() {
+		add_filter( 'authenticate', '__return_null', 20 );
+		$this->assertInstanceOf( 'WP_Error', wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
+		add_filter( 'authenticate', '__return_false', 20 );
+		$this->assertInstanceOf( 'WP_Error', wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
 	}
 
 	/**
@@ -836,6 +873,28 @@ class Tests_Auth extends WP_UnitTestCase {
 		} else {
 			$this->assertSame( 0, $current );
 		}
+	}
+
+	/**
+	 * @ticket 52529
+	 */
+	public function test_reset_password_with_apostrophe_in_email() {
+		$user_args = array(
+			'user_email' => "jo'hn@example.com",
+			'user_pass'  => 'password',
+		);
+
+		$user_id = self::factory()->user->create( $user_args );
+
+		$user = get_userdata( $user_id );
+		$key  = get_password_reset_key( $user );
+
+		// A correctly saved key should be accepted.
+		$check = check_password_reset_key( $key, $user->user_login );
+
+		$this->assertNotWPError( $check );
+		$this->assertInstanceOf( 'WP_User', $check );
+		$this->assertSame( $user_id, $check->ID );
 	}
 
 	public function data_application_passwords_can_use_capability_checks_to_determine_feature_availability() {

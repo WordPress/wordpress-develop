@@ -23,7 +23,8 @@
  * @since 6.1.0
  * @since 6.3.0 Added support for text-columns.
  * @since 6.4.0 Added support for background.backgroundImage.
- * @since 6.5.0 Added support for background.backgroundPosition and background.backgroundRepeat.
+ * @since 6.5.0 Added support for background.backgroundPosition,
+ *              background.backgroundRepeat and dimensions.aspectRatio.
  */
 #[AllowDynamicProperties]
 final class WP_Style_Engine {
@@ -190,7 +191,16 @@ final class WP_Style_Engine {
 			),
 		),
 		'dimensions' => array(
-			'minHeight' => array(
+			'aspectRatio' => array(
+				'property_keys' => array(
+					'default' => 'aspect-ratio',
+				),
+				'path'          => array( 'dimensions', 'aspectRatio' ),
+				'classnames'    => array(
+					'has-aspect-ratio' => true,
+				),
+			),
+			'minHeight'   => array(
 				'property_keys' => array(
 					'default' => 'min-height',
 				),
@@ -354,6 +364,7 @@ final class WP_Style_Engine {
 	 * Stores a CSS rule using the provided CSS selector and CSS declarations.
 	 *
 	 * @since 6.1.0
+	 * @since 6.6.0 Added the `$rules_group` parameter.
 	 *
 	 * @param string   $store_name       A valid store key.
 	 * @param string   $css_selector     When a selector is passed, the function will return
@@ -361,12 +372,14 @@ final class WP_Style_Engine {
 	 *                                   otherwise a concatenated string of properties and values.
 	 * @param string[] $css_declarations An associative array of CSS definitions,
 	 *                                   e.g. `array( "$property" => "$value", "$property" => "$value" )`.
+	 * @param string $rules_group        Optional. A parent CSS selector in the case of nested CSS, or a CSS nested @rule,
+	 *                                   such as `@media (min-width: 80rem)` or `@layer module`.
 	 */
-	public static function store_css_rule( $store_name, $css_selector, $css_declarations ) {
+	public static function store_css_rule( $store_name, $css_selector, $css_declarations, $rules_group = '' ) {
 		if ( empty( $store_name ) || empty( $css_selector ) || empty( $css_declarations ) ) {
 			return;
 		}
-		static::get_store( $store_name )->add_rule( $css_selector )->add_declarations( $css_declarations );
+		static::get_store( $store_name )->add_rule( $css_selector, $rules_group )->add_declarations( $css_declarations );
 	}
 
 	/**
@@ -457,6 +470,7 @@ final class WP_Style_Engine {
 			foreach ( $style_definition['classnames'] as $classname => $property_key ) {
 				if ( true === $property_key ) {
 					$classnames[] = $classname;
+					continue;
 				}
 
 				$slug = static::get_slug_from_preset_value( $style_value, $property_key );

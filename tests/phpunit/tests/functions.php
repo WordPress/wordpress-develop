@@ -263,7 +263,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		// Test slashes in names.
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\fg.png' ), 'Slash not removed' );
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\fg.png' ), 'Double slashed not removed' );
-		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Tripple slashed not removed' );
+		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Triple slashed not removed' );
 	}
 
 	/**
@@ -724,41 +724,6 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( 'foobarbaz', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', $orig_blog_charset );
-	}
-
-	/**
-	 * @dataProvider data_wp_parse_id_list
-	 */
-	public function test_wp_parse_id_list( $expected, $actual ) {
-		$this->assertSame( $expected, array_values( wp_parse_id_list( $actual ) ) );
-	}
-
-	public function data_wp_parse_id_list() {
-		return array(
-			array( array( 1, 2, 3, 4 ), '1,2,3,4' ),
-			array( array( 1, 2, 3, 4 ), '1, 2,,3,4' ),
-			array( array( 1, 2, 3, 4 ), '1,2,2,3,4' ),
-			array( array( 1, 2, 3, 4 ), array( '1', '2', '3', '4', '3' ) ),
-			array( array( 1, 2, 3, 4 ), array( 1, '2', 3, '4' ) ),
-			array( array( 1, 2, 3, 4 ), '-1,2,-3,4' ),
-			array( array( 1, 2, 3, 4 ), array( -1, 2, '-3', '4' ) ),
-		);
-	}
-
-	/**
-	 * @dataProvider data_wp_parse_slug_list
-	 */
-	public function test_wp_parse_slug_list( $expected, $actual ) {
-		$this->assertSame( $expected, array_values( wp_parse_slug_list( $actual ) ) );
-	}
-
-	public function data_wp_parse_slug_list() {
-		return array(
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple,banana,carrot,dog' ),
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple, banana,,carrot,dog' ),
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple banana carrot dog' ),
-			array( array( 'apple', 'banana-carrot', 'd-o-g' ), array( 'apple ', 'banana carrot', 'd o g' ) ),
-		);
 	}
 
 	/**
@@ -1370,6 +1335,26 @@ class Tests_Functions extends WP_UnitTestCase {
 				DIR_TESTDATA . '/uploads/dashicons.woff',
 				false,
 			),
+			// Animated AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-animated.avif',
+				'image/avif',
+			),
+			// Lossless AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossless.avif',
+				'image/avif',
+			),
+			// Lossy AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossy.avif',
+				'image/avif',
+			),
+			// Transparent AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-transparent.avif',
+				'image/avif',
+			),
 		);
 
 		return $data;
@@ -1495,6 +1480,61 @@ class Tests_Functions extends WP_UnitTestCase {
 			array(
 				DIR_TESTDATA . '/uploads/dashicons.woff',
 				false,
+			),
+			// Animated AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-animated.avif',
+				array(
+					150,
+					150,
+					IMAGETYPE_AVIF,
+					'width="150" height="150"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Lossless AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossless.avif',
+				array(
+					400,
+					400,
+					IMAGETYPE_AVIF,
+					'width="400" height="400"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Lossy AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossy.avif',
+				array(
+					400,
+					400,
+					IMAGETYPE_AVIF,
+					'width="400" height="400"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Transparent AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-transparent.avif',
+				array(
+					128,
+					128,
+					IMAGETYPE_AVIF,
+					'width="128" height="128"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Grid AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-alpha-grid2x1.avif',
+				array(
+					199,
+					200,
+					IMAGETYPE_AVIF,
+					'width="199" height="200"',
+					'mime' => 'image/avif',
+				),
 			),
 		);
 
@@ -1753,6 +1793,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Test file path validation
 	 *
 	 * @ticket 42016
+	 * @ticket 61488
 	 * @dataProvider data_validate_file
 	 *
 	 * @param string $file          File path.
@@ -1871,6 +1912,13 @@ class Tests_Functions extends WP_UnitTestCase {
 				'C:/WINDOWS/system32',
 				array( 'C:/WINDOWS/system32' ),
 				2,
+			),
+
+			// Windows Path with allowed file
+			array(
+				'Apache24\htdocs\wordpress/wp-content/themes/twentyten/style.css',
+				array( 'Apache24\htdocs\wordpress/wp-content/themes/twentyten/style.css' ),
+				0,
 			),
 
 			// Disallowed files:

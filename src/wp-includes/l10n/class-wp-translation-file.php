@@ -81,7 +81,7 @@ abstract class WP_Translation_File {
 	 * @param string|null $filetype Optional. File type. Default inferred from file name.
 	 * @return false|WP_Translation_File
 	 */
-	public static function create( string $file, string $filetype = null ) {
+	public static function create( string $file, ?string $filetype = null ) {
 		if ( ! is_readable( $file ) ) {
 			return false;
 		}
@@ -203,28 +203,11 @@ abstract class WP_Translation_File {
 			$this->parse_file();
 		}
 
-		if ( isset( $this->entries[ $text ] ) ) {
-			return $this->entries[ $text ];
-		}
-
-		/*
-		 * Handle cases where a pluralized string is only used as a singular one.
-		 * For example, when both __( 'Product' ) and _n( 'Product', 'Products' )
-		 * are used, the entry key will have the format "ProductNULProducts".
-		 * Fall back to looking up just "Product" to support this edge case.
-		 */
-		foreach ( $this->entries as $key => $value ) {
-			if ( str_starts_with( $key, $text . "\0" ) ) {
-				$parts = explode( "\0", $value );
-				return $parts[0];
-			}
-		}
-
-		return false;
+		return $this->entries[ $text ] ?? false;
 	}
 
 	/**
-	 * Returns the plural form for a count.
+	 * Returns the plural form for a given number.
 	 *
 	 * @since 6.5.0
 	 *
@@ -236,9 +219,9 @@ abstract class WP_Translation_File {
 			$this->parse_file();
 		}
 
-		// In case a plural form is specified as a header, but no function included, build one.
 		if ( null === $this->plural_forms && isset( $this->headers['plural-forms'] ) ) {
-			$this->plural_forms = $this->make_plural_form_function( $this->headers['plural-forms'] );
+			$expression         = $this->get_plural_expression_from_header( $this->headers['plural-forms'] );
+			$this->plural_forms = $this->make_plural_form_function( $expression );
 		}
 
 		if ( is_callable( $this->plural_forms ) ) {
@@ -248,11 +231,28 @@ abstract class WP_Translation_File {
 			 * @var int $result Plural form.
 			 */
 			$result = call_user_func( $this->plural_forms, $number );
+
 			return $result;
 		}
 
 		// Default plural form matches English, only "One" is considered singular.
 		return ( 1 === $number ? 0 : 1 );
+	}
+
+	/**
+	 * Returns the plural forms expression as a tuple.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $header Plural-Forms header string.
+	 * @return string Plural forms expression.
+	 */
+	protected function get_plural_expression_from_header( string $header ): string {
+		if ( preg_match( '/^\s*nplurals\s*=\s*(\d+)\s*;\s+plural\s*=\s*(.+)$/', $header, $matches ) ) {
+			return trim( $matches[2] );
+		}
+
+		return 'n != 1';
 	}
 
 	/**
@@ -264,7 +264,7 @@ abstract class WP_Translation_File {
 	 * @param string $expression Plural form expression.
 	 * @return callable(int $num): int Plural forms function.
 	 */
-	public function make_plural_form_function( string $expression ): callable {
+	protected function make_plural_form_function( string $expression ): callable {
 		try {
 			$handler = new Plural_Forms( rtrim( $expression, ';' ) );
 			return array( $handler, 'get' );

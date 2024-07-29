@@ -128,10 +128,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 	outline: none;
 }
 
-#wpadminbar .quicklinks .ab-top-secondary > li {
-	float: right;
-}
-
 #wpadminbar .quicklinks a,
 #wpadminbar .quicklinks .ab-empty-item,
 #wpadminbar .shortlink-input {
@@ -705,7 +701,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar .screen-reader-text span {
 	border: 0;
 	clip: rect(1px, 1px, 1px, 1px);
-	-webkit-clip-path: inset(50%);
 	clip-path: inset(50%);
 	height: 1px;
 	margin: -1px;
@@ -799,7 +794,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar .ab-label {
 		border: 0;
 		clip: rect(1px, 1px, 1px, 1px);
-		-webkit-clip-path: inset(50%);
 		clip-path: inset(50%);
 		height: 1px;
 		margin: -1px;
@@ -1036,10 +1030,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar #wp-admin-bar-edit,
 	#wpadminbar #wp-admin-bar-my-account {
 		position: static;
-	}
-
-	#wpadminbar #wp-admin-bar-my-account {
-		float: right;
 	}
 
 	.network-admin #wpadminbar ul#wp-admin-bar-top-secondary > li#wp-admin-bar-my-account {

@@ -66,11 +66,13 @@ class WP_Translation_File_MO extends WP_Translation_File {
 			return false;
 		}
 
-		if ( self::MAGIC_MARKER === $big ) {
+		// Force cast to an integer as it can be a float on x86 systems. See https://core.trac.wordpress.org/ticket/60678.
+		if ( (int) self::MAGIC_MARKER === $big ) {
 			return 'N';
 		}
 
-		if ( self::MAGIC_MARKER === $little ) {
+		// Force cast to an integer as it can be a float on x86 systems. See https://core.trac.wordpress.org/ticket/60678.
+		if ( (int) self::MAGIC_MARKER === $little ) {
 			return 'V';
 		}
 
@@ -161,7 +163,15 @@ class WP_Translation_File_MO extends WP_Translation_File {
 					$this->headers[ strtolower( $name ) ] = $value;
 				}
 			} else {
-				$this->entries[ (string) $original ] = $translation;
+				/*
+				 * In MO files, the key normally contains both singular and plural versions.
+				 * However, this just adds the singular string for lookup,
+				 * which caters for cases where both __( 'Product' ) and _n( 'Product', 'Products' )
+				 * are used and the translation is expected to be the same for both.
+				 */
+				$parts = explode( "\0", (string) $original );
+
+				$this->entries[ $parts[0] ] = $translation;
 			}
 		}
 
@@ -195,7 +205,17 @@ class WP_Translation_File_MO extends WP_Translation_File {
 		$hash_addr         = $translations_addr + $bytes_for_entries;
 		$entry_offsets     = $hash_addr;
 
-		$file_header = pack( $this->uint32 . '*', self::MAGIC_MARKER, 0 /* rev */, $entry_count, $originals_addr, $translations_addr, 0 /* hash_length */, $hash_addr );
+		$file_header = pack(
+			$this->uint32 . '*',
+			// Force cast to an integer as it can be a float on x86 systems. See https://core.trac.wordpress.org/ticket/60678.
+			(int) self::MAGIC_MARKER,
+			0, /* rev */
+			$entry_count,
+			$originals_addr,
+			$translations_addr,
+			0, /* hash_length */
+			$hash_addr
+		);
 
 		$o_entries = '';
 		$t_entries = '';

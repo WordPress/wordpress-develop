@@ -748,6 +748,13 @@ class WP_REST_Server {
 						$request['context'] = 'embed';
 					}
 
+					if ( empty( $request['per_page'] ) ) {
+						$matched = $this->match_request_to_handler( $request );
+						if ( ! is_wp_error( $matched ) && isset( $matched[1]['args']['per_page']['maximum'] ) ) {
+							$request['per_page'] = (int) $matched[1]['args']['per_page']['maximum'];
+						}
+					}
+
 					$response = $this->dispatch( $request );
 
 					/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
@@ -1660,7 +1667,7 @@ class WP_REST_Server {
 			$single_request = new WP_REST_Request( isset( $args['method'] ) ? $args['method'] : 'POST', $parsed_url['path'] );
 
 			if ( ! empty( $parsed_url['query'] ) ) {
-				$query_args = null; // Satisfy linter.
+				$query_args = array();
 				wp_parse_str( $parsed_url['query'], $query_args );
 				$single_request->set_query_params( $query_args );
 			}

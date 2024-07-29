@@ -1572,7 +1572,11 @@ function wp_dashboard_primary() {
 			 *
 			 * @param string $link The widget's secondary link URL.
 			 */
-			'link'         => apply_filters( 'dashboard_secondary_link', __( 'https://planet.wordpress.org/' ) ),
+			'link'         => apply_filters(
+				'dashboard_secondary_link',
+				/* translators: Link to the Planet website of the locale. */
+				__( 'https://planet.wordpress.org/' )
+			),
 
 			/**
 			 * Filters the secondary feed URL for the 'WordPress Events and News' dashboard widget.
@@ -1581,7 +1585,11 @@ function wp_dashboard_primary() {
 			 *
 			 * @param string $url The widget's secondary feed URL.
 			 */
-			'url'          => apply_filters( 'dashboard_secondary_feed', __( 'https://planet.wordpress.org/feed/' ) ),
+			'url'          => apply_filters(
+				'dashboard_secondary_feed',
+				/* translators: Link to the Planet feed of the locale. */
+				__( 'https://planet.wordpress.org/feed/' )
+			),
 
 			/**
 			 * Filters the secondary link title for the 'WordPress Events and News' dashboard widget.
@@ -1811,13 +1819,10 @@ function wp_check_browser_version() {
 	$response = get_site_transient( 'browser_' . $key );
 
 	if ( false === $response ) {
-		// Include an unmodified $wp_version.
-		require ABSPATH . WPINC . '/version.php';
-
 		$url     = 'http://api.wordpress.org/core/browse-happy/1.1/';
 		$options = array(
 			'body'       => array( 'useragent' => $_SERVER['HTTP_USER_AGENT'] ),
-			'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
+			'user-agent' => 'WordPress/' . wp_get_wp_version() . '; ' . home_url( '/' ),
 		);
 
 		if ( wp_http_supports( array( 'ssl' ) ) ) {
