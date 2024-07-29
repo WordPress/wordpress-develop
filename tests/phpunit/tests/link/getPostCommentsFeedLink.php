@@ -85,6 +85,10 @@ class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		update_option( 'wp_attachment_pages_enabled', 0 );
 
+		// Test if an order of operations issue exists.
+		$importing = defined( 'WP_IMPORTING' ) && WP_IMPORTING;
+		$this->assertFalse( $importing, 'An order of operations issue should not exist' );
+
 		$post_id       = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
