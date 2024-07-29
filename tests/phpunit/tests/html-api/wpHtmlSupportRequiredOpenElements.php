@@ -182,16 +182,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 * @covers WP_HTML_Open_Elements::has_element_in_table_scope
 	 */
 	public function test_has_element_in_table_scope_needs_support() {
-		// These elements impact all scopes.
-		$this->ensure_support_is_added_everywhere( 'APPLET' );
-		$this->ensure_support_is_added_everywhere( 'CAPTION' );
-		$this->ensure_support_is_added_everywhere( 'HTML' );
-		$this->ensure_support_is_added_everywhere( 'TABLE' );
-		$this->ensure_support_is_added_everywhere( 'TD' );
-		$this->ensure_support_is_added_everywhere( 'TH' );
-		$this->ensure_support_is_added_everywhere( 'MARQUEE' );
-		$this->ensure_support_is_added_everywhere( 'OBJECT' );
-
 		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
 		$this->ensure_support_is_added_everywhere( 'MATH' );
 
@@ -202,21 +192,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		 * FOREIGNOBJECT, DESC, TITLE.
 		 */
 		$this->ensure_support_is_added_everywhere( 'SVG' );
-
-		// These elements are specific to TABLE scope.
-		$this->ensure_support_is_added_everywhere( 'HTML' );
-		$this->ensure_support_is_added_everywhere( 'TABLE' );
-
-		// These elements depend on table scope.
-		$this->ensure_support_is_added_everywhere( 'CAPTION' );
-		$this->ensure_support_is_added_everywhere( 'COL' );
-		$this->ensure_support_is_added_everywhere( 'COLGROUP' );
-		$this->ensure_support_is_added_everywhere( 'TBODY' );
-		$this->ensure_support_is_added_everywhere( 'TD' );
-		$this->ensure_support_is_added_everywhere( 'TFOOT' );
-		$this->ensure_support_is_added_everywhere( 'TH' );
-		$this->ensure_support_is_added_everywhere( 'THEAD' );
-		$this->ensure_support_is_added_everywhere( 'TR' );
 	}
 
 	/**
