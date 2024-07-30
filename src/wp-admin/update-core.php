@@ -662,7 +662,7 @@ function list_theme_updates() {
 	<?php
 	printf(
 		/* translators: %s: Link to documentation on child themes. */
-		__( '<strong>Please Note:</strong> Any customizations you have made to theme files will be lost. Please consider using <a href="%s">child themes</a> for modifications.' ),
+		__( '<strong>Please Note:</strong> Any customizations you have made to theme files will be lost. It is best practice to use a <a href="%s">child theme</a> for your modifications.' ),
 		__( 'https://developer.wordpress.org/themes/advanced-topics/child-themes/' )
 	);
 	?>
