@@ -359,37 +359,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that special handling of unsupported tags is cleaned up
-	 * as handling is implemented. Otherwise there's risk of leaving special
-	 * handling (that is never reached) when tag handling is implemented.
-	 *
-	 * @ticket 60092
-	 *
-	 * @dataProvider data_unsupported_special_in_body_tags
-	 *
-	 * @covers WP_HTML_Processor::step_in_body
-	 *
-	 * @param string $tag_name Name of the tag to test.
-	 */
-	public function test_step_in_body_fails_on_unsupported_tags( $tag_name ) {
-		$fragment = WP_HTML_Processor::create_fragment( '<' . $tag_name . '></' . $tag_name . '>' );
-		$this->assertFalse( $fragment->next_tag(), 'Should fail to find tag: ' . $tag_name . '.' );
-		$this->assertEquals( $fragment->get_last_error(), WP_HTML_Processor::ERROR_UNSUPPORTED, 'Should have unsupported last error.' );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_unsupported_special_in_body_tags() {
-		return array(
-			'MATH' => array( 'MATH' ),
-			'SVG'  => array( 'SVG' ),
-		);
-	}
-
-	/**
 	 * Ensures that the HTML Processor properly reports the depth of a given element.
 	 *
 	 * @ticket 61255

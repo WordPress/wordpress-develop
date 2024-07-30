@@ -512,6 +512,23 @@ class WP_HTML_Tag_Processor {
 	protected $parser_state = self::STATE_READY;
 
 	/**
+	 * Indicates whether the parser is inside foreign content,
+	 * e.g. inside an SVG or MathML element.
+	 *
+	 * One of 'html', 'svg', or 'math'.
+	 *
+	 * Several parsing rules change based on whether the parser
+	 * is inside foreign content, including whether CDATA sections
+	 * are allowed and whether a self-closing flag indicates that
+	 * an element has no content.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	private $parsing_namespace = 'html';
+
+	/**
 	 * What kind of syntax token became an HTML comment.
 	 *
 	 * Since there are many ways in which HTML syntax can create an HTML comment,
@@ -781,6 +798,25 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Switches parsing mode into a new namespace, such as when
+	 * encountering an SVG tag and entering foreign content.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $new_namespace One of 'html', 'svg', or 'math' indicating into what
+	 *                              namespace the next tokens will be processed.
+	 * @return bool Whether the namespace was valid and changed.
+	 */
+	public function change_parsing_namespace( string $new_namespace ): bool {
+		if ( ! in_array( $new_namespace, array( 'html', 'math', 'svg' ), true ) ) {
+			return false;
+		}
+
+		$this->parsing_namespace = $new_namespace;
+		return true;
+	}
+
+	/**
 	 * Finds the next tag matching the $query.
 	 *
 	 * @since 6.2.0
@@ -843,6 +879,7 @@ class WP_HTML_Tag_Processor {
 	 * The Tag Processor currently only supports the tag token.
 	 *
 	 * @since 6.5.0
+	 * @since 6.7.0 Recognizes CDATA sections within foreign content.
 	 *
 	 * @return bool Whether a token was parsed.
 	 */
@@ -956,6 +993,7 @@ class WP_HTML_Tag_Processor {
 		 */
 		if (
 			$this->is_closing_tag ||
+			'html' !== $this->parsing_namespace ||
 			1 !== strspn( $this->html, 'iIlLnNpPsStTxX', $this->tag_name_starts_at, 1 )
 		) {
 			return true;
@@ -996,7 +1034,6 @@ class WP_HTML_Tag_Processor {
 		$duplicate_attributes = $this->duplicate_attributes;
 
 		// Find the closing tag if necessary.
-		$found_closer = false;
 		switch ( $tag_name ) {
 			case 'SCRIPT':
 				$found_closer = $this->skip_script_data();
@@ -1749,6 +1786,32 @@ class WP_HTML_Tag_Processor {
 					$this->text_starts_at       = $this->token_starts_at + 9;
 					$this->text_length          = $closer_at - $this->text_starts_at;
 					$this->bytes_already_parsed = $closer_at + 1;
+					return true;
+				}
+
+				if (
+					'html' !== $this->parsing_namespace &&
+					strlen( $html ) > $at + 8 &&
+					'[' === $html[ $at + 2 ] &&
+					'C' === $html[ $at + 3 ] &&
+					'D' === $html[ $at + 4 ] &&
+					'A' === $html[ $at + 5 ] &&
+					'T' === $html[ $at + 6 ] &&
+					'A' === $html[ $at + 7 ] &&
+					'[' === $html[ $at + 8 ]
+				) {
+					$closer_at = strpos( $html, ']]>', $at + 9 );
+					if ( false === $closer_at ) {
+						$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+
+						return false;
+					}
+
+					$this->parser_state         = self::STATE_CDATA_NODE;
+					$this->text_starts_at       = $at + 9;
+					$this->text_length          = $closer_at - $this->text_starts_at;
+					$this->token_length         = $closer_at + 3 - $this->token_starts_at;
+					$this->bytes_already_parsed = $closer_at + 3;
 					return true;
 				}
 
@@ -2645,6 +2708,17 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Returns the namespace of the matched token.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string One of 'html', 'math', or 'svg'.
+	 */
+	public function get_namespace(): string {
+		return $this->parsing_namespace;
+	}
+
+	/**
 	 * Returns the uppercase name of the matched tag.
 	 *
 	 * Example:
@@ -2732,19 +2806,25 @@ class WP_HTML_Tag_Processor {
 	 * @return bool Whether the current tag is a tag closer.
 	 */
 	public function is_tag_closer(): bool {
-		return (
-			self::STATE_MATCHED_TAG === $this->parser_state &&
-			$this->is_closing_tag &&
+		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
+			return false;
+		}
 
-			/*
-			 * The BR tag can only exist as an opening tag. If something like `</br>`
-			 * appears then the HTML parser will treat it as an opening tag with no
-			 * attributes. The BR tag is unique in this way.
-			 *
-			 * @see https://html.spec.whatwg.org/#parsing-main-inbody
-			 */
-			'BR' !== $this->get_tag()
-		);
+		switch ( $this->parsing_namespace ) {
+			case 'html':
+				/*
+				 * The BR tag can only exist as an opening tag. If something like `</br>`
+				 * appears then the HTML parser will treat it as an opening tag with no
+				 * attributes. The BR tag is unique in this way.
+				 *
+				 * @see https://html.spec.whatwg.org/#parsing-main-inbody
+				 */
+				return $this->is_closing_tag && 'BR' !== $this->get_tag();
+
+			case 'math':
+			case 'svg':
+				return $this->is_closing_tag || $this->has_self_closing_flag();
+		}
 	}
 
 	/**
@@ -2952,8 +3032,12 @@ class WP_HTML_Tag_Processor {
 		 * In all other contexts it's replaced by the replacement character (U+FFFD)
 		 * for security reasons (to avoid joining together strings that were safe
 		 * when separated, but not when joined).
+		 *
+		 * @todo Inside HTML integration points and MathML integration points, the
+		 *       text is processed according to the insertion mode, not according
+		 *       to the foreign content rules. This should strip the NULL bytes.
 		 */
-		return '#text' === $tag_name
+		return ( '#text' === $tag_name && 'html' === $this->parsing_namespace )
 			? str_replace( "\x00", '', $decoded )
 			: str_replace( "\x00", "\u{FFFD}", $decoded );
 	}
