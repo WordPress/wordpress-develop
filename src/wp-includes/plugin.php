@@ -21,6 +21,10 @@
  * @since 1.5.0
  */
 
+/*
+ * The plugin.php file is sometimes manually included/required early in sites or plugins,
+ * so we need to require the autoloader in order to avoid errors in those cases.
+ */
 require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
 
 /** @var WP_Hook[] $wp_filter */
