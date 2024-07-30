@@ -476,6 +476,47 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that elements which are unopened at the end of a document are implicitly closed.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_closes_unclosed_elements() {
+		$processor = WP_HTML_Processor::create_fragment( '<div><p><span>' );
+
+		$this->assertTrue(
+			$processor->next_tag( 'SPAN' ),
+			'Could not find SPAN element: check test setup.'
+		);
+
+		// This is the end of the document, but there should be three closing events.
+		$processor->next_token();
+		$this->assertSame(
+			'SPAN',
+			$processor->get_tag(),
+			'Should have found implicit SPAN closing tag.'
+		);
+
+		$processor->next_token();
+		$this->assertSame(
+			'P',
+			$processor->get_tag(),
+			'Should have found implicit P closing tag.'
+		);
+
+		$processor->next_token();
+		$this->assertSame(
+			'DIV',
+			$processor->get_tag(),
+			'Should have found implicit DIV closing tag.'
+		);
+
+		$this->assertFalse(
+			$processor->next_token(),
+			"Should have failed to find any more tokens but found a '{$processor->get_token_name()}'"
+		);
+	}
+
+	/**
 	 * Ensures that subclasses can be created from ::create_fragment method.
 	 *
 	 * @ticket 61374
