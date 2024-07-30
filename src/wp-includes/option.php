@@ -667,7 +667,7 @@ function wp_prime_site_option_caches( array $options ) {
  *
  * If site is not multisite, then call wp_prime_option_caches().
  *
- * @since 6.6.0
+ * @since 6.7.0
  *
  * @see wp_prime_network_option_caches()
  *
