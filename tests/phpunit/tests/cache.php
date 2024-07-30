@@ -27,6 +27,21 @@ class Tests_Cache extends WP_UnitTestCase {
 		return $cache;
 	}
 
+	public function test_external_cache_in_use() {
+		$this->assertTrue( wp_using_ext_object_cache() );
+	}
+
+	public function test_external_cache() {
+		$key = __FUNCTION__;
+		$val = 'val';
+
+		wp_cache_add( $key, $val );
+		global $wp_object_cache;
+		$wp_object_cache->cache = array();
+
+		$this->assertSame( $val, wp_cache_get( $key ) );
+	}
+
 	/**
 	 * @ticket 56198
 	 *
