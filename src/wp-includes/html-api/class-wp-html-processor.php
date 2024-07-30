@@ -1132,11 +1132,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > An end tag whose tag name is one of: "head", "body", "html", "br"
+			 *
+			 * Closing BR tags are always reported by the Tag Processor as opening tags.
 			 */
 			case '-HEAD':
 			case '-BODY':
 			case '-HTML':
-			case '-BR':
 				/*
 				 * > Act as described in the "anything else" entry below.
 				 */
@@ -1160,11 +1161,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Switch the insertion mode to "before head", then reprocess the token.
 		 */
 		before_html_anything_else:
-		$currently_at      = $this->bookmarks[ $this->state->current_token->bookmark_name ];
-		$new_bookmark      = $this->bookmark_token();
-		$this->bookmarks[] = new WP_HTML_Span( $currently_at->start, 0 );
-		$html_element      = new WP_HTML_Token( $new_bookmark, 'HTML', false );
-		$this->state->stack_of_open_elements->push( $html_element );
+		$this->insert_virtual_node( 'HTML' );
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -1242,11 +1239,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > An end tag whose tag name is one of: "head", "body", "html", "br"
 			 * > Act as described in the "anything else" entry below.
+			 *
+			 * Closing BR tags are always reported by the Tag Processor as opening tags.
 			 */
 			case '-HEAD':
 			case '-BODY':
 			case '-HTML':
-			case '-BR':
 				goto before_head_anything_else;
 				break;
 		}
@@ -1262,12 +1260,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Insert an HTML element for a "head" start tag token with no attributes.
 		 */
 		before_head_anything_else:
-		$currently_at      = $this->bookmarks[ $this->state->current_token->bookmark_name ];
-		$new_bookmark      = $this->bookmark_token();
-		$this->bookmarks[] = new WP_HTML_Span( $currently_at->start, 0 );
-		$head_element      = new WP_HTML_Token( $new_bookmark, 'HEAD', false );
-		$this->state->stack_of_open_elements->push( $head_element );
-		$this->state->head_element   = $head_element;
+		$this->state->head_element   = $this->insert_virtual_node( 'HEAD' );
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -1434,10 +1427,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > An end tag whose tag name is one of: "body", "html", "br"
+			 *
+			 * BR tags are always reported by the Tag Processor as opening tags.
 			 */
 			case '-BODY':
 			case '-HTML':
-			case '-BR':
 				/*
 				 * > Act as described in the "anything else" entry below.
 				 */
@@ -1719,10 +1713,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > An end tag whose tag name is one of: "body", "html", "br"
+			 *
+			 * Closing BR tags are always reported by the Tag Processor as opening tags.
 			 */
 			case '-BODY':
 			case '-HTML':
-			case '-BR':
 				/*
 				 * > Act as described in the "anything else" entry below.
 				 */
@@ -1744,16 +1739,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Insert an HTML element for a "body" start tag token with no attributes.
 		 */
 		after_head_anything_else:
-		$currently_at      = $this->bookmarks[ $this->state->current_token->bookmark_name ];
-		$new_bookmark      = $this->bookmark_token();
-		$this->bookmarks[] = new WP_HTML_Span( $currently_at->start + $currently_at->length, 0 );
-		$this->state->stack_of_open_elements->push(
-			new WP_HTML_Token(
-				$new_bookmark,
-				'BODY',
-				false
-			)
-		);
+		$this->insert_virtual_node( 'BODY' );
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -4932,14 +4918,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string      $token_name    Name of token to create and insert into the stack of open elements.
 	 * @param string|null $bookmark_name Optional. Name to give bookmark for created virtual node.
 	 *                                   Defaults to auto-creating a bookmark name.
+	 * @return WP_HTML_Token Newly-created virtual token.
 	 */
-	private function insert_virtual_node( $token_name, $bookmark_name = null ): void {
+	private function insert_virtual_node( $token_name, $bookmark_name = null ): WP_HTML_Token {
 		$here = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 		$name = $bookmark_name ?? $this->bookmark_token();
 
 		$this->bookmarks[ $name ] = new WP_HTML_Span( $here->start, 0 );
 
-		$this->insert_html_element( new WP_HTML_Token( $name, $token_name, false ) );
+		$token = new WP_HTML_Token( $name, $token_name, false );
+		$this->insert_html_element( $token );
+		return $token;
 	}
 
 	/*
