@@ -2130,6 +2130,10 @@ input[type=reset]:disabled,
 	outline-offset: 2px;
 }
 
+.wp-block-group {
+	display: flow-root;
+}
+
 .wp-block-group .wp-block-group__inner-container {
 	margin-right: auto;
 	margin-left: auto;

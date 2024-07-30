@@ -1,5 +1,11 @@
 .wp-block-group {
 
+	// Start IE clearfix.
+
+	display: flow-root; // stylelint-disable-line declaration-block-no-duplicate-properties
+
+	// End IE clearfix.
+
 	.wp-block-group__inner-container {
 		margin-left: auto;
 		margin-right: auto;
