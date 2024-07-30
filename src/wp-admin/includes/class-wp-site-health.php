@@ -2319,8 +2319,17 @@ class WP_Site_Health {
 	 * @return array
 	 */
 	public static function get_test_core_classes_paths() {
-		$overriden_classes    = array();
-		foreach ( WP_Autoload::CLASSES_PATHS as $class_name => $class_path ) {
+		$overriden_classes = array();
+		/*
+		 * Bypass check for WP_Object_Cache.
+		 *
+		 * It is intended that persistent caching plugins replace the core version
+		 * of WP_Object_Cache with their own version so it shouldn't be reported
+		 * as an error in site health.
+		 */
+		$wp_core_classes = WP_Autoload::CLASSES_PATHS;
+		unset( $wp_core_classes['wp_object_cache'] );
+		foreach ( $wp_core_classes as $class_name => $class_path ) {
 			$default_path = ABSPATH . $class_path;
 
 			/*
