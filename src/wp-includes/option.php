@@ -702,7 +702,6 @@ function wp_prime_wp_admin_option_caches() {
 	 * @since 6.7.0
 	 *
 	 * @param array $default_core_admin_options Array with admin options to be loaded.
-	 *
 	 * @return array Array with admin options to be loaded.
 	 */
 	$options = apply_filters( 'wp_prime_wp_admin_option_caches', $default_core_admin_options );
