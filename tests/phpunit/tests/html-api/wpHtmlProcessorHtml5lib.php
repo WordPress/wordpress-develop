@@ -178,7 +178,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				case '#tag':
 					$tag_name = 'html' === $processor->get_namespace()
 						? strtolower( $processor->get_tag() )
-						: "{$processor->get_namespace()} {$processor->get_tag()}";
+						: $processor->get_namespace() . ' ' . strtolower( $processor->get_tag() );
 
 					if ( $is_closer ) {
 						--$indent_level;
