@@ -1013,7 +1013,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
 		$op         = "{$op_sigil}{$token_name}";
 
-
 		switch ( $op ) {
 			/*
 			 * > A character token that is one of U+0009 CHARACTER TABULATION,
@@ -1088,7 +1087,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$is_closer  = parent::is_tag_closer();
 		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
 		$op         = "{$op_sigil}{$token_name}";
-
 
 		switch ( $op ) {
 			/*
@@ -1187,7 +1185,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$is_closer  = parent::is_tag_closer();
 		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
 		$op         = "{$op_sigil}{$token_name}";
-
 
 		switch ( $op ) {
 			/*
@@ -1617,9 +1614,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$is_closer  = parent::is_tag_closer();
 		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
 		$op         = "{$op_sigil}{$token_name}";
-
-
-		$is_excluded_closing_tag = false;
 
 		switch ( $op ) {
 			/*
