@@ -256,21 +256,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	private $context_node = null;
 
-	/**
-	 * Whether the parser has yet processed the context node,
-	 * if created as a fragment parser.
-	 *
-	 * The context node will be initially pushed onto the stack of open elements,
-	 * but when created as a fragment parser, this context element (and the implicit
-	 * HTML document node above it) should not be exposed as a matched token or node.
-	 *
-	 * This boolean indicates whether the processor should skip over the current
-	 * node in its initial search for the first node created from the input HTML.
-	 *
-	 * @var bool
-	 */
-	private $has_seen_context_node = false;
-
 	/*
 	 * Public Interface Functions
 	 */
@@ -312,9 +297,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$processor                        = new static( $html, self::CONSTRUCTOR_UNLOCK_CODE );
-		$processor->state->context_node   = array( 'BODY', array() );
-		$processor->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		$processor                             = new static( $html, self::CONSTRUCTOR_UNLOCK_CODE );
+		$processor->state->context_node        = array( 'BODY', array() );
+		$processor->state->insertion_mode      = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		$processor->state->encoding            = $encoding;
+		$processor->state->encoding_confidence = 'certain';
 
 		// @todo Create "fake" bookmarks for non-existent but implied nodes.
 		$processor->bookmarks['root-node']    = new WP_HTML_Span( 0, 0 );
@@ -1026,21 +1013,23 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$op_sigil   = '#tag' === $token_type ? ( parent::is_tag_closer() ? '-' : '+' ) : '';
 		$op         = "{$op_sigil}{$token_name}";
 
-		/*
-		 * > A character token that is one of U+0009 CHARACTER TABULATION,
-		 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
-		 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-		 *
-		 * Parse error: ignore the token.
-		 */
-		if ( '#text' === $op ) {
-			$text = $this->get_modifiable_text();
-			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
-				return $this->step();
-			}
-		}
 
 		switch ( $op ) {
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION,
+			 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+			 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 *
+			 * Parse error: ignore the token.
+			 */
+			case '#text':
+				$text = $this->get_modifiable_text();
+				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					return $this->step();
+				}
+				goto initial_anything_else;
+				break;
+
 			/*
 			 * > A comment token
 			 */
@@ -1073,6 +1062,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		/*
 		 * > Anything else
 		 */
+		initial_anything_else:
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -1099,23 +1089,23 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
 		$op         = "{$op_sigil}{$token_name}";
 
-		/*
-		 * > A character token that is one of U+0009 CHARACTER TABULATION,
-		 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
-		 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-		 *
-		 * Parse error: ignore the token.
-		 */
-		if ( '#text' === $op ) {
-			$text = $this->get_modifiable_text();
-			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
-				return $this->step();
-			}
-		}
-
-		$is_excluded_closing_tag = false;
 
 		switch ( $op ) {
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION,
+			 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+			 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 *
+			 * Parse error: ignore the token.
+			 */
+			case '#text':
+				$text = $this->get_modifiable_text();
+				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					return $this->step();
+				}
+				goto before_html_anything_else;
+				break;
+
 			/*
 			 * > A DOCTYPE token
 			 */
@@ -1150,14 +1140,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				/*
 				 * > Act as described in the "anything else" entry below.
 				 */
-				$is_excluded_closing_tag = true;
+				goto before_html_anything_else;
 				break;
 		}
 
 		/*
 		 * > Any other end tag
 		 */
-		if ( $is_closer && ! $is_excluded_closing_tag ) {
+		if ( $is_closer ) {
 			// Parse error: ignore the token.
 			return $this->step();
 		}
@@ -1169,6 +1159,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Append it to the Document object. Put this element in the stack of open elements.
 		 * > Switch the insertion mode to "before head", then reprocess the token.
 		 */
+		before_html_anything_else:
 		$currently_at      = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 		$new_bookmark      = $this->bookmark_token();
 		$this->bookmarks[] = new WP_HTML_Span( $currently_at->start, 0 );
@@ -1200,23 +1191,23 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
 		$op         = "{$op_sigil}{$token_name}";
 
-		/*
-		 * > A character token that is one of U+0009 CHARACTER TABULATION,
-		 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
-		 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-		 *
-		 * Parse error: ignore the token.
-		 */
-		if ( '#text' === $op ) {
-			$text = $this->get_modifiable_text();
-			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
-				return $this->step();
-			}
-		}
-
-		$is_excluded_closing_tag = false;
 
 		switch ( $op ) {
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION,
+			 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+			 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 *
+			 * Parse error: ignore the token.
+			 */
+			case '#text':
+				$text = $this->get_modifiable_text();
+				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					return $this->step();
+				}
+				goto before_head_anything_else;
+				break;
+
 			/*
 			 * > A comment token
 			 */
@@ -1256,11 +1247,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-BODY':
 			case '-HTML':
 			case '-BR':
-				$is_excluded_closing_tag = true;
+				goto before_head_anything_else;
 				break;
 		}
 
-		if ( $is_closer && ! $is_excluded_closing_tag ) {
+		if ( $is_closer ) {
 			// Parse error: ignore the token.
 			return $this->step();
 		}
@@ -1270,6 +1261,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 *
 		 * > Insert an HTML element for a "head" start tag token with no attributes.
 		 */
+		before_head_anything_else:
 		$currently_at      = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 		$new_bookmark      = $this->bookmark_token();
 		$this->bookmarks[] = new WP_HTML_Span( $currently_at->start, 0 );
@@ -1302,31 +1294,31 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
 		$op         = "{$op_sigil}{$token_name}";
 
-		/*
-		 * > A character token that is one of U+0009 CHARACTER TABULATION,
-		 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
-		 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-		 */
-		if ( '#text' === $op ) {
-			$text = $this->get_modifiable_text();
-			if ( '' === $text ) {
-				/*
-				 * If the text is empty after processing HTML entities and stripping
-				 * U+0000 NULL bytes then ignore the token.
-				 */
-				return $this->step();
-			}
-
-			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
-				// Insert the character.
-				$this->insert_html_element( $this->state->current_token );
-				return true;
-			}
-		}
-
-		$is_excluded_closing_tag = false;
-
 		switch ( $op ) {
+			case '#text':
+				/*
+				 * > A character token that is one of U+0009 CHARACTER TABULATION,
+				 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+				 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+				 */
+				$text = $this->get_modifiable_text();
+				if ( '' === $text ) {
+					/*
+					 * If the text is empty after processing HTML entities and stripping
+					 * U+0000 NULL bytes then ignore the token.
+					 */
+					return $this->step();
+				}
+
+				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					// Insert the character.
+					$this->insert_html_element( $this->state->current_token );
+					return true;
+				}
+
+				goto in_head_anything_else;
+				break;
+
 			/*
 			 * > A comment token
 			 */
@@ -1470,7 +1462,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > An end tag whose tag name is "template"
 			 */
-			case '+TEMPLATE':
 			case '-TEMPLATE':
 				if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
 					// @todo Indicate a parse error once it's possible.
@@ -1531,6 +1522,22 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		switch ( $op ) {
 			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION,
+			 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+			 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 *
+			 * Parse error: ignore the token.
+			 */
+			case '#text':
+				$text = $this->get_modifiable_text();
+				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					return $this->step_in_head();
+				}
+
+				goto in_head_noscript_anything_else;
+				break;
+
+			/*
 			 * > A DOCTYPE token
 			 */
 			case 'html':
@@ -1550,25 +1557,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->state->stack_of_open_elements->pop();
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD;
 				return true;
-		}
 
-		/*
-		 * > A character token that is one of U+0009 CHARACTER TABULATION,
-		 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
-		 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-		 *
-		 * Parse error: ignore the token.
-		 */
-		if ( '#text' === $op ) {
-			$text = $this->get_modifiable_text();
-			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
-				return $this->step_in_head();
-			}
-		}
-
-		$is_excluded_closing_tag = false;
-
-		switch ( $op ) {
 			/*
 			 * > A comment token
 			 * >
@@ -1591,19 +1580,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 *
 			 * This should never happen, as the Tag Processor prevents showing a BR closing tag.
 			 */
-			case '-BR':
-				/*
-				 * > Act as described in the "anything else" entry below.
-				 */
-				$is_excluded_closing_tag = true;
-				break;
 		}
 
 		/*
 		 * > A start tag whose tag name is one of: "head", "noscript"
 		 * > Any other end tag
 		 */
-		if ( '+HEAD' === $op || '+NOSCRIPT' === $op || ( $is_closer && ! $is_excluded_closing_tag ) ) {
+		if ( '+HEAD' === $op || '+NOSCRIPT' === $op || $is_closer ) {
 			// Parse error: ignore the token.
 			return $this->step();
 		}
@@ -1613,6 +1596,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 *
 		 * Anything here is a parse error.
 		 */
+		in_head_noscript_anything_else:
 		$this->state->stack_of_open_elements->pop();
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
@@ -1640,23 +1624,25 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
 		$op         = "{$op_sigil}{$token_name}";
 
-		/*
-		 * > A character token that is one of U+0009 CHARACTER TABULATION,
-		 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
-		 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-		 */
-		if ( '#text' === $op ) {
-			$text = $this->get_modifiable_text();
-			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
-				// Insert the character.
-				$this->insert_html_element( $this->state->current_token );
-				return true;
-			}
-		}
 
 		$is_excluded_closing_tag = false;
 
 		switch ( $op ) {
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION,
+			 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+			 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 */
+			case '#text':
+				$text = $this->get_modifiable_text();
+				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					// Insert the character.
+					$this->insert_html_element( $this->state->current_token );
+					return true;
+				}
+				goto after_head_anything_else;
+				break;
+
 			/*
 			 * > A comment token
 			 */
@@ -1740,7 +1726,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				/*
 				 * > Act as described in the "anything else" entry below.
 				 */
-				$is_excluded_closing_tag = true;
+				goto after_head_anything_else;
 				break;
 		}
 
@@ -1748,7 +1734,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > A start tag whose tag name is "head"
 		 * > Any other end tag
 		 */
-		if ( '+HEAD' === $op || ( $is_closer && ! $is_excluded_closing_tag ) ) {
+		if ( '+HEAD' === $op || $is_closer ) {
 			// Parse error: ignore the token.
 			return $this->step();
 		}
@@ -1757,6 +1743,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Anything else
 		 * > Insert an HTML element for a "body" start tag token with no attributes.
 		 */
+		after_head_anything_else:
 		$currently_at      = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 		$new_bookmark      = $this->bookmark_token();
 		$this->bookmarks[] = new WP_HTML_Span( $currently_at->start + $currently_at->length, 0 );
