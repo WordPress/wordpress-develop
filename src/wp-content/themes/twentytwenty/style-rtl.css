@@ -3365,6 +3365,10 @@ hr.wp-block-separator {
 	content: none;
 }
 
+.wp-block-separator.is-style-dots {
+	height: auto;
+}
+
 
 /* Block: Search ----------------------------- */
 
