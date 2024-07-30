@@ -176,7 +176,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 			switch ( $token_type ) {
 				case '#tag':
-					$tag_name = strtolower( $token_name );
+					$tag_name = 'html' === $processor->get_namespace()
+						? strtolower( $processor->get_tag() )
+						: "{$processor->get_namespace()} {$processor->get_tag()}";
 
 					if ( $is_closer ) {
 						--$indent_level;
@@ -230,6 +232,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 					break;
 
+				case '#cdata-section':
 				case '#text':
 					$was_text = true;
 					if ( '' === $text_node ) {
