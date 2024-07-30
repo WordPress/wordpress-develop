@@ -34,6 +34,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		'adoption01/line0046' => 'Unimplemented: Reconstruction of active formatting elements.',
 		'adoption01/line0159' => 'Unimplemented: Reconstruction of active formatting elements.',
 		'adoption01/line0318' => 'Unimplemented: Reconstruction of active formatting elements.',
+		'template/line0885'   => 'Unimplemented: no parsing of attributes on context node.',
 		'tests1/line0720'     => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests15/line0001'    => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests15/line0022'    => 'Unimplemented: Reconstruction of active formatting elements.',
@@ -163,25 +164,34 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				return null;
 			}
 
-			if ( $was_text && '#text' !== $processor->get_token_name() ) {
+			$token_name = $processor->get_token_name();
+			$token_type = $processor->get_token_type();
+			$is_closer  = $processor->is_tag_closer();
+
+			if ( $was_text && '#text' !== $token_name ) {
 				$output   .= "{$text_node}\"\n";
 				$was_text  = false;
 				$text_node = '';
 			}
 
-			switch ( $processor->get_token_type() ) {
+			switch ( $token_type ) {
 				case '#tag':
-					$tag_name = strtolower( $processor->get_tag() );
+					$tag_name = strtolower( $token_name );
 
-					if ( $processor->is_tag_closer() ) {
+					if ( $is_closer ) {
 						--$indent_level;
+
+						if ( 'TEMPLATE' === $token_name ) {
+							--$indent_level;
+						}
+
 						break;
 					}
 
-					$tag_indent = count( $processor->get_breadcrumbs() ) - 1;
+					$tag_indent = $indent_level;
 
 					if ( ! WP_HTML_Processor::is_void( $tag_name ) ) {
-						$indent_level = $tag_indent + 1;
+						++$indent_level;
 					}
 
 					$output .= str_repeat( $indent, $tag_indent ) . "<{$tag_name}>\n";
@@ -207,6 +217,11 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					$modifiable_text = $processor->get_modifiable_text();
 					if ( '' !== $modifiable_text ) {
 						$output .= str_repeat( $indent, $indent_level ) . "\"{$modifiable_text}\"\n";
+					}
+
+					if ( 'TEMPLATE' === $token_name ) {
+						$output .= str_repeat( $indent, $indent_level ) . "content\n";
+						++$indent_level;
 					}
 
 					if ( ! $processor->is_void( $tag_name ) && ! $processor->expects_closer() ) {

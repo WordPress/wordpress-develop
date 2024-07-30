@@ -49,7 +49,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'BASE',
 			'BDI',
 			'BDO',
-			'BGSOUND', // Deprecated; self-closing if self-closing flag provided, otherwise normal.
+			'BGSOUND', // Deprectated.
 			'BIG',
 			'BLINK', // Deprecated.
 			'BR',
@@ -96,6 +96,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'KEYGEN', // Deprecated.
 			'LABEL',
 			'LEGEND',
+			'LINK',
 			'LISTING', // Deprecated.
 			'MAIN',
 			'MAP',
@@ -196,7 +197,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'MATH',
 			'PLAINTEXT', // Neutralized.
 			'SVG',
-			'TEMPLATE',
 		);
 
 		$data = array();

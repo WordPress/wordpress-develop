@@ -1286,7 +1286,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This internal function performs the 'in head' insertion mode
 	 * logic for the generalized WP_HTML_Processor::step() function.
 	 *
-	 * @since 6.7.0 Stub implementation.
+	 * @since 6.7.0
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
@@ -1309,6 +1309,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 */
 		if ( '#text' === $op ) {
 			$text = $this->get_modifiable_text();
+			if ( '' === $text ) {
+				/*
+				 * If the text is empty after processing HTML entities and stripping
+				 * U+0000 NULL bytes then ignore the token.
+				 */
+				return $this->step();
+			}
+
 			if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
 				// Insert the character.
 				$this->insert_html_element( $this->state->current_token );
@@ -1417,6 +1425,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A start tag whose tag name is "script"
+			 *
+			 * @todo Could the adjusted insertion location be anything other than the current location?
 			 */
 			case '+SCRIPT':
 				$this->insert_html_element( $this->state->current_token );
@@ -1439,24 +1449,51 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				/*
 				 * > Act as described in the "anything else" entry below.
 				 */
-				$is_excluded_closing_tag = true;
+				goto in_head_anything_else;
 				break;
 
 			/*
 			 * > A start tag whose tag name is "template"
-			 * >
+			 *
+			 * @todo Could the adjusted insertion location be anything other than the current location?
+			 */
+			case '+TEMPLATE':
+				$this->state->active_formatting_elements->insert_marker();
+				$this->state->frameset_ok = false;
+
+				$this->state->insertion_mode                      = WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE;
+				$this->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE;
+
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
 			 * > An end tag whose tag name is "template"
 			 */
 			case '+TEMPLATE':
 			case '-TEMPLATE':
-				$this->bail( 'Cannot process TEMPLATE elements in the HEAD.' );
+				if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
+					// @todo Indicate a parse error once it's possible.
+					return $this->step();
+				}
+
+				$this->generate_implied_end_tags_thoroughly();
+				if ( ! $this->state->stack_of_open_elements->current_node_is( 'TEMPLATE' ) ) {
+					// @todo Indicate a parse error once it's possible.
+				}
+
+				$this->state->stack_of_open_elements->pop_until( 'TEMPLATE' );
+				$this->state->active_formatting_elements->clear_up_to_last_marker();
+				array_pop( $this->state->stack_of_template_insertion_modes );
+				$this->reset_insertion_mode();
+				return true;
 		}
 
 		/*
 		 * > A start tag whose tag name is "head"
 		 * > Any other end tag
 		 */
-		if ( '+HEAD' === $op || ( $is_closer && ! $is_excluded_closing_tag ) ) {
+		if ( '+HEAD' === $op || $is_closer ) {
 			// Parse error: ignore the token.
 			return $this->step();
 		}
@@ -1464,6 +1501,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		/*
 		 * > Anything else
 		 */
+		in_head_anything_else:
 		$this->state->stack_of_open_elements->pop();
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
@@ -3633,7 +3671,117 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_template(): bool {
-		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE . ' state.' );
+		$token_name = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$is_closer  = $this->is_tag_closer();
+		$op_sigil   = '#tag' === $token_type ? ( $is_closer ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$token_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A character token
+			 * > A comment token
+			 * > A DOCTYPE token
+			 */
+			case '#text':
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+			case 'html':
+				return $this->step_in_body();
+
+			/*
+			 * > A start tag whose tag name is one of: "base", "basefont", "bgsound", "link",
+			 * > "meta", "noframes", "script", "style", "template", "title"
+			 * > An end tag whose tag name is "template"
+			 */
+			case '+BASE':
+			case '+BASEFONT':
+			case '+BGSOUND':
+			case '+LINK':
+			case '+META':
+			case '+NOFRAMES':
+			case '+SCRIPT':
+			case '+STYLE':
+			case '+TEMPLATE':
+			case '+TITLE':
+			case '-TEMPLATE':
+				return $this->step_in_head();
+
+			/*
+			 * > A start tag whose tag name is one of: "caption", "colgroup", "tbody", "tfoot", "thead"
+			 */
+			case '+CAPTION':
+			case '+COLGROUP':
+			case '+TBODY':
+			case '+TFOOT':
+			case '+THEAD':
+				array_pop( $this->state->stack_of_template_insertion_modes );
+				$this->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
+				$this->state->insertion_mode                      = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
+				return $this->step( self::REPROCESS_CURRENT_NODE );
+
+			/*
+			 * > A start tag whose tag name is "col"
+			 */
+			case '+COL':
+				array_pop( $this->state->stack_of_template_insertion_modes );
+				$this->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP;
+				$this->state->insertion_mode                      = WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP;
+				return $this->step( self::REPROCESS_CURRENT_NODE );
+
+			/*
+			 * > A start tag whose tag name is "tr"
+			 */
+			case '+TR':
+				array_pop( $this->state->stack_of_template_insertion_modes );
+				$this->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
+				$this->state->insertion_mode                      = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
+				return $this->step( self::REPROCESS_CURRENT_NODE );
+
+			/*
+			 * > A start tag whose tag name is one of: "td", "th"
+			 */
+			case '+TD':
+			case '+TH':
+				array_pop( $this->state->stack_of_template_insertion_modes );
+				$this->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
+				$this->state->insertion_mode                      = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
+				return $this->step( self::REPROCESS_CURRENT_NODE );
+		}
+
+		/*
+		 * > Any other start tag
+		 */
+		if ( ! $is_closer ) {
+			array_pop( $this->state->stack_of_template_insertion_modes );
+			$this->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+			$this->state->insertion_mode                      = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+			return $this->step( self::REPROCESS_CURRENT_NODE );
+		}
+
+		/*
+		 * > Any other end tag
+		 */
+		if ( $is_closer ) {
+			// Parse error: ignore the token.
+			return $this->step();
+		}
+
+		/*
+		 * > An end-of-file token
+		 */
+		if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
+			// Stop parsing.
+			return false;
+		}
+
+		// @todo Indicate a parse error once it's possible.
+		$this->state->stack_of_open_elements->pop_until( 'TEMPLATE' );
+		$this->state->active_formatting_elements->clear_up_to_last_marker();
+		array_pop( $this->state->stack_of_template_insertion_modes );
+		$this->reset_insertion_mode();
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
