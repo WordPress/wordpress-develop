@@ -1297,7 +1297,7 @@ class WP_Debug_Data {
 	}
 
 	/**
-	 * Gets the WP constants section of the debug data.
+	 * Gets the WordPress constants section of the debug data.
 	 *
 	 * @since 6.7.0
 	 *
