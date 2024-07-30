@@ -154,10 +154,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$output = "<html>\n  <head>\n  <body>\n";
 
 		// Initially, assume we're 2 levels deep at: html > body > [position]
-		$indent_level    = 2;
-		$indent          = '  ';
-		$was_text        = null;
-		$text_node       = '';
+		$indent_level = 2;
+		$indent       = '  ';
+		$was_text     = null;
+		$text_node    = '';
 
 		while ( $processor->next_token() ) {
 			if ( ! is_null( $processor->get_last_error() ) ) {
