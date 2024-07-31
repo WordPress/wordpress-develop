@@ -3088,14 +3088,22 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF), U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
 			 */
 			case '#text':
-				$current_token = $this->bookmarks[ $this->state->current_token->bookmark_name ];
-				if (
-					// U+0000 (NULL) Is not mentiond but is included here. Null bytes should be completely ignored.
-					strspn( $this->html, "\u{0000}\u{0009}\u{000A}\u{000C}\u{000D}\u{0020}", $current_token->start, $current_token->length ) === $current_token->length
-				) {
+				$text = $this->get_modifiable_text();
+				if ( '' === $text ) {
+					/*
+					 * If the text is empty after processing HTML entities and stripping
+					 * U+0000 NULL bytes then ignore the token.
+					 */
+					return $this->step();
+				}
+
+				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					// Insert the character.
 					$this->insert_html_element( $this->state->current_token );
 					return true;
 				}
+
+				goto in_column_group_anything_else;
 				break;
 
 			/*
@@ -3156,6 +3164,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return $this->step_in_head();
 		}
 
+		in_column_group_anything_else:
 		/*
 		 * > Anything else
 		 */
