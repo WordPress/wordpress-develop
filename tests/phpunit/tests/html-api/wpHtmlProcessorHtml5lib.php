@@ -68,14 +68,14 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * @param string $html             Given test HTML.
 	 * @param string $expected_tree    Tree structure of parsed HTML.
 	 */
-	public function test_parse( $fragment_context, $html, $expected_tree ) {
+	public function test_parse( ?string $fragment_context, string $html, string $expected_tree ) {
 		$processed_tree = self::build_tree_representation( $fragment_context, $html );
 
 		if ( null === $processed_tree ) {
 			$this->markTestSkipped( 'Test includes unsupported markup.' );
 		}
-
-		$this->assertSame( $expected_tree, $processed_tree, "HTML was not processed correctly:\n{$html}" );
+		$fragment_detail = $fragment_context ? " in context <{$fragment_context}>" : '';
+		$this->assertSame( $expected_tree, $processed_tree, "HTML was not processed correctly{$fragment_detail}:\n{$html}" );
 	}
 
 	/**
@@ -100,7 +100,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				$line       = str_pad( strval( $test[0] ), 4, '0', STR_PAD_LEFT );
 				$test_name  = "{$test_suite}/line{$line}";
 
-				if ( self::should_skip_test( $test_name, $test[3] ) ) {
+				$test_context_element = $test[1];
+
+				if ( self::should_skip_test( $test_context_element, $test_name, $test[3] ) ) {
 					continue;
 				}
 
@@ -118,7 +120,11 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *
 	 * @return bool True if the test case should be skipped. False otherwise.
 	 */
-	private static function should_skip_test( $test_name, $expected_tree ): bool {
+	private static function should_skip_test( ?string $test_context_element, string $test_name, string $expected_tree ): bool {
+		if ( null !== $test_context_element && 'body' !== $test_context_element ) {
+			return true;
+		}
+
 		if ( self::SKIP_HEAD_TESTS ) {
 			$html_start = "<html>\n  <head>\n  <body>\n";
 			if (
@@ -146,15 +152,18 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	private static function build_tree_representation( ?string $fragment_context, string $html ) {
 		$processor = $fragment_context
 			? WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" )
-			: WP_HTML_Processor::create_fragment( $html );
+			: WP_HTML_Processor::create_full_parser( $html );
 		if ( null === $processor ) {
 			return null;
 		}
 
-		$output = "<html>\n  <head>\n  <body>\n";
-
-		// Initially, assume we're 2 levels deep at: html > body > [position]
-		$indent_level = 2;
+		/*
+		 * The fragment parser will start in 2 levels deep at: html > body > [position]
+		 * and requires adjustment to initial parameters.
+		 * The full parser will not.
+		 */
+		$output       = $fragment_context ? "<html>\n  <head>\n  <body>\n" : '';
+		$indent_level = $fragment_context ? 2 : 0;
 		$indent       = '  ';
 		$was_text     = null;
 		$text_node    = '';
