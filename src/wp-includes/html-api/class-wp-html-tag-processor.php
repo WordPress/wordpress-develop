@@ -3196,7 +3196,7 @@ class WP_HTML_Tag_Processor {
 			 *
 			 * @see https://html.spec.whatwg.org/#attributes-3
 			 */
-			if ( 'src' === $comparable_name && strpos( $value, 'data:' ) === 0 ) {
+			if ( 'src' === $comparable_name && str_starts_with( $value, 'data:' ) ) {
 				// Skip esc_url for data URIs.
 				$escaped_new_value = $value;
 			} else {
