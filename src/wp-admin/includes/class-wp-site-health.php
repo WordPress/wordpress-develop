@@ -2363,7 +2363,7 @@ class WP_Site_Health {
 
 		if ( ! empty( $overriden_classes ) ) {
 			$result['status'] = 'critical';
-			$result['label']  = __( 'WordPress Core classes are being overriden' );
+			$result['label']  = __( 'WordPress Core classes are being overridden' );
 			$result['description'] .= sprintf(
 				'<p>%s</p>',
 				__( 'The following WordPress Core classes are being overridden:' )
