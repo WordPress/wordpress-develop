@@ -21,13 +21,9 @@
  * @since 1.5.0
  */
 
-/*
- * The plugin.php file is sometimes manually included/required early in sites or plugins,
- * so we need to require the autoloader in order to avoid errors in those cases.
- */
 // Initialize WP_Hook if not loaded.
 if ( ! class_exists( 'WP_Autoload' ) && ! class_exists( 'WP_Hook' ) ) {
-    require_once __DIR__ . '/class-wp-hook.php';
+	require_once __DIR__ . '/class-wp-hook.php';
 }
 
 /** @var WP_Hook[] $wp_filter */
