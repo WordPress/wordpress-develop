@@ -2312,14 +2312,14 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Tests if any of the WordPress Core classes are overriden.
+	 * Tests if any of the WordPress Core classes are overridden.
 	 *
 	 * @since 6.6.0
 	 *
 	 * @return array
 	 */
 	public static function get_test_core_classes_paths() {
-		$overriden_classes = array();
+		$overridden_classes = array();
 		/*
 		 * Bypass check for WP_Object_Cache.
 		 *
@@ -2342,7 +2342,7 @@ class WP_Site_Health {
 			ob_end_clean();
 
 			if ( $default_path !== $reflection->getFileName() ) {
-				$overriden_classes[ $reflection->getName() ] = $reflection->getFileName();
+				$overridden_classes[ $reflection->getName() ] = $reflection->getFileName();
 			}
 		}
 
@@ -2361,7 +2361,7 @@ class WP_Site_Health {
 			'test'        => 'core_classes_paths',
 		);
 
-		if ( ! empty( $overriden_classes ) ) {
+		if ( ! empty( $overridden_classes ) ) {
 			$result['status'] = 'critical';
 			$result['label']  = __( 'WordPress Core classes are being overridden' );
 			$result['description'] .= sprintf(
@@ -2370,7 +2370,7 @@ class WP_Site_Health {
 			);
 
 			$result['description'] .= '<table class="widefat striped health-check-table">';
-			foreach ( $overriden_classes as $class_name => $class_path ) {
+			foreach ( $overridden_classes as $class_name => $class_path ) {
 				$result['description'] .= '<tr>';
 				$result['description'] .= '<th><code>' . esc_html( $class_name ) . '</code></th>';
 				$result['description'] .= '<td><code>' . esc_html( $class_path ) . '</code></td>';
@@ -2896,7 +2896,7 @@ class WP_Site_Health {
 			);
 		}
 
-		// Check for Core classes being overriden.
+		// Check for Core classes being overridden.
 		$tests['direct']['core_classes_paths'] = array(
 			'label' => __( 'Core classes paths' ),
 			'test'  => 'core_classes_paths',
