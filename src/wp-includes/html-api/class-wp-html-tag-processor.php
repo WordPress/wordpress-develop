@@ -1844,7 +1844,7 @@ class WP_HTML_Tag_Processor {
 				$this->parser_state         = self::STATE_COMMENT;
 				$this->comment_type         = self::COMMENT_AS_INVALID_HTML;
 				$this->token_length         = $closer_at + 1 - $this->token_starts_at;
-				$this->text_starts_at       = $this->token_starts_at + 1;
+				$this->text_starts_at       = $this->token_starts_at + 2;
 				$this->text_length          = $closer_at - $this->text_starts_at;
 				$this->bytes_already_parsed = $closer_at + 1;
 
