@@ -287,6 +287,11 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					$text_node .= $processor->get_modifiable_text();
 					break;
 
+				case '#funky-comment':
+					// Comments must be "<" then "!-- " then the data then " -->".
+					$output .= str_repeat( $indent, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";
+					break;
+
 				case '#comment':
 					switch ( $processor->get_comment_type() ) {
 						case WP_HTML_Processor::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT:
