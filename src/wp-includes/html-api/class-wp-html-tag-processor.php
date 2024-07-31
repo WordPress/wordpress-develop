@@ -1844,7 +1844,7 @@ class WP_HTML_Tag_Processor {
 				$this->parser_state         = self::STATE_COMMENT;
 				$this->comment_type         = self::COMMENT_AS_INVALID_HTML;
 				$this->token_length         = $closer_at + 1 - $this->token_starts_at;
-				$this->text_starts_at       = $this->token_starts_at + 2;
+				$this->text_starts_at       = $this->token_starts_at + 1;
 				$this->text_length          = $closer_at - $this->text_starts_at;
 				$this->bytes_already_parsed = $closer_at + 1;
 
@@ -1882,8 +1882,8 @@ class WP_HTML_Tag_Processor {
 						$this->comment_type       = self::COMMENT_AS_PI_NODE_LOOKALIKE;
 						$this->tag_name_starts_at = $this->token_starts_at + 2;
 						$this->tag_name_length    = $pi_target_length;
-						$this->text_starts_at    += $pi_target_length;
-						$this->text_length       -= $pi_target_length + 1;
+						$this->text_starts_at    += $pi_target_length + 1;
+						$this->text_length       -= $pi_target_length + 2;
 					}
 				}
 
