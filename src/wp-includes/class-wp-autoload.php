@@ -22,7 +22,7 @@ final class WP_Autoload {
 	 * @var array
 	 */
 	const CLASSES_PATHS = array(
-		/* Classes in the wp-includes/ folder. */
+		// Classes in the wp-includes/ folder.
 		'passwordhash'                                => 'wp-includes/class-phpass.php',
 		'pop3'                                        => 'wp-includes/class-pop3.php',
 		'services_json'                               => 'wp-includes/class-json.php',
