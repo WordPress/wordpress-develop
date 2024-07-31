@@ -1011,13 +1011,13 @@ function wp_read_image_metadata( $file ) {
 	}
 
 	foreach ( array( 'title', 'caption', 'credit', 'copyright', 'camera', 'iso' ) as $key ) {
-		if ( $meta[ $key ] && ! seems_utf8( $meta[ $key ] ) ) {
+		if ( $meta[ $key ] && ! seems_utf8( $meta[ $key ] ) && function_exists( 'utf8_encode' ) ) {
 			$meta[ $key ] = utf8_encode( $meta[ $key ] );
 		}
 	}
 
 	foreach ( $meta['keywords'] as $key => $keyword ) {
-		if ( ! seems_utf8( $keyword ) ) {
+		if ( ! seems_utf8( $keyword ) && function_exists( 'utf8_encode' ) ) {
 			$meta['keywords'][ $key ] = utf8_encode( $keyword );
 		}
 	}

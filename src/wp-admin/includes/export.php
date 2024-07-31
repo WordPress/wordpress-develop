@@ -243,7 +243,7 @@ function export_wp( $args = array() ) {
 	 * @return string
 	 */
 	function wxr_cdata( $str ) {
-		if ( ! seems_utf8( $str ) ) {
+		if ( ! seems_utf8( $str ) && function_exists( 'utf8_encode' ) ) {
 			$str = utf8_encode( $str );
 		}
 		// $str = ent2ncr(esc_html($str));
