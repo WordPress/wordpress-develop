@@ -486,8 +486,10 @@ final class WP_Autoload {
 			return;
 		}
 
-		// Bail early if the class is not a WP class.
-		// Use empty() instead of !isset() for performance reasons (saves a BOOL_NOT opcode).
+		/*
+		 * Bail early if the class is not a WP class.
+		 * Use empty() instead of !isset() for performance reasons (saves a BOOL_NOT opcode).
+		 */
 		if ( empty( self::CLASSES_PATHS[ $class_name ] ) ) {
 			return;
 		}
