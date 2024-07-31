@@ -829,37 +829,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			}
 		}
 
-		$adjusted_current_node = $this->get_adjusted_current_node();
-
-		$parse_in_current_insertion_mode = (
-			0 === $this->state->stack_of_open_elements->count() ||
-			'html' === $adjusted_current_node->namespace ||
-			(
-				'math' === $adjusted_current_node->integration_node_type &&
-				(
-					(
-						'#' !== $adjusted_current_node->node_name[0] &&
-						! in_array( $adjusted_current_node->node_name, array( 'HTML', 'MGLYPH', 'MALIGNMARK' ), true )
-					)
-					||
-					'#text' === $adjusted_current_node->node_name
-				)
-			) ||
-			(
-				'math' === $adjusted_current_node->namespace &&
-				'ANNOTATION-XML' === $adjusted_current_node->node_name &&
-				! $this->is_tag_closer() &&
-				'svg' === $this->state->current_token->node_name
-			) ||
-			(
-				'html' === $adjusted_current_node->integration_node_type &&
-				(
-					! $this->is_tag_closer() ||
-					'#text' === $this->state->current_token->node_name
-				)
-			)
-		);
-
 		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
 			parent::next_token();
 		}
@@ -872,20 +841,46 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		$this->state->current_token = new WP_HTML_Token(
-			$this->bookmark_token(),
-			$this->get_token_name(),
-			$this->has_self_closing_flag(),
-			$this->release_internal_bookmark_on_destruct
-		);
+		$adjusted_current_node = $this->get_adjusted_current_node();
+		$is_closer             = $this->is_tag_closer();
+		$is_start_tag          = WP_HTML_Tag_Processor::STATE_MATCHED_TAG === $this->parser_state && ! $is_closer;
+		$token_name            = $this->get_token_name();
 
-		$this->state->current_token->namespace = $this->get_namespace();
+		if ( self::REPROCESS_CURRENT_NODE !== $node_to_process ) {
+			$this->state->current_token = new WP_HTML_Token(
+				$this->bookmark_token(),
+				$token_name,
+				$this->has_self_closing_flag(),
+				$this->release_internal_bookmark_on_destruct
+			);
+		}
 
-		if ( $this->is_mathml_integration_point() ) {
+		if ( $is_start_tag && $this->is_mathml_integration_point() ) {
 			$this->state->current_token->integration_node_type = 'math';
-		} elseif ( $this->is_html_integration_point() ) {
+		} elseif ( $is_start_tag && $this->is_html_integration_point() ) {
 			$this->state->current_token->integration_node_type = 'html';
 		}
+
+		$parse_in_current_insertion_mode = (
+			0 === $this->state->stack_of_open_elements->count() ||
+			'html' === $adjusted_current_node->namespace ||
+			(
+				'math' === $adjusted_current_node->integration_node_type &&
+				(
+					( $is_start_tag && ! in_array( $token_name, array( 'MGLYPH', 'MALIGNMARK' ), true ) ) ||
+					'#text' === $token_name
+				)
+			) ||
+			(
+				'math' === $adjusted_current_node->namespace &&
+				'ANNOTATION-XML' === $adjusted_current_node->node_name &&
+				$is_start_tag && 'SVG' === $token_name
+			) ||
+			(
+				'html' === $adjusted_current_node->integration_node_type &&
+				( $is_start_tag || '#text' === $token_name )
+			)
+		);
 
 		if ( ! $parse_in_current_insertion_mode ) {
 			return $this->step_in_foreign_content();
@@ -3956,6 +3951,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose name is "font", if the token has any attributes named "color", "face", or "size"
 			 *
 			 * > An end tag whose tag name is "br", "p"
+			 *
+			 * Closing BR tags are always reported by the Tag Processor as opening tags.
 			 */
 			case '+B':
 			case '+BIG':
@@ -4002,7 +3999,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+UL':
 			case '+VAR':
 			case '+FONT with attributes':
-			case '-BR':
 			case '-P':
 				// @todo Indicate a parse error once it's possible.
 				foreach ( $this->state->stack_of_open_elements->walk_up() as $current_node ) {
@@ -4014,6 +4010,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 						break;
 					}
 
+					echo "\e[90mPopping a \e[35m{$current_node->namespace} \e[34m{$current_node->node_name}\e[90m from the stack.\e[m\n";
 					$this->state->stack_of_open_elements->pop();
 				}
 
@@ -4030,6 +4027,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			$adjusted_current_node = $this->get_adjusted_current_node();
 			$this->insert_foreign_element( $this->state->current_token, $adjusted_current_node->namespace, false );
+			echo "\e[90mACI is a \e[35m{$this->state->current_token->namespace}\e[90m \e[34m{$this->state->current_token->node_name}\e[m\n";
+			echo "\e[90mInserted a \e[35m{$this->state->current_token->namespace}\e[90m \e[34m{$this->state->current_token->node_name}\e[m\n";
 
 			if ( $this->state->current_token->has_self_closing_flag ) {
 				if ( 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
@@ -4070,6 +4069,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
 					$this->state->stack_of_open_elements->pop();
 					if ( $node === $item ) {
+						$this->change_parsing_namespace( $item->namespace );
 						return true;
 					}
 				}
@@ -4114,6 +4114,19 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/*
 	 * HTML semantic overrides for Tag Processor
 	 */
+
+	/**
+	 * Indicates the namespace of the current token, or "html" if there is none.
+	 *
+	 * @return string One of "html", "math", or "svg".
+	 */
+	public function get_namespace(): string {
+		if ( ! isset( $this->current_element ) ) {
+			return 'html';
+		}
+
+		return $this->current_element->token->namespace;
+	}
 
 	/**
 	 * Returns the uppercase name of the matched tag.
@@ -4769,7 +4782,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return $this->context_node;
 		}
 
-		return $this->state->current_token;
+		return $this->state->stack_of_open_elements->current_node();
 	}
 
 	/**
@@ -5267,7 +5280,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		if ( 'svg' === $this->get_namespace() ) {
 			return (
 				'DESC' === $tag_name ||
-				'FOREIGNoBJECT' === $tag_name ||
+				'FOREIGNOBJECT' === $tag_name ||
 				'TITLE' === $tag_name
 			);
 		}
