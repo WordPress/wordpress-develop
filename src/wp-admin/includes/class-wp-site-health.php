@@ -2366,7 +2366,7 @@ class WP_Site_Health {
 			$result['label']  = __( 'WordPress Core classes are being overriden' );
 			$result['description'] .= sprintf(
 				'<p>%s</p>',
-				__( 'The following WordPress Core classes are being overriden:' )
+				__( 'The following WordPress Core classes are being overridden:' )
 			);
 
 			$result['description'] .= '<table class="widefat striped health-check-table">';
