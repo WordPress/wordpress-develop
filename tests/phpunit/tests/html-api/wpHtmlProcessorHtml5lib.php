@@ -90,8 +90,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		 * @todo remove this section when when the processor handles this.
 		 */
 		$auto_generated_html_head_body = "<html>\n  <head>\n  <body>\n\n";
-		$auto_generated_head_body = "  <head>\n  <body>\n\n";
-		$auto_generated_body =  "  <body>\n\n";
+		$auto_generated_head_body      = "  <head>\n  <body>\n\n";
+		$auto_generated_body           = "  <body>\n\n";
 		if ( str_ends_with( $expected_tree, $auto_generated_html_head_body ) && ! str_ends_with( $processed_tree, $auto_generated_html_head_body ) ) {
 			if ( str_ends_with( $processed_tree, "<html>\n  <head>\n\n" ) ) {
 				$processed_tree = substr_replace( $processed_tree, "  <body>\n\n", -1 );
@@ -386,7 +386,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					$test_script_flag     = false;
 				}
 				if ( "#script-on\n" === $line ) {
-					$test_script_flag     = true;
+					$test_script_flag = true;
 				}
 
 				$state = trim( substr( $line, 1 ) );
