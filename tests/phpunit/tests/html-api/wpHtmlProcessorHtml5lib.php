@@ -299,6 +299,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 							$comment_text_content = "[CDATA[{$processor->get_modifiable_text()}]]";
 							break;
 
+						case WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE:
+							$comment_text_content = "?{$processor->get_tag()}{$processor->get_modifiable_text()}?";
+							break;
+
 						default:
 							throw new Error( "Unhandled comment type for tree construction: {$processor->get_comment_type()}" );
 					}
