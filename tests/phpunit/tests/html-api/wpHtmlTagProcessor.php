@@ -1376,12 +1376,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->remove_class( 'main' );
 
 		$this->assertSame(
-			'<div class=" with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
+			'<div class="with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
 			'Updated HTML does not reflect class name removed from existing class attribute via remove_class()'
 		);
 		$this->assertSame(
-			' with-border',
+			'with-border',
 			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect class name removed from existing class attribute via remove_class()"
 		);
@@ -1466,12 +1466,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->add_class( 'foo-class' );
 
 		$this->assertSame(
-			'<div class="   main   with-border foo-class" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
+			'<div class="main   with-border foo-class" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
 			'Updated HTML does not reflect existing excessive whitespace after adding class name via add_class()'
 		);
 		$this->assertSame(
-			'   main   with-border foo-class',
+			'main   with-border foo-class',
 			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect existing excessive whitespace after adding class name via add_class()"
 		);
@@ -1490,12 +1490,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->remove_class( 'with-border' );
 
 		$this->assertSame(
-			'<div class="   main" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
+			'<div class="main" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
 			'Updated HTML does not reflect existing excessive whitespace after removing class name via remove_class()'
 		);
 		$this->assertSame(
-			'   main',
+			'main',
 			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect existing excessive whitespace after removing class name via removing_class()"
 		);
@@ -1696,8 +1696,8 @@ HTML;
 		$expected_output = <<<HTML
 <div data-details="{ &quot;key&quot;: &quot;value&quot; }" selected class="merge-message is-processed" checked>
 	<div class="select-menu d-inline-block">
-		<div checked class=" MixedCaseHTML position-relative button-group Another-Mixed-Case" />
-		<div checked class=" MixedCaseHTML position-relative button-group Another-Mixed-Case">
+		<div checked class="MixedCaseHTML position-relative button-group Another-Mixed-Case" />
+		<div checked class="MixedCaseHTML position-relative button-group Another-Mixed-Case">
 			<button type="button" class="merge-box-button btn-group-merge rounded-left-2 btn  BtnGroup-item js-details-target hx_create-pr-button" aria-expanded="false" data-details-container=".js-merge-pr" disabled="">
 			  Merge pull request
 			</button>
