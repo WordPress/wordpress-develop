@@ -31,15 +31,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
-		'tests5/line0013'        => 'BUG: Investigate.',
-		'tests5/line0077'        => 'BUG: Investigate.',
-		'tests5/line0091'        => 'BUG: Investigate.',
-		'tests5/line0186'        => 'BUG: Investigate.',
-		'tests16/line2374'       => 'BUG: Investigate.',
-		'tests16/line2400'       => 'BUG: Investigate.',
-		'tests16/line1128'       => 'BUG: Investigate.',
-		'tests16/line1102'       => 'BUG: Investigate.',
-
 		'adoption01/line0046'    => 'Unimplemented: Reconstruction of active formatting elements.',
 		'adoption01/line0159'    => 'Unimplemented: Reconstruction of active formatting elements.',
 		'adoption01/line0318'    => 'Unimplemented: Reconstruction of active formatting elements.',
@@ -69,6 +60,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		'tests23/line0069'       => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests23/line0101'       => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests26/line0263'       => 'Bug: An active formatting element should be created for a trailing text node.',
+		'tests5/line0013'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
+		'tests5/line0077'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
+		'tests5/line0091'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly',
 		'webkit01/line0231'      => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'webkit01/line0300'      => 'Unimplemented: no support outside of IN BODY yet.',
 		'webkit01/line0310'      => 'Unimplemented: no support outside of IN BODY yet.',
