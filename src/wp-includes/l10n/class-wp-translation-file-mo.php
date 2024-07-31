@@ -154,7 +154,7 @@ class WP_Translation_File_MO extends WP_Translation_File {
 			// Metadata about the MO file is stored in the first translation entry.
 			if ( '' === $original ) {
 				foreach ( explode( "\n", $translation ) as $meta_line ) {
-					if ( '' === $meta_line || strpos( $meta_line, ':' ) === false ) {
+					if ( '' === $meta_line || false === strpos( $meta_line, ':' ) ) {
 						continue;
 					}
 
