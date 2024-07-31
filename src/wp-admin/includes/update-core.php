@@ -973,9 +973,7 @@ function update_core( $from, $to ) {
 	$_old_files = array_merge( $_old_files, array_values( $_old_requests_files ) );
 	_preload_old_requests_classes_and_interfaces( $to );
 
-	/*
-	 * Preload Core classes and interfaces to ensure the code is in memory if needed.
-	 */
+	 // Preload Core classes and interfaces to ensure the code is in memory if needed.
 	_preload_core_classes_and_interfaces();
 
 	/**
