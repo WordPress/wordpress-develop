@@ -25,7 +25,7 @@ if ( ! defined( 'WPINC' ) ) {
 	define( 'WPINC', 'wp-includes' );
 }
 
-require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
+require_once ABSPATH . 'wp-includes/vendor/autoload.php';
 
 /*
  * The error_reporting() function can be disabled in php.ini. On systems where that is the case,

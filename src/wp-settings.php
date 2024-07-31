@@ -18,7 +18,7 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 // Require the autoloader.
-require_once ABSPATH . WPINC . '/class-wp-autoload.php';
+require_once ABSPATH . WPINC . '/vendor/autoload.php';
 
 /**
  * Version information for the current WordPress release.

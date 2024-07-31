@@ -15,7 +15,7 @@ if ( ! defined( 'WPINC' ) ) {
 	define( 'WPINC', 'wp-includes' );
 }
 
-require_once ABSPATH . WPINC . '/class-wp-autoload.php';
+require_once ABSPATH . WPINC . '/vendor/autoload.php';
 
 /*
  * Load the actual index.php file if the assets were already built.

@@ -23,15 +23,19 @@
 		"yoast/phpunit-polyfills": "^1.1.0"
 	},
 	"config": {
+		"vendor-dir": "src/wp-includes/vendor",
 		"allow-plugins": {
 			"dealerdirect/phpcodesniffer-composer-installer": true
 		}
 	},
 	"scripts": {
-		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
-		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
-		"lint": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source",
+		"compat": "@php ./src/wp-includes/vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
+		"format": "@php ./src/wp-includes/vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
+		"lint": "@php ./src/wp-includes/vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source",
 		"lint:errors": "@lint -n",
-		"test": [ "Composer\\Config::disableProcessTimeout", "@php ./vendor/phpunit/phpunit/phpunit" ]
+		"test": [ "Composer\\Config::disableProcessTimeout", "@php ./src/wp-includes/vendor/phpunit/phpunit/phpunit" ]
+	},
+	"autoload": {
+		"classmap": ["src/wp-includes", "src/wp-admin/includes"]
 	}
 }
