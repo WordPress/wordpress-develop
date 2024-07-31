@@ -65,8 +65,8 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 	 * The test case verifies that the get_edit_comment_link function to generates comment link for editing comments,
 	 * and that the URLs are correctly filtered based on context to include HTML entities in link
 	 * $comment_id The ID of the comment to test, retrieved from self::$comment_ids['valid'].
-     * $expected_url The expected URL format when the context is 'display', with an HTML entity for the ampersand (&amp;).
-     * $expected_url_view The expected URL format when the context is 'view', with a regular ampersand (&).
+	 * $expected_url The expected URL format when the context is 'display', with an HTML entity for the ampersand (&amp;).
+	 * $expected_url_view The expected URL format when the context is 'view', with a regular ampersand (&).
 	 * @ticket 61727
 	 */
 
