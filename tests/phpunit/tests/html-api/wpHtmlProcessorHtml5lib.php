@@ -371,6 +371,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$test_html            = '';
 		$test_dom             = '';
 		$test_context_element = null;
+		$test_script_flag     = false;
 		$test_line_number     = 0;
 
 		while ( false !== ( $line = fgets( $handle ) ) ) {
@@ -379,8 +380,12 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			if ( '#' === $line[0] ) {
 				// Finish section.
 				if ( "#data\n" === $line ) {
-					// Yield when switching from a previous state.
-					if ( $state ) {
+					/*
+					 * Yield when switching from a previous state.
+					 * Do not yield tests with the scripting flag enabled. The scripting flag
+					 * is always disabled in the HTML API.
+					 */
+					if ( $state && ! $test_script_flag ) {
 						yield array(
 							$test_line_number,
 							$test_context_element,
@@ -395,6 +400,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					$test_html            = '';
 					$test_dom             = '';
 					$test_context_element = null;
+					$test_script_flag     = false;
+				}
+				if ( "#script-on\n" === $line ) {
+					$test_script_flag     = true;
 				}
 
 				$state = trim( substr( $line, 1 ) );
