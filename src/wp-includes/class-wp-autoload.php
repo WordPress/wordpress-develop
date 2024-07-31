@@ -470,7 +470,7 @@ final class WP_Autoload {
 	 * @return void
 	 */
 	public static function autoload_core( string $class_name ) {
-		// Lowercase the classname to accommodate for WP classes written with wrong cases.
+		// Lowercase the class name as PHP isn't case sensitive.
 		$class_name = strtolower( $class_name );
 
 		// Load Avifinfo classes.
