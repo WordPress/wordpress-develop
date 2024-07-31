@@ -25,7 +25,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * The HTML Processor only accepts HTML in document <body>.
 	 * Do not run tests that look for anything in document <head>.
 	 */
-	const SKIP_HEAD_TESTS = true;
+	const SKIP_HEAD_TESTS = false;
 
 	/**
 	 * Skip specific tests that may not be supported or have known issues.
