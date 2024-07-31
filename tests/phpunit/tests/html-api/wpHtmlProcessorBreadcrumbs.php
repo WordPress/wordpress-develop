@@ -40,13 +40,16 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'ABBR',
 			'ACRONYM', // Neutralized.
 			'ADDRESS',
+			'APPLET', // Deprecated.
 			'AREA',
 			'ARTICLE',
 			'ASIDE',
 			'AUDIO',
 			'B',
+			'BASE',
 			'BDI',
 			'BDO',
+			'BGSOUND', // Deprectated.
 			'BIG',
 			'BLINK', // Deprecated.
 			'BR',
@@ -72,6 +75,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'FIGCAPTION',
 			'FIGURE',
 			'FONT',
+			'FORM',
 			'FOOTER',
 			'H1',
 			'H2',
@@ -91,21 +95,31 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'KEYGEN', // Deprecated.
 			'LABEL',
 			'LEGEND',
+			'LINK',
 			'LISTING', // Deprecated.
 			'MAIN',
 			'MAP',
 			'MARK',
+			'MARQUEE', // Deprecated.
 			'MENU',
+			'META',
 			'METER',
 			'MULTICOL', // Deprecated.
 			'NAV',
 			'NEXTID', // Deprecated.
+			'NOBR', // Neutralized.
+			'NOSCRIPT',
+			'OBJECT',
 			'OL',
 			'OUTPUT',
 			'P',
 			'PICTURE',
 			'PROGRESS',
 			'Q',
+			'RB', // Neutralized.
+			'RP',
+			'RT',
+			'RTC', // Neutralized.
 			'RUBY',
 			'SAMP',
 			'SEARCH',
@@ -119,6 +133,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'SUB',
 			'SUMMARY',
 			'SUP',
+			'TABLE',
 			'TIME',
 			'TT',
 			'U',
@@ -167,46 +182,21 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 */
 	public static function data_unsupported_elements() {
 		$unsupported_elements = array(
-			'APPLET', // Deprecated.
-			'BASE',
-			'BGSOUND', // Deprecated; self-closing if self-closing flag provided, otherwise normal.
 			'BODY',
-			'CAPTION',
-			'COL',
-			'COLGROUP',
-			'FORM',
 			'FRAME',
 			'FRAMESET',
 			'HEAD',
 			'HTML',
 			'IFRAME',
-			'LINK',
-			'MARQUEE', // Deprecated.
 			'MATH',
-			'META',
-			'NOBR', // Neutralized.
 			'NOEMBED', // Neutralized.
 			'NOFRAMES', // Neutralized.
-			'NOSCRIPT',
-			'OBJECT',
 			'PLAINTEXT', // Neutralized.
-			'RB', // Neutralized.
-			'RP',
-			'RT',
-			'RTC', // Neutralized.
 			'SCRIPT',
 			'STYLE',
 			'SVG',
-			'TABLE',
-			'TBODY',
-			'TD',
-			'TEMPLATE',
 			'TEXTAREA',
-			'TFOOT',
-			'TH',
-			'THEAD',
 			'TITLE',
-			'TR',
 			'XMP', // Deprecated, use PRE instead.
 		);
 
