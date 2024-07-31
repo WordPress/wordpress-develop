@@ -25,7 +25,10 @@
  * The plugin.php file is sometimes manually included/required early in sites or plugins,
  * so we need to require the autoloader in order to avoid errors in those cases.
  */
-require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
+// Initialize WP_Hook if not loaded.
+if ( ! class_exists( 'WP_Autoload' ) && ! class_exists( 'WP_Hook' ) ) {
+    require_once __DIR__ . '/class-wp-hook.php';
+}
 
 /** @var WP_Hook[] $wp_filter */
 global $wp_filter;
