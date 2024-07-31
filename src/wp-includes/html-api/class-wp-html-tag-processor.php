@@ -3196,7 +3196,12 @@ class WP_HTML_Tag_Processor {
 			 *
 			 * @see https://html.spec.whatwg.org/#attributes-3
 			 */
-			$escaped_new_value = in_array( $comparable_name, wp_kses_uri_attributes() ) ? esc_url( $value ) : esc_attr( $value );
+			if ( 'src' === $comparable_name && strpos( $value, 'data:' ) === 0 ) {
+				// Skip esc_url for data URIs.
+				$escaped_new_value = $value;
+			} else {
+				$escaped_new_value = in_array( $comparable_name, wp_kses_uri_attributes() ) ? esc_url( $value ) : esc_attr( $value );
+			}
 			$updated_attribute = "{$name}=\"{$escaped_new_value}\"";
 		}
 
