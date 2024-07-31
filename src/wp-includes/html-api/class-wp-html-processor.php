@@ -1090,21 +1090,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		switch ( $op ) {
 			/*
-			 * > A character token that is one of U+0009 CHARACTER TABULATION,
-			 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
-			 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-			 *
-			 * Parse error: ignore the token.
-			 */
-			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
-					return $this->step();
-				}
-				goto before_html_anything_else;
-				break;
-
-			/*
 			 * > A DOCTYPE token
 			 */
 			case 'html':
@@ -1119,6 +1104,21 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#presumptuous-tag':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
+
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION,
+			 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
+			 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 *
+			 * Parse error: ignore the token.
+			 */
+			case '#text':
+				$text = $this->get_modifiable_text();
+				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					return $this->step();
+				}
+				goto before_html_anything_else;
+				break;
 
 			/*
 			 * > A start tag whose tag name is "html"
