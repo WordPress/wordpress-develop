@@ -46,8 +46,10 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'ASIDE',
 			'AUDIO',
 			'B',
+			'BASE',
 			'BDI',
 			'BDO',
+			'BGSOUND', // Deprectated.
 			'BIG',
 			'BLINK', // Deprecated.
 			'BR',
@@ -93,12 +95,14 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'KEYGEN', // Deprecated.
 			'LABEL',
 			'LEGEND',
+			'LINK',
 			'LISTING', // Deprecated.
 			'MAIN',
 			'MAP',
 			'MARK',
 			'MARQUEE', // Deprecated.
 			'MENU',
+			'META',
 			'METER',
 			'MULTICOL', // Deprecated.
 			'NAV',
@@ -178,24 +182,19 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 */
 	public static function data_unsupported_elements() {
 		$unsupported_elements = array(
-			'BASE',
-			'BGSOUND', // Deprecated; self-closing if self-closing flag provided, otherwise normal.
 			'BODY',
 			'FRAME',
 			'FRAMESET',
 			'HEAD',
 			'HTML',
 			'IFRAME',
-			'LINK',
 			'MATH',
-			'META',
 			'NOEMBED', // Neutralized.
 			'NOFRAMES', // Neutralized.
 			'PLAINTEXT', // Neutralized.
 			'SCRIPT',
 			'STYLE',
 			'SVG',
-			'TEMPLATE',
 			'TEXTAREA',
 			'TITLE',
 			'XMP', // Deprecated, use PRE instead.
