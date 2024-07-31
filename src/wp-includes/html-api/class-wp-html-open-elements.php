@@ -113,13 +113,13 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @param int $nth Retrieve the nth item on the stack, with 1 being
 	 *                 the top element, 2 being the second, etc...
-	 * @return string|null Name of the node on the stack at the given location,
-	 *                     or `null` if the location isn't on the stack.
+	 * @return WP_HTML_Token|null Name of the node on the stack at the given location,
+	 *                            or `null` if the location isn't on the stack.
 	 */
-	public function at( int $nth ): ?string {
+	public function at( int $nth ): ?WP_HTML_Token {
 		foreach ( $this->walk_down() as $item ) {
 			if ( 0 === --$nth ) {
-				return $item->node_name;
+				return $item;
 			}
 		}
 
