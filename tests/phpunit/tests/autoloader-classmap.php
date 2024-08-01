@@ -29,7 +29,7 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that all files in the classmap exist.
+	 * Tests that all files in the classmap exist.
 	 *
 	 * @dataProvider data_autoloader_classmap_files_exist
 	 *
@@ -50,7 +50,7 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that all classes in the classmap are in the correct file.
+	 * Tests that all classes in the classmap are in the correct file.
 	 *
 	 * @dataProvider data_autoloader_classmap_is_in_correct_file
 	 *
@@ -84,7 +84,7 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that all `class-*.php` files in the WP core directory are in the classmap.
+	 * Tests that all `class-*.php` files in the WP core directory are in the classmap.
 	 *
 	 * @dataProvider data_autoloader_class_files_exist_in_classmap
 	 *
@@ -122,7 +122,7 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Get all `class-*.php` files in the WP core directory.
+	 * Gets all `class-*.php` files in the WP core directory.
 	 *
 	 * @return array
 	 */
