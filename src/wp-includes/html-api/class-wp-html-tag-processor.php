@@ -1432,7 +1432,8 @@ class WP_HTML_Tag_Processor {
 			}
 
 			// Everything of interest past here starts with "<".
-			if ( $at + 1 >= $doc_length || '<' !== $html[ $at++ ] ) {
+			if ( $at + 1 >= $doc_length || '<' !== $html[ $at + 1 ] ) {
+				$at += 1;
 				continue;
 			}
 
