@@ -5,6 +5,7 @@
  * Include this file if you'd like to avoid having to create your own autoloader.
  *
  * @package WordPress
+ * @since   x.x.x
  */
 
 /**
@@ -17,7 +18,7 @@ final class WP_Autoload {
 	 *
 	 * Note: The classnames should be lowercased.
 	 *
-	 * @access private
+	 * @since x.x.x
 	 *
 	 * @var array
 	 */
@@ -419,6 +420,9 @@ final class WP_Autoload {
 	 * Avoids registering the autoloader multiple times.
 	 *
 	 * @static
+	 *
+	 * @since x.x.x
+	 *
 	 * @access private
 	 *
 	 * @var bool
@@ -427,6 +431,8 @@ final class WP_Autoload {
 
 	/**
 	 * Registers the autoloader.
+	 *
+	 * @since x.x.x
 	 *
 	 * @return void
 	 */
@@ -445,6 +451,8 @@ final class WP_Autoload {
 	/**
 	 * Registers the autoloader for external, bundled libraries.
 	 *
+	 * @since x.x.x
+	 *
 	 * @return void
 	 */
 	public static function register_external_bundled() {
@@ -457,6 +465,8 @@ final class WP_Autoload {
 	/**
 	 * Registers the autoloader for WordPress Core classes.
 	 *
+	 * @since x.x.x
+	 *
 	 * @return void
 	 */
 	public static function register_core() {
@@ -466,7 +476,10 @@ final class WP_Autoload {
 	/**
 	 * Autoload a WordPress class.
 	 *
+	 * @since x.x.x
+	 *
 	 * @param string $class_name Class name.
+	 *
 	 * @return void
 	 */
 	public static function autoload_core( string $class_name ) {
