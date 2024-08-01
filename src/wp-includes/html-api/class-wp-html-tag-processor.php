@@ -614,7 +614,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @var string
+	 * @var int
 	 */
 	private $text_length;
 
@@ -2898,7 +2898,7 @@ class WP_HTML_Tag_Processor {
 			return '';
 		}
 
-		$text = isset( $this->lexical_updates['modifiable text'] )
+		$text = $has_enqueued_update
 			? $this->lexical_updates['modifiable text']->text
 			: substr( $this->html, $this->text_starts_at, $this->text_length );
 
