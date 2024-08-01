@@ -1658,31 +1658,12 @@ class WP_List_Table {
 	 * @return string[] Array of CSS classes for the table tag.
 	 */
 	protected function get_table_classes() {
-	    global $mode;
+		$mode = get_user_setting( 'posts_list_mode', 'list' );
 
-	    // Sanitize the mode class name
-	    $mode_class = esc_attr( 'table-view-' . $mode );
+		$mode_class = esc_attr( 'table-view-' . $mode );
 
-	    // Get the post type
-	    $post_type = $this->screen->post_type;
-
-	    // Sanitize the post type class name
-	    $post_type_class = esc_attr( 'post-type-' . $post_type );
-
-	    // Determine if the post type is hierarchical
-	    $post_type_hierarchical_class = is_post_type_hierarchical( $post_type ) ? 'pages' : 'posts';
-
-	    // Return the array of classes
-	    return array(
-	        'widefat',
-	        'fixed',
-	        'striped',
-	        $mode_class,
-	        $post_type_class,
-	        $post_type_hierarchical_class,
-	    );
+		return array( 'widefat', 'fixed', 'striped', $mode_class, $this->_args['plural'] );
 	}
-
 
 	/**
 	 * Generates the table navigation above or below the table
