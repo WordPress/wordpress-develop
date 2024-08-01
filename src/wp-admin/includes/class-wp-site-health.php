@@ -2334,7 +2334,7 @@ class WP_Site_Health {
 
 			/*
 			 * Init a Reflection class to get the real path of the class.
-			 * This is performend inside an output buffer to avoid any errors
+			 * This is performed inside an output buffer to avoid any errors
 			 * that might be thrown by the ReflectionClass constructor.
 			 */
 			ob_start();
