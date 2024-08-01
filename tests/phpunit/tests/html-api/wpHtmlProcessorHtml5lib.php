@@ -200,9 +200,47 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 					$attribute_names = $processor->get_attribute_names_with_prefix( '' );
 					if ( $attribute_names ) {
-						sort( $attribute_names, SORT_STRING );
-
+						$sorted_attributes = array();
 						foreach ( $attribute_names as $attribute_name ) {
+							$sorted_attributes[ $attribute_name ] = $processor->get_namespaced_attribute_name( $attribute_name );
+						}
+
+						/*
+						 * Sorts attributes to match html5lib sort order.
+						 *
+						 *  - First comes normal HTML attributes.
+						 *  - Then come adjusted foreign attributes; these have spaces in their names.
+						 *  - Finally come non-adjusted foreign attributes; these have a colon in their names.
+						 *
+						 * Example:
+						 *
+						 *       From: <math xlink:author definitionurl xlink:title xlink:show>
+						 *     Sorted: 'definitionURL', 'xlink show', 'xlink title', 'xlink:author'
+						 */
+						uasort(
+							$sorted_attributes,
+							static function ( $a, $b ) {
+								$a_has_ns = str_contains( $a, ':' );
+								$b_has_ns = str_contains( $b, ':' );
+
+								// Attributes with `:` should follow all other attributes.
+								if ( $a_has_ns !== $b_has_ns ) {
+									return $a_has_ns ? 1 : -1;
+								}
+
+								$a_has_sp = str_contains( $a, ' ' );
+								$b_has_sp = str_contains( $b, ' ' );
+
+								// Attributes with a namespace ' ' should come after those without.
+								if ( $a_has_sp !== $b_has_sp ) {
+									return $a_has_sp ? 1 : -1;
+								}
+
+								return $a <=> $b;
+							}
+						);
+
+						foreach ( $sorted_attributes as $attribute_name => $display_name ) {
 							$val = $processor->get_attribute( $attribute_name );
 							/*
 							 * Attributes with no value are `true` with the HTML API,
@@ -211,7 +249,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 							if ( true === $val ) {
 								$val = '';
 							}
-							$output .= str_repeat( $indent, $tag_indent + 1 ) . "{$attribute_name}=\"{$val}\"\n";
+							$output .= str_repeat( $indent, $tag_indent + 1 ) . "{$display_name}=\"{$val}\"\n";
 						}
 					}
 

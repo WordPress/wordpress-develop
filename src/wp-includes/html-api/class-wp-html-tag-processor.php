@@ -2899,6 +2899,245 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Returns the adjusted attribute name for a given attribute, taking into
+	 * account the current parsing context, whether HTML, SVG, or MathML.
+	 *
+	 * @todo Find a better name.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $attribute_name Which attribute to adjust.
+	 *
+	 * @return string|null
+	 */
+	public function get_namespaced_attribute_name( $attribute_name ): ?string {
+		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
+			return null;
+		}
+
+		$lower_name = strtolower( $attribute_name );
+
+		if ( 'math' === $this->get_namespace() && 'definitionurl' === $lower_name ) {
+			return 'definitionURL';
+		}
+
+		if ( 'svg' === $this->get_namespace() ) {
+			switch ( $lower_name ) {
+				case 'attributename':
+					return 'attributeName';
+
+				case 'attributetype':
+					return 'attributeType';
+
+				case 'basefrequency':
+					return 'baseFrequency';
+
+				case 'baseprofile':
+					return 'baseProfile';
+
+				case 'calcmode':
+					return 'calcMode';
+
+				case 'clippathunits':
+					return 'clipPathUnits';
+
+				case 'diffuseconstant':
+					return 'diffuseConstant';
+
+				case 'edgemode':
+					return 'edgeMode';
+
+				case 'filterunits':
+					return 'filterUnits';
+
+				case 'glyphref':
+					return 'glyphRef';
+
+				case 'gradienttransform':
+					return 'gradientTransform';
+
+				case 'gradientunits':
+					return 'gradientUnits';
+
+				case 'kernelmatrix':
+					return 'kernelMatrix';
+
+				case 'kernelunitlength':
+					return 'kernelUnitLength';
+
+				case 'keypoints':
+					return 'keyPoints';
+
+				case 'keysplines':
+					return 'keySplines';
+
+				case 'keytimes':
+					return 'keyTimes';
+
+				case 'lengthadjust':
+					return 'lengthAdjust';
+
+				case 'limitingconeangle':
+					return 'limitingConeAngle';
+
+				case 'markerheight':
+					return 'markerHeight';
+
+				case 'markerunits':
+					return 'markerUnits';
+
+				case 'markerwidth':
+					return 'markerWidth';
+
+				case 'maskcontentunits':
+					return 'maskContentUnits';
+
+				case 'maskunits':
+					return 'maskUnits';
+
+				case 'numoctaves':
+					return 'numOctaves';
+
+				case 'pathlength':
+					return 'pathLength';
+
+				case 'patterncontentunits':
+					return 'patternContentUnits';
+
+				case 'patterntransform':
+					return 'patternTransform';
+
+				case 'patternunits':
+					return 'patternUnits';
+
+				case 'pointsatx':
+					return 'pointsAtX';
+
+				case 'pointsaty':
+					return 'pointsAtY';
+
+				case 'pointsatz':
+					return 'pointsAtZ';
+
+				case 'preservealpha':
+					return 'preserveAlpha';
+
+				case 'preserveaspectratio':
+					return 'preserveAspectRatio';
+
+				case 'primitiveunits':
+					return 'primitiveUnits';
+
+				case 'refx':
+					return 'refX';
+
+				case 'refy':
+					return 'refY';
+
+				case 'repeatcount':
+					return 'repeatCount';
+
+				case 'repeatdur':
+					return 'repeatDur';
+
+				case 'requiredextensions':
+					return 'requiredExtensions';
+
+				case 'requiredfeatures':
+					return 'requiredFeatures';
+
+				case 'specularconstant':
+					return 'specularConstant';
+
+				case 'specularexponent':
+					return 'specularExponent';
+
+				case 'spreadmethod':
+					return 'spreadMethod';
+
+				case 'startoffset':
+					return 'startOffset';
+
+				case 'stddeviation':
+					return 'stdDeviation';
+
+				case 'stitchtiles':
+					return 'stitchTiles';
+
+				case 'surfacescale':
+					return 'surfaceScale';
+
+				case 'systemlanguage':
+					return 'systemLanguage';
+
+				case 'tablevalues':
+					return 'tableValues';
+
+				case 'targetx':
+					return 'targetX';
+
+				case 'targety':
+					return 'targetY';
+
+				case 'textlength':
+					return 'textLength';
+
+				case 'viewbox':
+					return 'viewBox';
+
+				case 'viewtarget':
+					return 'viewTarget';
+
+				case 'xchannelselector':
+					return 'xChannelSelector';
+
+				case 'ychannelselector':
+					return 'yChannelSelector';
+
+				case 'zoomandpan':
+					return 'zoomAndPan';
+			}
+		}
+
+		switch ( $lower_name ) {
+			case 'xlink:actuate':
+				return 'xlink actuate';
+
+			case 'xlink:arcrole':
+				return 'xlink arcrole';
+
+			case 'xlink:href':
+				return 'xlink href';
+
+			case 'xlink:role':
+				return 'xlink role';
+
+			case 'xlink:show':
+				return 'xlink show';
+
+			case 'xlink:title':
+				return 'xlink title';
+
+			case 'xlink:type':
+				return 'xlink type';
+
+			case 'xml:lang':
+				return 'xml lang';
+
+			case 'xml:space':
+				return 'xml space';
+
+			case 'xmlns':
+				return 'xmlns';
+
+			case 'xmlns:xlink':
+				return 'xmlns xlink';
+		}
+
+		return $attribute_name;
+	}
+
+	/**
 	 * Indicates if the currently matched tag contains the self-closing flag.
 	 *
 	 * No HTML elements ought to have the self-closing flag and for those, the self-closing
