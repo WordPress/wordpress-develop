@@ -144,7 +144,7 @@ final class WP_Autoload {
 		'wp'                                          => 'wp-includes/class-wp.php',
 		'wpdb'                                        => 'wp-includes/class-wpdb.php', // Defines some constants.
 
-		/* Classes in the wp-includes/fonts folder. */
+		// Classes in the wp-includes/fonts folder.
 		'wp_font_collection'                          => 'wp-includes/fonts/class-wp-font-collection.php',
 		'wp_font_face_resolver'                       => 'wp-includes/fonts/class-wp-font-face-resolver.php',
 		'wp_font_face'                                => 'wp-includes/fonts/class-wp-font-face.php',
