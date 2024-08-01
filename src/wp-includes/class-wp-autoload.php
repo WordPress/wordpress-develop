@@ -416,7 +416,7 @@ final class WP_Autoload {
 	/**
 	 * Whether the autoloader has already been registered or not.
 	 *
-	 * Avoid registering the autoloader multiple times.
+	 * Avoids registering the autoloader multiple times.
 	 *
 	 * @static
 	 * @access private
@@ -443,7 +443,7 @@ final class WP_Autoload {
 	}
 
 	/**
-	 * Register the autoloader for external, bundled libraries.
+	 * Registers the autoloader for external, bundled libraries.
 	 *
 	 * @return void
 	 */
@@ -455,7 +455,7 @@ final class WP_Autoload {
 	}
 
 	/**
-	 * Register the autoloader for WordPress Core classes.
+	 * Registers the autoloader for WordPress Core classes.
 	 *
 	 * @return void
 	 */
@@ -498,5 +498,5 @@ final class WP_Autoload {
 	}
 }
 
-// Register the autoloader.
+// Registers the autoloader.
 WP_Autoload::register();
