@@ -151,7 +151,7 @@ final class WP_Autoload {
 		'wp_font_library'                             => 'wp-includes/fonts/class-wp-font-library.php',
 		'wp_font_utils'                               => 'wp-includes/fonts/class-wp-font-utils.php',
 
-		/* Classes in the wp-includes/html-api/ folder. */
+		// Classes in the wp-includes/html-api/ folder.
 		'wp_html_active_formatting_elements'          => 'wp-includes/html-api/class-wp-html-active-formatting-elements.php',
 		'wp_html_decoder'                             => 'wp-includes/html-api/class-wp-html-decoder.php',
 		'wp_html_attribute_token'                     => 'wp-includes/html-api/class-wp-html-attribute-token.php',
@@ -165,11 +165,11 @@ final class WP_Autoload {
 		'wp_html_token'                               => 'wp-includes/html-api/class-wp-html-token.php',
 		'wp_html_unsupported_exception'               => 'wp-includes/html-api/class-wp-html-unsupported-exception.php',
 
-		/* Classes in the wp-includes/interactivity-api folder. */
+		// Classes in the wp-includes/interactivity-api folder.
 		'wp_interactivity_api_directives_processor'   => 'wp-includes/interactivity-api/class-wp-interactivity-api-directives-processor.php',
 		'wp_interactivity_api'                        => 'wp-includes/interactivity-api/class-wp-interactivity-api.php',
 
-		/* Classes in the wp-includes/customize/ folder. */
+		// Classes in the wp-includes/customize/ folder.
 		'wp_customize_background_image_control'       => 'wp-includes/customize/class-wp-customize-background-image-control.php',
 		'wp_customize_background_image_setting'       => 'wp-includes/customize/class-wp-customize-background-image-setting.php',
 		'wp_customize_background_position_control'    => 'wp-includes/customize/class-wp-customize-background-position-control.php',
@@ -207,7 +207,7 @@ final class WP_Autoload {
 		'wp_widget_area_customize_control'            => 'wp-includes/customize/class-wp-widget-area-customize-control.php',
 		'wp_widget_form_customize_control'            => 'wp-includes/customize/class-wp-widget-form-customize-control.php',
 
-		/* Classes in the wp-includes/IXR folder. */
+		// Classes in the wp-includes/IXR folder.
 		'ixr_base64'                                  => 'wp-includes/IXR/class-IXR-base64.php',
 		'ixr_client'                                  => 'wp-includes/IXR/class-IXR-client.php',
 		'ixr_clientmulticall'                         => 'wp-includes/IXR/class-IXR-clientmulticall.php',
@@ -219,14 +219,14 @@ final class WP_Autoload {
 		'ixr_server'                                  => 'wp-includes/IXR/class-IXR-server.php',
 		'ixr_value'                                   => 'wp-includes/IXR/class-IXR-value.php',
 
-		/* Classes in the wp-includes/l10n folder. */
+		// Classes in the wp-includes/l10n folder.
 		'wp_translation_controller'                   => 'wp-includes/l10n/class-wp-translation-controller.php',
 		'wp_translation_file_mo'                      => 'wp-includes/l10n/class-wp-translation-file-mo.php',
 		'wp_translation_file_php'                     => 'wp-includes/l10n/class-wp-translation-file-php.php',
 		'wp_translation_file'                         => 'wp-includes/l10n/class-wp-translation-file.php',
 		'wp_translations'                             => 'wp-includes/l10n/class-wp-translations.php',
 
-		/* Classes in the wp-includes/pomo folder. */
+		// Classes in the wp-includes/pomo folder.
 		'translation_entry'                           => 'wp-includes/pomo/entry.php',
 		'mo'                                          => 'wp-includes/pomo/mo.php',
 		'plural_forms'                                => 'wp-includes/pomo/plural-forms.php',
@@ -240,7 +240,7 @@ final class WP_Autoload {
 		'gettext_translations'                        => 'wp-includes/pomo/translations.php',
 		'noop_translations'                           => 'wp-includes/pomo/translations.php',
 
-		/* Classes in the wp-includes/Text folder. */
+		// Classes in the wp-includes/Text folder.
 		'text_diff'                                   => 'wp-includes/Text/Diff.php',
 		'text_diff_engine_native'                     => 'wp-includes/Text/Diff/Engine/native.php',
 		'text_diff_engine_shell'                      => 'wp-includes/Text/Diff/Engine/shell.php',
@@ -249,7 +249,7 @@ final class WP_Autoload {
 		'text_diff_renderer_inline'                   => 'wp-includes/Text/Diff/Renderer/inline.php',
 		'text_diff_renderer'                          => 'wp-includes/Text/Diff/Renderer.php',
 
-		/* Classes in the wp-includes/rest-api folder. */
+		// Classes in the wp-includes/rest-api folder.
 		'wp_rest_application_passwords_controller'    => 'wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php',
 		'wp_rest_attachments_controller'              => 'wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php',
 		'wp_rest_autosaves_controller'                => 'wp-includes/rest-api/endpoints/class-wp-rest-autosaves-controller.php',
@@ -304,7 +304,7 @@ final class WP_Autoload {
 		'wp_rest_response'                            => 'wp-includes/rest-api/class-wp-rest-response.php',
 		'wp_rest_server'                              => 'wp-includes/rest-api/class-wp-rest-server.php',
 
-		/* Classes in wp-includes/sitemaps. */
+		// Classes in wp-includes/sitemaps.
 		'wp_sitemaps_posts'                           => 'wp-includes/sitemaps/providers/class-wp-sitemaps-posts.php',
 		'wp_sitemaps_taxonomies'                      => 'wp-includes/sitemaps/providers/class-wp-sitemaps-taxonomies.php',
 		'wp_sitemaps_users'                           => 'wp-includes/sitemaps/providers/class-wp-sitemaps-users.php',
@@ -315,14 +315,14 @@ final class WP_Autoload {
 		'wp_sitemaps_stylesheet'                      => 'wp-includes/sitemaps/class-wp-sitemaps-stylesheet.php',
 		'wp_sitemaps'                                 => 'wp-includes/sitemaps/class-wp-sitemaps.php',
 
-		/* Classes in wp-includes/style-engine. */
+		// Classes in wp-includes/style-engine.
 		'wp_style_engine_css_declarations'            => 'wp-includes/style-engine/class-wp-style-engine-css-declarations.php',
 		'wp_style_engine_css_rule'                    => 'wp-includes/style-engine/class-wp-style-engine-css-rule.php',
 		'wp_style_engine_css_rules_store'             => 'wp-includes/style-engine/class-wp-style-engine-css-rules-store.php',
 		'wp_style_engine_processor'                   => 'wp-includes/style-engine/class-wp-style-engine-processor.php',
 		'wp_style_engine'                             => 'wp-includes/style-engine/class-wp-style-engine.php',
 
-		/* Classes in wp-includes/widgets. */
+		// Classes in wp-includes/widgets.
 		'wp_nav_menu_widget'                          => 'wp-includes/widgets/class-wp-nav-menu-widget.php',
 		'wp_widget_archives'                          => 'wp-includes/widgets/class-wp-widget-archives.php',
 		'wp_widget_block'                             => 'wp-includes/widgets/class-wp-widget-block.php',
@@ -344,7 +344,7 @@ final class WP_Autoload {
 		'wp_widget_tag_cloud'                         => 'wp-includes/widgets/class-wp-widget-tag-cloud.php',
 		'wp_widget_text'                              => 'wp-includes/widgets/class-wp-widget-text.php',
 
-		/* Classes in wp-admin/includes. */
+		// Classes in wp-admin/includes.
 		'automatic_upgrader_skin'                     => 'wp-admin/includes/class-automatic-upgrader-skin.php',
 		'bulk_plugin_upgrader_skin'                   => 'wp-admin/includes/class-bulk-plugin-upgrader-skin.php',
 		'bulk_theme_upgrader_skin'                    => 'wp-admin/includes/class-bulk-theme-upgrader-skin.php',
@@ -408,7 +408,7 @@ final class WP_Autoload {
 		'wp_upgrader'                                 => 'wp-admin/includes/class-wp-upgrader.php',
 		'wp_users_list_table'                         => 'wp-admin/includes/class-wp-users-list-table.php',
 
-		/* Classes in wp-admin/includes/deprecated.php. */
+		// Classes in wp-admin/includes/deprecated.php.
 		'wp_user_search'                              => 'wp-admin/includes/deprecated.php',
 		'wp_privacy_data_export_requests_table'       => 'wp-admin/includes/deprecated.php',
 		'wp_privacy_data_removal_requests_table'      => 'wp-admin/includes/deprecated.php',
