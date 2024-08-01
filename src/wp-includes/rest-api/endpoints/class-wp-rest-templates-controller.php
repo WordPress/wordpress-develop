@@ -777,7 +777,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'plugin', $fields ) ) {
-			$registered_template = WP_Templates_Registry::get_instance()->get_by_slug( $template->slug );
+			$registered_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $template->slug );
 			if ( $registered_template ) {
 				$data['plugin'] = $registered_template->plugin;
 			}

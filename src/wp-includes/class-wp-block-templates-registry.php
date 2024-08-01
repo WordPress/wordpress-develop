@@ -11,7 +11,7 @@
  *
  * @since 6.7.0
  */
-final class WP_Templates_Registry {
+final class WP_Block_Templates_Registry {
 	/**
 	 * Registered templates, as `$name => $instance` pairs.
 	 *
@@ -24,7 +24,7 @@ final class WP_Templates_Registry {
 	 * Container for the main instance of the class.
 	 *
 	 * @since 6.7.0
-	 * @var WP_Templates_Registry|null
+	 * @var WP_Block_Templates_Registry|null
 	 */
 	private static $instance = null;
 
@@ -255,7 +255,7 @@ final class WP_Templates_Registry {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return WP_Templates_Registry The main instance.
+	 * @return WP_Block_Templates_Registry The main instance.
 	 */
 	public static function get_instance() {
 		if ( null === self::$instance ) {
