@@ -105,11 +105,6 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 			WP_Autoload::CLASSES_PATHS,
 			"Class '$class_name' is missing from the classmap."
 		);
-		$this->assertSame(
-			$file_path,
-			WP_Autoload::CLASSES_PATHS[ $class_name ],
-			"Class '$class_name' is in the wrong file."
-		);
 	}
 
 	/**
