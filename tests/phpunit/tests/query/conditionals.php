@@ -1304,7 +1304,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	public function test_is_front_page_id_equals_the_title_of_other_page() {
 		$post_1 = $this->factory->post->create(
 			array(
-				'post_type' => 'page'
+				'post_type' => 'page',
 			)
 		);
 		$post_2 = $this->factory->post->create(
