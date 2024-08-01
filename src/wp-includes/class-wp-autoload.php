@@ -433,8 +433,6 @@ final class WP_Autoload {
 	 * Registers the autoloader.
 	 *
 	 * @since x.x.x
-	 *
-	 * @return void
 	 */
 	public static function register() {
 		// Bail early if already registered.
@@ -452,8 +450,6 @@ final class WP_Autoload {
 	 * Registers the autoloader for external, bundled libraries.
 	 *
 	 * @since x.x.x
-	 *
-	 * @return void
 	 */
 	public static function register_external_bundled() {
 		require_once ABSPATH . 'wp-includes/Requests/src/Autoload.php';
@@ -466,8 +462,6 @@ final class WP_Autoload {
 	 * Registers the autoloader for WordPress Core classes.
 	 *
 	 * @since x.x.x
-	 *
-	 * @return void
 	 */
 	public static function register_core() {
 		spl_autoload_register( array( __CLASS__, 'autoload_core' ), true, true );
@@ -479,8 +473,6 @@ final class WP_Autoload {
 	 * @since x.x.x
 	 *
 	 * @param string $class_name Class name.
-	 *
-	 * @return void
 	 */
 	public static function autoload_core( string $class_name ) {
 		// Lowercase the class name as PHP isn't case sensitive.
