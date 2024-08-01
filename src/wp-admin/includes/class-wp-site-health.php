@@ -2347,7 +2347,7 @@ class WP_Site_Health {
 		}
 
 		$result = array(
-			'label'       => __( 'All WordPress Core classes can be properly loaded.' ),
+			'label'       => __( 'All WordPress Core classes can be properly loaded' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Security' ),
