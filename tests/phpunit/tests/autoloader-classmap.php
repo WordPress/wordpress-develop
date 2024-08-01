@@ -12,6 +12,8 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_autoloader_classmap_is_lowercase
 	 *
+	 * @covers WP_Autoload::CLASSES_PATHS
+	 *
 	 * @param string $class_name Class name.
 	 */
 	public function test_autoloader_classmap_is_lowercase( $class_name ) {
@@ -30,6 +32,8 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 
 	/**
 	 * Tests that all files in the classmap exist.
+	 *
+	 * @covers WP_Autoload::CLASSES_PATHS
 	 *
 	 * @dataProvider data_autoloader_classmap_files_exist
 	 *
@@ -51,6 +55,8 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 
 	/**
 	 * Tests that all classes in the classmap are in the correct file.
+	 *
+	 * @covers WP_Autoload::CLASSES_PATHS
 	 *
 	 * @dataProvider data_autoloader_classmap_is_in_correct_file
 	 *
@@ -85,6 +91,8 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 
 	/**
 	 * Tests that all `class-*.php` files in the WP core directory are in the classmap.
+	 *
+	 * @covers WP_Autoload::CLASSES_PATHS
 	 *
 	 * @dataProvider data_autoloader_class_files_exist_in_classmap
 	 *
