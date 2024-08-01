@@ -8,7 +8,7 @@
 class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 
 	/**
-	 * Test that all classes in the classmap are lowercase.
+	 * Tests that all classes in the classmap are lowercase.
 	 *
 	 * @dataProvider data_autoloader_classmap_is_lowercase
 	 *
