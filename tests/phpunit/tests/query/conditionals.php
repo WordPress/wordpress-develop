@@ -1309,7 +1309,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		);
 		$post_2 = $this->factory->post->create(
 			array(
-				'post_type' => 'page',
+				'post_type'  => 'page',
 				'post_title' => $post_1,
 			)
 		);
