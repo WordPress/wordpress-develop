@@ -1355,6 +1355,11 @@ class Tests_Functions extends WP_UnitTestCase {
 				DIR_TESTDATA . '/images/avif-transparent.avif',
 				'image/avif',
 			),
+			// HEIC.
+			array(
+				DIR_TESTDATA . '/images/test-image.heic',
+				'image/heic',
+			),
 		);
 
 		return $data;
@@ -1534,6 +1539,17 @@ class Tests_Functions extends WP_UnitTestCase {
 					IMAGETYPE_AVIF,
 					'width="199" height="200"',
 					'mime' => 'image/avif',
+				),
+			),
+			// HEIC.
+			array(
+				DIR_TESTDATA . '/images/test-image.heic',
+				array(
+					50,
+					50,
+					IMAGETYPE_HEIC,
+					'width="50" height="50"',
+					'mime' => 'image/heic',
 				),
 			),
 		);
