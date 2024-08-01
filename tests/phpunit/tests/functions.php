@@ -1570,13 +1570,8 @@ class Tests_Functions extends WP_UnitTestCase {
 			'width="50" height="50"',
 			'mime' => 'image/heic',
 		);
-
-		$result = wp_getimagesize( $file );
-
-		foreach ( $expected as $k => $v ) {
-			$this->assertArrayHasKey( $k, $result );
-			$this->assertSame( $expected[ $k ], $result[ $k ] );
-		}
+		$result   = wp_getimagesize( $file );
+		$this->assertSame( $expected, $result );
 	}
 
 
