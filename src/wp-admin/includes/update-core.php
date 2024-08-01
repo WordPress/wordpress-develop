@@ -1591,8 +1591,10 @@ function _preload_old_requests_classes_and_interfaces( $to ) {
  * @since 6.6.0
  */
 function _preload_core_classes_and_interfaces() {
-	// The classes to be preloaded.
-	// These are lowercased to match the format used in the autoloader.
+	/*
+	 * The classes to be preloaded.
+	 * These are lowercased to match the format used in the autoloader.
+	 */
 	$preload_classes = array(
 		'core_upgrader',
 		'automatic_upgrader_skin',

@@ -17,9 +17,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 require_once ABSPATH . WPINC . '/class-wp-autoload.php';
 
-/*
- * Load the actual index.php file if the assets were already built.
- */
+// Load the actual index.php file if the assets were already built.
 if ( file_exists( ABSPATH . WPINC . '/js/dist/edit-post.js' ) ) {
 	require_once ABSPATH . '_index.php';
 	return;
