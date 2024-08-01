@@ -3085,7 +3085,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		switch ( $op ) {
 			/*
-			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF), U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
+			 * > U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
 			 */
 			case '#text':
 				$text = $this->get_modifiable_text();
@@ -3152,7 +3153,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is "col"
 			 */
 			case '-COL':
-				// @todo Indicate a parse error once it's possible.
+				// Parse error: ignore the token.
 				return $this->step();
 
 			/*
