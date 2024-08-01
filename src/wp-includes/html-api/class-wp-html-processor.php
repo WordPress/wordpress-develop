@@ -5344,13 +5344,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		if ( 'html' === $this->get_namespace() ) {
+		if ( 'html' === $current_token->namespace ) {
 			return false;
 		}
 
 		$tag_name = $current_token->node_name;
 
-		if ( 'svg' === $this->get_namespace() ) {
+		if ( 'svg' === $current_token->namespace ) {
 			return (
 				'DESC' === $tag_name ||
 				'FOREIGNOBJECT' === $tag_name ||
@@ -5358,7 +5358,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			);
 		}
 
-		if ( 'math' === $this->get_namespace() ) {
+		if ( 'math' === $current_token->namespace ) {
 			if ( 'ANNOTATION-XML' !== $tag_name ) {
 				return false;
 			}
