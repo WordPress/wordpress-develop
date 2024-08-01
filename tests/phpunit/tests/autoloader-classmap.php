@@ -25,13 +25,7 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	 */
 	public function data_autoloader_classmap_is_lowercase() {
 		$class_names = array_keys( WP_Autoload::CLASSES_PATHS );
-
-		return array_map(
-			function ( $class_name ) {
-				return array( $class_name );
-			},
-			$class_names
-		);
+		return $this->text_array_to_dataprovider( $class_names );
 	}
 
 	/**
@@ -51,14 +45,8 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	 * @return array Data provider.
 	 */
 	public function data_autoloader_classmap_files_exist() {
-		$file_paths = array_values( WP_Autoload::CLASSES_PATHS );
-
-		return array_map(
-			function ( $file_path ) {
-				return array( $file_path );
-			},
-			$file_paths
-		);
+		$file_paths = array_unique( array_values( WP_Autoload::CLASSES_PATHS ) );
+		return $this->text_array_to_dataprovider( $file_paths );
 	}
 
 	/**
@@ -86,7 +74,10 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	public function data_autoloader_classmap_is_in_correct_file() {
 		$data = array();
 		foreach ( WP_Autoload::CLASSES_PATHS as $class_name => $file_path ) {
-			$data[] = array( $class_name, $file_path );
+			$data[ $class_name ] = array(
+				'class_name' => $class_name,
+				'file_path'  => $file_path,
+			);
 		}
 
 		return $data;
@@ -100,7 +91,7 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	 * @param string $class_name Class name.
 	 * @param string $file_path  File path relative to WP root directory.
 	 */
-	public function test_autoloader_class_files_exist_in_classmap( $class_name = '', $file_path = '' ) {
+	public function test_autoloader_class_files_exist_in_classmap( $class_name, $file_path ) {
 		$this->assertArrayHasKey(
 			$class_name,
 			WP_Autoload::CLASSES_PATHS,
@@ -122,7 +113,10 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 		$files = self::get_all_wp_class_files();
 		$data  = array();
 		foreach ( $files as $class_name => $file_path ) {
-			$data[] = array( $class_name, $file_path );
+			$data[ $class_name ] = array(
+				'class_name' => $class_name,
+				'file_path'  => $file_path,
+			);
 		}
 		return $data;
 	}
