@@ -93,20 +93,51 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group pwcc
+	 * Test that all `class-*.php` files in the WP core directory are in the classmap.
+	 *
+	 * @dataProvider data_autoloader_class_files_exist_in_classmap
+	 *
+	 * @param string $class_name Class name.
+	 * @param string $file_path  File path relative to WP root directory.
 	 */
-	public function test_autoloader_class_files_exist_in_classmap() {
-		$expected_classmap = $this->get_all_wp_class_files();
-		$actual_classmap   = WP_Autoload::CLASSES_PATHS;
-		foreach ( $expected_classmap as $class_name => $file_path ) {
-			$this->assertArrayHasKey( $class_name, $actual_classmap, "Class '$class_name' is missing from the classmap." );
-			$this->assertSame( $file_path, $actual_classmap[ $class_name ], "Class '$class_name' is in the wrong file." );
-		}
-		// $this->assertEqualSetsWithIndex( $expected_classmap, $actual_classmap );
+	public function test_autoloader_class_files_exist_in_classmap( $class_name = '', $file_path = '' ) {
+		$this->assertArrayHasKey(
+			$class_name,
+			WP_Autoload::CLASSES_PATHS,
+			"Class '$class_name' is missing from the classmap."
+		);
+		$this->assertSame(
+			$file_path,
+			WP_Autoload::CLASSES_PATHS[ $class_name ],
+			"Class '$class_name' is in the wrong file."
+		);
 	}
 
-	public function get_all_wp_class_files() {
-		$files        = array();
+	/**
+	 * Data provider for test_autoloader_class_files_exist_in_classmap.
+	 *
+	 * @return array Data provider.
+	 */
+	public function data_autoloader_class_files_exist_in_classmap() {
+		$files = self::get_all_wp_class_files();
+		$data  = array();
+		foreach ( $files as $class_name => $file_path ) {
+			$data[] = array( $class_name, $file_path );
+		}
+		return $data;
+	}
+
+	/**
+	 * Get all `class-*.php` files in the WP core directory.
+	 *
+	 * @return array
+	 */
+	public static function get_all_wp_class_files() {
+		static $files = array();
+		if ( ! empty( $files ) ) {
+			return $files;
+		}
+
 		$directory    = new RecursiveDirectoryIterator( ABSPATH . WPINC );
 		$iterator     = new RecursiveIteratorIterator( $directory );
 		$regex        = new RegexIterator( $iterator, '/^.+\/class\-[a-z-]+\.php$/i', RecursiveRegexIterator::GET_MATCH );
