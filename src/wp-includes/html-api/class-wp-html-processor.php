@@ -3084,13 +3084,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TR':
 			case '-TABLE':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'CAPTION' ) ) {
-					// @todo Indicate a parse error once it's possible.
+					// Parse error: ignore the token.
 					return $this->step();
 				}
+
 				$this->generate_implied_end_tags();
 				if ( ! $this->state->stack_of_open_elements->current_node_is( 'CAPTION' ) ) {
 					// @todo Indicate a parse error once it's possible.
 				}
+
 				$this->state->stack_of_open_elements->pop_until( 'CAPTION' );
 				$this->state->active_formatting_elements->clear_up_to_last_marker();
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
@@ -3114,7 +3116,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TH':
 			case '-THEAD':
 			case '-TR':
-				// @todo Indicate a parse error once it's possible.
+				// Parse error: ignore the token.
 				return $this->step();
 		}
 
