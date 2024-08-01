@@ -110,7 +110,7 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	 * @return array Data provider.
 	 */
 	public function data_autoloader_class_files_exist_in_classmap() {
-		$files = self::get_all_wp_class_files();
+		$files = $this->get_all_wp_class_files();
 		$data  = array();
 		foreach ( $files as $class_name => $file_path ) {
 			$data[ $class_name ] = array(
@@ -126,7 +126,7 @@ class Tests_Autoloader_Classmap extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public static function get_all_wp_class_files() {
+	public function get_all_wp_class_files() {
 		static $files = array();
 		if ( ! empty( $files ) ) {
 			return $files;
