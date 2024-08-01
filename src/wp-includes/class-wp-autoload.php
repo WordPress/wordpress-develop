@@ -426,7 +426,7 @@ final class WP_Autoload {
 	private static $registered = false;
 
 	/**
-	 * Register the autoloader.
+	 * Registers the autoloader.
 	 *
 	 * @return void
 	 */
