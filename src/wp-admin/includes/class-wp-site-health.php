@@ -2374,6 +2374,7 @@ class WP_Site_Health {
 				$result['description'] .= '<tr>';
 				$result['description'] .= '<th><code>' . esc_html( $class_name ) . '</code></th>';
 				$result['description'] .= '<td><code>' . esc_html( $class_path ) . '</code></td>';
+				$result['description'] .= '</tr>';
 			}
 			$result['description'] .= '</table>';
 		}
