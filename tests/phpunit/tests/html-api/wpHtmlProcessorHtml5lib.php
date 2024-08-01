@@ -170,7 +170,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 			if ( $was_text && '#text' !== $token_name ) {
 				if ( '' !== $text_node ) {
-					$output   .= "{$text_node}\"\n";
+					$output .= "{$text_node}\"\n";
 				}
 				$was_text  = false;
 				$text_node = '';
