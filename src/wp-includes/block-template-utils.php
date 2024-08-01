@@ -1328,20 +1328,17 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
 	}
 	list( $theme, $slug ) = $parts;
 
-	if ( get_stylesheet() !== $theme ) {
-		$block_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $slug );
-		/** This filter is documented in wp-includes/block-template-utils.php */
-		return apply_filters( 'get_block_file_template', $block_template, $id, $template_type );
+	if ( get_stylesheet() === $theme ) {
+		$template_file = _get_block_template_file( $template_type, $slug );
+		if ( null !== $template_file ) {
+			$block_template = _build_block_template_result_from_file( $template_file, $template_type );
+
+			/** This filter is documented in wp-includes/block-template-utils.php */
+			return apply_filters( 'get_block_file_template', $block_template, $id, $template_type );
+		}
 	}
 
-	$template_file = _get_block_template_file( $template_type, $slug );
-	if ( null === $template_file ) {
-		$block_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $slug );
-		/** This filter is documented in wp-includes/block-template-utils.php */
-		return apply_filters( 'get_block_file_template', $block_template, $id, $template_type );
-	}
-
-	$block_template = _build_block_template_result_from_file( $template_file, $template_type );
+	$block_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $slug );
 
 	/**
 	 * Filters the block template object after it has been (potentially) fetched from the theme file.
