@@ -494,6 +494,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 		if ( 'taxonomy' === $args['menu-item-type'] ) {
 			$original_parent = get_term_field( 'parent', $args['menu-item-object-id'], $args['menu-item-object'], 'raw' );
 			$original_title  = get_term_field( 'name', $args['menu-item-object-id'], $args['menu-item-object'], 'raw' );
+			$original_title  = ! is_wp_error( $original_title ) ? $original_title : '';
 		} elseif ( 'post_type' === $args['menu-item-type'] ) {
 
 			$original_object = get_post( $args['menu-item-object-id'] );
