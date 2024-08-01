@@ -3993,6 +3993,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+UL':
 			case '+VAR':
 			case '+FONT with attributes':
+			case '-BR':
 			case '-P':
 				// @todo Indicate a parse error once it's possible.
 				foreach ( $this->state->stack_of_open_elements->walk_up() as $current_node ) {
