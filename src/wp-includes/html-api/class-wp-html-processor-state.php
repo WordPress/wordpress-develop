@@ -312,6 +312,31 @@ class WP_HTML_Processor_State {
 	const INSERTION_MODE_IN_FOREIGN_CONTENT = 'insertion-mode-in-foreign-content';
 
 	/**
+	 * No-quirks mode document compatability mode.
+	 *
+	 * > In no-quirks mode, the behavior is (hopefully) the desired behavior
+	 * > described by the modern HTML and CSS specifications.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	const NO_QUIRKS_MODE = 'no-quirks-mode';
+
+	/**
+	 * Quirks mode document compatability mode.
+	 *
+	 * > In quirks mode, layout emulates behavior in Navigator 4 and Internet
+	 * > Explorer 5. This is essential in order to support websites that were
+	 * > built before the widespread adoption of web standards.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	const QUIRKS_MODE = 'quirks-mode';
+
+	/**
 	 * The stack of template insertion modes.
 	 *
 	 * @since 6.7.0
@@ -333,7 +358,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @var WP_HTML_Open_Elements
 	 */
-	public $stack_of_open_elements = null;
+	public $stack_of_open_elements;
 
 	/**
 	 * Tracks open formatting elements, used to handle mis-nested formatting element tags.
@@ -346,7 +371,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @var WP_HTML_Active_Formatting_Elements
 	 */
-	public $active_formatting_elements = null;
+	public $active_formatting_elements;
 
 	/**
 	 * Refers to the currently-matched tag, if any.
@@ -369,6 +394,30 @@ class WP_HTML_Processor_State {
 	public $insertion_mode = self::INSERTION_MODE_INITIAL;
 
 	/**
+	 * Indicates if the document is in quirks mode or no-quirks mode.
+	 *
+	 * Impact on HTML parsing:
+	 *
+	 *  - In `NO_QUIRKS_MODE` CSS class and ID selectors match in a byte-for-byte
+	 *    manner, otherwise for backwards compatability, class selectors are to
+	 *    match in an ASCII case-insensitive manner.
+	 *
+	 *  - When not in `QUIRKS_MODE`, a TABLE start tag implicitly closes an open P tag
+	 *    if one is in scope and open, otherwise the TABLE becomes a child of the P.
+	 *
+	 * `QUIRKS_MODE` impacts many styling-related aspects of an HTML document, but
+	 * none of the other changes modifies how the HTML is parsed or selected.
+	 *
+	 * @see self::QUIRKS_MODE
+	 * @see self::NO_QUIRKS_MODE
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	public $document_mode = self::NO_QUIRKS_MODE;
+
+	/**
 	 * Context node initializing fragment parser, if created as a fragment parser.
 	 *
 	 * @since 6.4.0
@@ -380,6 +429,38 @@ class WP_HTML_Processor_State {
 	public $context_node = null;
 
 	/**
+	 * The recognized encoding of the input byte stream.
+	 *
+	 * > The stream of code points that comprises the input to the tokenization
+	 * > stage will be initially seen by the user agent as a stream of bytes
+	 * > (typically coming over the network or from the local file system).
+	 * > The bytes encode the actual characters according to a particular character
+	 * > encoding, which the user agent uses to decode the bytes into characters.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string|null
+	 */
+	public $encoding = null;
+
+	/**
+	 * The parser's confidence in the input encoding.
+	 *
+	 * > When the HTML parser is decoding an input byte stream, it uses a character
+	 * > encoding and a confidence. The confidence is either tentative, certain, or
+	 * > irrelevant. The encoding used, and whether the confidence in that encoding
+	 * > is tentative or certain, is used during the parsing to determine whether to
+	 * > change the encoding. If no encoding is necessary, e.g. because the parser is
+	 * > operating on a Unicode stream and doesn't have to use a character encoding
+	 * > at all, then the confidence is irrelevant.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	public $encoding_confidence = 'tentative';
+
+	/**
 	 * HEAD element pointer.
 	 *
 	 * @since 6.7.0
@@ -389,6 +470,24 @@ class WP_HTML_Processor_State {
 	 * @var WP_HTML_Token|null
 	 */
 	public $head_element = null;
+
+	/**
+	 * FORM element pointer.
+	 *
+	 * > points to the last form element that was opened and whose end tag has
+	 * > not yet been seen. It is used to make form controls associate with
+	 * > forms in the face of dramatically bad markup, for historical reasons.
+	 * > It is ignored inside template elements.
+	 *
+	 * @todo This may be invalidated by a seek operation.
+	 *
+	 * @see https://html.spec.whatwg.org/#form-element-pointer
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var WP_HTML_Token|null
+	 */
+	public $form_element = null;
 
 	/**
 	 * The frameset-ok flag indicates if a `FRAMESET` element is allowed in the current state.

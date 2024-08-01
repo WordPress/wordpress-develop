@@ -111,7 +111,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'react'                       => '18.3.1',
 		'react-dom'                   => '18.3.1',
 		'react-jsx-runtime'           => '18.3.1',
-		'regenerator-runtime'         => '0.14.0',
+		'regenerator-runtime'         => '0.14.1',
 		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.21',
 		'wp-polyfill-fetch'           => '3.6.17',
@@ -684,7 +684,13 @@ function wp_scripts_get_suffix( $type = '' ) {
 	static $suffixes;
 
 	if ( null === $suffixes ) {
-		// Include an unmodified $wp_version.
+		/*
+		 * Include an unmodified $wp_version.
+		 *
+		 * Note: wp_get_wp_version() is not used here, as this file can be included
+		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+		 * wp-includes/functions.php is not loaded.
+		 */
 		require ABSPATH . WPINC . '/version.php';
 
 		/*
@@ -1522,7 +1528,13 @@ function wp_default_scripts( $scripts ) {
 function wp_default_styles( $styles ) {
 	global $editor_styles;
 
-	// Include an unmodified $wp_version.
+	/*
+	 * Include an unmodified $wp_version.
+	 *
+	 * Note: wp_get_wp_version() is not used here, as this file can be included
+	 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+	 * wp-includes/functions.php is not loaded.
+	 */
 	require ABSPATH . WPINC . '/version.php';
 
 	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
