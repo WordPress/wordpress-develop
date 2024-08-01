@@ -169,7 +169,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			$is_closer  = $processor->is_tag_closer();
 
 			if ( $was_text && '#text' !== $token_name ) {
-				$output   .= "{$text_node}\"\n";
+				if ( '' !== $text_node ) {
+					$output   .= "{$text_node}\"\n";
+				}
 				$was_text  = false;
 				$text_node = '';
 			}
@@ -272,11 +274,15 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 				case '#cdata-section':
 				case '#text':
+					$text_content = $processor->get_modifiable_text();
+					if ( '' === $text_content ) {
+						break;
+					}
 					$was_text = true;
 					if ( '' === $text_node ) {
 						$text_node .= str_repeat( $indent, $indent_level ) . '"';
 					}
-					$text_node .= $processor->get_modifiable_text();
+					$text_node .= $text_content;
 					break;
 
 				case '#comment':
