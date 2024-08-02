@@ -803,6 +803,8 @@ ul#add-to-blog-users {
 	padding: 9px 0;
 	line-height: 1.6;
 	max-width: 270px;
+	border-radius: 4px;
+	background: #f0f0f1;
 }
 
 .button-add-site-icon:focus,
