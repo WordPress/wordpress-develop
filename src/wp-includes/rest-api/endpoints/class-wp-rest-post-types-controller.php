@@ -259,7 +259,18 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		// Editor rendering mode.
 		if ( wp_is_block_theme() && 'edit' === $context && property_exists( $post_type, 'default_rendering_mode' ) ) {
 			/**
+			 * Filters the block editor rendering mode for a post type.
+			 *
+			 * @since 6.7.0
+			 * @param string       $default_rendering_mode Default rendering mode for the post type.
+			 * @param WP_Post_Type $post_type              Post type name.
+			 * @return string Default rendering mode for the post type.
+			 */
+			$rendering_mode = apply_filters( 'post_type_default_rendering_mode', $post_type->default_rendering_mode, $post_type );
+
+			/**
 			 * Filters the block editor rendering mode for a specific post type.
+			 * Applied after the `post_type_default_rendering_mode` filter.
 			 *
 			 * The dynamic portion of the hook name, `$item->name`, refers to the post type slug.
 			 *
@@ -268,17 +279,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			 * @param WP_Post_Type $post_type              Post type object.
 			 * @return string Default rendering mode for the post type.
 			 */
-			$rendering_mode = apply_filters( "post_type_{$post_type->name}_default_rendering_mode", $post_type->default_rendering_mode, $post_type );
-
-			/**
-			 * Filters the block editor rendering mode for a post type.
-			 *
-			 * @since 6.7.0
-			 * @param string       $default_rendering_mode Default rendering mode for the post type.
-			 * @param WP_Post_Type $post_type              Post type name.
-			 * @return string Default rendering mode for the post type.
-			 */
-			$rendering_mode = apply_filters( 'post_type_default_rendering_mode', $rendering_mode, $post_type );
+			$rendering_mode = apply_filters( "post_type_{$post_type->name}_default_rendering_mode", $rendering_mode, $post_type );
 
 			// Validate the filtered rendering mode.
 			if ( ! in_array( $rendering_mode, get_post_type_rendering_modes(), true ) ) {
