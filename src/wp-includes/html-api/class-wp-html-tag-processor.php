@@ -1431,9 +1431,15 @@ class WP_HTML_Tag_Processor {
 				continue;
 			}
 
-			// Everything of interest past here starts with "<".
-			if ( $at + 1 >= $doc_length || '<' !== $html[ $at + 1 ] ) {
-				++$at;
+			if ( $at + 1 >= $doc_length ) {
+				break;
+			}
+
+			/*
+			 * Everything of interest past here starts with "<".
+			 * Check this character and advance position regardless.
+			 */
+			if ( '<' !== $html[ $at++ ] ) {
 				continue;
 			}
 
