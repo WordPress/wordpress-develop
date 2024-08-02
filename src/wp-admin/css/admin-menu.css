@@ -63,6 +63,7 @@
 	position: relative;
 	float: left;
 	z-index: 9990;
+	outline: 1px solid transparent;
 }
 
 /* side admin menu */
