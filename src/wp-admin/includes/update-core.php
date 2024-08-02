@@ -1617,7 +1617,7 @@ function _preload_core_classes_and_interfaces() {
 		 * Skip if it's already loaded.
 		 * This should trigger the autoloader to load the file.
 		 */
-		if ( class_exists( $class_name ) ) {
+		if ( class_exists( $class_name, true ) ) {
 			continue;
 		}
 		// Load the file.
