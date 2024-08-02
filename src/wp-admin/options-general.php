@@ -159,7 +159,7 @@ $tagline_description = sprintf(
 	?>
 
 	<style>
-	:root{
+	html {
 		--site-icon-url: url( '<?php echo esc_url( $site_icon_url ); ?>' );
 	}
 	</style>
