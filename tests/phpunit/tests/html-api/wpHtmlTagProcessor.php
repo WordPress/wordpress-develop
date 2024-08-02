@@ -2875,4 +2875,18 @@ HTML
 			'Should have properly applied the update from in front of the cursor.'
 		);
 	}
+
+	/**
+	 * Test an infinite loop bugfix in script tag processing.
+	 *
+	 * @small
+	 *
+	 * @ticket TBD
+	 */
+	public function test_script_tag_processing_no_infinite_loop() {
+		$processor = new WP_HTML_Tag_Processor( '<script type="data">-' );
+
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
 }
