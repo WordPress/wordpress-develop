@@ -1432,7 +1432,7 @@ class WP_HTML_Tag_Processor {
 			}
 
 			if ( $at + 1 >= $doc_length ) {
-				break;
+				return false;
 			}
 
 			/*
