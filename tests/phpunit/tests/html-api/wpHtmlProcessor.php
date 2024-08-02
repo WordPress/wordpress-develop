@@ -134,7 +134,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::step_in_body
 	 * @covers WP_HTML_Processor::is_void
 	 *
-	 * @dataProvider data_void_tags
+	 * @dataProvider data_void_tags_not_ignored_in_body
 	 *
 	 * @param string $tag_name Name of void tag under test.
 	 */
@@ -250,7 +250,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'Text node'                        => array( 'Trombone' ),
 		);
 
-		foreach ( self::data_void_tags() as $tag_name => $_name ) {
+		foreach ( self::data_void_tags_not_ignored_in_body() as $tag_name => $_name ) {
 			$self_contained_nodes[ "Void elements ({$tag_name})" ] = array( "<{$tag_name}>" );
 		}
 
@@ -284,7 +284,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @ticket 60382
 	 *
-	 * @dataProvider data_void_tags
+	 * @dataProvider data_void_tags_not_ignored_in_body
 	 *
 	 * @param string $tag_name Name of void tag under test.
 	 */
@@ -319,17 +319,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			$processor->get_breadcrumbs(),
 			'Found incorrect nesting of first element.'
 		);
-
-		$this->assertTrue(
-			$processor->next_token(),
-			'Should have found the DIV as the second tag.'
-		);
-
-		$this->assertSame(
-			array( 'HTML', 'BODY', 'DIV' ),
-			$processor->get_breadcrumbs(),
-			"DIV should have been a sibling of the {$tag_name}."
-		);
 	}
 
 	/**
@@ -358,6 +347,18 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_void_tags_not_ignored_in_body() {
+		$all_void_tags = self::data_void_tags();
+		unset( $all_void_tags['COL'] );
+
+		return $all_void_tags;
+	}
+
+	/**
 	 * Ensures that special handling of unsupported tags is cleaned up
 	 * as handling is implemented. Otherwise there's risk of leaving special
 	 * handling (that is never reached) when tag handling is implemented.
@@ -383,52 +384,8 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 */
 	public static function data_unsupported_special_in_body_tags() {
 		return array(
-			'APPLET'    => array( 'APPLET' ),
-			'BASE'      => array( 'BASE' ),
-			'BASEFONT'  => array( 'BASEFONT' ),
-			'BGSOUND'   => array( 'BGSOUND' ),
-			'BODY'      => array( 'BODY' ),
-			'CAPTION'   => array( 'CAPTION' ),
-			'COL'       => array( 'COL' ),
-			'COLGROUP'  => array( 'COLGROUP' ),
-			'FORM'      => array( 'FORM' ),
-			'FRAME'     => array( 'FRAME' ),
-			'FRAMESET'  => array( 'FRAMESET' ),
-			'HEAD'      => array( 'HEAD' ),
-			'HTML'      => array( 'HTML' ),
-			'IFRAME'    => array( 'IFRAME' ),
-			'LINK'      => array( 'LINK' ),
-			'MARQUEE'   => array( 'MARQUEE' ),
-			'MATH'      => array( 'MATH' ),
-			'META'      => array( 'META' ),
-			'NOBR'      => array( 'NOBR' ),
-			'NOEMBED'   => array( 'NOEMBED' ),
-			'NOFRAMES'  => array( 'NOFRAMES' ),
-			'NOSCRIPT'  => array( 'NOSCRIPT' ),
-			'OBJECT'    => array( 'OBJECT' ),
-			'OPTGROUP'  => array( 'OPTGROUP' ),
-			'OPTION'    => array( 'OPTION' ),
-			'PLAINTEXT' => array( 'PLAINTEXT' ),
-			'RB'        => array( 'RB' ),
-			'RP'        => array( 'RP' ),
-			'RT'        => array( 'RT' ),
-			'RTC'       => array( 'RTC' ),
-			'SARCASM'   => array( 'SARCASM' ),
-			'SCRIPT'    => array( 'SCRIPT' ),
-			'SELECT'    => array( 'SELECT' ),
-			'STYLE'     => array( 'STYLE' ),
-			'SVG'       => array( 'SVG' ),
-			'TABLE'     => array( 'TABLE' ),
-			'TBODY'     => array( 'TBODY' ),
-			'TD'        => array( 'TD' ),
-			'TEMPLATE'  => array( 'TEMPLATE' ),
-			'TEXTAREA'  => array( 'TEXTAREA' ),
-			'TFOOT'     => array( 'TFOOT' ),
-			'TH'        => array( 'TH' ),
-			'THEAD'     => array( 'THEAD' ),
-			'TITLE'     => array( 'TITLE' ),
-			'TR'        => array( 'TR' ),
-			'XMP'       => array( 'XMP' ),
+			'MATH' => array( 'MATH' ),
+			'SVG'  => array( 'SVG' ),
 		);
 	}
 
@@ -515,6 +472,47 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'HTML comment'                      => array( '<img class="target"><!-- this is inside the BODY -->', 3 ),
 			'HTML comment in DIV'               => array( '<div class="target"><!-- this is inside the BODY -->', 4 ),
 			'Funky comment'                     => array( '<div><p>What <br class="target"><//wp:post-author></p></div>', 5 ),
+		);
+	}
+
+	/**
+	 * Ensures that elements which are unopened at the end of a document are implicitly closed.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_closes_unclosed_elements() {
+		$processor = WP_HTML_Processor::create_fragment( '<div><p><span>' );
+
+		$this->assertTrue(
+			$processor->next_tag( 'SPAN' ),
+			'Could not find SPAN element: check test setup.'
+		);
+
+		// This is the end of the document, but there should be three closing events.
+		$processor->next_token();
+		$this->assertSame(
+			'SPAN',
+			$processor->get_tag(),
+			'Should have found implicit SPAN closing tag.'
+		);
+
+		$processor->next_token();
+		$this->assertSame(
+			'P',
+			$processor->get_tag(),
+			'Should have found implicit P closing tag.'
+		);
+
+		$processor->next_token();
+		$this->assertSame(
+			'DIV',
+			$processor->get_tag(),
+			'Should have found implicit DIV closing tag.'
+		);
+
+		$this->assertFalse(
+			$processor->next_token(),
+			"Should have failed to find any more tokens but found a '{$processor->get_token_name()}'"
 		);
 	}
 
