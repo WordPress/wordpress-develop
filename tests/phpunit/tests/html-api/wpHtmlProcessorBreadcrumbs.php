@@ -25,7 +25,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function test_navigates_into_normative_html_for_supported_elements( $html, $tag_name ) {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 
-		$this->assertTrue( $processor->step(), "Failed to step into supported {$tag_name} element." );
+		$this->assertTrue( $processor->next_token(), "Failed to step into supported {$tag_name} element." );
 		$this->assertSame( $tag_name, $processor->get_tag(), "Misread {$tag_name} as a {$processor->get_tag()} element." );
 	}
 
@@ -90,6 +90,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'IMG',
 			'INS',
 			'LI',
+			'LINK',
 			'ISINDEX', // Deprecated.
 			'KBD',
 			'KEYGEN', // Deprecated.
@@ -108,6 +109,8 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'NAV',
 			'NEXTID', // Deprecated.
 			'NOBR', // Neutralized.
+			'NOEMBED', // Neutralized.
+			'NOFRAMES', // Neutralized.
 			'NOSCRIPT',
 			'OBJECT',
 			'OL',
@@ -122,6 +125,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'RTC', // Neutralized.
 			'RUBY',
 			'SAMP',
+			'SCRIPT',
 			'SEARCH',
 			'SECTION',
 			'SLOT',
@@ -130,21 +134,29 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'SPAN',
 			'STRIKE',
 			'STRONG',
+			'STYLE',
 			'SUB',
 			'SUMMARY',
 			'SUP',
 			'TABLE',
+			'TEXTAREA',
 			'TIME',
+			'TITLE',
 			'TT',
 			'U',
 			'UL',
 			'VAR',
 			'VIDEO',
+			'XMP', // Deprecated, use PRE instead.
 		);
 
 		$data = array();
 		foreach ( $supported_elements as $tag_name ) {
-			$data[ $tag_name ] = array( "<{$tag_name}>", $tag_name );
+			$closer = in_array( $tag_name, array( 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true )
+				? "</{$tag_name}>"
+				: '';
+
+			$data[ $tag_name ] = array( "<{$tag_name}>{$closer}", $tag_name );
 		}
 
 		$data['IMAGE (treated as an IMG)'] = array( '<image>', 'IMG' );
@@ -182,22 +194,9 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 */
 	public static function data_unsupported_elements() {
 		$unsupported_elements = array(
-			'BODY',
-			'FRAME',
-			'FRAMESET',
-			'HEAD',
-			'HTML',
-			'IFRAME',
 			'MATH',
-			'NOEMBED', // Neutralized.
-			'NOFRAMES', // Neutralized.
 			'PLAINTEXT', // Neutralized.
-			'SCRIPT',
-			'STYLE',
 			'SVG',
-			'TEXTAREA',
-			'TITLE',
-			'XMP', // Deprecated, use PRE instead.
 		);
 
 		$data = array();
