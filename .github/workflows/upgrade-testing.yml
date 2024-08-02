@@ -35,7 +35,7 @@ jobs:
   # Spawns upgrade testing from WordPress 6.x versions with MySQL.
   upgrade-tests-wp-6x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@add/mysql-8.4
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     permissions:
       contents: read
@@ -43,11 +43,17 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-latest' ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
+        php: [ '7.2', '7.3', '7.4', '8.0', '8.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
         wp: [ '6.0', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6' ]
+        db-version: [ '5.7', '8.0', '8.4' ]
         multisite: [ false, true ]
+
+        exclude:
+          - php: '7.2'
+            db-version: '8.4'
+          - php: '7.3'
+            db-version: '8.4'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -60,7 +66,7 @@ jobs:
   # Spawns upgrade testing from WordPress 5.x versions on PHP 7.x with MySQL.
   upgrade-tests-wp-5x-php-7x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@add/mysql-8.4
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
@@ -68,9 +74,15 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '7.2', '7.3', '7.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
+        db-version: [ '5.7', '8.0', '8.4' ]
         wp: [ '5.0', '5.1', '5.2', '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9' ]
         multisite: [ false, true ]
+
+        exclude:
+          - php: '7.2'
+            db-version: '8.4'
+          - php: '7.3'
+            db-version: '8.4'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -87,7 +99,7 @@ jobs:
   # - array/string offset with curly braces.
   upgrade-tests-wp-5x-php-8x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@add/mysql-8.4
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
@@ -95,7 +107,7 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '8.0', '8.1', '8.2', '8.3' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
+        db-version: [ '5.7', '8.0', '8.4' ]
         wp: [ '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9' ]
         multisite: [ false, true ]
     with:
@@ -110,7 +122,7 @@ jobs:
   # Spawns upgrade testing from WordPress 4.x versions on PHP 7.x with MySQL.
   upgrade-tests-wp-4x-php-7x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@add/mysql-8.4
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
@@ -118,9 +130,15 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '7.2', '7.3', '7.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
+        db-version: [ '5.7', '8.0', '8.4' ]
         wp: [ '4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7', '4.8', '4.9' ]
         multisite: [ false, true ]
+
+        exclude:
+          - php: '7.2'
+            db-version: '8.4'
+          - php: '7.3'
+            db-version: '8.4'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -137,7 +155,7 @@ jobs:
   # - array/string offset with curly braces.
   upgrade-tests-wp-4x-php-8x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@add/mysql-8.4
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
@@ -145,7 +163,7 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '8.0', '8.1', '8.2', '8.3' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
+        db-version: [ '5.7', '8.0', '8.4' ]
         wp: [ '4.1', '4.2', '4.3', '4.4', '4.5' ]
         multisite: [ false, true ]
     with:
