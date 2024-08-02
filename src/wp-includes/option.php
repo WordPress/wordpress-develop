@@ -607,7 +607,7 @@ function wp_load_alloptions( $force_cache = false ) {
 
 	if ( ! $alloptions ) {
 		$suppress      = $wpdb->suppress_errors();
-		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload IN ( '" . implode( "', '", wp_autoload_values_to_autoload() ) . "' )" );
+		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload IN ( '" . implode( "', '", esc_sql( wp_autoload_values_to_autoload() ) ) . "' )" );
 
 		if ( ! $alloptions_db ) {
 			$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
@@ -1218,6 +1218,15 @@ function delete_option( $option ) {
 		} else {
 			wp_cache_delete( $option, 'options' );
 		}
+
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+
+		if ( ! is_array( $notoptions ) ) {
+			$notoptions = array();
+		}
+		$notoptions[ $option ] = true;
+
+		wp_cache_set( 'notoptions', $notoptions, 'options' );
 	}
 
 	if ( $result ) {
@@ -1516,10 +1525,10 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 		wp_prime_option_caches( array( $transient_option, $transient_timeout ) );
 
 		if ( false === get_option( $transient_option ) ) {
-			$autoload = 'on';
+			$autoload = true;
 			if ( $expiration ) {
-				$autoload = 'off';
-				add_option( $transient_timeout, time() + $expiration, '', 'off' );
+				$autoload = false;
+				add_option( $transient_timeout, time() + $expiration, '', false );
 			}
 			$result = add_option( $transient_option, $value, '', $autoload );
 		} else {
@@ -1532,8 +1541,8 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 			if ( $expiration ) {
 				if ( false === get_option( $transient_timeout ) ) {
 					delete_option( $transient_option );
-					add_option( $transient_timeout, time() + $expiration, '', 'off' );
-					$result = add_option( $transient_option, $value, '', 'off' );
+					add_option( $transient_timeout, time() + $expiration, '', false );
+					$result = add_option( $transient_option, $value, '', false );
 					$update = false;
 				} else {
 					update_option( $transient_timeout, time() + $expiration );
@@ -2121,7 +2130,7 @@ function add_network_option( $network_id, $option, $value ) {
 	$notoptions_key = "$network_id:notoptions";
 
 	if ( ! is_multisite() ) {
-		$result = add_option( $option, $value, '', 'off' );
+		$result = add_option( $option, $value, '', false );
 	} else {
 		$cache_key = "$network_id:$option";
 
@@ -2257,6 +2266,17 @@ function delete_network_option( $network_id, $option ) {
 				'site_id'  => $network_id,
 			)
 		);
+
+		if ( $result ) {
+			$notoptions_key = "$network_id:notoptions";
+			$notoptions     = wp_cache_get( $notoptions_key, 'site-options' );
+
+			if ( ! is_array( $notoptions ) ) {
+				$notoptions = array();
+			}
+			$notoptions[ $option ] = true;
+			wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
+		}
 	}
 
 	if ( $result ) {
@@ -2367,7 +2387,7 @@ function update_network_option( $network_id, $option, $value ) {
 	}
 
 	if ( ! is_multisite() ) {
-		$result = update_option( $option, $value, 'off' );
+		$result = update_option( $option, $value, false );
 	} else {
 		$value = sanitize_option( $option, $value );
 

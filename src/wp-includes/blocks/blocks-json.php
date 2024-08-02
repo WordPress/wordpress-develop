@@ -207,8 +207,14 @@
         'type' => 'number'
       ),
       'content' => array(
-        'type' => 'object'
+        'type' => 'object',
+        'default' => array(
+          
+        )
       )
+    ),
+    'providesContext' => array(
+      'pattern/overrides' => 'content'
     ),
     'supports' => array(
       'customClassName' => false,
@@ -1558,6 +1564,7 @@
       'anchor' => true,
       'align' => true,
       'html' => false,
+      'shadow' => true,
       'spacing' => array(
         'padding' => true,
         'margin' => array(
@@ -3110,7 +3117,8 @@
     'textdomain' => 'default',
     'attributes' => array(
       'customText' => array(
-        'type' => 'string'
+        'type' => 'string',
+        'default' => ''
       ),
       'noTeaser' => array(
         'type' => 'boolean',

@@ -150,7 +150,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$data     = $response->get_data();
 		$expected = array(
 			array(
-				'version'  => 2,
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
 					'blocks' => array(
 						'core/paragraph' => array(
@@ -171,7 +171,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 				'title'    => 'variation-a',
 			),
 			array(
-				'version'  => 2,
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
 					'blocks' => array(
 						'core/post-title' => array(
@@ -216,7 +216,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 				),
 			),
 			array(
-				'version'  => 2,
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'title'    => 'Block theme variation',
 				'settings' => array(
 					'color' => array(
@@ -600,6 +600,68 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_custom_css_illegal_markup', $response, 400 );
+	}
+
+	/**
+	 * Tests the submission of a custom block style variation that was defined
+	 * within a theme style variation and wouldn't be registered at the time
+	 * of saving via the API.
+	 *
+	 * @covers WP_REST_Global_Styles_Controller_Gutenberg::update_item
+	 * @ticket 61312
+	 * @ticket 61451
+	 */
+	public function test_update_item_with_custom_block_style_variations() {
+		wp_set_current_user( self::$admin_id );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+
+		/*
+		 * For variations to be resolved they have to have been registered
+		 * via either a theme.json partial or through the WP_Block_Styles_Registry.
+		 */
+		register_block_style(
+			'core/group',
+			array(
+				'name'  => 'fromThemeStyleVariation',
+				'label' => 'From Theme Style Variation',
+			)
+		);
+
+		$group_variations = array(
+			'fromThemeStyleVariation' => array(
+				'color' => array(
+					'background' => '#ffffff',
+					'text'       => '#000000',
+				),
+			),
+		);
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_body_params(
+			array(
+				'styles' => array(
+					'variations' => array(
+						'fromThemeStyleVariation' => array(
+							'blockTypes' => array( 'core/group', 'core/columns' ),
+							'color'      => array(
+								'background' => '#000000',
+								'text'       => '#ffffff',
+							),
+						),
+					),
+					'blocks'     => array(
+						'core/group' => array(
+							'variations' => $group_variations,
+						),
+					),
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( $group_variations, $data['styles']['blocks']['core/group']['variations'] );
 	}
 
 	/**
