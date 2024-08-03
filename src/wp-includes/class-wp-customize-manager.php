@@ -5203,10 +5203,14 @@ final class WP_Customize_Manager {
 				array(
 					'label'       => __( 'Site Icon' ),
 					'description' => sprintf(
-						/* translators: 1: opening  <code> tag. 2: closing </code> tag. */
-						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least %1$s512 by 512%2$s pixels.' ) . '</p>',
-						'<code>',
-						'</code>'
+						/* translators: %s: Site Icon size in pixels. */
+						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least %s.' ) . '</p>',
+						sprintf(
+							/* translators: 1: opening  <code> tag and pixel value. 2: pixel value and closing </code> tag. */
+							__( '%1$s by %2$s pixels' ),
+							'<code>512',
+							'512</code>'
+						)
 					),
 					'section'     => 'title_tagline',
 					'priority'    => 60,
