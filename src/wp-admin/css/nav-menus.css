@@ -385,9 +385,9 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 .postbox .howto input,
 .customlinkdiv .error-message {
 	position: absolute;
-    top: 30px;
-    width: 180px;
-    right: 0;
+	top: 30px;
+	width: 180px;
+	right: 0;
 }
 
 .accordion-container .outer-border {
@@ -890,7 +890,7 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 }
 
 #menu-item-url-wrap.has-error {
-    margin-bottom: 2em;
+	margin-bottom: 2em;
 }
 
 /* =Media Queries
