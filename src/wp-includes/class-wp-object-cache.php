@@ -25,6 +25,14 @@
 class WP_Object_Cache {
 
 	/**
+	 * Whether the cache is enabled.
+	 *
+	 * @since 2.0.0
+	 * @var bool
+	 */
+	public $cache_enabled = true;
+
+	/**
 	 * Holds the cached objects.
 	 *
 	 * @since 2.0.0
