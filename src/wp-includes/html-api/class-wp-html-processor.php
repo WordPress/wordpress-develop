@@ -392,6 +392,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$same_node             = isset( $this->state->current_token ) && $token->node_name === $this->state->current_token->node_name;
 				$provenance            = ( ! $same_node || $is_virtual ) ? 'virtual' : 'real';
 				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::PUSH, $provenance );
+
+				$this->change_parsing_namespace( $token->integration_node_type ?? $token->namespace );
 			}
 		);
 
@@ -401,6 +403,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$same_node             = isset( $this->state->current_token ) && $token->node_name === $this->state->current_token->node_name;
 				$provenance            = ( ! $same_node || $is_virtual ) ? 'virtual' : 'real';
 				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::POP, $provenance );
+				$adjusted_current_node = $this->get_adjusted_current_node();
+				$this->change_parsing_namespace(
+					$adjusted_current_node
+						? ( $adjusted_current_node->integration_node_type ?? $adjusted_current_node->namespace )
+						: 'html'
+				);
 			}
 		);
 
@@ -2691,8 +2699,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 *
 				 * These ought to be handled in the attribute methods.
 				 */
-
-				$this->change_parsing_namespace( 'math' );
 				$this->insert_foreign_element( $this->state->current_token, 'math', false );
 				if ( $this->state->current_token->has_self_closing_flag ) {
 					$this->state->stack_of_open_elements->pop();
@@ -2711,8 +2717,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 *
 				 * These ought to be handled in the attribute methods.
 				 */
-
-				$this->change_parsing_namespace( 'svg' );
 				$this->insert_foreign_element( $this->state->current_token, 'svg', false );
 				if ( $this->state->current_token->has_self_closing_flag ) {
 					$this->state->stack_of_open_elements->pop();
@@ -4007,9 +4011,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					$this->state->stack_of_open_elements->pop();
 				}
-
-				$this->change_parsing_namespace( $current_node->namespace );
-
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 		}
 
@@ -4020,12 +4021,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			// @todo Adjust foreign attributes; this probably should be done in get_attribute().
 
 			$adjusted_current_node = $this->get_adjusted_current_node();
-			$this->insert_foreign_element( $this->state->current_token, $adjusted_current_node->namespace, false );
+
+			$this->state->current_token->namespace = $adjusted_current_node->namespace;
 			if ( $this->is_mathml_integration_point() ) {
 				$this->state->current_token->integration_node_type = 'math';
 			} elseif ( $this->is_html_integration_point() ) {
 				$this->state->current_token->integration_node_type = 'html';
 			}
+			$this->insert_html_element( $this->state->current_token );
 
 			if ( $this->state->current_token->has_self_closing_flag ) {
 				if ( 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
