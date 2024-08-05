@@ -212,16 +212,11 @@ $tagline_description = sprintf(
 
 	<p class="description">
 		<?php
-			$site_icon_size_string = sprintf(
-				/* translators: 1: opening  <code> tag and pixel value. 2: pixel value and closing </code> tag. */
-				__( '%1$s by %2$s pixels' ),
-				'<code>512',
-				'512</code>'
-			);
 			printf(
-				/* translators: %s: Site Icon size in pixels. */
-				__( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least %s.' ),
-				$site_icon_size_string
+				/* translators: 1: pixel value for icon size. 2: pixel value for icon size. */
+				__( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <code>%1$s by %2$s</code> pixels.' ),
+				512,
+				512
 			);
 		?>
 	</p>
