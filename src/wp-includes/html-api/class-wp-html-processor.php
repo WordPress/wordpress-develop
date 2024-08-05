@@ -784,6 +784,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function expects_closer( $node = null ): ?bool {
 		$token_name = $node->node_name ?? $this->get_token_name();
+		$token_namespace = $node->namespace ?? $this->get_namespace();
 		if ( ! isset( $token_name ) ) {
 			return null;
 		}
@@ -796,7 +797,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			// Void elements.
 			self::is_void( $token_name ) ||
 			// Special atomic elements.
-			in_array( $token_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ||
+			( 'html' === $token_namespace && in_array( $token_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) ||
 			// Self-closing elements in foreign content.
 			( isset( $node ) && 'html' !== $node->namespace && $node->has_self_closing_flag )
 		);
