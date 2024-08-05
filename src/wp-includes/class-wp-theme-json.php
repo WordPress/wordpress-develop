@@ -2988,7 +2988,7 @@ class WP_Theme_JSON {
 			// Right and left padding are applied to the first container with `.has-global-padding` class.
 			$css .= '.has-global-padding { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }';
 			// Alignfull children of the container with left and right padding have negative margins so they can still be full width.
-			$css .= '.has-global-padding > .alignfull { margin-right: calc(var(--wp--style--root--padding-right) * -1); margin-left: calc(var(--wp--style--root--padding-left) * -1); }';
+			$css .= '.has-global-padding > .alignfull:not(.is-layout-flow) { margin-right: calc(var(--wp--style--root--padding-right) * -1); margin-left: calc(var(--wp--style--root--padding-left) * -1); }';
 			// Nested children of the container with left and right padding that are not full aligned do not get padding, unless they are direct children of an alignfull flow container.
 			$css .= '.has-global-padding :where(:not(.alignfull.is-layout-flow) > .has-global-padding:not(.wp-block-block, .alignfull)) { padding-right: 0; padding-left: 0; }';
 			// Alignfull direct children of the containers that are targeted by the rule above do not need negative margins.
