@@ -15,6 +15,7 @@ class WP_Site_Health {
 	private $is_recommended_mysql_version;
 
 	public $is_mariadb                   = false;
+	public $is_sqlite                    = false;
 	private $mysql_server_version        = '';
 	private $mysql_required_version      = '5.5';
 	private $mysql_recommended_version   = '8.0';
@@ -208,6 +209,7 @@ class WP_Site_Health {
 		global $wpdb;
 
 		$mysql_server_type = $wpdb->db_server_info();
+		$this->is_sqlite   = defined( 'DB_ENGINE' ) && 'sqlite' === DB_ENGINE ? 'sqlite' : 'mysql';
 
 		$this->mysql_server_version = $wpdb->get_var( 'SELECT VERSION()' );
 
@@ -1230,7 +1232,7 @@ class WP_Site_Health {
 
 		$db_dropin = file_exists( WP_CONTENT_DIR . '/db.php' );
 
-		if ( ! $this->is_recommended_mysql_version ) {
+		if ( ! $this->is_sqlite && ! $this->is_recommended_mysql_version ) {
 			$result['status'] = 'recommended';
 
 			$result['label'] = __( 'Outdated SQL server' );
@@ -1246,7 +1248,7 @@ class WP_Site_Health {
 			);
 		}
 
-		if ( ! $this->is_acceptable_mysql_version ) {
+		if ( ! $this->is_sqlite && ! $this->is_acceptable_mysql_version ) {
 			$result['status'] = 'critical';
 
 			$result['label']          = __( 'Severely outdated SQL server' );

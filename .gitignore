@@ -102,3 +102,7 @@ wp-tests-config.php
 
 # Visual regression test diffs
 tests/visual-regression/specs/__snapshots__
+
+src/wp-content/database/.ht.sqlite
+
+src/wp-content/database/
