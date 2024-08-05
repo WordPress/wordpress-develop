@@ -281,11 +281,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * ## Current HTML Support
 	 *
-	 *  - The only supported context is `<body>`, which is the default value.
 	 *  - The only supported document encoding is `UTF-8`, which is the default value.
+	 *
+	 * @todo Verify that creating a fragment in self-contained elements works.
 	 *
 	 * @since 6.4.0
 	 * @since 6.6.0 Returns `static` instead of `self` so it can create subclass instances.
+	 * @since 6.7.0 Can create fragment in any context.
 	 *
 	 * @param string $html     Input HTML fragment to process.
 	 * @param string $context  Context element for the fragment, must be default of `<body>`.
