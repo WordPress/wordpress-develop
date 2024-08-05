@@ -4029,7 +4029,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			} elseif ( $this->is_html_integration_point() ) {
 				$this->state->current_token->integration_node_type = 'html';
 			}
-			$this->insert_html_element( $this->state->current_token );
+			$this->insert_foreign_element( $this->state->current_token, $this->state->current_token->namespace, false );
 
 			if ( $this->state->current_token->has_self_closing_flag ) {
 				if ( 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
