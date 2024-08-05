@@ -29,7 +29,7 @@ table,
 	&.is-style-stripes .has-background thead tr,
 	&.is-style-stripes .has-background tfoot tr,
 	&.is-style-stripes .has-background tbody tr {
-		color: var(--table--has-background-text-color);
+		color: inherit;
 	}
 
 	&.is-style-stripes {
