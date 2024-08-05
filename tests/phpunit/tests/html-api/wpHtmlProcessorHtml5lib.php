@@ -31,43 +31,30 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
-		'adoption01/line0046'        => 'Unimplemented: Reconstruction of active formatting elements.',
-		'adoption01/line0159'        => 'Unimplemented: Reconstruction of active formatting elements.',
-		'adoption01/line0318'        => 'Unimplemented: Reconstruction of active formatting elements.',
-		'entities02/line0100'        => 'Encoded characters without semicolon termination in attribute values are not handled properly',
-		'entities02/line0114'        => 'Encoded characters without semicolon termination in attribute values are not handled properly',
-		'entities02/line0128'        => 'Encoded characters without semicolon termination in attribute values are not handled properly',
-		'entities02/line0142'        => 'Encoded characters without semicolon termination in attribute values are not handled properly',
-		'entities02/line0156'        => 'Encoded characters without semicolon termination in attribute values are not handled properly',
-		'inbody01/line0001'          => 'Bug.',
-		'inbody01/line0014'          => 'Bug.',
-		'inbody01/line0029'          => 'Bug.',
-		'menuitem-element/line0012'  => 'Bug.',
-		'plain-text-unsafe/line0001' => 'HTML entities may be mishandled.',
-		'plain-text-unsafe/line0105' => 'Binary.',
-		'tests1/line0342'            => "Closing P tag implicitly creates opener, which we don't visit.",
-		'tests1/line0720'            => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests1/line0833'            => 'Bug.',
-		'tests15/line0001'           => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests15/line0022'           => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests2/line0317'            => 'HTML entities may be mishandled.',
-		'tests2/line0408'            => 'HTML entities may be mishandled.',
-		'tests2/line0650'            => 'Whitespace only test never enters "in body" parsing mode.',
-		'tests20/line0497'           => "Closing P tag implicitly creates opener, which we don't visit.",
-		'tests23/line0001'           => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests23/line0041'           => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests23/line0069'           => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests23/line0101'           => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests25/line0169'           => 'Bug.',
-		'tests26/line0263'           => 'Bug: An active formatting element should be created for a trailing text node.',
-		'tests7/line0354'            => 'Bug.',
-		'tests8/line0001'            => 'Bug.',
-		'tests8/line0020'            => 'Bug.',
-		'tests8/line0037'            => 'Bug.',
-		'tests8/line0052'            => 'Bug.',
-		'webkit01/line0174'          => 'Bug.',
+		'adoption01/line0046' => 'Unimplemented: Reconstruction of active formatting elements.',
+		'adoption01/line0159' => 'Unimplemented: Reconstruction of active formatting elements.',
+		'adoption01/line0318' => 'Unimplemented: Reconstruction of active formatting elements.',
+		'template/line0885'   => 'Unimplemented: no parsing of attributes on context node.',
+		'tests1/line0720'     => 'Unimplemented: Reconstruction of active formatting elements.',
+		'tests15/line0001'    => 'Unimplemented: Reconstruction of active formatting elements.',
+		'tests15/line0022'    => 'Unimplemented: Reconstruction of active formatting elements.',
+		'tests15/line0068'    => 'Unimplemented: no support outside of IN BODY yet.',
+		'tests2/line0650'     => 'Whitespace only test never enters "in body" parsing mode.',
+		'tests19/line0965'    => 'Unimplemented: no support outside of IN BODY yet.',
+		'tests23/line0001'    => 'Unimplemented: Reconstruction of active formatting elements.',
+		'tests23/line0041'    => 'Unimplemented: Reconstruction of active formatting elements.',
+		'tests23/line0069'    => 'Unimplemented: Reconstruction of active formatting elements.',
+		'tests23/line0101'    => 'Unimplemented: Reconstruction of active formatting elements.',
+		'tests26/line0263'    => 'Bug: An active formatting element should be created for a trailing text node.',
+		'webkit01/line0231'   => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'webkit02/line0013'   => "Asserting behavior with scripting flag enabled, which this parser doesn't support.",
+		'webkit01/line0300'   => 'Unimplemented: no support outside of IN BODY yet.',
+		'webkit01/line0310'   => 'Unimplemented: no support outside of IN BODY yet.',
+		'webkit01/line0336'   => 'Unimplemented: no support outside of IN BODY yet.',
+		'webkit01/line0349'   => 'Unimplemented: no support outside of IN BODY yet.',
+		'webkit01/line0362'   => 'Unimplemented: no support outside of IN BODY yet.',
+		'webkit01/line0375'   => 'Unimplemented: no support outside of IN BODY yet.',
 	);
-
 
 	/**
 	 * Verify the parsing results of the HTML Processor against the
@@ -104,10 +91,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$handle = opendir( $test_dir );
 		while ( false !== ( $entry = readdir( $handle ) ) ) {
 			if ( ! stripos( $entry, '.dat' ) ) {
-				continue;
-			}
-
-			if ( 'entities01.dat' === $entry || 'entities02.dat' === $entry ) {
 				continue;
 			}
 
@@ -173,25 +156,42 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		// Initially, assume we're 2 levels deep at: html > body > [position]
 		$indent_level = 2;
 		$indent       = '  ';
+		$was_text     = null;
+		$text_node    = '';
 
 		while ( $processor->next_token() ) {
 			if ( ! is_null( $processor->get_last_error() ) ) {
 				return null;
 			}
 
-			switch ( $processor->get_token_type() ) {
-				case '#tag':
-					$tag_name = strtolower( $processor->get_tag() );
+			$token_name = $processor->get_token_name();
+			$token_type = $processor->get_token_type();
+			$is_closer  = $processor->is_tag_closer();
 
-					if ( $processor->is_tag_closer() ) {
+			if ( $was_text && '#text' !== $token_name ) {
+				$output   .= "{$text_node}\"\n";
+				$was_text  = false;
+				$text_node = '';
+			}
+
+			switch ( $token_type ) {
+				case '#tag':
+					$tag_name = strtolower( $token_name );
+
+					if ( $is_closer ) {
 						--$indent_level;
+
+						if ( 'TEMPLATE' === $token_name ) {
+							--$indent_level;
+						}
+
 						break;
 					}
 
-					$tag_indent = count( $processor->get_breadcrumbs() ) - 1;
+					$tag_indent = $indent_level;
 
 					if ( ! WP_HTML_Processor::is_void( $tag_name ) ) {
-						$indent_level = $tag_indent + 1;
+						++$indent_level;
 					}
 
 					$output .= str_repeat( $indent, $tag_indent ) . "<{$tag_name}>\n";
@@ -213,16 +213,36 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 						}
 					}
 
+					// Self-contained tags contain their inner contents as modifiable text.
+					$modifiable_text = $processor->get_modifiable_text();
+					if ( '' !== $modifiable_text ) {
+						$output .= str_repeat( $indent, $indent_level ) . "\"{$modifiable_text}\"\n";
+					}
+
+					if ( 'TEMPLATE' === $token_name ) {
+						$output .= str_repeat( $indent, $indent_level ) . "content\n";
+						++$indent_level;
+					}
+
+					if ( ! $processor->is_void( $tag_name ) && ! $processor->expects_closer() ) {
+						--$indent_level;
+					}
+
 					break;
 
 				case '#text':
-					$output .= str_repeat( $indent, $indent_level ) . "\"{$processor->get_modifiable_text()}\"\n";
+					$was_text = true;
+					if ( '' === $text_node ) {
+						$text_node .= str_repeat( $indent, $indent_level ) . '"';
+					}
+					$text_node .= $processor->get_modifiable_text();
 					break;
 
 				case '#comment':
 					switch ( $processor->get_comment_type() ) {
 						case WP_HTML_Processor::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT:
 						case WP_HTML_Processor::COMMENT_AS_HTML_COMMENT:
+						case WP_HTML_Processor::COMMENT_AS_INVALID_HTML:
 							$comment_text_content = $processor->get_modifiable_text();
 							break;
 
@@ -251,6 +271,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			return null;
 		}
 
+		if ( '' !== $text_node ) {
+			$output .= "{$text_node}\"\n";
+		}
+
 		// Tests always end with a trailing newline.
 		return $output . "\n";
 	}
@@ -269,7 +293,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		/**
 		 * Represents which section of the test case is being parsed.
 		 *
-		 * @var ?string
+		 * @var string|null
 		 */
 		$state = null;
 

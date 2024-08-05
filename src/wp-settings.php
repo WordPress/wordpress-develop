@@ -107,6 +107,7 @@ wp_set_lang_dir();
 
 // Load early WordPress files.
 require ABSPATH . WPINC . '/class-wp-list-util.php';
+require ABSPATH . WPINC . '/class-wp-token-map.php';
 require ABSPATH . WPINC . '/formatting.php';
 require ABSPATH . WPINC . '/meta.php';
 require ABSPATH . WPINC . '/functions.php';
@@ -248,14 +249,17 @@ require ABSPATH . WPINC . '/class-wp-oembed.php';
 require ABSPATH . WPINC . '/class-wp-oembed-controller.php';
 require ABSPATH . WPINC . '/media.php';
 require ABSPATH . WPINC . '/http.php';
+require ABSPATH . WPINC . '/html-api/html5-named-character-references.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-attribute-token.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-span.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-text-replacement.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-decoder.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-tag-processor.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-unsupported-exception.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-active-formatting-elements.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-open-elements.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-token.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-stack-event.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-processor-state.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-processor.php';
 require ABSPATH . WPINC . '/class-wp-http.php';
@@ -282,10 +286,10 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-posts-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-attachments-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-global-styles-controller.php';
-require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-global-styles-revisions-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-post-types-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-post-statuses-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-revisions-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-global-styles-revisions-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-template-revisions-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-autosaves-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-template-autosaves-controller.php';
@@ -363,20 +367,21 @@ require ABSPATH . WPINC . '/block-patterns.php';
 require ABSPATH . WPINC . '/class-wp-block-supports.php';
 require ABSPATH . WPINC . '/block-supports/utils.php';
 require ABSPATH . WPINC . '/block-supports/align.php';
-require ABSPATH . WPINC . '/block-supports/background.php';
-require ABSPATH . WPINC . '/block-supports/border.php';
-require ABSPATH . WPINC . '/block-supports/colors.php';
 require ABSPATH . WPINC . '/block-supports/custom-classname.php';
-require ABSPATH . WPINC . '/block-supports/dimensions.php';
-require ABSPATH . WPINC . '/block-supports/duotone.php';
-require ABSPATH . WPINC . '/block-supports/shadow.php';
-require ABSPATH . WPINC . '/block-supports/elements.php';
 require ABSPATH . WPINC . '/block-supports/generated-classname.php';
+require ABSPATH . WPINC . '/block-supports/settings.php';
+require ABSPATH . WPINC . '/block-supports/elements.php';
+require ABSPATH . WPINC . '/block-supports/colors.php';
+require ABSPATH . WPINC . '/block-supports/typography.php';
+require ABSPATH . WPINC . '/block-supports/border.php';
 require ABSPATH . WPINC . '/block-supports/layout.php';
 require ABSPATH . WPINC . '/block-supports/position.php';
 require ABSPATH . WPINC . '/block-supports/spacing.php';
-require ABSPATH . WPINC . '/block-supports/typography.php';
-require ABSPATH . WPINC . '/block-supports/settings.php';
+require ABSPATH . WPINC . '/block-supports/dimensions.php';
+require ABSPATH . WPINC . '/block-supports/duotone.php';
+require ABSPATH . WPINC . '/block-supports/shadow.php';
+require ABSPATH . WPINC . '/block-supports/background.php';
+require ABSPATH . WPINC . '/block-supports/block-style-variations.php';
 require ABSPATH . WPINC . '/style-engine.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-declarations.php';
@@ -710,7 +715,7 @@ if ( is_multisite() ) {
  * Ajax requests should use wp-admin/admin-ajax.php. admin-ajax.php can handle requests for
  * users not logged in.
  *
- * @link https://codex.wordpress.org/AJAX_in_Plugins
+ * @link https://developer.wordpress.org/plugins/javascript/ajax
  *
  * @since 3.0.0
  */

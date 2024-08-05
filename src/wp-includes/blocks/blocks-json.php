@@ -207,8 +207,14 @@
         'type' => 'number'
       ),
       'content' => array(
-        'type' => 'object'
+        'type' => 'object',
+        'default' => array(
+          
+        )
       )
+    ),
+    'providesContext' => array(
+      'pattern/overrides' => 'content'
     ),
     'supports' => array(
       'customClassName' => false,
@@ -302,6 +308,7 @@
     ),
     'supports' => array(
       'anchor' => true,
+      'splitting' => true,
       'align' => false,
       'alignWide' => false,
       'color' => array(
@@ -1557,6 +1564,7 @@
       'anchor' => true,
       'align' => true,
       'html' => false,
+      'shadow' => true,
       'spacing' => array(
         'padding' => true,
         'margin' => array(
@@ -1643,6 +1651,7 @@
       )
     ),
     'supports' => array(
+      '__experimentalOnEnter' => true,
       'align' => array(
         'wide',
         'full'
@@ -2240,6 +2249,7 @@
       ),
       'anchor' => true,
       'className' => true,
+      'splitting' => true,
       'color' => array(
         'gradients' => true,
         'link' => true,
@@ -2770,7 +2780,7 @@
     ),
     'supports' => array(
       'anchor' => true,
-      'className' => false,
+      'html' => false,
       'typography' => array(
         'fontSize' => true,
         'lineHeight' => true,
@@ -2801,7 +2811,6 @@
         )
       ),
       '__unstablePasteTextInline' => true,
-      '__experimentalSelector' => 'ol,ul',
       '__experimentalOnMerge' => true,
       '__experimentalSlashInserter' => true,
       'interactivity' => array(
@@ -2838,7 +2847,8 @@
     ),
     'supports' => array(
       'className' => false,
-      '__experimentalSelector' => 'li',
+      '__experimentalSelector' => '.wp-block-list > li',
+      'splitting' => true,
       'spacing' => array(
         'margin' => true,
         'padding' => true,
@@ -3013,7 +3023,15 @@
       ),
       'allowedBlocks' => array(
         'type' => 'array'
+      ),
+      'useFeaturedImage' => array(
+        'type' => 'boolean',
+        'default' => false
       )
+    ),
+    'usesContext' => array(
+      'postId',
+      'postType'
     ),
     'supports' => array(
       'anchor' => true,
@@ -3099,7 +3117,8 @@
     'textdomain' => 'default',
     'attributes' => array(
       'customText' => array(
-        'type' => 'string'
+        'type' => 'string',
+        'default' => ''
       ),
       'noTeaser' => array(
         'type' => 'boolean',
@@ -3277,15 +3296,6 @@
         'allowSizingOnChildren' => true,
         'default' => array(
           'type' => 'flex'
-        )
-      ),
-      '__experimentalStyle' => array(
-        'elements' => array(
-          'link' => array(
-            'color' => array(
-              'text' => 'inherit'
-            )
-          )
         )
       ),
       'interactivity' => true,
@@ -3613,9 +3623,6 @@
       'text'
     ),
     'textdomain' => 'default',
-    'usesContext' => array(
-      'postId'
-    ),
     'attributes' => array(
       'align' => array(
         'type' => 'string'
@@ -3642,6 +3649,7 @@
       )
     ),
     'supports' => array(
+      'splitting' => true,
       'anchor' => true,
       'className' => false,
       'color' => array(
@@ -4185,7 +4193,6 @@
         'full'
       ),
       'color' => array(
-        '__experimentalDuotone' => 'img, .wp-block-post-featured-image__placeholder, .components-placeholder__illustration, .components-placeholder::before',
         'text' => false,
         'background' => false
       ),
@@ -4193,13 +4200,18 @@
         'color' => true,
         'radius' => true,
         'width' => true,
-        '__experimentalSelector' => 'img, .block-editor-media-placeholder, .wp-block-post-featured-image__overlay',
         '__experimentalSkipSerialization' => true,
         '__experimentalDefaultControls' => array(
           'color' => true,
           'radius' => true,
           'width' => true
         )
+      ),
+      'filter' => array(
+        'duotone' => true
+      ),
+      'shadow' => array(
+        '__experimentalSkipSerialization' => true
       ),
       'html' => false,
       'spacing' => array(
@@ -4208,6 +4220,13 @@
       ),
       'interactivity' => array(
         'clientNavigation' => true
+      )
+    ),
+    'selectors' => array(
+      'border' => '.wp-block-post-featured-image img, .wp-block-post-featured-image .block-editor-media-placeholder, .wp-block-post-featured-image .wp-block-post-featured-image__overlay',
+      'shadow' => '.wp-block-post-featured-image img, .wp-block-post-featured-image .components-placeholder',
+      'filter' => array(
+        'duotone' => '.wp-block-post-featured-image img, .wp-block-post-featured-image .wp-block-post-featured-image__placeholder, .wp-block-post-featured-image .components-placeholder__illustration, .wp-block-post-featured-image .components-placeholder::before'
       )
     ),
     'editorStyle' => 'wp-block-post-featured-image-editor',
@@ -5035,7 +5054,7 @@
         'selector' => 'cite',
         '__experimentalRole' => 'content'
       ),
-      'align' => array(
+      'textAlign' => array(
         'type' => 'string'
       )
     ),
@@ -5475,6 +5494,10 @@
     'attributes' => array(
       'textAlign' => array(
         'type' => 'string'
+      ),
+      'level' => array(
+        'type' => 'number',
+        'default' => 0
       )
     ),
     'example' => array(
@@ -5600,7 +5623,7 @@
     'parent' => array(
       'core/social-links'
     ),
-    'description' => 'Display an icon linking to a social media profile or site.',
+    'description' => 'Display an icon linking to a social profile or site.',
     'textdomain' => 'default',
     'attributes' => array(
       'url' => array(
@@ -5642,7 +5665,7 @@
     'allowedBlocks' => array(
       'core/social-link'
     ),
-    'description' => 'Display icons linking to your social media profiles or sites.',
+    'description' => 'Display icons linking to your social profiles or sites.',
     'keywords' => array(
       'links'
     ),
@@ -5802,7 +5825,7 @@
     'attributes' => array(
       'hasFixedLayout' => array(
         'type' => 'boolean',
-        'default' => false
+        'default' => true
       ),
       'caption' => array(
         'type' => 'rich-text',
@@ -6384,6 +6407,7 @@
     '$schema' => 'https://schemas.wp.org/trunk/block.json',
     'apiVersion' => 3,
     'name' => 'core/widget-group',
+    'title' => 'Widget Group',
     'category' => 'widgets',
     'attributes' => array(
       'title' => array(

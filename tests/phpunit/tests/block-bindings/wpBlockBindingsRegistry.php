@@ -8,8 +8,6 @@
  *
  * @group blocks
  * @group block-bindings
- *
- * @coversDefaultClass WP_Block_Bindings_Registry
  */
 class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 
@@ -227,7 +225,7 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Block_Bindings_Registry::register
 	 * @covers WP_Block_Bindings_Registry::unregister
-	 * WP_Block_Bindings_Source::__construct
+	 * @covers WP_Block_Bindings_Source::__construct
 	 */
 	public function test_unregister_block_source() {
 		$this->registry->register( self::$test_source_name, self::$test_source_properties );
@@ -249,7 +247,7 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Block_Bindings_Registry::register
 	 * @covers WP_Block_Bindings_Registry::get_all_registered
-	 * WP_Block_Bindings_Source::__construct
+	 * @covers WP_Block_Bindings_Source::__construct
 	 */
 	public function test_get_all_registered() {
 		$source_one_name       = 'test/source-one';
@@ -382,6 +380,8 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 		);
 
 		$new_uses_context = $block_registry->get_registered( 'core/paragraph' )->uses_context;
+		unregister_block_bindings_source( 'test/source-one' );
+		unregister_block_bindings_source( 'test/source-two' );
 		// Checks that the resulting `uses_context` contains the values from both sources.
 		$this->assertContains( 'commonContext', $new_uses_context );
 		$this->assertContains( 'sourceOneContext', $new_uses_context );

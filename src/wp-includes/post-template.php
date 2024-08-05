@@ -345,7 +345,9 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		$content = array( $content );
 	}
 
-	if ( str_contains( $_post->post_content, '<!--noteaser-->' ) && ( ! $elements['multipage'] || 1 == $elements['page'] ) ) {
+	if ( str_contains( $_post->post_content, '<!--noteaser-->' )
+		&& ( ! $elements['multipage'] || 1 === $elements['page'] )
+	) {
 		$strip_teaser = true;
 	}
 
@@ -978,11 +980,13 @@ function wp_link_pages( $args = '' ) {
 			$output .= $parsed_args['before'];
 			for ( $i = 1; $i <= $numpages; $i++ ) {
 				$link = $parsed_args['link_before'] . str_replace( '%', $i, $parsed_args['pagelink'] ) . $parsed_args['link_after'];
-				if ( $i != $page || ! $more && 1 == $page ) {
+
+				if ( $i !== $page || ! $more && 1 === $page ) {
 					$link = _wp_link_page( $i ) . $link . '</a>';
 				} elseif ( $i === $page ) {
 					$link = '<span class="post-page-numbers current" aria-current="' . esc_attr( $parsed_args['aria_current'] ) . '">' . $link . '</span>';
 				}
+
 				/**
 				 * Filters the HTML output of individual page number links.
 				 *
@@ -1054,12 +1058,12 @@ function _wp_link_page( $i ) {
 	$post       = get_post();
 	$query_args = array();
 
-	if ( 1 == $i ) {
+	if ( 1 === $i ) {
 		$url = get_permalink();
 	} else {
 		if ( ! get_option( 'permalink_structure' ) || in_array( $post->post_status, array( 'draft', 'pending' ), true ) ) {
 			$url = add_query_arg( 'page', $i, get_permalink() );
-		} elseif ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $post->ID ) {
+		} elseif ( 'page' === get_option( 'show_on_front' ) && (int) get_option( 'page_on_front' ) === $post->ID ) {
 			$url = trailingslashit( get_permalink() ) . user_trailingslashit( "$wp_rewrite->pagination_base/" . $i, 'single_paged' );
 		} else {
 			$url = trailingslashit( get_permalink() ) . user_trailingslashit( $i, 'single_paged' );
@@ -1773,9 +1777,10 @@ function get_the_password_form( $post = 0 ) {
 	/**
 	 * Filters the HTML output for the protected post password form.
 	 *
-	 * If modifying the password field, please note that the core database schema
-	 * limits the password field to 20 characters regardless of the value of the
-	 * size attribute in the form input.
+	 * If modifying the password field, please note that the WordPress database schema
+	 * limits the password field to 255 characters regardless of the value of the
+	 * `minlength` or `maxlength` attributes or other validation that may be added to
+	 * the input.
 	 *
 	 * @since 2.7.0
 	 * @since 5.8.0 Added the `$post` parameter.
@@ -1815,7 +1820,7 @@ function is_page_template( $template = '' ) {
 		return (bool) $page_template;
 	}
 
-	if ( $template == $page_template ) {
+	if ( $template === $page_template ) {
 		return true;
 	}
 
@@ -1861,8 +1866,8 @@ function get_page_template_slug( $post = null ) {
  *
  * @since 2.6.0
  *
- * @param int|object $revision Revision ID or revision object.
- * @param bool       $link     Optional. Whether to link to revision's page. Default true.
+ * @param int|WP_Post $revision Revision ID or revision object.
+ * @param bool        $link     Optional. Whether to link to revision's page. Default true.
  * @return string|false i18n formatted datetimestamp or localized 'Current Revision'.
  */
 function wp_post_revision_title( $revision, $link = true ) {
@@ -1903,8 +1908,8 @@ function wp_post_revision_title( $revision, $link = true ) {
  *
  * @since 3.6.0
  *
- * @param int|object $revision Revision ID or revision object.
- * @param bool       $link     Optional. Whether to link to revision's page. Default true.
+ * @param int|WP_Post $revision Revision ID or revision object.
+ * @param bool        $link     Optional. Whether to link to revision's page. Default true.
  * @return string|false gravatar, user, i18n formatted datetimestamp or localized 'Current Revision'.
  */
 function wp_post_revision_title_expanded( $revision, $link = true ) {

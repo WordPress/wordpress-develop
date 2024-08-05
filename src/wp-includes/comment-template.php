@@ -24,7 +24,13 @@
 function get_comment_author( $comment_id = 0 ) {
 	$comment = get_comment( $comment_id );
 
-	$comment_id = ! empty( $comment->comment_ID ) ? $comment->comment_ID : $comment_id;
+	if ( ! empty( $comment->comment_ID ) ) {
+		$comment_id = $comment->comment_ID;
+	} elseif ( is_scalar( $comment_id ) ) {
+		$comment_id = (string) $comment_id;
+	} else {
+		$comment_id = '0';
+	}
 
 	if ( empty( $comment->comment_author ) ) {
 		$user = ! empty( $comment->user_id ) ? get_userdata( $comment->user_id ) : false;
@@ -227,7 +233,13 @@ function get_comment_author_email_link( $link_text = '', $before = '', $after = 
 function get_comment_author_link( $comment_id = 0 ) {
 	$comment = get_comment( $comment_id );
 
-	$comment_id = ! empty( $comment->comment_ID ) ? $comment->comment_ID : (string) $comment_id;
+	if ( ! empty( $comment->comment_ID ) ) {
+		$comment_id = $comment->comment_ID;
+	} elseif ( is_scalar( $comment_id ) ) {
+		$comment_id = (string) $comment_id;
+	} else {
+		$comment_id = '0';
+	}
 
 	$comment_author_url = get_comment_author_url( $comment );
 	$comment_author     = get_comment_author( $comment );
