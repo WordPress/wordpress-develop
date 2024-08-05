@@ -5309,7 +5309,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		if ( 'math' !== $this->get_namespace() || 'M' !== $current_token->node_name[0] ) {
+		if ( 'math' !== $current_token->namespace || 'M' !== $current_token->node_name[0] ) {
 			return false;
 		}
 
