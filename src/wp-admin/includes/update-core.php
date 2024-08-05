@@ -1539,12 +1539,12 @@ function update_core( $from, $to ) {
  *
  * @global array              $_old_requests_files Requests files to be preloaded.
  * @global WP_Filesystem_Base $wp_filesystem       WordPress filesystem subclass.
- * @global string             $wp_version          The WordPress version string.
  *
  * @param string $to Path to old WordPress installation.
  */
 function _preload_old_requests_classes_and_interfaces( $to ) {
-	global $_old_requests_files, $wp_filesystem, $wp_version;
+	global $_old_requests_files, $wp_filesystem;
+	$wp_version = wp_get_wp_version();
 
 	/*
 	 * Requests was introduced in WordPress 4.6.

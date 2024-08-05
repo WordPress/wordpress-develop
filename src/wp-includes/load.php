@@ -148,11 +148,11 @@ function wp_populate_basic_auth_from_authorization_header() {
  * @access private
  *
  * @global string $required_php_version The required PHP version string.
- * @global string $wp_version           The WordPress version string.
  */
 function wp_check_php_mysql_versions() {
-	global $required_php_version, $wp_version;
+	global $required_php_version;
 
+	$wp_version  = wp_get_wp_version();
 	$php_version = PHP_VERSION;
 
 	if ( version_compare( $required_php_version, $php_version, '>' ) ) {
