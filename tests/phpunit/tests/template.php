@@ -689,7 +689,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_locate_template_only_loads_theme_files() {
+	public function data_locate_template_only_loads_theme_files() {
 		return array(
 			'file that is in theme compat so will always return' => array(
 				'header.php',
