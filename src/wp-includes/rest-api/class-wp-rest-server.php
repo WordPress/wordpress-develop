@@ -628,6 +628,8 @@ class WP_REST_Server {
 			return array();
 		}
 
+		$server = rest_get_server();
+
 		// Convert links to part of the data.
 		$data = array();
 		foreach ( $links as $rel => $items ) {
@@ -636,7 +638,31 @@ class WP_REST_Server {
 			foreach ( $items as $item ) {
 				$attributes         = $item['attributes'];
 				$attributes['href'] = $item['href'];
-				$data[ $rel ][]     = $attributes;
+
+				if ( 'self' === $rel ) {
+					$request = WP_REST_Request::from_url( $item['href'] );
+					$match   = $server->match_request_to_handler( $request );
+
+					if ( ! is_wp_error( $match ) ) {
+						$response = new WP_REST_Response();
+						$response->set_matched_route( $match[0] );
+						$response->set_matched_handler( $match[1] );
+						$headers = rest_send_allow_header( $response, $server, $request )->get_headers();
+
+						foreach ( $headers as $name => $value ) {
+							$name = WP_REST_Request::canonicalize_header_name( $name );
+
+							// Prefer targetHints that were specifically designated by the developer.
+							if ( isset( $attributes['targetHints'][ $name ] ) ) {
+								continue;
+							}
+
+							$attributes['targetHints'][ $name ] = array_map( 'trim', explode( ',', $value ) );
+						}
+					}
+				}
+
+				$data[ $rel ][] = $attributes;
 			}
 		}
 
