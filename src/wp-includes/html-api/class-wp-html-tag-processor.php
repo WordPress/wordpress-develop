@@ -3431,7 +3431,7 @@ class WP_HTML_Tag_Processor {
 		 *       text is processed according to the insertion mode, not according
 		 *       to the foreign content rules. This should strip the NULL bytes.
 		 */
-		return ( '#text' === $tag_name && 'html' === $this->parsing_namespace )
+		return ( '#text' === $tag_name && 'html' === $this->get_namespace() )
 			? str_replace( "\x00", '', $decoded )
 			: str_replace( "\x00", "\u{FFFD}", $decoded );
 	}

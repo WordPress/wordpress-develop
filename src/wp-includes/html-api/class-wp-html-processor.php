@@ -4406,11 +4406,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string One of "html", "math", or "svg".
 	 */
 	public function get_namespace(): string {
-		if ( ! isset( $this->current_element ) ) {
-			return 'html';
+		$adjusted_current_node = $this->get_adjusted_current_node();
+
+		if ( $adjusted_current_node ) {
+			return $adjusted_current_node->integration_node_type ?? $adjusted_current_node->namespace;
 		}
 
-		return $this->current_element->token->namespace;
+		return 'html';
 	}
 
 	/**
