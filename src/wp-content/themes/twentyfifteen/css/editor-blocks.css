@@ -121,10 +121,15 @@ Description: Used to style blocks in the editor.
 	.edit-post-visual-editor .editor-block-list__block h4 {
 		font-size: 20px;
 		line-height: 1.4;
-		padding: .7em 0 0.35em;
+		padding: 0.7em 0 0.35em;
 	}
 
-	.edit-post-visual-editor .editor-block-list__block h5,
+	.edit-post-visual-editor .editor-block-list__block h5 {
+		font-size: 18px;
+		line-height: 1.3333;
+		padding: 1.3em 0 0.65em;
+	}
+
 	.edit-post-visual-editor .editor-block-list__block h6 {
 		font-size: 17px;
 		line-height: 1.2353;
@@ -169,7 +174,12 @@ Description: Used to style blocks in the editor.
 		padding: 0.75em 0 0.35em;
 	}
 
-	.edit-post-visual-editor .editor-block-list__block h5,
+	.edit-post-visual-editor .editor-block-list__block h5 {
+		font-size: 20px;
+		line-height: 1.4;
+		padding: 0.7em 0 0.35em;
+	}
+
 	.edit-post-visual-editor .editor-block-list__block h6 {
 		font-size: 19px;
 		line-height: 1.2632;
@@ -214,7 +224,12 @@ Description: Used to style blocks in the editor.
 		padding: 0.65em 0 0.3em;
 	}
 
-	.edit-post-visual-editor .editor-block-list__block h5,
+	.edit-post-visual-editor .editor-block-list__block h5 {
+		font-size: 16px;
+		line-height: 1.25;
+		padding: 0.875em 0 0.4375em;
+	}
+
 	.edit-post-visual-editor .editor-block-list__block h6 {
 		font-size: 15px;
 		line-height: 1.2;
@@ -259,7 +274,12 @@ Description: Used to style blocks in the editor.
 		padding: 0.7em 0 0.35em;
 	}
 
-	.edit-post-visual-editor .editor-block-list__block h5,
+	.edit-post-visual-editor .editor-block-list__block h5 {
+		font-size: 18px;
+		line-height: 1.3333;
+		padding: 0.65em 0 0.3em;
+	}
+
 	.edit-post-visual-editor .editor-block-list__block h6 {
 		font-size: 17px;
 		line-height: 1.2353;
@@ -292,7 +312,12 @@ Description: Used to style blocks in the editor.
 		padding: 0.75em 0 0.35em;
 	}
 
-	.edit-post-visual-editor .editor-block-list__block h5,
+	.edit-post-visual-editor .editor-block-list__block h5 {
+		font-size: 20px;
+		line-height: 1.4;
+		padding: 0.7em 0 0.35em;
+	}
+
 	.edit-post-visual-editor .editor-block-list__block h6 {
 		font-size: 19px;
 		line-height: 1.2632;
@@ -378,6 +403,10 @@ Description: Used to style blocks in the editor.
 .rtl .wp-block-freeform.block-library-rich-text__tinymce ul,
 .rtl .wp-block-freeform.block-library-rich-text__tinymce ol {
 	padding: 0;
+}
+
+div.editor-styles-wrapper .wp-block-list:where(.has-background) {
+	padding: 1.25em 2.375em;
 }
 
 /* Quote */
@@ -491,6 +520,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-style: normal;
 	line-height: 1.6;
 	text-transform: none;
+}
+
+.wp-block-quote.has-text-color cite,
+.wp-block-quote.has-background cite {
+	color: inherit;
 }
 
 .wp-block-quote em,
@@ -642,17 +676,22 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding: 0;
 }
 
+.wp-block-code {
+	font-family: Inconsolata, monospace;
+}
+
 /* Pullquote */
 
 .wp-block-pullquote,
-.editor-block-list__block .wp-block-pullquote blockquote {
-	border: 0;
+.editor-styles-wrapper .wp-block-pullquote blockquote {
+	border: 0 solid;
+	color: inherit;
 	margin: 0;
 	padding-left: 0;
 }
 
 .wp-block-pullquote .wp-block-pullquote__citation {
-	color: #333;
+	color: inherit;
 	font-family: "Noto Sans", sans-serif;
 	font-size: 15px;
 	font-style: normal;
@@ -706,12 +745,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-align: right;
 }
 
-/* Verse */
-
-.editor-styles-wrapper .wp-block-verse {
-	font-family: inherit;
-}
-
 /*--------------------------------------------------------------
 5.0 Blocks - Layout Elements
 --------------------------------------------------------------*/
@@ -732,6 +765,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 .wp-block-button__link {
 	background-color: #333;
 	color: #fff;
+}
+
+.wp-block-buttons[style*="text-transform"] .wp-block-button__link,
+.wp-block-button[style*="text-transform"] .wp-block-button__link {
+	text-transform: inherit;
 }
 
 .is-style-outline .wp-block-button__link {
@@ -773,13 +811,15 @@ p.has-drop-cap:not(:focus)::first-letter {
 	}
 }
 
-/* Seperator */
+/* Separator */
 
 .wp-block-separator {
+	border: 0;
 	max-width: 100px;
 }
 
-.wp-block-separator.is-style-wide {
+.wp-block-separator.is-style-wide,
+.wp-block-separator.is-style-dots {
 	max-width: 100%;
 }
 

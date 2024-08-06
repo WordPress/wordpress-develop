@@ -16,7 +16,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 	/**
 	 * Set up a test case.
 	 *
-	 * @see WP_UnitTestCase::setup()
+	 * @see WP_UnitTestCase_Base::set_up()
 	 */
 	public function set_up() {
 		parent::set_up();
@@ -926,17 +926,17 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$nav_menu_item = $setting->value_as_wp_post_nav_menu_item();
 		$this->assertSame( 'Custom Label', $nav_menu_item->type_label );
 
-		$this->assertObjectNotHasAttribute( 'nav_menu_term_id', $nav_menu_item );
-		$this->assertObjectNotHasAttribute( 'status', $nav_menu_item );
+		$this->assertObjectNotHasProperty( 'nav_menu_term_id', $nav_menu_item );
+		$this->assertObjectNotHasProperty( 'status', $nav_menu_item );
 		$this->assertSame( 'publish', $nav_menu_item->post_status );
 		$this->assertSame( 'nav_menu_item', $nav_menu_item->post_type );
-		$this->assertObjectNotHasAttribute( 'position', $nav_menu_item );
+		$this->assertObjectNotHasProperty( 'position', $nav_menu_item );
 		$this->assertSame( $post_value['position'], $nav_menu_item->menu_order );
 		$this->assertSame( $post_value['title'], $nav_menu_item->post_title );
 		$this->assertSame( 123, $nav_menu_item->ID );
 		$this->assertSame( 123, $nav_menu_item->db_id );
 		$this->assertSame( wp_get_current_user()->ID, $nav_menu_item->post_author );
-		$this->assertObjectHasAttribute( 'type_label', $nav_menu_item );
+		$this->assertObjectHasProperty( 'type_label', $nav_menu_item );
 		$expected = apply_filters( 'nav_menu_attr_title', wp_unslash( apply_filters( 'excerpt_save_pre', wp_slash( $post_value['attr_title'] ) ) ) );
 		$this->assertSame( $expected, $nav_menu_item->attr_title );
 		$this->assertSame( 'Attempted \o/ o&#8217;o markup', $nav_menu_item->description );
@@ -1070,7 +1070,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( $original_post_title, $item_value['original_title'] );
 		$this->assertSame( '', $item_value['title'] );
 		$item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertObjectHasAttribute( 'type_label', $item );
+		$this->assertObjectHasProperty( 'type_label', $item );
 		$this->assertSame( $original_post_title, $item->original_title );
 		$this->assertSame( $original_post_title, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );
@@ -1097,7 +1097,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( $original_post_title, $item_value['original_title'] );
 		$this->assertSame( '', $item_value['title'] );
 		$item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertObjectHasAttribute( 'type_label', $item );
+		$this->assertObjectHasProperty( 'type_label', $item );
 		$this->assertSame( $original_post_title, $item->original_title );
 		$this->assertSame( $original_post_title, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );
@@ -1124,7 +1124,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( $original_term_title, $item_value['original_title'] );
 		$this->assertSame( '', $item_value['title'] );
 		$item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertObjectHasAttribute( 'type_label', $item );
+		$this->assertObjectHasProperty( 'type_label', $item );
 		$this->assertSame( $original_term_title, $item->original_title );
 		$this->assertSame( $original_term_title, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );
@@ -1151,7 +1151,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( $original_term_title, $item_value['original_title'] );
 		$this->assertSame( '', $item_value['title'] );
 		$item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertObjectHasAttribute( 'type_label', $item );
+		$this->assertObjectHasProperty( 'type_label', $item );
 		$this->assertSame( $original_term_title, $item->original_title );
 		$this->assertSame( $original_term_title, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );
@@ -1177,7 +1177,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item_value['original_title'] );
 		$this->assertSame( '', $item_value['title'] );
 		$item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertObjectHasAttribute( 'type_label', $item );
+		$this->assertObjectHasProperty( 'type_label', $item );
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->original_title );
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );
@@ -1203,7 +1203,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item_value['original_title'] );
 		$this->assertSame( '', $item_value['title'] );
 		$item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertObjectHasAttribute( 'type_label', $item );
+		$this->assertObjectHasProperty( 'type_label', $item );
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->original_title );
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );

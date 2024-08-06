@@ -86,6 +86,10 @@
 		top: calc(-3.5 * #{$size__spacing-unit});
 		width: calc(100vw / 12 );
 	}
+
+	.comment-reply-title small {
+		margin-left: 0.5em;
+	}
 }
 
 #comments {
@@ -112,6 +116,11 @@
 			display: block;
 		}
 	}
+}
+
+.comment-form-wrapper,
+.comment-form-wrapper .comments-title {
+	display: block;
 }
 
 .comment-list {
@@ -318,6 +327,7 @@
 
 		a {
 			text-decoration: underline;
+			text-decoration-thickness: 2px;
 
 			&:hover {
 				text-decoration: none;

@@ -3,6 +3,8 @@
 /**
  * @group formatting
  * @group slashes
+ *
+ * @covers ::stripslashes_deep
  */
 class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 	/**
@@ -24,7 +26,7 @@ class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 		$this->assertSame( $arr, stripslashes_deep( $arr ) ); // Keyed array.
 		$this->assertSame( array_values( $arr ), stripslashes_deep( array_values( $arr ) ) ); // Non-keyed.
 
-		$obj = new stdClass;
+		$obj = new stdClass();
 		foreach ( $arr as $k => $v ) {
 			$obj->$k = $v;
 		}
@@ -39,9 +41,9 @@ class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 		$this->assertSame( array( 'a' => $new ), stripslashes_deep( array( 'a' => $old ) ) ); // Keyed array.
 		$this->assertSame( array( $new ), stripslashes_deep( array( $old ) ) ); // Non-keyed.
 
-		$obj_old    = new stdClass;
+		$obj_old    = new stdClass();
 		$obj_old->a = $old;
-		$obj_new    = new stdClass;
+		$obj_new    = new stdClass();
 		$obj_new->a = $new;
 		$this->assertEquals( $obj_new, stripslashes_deep( $obj_old ) );
 	}

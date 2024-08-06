@@ -149,7 +149,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access for the item, otherwise false or WP_Error object.
+	 * @return bool|WP_Error True if the request has read access for the item, otherwise false or WP_Error object.
 	 */
 	public function get_item_permissions_check( $request ) {
 
@@ -209,7 +209,8 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$taxonomy = $item;
-		$base     = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+
+		$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
@@ -272,16 +273,9 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$response->add_links(
-			array(
-				'collection'              => array(
-					'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
-				),
-				'https://api.w.org/items' => array(
-					'href' => rest_url( rest_get_route_for_taxonomy_items( $taxonomy->name ) ),
-				),
-			)
-		);
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $taxonomy ) );
+		}
 
 		/**
 		 * Filters a taxonomy returned from the REST API.
@@ -295,6 +289,25 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request  $request  Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_taxonomy', $response, $taxonomy, $request );
+	}
+
+	/**
+	 * Prepares links for the request.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param WP_Taxonomy $taxonomy The taxonomy.
+	 * @return array Links for the given taxonomy.
+	 */
+	protected function prepare_links( $taxonomy ) {
+		return array(
+			'collection'              => array(
+				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
+			),
+			'https://api.w.org/items' => array(
+				'href' => rest_url( rest_get_route_for_taxonomy_items( $taxonomy->name ) ),
+			),
+		);
 	}
 
 	/**
@@ -436,5 +449,4 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		);
 		return $new_params;
 	}
-
 }

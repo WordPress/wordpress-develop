@@ -14,12 +14,9 @@
  *
  * @param string       $type Type of translations. Accepts 'plugins', 'themes', 'core'.
  * @param array|object $args Translation API arguments. Optional.
- * @return object|WP_Error On success an object of translations, WP_Error on failure.
+ * @return array|WP_Error On success an associative array of translations, WP_Error on failure.
  */
 function translations_api( $type, $args = null ) {
-	// Include an unmodified $wp_version.
-	require ABSPATH . WPINC . '/version.php';
-
 	if ( ! in_array( $type, array( 'plugins', 'themes', 'core' ), true ) ) {
 		return new WP_Error( 'invalid_type', __( 'Invalid translation type.' ) );
 	}
@@ -29,9 +26,9 @@ function translations_api( $type, $args = null ) {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param false|object $result The result object. Default false.
-	 * @param string       $type   The type of translations being requested.
-	 * @param object       $args   Translation API arguments.
+	 * @param false|array $result The result array. Default false.
+	 * @param string      $type   The type of translations being requested.
+	 * @param object      $args   Translation API arguments.
 	 */
 	$res = apply_filters( 'translations_api', false, $type, $args );
 
@@ -46,7 +43,7 @@ function translations_api( $type, $args = null ) {
 		$options = array(
 			'timeout' => 3,
 			'body'    => array(
-				'wp_version' => $wp_version,
+				'wp_version' => wp_get_wp_version(),
 				'locale'     => get_locale(),
 				'version'    => $args['version'], // Version of plugin, theme or core.
 			),
@@ -59,7 +56,8 @@ function translations_api( $type, $args = null ) {
 		$request = wp_remote_post( $url, $options );
 
 		if ( $ssl && is_wp_error( $request ) ) {
-			trigger_error(
+			wp_trigger_error(
+				__FUNCTION__,
 				sprintf(
 					/* translators: %s: Support forums URL. */
 					__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
@@ -102,9 +100,9 @@ function translations_api( $type, $args = null ) {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param object|WP_Error $res  Response object or WP_Error.
-	 * @param string          $type The type of translations being requested.
-	 * @param object          $args Translation API arguments.
+	 * @param array|WP_Error $res  Response as an associative array or WP_Error.
+	 * @param string         $type The type of translations being requested.
+	 * @param object         $args Translation API arguments.
 	 */
 	return apply_filters( 'translations_api_result', $res, $type, $args );
 }
@@ -127,10 +125,7 @@ function wp_get_available_translations() {
 		}
 	}
 
-	// Include an unmodified $wp_version.
-	require ABSPATH . WPINC . '/version.php';
-
-	$api = translations_api( 'core', array( 'version' => $wp_version ) );
+	$api = translations_api( 'core', array( 'version' => wp_get_wp_version() ) );
 
 	if ( is_wp_error( $api ) || empty( $api['translations'] ) ) {
 		return array();
@@ -237,7 +232,7 @@ function wp_download_language_pack( $download ) {
 	$translation = (object) $translation;
 
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-	$skin              = new Automatic_Upgrader_Skin;
+	$skin              = new Automatic_Upgrader_Skin();
 	$upgrader          = new Language_Pack_Upgrader( $skin );
 	$translation->type = 'core';
 	$result            = $upgrader->upgrade( $translation, array( 'clear_update_cache' => false ) );
@@ -263,7 +258,7 @@ function wp_can_install_language_pack() {
 	}
 
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-	$skin     = new Automatic_Upgrader_Skin;
+	$skin     = new Automatic_Upgrader_Skin();
 	$upgrader = new Language_Pack_Upgrader( $skin );
 	$upgrader->init();
 

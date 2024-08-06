@@ -5,15 +5,9 @@
  * @package WordPress
  * @subpackage UnitTests
  * @since 5.1.0
- */
-
-/**
- * Tests_Privacy_wpPrivacySendErasureFulfillmentNotification class.
  *
  * @group privacy
  * @covers ::_wp_privacy_send_erasure_fulfillment_notification
- *
- * @since 5.1.0
  */
 class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitTestCase {
 	/**
@@ -131,7 +125,7 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @ticket 44234
 	 */
 	public function test_should_send_email_with_privacy_policy() {
-		$privacy_policy = $this->factory->post->create(
+		$privacy_policy = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'title'       => 'Site Privacy Policy',
@@ -307,7 +301,7 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @ticket 44234
 	 */
 	public function test_should_not_send_email_when_not_user_request() {
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_type' => 'post', // Should be 'user_request'.
 			)

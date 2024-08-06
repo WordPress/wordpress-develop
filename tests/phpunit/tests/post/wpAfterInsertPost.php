@@ -166,12 +166,12 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 *
 	 * @ticket 45114
 	 */
-	public function test_update_via_rest_contoller() {
+	public function test_update_via_rest_controller() {
 		wp_set_current_user( self::$admin_id );
 		$post_id = self::$post_id;
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params( array( 'title' => 'new title' ) );
 		rest_get_server()->dispatch( $request );
 
@@ -184,11 +184,11 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 *
 	 * @ticket 45114
 	 */
-	public function test_new_post_via_rest_contoller() {
+	public function test_new_post_via_rest_controller() {
 		wp_set_current_user( self::$admin_id );
 
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts' ) );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params(
 			array(
 				'title'  => 'new title',
@@ -206,12 +206,12 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 *
 	 * @ticket 45114
 	 */
-	public function test_update_attachment_via_rest_contoller() {
+	public function test_update_attachment_via_rest_controller() {
 		wp_set_current_user( self::$admin_id );
 		$attachment_id = self::$attachment_id;
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/media/%d', $attachment_id ) );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params( array( 'title' => 'new attachment title' ) );
 		rest_get_server()->dispatch( $request );
 
