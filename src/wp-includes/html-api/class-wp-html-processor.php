@@ -4406,8 +4406,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string One of "html", "math", or "svg".
 	 */
 	public function get_namespace(): string {
-		$adjusted_current_node = $this->get_adjusted_current_node();
+		if ( $this->current_element && ctype_upper( $this->current_element->token->node_name[0] ) ) {
+			return $this->current_element->token->namespace;
+		}
 
+		$adjusted_current_node = $this->get_adjusted_current_node();
 		if ( $adjusted_current_node ) {
 			return $adjusted_current_node->integration_node_type ?? $adjusted_current_node->namespace;
 		}
@@ -5065,11 +5068,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return WP_HTML_Token|null The adjusted current node.
 	 */
 	private function get_adjusted_current_node(): ?WP_HTML_Token {
-		if ( isset( $this->context_node ) && 1 === $this->state->stack_of_open_elements->count() ) {
+		if ( isset( $this->context_node ) && 1 === $this->state->stack_of_open_elements->count_elements() ) {
 			return $this->context_node;
 		}
 
-		return $this->state->stack_of_open_elements->current_node();
+		return $this->state->stack_of_open_elements->current_element_node();
 	}
 
 	/**
