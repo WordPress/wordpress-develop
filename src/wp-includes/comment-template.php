@@ -1852,7 +1852,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 			) . '#' . $args['respond_id'],
 			$data_attribute_string,
 			$aria_label ? ' aria-label="' . esc_attr( $aria_label ) . '"' : '',
-			esc_html( $reply_text )
+			$reply_text
 		);
 	}
 
