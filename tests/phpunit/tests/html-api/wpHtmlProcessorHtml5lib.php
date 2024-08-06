@@ -65,10 +65,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 		/*
 		 * The HTML processor does not produce html, head, body tags if the processor does not reach them.
-		 * These should all be produced when reaching the end-of-file.
-		 * For now, append the missing tags when necessary.
-		 *
-		 * @todo remove this section when when the processor handles this.
+		 * HTML tree construction will always produce these tags, the HTML API does not at this time.
 		 */
 		$auto_generated_html_head_body = "<html>\n  <head>\n  <body>\n\n";
 		$auto_generated_head_body      = "  <head>\n  <body>\n\n";
