@@ -3205,7 +3205,7 @@ class WP_HTML_Tag_Processor {
 
 			case 'math':
 			case 'svg':
-				return $this->is_closing_tag || $this->has_self_closing_flag();
+				return $this->is_closing_tag;
 		}
 	}
 
