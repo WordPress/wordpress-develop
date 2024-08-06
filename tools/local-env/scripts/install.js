@@ -8,7 +8,7 @@ const local_env_utils = require( './utils' );
 
 dotenvExpand.expand( dotenv.config() );
 
-local_env_utils.determine_compose_files();
+// Determine if a non-default database authentication plugin needs to be used.
 local_env_utils.determine_auth_option();
 
 // Create wp-config.php.
@@ -53,7 +53,9 @@ wait_on( { resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`] } )
  * @param {string} cmd The WP-CLI command to run.
  */
 function wp_cli( cmd ) {
-	execSync( `docker compose ${process.env.LOCAL_COMPOSE_FILE} run --rm cli ${cmd}`, { stdio: 'inherit' } );
+	const composeFiles = local_env_utils.get_compose_files();
+
+	execSync( `docker compose ${composeFiles} run --rm cli ${cmd}`, { stdio: 'inherit' } );
 }
 
 /**
@@ -61,7 +63,8 @@ function wp_cli( cmd ) {
  */
 function install_wp_importer() {
 	const testPluginDirectory = 'tests/phpunit/data/plugins/wordpress-importer';
+	const composeFiles = local_env_utils.get_compose_files();
 
-	execSync( `docker compose ${process.env.LOCAL_COMPOSE_FILE} exec -T php rm -rf ${testPluginDirectory}`, { stdio: 'inherit' } );
-	execSync( `docker compose ${process.env.LOCAL_COMPOSE_FILE} exec -T php git clone https://github.com/WordPress/wordpress-importer.git ${testPluginDirectory} --depth=1`, { stdio: 'inherit' } );
+	execSync( `docker compose ${composeFiles} exec -T php rm -rf ${testPluginDirectory}`, { stdio: 'inherit' } );
+	execSync( `docker compose ${composeFiles} exec -T php git clone https://github.com/WordPress/wordpress-importer.git ${testPluginDirectory} --depth=1`, { stdio: 'inherit' } );
 }
