@@ -1742,7 +1742,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
  *     @type string $reply_text        The visible text of the Reply link. Default 'Reply'.
  *     @type string $reply_to_text     The accessible name of the Reply link, using `%s` as a placeholder
  *                                     for the comment author's name. Default 'Reply to %s'.
- *     @type bool   $use_reply_to_text Whether to use reply_to_text as visible link text. Default false.
+ *     @type bool   $show_reply_to_text Whether to use reply_to_text as visible link text. Default false.
  *     @type string $login_text The text of the link to reply if logged out. Default 'Log in to Reply'.
  *     @type int    $max_depth  The max depth of the comment tree. Default 0.
  *     @type int    $depth      The depth of the new comment. Must be greater than 0 and less than the value
@@ -1767,7 +1767,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 		'depth'             => 0,
 		'before'            => '',
 		'after'             => '',
-		'use_reply_to_text' => false,
+		'show_reply_to_text' => false,
 	);
 
 	$args = wp_parse_args( $args, $defaults );
@@ -1833,11 +1833,11 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 
 		$data_attribute_string = trim( $data_attribute_string );
 
-		$reply_text = $args['use_reply_to_text']
+		$reply_text = $args['show_reply_to_text']
 			? sprintf( $args['reply_to_text'], get_comment_author( $comment ) )
 			: $args['reply_text'];
 
-		$aria_label = $args['use_reply_to_text'] ? '' : sprintf( $args['reply_to_text'], get_comment_author( $comment ) );
+		$aria_label = $args['show_reply_to_text'] ? '' : sprintf( $args['reply_to_text'], get_comment_author( $comment ) );
 
 		$link = sprintf(
 			'<a rel="nofollow" class="comment-reply-link" href="%s" %s%s>%s</a>',
