@@ -2700,7 +2700,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 *
 				 * These ought to be handled in the attribute methods.
 				 */
-				$this->insert_foreign_element( $this->state->current_token, 'math', false );
+				$this->state->current_token->namespace = 'math';
+				$this->insert_foreign_element( $this->state->current_token, false );
 				if ( $this->state->current_token->has_self_closing_flag ) {
 					$this->state->stack_of_open_elements->pop();
 				}
@@ -2718,7 +2719,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 *
 				 * These ought to be handled in the attribute methods.
 				 */
-				$this->insert_foreign_element( $this->state->current_token, 'svg', false );
+				$this->state->current_token->namespace = 'svg';
+				$this->insert_foreign_element( $this->state->current_token, false );
 				if ( $this->state->current_token->has_self_closing_flag ) {
 					$this->state->stack_of_open_elements->pop();
 				}
@@ -4110,6 +4112,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$op = '+FONT with attributes';
 		}
 
+		$adjusted_current_node = $this->get_adjusted_current_node();
 		switch ( $op ) {
 			case '#text':
 				/*
@@ -4128,7 +4131,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->state->frameset_ok = false;
 				}
 
-				$this->insert_html_element( $this->state->current_token );
+				$this->state->current_token->namespace = $adjusted_current_node->namespace;
+				$this->insert_foreign_element( $this->state->current_token, false );
 				return true;
 
 			/*
@@ -4137,7 +4141,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#cdata-section':
 			case '#comment':
 			case '#funky_comment':
-				$this->insert_html_element( $this->state->current_token );
+				$this->state->current_token->namespace = $adjusted_current_node->namespace;
+				$this->insert_foreign_element( $this->state->current_token, false );
 				return true;
 
 			/*
@@ -4406,13 +4411,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string One of "html", "math", or "svg".
 	 */
 	public function get_namespace(): string {
-		if ( $this->current_element && ctype_upper( $this->current_element->token->node_name[0] ) ) {
+		if ( $this->current_element ) {
 			return $this->current_element->token->namespace;
-		}
-
-		$adjusted_current_node = $this->get_adjusted_current_node();
-		if ( $adjusted_current_node ) {
-			return $adjusted_current_node->integration_node_type ?? $adjusted_current_node->namespace;
 		}
 
 		return 'html';
@@ -5464,10 +5464,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param bool          $only_add_to_element_stack Whether to skip the "insert an element at the adjusted
 	 *                                                 insertion location" algorithm when adding this element.
 	 */
-	private function insert_foreign_element( WP_HTML_Token $token, string $element_namespace, bool $only_add_to_element_stack ): void {
+	private function insert_foreign_element( WP_HTML_Token $token, bool $only_add_to_element_stack ): void {
 		// @todo Let the adjusted insertion location be the appropriate place for inserting a node.
-
-		$token->namespace = $element_namespace;
 
 		if ( false === $only_add_to_element_stack ) {
 			/*
