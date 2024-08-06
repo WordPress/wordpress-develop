@@ -15,19 +15,27 @@ class Tests_HtmlApi_WpHtmlProcessorFragmentParsing extends WP_UnitTestCase {
 	/**
 	 * Verifies that SCRIPT fragment parses behave as they should.
 	 *
-	 *
+	 * @dataProvider data_script_fragments
 	 *
 	 * @param string      $inner_html    HTML to parse in SCRIPT fragment.
 	 * @param string|null $expected_html Expected output of the parse, or `null` if unsupported.
 	 */
 	public function test_script_tag( string $inner_html, ?string $expected_html ) {
-		$processor = WP_HTML_Processor::create_fragment( $inner_html, '<script>' );
+		$processor = WP_HTML_Processor::create_fragment( $inner_html, '<script></script>' );
+		$normalized = static::normalize_html( $processor );
 
-		$this->assertSame(
-			$expected_html,
-			static::normalize_html( $processor ),
-			'Failed to properly parse SCRIPT fragment.'
-		);
+		if ( isset( $expected_html ) ) {
+			$this->assertSame(
+				$expected_html,
+				$normalized,
+				'Failed to properly parse SCRIPT fragment.'
+			);
+		} else {
+			$this->assertNull(
+				$normalized,
+				"Should have bailed when parsing but didn't."
+			);
+		}
 	}
 
 	/**
@@ -39,7 +47,10 @@ class Tests_HtmlApi_WpHtmlProcessorFragmentParsing extends WP_UnitTestCase {
 	 */
 	public static function data_script_fragments() {
 		return array(
-			'Basic SCRIPT' => array( 'const x = 5 < y;', '<script>const x = 5 < 5;</script>' ),
+			'Basic SCRIPT'      => array( 'const x = 5 < y;', 'const x = 5 < y;' ),
+			'Text after SCRIPT' => array( 'const x = 5 < y;</script>test', null ),
+			'Tag after SCRIPT'  => array( 'end</script><img>', null ),
+			'Double escape'     => array( "<!--<script>\nconsole.log('</script>');\n-->\nconsole.log('<img>');", "<!--<script>\nconsole.log('\</script>');\n-->\nconsole.log('<img'>);" ),
 		);
 	}
 
