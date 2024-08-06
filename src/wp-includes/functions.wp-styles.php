@@ -79,6 +79,7 @@ function wp_print_styles( $handles = false ) {
  * @see WP_Styles::add_inline_style()
  *
  * @since 3.3.0
+ * @since 6.7.0 Refactor to use HTML API.
  *
  * @param string $handle Name of the stylesheet to add the extra styles to.
  * @param string $data   String containing the CSS styles to be added.
