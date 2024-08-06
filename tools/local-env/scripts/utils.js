@@ -17,7 +17,7 @@ const local_env_utils = {
 
 		// PHP 7.2/7.3 in combination with MySQL 8.4 requires additional configuration to function properly.
 		if ( process.env.LOCAL_DB_VERSION === '8.4' ) {
-			process.env.LOCAL_COMPOSE_FILE = process.env.LOCAL_COMPOSE_FILE + ' -f docker-compose.old-php-mysql-84.override.yml';
+			process.env.LOCAL_COMPOSE_FILE = process.env.LOCAL_COMPOSE_FILE + ' -f tools/local-env/old-php-mysql-84.override.yml';
 		}
 	},
 
