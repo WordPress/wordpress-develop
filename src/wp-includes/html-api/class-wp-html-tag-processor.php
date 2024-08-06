@@ -2779,16 +2779,16 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		if ( 'html' === $this->parsing_namespace ) {
+		if ( 'html' === $this->get_namespace() ) {
 			return $tag_name;
 		}
 
 		$lower_tag_name = strtolower( $tag_name );
-		if ( 'math' === $this->parsing_namespace ) {
+		if ( 'math' === $this->get_namespace() ) {
 			return $lower_tag_name;
 		}
 
-		if ( 'svg' === $this->parsing_namespace ) {
+		if ( 'svg' === $this->get_namespace() ) {
 			switch ( $lower_tag_name ) {
 				case 'altglyph':
 					return 'altGlyph';
@@ -3204,7 +3204,7 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		switch ( $this->parsing_namespace ) {
+		switch ( $this->get_namespace() ) {
 			case 'html':
 				/*
 				 * The BR tag can only exist as an opening tag. If something like `</br>`
