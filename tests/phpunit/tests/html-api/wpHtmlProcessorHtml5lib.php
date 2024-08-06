@@ -22,38 +22,25 @@
  */
 class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	/**
-	 * The HTML Processor only accepts HTML in document <body>.
-	 * Do not run tests that look for anything in document <head>.
-	 */
-	const SKIP_HEAD_TESTS = true;
-
-	/**
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
-		'adoption01/line0046' => 'Unimplemented: Reconstruction of active formatting elements.',
-		'adoption01/line0159' => 'Unimplemented: Reconstruction of active formatting elements.',
-		'adoption01/line0318' => 'Unimplemented: Reconstruction of active formatting elements.',
-		'template/line0885'   => 'Unimplemented: no parsing of attributes on context node.',
-		'tests1/line0720'     => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests15/line0001'    => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests15/line0022'    => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests15/line0068'    => 'Unimplemented: no support outside of IN BODY yet.',
-		'tests2/line0650'     => 'Whitespace only test never enters "in body" parsing mode.',
-		'tests19/line0965'    => 'Unimplemented: no support outside of IN BODY yet.',
-		'tests23/line0001'    => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests23/line0041'    => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests23/line0069'    => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests23/line0101'    => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests26/line0263'    => 'Bug: An active formatting element should be created for a trailing text node.',
-		'webkit01/line0231'   => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'webkit02/line0013'   => "Asserting behavior with scripting flag enabled, which this parser doesn't support.",
-		'webkit01/line0300'   => 'Unimplemented: no support outside of IN BODY yet.',
-		'webkit01/line0310'   => 'Unimplemented: no support outside of IN BODY yet.',
-		'webkit01/line0336'   => 'Unimplemented: no support outside of IN BODY yet.',
-		'webkit01/line0349'   => 'Unimplemented: no support outside of IN BODY yet.',
-		'webkit01/line0362'   => 'Unimplemented: no support outside of IN BODY yet.',
-		'webkit01/line0375'   => 'Unimplemented: no support outside of IN BODY yet.',
+		'comments01/line0155'    => 'Unimplemented: Need to access raw comment text on non-normative comments.',
+		'comments01/line0169'    => 'Unimplemented: Need to access raw comment text on non-normative comments.',
+		'html5test-com/line0129' => 'Unimplemented: Need to access raw comment text on non-normative comments.',
+		'noscript01/line0014'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests1/line0692'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly',
+		'tests14/line0022'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0055'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0965'       => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
+		'tests19/line1079'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0207'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0686'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0709'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests5/line0013'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
+		'tests5/line0077'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
+		'tests5/line0091'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly',
+		'webkit01/line0231'      => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 	);
 
 	/**
@@ -68,14 +55,40 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * @param string $html             Given test HTML.
 	 * @param string $expected_tree    Tree structure of parsed HTML.
 	 */
-	public function test_parse( $fragment_context, $html, $expected_tree ) {
+	public function test_parse( ?string $fragment_context, string $html, string $expected_tree ) {
 		$processed_tree = self::build_tree_representation( $fragment_context, $html );
 
 		if ( null === $processed_tree ) {
 			$this->markTestSkipped( 'Test includes unsupported markup.' );
 		}
+		$fragment_detail = $fragment_context ? " in context <{$fragment_context}>" : '';
 
-		$this->assertSame( $expected_tree, $processed_tree, "HTML was not processed correctly:\n{$html}" );
+		/*
+		 * The HTML processor does not produce html, head, body tags if the processor does not reach them.
+		 * HTML tree construction will always produce these tags, the HTML API does not at this time.
+		 */
+		$auto_generated_html_head_body = "<html>\n  <head>\n  <body>\n\n";
+		$auto_generated_head_body      = "  <head>\n  <body>\n\n";
+		$auto_generated_body           = "  <body>\n\n";
+		if ( str_ends_with( $expected_tree, $auto_generated_html_head_body ) && ! str_ends_with( $processed_tree, $auto_generated_html_head_body ) ) {
+			if ( str_ends_with( $processed_tree, "<html>\n  <head>\n\n" ) ) {
+				$processed_tree = substr_replace( $processed_tree, "  <body>\n\n", -1 );
+			} elseif ( str_ends_with( $processed_tree, "<html>\n\n" ) ) {
+				$processed_tree = substr_replace( $processed_tree, "  <head>\n  <body>\n\n", -1 );
+			} else {
+				$processed_tree = substr_replace( $processed_tree, $auto_generated_html_head_body, -1 );
+			}
+		} elseif ( str_ends_with( $expected_tree, $auto_generated_head_body ) && ! str_ends_with( $processed_tree, $auto_generated_head_body ) ) {
+			if ( str_ends_with( $processed_tree, "<head>\n\n" ) ) {
+				$processed_tree = substr_replace( $processed_tree, "  <body>\n\n", -1 );
+			} else {
+				$processed_tree = substr_replace( $processed_tree, $auto_generated_head_body, -1 );
+			}
+		} elseif ( str_ends_with( $expected_tree, $auto_generated_body ) && ! str_ends_with( $processed_tree, $auto_generated_body ) ) {
+			$processed_tree = substr_replace( $processed_tree, $auto_generated_body, -1 );
+		}
+
+		$this->assertSame( $expected_tree, $processed_tree, "HTML was not processed correctly{$fragment_detail}:\n{$html}" );
 	}
 
 	/**
@@ -100,7 +113,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				$line       = str_pad( strval( $test[0] ), 4, '0', STR_PAD_LEFT );
 				$test_name  = "{$test_suite}/line{$line}";
 
-				if ( self::should_skip_test( $test_name, $test[3] ) ) {
+				$test_context_element = $test[1];
+
+				if ( self::should_skip_test( $test_context_element, $test_name, $test[3] ) ) {
 					continue;
 				}
 
@@ -118,15 +133,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *
 	 * @return bool True if the test case should be skipped. False otherwise.
 	 */
-	private static function should_skip_test( $test_name, $expected_tree ): bool {
-		if ( self::SKIP_HEAD_TESTS ) {
-			$html_start = "<html>\n  <head>\n  <body>\n";
-			if (
-				strlen( $expected_tree ) < strlen( $html_start ) ||
-				substr( $expected_tree, 0, strlen( $html_start ) ) !== $html_start
-			) {
-				return true;
-			}
+	private static function should_skip_test( ?string $test_context_element, string $test_name, string $expected_tree ): bool {
+		if ( null !== $test_context_element && 'body' !== $test_context_element ) {
+			return true;
 		}
 
 		if ( array_key_exists( $test_name, self::SKIP_TESTS ) ) {
@@ -146,15 +155,18 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	private static function build_tree_representation( ?string $fragment_context, string $html ) {
 		$processor = $fragment_context
 			? WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" )
-			: WP_HTML_Processor::create_fragment( $html );
+			: WP_HTML_Processor::create_full_parser( $html );
 		if ( null === $processor ) {
 			return null;
 		}
 
-		$output = "<html>\n  <head>\n  <body>\n";
-
-		// Initially, assume we're 2 levels deep at: html > body > [position]
-		$indent_level = 2;
+		/*
+		 * The fragment parser will start in 2 levels deep at: html > body > [position]
+		 * and requires adjustment to initial parameters.
+		 * The full parser will not.
+		 */
+		$output       = $fragment_context ? "<html>\n  <head>\n  <body>\n" : '';
+		$indent_level = $fragment_context ? 2 : 0;
 		$indent       = '  ';
 		$was_text     = null;
 		$text_node    = '';
@@ -238,6 +250,11 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					$text_node .= $processor->get_modifiable_text();
 					break;
 
+				case '#funky-comment':
+					// Comments must be "<" then "!-- " then the data then " -->".
+					$output .= str_repeat( $indent, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";
+					break;
+
 				case '#comment':
 					switch ( $processor->get_comment_type() ) {
 						case WP_HTML_Processor::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT:
@@ -248,6 +265,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 						case WP_HTML_Processor::COMMENT_AS_CDATA_LOOKALIKE:
 							$comment_text_content = "[CDATA[{$processor->get_modifiable_text()}]]";
+							break;
+
+						case WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE:
+							$comment_text_content = "?{$processor->get_tag()}{$processor->get_modifiable_text()}?";
 							break;
 
 						default:
@@ -301,6 +322,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$test_html            = '';
 		$test_dom             = '';
 		$test_context_element = null;
+		$test_script_flag     = false;
 		$test_line_number     = 0;
 
 		while ( false !== ( $line = fgets( $handle ) ) ) {
@@ -309,8 +331,12 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			if ( '#' === $line[0] ) {
 				// Finish section.
 				if ( "#data\n" === $line ) {
-					// Yield when switching from a previous state.
-					if ( $state ) {
+					/*
+					 * Yield when switching from a previous state.
+					 * Do not yield tests with the scripting flag enabled. The scripting flag
+					 * is always disabled in the HTML API.
+					 */
+					if ( $state && ! $test_script_flag ) {
 						yield array(
 							$test_line_number,
 							$test_context_element,
@@ -325,6 +351,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					$test_html            = '';
 					$test_dom             = '';
 					$test_context_element = null;
+					$test_script_flag     = false;
+				}
+				if ( "#script-on\n" === $line ) {
+					$test_script_flag = true;
 				}
 
 				$state = trim( substr( $line, 1 ) );
@@ -376,7 +406,15 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				 */
 				case 'document':
 					if ( '|' === $line[0] ) {
-						$test_dom .= substr( $line, 2 );
+						/*
+						 * The next_token() method these tests rely on do not stop
+						 * at doctype nodes. Strip doctypes from output.
+						 * @todo Restore this line if and when the processor
+						 * exposes doctypes.
+						 */
+						if ( '| <!DOCTYPE ' !== substr( $line, 0, 12 ) ) {
+							$test_dom .= substr( $line, 2 );
+						}
 					} else {
 						// This is a text node that includes unescaped newlines.
 						// Everything else should be singles lines starting with "| ".
