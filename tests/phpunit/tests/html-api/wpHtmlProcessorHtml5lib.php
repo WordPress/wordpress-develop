@@ -22,12 +22,6 @@
  */
 class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	/**
-	 * The HTML Processor only accepts HTML in document <body>.
-	 * Do not run tests that look for anything in document <head>.
-	 */
-	const SKIP_HEAD_TESTS = false;
-
-	/**
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
@@ -158,16 +152,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	private static function should_skip_test( ?string $test_context_element, string $test_name, string $expected_tree ): bool {
 		if ( null !== $test_context_element && 'body' !== $test_context_element ) {
 			return true;
-		}
-
-		if ( self::SKIP_HEAD_TESTS ) {
-			$html_start = "<html>\n  <head>\n  <body>\n";
-			if (
-				strlen( $expected_tree ) < strlen( $html_start ) ||
-				substr( $expected_tree, 0, strlen( $html_start ) ) !== $html_start
-			) {
-				return true;
-			}
 		}
 
 		if ( array_key_exists( $test_name, self::SKIP_TESTS ) ) {
