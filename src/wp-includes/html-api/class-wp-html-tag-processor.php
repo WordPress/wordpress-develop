@@ -2856,7 +2856,7 @@ class WP_HTML_Tag_Processor {
 				case 'femergenode':
 					return 'feMergeNode';
 
-				case 'femorpohlogy':
+				case 'femorphology':
 					return 'feMorphology';
 
 				case 'feoffset':
