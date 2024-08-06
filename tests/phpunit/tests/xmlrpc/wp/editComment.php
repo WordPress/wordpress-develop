@@ -5,7 +5,7 @@
  */
 class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 
-	function test_author_can_edit_own_comment() {
+	public function test_author_can_edit_own_comment() {
 		$author_id = $this->make_user_by_role( 'author' );
 		$post_id   = self::factory()->post->create(
 			array(
@@ -38,7 +38,7 @@ class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 		$this->assertTrue( $result );
 	}
 
-	function test_author_cannot_edit_others_comment() {
+	public function test_author_cannot_edit_others_comment() {
 		$this->make_user_by_role( 'author' );
 		$editor_id = $this->make_user_by_role( 'editor' );
 		$post_id   = self::factory()->post->create(
@@ -59,11 +59,11 @@ class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_editComment( array( 1, 'author', 'author', $comment_id, array( 'status' => 'hold' ) ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
-		$this->assertEquals( __( 'Sorry, you are not allowed to moderate or edit this comment.' ), $result->message );
+		$this->assertSame( 403, $result->code );
+		$this->assertSame( __( 'Sorry, you are not allowed to moderate or edit this comment.' ), $result->message );
 	}
 
-	function test_trash_comment() {
+	public function test_trash_comment() {
 		$this->make_user_by_role( 'administrator' );
 		$post_id = self::factory()->post->create();
 
@@ -77,7 +77,7 @@ class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 		);
 		$comment_id   = wp_insert_comment( $comment_data );
 
-		$this->assertEquals( '1', get_comment( $comment_id )->comment_approved );
+		$this->assertSame( '1', get_comment( $comment_id )->comment_approved );
 
 		$this->myxmlrpcserver->wp_editComment(
 			array(
@@ -91,6 +91,6 @@ class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 'trash', get_comment( $comment_id )->comment_approved );
+		$this->assertSame( 'trash', get_comment( $comment_id )->comment_approved );
 	}
 }

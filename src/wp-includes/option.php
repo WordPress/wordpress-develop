@@ -9,15 +9,58 @@
 /**
  * Retrieves an option value based on an option name.
  *
- * If the option does not exist or does not have a value, then the return value
- * will be false. This is useful to check whether you need to install an option
- * and is commonly used during installation of plugin options and to test
- * whether upgrading is required.
+ * If the option does not exist, and a default value is not provided,
+ * boolean false is returned. This could be used to check whether you need
+ * to initialize an option during installation of a plugin, however that
+ * can be done better by using add_option() which will not overwrite
+ * existing options.
  *
- * If the option was serialized then it will be unserialized when it is returned.
+ * Not initializing an option and using boolean `false` as a return value
+ * is a bad practice as it triggers an additional database query.
  *
- * Any scalar values will be returned as strings. You may coerce the return type of
- * a given option by registering an {@see 'option_$option'} filter callback.
+ * The type of the returned value can be different from the type that was passed
+ * when saving or updating the option. If the option value was serialized,
+ * then it will be unserialized when it is returned. In this case the type will
+ * be the same. For example, storing a non-scalar value like an array will
+ * return the same array.
+ *
+ * In most cases non-string scalar and null values will be converted and returned
+ * as string equivalents.
+ *
+ * Exceptions:
+ * 1. When the option has not been saved in the database, the `$default` value
+ *    is returned if provided. If not, boolean `false` is returned.
+ * 2. When one of the Options API filters is used: {@see 'pre_option_{$option}'},
+ *    {@see 'default_option_{$option}'}, or {@see 'option_{$option}'}, the returned
+ *    value may not match the expected type.
+ * 3. When the option has just been saved in the database, and get_option()
+ *    is used right after, non-string scalar and null values are not converted to
+ *    string equivalents and the original type is returned.
+ *
+ * Examples:
+ *
+ * When adding options like this: `add_option( 'my_option_name', 'value' );`
+ * and then retrieving them with `get_option( 'my_option_name' );`, the returned
+ * values will be:
+ *
+ * `false` returns `string(0) ""`
+ * `true`  returns `string(1) "1"`
+ * `0`     returns `string(1) "0"`
+ * `1`     returns `string(1) "1"`
+ * `'0'`   returns `string(1) "0"`
+ * `'1'`   returns `string(1) "1"`
+ * `null`  returns `string(0) ""`
+ *
+ * When adding options with non-scalar values like
+ * `add_option( 'my_array', array( false, 'str', null ) );`, the returned value
+ * will be identical to the original as it is serialized before saving
+ * it in the database:
+ *
+ *    array(3) {
+ *        [0] => bool(false)
+ *        [1] => string(3) "str"
+ *        [2] => NULL
+ *    }
  *
  * @since 1.5.0
  *
@@ -25,14 +68,44 @@
  *
  * @param string $option  Name of the option to retrieve. Expected to not be SQL-escaped.
  * @param mixed  $default Optional. Default value to return if the option does not exist.
- * @return mixed Value set for the option.
+ * @return mixed Value of the option. A value of any type may be returned, including
+ *               scalar (string, boolean, float, integer), null, array, object.
+ *               Scalar and null values will be returned as strings as long as they originate
+ *               from a database stored option value. If there is no option in the database,
+ *               boolean `false` is returned.
  */
 function get_option( $option, $default = false ) {
 	global $wpdb;
 
-	$option = trim( $option );
+	if ( is_scalar( $option ) ) {
+		$option = trim( $option );
+	}
+
 	if ( empty( $option ) ) {
 		return false;
+	}
+
+	/*
+	 * Until a proper _deprecated_option() function can be introduced,
+	 * redirect requests to deprecated keys to the new, correct ones.
+	 */
+	$deprecated_keys = array(
+		'blacklist_keys'    => 'disallowed_keys',
+		'comment_whitelist' => 'comment_previously_approved',
+	);
+
+	if ( ! wp_installing() && isset( $deprecated_keys[ $option ] ) ) {
+		_deprecated_argument(
+			__FUNCTION__,
+			'5.5.0',
+			sprintf(
+				/* translators: 1: Deprecated option key, 2: New option key. */
+				__( 'The "%1$s" option key has been renamed to "%2$s".' ),
+				$option,
+				$deprecated_keys[ $option ]
+			)
+		);
+		return get_option( $deprecated_keys[ $option ], $default );
 	}
 
 	/**
@@ -308,9 +381,35 @@ function wp_load_core_site_options( $network_id = null ) {
 function update_option( $option, $value, $autoload = null ) {
 	global $wpdb;
 
-	$option = trim( $option );
+	if ( is_scalar( $option ) ) {
+		$option = trim( $option );
+	}
+
 	if ( empty( $option ) ) {
 		return false;
+	}
+
+	/*
+	 * Until a proper _deprecated_option() function can be introduced,
+	 * redirect requests to deprecated keys to the new, correct ones.
+	 */
+	$deprecated_keys = array(
+		'blacklist_keys'    => 'disallowed_keys',
+		'comment_whitelist' => 'comment_previously_approved',
+	);
+
+	if ( ! wp_installing() && isset( $deprecated_keys[ $option ] ) ) {
+		_deprecated_argument(
+			__FUNCTION__,
+			'5.5.0',
+			sprintf(
+				/* translators: 1: Deprecated option key, 2: New option key. */
+				__( 'The "%1$s" option key has been renamed to "%2$s".' ),
+				$option,
+				$deprecated_keys[ $option ]
+			)
+		);
+		return update_option( $deprecated_keys[ $option ], $value, $autoload );
 	}
 
 	wp_protect_special_option( $option );
@@ -457,12 +556,12 @@ function update_option( $option, $value, $autoload = null ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string         $option      Name of the option to add. Expected to not be SQL-escaped.
- * @param mixed          $value       Optional. Option value. Must be serializable if non-scalar.
- *                                    Expected to not be SQL-escaped.
- * @param string         $deprecated  Optional. Description. Not used anymore.
- * @param string|bool    $autoload    Optional. Whether to load the option when WordPress starts up.
- *                                    Default is enabled. Accepts 'no' to disable for legacy reasons.
+ * @param string      $option     Name of the option to add. Expected to not be SQL-escaped.
+ * @param mixed       $value      Optional. Option value. Must be serializable if non-scalar.
+ *                                Expected to not be SQL-escaped.
+ * @param string      $deprecated Optional. Description. Not used anymore.
+ * @param string|bool $autoload   Optional. Whether to load the option when WordPress starts up.
+ *                                Default is enabled. Accepts 'no' to disable for legacy reasons.
  * @return bool True if the option was added, false otherwise.
  */
 function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' ) {
@@ -472,9 +571,35 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 		_deprecated_argument( __FUNCTION__, '2.3.0' );
 	}
 
-	$option = trim( $option );
+	if ( is_scalar( $option ) ) {
+		$option = trim( $option );
+	}
+
 	if ( empty( $option ) ) {
 		return false;
+	}
+
+	/*
+	 * Until a proper _deprecated_option() function can be introduced,
+	 * redirect requests to deprecated keys to the new, correct ones.
+	 */
+	$deprecated_keys = array(
+		'blacklist_keys'    => 'disallowed_keys',
+		'comment_whitelist' => 'comment_previously_approved',
+	);
+
+	if ( ! wp_installing() && isset( $deprecated_keys[ $option ] ) ) {
+		_deprecated_argument(
+			__FUNCTION__,
+			'5.5.0',
+			sprintf(
+				/* translators: 1: Deprecated option key, 2: New option key. */
+				__( 'The "%1$s" option key has been renamed to "%2$s".' ),
+				$option,
+				$deprecated_keys[ $option ]
+			)
+		);
+		return add_option( $deprecated_keys[ $option ], $value, $deprecated, $autoload );
 	}
 
 	wp_protect_special_option( $option );
@@ -571,7 +696,10 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 function delete_option( $option ) {
 	global $wpdb;
 
-	$option = trim( $option );
+	if ( is_scalar( $option ) ) {
+		$option = trim( $option );
+	}
+
 	if ( empty( $option ) ) {
 		return false;
 	}
@@ -988,8 +1116,8 @@ function wp_user_settings() {
  *
  * @since 2.7.0
  *
- * @param string $name    The name of the setting.
- * @param string $default Optional default value to return when $name is not set.
+ * @param string       $name    The name of the setting.
+ * @param string|false $default Optional. Default value to return when $name is not set. Default false.
  * @return mixed The last saved user setting or the default value/false if it doesn't exist.
  */
 function get_user_setting( $name, $default = false ) {
@@ -1234,9 +1362,9 @@ function update_site_option( $option, $value ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int      $network_id ID of the network. Can be null to default to the current network ID.
- * @param string   $option     Name of the option to retrieve. Expected to not be SQL-escaped.
- * @param mixed    $default    Optional. Value to return if the option doesn't exist. Default false.
+ * @param int    $network_id ID of the network. Can be null to default to the current network ID.
+ * @param string $option     Name of the option to retrieve. Expected to not be SQL-escaped.
+ * @param mixed  $default    Optional. Value to return if the option doesn't exist. Default false.
  * @return mixed Value set for the option.
  */
 function get_network_option( $network_id, $option, $default = false ) {
@@ -1586,9 +1714,9 @@ function delete_network_option( $network_id, $option ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int      $network_id ID of the network. Can be null to default to the current network ID.
- * @param string   $option     Name of the option. Expected to not be SQL-escaped.
- * @param mixed    $value      Option value. Expected to not be SQL-escaped.
+ * @param int    $network_id ID of the network. Can be null to default to the current network ID.
+ * @param string $option     Name of the option. Expected to not be SQL-escaped.
+ * @param mixed  $value      Option value. Expected to not be SQL-escaped.
  * @return bool True if the value was updated, false otherwise.
  */
 function update_network_option( $network_id, $option, $value ) {
@@ -2122,6 +2250,8 @@ function register_initial_settings() {
  * Registers a setting and its data.
  *
  * @since 2.7.0
+ * @since 3.0.0 The `misc` option group was deprecated.
+ * @since 3.5.0 The `privacy` option group was deprecated.
  * @since 4.7.0 `$args` can be passed to set flags on the setting, similar to `register_meta()`.
  * @since 5.5.0 `$new_whitelist_options` was renamed to `$new_allowed_options`.
  *              Please consider writing more inclusive code.
@@ -2131,7 +2261,7 @@ function register_initial_settings() {
  *
  * @param string $option_group A settings group name. Should correspond to an allowed option key name.
  *                             Default allowed option key names include 'general', 'discussion', 'media',
- *                             'reading', 'writing', 'misc', 'options', and 'privacy'.
+ *                             'reading', 'writing', and 'options'.
  * @param string $option_name The name of an option to sanitize and save.
  * @param array  $args {
  *     Data used to describe the setting when registered.
@@ -2255,7 +2385,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
  *
  * @param string   $option_group The settings group name used during registration.
  * @param string   $option_name  The name of the option to unregister.
- * @param callable $deprecated   Deprecated.
+ * @param callable $deprecated   Optional. Deprecated.
  */
 function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 	global $new_allowed_options, $wp_registered_settings;
@@ -2364,9 +2494,9 @@ function get_registered_settings() {
  *
  * @since 4.7.0
  *
- * @param mixed $default Existing default value to return.
- * @param string $option Option name.
- * @param bool $passed_default Was `get_option()` passed a default value?
+ * @param mixed  $default        Existing default value to return.
+ * @param string $option         Option name.
+ * @param bool   $passed_default Was `get_option()` passed a default value?
  * @return mixed Filtered default value.
  */
 function filter_default_option( $default, $option, $passed_default ) {

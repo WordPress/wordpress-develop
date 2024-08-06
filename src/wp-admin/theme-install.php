@@ -21,6 +21,7 @@ if ( is_multisite() && ! is_network_admin() ) {
 	exit;
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Add Themes' );
 $parent_file = 'themes.php';
 
@@ -84,8 +85,16 @@ if ( $tab ) {
 	 * Fires before each of the tabs are rendered on the Install Themes page.
 	 *
 	 * The dynamic portion of the hook name, `$tab`, refers to the current
-	 * theme installation tab. Possible values are 'dashboard', 'search', 'upload',
-	 * 'featured', 'new', or 'updated'.
+	 * theme installation tab.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `install_themes_pre_dashboard`
+	 *  - `install_themes_pre_featured`
+	 *  - `install_themes_pre_new`
+	 *  - `install_themes_pre_search`
+	 *  - `install_themes_pre_updated`
+	 *  - `install_themes_pre_upload`
 	 *
 	 * @since 2.8.0
 	 */
@@ -99,7 +108,7 @@ $help_overview =
 		__( 'https://wordpress.org/themes/' )
 	) . '</p>' .
 	'<p>' . __( 'You can Search for themes by keyword, author, or tag, or can get more specific and search by criteria listed in the feature filter.' ) . ' <span id="live-search-desc">' . __( 'The search results will be updated as you type.' ) . '</span></p>' .
-	'<p>' . __( 'Alternately, you can browse the themes that are Featured, Popular, or Latest. When you find a theme you like, you can preview it or install it.' ) . '</p>' .
+	'<p>' . __( 'Alternately, you can browse the themes that are Popular or Latest. When you find a theme you like, you can preview it or install it.' ) . '</p>' .
 	'<p>' . sprintf(
 		/* translators: %s: /wp-content/themes */
 		__( 'You can Upload a theme manually if you have already downloaded its ZIP archive onto your computer (make sure it is from a trusted and original source). You can also do it the old-fashioned way and copy a downloaded theme&#8217;s folder via FTP into your %s directory.' ),
@@ -173,7 +182,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<ul class="filter-links">
-			<li><a href="#" data-sort="featured"><?php _ex( 'Featured', 'themes' ); ?></a></li>
 			<li><a href="#" data-sort="popular"><?php _ex( 'Popular', 'themes' ); ?></a></li>
 			<li><a href="#" data-sort="new"><?php _ex( 'Latest', 'themes' ); ?></a></li>
 			<li><a href="#" data-sort="favorites"><?php _ex( 'Favorites', 'themes' ); ?></a></li>
@@ -213,15 +221,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		// and to ensure tags are translated.
 		$feature_list = get_theme_feature_list( false );
 
-		foreach ( $feature_list as $feature_name => $features ) {
+		foreach ( $feature_list as $feature_group => $features ) {
 			echo '<fieldset class="filter-group">';
-			$feature_name = esc_html( $feature_name );
-			echo '<legend>' . $feature_name . '</legend>';
+			echo '<legend>' . esc_html( $feature_group ) . '</legend>';
 			echo '<div class="filter-group-feature">';
 			foreach ( $features as $feature => $feature_name ) {
 				$feature = esc_attr( $feature );
 				echo '<input type="checkbox" id="filter-id-' . $feature . '" value="' . $feature . '" /> ';
-				echo '<label for="filter-id-' . $feature . '">' . $feature_name . '</label>';
+				echo '<label for="filter-id-' . $feature . '">' . esc_html( $feature_name ) . '</label>';
 			}
 			echo '</div>';
 			echo '</fieldset>';
@@ -251,8 +258,16 @@ if ( $tab ) {
 	 * Fires at the top of each of the tabs on the Install Themes page.
 	 *
 	 * The dynamic portion of the hook name, `$tab`, refers to the current
-	 * theme installation tab. Possible values are 'dashboard', 'search', 'upload',
-	 * 'featured', 'new', or 'updated'.
+	 * theme installation tab.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `install_themes_dashboard`
+	 *  - `install_themes_featured`
+	 *  - `install_themes_new`
+	 *  - `install_themes_search`
+	 *  - `install_themes_updated`
+	 *  - `install_themes_upload`
 	 *
 	 * @since 2.8.0
 	 *
@@ -271,6 +286,66 @@ if ( $tab ) {
 	<# } else { #>
 		<div class="theme-screenshot blank"></div>
 	<# } #>
+
+	<# if ( data.installed ) { #>
+		<div class="notice notice-success notice-alt"><p><?php _ex( 'Installed', 'theme' ); ?></p></div>
+	<# } #>
+
+	<# if ( ! data.compatible_wp || ! data.compatible_php ) { #>
+		<div class="notice notice-error notice-alt"><p>
+			<# if ( ! data.compatible_wp && ! data.compatible_php ) { #>
+				<?php
+				_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+				if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+					printf(
+						/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+						' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+						self_admin_url( 'update-core.php' ),
+						esc_url( wp_get_update_php_url() )
+					);
+					wp_update_php_annotation( '</p><p><em>', '</em>' );
+				} elseif ( current_user_can( 'update_core' ) ) {
+					printf(
+						/* translators: %s: URL to WordPress Updates screen. */
+						' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+						self_admin_url( 'update-core.php' )
+					);
+				} elseif ( current_user_can( 'update_php' ) ) {
+					printf(
+						/* translators: %s: URL to Update PHP page. */
+						' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+						esc_url( wp_get_update_php_url() )
+					);
+					wp_update_php_annotation( '</p><p><em>', '</em>' );
+				}
+				?>
+			<# } else if ( ! data.compatible_wp ) { #>
+				<?php
+				_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+				if ( current_user_can( 'update_core' ) ) {
+					printf(
+						/* translators: %s: URL to WordPress Updates screen. */
+						' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+						self_admin_url( 'update-core.php' )
+					);
+				}
+				?>
+			<# } else if ( ! data.compatible_php ) { #>
+				<?php
+				_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+				if ( current_user_can( 'update_php' ) ) {
+					printf(
+						/* translators: %s: URL to Update PHP page. */
+						' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+						esc_url( wp_get_update_php_url() )
+					);
+					wp_update_php_annotation( '</p><p><em>', '</em>' );
+				}
+				?>
+			<# } #>
+		</p></div>
+	<# } #>
+
 	<span class="more-details"><?php _ex( 'Details &amp; Preview', 'theme' ); ?></span>
 	<div class="theme-author">
 		<?php
@@ -323,14 +398,14 @@ if ( $tab ) {
 				<# if ( data.compatible_wp && data.compatible_php ) { #>
 					<?php
 					/* translators: %s: Theme name. */
-					$aria_label = sprintf( __( 'Install %s' ), '{{ data.name }}' );
+					$aria_label = sprintf( _x( 'Install %s', 'theme' ), '{{ data.name }}' );
 					?>
 					<a class="button button-primary theme-install" data-name="{{ data.name }}" data-slug="{{ data.id }}" href="{{ data.install_url }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Install' ); ?></a>
 					<button class="button preview install-theme-preview"><?php _e( 'Preview' ); ?></button>
 				<# } else { #>
 					<?php
 					/* translators: %s: Theme name. */
-					$aria_label = sprintf( __( 'Cannot Install %s' ), '{{ data.name }}' );
+					$aria_label = sprintf( _x( 'Cannot Install %s', 'theme' ), '{{ data.name }}' );
 					?>
 					<a class="button button-primary disabled" data-name="{{ data.name }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Install', 'theme' ); ?></a>
 					<button class="button disabled"><?php _e( 'Preview' ); ?></button>
@@ -338,10 +413,6 @@ if ( $tab ) {
 			<# } #>
 		</div>
 	</div>
-
-	<# if ( data.installed ) { #>
-		<div class="notice notice-success notice-alt"><p><?php _ex( 'Installed', 'theme' ); ?></p></div>
-	<# } #>
 </script>
 
 <script id="tmpl-theme-preview" type="text/template">
@@ -398,12 +469,69 @@ if ( $tab ) {
 						<# } else { #>
 							<span class="no-rating"><?php _e( 'This theme has not been rated yet.' ); ?></span>
 						<# } #>
+
 						<div class="theme-version">
 							<?php
 							/* translators: %s: Theme version. */
 							printf( __( 'Version: %s' ), '{{ data.version }}' );
 							?>
 						</div>
+
+						<# if ( ! data.compatible_wp || ! data.compatible_php ) { #>
+							<div class="notice notice-error notice-alt notice-large"><p>
+								<# if ( ! data.compatible_wp && ! data.compatible_php ) { #>
+									<?php
+									_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+									if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+										printf(
+											/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+											' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+											self_admin_url( 'update-core.php' ),
+											esc_url( wp_get_update_php_url() )
+										);
+										wp_update_php_annotation( '</p><p><em>', '</em>' );
+									} elseif ( current_user_can( 'update_core' ) ) {
+										printf(
+											/* translators: %s: URL to WordPress Updates screen. */
+											' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+											self_admin_url( 'update-core.php' )
+										);
+									} elseif ( current_user_can( 'update_php' ) ) {
+										printf(
+											/* translators: %s: URL to Update PHP page. */
+											' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+											esc_url( wp_get_update_php_url() )
+										);
+										wp_update_php_annotation( '</p><p><em>', '</em>' );
+									}
+									?>
+								<# } else if ( ! data.compatible_wp ) { #>
+									<?php
+									_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+									if ( current_user_can( 'update_core' ) ) {
+										printf(
+											/* translators: %s: URL to WordPress Updates screen. */
+											' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+											self_admin_url( 'update-core.php' )
+										);
+									}
+									?>
+								<# } else if ( ! data.compatible_php ) { #>
+									<?php
+									_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+									if ( current_user_can( 'update_php' ) ) {
+										printf(
+											/* translators: %s: URL to Update PHP page. */
+											' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+											esc_url( wp_get_update_php_url() )
+										);
+										wp_update_php_annotation( '</p><p><em>', '</em>' );
+									}
+									?>
+								<# } #>
+							</p></div>
+						<# } #>
+
 						<div class="theme-description">{{{ data.description }}}</div>
 					</div>
 				</div>

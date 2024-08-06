@@ -64,7 +64,7 @@ EditorUploader = View.extend(/** @lends wp.media.view.EditorUploader.prototype *
 	/**
 	 * Check browser support for drag'n'drop.
 	 *
-	 * @return {Boolean}
+	 * @return {boolean}
 	 */
 	browserSupport: function() {
 		var supports = false, div = document.createElement('div');

@@ -6,7 +6,7 @@ wp.customize.settingConstructor.abbreviation = wp.customize.Setting.extend({
 	}
 });
 
-jQuery( window ).load( function() {
+jQuery( 'body' ).on( 'load', function() {
 	'use strict';
 
 	var controlId, controlLabel, controlType, controlContent, controlDescription, controlData, mockControl,

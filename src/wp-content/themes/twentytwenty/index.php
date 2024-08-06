@@ -17,7 +17,7 @@
 get_header();
 ?>
 
-<main id="site-content" role="main">
+<main id="site-content">
 
 	<?php
 
@@ -98,7 +98,7 @@ get_header();
 			<?php
 			get_search_form(
 				array(
-					'label' => __( 'search again', 'twentytwenty' ),
+					'aria_label' => __( 'search again', 'twentytwenty' ),
 				)
 			);
 			?>

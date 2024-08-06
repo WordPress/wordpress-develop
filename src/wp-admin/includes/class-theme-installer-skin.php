@@ -46,6 +46,9 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
+	 * Action to perform before installing a theme.
+	 *
+	 * @since 2.8.0
 	 */
 	public function before() {
 		if ( ! empty( $this->api ) ) {
@@ -62,7 +65,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param $wp_error WP_Error.
+	 * @param WP_Error $wp_error WP_Error object.
 	 * @return bool
 	 */
 	public function hide_process_failed( $wp_error ) {
@@ -78,6 +81,9 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
+	 * Action to perform following a single theme install.
+	 *
+	 * @since 2.8.0
 	 */
 	public function after() {
 		if ( $this->do_overwrite() ) {
@@ -134,7 +140,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			esc_url( $activate_link ),
 			__( 'Activate' ),
 			/* translators: %s: Theme name. */
-			sprintf( __( 'Activate &#8220;%s&#8221;' ), $name )
+			sprintf( _x( 'Activate &#8220;%s&#8221;', 'theme' ), $name )
 		);
 
 		if ( is_network_admin() && current_user_can( 'manage_network_themes' ) ) {
@@ -149,13 +155,13 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['themes_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'theme-install.php' ),
-				__( 'Return to Theme Installer' )
+				__( 'Go to Theme Installer' )
 			);
 		} elseif ( current_user_can( 'switch_themes' ) || current_user_can( 'edit_theme_options' ) ) {
 			$install_actions['themes_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'themes.php' ),
-				__( 'Return to Themes page' )
+				__( 'Go to Themes page' )
 			);
 		}
 
@@ -200,7 +206,9 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		$all_themes         = wp_get_themes( array( 'errors' => null ) );
 
 		foreach ( $all_themes as $theme ) {
-			if ( rtrim( $theme->get_stylesheet_directory(), '/' ) !== $folder ) {
+			$stylesheet_dir = wp_normalize_path( $theme->get_stylesheet_directory() );
+
+			if ( rtrim( $stylesheet_dir, '/' ) !== $folder ) {
 				continue;
 			}
 
@@ -213,9 +221,9 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			return false;
 		}
 
-		echo '<h2 class="update-from-upload-heading">' . esc_html( __( 'This theme is already installed.' ) ) . '</h2>';
+		echo '<h2 class="update-from-upload-heading">' . esc_html__( 'This theme is already installed.' ) . '</h2>';
 
-		// Check errors for current theme
+		// Check errors for current theme.
 		if ( is_wp_error( $current_theme_data->errors() ) ) {
 			$this->feedback( 'current_theme_has_errors', $current_theme_data->errors()->get_error_message() );
 		}
@@ -237,7 +245,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		);
 
 		$table  = '<table class="update-from-upload-comparison"><tbody>';
-		$table .= '<tr><th></th><th>' . esc_html( __( 'Current' ) ) . '</th><th>' . esc_html( __( 'Uploaded' ) ) . '</th></tr>';
+		$table .= '<tr><th></th><th>' . esc_html_x( 'Current', 'theme' ) . '</th><th>' . esc_html_x( 'Uploaded', 'theme' ) . '</th></tr>';
 
 		$is_same_theme = true; // Let's consider only these rows.
 
@@ -283,7 +291,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		$install_actions = array();
 		$can_update      = true;
 
-		$blocked_message  = '<p>' . esc_html( __( 'The theme cannot be updated due to the following:' ) ) . '</p>';
+		$blocked_message  = '<p>' . esc_html__( 'The theme cannot be updated due to the following:' ) . '</p>';
 		$blocked_message .= '<ul class="ul-disc">';
 
 		$requires_php = isset( $new_theme_data['RequiresPHP'] ) ? $new_theme_data['RequiresPHP'] : null;
@@ -334,10 +342,10 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 			$overwrite = $this->is_downgrading ? 'downgrade-theme' : 'update-theme';
 
-			$install_actions['ovewrite_theme'] = sprintf(
+			$install_actions['overwrite_theme'] = sprintf(
 				'<a class="button button-primary update-from-upload-overwrite" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( add_query_arg( 'overwrite', $overwrite, $this->url ), 'theme-upload' ),
-				__( 'Replace current with uploaded' )
+				_x( 'Replace current with uploaded', 'theme' )
 			);
 		} else {
 			echo $blocked_message;
@@ -352,7 +360,8 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		);
 
 		/**
-		 * Filters the list of action links available following a single theme installation failed but ovewrite is allowed.
+		 * Filters the list of action links available following a single theme installation failure
+		 * when overwriting is allowed.
 		 *
 		 * @since 5.5.0
 		 *
@@ -360,7 +369,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		 * @param object   $api             Object containing WordPress.org API theme data.
 		 * @param array    $new_theme_data  Array with uploaded theme data.
 		 */
-		$install_actions = apply_filters( 'install_theme_ovewrite_actions', $install_actions, $this->api, $new_theme_data );
+		$install_actions = apply_filters( 'install_theme_overwrite_actions', $install_actions, $this->api, $new_theme_data );
 
 		if ( ! empty( $install_actions ) ) {
 			printf(

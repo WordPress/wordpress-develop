@@ -11,9 +11,9 @@
  *
  * @since 2.9.0
  *
- * @param int         $post_id Attachment post ID.
- * @param bool|object $msg     Optional. Message to display for image editor updates or errors.
- *                             Default false.
+ * @param int          $post_id Attachment post ID.
+ * @param false|object $msg     Optional. Message to display for image editor updates or errors.
+ *                              Default false.
  */
 function wp_image_editor( $post_id, $msg = false ) {
 	$nonce     = wp_create_nonce( "image_editor-$post_id" );
@@ -90,7 +90,8 @@ function wp_image_editor( $post_id, $msg = false ) {
 		<input type="hidden" id="imgedit-y-<?php echo $post_id; ?>" value="<?php echo isset( $meta['height'] ) ? $meta['height'] : 0; ?>" />
 
 		<div id="imgedit-crop-<?php echo $post_id; ?>" class="imgedit-crop-wrap">
-		<img id="image-preview-<?php echo $post_id; ?>" onload="imageEdit.imgLoaded('<?php echo $post_id; ?>')" src="<?php echo admin_url( 'admin-ajax.php', 'relative' ); ?>?action=imgedit-preview&amp;_ajax_nonce=<?php echo $nonce; ?>&amp;postid=<?php echo $post_id; ?>&amp;rand=<?php echo rand( 1, 99999 ); ?>" alt="" />
+		<img id="image-preview-<?php echo $post_id; ?>" onload="imageEdit.imgLoaded('<?php echo $post_id; ?>')"
+			src="<?php echo esc_url( admin_url( 'admin-ajax.php', 'relative' ) ) . '?action=imgedit-preview&amp;_ajax_nonce=' . $nonce . '&amp;postid=' . $post_id . '&amp;rand=' . rand( 1, 99999 ); ?>" alt="" />
 		</div>
 
 		<div class="imgedit-submit">
@@ -117,7 +118,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 			);
 			?>
 		</p>
-		<?php endif ?>
+		<?php endif; ?>
 		<div class="imgedit-submit">
 
 		<fieldset class="imgedit-scale">
@@ -291,8 +292,8 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
 		 * @since 2.9.0
 		 * @deprecated 3.5.0 Use {@see 'image_editor_save_pre'} instead.
 		 *
-		 * @param resource $image         Image resource to be streamed.
-		 * @param int      $attachment_id The attachment post ID.
+		 * @param resource|GdImage $image         Image resource to be streamed.
+		 * @param int              $attachment_id The attachment post ID.
 		 */
 		$image = apply_filters_deprecated( 'image_save_pre', array( $image, $attachment_id ), '3.5.0', 'image_editor_save_pre' );
 
@@ -306,6 +307,12 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
 			case 'image/gif':
 				header( 'Content-Type: image/gif' );
 				return imagegif( $image );
+			case 'image/webp':
+				if ( function_exists( 'imagewebp' ) ) {
+					header( 'Content-Type: image/webp' );
+					return imagewebp( $image, null, 90 );
+				}
+				return false;
 			default:
 				return false;
 		}
@@ -366,11 +373,11 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 		 * @since 2.9.0
 		 * @deprecated 3.5.0 Use {@see 'wp_save_image_editor_file'} instead.
 		 *
-		 * @param mixed           $override  Value to return instead of saving. Default null.
-		 * @param string          $filename  Name of the file to be saved.
-		 * @param WP_Image_Editor $image     The image editor instance.
-		 * @param string          $mime_type The mime type of the image.
-		 * @param int             $post_id   Attachment post ID.
+		 * @param bool|null        $override  Value to return instead of saving. Default null.
+		 * @param string           $filename  Name of the file to be saved.
+		 * @param resource|GdImage $image     Image resource or GdImage instance.
+		 * @param string           $mime_type The mime type of the image.
+		 * @param int              $post_id   Attachment post ID.
 		 */
 		$saved = apply_filters_deprecated(
 			'wp_save_image_file',
@@ -391,6 +398,11 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 				return imagepng( $image, $filename );
 			case 'image/gif':
 				return imagegif( $image, $filename );
+			case 'image/webp':
+				if ( function_exists( 'imagewebp' ) ) {
+					return imagewebp( $image, $filename );
+				}
+				return false;
 			default:
 				return false;
 		}
@@ -420,19 +432,22 @@ function _image_get_preview_ratio( $w, $h ) {
  * @see WP_Image_Editor::rotate()
  *
  * @ignore
- * @param resource  $img   Image resource.
- * @param float|int $angle Image rotation angle, in degrees.
- * @return resource|false GD image resource, false otherwise.
+ * @param resource|GdImage  $img   Image resource.
+ * @param float|int         $angle Image rotation angle, in degrees.
+ * @return resource|GdImage|false GD image resource or GdImage instance, false otherwise.
  */
 function _rotate_image_resource( $img, $angle ) {
 	_deprecated_function( __FUNCTION__, '3.5.0', 'WP_Image_Editor::rotate()' );
+
 	if ( function_exists( 'imagerotate' ) ) {
 		$rotated = imagerotate( $img, $angle, 0 );
-		if ( is_resource( $rotated ) ) {
+
+		if ( is_gd_image( $rotated ) ) {
 			imagedestroy( $img );
 			$img = $rotated;
 		}
 	}
+
 	return $img;
 }
 
@@ -444,17 +459,19 @@ function _rotate_image_resource( $img, $angle ) {
  * @see WP_Image_Editor::flip()
  *
  * @ignore
- * @param resource $img  Image resource.
- * @param bool     $horz Whether to flip horizontally.
- * @param bool     $vert Whether to flip vertically.
- * @return resource (maybe) flipped image resource.
+ * @param resource|GdImage $img  Image resource or GdImage instance.
+ * @param bool             $horz Whether to flip horizontally.
+ * @param bool             $vert Whether to flip vertically.
+ * @return resource|GdImage (maybe) flipped image resource or GdImage instance.
  */
 function _flip_image_resource( $img, $horz, $vert ) {
 	_deprecated_function( __FUNCTION__, '3.5.0', 'WP_Image_Editor::flip()' );
+
 	$w   = imagesx( $img );
 	$h   = imagesy( $img );
 	$dst = wp_imagecreatetruecolor( $w, $h );
-	if ( is_resource( $dst ) ) {
+
+	if ( is_gd_image( $dst ) ) {
 		$sx = $vert ? ( $w - 1 ) : 0;
 		$sy = $horz ? ( $h - 1 ) : 0;
 		$sw = $vert ? -$w : $w;
@@ -465,6 +482,7 @@ function _flip_image_resource( $img, $horz, $vert ) {
 			$img = $dst;
 		}
 	}
+
 	return $img;
 }
 
@@ -474,21 +492,23 @@ function _flip_image_resource( $img, $horz, $vert ) {
  * @since 2.9.0
  *
  * @ignore
- * @param resource $img Image resource.
- * @param float    $x   Source point x-coordinate.
- * @param float    $y   Source point y-coordinate.
- * @param float    $w   Source width.
- * @param float    $h   Source height.
- * @return resource (maybe) cropped image resource.
+ * @param resource|GdImage $img Image resource or GdImage instance.
+ * @param float            $x   Source point x-coordinate.
+ * @param float            $y   Source point y-coordinate.
+ * @param float            $w   Source width.
+ * @param float            $h   Source height.
+ * @return resource|GdImage (maybe) cropped image resource or GdImage instance.
  */
 function _crop_image_resource( $img, $x, $y, $w, $h ) {
 	$dst = wp_imagecreatetruecolor( $w, $h );
-	if ( is_resource( $dst ) ) {
+
+	if ( is_gd_image( $dst ) ) {
 		if ( imagecopy( $dst, $img, 0, 0, $x, $y, $w, $h ) ) {
 			imagedestroy( $img );
 			$img = $dst;
 		}
 	}
+
 	return $img;
 }
 
@@ -502,7 +522,7 @@ function _crop_image_resource( $img, $x, $y, $w, $h ) {
  * @return WP_Image_Editor WP_Image_Editor instance with changes applied.
  */
 function image_edit_apply_changes( $image, $changes ) {
-	if ( is_resource( $image ) ) {
+	if ( is_gd_image( $image ) ) {
 		/* translators: 1: $image, 2: WP_Image_Editor */
 		_deprecated_argument( __FUNCTION__, '3.5.0', sprintf( __( '%1$s needs to be a %2$s object.' ), '$image', 'WP_Image_Editor' ) );
 	}
@@ -566,7 +586,7 @@ function image_edit_apply_changes( $image, $changes ) {
 		 * @param array           $changes Array of change operations.
 		 */
 		$image = apply_filters( 'wp_image_editor_before_change', $image, $changes );
-	} elseif ( is_resource( $image ) ) {
+	} elseif ( is_gd_image( $image ) ) {
 
 		/**
 		 * Filters the GD image resource before applying changes to the image.
@@ -574,8 +594,8 @@ function image_edit_apply_changes( $image, $changes ) {
 		 * @since 2.9.0
 		 * @deprecated 3.5.0 Use {@see 'wp_image_editor_before_change'} instead.
 		 *
-		 * @param resource $image   GD image resource.
-		 * @param array    $changes Array of change operations.
+		 * @param resource|GdImage $image   GD image resource or GdImage instance.
+		 * @param array            $changes Array of change operations.
 		 */
 		$image = apply_filters_deprecated( 'image_edit_before_change', array( $image, $changes ), '3.5.0', 'wp_image_editor_before_change' );
 	}
@@ -778,8 +798,8 @@ function wp_save_image( $post_id ) {
 		return $return;
 	}
 
-	$fwidth  = ! empty( $_REQUEST['fwidth'] ) ? intval( $_REQUEST['fwidth'] ) : 0;
-	$fheight = ! empty( $_REQUEST['fheight'] ) ? intval( $_REQUEST['fheight'] ) : 0;
+	$fwidth  = ! empty( $_REQUEST['fwidth'] ) ? (int) $_REQUEST['fwidth'] : 0;
+	$fheight = ! empty( $_REQUEST['fheight'] ) ? (int) $_REQUEST['fheight'] : 0;
 	$target  = ! empty( $_REQUEST['target'] ) ? preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['target'] ) : '';
 	$scale   = ! empty( $_REQUEST['do'] ) && 'scale' === $_REQUEST['do'];
 
@@ -936,8 +956,8 @@ function wp_save_image( $post_id ) {
 			}
 
 			if ( isset( $_wp_additional_image_sizes[ $size ] ) ) {
-				$width  = intval( $_wp_additional_image_sizes[ $size ]['width'] );
-				$height = intval( $_wp_additional_image_sizes[ $size ]['height'] );
+				$width  = (int) $_wp_additional_image_sizes[ $size ]['width'];
+				$height = (int) $_wp_additional_image_sizes[ $size ]['height'];
 				$crop   = ( $nocrop ) ? false : $_wp_additional_image_sizes[ $size ]['crop'];
 			} else {
 				$height = get_option( "{$size}_size_h" );

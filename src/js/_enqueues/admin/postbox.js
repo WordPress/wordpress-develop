@@ -67,9 +67,9 @@
 			}
 
 			if ( id ) {
-				if ( !p.hasClass('closed') && $.isFunction( postboxes.pbshow ) ) {
+				if ( !p.hasClass('closed') && typeof postboxes.pbshow === 'function' ) {
 					postboxes.pbshow( id );
-				} else if ( p.hasClass('closed') && $.isFunction( postboxes.pbhide ) ) {
+				} else if ( p.hasClass('closed') && typeof postboxes.pbhide === 'function' ) {
 					postboxes.pbhide( id );
 				}
 			}
@@ -127,7 +127,7 @@
 				}
 
 				postbox.prevAll( '.postbox:visible' ).eq( 0 ).before( postbox );
-				button.focus();
+				button.trigger( 'focus' );
 				postboxes.updateOrderButtonsProperties();
 				postboxes.save_order( postboxes.page );
 			}
@@ -141,7 +141,7 @@
 				}
 
 				postbox.nextAll( '.postbox:visible' ).eq( 0 ).after( postbox );
-				button.focus();
+				button.trigger( 'focus' );
 				postboxes.updateOrderButtonsProperties();
 				postboxes.save_order( postboxes.page );
 			}
@@ -154,8 +154,8 @@
 		 * @since 5.5.0
 		 *
 		 * @param {string} position The "previous" or "next" sortables area.
-		 * @param {object} button   The jQuery object representing the button that was clicked.
-		 * @param {object} postbox  The jQuery object representing the postbox to be moved.
+		 * @param {Object} button   The jQuery object representing the button that was clicked.
+		 * @param {Object} postbox  The jQuery object representing the postbox to be moved.
 		 *
 		 * @return {void}
 		 */
@@ -267,7 +267,7 @@
 			/**
 			 * @since 2.7.0
 			 */
-			$('.postbox .hndle a').click( function(e) {
+			$('.postbox .hndle a').on( 'click', function(e) {
 				e.stopPropagation();
 			});
 
@@ -302,19 +302,19 @@
 			 *
 			 * @return {void}
 			 */
-			$('.hide-postbox-tog').bind('click.postboxes', function() {
+			$('.hide-postbox-tog').on('click.postboxes', function() {
 				var $el = $(this),
 					boxId = $el.val(),
 					$postbox = $( '#' + boxId );
 
 				if ( $el.prop( 'checked' ) ) {
 					$postbox.show();
-					if ( $.isFunction( postboxes.pbshow ) ) {
+					if ( typeof postboxes.pbshow === 'function' ) {
 						postboxes.pbshow( boxId );
 					}
 				} else {
 					$postbox.hide();
-					if ( $.isFunction( postboxes.pbhide ) ) {
+					if ( typeof postboxes.pbhide === 'function' ) {
 						postboxes.pbhide( boxId );
 					}
 				}
@@ -336,7 +336,7 @@
 			 *
 			 * @return {void}
 			 */
-			$('.columns-prefs input[type="radio"]').bind('click.postboxes', function(){
+			$('.columns-prefs input[type="radio"]').on('click.postboxes', function(){
 				var n = parseInt($(this).val(), 10);
 
 				if ( n ) {
@@ -394,6 +394,8 @@
 				opacity: 0.65,
 				start: function() {
 					$( 'body' ).addClass( 'is-dragging-metaboxes' );
+					// Refresh the cached positions of all the sortable items so that the min-height set while dragging works.
+					$( '.meta-box-sortables' ).sortable( 'refreshPositions' );
 				},
 				stop: function() {
 					var $el = $( this );
@@ -418,7 +420,7 @@
 			});
 
 			if ( isMobile ) {
-				$(document.body).bind('orientationchange.postboxes', function(){ postboxes._pb_change(); });
+				$(document.body).on('orientationchange.postboxes', function(){ postboxes._pb_change(); });
 				this._pb_change();
 			}
 
@@ -520,13 +522,14 @@
 		 * @return {void}
 		 */
 		_mark_area : function() {
-			var visibleSortables = $( '#dashboard-widgets .meta-box-sortables:visible, #post-body .meta-box-sortables:visible' ),
+			var visible = $( 'div.postbox:visible' ).length,
+				visibleSortables = $( '#dashboard-widgets .meta-box-sortables:visible, #post-body .meta-box-sortables:visible' ),
 				areAllVisibleSortablesEmpty = true;
 
 			visibleSortables.each( function() {
 				var t = $(this);
 
-				if ( t.children('.postbox:visible').length ) {
+				if ( visible == 1 || t.children( '.postbox:visible' ).length ) {
 					t.removeClass('empty-container');
 					areAllVisibleSortablesEmpty = false;
 				}
@@ -542,6 +545,9 @@
 		 * Updates the text for the empty sortable areas on the Dashboard.
 		 *
 		 * @since 5.5.0
+		 *
+		 * @param {Object}  visibleSortables            The jQuery object representing the visible sortable areas.
+		 * @param {boolean} areAllVisibleSortablesEmpty Whether all the visible sortable areas are "empty".
 		 *
 		 * @return {void}
 		 */

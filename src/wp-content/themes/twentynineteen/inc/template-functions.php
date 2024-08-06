@@ -96,12 +96,13 @@ function twentynineteen_get_the_archive_title() {
 add_filter( 'get_the_archive_title', 'twentynineteen_get_the_archive_title' );
 
 /**
- * Add custom sizes attribute to responsive image functionality for post thumbnails.
+ * Add custom 'sizes' attribute to responsive image functionality for post thumbnails.
  *
  * @origin Twenty Nineteen 1.0
  *
- * @param array $attr  Attributes for the image markup.
- * @return string Value for use in post thumbnail 'sizes' attribute.
+ * @param string[] $attr Array of attribute values for the image markup, keyed by attribute name.
+ *                       See wp_get_attachment_image().
+ * @return string[] The filtered attributes for the image markup.
  */
 function twentynineteen_post_thumbnail_sizes_attr( $attr ) {
 
@@ -120,7 +121,7 @@ add_filter( 'wp_get_attachment_image_attributes', 'twentynineteen_post_thumbnail
 /**
  * Add an extra menu to our nav for our priority+ navigation to use
  *
- * @param object $nav_menu  Nav menu.
+ * @param string $nav_menu  Nav menu.
  * @param object $args      Nav menu args.
  * @return string More link for hidden menu items.
  */

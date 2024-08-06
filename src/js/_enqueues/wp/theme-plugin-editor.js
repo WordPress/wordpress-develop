@@ -27,8 +27,8 @@ wp.themePluginEditor = (function( $ ) {
 	 * @since 4.9.0
 	 *
 	 * @param {jQuery}         form - Form element.
-	 * @param {object}         settings - Settings.
-	 * @param {object|boolean} settings.codeEditor - Code editor settings (or `false` if syntax highlighting is disabled).
+	 * @param {Object}         settings - Settings.
+	 * @param {Object|boolean} settings.codeEditor - Code editor settings (or `false` if syntax highlighting is disabled).
 	 * @return {void}
 	 */
 	component.init = function init( form, settings ) {
@@ -101,7 +101,7 @@ wp.themePluginEditor = (function( $ ) {
 		// Reveal the modal and set focus on the go back button.
 		component.warning
 			.removeClass( 'hidden' )
-			.find( '.file-editor-warning-go-back' ).focus();
+			.find( '.file-editor-warning-go-back' ).trigger( 'focus' );
 		// Get the links and buttons within the modal.
 		component.warningTabbables = component.warning.find( 'a, button' );
 		// Attach event handlers.
@@ -117,7 +117,7 @@ wp.themePluginEditor = (function( $ ) {
 	 * Constrain tabbing within the warning modal.
 	 *
 	 * @since 4.9.0
-	 * @param {object} event jQuery event object.
+	 * @param {Object} event jQuery event object.
 	 * @return {void}
 	 */
 	component.constrainTabbing = function( event ) {
@@ -254,7 +254,7 @@ wp.themePluginEditor = (function( $ ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param {object}   notice - Notice.
+	 * @param {Object}   notice - Notice.
 	 * @param {string}   notice.code - Code.
 	 * @param {string}   notice.type - Type.
 	 * @param {string}   notice.message - Message.
@@ -328,7 +328,7 @@ wp.themePluginEditor = (function( $ ) {
 		 * @return {void}
 		 */
 		codeEditorSettings.onTabPrevious = function() {
-			$( '#templateside' ).find( ':tabbable' ).last().focus();
+			$( '#templateside' ).find( ':tabbable' ).last().trigger( 'focus' );
 		};
 
 		/**
@@ -339,7 +339,7 @@ wp.themePluginEditor = (function( $ ) {
 		 * @return {void}
 		 */
 		codeEditorSettings.onTabNext = function() {
-			$( '#template' ).find( ':tabbable:not(.CodeMirror-code)' ).first().focus();
+			$( '#template' ).find( ':tabbable:not(.CodeMirror-code)' ).first().trigger( 'focus' );
 		};
 
 		/**
@@ -1000,3 +1000,27 @@ wp.themePluginEditor = (function( $ ) {
 
 	return component;
 })( jQuery );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 4.9.0
+ * @deprecated 5.5.0
+ *
+ * @type {object}
+ */
+wp.themePluginEditor.l10n = wp.themePluginEditor.l10n || {
+	saveAlert: '',
+	saveError: '',
+	lintError: {
+		alternative: 'wp.i18n',
+		func: function() {
+			return {
+				singular: '',
+				plural: ''
+			};
+		}
+	}
+};
+
+wp.themePluginEditor.l10n = window.wp.deprecateL10nObject( 'wp.themePluginEditor.l10n', wp.themePluginEditor.l10n, '5.5.0' );

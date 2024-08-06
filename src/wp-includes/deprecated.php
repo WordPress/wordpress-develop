@@ -1303,7 +1303,7 @@ function get_category_children( $id, $before = '/', $after = '', $visited = arra
  *
  * @link https://developer.wordpress.org/reference/functions/get_all_category_ids/
  *
- * @return object List of all of the category IDs.
+ * @return int[] List of all of the category IDs.
  */
 function get_all_category_ids() {
 	_deprecated_function( __FUNCTION__, '4.0.0', 'get_terms()' );
@@ -1911,6 +1911,7 @@ function get_attachment_icon_src( $id = 0, $fullsize = false ) {
 	} elseif ( $src = wp_mime_type_icon( $post->ID ) ) {
 		// No thumb, no image. We'll look for a mime-related icon instead.
 
+		/** This filter is documented in wp-includes/post.php */
 		$icon_dir = apply_filters( 'icon_dir', get_template_directory() . '/images' );
 		$src_file = $icon_dir . '/' . wp_basename($src);
 	}
@@ -1947,7 +1948,7 @@ function get_attachment_icon( $id = 0, $fullsize = false, $max_dims = false ) {
 	// Do we need to constrain the image?
 	if ( ($max_dims = apply_filters('attachment_max_dims', $max_dims)) && file_exists($src_file) ) {
 
-		$imagesize = @getimagesize($src_file);
+		$imagesize = wp_getimagesize($src_file);
 
 		if (($imagesize[0] > $max_dims[0]) || $imagesize[1] > $max_dims[1] ) {
 			$actual_aspect = $imagesize[0] / $imagesize[1];
@@ -2020,22 +2021,6 @@ function get_attachment_innerHTML($id = 0, $fullsize = false, $max_dims = false)
 function get_link( $bookmark_id, $output = OBJECT, $filter = 'raw' ) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmark()' );
 	return get_bookmark($bookmark_id, $output, $filter);
-}
-
-/**
- * Performs esc_url() for database or redirect usage.
- *
- * @since 2.3.1
- * @deprecated 2.8.0 Use esc_url_raw()
- * @see esc_url_raw()
- *
- * @param string $url The URL to be cleaned.
- * @param array $protocols An array of acceptable protocols.
- * @return string The cleaned URL.
- */
-function sanitize_url( $url, $protocols = null ) {
-	_deprecated_function( __FUNCTION__, '2.8.0', 'esc_url_raw()' );
-	return esc_url_raw( $url, $protocols );
 }
 
 /**
@@ -3196,7 +3181,8 @@ function _get_post_ancestors( &$post ) {
  * @see wp_get_image_editor()
  *
  * @param string $file Filename of the image to load.
- * @return resource The resulting image resource on success, Error string on failure.
+ * @return resource|GdImage|string The resulting image resource or GdImage instance on success,
+ *                                 error string on failure.
  */
 function wp_load_image( $file ) {
 	_deprecated_function( __FUNCTION__, '3.5.0', 'wp_get_image_editor()' );
@@ -3217,7 +3203,7 @@ function wp_load_image( $file ) {
 
 	$image = imagecreatefromstring( file_get_contents( $file ) );
 
-	if ( ! is_resource( $image ) ) {
+	if ( ! is_gd_image( $image ) ) {
 		/* translators: %s: File name. */
 		return sprintf( __( 'File &#8220;%s&#8221; is not an image.' ), $file );
 	}
@@ -3338,6 +3324,8 @@ function gd_edit_image_support($mime_type) {
 				return (imagetypes() & IMG_PNG) != 0;
 			case 'image/gif':
 				return (imagetypes() & IMG_GIF) != 0;
+			case 'image/webp':
+				return (imagetypes() & IMG_WEBP) != 0; // phpcs:ignore PHPCompatibility.Constants.NewConstants.img_webpFound
 		}
 	} else {
 		switch( $mime_type ) {
@@ -3347,6 +3335,8 @@ function gd_edit_image_support($mime_type) {
 				return function_exists('imagecreatefrompng');
 			case 'image/gif':
 				return function_exists('imagecreatefromgif');
+			case 'image/webp':
+				return function_exists('imagecreatefromwebp');
 		}
 	}
 	return false;
@@ -3564,7 +3554,7 @@ function preview_theme_ob_filter_callback( $matches ) {
 /**
  * Formats text for the rich text editor.
  *
- * The {@see 'richedit_pre'} filter is applied here. If $text is empty the filter will
+ * The {@see 'richedit_pre'} filter is applied here. If `$text` is empty the filter will
  * be applied to an empty string.
  *
  * @since 2.0.0
@@ -4025,7 +4015,7 @@ function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.
  * Does comment contain disallowed characters or words.
  *
  * @since 1.5.0
- * @deprecated 5.5.0 Use wp_blocklist_check() instead.
+ * @deprecated 5.5.0 Use wp_check_comment_disallowed_list() instead.
  *                   Please consider writing more inclusive code.
  *
  * @param string $author The author of the comment
@@ -4037,9 +4027,9 @@ function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.
  * @return bool True if comment contains disallowed content, false if comment does not
  */
 function wp_blacklist_check( $author, $email, $url, $comment, $user_ip, $user_agent ) {
-	_deprecated_function( __FUNCTION__, '5.5.0', 'wp_blocklist_check()' );
+	_deprecated_function( __FUNCTION__, '5.5.0', 'wp_check_comment_disallowed_list()' );
 
-	return wp_blocklist_check( $author, $email, $url, $comment, $user_ip, $user_agent );
+	return wp_check_comment_disallowed_list( $author, $email, $url, $comment, $user_ip, $user_agent );
 }
 
 /**
@@ -4086,7 +4076,7 @@ function add_option_whitelist( $new_options, $options = '' ) {
  * Removes a list of options from the allowed options list.
  *
  * @since 2.7.0
- * @deprecated 5.5.0 Use remove_option_allowed_list() instead.
+ * @deprecated 5.5.0 Use remove_allowed_options() instead.
  *                   Please consider writing more inclusive code.
  *
  * @global array $allowed_options
@@ -4096,7 +4086,125 @@ function add_option_whitelist( $new_options, $options = '' ) {
  * @return array
  */
 function remove_option_whitelist( $del_options, $options = '' ) {
-	_deprecated_function( __FUNCTION__, '5.5.0', 'remove_option_allowed_list()' );
+	_deprecated_function( __FUNCTION__, '5.5.0', 'remove_allowed_options()' );
 
-	return remove_option_allowed_list( $del_options, $options );
+	return remove_allowed_options( $del_options, $options );
+}
+
+/**
+ * Adds slashes to only string values in an array of values.
+ *
+ * This should be used when preparing data for core APIs that expect slashed data.
+ * This should not be used to escape data going directly into an SQL query.
+ *
+ * @since 5.3.0
+ * @deprecated 5.6.0 Use wp_slash()
+ *
+ * @see wp_slash()
+ *
+ * @param mixed $value Scalar or array of scalars.
+ * @return mixed Slashes $value
+ */
+function wp_slash_strings_only( $value ) {
+	return map_deep( $value, 'addslashes_strings_only' );
+}
+
+/**
+ * Adds slashes only if the provided value is a string.
+ *
+ * @since 5.3.0
+ * @deprecated 5.6.0
+ *
+ * @see wp_slash()
+ *
+ * @param mixed $value
+ * @return mixed
+ */
+function addslashes_strings_only( $value ) {
+	return is_string( $value ) ? addslashes( $value ) : $value;
+}
+
+/**
+ * Displays a noindex meta tag if required by the blog configuration.
+ *
+ * If a blog is marked as not being public then the noindex meta tag will be
+ * output to tell web robots not to index the page content. Add this to the
+ * {@see 'wp_head'} action.
+ *
+ * Typical usage is as a {@see 'wp_head'} callback:
+ *
+ *     add_action( 'wp_head', 'noindex' );
+ *
+ * @see wp_no_robots()
+ *
+ * @since 2.1.0
+ * @deprecated 5.7.0 Use wp_robots_noindex() instead on 'wp_robots' filter.
+ */
+function noindex() {
+	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_noindex()' );
+
+	// If the blog is not public, tell robots to go away.
+	if ( '0' == get_option( 'blog_public' ) ) {
+		wp_no_robots();
+	}
+}
+
+/**
+ * Display a noindex meta tag.
+ *
+ * Outputs a noindex meta tag that tells web robots not to index the page content.
+ * Typical usage is as a {@see 'wp_head'} callback. add_action( 'wp_head', 'wp_no_robots' );
+ *
+ * @since 3.3.0
+ * @since 5.3.0 Echo "noindex,nofollow" if search engine visibility is discouraged.
+ * @deprecated 5.7.0 Use wp_robots_no_robots() instead on 'wp_robots' filter.
+ */
+function wp_no_robots() {
+	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_no_robots()' );
+
+	if ( get_option( 'blog_public' ) ) {
+		echo "<meta name='robots' content='noindex,follow' />\n";
+		return;
+	}
+
+	echo "<meta name='robots' content='noindex,nofollow' />\n";
+}
+
+/**
+ * Display a noindex,noarchive meta tag and referrer origin-when-cross-origin meta tag.
+ *
+ * Outputs a noindex,noarchive meta tag that tells web robots not to index or cache the page content.
+ * Outputs a referrer origin-when-cross-origin meta tag that tells the browser not to send the full
+ * url as a referrer to other sites when cross-origin assets are loaded.
+ *
+ * Typical usage is as a wp_head callback. add_action( 'wp_head', 'wp_sensitive_page_meta' );
+ *
+ * @since 5.0.1
+ * @deprecated 5.7.0 Use wp_robots_sensitive_page() instead on 'wp_robots' filter
+ *                   and wp_strict_cross_origin_referrer() on 'wp_head' action.
+ */
+function wp_sensitive_page_meta() {
+	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_sensitive_page()' );
+
+	?>
+	<meta name='robots' content='noindex,noarchive' />
+	<?php
+	wp_strict_cross_origin_referrer();
+}
+
+/**
+ * Render inner blocks from the `core/columns` block for generating an excerpt.
+ *
+ * @since 5.2.0
+ * @deprecated 5.8.0
+ *
+ * @access private
+ *
+ * @param array $columns        The parsed columns block.
+ * @param array $allowed_blocks The list of allowed inner blocks.
+ * @return string The rendered inner blocks.
+ */
+function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
+	_deprecated_function( __FUNCTION__, '5.8.0', '_excerpt_render_inner_blocks()' );
+	return _excerpt_render_inner_blocks( $columns, $allowed_blocks );
 }

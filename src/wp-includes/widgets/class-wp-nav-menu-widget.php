@@ -25,6 +25,7 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 		$widget_ops = array(
 			'description'                 => __( 'Add a navigation menu to your sidebar.' ),
 			'customize_selective_refresh' => true,
+			'show_instance_in_rest'       => true,
 		);
 		parent::__construct( 'nav_menu', __( 'Navigation Menu' ), $widget_ops );
 	}
@@ -95,15 +96,15 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 		 * @since 4.2.0
 		 * @since 4.4.0 Added the `$instance` parameter.
 		 *
-		 * @param array    $nav_menu_args {
+		 * @param array   $nav_menu_args {
 		 *     An array of arguments passed to wp_nav_menu() to retrieve a navigation menu.
 		 *
 		 *     @type callable|bool $fallback_cb Callback to fire if the menu doesn't exist. Default empty.
 		 *     @type mixed         $menu        Menu ID, slug, or name.
 		 * }
-		 * @param WP_Term  $nav_menu      Nav menu object for the current menu.
-		 * @param array    $args          Display arguments for the current widget.
-		 * @param array    $instance      Array of settings for the current widget.
+		 * @param WP_Term $nav_menu      Nav menu object for the current menu.
+		 * @param array   $args          Display arguments for the current widget.
+		 * @param array   $instance      Array of settings for the current widget.
 		 */
 		wp_nav_menu( apply_filters( 'widget_nav_menu_args', $nav_menu_args, $nav_menu, $args, $instance ) );
 
@@ -177,7 +178,7 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 		<div class="nav-menu-widget-form-controls" <?php echo $empty_menus_style; ?>>
 			<p>
 				<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
-				<input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo esc_attr( $title ); ?>"/>
+				<input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo esc_attr( $title ); ?>" />
 			</p>
 			<p>
 				<label for="<?php echo $this->get_field_id( 'nav_menu' ); ?>"><?php _e( 'Select Menu:' ); ?></label>

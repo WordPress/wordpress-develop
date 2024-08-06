@@ -12,7 +12,7 @@
  *
  * @group link
  * @group privacy
- * @covers get_the_privacy_policy_link
+ * @covers ::get_the_privacy_policy_link
  *
  * @since 4.9.6
  */
@@ -54,7 +54,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory The base factory object.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$privacy_policy_page_id = $factory->post->create(
 			array(
 				'post_type'  => 'page',
@@ -80,7 +80,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 		$actual_link = get_the_privacy_policy_link();
 
 		$this->assertStringStartsWith( '<a', $actual_link );
-		$this->assertContains( self::$privacy_policy_url, $actual_link );
+		$this->assertStringContainsString( self::$privacy_policy_url, $actual_link );
 		$this->assertStringEndsWith( '>' . WP_TESTS_DOMAIN . ' Privacy Policy</a>', $actual_link );
 	}
 
@@ -94,7 +94,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 		$actual_link = get_the_privacy_policy_link( self::$before, self::$after );
 
 		$this->assertStringStartsWith( self::$before . '<a', $actual_link );
-		$this->assertContains( self::$privacy_policy_url, $actual_link );
+		$this->assertStringContainsString( self::$privacy_policy_url, $actual_link );
 		$this->assertStringEndsWith( '</a>' . self::$after, $actual_link );
 	}
 

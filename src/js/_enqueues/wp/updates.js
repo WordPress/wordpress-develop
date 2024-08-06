@@ -8,22 +8,26 @@
 /* global pagenow */
 
 /**
- * @param {jQuery}  $                                   jQuery object.
- * @param {object}  wp                                  WP object.
- * @param {object}  settings                            WP Updates settings.
- * @param {string}  settings.ajax_nonce                 Ajax nonce.
- * @param {object=} settings.plugins                    Base names of plugins in their different states.
- * @param {Array}   settings.plugins.all                Base names of all plugins.
- * @param {Array}   settings.plugins.active             Base names of active plugins.
- * @param {Array}   settings.plugins.inactive           Base names of inactive plugins.
- * @param {Array}   settings.plugins.upgrade            Base names of plugins with updates available.
- * @param {Array}   settings.plugins.recently_activated Base names of recently activated plugins.
- * @param {object=} settings.themes                     Plugin/theme status information or null.
- * @param {number}  settings.themes.all                 Amount of all themes.
- * @param {number}  settings.themes.upgrade             Amount of themes with updates available.
- * @param {number}  settings.themes.disabled            Amount of disabled themes.
- * @param {object=} settings.totals                     Combined information for available update counts.
- * @param {number}  settings.totals.count               Holds the amount of available updates.
+ * @param {jQuery}  $                                        jQuery object.
+ * @param {object}  wp                                       WP object.
+ * @param {object}  settings                                 WP Updates settings.
+ * @param {string}  settings.ajax_nonce                      Ajax nonce.
+ * @param {object=} settings.plugins                         Base names of plugins in their different states.
+ * @param {Array}   settings.plugins.all                     Base names of all plugins.
+ * @param {Array}   settings.plugins.active                  Base names of active plugins.
+ * @param {Array}   settings.plugins.inactive                Base names of inactive plugins.
+ * @param {Array}   settings.plugins.upgrade                 Base names of plugins with updates available.
+ * @param {Array}   settings.plugins.recently_activated      Base names of recently activated plugins.
+ * @param {Array}   settings.plugins['auto-update-enabled']  Base names of plugins set to auto-update.
+ * @param {Array}   settings.plugins['auto-update-disabled'] Base names of plugins set to not auto-update.
+ * @param {object=} settings.themes                          Slugs of themes in their different states.
+ * @param {Array}   settings.themes.all                      Slugs of all themes.
+ * @param {Array}   settings.themes.upgrade                  Slugs of themes with updates available.
+ * @param {Arrat}   settings.themes.disabled                 Slugs of disabled themes.
+ * @param {Array}   settings.themes['auto-update-enabled']   Slugs of themes set to auto-update.
+ * @param {Array}   settings.themes['auto-update-disabled']  Slugs of themes set to not auto-update.
+ * @param {object=} settings.totals                          Combined information for available update counts.
+ * @param {number}  settings.totals.count                    Holds the amount of available updates.
  */
 (function( $, wp, settings ) {
 	var $document = $( document ),
@@ -41,6 +45,81 @@
 	 * @namespace wp.updates
 	 */
 	wp.updates = {};
+
+	/**
+	 * Removed in 5.5.0, needed for back-compatibility.
+	 *
+	 * @since 4.2.0
+	 * @deprecated 5.5.0
+	 *
+	 * @type {object}
+	 */
+	wp.updates.l10n = {
+		searchResults: '',
+		searchResultsLabel: '',
+		noPlugins: '',
+		noItemsSelected: '',
+		updating: '',
+		pluginUpdated: '',
+		themeUpdated: '',
+		update: '',
+		updateNow: '',
+		pluginUpdateNowLabel: '',
+		updateFailedShort: '',
+		updateFailed: '',
+		pluginUpdatingLabel: '',
+		pluginUpdatedLabel: '',
+		pluginUpdateFailedLabel: '',
+		updatingMsg: '',
+		updatedMsg: '',
+		updateCancel: '',
+		beforeunload: '',
+		installNow: '',
+		pluginInstallNowLabel: '',
+		installing: '',
+		pluginInstalled: '',
+		themeInstalled: '',
+		installFailedShort: '',
+		installFailed: '',
+		pluginInstallingLabel: '',
+		themeInstallingLabel: '',
+		pluginInstalledLabel: '',
+		themeInstalledLabel: '',
+		pluginInstallFailedLabel: '',
+		themeInstallFailedLabel: '',
+		installingMsg: '',
+		installedMsg: '',
+		importerInstalledMsg: '',
+		aysDelete: '',
+		aysDeleteUninstall: '',
+		aysBulkDelete: '',
+		aysBulkDeleteThemes: '',
+		deleting: '',
+		deleteFailed: '',
+		pluginDeleted: '',
+		themeDeleted: '',
+		livePreview: '',
+		activatePlugin: '',
+		activateTheme: '',
+		activatePluginLabel: '',
+		activateThemeLabel: '',
+		activateImporter: '',
+		activateImporterLabel: '',
+		unknownError: '',
+		connectionError: '',
+		nonceError: '',
+		pluginsFound: '',
+		noPluginsFound: '',
+		autoUpdatesEnable: '',
+		autoUpdatesEnabling: '',
+		autoUpdatesEnabled: '',
+		autoUpdatesDisable: '',
+		autoUpdatesDisabling: '',
+		autoUpdatesDisabled: '',
+		autoUpdatesError: ''
+	};
+
+	wp.updates.l10n = window.wp.deprecateL10nObject( 'wp.updates.l10n', wp.updates.l10n, '5.5.0' );
 
 	/**
 	 * User nonce for ajax calls.
@@ -150,7 +229,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object}  data
+	 * @param {Object}  data
 	 * @param {*=}      data.selector      Optional. Selector of an element to be replaced with the admin notice.
 	 * @param {string=} data.id            Optional. Unique id that will be used as the notice's id attribute.
 	 * @param {string=} data.className     Optional. Class names that will be used in the admin notice.
@@ -194,7 +273,7 @@
 	 * @since 4.6.0
 	 *
 	 * @param {string} action The type of Ajax request ('update-plugin', 'install-theme', etc).
-	 * @param {object} data   Data that needs to be passed to the ajax callback.
+	 * @param {Object} data   Data that needs to be passed to the ajax callback.
 	 * @return {$.promise}    A jQuery promise that represents the request,
 	 *                        decorated with an abort() method.
 	 */
@@ -243,8 +322,8 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object}  response
-	 * @param {array=}  response.debug     Optional. Debug information.
+	 * @param {Object}  response
+	 * @param {Array=}  response.debug     Optional. Debug information.
 	 * @param {string=} response.errorCode Optional. Error code for an error that occurred.
 	 */
 	wp.updates.ajaxAlways = function( response ) {
@@ -355,7 +434,7 @@
 	 * @since 4.2.0
 	 * @since 4.6.0 More accurately named `updatePlugin`.
 	 *
-	 * @param {object}               args         Arguments.
+	 * @param {Object}               args         Arguments.
 	 * @param {string}               args.plugin  Plugin basename.
 	 * @param {string}               args.slug    Plugin slug.
 	 * @param {updatePluginSuccess=} args.success Optional. Success callback. Default: wp.updates.updatePluginSuccess
@@ -364,7 +443,8 @@
 	 *                     decorated with an abort() method.
 	 */
 	wp.updates.updatePlugin = function( args ) {
-		var $updateRow, $card, $message, message;
+		var $updateRow, $card, $message, message,
+			$adminBarUpdates = $( '#wp-admin-bar-updates' );
 
 		args = _.extend( {
 			success: wp.updates.updatePluginSuccess,
@@ -392,6 +472,8 @@
 			$card.removeClass( 'plugin-card-update-failed' ).find( '.notice.notice-error' ).remove();
 		}
 
+		$adminBarUpdates.addClass( 'spin' );
+
 		if ( $message.html() !== __( 'Updating...' ) ) {
 			$message.data( 'originaltext', $message.html() );
 		}
@@ -412,7 +494,7 @@
 	 * @since 4.6.0 More accurately named `updatePluginSuccess`.
 	 * @since 5.5.0 Auto-update "time to next update" text cleared.
 	 *
-	 * @param {object} response            Response from the server.
+	 * @param {Object} response            Response from the server.
 	 * @param {string} response.slug       Slug of the plugin to be updated.
 	 * @param {string} response.plugin     Basename of the plugin to be updated.
 	 * @param {string} response.pluginName Name of the plugin to be updated.
@@ -420,7 +502,8 @@
 	 * @param {string} response.newVersion New version of the plugin.
 	 */
 	wp.updates.updatePluginSuccess = function( response ) {
-		var $pluginRow, $updateMessage, newText;
+		var $pluginRow, $updateMessage, newText,
+			$adminBarUpdates = $( '#wp-admin-bar-updates' );
 
 		if ( 'plugins' === pagenow || 'plugins-network' === pagenow ) {
 			$pluginRow     = $( 'tr[data-plugin="' + response.plugin + '"]' )
@@ -441,6 +524,8 @@
 				.removeClass( 'updating-message' )
 				.addClass( 'button-disabled updated-message' );
 		}
+
+		$adminBarUpdates.removeClass( 'spin' );
 
 		$updateMessage
 			.attr(
@@ -466,7 +551,7 @@
 	 * @since 4.2.0
 	 * @since 4.6.0 More accurately named `updatePluginError`.
 	 *
-	 * @param {object}  response              Response from the server.
+	 * @param {Object}  response              Response from the server.
 	 * @param {string}  response.slug         Slug of the plugin to be updated.
 	 * @param {string}  response.plugin       Basename of the plugin to be updated.
 	 * @param {string=} response.pluginName   Optional. Name of the plugin to be updated.
@@ -474,7 +559,8 @@
 	 * @param {string}  response.errorMessage The error that occurred.
 	 */
 	wp.updates.updatePluginError = function( response ) {
-		var $card, $message, errorMessage;
+		var $card, $message, errorMessage,
+			$adminBarUpdates = $( '#wp-admin-bar-updates' );
 
 		if ( ! wp.updates.isValidResponse( response, 'update' ) ) {
 			return;
@@ -486,7 +572,7 @@
 
 		errorMessage = sprintf(
 			/* translators: %s: Error string for a failed update. */
-			__( 'Update Failed: %s' ),
+			__( 'Update failed: %s' ),
 			response.errorMessage
 		);
 
@@ -504,7 +590,7 @@
 						'aria-label',
 						sprintf(
 							/* translators: %s: Plugin name and version. */
-							_x( '%s update failed', 'plugin' ),
+							_x( '%s update failed.', 'plugin' ),
 							response.pluginName
 						)
 					);
@@ -520,7 +606,7 @@
 				} ) );
 
 			$card.find( '.update-now' )
-				.text(  __( 'Update Failed!' ) )
+				.text(  __( 'Update failed.' ) )
 				.removeClass( 'updating-message' );
 
 			if ( response.pluginName ) {
@@ -529,7 +615,7 @@
 						'aria-label',
 						sprintf(
 							/* translators: %s: Plugin name and version. */
-							_x( '%s update failed', 'plugin' ),
+							_x( '%s update failed.', 'plugin' ),
 							response.pluginName
 						)
 					);
@@ -543,7 +629,7 @@
 				setTimeout( function() {
 					$card
 						.removeClass( 'plugin-card-update-failed' )
-						.find( '.column-name a' ).focus();
+						.find( '.column-name a' ).trigger( 'focus' );
 
 					$card.find( '.update-now' )
 						.attr( 'aria-label', false )
@@ -551,6 +637,8 @@
 				}, 200 );
 			} );
 		}
+
+		$adminBarUpdates.removeClass( 'spin' );
 
 		wp.a11y.speak( errorMessage, 'assertive' );
 
@@ -562,7 +650,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object}                args         Arguments.
+	 * @param {Object}                args         Arguments.
 	 * @param {string}                args.slug    Plugin identifier in the WordPress.org Plugin repository.
 	 * @param {installPluginSuccess=} args.success Optional. Success callback. Default: wp.updates.installPluginSuccess
 	 * @param {installPluginError=}   args.error   Optional. Error callback. Default: wp.updates.installPluginError
@@ -613,7 +701,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object} response             Response from the server.
+	 * @param {Object} response             Response from the server.
 	 * @param {string} response.slug        Slug of the installed plugin.
 	 * @param {string} response.pluginName  Name of the installed plugin.
 	 * @param {string} response.activateUrl URL to activate the just installed plugin.
@@ -678,7 +766,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object}  response              Response from the server.
+	 * @param {Object}  response              Response from the server.
 	 * @param {string}  response.slug         Slug of the plugin to be installed.
 	 * @param {string=} response.pluginName   Optional. Name of the plugin to be installed.
 	 * @param {string}  response.errorCode    Error code for the error that occurred.
@@ -713,7 +801,7 @@
 			setTimeout( function() {
 				$card
 					.removeClass( 'plugin-card-update-failed' )
-					.find( '.column-name a' ).focus();
+					.find( '.column-name a' ).trigger( 'focus' );
 			}, 200 );
 		} );
 
@@ -727,7 +815,7 @@
 					$button.data( 'name' )
 				)
 			)
-			.text( __( 'Installation Failed!' ) );
+			.text( __( 'Installation failed.' ) );
 
 		wp.a11y.speak( errorMessage, 'assertive' );
 
@@ -739,7 +827,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object} response             Response from the server.
+	 * @param {Object} response             Response from the server.
 	 * @param {string} response.slug        Slug of the installed plugin.
 	 * @param {string} response.pluginName  Name of the installed plugin.
 	 * @param {string} response.activateUrl URL to activate the just installed plugin.
@@ -778,7 +866,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object}  response              Response from the server.
+	 * @param {Object}  response              Response from the server.
 	 * @param {string}  response.slug         Slug of the plugin to be installed.
 	 * @param {string=} response.pluginName   Optional. Name of the plugin to be installed.
 	 * @param {string}  response.errorCode    Error code for the error that occurred.
@@ -813,8 +901,8 @@
 				'aria-label',
 				sprintf(
 					/* translators: %s: Plugin name. */
-					 _x( 'Install %s now', 'plugin' ),
-					 pluginName
+					_x( 'Install %s now', 'plugin' ),
+					pluginName
 				)
 			)
 			.text( __( 'Install Now' ) );
@@ -829,7 +917,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object}               args         Arguments.
+	 * @param {Object}               args         Arguments.
 	 * @param {string}               args.plugin  Basename of the plugin to be deleted.
 	 * @param {string}               args.slug    Slug of the plugin to be deleted.
 	 * @param {deletePluginSuccess=} args.success Optional. Success callback. Default: wp.updates.deletePluginSuccess
@@ -932,6 +1020,24 @@
 				}
 			}
 
+			if ( -1 !== _.indexOf( plugins['auto-update-enabled'], response.plugin ) ) {
+				plugins['auto-update-enabled'] = _.without( plugins['auto-update-enabled'], response.plugin );
+				if ( plugins['auto-update-enabled'].length ) {
+					$views.find( '.auto-update-enabled .count' ).text( '(' + plugins['auto-update-enabled'].length + ')' );
+				} else {
+					$views.find( '.auto-update-enabled' ).remove();
+				}
+			}
+
+			if ( -1 !== _.indexOf( plugins['auto-update-disabled'], response.plugin ) ) {
+				plugins['auto-update-disabled'] = _.without( plugins['auto-update-disabled'], response.plugin );
+				if ( plugins['auto-update-disabled'].length ) {
+					$views.find( '.auto-update-disabled .count' ).text( '(' + plugins['auto-update-disabled'].length + ')' );
+				} else {
+					$views.find( '.auto-update-disabled' ).remove();
+				}
+			}
+
 			plugins.all = _.without( plugins.all, response.plugin );
 
 			if ( plugins.all.length ) {
@@ -956,7 +1062,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object}  response              Response from the server.
+	 * @param {Object}  response              Response from the server.
 	 * @param {string}  response.slug         Slug of the plugin to be deleted.
 	 * @param {string}  response.plugin       Base name of the plugin to be deleted
 	 * @param {string=} response.pluginName   Optional. Name of the plugin to be deleted.
@@ -1013,7 +1119,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object}              args         Arguments.
+	 * @param {Object}              args         Arguments.
 	 * @param {string}              args.slug    Theme stylesheet.
 	 * @param {updateThemeSuccess=} args.success Optional. Success callback. Default: wp.updates.updateThemeSuccess
 	 * @param {updateThemeError=}   args.error   Optional. Error callback. Default: wp.updates.updateThemeError
@@ -1069,9 +1175,9 @@
 	 * @since 4.6.0
 	 * @since 5.5.0 Auto-update "time to next update" text cleared.
 	 *
-	 * @param {object} response
+	 * @param {Object} response
 	 * @param {string} response.slug       Slug of the theme to be updated.
-	 * @param {object} response.theme      Updated theme.
+	 * @param {Object} response.theme      Updated theme.
 	 * @param {string} response.oldVersion Old version of the theme.
 	 * @param {string} response.newVersion New version of the theme.
 	 */
@@ -1109,10 +1215,10 @@
 
 			// Focus on Customize button after updating.
 			if ( isModalOpen ) {
-				$( '.load-customize:visible' ).focus();
+				$( '.load-customize:visible' ).trigger( 'focus' );
 				$( '.theme-info .theme-autoupdate' ).find( '.auto-update-time' ).empty();
 			} else {
-				$theme.find( '.load-customize' ).focus();
+				$theme.find( '.load-customize' ).trigger( 'focus' );
 			}
 		}
 
@@ -1134,7 +1240,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object} response              Response from the server.
+	 * @param {Object} response              Response from the server.
 	 * @param {string} response.slug         Slug of the theme to be updated.
 	 * @param {string} response.errorCode    Error code for the error that occurred.
 	 * @param {string} response.errorMessage The error that occurred.
@@ -1143,7 +1249,7 @@
 		var $theme       = $( '[data-slug="' + response.slug + '"]' ),
 			errorMessage = sprintf(
 				/* translators: %s: Error string for a failed update. */
-				 __( 'Update Failed: %s' ),
+				 __( 'Update failed: %s' ),
 				response.errorMessage
 			),
 			$notice;
@@ -1165,7 +1271,7 @@
 		} else {
 			$notice = $( '.theme-info .notice' ).add( $theme.find( '.notice' ) );
 
-			$( 'body.modal-open' ).length ? $( '.load-customize:visible' ).focus() : $theme.find( '.load-customize' ).focus();
+			$( 'body.modal-open' ).length ? $( '.load-customize:visible' ).trigger( 'focus' ) : $theme.find( '.load-customize' ).trigger( 'focus');
 		}
 
 		wp.updates.addAdminNotice( {
@@ -1184,7 +1290,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object}               args
+	 * @param {Object}               args
 	 * @param {string}               args.slug    Theme stylesheet.
 	 * @param {installThemeSuccess=} args.success Optional. Success callback. Default: wp.updates.installThemeSuccess
 	 * @param {installThemeError=}   args.error   Optional. Error callback. Default: wp.updates.installThemeError
@@ -1231,7 +1337,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object} response              Response from the server.
+	 * @param {Object} response              Response from the server.
 	 * @param {string} response.slug         Slug of the theme to be installed.
 	 * @param {string} response.customizeUrl URL to the Customizer for the just installed theme.
 	 * @param {string} response.activateUrl  URL to activate the just installed theme.
@@ -1310,7 +1416,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object} response              Response from the server.
+	 * @param {Object} response              Response from the server.
 	 * @param {string} response.slug         Slug of the theme to be installed.
 	 * @param {string} response.errorCode    Error code for the error that occurred.
 	 * @param {string} response.errorMessage The error that occurred.
@@ -1364,7 +1470,7 @@
 					$button.data( 'name' )
 				)
 			)
-			.text( __( 'Installation Failed!' ) );
+			.text( __( 'Installation failed.' ) );
 
 		wp.a11y.speak( errorMessage, 'assertive' );
 
@@ -1376,7 +1482,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object}              args
+	 * @param {Object}              args
 	 * @param {string}              args.slug    Theme stylesheet.
 	 * @param {deleteThemeSuccess=} args.success Optional. Success callback. Default: wp.updates.deleteThemeSuccess
 	 * @param {deleteThemeError=}   args.error   Optional. Error callback. Default: wp.updates.deleteThemeError
@@ -1418,7 +1524,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object} response      Response from the server.
+	 * @param {Object} response      Response from the server.
 	 * @param {string} response.slug Slug of the theme that was deleted.
 	 */
 	wp.updates.deleteThemeSuccess = function( response ) {
@@ -1430,7 +1536,7 @@
 			$themeRows.css( { backgroundColor: '#faafaa' } ).fadeOut( 350, function() {
 				var $views     = $( '.subsubsub' ),
 					$themeRow  = $( this ),
-					totals     = settings.themes,
+					themes     = settings.themes,
 					deletedRow = wp.template( 'item-deleted-row' );
 
 				if ( ! $themeRow.hasClass( 'plugin-update-tr' ) ) {
@@ -1446,23 +1552,43 @@
 				$themeRow.remove();
 
 				// Remove theme from update count.
-				if ( $themeRow.hasClass( 'update' ) ) {
-					totals.upgrade--;
+				if ( -1 !== _.indexOf( themes.upgrade, response.slug ) ) {
+					themes.upgrade = _.without( themes.upgrade, response.slug );
 					wp.updates.decrementCount( 'theme' );
 				}
 
 				// Remove from views.
-				if ( $themeRow.hasClass( 'inactive' ) ) {
-					totals.disabled--;
-					if ( totals.disabled ) {
-						$views.find( '.disabled .count' ).text( '(' + totals.disabled + ')' );
+				if ( -1 !== _.indexOf( themes.disabled, response.slug ) ) {
+					themes.disabled = _.without( themes.disabled, response.slug );
+					if ( themes.disabled.length ) {
+						$views.find( '.disabled .count' ).text( '(' + themes.disabled.length + ')' );
 					} else {
 						$views.find( '.disabled' ).remove();
 					}
 				}
 
+				if ( -1 !== _.indexOf( themes['auto-update-enabled'], response.slug ) ) {
+					themes['auto-update-enabled'] = _.without( themes['auto-update-enabled'], response.slug );
+					if ( themes['auto-update-enabled'].length ) {
+						$views.find( '.auto-update-enabled .count' ).text( '(' + themes['auto-update-enabled'].length + ')' );
+					} else {
+						$views.find( '.auto-update-enabled' ).remove();
+					}
+				}
+
+				if ( -1 !== _.indexOf( themes['auto-update-disabled'], response.slug ) ) {
+					themes['auto-update-disabled'] = _.without( themes['auto-update-disabled'], response.slug );
+					if ( themes['auto-update-disabled'].length ) {
+						$views.find( '.auto-update-disabled .count' ).text( '(' + themes['auto-update-disabled'].length + ')' );
+					} else {
+						$views.find( '.auto-update-disabled' ).remove();
+					}
+				}
+
+				themes.all = _.without( themes.all, response.slug );
+
 				// There is always at least one theme available.
-				$views.find( '.all .count' ).text( '(' + --totals.all + ')' );
+				$views.find( '.all .count' ).text( '(' + themes.all.length + ')' );
 			} );
 		}
 
@@ -1476,7 +1602,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object} response              Response from the server.
+	 * @param {Object} response              Response from the server.
 	 * @param {string} response.slug         Slug of the theme to be deleted.
 	 * @param {string} response.errorCode    Error code for the error that occurred.
 	 * @param {string} response.errorMessage The error that occurred.
@@ -1531,9 +1657,9 @@
 	 * @since 4.6.0
 	 * @private
 	 *
-	 * @param {object} data   Ajax payload.
+	 * @param {Object} data   Ajax payload.
 	 * @param {string} action The type of request to perform.
-	 * @return {object} The Ajax payload with the appropriate callbacks.
+	 * @return {Object} The Ajax payload with the appropriate callbacks.
 	 */
 	wp.updates._addCallbacks = function( data, action ) {
 		if ( 'import' === pagenow && 'install-plugin' === action ) {
@@ -1642,11 +1768,11 @@
 
 			// #upgrade button must always be the last focus-able element in the dialog.
 			if ( 'upgrade' === event.target.id && ! event.shiftKey ) {
-				$( '#hostname' ).focus();
+				$( '#hostname' ).trigger( 'focus' );
 
 				event.preventDefault();
 			} else if ( 'hostname' === event.target.id && event.shiftKey ) {
-				$( '#upgrade' ).focus();
+				$( '#upgrade' ).trigger( 'focus' );
 
 				event.preventDefault();
 			}
@@ -1663,7 +1789,7 @@
 
 		$( 'body' ).addClass( 'modal-open' );
 		$modal.show();
-		$modal.find( 'input:enabled:first' ).focus();
+		$modal.find( 'input:enabled:first' ).trigger( 'focus' );
 		$modal.on( 'keydown', wp.updates.keydown );
 	};
 
@@ -1677,7 +1803,7 @@
 		$( 'body' ).removeClass( 'modal-open' );
 
 		if ( wp.updates.$elToReturnFocusToFromCredentialsModal ) {
-			wp.updates.$elToReturnFocusToFromCredentialsModal.focus();
+			wp.updates.$elToReturnFocusToFromCredentialsModal.trigger( 'focus' );
 		}
 	};
 
@@ -1725,7 +1851,7 @@
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param {object} response Ajax response.
+	 * @param {Object} response Ajax response.
 	 * @param {string} action   The type of request to perform.
 	 */
 	wp.updates.credentialError = function( response, action ) {
@@ -1753,7 +1879,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {object} response              Response from the server.
+	 * @param {Object} response              Response from the server.
 	 * @param {string} response.errorCode    Error code for the error that occurred.
 	 * @param {string} response.errorMessage The error that occurred.
 	 * @param {string} action                The type of request to perform.
@@ -1773,7 +1899,7 @@
 	 *
 	 * If the response deems to be invalid, an admin notice is being displayed.
 	 *
-	 * @param {(object|string)} response              Response from the server.
+	 * @param {(Object|string)} response              Response from the server.
 	 * @param {function=}       response.always       Optional. Callback for when the Deferred is resolved or rejected.
 	 * @param {string=}         response.statusText   Optional. Status message corresponding to the status code.
 	 * @param {string=}         response.responseText Optional. Request response as text.
@@ -1804,7 +1930,7 @@
 		switch ( action ) {
 			case 'update':
 				/* translators: %s: Error string for a failed update. */
-				errorMessage = __( 'Update Failed: %s' );
+				errorMessage = __( 'Update failed: %s' );
 				break;
 
 			case 'install':
@@ -1838,7 +1964,7 @@
 			.removeClass( 'updating-message' )
 			.removeAttr( 'aria-label' )
 			.prop( 'disabled', true )
-			.text( __( 'Update Failed!' ) );
+			.text( __( 'Update failed.' ) );
 
 		$( '.updating-message:not(.button):not(.thickbox)' )
 			.removeClass( 'updating-message notice-warning' )
@@ -1928,7 +2054,7 @@
 		 */
 		$filesystemForm.on( 'change', 'input[name="connection_type"]', function() {
 			$( '#ssh-keys' ).toggleClass( 'hidden', ( 'ssh' !== $( this ).val() ) );
-		} ).change();
+		} ).trigger( 'change' );
 
 		/**
 		 * Handles events after the credential modal was closed.
@@ -2505,8 +2631,8 @@
 				var $subTitle    = $( '<span />' ).addClass( 'subtitle' ).html(
 					sprintf(
 						/* translators: %s: Search query. */
-						__( 'Search results for &#8220;%s&#8221;' ),
-						_.escape( data.s )
+						__( 'Search results for: %s' ),
+						'<strong>' + _.escape( data.s ) + '</strong>'
 					) ),
 					$oldSubTitle = $( '.wrap .subtitle' );
 
@@ -2648,7 +2774,7 @@
 			}
 
 			try {
-				message = $.parseJSON( originalEvent.data );
+				message = JSON.parse( originalEvent.data );
 			} catch ( e ) {
 				return;
 			}

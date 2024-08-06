@@ -163,7 +163,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		// Override them.
 		$this->skin->api = $api;
 
-		$this->strings['process_success_specific'] = $this->strings['parent_theme_install_success']; //, $api->name, $api->version );
+		$this->strings['process_success_specific'] = $this->strings['parent_theme_install_success'];
 
 		$this->skin->feedback( 'parent_theme_prepare_install', $api->name, $api->version );
 
@@ -239,6 +239,7 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		add_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
 		add_filter( 'upgrader_post_install', array( $this, 'check_parent_theme_filter' ), 10, 3 );
+
 		if ( $parsed_args['clear_update_cache'] ) {
 			// Clear cache so wp_update_themes() knows about the new theme.
 			add_action( 'upgrader_process_complete', 'wp_clean_themes_cache', 9, 0 );
@@ -248,7 +249,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			array(
 				'package'           => $package,
 				'destination'       => get_theme_root(),
-				'clear_destination' => $args['overwrite_package'],
+				'clear_destination' => $parsed_args['overwrite_package'],
 				'clear_working'     => true,
 				'hook_extra'        => array(
 					'type'   => 'theme',
@@ -269,16 +270,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		wp_clean_themes_cache( $parsed_args['clear_update_cache'] );
 
 		if ( $parsed_args['overwrite_package'] ) {
-			/**
-			 * Fires when the upgrader has successfully overwritten a currently installed
-			 * plugin or theme with an uploaded zip package.
-			 *
-			 * @since 5.5.0
-			 *
-			 * @param string  $package        The package file.
-			 * @param array   $new_theme_data The new theme data.
-			 * @param string  $package_type   The package type (plugin or theme).
-			 */
+			/** This action is documented in wp-admin/includes/class-plugin-upgrader.php */
 			do_action( 'upgrader_overwrote_package', $package, $this->new_theme_data, 'theme' );
 		}
 
@@ -336,9 +328,14 @@ class Theme_Upgrader extends WP_Upgrader {
 				'clear_destination' => true,
 				'clear_working'     => true,
 				'hook_extra'        => array(
-					'theme'  => $theme,
-					'type'   => 'theme',
-					'action' => 'update',
+					'theme'       => $theme,
+					'type'        => 'theme',
+					'action'      => 'update',
+					'temp_backup' => array(
+						'slug' => $theme,
+						'src'  => get_theme_root( $theme ),
+						'dir'  => 'themes',
+					),
 				),
 			)
 		);
@@ -451,12 +448,17 @@ class Theme_Upgrader extends WP_Upgrader {
 					'clear_working'     => true,
 					'is_multi'          => true,
 					'hook_extra'        => array(
-						'theme' => $theme,
+						'theme'       => $theme,
+						'temp_backup' => array(
+							'slug' => $theme,
+							'src'  => get_theme_root( $theme ),
+							'dir'  => 'themes',
+						),
 					),
 				)
 			);
 
-			$results[ $theme ] = $this->result;
+			$results[ $theme ] = $result;
 
 			// Prevent credentials auth screen from displaying multiple times.
 			if ( false === $result ) {
@@ -509,21 +511,20 @@ class Theme_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Check that the package source contains a valid theme.
+	 * Checks that the package source contains a valid theme.
 	 *
 	 * Hooked to the {@see 'upgrader_source_selection'} filter by Theme_Upgrader::install().
-	 * It will return an error if the theme doesn't have style.css or index.php
-	 * files.
 	 *
 	 * @since 3.3.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 * @global string             $wp_version    The WordPress version string.
 	 *
-	 * @param string $source The full path to the package source.
-	 * @return string|WP_Error The source or a WP_Error.
+	 * @param string $source The path to the downloaded package source.
+	 * @return string|WP_Error The source as passed, or a WP_Error object on failure.
 	 */
 	public function check_package( $source ) {
-		global $wp_filesystem;
+		global $wp_filesystem, $wp_version;
 
 		$this->new_theme_data = array();
 
@@ -588,7 +589,32 @@ class Theme_Upgrader extends WP_Upgrader {
 			);
 		}
 
+		$requires_php = isset( $info['RequiresPHP'] ) ? $info['RequiresPHP'] : null;
+		$requires_wp  = isset( $info['RequiresWP'] ) ? $info['RequiresWP'] : null;
+
+		if ( ! is_php_version_compatible( $requires_php ) ) {
+			$error = sprintf(
+				/* translators: 1: Current PHP version, 2: Version required by the uploaded theme. */
+				__( 'The PHP version on your server is %1$s, however the uploaded theme requires %2$s.' ),
+				phpversion(),
+				$requires_php
+			);
+
+			return new WP_Error( 'incompatible_php_required_version', $this->strings['incompatible_archive'], $error );
+		}
+		if ( ! is_wp_version_compatible( $requires_wp ) ) {
+			$error = sprintf(
+				/* translators: 1: Current WordPress version, 2: Version required by the uploaded theme. */
+				__( 'Your WordPress version is %1$s, however the uploaded theme requires %2$s.' ),
+				$wp_version,
+				$requires_wp
+			);
+
+			return new WP_Error( 'incompatible_wp_required_version', $this->strings['incompatible_archive'], $error );
+		}
+
 		$this->new_theme_data = $info;
+
 		return $source;
 	}
 

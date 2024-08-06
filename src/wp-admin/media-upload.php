@@ -51,7 +51,7 @@ if ( ! empty( $_REQUEST['post_id'] ) && ! current_user_can( 'edit_post', $_REQUE
 
 // Upload type: image, video, file, ...?
 if ( isset( $_GET['type'] ) ) {
-	$type = strval( $_GET['type'] );
+	$type = (string) $_GET['type'];
 } else {
 	/**
 	 * Filters the default media upload type in the legacy (pre-3.5.0) media popup.
@@ -66,14 +66,14 @@ if ( isset( $_GET['type'] ) ) {
 
 // Tab: gallery, library, or type-specific.
 if ( isset( $_GET['tab'] ) ) {
-	$tab = strval( $_GET['tab'] );
+	$tab = (string) $_GET['tab'];
 } else {
 	/**
 	 * Filters the default tab in the legacy (pre-3.5.0) media popup.
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $type The default media popup tab. Default 'type' (From Computer).
+	 * @param string $tab The default media popup tab. Default 'type' (From Computer).
 	 */
 	$tab = apply_filters( 'media_upload_default_tab', 'type' );
 }
@@ -87,12 +87,18 @@ if ( 'type' === $tab || 'type_url' === $tab || ! array_key_exists( $tab, media_u
 	 * media popup based on the current tab.
 	 *
 	 * The dynamic portion of the hook name, `$type`, refers to the specific
-	 * media upload type. Possible values include 'image', 'audio', 'video',
-	 * 'file', etc.
+	 * media upload type.
 	 *
 	 * The hook only fires if the current `$tab` is 'type' (From Computer),
 	 * 'type_url' (From URL), or, if the tab does not exist (i.e., has not
 	 * been registered via the {@see 'media_upload_tabs'} filter.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `media_upload_audio`
+	 *  - `media_upload_file`
+	 *  - `media_upload_image`
+	 *  - `media_upload_video`
 	 *
 	 * @since 2.5.0
 	 */

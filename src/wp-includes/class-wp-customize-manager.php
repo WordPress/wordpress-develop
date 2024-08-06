@@ -346,7 +346,7 @@ final class WP_Customize_Manager {
 		 * @see WP_Customize_Manager::__construct()
 		 *
 		 * @param string[]             $components Array of core components to load.
-		 * @param WP_Customize_Manager $this       WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager   WP_Customize_Manager instance.
 		 */
 		$components = apply_filters( 'customize_loaded_components', $this->components, $this );
 
@@ -691,7 +691,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'start_previewing_theme', $this );
 	}
@@ -729,7 +729,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'stop_previewing_theme', $this );
 	}
@@ -928,7 +928,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'customize_register', $this );
 
@@ -1185,7 +1185,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @param array $starter_content Starter content. Defaults to `get_theme_starter_content()`.
 	 */
-	function import_theme_starter_content( $starter_content = array() ) {
+	public function import_theme_starter_content( $starter_content = array() ) {
 		if ( empty( $starter_content ) ) {
 			$starter_content = get_theme_starter_content();
 		}
@@ -1230,6 +1230,8 @@ final class WP_Customize_Manager {
 					if ( $settings instanceof ArrayObject || $settings instanceof ArrayIterator ) {
 						$settings = $settings->getArrayCopy();
 					}
+
+					unset( $settings['_multiwidget'] );
 
 					// Find the max widget number for this type.
 					$widget_numbers = array_keys( $settings );
@@ -1461,7 +1463,7 @@ final class WP_Customize_Manager {
 					preg_match( '#^nav_menu\[(?P<nav_menu_id>-?\d+)\]$#', $setting_id, $matches )
 				);
 				if ( $can_reuse ) {
-					$nav_menu_term_id              = intval( $matches['nav_menu_id'] );
+					$nav_menu_term_id              = (int) $matches['nav_menu_id'];
 					$nav_menu_setting_id           = $setting_id;
 					$reused_nav_menu_setting_ids[] = $setting_id;
 					break;
@@ -1857,8 +1859,8 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param mixed                $value Unsanitized setting post value.
-		 * @param WP_Customize_Manager $this  WP_Customize_Manager instance.
+		 * @param mixed                $value   Unsanitized setting post value.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( "customize_post_value_set_{$setting_id}", $value, $this );
 
@@ -1874,7 +1876,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @param string               $setting_id Setting ID.
 		 * @param mixed                $value      Unsanitized setting post value.
-		 * @param WP_Customize_Manager $this       WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager    WP_Customize_Manager instance.
 		 */
 		do_action( 'customize_post_value_set', $setting_id, $value, $this );
 	}
@@ -1898,7 +1900,7 @@ final class WP_Customize_Manager {
 			nocache_headers();
 			header( 'X-Robots: noindex, nofollow, noarchive' );
 		}
-		add_action( 'wp_head', 'wp_no_robots' );
+		add_filter( 'wp_robots', 'wp_robots_no_robots' );
 		add_filter( 'wp_headers', array( $this, 'filter_iframe_security_headers' ) );
 
 		/*
@@ -1907,7 +1909,14 @@ final class WP_Customize_Manager {
 		 * that the user's session has expired and they need to re-authenticate.
 		 */
 		if ( $this->messenger_channel && ! current_user_can( 'customize' ) ) {
-			$this->wp_die( -1, __( 'Unauthorized. You may remove the customize_messenger_channel param to preview as frontend.' ) );
+			$this->wp_die(
+				-1,
+				sprintf(
+					/* translators: %s: customize_messenger_channel */
+					__( 'Unauthorized. You may remove the %s param to preview as frontend.' ),
+					'<code>customize_messenger_channel<code>'
+				)
+			);
 			return;
 		}
 
@@ -1928,13 +1937,13 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'customize_preview_init', $this );
 	}
 
 	/**
-	 * Filter the X-Frame-Options and Content-Security-Policy headers to ensure frontend can load in customizer.
+	 * Filters the X-Frame-Options and Content-Security-Policy headers to ensure frontend can load in customizer.
 	 *
 	 * @since 4.7.0
 	 *
@@ -2292,7 +2301,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param $current_theme {@internal Parameter is not used}
+	 * @param mixed $current_theme {@internal Parameter is not used}
 	 * @return string Theme name.
 	 */
 	public function current_theme( $current_theme ) {
@@ -2388,7 +2397,7 @@ final class WP_Customize_Manager {
 			$notification = array();
 			foreach ( $validity->errors as $error_code => $error_messages ) {
 				$notification[ $error_code ] = array(
-					'message' => join( ' ', $error_messages ),
+					'message' => implode( ' ', $error_messages ),
 					'data'    => $validity->get_error_data( $error_code ),
 				);
 			}
@@ -2583,7 +2592,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @param array                $response Additional information passed back to the 'saved'
 		 *                                       event on `wp.customize`.
-		 * @param WP_Customize_Manager $this     WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager  WP_Customize_Manager instance.
 		 */
 		$response = apply_filters( 'customize_save_response', $response, $this );
 
@@ -2613,7 +2622,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @return array|WP_Error Returns array on success and WP_Error with array data on error.
 	 */
-	function save_changeset_post( $args = array() ) {
+	public function save_changeset_post( $args = array() ) {
 
 		$args = array_merge(
 			array(
@@ -2751,7 +2760,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 4.6.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'customize_save_validation_before', $this );
 
@@ -3096,6 +3105,8 @@ final class WP_Customize_Manager {
 		/** This action is documented in wp-includes/post.php */
 		do_action( 'wp_insert_post', $post->ID, $post, true );
 
+		wp_after_insert_post( get_post( $post_id ), true, $post );
+
 		wp_trash_post_comments( $post_id );
 
 		/** This action is documented in wp-includes/post.php */
@@ -3259,7 +3270,7 @@ final class WP_Customize_Manager {
 		$lock = explode( ':', $lock );
 
 		if ( $lock && ! empty( $lock[1] ) ) {
-			$user_id         = intval( $lock[1] );
+			$user_id         = (int) $lock[1];
 			$current_user_id = get_current_user_id();
 			if ( $user_id === $current_user_id ) {
 				$lock = sprintf( '%s:%s', time(), $user_id );
@@ -3269,7 +3280,7 @@ final class WP_Customize_Manager {
 	}
 
 	/**
-	 * Filter heartbeat settings for the Customizer.
+	 * Filters heartbeat settings for the Customizer.
 	 *
 	 * @since 4.9.0
 	 * @param array $settings Current settings to filter.
@@ -3896,14 +3907,20 @@ final class WP_Customize_Manager {
 	public function remove_panel( $id ) {
 		// Removing core components this way is _doing_it_wrong().
 		if ( in_array( $id, $this->components, true ) ) {
-			$message = sprintf(
-				/* translators: 1: Panel ID, 2: Link to 'customize_loaded_components' filter reference. */
-				__( 'Removing %1$s manually will cause PHP warnings. Use the %2$s filter instead.' ),
-				$id,
-				'<a href="' . esc_url( 'https://developer.wordpress.org/reference/hooks/customize_loaded_components/' ) . '"><code>customize_loaded_components</code></a>'
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: 1: Panel ID, 2: Link to 'customize_loaded_components' filter reference. */
+					__( 'Removing %1$s manually will cause PHP warnings. Use the %2$s filter instead.' ),
+					$id,
+					sprintf(
+						'<a href="%1$s">%2$s</a>',
+						esc_url( 'https://developer.wordpress.org/reference/hooks/customize_loaded_components/' ),
+						'<code>customize_loaded_components</code>'
+					)
+				),
+				'4.5.0'
 			);
-
-			_doing_it_wrong( __METHOD__, $message, '4.5.0' );
 		}
 		unset( $this->panels[ $id ] );
 	}
@@ -4262,7 +4279,7 @@ final class WP_Customize_Manager {
 		<script type="text/html" id="tmpl-customize-changeset-locked-notification">
 			<li class="notice notice-{{ data.type || 'info' }} {{ data.containerClasses || '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
 				<div class="notification-message customize-changeset-locked-message">
-					<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}">
+					<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}" />
 					<p class="currently-editing">
 						<# if ( data.message ) { #>
 							{{{ data.message }}}
@@ -4671,7 +4688,7 @@ final class WP_Customize_Manager {
 
 			/*
 			 * If the return URL is a page added by a theme to the Appearance menu via add_submenu_page(),
-			 * verify that belongs to the active theme, otherwise fall back to the Themes screen.
+			 * verify that it belongs to the active theme, otherwise fall back to the Themes screen.
 			 */
 			if ( isset( $query_vars['page'] ) && ! isset( $_registered_pages[ "appearance_page_{$query_vars['page']}" ] ) ) {
 				$return_url = admin_url( 'themes.php' );
@@ -4689,9 +4706,9 @@ final class WP_Customize_Manager {
 	 * @param array $autofocus {
 	 *     Mapping of 'panel', 'section', 'control' to the ID which should be autofocused.
 	 *
-	 *     @type string [$control]  ID for control to be autofocused.
-	 *     @type string [$section]  ID for section to be autofocused.
-	 *     @type string [$panel]    ID for panel to be autofocused.
+	 *     @type string $control ID for control to be autofocused.
+	 *     @type string $section ID for section to be autofocused.
+	 *     @type string $panel   ID for panel to be autofocused.
 	 * }
 	 */
 	public function set_autofocus( $autofocus ) {
@@ -4706,9 +4723,9 @@ final class WP_Customize_Manager {
 	 * @return array {
 	 *     Mapping of 'panel', 'section', 'control' to the ID which should be autofocused.
 	 *
-	 *     @type string [$control]  ID for control to be autofocused.
-	 *     @type string [$section]  ID for section to be autofocused.
-	 *     @type string [$panel]    ID for panel to be autofocused.
+	 *     @type string $control ID for control to be autofocused.
+	 *     @type string $section ID for section to be autofocused.
+	 *     @type string $panel   ID for panel to be autofocused.
 	 * }
 	 */
 	public function get_autofocus() {
@@ -4737,9 +4754,9 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 4.2.0
 		 *
-		 * @param string[]             $nonces Array of refreshed nonces for save and
-		 *                                     preview actions.
-		 * @param WP_Customize_Manager $this   WP_Customize_Manager instance.
+		 * @param string[]             $nonces  Array of refreshed nonces for save and
+		 *                                      preview actions.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		$nonces = apply_filters( 'customize_refresh_nonces', $nonces, $this );
 
@@ -5945,7 +5962,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string $value Repeat value.
+	 * @param string               $value   Repeat value.
 	 * @param WP_Customize_Setting $setting Setting.
 	 * @return string|WP_Error Background value or validation error.
 	 */
@@ -5987,9 +6004,9 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param array $response Response.
+	 * @param array                          $response          Response.
 	 * @param WP_Customize_Selective_Refresh $selective_refresh Selective refresh component.
-	 * @param array $partials Array of partials.
+	 * @param array                          $partials          Array of partials.
 	 * @return array
 	 */
 	public function export_header_video_settings( $response, $selective_refresh, $partials ) {
@@ -6008,7 +6025,7 @@ final class WP_Customize_Manager {
 	 * @since 4.7.0
 	 *
 	 * @param WP_Error $validity
-	 * @param mixed $value
+	 * @param mixed    $value
 	 * @return mixed
 	 */
 	public function _validate_header_video( $validity, $value ) {
@@ -6044,7 +6061,7 @@ final class WP_Customize_Manager {
 	 * @since 4.7.0
 	 *
 	 * @param WP_Error $validity
-	 * @param mixed $value
+	 * @param mixed    $value
 	 * @return mixed
 	 */
 	public function _validate_external_header_video( $validity, $value ) {

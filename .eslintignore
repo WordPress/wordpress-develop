@@ -1,0 +1,15 @@
+# Files and folders related to build/test tools
+/build
+/node_modules
+/tests
+/vendor
+/tools
+
+# Excluded files and folders based on `jsdoc.conf.json` exclusions
+/src/js/_enqueues/vendor
+
+# Webpack built files
+/src/wp-includes/js/media-*
+
+# Themes
+src/wp-content/themes/

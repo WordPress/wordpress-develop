@@ -40,7 +40,7 @@ final class WP_Post_Type {
 	 * @see get_post_type_labels()
 	 *
 	 * @since 4.6.0
-	 * @var object $labels
+	 * @var stdClass $labels
 	 */
 	public $labels;
 
@@ -123,7 +123,7 @@ final class WP_Post_Type {
 	 * Default is the value of $show_ui.
 	 *
 	 * @since 4.6.0
-	 * @var bool $show_in_menu
+	 * @var bool|string $show_in_menu
 	 */
 	public $show_in_menu = null;
 
@@ -158,7 +158,7 @@ final class WP_Post_Type {
 	public $menu_position = null;
 
 	/**
-	 * The URL to the icon to be used for this menu.
+	 * The URL or reference to the icon to be used for this menu.
 	 *
 	 * Pass a base64-encoded SVG using a data URI, which will be colored to match the color scheme.
 	 * This should begin with 'data:image/svg+xml;base64,'. Pass the name of a Dashicons helper class
@@ -250,15 +250,48 @@ final class WP_Post_Type {
 	/**
 	 * Whether to delete posts of this type when deleting a user.
 	 *
-	 * If true, posts of this type belonging to the user will be moved to Trash when then user is deleted.
-	 * If false, posts of this type belonging to the user will *not* be trashed or deleted.
-	 * If not set (the default), posts are trashed if post_type_supports( 'author' ).
-	 * Otherwise posts are not trashed or deleted. Default null.
+	 * - If true, posts of this type belonging to the user will be moved to Trash when the user is deleted.
+	 * - If false, posts of this type belonging to the user will *not* be trashed or deleted.
+	 * - If not set (the default), posts are trashed if post type supports the 'author' feature.
+	 *   Otherwise posts are not trashed or deleted.
+	 *
+	 * Default null.
 	 *
 	 * @since 4.6.0
 	 * @var bool $delete_with_user
 	 */
 	public $delete_with_user = null;
+
+	/**
+	 * Array of blocks to use as the default initial state for an editor session.
+	 *
+	 * Each item should be an array containing block name and optional attributes.
+	 *
+	 * Default empty array.
+	 *
+	 * @link https://developer.wordpress.org/block-editor/developers/block-api/block-templates/
+	 *
+	 * @since 5.0.0
+	 * @var array $template
+	 */
+	public $template = array();
+
+	/**
+	 * Whether the block template should be locked if $template is set.
+	 *
+	 * - If set to 'all', the user is unable to insert new blocks, move existing blocks
+	 *   and delete blocks.
+	 * - If set to 'insert', the user is able to move existing blocks but is unable to insert
+	 *   new blocks and delete blocks.
+	 *
+	 * Default false.
+	 *
+	 * @link https://developer.wordpress.org/block-editor/developers/block-api/block-templates/
+	 *
+	 * @since 5.0.0
+	 * @var string|false $template_lock
+	 */
+	public $template_lock = false;
 
 	/**
 	 * Whether this post type is a native or "built-in" post_type.
@@ -284,7 +317,7 @@ final class WP_Post_Type {
 	 * Post type capabilities.
 	 *
 	 * @since 4.6.0
-	 * @var object $cap
+	 * @var stdClass $cap
 	 */
 	public $cap;
 
@@ -326,6 +359,14 @@ final class WP_Post_Type {
 	public $rest_base;
 
 	/**
+	 * The namespace for this post type's REST API endpoints.
+	 *
+	 * @since 5.9.0
+	 * @var string|bool $rest_namespace
+	 */
+	public $rest_namespace;
+
+	/**
 	 * The controller for this post type's REST API endpoints.
 	 *
 	 * Custom controllers must extend WP_REST_Controller.
@@ -348,6 +389,8 @@ final class WP_Post_Type {
 	/**
 	 * Constructor.
 	 *
+	 * See the register_post_type() function for accepted arguments for `$args`.
+	 *
 	 * Will populate object properties from the provided arguments and assign other
 	 * default properties based on that information.
 	 *
@@ -368,6 +411,8 @@ final class WP_Post_Type {
 	/**
 	 * Sets post type properties.
 	 *
+	 * See the register_post_type() function for accepted arguments for `$args`.
+	 *
 	 * @since 4.6.0
 	 *
 	 * @param array|string $args Array or string of arguments for registering a post type.
@@ -381,6 +426,7 @@ final class WP_Post_Type {
 		 * @since 4.4.0
 		 *
 		 * @param array  $args      Array of arguments for registering a post type.
+		 *                          See the register_post_type() function for accepted arguments.
 		 * @param string $post_type Post type key.
 		 */
 		$args = apply_filters( 'register_post_type_args', $args, $this->name );
@@ -414,7 +460,10 @@ final class WP_Post_Type {
 			'delete_with_user'      => null,
 			'show_in_rest'          => false,
 			'rest_base'             => false,
+			'rest_namespace'        => false,
 			'rest_controller_class' => false,
+			'template'              => array(),
+			'template_lock'         => false,
 			'_builtin'              => false,
 			'_edit_link'            => 'post.php?post=%d',
 		);
@@ -431,6 +480,11 @@ final class WP_Post_Type {
 		// If not set, default to the setting for 'public'.
 		if ( null === $args['show_ui'] ) {
 			$args['show_ui'] = $args['public'];
+		}
+
+		// If not set, default rest_namespace to wp/v2 if show_in_rest is true.
+		if ( false === $args['rest_namespace'] && ! empty( $args['show_in_rest'] ) ) {
+			$args['rest_namespace'] = 'wp/v2';
 		}
 
 		// If not set, default to the setting for 'show_ui'.

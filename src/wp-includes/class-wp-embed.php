@@ -31,6 +31,7 @@ class WP_Embed {
 		// Hack to get the [embed] shortcode to run before wpautop().
 		add_filter( 'the_content', array( $this, 'run_shortcode' ), 8 );
 		add_filter( 'widget_text_content', array( $this, 'run_shortcode' ), 8 );
+		add_filter( 'widget_block_content', array( $this, 'run_shortcode' ), 8 );
 
 		// Shortcode placeholder for strip_shortcodes().
 		add_shortcode( 'embed', '__return_false' );
@@ -38,6 +39,7 @@ class WP_Embed {
 		// Attempts to embed all URLs in a post.
 		add_filter( 'the_content', array( $this, 'autoembed' ), 8 );
 		add_filter( 'widget_text_content', array( $this, 'autoembed' ), 8 );
+		add_filter( 'widget_block_content', array( $this, 'autoembed' ), 8 );
 
 		// After a post is saved, cache oEmbed items via Ajax.
 		add_action( 'edit_form_advanced', array( $this, 'maybe_run_ajax_cache' ) );
@@ -84,11 +86,10 @@ class WP_Embed {
 		if ( ! $post || empty( $_GET['message'] ) ) {
 			return;
 		}
-
 		?>
 <script type="text/javascript">
 	jQuery(document).ready(function($){
-		$.get("<?php echo admin_url( 'admin-ajax.php?action=oembed-cache&post=' . $post->ID, 'relative' ); ?>");
+		$.get("<?php echo esc_url( admin_url( 'admin-ajax.php', 'relative' ) ) . '?action=oembed-cache&post=' . $post->ID; ?>");
 	});
 </script>
 		<?php
@@ -101,10 +102,12 @@ class WP_Embed {
 	 *
 	 * This function should probably also only be used for sites that do not support oEmbed.
 	 *
-	 * @param string $id An internal ID/name for the handler. Needs to be unique.
-	 * @param string $regex The regex that will be used to see if this handler should be used for a URL.
+	 * @param string   $id       An internal ID/name for the handler. Needs to be unique.
+	 * @param string   $regex    The regex that will be used to see if this handler should be used for a URL.
 	 * @param callable $callback The callback function that will be called if the regex is matched.
-	 * @param int $priority Optional. Used to specify the order in which the registered handlers will be tested (default: 10). Lower numbers correspond with earlier testing, and handlers with the same priority are tested in the order in which they were added to the action.
+	 * @param int      $priority Optional. Used to specify the order in which the registered handlers will be tested.
+	 *                           Lower numbers correspond with earlier testing, and handlers with the same priority are
+	 *                           tested in the order in which they were added to the action. Default 10.
 	 */
 	public function register_handler( $id, $regex, $callback, $priority = 10 ) {
 		$this->handlers[ $priority ][ $id ] = array(
@@ -118,8 +121,8 @@ class WP_Embed {
 	 *
 	 * Do not use this function directly, use wp_embed_unregister_handler() instead.
 	 *
-	 * @param string $id The handler ID that should be removed.
-	 * @param int $priority Optional. The priority of the handler to be removed (default: 10).
+	 * @param string $id       The handler ID that should be removed.
+	 * @param int    $priority Optional. The priority of the handler to be removed (default: 10).
 	 */
 	public function unregister_handler( $id, $priority = 10 ) {
 		unset( $this->handlers[ $priority ][ $id ] );
@@ -133,7 +136,7 @@ class WP_Embed {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param array $attr {
+	 * @param array  $attr {
 	 *     Shortcode attributes. Optional.
 	 *
 	 *     @type int $width  Width of the embed in pixels.
@@ -179,7 +182,7 @@ class WP_Embed {
 	 * the registered embed handlers. If none of the regex matches and it's enabled, then the URL
 	 * will be given to the WP_oEmbed class.
 	 *
-	 * @param array $attr {
+	 * @param array  $attr {
 	 *     Shortcode attributes. Optional.
 	 *
 	 *     @type int $width  Width of the embed in pixels.

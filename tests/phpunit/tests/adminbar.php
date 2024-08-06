@@ -14,13 +14,13 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 	protected static $user_ids = array();
 
-	public static function setUpBeforeClass() {
-		require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
 
-		parent::setUpBeforeClass();
+		require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
 	}
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$user_ids[] = self::$editor_id;
 		self::$admin_id   = $factory->user->create( array( 'role' => 'administrator' ) );
@@ -32,7 +32,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	/**
 	 * @ticket 21117
 	 */
-	function test_content_post_type() {
+	public function test_content_post_type() {
 		wp_set_current_user( self::$editor_id );
 
 		register_post_type( 'content', array( 'show_in_admin_bar' => true ) );
@@ -43,7 +43,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$nodes = $admin_bar->get_nodes();
 		$this->assertFalse( $nodes['new-content']->parent );
-		$this->assertEquals( 'new-content', $nodes['add-new-content']->parent );
+		$this->assertSame( 'new-content', $nodes['add-new-content']->parent );
 
 		_unregister_post_type( 'content' );
 	}
@@ -51,7 +51,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	/**
 	 * @ticket 21117
 	 */
-	function test_merging_existing_meta_values() {
+	public function test_merging_existing_meta_values() {
 		wp_set_current_user( self::$editor_id );
 
 		$admin_bar = new WP_Admin_Bar;
@@ -64,7 +64,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 
 		$node1 = $admin_bar->get_node( 'test-node' );
-		$this->assertEquals( array( 'class' => 'test-class' ), $node1->meta );
+		$this->assertSame( array( 'class' => 'test-class' ), $node1->meta );
 
 		$admin_bar->add_node(
 			array(
@@ -74,7 +74,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 
 		$node2 = $admin_bar->get_node( 'test-node' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'class'     => 'test-class',
 				'some-meta' => 'value',
@@ -100,7 +100,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$node_edit_profile = $wp_admin_bar->get_node( 'edit-profile' );
 
 		// Site menu points to the home page instead of the admin URL.
-		$this->assertEquals( home_url( '/' ), $node_site_name->href );
+		$this->assertSame( home_url( '/' ), $node_site_name->href );
 
 		// No profile links as the user doesn't have any permissions on the site.
 		$this->assertFalse( $node_my_account->href );
@@ -125,14 +125,14 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$node_edit_profile = $wp_admin_bar->get_node( 'edit-profile' );
 
 		// Site menu points to the admin URL.
-		$this->assertEquals( admin_url( '/' ), $node_site_name->href );
+		$this->assertSame( admin_url( '/' ), $node_site_name->href );
 
 		$profile_url = admin_url( 'profile.php' );
 
 		// Profile URLs point to profile.php.
-		$this->assertEquals( $profile_url, $node_my_account->href );
-		$this->assertEquals( $profile_url, $node_user_info->href );
-		$this->assertEquals( $profile_url, $node_edit_profile->href );
+		$this->assertSame( $profile_url, $node_my_account->href );
+		$this->assertSame( $profile_url, $node_user_info->href );
+		$this->assertSame( $profile_url, $node_edit_profile->href );
 	}
 
 	/**
@@ -166,7 +166,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		// Get primary blog.
 		$primary = get_active_blog_for_user( self::$editor_id );
-		$this->assertInternalType( 'object', $primary );
+		$this->assertIsObject( $primary );
 
 		// No Site menu as the user isn't a member of this blog.
 		$this->assertNull( $node_site_name );
@@ -177,9 +177,9 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertNotEquals( $primary_profile_url, admin_url( 'profile.php' ) );
 
 		// Profile URLs should go to the user's primary blog.
-		$this->assertEquals( $primary_profile_url, $node_my_account->href );
-		$this->assertEquals( $primary_profile_url, $node_user_info->href );
-		$this->assertEquals( $primary_profile_url, $node_edit_profile->href );
+		$this->assertSame( $primary_profile_url, $node_my_account->href );
+		$this->assertSame( $primary_profile_url, $node_user_info->href );
+		$this->assertSame( $primary_profile_url, $node_edit_profile->href );
 
 		restore_current_blog();
 	}
@@ -232,9 +232,9 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertNotEquals( $user_profile_url, admin_url( 'profile.php' ) );
 
 		// Profile URLs should go to the user's primary blog.
-		$this->assertEquals( $user_profile_url, $node_my_account->href );
-		$this->assertEquals( $user_profile_url, $node_user_info->href );
-		$this->assertEquals( $user_profile_url, $node_edit_profile->href );
+		$this->assertSame( $user_profile_url, $node_my_account->href );
+		$this->assertSame( $user_profile_url, $node_user_info->href );
+		$this->assertSame( $user_profile_url, $node_edit_profile->href );
 
 		restore_current_blog();
 	}
@@ -264,7 +264,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$admin_bar = new WP_Admin_Bar();
 		$admin_bar->add_node( $node_data );
 		$admin_bar_html = get_echo( array( $admin_bar, 'render' ) );
-		$this->assertContains( $expected_html, $admin_bar_html );
+		$this->assertStringContainsString( $expected_html, $admin_bar_html );
 	}
 
 	/**
@@ -400,8 +400,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
-
 		$this->assertNull( $node );
 	}
 
@@ -415,8 +413,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
-
 		$this->assertNotNull( $node );
 	}
 
@@ -428,8 +424,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
-
-		set_current_screen( 'front' );
 
 		$this->assertNull( $node );
 	}
@@ -463,7 +457,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$about_node   = $wp_admin_bar->get_node( 'about' );
 
 		$this->assertNotNull( $wp_logo_node );
-		$this->assertSame( false, $wp_logo_node->href );
+		$this->assertFalse( $wp_logo_node->href );
 		$this->assertArrayHasKey( 'tabindex', $wp_logo_node->meta );
 		$this->assertSame( 0, $wp_logo_node->meta['tabindex'] );
 		$this->assertNull( $about_node );
@@ -508,7 +502,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
 		unregister_post_type( 'foo-non-public' );
 
 		$this->assertNull( $node );
@@ -532,7 +525,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
 		unregister_post_type( 'foo-non-public' );
 
 		$this->assertNull( $node );
@@ -556,7 +548,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
 		unregister_post_type( 'foo-non-public' );
 
 		$this->assertNull( $node );
@@ -679,7 +670,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 		$wp_customize->start_previewing_theme();
 
-		set_current_screen( 'front' );
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'customize' );
 		$this->assertNotEmpty( $node );
@@ -687,8 +677,8 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$parsed_url   = wp_parse_url( $node->href );
 		$query_params = array();
 		wp_parse_str( $parsed_url['query'], $query_params );
-		$this->assertEquals( $uuid, $query_params['changeset_uuid'] );
-		$this->assertNotContains( 'changeset_uuid', $query_params['url'] );
+		$this->assertSame( $uuid, $query_params['changeset_uuid'] );
+		$this->assertStringNotContainsString( 'changeset_uuid', $query_params['url'] );
 	}
 
 	/**
@@ -702,7 +692,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
-			$this->assertFalse( isset( $nodes[ $id ] ), sprintf( 'Menu item %s must not display for a regular user.', $id ) );
+			$this->assertArrayNotHasKey( $id, $nodes, sprintf( 'Menu item %s must not display for a regular user.', $id ) );
 		}
 	}
 
@@ -719,7 +709,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
-			$this->assertTrue( isset( $nodes[ $id ] ), sprintf( 'Menu item %s must display for a super admin.', $id ) );
+			$this->assertArrayHasKey( $id, $nodes, sprintf( 'Menu item %s must display for a super admin.', $id ) );
 		}
 	}
 
@@ -745,9 +735,9 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
 			if ( in_array( $cap, $network_user_caps, true ) ) {
-				$this->assertTrue( isset( $nodes[ $id ] ), sprintf( 'Menu item %1$s must display for a user with the %2$s cap.', $id, $cap ) );
+				$this->assertArrayHasKey( $id, $nodes, sprintf( 'Menu item %1$s must display for a user with the %2$s cap.', $id, $cap ) );
 			} else {
-				$this->assertFalse( isset( $nodes[ $id ] ), sprintf( 'Menu item %1$s must not display for a user without the %2$s cap.', $id, $cap ) );
+				$this->assertArrayNotHasKey( $id, $nodes, sprintf( 'Menu item %1$s must not display for a user without the %2$s cap.', $id, $cap ) );
 			}
 		}
 	}

@@ -70,7 +70,7 @@ window.wp = window.wp || {};
 
 		// Proxy all methods so this always refers to the current instance.
 		for ( key in this ) {
-			if ( $.isFunction( this[ key ] ) ) {
+			if ( typeof this[ key ] === 'function' ) {
 				this[ key ] = $.proxy( this[ key ], this );
 			}
 		}
@@ -284,7 +284,7 @@ window.wp = window.wp || {};
 			}
 
 			// 'dragenter' doesn't fire correctly, simulate it with a limited 'dragover'.
-			dropzone.bind( 'dragover.wp-uploader', function() {
+			dropzone.on( 'dragover.wp-uploader', function() {
 				if ( timer ) {
 					clearTimeout( timer );
 				}
@@ -297,7 +297,7 @@ window.wp = window.wp || {};
 				active = true;
 			});
 
-			dropzone.bind('dragleave.wp-uploader, drop.wp-uploader', function() {
+			dropzone.on('dragleave.wp-uploader, drop.wp-uploader', function() {
 				/*
 				 * Using an instant timer prevents the drag-over class
 				 * from being quickly removed and re-added when elements
@@ -358,6 +358,11 @@ window.wp = window.wp || {};
 						data:    {},
 						file:    file
 					});
+				} else if ( file.type === 'image/webp' && up.settings.webp_upload_error ) {
+					// Disallow uploading of WebP images if the server cannot edit them.
+					error( pluploadL10n.noneditable_image, {}, file, 'no-retry' );
+					up.removeFile( file );
+					return;
 				}
 
 				// Generate attributes for a new `Attachment` model.
@@ -440,7 +445,7 @@ window.wp = window.wp || {};
 				if ( pluploadError.code === plupload[ key ] ) {
 					message = Uploader.errorMap[ key ];
 
-					if ( _.isFunction( message ) ) {
+					if ( typeof message === 'function' ) {
 						message = message( pluploadError.file, pluploadError );
 					}
 

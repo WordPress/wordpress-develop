@@ -46,6 +46,9 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
+	 * Action to perform before installing a plugin.
+	 *
+	 * @since 2.8.0
 	 */
 	public function before() {
 		if ( ! empty( $this->api ) ) {
@@ -62,7 +65,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param $wp_error WP_Error.
+	 * @param WP_Error $wp_error WP_Error object.
 	 * @return bool
 	 */
 	public function hide_process_failed( $wp_error ) {
@@ -78,6 +81,9 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
+	 * Action to perform following a plugin install.
+	 *
+	 * @since 2.8.0
 	 */
 	public function after() {
 		// Check if the plugin can be overwritten and output the HTML.
@@ -101,7 +107,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['activate_plugin'] = sprintf(
 				'<a class="button button-primary" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( 'plugins.php?action=activate&amp;from=press-this&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ),
-				__( 'Activate Plugin &amp; Return to Press This' )
+				__( 'Activate Plugin &amp; Go to Press This' )
 			);
 		} else {
 			$install_actions['activate_plugin'] = sprintf(
@@ -124,25 +130,25 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['importers_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				admin_url( 'import.php' ),
-				__( 'Return to Importers' )
+				__( 'Go to Importers' )
 			);
 		} elseif ( 'web' === $this->type ) {
 			$install_actions['plugins_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'plugin-install.php' ),
-				__( 'Return to Plugin Installer' )
+				__( 'Go to Plugin Installer' )
 			);
 		} elseif ( 'upload' === $this->type && 'plugins' === $from ) {
 			$install_actions['plugins_page'] = sprintf(
 				'<a href="%s">%s</a>',
 				self_admin_url( 'plugin-install.php' ),
-				__( 'Return to Plugin Installer' )
+				__( 'Go to Plugin Installer' )
 			);
 		} else {
 			$install_actions['plugins_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'plugins.php' ),
-				__( 'Return to Plugins page' )
+				__( 'Go to Plugins page' )
 			);
 		}
 
@@ -202,7 +208,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			return false;
 		}
 
-		echo '<h2 class="update-from-upload-heading">' . esc_html( __( 'This plugin is already installed.' ) ) . '</h2>';
+		echo '<h2 class="update-from-upload-heading">' . esc_html__( 'This plugin is already installed.' ) . '</h2>';
 
 		$this->is_downgrading = version_compare( $current_plugin_data['Version'], $new_plugin_data['Version'], '>' );
 
@@ -215,8 +221,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		);
 
 		$table  = '<table class="update-from-upload-comparison"><tbody>';
-		$table .= '<tr><th></th><th>' . esc_html( __( 'Current' ) ) . '</th>';
-		$table .= '<th>' . esc_html( __( 'Uploaded' ) ) . '</th></tr>';
+		$table .= '<tr><th></th><th>' . esc_html_x( 'Current', 'plugin' ) . '</th>';
+		$table .= '<th>' . esc_html_x( 'Uploaded', 'plugin' ) . '</th></tr>';
 
 		$is_same_plugin = true; // Let's consider only these rows.
 
@@ -245,12 +251,12 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		 * @param array  $current_plugin_data Array with current plugin data.
 		 * @param array  $new_plugin_data     Array with uploaded plugin data.
 		 */
-		echo apply_filters( 'install_plugin_ovewrite_comparison', $table, $current_plugin_data, $new_plugin_data );
+		echo apply_filters( 'install_plugin_overwrite_comparison', $table, $current_plugin_data, $new_plugin_data );
 
 		$install_actions = array();
 		$can_update      = true;
 
-		$blocked_message  = '<p>' . esc_html( __( 'The plugin cannot be updated due to the following:' ) ) . '</p>';
+		$blocked_message  = '<p>' . esc_html__( 'The plugin cannot be updated due to the following:' ) . '</p>';
 		$blocked_message .= '<ul class="ul-disc">';
 
 		$requires_php = isset( $new_plugin_data['RequiresPHP'] ) ? $new_plugin_data['RequiresPHP'] : null;
@@ -301,10 +307,10 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 
 			$overwrite = $this->is_downgrading ? 'downgrade-plugin' : 'update-plugin';
 
-			$install_actions['ovewrite_plugin'] = sprintf(
+			$install_actions['overwrite_plugin'] = sprintf(
 				'<a class="button button-primary update-from-upload-overwrite" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( add_query_arg( 'overwrite', $overwrite, $this->url ), 'plugin-upload' ),
-				__( 'Replace current with uploaded' )
+				_x( 'Replace current with uploaded', 'plugin' )
 			);
 		} else {
 			echo $blocked_message;
@@ -319,7 +325,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		);
 
 		/**
-		 * Filters the list of action links available following a single plugin installation failed but ovewrite is allowed.
+		 * Filters the list of action links available following a single plugin installation failure
+		 * when overwriting is allowed.
 		 *
 		 * @since 5.5.0
 		 *
@@ -327,7 +334,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		 * @param object   $api             Object containing WordPress.org API plugin data.
 		 * @param array    $new_plugin_data Array with uploaded plugin data.
 		 */
-		$install_actions = apply_filters( 'install_plugin_ovewrite_actions', $install_actions, $this->api, $new_plugin_data );
+		$install_actions = apply_filters( 'install_plugin_overwrite_actions', $install_actions, $this->api, $new_plugin_data );
 
 		if ( ! empty( $install_actions ) ) {
 			printf(

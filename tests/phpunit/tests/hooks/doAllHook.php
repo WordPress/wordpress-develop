@@ -4,8 +4,9 @@
  * Test the do_all_hook method of WP_Hook
  *
  * @group hooks
+ * @covers WP_Hook::do_all_hook
  */
-class Tests_WP_Hook_Do_All_Hook extends WP_UnitTestCase {
+class Tests_Hooks_DoAllHook extends WP_UnitTestCase {
 
 	public function test_do_all_hook_with_multiple_calls() {
 		$a             = new MockAction();
@@ -21,6 +22,6 @@ class Tests_WP_Hook_Do_All_Hook extends WP_UnitTestCase {
 		$hook->do_all_hook( $args );
 		$hook->do_all_hook( $args );
 
-		$this->assertEquals( 2, $a->get_call_count() );
+		$this->assertSame( 2, $a->get_call_count() );
 	}
 }

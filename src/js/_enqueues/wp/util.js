@@ -56,9 +56,9 @@ window.wp = window.wp || {};
 		 *
 		 * Sends a POST request to WordPress.
 		 *
-		 * @param {(string|object)} action The slug of the action to fire in WordPress or options passed
+		 * @param {(string|Object)} action The slug of the action to fire in WordPress or options passed
 		 *                                 to jQuery.ajax.
-		 * @param {object=}         data   Optional. The data to populate $_POST with.
+		 * @param {Object=}         data   Optional. The data to populate $_POST with.
 		 * @return {$.promise} A jQuery promise that represents the request,
 		 *                     decorated with an abort() method.
 		 */
@@ -73,9 +73,9 @@ window.wp = window.wp || {};
 		 *
 		 * Sends a POST request to WordPress.
 		 *
-		 * @param {(string|object)} action  The slug of the action to fire in WordPress or options passed
+		 * @param {(string|Object)} action  The slug of the action to fire in WordPress or options passed
 		 *                                  to jQuery.ajax.
-		 * @param {object=}         options Optional. The options passed to jQuery.ajax.
+		 * @param {Object=}         options Optional. The options passed to jQuery.ajax.
 		 * @return {$.promise} A jQuery promise that represents the request,
 		 *                     decorated with an abort() method.
 		 */
@@ -115,6 +115,22 @@ window.wp = window.wp || {};
 					}
 
 					if ( _.isObject( response ) && ! _.isUndefined( response.success ) ) {
+
+						// When handling a media attachments request, get the total attachments from response headers.
+						var context = this;
+						deferred.done( function() {
+							if (
+								action &&
+								action.data &&
+								'query-attachments' === action.data.action &&
+								deferred.jqXHR.hasOwnProperty( 'getResponseHeader' ) &&
+								deferred.jqXHR.getResponseHeader( 'X-WP-Total' )
+							) {
+								context.totalAttachments = parseInt( deferred.jqXHR.getResponseHeader( 'X-WP-Total' ), 10 );
+							} else {
+								context.totalAttachments = 0;
+							}
+						} );
 						deferred[ response.success ? 'resolveWith' : 'rejectWith' ]( this, [response.data] );
 					} else {
 						deferred.rejectWith( this, [response] );

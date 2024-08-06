@@ -56,9 +56,16 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 	/**
 	 * Short-circuits adding metadata of a specific type.
 	 *
-	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
 	 * Returning a non-null value will effectively short-circuit the function.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `add_post_metadata`
+	 *  - `add_comment_metadata`
+	 *  - `add_term_metadata`
+	 *  - `add_user_metadata`
 	 *
 	 * @since 3.1.0
 	 *
@@ -89,8 +96,15 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 	/**
 	 * Fires immediately before meta of a specific type is added.
 	 *
-	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `add_post_meta`
+	 *  - `add_comment_meta`
+	 *  - `add_term_meta`
+	 *  - `add_user_meta`
 	 *
 	 * @since 3.1.0
 	 *
@@ -120,8 +134,15 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 	/**
 	 * Fires immediately after meta of a specific type is added.
 	 *
-	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `added_post_meta`
+	 *  - `added_comment_meta`
+	 *  - `added_term_meta`
+	 *  - `added_user_meta`
 	 *
 	 * @since 2.9.0
 	 *
@@ -155,7 +176,6 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  *                  and was therefore added, true on successful update,
  *                  false on failure or if the value passed to the function
  *                  is the same as the one that is already in the database.
-
  */
 function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_value = '' ) {
 	global $wpdb;
@@ -189,9 +209,16 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 	/**
 	 * Short-circuits updating metadata of a specific type.
 	 *
-	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
 	 * Returning a non-null value will effectively short-circuit the function.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `update_post_metadata`
+	 *  - `update_comment_metadata`
+	 *  - `update_term_metadata`
+	 *  - `update_user_metadata`
 	 *
 	 * @since 3.1.0
 	 *
@@ -241,8 +268,15 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 		/**
 		 * Fires immediately before updating metadata of a specific type.
 		 *
-		 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+		 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 		 * (post, comment, term, user, or any other type with an associated meta table).
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `update_post_meta`
+		 *  - `update_comment_meta`
+		 *  - `update_term_meta`
+		 *  - `update_user_meta`
 		 *
 		 * @since 2.9.0
 		 *
@@ -280,8 +314,15 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 		/**
 		 * Fires immediately after updating metadata of a specific type.
 		 *
-		 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+		 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 		 * (post, comment, term, user, or any other type with an associated meta table).
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `updated_post_meta`
+		 *  - `updated_comment_meta`
+		 *  - `updated_term_meta`
+		 *  - `updated_user_meta`
 		 *
 		 * @since 2.9.0
 		 *
@@ -360,9 +401,16 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
 	/**
 	 * Short-circuits deleting metadata of a specific type.
 	 *
-	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
 	 * Returning a non-null value will effectively short-circuit the function.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `delete_post_metadata`
+	 *  - `delete_comment_metadata`
+	 *  - `delete_term_metadata`
+	 *  - `delete_user_metadata`
 	 *
 	 * @since 3.1.0
 	 *
@@ -408,8 +456,15 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
 	/**
 	 * Fires immediately before deleting metadata of a specific type.
 	 *
-	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `delete_post_meta`
+	 *  - `delete_comment_meta`
+	 *  - `delete_term_meta`
+	 *  - `delete_user_meta`
 	 *
 	 * @since 3.1.0
 	 *
@@ -451,8 +506,15 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
 	/**
 	 * Fires immediately after deleting metadata of a specific type.
 	 *
-	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `deleted_post_meta`
+	 *  - `deleted_comment_meta`
+	 *  - `deleted_term_meta`
+	 *  - `deleted_user_meta`
 	 *
 	 * @since 2.9.0
 	 *
@@ -485,7 +547,8 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  * or an array of values if it's false.
  *
  * If the meta field does not exist, the result depends on get_metadata_default().
- * By default, an empty string is returned if `$single` is true, or an empty array if it's false.
+ * By default, an empty string is returned if `$single` is true, or an empty array
+ * if it's false.
  *
  * @since 2.9.0
  *
@@ -497,10 +560,13 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  * @param int    $object_id ID of the object metadata is for.
  * @param string $meta_key  Optional. Metadata key. If not specified, retrieve all metadata for
  *                          the specified object. Default empty.
- * @param bool   $single    Optional. If true, return only the first value of the specified meta_key.
- *                          This parameter has no effect if meta_key is not specified. Default false.
- * @return mixed Single metadata value, or array of values.
- *               False if there's a problem with the parameters passed to the function.
+ * @param bool   $single    Optional. If true, return only the first value of the specified `$meta_key`.
+ *                          This parameter has no effect if `$meta_key` is not specified. Default false.
+ * @return mixed An array of values if `$single` is false.
+ *               The value of the meta field if `$single` is true.
+ *               False for an invalid `$object_id` (non-numeric, zero, or negative value),
+ *               or if `$meta_type` is not specified.
+ *               An empty string if a valid but non-existing object ID is passed.
  */
 function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false ) {
 	$value = get_metadata_raw( $meta_type, $object_id, $meta_key, $single );
@@ -508,7 +574,7 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false )
 		return $value;
 	}
 
-	return get_metadata_default( $meta_type, $meta_key, $single, $object_id );
+	return get_metadata_default( $meta_type, $object_id, $meta_key, $single );
 }
 
 /**
@@ -521,10 +587,13 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false )
  * @param int    $object_id ID of the object metadata is for.
  * @param string $meta_key  Optional. Metadata key. If not specified, retrieve all metadata for
  *                          the specified object. Default empty.
- * @param bool   $single    Optional. If true, return only the first value of the specified meta_key.
- *                          This parameter has no effect if meta_key is not specified. Default false.
- * @return mixed Single metadata value, or array of values. Null if the value does not exist.
- *               False if there's a problem with the parameters passed to the function.
+ * @param bool   $single    Optional. If true, return only the first value of the specified `$meta_key`.
+ *                          This parameter has no effect if `$meta_key` is not specified. Default false.
+ * @return mixed An array of values if `$single` is false.
+ *               The value of the meta field if `$single` is true.
+ *               False for an invalid `$object_id` (non-numeric, zero, or negative value),
+ *               or if `$meta_type` is not specified.
+ *               Null if the value does not exist.
  */
 function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = false ) {
 	if ( ! $meta_type || ! is_numeric( $object_id ) ) {
@@ -539,19 +608,29 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 	/**
 	 * Short-circuits the return value of a meta field.
 	 *
-	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
 	 * Returning a non-null value will effectively short-circuit the function.
 	 *
+	 * Possible filter names include:
+	 *
+	 *  - `get_post_metadata`
+	 *  - `get_comment_metadata`
+	 *  - `get_term_metadata`
+	 *  - `get_user_metadata`
+	 *
 	 * @since 3.1.0
+	 * @since 5.5.0 Added the `$meta_type` parameter.
 	 *
 	 * @param mixed  $value     The value to return, either a single metadata value or an array
 	 *                          of values depending on the value of `$single`. Default null.
 	 * @param int    $object_id ID of the object metadata is for.
 	 * @param string $meta_key  Metadata key.
 	 * @param bool   $single    Whether to return only the first value of the specified `$meta_key`.
+	 * @param string $meta_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+	 *                          or any other object type with an associated meta table.
 	 */
-	$check = apply_filters( "get_{$meta_type}_metadata", null, $object_id, $meta_key, $single );
+	$check = apply_filters( "get_{$meta_type}_metadata", null, $object_id, $meta_key, $single, $meta_type );
 	if ( null !== $check ) {
 		if ( $single && is_array( $check ) ) {
 			return $check[0];
@@ -587,21 +666,23 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 }
 
 /**
- * Retrieves default metadata value for the specified object.
+ * Retrieves default metadata value for the specified meta key and object.
  *
- * By default, an empty string is returned if `$single` is true, or an empty array if it's false.
+ * By default, an empty string is returned if `$single` is true, or an empty array
+ * if it's false.
  *
  * @since 5.5.0
  *
  * @param string $meta_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
  *                          or any other object type with an associated meta table.
+ * @param int    $object_id ID of the object metadata is for.
  * @param string $meta_key  Metadata key.
- * @param bool   $single    Optional. If true, return only the first value of the specified meta_key.
- *                          This parameter has no effect if meta_key is not specified. Default false.
- * @param int    $object_id Optional. ID of the object metadata is for. Default 0.
- * @return mixed Single metadata value, or array of values.
+ * @param bool   $single    Optional. If true, return only the first value of the specified `$meta_key`.
+ *                          This parameter has no effect if `$meta_key` is not specified. Default false.
+ * @return mixed An array of default values if `$single` is false.
+ *               The default value of the meta field if `$single` is true.
  */
-function get_metadata_default( $meta_type, $meta_key, $single = false, $object_id = 0 ) {
+function get_metadata_default( $meta_type, $object_id, $meta_key, $single = false ) {
 	if ( $single ) {
 		$value = '';
 	} else {
@@ -609,22 +690,29 @@ function get_metadata_default( $meta_type, $meta_key, $single = false, $object_i
 	}
 
 	/**
-	 * Filter the default value for a specified object.
+	 * Filters the default metadata value for a specified meta key and object.
 	 *
-	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
+	 *
+	 * Possible filter names include:
+	 *
+	 *  - `default_post_metadata`
+	 *  - `default_comment_metadata`
+	 *  - `default_term_metadata`
+	 *  - `default_user_metadata`
 	 *
 	 * @since 5.5.0
 	 *
 	 * @param mixed  $value     The value to return, either a single metadata value or an array
 	 *                          of values depending on the value of `$single`.
-	 * @param string $meta_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
-	 *                          or any other object type with an associated meta table.
+	 * @param int    $object_id ID of the object metadata is for.
 	 * @param string $meta_key  Metadata key.
 	 * @param bool   $single    Whether to return only the first value of the specified `$meta_key`.
-	 * @param int    $object_id ID of the object metadata is for.
+	 * @param string $meta_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+	 *                          or any other object type with an associated meta table.
 	 */
-	$value = apply_filters( "default_{$meta_type}_metadata", $value, $meta_type, $meta_key, $single, $object_id );
+	$value = apply_filters( "default_{$meta_type}_metadata", $value, $object_id, $meta_key, $single, $meta_type );
 
 	if ( ! $single && ! wp_is_numeric_array( $value ) ) {
 		$value = array( $value );
@@ -655,7 +743,7 @@ function metadata_exists( $meta_type, $object_id, $meta_key ) {
 	}
 
 	/** This filter is documented in wp-includes/meta.php */
-	$check = apply_filters( "get_{$meta_type}_metadata", null, $object_id, $meta_key, true );
+	$check = apply_filters( "get_{$meta_type}_metadata", null, $object_id, $meta_key, true, $meta_type );
 	if ( null !== $check ) {
 		return (bool) $check;
 	}
@@ -704,7 +792,7 @@ function get_metadata_by_mid( $meta_type, $meta_id ) {
 		return false;
 	}
 
-	$meta_id = intval( $meta_id );
+	$meta_id = (int) $meta_id;
 	if ( $meta_id <= 0 ) {
 		return false;
 	}
@@ -717,9 +805,16 @@ function get_metadata_by_mid( $meta_type, $meta_id ) {
 	/**
 	 * Short-circuits the return value when fetching a meta field by meta ID.
 	 *
-	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
 	 * Returning a non-null value will effectively short-circuit the function.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `get_post_metadata_by_mid`
+	 *  - `get_comment_metadata_by_mid`
+	 *  - `get_term_metadata_by_mid`
+	 *  - `get_user_metadata_by_mid`
 	 *
 	 * @since 5.0.0
 	 *
@@ -753,11 +848,11 @@ function get_metadata_by_mid( $meta_type, $meta_id ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string $meta_type  Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
- *                           or any other object type with an associated meta table.
- * @param int    $meta_id    ID for a specific meta row.
- * @param string $meta_value Metadata value. Must be serializable if non-scalar.
- * @param string $meta_key   Optional. You can provide a meta key to update it. Default false.
+ * @param string       $meta_type  Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+ *                                 or any other object type with an associated meta table.
+ * @param int          $meta_id    ID for a specific meta row.
+ * @param string       $meta_value Metadata value. Must be serializable if non-scalar.
+ * @param string|false $meta_key   Optional. You can provide a meta key to update it. Default false.
  * @return bool True on successful update, false on failure.
  */
 function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = false ) {
@@ -768,7 +863,7 @@ function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = 
 		return false;
 	}
 
-	$meta_id = intval( $meta_id );
+	$meta_id = (int) $meta_id;
 	if ( $meta_id <= 0 ) {
 		return false;
 	}
@@ -784,16 +879,23 @@ function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = 
 	/**
 	 * Short-circuits updating metadata of a specific type by meta ID.
 	 *
-	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
 	 * Returning a non-null value will effectively short-circuit the function.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `update_post_metadata_by_mid`
+	 *  - `update_comment_metadata_by_mid`
+	 *  - `update_term_metadata_by_mid`
+	 *  - `update_user_metadata_by_mid`
+	 *
 	 * @since 5.0.0
 	 *
-	 * @param null|bool   $check      Whether to allow updating metadata for the given type.
-	 * @param int         $meta_id    Meta ID.
-	 * @param mixed       $meta_value Meta value. Must be serializable if non-scalar.
-	 * @param string|bool $meta_key   Meta key, if provided.
+	 * @param null|bool    $check      Whether to allow updating metadata for the given type.
+	 * @param int          $meta_id    Meta ID.
+	 * @param mixed        $meta_value Meta value. Must be serializable if non-scalar.
+	 * @param string|false $meta_key   Meta key, if provided.
 	 */
 	$check = apply_filters( "update_{$meta_type}_metadata_by_mid", null, $meta_id, $meta_value, $meta_key );
 	if ( null !== $check ) {
@@ -883,7 +985,7 @@ function delete_metadata_by_mid( $meta_type, $meta_id ) {
 		return false;
 	}
 
-	$meta_id = intval( $meta_id );
+	$meta_id = (int) $meta_id;
 	if ( $meta_id <= 0 ) {
 		return false;
 	}
@@ -900,9 +1002,16 @@ function delete_metadata_by_mid( $meta_type, $meta_id ) {
 	/**
 	 * Short-circuits deleting metadata of a specific type by meta ID.
 	 *
-	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
 	 * Returning a non-null value will effectively short-circuit the function.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `delete_post_metadata_by_mid`
+	 *  - `delete_comment_metadata_by_mid`
+	 *  - `delete_term_metadata_by_mid`
+	 *  - `delete_user_metadata_by_mid`
 	 *
 	 * @since 5.0.0
 	 *
@@ -927,8 +1036,15 @@ function delete_metadata_by_mid( $meta_type, $meta_id ) {
 			/**
 			 * Fires immediately before deleting post or comment metadata of a specific type.
 			 *
-			 * The dynamic portion of the hook, `$meta_type`, refers to the meta
+			 * The dynamic portion of the hook name, `$meta_type`, refers to the meta
 			 * object type (post or comment).
+			 *
+			 * Possible hook names include:
+			 *
+			 *  - `delete_postmeta`
+			 *  - `delete_commentmeta`
+			 *  - `delete_termmeta`
+			 *  - `delete_usermeta`
 			 *
 			 * @since 3.4.0
 			 *
@@ -951,8 +1067,15 @@ function delete_metadata_by_mid( $meta_type, $meta_id ) {
 			/**
 			 * Fires immediately after deleting post or comment metadata of a specific type.
 			 *
-			 * The dynamic portion of the hook, `$meta_type`, refers to the meta
+			 * The dynamic portion of the hook name, `$meta_type`, refers to the meta
 			 * object type (post or comment).
+			 *
+			 * Possible hook names include:
+			 *
+			 *  - `deleted_postmeta`
+			 *  - `deleted_commentmeta`
+			 *  - `deleted_termmeta`
+			 *  - `deleted_usermeta`
 			 *
 			 * @since 3.4.0
 			 *
@@ -1005,9 +1128,16 @@ function update_meta_cache( $meta_type, $object_ids ) {
 	/**
 	 * Short-circuits updating the metadata cache of a specific type.
 	 *
-	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
 	 * Returning a non-null value will effectively short-circuit the function.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `update_post_metadata_cache`
+	 *  - `update_comment_metadata_cache`
+	 *  - `update_term_metadata_cache`
+	 *  - `update_user_metadata_cache`
 	 *
 	 * @since 5.0.0
 	 *
@@ -1037,14 +1167,14 @@ function update_meta_cache( $meta_type, $object_ids ) {
 	}
 
 	// Get meta info.
-	$id_list   = join( ',', $non_cached_ids );
+	$id_list   = implode( ',', $non_cached_ids );
 	$id_column = ( 'user' === $meta_type ) ? 'umeta_id' : 'meta_id';
 
 	$meta_list = $wpdb->get_results( "SELECT $column, meta_key, meta_value FROM $table WHERE $column IN ($id_list) ORDER BY $id_column ASC", ARRAY_A );
 
 	if ( ! empty( $meta_list ) ) {
 		foreach ( $meta_list as $metarow ) {
-			$mpid = intval( $metarow[ $column ] );
+			$mpid = (int) $metarow[ $column ];
 			$mkey = $metarow['meta_key'];
 			$mval = $metarow['meta_value'];
 
@@ -1095,7 +1225,7 @@ function wp_metadata_lazyloader() {
  *
  * @see WP_Meta_Query
  *
- * @param array $meta_query         A meta query.
+ * @param array  $meta_query        A meta query.
  * @param string $type              Type of meta.
  * @param string $primary_table     Primary database table name.
  * @param string $primary_id_column Primary ID column name.
@@ -1141,7 +1271,8 @@ function _get_meta_table( $type ) {
  * @return bool Whether the meta key is considered protected.
  */
 function is_protected_meta( $meta_key, $meta_type = '' ) {
-	$protected = ( '_' === $meta_key[0] );
+	$sanitized_key = preg_replace( "/[^\x20-\x7E\p{L}]/", '', $meta_key );
+	$protected     = strlen( $sanitized_key ) > 0 && ( '_' === $sanitized_key[0] );
 
 	/**
 	 * Filters whether a meta key is considered protected.
@@ -1223,11 +1354,12 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *              `$sanitize_callback` and `$auth_callback` have been folded into this array.
  * @since 4.9.8 The `$object_subtype` argument was added to the arguments array.
  * @since 5.3.0 Valid meta types expanded to include "array" and "object".
+ * @since 5.5.0 The `$default` argument was added to the arguments array.
  *
- * @param string $object_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
- *                            or any other object type with an associated meta table.
- * @param string $meta_key    Meta key to register.
- * @param array  $args {
+ * @param string       $object_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+ *                                  or any other object type with an associated meta table.
+ * @param string       $meta_key    Meta key to register.
+ * @param array        $args {
  *     Data used to describe the meta key when registered.
  *
  *     @type string     $object_subtype    A subtype; e.g. if the object type is "post", the post type. If left empty,
@@ -1379,15 +1511,16 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
  * @since 5.5.0
  *
  * @param mixed  $value     Current value passed to filter.
+ * @param int    $object_id ID of the object metadata is for.
+ * @param string $meta_key  Metadata key.
+ * @param bool   $single    If true, return only the first value of the specified `$meta_key`.
+ *                          This parameter has no effect if `$meta_key` is not specified.
  * @param string $meta_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
  *                          or any other object type with an associated meta table.
- * @param string $meta_key  Metadata key.
- * @param bool   $single    If true, return only the first value of the specified meta_key.
- *                          This parameter has no effect if meta_key is not specified.
- * @param int    $object_id ID of the object metadata is for.
- * @return mixed Single metadata default, or array of defaults.
+ * @return mixed An array of default values if `$single` is false.
+ *               The default value of the meta field if `$single` is true.
  */
-function filter_default_metadata( $value, $meta_type, $meta_key, $single, $object_id ) {
+function filter_default_metadata( $value, $object_id, $meta_key, $single, $meta_type ) {
 	global $wp_meta_keys;
 
 	if ( wp_installing() ) {
@@ -1411,7 +1544,7 @@ function filter_default_metadata( $value, $meta_type, $meta_key, $single, $objec
 		return $value;
 	}
 
-	// If this meta type does not have sub types, then the default is keyed as an empty string.
+	// If this meta type does not have subtypes, then the default is keyed as an empty string.
 	if ( isset( $defaults[''] ) ) {
 		$metadata = $defaults[''];
 	} else {
@@ -1641,8 +1774,15 @@ function get_object_subtype( $object_type, $object_id ) {
 	/**
 	 * Filters the object subtype identifier for a non-standard object type.
 	 *
-	 * The dynamic portion of the hook, `$object_type`, refers to the meta object type
+	 * The dynamic portion of the hook name, `$object_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `get_object_subtype_post`
+	 *  - `get_object_subtype_comment`
+	 *  - `get_object_subtype_term`
+	 *  - `get_object_subtype_user`
 	 *
 	 * @since 4.9.8
 	 *

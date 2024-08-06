@@ -4,97 +4,97 @@
  */
 class Tests_Link extends WP_UnitTestCase {
 
-	function _get_pagenum_link_cb( $url ) {
+	public function get_pagenum_link_cb( $url ) {
 		return $url . '/WooHoo';
 	}
 
 	/**
 	 * @ticket 8847
 	 */
-	function test_get_pagenum_link_case_insensitivity() {
+	public function test_get_pagenum_link_case_insensitivity() {
 		$old_req_uri = $_SERVER['REQUEST_URI'];
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
-		add_filter( 'home_url', array( $this, '_get_pagenum_link_cb' ) );
+		add_filter( 'home_url', array( $this, 'get_pagenum_link_cb' ) );
 		$_SERVER['REQUEST_URI'] = '/woohoo';
 		$paged                  = get_pagenum_link( 2 );
 
-		remove_filter( 'home_url', array( $this, '_get_pagenum_link_cb' ) );
-		$this->assertEquals( $paged, home_url( '/WooHoo/page/2/' ) );
+		remove_filter( 'home_url', array( $this, 'get_pagenum_link_cb' ) );
+		$this->assertSame( $paged, home_url( '/WooHoo/page/2/' ) );
 
 		$_SERVER['REQUEST_URI'] = $old_req_uri;
 	}
 
-	function test_wp_get_shortlink() {
+	public function test_wp_get_shortlink() {
 		$post_id  = self::factory()->post->create();
 		$post_id2 = self::factory()->post->create();
 
 		// Basic case.
-		$this->assertEquals( get_permalink( $post_id ), wp_get_shortlink( $post_id, 'post' ) );
+		$this->assertSame( get_permalink( $post_id ), wp_get_shortlink( $post_id, 'post' ) );
 
 		unset( $GLOBALS['post'] );
 
 		// Global post is not set.
-		$this->assertEquals( '', wp_get_shortlink( 0, 'post' ) );
-		$this->assertEquals( '', wp_get_shortlink( 0 ) );
-		$this->assertEquals( '', wp_get_shortlink() );
+		$this->assertSame( '', wp_get_shortlink( 0, 'post' ) );
+		$this->assertSame( '', wp_get_shortlink( 0 ) );
+		$this->assertSame( '', wp_get_shortlink() );
 
 		$GLOBALS['post'] = get_post( $post_id );
 
 		// Global post is set.
-		$this->assertEquals( get_permalink( $post_id ), wp_get_shortlink( 0, 'post' ) );
-		$this->assertEquals( get_permalink( $post_id ), wp_get_shortlink( 0 ) );
-		$this->assertEquals( get_permalink( $post_id ), wp_get_shortlink() );
+		$this->assertSame( get_permalink( $post_id ), wp_get_shortlink( 0, 'post' ) );
+		$this->assertSame( get_permalink( $post_id ), wp_get_shortlink( 0 ) );
+		$this->assertSame( get_permalink( $post_id ), wp_get_shortlink() );
 
 		// Not the global post.
-		$this->assertEquals( get_permalink( $post_id2 ), wp_get_shortlink( $post_id2, 'post' ) );
+		$this->assertSame( get_permalink( $post_id2 ), wp_get_shortlink( $post_id2, 'post' ) );
 
 		unset( $GLOBALS['post'] );
 
 		// Global post is not set, once again.
-		$this->assertEquals( '', wp_get_shortlink( 0, 'post' ) );
-		$this->assertEquals( '', wp_get_shortlink( 0 ) );
-		$this->assertEquals( '', wp_get_shortlink() );
+		$this->assertSame( '', wp_get_shortlink( 0, 'post' ) );
+		$this->assertSame( '', wp_get_shortlink( 0 ) );
+		$this->assertSame( '', wp_get_shortlink() );
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		// With a permalink structure set, get_permalink() will no longer match.
 		$this->assertNotEquals( get_permalink( $post_id ), wp_get_shortlink( $post_id, 'post' ) );
-		$this->assertEquals( home_url( '?p=' . $post_id ), wp_get_shortlink( $post_id, 'post' ) );
+		$this->assertSame( home_url( '?p=' . $post_id ), wp_get_shortlink( $post_id, 'post' ) );
 
 		// Global post and permalink structure are set.
 		$GLOBALS['post'] = get_post( $post_id );
-		$this->assertEquals( home_url( '?p=' . $post_id ), wp_get_shortlink( 0, 'post' ) );
-		$this->assertEquals( home_url( '?p=' . $post_id ), wp_get_shortlink( 0 ) );
-		$this->assertEquals( home_url( '?p=' . $post_id ), wp_get_shortlink() );
+		$this->assertSame( home_url( '?p=' . $post_id ), wp_get_shortlink( 0, 'post' ) );
+		$this->assertSame( home_url( '?p=' . $post_id ), wp_get_shortlink( 0 ) );
+		$this->assertSame( home_url( '?p=' . $post_id ), wp_get_shortlink() );
 	}
 
-	function test_wp_get_shortlink_with_page() {
+	public function test_wp_get_shortlink_with_page() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		// Basic case.
 		// Don't test against get_permalink() since it uses ?page_id= for pages.
-		$this->assertEquals( home_url( '?p=' . $post_id ), wp_get_shortlink( $post_id, 'post' ) );
+		$this->assertSame( home_url( '?p=' . $post_id ), wp_get_shortlink( $post_id, 'post' ) );
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
-		$this->assertEquals( home_url( '?p=' . $post_id ), wp_get_shortlink( $post_id, 'post' ) );
+		$this->assertSame( home_url( '?p=' . $post_id ), wp_get_shortlink( $post_id, 'post' ) );
 	}
 
 	/**
 	 * @ticket 26871
 	 */
-	function test_wp_get_shortlink_with_home_page() {
+	public function test_wp_get_shortlink_with_home_page() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', $post_id );
 
-		$this->assertEquals( home_url( '/' ), wp_get_shortlink( $post_id, 'post' ) );
+		$this->assertSame( home_url( '/' ), wp_get_shortlink( $post_id, 'post' ) );
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
-		$this->assertEquals( home_url( '/' ), wp_get_shortlink( $post_id, 'post' ) );
+		$this->assertSame( home_url( '/' ), wp_get_shortlink( $post_id, 'post' ) );
 	}
 
 	/**
@@ -108,13 +108,13 @@ class Tests_Link extends WP_UnitTestCase {
 		$p = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
-				'post_date'   => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+				'post_date'   => date_format( date_create( '+1 day' ), 'Y-m-d H:i:s' ),
 			)
 		);
 
 		$non_pretty_permalink = add_query_arg( 'p', $p, trailingslashit( home_url() ) );
 
-		$this->assertEquals( $non_pretty_permalink, get_permalink( $p ) );
+		$this->assertSame( $non_pretty_permalink, get_permalink( $p ) );
 	}
 
 	/**
@@ -131,7 +131,7 @@ class Tests_Link extends WP_UnitTestCase {
 			array(
 				'post_status' => 'future',
 				'post_type'   => 'wptests_pt',
-				'post_date'   => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+				'post_date'   => date_format( date_create( '+1 day' ), 'Y-m-d H:i:s' ),
 			)
 		);
 
@@ -143,7 +143,7 @@ class Tests_Link extends WP_UnitTestCase {
 			trailingslashit( home_url() )
 		);
 
-		$this->assertEquals( $non_pretty_permalink, get_permalink( $p ) );
+		$this->assertSame( $non_pretty_permalink, get_permalink( $p ) );
 	}
 
 	/**
@@ -204,6 +204,9 @@ class Tests_Link extends WP_UnitTestCase {
 			}
 		}
 
-		$this->assertSame( home_url( user_trailingslashit( $attachment->post_name ) ), get_permalink( $attachment_id ) );
+		$this->assertSame( home_url( "/?attachment_id={$attachment->ID}" ), get_permalink( $attachment_id ) );
+		// Visit permalink.
+		$this->go_to( get_permalink( $attachment_id ) );
+		$this->assertQueryTrue( 'is_attachment', 'is_single', 'is_singular' );
 	}
 }

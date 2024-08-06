@@ -18,6 +18,7 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+// Used in the HTML title tag.
 $title       = __( 'Settings' );
 $this_file   = 'options.php';
 $parent_file = 'options-general.php';
@@ -103,7 +104,7 @@ $allowed_options            = array(
 		'comment_previously_approved',
 		'comment_max_links',
 		'moderation_keys',
-		'blocklist_keys',
+		'disallowed_keys',
 		'show_avatars',
 		'avatar_rating',
 		'avatar_default',
@@ -211,7 +212,7 @@ $allowed_options = apply_filters_deprecated(
 	'whitelist_options',
 	array( $allowed_options ),
 	'5.5.0',
-	'apply_filters_deprecated',
+	'allowed_options',
 	__( 'Please consider writing more inclusive code.' )
 );
 
@@ -348,7 +349,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php'; ?>
 	<h1><?php esc_html_e( 'All Settings' ); ?></h1>
 
 	<div class="notice notice-warning">
-		<p><strong><?php _e( 'WARNING!' ); ?></strong> <?php _e( 'This page allows direct access to your site settings. You can break things here. Please be cautious!' ); ?></p>
+		<p><strong><?php _e( 'Warning:' ); ?></strong> <?php _e( 'This page allows direct access to your site settings. You can break things here. Please be cautious!' ); ?></p>
 	</div>
 
 	<form name="form" action="options.php" method="post" id="all-options">
@@ -392,7 +393,7 @@ foreach ( (array) $options as $option ) :
 		<textarea class="<?php echo $class; ?>" name="<?php echo $name; ?>" id="<?php echo $name; ?>" cols="30" rows="5"><?php echo esc_textarea( $value ); ?></textarea>
 	<?php else : ?>
 		<input class="regular-text <?php echo $class; ?>" type="text" name="<?php echo $name; ?>" id="<?php echo $name; ?>" value="<?php echo esc_attr( $value ); ?>"<?php disabled( $disabled, true ); ?> />
-	<?php endif ?></td>
+	<?php endif; ?></td>
 </tr>
 <?php endforeach; ?>
 </table>

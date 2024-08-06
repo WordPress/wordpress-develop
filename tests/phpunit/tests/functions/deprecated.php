@@ -3,10 +3,13 @@
 /**
  * Test cases for deprecated functions, arguments, and files
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage Unit Tests
- * @since      3.5.0
- * @group      deprecated
+ *
+ * @since 3.5.0
+ *
+ * @group functions.php
+ * @group deprecated
  */
 class Tests_Functions_Deprecated extends WP_UnitTestCase {
 
@@ -34,8 +37,8 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	/**
 	 * Sets up the test fixture.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->_deprecated_functions = array();
 		$this->_deprecated_arguments = array();
 		$this->_deprecated_files     = array();
@@ -50,14 +53,14 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	/**
 	 * Tears down the test fixture.
 	 */
-	public function teardown() {
+	public function tear_down() {
 		remove_action( 'deprecated_function_run', array( $this, 'deprecated_function' ), 10, 3 );
 		remove_action( 'deprecated_function_trigger_error', '__return_false' );
 		remove_action( 'deprecated_argument_run', array( $this, 'deprecated_argument' ), 10, 3 );
 		remove_action( 'deprecated_argument_trigger_error', '__return_false' );
 		remove_action( 'deprecated_file_included', array( $this, 'deprecated_argument' ), 10, 4 );
 		remove_action( 'deprecated_file_trigger_error', '__return_false' );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -140,12 +143,11 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	 *
 	 * @ticket 6821
 	 * @expectedDeprecated wp_save_image_file
+	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_save_image_file
 	 */
 	public function test_wp_save_image_file_deprecated_with_gd_resource() {
-		if ( ! function_exists( 'imagejpeg' ) ) {
-			$this->fail( 'jpeg support unavailable' );
-		}
-
 		// Call wp_save_image_file().
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 		$file = wp_tempnam();
@@ -163,12 +165,11 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	 * Tests that wp_save_image_file() doesn't have a deprecated argument when passed a WP_Image_Editor.
 	 *
 	 * @ticket 6821
+	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_save_image_file
 	 */
 	public function test_wp_save_image_file_not_deprecated_with_wp_image_editor() {
-		if ( ! function_exists( 'imagejpeg' ) ) {
-			$this->fail( 'jpeg support unavailable' );
-		}
-
 		// Call wp_save_image_file().
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 		$file = wp_tempnam();

@@ -76,6 +76,7 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 				'caption',
 				'script',
 				'style',
+				'navigation-widgets',
 			)
 		);
 
@@ -174,6 +175,9 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 
 		// Add support for responsive embedded content.
 		add_theme_support( 'responsive-embeds' );
+
+		// Add support for custom line height.
+		add_theme_support( 'custom-line-height' );
 	}
 endif;
 add_action( 'after_setup_theme', 'twentynineteen_setup' );
@@ -199,6 +203,30 @@ function twentynineteen_widgets_init() {
 
 }
 add_action( 'widgets_init', 'twentynineteen_widgets_init' );
+
+/**
+ * Replaces "[...]" (appended to automatically generated excerpts) with ... and
+ * a 'Continue reading' link.
+ *
+ * @since Twenty Nineteen 2.0
+ *
+ * @param string $link Link to single post/page.
+ * @return string 'Continue reading' link prepended with an ellipsis.
+ */
+function twentynineteen_excerpt_more( $link ) {
+	if ( is_admin() ) {
+		return $link;
+	}
+
+	$link = sprintf(
+		'<p class="link-more"><a href="%1$s" class="more-link">%2$s</a></p>',
+		esc_url( get_permalink( get_the_ID() ) ),
+		/* translators: %s: Post title. */
+		sprintf( __( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'twentynineteen' ), get_the_title( get_the_ID() ) )
+	);
+	return ' &hellip; ' . $link;
+}
+add_filter( 'excerpt_more', 'twentynineteen_excerpt_more' );
 
 /**
  * Set the content width in pixels, based on the theme's design and stylesheet.
@@ -328,3 +356,8 @@ require get_template_directory() . '/inc/template-tags.php';
  * Customizer additions.
  */
 require get_template_directory() . '/inc/customizer.php';
+
+/**
+ * Block Patterns.
+ */
+require get_template_directory() . '/inc/block-patterns.php';
