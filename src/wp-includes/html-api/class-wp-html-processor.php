@@ -293,27 +293,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return static|null The created processor if successful, otherwise null.
 	 */
 	public static function create_fragment( $html, $context = '<body>', $encoding = 'UTF-8' ) {
-		if ( 'UTF-8' !== $encoding ) {
-			return null;
-		}
-
-		$context_processor = new WP_HTML_Tag_Processor( $context );
-		if ( ! $context_processor->next_token() || '#tag' !== $context_processor->get_token_type() ) {
-			return null;
-		}
-
-		$context_tag        = $context_processor->get_tag();
-		$context_attributes = array();
-		foreach ( $context_processor->get_attribute_names_with_prefix( '' ) as $name ) {
-			$context_attributes[ $name ] = $context_processor->get_attribute( $name );
-		}
-
-		if ( $context_processor->next_token() ) {
+		if ( '<body>' !== $context || 'UTF-8' !== $encoding ) {
 			return null;
 		}
 
 		$processor                             = new static( $html, self::CONSTRUCTOR_UNLOCK_CODE );
-		$processor->state->context_node        = array( $context_tag, $context_attributes );
+		$processor->state->context_node        = array( 'BODY', array() );
 		$processor->state->insertion_mode      = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
 		$processor->state->encoding            = $encoding;
 		$processor->state->encoding_confidence = 'certain';
