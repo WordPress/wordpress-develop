@@ -1297,7 +1297,7 @@ class WP_Debug_Data {
 			'max_connections'    => array(
 				'label' => __( 'Max connections number' ),
 				'value' => self::get_mysql_var( 'max_connections' ),
-			)
+			),
 		);
 
 		return array(
