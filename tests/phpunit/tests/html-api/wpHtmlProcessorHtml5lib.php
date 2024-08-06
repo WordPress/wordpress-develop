@@ -25,8 +25,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
-		'tests1/line0537'        => 'Bug: Investigate',
-
 		'adoption01/line0046'    => 'Unimplemented: Reconstruction of active formatting elements.',
 		'adoption01/line0159'    => 'Unimplemented: Reconstruction of active formatting elements.',
 		'adoption01/line0318'    => 'Unimplemented: Reconstruction of active formatting elements.',
