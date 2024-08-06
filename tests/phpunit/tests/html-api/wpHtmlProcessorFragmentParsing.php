@@ -21,7 +21,7 @@ class Tests_HtmlApi_WpHtmlProcessorFragmentParsing extends WP_UnitTestCase {
 	 * @param string|null $expected_html Expected output of the parse, or `null` if unsupported.
 	 */
 	public function test_script_tag( string $inner_html, ?string $expected_html ) {
-		$processor = WP_HTML_Processor::create_fragment( $inner_html, '<script></script>' );
+		$processor  = WP_HTML_Processor::create_fragment( $inner_html, '<script></script>' );
 		$normalized = static::normalize_html( $processor );
 
 		if ( isset( $expected_html ) ) {
