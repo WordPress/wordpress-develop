@@ -647,7 +647,7 @@ CSS;
 		$this->assertSame(
 			$expected,
 			get_echo( 'wp_print_styles' ),
-			'Added inline styles do not match expected values.'
+			"Improperly handled provided styles: {$styles}"
 		);
 	}
 
