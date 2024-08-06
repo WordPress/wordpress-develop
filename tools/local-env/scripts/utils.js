@@ -13,11 +13,11 @@ const local_env_utils = {
 		var composeFiles = '-f docker-compose.yml';
 
 		if ( process.env.LOCAL_DB_TYPE !== 'mysql' ) {
-			return;
+			return composeFiles;
 		}
 
 		if ( process.env.LOCAL_PHP !== '7.2-fpm' && process.env.LOCAL_PHP !== '7.3-fpm' ) {
-			return;
+			return composeFiles;
 		}
 
 		// PHP 7.2/7.3 in combination with MySQL 8.4 requires additional configuration to function properly.
