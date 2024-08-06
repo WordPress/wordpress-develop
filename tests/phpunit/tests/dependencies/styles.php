@@ -628,4 +628,54 @@ CSS;
 
 		$this->assertSame( $GLOBALS['wp_styles']->registered['test-handle']->src, $url );
 	}
+
+	/**
+	 * Tests detecting nested tags in inline styles.
+	 *
+	 * @ticket 61828
+	 * @dataProvider data_styles_with_nested_tags
+	 */
+	public function test_wp_add_inline_style_with_nested_style_tags( $expected, $styles, $correct_usage = false ) {
+		if ( ! $correct_usage ) {
+			$this->setExpectedIncorrectUsage( 'wp_add_inline_style' );
+		}
+		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
+		wp_add_inline_style( 'handle', $styles );
+
+		$this->assertSame( $expected, get_echo( 'wp_print_styles' ), "Inline styles - $styles - do not match expected values." );
+	}
+
+	public function data_styles_with_nested_tags() {
+		return array(
+			array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n\\3c\\2fstyle><script>alert(0)</script><style>\n</style>\n",
+				'</style><script>alert(0)</script><style>',
+			),
+			array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n\\3c\\2fstyle id=\"attribute\"><p>Tasty</p><style id=\"attribute-two\">\n</style>\n",
+				'</style id="attribute"><p>Tasty</p><style id="attribute-two">',
+			),
+			array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n.desserts > main { color: PapayaWhip; }\n</style>\n",
+				'<style>.desserts > main { color: PapayaWhip; }</style>',
+			),
+			array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n<style>\\3c\\2fstyle><style>.desserts > main { color: PapayaWhip; }\\3c\\2fstyle><style>\\3c\\2fstyle>\n</style>\n",
+				'<style></style><style>.desserts > main { color: PapayaWhip; }</style><style></style>',
+			),
+			array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n.desserts > main { color: PapayaWhip; }<style>\\3c\\2fstyle>\n</style>\n",
+				'.desserts > main { color: PapayaWhip; }<style></style>',
+			),
+			array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n.desserts > main { content: \"Use a \\3c\\2fstyle> to close a STYLE element.\" }\n</style>\n",
+				'.desserts > main { content: "Use a </style> to close a STYLE element." }',
+			),
+			array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n<p><strong>.some-more-tags {font-weight: 100}</strong></p>\n</style>\n",
+				'<p><strong>.some-more-tags {font-weight: 100}</strong></p>',
+				true,
+			),
+		);
+	}
 }
