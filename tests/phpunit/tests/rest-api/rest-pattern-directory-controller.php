@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  * @group pattern-directory
  */
@@ -22,6 +20,24 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	protected static $contributor_id;
 
 	/**
+	 * An instance of WP_REST_Pattern_Directory_Controller class.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @var WP_REST_Pattern_Directory_Controller
+	 */
+	private static $controller;
+
+	/**
+	 * List of URLs captured.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @var string[]
+	 */
+	protected static $http_request_urls;
+
+	/**
 	 * Set up class test fixtures.
 	 *
 	 * @since 5.8.0
@@ -34,6 +50,29 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 				'role' => 'contributor',
 			)
 		);
+
+		self::$http_request_urls = array();
+
+		static::$controller = new WP_REST_Pattern_Directory_Controller();
+	}
+
+	/**
+	 * Tear down after class.
+	 *
+	 * @since 6.2.0
+	 */
+	public static function wpTearDownAfterClass() {
+		self::delete_user( self::$contributor_id );
+	}
+
+	/**
+	 * Clear the captured request URLs after each test.
+	 *
+	 * @since 6.2.0
+	 */
+	public function tear_down() {
+		self::$http_request_urls = array();
+		parent::tear_down();
 	}
 
 	/**
@@ -42,7 +81,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @param WP_REST_Response[] $pattern An individual pattern from the REST API response.
 	 */
 	public function assertPatternMatchesSchema( $pattern ) {
-		$schema     = ( new WP_REST_Pattern_Directory_Controller() )->get_item_schema();
+		$schema     = static::$controller->get_item_schema();
 		$pattern_id = isset( $pattern->id ) ? $pattern->id : '{pattern ID is missing}';
 
 		$this->assertTrue(
@@ -79,7 +118,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$patterns = $response->get_data();
 
 		$this->assertSame( 'view', $patterns['endpoints'][0]['args']['context']['default'] );
-		$this->assertSame( array( 'view', 'embed' ), $patterns['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $patterns['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	/**
@@ -100,6 +139,9 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$this->assertGreaterThan( 0, count( $patterns ) );
 
 		array_walk( $patterns, array( $this, 'assertPatternMatchesSchema' ) );
+		$this->assertSame( array( 'blog post' ), $patterns[0]['keywords'] );
+		$this->assertSame( array( 'header', 'hero' ), $patterns[1]['keywords'] );
+		$this->assertSame( array( 'call to action', 'hero section' ), $patterns[2]['keywords'] );
 	}
 
 	/**
@@ -146,10 +188,6 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$this->assertGreaterThan( 0, count( $patterns ) );
 
 		array_walk( $patterns, array( $this, 'assertPatternMatchesSchema' ) );
-
-		foreach ( $patterns as $pattern ) {
-			$this->assertContains( 'core', $pattern['keywords'] );
-		}
 	}
 
 	/**
@@ -272,7 +310,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		// Test that filter changes uncached values.
 		add_filter(
 			'rest_prepare_block_pattern',
-			static function( $response ) {
+			static function ( $response ) {
 				return 'initial value';
 			}
 		);
@@ -286,7 +324,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		// Test that filter changes cached values (the previous request primed the cache).
 		add_filter(
 			'rest_prepare_block_pattern',
-			static function( $response ) {
+			static function ( $response ) {
 				return 'modified the cache';
 			},
 			11
@@ -300,20 +338,202 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$this->assertSame( 'modified the cache', $patterns[0] );
 	}
 
+	/**
+	 * Tests if the provided query args are passed through to the wp.org API.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @ticket 57501
+	 *
+	 * @covers WP_REST_Pattern_Directory_Controller::get_items
+	 *
+	 * @dataProvider data_get_items_query_args
+	 *
+	 * @param string $param    Query parameter name (ex, page).
+	 * @param mixed  $value    Query value to test.
+	 * @param bool   $is_error Whether this value should error or not.
+	 * @param mixed  $expected Expected value (or expected error code).
+	 */
+	public function test_get_items_query_args( $param, $value, $is_error, $expected ) {
+		wp_set_current_user( self::$contributor_id );
+		add_filter( 'pre_http_request', array( $this, 'mock_request_to_apiwporg_url' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pattern-directory/patterns' );
+		if ( $value ) {
+			$request->set_query_params( array( $param => $value ) );
+		}
+
+		$response = rest_do_request( $request );
+		$data     = $response->get_data();
+		if ( $is_error ) {
+			$this->assertSame( $expected, $data['code'], 'Response error code does not match' );
+			$this->assertStringContainsString( $param, $data['message'], 'Response error message does not match' );
+		} else {
+			$this->assertCount( 1, self::$http_request_urls, 'The number of HTTP Request URLs is not 1' );
+			$this->assertStringContainsString( $param . '=' . $expected, self::$http_request_urls[0], 'The param and/or value do not match' );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * return array[]
+	 */
+	public function data_get_items_query_args() {
+		return array(
+			'per_page default'   => array(
+				'param'    => 'per_page',
+				'value'    => false,
+				'is_error' => false,
+				'expected' => 100,
+			),
+			'per_page custom-1'  => array(
+				'param'    => 'per_page',
+				'value'    => 5,
+				'is_error' => false,
+				'expected' => 5,
+			),
+			'per_page custom-2'  => array(
+				'param'    => 'per_page',
+				'value'    => 50,
+				'is_error' => false,
+				'expected' => 50,
+			),
+			'per_page invalid-1' => array(
+				'param'    => 'per_page',
+				'value'    => 200,
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+			'per_page invalid-2' => array(
+				'param'    => 'per_page',
+				'value'    => 'abc',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+
+			'page default'       => array(
+				'param'    => 'page',
+				'value'    => false,
+				'is_error' => false,
+				'expected' => 1,
+			),
+			'page custom'        => array(
+				'param'    => 'page',
+				'value'    => 5,
+				'is_error' => false,
+				'expected' => 5,
+			),
+			'page invalid'       => array(
+				'param'    => 'page',
+				'value'    => 'abc',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+
+			'offset custom'      => array(
+				'param'    => 'offset',
+				'value'    => 5,
+				'is_error' => false,
+				'expected' => 5,
+			),
+			'offset invalid-1'   => array(
+				'param'    => 'offset',
+				'value'    => 'abc',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+
+			'order default'      => array(
+				'param'    => 'order',
+				'value'    => false,
+				'is_error' => false,
+				'expected' => 'desc',
+			),
+			'order custom'       => array(
+				'param'    => 'order',
+				'value'    => 'asc',
+				'is_error' => false,
+				'expected' => 'asc',
+			),
+			'order invalid-1'    => array(
+				'param'    => 'order',
+				'value'    => 10,
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+			'order invalid-2'    => array(
+				'param'    => 'order',
+				'value'    => 'fake',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+
+			'orderby default'    => array(
+				'param'    => 'orderby',
+				'value'    => false,
+				'is_error' => false,
+				'expected' => 'date',
+			),
+			'orderby custom-1'   => array(
+				'param'    => 'orderby',
+				'value'    => 'title',
+				'is_error' => false,
+				'expected' => 'title',
+			),
+			'orderby custom-2'   => array(
+				'param'    => 'orderby',
+				'value'    => 'date',
+				'is_error' => false,
+				'expected' => 'date',
+			),
+			'orderby custom-3'   => array(
+				'param'    => 'orderby',
+				'value'    => 'favorite_count',
+				'is_error' => false,
+				'expected' => 'favorite_count',
+			),
+			'orderby invalid-1'  => array(
+				'param'    => 'orderby',
+				'value'    => 10,
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+			'orderby invalid-2'  => array(
+				'param'    => 'orderby',
+				'value'    => 'fake',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+		);
+	}
+
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_get_item() {
-		$this->markTestSkipped( 'Controller does not have get_item route.' );
+		// Controller does not implement get_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not have create_item route.' );
+		// Controller does not implement create_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not have update_item route.' );
+		// Controller does not implement update_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not have delete_item route.' );
+		// Controller does not implement delete_item().
 	}
 
 	/**
@@ -322,12 +542,11 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @since 5.8.0
 	 */
 	public function test_prepare_item() {
-		$controller                   = new WP_REST_Pattern_Directory_Controller();
 		$raw_patterns                 = json_decode( self::get_raw_response( 'browse-all' ) );
 		$raw_patterns[0]->extra_field = 'this should be removed';
 
-		$prepared_pattern = $controller->prepare_response_for_collection(
-			$controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
+		$prepared_pattern = static::$controller->prepare_response_for_collection(
+			static::$controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
 		);
 
 		$this->assertPatternMatchesSchema( $prepared_pattern );
@@ -340,12 +559,11 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @since 5.8.0
 	 */
 	public function test_prepare_item_search() {
-		$controller                   = new WP_REST_Pattern_Directory_Controller();
 		$raw_patterns                 = json_decode( self::get_raw_response( 'search' ) );
 		$raw_patterns[0]->extra_field = 'this should be removed';
 
-		$prepared_pattern = $controller->prepare_response_for_collection(
-			$controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
+		$prepared_pattern = static::$controller->prepare_response_for_collection(
+			static::$controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
 		);
 
 		$this->assertPatternMatchesSchema( $prepared_pattern );
@@ -394,9 +612,100 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @covers WP_REST_Pattern_Directory_Controller::get_item_schema
 	 *
 	 * @since 5.8.0
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item_schema() {
-		$this->markTestSkipped( "The controller's schema is hardcoded, so tests would not be meaningful." );
+		// The controller's schema is hardcoded, so tests would not be meaningful.
+	}
+
+	/**
+	 * Tests if the transient key gets generated correctly.
+	 *
+	 * @dataProvider data_get_query_parameters
+	 *
+	 * @covers WP_REST_Pattern_Directory_Controller::get_transient_key
+	 *
+	 * @since 6.0.0
+	 *
+	 * @ticket 55617
+	 *
+	 * @param array     $parameters_1   Expected query arguments.
+	 * @param array     $parameters_2   Actual query arguments.
+	 * @param string    $message        An error message to display.
+	 * @param bool      $assert_same    Assertion type (assertSame vs assertNotSame).
+	 */
+	public function test_transient_keys_get_generated_correctly( $parameters_1, $parameters_2, $message, $assert_same = true ) {
+		$reflection_method = new ReflectionMethod( static::$controller, 'get_transient_key' );
+		$reflection_method->setAccessible( true );
+
+		$result_1 = $reflection_method->invoke( self::$controller, $parameters_1 );
+		$result_2 = $reflection_method->invoke( self::$controller, $parameters_2 );
+
+		$this->assertIsString( $result_1, 'Transient key #1 must be a string.' );
+		$this->assertNotEmpty( $result_1, 'Transient key #1 must not be empty.' );
+
+		$this->assertIsString( $result_2, 'Transient key #2 must be a string.' );
+		$this->assertNotEmpty( $result_2, 'Transient key #2 must not be empty.' );
+
+		if ( $assert_same ) {
+			$this->assertSame( $result_1, $result_2, $message );
+		} else {
+			$this->assertNotSame( $result_1, $result_2, $message );
+		}
+	}
+
+	/**
+	 * @since 6.0.0
+	 *
+	 * @ticket 55617
+	 */
+	public function data_get_query_parameters() {
+		return array(
+			'same key and empty slugs'              => array(
+				'parameters_1' => array(
+					'parameter_1' => 1,
+					'slug'        => array(),
+				),
+				'parameters_2' => array(
+					'parameter_1' => 1,
+				),
+				'message'      => 'Empty slugs should not affect the transient key.',
+			),
+			'same key and slugs in different order' => array(
+				'parameters_1' => array(
+					'parameter_1' => 1,
+					'slug'        => array( 0, 2 ),
+				),
+				'parameters_2' => array(
+					'parameter_1' => 1,
+					'slug'        => array( 2, 0 ),
+				),
+				'message'      => 'The order of slugs should not affect the transient key.',
+			),
+			'same key and different slugs'          => array(
+				'parameters_1' => array(
+					'parameter_1' => 1,
+					'slug'        => array( 'some_slug' ),
+				),
+				'parameters_2' => array(
+					'parameter_1' => 1,
+					'slug'        => array( 'some_other_slug' ),
+				),
+				'message'      => 'Transient keys must not match.',
+				false,
+			),
+			'different keys'                        => array(
+				'parameters_1' => array(
+					'parameter_1' => 1,
+				),
+				'parameters_2' => array(
+					'parameter_2' => 1,
+				),
+				'message'      => 'Transient keys must depend on array keys.',
+				false,
+			),
+		);
 	}
 
 	/**
@@ -410,10 +719,10 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	private static function mock_successful_response( $action, $expects_results ) {
 		add_filter(
 			'pre_http_request',
-			static function ( $preempt, $args, $url ) use ( $action, $expects_results ) {
+			static function ( $response, $parsed_args, $url ) use ( $action, $expects_results ) {
 
 				if ( 'api.wordpress.org' !== wp_parse_url( $url, PHP_URL_HOST ) ) {
-					return $preempt;
+					return $response;
 				}
 
 				$response = array(
@@ -444,7 +753,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	private static function prevent_requests_to_host( $blocked_host = 'api.wordpress.org' ) {
 		add_filter(
 			'pre_http_request',
-			static function ( $return, $args, $url ) use ( $blocked_host ) {
+			static function ( $response, $parsed_args, $url ) use ( $blocked_host ) {
 
 				if ( wp_parse_url( $url, PHP_URL_HOST ) === $blocked_host ) {
 					return new WP_Error(
@@ -455,10 +764,39 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 
 				}
 
-				return $return;
+				return $response;
 			},
 			10,
 			3
 		);
+	}
+
+	/**
+	 * Mock the request to wp.org URL to capture the URLs.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @return array faux/mocked response.
+	 */
+	public function mock_request_to_apiwporg_url( $response, $args, $url ) {
+		if ( 'api.wordpress.org' !== wp_parse_url( $url, PHP_URL_HOST ) ) {
+			return $response;
+		}
+
+		self::$http_request_urls[] = $url;
+
+		// Return a response to prevent external API request.
+		$response = array(
+			'headers'  => array(),
+			'response' => array(
+				'code'    => 200,
+				'message' => 'OK',
+			),
+			'body'     => '[]',
+			'cookies'  => array(),
+			'filename' => null,
+		);
+
+		return $response;
 	}
 }

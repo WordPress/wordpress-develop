@@ -20,9 +20,11 @@ require ABSPATH . WPINC . '/SimplePie/Author.php';
  * WordPress autoloader for SimplePie.
  *
  * @since 3.5.0
+ *
+ * @param string $class Class name.
  */
 function wp_simplepie_autoload( $class ) {
-	if ( 0 !== strpos( $class, 'SimplePie_' ) )
+	if ( ! str_starts_with( $class, 'SimplePie_' ) )
 		return;
 
 	$file = ABSPATH . WPINC . '/' . str_replace( '_', '/', $class ) . '.php';
@@ -68,7 +70,7 @@ spl_autoload_register( 'wp_simplepie_autoload' );
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * @package SimplePie
- * @version 1.5.6
+ * @version 1.5.8
  * @copyright 2004-2017 Ryan Parman, Sam Sneddon, Ryan McCue
  * @author Ryan Parman
  * @author Sam Sneddon
@@ -85,7 +87,7 @@ define('SIMPLEPIE_NAME', 'SimplePie');
 /**
  * SimplePie Version
  */
-define('SIMPLEPIE_VERSION', '1.5.6');
+define('SIMPLEPIE_VERSION', '1.5.8');
 
 /**
  * SimplePie Build
@@ -338,7 +340,6 @@ define('SIMPLEPIE_NAMESPACE_RSS_10_MODULES_CONTENT', 'http://purl.org/rss/1.0/mo
 
 /**
  * RSS 2.0 Namespace
- * (Stupid, I know, but I'm certain it will confuse people less with support.)
  */
 define('SIMPLEPIE_NAMESPACE_RSS_20', '');
 
@@ -458,6 +459,13 @@ class SimplePie
 	 * @access private
 	 */
 	public $error;
+
+	/**
+	 * @var int HTTP status code
+	 * @see SimplePie::status_code()
+	 * @access private
+	 */
+	public $status_code;
 
 	/**
 	 * @var object Instance of SimplePie_Sanitize (or other class)
@@ -944,6 +952,39 @@ class SimplePie
 	}
 
 	/**
+	 * Return the filename (i.e. hash, without path and without extension) of the file to cache a given URL.
+	 * @param string $url The URL of the feed to be cached.
+	 * @return string A filename (i.e. hash, without path and without extension).
+	 */
+	public function get_cache_filename($url)
+	{
+		// Append custom parameters to the URL to avoid cache pollution in case of multiple calls with different parameters.
+		$url .= $this->force_feed ? '#force_feed' : '';
+		$options = array();
+		if ($this->timeout != 10)
+		{
+			$options[CURLOPT_TIMEOUT] = $this->timeout;
+		}
+		if ($this->useragent !== SIMPLEPIE_USERAGENT)
+		{
+			$options[CURLOPT_USERAGENT] = $this->useragent;
+		}
+		if (!empty($this->curl_options))
+		{
+			foreach ($this->curl_options as $k => $v)
+			{
+				$options[$k] = $v;
+			}
+		}
+		if (!empty($options))
+		{
+			ksort($options);
+			$url .= '#' . urlencode(var_export($options, true));
+		}
+		return call_user_func($this->cache_name_function, $url);
+	}
+
+	/**
 	 * Set whether feed items should be sorted into reverse chronological order
 	 *
 	 * @param bool $enable Sort as reverse chronological order.
@@ -1163,12 +1204,12 @@ class SimplePie
 	}
 
 	/**
-	 * Set options to make SP as fast as possible
+	 * Set options to make SimplePie as fast as possible.
 	 *
-	 * Forgoes a substantial amount of data sanitization in favor of speed. This
-	 * turns SimplePie into a dumb parser of feeds.
+	 * Forgoes a substantial amount of data sanitization in favor of speed.
+	 * This turns SimplePie into a less clever parser of feeds.
 	 *
-	 * @param bool $set Whether to set them or not
+	 * @param bool $set Whether to set them or not.
 	 */
 	public function set_stupidly_fast($set = false)
 	{
@@ -1181,6 +1222,7 @@ class SimplePie
 			$this->strip_attributes(false);
 			$this->add_attributes(false);
 			$this->set_image_handler(false);
+			$this->set_https_domains(array());
 		}
 	}
 
@@ -1281,6 +1323,19 @@ class SimplePie
 	public function set_url_replacements($element_attribute = null)
 	{
 		$this->sanitize->set_url_replacements($element_attribute);
+	}
+
+	/**
+	 * Set the list of domains for which to force HTTPS.
+	 * @see SimplePie_Sanitize::set_https_domains()
+	 * @param array List of HTTPS domains. Example array('biz', 'example.com', 'example.org', 'www.example.net').
+	 */
+	public function set_https_domains($domains = array())
+	{
+		if (is_array($domains))
+		{
+			$this->sanitize->set_https_domains($domains);
+		}
 	}
 
 	/**
@@ -1408,8 +1463,8 @@ class SimplePie
 			// Decide whether to enable caching
 			if ($this->cache && $parsed_feed_url['scheme'] !== '')
 			{
-				$url = $this->feed_url . ($this->force_feed ? '#force_feed' : '');
-				$cache = $this->registry->call('Cache', 'get_handler', array($this->cache_location, call_user_func($this->cache_name_function, $url), 'spc'));
+				$filename = $this->get_cache_filename($this->feed_url);
+				$cache = $this->registry->call('Cache', 'get_handler', array($this->cache_location, $filename, 'spc'));
 			}
 
 			// Fetch the data via SimplePie_File into $this->raw_data
@@ -1549,7 +1604,7 @@ class SimplePie
 	 * Fetch the data via SimplePie_File
 	 *
 	 * If the data is already cached, attempt to fetch it from there instead
-	 * @param SimplePie_Cache|false $cache Cache handler, or false to not load from the cache
+	 * @param SimplePie_Cache_Base|false $cache Cache handler, or false to not load from the cache
 	 * @return array|true Returns true if the data was loaded from the cache, or an array of HTTP headers and sniffed type
 	 */
 	protected function fetch_data(&$cache)
@@ -1612,6 +1667,7 @@ class SimplePie
 						}
 
 						$file = $this->registry->create('File', array($this->feed_url, $this->timeout/10, 5, $headers, $this->useragent, $this->force_fsockopen, $this->curl_options));
+						$this->status_code = $file->status_code;
 
 						if ($file->success)
 						{
@@ -1666,6 +1722,8 @@ class SimplePie
 				$file = $this->registry->create('File', array($this->feed_url, $this->timeout, 5, $headers, $this->useragent, $this->force_fsockopen, $this->curl_options));
 			}
 		}
+		$this->status_code = $file->status_code;
+
 		// If the file connection has an error, set SimplePie::error to that and quit
 		if (!$file->success && !($file->method & SIMPLEPIE_FILE_SOURCE_REMOTE === 0 || ($file->status_code === 200 || $file->status_code > 206 && $file->status_code < 300)))
 		{
@@ -1763,13 +1821,23 @@ class SimplePie
 	}
 
 	/**
-	 * Get the error message for the occured error
+	 * Get the error message for the occurred error
 	 *
 	 * @return string|array Error message, or array of messages for multifeeds
 	 */
 	public function error()
 	{
 		return $this->error;
+	}
+
+	/**
+	 * Get the last HTTP status code
+	 *
+	 * @return int Status code
+	 */
+	public function status_code()
+	{
+		return $this->status_code;
 	}
 
 	/**
@@ -1797,7 +1865,7 @@ class SimplePie
 	}
 
 	/**
-	 * Send the content-type header with correct encoding
+	 * Send the Content-Type header with correct encoding
 	 *
 	 * This method ensures that the SimplePie-enabled page is being served with
 	 * the correct {@link http://www.iana.org/assignments/media-types/ mime-type}
@@ -1819,7 +1887,7 @@ class SimplePie
 	{
 		if (!headers_sent())
 		{
-			$header = "Content-type: $mime;";
+			$header = "Content-Type: $mime;";
 			if ($this->get_encoding())
 			{
 				$header .= ' charset=' . $this->get_encoding();
@@ -2615,13 +2683,19 @@ class SimplePie
 			}
 		}
 
-		if (isset($this->data['headers']['link']) &&
-		    preg_match('/<([^>]+)>; rel='.preg_quote($rel).'/',
-		               $this->data['headers']['link'], $match))
+		if (isset($this->data['headers']['link']))
 		{
-			return array($match[1]);
+			$link_headers = $this->data['headers']['link'];
+			if (is_string($link_headers)) {
+				$link_headers = array($link_headers);
+			}
+			$matches = preg_filter('/<([^>]+)>; rel='.preg_quote($rel).'/', '$1', $link_headers);
+			if (!empty($matches)) {
+				return $matches;
+			}
 		}
-		else if (isset($this->data['links'][$rel]))
+
+		if (isset($this->data['links'][$rel]))
 		{
 			return $this->data['links'][$rel];
 		}

@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::sanitize_mime_type
  */
 class Tests_Formatting_SanitizeMimeType extends WP_UnitTestCase {
 

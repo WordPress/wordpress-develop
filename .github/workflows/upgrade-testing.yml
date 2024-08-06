@@ -1,0 +1,207 @@
+name: Upgrade Tests
+
+on:
+  push:
+    branches:
+      - trunk
+    # Always test the workflow after it's updated.
+    paths:
+      - '.github/workflows/upgrade-testing.yml'
+      - '.github/workflows/upgrade-testing-run.yml'
+  pull_request:
+    # Always test the workflow when changes are suggested.
+    paths:
+      - '.github/workflows/upgrade-testing.yml'
+      - '.github/workflows/upgrade-testing-run.yml'
+  workflow_dispatch:
+    inputs:
+      new-version:
+        description: 'The version to test installing. Accepts major and minor versions, "latest", or "nightly". Major releases must not end with ".0".'
+        type: string
+        default: 'latest'
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Spawns upgrade testing from WordPress 6.x versions with MySQL.
+  upgrade-tests-wp-6x-mysql:
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-latest' ]
+        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.0' ]
+        wp: [ '6.0', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6' ]
+        multisite: [ false, true ]
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      multisite: ${{ matrix.multisite }}
+
+  # Spawns upgrade testing from WordPress 5.x versions on PHP 7.x with MySQL.
+  upgrade-tests-wp-5x-php-7x-mysql:
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-latest' ]
+        php: [ '7.2', '7.3', '7.4' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.0' ]
+        wp: [ '5.0', '5.1', '5.2', '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9' ]
+        multisite: [ false, true ]
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      multisite: ${{ matrix.multisite }}
+
+  # Spawns upgrade testing from WordPress 5.x versions on PHP 8.x with MySQL.
+  #
+  # WordPress 5.0-5.2 are excluded from PHP 8+ testing because of the following fatal errors:
+  # - Use of __autoload().
+  # - array/string offset with curly braces.
+  upgrade-tests-wp-5x-php-8x-mysql:
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-latest' ]
+        php: [ '8.0', '8.1', '8.2', '8.3' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.0' ]
+        wp: [ '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9' ]
+        multisite: [ false, true ]
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      multisite: ${{ matrix.multisite }}
+
+  # Spawns upgrade testing from WordPress 4.x versions on PHP 7.x with MySQL.
+  upgrade-tests-wp-4x-php-7x-mysql:
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-latest' ]
+        php: [ '7.2', '7.3', '7.4' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.0' ]
+        wp: [ '4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7', '4.8', '4.9' ]
+        multisite: [ false, true ]
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      multisite: ${{ matrix.multisite }}
+
+  # Spawns upgrade testing from WordPress 4.x versions on PHP 8.x with MySQL.
+  #
+  # WordPress 4.6-4.9 are excluded from PHP 8+ testing because of the following fatal errors:
+  # - Use of __autoload().
+  # - array/string offset with curly braces.
+  upgrade-tests-wp-4x-php-8x-mysql:
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-latest' ]
+        php: [ '8.0', '8.1', '8.2', '8.3' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.0' ]
+        wp: [ '4.1', '4.2', '4.3', '4.4', '4.5' ]
+        multisite: [ false, true ]
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      multisite: ${{ matrix.multisite }}
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
+    needs: [ upgrade-tests-wp-6x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-wp-4x-php-7x-mysql, upgrade-tests-wp-4x-php-8x-mysql ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    needs: [ slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });

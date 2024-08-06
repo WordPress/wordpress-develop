@@ -2,6 +2,7 @@
 
 /**
  * @group comment
+ *
  * @covers ::get_page_of_comment
  */
 class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
@@ -99,27 +100,23 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 	 * @ticket 11334
 	 */
 	public function test_subsequent_calls_should_hit_cache() {
-		global $wpdb;
-
 		$p = self::factory()->post->create();
 		$c = self::factory()->comment->create( array( 'comment_post_ID' => $p ) );
 
 		// Prime cache.
 		$page_1 = get_page_of_comment( $c, array( 'per_page' => 3 ) );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$page_2      = get_page_of_comment( $c, array( 'per_page' => 3 ) );
 
 		$this->assertSame( $page_1, $page_2 );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
 	 * @ticket 11334
 	 */
 	public function test_cache_hits_should_be_sensitive_to_comment_type() {
-		global $wpdb;
-
 		$p       = self::factory()->post->create();
 		$comment = self::factory()->comment->create(
 			array(
@@ -150,7 +147,7 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 		);
 		$this->assertSame( 2, $page_trackbacks );
 
-		$num_queries   = $wpdb->num_queries;
+		$num_queries   = get_num_queries();
 		$page_comments = get_page_of_comment(
 			$comment,
 			array(
@@ -160,7 +157,7 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 		);
 		$this->assertSame( 1, $page_comments );
 
-		$this->assertNotEquals( $num_queries, $wpdb->num_queries );
+		$this->assertNotEquals( $num_queries, get_num_queries() );
 	}
 
 	/**
@@ -309,20 +306,20 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 			$comment_children[ $i ] = $child;
 		}
 
-		$page_1_indicies = array( 2, 3, 4 );
-		$page_2_indicies = array( 0, 1 );
+		$page_1_indices = array( 2, 3, 4 );
+		$page_2_indices = array( 0, 1 );
 
 		$args = array(
 			'per_page'  => 3,
 			'max_depth' => 2,
 		);
 
-		foreach ( $page_1_indicies as $p1i ) {
+		foreach ( $page_1_indices as $p1i ) {
 			$this->assertSame( 1, (int) get_page_of_comment( $comment_parents[ $p1i ], $args ) );
 			$this->assertSame( 1, (int) get_page_of_comment( $comment_children[ $p1i ], $args ) );
 		}
 
-		foreach ( $page_2_indicies as $p2i ) {
+		foreach ( $page_2_indices as $p2i ) {
 			$this->assertSame( 2, (int) get_page_of_comment( $comment_parents[ $p2i ], $args ) );
 			$this->assertSame( 2, (int) get_page_of_comment( $comment_children[ $p2i ], $args ) );
 		}

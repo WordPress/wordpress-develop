@@ -14,7 +14,7 @@ class Tests_Query_Vars extends WP_UnitTestCase {
 	public function testPublicQueryVarsAreAsExpected() {
 		global $wp;
 
-		// Re-initialise any dynamically-added public query vars:
+		// Re-initialize any dynamically-added public query vars:
 		do_action( 'init' );
 
 		$this->assertSame(
@@ -80,5 +80,4 @@ class Tests_Query_Vars extends WP_UnitTestCase {
 			'Care should be taken when introducing new public query vars. See https://core.trac.wordpress.org/ticket/35115'
 		);
 	}
-
 }

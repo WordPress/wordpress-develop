@@ -15,12 +15,15 @@
  */
 function get_preferred_from_update_core() {
 	$updates = get_core_updates();
+
 	if ( ! is_array( $updates ) ) {
 		return false;
 	}
+
 	if ( empty( $updates ) ) {
 		return (object) array( 'response' => 'latest' );
 	}
+
 	return $updates[0];
 }
 
@@ -34,13 +37,14 @@ function get_preferred_from_update_core() {
  * @return array|false Array of the update objects on success, false on failure.
  */
 function get_core_updates( $options = array() ) {
-	$options   = array_merge(
+	$options = array_merge(
 		array(
 			'available' => true,
 			'dismissed' => false,
 		),
 		$options
 	);
+
 	$dismissed = get_site_option( 'dismissed_update_core' );
 
 	if ( ! is_array( $dismissed ) ) {
@@ -55,6 +59,7 @@ function get_core_updates( $options = array() ) {
 
 	$updates = $from_api->updates;
 	$result  = array();
+
 	foreach ( $updates as $update ) {
 		if ( 'autoupdate' === $update->response ) {
 			continue;
@@ -72,6 +77,7 @@ function get_core_updates( $options = array() ) {
 			}
 		}
 	}
+
 	return $result;
 }
 
@@ -86,6 +92,7 @@ function get_core_updates( $options = array() ) {
  */
 function find_core_auto_update() {
 	$updates = get_site_transient( 'update_core' );
+
 	if ( ! $updates || empty( $updates->updates ) ) {
 		return false;
 	}
@@ -93,7 +100,8 @@ function find_core_auto_update() {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
 	$auto_update = false;
-	$upgrader    = new WP_Automatic_Updater;
+	$upgrader    = new WP_Automatic_Updater();
+
 	foreach ( $updates->updates as $update ) {
 		if ( 'autoupdate' !== $update->response ) {
 			continue;
@@ -107,6 +115,7 @@ function find_core_auto_update() {
 			$auto_update = $update;
 		}
 	}
+
 	return $auto_update;
 }
 
@@ -124,6 +133,7 @@ function get_core_checksums( $version, $locale ) {
 	$url      = $http_url;
 
 	$ssl = wp_http_supports( array( 'ssl' ) );
+
 	if ( $ssl ) {
 		$url = set_url_scheme( $url, 'https' );
 	}
@@ -133,8 +143,10 @@ function get_core_checksums( $version, $locale ) {
 	);
 
 	$response = wp_remote_get( $url, $options );
+
 	if ( $ssl && is_wp_error( $response ) ) {
-		trigger_error(
+		wp_trigger_error(
+			__FUNCTION__,
 			sprintf(
 				/* translators: %s: Support forums URL. */
 				__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
@@ -142,10 +154,11 @@ function get_core_checksums( $version, $locale ) {
 			) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
 			headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
 		);
+
 		$response = wp_remote_get( $http_url, $options );
 	}
 
-	if ( is_wp_error( $response ) || 200 != wp_remote_retrieve_response_code( $response ) ) {
+	if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 		return false;
 	}
 
@@ -170,6 +183,7 @@ function get_core_checksums( $version, $locale ) {
 function dismiss_core_update( $update ) {
 	$dismissed = get_site_option( 'dismissed_update_core' );
 	$dismissed[ $update->current . '|' . $update->locale ] = true;
+
 	return update_site_option( 'dismissed_update_core', $dismissed );
 }
 
@@ -191,6 +205,7 @@ function undismiss_core_update( $version, $locale ) {
 	}
 
 	unset( $dismissed[ $key ] );
+
 	return update_site_option( 'dismissed_update_core', $dismissed );
 }
 
@@ -211,15 +226,19 @@ function find_core_update( $version, $locale ) {
 	}
 
 	$updates = $from_api->updates;
+
 	foreach ( $updates as $update ) {
-		if ( $update->current == $version && $update->locale == $locale ) {
+		if ( $update->current === $version && $update->locale === $locale ) {
 			return $update;
 		}
 	}
+
 	return false;
 }
 
 /**
+ * Returns core update footer message.
+ *
  * @since 2.3.0
  *
  * @param string $msg
@@ -232,8 +251,9 @@ function core_update_footer( $msg = '' ) {
 	}
 
 	$cur = get_preferred_from_update_core();
+
 	if ( ! is_object( $cur ) ) {
-		$cur = new stdClass;
+		$cur = new stdClass();
 	}
 
 	if ( ! isset( $cur->current ) ) {
@@ -244,10 +264,7 @@ function core_update_footer( $msg = '' ) {
 		$cur->response = '';
 	}
 
-	// Include an unmodified $wp_version.
-	require ABSPATH . WPINC . '/version.php';
-
-	$is_development_version = preg_match( '/alpha|beta|RC/', $wp_version );
+	$is_development_version = preg_match( '/alpha|beta|RC/', wp_get_wp_version() );
 
 	if ( $is_development_version ) {
 		return sprintf(
@@ -275,17 +292,19 @@ function core_update_footer( $msg = '' ) {
 }
 
 /**
+ * Returns core update notification message.
+ *
  * @since 2.3.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  * @return void|false
  */
 function update_nag() {
+	global $pagenow;
+
 	if ( is_multisite() && ! current_user_can( 'update_core' ) ) {
 		return false;
 	}
-
-	global $pagenow;
 
 	if ( 'update-core.php' === $pagenow ) {
 		return;
@@ -299,7 +318,7 @@ function update_nag() {
 
 	$version_url = sprintf(
 		/* translators: %s: WordPress version. */
-		esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+		esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
 		sanitize_title( $cur->current )
 	);
 
@@ -321,7 +340,14 @@ function update_nag() {
 		);
 	}
 
-	echo "<div class='update-nag notice notice-warning inline'>$msg</div>";
+	wp_admin_notice(
+		$msg,
+		array(
+			'type'               => 'warning',
+			'additional_classes' => array( 'update-nag', 'inline' ),
+			'paragraph_wrap'     => false,
+		)
+	);
 }
 
 /**
@@ -331,6 +357,7 @@ function update_nag() {
  */
 function update_right_now_message() {
 	$theme_name = wp_get_theme();
+
 	if ( current_user_can( 'switch_themes' ) ) {
 		$theme_name = sprintf( '<a href="themes.php">%1$s</a>', $theme_name );
 	}
@@ -370,6 +397,8 @@ function update_right_now_message() {
 }
 
 /**
+ * Retrieves plugins with updates available.
+ *
  * @since 2.9.0
  *
  * @return array
@@ -378,6 +407,7 @@ function get_plugin_updates() {
 	$all_plugins     = get_plugins();
 	$upgrade_plugins = array();
 	$current         = get_site_transient( 'update_plugins' );
+
 	foreach ( (array) $all_plugins as $plugin_file => $plugin_data ) {
 		if ( isset( $current->response[ $plugin_file ] ) ) {
 			$upgrade_plugins[ $plugin_file ]         = (object) $plugin_data;
@@ -389,6 +419,8 @@ function get_plugin_updates() {
 }
 
 /**
+ * Adds a callback to display update information for plugins with updates available.
+ *
  * @since 2.9.0
  */
 function wp_plugin_update_rows() {
@@ -397,8 +429,10 @@ function wp_plugin_update_rows() {
 	}
 
 	$plugins = get_site_transient( 'update_plugins' );
+
 	if ( isset( $plugins->response ) && is_array( $plugins->response ) ) {
 		$plugins = array_keys( $plugins->response );
+
 		foreach ( $plugins as $plugin_file ) {
 			add_action( "after_plugin_row_{$plugin_file}", 'wp_plugin_update_row', 10, 2 );
 		}
@@ -416,6 +450,7 @@ function wp_plugin_update_rows() {
  */
 function wp_plugin_update_row( $file, $plugin_data ) {
 	$current = get_site_transient( 'update_plugins' );
+
 	if ( ! isset( $current->response[ $file ] ) ) {
 		return false;
 	}
@@ -534,7 +569,7 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 			} else {
 				printf(
 					/* translators: 1: Plugin name, 2: Details URL, 3: Additional link attributes, 4: Version number 5: URL to Update PHP page. */
-					__( 'There is a new version of %1$s available, but it doesn&#8217;t work with your version of PHP. <a href="%2$s" %3$s>View version %4$s details</a> or <a href="%5$s">learn more about updating PHP</a>.' ),
+					__( 'There is a new version of %1$s available, but it does not work with your version of PHP. <a href="%2$s" %3$s>View version %4$s details</a> or <a href="%5$s">learn more about updating PHP</a>.' ),
 					$plugin_name,
 					esc_url( $details_url ),
 					sprintf(
@@ -558,30 +593,24 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param array  $plugin_data {
-		 *     An array of plugin metadata.
-		 *
-		 *     @type string $name        The human-readable name of the plugin.
-		 *     @type string $plugin_uri  Plugin URI.
-		 *     @type string $version     Plugin version.
-		 *     @type string $description Plugin description.
-		 *     @type string $author      Plugin author.
-		 *     @type string $author_uri  Plugin author URI.
-		 *     @type string $text_domain Plugin text domain.
-		 *     @type string $domain_path Relative path to the plugin's .mo file(s).
-		 *     @type bool   $network     Whether the plugin can only be activated network wide.
-		 *     @type string $title       The human-readable title of the plugin.
-		 *     @type string $author_name Plugin author's name.
-		 *     @type bool   $update      Whether there's an available update. Default null.
-		 * }
+		 * @param array  $plugin_data An array of plugin metadata. See get_plugin_data()
+		 *                            and the {@see 'plugin_row_meta'} filter for the list
+		 *                            of possible values.
 		 * @param object $response {
 		 *     An object of metadata about the available plugin update.
 		 *
-		 *     @type int    $id          Plugin ID.
-		 *     @type string $slug        Plugin slug.
-		 *     @type string $new_version New plugin version.
-		 *     @type string $url         Plugin URL.
-		 *     @type string $package     Plugin update package URL.
+		 *     @type string   $id           Plugin ID, e.g. `w.org/plugins/[plugin-name]`.
+		 *     @type string   $slug         Plugin slug.
+		 *     @type string   $plugin       Plugin basename.
+		 *     @type string   $new_version  New plugin version.
+		 *     @type string   $url          Plugin URL.
+		 *     @type string   $package      Plugin update package URL.
+		 *     @type string[] $icons        An array of plugin icon URLs.
+		 *     @type string[] $banners      An array of plugin banner URLs.
+		 *     @type string[] $banners_rtl  An array of plugin RTL banner URLs.
+		 *     @type string   $requires     The version of WordPress which the plugin requires.
+		 *     @type string   $tested       The version of WordPress the plugin is tested against.
+		 *     @type string   $requires_php The version of PHP which the plugin requires.
 		 * }
 		 */
 		do_action( "in_plugin_update_message-{$file}", $plugin_data, $response ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
@@ -591,6 +620,8 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 }
 
 /**
+ * Retrieves themes with updates available.
+ *
  * @since 2.9.0
  *
  * @return array
@@ -603,6 +634,7 @@ function get_theme_updates() {
 	}
 
 	$update_themes = array();
+
 	foreach ( $current->response as $stylesheet => $data ) {
 		$update_themes[ $stylesheet ]         = wp_get_theme( $stylesheet );
 		$update_themes[ $stylesheet ]->update = $data;
@@ -612,6 +644,8 @@ function get_theme_updates() {
 }
 
 /**
+ * Adds a callback to display update information for themes with updates available.
+ *
  * @since 3.1.0
  */
 function wp_theme_update_rows() {
@@ -620,6 +654,7 @@ function wp_theme_update_rows() {
 	}
 
 	$themes = get_site_transient( 'update_themes' );
+
 	if ( isset( $themes->response ) && is_array( $themes->response ) ) {
 		$themes = array_keys( $themes->response );
 
@@ -728,7 +763,7 @@ function wp_theme_update_row( $theme_key, $theme ) {
 		if ( ! $compatible_wp && ! $compatible_php ) {
 			printf(
 				/* translators: %s: Theme name. */
-				__( 'There is a new version of %s available, but it doesn&#8217;t work with your versions of WordPress and PHP.' ),
+				__( 'There is a new version of %s available, but it does not work with your versions of WordPress and PHP.' ),
 				$theme['Name']
 			);
 			if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
@@ -756,7 +791,7 @@ function wp_theme_update_row( $theme_key, $theme ) {
 		} elseif ( ! $compatible_wp ) {
 			printf(
 				/* translators: %s: Theme name. */
-				__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of WordPress.' ),
+				__( 'There is a new version of %s available, but it does not work with your version of WordPress.' ),
 				$theme['Name']
 			);
 			if ( current_user_can( 'update_core' ) ) {
@@ -769,7 +804,7 @@ function wp_theme_update_row( $theme_key, $theme ) {
 		} elseif ( ! $compatible_php ) {
 			printf(
 				/* translators: %s: Theme name. */
-				__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of PHP.' ),
+				__( 'There is a new version of %s available, but it does not work with your version of PHP.' ),
 				$theme['Name']
 			);
 			if ( current_user_can( 'update_php' ) ) {
@@ -807,16 +842,19 @@ function wp_theme_update_row( $theme_key, $theme ) {
 }
 
 /**
+ * Displays maintenance nag HTML message.
+ *
  * @since 2.7.0
  *
  * @global int $upgrading
+ *
  * @return void|false
  */
 function maintenance_nag() {
-	// Include an unmodified $wp_version.
-	require ABSPATH . WPINC . '/version.php';
 	global $upgrading;
+
 	$nag = isset( $upgrading );
+
 	if ( ! $nag ) {
 		$failed = get_site_option( 'auto_core_update_failed' );
 		/*
@@ -830,7 +868,7 @@ function maintenance_nag() {
 		 * This flag is cleared whenever a successful update occurs using Core_Upgrader.
 		 */
 		$comparison = ! empty( $failed['critical'] ) ? '>=' : '>';
-		if ( isset( $failed['attempted'] ) && version_compare( $failed['attempted'], $wp_version, $comparison ) ) {
+		if ( isset( $failed['attempted'] ) && version_compare( $failed['attempted'], wp_get_wp_version(), $comparison ) ) {
 			$nag = true;
 		}
 	}
@@ -849,11 +887,20 @@ function maintenance_nag() {
 		$msg = __( 'An automated WordPress update has failed to complete! Please notify the site administrator.' );
 	}
 
-	echo "<div class='update-nag notice notice-warning inline'>$msg</div>";
+	wp_admin_notice(
+		$msg,
+		array(
+			'type'               => 'warning',
+			'additional_classes' => array( 'update-nag', 'inline' ),
+			'paragraph_wrap'     => false,
+		)
+	);
 }
 
 /**
  * Prints the JavaScript templates for update admin notices.
+ *
+ * @since 4.6.0
  *
  * Template takes one argument with four values:
  *
@@ -865,8 +912,6 @@ function maintenance_nag() {
  *         @type string message   The notice's message.
  *         @type string type      The type of update the notice is for. Either 'plugin' or 'theme'.
  *     }
- *
- * @since 4.6.0
  */
 function wp_print_admin_notice_templates() {
 	?>
@@ -874,54 +919,25 @@ function wp_print_admin_notice_templates() {
 		<div <# if ( data.id ) { #>id="{{ data.id }}"<# } #> class="notice {{ data.className }}"><p>{{{ data.message }}}</p></div>
 	</script>
 	<script id="tmpl-wp-bulk-updates-admin-notice" type="text/html">
-		<div id="{{ data.id }}" class="{{ data.className }} notice <# if ( data.errors ) { #>notice-error<# } else { #>notice-success<# } #>">
+		<div id="{{ data.id }}" class="{{ data.className }} notice <# if ( data.errorMessage ) { #>notice-error<# } else { #>notice-success<# } #>">
 			<p>
-				<# if ( data.successes ) { #>
-					<# if ( 1 === data.successes ) { #>
-						<# if ( 'plugin' === data.type ) { #>
-							<?php
-							/* translators: %s: Number of plugins. */
-							printf( __( '%s plugin successfully updated.' ), '{{ data.successes }}' );
-							?>
-						<# } else { #>
-							<?php
-							/* translators: %s: Number of themes. */
-							printf( __( '%s theme successfully updated.' ), '{{ data.successes }}' );
-							?>
-						<# } #>
-					<# } else { #>
-						<# if ( 'plugin' === data.type ) { #>
-							<?php
-							/* translators: %s: Number of plugins. */
-							printf( __( '%s plugins successfully updated.' ), '{{ data.successes }}' );
-							?>
-						<# } else { #>
-							<?php
-							/* translators: %s: Number of themes. */
-							printf( __( '%s themes successfully updated.' ), '{{ data.successes }}' );
-							?>
-						<# } #>
-					<# } #>
+				<# if ( data.successMessage ) { #>
+					{{{ data.successMessage }}}
 				<# } #>
-				<# if ( data.errors ) { #>
+				<# if ( data.errorMessage ) { #>
 					<button class="button-link bulk-action-errors-collapsed" aria-expanded="false">
-						<# if ( 1 === data.errors ) { #>
+						{{{ data.errorMessage }}}
+						<span class="screen-reader-text">
 							<?php
-							/* translators: %s: Number of failed updates. */
-							printf( __( '%s update failed.' ), '{{ data.errors }}' );
+							/* translators: Hidden accessibility text. */
+							_e( 'Show more details' );
 							?>
-						<# } else { #>
-							<?php
-							/* translators: %s: Number of failed updates. */
-							printf( __( '%s updates failed.' ), '{{ data.errors }}' );
-							?>
-						<# } #>
-						<span class="screen-reader-text"><?php _e( 'Show more details' ); ?></span>
+						</span>
 						<span class="toggle-indicator" aria-hidden="true"></span>
 					</button>
 				<# } #>
 			</p>
-			<# if ( data.errors ) { #>
+			<# if ( data.errorMessages ) { #>
 				<ul class="bulk-action-errors hidden">
 					<# _.each( data.errorMessages, function( errorMessage ) { #>
 						<li>{{ errorMessage }}</li>
@@ -935,6 +951,8 @@ function wp_print_admin_notice_templates() {
 
 /**
  * Prints the JavaScript templates for update and deletion rows in list tables.
+ *
+ * @since 4.6.0
  *
  * The update template takes one argument with four values:
  *
@@ -957,8 +975,6 @@ function wp_print_admin_notice_templates() {
  *         @type string name    Plugin name.
  *         @type string colspan The number of table columns this row spans.
  *     }
- *
- * @since 4.6.0
  */
 function wp_print_update_row_templates() {
 	?>
@@ -1009,19 +1025,12 @@ function wp_recovery_mode_nag() {
 	$url = add_query_arg( 'action', WP_Recovery_Mode::EXIT_ACTION, $url );
 	$url = wp_nonce_url( $url, WP_Recovery_Mode::EXIT_ACTION );
 
-	?>
-	<div class="notice notice-info">
-		<p>
-			<?php
-			printf(
-				/* translators: %s: Recovery Mode exit link. */
-				__( 'You are in recovery mode. This means there may be an error with a theme or plugin. To exit recovery mode, log out or use the Exit button. <a href="%s">Exit Recovery Mode</a>' ),
-				esc_url( $url )
-			);
-			?>
-		</p>
-	</div>
-	<?php
+	$message = sprintf(
+		/* translators: %s: Recovery Mode exit link. */
+		__( 'You are in recovery mode. This means there may be an error with a theme or plugin. To exit recovery mode, log out or use the Exit button. <a href="%s">Exit Recovery Mode</a>' ),
+		esc_url( $url )
+	);
+	wp_admin_notice( $message, array( 'type' => 'info' ) );
 }
 
 /**
@@ -1029,7 +1038,7 @@ function wp_recovery_mode_nag() {
  *
  * @since 5.5.0
  *
- * @param string $type The type of update being checked: 'theme' or 'plugin'.
+ * @param string $type The type of update being checked: Either 'theme' or 'plugin'.
  * @return bool True if auto-updates are enabled for `$type`, false otherwise.
  */
 function wp_is_auto_update_enabled_for_type( $type ) {
@@ -1069,7 +1078,7 @@ function wp_is_auto_update_enabled_for_type( $type ) {
  *
  * @since 5.6.0
  *
- * @param string    $type   The type of update being checked: 'theme' or 'plugin'.
+ * @param string    $type   The type of update being checked: Either 'theme' or 'plugin'.
  * @param bool|null $update Whether to update. The value of null is internally used
  *                          to detect whether nothing has hooked into this filter.
  * @param object    $item   The update offer.

@@ -1,14 +1,39 @@
 <?php
 /**
  * @group formatting
+ *
+ * @covers ::links_add_target
  */
 class Tests_Formatting_LinksAddTarget extends WP_UnitTestCase {
+
 	/**
-	 * Test Content DataProvider
+	 * Tests the links_add_target() function.
 	 *
-	 * array ( input_txt, converted_output_txt)
+	 * @dataProvider data_links_add_target
 	 */
-	public function get_input_output() {
+	public function test_links_add_target( $content, $target, $tags, $expected ) {
+		if ( is_null( $target ) ) {
+			$this->assertSame( $expected, links_add_target( $content ) );
+		} elseif ( is_null( $tags ) ) {
+			$this->assertSame( $expected, links_add_target( $content, $target ) );
+		} else {
+			$this->assertSame( $expected, links_add_target( $content, $target, $tags ) );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string $content  String to search for links in.
+	 *         @type string $target   The target to add to the links.
+	 *         @type string $tags     An array of tags to apply to.
+	 *         @type string $expected Expected output.
+	 *     }
+	 * }
+	 */
+	public function data_links_add_target() {
 		return array(
 			array(
 				'MY CONTENT <div> SOME ADDITIONAL TEXT <a href="XYZ" src="ABC">LINK</a> HERE </div> END TEXT',
@@ -89,20 +114,5 @@ class Tests_Formatting_LinksAddTarget extends WP_UnitTestCase {
 				'MY CONTENT <blockquote target="_self">SOME</blockquote> ADDITIONAL TEXT <b target="_blank">LINK</b> HERE END TEXT',
 			),
 		);
-	}
-
-	/**
-	 * Validate the normalize_whitespace function
-	 *
-	 * @dataProvider get_input_output
-	 */
-	public function test_normalize_whitespace( $content, $target, $tags, $exp_str ) {
-		if ( true === is_null( $target ) ) {
-			$this->assertSame( $exp_str, links_add_target( $content ) );
-		} elseif ( true === is_null( $tags ) ) {
-			$this->assertSame( $exp_str, links_add_target( $content, $target ) );
-		} else {
-			$this->assertSame( $exp_str, links_add_target( $content, $target, $tags ) );
-		}
 	}
 }
