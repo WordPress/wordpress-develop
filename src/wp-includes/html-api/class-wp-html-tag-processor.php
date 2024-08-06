@@ -2924,9 +2924,10 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
+		$namespace = $this->get_namespace();
 		$lower_name = strtolower( $attribute_name );
 
-		if ( 'math' === $this->get_namespace() && 'definitionurl' === $lower_name ) {
+		if ( 'math' === $namespace && 'definitionurl' === $lower_name ) {
 			return 'definitionURL';
 		}
 
@@ -3108,39 +3109,41 @@ class WP_HTML_Tag_Processor {
 			}
 		}
 
-		switch ( $lower_name ) {
-			case 'xlink:actuate':
-				return 'xlink actuate';
+		if ( 'html' !== $namespace ) {
+			switch ( $lower_name ) {
+				case 'xlink:actuate':
+					return 'xlink actuate';
 
-			case 'xlink:arcrole':
-				return 'xlink arcrole';
+				case 'xlink:arcrole':
+					return 'xlink arcrole';
 
-			case 'xlink:href':
-				return 'xlink href';
+				case 'xlink:href':
+					return 'xlink href';
 
-			case 'xlink:role':
-				return 'xlink role';
+				case 'xlink:role':
+					return 'xlink role';
 
-			case 'xlink:show':
-				return 'xlink show';
+				case 'xlink:show':
+					return 'xlink show';
 
-			case 'xlink:title':
-				return 'xlink title';
+				case 'xlink:title':
+					return 'xlink title';
 
-			case 'xlink:type':
-				return 'xlink type';
+				case 'xlink:type':
+					return 'xlink type';
 
-			case 'xml:lang':
-				return 'xml lang';
+				case 'xml:lang':
+					return 'xml lang';
 
-			case 'xml:space':
-				return 'xml space';
+				case 'xml:space':
+					return 'xml space';
 
-			case 'xmlns':
-				return 'xmlns';
+				case 'xmlns':
+					return 'xmlns';
 
-			case 'xmlns:xlink':
-				return 'xmlns xlink';
+				case 'xmlns:xlink':
+					return 'xmlns xlink';
+			}
 		}
 
 		return $attribute_name;
