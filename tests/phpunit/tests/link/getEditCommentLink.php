@@ -10,15 +10,28 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 	public static $user_ids;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$comment_ids = array(
-			'valid'   => $factory->comment->create( array( 'comment_content' => 'Test comment' ) ),
-			'invalid' => 12345, // Invalid comment ID
-		);
+		self::$comment_ids = $factory->comment->create( array( 'comment_content' => 'Test comment' ) );
 
 		self::$user_ids = array(
 			'admin'      => $factory->user->create( array( 'role' => 'administrator' ) ),
 			'subscriber' => $factory->user->create( array( 'role' => 'subscriber' ) ),
 		);
+	}
+
+	public static function wpTearDownAfterClass() {
+		// Delete the test comment
+		if ( isset( self::$comment_ids ) ) {
+			wp_delete_comment( self::$comment_ids, true );
+		}
+
+		// Delete the test users
+		if ( isset( self::$user_ids['admin'] ) ) {
+			wp_delete_user( self::$user_ids['admin'] );
+		}
+
+		if ( isset( self::$user_ids['subscriber'] ) ) {
+			wp_delete_user( self::$user_ids['subscriber'] );
+		}
 	}
 
 	public function set_up() {
@@ -27,15 +40,15 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 	}
 
 	public function test_get_edit_comment_link_display_context() {
-		$comment_id   = self::$comment_ids['valid'];
+		$comment_id   = self::$comment_ids;
 		$expected_url = admin_url( 'comment.php?action=editcomment&amp;c=' . $comment_id );
 		$actual_url   = get_edit_comment_link( $comment_id, 'display' );
 
 		$this->assertSame( $expected_url, $actual_url );
 	}
 
-	public function test_get_edit_comment_link_view_context() {
-		$comment_id   = self::$comment_ids['valid'];
+	public function test_get_edit_comment_link_url_context() {
+		$comment_id   = self::$comment_ids;
 		$expected_url = admin_url( 'comment.php?action=editcomment&c=' . $comment_id );
 		$actual_url   = get_edit_comment_link( $comment_id, '' );
 
@@ -43,9 +56,9 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 	}
 
 	public function test_get_edit_comment_link_invalid_comment() {
-		$comment_id         = self::$comment_ids['invalid'];
+		$comment_id         = 12345;
 		$actual_url_display = get_edit_comment_link( $comment_id, 'display' );
-		$actual_url_view    = get_edit_comment_link( $comment_id, 'view' );
+		$actual_url_view    = get_edit_comment_link( $comment_id, 'url' );
 
 		$this->assertNull( $actual_url_display );
 		$this->assertNull( $actual_url_view );
@@ -53,7 +66,7 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 
 	public function test_get_edit_comment_link_user_cannot_edit() {
 		wp_set_current_user( self::$user_ids['subscriber'] );
-		$comment_id         = self::$comment_ids['valid'];
+		$comment_id         = self::$comment_ids;
 		$actual_url_display = get_edit_comment_link( $comment_id, 'display' );
 		$actual_url_view    = get_edit_comment_link( $comment_id, 'view' );
 
@@ -71,22 +84,14 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 	 */
 
 	public function test_get_edit_comment_link_filter() {
-		$comment_id        = self::$comment_ids['valid'];
-		$expected_url      = admin_url( 'comment.php?action=editcomment&amp;c=' . $comment_id );
-		$expected_url_view = admin_url( 'comment.php?action=editcomment&c=' . $comment_id );
+		$comment_id        = self::$comment_ids;
+		$expected_url      = admin_url( 'comment-test.php?context=display' );
+		$expected_url_view = admin_url( 'comment-test.php?context=view' );
 
 		add_filter(
 			'get_edit_comment_link',
-			function ( $location, $comment_id, $context ) use ( $expected_url, $expected_url_view ) {
-				// Ensure the filtered URL matches the expected URL
-				if ( 'display' === $context ) {
-					$location = admin_url( 'comment.php?action=editcomment&amp;c=' ) . $comment_id;
-					$this->assertSame( $expected_url, $location );
-				} else {
-					$location = admin_url( 'comment.php?action=editcomment&c=' ) . $comment_id;
-					$this->assertSame( $expected_url_view, $location );
-				}
-					return $location; // Return unchanged
+			function ( $location, $comment_id, $context ) {
+				return admin_url( 'comment-test.php?context=' . $context );
 			},
 			10,
 			3
