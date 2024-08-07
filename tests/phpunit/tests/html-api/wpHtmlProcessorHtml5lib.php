@@ -190,14 +190,15 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 			switch ( $token_type ) {
 				case '#tag':
-					$tag_name = 'html' === $processor->get_namespace()
+					$namespace = $processor->get_namespace();
+					$tag_name  = 'html' === $namespace
 						? strtolower( $processor->get_tag() )
-						: "{$processor->get_namespace()} {$processor->get_namespaced_tag_name()}";
+						: "{$namespace} {$processor->get_namespaced_tag_name()}";
 
 					if ( $is_closer ) {
 						--$indent_level;
 
-						if ( 'TEMPLATE' === $token_name ) {
+						if ( 'html' === $namespace && 'TEMPLATE' === $token_name ) {
 							--$indent_level;
 						}
 
@@ -273,7 +274,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 						$output .= str_repeat( $indent, $indent_level ) . "\"{$modifiable_text}\"\n";
 					}
 
-					if ( 'TEMPLATE' === $token_name ) {
+					if ( 'html' === $namespace && 'TEMPLATE' === $token_name ) {
 						$output .= str_repeat( $indent, $indent_level ) . "content\n";
 						++$indent_level;
 					}
