@@ -82,8 +82,8 @@ function register_rest_route( $route_namespace, $route, $args = array(), $overri
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				/* translators: 1: rest_api_init, 2: string value of the namespace, 3: string value of the route. */
-				__( 'REST API routes must be registered on the %1$s action. Instead route \'%3$s\' with namespace \'%2$s\' was not registered on this action.' ),
+				/* translators: 1: rest_api_init, 2: string value of the route, 3: string value of the namespace. */
+				__( 'REST API routes must be registered on the %1$s action. Instead route \'%2$s\' with namespace \'%3$s\' was not registered on this action.' ),
 				'<code>rest_api_init</code>',
 				'<code>' . $route_namespace . '</code>',
 				'<code>' . $route . '</code>'
