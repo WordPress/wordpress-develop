@@ -252,7 +252,7 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 
 	$meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT $id_column FROM $table WHERE meta_key = %s AND $column = %d", $meta_key, $object_id ) );
 	if ( empty( $meta_ids ) ) {
-		$result = add_metadata( $meta_type, $object_id, $raw_meta_key, $passed_value );
+		$result     = add_metadata( $meta_type, $object_id, $raw_meta_key, $passed_value );
 		$is_failure = false === $result;
 
 		return $result;
