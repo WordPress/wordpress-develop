@@ -229,7 +229,7 @@ class WP_Site_Health_Auto_Updates {
 		foreach ( $vcs_dirs as $vcs_dir ) {
 			foreach ( $check_dirs as $check_dir ) {
 				// phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition,Squiz.PHP.DisallowMultipleAssignments
-				if ( $checkout = @is_dir( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" ) ) {
+				if ( @is_readable( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" ) && ( $checkout = @is_dir( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" ) ) ) {
 					break 2;
 				}
 			}
