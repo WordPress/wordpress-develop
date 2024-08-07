@@ -2700,7 +2700,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 *
 				 * These ought to be handled in the attribute methods.
 				 */
-				$this->state->current_token->namespace = 'math';
 				$this->insert_foreign_element( $this->state->current_token, false );
 				if ( $this->state->current_token->has_self_closing_flag ) {
 					$this->state->stack_of_open_elements->pop();
@@ -2719,7 +2718,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 *
 				 * These ought to be handled in the attribute methods.
 				 */
-				$this->state->current_token->namespace = 'svg';
 				$this->insert_foreign_element( $this->state->current_token, false );
 				if ( $this->state->current_token->has_self_closing_flag ) {
 					$this->state->stack_of_open_elements->pop();
@@ -4131,7 +4129,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->state->frameset_ok = false;
 				}
 
-				$this->state->current_token->namespace = $adjusted_current_node->namespace;
 				$this->insert_foreign_element( $this->state->current_token, false );
 				return true;
 
@@ -4141,7 +4138,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#cdata-section':
 			case '#comment':
 			case '#funky_comment':
-				$this->state->current_token->namespace = $adjusted_current_node->namespace;
 				$this->insert_foreign_element( $this->state->current_token, false );
 				return true;
 
@@ -4231,17 +4227,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Any other start tag
 		 */
 		if ( ! $this->is_tag_closer() ) {
-			// @todo Adjust foreign attributes; this probably should be done in get_attribute().
-
-			$adjusted_current_node = $this->get_adjusted_current_node();
-
-			$this->state->current_token->namespace = $adjusted_current_node->namespace;
-			if ( $this->is_mathml_integration_point() ) {
-				$this->state->current_token->integration_node_type = 'math';
-			} elseif ( $this->is_html_integration_point() ) {
-				$this->state->current_token->integration_node_type = 'html';
-			}
-			$this->insert_foreign_element( $this->state->current_token, $this->state->current_token->namespace, false );
+			$this->insert_foreign_element( $this->state->current_token, false );
 
 			if ( $this->state->current_token->has_self_closing_flag ) {
 				if ( 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
@@ -5459,13 +5445,31 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @see https://html.spec.whatwg.org/#insert-a-foreign-element
 	 *
-	 * @param WP_HTML_Token $token                     Insert this token.
-	 * @param string        $element_namespace         Either 'math' or 'svg'.
-	 * @param bool          $only_add_to_element_stack Whether to skip the "insert an element at the adjusted
-	 *                                                 insertion location" algorithm when adding this element.
+	 * @param WP_HTML_Token &$token                     Insert this token. The token will be
+	 *                                                  modified to update its namespace and
+	 *                                                  insertion point correctly.
+	 * @param bool           $only_add_to_element_stack Whether to skip the "insert an element at the adjusted
+	 *                                                  insertion location" algorithm when adding this element.
 	 */
-	private function insert_foreign_element( WP_HTML_Token $token, bool $only_add_to_element_stack ): void {
-		// @todo Let the adjusted insertion location be the appropriate place for inserting a node.
+	private function insert_foreign_element( WP_HTML_Token &$token, bool $only_add_to_element_stack ): void {
+		$adjusted_current_node = $this->get_adjusted_current_node();
+
+		$namespace = $adjusted_current_node ? $adjusted_current_node->namespace : $this->get_namespace();
+
+		if (
+			'html' === $namespace &&
+			( 'SVG' === $token->node_name || 'MATH' === $token->node_name )
+		) {
+			$token->namespace = strtolower( $token->node_name );
+		} else {
+			$token->namespace = $namespace;
+		}
+
+		if ( $this->is_mathml_integration_point() ) {
+			$token->integration_node_type = 'math';
+		} elseif ( $this->is_html_integration_point() ) {
+			$token->integration_node_type = 'html';
+		}
 
 		if ( false === $only_add_to_element_stack ) {
 			/*
