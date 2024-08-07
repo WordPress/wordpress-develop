@@ -1498,14 +1498,22 @@ function header_image() {
  * @return array
  */
 function get_uploaded_header_images() {
+
+	$stylesheet    = get_option( 'stylesheet' );
+	$transient_key = 'uploaded_header_images' . $stylesheet;
+	$header_images = get_transient( $transient_key );
+
+	if ( false !== $header_images ) {
+		return $header_images;
+	}
+
 	$header_images = array();
 
-	// @todo Caching.
 	$headers = get_posts(
 		array(
 			'post_type'  => 'attachment',
 			'meta_key'   => '_wp_attachment_is_custom_header',
-			'meta_value' => get_option( 'stylesheet' ),
+			'meta_value' => $stylesheet,
 			'orderby'    => 'none',
 			'nopaging'   => true,
 		)
@@ -1539,6 +1547,8 @@ function get_uploaded_header_images() {
 			$header_images[ $header_index ]['height'] = $header_data['height'];
 		}
 	}
+
+	set_transient( $transient_key, $header_images, HOUR_IN_SECONDS );
 
 	return $header_images;
 }
