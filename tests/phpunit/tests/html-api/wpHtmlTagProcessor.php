@@ -2875,4 +2875,43 @@ HTML
 			'Should have properly applied the update from in front of the cursor.'
 		);
 	}
+
+	/**
+	 * Test an infinite loop bugfix in incomplete script tag parsing.
+	 *
+	 * @small
+	 *
+	 * @ticket 61810
+	 */
+	public function test_script_tag_processing_no_infinite_loop_final_dash() {
+		$processor = new WP_HTML_Tag_Processor( '<script>-' );
+
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
+
+	/**
+	 * Test an infinite loop bugfix in incomplete script tag parsing.
+	 *
+	 * @small
+	 *
+	 * @ticket 61810
+	 */
+	public function test_script_tag_processing_no_infinite_loop_final_left_angle_bracket() {
+		$processor = new WP_HTML_Tag_Processor( '<script><' );
+
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
+
+	/**
+	 * Test a bugfix where the input ends abruptly with a funky comment started.
+	 *
+	 * @ticket 61831
+	 */
+	public function test_unclosed_funky_comment_input_too_short() {
+		$processor = new WP_HTML_Tag_Processor( '</#' );
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
 }

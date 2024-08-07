@@ -1468,8 +1468,15 @@ class WP_HTML_Tag_Processor {
 				continue;
 			}
 
-			// Everything of interest past here starts with "<".
-			if ( $at + 1 >= $doc_length || '<' !== $html[ $at++ ] ) {
+			if ( $at + 1 >= $doc_length ) {
+				return false;
+			}
+
+			/*
+			 * Everything of interest past here starts with "<".
+			 * Check this character and advance position regardless.
+			 */
+			if ( '<' !== $html[ $at++ ] ) {
 				continue;
 			}
 
@@ -1965,6 +1972,8 @@ class WP_HTML_Tag_Processor {
 			if ( $this->is_closing_tag ) {
 				// No chance of finding a closer.
 				if ( $at + 3 > $doc_length ) {
+					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+
 					return false;
 				}
 
@@ -3663,6 +3672,12 @@ class WP_HTML_Tag_Processor {
 			 * @see https://html.spec.whatwg.org/#attributes-3
 			 */
 			$escaped_new_value = in_array( $comparable_name, wp_kses_uri_attributes() ) ? esc_url( $value ) : esc_attr( $value );
+
+			// If the escaping functions wiped out the update, reject it and indicate it was rejected.
+			if ( '' === $escaped_new_value && '' !== $value ) {
+				return false;
+			}
+
 			$updated_attribute = "{$name}=\"{$escaped_new_value}\"";
 		}
 
