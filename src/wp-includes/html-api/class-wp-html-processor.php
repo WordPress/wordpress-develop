@@ -4110,7 +4110,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$op = '+FONT with attributes';
 		}
 
-		$adjusted_current_node = $this->get_adjusted_current_node();
 		switch ( $op ) {
 			case '#text':
 				/*
@@ -5445,13 +5444,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @see https://html.spec.whatwg.org/#insert-a-foreign-element
 	 *
-	 * @param WP_HTML_Token &$token                     Insert this token. The token will be
-	 *                                                  modified to update its namespace and
-	 *                                                  insertion point correctly.
-	 * @param bool           $only_add_to_element_stack Whether to skip the "insert an element at the adjusted
-	 *                                                  insertion location" algorithm when adding this element.
+	 * @param WP_HTML_Token $token                     Insert this token. The token's namespace and
+	 *                                                 insertion point will be updated correctly.
+	 * @param bool          $only_add_to_element_stack Whether to skip the "insert an element at the adjusted
+	 *                                                 insertion location" algorithm when adding this element.
 	 */
-	private function insert_foreign_element( WP_HTML_Token &$token, bool $only_add_to_element_stack ): void {
+	private function insert_foreign_element( WP_HTML_Token $token, bool $only_add_to_element_stack ): void {
 		$adjusted_current_node = $this->get_adjusted_current_node();
 
 		$namespace = $adjusted_current_node ? $adjusted_current_node->namespace : $this->get_namespace();
