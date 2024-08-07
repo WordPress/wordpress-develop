@@ -2903,4 +2903,15 @@ HTML
 		$this->assertFalse( $processor->next_tag() );
 		$this->assertTrue( $processor->paused_at_incomplete_token() );
 	}
+
+	/**
+	 * Test a bugfix where the input ends abruptly with a funky comment started.
+	 *
+	 * @ticket 61831
+	 */
+	public function test_unclosed_funky_comment_input_too_short() {
+		$processor = new WP_HTML_Tag_Processor( '</#' );
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
 }
