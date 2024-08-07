@@ -174,28 +174,6 @@ class WP_HTML_Open_Elements {
 	}
 
 	/**
-	 * Returns how many nodes are currently in the stack of open elements.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @todo I don't really like this, the proper solution is to not let non-element
-	 *       nodes onto the stack, but this is a way of checking if that approach fixes things.
-	 *
-	 * @return int How many node are in the stack of open elements.
-	 */
-	public function count_elements(): int {
-		$count = 0;
-		for ( $i = count( $this->stack ) - 1; $i >= 0; $i-- ) {
-			$node = $this->stack[ $i ];
-			if ( ctype_upper( $node->node_name[0] ) ) {
-				++$count;
-			}
-		}
-
-		return $count;
-	}
-
-	/**
 	 * Returns the node at the end of the stack of open elements,
 	 * if one exists. If the stack is empty, returns null.
 	 *
@@ -207,28 +185,6 @@ class WP_HTML_Open_Elements {
 		$current_node = end( $this->stack );
 
 		return $current_node ? $current_node : null;
-	}
-
-	/**
-	 * Returns the node at the end of the stack of open elements,
-	 * if one exists. If the stack is empty, returns null.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @todo I don't really like this, the proper solution is to not let non-element
-	 *       nodes onto the stack, but this is a way of checking if that approach fixes things.
-	 *
-	 * @return WP_HTML_Token|null Last node in the stack of open elements, if one exists, otherwise null.
-	 */
-	public function current_element_node(): ?WP_HTML_Token {
-		for ( $i = count( $this->stack ) - 1; $i >= 0; $i-- ) {
-			$node = $this->stack[ $i ];
-			if ( ctype_upper( $node->node_name[0] ) ) {
-				return $node;
-			}
-		}
-
-		return null;
 	}
 
 	/**

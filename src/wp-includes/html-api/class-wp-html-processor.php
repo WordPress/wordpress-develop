@@ -5068,11 +5068,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return WP_HTML_Token|null The adjusted current node.
 	 */
 	private function get_adjusted_current_node(): ?WP_HTML_Token {
-		if ( isset( $this->context_node ) && 1 === $this->state->stack_of_open_elements->count_elements() ) {
+		if ( isset( $this->context_node ) && 1 === $this->state->stack_of_open_elements->count() ) {
 			return $this->context_node;
 		}
 
-		return $this->state->stack_of_open_elements->current_element_node();
+		return $this->state->stack_of_open_elements->current_node();
 	}
 
 	/**
