@@ -391,10 +391,13 @@ abstract class WP_REST_Meta_Fields {
 			);
 		}
 
-		$rows_updated = null;
-		update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ), '', $rows_updated );
+		$is_failure = false;
+		$result     = update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ), '', $is_failure );
 
-		if ( false !== $rows_updated ) {
+		// The update_metadata() function may return false even if no database error has occurred.
+		// The $is_failure flag should be checked to accurately determine if the database query failed,
+		// preventing false positives.
+		if ( $result || ! $is_failure ) {
 			return true;
 		}
 
