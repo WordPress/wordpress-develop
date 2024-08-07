@@ -2700,7 +2700,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 *
 				 * These ought to be handled in the attribute methods.
 				 */
-				$this->insert_foreign_element( $this->state->current_token, false );
+				$this->state->current_token->namespace = 'math';
+				$this->insert_html_element( $this->state->current_token );
 				if ( $this->state->current_token->has_self_closing_flag ) {
 					$this->state->stack_of_open_elements->pop();
 				}
@@ -2718,7 +2719,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 *
 				 * These ought to be handled in the attribute methods.
 				 */
-				$this->insert_foreign_element( $this->state->current_token, false );
+				$this->state->current_token->namespace = 'svg';
+				$this->insert_html_element( $this->state->current_token );
 				if ( $this->state->current_token->has_self_closing_flag ) {
 					$this->state->stack_of_open_elements->pop();
 				}
@@ -5452,16 +5454,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private function insert_foreign_element( WP_HTML_Token $token, bool $only_add_to_element_stack ): void {
 		$adjusted_current_node = $this->get_adjusted_current_node();
 
-		$namespace = $adjusted_current_node ? $adjusted_current_node->namespace : $this->get_namespace();
-
-		if (
-			'html' === $namespace &&
-			( 'SVG' === $token->node_name || 'MATH' === $token->node_name )
-		) {
-			$token->namespace = strtolower( $token->node_name );
-		} else {
-			$token->namespace = $namespace;
-		}
+		$token->namespace = $adjusted_current_node ? $adjusted_current_node->namespace : 'html';
 
 		if ( $this->is_mathml_integration_point() ) {
 			$token->integration_node_type = 'math';
