@@ -1352,9 +1352,9 @@ function retrieve_widgets( $theme_changed = false ) {
 
 	// Find hidden/lost multi-widget instances.
 	$shown_widgets = array();
-	foreach ($sidebars_widgets as $sidebar) {
-		if (is_array($sidebar)) {
-			$shown_widgets = array_merge($shown_widgets, $sidebar);
+	foreach ( $sidebars_widgets as $sidebar ) {
+		if ( is_array( $sidebar ) ) {
+			$shown_widgets = array_merge( $shown_widgets, $sidebar );
 		}
 	}
 	$lost_widgets  = array_diff( $registered_widgets_ids, $shown_widgets );
