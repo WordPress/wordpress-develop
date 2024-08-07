@@ -978,7 +978,7 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 	}
 
 	public function test_disallowed_keys_match_gives_approved_status_of_trash() {
-		$data    = array(
+		$data = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => 'Comment',
 			'author'          => 'Comment Author',
@@ -996,7 +996,7 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 	 * @ticket 61827
 	 */
 	public function test_disallowed_keys_html_match_gives_approved_status_of_trash() {
-		$data    = array(
+		$data = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => '<a href=http://example.com/>example</a>',
 			'author'          => 'Comment Author',
