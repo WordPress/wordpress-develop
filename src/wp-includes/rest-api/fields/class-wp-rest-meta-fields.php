@@ -391,10 +391,10 @@ abstract class WP_REST_Meta_Fields {
 			);
 		}
 
-		$result = update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) );
+		$rows_updated = null;
+		update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ), '', $rows_updated );
 
-		global $wpdb;
-		if ( true === $result || '' === $wpdb->last_error ) {
+		if ( false !== $rows_updated ) {
 			return true;
 		}
 
