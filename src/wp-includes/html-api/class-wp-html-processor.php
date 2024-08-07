@@ -4411,11 +4411,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string One of "html", "math", or "svg".
 	 */
 	public function get_namespace(): string {
-		if ( $this->current_element ) {
-			return $this->current_element->token->namespace;
+		if ( ! isset( $this->current_element ) ) {
+			return 'html';
 		}
 
-		return 'html';
+		return $this->current_element->token->namespace;
 	}
 
 	/**
