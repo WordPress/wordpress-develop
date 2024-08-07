@@ -313,9 +313,8 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 	}
 
 	$result = $wpdb->update( $table, $data, $where );
-	if ( false === $result ) {
-		$is_failure = true;
-	}
+
+	$is_failure = false === $result;
 	if ( ! $result ) {
 		return false;
 	}
