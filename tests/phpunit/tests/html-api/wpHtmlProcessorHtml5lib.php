@@ -207,7 +207,11 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 					$tag_indent = $indent_level;
 
-					if ( ! WP_HTML_Processor::is_void( $tag_name ) ) {
+					if ( 'html' !== $namespace ) {
+						if ( ! $processor->has_self_closing_flag() ) {
+							++$indent_level;
+						}
+					} elseif ( ! WP_HTML_Processor::is_void( $tag_name ) ) {
 						++$indent_level;
 					}
 
