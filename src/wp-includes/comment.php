@@ -2280,9 +2280,7 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 
 	$commentdata = wp_filter_comment( $commentdata );
 
-	if ( $commentdata['comment_approved'] !== 'trash' ) {
-		$commentdata['comment_approved'] = wp_allow_comment( $commentdata, $wp_error );
-	}
+	$commentdata['comment_approved'] = ( 'trash' === $commentdata['comment_approved'] ) ? $commentdata['comment_approved'] : wp_allow_comment( $commentdata, $wp_error );
 
 	if ( is_wp_error( $commentdata['comment_approved'] ) ) {
 		return $commentdata['comment_approved'];
