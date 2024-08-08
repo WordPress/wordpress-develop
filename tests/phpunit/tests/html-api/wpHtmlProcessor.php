@@ -503,4 +503,12 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$subclass_processor = call_user_func( array( get_class( $subclass_instance ), 'create_fragment' ), '' );
 		$this->assertInstanceOf( get_class( $subclass_instance ), $subclass_processor, '::create_fragment did not return subclass instance.' );
 	}
+
+	/**
+	 * @ticket 61576
+	 */
+	public function test_foreign_content_script_self_closing() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg><script />' );
+		$this->assertTrue( $processor->next_tag( 'script' ) );
+	}
 }
