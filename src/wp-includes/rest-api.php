@@ -85,8 +85,8 @@ function register_rest_route( $route_namespace, $route, $args = array(), $overri
 				/* translators: 1: rest_api_init, 2: string value of the route, 3: string value of the namespace. */
 				__( 'REST API routes must be registered on the %1$s action. Instead route \'%2$s\' with namespace \'%3$s\' was not registered on this action.' ),
 				'<code>rest_api_init</code>',
-				'<code>' . $route_namespace . '</code>',
-				'<code>' . $route . '</code>'
+				'<code>' . $route . '</code>',
+				'<code>' . $route_namespace . '</code>'
 			),
 			'5.1.0'
 		);
