@@ -38,12 +38,12 @@ class Tests_Theme_GetUploadedHeaderImages extends WP_UnitTestCase {
 		update_post_meta( $cropped_1_id, '_wp_attachment_is_custom_header', get_stylesheet() );
 
 		$expected = array(
-			5 => array(
-				'attachment_id'     => 5,
+			$cropped_1_id => array(
+				'attachment_id'     => $cropped_1_id,
 				'url'               => 'http://example.org/wp-content/uploads/foo-cropped-1.png',
 				'thumbnail_url'     => 'http://example.org/wp-content/uploads/foo-cropped-1.png',
 				'alt_text'          => '',
-				'attachment_parent' => 4,
+				'attachment_parent' => $id,
 			),
 		);
 
