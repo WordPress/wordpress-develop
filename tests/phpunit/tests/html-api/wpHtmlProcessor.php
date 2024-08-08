@@ -521,4 +521,14 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$this->assertSame( 'MATH', $processor->get_tag() );
 		$this->assertTrue( $processor->expects_closer() );
 	}
+
+	/**
+	 * Ensures that self-closing foreign SCRIPT elements are properly found.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_foreign_content_script_self_closing() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg><script />' );
+		$this->assertTrue( $processor->next_tag( 'script' ) );
+	}
 }
