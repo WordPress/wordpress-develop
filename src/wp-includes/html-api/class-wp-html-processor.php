@@ -4266,8 +4266,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		/*
 		 * > Any other end tag
 		 */
-		in_foreign_content_any_other_end_tag:
 		if ( $this->is_tag_closer() ) {
+			in_foreign_content_any_other_end_tag:
 			$node = $this->state->stack_of_open_elements->current_node();
 			if ( $tag_name !== $node->node_name ) {
 				// @todo Indicate a parse error once it's possible.
