@@ -782,9 +782,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool|null Whether to expect a closer for the currently-matched node,
 	 *                   or `null` if not matched on any token.
 	 */
-	public function expects_closer( $node = null ): ?bool {
-		$token_name = $node->node_name ?? $this->get_token_name();
+	public function expects_closer( WP_HTML_Token $node = null ): ?bool {
+		$token_name      = $node->node_name ?? $this->get_token_name();
 		$token_namespace = $node->namespace ?? $this->get_namespace();
+
 		if ( ! isset( $token_name ) ) {
 			return null;
 		}
