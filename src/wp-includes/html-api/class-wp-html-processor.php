@@ -775,6 +775,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * foreign content will also act just like a void tag, immediately
 	 * closing as soon as the processor advances to the next token.
 	 *
+	 * @todo Review the self-closing logic when no node is present, ensure it
+	 *       matches the expectations in `step()`.
+	 *
 	 * @since 6.6.0
 	 *
 	 * @param WP_HTML_Token|null $node Optional. Node to examine, if provided.
