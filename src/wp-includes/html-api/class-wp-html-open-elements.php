@@ -288,7 +288,7 @@ class WP_HTML_Open_Elements {
 	 * >   - SVG title
 	 *
 	 * @since 6.4.0
-	 * @since 6.7.0 Supports all required HTML elements.
+	 * @since 6.7.0 Full support.
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-scope
 	 *
@@ -309,19 +309,16 @@ class WP_HTML_Open_Elements {
 				'OBJECT',
 				'TEMPLATE',
 
-				/*
-				 * @todo Support SVG and MathML nodes when support for foreign content is added.
-				 *
-				 * - MathML mi
-				 * - MathML mo
-				 * - MathML mn
-				 * - MathML ms
-				 * - MathML mtext
-				 * - MathML annotation-xml
-				 * - SVG foreignObject
-				 * - SVG desc
-				 * - SVG title
-				 */
+				'math MI',
+				'math MO',
+				'math MN',
+				'math MS',
+				'math MTEXT',
+				'math ANNOTATION-XML',
+
+				'svg FOREIGNOBJECT',
+				'svg DESC',
+				'svg TITLE',
 			)
 		);
 	}
@@ -363,19 +360,16 @@ class WP_HTML_Open_Elements {
 				'TEMPLATE',
 				'UL',
 
-				/*
-				 * @todo Support SVG and MathML nodes when support for foreign content is added.
-				 *
-				 * - MathML mi
-				 * - MathML mo
-				 * - MathML mn
-				 * - MathML ms
-				 * - MathML mtext
-				 * - MathML annotation-xml
-				 * - SVG foreignObject
-				 * - SVG desc
-				 * - SVG title
-				 */
+				'math MI',
+				'math MO',
+				'math MN',
+				'math MS',
+				'math MTEXT',
+				'math ANNOTATION-XML',
+
+				'svg FOREIGNOBJECT',
+				'svg DESC',
+				'svg TITLE',
 			)
 		);
 	}
@@ -413,19 +407,16 @@ class WP_HTML_Open_Elements {
 				'OBJECT',
 				'TEMPLATE',
 
-				/*
-				 * @todo Support SVG and MathML nodes when support for foreign content is added.
-				 *
-				 * - MathML mi
-				 * - MathML mo
-				 * - MathML mn
-				 * - MathML ms
-				 * - MathML mtext
-				 * - MathML annotation-xml
-				 * - SVG foreignObject
-				 * - SVG desc
-				 * - SVG title
-				 */
+				'math MI',
+				'math MO',
+				'math MN',
+				'math MS',
+				'math MTEXT',
+				'math ANNOTATION-XML',
+
+				'svg FOREIGNOBJECT',
+				'svg DESC',
+				'svg TITLE',
 			)
 		);
 	}
@@ -707,6 +698,15 @@ class WP_HTML_Open_Elements {
 			case 'MARQUEE':
 			case 'OBJECT':
 			case 'TEMPLATE':
+			case 'math MI':
+			case 'math MO':
+			case 'math MN':
+			case 'math MS':
+			case 'math MTEXT':
+			case 'math ANNOTATION-XML':
+			case 'svg FOREIGNOBJECT':
+			case 'svg DESC':
+			case 'svg TITLE':
 				$this->has_p_in_button_scope = false;
 				break;
 
@@ -750,6 +750,15 @@ class WP_HTML_Open_Elements {
 			case 'MARQUEE':
 			case 'OBJECT':
 			case 'TEMPLATE':
+			case 'math MI':
+			case 'math MO':
+			case 'math MN':
+			case 'math MS':
+			case 'math MTEXT':
+			case 'math ANNOTATION-XML':
+			case 'svg FOREIGNOBJECT':
+			case 'svg DESC':
+			case 'svg TITLE':
 				$this->has_p_in_button_scope = $this->has_element_in_button_scope( 'P' );
 				break;
 		}
