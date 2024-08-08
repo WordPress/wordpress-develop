@@ -207,11 +207,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 					$tag_indent = $indent_level;
 
-					if ( 'html' !== $namespace ) {
-						if ( ! $processor->has_self_closing_flag() ) {
-							++$indent_level;
-						}
-					} elseif ( ! WP_HTML_Processor::is_void( $tag_name ) ) {
+					if ( $processor->expects_closer() ) {
 						++$indent_level;
 					}
 
@@ -275,16 +271,12 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					// Self-contained tags contain their inner contents as modifiable text.
 					$modifiable_text = $processor->get_modifiable_text();
 					if ( '' !== $modifiable_text ) {
-						$output .= str_repeat( $indent, $indent_level ) . "\"{$modifiable_text}\"\n";
+						$output .= str_repeat( $indent, $tag_indent + 1 ) . "\"{$modifiable_text}\"\n";
 					}
 
 					if ( 'html' === $namespace && 'TEMPLATE' === $token_name ) {
 						$output .= str_repeat( $indent, $indent_level ) . "content\n";
 						++$indent_level;
-					}
-
-					if ( ! $processor->is_void( $tag_name ) && ! $processor->expects_closer() ) {
-						--$indent_level;
 					}
 
 					break;
