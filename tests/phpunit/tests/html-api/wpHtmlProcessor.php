@@ -505,7 +505,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket TBD
+	 * @ticket 61576
 	 */
 	public function test_expects_closer_foreign_content_self_closing() {
 		$processor = WP_HTML_Processor::create_fragment( '<svg /><math>' );
