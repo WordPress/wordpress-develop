@@ -195,7 +195,7 @@ jobs:
             tests/phpunit/tests/html-api/wpHtmlProcessorHtml5lib.php
             tests/phpunit/data/html5lib-tests/**.dat
             .github/workflows/phpunit-tests.yml
-            .github/workflows/reusable-phpunit-tests.yml
+            .github/workflows/reusable-phpunit-tests-v3.yml
 
       - name: Run html5lib tests
         if: ${{ inputs.html5lib-tests && steps.html-api-changes.outputs.any_changed == 'true' }}
