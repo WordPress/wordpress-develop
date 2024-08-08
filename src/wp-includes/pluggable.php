@@ -2224,7 +2224,15 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		/* translators: %s: User login. */
 		$message  = sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
 		$message .= __( 'To set your password, visit the following address:' ) . "\r\n\r\n";
-		$message .= network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user->user_login ), 'login' ) . "\r\n\r\n";
+
+		/*
+		 * Since some user login names end in a period, this could produce ambiguous URLs that
+		 * end in a period. To avoid the ambiguity, ensure that the login is not the last query
+		 * arg in the URL. If moving it to the end, a trailing period will need to be escaped.
+		 *
+		 * @see https://core.trac.wordpress.org/tickets/42957
+		 */
+		$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user->user_login ) . "&key=$key&action=rp", 'login' ) . "\r\n\r\n";
 
 		$message .= wp_login_url() . "\r\n";
 
@@ -2458,6 +2466,41 @@ if ( ! function_exists( 'wp_salt' ) ) :
 					$duplicated_keys[ $value ] = isset( $duplicated_keys[ $value ] );
 				}
 			}
+		}
+
+		/*
+		 * Determine which options to prime.
+		 *
+		 * If the salt keys are undefined, use a duplicate value or the
+		 * default `put your unique phrase here` value the salt will be
+		 * generated via `wp_generate_password()` and stored as a site
+		 * option. These options will be primed to avoid repeated
+		 * database requests for undefined salts.
+		 */
+		$options_to_prime = array();
+		foreach ( array( 'auth', 'secure_auth', 'logged_in', 'nonce' ) as $key ) {
+			foreach ( array( 'key', 'salt' ) as $second ) {
+				$const = strtoupper( "{$key}_{$second}" );
+				if ( ! defined( $const ) || true === $duplicated_keys[ constant( $const ) ] ) {
+					$options_to_prime[] = "{$key}_{$second}";
+				}
+			}
+		}
+
+		if ( ! empty( $options_to_prime ) ) {
+			/*
+			 * Also prime `secret_key` used for undefined salting schemes.
+			 *
+			 * If the scheme is unknown, the default value for `secret_key` will be
+			 * used too for the salt. This should rarely happen, so the option is only
+			 * primed if other salts are undefined.
+			 *
+			 * At this point of execution it is known that a database call will be made
+			 * to prime salts, so the `secret_key` option can be primed regardless of the
+			 * constants status.
+			 */
+			$options_to_prime[] = 'secret_key';
+			wp_prime_site_option_caches( $options_to_prime );
 		}
 
 		$values = array(
