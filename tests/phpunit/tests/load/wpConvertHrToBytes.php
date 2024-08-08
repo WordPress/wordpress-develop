@@ -44,7 +44,15 @@ class Tests_Load_wpConvertHrToBytes extends WP_UnitTestCase {
 			array( '128m', 134217728 ),
 			array( '256M', 268435456 ),
 			array( '1g', 1073741824 ),
-			array( '128m ', 134217728 ), // Leading/trailing whitespace gets trimmed.
+
+			/**
+			 * Leading/trailing whitespace gets trimmed.
+			 * Note that this is not the value that PHP uses internally.
+			 * PHP interprets the value as 128, not 128 MiB.
+			 *
+			 * @see wp_ini_parse_quantity()
+			 */
+			array( '128m ', 134217728 ),
 			array( '1024', 1024 ), // No letter will be interpreted as integer value.
 
 			// Edge cases.
