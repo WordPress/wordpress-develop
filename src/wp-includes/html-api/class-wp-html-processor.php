@@ -885,11 +885,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			)
 		);
 
-		if ( ! $parse_in_current_insertion_mode ) {
-			return $this->step_in_foreign_content();
-		}
-
 		try {
+			if ( ! $parse_in_current_insertion_mode ) {
+				return $this->step_in_foreign_content();
+			}
+
 			switch ( $this->state->insertion_mode ) {
 				case WP_HTML_Processor_State::INSERTION_MODE_INITIAL:
 					return $this->step_initial();
@@ -4230,9 +4230,21 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		if ( ! $this->is_tag_closer() ) {
 			$this->insert_foreign_element( $this->state->current_token, false );
 
+			/*
+			 * > If the token has its self-closing flag set, then run
+			 * > the appropriate steps from the following list:
+			 */
 			if ( $this->state->current_token->has_self_closing_flag ) {
 				if ( 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
-					$this->bail( 'Cannot parse SCRIPT tags inside SVG elements.' );
+					/*
+					 * > Acknowledge the token's self-closing flag, and then act as
+					 * > described in the steps for a "script" end tag below.
+					 *
+					 * @todo Verify that this shouldn't be handled by the rule for
+					 *       "An end tag whose name is 'script', if the current node
+					 *       is an SVG script element."
+					 */
+					goto in_foreign_content_any_other_end_tag;
 				} else {
 					$this->state->stack_of_open_elements->pop();
 				}
@@ -4244,12 +4256,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > An end tag whose name is "script", if the current node is an SVG script element.
 		 */
 		if ( $this->is_tag_closer() && 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
-			$this->bail( 'Cannot parse SCRIPT tags inside SVG elements.' );
+			$this->state->stack_of_open_elements->pop();
 		}
 
 		/*
 		 * > Any other end tag
 		 */
+		in_foreign_content_any_other_end_tag:
 		if ( $this->is_tag_closer() ) {
 			$node = $this->state->stack_of_open_elements->current_node();
 			if ( $tag_name !== $node->node_name ) {
@@ -4283,84 +4296,76 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				goto in_foreign_content_end_tag_loop;
 			}
 
-			try {
-				switch ( $this->state->insertion_mode ) {
-					case WP_HTML_Processor_State::INSERTION_MODE_INITIAL:
-						return $this->step_initial();
+			switch ( $this->state->insertion_mode ) {
+				case WP_HTML_Processor_State::INSERTION_MODE_INITIAL:
+					return $this->step_initial();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML:
-						return $this->step_before_html();
+				case WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML:
+					return $this->step_before_html();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD:
-						return $this->step_before_head();
+				case WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD:
+					return $this->step_before_head();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD:
-						return $this->step_in_head();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD:
+					return $this->step_in_head();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD_NOSCRIPT:
-						return $this->step_in_head_noscript();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD_NOSCRIPT:
+					return $this->step_in_head_noscript();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD:
-						return $this->step_after_head();
+				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD:
+					return $this->step_after_head();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_BODY:
-						return $this->step_in_body();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_BODY:
+					return $this->step_in_body();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE:
-						return $this->step_in_table();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE:
+					return $this->step_in_table();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_TEXT:
-						return $this->step_in_table_text();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_TEXT:
+					return $this->step_in_table_text();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION:
-						return $this->step_in_caption();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION:
+					return $this->step_in_caption();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP:
-						return $this->step_in_column_group();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP:
+					return $this->step_in_column_group();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY:
-						return $this->step_in_table_body();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY:
+					return $this->step_in_table_body();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_ROW:
-						return $this->step_in_row();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_ROW:
+					return $this->step_in_row();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_CELL:
-						return $this->step_in_cell();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_CELL:
+					return $this->step_in_cell();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT:
-						return $this->step_in_select();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT:
+					return $this->step_in_select();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE:
-						return $this->step_in_select_in_table();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE:
+					return $this->step_in_select_in_table();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE:
-						return $this->step_in_template();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE:
+					return $this->step_in_template();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY:
-						return $this->step_after_body();
+				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY:
+					return $this->step_after_body();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_FRAMESET:
-						return $this->step_in_frameset();
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_FRAMESET:
+					return $this->step_in_frameset();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_AFTER_FRAMESET:
-						return $this->step_after_frameset();
+				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_FRAMESET:
+					return $this->step_after_frameset();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY:
-						return $this->step_after_after_body();
+				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY:
+					return $this->step_after_after_body();
 
-					case WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET:
-						return $this->step_after_after_frameset();
+				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET:
+					return $this->step_after_after_frameset();
 
-					// This should be unreachable but PHP doesn't have total type checking on switch.
-					default:
-						$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
-				}
-			} catch ( WP_HTML_Unsupported_Exception $e ) {
-				/*
-				 * Exceptions are used in this class to escape deep call stacks that
-				 * otherwise might involve messier calling and return conventions.
-				 */
-				return false;
+				// This should be unreachable but PHP doesn't have total type checking on switch.
+				default:
+					$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
 			}
 		}
 	}
