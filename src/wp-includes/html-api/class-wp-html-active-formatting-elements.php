@@ -67,7 +67,7 @@ class WP_HTML_Active_Formatting_Elements {
 	 * @param WP_HTML_Token $token Look for this node in the stack.
 	 * @return bool Whether the referenced node is in the stack of active formatting elements.
 	 */
-	public function contains_node( $token ) {
+	public function contains_node( WP_HTML_Token $token ) {
 		foreach ( $this->walk_up() as $item ) {
 			if ( $token->bookmark_name === $item->bookmark_name ) {
 				return true;
@@ -114,7 +114,7 @@ class WP_HTML_Active_Formatting_Elements {
 	 *
 	 * @since 6.7.0
 	 */
-	public function insert_marker() {
+	public function insert_marker(): void {
 		$this->push( new WP_HTML_Token( null, 'marker', false ) );
 	}
 
@@ -127,7 +127,7 @@ class WP_HTML_Active_Formatting_Elements {
 	 *
 	 * @param WP_HTML_Token $token Push this node onto the stack.
 	 */
-	public function push( $token ) {
+	public function push( WP_HTML_Token $token ) {
 		/*
 		 * > If there are already three elements in the list of active formatting elements after the last marker,
 		 * > if any, or anywhere in the list if there are no markers, that have the same tag name, namespace, and
@@ -151,7 +151,7 @@ class WP_HTML_Active_Formatting_Elements {
 	 * @param WP_HTML_Token $token Remove this node from the stack, if it's there already.
 	 * @return bool Whether the node was found and removed from the stack of active formatting elements.
 	 */
-	public function remove_node( $token ) {
+	public function remove_node( WP_HTML_Token $token ) {
 		foreach ( $this->walk_up() as $position_from_end => $item ) {
 			if ( $token->bookmark_name !== $item->bookmark_name ) {
 				continue;
@@ -214,6 +214,32 @@ class WP_HTML_Active_Formatting_Elements {
 	public function walk_up() {
 		for ( $i = count( $this->stack ) - 1; $i >= 0; $i-- ) {
 			yield $this->stack[ $i ];
+		}
+	}
+
+	/**
+	 * Clears the list of active formatting elements up to the last marker.
+	 *
+	 * > When the steps below require the UA to clear the list of active formatting elements up to
+	 * > the last marker, the UA must perform the following steps:
+	 * >
+	 * > 1. Let entry be the last (most recently added) entry in the list of active
+	 * >    formatting elements.
+	 * > 2. Remove entry from the list of active formatting elements.
+	 * > 3. If entry was a marker, then stop the algorithm at this point.
+	 * >    The list has been cleared up to the last marker.
+	 * > 4. Go to step 1.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#clear-the-list-of-active-formatting-elements-up-to-the-last-marker
+	 *
+	 * @since 6.7.0
+	 */
+	public function clear_up_to_last_marker(): void {
+		foreach ( $this->walk_up() as $item ) {
+			array_pop( $this->stack );
+			if ( 'marker' === $item->node_name ) {
+				break;
+			}
 		}
 	}
 }
