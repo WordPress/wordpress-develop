@@ -11,6 +11,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	protected static $wp_meta_keys_saved;
 	protected static $post_id;
 	protected static $cpt_post_id;
+	protected $error_query_regexp;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		register_post_type(
@@ -259,6 +260,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
+		$this->error_query_regexp = null;
 	}
 
 	protected function grant_write_permission() {
@@ -4078,16 +4080,18 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		if ( $assert_database_error ) {
 			global $wpdb;
-			$wpdb->suppress_errors = true;
-			add_filter( 'query', array( $this, 'error_update_query' ) );
+			$wpdb->suppress_errors    = true;
+			$this->error_query_regexp = '/^UPDATE.*foo_meta_key/i';
+			add_filter( 'query', array( $this, 'error_query' ) );
 		}
 		// Ensure the request does not result in a 500 HTTP error due to a duplicate meta value.
 		$response = rest_get_server()->dispatch( $request );
 
 		if ( $assert_database_error ) {
 			$wpdb->suppress_errors = false;
-			remove_filter( 'query', array( $this, 'error_update_query' ) );
+			remove_filter( 'query', array( $this, 'error_query' ) );
 			$this->assertSame( 500, $response->get_status() );
+			$this->assertErrorResponse( 'rest_meta_database_error', $response );
 		} else {
 			$this->assertSame( 200, $response->get_status() );
 		}
@@ -4112,13 +4116,16 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Internal function used to disable an update query which
+	 * Internal function used to disable a query which
 	 * will trigger a wpdb error for testing purposes.
+	 *
+	 * @param string $query The query to modify.
 	 */
-	public function error_update_query( $query ) {
-		if ( stripos( $query, 'UPDATE' ) === 0 ) {
+	public function error_query( $query ) {
+		if ( 1 === preg_match( $this->error_query_regexp, $query ) ) {
 			$query = '],';
 		}
+
 		return $query;
 	}
 }
