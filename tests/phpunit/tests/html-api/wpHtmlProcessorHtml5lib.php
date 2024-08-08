@@ -181,19 +181,24 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			$is_closer  = $processor->is_tag_closer();
 
 			if ( $was_text && '#text' !== $token_name ) {
-				$output   .= "{$text_node}\"\n";
+				if ( '' !== $text_node ) {
+					$output .= "{$text_node}\"\n";
+				}
 				$was_text  = false;
 				$text_node = '';
 			}
 
 			switch ( $token_type ) {
 				case '#tag':
-					$tag_name = strtolower( $token_name );
+					$namespace = $processor->get_namespace();
+					$tag_name  = 'html' === $namespace
+						? strtolower( $processor->get_tag() )
+						: "{$namespace} {$processor->get_qualified_tag_name()}";
 
 					if ( $is_closer ) {
 						--$indent_level;
 
-						if ( 'TEMPLATE' === $token_name ) {
+						if ( 'html' === $namespace && 'TEMPLATE' === $token_name ) {
 							--$indent_level;
 						}
 
@@ -202,7 +207,11 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 					$tag_indent = $indent_level;
 
-					if ( ! WP_HTML_Processor::is_void( $tag_name ) ) {
+					if ( 'html' !== $namespace ) {
+						if ( ! $processor->has_self_closing_flag() ) {
+							++$indent_level;
+						}
+					} elseif ( ! WP_HTML_Processor::is_void( $tag_name ) ) {
 						++$indent_level;
 					}
 
@@ -210,9 +219,47 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 					$attribute_names = $processor->get_attribute_names_with_prefix( '' );
 					if ( $attribute_names ) {
-						sort( $attribute_names, SORT_STRING );
-
+						$sorted_attributes = array();
 						foreach ( $attribute_names as $attribute_name ) {
+							$sorted_attributes[ $attribute_name ] = $processor->get_qualified_attribute_name( $attribute_name );
+						}
+
+						/*
+						 * Sorts attributes to match html5lib sort order.
+						 *
+						 *  - First comes normal HTML attributes.
+						 *  - Then come adjusted foreign attributes; these have spaces in their names.
+						 *  - Finally come non-adjusted foreign attributes; these have a colon in their names.
+						 *
+						 * Example:
+						 *
+						 *       From: <math xlink:author definitionurl xlink:title xlink:show>
+						 *     Sorted: 'definitionURL', 'xlink show', 'xlink title', 'xlink:author'
+						 */
+						uasort(
+							$sorted_attributes,
+							static function ( $a, $b ) {
+								$a_has_ns = str_contains( $a, ':' );
+								$b_has_ns = str_contains( $b, ':' );
+
+								// Attributes with `:` should follow all other attributes.
+								if ( $a_has_ns !== $b_has_ns ) {
+									return $a_has_ns ? 1 : -1;
+								}
+
+								$a_has_sp = str_contains( $a, ' ' );
+								$b_has_sp = str_contains( $b, ' ' );
+
+								// Attributes with a namespace ' ' should come after those without.
+								if ( $a_has_sp !== $b_has_sp ) {
+									return $a_has_sp ? 1 : -1;
+								}
+
+								return $a <=> $b;
+							}
+						);
+
+						foreach ( $sorted_attributes as $attribute_name => $display_name ) {
 							$val = $processor->get_attribute( $attribute_name );
 							/*
 							 * Attributes with no value are `true` with the HTML API,
@@ -221,7 +268,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 							if ( true === $val ) {
 								$val = '';
 							}
-							$output .= str_repeat( $indent, $tag_indent + 1 ) . "{$attribute_name}=\"{$val}\"\n";
+							$output .= str_repeat( $indent, $tag_indent + 1 ) . "{$display_name}=\"{$val}\"\n";
 						}
 					}
 
@@ -231,7 +278,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 						$output .= str_repeat( $indent, $indent_level ) . "\"{$modifiable_text}\"\n";
 					}
 
-					if ( 'TEMPLATE' === $token_name ) {
+					if ( 'html' === $namespace && 'TEMPLATE' === $token_name ) {
 						$output .= str_repeat( $indent, $indent_level ) . "content\n";
 						++$indent_level;
 					}
@@ -242,12 +289,17 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 					break;
 
+				case '#cdata-section':
 				case '#text':
+					$text_content = $processor->get_modifiable_text();
+					if ( '' === $text_content ) {
+						break;
+					}
 					$was_text = true;
 					if ( '' === $text_node ) {
 						$text_node .= str_repeat( $indent, $indent_level ) . '"';
 					}
-					$text_node .= $processor->get_modifiable_text();
+					$text_node .= $text_content;
 					break;
 
 				case '#funky-comment':
