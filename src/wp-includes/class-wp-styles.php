@@ -165,14 +165,14 @@ class WP_Styles extends WP_Dependencies {
 			$ver = $ver ? $ver . '&amp;' . $this->args[ $handle ] : $this->args[ $handle ];
 		}
 
-		$src         = $obj->src;
+		$src                   = $obj->src;
 		$ie_conditional_prefix = '';
-		$ie_conditional_suffix  = '';
-		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
+		$ie_conditional_suffix = '';
+		$conditional           = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
 
 		if ( $conditional ) {
 			$ie_conditional_prefix = "<!--[if {$conditional}]>\n";
-			$ie_conditional_suffix  = "<![endif]-->\n";
+			$ie_conditional_suffix = "<![endif]-->\n";
 		}
 
 		$inline_style = $this->print_inline_style( $handle, false );
