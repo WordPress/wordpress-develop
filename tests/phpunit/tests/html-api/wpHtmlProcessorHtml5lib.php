@@ -193,7 +193,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					$namespace = $processor->get_namespace();
 					$tag_name  = 'html' === $namespace
 						? strtolower( $processor->get_tag() )
-						: "{$namespace} {$processor->get_namespaced_tag_name()}";
+						: "{$namespace} {$processor->get_qualified_tag_name()}";
 
 					if ( $is_closer ) {
 						--$indent_level;
@@ -221,7 +221,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					if ( $attribute_names ) {
 						$sorted_attributes = array();
 						foreach ( $attribute_names as $attribute_name ) {
-							$sorted_attributes[ $attribute_name ] = $processor->get_namespaced_attribute_name( $attribute_name );
+							$sorted_attributes[ $attribute_name ] = $processor->get_qualified_attribute_name( $attribute_name );
 						}
 
 						/*

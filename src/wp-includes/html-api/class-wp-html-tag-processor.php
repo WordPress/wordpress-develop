@@ -2765,15 +2765,14 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Returns a modified version of the tag name which transforms based on the namespace.
-	 *
-	 * @todo Pick a better name.
+	 * Returns the adjusted tag name for a given token, taking into
+	 * account the current parsing context, whether HTML, SVG, or MathML.
 	 *
 	 * @since 6.7.0
 	 *
 	 * @return string|null Name of current tag name.
 	 */
-	public function get_namespaced_tag_name(): ?string {
+	public function get_qualified_tag_name(): ?string {
 		$tag_name = $this->get_tag();
 		if ( null === $tag_name ) {
 			return null;
@@ -2911,15 +2910,13 @@ class WP_HTML_Tag_Processor {
 	 * Returns the adjusted attribute name for a given attribute, taking into
 	 * account the current parsing context, whether HTML, SVG, or MathML.
 	 *
-	 * @todo Find a better name.
-	 *
 	 * @since 6.7.0
 	 *
 	 * @param string $attribute_name Which attribute to adjust.
 	 *
 	 * @return string|null
 	 */
-	public function get_namespaced_attribute_name( $attribute_name ): ?string {
+	public function get_qualified_attribute_name( $attribute_name ): ?string {
 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
 			return null;
 		}
