@@ -289,12 +289,12 @@ class WP_Scripts extends WP_Dependencies {
 			$ver = $ver ? $ver . '&amp;' . $this->args[ $handle ] : $this->args[ $handle ];
 		}
 
-		$src               = $obj->src;
-		$strategy          = $this->get_eligible_loading_strategy( $handle );
-		$intended_strategy = (string) $this->get_data( $handle, 'strategy' );
-		$ie_conditional_prefix       = '';
-		$ie_conditional_suffix        = '';
-		$conditional       = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
+		$src                   = $obj->src;
+		$strategy              = $this->get_eligible_loading_strategy( $handle );
+		$intended_strategy     = (string) $this->get_data( $handle, 'strategy' );
+		$ie_conditional_prefix = '';
+		$ie_conditional_suffix = '';
+		$conditional           = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
 
 		if ( ! $this->is_delayed_strategy( $intended_strategy ) ) {
 			$intended_strategy = '';
@@ -321,7 +321,7 @@ class WP_Scripts extends WP_Dependencies {
 
 		if ( $conditional ) {
 			$ie_conditional_prefix = "<!--[if {$conditional}]>\n";
-			$ie_conditional_suffix  = "<![endif]-->\n";
+			$ie_conditional_suffix = "<![endif]-->\n";
 		}
 
 		$before_script = $this->get_inline_script_tag( $handle, 'before' );
@@ -917,9 +917,9 @@ JS;
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string              $handle   The script handle.
+	 * @param string              $handle              The script handle.
 	 * @param string[]|null       $eligible_strategies Optional. The list of strategies to filter. Default null.
-	 * @param array<string, true> $checked  Optional. An array of already checked script handles, used to avoid recursive loops.
+	 * @param array<string, true> $checked             Optional. An array of already checked script handles, used to avoid recursive loops.
 	 * @return string[] A list of eligible loading strategies that could be used.
 	 */
 	private function filter_eligible_strategies( $handle, $eligible_strategies = null, $checked = array() ) {
