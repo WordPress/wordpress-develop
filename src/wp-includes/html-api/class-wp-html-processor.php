@@ -923,9 +923,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET:
 					return $this->step_after_after_frameset();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_FOREIGN_CONTENT:
-					return $this->step_in_foreign_content();
-
 				// This should be unreachable but PHP doesn't have total type checking on switch.
 				default:
 					$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
@@ -4069,7 +4066,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_foreign_content(): bool {
-		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_FOREIGN_CONTENT . ' state.' );
+		$this->bail( 'No support for parsing in the foreign content.' );
 	}
 
 	/*
