@@ -13,12 +13,14 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	private $meta_id;
 	private $delete_meta_id;
+	protected $error_query_regexp;
 
 	public function set_up() {
 		parent::set_up();
-		$this->author         = new WP_User( self::factory()->user->create( array( 'role' => 'author' ) ) );
-		$this->meta_id        = add_metadata( 'user', $this->author->ID, 'meta_key', 'meta_value' );
-		$this->delete_meta_id = add_metadata( 'user', $this->author->ID, 'delete_meta_key', 'delete_meta_value' );
+		$this->author             = new WP_User( self::factory()->user->create( array( 'role' => 'author' ) ) );
+		$this->meta_id            = add_metadata( 'user', $this->author->ID, 'meta_key', 'meta_value' );
+		$this->delete_meta_id     = add_metadata( 'user', $this->author->ID, 'delete_meta_key', 'delete_meta_value' );
+		$this->error_query_regexp = null;
 	}
 
 	public function meta_sanitize_cb( $meta_value, $meta_key, $meta_type ) {
@@ -464,9 +466,10 @@ class Tests_Meta extends WP_UnitTestCase {
 		$is_failure            = false;
 
 		// Attempt to add new metadata, but intentionally cause the query to fail using a filter.
-		add_filter( 'query', array( $this, 'error_insert_query' ) );
+		$this->error_query_regexp = '/^INSERT.*bar_meta_value/i';
+		add_filter( 'query', array( $this, 'error_query' ) );
 		$result = update_metadata( 'user', $this->author->ID, 'foo_meta_key', 'bar_meta_value', '', $is_failure );
-		remove_filter( 'query', array( $this, 'error_insert_query' ) );
+		remove_filter( 'query', array( $this, 'error_query' ) );
 
 		$this->assertFalse( $result, 'Expected the result to be false when the query fails.' );
 		$this->assertTrue( $is_failure, 'Expected the is_failure flag to be true on a database error.' );
@@ -479,11 +482,12 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertFalse( $is_failure, 'Expected the is_failure flag to remain false when the operation succeeds.' );
 
 		// Attempt to update existing metadata, but intentionally cause the query to fail using a filter.
-		add_filter( 'query', array( $this, 'error_update_query' ) );
+		$this->error_query_regexp = '/^UPDATE.*new_meta_value/i';
+		add_filter( 'query', array( $this, 'error_query' ) );
 		$result = update_metadata( 'user', $this->author->ID, 'foo_meta_key', 'new_meta_value', '', $is_failure );
 		$this->assertFalse( $result, 'Expected the result to be false when the update query fails.' );
 		$this->assertTrue( $is_failure, 'Expected the is_failure flag to be true on update failure.' );
-		remove_filter( 'query', array( $this, 'error_update_query' ) );
+		remove_filter( 'query', array( $this, 'error_query' ) );
 
 		// Attempt to update existing metadata; the operation should succeed.
 		$result = update_metadata( 'user', $this->author->ID, 'foo_meta_key', 'new_meta_value', '', $is_failure );
@@ -494,24 +498,16 @@ class Tests_Meta extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Internal function used to disable an insert query which
+	 * Internal function used to disable a query which
 	 * will trigger a wpdb error for testing purposes.
+	 *
+	 * @param string $query The query to modify.
 	 */
-	public function error_insert_query( $query ) {
-		if ( stripos( $query, 'INSERT' ) === 0 ) {
+	public function error_query( $query ) {
+		if ( 1 === preg_match( $this->error_query_regexp, $query ) ) {
 			$query = '],';
 		}
-		return $query;
-	}
 
-	/**
-	 * Internal function used to disable an update query which
-	 * will trigger a wpdb error for testing purposes.
-	 */
-	public function error_update_query( $query ) {
-		if ( stripos( $query, 'UPDATE' ) === 0 ) {
-			$query = '],';
-		}
 		return $query;
 	}
 }
