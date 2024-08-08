@@ -3200,25 +3200,19 @@ class WP_HTML_Tag_Processor {
 	 * @return bool Whether the current tag is a tag closer.
 	 */
 	public function is_tag_closer(): bool {
-		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
-			return false;
-		}
+		return (
+			self::STATE_MATCHED_TAG === $this->parser_state &&
+			$this->is_closing_tag &&
 
-		switch ( $this->get_namespace() ) {
-			case 'html':
-				/*
-				 * The BR tag can only exist as an opening tag. If something like `</br>`
-				 * appears then the HTML parser will treat it as an opening tag with no
-				 * attributes. The BR tag is unique in this way.
-				 *
-				 * @see https://html.spec.whatwg.org/#parsing-main-inbody
-				 */
-				return $this->is_closing_tag && 'BR' !== $this->get_tag();
-
-			case 'math':
-			case 'svg':
-				return $this->is_closing_tag;
-		}
+			/*
+			 * The BR tag can only exist as an opening tag. If something like `</br>`
+			 * appears then the HTML parser will treat it as an opening tag with no
+			 * attributes. The BR tag is unique in this way.
+			 *
+			 * @see https://html.spec.whatwg.org/#parsing-main-inbody
+			 */
+			'BR' !== $this->get_tag()
+		);
 	}
 
 	/**
