@@ -4090,10 +4090,22 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		if ( $assert_database_error ) {
 			$wpdb->suppress_errors = false;
 			remove_filter( 'query', array( $this, 'error_query' ) );
-			$this->assertSame( 500, $response->get_status() );
-			$this->assertErrorResponse( 'rest_meta_database_error', $response );
+			$this->assertSame(
+				500,
+				$response->get_status(),
+				'Expected response status 500 due to database error, got: ' . $response->get_status()
+			);
+			$this->assertErrorResponse(
+				'rest_meta_database_error',
+				$response,
+				'Expected error response code "rest_meta_database_error".'
+			);
 		} else {
-			$this->assertSame( 200, $response->get_status() );
+			$this->assertSame(
+				200,
+				$response->get_status(),
+				'Expected response status 200, got: ' . $response->get_status()
+			);
 		}
 
 		unregister_post_meta( $post_type, 'foo_meta_key' );
