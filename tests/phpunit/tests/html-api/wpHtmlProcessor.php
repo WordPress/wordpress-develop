@@ -505,6 +505,26 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that self-closing elements in foreign content properly report
+	 * that they expect no closer.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_expects_closer_foreign_content_self_closing() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg /><math>' );
+
+		$this->assertTrue( $processor->next_tag() );
+		$this->assertSame( 'SVG', $processor->get_tag() );
+		$this->assertFalse( $processor->expects_closer() );
+
+		$this->assertTrue( $processor->next_tag() );
+		$this->assertSame( 'MATH', $processor->get_tag() );
+		$this->assertTrue( $processor->expects_closer() );
+	}
+
+	/**
+	 * Ensures that self-closing foreign SCRIPT elements are properly found.
+	 *
 	 * @ticket 61576
 	 */
 	public function test_foreign_content_script_self_closing() {
