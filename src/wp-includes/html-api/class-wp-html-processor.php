@@ -4131,6 +4131,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
+			case '#presumptuous-tag':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -4250,6 +4251,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
+			case '#presumptuous-tag':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -4390,6 +4392,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
+			case '#presumptuous-tag':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -4494,6 +4497,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
+			case '#presumptuous-tag':
 				$this->insert_foreign_element( $this->state->current_token, false );
 				return true;
 
