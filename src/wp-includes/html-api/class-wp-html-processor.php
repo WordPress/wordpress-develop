@@ -2360,10 +2360,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 							break;
 
 						case 'A':
-							switch ( $this->run_adoption_agency_algorithm() ) {
-								case 'any-other-end-tag':
-									goto in_body_any_other_end_tag;
-									break;
+							if ( 'ignore' === $this->run_adoption_agency_algorithm() ) {
+								$this->bail( 'Cannot ignore token after running adoption agency algorithm.' );
 							}
 							$this->state->active_formatting_elements->remove_node( $item );
 							$this->state->stack_of_open_elements->remove_node( $item );
@@ -2405,10 +2403,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'NOBR' ) ) {
 					// Parse error.
-					switch ( $this->run_adoption_agency_algorithm() ) {
-						case 'any-other-end-tag':
-							goto in_body_any_other_end_tag;
-							break;
+					if ( 'ignore' === $this->run_adoption_agency_algorithm() ) {
+						$this->bail( 'Cannot ignore token after running adoption agency algorithm.' );
 					}
 					$this->reconstruct_active_formatting_elements();
 				}
@@ -2434,10 +2430,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-STRONG':
 			case '-TT':
 			case '-U':
-				switch ( $this->run_adoption_agency_algorithm() ) {
-					case 'any-other-end-tag':
-						goto in_body_any_other_end_tag;
-						break;
+				if ( 'ignore' === $this->run_adoption_agency_algorithm() ) {
+					$this->bail( 'Cannot ignore token after running adoption agency algorithm.' );
 				}
 				return true;
 
@@ -2774,7 +2768,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > Any other end tag
 			 */
-			in_body_any_other_end_tag:
 
 			/*
 			 * Find the corresponding tag opener in the stack of open elements, if
@@ -5324,9 +5317,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#adoption-agency-algorithm
-	 *
-	 * @return string|null Indicates if the calling code should follow up with any actions,
-	 *                     such as `any-other-end-tag`, otherwise `NULL`.
 	 */
 	private function run_adoption_agency_algorithm(): ?string {
 		$budget       = 1000;
@@ -5339,7 +5329,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * >    then pop the current node off the stack of open elements and return.
 		 */
 		if (
-			$this->state->stack_of_open_elements->current_node_is( $subject ) &&
+			'html' === $current_node->namespace &&
+			$subject === $current_node->node_name &&
 			! $this->state->active_formatting_elements->contains_node( $current_node )
 		) {
 			$this->state->stack_of_open_elements->pop();
@@ -5370,7 +5361,28 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > described in the "any other end tag" entry above.
 			 */
 			if ( null === $formatting_element ) {
-				return 'any-other-end-tag';
+				/*
+				 * These steps are copied here from above. This may remove the node
+				 * or ignore it, meaning the following code must respect that.
+				 */
+				foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+					if ( 'html' === $node->namespace && $subject === $node->node_name ) {
+						break;
+					}
+
+					if ( self::is_special( $node ) ) {
+						return 'ignore';
+					}
+				}
+
+				$this->generate_implied_end_tags( $subject );
+				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+					$this->state->stack_of_open_elements->pop();
+
+					if ( $node === $item ) {
+						return null;
+					}
+				}
 			}
 
 			/*
