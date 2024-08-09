@@ -2410,7 +2410,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 		return new WP_Error(
 			'invalid_taxonomy',
 			__( 'Invalid taxonomy.' ),
-			array( 'status' => 400 ),
+			array( 'status' => 400 )
 		);
 	}
 
