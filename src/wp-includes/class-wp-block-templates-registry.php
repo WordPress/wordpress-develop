@@ -216,7 +216,7 @@ final class WP_Block_Templates_Registry {
 	 * @since 6.7.0
 	 *
 	 * @param string $template_name Template name including namespace.
-	 * @return WP_Block_Template|false The unregistered template on success, or false on failure.
+	 * @return WP_Block_Template|WP_Error The unregistered template on success, or false on failure.
 	 */
 	public function unregister( $template_name ) {
 		if ( ! $this->is_registered( $template_name ) ) {
