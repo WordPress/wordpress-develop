@@ -5093,63 +5093,83 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private function reconstruct_active_formatting_elements(): bool {
 		$count = $this->state->active_formatting_elements->count();
 		/*
-		 * > If there are no entries in the list of active formatting elements, then there is nothing
-		 * > to reconstruct; stop this algorithm.
+		 * > 1. If there are no entries in the list of active formatting elements,
+		 * >    then there is nothing to reconstruct; stop this algorithm.
 		 */
 		if ( 0 === $count ) {
 			return false;
 		}
 
-		// Start at the last node in the list of active formatting elements.
-		$currently_at = $count - 1;
+		$currently_at = $count;
 		$last_entry   = $this->state->active_formatting_elements->at( $currently_at );
+		/*
+		 * > 2. If the last (most recently added) entry in the list of active formatting
+		 * >    elements is a marker, or if it is an element that is in the stack of open
+		 * >    elements, then there is nothing to reconstruct; stop this algorithm.
+		 */
 		if (
-
-			/*
-			 * > If the last (most recently added) entry in the list of active formatting elements is a marker;
-			 * > stop this algorithm.
-			 */
 			'marker' === $last_entry->node_name ||
-
-			/*
-			 * > If the last (most recently added) entry in the list of active formatting elements is an
-			 * > element that is in the stack of open elements, then there is nothing to reconstruct;
-			 * > stop this algorithm.
-			 */
 			$this->state->stack_of_open_elements->contains_node( $last_entry )
 		) {
 			return false;
 		}
 
+		/*
+		 * > 3. Let entry be the last (most recently added) element
+		 * >    in the list of active formatting elements.
+		 */
 		$entry = $last_entry;
 
-		while ( $currently_at >= 0 ) {
-			if ( 0 === $currently_at ) {
-				goto create;
-			}
-			$entry = $this->state->active_formatting_elements->at( --$currently_at );
-
-			/*
-			 * > If entry is neither a marker nor an element that is also in the stack of open elements,
-			 * > go to the step labeled rewind.
-			 */
-			if ( 'marker' === $entry->node_name || $this->state->stack_of_open_elements->contains_node( $entry ) ) {
-				break;
-			}
+		/*
+		 * > 4. Rewind: If there are no entries before entry in the list of active
+		 * >    formatting elements, then jump to the step labeled create.
+		 */
+		rewind:
+		if ( 1 === $currently_at ) {
+			goto create;
 		}
 
+		/*
+		 * > 5. Let entry be the entry one earlier than entry
+		 * >    in the list of active formatting elements.
+		 */
+		$entry = $this->state->active_formatting_elements->at( --$currently_at );
+
+		/*
+		 * > 6. If entry is neither a marker nor an element that is also in
+		 * >    the stack of open elements, go to the step labeled rewind.
+		 */
+		if (
+			'marker' !== $entry->node_name &&
+			! $this->state->stack_of_open_elements->contains_node( $entry )
+		) {
+			goto rewind;
+		}
+
+		/*
+		 * > 7. Advance: Let entry be the element one later than entry
+		 * >    in the list of active formatting elements.
+		 */
 		advance:
 		$entry = $this->state->active_formatting_elements->at( ++$currently_at );
 
+		/*
+		 * > 8. Create: Insert an HTML element for the token for which the
+		 * >    element entry was created, to obtain new element.
+		 */
 		create:
 		$this->insert_html_element( $entry );
 
 		/*
-		 * > Replace the entry for entry in the list with an entry for new element.
-		 * This doesn't need to happen here since no DOM is being created.
+		 * > 9. Replace the entry for entry in the list with an entry for new element.
+		 * >    This doesn't need to happen here since no DOM is being created.
 		 */
 
-		if ( $count - 1 !== $currently_at ) {
+		/*
+		 * > 10. If the entry for new element in the list of active formatting elements
+		 * >     is not the last entry in the list, return to the step labeled advance.
+		 */
+		if ( $count !== $currently_at ) {
 			goto advance;
 		}
 
