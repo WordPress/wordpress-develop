@@ -47,6 +47,17 @@ class WP_HTML_Token {
 	public $node_name = null;
 
 	/**
+	 * Comment type
+	 *
+	 * @since 6.7.0
+	 *
+	 * @see WP_HTML_Processor::get_comment_type()
+	 *
+	 * @var string|null
+	 */
+	public $comment_type = null;
+
+	/**
 	 * Whether node contains the self-closing flag.
 	 *
 	 * A node may have a self-closing flag when it shouldn't. This value

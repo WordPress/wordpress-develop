@@ -256,6 +256,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	private $context_node = null;
 
+	/**
+	 * @var WP_HTML_Token[]
+	 */
+	private $after_body_comments = array();
+
+	/**
+	 * @var WP_HTML_Token[]
+	 */
+	private $after_after_body_comments = array();
+
 	/*
 	 * Public Interface Functions
 	 */
@@ -639,12 +649,34 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		// Process the next event on the queue.
 		$this->current_element = array_shift( $this->element_queue );
 		if ( ! isset( $this->current_element ) ) {
-			// There are no tokens left, so close all remaining open elements.
+			// The document has been fully processed. Perform final actions.
+
+			// Close out the body:
+			if ( $this->state->stack_of_open_elements->contains( 'BODY' ) ) {
+				$this->state->stack_of_open_elements->pop_until( 'BODY' );
+			}
+
+			// Deal with after body comments:
+			foreach ( $this->after_body_comments as $token ) {
+				$this->insert_html_element( $token );
+			}
+			$this->after_body_comments = array();
+
+			// Close out everything on the stack of open elements:
 			while ( $this->state->stack_of_open_elements->pop() ) {
 				continue;
 			}
+			// Deal with after after body comments:
+			foreach ( $this->after_after_body_comments as $token ) {
+				$this->insert_html_element( $token );
+			}
+			$this->after_after_body_comments = array();
 
-			return empty( $this->element_queue ) ? false : $this->next_token();
+			if ( ! empty( $this->element_queue ) ) {
+				return $this->next_token();
+			}
+
+			return false;
 		}
 
 		$is_pop = WP_HTML_Stack_Event::POP === $this->current_element->operation;
@@ -868,6 +900,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->has_self_closing_flag(),
 				$this->release_internal_bookmark_on_destruct
 			);
+			if ( '#comment' === $token_name ) {
+				$this->state->current_token->comment_type = $this->get_comment_type();
+			}
 		}
 
 		$parse_in_current_insertion_mode = (
@@ -4028,8 +4063,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
-				$this->insert_html_element( $this->state->current_token );
-				return true;
+				$this->after_body_comments[] = $this->state->current_token;
+				return $this->step();
 
 			/*
 			 * > A DOCTYPE token
@@ -4065,7 +4100,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Parse error. Switch the insertion mode to "in body" and reprocess the token.
 		 */
 		after_body_anything_else:
-		$this->bail( 'Cannot process any tokens after closing the BODY which would require re-opening it.' );
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -4294,8 +4330,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
-				$this->insert_html_element( $this->state->current_token );
-				return true;
+				$this->after_after_body_comments[] = $this->state->current_token;
+				return $this->step();
 
 			/*
 			 * > A DOCTYPE token
@@ -4326,7 +4362,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Parse error. Switch the insertion mode to "in body" and reprocess the token.
 		 */
 		after_after_body_anything_else:
-		$this->bail( 'Cannot process any tokens after closing the BODY which would require re-opening it.' );
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -4759,7 +4796,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		if ( $this->is_virtual() ) {
+		if ( $this->current_element ) {
 			return $this->current_element->token->node_name;
 		}
 
@@ -4820,9 +4857,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null Name of the matched token.
 	 */
 	public function get_token_name(): ?string {
-		return $this->is_virtual()
-			? $this->current_element->token->node_name
-			: parent::get_token_name();
+		return $this->current_element->token->node_name ?? parent::get_token_name();
 	}
 
 	/**
@@ -4848,7 +4883,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null What kind of token is matched, or null.
 	 */
 	public function get_token_type(): ?string {
-		if ( $this->is_virtual() ) {
+		if ( $this->current_element ) {
 			/*
 			 * This logic comes from the Tag Processor.
 			 *
@@ -5055,7 +5090,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null
 	 */
 	public function get_comment_type(): ?string {
-		return $this->is_virtual() ? null : parent::get_comment_type();
+		return $this->current_element->token->comment_type ?? parent::get_comment_type();
 	}
 
 	/**
