@@ -6,11 +6,11 @@
  */
 class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 
-	public static $comment_ids;
+	public static $comment_id;
 	public static $user_ids;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$comment_ids = $factory->comment->create( array( 'comment_content' => 'Test comment' ) );
+		self::$comment_id = $factory->comment->create( array( 'comment_content' => 'Test comment' ) );
 
 		self::$user_ids = array(
 			'admin'      => $factory->user->create( array( 'role' => 'administrator' ) ),
@@ -20,7 +20,7 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 
 	public static function wpTearDownAfterClass() {
 		// Delete the test comment.
-		wp_delete_comment( self::$comment_ids, true );
+		wp_delete_comment( self::$comment_id, true );
 
 		// Delete the test users.
 		foreach ( self::$user_ids as $user_id ) {
@@ -37,7 +37,7 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 	 * Tests that get_edit_comment_link() returns the correct URL by default.
 	 */
 	public function test_get_edit_comment_link_default() {
-		$comment_id   = self::$comment_ids;
+		$comment_id   = self::$comment_id;
 		$expected_url = admin_url( 'comment.php?action=editcomment&amp;c=' . $comment_id );
 		$actual_url   = get_edit_comment_link( $comment_id );
 
@@ -52,7 +52,7 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 	 * @ticket 61727
 	 */
 	public function test_get_edit_comment_link_display_context() {
-		$comment_id   = self::$comment_ids;
+		$comment_id   = self::$comment_id;
 		$expected_url = admin_url( 'comment.php?action=editcomment&amp;c=' . $comment_id );
 		$actual_url   = get_edit_comment_link( $comment_id, 'display' );
 
@@ -67,7 +67,7 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 	 * @ticket 61727
 	 */
 	public function test_get_edit_comment_link_url_context() {
-		$comment_id   = self::$comment_ids;
+		$comment_id   = self::$comment_id;
 		$expected_url = admin_url( 'comment.php?action=editcomment&c=' . $comment_id );
 		$actual_url   = get_edit_comment_link( $comment_id, 'url' );
 
@@ -93,7 +93,7 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 	 */
 	public function test_get_edit_comment_link_user_cannot_edit() {
 		wp_set_current_user( self::$user_ids['subscriber'] );
-		$comment_id         = self::$comment_ids;
+		$comment_id         = self::$comment_id;
 		$actual_url_display = get_edit_comment_link( $comment_id, 'display' );
 		$actual_url         = get_edit_comment_link( $comment_id, 'url' );
 
@@ -107,7 +107,7 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 	 * @ticket 61727
 	 */
 	public function test_get_edit_comment_link_filter() {
-		$comment_id           = self::$comment_ids;
+		$comment_id           = self::$comment_id;
 		$expected_url_display = admin_url( 'comment-test.php?context=display' );
 		$expected_url         = admin_url( 'comment-test.php?context=url' );
 
