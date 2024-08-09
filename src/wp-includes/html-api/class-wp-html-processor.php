@@ -256,6 +256,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	private $context_node = null;
 
+	/** @var bool */
+	private $has_produced_after_body_content = false;
+
+	/** @var bool */
+	private $has_produced_after_after_body_content = false;
+
 	/*
 	 * Public Interface Functions
 	 */
@@ -4016,6 +4022,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#text':
 				$text = $this->get_modifiable_text();
 				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					if ( $this->has_produced_after_body_content || $this->has_produced_after_after_body_content ) {
+						$this->bail( 'Cannot product out-of-order content.' );
+					}
 					return $this->step_in_body();
 				}
 				goto after_body_anything_else;
@@ -4028,6 +4037,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+				if ( $this->has_produced_after_after_body_content ) {
+					$this->bail( 'Cannot product out-of-order content.' );
+				}
+				if ( ! $this->has_produced_after_body_content ) {
+					$this->state->stack_of_open_elements->pop_until( 'BODY' );
+					$this->has_produced_after_body_content = true;
+				}
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -4065,7 +4081,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Parse error. Switch the insertion mode to "in body" and reprocess the token.
 		 */
 		after_body_anything_else:
-		$this->bail( 'Cannot process any tokens after closing the BODY which would require re-opening it.' );
+		if ( $this->has_produced_after_body_content || $this->has_produced_after_after_body_content ) {
+			$this->bail( 'Cannot return to in body when content has been produced outside of body.' );
+		}
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -4294,6 +4314,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
+				if ( ! $this->has_produced_after_after_body_content ) {
+					while ( $this->state->stack_of_open_elements->pop() ) {}
+					$this->has_produced_after_after_body_content = true;
+				}
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -4316,6 +4340,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#text':
 				$text = $this->get_modifiable_text();
 				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					if ( $this->has_produced_after_body_content || $this->has_produced_after_after_body_content ) {
+						$this->bail( 'Cannot product out-of-order content.' );
+					}
 					return $this->step_in_body();
 				}
 				goto after_after_body_anything_else;
@@ -4326,7 +4353,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Parse error. Switch the insertion mode to "in body" and reprocess the token.
 		 */
 		after_after_body_anything_else:
-		$this->bail( 'Cannot process any tokens after closing the BODY which would require re-opening it.' );
+		if ( $this->has_produced_after_body_content || $this->has_produced_after_after_body_content ) {
+			$this->bail( 'Cannot return to in body when content has been produced outside of body.' );
+		}
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
