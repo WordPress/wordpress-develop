@@ -2360,7 +2360,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 							break;
 
 						case 'A':
-							$this->run_adoption_agency_algorithm();
+							switch ( $this->run_adoption_agency_algorithm() ) {
+								case 'any-other-end-tag':
+									goto in_body_any_other_end_tag;
+									break;
+							}
 							$this->state->active_formatting_elements->remove_node( $item );
 							$this->state->stack_of_open_elements->remove_node( $item );
 							break;
@@ -2401,7 +2405,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'NOBR' ) ) {
 					// Parse error.
-					$this->run_adoption_agency_algorithm();
+					switch ( $this->run_adoption_agency_algorithm() ) {
+						case 'any-other-end-tag':
+							goto in_body_any_other_end_tag;
+							break;
+					}
 					$this->reconstruct_active_formatting_elements();
 				}
 
@@ -2426,7 +2434,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-STRONG':
 			case '-TT':
 			case '-U':
-				$this->run_adoption_agency_algorithm();
+				switch ( $this->run_adoption_agency_algorithm() ) {
+					case 'any-other-end-tag':
+						goto in_body_any_other_end_tag;
+						break;
+				}
 				return true;
 
 			/*
@@ -2762,6 +2774,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > Any other end tag
 			 */
+			in_body_any_other_end_tag:
 
 			/*
 			 * Find the corresponding tag opener in the stack of open elements, if
@@ -5311,28 +5324,34 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#adoption-agency-algorithm
+	 *
+	 * @return string|null Indicates if the calling code should follow up with any actions,
+	 *                     such as `any-other-end-tag`, otherwise `NULL`.
 	 */
-	private function run_adoption_agency_algorithm(): void {
+	private function run_adoption_agency_algorithm(): ?string {
 		$budget       = 1000;
 		$subject      = $this->get_tag();
 		$current_node = $this->state->stack_of_open_elements->current_node();
 
+		/*
+		 * > 2. If the current node is an HTML element whose tag name is subject,
+		 * >    and the current node is not in the list of active formatting elements,
+		 * >    then pop the current node off the stack of open elements and return.
+		 */
 		if (
-			// > If the current node is an HTML element whose tag name is subject
-			isset( $current_node ) && $subject === $current_node->node_name &&
-			// > the current node is not in the list of active formatting elements
+			$this->state->stack_of_open_elements->current_node_is( $subject ) &&
 			! $this->state->active_formatting_elements->contains_node( $current_node )
 		) {
 			$this->state->stack_of_open_elements->pop();
-			return;
+			return null;
 		}
 
-		for ( $outer_loop_counter = 0; $outer_loop_counter < 8; $outer_loop_counter++ ) {
+		for ( $outer_loop_counter = 0; $outer_loop_counter < 8; ++$outer_loop_counter ) {
 			/*
-			 * > Let formatting element be the last element in the list of active formatting elements that:
-			 * >   - is between the end of the list and the last marker in the list,
-			 * >     if any, or the start of the list otherwise,
-			 * >   - and has the tag name subject.
+			 * > 3. Let formatting element be the last element in the list of active formatting elements that:
+			 * >      - is between the end of the list and the last marker in the list,
+			 * >        if any, or the start of the list otherwise,
+			 * >      - and has the tag name subject.
 			 */
 			$formatting_element = null;
 			foreach ( $this->state->active_formatting_elements->walk_up() as $item ) {
@@ -5346,30 +5365,38 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 
-			// > If there is no such element, then return and instead act as described in the "any other end tag" entry above.
+			/*
+			 * > If there is no such element, then return and instead act as
+			 * > described in the "any other end tag" entry above.
+			 */
 			if ( null === $formatting_element ) {
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				$this->bail( 'Cannot run adoption agency when "any other end tag" is required.' );
-			}
-
-			// > If formatting element is not in the stack of open elements, then this is a parse error; remove the element from the list, and return.
-			if ( ! $this->state->stack_of_open_elements->contains_node( $formatting_element ) ) {
-				$this->state->active_formatting_elements->remove_node( $formatting_element );
-				return;
-			}
-
-			// > If formatting element is in the stack of open elements, but the element is not in scope, then this is a parse error; return.
-			if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $formatting_element->node_name ) ) {
-				return;
+				return 'any-other-end-tag';
 			}
 
 			/*
-			 * > If formatting element is not the current node, this is a parse error. (But do not return.)
+			 * > 4. If formatting element is not in the stack of open elements, then
+			 * >    this is a parse error; remove the element from the list, and return.
+			 */
+			if ( ! $this->state->stack_of_open_elements->contains_node( $formatting_element ) ) {
+				$this->state->active_formatting_elements->remove_node( $formatting_element );
+				return null;
+			}
+
+			/*
+			 * > 5. If formatting element is in the stack of open elements, but the element
+			 * >    is not in scope, then this is a parse error; return.
+			 */
+			if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $formatting_element->node_name ) ) {
+				return null;
+			}
+
+			/*
+			 * > 6. If formatting element is not the current node, this is a parse error. (But do not return.)
 			 */
 
 			/*
-			 * > Let furthest block be the topmost node in the stack of open elements that is lower in the stack
-			 * > than formatting element, and is an element in the special category. There might not be one.
+			 * > 7. Let furthest block be the topmost node in the stack of open elements that is lower in the stack
+			 * >    than formatting element, and is an element in the special category. There might not be one.
 			 */
 			$furthest_block = null;
 			foreach ( $this->state->stack_of_open_elements->walk_down( $formatting_element ) as $item ) {
@@ -5380,9 +5407,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			}
 
 			/*
-			 * > If there is no furthest block, then the UA must first pop all the nodes from the bottom of the
-			 * > stack of open elements, from the current node up to and including formatting element, then
-			 * > remove formatting element from the list of active formatting elements, and finally return.
+			 * > 8. If there is no furthest block, then the UA must first pop all the nodes from the bottom of
+			 * >    the stack of open elements, from the current node up to and including formatting element,
+			 * >    then remove formatting element from the list of active formatting elements, and finally return.
 			 */
 			if ( null === $furthest_block ) {
 				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
@@ -5390,13 +5417,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					if ( $formatting_element === $item ) {
 						$this->state->active_formatting_elements->remove_node( $formatting_element );
-						return;
+						return null;
 					}
 				}
 			}
 
 			/*
-			 * > Let common ancestor be the element immediately above formatting element in the stack of open elements.
+			 * > 9. Let common ancestor be the element immediately above
+			 * >    formatting element in the stack of open elements.
 			 */
 			$common_ancestor = null;
 			foreach ( $this->state->stack_of_open_elements->walk_up( $formatting_element ) as $item ) {
@@ -5405,7 +5433,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			}
 
 			/*
-			 * Let a bookmark note the position of formatting element in the list of active formatting elements relative to the elements on either side of it in the list.
+			 * > 10. Let a bookmark note the position of formatting element in the list of active
+			 * >     formatting elements relative to the elements on either side of it in the list.
 			 */
 			$formatting_element_index = 0;
 			foreach ( $this->state->active_formatting_elements->walk_down() as $item ) {
@@ -5417,15 +5446,24 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			}
 
 			/*
-			 * > Let node and last node be furthest block.
+			 * > 11. Let node and last node be furthest block.
 			 */
 			$node      = $furthest_block;
 			$last_node = $furthest_block;
 
 			$inner_loop_counter = 0;
 			while ( $budget-- > 0 ) {
+				/*
+				 * > 1. Increment innerLoopCounter by 1.
+				 */
 				++$inner_loop_counter;
 
+				/*
+				 * > 2. Let node be the element immediately above node in the stack of open elements,
+				 * >    or if node is no longer in the stack of open elements (e.g. because it got
+				 * >    removed by this algorithm), the element that was immediately above node in
+				 * >    the stack of open elements before node was removed.
+				 */
 				if ( $this->state->stack_of_open_elements->contains_node( $node ) ) {
 					foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $item ) {
 						$node = $item;
@@ -5435,36 +5473,86 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->bail( 'Cannot adjust node pointer above removed node.' );
 				}
 
+				/*
+				 * > 3. If node is formattingElement, the break.
+				 */
 				if ( $formatting_element === $node ) {
 					break;
 				}
 
+				/*
+				 * > 4. If innerLoopCounter is greater than 3 and node is in the list of active formatting
+				 * >    elements, then remove node from the list of active formatting elements.
+				 */
 				if ( $inner_loop_counter > 3 && $this->state->active_formatting_elements->contains_node( $node ) ) {
 					$this->state->active_formatting_elements->remove_node( $node );
 				}
 
+				/*
+				 * > 5. If node is not in the list of active formatting elements, then remove node from
+				 * >    the stack of open elements and continue.
+				 */
 				if ( ! $this->state->active_formatting_elements->contains_node( $node ) ) {
 					$this->state->stack_of_open_elements->remove_node( $node );
 					continue;
 				}
 
 				/*
-				 * > Create an element for the token for which the element node was created,
-				 * in the HTML namespace, with common ancestor as the intended parent;
-				 * replace the entry for node in the list of active formatting elements
-				 * with an entry for the new element, replace the entry for node in the
-				 * stack of open elements with an entry for the new element, and let node
-				 * be the new element.
+				 * > 6. Create an element for the token for which the element node was created,
+				 * >    in the HTML namespace, with common ancestor as the intended parent;
+				 * >    replace the entry for node in the list of active formatting elements
+				 * >    with an entry for the new element, replace the entry for node in the
+				 * >    stack of open elements with an entry for the new element, and let node
+				 * >    be the new element.
 				 */
 				$this->bail( 'Cannot create and reference new element for which no token exists.' );
+
+				/*
+				 * > 7. If last node is furthestBlock, then move the aforementioned bookmark to
+				 * >    be immediately after the new node in the list of active formatting elements.
+				 */
+
+				/*
+				 * > 8. Append lastNode to node.
+				 */
+
+				/*
+				 * > 9. Set lastNode to node.
+				 */
+				$last_node = $node;
 			}
 
 			/*
-			 * > Insert whatever last node ended up being in the previous step at the appropriate
-			 * > palce for inserting a node, but using common ancestor as the override target.
+			 * > 14. Insert whatever last node ended up being in the previous step at the appropriate
+			 * >     place for inserting a node, but using common ancestor as the override target.
+			 */
+			$this->bail( 'Cannot create and reference new element for which no token exists.' );
+
+			/*
+			 * > 15. Create an element for the token for which formattingElement was created,
+			 * >     in the HTML namespace, with furthestBlock as the intended parent.
 			 */
 
-			$this->bail( 'Cannot create and reference new element for which no token exists.' );
+			/*
+			 * > 16. Take all of the child nodes of furthestBlock and append them to the element
+			 * >     created in the last step.
+			 */
+
+			/*
+			 * > 17. Append that new element to furthestBlock.
+			 */
+
+			/*
+			 * > 18. Remove formattingElement from the list of active formatting elements,
+			 * >     and insert the new element into the list of active formatting elements
+			 * >     at the position of the aforementioned bookmark.
+			 */
+
+			/*
+			 * > 19. Remove formattingElement from the stack of open elements, and insert the
+			 * >     new element into the stack of open elements immediately below the position
+			 * >     of furthestBlock in that stack.
+			 */
 		}
 	}
 
