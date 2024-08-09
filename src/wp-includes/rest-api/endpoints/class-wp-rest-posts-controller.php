@@ -502,7 +502,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			// Check if post password is string.
 			if ( ! is_string( $request['password'] ) ) {
 				return new WP_Error(
-					'rest_not_in_string',
+					'rest_invalid_type',
 					__( 'Post password should be string.' ),
 					array( 'status' => 400 )
 				);
