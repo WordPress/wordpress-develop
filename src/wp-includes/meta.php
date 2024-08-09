@@ -174,16 +174,18 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  * @param mixed  $prev_value Optional. Previous value to check before updating.
  *                           If specified, only update existing metadata entries with
  *                           this value. Otherwise, update all entries. Default empty string.
- * @param bool   $is_failure Optional. Set to true if updating metadata failed; false otherwise.
+ * @param bool   $is_failure Optional. Set to true if updating metadata fails due to a database error.
+ *                           Set to false if the database query is successful.
+ *                           Set to null if no query is executed.
  * @return int|bool The new meta field ID if a field with the given key didn't exist
  *                  and was therefore added, true on successful update,
  *                  false on failure or if the value passed to the function
  *                  is the same as the one that is already in the database.
  */
-function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_value = '', &$is_failure = false ) {
+function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_value = '', &$is_failure = null ) {
 	global $wpdb;
 
-	$is_failure = false;
+	$is_failure = null;
 
 	if ( ! $meta_type || ! $meta_key || ! is_numeric( $object_id ) ) {
 		return false;

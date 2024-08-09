@@ -404,10 +404,10 @@ abstract class WP_REST_Meta_Fields {
 		$is_failure = false;
 		$result     = update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ), '', $is_failure );
 
-		// The update_metadata() function may return false even if no database error has occurred.
-		// The $is_failure flag should be checked to accurately determine if the database query failed,
-		// preventing false positives.
-		if ( $result || ! $is_failure ) {
+		// Return a WP_Error object if update_metadata() returns false due to a database error.
+		// However, update_metadata() may return false even without a database error.
+		// Use the $is_failure flag to avoid returning a WP_Error object when there is no actual error.
+		if ( $result || false === $is_failure ) {
 			return true;
 		}
 
