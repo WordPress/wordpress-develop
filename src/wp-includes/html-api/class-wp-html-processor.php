@@ -4113,16 +4113,22 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
 			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-			 *
+			 * >
 			 * > Insert the character.
+			 *
+			 * This algorithm effectively strips non-whitespace characters from text and inserts
+			 * them under HTML. This is not supported at this time.
 			 */
 			case '#text':
 				$text = $this->get_modifiable_text();
+				$text = $this->get_modifiable_text();
 				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
-					$this->insert_html_element( $this->state->current_token );
-					return true;
+					if ( $this->has_produced_after_body_content || $this->has_procuded_after_html_content ) {
+						$this->bail( 'Cannot produce out-of-order content.' );
+					}
+					return $this->step_in_body();
 				}
-				goto in_frameset_anything_else;
+				$this->bail( 'Non-whitespace characters cannot be handled in frameset.' );
 				break;
 
 			/*
@@ -4203,7 +4209,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return $this->step_in_head();
 		}
 
-		in_frameset_anything_else:
 		// Parse error: ignore the token.
 		return $this->step();
 	}
@@ -4233,16 +4238,21 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
 			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-			 *
+			 * >
 			 * > Insert the character.
+			 *
+			 * This algorithm effectively strips non-whitespace characters from text and inserts
+			 * them under HTML. This is not supported at this time.
 			 */
 			case '#text':
 				$text = $this->get_modifiable_text();
 				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
-					$this->insert_html_element( $this->state->current_token );
-					return true;
+					if ( $this->has_produced_after_body_content || $this->has_procuded_after_html_content ) {
+						$this->bail( 'Cannot produce out-of-order content.' );
+					}
+					return $this->step_in_body();
 				}
-				goto after_frameset_anything_else;
+				$this->bail( 'Non-whitespace characters cannot be handled in after frameset' );
 				break;
 
 			/*
@@ -4282,7 +4292,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return $this->step_in_head();
 		}
 
-		after_frameset_anything_else:
 		// Parse error: ignore the token.
 		return $this->step();
 	}
@@ -4338,7 +4347,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
 			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-			 *
+			 * >
 			 * > Process the token using the rules for the "in body" insertion mode.
 			 */
 			case '#text':
@@ -4415,8 +4424,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
 			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-			 *
+			 * >
 			 * > Process the token using the rules for the "in body" insertion mode.
+			 *
+			 * This algorithm effectively strips non-whitespace characters from text and inserts
+			 * them under HTML. This is not supported at this time.
 			 */
 			case '#text':
 				$text = $this->get_modifiable_text();
@@ -4426,7 +4438,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					}
 					return $this->step_in_body();
 				}
-				goto after_after_frameset_anything_else;
+				$this->bail( 'Non-whitespace characters cannot be handled in after after frameset.' );
 				break;
 
 			/*
@@ -4439,7 +4451,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return $this->step_in_head();
 		}
 
-		after_after_frameset_anything_else:
 		// Parse error: ignore the token.
 		return $this->step();
 	}
