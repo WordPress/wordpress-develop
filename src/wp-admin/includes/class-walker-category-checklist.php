@@ -112,8 +112,8 @@ class Walker_Category_Checklist extends Walker {
 			$li_element_id     = wp_unique_prefixed_id( "in-{$taxonomy}-{$category->term_id}-" );
 			$select_element_id = wp_unique_prefixed_id( "in-{$taxonomy}-{$category->term_id}-" );
 
-			$output .= "\n<li id='{$li_element_id}'$class>" .
-				'<label class="selectit"><input value="' . $category->term_id . '" type="checkbox" name="' . $name . '[]" id="' . $select_element_id . '"' .
+			$output .= "\n<li id='" . esc_attr( $li_element_id ) . "'$class>" .
+				'<label class="selectit"><input value="' . $category->term_id . '" type="checkbox" name="' . $name . '[]" id="' . esc_attr( $select_element_id ) . '"' .
 				checked( $is_selected, true, false ) .
 				disabled( $is_disabled, true, false ) . ' /> ' .
 				/** This filter is documented in wp-includes/category-template.php */
