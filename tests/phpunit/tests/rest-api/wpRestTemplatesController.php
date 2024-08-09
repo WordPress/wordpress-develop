@@ -554,6 +554,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertSame( 'test-template', $data['slug'], 'Template slug mismatch.' );
 		$this->assertSame( 'plugin', $data['source'], "Template source should be 'plugin'." );
 		$this->assertSame( 'plugin', $data['origin'], "Template origin should be 'plugin'." );
+		$this->assertSame( 'test-plugin', $data['author_text'], 'Template author text mismatch.' );
 		$this->assertSame( 'Description of test template', $data['description'], 'Template description mismatch.' );
 		$this->assertSame( 'Test Template', $data['title']['rendered'], 'Template title mismatch.' );
 		$this->assertSame( 'test-plugin', $data['plugin'], 'Plugin name mismatch.' );
