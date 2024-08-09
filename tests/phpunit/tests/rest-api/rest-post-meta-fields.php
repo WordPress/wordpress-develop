@@ -4030,20 +4030,6 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	public function test_update_meta_should_not_fail_with_duplicate_values_for_single_registered_post_meta( $post_type, $endpoint, $assert_database_error = false ) {
 		$this->grant_write_permission();
 
-		// Create the custom meta.
-		register_post_meta(
-			$post_type,
-			'foo_meta_key',
-			array(
-				'show_in_rest'  => true,
-				'single'        => true,
-				'type'          => 'string',
-				'auth_callback' => function () {
-					return current_user_can( 'edit_posts' );
-				},
-			)
-		);
-
 		// Set up a new post.
 		$post_id = $this->factory()->post->create(
 			array(
