@@ -4315,7 +4315,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#funky-comment':
 			case '#presumptuous-tag':
 				if ( ! $this->has_produced_after_after_body_content ) {
-					while ( $this->state->stack_of_open_elements->pop() ) {}
+					while ( $this->state->stack_of_open_elements->pop() ) {
+						// Just pop while we can.
+					}
 					$this->has_produced_after_after_body_content = true;
 				}
 				$this->insert_html_element( $this->state->current_token );
