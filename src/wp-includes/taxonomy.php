@@ -2434,7 +2434,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 		return new WP_Error(
 			'invalid_term_id',
 			__( 'Invalid term ID.' ),
-			array( 'status' => 400 ),
+			array( 'status' => 400 )
 		);
 	}
 
