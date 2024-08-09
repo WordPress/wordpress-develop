@@ -4061,6 +4061,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 		}
 
+		/*
+		 * > Parse error. Switch the insertion mode to "in body" and reprocess the token.
+		 */
 		after_body_anything_else:
 		$this->bail( 'Cannot process any tokens after closing the BODY which would require re-opening it.' );
 	}
