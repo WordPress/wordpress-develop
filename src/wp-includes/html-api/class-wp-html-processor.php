@@ -4023,13 +4023,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			/*
 			 * > A comment token
+			 *
+			 * Presumptuous tags "</>" are ignored here because they will not appear in HTML and it's undesirable to bail on them here.
 			 */
 			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
-			case '#presumptuous-tag':
-				$this->insert_html_element( $this->state->current_token );
-				return true;
+				$this->bail( 'Cannot process comments after BODY which may appear out-of-order.' );
+				break;
 
 			/*
 			 * > A DOCTYPE token
@@ -4065,7 +4066,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Parse error. Switch the insertion mode to "in body" and reprocess the token.
 		 */
 		after_body_anything_else:
-		$this->bail( 'Cannot process any tokens after closing the BODY which would require re-opening it.' );
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -4289,13 +4291,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		switch ( $op ) {
 			/*
 			 * > A comment token
+			 *
+			 * Presumptuous tags "</>" are ignored here because they will not appear in HTML and it's undesirable to bail on them here.
 			 */
 			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
-			case '#presumptuous-tag':
-				$this->insert_html_element( $this->state->current_token );
-				return true;
+				$this->bail( 'Cannot process comments after BODY which may appear out-of-order.' );
+				break;
 
 			/*
 			 * > A DOCTYPE token
@@ -4326,7 +4329,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Parse error. Switch the insertion mode to "in body" and reprocess the token.
 		 */
 		after_after_body_anything_else:
-		$this->bail( 'Cannot process any tokens after closing the BODY which would require re-opening it.' );
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
