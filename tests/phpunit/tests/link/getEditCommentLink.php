@@ -2,7 +2,7 @@
 /**
  * @group link
  * @group comment
- * @covers ::get_next_comments_link
+ * @covers ::get_edit_comment_link
  */
 class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 
@@ -33,6 +33,24 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 		wp_set_current_user( self::$user_ids['admin'] );
 	}
 
+	/**
+	 * Tests that get_edit_comment_link() returns the correct URL by default.
+	 */
+	public function test_get_edit_comment_link_default() {
+		$comment_id   = self::$comment_ids;
+		$expected_url = admin_url( 'comment.php?action=editcomment&amp;c=' . $comment_id );
+		$actual_url   = get_edit_comment_link( $comment_id );
+
+		$this->assertSame( $expected_url, $actual_url );
+	}
+
+	/**
+	 * Tests that get_edit_comment_link() returns the correct URL with a context of 'display'.
+	 *
+	 * The expected result should include HTML entities.
+	 *
+	 * @ticket 61727
+	 */
 	public function test_get_edit_comment_link_display_context() {
 		$comment_id   = self::$comment_ids;
 		$expected_url = admin_url( 'comment.php?action=editcomment&amp;c=' . $comment_id );
@@ -41,6 +59,13 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 		$this->assertSame( $expected_url, $actual_url );
 	}
 
+	/**
+	 * Tests that get_edit_comment_link() returns the correct URL with a context of 'url'.
+	 *
+	 * The expected result should not include HTML entities.
+	 *
+	 * @ticket 61727
+	 */
 	public function test_get_edit_comment_link_url_context() {
 		$comment_id   = self::$comment_ids;
 		$expected_url = admin_url( 'comment.php?action=editcomment&c=' . $comment_id );
@@ -49,38 +74,42 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 		$this->assertSame( $expected_url, $actual_url );
 	}
 
+	/**
+	 * Tests that get_edit_comment_link() returns nothing if the comment ID is invalid.
+	 *
+	 * @ticket 61727
+	 */
 	public function test_get_edit_comment_link_invalid_comment() {
 		$comment_id         = 12345;
 		$actual_url_display = get_edit_comment_link( $comment_id, 'display' );
-		$actual_url_view    = get_edit_comment_link( $comment_id, 'url' );
+		$actual_url         = get_edit_comment_link( $comment_id, 'url' );
 
 		$this->assertNull( $actual_url_display );
-		$this->assertNull( $actual_url_view );
+		$this->assertNull( $actual_url );
 	}
 
+	/**
+	 * Tests that get_edit_comment_link() returns nothing if the current user cannot edit it.
+	 */
 	public function test_get_edit_comment_link_user_cannot_edit() {
 		wp_set_current_user( self::$user_ids['subscriber'] );
 		$comment_id         = self::$comment_ids;
 		$actual_url_display = get_edit_comment_link( $comment_id, 'display' );
-		$actual_url_view    = get_edit_comment_link( $comment_id, 'url' );
+		$actual_url         = get_edit_comment_link( $comment_id, 'url' );
 
 		$this->assertNull( $actual_url_display );
-		$this->assertNull( $actual_url_view );
+		$this->assertNull( $actual_url );
 	}
 
 	/**
-	 * The test case verifies that the get_edit_comment_link function to generates comment link for editing comments,
-	 * and that the URLs are correctly filtered based on context to include HTML entities in link
-	 * $comment_id The ID of the comment to test, retrieved from self::$comment_ids['valid'].
-	 * $expected_url The expected URL format when the context is 'display', with an HTML entity for the ampersand (&amp;).
-	 * $expected_url_view The expected URL format when the context is 'view', with a regular ampersand (&).
+	 * Tests that the 'get_edit_comment_link' filter works as expected, including the additional parameters.
+	 *
 	 * @ticket 61727
 	 */
-
 	public function test_get_edit_comment_link_filter() {
-		$comment_id        = self::$comment_ids;
-		$expected_url      = admin_url( 'comment-test.php?context=display' );
-		$expected_url_view = admin_url( 'comment-test.php?context=url' );
+		$comment_id           = self::$comment_ids;
+		$expected_url_display = admin_url( 'comment-test.php?context=display' );
+		$expected_url         = admin_url( 'comment-test.php?context=url' );
 
 		add_filter(
 			'get_edit_comment_link',
@@ -92,10 +121,10 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 		);
 
 		$actual_url_display = get_edit_comment_link( $comment_id, 'display' );
-		$actual_url_view    = get_edit_comment_link( $comment_id, 'url' );
+		$actual_url         = get_edit_comment_link( $comment_id, 'url' );
 
 		// Assert the final URLs are as expected
-		$this->assertSame( $expected_url, $actual_url_display );
-		$this->assertSame( $expected_url_view, $actual_url_view );
+		$this->assertSame( $expected_url_display, $actual_url_display );
+		$this->assertSame( $expected_url, $actual_url );
 	}
 }
