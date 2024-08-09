@@ -4023,7 +4023,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$text = $this->get_modifiable_text();
 				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
 					if ( $this->has_produced_after_body_content || $this->has_procuded_after_html_content ) {
-						$this->bail( 'Cannot product out-of-order content.' );
+						$this->bail( 'Cannot produce out-of-order content.' );
 					}
 					return $this->step_in_body();
 				}
@@ -4038,7 +4038,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#funky-comment':
 			case '#presumptuous-tag':
 				if ( $this->has_procuded_after_html_content ) {
-					$this->bail( 'Cannot product out-of-order content.' );
+					$this->bail( 'Cannot produce out-of-order content.' );
 				}
 				if ( ! $this->has_produced_after_body_content ) {
 					$this->state->stack_of_open_elements->pop_until( 'BODY' );
@@ -4345,7 +4345,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$text = $this->get_modifiable_text();
 				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
 					if ( $this->has_produced_after_body_content || $this->has_procuded_after_html_content ) {
-						$this->bail( 'Cannot product out-of-order content.' );
+						$this->bail( 'Cannot produce out-of-order content.' );
 					}
 					return $this->step_in_body();
 				}
