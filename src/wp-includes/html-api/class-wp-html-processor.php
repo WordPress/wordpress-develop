@@ -786,12 +786,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *                   or `null` if not matched on any token.
 	 */
 	public function expects_closer( WP_HTML_Token $node = null ): ?bool {
-		$token_name      = $node->node_name ?? $this->get_token_name();
-		$token_namespace = $node->namespace ?? $this->get_namespace();
+		$token_name = $node->node_name ?? $this->get_token_name();
 
 		if ( ! isset( $token_name ) ) {
 			return null;
 		}
+
+		$token_namespace        = $node->namespace ?? $this->get_namespace();
+		$token_has_self_closing = $node->has_self_closing_flag ?? $this->has_self_closing_flag();
 
 		return ! (
 			// Comments, text nodes, and other atomic tokens.
@@ -803,7 +805,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			// Special atomic elements.
 			( 'html' === $token_namespace && in_array( $token_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) ||
 			// Self-closing elements in foreign content.
-			( isset( $node ) && 'html' !== $node->namespace && $node->has_self_closing_flag )
+			( 'html' !== $token_namespace && $token_has_self_closing )
 		);
 	}
 
@@ -4237,21 +4239,22 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > If the token has its self-closing flag set, then run
 			 * > the appropriate steps from the following list:
+			 * >
+			 * >   ↪ the token's tag name is "script", and the new current node is in the SVG namespace
+			 * >         Acknowledge the token's self-closing flag, and then act as
+			 * >         described in the steps for a "script" end tag below.
+			 * >
+			 * >   ↪ Otherwise
+			 * >         Pop the current node off the stack of open elements and
+			 * >         acknowledge the token's self-closing flag.
+			 *
+			 * Since the rules for SCRIPT below indicate to pop the element off of the stack of
+			 * open elements, which is the same for the Otherwise condition, there's no need to
+			 * separate these checks. The difference comes when a parser operates with the scripting
+			 * flag enabled, and executes the script, which this parser does not support.
 			 */
 			if ( $this->state->current_token->has_self_closing_flag ) {
-				if ( 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
-					/*
-					 * > Acknowledge the token's self-closing flag, and then act as
-					 * > described in the steps for a "script" end tag below.
-					 *
-					 * @todo Verify that this shouldn't be handled by the rule for
-					 *       "An end tag whose name is 'script', if the current node
-					 *       is an SVG script element."
-					 */
-					goto in_foreign_content_any_other_end_tag;
-				} else {
-					$this->state->stack_of_open_elements->pop();
-				}
+				$this->state->stack_of_open_elements->pop();
 			}
 			return true;
 		}
@@ -4261,13 +4264,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 */
 		if ( $this->is_tag_closer() && 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
 			$this->state->stack_of_open_elements->pop();
+			return true;
 		}
 
 		/*
 		 * > Any other end tag
 		 */
 		if ( $this->is_tag_closer() ) {
-			in_foreign_content_any_other_end_tag:
 			$node = $this->state->stack_of_open_elements->current_node();
 			if ( $tag_name !== $node->node_name ) {
 				// @todo Indicate a parse error once it's possible.
