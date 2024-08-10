@@ -1992,7 +1992,7 @@ function wp_list_post_revisions( $post = 0, $type = 'all' ) {
 		_deprecated_argument( __FUNCTION__, '3.6.0' );
 	}
 
-	$revisions = wp_get_post_revisions( $post->ID );
+	$revisions = wp_get_post_revisions( $post->ID, array( 'fields' => 'ids' ) );
 
 	if ( ! $revisions ) {
 		return;
@@ -2000,7 +2000,7 @@ function wp_list_post_revisions( $post = 0, $type = 'all' ) {
 
 	$rows = '';
 	foreach ( $revisions as $revision ) {
-		if ( ! current_user_can( 'read_post', $revision->ID ) ) {
+		if ( ! current_user_can( 'read_post', $revision ) ) {
 			continue;
 		}
 
