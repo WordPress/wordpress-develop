@@ -111,10 +111,10 @@ function wp_default_packages_vendor( $scripts ) {
 		'react'                       => '18.3.1',
 		'react-dom'                   => '18.3.1',
 		'react-jsx-runtime'           => '18.3.1',
-		'regenerator-runtime'         => '0.14.0',
+		'regenerator-runtime'         => '0.14.1',
 		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.21',
-		'wp-polyfill-fetch'           => '3.6.17',
+		'wp-polyfill-fetch'           => '3.6.20',
 		'wp-polyfill-formdata'        => '4.0.10',
 		'wp-polyfill-node-contains'   => '4.8.0',
 		'wp-polyfill-url'             => '3.6.4',
@@ -684,7 +684,13 @@ function wp_scripts_get_suffix( $type = '' ) {
 	static $suffixes;
 
 	if ( null === $suffixes ) {
-		// Include an unmodified $wp_version.
+		/*
+		 * Include an unmodified $wp_version.
+		 *
+		 * Note: wp_get_wp_version() is not used here, as this file can be included
+		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+		 * wp-includes/functions.php is not loaded.
+		 */
 		require ABSPATH . WPINC . '/version.php';
 
 		/*
@@ -1034,7 +1040,7 @@ function wp_default_scripts( $scripts ) {
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', 'lt IE 8' );
 
 	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.4', 1 );
-	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.5.0', 1 );
+	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.6.0', 1 );
 
 	$scripts->add( 'wp-util', "/wp-includes/js/wp-util$suffix.js", array( 'underscore', 'jquery' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize(
@@ -1522,7 +1528,13 @@ function wp_default_scripts( $scripts ) {
 function wp_default_styles( $styles ) {
 	global $editor_styles;
 
-	// Include an unmodified $wp_version.
+	/*
+	 * Include an unmodified $wp_version.
+	 *
+	 * Note: wp_get_wp_version() is not used here, as this file can be included
+	 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+	 * wp-includes/functions.php is not loaded.
+	 */
 	require ABSPATH . WPINC . '/version.php';
 
 	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
