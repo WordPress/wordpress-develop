@@ -3409,7 +3409,7 @@ HTML
 			$handle = $script;
 		}
 
-		$this->assertSame( $package_json[ $script ], $wp_scripts->query( $handle, 'registered' )->ver );
+		$this->assertSame( $package_json[ $script ], $wp_scripts->query( $handle, 'registered' )->ver, "The script '{$handle}' should be registered with version {$package_json[ $script ]}." );
 	}
 
 	/**
