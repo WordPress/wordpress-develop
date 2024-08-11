@@ -3386,6 +3386,53 @@ HTML
 	}
 
 	/**
+	 * Tests default scripts are registered with the correct versions.
+	 *
+	 * Ensures that scripts included in package.json but registered in
+	 * wp_default_scripts() are registered with the correct versions.
+	 *
+	 * @ticket 61855
+	 *
+	 * @covers ::wp_default_scripts
+	 *
+	 * @dataProvider data_vendor_script_versions_registered_manually
+	 *
+	 * @param string $script Script name as defined in package.json.
+	 * @param string $handle Optional. Handle to check for. Defaults to the script name.
+	 */
+	public function test_vendor_script_versions_registered_manually( $script, $handle = null ) {
+		global $wp_scripts;
+		wp_default_scripts( $wp_scripts );
+
+		$package_json = $this->_scripts_from_package_json();
+		if ( ! $handle ) {
+			$handle = $script;
+		}
+
+		$this->assertSame( $package_json[ $script ], $wp_scripts->query( $handle, 'registered' )->ver );
+	}
+
+	/**
+	 * Data provider for test_vendor_script_versions_registered_manually.
+	 *
+	 * @return array[]
+	 */
+	public function data_vendor_script_versions_registered_manually() {
+		return array(
+			'backbone'           => array( 'backbone' ),
+			'clipboard'          => array( 'clipboard' ),
+			'hoverintent-js'     => array( 'hoverintent', 'hoverintent-js' ),
+			'imagesloaded'       => array( 'imagesloaded' ),
+			'jquery-core'        => array( 'jquery', 'jquery-core' ),
+			'jquery-color'       => array( 'jquery-color' ),
+			'jquery-form'        => array( 'jquery-form' ),
+			'jquery-hoverintent' => array( 'jquery-hoverintent', 'hoverIntent' ),
+			'masonry'            => array( 'masonry-layout', 'masonry' ),
+			'underscore'         => array( 'underscore' ),
+		);
+	}
+
+	/**
 	 * @ticket 60048
 	 *
 	 * @covers ::wp_default_packages_vendor
