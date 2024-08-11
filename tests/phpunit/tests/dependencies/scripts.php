@@ -3388,8 +3388,8 @@ HTML
 	/**
 	 * Tests default scripts are registered with the correct versions.
 	 *
-	 * Ensures that scripts included in package.json but registered in
-	 * wp_default_scripts() are registered with the correct versions.
+	 * Ensures that vendor scripts registered in wp_default_scripts() are
+	 * registered with the correct version number from package.json.
 	 *
 	 * @ticket 61855
 	 *
