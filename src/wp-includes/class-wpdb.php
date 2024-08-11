@@ -627,16 +627,16 @@ class wpdb {
 	/**
 	 * Database SSL CA Path.
 	 * 
-	 * @var string
+	 * @var string|null
 	 */
-	protected $dbsslcapath;
+	protected $dbsslcapath = null;
 
 	/**
 	 * Database SSL Ciphers.
 	 * 
-	 * @var string
+	 * @var string|null
 	 */
-	protected $dbsslcipher;
+	protected $dbsslcipher = null;
 
 	/**
 	 * Database handle.
