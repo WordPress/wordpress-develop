@@ -1463,6 +1463,10 @@ class WP_Site_Health {
 				$result['label'] = __( 'Your site is set to display errors to site visitors' );
 
 				$result['status'] = 'critical';
+				
+				if ( $this->is_development_environment() ) {
+					$result['status'] = 'recommended';
+				}
 
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
@@ -2594,5 +2598,9 @@ class WP_Site_Health {
 		}
 
 		set_transient( 'health-check-site-status-result', wp_json_encode( $site_status ) );
+	}
+	
+	public function is_development_environment() {
+		return in_array( wp_get_environment_type(), array( 'development', 'local' ), true );
 	}
 }
