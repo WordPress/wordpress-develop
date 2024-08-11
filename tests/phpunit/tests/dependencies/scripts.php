@@ -3409,6 +3409,10 @@ HTML
 			$handle = $script;
 		}
 
+		$script_query = $wp_scripts->query( $handle, 'registered' );
+
+		$this->assertNotFalse( $script_query, "The script '{$handle}' should be registered." );
+		$this->assertArrayHasKey( $script, $package_json, "The dependency '{$script}' should included in package.json." );
 		$this->assertSame( $package_json[ $script ], $wp_scripts->query( $handle, 'registered' )->ver, "The script '{$handle}' should be registered with version {$package_json[ $script ]}." );
 	}
 
