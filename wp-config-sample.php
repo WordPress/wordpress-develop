@@ -37,6 +37,24 @@ define( 'DB_CHARSET', 'utf8' );
 /** The database collate type. Don't change this if in doubt. */
 define( 'DB_COLLATE', '' );
 
+/** Enable secure database connections. */
+define( 'DB_SSL', false );
+
+/** Database SSL Key  */
+define( 'DB_SSL_KEY', '' );
+
+/** Database SSL Cert  */
+define( 'DB_SSL_CERT', '' );
+
+/** Database SSL CA */
+define( 'DB_SSL_CA', '' );
+
+/** Database SSL CA Path */
+define( 'DB_SSL_CA_PATH', '' );
+
+/** Database SSL Ciphers */
+define( 'DB_SSL_CIPHERS', '' );
+
 /**#@+
  * Authentication unique keys and salts.
  *

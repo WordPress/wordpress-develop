@@ -687,12 +687,18 @@ function require_wp_db() {
 		return;
 	}
 
-	$dbuser     = defined( 'DB_USER' ) ? DB_USER : '';
-	$dbpassword = defined( 'DB_PASSWORD' ) ? DB_PASSWORD : '';
-	$dbname     = defined( 'DB_NAME' ) ? DB_NAME : '';
-	$dbhost     = defined( 'DB_HOST' ) ? DB_HOST : '';
+	$dbuser       = defined( 'DB_USER' ) ? DB_USER : '';
+	$dbpassword   = defined( 'DB_PASSWORD' ) ? DB_PASSWORD : '';
+	$dbname       = defined( 'DB_NAME' ) ? DB_NAME : '';
+	$dbhost       = defined( 'DB_HOST' ) ? DB_HOST : '';
+	$dbssl        = defined( 'DB_SSL' ) ? DB_SSL : false;
+	$dbsslkey     = defined( 'DB_SSL_KEY' ) ? DB_SSL_KEY : '';
+	$dbsslcert    = defined( 'DB_SSL_CERT' ) ? DB_SSL_CERT : '';
+	$dbsslca      = defined( 'DB_SSL_CA' ) ? DB_SSL_CA : '';
+	$dbsslcapath  = defined( 'DB_SSL_CA_PATH' ) ? DB_SSL_CA_PATH : '';
+	$dbsslciphers = defined( 'DB_SSL_CIPHERS' ) ? DB_SSL_CIPHERS : '';
 
-	$wpdb = new wpdb( $dbuser, $dbpassword, $dbname, $dbhost );
+	$wpdb = new wpdb( $dbuser, $dbpassword, $dbname, $dbhost, $dbssl, $dbsslkey, $dbsslcert, $dbsslca, $dbsslcapath, $dbsslciphers );
 }
 
 /**
