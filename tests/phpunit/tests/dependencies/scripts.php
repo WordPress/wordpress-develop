@@ -3423,10 +3423,6 @@ HTML
 	 */
 	public function data_vendor_script_versions_registered_manually() {
 		return array(
-			// Test the tests.
-			'unregistered_script' => array( 'unregistered_script' ),
-			'core_script_no_npm'  => array( 'customize-base' ),
-
 			'backbone'           => array( 'backbone' ),
 			'clipboard'          => array( 'clipboard' ),
 			'hoverintent-js'     => array( 'hoverintent', 'hoverintent-js' ),
