@@ -598,6 +598,47 @@ class wpdb {
 	protected $dbhost;
 
 	/**
+	 * Database SSL.
+	 * 
+	 * @var bool
+	 */
+	protected $dbssl;
+
+	/**
+	 * Database SSL Key.
+	 * @var string
+	 */
+	protected $dbsslkey;
+
+	/**
+	 * Database SSL Cert.
+	 * 
+	 * @var string
+	 */
+	protected $dbsslcert;
+
+	/**
+	 * Database SSL CA.
+	 * 
+	 * @var string
+	 */
+	protected $dbsslca;
+
+	/**
+	 * Database SSL CA Path.
+	 * 
+	 * @var string
+	 */
+	protected $dbsslcapath;
+
+	/**
+	 * Database SSL Ciphers.
+	 * 
+	 * @var string
+	 */
+	protected $dbsslcipher;
+
+	/**
 	 * Database handle.
 	 *
 	 * Possible values:
@@ -744,20 +785,32 @@ class wpdb {
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/3354
 	 *
-	 * @param string $dbuser     Database user.
-	 * @param string $dbpassword Database password.
-	 * @param string $dbname     Database name.
-	 * @param string $dbhost     Database host.
+	 * @param string $dbuser       Database user.
+	 * @param string $dbpassword   Database password.
+	 * @param string $dbname       Database name.
+	 * @param string $dbhost       Database host.
+	 * @param bool $dbssl		   Database ssl.
+	 * @param string $dbsslkey     Database ssl key.
+	 * @param string $dbsslcert    Database ssl cert.
+	 * @param string $dbsslca      Database ssl ca.
+	 * @param string $dbsslcapath  Database ssl ca path.
+	 * @param string $dbsslciphers Database ssl ciphers.
 	 */
-	public function __construct( $dbuser, $dbpassword, $dbname, $dbhost ) {
+	public function __construct(  $dbuser, $dbpassword, $dbname, $dbhost, $dbssl, $dbsslkey, $dbsslcert, $dbsslca, $dbsslcapath, $dbsslciphers  ) {
 		if ( WP_DEBUG && WP_DEBUG_DISPLAY ) {
 			$this->show_errors();
 		}
 
-		$this->dbuser     = $dbuser;
-		$this->dbpassword = $dbpassword;
-		$this->dbname     = $dbname;
-		$this->dbhost     = $dbhost;
+		$this->dbuser       = $dbuser;
+		$this->dbpassword   = $dbpassword;
+		$this->dbname       = $dbname;
+		$this->dbhost       = $dbhost;
+		$this->dbssl        = $dbssl;
+		$this->dbsslkey     = $dbsslkey;
+		$this->dbsslcert    = $dbsslcert;
+		$this->dbsslca      = $dbsslca;
+		$this->dbsslcapath  = $dbsslcapath;
+		$this->dbsslciphers = $dbsslciphers;
 
 		// wp-config.php creation will manually connect when ready.
 		if ( defined( 'WP_SETUP_CONFIG' ) ) {
@@ -1976,6 +2029,13 @@ class wpdb {
 		 */
 		if ( $is_ipv6 && extension_loaded( 'mysqlnd' ) ) {
 			$host = "[$host]";
+		}
+
+		/*
+         * Establish secure connection to database is enabled.
+         */
+        if ( DB_SSL ) {
+			@mysqli_ssl_set( $this->dbh, $this->dbsslkey, $this->dbsslcert, $this->dbsslca, $this->dbsslcapath, $this->dbsslciphers );
 		}
 
 		if ( WP_DEBUG ) {
