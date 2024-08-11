@@ -636,7 +636,7 @@ class wpdb {
 	 * 
 	 * @var string|null
 	 */
-	protected $dbsslcipher = null;
+	protected $dbsslciphers = null;
 
 	/**
 	 * Database handle.
