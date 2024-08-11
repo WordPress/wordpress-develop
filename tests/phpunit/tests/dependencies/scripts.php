@@ -3423,16 +3423,16 @@ HTML
 	 */
 	public function data_vendor_script_versions_registered_manually() {
 		return array(
-			'backbone'           => array( 'backbone' ),
-			'clipboard'          => array( 'clipboard' ),
-			'hoverintent-js'     => array( 'hoverintent', 'hoverintent-js' ),
-			'imagesloaded'       => array( 'imagesloaded' ),
-			'jquery-core'        => array( 'jquery', 'jquery-core' ),
-			'jquery-color'       => array( 'jquery-color' ),
-			'jquery-form'        => array( 'jquery-form' ),
-			'jquery-hoverintent' => array( 'jquery-hoverintent', 'hoverIntent' ),
-			'masonry'            => array( 'masonry-layout', 'masonry' ),
-			'underscore'         => array( 'underscore' ),
+			'backbone'               => array( 'backbone' ),
+			'clipboard'              => array( 'clipboard' ),
+			'imagesloaded'           => array( 'imagesloaded' ),
+			'jquery-color'           => array( 'jquery-color' ),
+			'jquery-core'            => array( 'jquery', 'jquery-core' ),
+			'jquery-form'            => array( 'jquery-form' ),
+			'jquery-hoverintent'     => array( 'jquery-hoverintent', 'hoverIntent' ),
+			'masonry'                => array( 'masonry-layout', 'masonry' ),
+			'underscore'             => array( 'underscore' ),
+			'vanilla-js-hoverintent' => array( 'hoverintent', 'hoverintent-js' ),
 		);
 	}
 
