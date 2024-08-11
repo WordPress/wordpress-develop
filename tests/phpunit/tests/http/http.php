@@ -1,6 +1,6 @@
 <?php
 /**
- * Non-transport-specific WP_HTTP Tests
+ * Non-transport-specific WP_Http Tests
  *
  * @group http
  */
@@ -9,7 +9,10 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	const FULL_TEST_URL = 'http://username:password@host.name:9090/path?arg1=value1&arg2=value2#anchor';
 
 	/**
-	 * @dataProvider make_absolute_url_testcases
+	 * @ticket 20434
+	 * @ticket 56231
+	 *
+	 * @dataProvider data_make_absolute_url
 	 *
 	 * @covers WP_Http::make_absolute_url
 	 */
@@ -18,7 +21,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function make_absolute_url_testcases() {
+	public function data_make_absolute_url() {
 		// 0: The Location header, 1: The current URL, 3: The expected URL.
 		return array(
 			// Absolute URL provided.
@@ -44,7 +47,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( '../file-in-parent.ext', 'http://example.com/directory/', 'http://example.com/file-in-parent.ext' ),
 			array( '../file-in-parent.ext', 'http://example.com/directory/filename', 'http://example.com/file-in-parent.ext' ),
 
-			// Location provided in muliple levels higher, including impossible to reach (../ below DOCROOT).
+			// Location provided in multiple levels higher, including impossible to reach (../ below DOCROOT).
 			array( '../../file-in-grand-parent.ext', 'http://example.com', 'http://example.com/file-in-grand-parent.ext' ),
 			array( '../../file-in-grand-parent.ext', 'http://example.com/filename', 'http://example.com/file-in-grand-parent.ext' ),
 			array( '../../file-in-grand-parent.ext', 'http://example.com/directory/', 'http://example.com/file-in-grand-parent.ext' ),
@@ -66,11 +69,18 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 			// Schemeless URL's (not valid in HTTP Headers, but may be used elsewhere).
 			array( '//example.com/sub/', 'https://example.net', 'https://example.com/sub/' ),
+
+			// URLs with fragments.
+			array( '/path#frag', 'http://example.org/', 'http://example.org/path#frag' ),
+			array( '/path/#frag', 'http://example.org/', 'http://example.org/path/#frag' ),
+			array( '/path#frag&ment=1', 'http://example.org/', 'http://example.org/path#frag&ment=1' ),
+			array( '/path?query=string#frag', 'http://example.org/', 'http://example.org/path?query=string#frag' ),
+			array( '/path?query=string%23frag', 'http://example.org/', 'http://example.org/path?query=string%23frag' ),
 		);
 	}
 
 	/**
-	 * @dataProvider parse_url_testcases
+	 * @dataProvider data_wp_parse_url
 	 *
 	 * @covers ::wp_parse_url
 	 */
@@ -79,7 +89,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function parse_url_testcases() {
+	public function data_wp_parse_url() {
 		// 0: The URL, 1: The expected resulting structure.
 		return array(
 			array(
@@ -104,7 +114,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				),
 			),
 
-			// < PHP 5.4.7: Schemeless URL.
+			// Schemeless URL.
 			array(
 				'//example.com/path/',
 				array(
@@ -128,7 +138,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				),
 			),
 
-			// < PHP 5.4.7: Scheme separator in the URL.
+			// Scheme separator in the URL.
 			array(
 				'http://example.com/http://example.net/',
 				array(
@@ -139,7 +149,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			),
 			array( '/path/http://example.net/', array( 'path' => '/path/http://example.net/' ) ),
 
-			// < PHP 5.4.7: IPv6 literals in schemeless URLs are handled incorrectly.
+			// IPv6 literals in schemeless URLs.
 			array(
 				'//[::FFFF::127.0.0.1]/',
 				array(
@@ -207,7 +217,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	/**
 	 * @ticket 36356
 	 *
-	 * @dataProvider parse_url_component_testcases
+	 * @dataProvider data_wp_parse_url_with_component
 	 *
 	 * @covers ::wp_parse_url
 	 */
@@ -216,7 +226,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function parse_url_component_testcases() {
+	public function data_wp_parse_url_with_component() {
 		// 0: The URL, 1: The requested component, 2: The expected resulting structure.
 		return array(
 			array( self::FULL_TEST_URL, PHP_URL_SCHEME, 'http' ),
@@ -228,7 +238,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( self::FULL_TEST_URL, PHP_URL_QUERY, 'arg1=value1&arg2=value2' ),
 			array( self::FULL_TEST_URL, PHP_URL_FRAGMENT, 'anchor' ),
 
-			// < PHP 5.4.7: Schemeless URL.
+			// Schemeless URL.
 			array( '//example.com/path/', PHP_URL_HOST, 'example.com' ),
 			array( '//example.com/path/', PHP_URL_PATH, '/path/' ),
 			array( '//example.com/', PHP_URL_HOST, 'example.com' ),
@@ -236,13 +246,13 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( 'http://example.com//path/', PHP_URL_HOST, 'example.com' ),
 			array( 'http://example.com//path/', PHP_URL_PATH, '//path/' ),
 
-			// < PHP 5.4.7: Scheme separator in the URL.
+			// Scheme separator in the URL.
 			array( 'http://example.com/http://example.net/', PHP_URL_HOST, 'example.com' ),
 			array( 'http://example.com/http://example.net/', PHP_URL_PATH, '/http://example.net/' ),
 			array( '/path/http://example.net/', PHP_URL_HOST, null ),
 			array( '/path/http://example.net/', PHP_URL_PATH, '/path/http://example.net/' ),
 
-			// < PHP 5.4.7: IPv6 literals in schemeless URLs are handled incorrectly.
+			// IPv6 literals in schemeless URLs.
 			array( '//[::FFFF::127.0.0.1]/', PHP_URL_HOST, '[::FFFF::127.0.0.1]' ),
 			array( '//[::FFFF::127.0.0.1]/', PHP_URL_PATH, '/' ),
 
@@ -282,7 +292,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		get_status_header_desc( 200 );
 
 		$this->assertSame( array_keys( $wp_header_to_desc ), array_values( $constants ) );
-
 	}
 
 	/**
@@ -323,7 +332,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	/**
 	 * @ticket 36356
 	 *
-	 * @dataProvider get_component_from_parsed_url_array_testcases
+	 * @dataProvider data_get_component_from_parsed_url_array
 	 *
 	 * @covers ::wp_parse_url
 	 * @covers ::_get_component_from_parsed_url_array
@@ -334,7 +343,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function get_component_from_parsed_url_array_testcases() {
+	public function data_get_component_from_parsed_url_array() {
 		// 0: A URL, 1: PHP URL constant, 2: The expected result.
 		return array(
 			array(
@@ -365,7 +374,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	/**
 	 * @ticket 36356
 	 *
-	 * @dataProvider wp_translate_php_url_constant_to_key_testcases
+	 * @dataProvider data_wp_translate_php_url_constant_to_key
 	 *
 	 * @covers ::_wp_translate_php_url_constant_to_key
 	 */
@@ -374,7 +383,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function wp_translate_php_url_constant_to_key_testcases() {
+	public function data_wp_translate_php_url_constant_to_key() {
 		// 0: PHP URL constant, 1: The expected result.
 		return array(
 			array( PHP_URL_SCHEME, 'scheme' ),
@@ -571,20 +580,20 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	/**
 	 * Test HTTP Redirects with multiple Location headers specified.
 	 *
-	 * Ensure the WP_HTTP::handle_redirects() method handles multiple Location headers
+	 * Ensure the WP_Http::handle_redirects() method handles multiple Location headers
 	 * and the HTTP request it makes uses the last Location header.
 	 *
 	 * @ticket 16890
 	 * @ticket 57306
 	 *
-	 * @covers WP_HTTP::handle_redirects
+	 * @covers WP_Http::handle_redirects
 	 */
 	public function test_multiple_location_headers() {
 		$pre_http_request_filter_has_run = false;
-		// Filter the response made by WP_HTTP::handle_redirects().
+		// Filter the response made by WP_Http::handle_redirects().
 		add_filter(
 			'pre_http_request',
-			function( $response, $parsed_args, $url ) use ( &$pre_http_request_filter_has_run ) {
+			function ( $response, $parsed_args, $url ) use ( &$pre_http_request_filter_has_run ) {
 				$pre_http_request_filter_has_run = true;
 
 				// Assert the redirect URL is correct.
@@ -624,7 +633,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			),
 		);
 
-		// Test the tests: ensure multiple locations are passed to WP_HTTP::handle_redirects().
+		// Test the tests: ensure multiple locations are passed to WP_Http::handle_redirects().
 		$this->assertIsArray( $headers['location'], 'Location header is expected to be an array.' );
 		$this->assertCount( 2, $headers['location'], 'Location header is expected to contain two values.' );
 
@@ -635,7 +644,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			'method'       => 'GET',
 		);
 
-		$redirect_response = WP_HTTP::handle_redirects(
+		$redirect_response = WP_Http::handle_redirects(
 			'http://example.com/?multiple-location-headers=1',
 			$args,
 			array(
@@ -651,5 +660,57 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		);
 		$this->assertSame( 'PASS', wp_remote_retrieve_body( $redirect_response ), 'Redirect response body is expected to be PASS.' );
 		$this->assertTrue( $pre_http_request_filter_has_run, 'The pre_http_request filter is expected to run.' );
+	}
+
+	/**
+	 * Test that WP_Http::normalize_cookies method correctly casts integer keys to string.
+	 * @ticket 58566
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_casts_integer_keys_to_string() {
+		$http = _wp_http_get_object();
+
+		$cookies = array(
+			'1'   => 'foo',
+			2     => 'bar',
+			'qux' => 7,
+		);
+
+		$cookie_jar = $http->normalize_cookies( $cookies );
+
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie\Jar', $cookie_jar );
+
+		foreach ( array_keys( $cookies ) as $cookie ) {
+			if ( is_string( $cookie ) ) {
+				$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar[ $cookie ] );
+			} else {
+				$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar[ (string) $cookie ] );
+			}
+		}
+	}
+
+	/**
+	 * Test that WP_Http::normalize_cookies method correctly casts integer cookie names to strings.
+	 * @ticket 58566
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_casts_cookie_name_integer_to_string() {
+		$http = _wp_http_get_object();
+
+		$cookies = array(
+			'foo' => new WP_Http_Cookie(
+				array(
+					'name'  => 1,
+					'value' => 'foo',
+				)
+			),
+		);
+
+		$cookie_jar = $http->normalize_cookies( $cookies );
+
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie\Jar', $cookie_jar );
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['1'] );
 	}
 }

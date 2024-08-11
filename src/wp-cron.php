@@ -24,7 +24,7 @@ if ( ! headers_sent() ) {
 }
 
 // Don't run cron until the request finishes, if possible.
-if ( PHP_VERSION_ID >= 70016 && function_exists( 'fastcgi_finish_request' ) ) {
+if ( function_exists( 'fastcgi_finish_request' ) ) {
 	fastcgi_finish_request();
 } elseif ( function_exists( 'litespeed_finish_request' ) ) {
 	litespeed_finish_request();
@@ -45,6 +45,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	/** Set up WordPress environment */
 	require_once __DIR__ . '/wp-load.php';
 }
+
+// Attempt to raise the PHP memory limit for cron event processing.
+wp_raise_memory_limit( 'cron' );
 
 /**
  * Retrieves the cron lock.
@@ -138,7 +141,7 @@ foreach ( $crons as $timestamp => $cronhooks ) {
 					);
 
 					/**
-					 * Fires when an error happens rescheduling a cron event.
+					 * Fires if an error happens when rescheduling a cron event.
 					 *
 					 * @since 6.1.0
 					 *
@@ -165,7 +168,7 @@ foreach ( $crons as $timestamp => $cronhooks ) {
 				);
 
 				/**
-				 * Fires when an error happens unscheduling a cron event.
+				 * Fires if an error happens when unscheduling a cron event.
 				 *
 				 * @since 6.1.0
 				 *

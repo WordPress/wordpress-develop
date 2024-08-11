@@ -67,6 +67,8 @@ function wp_list_widgets() {
  * @since 3.1.0
  * @access private
  *
+ * @param array $a First array.
+ * @param array $b Second array.
  * @return int
  */
 function _sort_name_callback( $a, $b ) {
@@ -132,7 +134,7 @@ function wp_list_widget_controls( $sidebar, $sidebar_name = '' ) {
 function wp_list_widget_controls_dynamic_sidebar( $params ) {
 	global $wp_registered_widgets;
 	static $i = 0;
-	$i++;
+	++$i;
 
 	$widget_id = $params[0]['widget_id'];
 	$id        = isset( $params[0]['_temp_id'] ) ? $params[0]['_temp_id'] : $widget_id;
@@ -166,7 +168,7 @@ function next_widget_id_number( $id_base ) {
 			$number = max( $number, $matches[1] );
 		}
 	}
-	$number++;
+	++$number;
 
 	return $number;
 }
@@ -245,13 +247,13 @@ function wp_widget_control( $sidebar_args ) {
 		<button type="button" class="widget-action hide-if-no-js" aria-expanded="false">
 			<span class="screen-reader-text edit">
 				<?php
-				/* translators: %s: Widget title. */
+				/* translators: Hidden accessibility text. %s: Widget title. */
 				printf( __( 'Edit widget: %s' ), $widget_title );
 				?>
 			</span>
 			<span class="screen-reader-text add">
 				<?php
-				/* translators: %s: Widget title. */
+				/* translators: Hidden accessibility text. %s: Widget title. */
 				printf( __( 'Add widget: %s' ), $widget_title );
 				?>
 			</span>

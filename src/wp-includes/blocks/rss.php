@@ -8,6 +8,8 @@
 /**
  * Renders the `core/rss` block on server.
  *
+ * @since 5.2.0
+ *
  * @param array $attributes The block attributes.
  *
  * @return string Returns the block content with received rss items.
@@ -48,7 +50,7 @@ function render_block_core_rss( $attributes ) {
 			if ( $date ) {
 				$date = sprintf(
 					'<time datetime="%1$s" class="wp-block-rss__item-publish-date">%2$s</time> ',
-					esc_attr( date_i18n( get_option( 'c' ), $date ) ),
+					esc_attr( date_i18n( 'c', $date ) ),
 					esc_attr( date_i18n( get_option( 'date_format' ), $date ) )
 				);
 			}
@@ -107,6 +109,8 @@ function render_block_core_rss( $attributes ) {
 
 /**
  * Registers the `core/rss` block on server.
+ *
+ * @since 5.2.0
  */
 function register_block_core_rss() {
 	register_block_type_from_metadata(
