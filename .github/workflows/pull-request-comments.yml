@@ -3,7 +3,7 @@ name: Pull Request Comments
 
 on:
   pull_request_target:
-    types: [ 'opened', 'edited' ]
+    types: [ 'opened', 'edited', 'synchronize' ]
   workflow_run:
     workflows: [ 'Test Build Processes' ]
     types:
@@ -42,8 +42,6 @@ jobs:
             const hasMissingTicketComment = comments.some( comment =>
               comment.user.type === 'Bot' && comment.body.includes( 'Trac Ticket Missing' )
             );
-
-            # if ( hasMissingTicketComment ) return;
 
             // No comment was found. Create one.
             const pr = ( await github.rest.pulls.get( { owner, repo, pull_number: number } ) ).data;
