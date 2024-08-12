@@ -4,10 +4,6 @@ name: Pull Request Comments
 on:
   pull_request_target:
     types: [ 'opened', 'edited', 'synchronize' ]
-  workflow_run:
-    workflows: [ 'Test Build Processes' ]
-    types:
-      - completed
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
