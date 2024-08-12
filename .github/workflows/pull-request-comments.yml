@@ -23,7 +23,7 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' && ! github.event.pull_request.draft && github.event.pull_request.state == 'open' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' && ! github.event.pull_request.draft }}
     steps:
       - name: Check for Trac ticket and comment if missing
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
