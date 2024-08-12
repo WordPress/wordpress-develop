@@ -43,7 +43,7 @@ jobs:
               comment.user.type === 'Bot' && comment.body.includes( 'Trac Ticket Missing' )
             );
 
-            if ( hasMissingTicketComment ) return;
+            # if ( hasMissingTicketComment ) return;
 
             // No comment was found. Create one.
             const pr = ( await github.rest.pulls.get( { owner, repo, pull_number: number } ) ).data;
