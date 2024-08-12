@@ -36,6 +36,12 @@ class Tests_formatting_linksAddBaseUrl extends WP_UnitTestCase {
 				'attrs'    => null,
 				'expected' => '<a href="http://localhost/url" />',
 			),
+			'relative_scheme'         => array(
+				'content'  => '<a href="//localhost/url" />',
+				'base'     => 'http://localhost',
+				'attrs'    => null,
+				'expected' => '<a href="http://localhost/url" />',
+			),
 			'empty_array'  => array(
 				'content'  => '<a href="url" target="_blank" />',
 				'base'     => 'https://localhost',
