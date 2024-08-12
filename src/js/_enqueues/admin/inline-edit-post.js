@@ -129,8 +129,7 @@ window.wp = window.wp || {};
 		});
 
 		// Clone quick edit categories for the bulk editor.
-		var qeCategories = $( '#inline-edit fieldset.inline-edit-categories' );
-		var beCategories = qeCategories.clone();
+		var beCategories = $( '#inline-edit fieldset.inline-edit-categories' ).clone();
 
 		// Make "id" attributes globally unique.
 		beCategories.find( '*[id]' ).each( function() {
