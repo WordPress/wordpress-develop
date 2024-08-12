@@ -2913,6 +2913,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'slug',
 				'include_slugs',
 				'title',
+				'rand',
 			),
 		);
 
