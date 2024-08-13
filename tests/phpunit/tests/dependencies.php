@@ -160,13 +160,11 @@ class Tests_Dependencies extends WP_UnitTestCase {
 				'load'               => array(
 					'abcd' => '1.0.2',
 				),
-				'wp_version'         => '',
 				'hash_source_string' => 'WP:abcd:1.0.2;',
 				'expected'           => 'W/"fea2fd8012dd8af0696ebafbaa68db85"',
 			),
 			'should accept empty array of dependencies' => array(
 				'load'               => array(),
-				'wp_version'         => '',
 				'hash_source_string' => 'WP:;',
 				'expected'           => 'W/"f6457280f73cc597e76df87ee891457a"',
 			),
@@ -175,7 +173,6 @@ class Tests_Dependencies extends WP_UnitTestCase {
 					'abcd' => '1.0.2',
 					'abdy' => '1.0.3',
 				),
-				'wp_version'         => '5.4.3',
 				'hash_source_string' => 'WP:5.4.3;abcd:1.0.2;abdy:1.0.3;',
 				'expected'           => 'W/"88649143b0142d1491883065e9351178"',
 			),
@@ -193,11 +190,10 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * @dataProvider data_provider_get_etag
 	 *
 	 * @param array $load List of scripts to load.
-	 * @param string $wp_version WordPress version.
 	 * @param string $hash_source_string Hash source string.
 	 * @param string $expected Expected etag.
 	 */
-	public function test_get_etag_scripts( $load, $wp_version, $hash_source_string, $expected ) {
+	public function test_get_etag_scripts( $load, $hash_source_string, $expected ) {
 		$instance = wp_scripts();
 
 		foreach ( $load as $handle => $ver ) {
@@ -205,7 +201,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 			wp_enqueue_script( $handle, 'https://example.cdn', array(), $ver );
 		}
 
-		$result = $instance->get_etag( $wp_version, array_keys( $load ) );
+		$result = $instance->get_etag( array_keys( $load ) );
 
 		$this->assertSame( $expected, $result, "Expected MD hash: $expected for $hash_source_string, but got: $result." );
 	}
@@ -221,11 +217,10 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * @dataProvider data_provider_get_etag
 	 *
 	 * @param array $load List of scripts to load.
-	 * @param string $wp_version WordPress version.
 	 * @param string $hash_source_string Hash source string.
 	 * @param string $expected Expected etag.
 	 */
-	public function test_get_etag_styles( $load, $wp_version, $hash_source_string, $expected ) {
+	public function test_get_etag_styles( $load, $hash_source_string, $expected ) {
 		$instance = wp_styles();
 
 		foreach ( $load as $handle => $ver ) {
@@ -233,7 +228,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 			wp_enqueue_style( $handle, 'https://example.cdn', array(), $ver );
 		}
 
-		$result = $instance->get_etag( $wp_version, array_keys( $load ) );
+		$result = $instance->get_etag( array_keys( $load ) );
 
 		$this->assertSame( $expected, $result, "Expected MD hash: $expected for $hash_source_string, but got: $result." );
 	}
