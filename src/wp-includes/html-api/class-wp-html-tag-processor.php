@@ -3859,9 +3859,8 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Transform a class name string to a comparable form.
 	 *
-	 * This allows subclasses to ensure class name comparsison is handled correctly,
-	 * for example, the HTML Processor may use case-insensitive comparison when the
-	 * document is in quirks mode.
+	 * This method may be subclassed to customize class names for comparison. For example, this
+	 * allows for subclasses to support case-insensitive class name comparison.
 	 *
 	 * @since 6.7.0
 	 *
