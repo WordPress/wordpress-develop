@@ -2666,7 +2666,7 @@ class WP_HTML_Tag_Processor {
 			return true;
 		}
 
-		$raw_value = substr( $this->html, $attribute->value_starts_at, $attribute->value_length );
+		$raw_value = str_replace( "\x00", "\u{FFFD}", substr( $this->html, $attribute->value_starts_at, $attribute->value_length ) );
 
 		return WP_HTML_Decoder::decode_attribute( $raw_value );
 	}

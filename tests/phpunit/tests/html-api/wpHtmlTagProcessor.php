@@ -2914,4 +2914,34 @@ HTML
 		$this->assertFalse( $processor->next_tag() );
 		$this->assertTrue( $processor->paused_at_incomplete_token() );
 	}
+
+	/**
+	 * @ticket TBD
+	 *
+	 * @dataProvider data_null_byte_attribute_html
+	 */
+	public function test_attributes_handle_null_byte_replacement( string $html, string $attribute_name, string $expected_value ) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag() );
+		$this->assertSame( $expected_value, $processor->get_attribute( $attribute_name) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_null_byte_attribute_html(): array {
+		return array(
+			'Double-quoted class'          => array( "<div class=\"null-\x00-null\">", 'class', "null-\u{FFFD}-null" ),
+			'Single-quoted class'          => array( "<div class='null-\x00-null'>", 'class', "null-\u{FFFD}-null" ),
+			'Unquoted class'               => array( "<div class=null-\x00-null>", 'class', "null-\u{FFFD}-null" ),
+			'Double-quoted data-attribute' => array( "<div data-att=\"null-\x00-null\">", 'data-att', "null-\u{FFFD}-null" ),
+			'Single-quoted data-attribute' => array( "<div data-att='null-\x00-null'>", 'data-att', "null-\u{FFFD}-null" ),
+			'Unquoted data-attribute'      => array( "<div data-att=null-\x00-null>", 'data-att', "null-\u{FFFD}-null" ),
+			'Leading null byte'            => array( "<div class=\"\x00-null\">", 'class', "\u{FFFD}-null" ),
+			'Trailing null byte'           => array( "<div class=\"null-\x00\">", 'class', "null-\u{FFFD}" ),
+			'Only null byte'               => array( "<div class=\"\x00\">", 'class', "\u{FFFD}" ),
+		);
+	}
 }
