@@ -1188,10 +1188,10 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$wanted_class = strtolower( $wanted_class );
+		$wanted_class = $this->comparable_class_name( $wanted_class );
 
 		foreach ( $this->class_list() as $class_name ) {
-			if ( $class_name === $wanted_class ) {
+			if ( $this->comparable_class_name( $class_name ) === $wanted_class ) {
 				return true;
 			}
 		}
@@ -2293,7 +2293,7 @@ class WP_HTML_Tag_Processor {
 				break;
 			}
 
-			$name = substr( $existing_class, $at, $name_length );
+			$name = $this->comparable_class_name( substr( $existing_class, $at, $name_length ) );
 			$at  += $name_length;
 
 			// If this class is marked for removal, start processing the next one.
@@ -3828,7 +3828,7 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		$this->classname_updates[ $class_name ] = self::ADD_CLASS;
+		$this->classname_updates[ $this->comparable_class_name( $class_name ) ] = self::ADD_CLASS;
 
 		return true;
 	}
@@ -3850,10 +3850,26 @@ class WP_HTML_Tag_Processor {
 		}
 
 		if ( null !== $this->tag_name_starts_at ) {
-			$this->classname_updates[ $class_name ] = self::REMOVE_CLASS;
+			$this->classname_updates[ $this->comparable_class_name( $class_name ) ] = self::REMOVE_CLASS;
 		}
 
 		return true;
+	}
+
+	/**
+	 * Transform a class name string to a comparable form.
+	 *
+	 * This allows subclasses to ensure class name comparsison is handled correctly,
+	 * for example, the HTML Processor may use case-insensitive comparison when the
+	 * document is in quirks mode.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $class_name The class name to transform.
+	 * @return string The transformed class name.
+	 */
+	protected function comparable_class_name( string $class_name ): string {
+		return $class_name;
 	}
 
 	/**

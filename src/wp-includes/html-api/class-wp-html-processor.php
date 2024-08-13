@@ -4643,6 +4643,24 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Transform a class name string to a comparable form.
+	 *
+	 * This allows subclasses to ensure class name comparsison is handled correctly,
+	 * for example, the HTML Processor may use case-insensitive comparison when the
+	 * document is in quirks mode.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $class_name The class name to transform.
+	 * @return string The transformed class name.
+	 */
+	protected function comparable_class_name( string $class_name ): string {
+		return $this->state->document_mode === WP_HTML_Processor_State::QUIRKS_MODE
+			? strtolower( $class_name )
+			: $class_name;
+	}
+
+	/**
 	 * Returns if a matched tag contains the given ASCII case-insensitive class name.
 	 *
 	 *
@@ -4659,24 +4677,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
 	 */
 	public function has_class( $wanted_class ): ?bool {
-		if ( $this->is_virtual() ) {
-			return false;
-		}
-
-		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
-			return null;
-		}
-
-		$compare_func = WP_HTML_Processor_State::QUIRKS_MODE === $this->state->document_mode ?
-			'strcasecmp' :
-			'strcmp';
-
-		foreach ( $this->class_list() as $class_name ) {
-			if ( 0 === $compare_func( $class_name, $wanted_class ) ) {
-				return true;
-			}
-		}
-		return false;
+		return $this->is_virtual() ? false : parent::has_class( $wanted_class );
 	}
 
 	/**
