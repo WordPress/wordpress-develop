@@ -80,6 +80,44 @@ if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 	}
 }
 
+if ( isset( $_GET['postId'] ) ) {
+
+	switch ( sanitize_key( $_GET['postType'] ) ) {
+		case 'page':
+			$post = get_post( (int) $_GET['postId'] );
+
+			if ( null === $post ) {
+				wp_die( __( 'Invalid post ID.' ) );
+			}
+			break;
+
+		case 'wp_block':
+			$post = get_post( (int) $_GET['postId'] );
+
+			if ( null === $post ) {
+				wp_die( __( 'Invalid pattern ID.' ) );
+			}
+			break;
+
+		case 'wp_template':
+			$block_template = get_block_template( $_GET['postId'] );
+
+			if ( null === $block_template ) {
+				wp_die( __( 'Invalid template ID.' ) );
+			}
+			break;
+
+		case 'wp_template_part':
+			$block_template = get_block_template( $_GET['postId'], 'wp_template_part' );
+
+			if ( null === $block_template ) {
+				wp_die( __( 'Invalid template part ID.' ) );
+			}
+			break;
+	}
+}
+
+
 $active_global_styles_id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
 $active_theme            = get_stylesheet();
 
