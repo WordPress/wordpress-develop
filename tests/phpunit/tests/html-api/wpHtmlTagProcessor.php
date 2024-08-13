@@ -617,6 +617,13 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			$processor->get_tag(),
 			'Should have skipped past substring tag matches, directly finding the PICTURE element.'
 		);
+
+		$processor = new WP_HTML_Tag_Processor( '<p><pic>' );
+
+		$this->assertFalse(
+			$processor->next_tag( 'PICTURE' ),
+			"Should not have found any PICTURE element, but found '{$processor->get_token_name()}' instead."
+		);
 	}
 
 	/**
