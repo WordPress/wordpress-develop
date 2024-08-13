@@ -2914,4 +2914,14 @@ HTML
 		$this->assertFalse( $processor->next_tag() );
 		$this->assertTrue( $processor->paused_at_incomplete_token() );
 	}
+
+	public function test_next_tag_issue_for_trunk_and_php83() {
+		$picture_markup    = '<p><img width="1024" height="683" src="http://localhost:8889/wp-content/uploads/2024/08/leaves-226-1024x683.webp" class="wp-image-4" alt="Green Leaves" decoding="async" loading="lazy" srcset="http://localhost:8889/wp-content/uploads/2024/08/leaves-226-1024x683.webp 1024w, http://localhost:8889/wp-content/uploads/2024/08/leaves-226-300x200.webp 300w, http://localhost:8889/wp-content/uploads/2024/08/leaves-226-768x512.webp 768w, http://localhost:8889/wp-content/uploads/2024/08/leaves-226-jpg.webp 1080w" sizes="(max-width: 1024px) 100vw, 1024px" /></p>';
+		$picture_processor = new WP_HTML_Tag_Processor( $picture_markup );
+		$this->assertFalse( $picture_processor->next_tag( array( 'tag_name' => 'PICTURE' ) ), 'There should not be a PICTURE tag.' );
+
+		$picture_processor = new WP_HTML_Tag_Processor( $picture_markup );
+		$picture_processor->next_tag( array( 'tag_name' => 'IMG' ) );
+		$this->assertStringEndsWith( '.webp', $picture_processor->get_attribute( 'src' ), 'Make sure the IMG should return WEBP src.' );
+	}
 }
