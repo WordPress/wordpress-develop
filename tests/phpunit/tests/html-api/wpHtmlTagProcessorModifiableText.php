@@ -40,6 +40,83 @@ class Tests_HtmlApi_WpHtmlTagProcessorModifiableText extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that `get_modifiable_text()` reads enqueued updates when read
+	 * from after writing; guarantees consistency through writes.
+	 *
+	 * @ticket 61617
+	 */
+	public function test_get_modifiable_text_is_consistent_after_writes() {
+		$before    = 'just some text';
+		$after     = 'different text';
+		$processor = new WP_HTML_Tag_Processor( $before );
+		$processor->next_token();
+
+		$this->assertSame(
+			'#text',
+			$processor->get_token_name(),
+			"Should have found text node but found '{$processor->get_token_name()}' instead: check test setup."
+		);
+
+		$this->assertSame(
+			$before,
+			$processor->get_modifiable_text(),
+			'Should have found initial test text: check test setup.'
+		);
+
+		$processor->set_modifiable_text( $after );
+		$this->assertSame(
+			$after,
+			$processor->get_modifiable_text(),
+			'Should have found enqueued updated text.'
+		);
+
+		$processor->get_updated_html();
+		$this->assertSame(
+			$after,
+			$processor->get_modifiable_text(),
+			'Should have found updated text.'
+		);
+	}
+
+	/**
+	 * Ensures that `get_modifiable_text()` reads enqueued updates when read from after
+	 * writing when starting from an empty text; guarantees consistency through writes.
+	 *
+	 * @ticket 61617
+	 */
+	public function test_get_modifiable_text_is_consistent_after_writes_to_empty_text() {
+		$after     = 'different text';
+		$processor = new WP_HTML_Tag_Processor( '<script></script>' );
+		$processor->next_token();
+
+		$this->assertSame(
+			'SCRIPT',
+			$processor->get_token_name(),
+			"Should have found text node but found '{$processor->get_token_name()}' instead: check test setup."
+		);
+
+		$this->assertSame(
+			'',
+			$processor->get_modifiable_text(),
+			'Should have found initial test text: check test setup.'
+		);
+
+		$processor->set_modifiable_text( $after );
+		$this->assertSame(
+			$after,
+			$processor->get_modifiable_text(),
+			'Should have found enqueued updated text.'
+		);
+
+		$processor->get_updated_html();
+		$this->assertSame(
+			$after,
+			$processor->get_modifiable_text(),
+			'Should have found updated text.'
+		);
+	}
+
+	/**
 	 * Ensures that updates to modifiable text that are shorter than the
 	 * original text do not cause the parser to lose its orientation.
 	 *
