@@ -4655,7 +4655,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string The transformed class name.
 	 */
 	protected function comparable_class_name( string $class_name ): string {
-		return $this->state->document_mode === WP_HTML_Processor_State::QUIRKS_MODE
+		return WP_HTML_Processor_State::QUIRKS_MODE === $this->state->document_mode
 			? strtolower( $class_name )
 			: $class_name;
 	}
