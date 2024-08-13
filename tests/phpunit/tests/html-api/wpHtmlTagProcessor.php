@@ -2228,6 +2228,19 @@ HTML;
 	}
 
 	/**
+	 * Ensures that the tag processor matches class names with null bytes correctly.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::has_class
+	 */
+	public function test_has_class_null_byte_class_name() {
+		$processor = new WP_HTML_Tag_Processor( "<div class='null-byte-\0-there'>" );
+		$processor->next_tag();
+		$this->assertTrue( $processor->has_class( 'null-byte-�-there' ) );
+	}
+
+	/**
 	 * @ticket 59209
 	 *
 	 * @covers WP_HTML_Tag_Processor::has_class
