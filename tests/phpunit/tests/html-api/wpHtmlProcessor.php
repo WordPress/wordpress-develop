@@ -598,7 +598,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that the tag processor is case sensitive when removing CSS classes in quirks mode.
+	 * Ensures that the tag processor is case insensitive when removing CSS classes in quirks mode.
 	 *
 	 * @ticket 61531
 	 *
@@ -608,14 +608,11 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$processor = WP_HTML_Processor::create_fragment( '<span class="UPPER"></span>', '<body>', 'UTF-8', WP_HTML_Processor_State::QUIRKS_MODE );
 		$processor->next_tag();
 		$processor->remove_class( 'upper' );
-		$this->assertSame( '<span class="UPPER"></span>', $processor->get_updated_html() );
-
-		$processor->remove_class( 'UPPER' );
 		$this->assertSame( '<span ></span>', $processor->get_updated_html() );
 	}
 
 	/**
-	 * Ensures that the tag processor is case sensitive when adding CSS classes in quirks mode.
+	 * Ensures that the tag processor is case insensitive when adding CSS classes in quirks mode.
 	 *
 	 * @ticket 61531
 	 *
