@@ -189,6 +189,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			}
 
 			switch ( $token_type ) {
+				case '#doctype':
+					$output .= "<!DOCTYPE{$processor->get_modifiable_text()}>\n";
+					break;
+
 				case '#tag':
 					$namespace = $processor->get_namespace();
 					$tag_name  = 'html' === $namespace
@@ -450,15 +454,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				 */
 				case 'document':
 					if ( '|' === $line[0] ) {
-						/*
-						 * The next_token() method these tests rely on do not stop
-						 * at doctype nodes. Strip doctypes from output.
-						 * @todo Restore this line if and when the processor
-						 * exposes doctypes.
-						 */
-						if ( '| <!DOCTYPE ' !== substr( $line, 0, 12 ) ) {
-							$test_dom .= substr( $line, 2 );
-						}
+						$test_dom .= substr( $line, 2 );
 					} else {
 						// This is a text node that includes unescaped newlines.
 						// Everything else should be singles lines starting with "| ".
