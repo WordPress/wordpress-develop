@@ -190,7 +190,12 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 			switch ( $token_type ) {
 				case '#doctype':
-					$output .= "<!DOCTYPE{$processor->get_modifiable_text()}>\n";
+					$dt = $processor->parse_doctype();
+					$output .= "<!DOCTYPE {$dt[0]}";
+					if ( null !== $dt[1] || null !== $dt[2] ) {
+						$output .= " \"{$dt[1]}\" \"{$dt[2]}\"";
+					}
+					$output .= ">\n";
 					break;
 
 				case '#tag':
