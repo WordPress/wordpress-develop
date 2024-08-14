@@ -1087,13 +1087,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A DOCTYPE token
 			 */
 			case 'html':
-				$contents = $this->get_modifiable_text();
-				if ( ' html' !== $contents ) {
-					/*
-					 * @todo When the HTML Tag Processor fully parses the DOCTYPE declaration,
-					 *       this code should examine the contents to set the compatability mode.
-					 */
-					$this->bail( 'Cannot process any DOCTYPE other than a normative HTML5 doctype.' );
+				$dt = $this->parse_doctype();
+				// force-quirks flag is set.
+				if ( $dt[3] ) {
+					$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
+				}
+				if ( $dt[0] !== 'html' ) {
+					$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
 				}
 
 				/*

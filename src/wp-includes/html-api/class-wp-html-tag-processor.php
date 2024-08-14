@@ -4034,19 +4034,113 @@ class WP_HTML_Tag_Processor {
 	 * @return string|null The doctype name, or null if not a doctype token.
 	 */
 	public function get_doctype_name(): ?string {
+		$doctype = $this->parse_doctype();
+
+		if ( null === $doctype ) {
+			return null;
+		}
+
+		return $doctype[0];
+	}
+
+	public function parse_doctype(): ?array {
 		if ( self::STATE_DOCTYPE !== $this->parser_state ) {
 			return null;
 		}
 
-		$name_starts_at = $this->text_starts_at + strspn( $this->html, " \t\n\f\r", $this->text_starts_at, $this->text_length );
-		$name_length   = strcspn(
-			$this->html,
-			" \t\n\f\r",
-			$name_starts_at,
-			$this->text_length - ( $name_starts_at - $this->text_starts_at )
-		);
+		/*
+		 * In this state, the doctype token has been found and its text start and length
+		 * have been stored in the parser. The text is the entire contents of the DOCTYPE
+		 * declaration, including the name, public, system, and force-quirks flags.
+		 *
+		 * The text is not parsed here, but rather is stored in the parser for later
+		 * retrieval. The parser will continue to parse the document and find the next
+		 * token, which may be a tag or text node.
+		 *
+		 * The parser has already set where the text starts (after "<!DOCTYPE") and
+		 * the text length (bytes until the next ">").
+		 *
+		 *           v--$this->text_starts_at
+		 * "<!DOCTYPE ...declaration...>"
+		 *           [<--------------->] $this->text_length
+		 *
+		 * Parsing is effectively in "Before DOCTYPE name state"
+		 *
+		 * https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-name-state
+		 */
 
-		return strtolower( str_replace( "\x00", "\u{FFFD}", substr( $this->html, $name_starts_at, $name_length ) ) );
+
+		/*
+		 * > DOCTYPE tokens have a name, a public identifier, a system identifier, and a
+		 * > force-quirks flag. When a DOCTYPE token is created, its name, public identifier,
+		 * > and system identifier must be marked as missing (which is a distinct state from
+		 * > the empty string), and the force-quirks flag must be set to off (its other
+		 * > state is on).
+		 */
+		$name              = null;
+		$public_identifier = null;
+		$system_identifier = null;
+		$force_quirks_flag = false;
+
+		$at  = $this->text_starts_at + strspn( $this->html, " \t\n\f\r", $this->text_starts_at, $this->text_length );
+		$end = $this->text_starts_at + $this->text_length;
+
+		if ( $at >= $end ) {
+			$force_quirks_flag = true;
+			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+		}
+		$name_length = strcspn( $this->html, " \t\n\f\r", $at, $end - $at );
+		$name        = strtolower( str_replace( "\x00", "\u{FFFD}", substr( $this->html, $at, $name_length ) ) );
+
+		$at += $name_length;
+		$at += strspn( $this->html, " \t\n\f\r", $at, $end - $at );
+
+		if ( $at >= $end ) {
+			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+		}
+
+		/*
+		 * We must find a case insensitive match for "PUBLIC" or "SYSTEM" at this point.
+		 * Otherwise, set force-quirks and enter bogus DOCTYPE state (skip the rest of the doctype).
+		 */
+		if ( $at + 6 >= $end ) {
+			$force_quirks_flag = true;
+			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+		}
+
+		if ( 0 === substr_compare( $this->html, 'PUBLIC', $at, 6, true ) ) {
+			$at += 6;
+			goto parse_doctype_after_doctype_public_keyword;
+		}
+		if ( 0 === substr_compare( $this->html, 'SYSTEM', $at, 6, true ) ) {
+			$at += 6;
+			goto parse_doctype_after_doctype_system_keyword;
+		}
+
+		$force_quirks_flag = true;
+		return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+
+		parse_doctype_after_doctype_public_keyword:
+		parse_doctype_after_doctype_system_keyword:
+		$at += strcspn( $this->html, "'\"", $at, $end - $at );
+		if ( $at >= $end ) {
+			$force_quirks_flag = true;
+			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+		}
+
+		$closer_quote = '"' === $this->html[ $at ] ? '"' : "'";
+		++$at;
+
+		$identifier_length = strcspn( $this->html, $closer_quote, $at, $end - $at );
+		$public_identifier = str_replace( "\x00", "\u{FFFD}", substr( $this->html, $at, $identifier_length ) );
+
+		$at += $identifier_length;
+		if ( $at >= $end || $closer_quote !== $this->html[ $at ] ) {
+			$force_quirks_flag = true;
+			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+		}
+
+		return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 	}
 
 	/**
