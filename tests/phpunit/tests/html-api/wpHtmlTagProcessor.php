@@ -602,6 +602,31 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 61545
+	 */
+	public function test_next_tag_should_not_match_on_substrings_of_a_requested_tag() {
+		$processor = new WP_HTML_Tag_Processor( '<p><pic><picture>' );
+
+		$this->assertTrue(
+			$processor->next_tag( 'PICTURE' ),
+			'Failed to find a tag when requested: check test setup.'
+		);
+
+		$this->assertSame(
+			'PICTURE',
+			$processor->get_tag(),
+			'Should have skipped past substring tag matches, directly finding the PICTURE element.'
+		);
+
+		$processor = new WP_HTML_Tag_Processor( '<p><pic>' );
+
+		$this->assertFalse(
+			$processor->next_tag( 'PICTURE' ),
+			"Should not have found any PICTURE element, but found '{$processor->get_token_name()}' instead."
+		);
+	}
+
+	/**
 	 * @ticket 59209
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
