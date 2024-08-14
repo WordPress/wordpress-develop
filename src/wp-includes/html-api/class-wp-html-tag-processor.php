@@ -3192,7 +3192,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * To get the contents of these elements, call {@see static::get_modifiable_text}.
 	 *
-	 * @since 6.8.0
+	 * @since 6.7.0
 	 *
 	 * @return bool Whether the currently-matched token is a self-contained element.
 	 */
