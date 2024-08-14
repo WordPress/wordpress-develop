@@ -4121,7 +4121,6 @@ class WP_HTML_Tag_Processor {
 		return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 
 		parse_doctype_after_doctype_public_keyword:
-		parse_doctype_after_doctype_system_keyword:
 		$at += strcspn( $this->html, "'\"", $at, $end - $at );
 		if ( $at >= $end ) {
 			$force_quirks_flag = true;
@@ -4133,6 +4132,26 @@ class WP_HTML_Tag_Processor {
 
 		$identifier_length = strcspn( $this->html, $closer_quote, $at, $end - $at );
 		$public_identifier = str_replace( "\x00", "\u{FFFD}", substr( $this->html, $at, $identifier_length ) );
+
+		$at += $identifier_length;
+		if ( $at >= $end || $closer_quote !== $this->html[ $at ] ) {
+			$force_quirks_flag = true;
+			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+		}
+		++$at;
+
+		parse_doctype_after_doctype_system_keyword:
+		$at += strcspn( $this->html, "'\"", $at, $end - $at );
+		if ( $at >= $end ) {
+			$force_quirks_flag = true;
+			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+		}
+
+		$closer_quote = '"' === $this->html[ $at ] ? '"' : "'";
+		++$at;
+
+		$identifier_length = strcspn( $this->html, $closer_quote, $at, $end - $at );
+		$system_identifier = str_replace( "\x00", "\u{FFFD}", substr( $this->html, $at, $identifier_length ) );
 
 		$at += $identifier_length;
 		if ( $at >= $end || $closer_quote !== $this->html[ $at ] ) {
