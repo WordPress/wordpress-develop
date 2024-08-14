@@ -33,17 +33,15 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
 	} elseif ( is_object( $bookmark ) ) {
 		wp_cache_add( $bookmark->link_id, $bookmark, 'bookmark' );
 		$_bookmark = $bookmark;
-	} else {
-		if ( isset( $GLOBALS['link'] ) && ( $GLOBALS['link']->link_id === $bookmark ) ) {
+	} elseif ( isset( $GLOBALS['link'] ) && ( $GLOBALS['link']->link_id === $bookmark ) ) {
 			$_bookmark = & $GLOBALS['link'];
-		} else {
-			$_bookmark = wp_cache_get( $bookmark, 'bookmark' );
-			if ( ! $_bookmark ) {
-				$_bookmark = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->links WHERE link_id = %d LIMIT 1", $bookmark ) );
-				if ( $_bookmark ) {
-					$_bookmark->link_category = array_unique( wp_get_object_terms( $_bookmark->link_id, 'link_category', array( 'fields' => 'ids' ) ) );
-					wp_cache_add( $_bookmark->link_id, $_bookmark, 'bookmark' );
-				}
+	} else {
+		$_bookmark = wp_cache_get( $bookmark, 'bookmark' );
+		if ( ! $_bookmark ) {
+			$_bookmark = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->links WHERE link_id = %d LIMIT 1", $bookmark ) );
+			if ( $_bookmark ) {
+				$_bookmark->link_category = array_unique( wp_get_object_terms( $_bookmark->link_id, 'link_category', array( 'fields' => 'ids' ) ) );
+				wp_cache_add( $_bookmark->link_id, $_bookmark, 'bookmark' );
 			}
 		}
 	}
@@ -362,10 +360,8 @@ function sanitize_bookmark( $bookmark, $context = 'display' ) {
 			if ( isset( $bookmark->$field ) ) {
 				$bookmark->$field = sanitize_bookmark_field( $field, $bookmark->$field, $link_id, $context );
 			}
-		} else {
-			if ( isset( $bookmark[ $field ] ) ) {
+		} elseif ( isset( $bookmark[ $field ] ) ) {
 				$bookmark[ $field ] = sanitize_bookmark_field( $field, $bookmark[ $field ], $link_id, $context );
-			}
 		}
 	}
 
