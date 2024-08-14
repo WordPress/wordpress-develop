@@ -4663,7 +4663,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *     // Outputs: "free <egg> lang-en "
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
-	 * @since 6.7.0 Null bytes are replaced with the replacement character (U+FFFD).
 	 */
 	public function class_list() {
 		return $this->is_virtual() ? null : parent::class_list();

@@ -1126,7 +1126,6 @@ class WP_HTML_Tag_Processor {
 	 *     // Outputs: "free <egg> lang-en "
 	 *
 	 * @since 6.4.0
-	 * @since 6.7.0 Null bytes are replaced with the replacement character (U+FFFD).
 	 */
 	public function class_list() {
 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
