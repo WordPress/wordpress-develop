@@ -2939,4 +2939,37 @@ HTML
 		$this->assertFalse( $processor->next_tag() );
 		$this->assertTrue( $processor->paused_at_incomplete_token() );
 	}
+
+	/**
+	 * Test doctype name handling.
+	 *
+	 * @dataProvider data_doctypes
+	 *
+	 * @ticket TBD
+	 */
+	public function test_doctype_doc_name( string $html, ?string $expected_doctype_name ) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( $expected_doctype_name, $processor->get_doctype_name() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_doctypes(): array {
+		return array(
+			'No doctype declaration'             => array( '<div>', null ),
+			'HTML5 doctype'                      => array( '<!DOCTYPE html>', 'html' ),
+			'XHTML doctype'                      => array( "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\n\"http://www.w3.org/TR/html4/strict.dtd\">", 'html' ),
+			'SVG doctype'                        => array( '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">', 'svg' ),
+			'MathML doctype'                     => array( '<!DOCTYPE math PUBLIC "-//W3C//DTD MathML 2.0//EN" "http://www.w3.org/Math/DTD/mathml2/mathml2.dtd">', 'math' ),
+			'HTML doctype'                       => array( '<!DOCTYPE HTML>', 'html' ),
+			'Doctype with null byte replacement' => array( "<!DOCTYPE null-\0-null>", "null-\u{FFFD}-null" ),
+			'Uppercase doctype'                  => array( '<!DOCTYPE UPPERCASE>', 'uppercase' ),
+			'Lowercase doctype'                  => array( '<!doctype lowercase>', 'lowercase' ),
+			'Doctype with tabs'                  => array( '<!DOCTYPE	html	PUBLIC>', 'html' ),
+		);
+	}
 }

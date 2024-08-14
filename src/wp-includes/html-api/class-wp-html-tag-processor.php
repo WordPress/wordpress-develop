@@ -4027,6 +4027,29 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Get the doctype name from a doctype token.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string|null The doctype name, or null if not a doctype token.
+	 */
+	public function get_doctype_name(): ?string {
+		if ( self::STATE_DOCTYPE !== $this->parser_state ) {
+			return null;
+		}
+
+		$name_starts_at = $this->text_starts_at + strspn( $this->html, " \t\n\f\r", $this->text_starts_at, $this->text_length );
+		$name_length   = strcspn(
+			$this->html,
+			" \t\n\f\r",
+			$name_starts_at,
+			$this->text_length - ( $name_starts_at - $this->text_starts_at )
+		);
+
+		return strtolower( str_replace( "\x00", "\u{FFFD}", substr( $this->html, $name_starts_at, $name_length ) ) );
+	}
+
+	/**
 	 * Parser Ready State.
 	 *
 	 * Indicates that the parser is ready to run and waiting for a state transition.
