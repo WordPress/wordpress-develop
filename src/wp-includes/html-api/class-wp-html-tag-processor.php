@@ -4138,7 +4138,11 @@ class WP_HTML_Tag_Processor {
 			$force_quirks_flag = true;
 			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 		}
-		++$at;
+
+		$at += strspn( $this->html, " \t\n\f\r", ++$at, $end - $at );
+		if ( $at >= $end ) {
+			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+		}
 
 		parse_doctype_after_doctype_system_keyword:
 		$at += strcspn( $this->html, "'\"", $at, $end - $at );
