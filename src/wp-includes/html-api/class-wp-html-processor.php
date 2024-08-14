@@ -5100,7 +5100,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#reset-the-insertion-mode-appropriately
 	 */
-	public function reset_insertion_mode(): void {
+	private function reset_insertion_mode(): void {
 		// Set the first node.
 		$first_node = null;
 		foreach ( $this->state->stack_of_open_elements->walk_down() as $first_node ) {
