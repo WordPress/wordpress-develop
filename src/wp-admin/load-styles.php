@@ -6,7 +6,7 @@
  * Set this to error_reporting( -1 ) for debugging.
  */
 if ( function_exists( 'error_reporting' ) ) {
-  error_reporting( 0 );
+	error_reporting( 0 );
 }
 
 // Set ABSPATH for execution.
