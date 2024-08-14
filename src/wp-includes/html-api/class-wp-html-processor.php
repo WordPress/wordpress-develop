@@ -1089,6 +1089,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Then, switch the insertion mode to "before html".
 				 */
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML;
+				$this->insert_html_element( $this->state->current_token );
 				return true;
 		}
 
