@@ -2462,10 +2462,6 @@ class WP_Theme_JSON {
 		 * the URL takes precedence and the ref is ignored.
 		 */
 		if ( is_array( $value ) && isset( $value['ref'] ) ) {
-			if ( isset( $value['url'] ) ) {
-				unset( $value['ref'] );
-				return $value;
-			}
 			$value_path = explode( '.', $value['ref'] );
 			$ref_value  = _wp_array_get( $theme_json, $value_path );
 			// Background Image refs can refer to a string or an array containing a URL string.
