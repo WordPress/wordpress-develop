@@ -22,43 +22,26 @@
  */
 class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	/**
-	 * The HTML Processor only accepts HTML in document <body>.
-	 * Do not run tests that look for anything in document <head>.
-	 */
-	const SKIP_HEAD_TESTS = true;
-
-	/**
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
-		'adoption01/line0046'       => 'Unimplemented: Reconstruction of active formatting elements.',
-		'adoption01/line0159'       => 'Unimplemented: Reconstruction of active formatting elements.',
-		'adoption01/line0318'       => 'Unimplemented: Reconstruction of active formatting elements.',
-		'inbody01/line0001'         => 'Bug.',
-		'inbody01/line0014'         => 'Bug.',
-		'inbody01/line0029'         => 'Bug.',
-		'menuitem-element/line0012' => 'Bug.',
-		'tests1/line0342'           => "Closing P tag implicitly creates opener, which we don't visit.",
-		'tests1/line0720'           => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests1/line0833'           => 'Bug.',
-		'tests15/line0001'          => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests15/line0022'          => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests2/line0650'           => 'Whitespace only test never enters "in body" parsing mode.',
-		'tests20/line0497'          => "Closing P tag implicitly creates opener, which we don't visit.",
-		'tests23/line0001'          => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests23/line0041'          => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests23/line0069'          => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests23/line0101'          => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests25/line0169'          => 'Bug.',
-		'tests26/line0263'          => 'Bug: An active formatting element should be created for a trailing text node.',
-		'tests7/line0354'           => 'Bug.',
-		'tests8/line0001'           => 'Bug.',
-		'tests8/line0020'           => 'Bug.',
-		'tests8/line0037'           => 'Bug.',
-		'tests8/line0052'           => 'Bug.',
-		'webkit01/line0174'         => 'Bug.',
+		'comments01/line0155'    => 'Unimplemented: Need to access raw comment text on non-normative comments.',
+		'comments01/line0169'    => 'Unimplemented: Need to access raw comment text on non-normative comments.',
+		'html5test-com/line0129' => 'Unimplemented: Need to access raw comment text on non-normative comments.',
+		'noscript01/line0014'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests1/line0692'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly',
+		'tests14/line0022'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0055'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0965'       => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
+		'tests19/line1079'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0207'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0686'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0709'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests5/line0013'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
+		'tests5/line0077'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
+		'tests5/line0091'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly',
+		'webkit01/line0231'      => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 	);
-
 
 	/**
 	 * Verify the parsing results of the HTML Processor against the
@@ -72,14 +55,40 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * @param string $html             Given test HTML.
 	 * @param string $expected_tree    Tree structure of parsed HTML.
 	 */
-	public function test_parse( $fragment_context, $html, $expected_tree ) {
+	public function test_parse( ?string $fragment_context, string $html, string $expected_tree ) {
 		$processed_tree = self::build_tree_representation( $fragment_context, $html );
 
 		if ( null === $processed_tree ) {
 			$this->markTestSkipped( 'Test includes unsupported markup.' );
 		}
+		$fragment_detail = $fragment_context ? " in context <{$fragment_context}>" : '';
 
-		$this->assertSame( $expected_tree, $processed_tree, "HTML was not processed correctly:\n{$html}" );
+		/*
+		 * The HTML processor does not produce html, head, body tags if the processor does not reach them.
+		 * HTML tree construction will always produce these tags, the HTML API does not at this time.
+		 */
+		$auto_generated_html_head_body = "<html>\n  <head>\n  <body>\n\n";
+		$auto_generated_head_body      = "  <head>\n  <body>\n\n";
+		$auto_generated_body           = "  <body>\n\n";
+		if ( str_ends_with( $expected_tree, $auto_generated_html_head_body ) && ! str_ends_with( $processed_tree, $auto_generated_html_head_body ) ) {
+			if ( str_ends_with( $processed_tree, "<html>\n  <head>\n\n" ) ) {
+				$processed_tree = substr_replace( $processed_tree, "  <body>\n\n", -1 );
+			} elseif ( str_ends_with( $processed_tree, "<html>\n\n" ) ) {
+				$processed_tree = substr_replace( $processed_tree, "  <head>\n  <body>\n\n", -1 );
+			} else {
+				$processed_tree = substr_replace( $processed_tree, $auto_generated_html_head_body, -1 );
+			}
+		} elseif ( str_ends_with( $expected_tree, $auto_generated_head_body ) && ! str_ends_with( $processed_tree, $auto_generated_head_body ) ) {
+			if ( str_ends_with( $processed_tree, "<head>\n\n" ) ) {
+				$processed_tree = substr_replace( $processed_tree, "  <body>\n\n", -1 );
+			} else {
+				$processed_tree = substr_replace( $processed_tree, $auto_generated_head_body, -1 );
+			}
+		} elseif ( str_ends_with( $expected_tree, $auto_generated_body ) && ! str_ends_with( $processed_tree, $auto_generated_body ) ) {
+			$processed_tree = substr_replace( $processed_tree, $auto_generated_body, -1 );
+		}
+
+		$this->assertSame( $expected_tree, $processed_tree, "HTML was not processed correctly{$fragment_detail}:\n{$html}" );
 	}
 
 	/**
@@ -104,7 +113,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				$line       = str_pad( strval( $test[0] ), 4, '0', STR_PAD_LEFT );
 				$test_name  = "{$test_suite}/line{$line}";
 
-				if ( self::should_skip_test( $test_name, $test[3] ) ) {
+				$test_context_element = $test[1];
+
+				if ( self::should_skip_test( $test_context_element, $test_name, $test[3] ) ) {
 					continue;
 				}
 
@@ -122,15 +133,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *
 	 * @return bool True if the test case should be skipped. False otherwise.
 	 */
-	private static function should_skip_test( $test_name, $expected_tree ): bool {
-		if ( self::SKIP_HEAD_TESTS ) {
-			$html_start = "<html>\n  <head>\n  <body>\n";
-			if (
-				strlen( $expected_tree ) < strlen( $html_start ) ||
-				substr( $expected_tree, 0, strlen( $html_start ) ) !== $html_start
-			) {
-				return true;
-			}
+	private static function should_skip_test( ?string $test_context_element, string $test_name, string $expected_tree ): bool {
+		if ( null !== $test_context_element && 'body' !== $test_context_element ) {
+			return true;
 		}
 
 		if ( array_key_exists( $test_name, self::SKIP_TESTS ) ) {
@@ -150,44 +155,107 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	private static function build_tree_representation( ?string $fragment_context, string $html ) {
 		$processor = $fragment_context
 			? WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" )
-			: WP_HTML_Processor::create_fragment( $html );
+			: WP_HTML_Processor::create_full_parser( $html );
 		if ( null === $processor ) {
 			return null;
 		}
 
-		$output = "<html>\n  <head>\n  <body>\n";
-
-		// Initially, assume we're 2 levels deep at: html > body > [position]
-		$indent_level = 2;
+		/*
+		 * The fragment parser will start in 2 levels deep at: html > body > [position]
+		 * and requires adjustment to initial parameters.
+		 * The full parser will not.
+		 */
+		$output       = $fragment_context ? "<html>\n  <head>\n  <body>\n" : '';
+		$indent_level = $fragment_context ? 2 : 0;
 		$indent       = '  ';
+		$was_text     = null;
+		$text_node    = '';
 
 		while ( $processor->next_token() ) {
 			if ( ! is_null( $processor->get_last_error() ) ) {
 				return null;
 			}
 
-			switch ( $processor->get_token_type() ) {
-				case '#tag':
-					$tag_name = strtolower( $processor->get_tag() );
+			$token_name = $processor->get_token_name();
+			$token_type = $processor->get_token_type();
+			$is_closer  = $processor->is_tag_closer();
 
-					if ( $processor->is_tag_closer() ) {
+			if ( $was_text && '#text' !== $token_name ) {
+				if ( '' !== $text_node ) {
+					$output .= "{$text_node}\"\n";
+				}
+				$was_text  = false;
+				$text_node = '';
+			}
+
+			switch ( $token_type ) {
+				case '#tag':
+					$namespace = $processor->get_namespace();
+					$tag_name  = 'html' === $namespace
+						? strtolower( $processor->get_tag() )
+						: "{$namespace} {$processor->get_qualified_tag_name()}";
+
+					if ( $is_closer ) {
 						--$indent_level;
+
+						if ( 'html' === $namespace && 'TEMPLATE' === $token_name ) {
+							--$indent_level;
+						}
+
 						break;
 					}
 
-					$tag_indent = count( $processor->get_breadcrumbs() ) - 1;
+					$tag_indent = $indent_level;
 
-					if ( ! WP_HTML_Processor::is_void( $tag_name ) ) {
-						$indent_level = $tag_indent + 1;
+					if ( $processor->expects_closer() ) {
+						++$indent_level;
 					}
 
 					$output .= str_repeat( $indent, $tag_indent ) . "<{$tag_name}>\n";
 
 					$attribute_names = $processor->get_attribute_names_with_prefix( '' );
 					if ( $attribute_names ) {
-						sort( $attribute_names, SORT_STRING );
-
+						$sorted_attributes = array();
 						foreach ( $attribute_names as $attribute_name ) {
+							$sorted_attributes[ $attribute_name ] = $processor->get_qualified_attribute_name( $attribute_name );
+						}
+
+						/*
+						 * Sorts attributes to match html5lib sort order.
+						 *
+						 *  - First comes normal HTML attributes.
+						 *  - Then come adjusted foreign attributes; these have spaces in their names.
+						 *  - Finally come non-adjusted foreign attributes; these have a colon in their names.
+						 *
+						 * Example:
+						 *
+						 *       From: <math xlink:author definitionurl xlink:title xlink:show>
+						 *     Sorted: 'definitionURL', 'xlink show', 'xlink title', 'xlink:author'
+						 */
+						uasort(
+							$sorted_attributes,
+							static function ( $a, $b ) {
+								$a_has_ns = str_contains( $a, ':' );
+								$b_has_ns = str_contains( $b, ':' );
+
+								// Attributes with `:` should follow all other attributes.
+								if ( $a_has_ns !== $b_has_ns ) {
+									return $a_has_ns ? 1 : -1;
+								}
+
+								$a_has_sp = str_contains( $a, ' ' );
+								$b_has_sp = str_contains( $b, ' ' );
+
+								// Attributes with a namespace ' ' should come after those without.
+								if ( $a_has_sp !== $b_has_sp ) {
+									return $a_has_sp ? 1 : -1;
+								}
+
+								return $a <=> $b;
+							}
+						);
+
+						foreach ( $sorted_attributes as $attribute_name => $display_name ) {
 							$val = $processor->get_attribute( $attribute_name );
 							/*
 							 * Attributes with no value are `true` with the HTML API,
@@ -196,25 +264,55 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 							if ( true === $val ) {
 								$val = '';
 							}
-							$output .= str_repeat( $indent, $tag_indent + 1 ) . "{$attribute_name}=\"{$val}\"\n";
+							$output .= str_repeat( $indent, $tag_indent + 1 ) . "{$display_name}=\"{$val}\"\n";
 						}
+					}
+
+					// Self-contained tags contain their inner contents as modifiable text.
+					$modifiable_text = $processor->get_modifiable_text();
+					if ( '' !== $modifiable_text ) {
+						$output .= str_repeat( $indent, $tag_indent + 1 ) . "\"{$modifiable_text}\"\n";
+					}
+
+					if ( 'html' === $namespace && 'TEMPLATE' === $token_name ) {
+						$output .= str_repeat( $indent, $indent_level ) . "content\n";
+						++$indent_level;
 					}
 
 					break;
 
+				case '#cdata-section':
 				case '#text':
-					$output .= str_repeat( $indent, $indent_level ) . "\"{$processor->get_modifiable_text()}\"\n";
+					$text_content = $processor->get_modifiable_text();
+					if ( '' === $text_content ) {
+						break;
+					}
+					$was_text = true;
+					if ( '' === $text_node ) {
+						$text_node .= str_repeat( $indent, $indent_level ) . '"';
+					}
+					$text_node .= $text_content;
+					break;
+
+				case '#funky-comment':
+					// Comments must be "<" then "!-- " then the data then " -->".
+					$output .= str_repeat( $indent, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";
 					break;
 
 				case '#comment':
 					switch ( $processor->get_comment_type() ) {
 						case WP_HTML_Processor::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT:
 						case WP_HTML_Processor::COMMENT_AS_HTML_COMMENT:
+						case WP_HTML_Processor::COMMENT_AS_INVALID_HTML:
 							$comment_text_content = $processor->get_modifiable_text();
 							break;
 
 						case WP_HTML_Processor::COMMENT_AS_CDATA_LOOKALIKE:
 							$comment_text_content = "[CDATA[{$processor->get_modifiable_text()}]]";
+							break;
+
+						case WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE:
+							$comment_text_content = "?{$processor->get_tag()}{$processor->get_modifiable_text()}?";
 							break;
 
 						default:
@@ -238,6 +336,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			return null;
 		}
 
+		if ( '' !== $text_node ) {
+			$output .= "{$text_node}\"\n";
+		}
+
 		// Tests always end with a trailing newline.
 		return $output . "\n";
 	}
@@ -256,7 +358,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		/**
 		 * Represents which section of the test case is being parsed.
 		 *
-		 * @var ?string
+		 * @var string|null
 		 */
 		$state = null;
 
@@ -264,6 +366,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$test_html            = '';
 		$test_dom             = '';
 		$test_context_element = null;
+		$test_script_flag     = false;
 		$test_line_number     = 0;
 
 		while ( false !== ( $line = fgets( $handle ) ) ) {
@@ -272,8 +375,12 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			if ( '#' === $line[0] ) {
 				// Finish section.
 				if ( "#data\n" === $line ) {
-					// Yield when switching from a previous state.
-					if ( $state ) {
+					/*
+					 * Yield when switching from a previous state.
+					 * Do not yield tests with the scripting flag enabled. The scripting flag
+					 * is always disabled in the HTML API.
+					 */
+					if ( $state && ! $test_script_flag ) {
 						yield array(
 							$test_line_number,
 							$test_context_element,
@@ -288,6 +395,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					$test_html            = '';
 					$test_dom             = '';
 					$test_context_element = null;
+					$test_script_flag     = false;
+				}
+				if ( "#script-on\n" === $line ) {
+					$test_script_flag = true;
 				}
 
 				$state = trim( substr( $line, 1 ) );
@@ -339,7 +450,15 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				 */
 				case 'document':
 					if ( '|' === $line[0] ) {
-						$test_dom .= substr( $line, 2 );
+						/*
+						 * The next_token() method these tests rely on do not stop
+						 * at doctype nodes. Strip doctypes from output.
+						 * @todo Restore this line if and when the processor
+						 * exposes doctypes.
+						 */
+						if ( '| <!DOCTYPE ' !== substr( $line, 0, 12 ) ) {
+							$test_dom .= substr( $line, 2 );
+						}
 					} else {
 						// This is a text node that includes unescaped newlines.
 						// Everything else should be singles lines starting with "| ".
