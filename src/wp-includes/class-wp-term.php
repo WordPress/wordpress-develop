@@ -314,14 +314,14 @@ final class WP_Term {
 	public function __get( $key ) {
 		if ( 'data' !== $key ) {
 			// Public class properties are not dynamic.
-			if ( ! static::check_if_public_class_property( $key ) ) {
+			//if ( ! static::check_if_public_class_property( $key ) ) {
 				wp_trigger_error(
 					__METHOD__,
 					sprintf( 'Getting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
 					E_USER_DEPRECATED
 				);
-			}
-			return null;
+			//}
+			//return null;
 		}
 
 		$data    = new stdClass();
@@ -375,10 +375,10 @@ final class WP_Term {
 		}
 
 		// Setting a public property should not generate errors.
-		if ( static::check_if_public_class_property( $name ) ) {
-			$this->$name = $value;
-			return;
-		}
+//		if ( static::check_if_public_class_property( $name ) ) {
+//			$this->$name = $value;
+//			return;
+//		}
 
 		wp_trigger_error(
 			__METHOD__,
@@ -403,9 +403,9 @@ final class WP_Term {
 		}
 
 		// Unsetting a public property should not generate errors.
-		if ( static::check_if_public_class_property( $name ) ) {
-			return;
-		}
+//		if ( static::check_if_public_class_property( $name ) ) {
+//			return;
+//		}
 
 		wp_trigger_error(
 			__METHOD__,
