@@ -1,1 +1,0 @@
-/* Another test JavaScript file. */
