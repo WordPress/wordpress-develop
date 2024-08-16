@@ -4027,37 +4027,19 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Get the doctype name from a doctype token.
+	 * Gets DOCTYPE declaration info from a DOCTYPE token.
 	 *
-	 * @since 6.7.0
+	 * DOCTYPE tokens may appear in many places in an HTML document. In most places, they are
+	 * simply ignored. The main parsing functions find the basic shape of DOCTYPE tokens but
+	 * do not perform detailed parsing.
 	 *
-	 * @return string|null The doctype name, or null if not a doctype token.
+	 * This method can be called to perform a full parse of the DOCTYPE token and retrieve
+	 * its information.
+	 *
+	 * @return WP_HTML_Doctype_Info|null The DOCTYPE declaration information or null if not
+	 *                                   a DOCTYPE token.
 	 */
-	public function get_doctype_name(): ?string {
-		$doctype = $this->parse_doctype();
-
-		if ( null === $doctype ) {
-			return null;
-		}
-
-		return $doctype[0];
-	}
-
-	/**
-	 * Parses the DOCTYPE declaration.
-	 *
-	 * DOCTYPE declarations can appear in many places in HTML, but in most locations they
-	 * are ignored. Perform full parsing of the doctype token on demand.
-	 *
-	 * @return array A 4-element tuple representing the DOCTYPE token of the form:
-	 *               array(
-	 *                 string? name,
-	 *                 string? public identifier,
-	 *                 string? system identifier,
-	 *                 bool force-quirks flag
-	 *               )
-	 */
-	public function parse_doctype(): ?array {
+	public function get_doctype_info(): ?WP_HTML_Doctype_Info {
 		if ( self::STATE_DOCTYPE !== $this->parser_state ) {
 			return null;
 		}
@@ -4095,14 +4077,12 @@ class WP_HTML_Tag_Processor {
 		$system_identifier = null;
 		$force_quirks_flag = false;
 
-		$doctype = array( &$name, &$public_identifier, &$system_identifier, &$force_quirks_flag );
-
 		$at  = $this->text_starts_at + strspn( $this->html, " \t\n\f\r", $this->text_starts_at, $this->text_length );
 		$end = $this->text_starts_at + $this->text_length;
 
 		if ( $at >= $end ) {
 			$force_quirks_flag = true;
-			return $doctype;
+			return new WP_HTML_Doctype_Info( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 		}
 		$name_length = strcspn( $this->html, " \t\n\f\r", $at, $end - $at );
 		$name        = strtolower( str_replace( "\x00", "\u{FFFD}", substr( $this->html, $at, $name_length ) ) );
@@ -4111,7 +4091,7 @@ class WP_HTML_Tag_Processor {
 		$at += $name_length;
 		$at += strspn( $this->html, " \t\n\f\r", $at, $end - $at );
 		if ( $at >= $end ) {
-			return $doctype;
+			return new WP_HTML_Doctype_Info( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 		}
 
 		/*
@@ -4120,7 +4100,7 @@ class WP_HTML_Tag_Processor {
 		 */
 		if ( $at + 6 >= $end ) {
 			$force_quirks_flag = true;
-			return $doctype;
+			return new WP_HTML_Doctype_Info( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 		}
 
 		if ( 0 === substr_compare( $this->html, 'PUBLIC', $at, 6, true ) ) {
@@ -4128,7 +4108,7 @@ class WP_HTML_Tag_Processor {
 			$at += strspn( $this->html, " \t\n\f\r", $at, $end - $at );
 			if ( $at >= $end ) {
 				$force_quirks_flag = true;
-				return $doctype;
+				return new WP_HTML_Doctype_Info( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 			}
 			goto parse_doctype_before_public_identifier;
 		}
@@ -4137,19 +4117,19 @@ class WP_HTML_Tag_Processor {
 			$at += strspn( $this->html, " \t\n\f\r", $at, $end - $at );
 			if ( $at >= $end ) {
 				$force_quirks_flag = true;
-				return $doctype;
+				return new WP_HTML_Doctype_Info( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 			}
 			goto parse_doctype_before_system_identifier;
 		}
 
 		$force_quirks_flag = true;
-		return $doctype;
+		return new WP_HTML_Doctype_Info( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 
 		parse_doctype_before_public_identifier:
 		$closer_quote = $this->html[ $at ];
 		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
 			$force_quirks_flag = true;
-			return $doctype;
+			return new WP_HTML_Doctype_Info( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 		}
 		++$at;
 
@@ -4159,21 +4139,21 @@ class WP_HTML_Tag_Processor {
 		$at += $identifier_length;
 		if ( $at >= $end || $closer_quote !== $this->html[ $at ] ) {
 			$force_quirks_flag = true;
-			return $doctype;
+			return new WP_HTML_Doctype_Info( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 		}
 		++$at;
 
 		// Advance through whitespace between public and system identifiers.
 		$at += strspn( $this->html, " \t\n\f\r", $at, $end - $at );
 		if ( $at >= $end ) {
-			return $doctype;
+			return new WP_HTML_Doctype_Info( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 		}
 
 		parse_doctype_before_system_identifier:
 		$closer_quote = $this->html[ $at ];
 		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
 			$force_quirks_flag = true;
-			return $doctype;
+			return new WP_HTML_Doctype_Info( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 		}
 		++$at;
 
@@ -4183,10 +4163,10 @@ class WP_HTML_Tag_Processor {
 		$at += $identifier_length;
 		if ( $at >= $end || $closer_quote !== $this->html[ $at ] ) {
 			$force_quirks_flag = true;
-			return $doctype;
+			return new WP_HTML_Doctype_Info( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 		}
 
-		return $doctype;
+		return new WP_HTML_Doctype_Info( $name, $public_identifier, $system_identifier, $force_quirks_flag );
 	}
 
 	/**
