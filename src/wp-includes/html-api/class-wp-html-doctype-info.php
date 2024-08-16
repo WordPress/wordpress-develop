@@ -76,10 +76,10 @@ class WP_HTML_Doctype_Info {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return string|null The name of the DOCTYPE.
+	 * @return string The name of the DOCTYPE.
 	 */
-	public function get_name(): ?string {
-		return $this->name;
+	public function get_name(): string {
+		return $this->name ?? '';
 	}
 
 	/**
@@ -87,10 +87,10 @@ class WP_HTML_Doctype_Info {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return string|null The public identifier of the DOCTYPE.
+	 * @return string The public identifier of the DOCTYPE.
 	 */
-	public function get_public_identifier(): ?string {
-		return $this->public_identifier;
+	public function get_public_identifier(): string {
+		return $this->public_identifier ?? '';
 	}
 
 	/**
@@ -98,10 +98,10 @@ class WP_HTML_Doctype_Info {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return string|null The system identifier of the DOCTYPE.
+	 * @return string The system identifier of the DOCTYPE.
 	 */
-	public function get_system_identifier(): ?string {
-		return $this->system_identifier;
+	public function get_system_identifier(): string {
+		return $this->system_identifier ?? '';
 	}
 
 	/**
