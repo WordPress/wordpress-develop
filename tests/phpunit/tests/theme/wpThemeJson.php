@@ -5156,6 +5156,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'styles'  => array(
 					'background' => array(
 						'backgroundImage'      => "url('http://example.org/image.png')",
+						'backgroundSize'       => 'contain',
 						'backgroundRepeat'     => 'no-repeat',
 						'backgroundPosition'   => 'center center',
 						'backgroundAttachment' => 'fixed',
@@ -5164,7 +5165,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$expected_styles = "html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}body{background-image: url('http://example.org/image.png');background-position: center center;background-repeat: no-repeat;background-attachment: fixed;}";
+		$expected_styles = "html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}body{background-image: url('http://example.org/image.png');background-position: center center;background-repeat: no-repeat;background-size: contain;background-attachment: fixed;}";
 		$this->assertSame( $expected_styles, $theme_json->get_styles_for_block( $body_node ), 'Styles returned from "::get_stylesheet()" with top-level background image as string type do not match expectations' );
 	}
 
