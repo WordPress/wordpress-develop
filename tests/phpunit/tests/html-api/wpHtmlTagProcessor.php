@@ -2945,7 +2945,7 @@ HTML
 	 *
 	 * @dataProvider data_doctypes
 	 *
-	 * @ticket TBD
+	 * @ticket 61576
 	 */
 	public function test_doctype_doc_name( string $html, ?string $expected_doctype_name ) {
 		$processor = new WP_HTML_Tag_Processor( $html );
