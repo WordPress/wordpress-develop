@@ -226,7 +226,7 @@ final class WP_Term {
 	 * Getter.
 	 *
 	 * @since 4.4.0
-	 * @since 6.5.0 The 'data' property was deprecated.
+	 * @since 6.7.0 The 'data' property was deprecated.
 	 *
 	 * @param string $key Property to get.
 	 * @return stdClass|null Property value.
@@ -235,7 +235,7 @@ final class WP_Term {
 		if ( 'data' === $key ) {
 			_deprecated_argument(
 				'WP_Term::$data',
-				'6.5.0',
+				'6.7.0',
 				sprintf(
 					/* translators: %s: The method name to be used instead of the WP_Term::$data property. */
 					__( 'Use %s instead.' ),
@@ -250,14 +250,28 @@ final class WP_Term {
 	}
 
 	/**
-	 * Returns information about the term as it is stored in the database.
+	 * Retrieve the term's raw data.
 	 *
-	 * @since 6.5.0
+	 * @since 6.7.0
 	 *
-	 * @return stdClass
+	 * @return stdClass {
+	 *     The term's raw data.
+	 *
+	 *     @type int    $term_id          Term ID.
+	 *     @type string $name             The term's name.
+	 *     @type string $slug             The term's slug.
+	 *     @type int    $term_group       The term's term_group.
+	 *     @type int    $term_taxonomy_id Term Taxonomy ID.
+	 *     @type string $taxonomy         The term's taxonomy name.
+	 *     @type string $description      The term's description.
+	 *     @type int    $parent           ID of a term's parent term.
+	 *     @type int    $count            Cached object count for this term.
+	 *     @type string $filter           The term object's sanitization level, set to 'raw'.
+	 * }
 	 */
 	public function get_raw_data() {
-		$class_properties = array(
+		$data       = new stdClass();
+		$db_columns = array(
 			'term_id',
 			'name',
 			'slug',
@@ -269,9 +283,8 @@ final class WP_Term {
 			'count',
 		);
 
-		$data = new stdClass();
-		foreach ( $class_properties as $class_property ) {
-			$data->{$class_property} = isset( $this->{$class_property} ) ? $this->{$class_property} : null;
+		foreach ( $db_columns as $column ) {
+			$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
 		}
 
 		return sanitize_term( $data, $data->taxonomy, 'raw' );
