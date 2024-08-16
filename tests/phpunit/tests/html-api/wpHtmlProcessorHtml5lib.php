@@ -191,10 +191,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 			switch ( $token_type ) {
 				case '#doctype':
-					$dt = $processor->parse_doctype();
-					$output .= "<!DOCTYPE {$dt[0]}";
-					if ( null !== $dt[1] || null !== $dt[2] ) {
-						$output .= " \"{$dt[1]}\" \"{$dt[2]}\"";
+					$doctype = $processor->get_doctype_info();
+					$output .= "<!DOCTYPE {$doctype->get_name()}";
+					if ( $doctype->get_public_identifier() || $doctype->get_system_identifier() ) {
+						$output .= " \"{$doctype->get_public_identifier()}\" \"{$doctype->get_system_identifier()}\"";
 					}
 					$output .= ">\n";
 					break;
