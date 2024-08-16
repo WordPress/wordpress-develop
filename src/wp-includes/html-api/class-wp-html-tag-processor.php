@@ -4107,16 +4107,16 @@ class WP_HTML_Tag_Processor {
 		$name_length = strcspn( $this->html, " \t\n\f\r", $at, $end - $at );
 		$name        = strtolower( str_replace( "\x00", "\u{FFFD}", substr( $this->html, $at, $name_length ) ) );
 
+		// Whitespace is allowed until the doctype token closes.
 		$at += $name_length;
 		$at += strspn( $this->html, " \t\n\f\r", $at, $end - $at );
-
 		if ( $at >= $end ) {
 			return $doctype;
 		}
 
 		/*
-		 * We must find a case insensitive match for "PUBLIC" or "SYSTEM" at this point.
-		 * Otherwise, set force-quirks and enter bogus DOCTYPE state (skip the rest of the doctype).
+		 * Otherwise, we must find a case insensitive match for "PUBLIC" or "SYSTEM" at this point.
+		 * If now, set force-quirks and enter bogus DOCTYPE state (skip the rest of the doctype).
 		 */
 		if ( $at + 6 >= $end ) {
 			$force_quirks_flag = true;
@@ -4125,23 +4125,27 @@ class WP_HTML_Tag_Processor {
 
 		if ( 0 === substr_compare( $this->html, 'PUBLIC', $at, 6, true ) ) {
 			$at += 6;
-			goto parse_doctype_after_doctype_public_keyword;
+			$at += strspn( $this->html, " \t\n\f\r", $at, $end - $at );
+			if ( $at >= $end ) {
+				$force_quirks_flag = true;
+				return $doctype;
+			}
+			goto parse_doctype_before_public_identifier;
 		}
 		if ( 0 === substr_compare( $this->html, 'SYSTEM', $at, 6, true ) ) {
 			$at += 6;
-			goto parse_doctype_after_doctype_system_keyword;
+			$at += strspn( $this->html, " \t\n\f\r", $at, $end - $at );
+			if ( $at >= $end ) {
+				$force_quirks_flag = true;
+				return $doctype;
+			}
+			goto parse_doctype_before_system_identifier;
 		}
 
 		$force_quirks_flag = true;
 		return $doctype;
 
-		parse_doctype_after_doctype_public_keyword:
-		$at += strspn( $this->html, " \t\n\f\r", $at, $end - $at );
-		if ( $at >= $end ) {
-			$force_quirks_flag = true;
-			return $doctype;
-		}
-
+		parse_doctype_before_public_identifier:
 		$closer_quote = $this->html[ $at ];
 		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
 			$force_quirks_flag = true;
@@ -4159,13 +4163,13 @@ class WP_HTML_Tag_Processor {
 		}
 		++$at;
 
-		parse_doctype_after_doctype_system_keyword:
+		// Advance through whitespace between public and system identifiers.
 		$at += strspn( $this->html, " \t\n\f\r", $at, $end - $at );
 		if ( $at >= $end ) {
-			$force_quirks_flag = true;
 			return $doctype;
 		}
 
+		parse_doctype_before_system_identifier:
 		$closer_quote = $this->html[ $at ];
 		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
 			$force_quirks_flag = true;
