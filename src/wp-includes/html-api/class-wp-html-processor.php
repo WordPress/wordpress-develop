@@ -474,7 +474,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		$name = $dt[0];
 
-		// > A system identifier whose value is the empty string is not considered missing for the purposes of the conditions above.
+		/*
+		 * > A system identifier whose value is the empty string is not considered missing for the
+		 * > purposes of the conditions above.
+		 */
 		$system_identifier_is_missing = null === $dt[2];
 
 		/*
