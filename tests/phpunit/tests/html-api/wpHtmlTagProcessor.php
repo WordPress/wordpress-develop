@@ -2950,7 +2950,13 @@ HTML
 	public function test_doctype_doc_name( string $html, ?string $expected_doctype_name ) {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$this->assertTrue( $processor->next_token() );
-		$this->assertSame( $expected_doctype_name, $processor->get_doctype_name() );
+		$doctype = $processor->get_doctype_info();
+
+		if ( null === $expected_doctype_name ) {
+			$this->assertNull( $doctype );
+		} else {
+			$this->assertSame( $expected_doctype_name, $doctype->get_name() );
+		}
 	}
 
 	/**
