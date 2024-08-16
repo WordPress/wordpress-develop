@@ -478,17 +478,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Get the document compatibility mode.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @return string The document compatibility mode "quirks-mode" or "no-quirks-mode".
-	 */
-	public function get_compat_mode(): string {
-		return $this->state->document_mode;
-	}
-
-	/**
 	 * Returns the last error, if any.
 	 *
 	 * Various situations lead to parsing failure but this class will
