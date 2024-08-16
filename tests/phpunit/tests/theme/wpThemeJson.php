@@ -5271,12 +5271,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'core/group'        => array(
 							'background' => array(
 								'backgroundImage' => array(
-									/*
-									 * Merged theme.json and global styles retain the "ref" value,
-									 * even though the URL is provided in the global styles.
-									 */
 									'id'  => 123,
-									'ref' => 'styles.background.backgroundImage',
 									'url' => 'http://example.org/group.png',
 								),
 							),
