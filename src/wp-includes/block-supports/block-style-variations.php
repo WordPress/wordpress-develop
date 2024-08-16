@@ -21,7 +21,7 @@
  * @return string The unique variation name.
  */
 function wp_create_block_style_variation_instance_name( $block, $variation ) {
-	_deprecated_function( __FUNCTION__, '6.7.0', "wp_unique_id( \$variation . '--' )" );
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_unique_id' );
 	return $variation . '--' . md5( serialize( $block ) );
 }
 
