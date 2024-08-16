@@ -460,6 +460,179 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Sets the document compatibility mode (quirks or no-quirks) based on a DOCTYPE declaration.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#parser-cannot-change-the-mode-flag
+	 *
+	 * @since 6.7.0
+	 */
+	private function update_document_mode_from_doctype(): void {
+		$dt = $this->parse_doctype();
+		if ( null === $dt ) {
+			return;
+		}
+
+		$name = $dt[0];
+
+		// > A system identifier whose value is the empty string is not considered missing for the purposes of the conditions above.
+		$system_identifier_is_missing = null === $dt[2];
+
+		/*
+		 * > The system identifier and public identifier strings must be compared to the values
+		 * > given in the lists above in an ASCII case-insensitive manner. A system identifier whose
+		 * > value is the empty string is not considered missing for the purposes of the conditions above.
+		 */
+		$public_identifier = null !== $dt[1] ? strtolower( $dt[1] ) : '';
+		$system_identifier = null !== $dt[2] ? strtolower( $dt[2] ) : '';
+
+		$force_quirks_flag = $dt[3];
+
+		// > The force-quirks flag is set to on.
+		if ( $force_quirks_flag ) {
+			$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
+			return;
+		}
+
+		// > The name is not "html".
+		if ( 'html' !== $name ) {
+			$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
+			return;
+		}
+
+		// > The public identifier is set to…
+		if (
+			'-//w3o//dtd w3 html strict 3.0//en//' === $public_identifier ||
+			'-/w3c/dtd html 4.0 transitional/en' === $public_identifier ||
+			'html' === $public_identifier
+		) {
+			$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
+			return;
+		}
+
+		// > The system identifier is set to…
+		if ( 'http://www.ibm.com/data/dtd/v11/ibmxhtml1-transitional.dtd' === $system_identifier ) {
+			$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
+			return;
+		}
+
+		/*
+		 * All of the following conditions depend on matching the public identifier.
+		 * If the public identifier is falsy, none of the following conditions will match.
+		 */
+		if ( '' === $public_identifier ) {
+			return;
+		}
+
+		// > The public identifier starts with…
+		if (
+			str_starts_with( $public_identifier, '+//silmaril//dtd html pro v0r11 19970101//' ) ||
+			str_starts_with( $public_identifier, '-//as//dtd html 3.0 aswedit + extensions//' ) ||
+			str_starts_with( $public_identifier, '-//advasoft ltd//dtd html 3.0 aswedit + extensions//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html 2.0 level 1//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html 2.0 level 2//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html 2.0 strict level 1//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html 2.0 strict level 2//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html 2.0 strict//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html 2.0//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html 2.1e//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html 3.0//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html 3.2 final//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html 3.2//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html 3//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html level 0//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html level 1//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html level 2//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html level 3//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html strict level 0//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html strict level 1//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html strict level 2//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html strict level 3//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html strict//' ) ||
+			str_starts_with( $public_identifier, '-//ietf//dtd html//' ) ||
+			str_starts_with( $public_identifier, '-//metrius//dtd metrius presentational//' ) ||
+			str_starts_with( $public_identifier, '-//microsoft//dtd internet explorer 2.0 html strict//' ) ||
+			str_starts_with( $public_identifier, '-//microsoft//dtd internet explorer 2.0 html//' ) ||
+			str_starts_with( $public_identifier, '-//microsoft//dtd internet explorer 2.0 tables//' ) ||
+			str_starts_with( $public_identifier, '-//microsoft//dtd internet explorer 3.0 html strict//' ) ||
+			str_starts_with( $public_identifier, '-//microsoft//dtd internet explorer 3.0 html//' ) ||
+			str_starts_with( $public_identifier, '-//microsoft//dtd internet explorer 3.0 tables//' ) ||
+			str_starts_with( $public_identifier, '-//netscape comm. corp.//dtd html//' ) ||
+			str_starts_with( $public_identifier, '-//netscape comm. corp.//dtd strict html//' ) ||
+			str_starts_with( $public_identifier, "-//o'reilly and associates//dtd html 2.0//" ) ||
+			str_starts_with( $public_identifier, "-//o'reilly and associates//dtd html extended 1.0//" ) ||
+			str_starts_with( $public_identifier, "-//o'reilly and associates//dtd html extended relaxed 1.0//" ) ||
+			str_starts_with( $public_identifier, '-//sq//dtd html 2.0 hotmetal + extensions//' ) ||
+			str_starts_with( $public_identifier, '-//softquad software//dtd hotmetal pro 6.0::19990601::extensions to html 4.0//' ) ||
+			str_starts_with( $public_identifier, '-//softquad//dtd hotmetal pro 4.0::19971010::extensions to html 4.0//' ) ||
+			str_starts_with( $public_identifier, '-//spyglass//dtd html 2.0 extended//' ) ||
+			str_starts_with( $public_identifier, '-//sun microsystems corp.//dtd hotjava html//' ) ||
+			str_starts_with( $public_identifier, '-//sun microsystems corp.//dtd hotjava strict html//' ) ||
+			str_starts_with( $public_identifier, '-//w3c//dtd html 3 1995-03-24//' ) ||
+			str_starts_with( $public_identifier, '-//w3c//dtd html 3.2 draft//' ) ||
+			str_starts_with( $public_identifier, '-//w3c//dtd html 3.2 final//' ) ||
+			str_starts_with( $public_identifier, '-//w3c//dtd html 3.2//' ) ||
+			str_starts_with( $public_identifier, '-//w3c//dtd html 3.2s draft//' ) ||
+			str_starts_with( $public_identifier, '-//w3c//dtd html 4.0 frameset//' ) ||
+			str_starts_with( $public_identifier, '-//w3c//dtd html 4.0 transitional//' ) ||
+			str_starts_with( $public_identifier, '-//w3c//dtd html experimental 19960712//' ) ||
+			str_starts_with( $public_identifier, '-//w3c//dtd html experimental 970421//' ) ||
+			str_starts_with( $public_identifier, '-//w3c//dtd w3 html//' ) ||
+			str_starts_with( $public_identifier, '-//w3o//dtd w3 html 3.0//' ) ||
+			str_starts_with( $public_identifier, '-//webtechs//dtd mozilla html 2.0//' ) ||
+			str_starts_with( $public_identifier, '-//webtechs//dtd mozilla html//' )
+		) {
+			$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
+			return;
+		}
+
+		// > The system identifier is missing and the public identifier starts with…
+		if (
+			$system_identifier_is_missing && (
+				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 frameset//' ) ||
+				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 transitional//' )
+			)
+		) {
+			$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
+			return;
+		}
+
+		/*
+		 * > Otherwise, if the document is not an iframe srcdoc document, and the parser cannot
+		 * > change the mode flag is false, and the DOCTYPE token matches one of the conditions in
+		 * > the following list, then set the Document to limited-quirks mode.
+		 *
+		 * For the purposes of the HTML API, there is no difference between "no-quirks" and
+		 * "limited-quirks" modes. The HTML API only distinguishes between "quirks" and "no-quirks"
+		 * and the "limited-quirks" rules are ignored.
+		 */
+
+		/*
+		 * @todo Eliminate this section or add "limited-quirks" mode.
+
+		// > The public identifier starts with…
+		if (
+			str_starts_with( $public_identifier, '-//w3c//dtd xhtml 1.0 frameset//' ) ||
+			str_starts_with( $public_identifier, '-//w3c//dtd xhtml 1.0 transitional//' )
+		) {
+			$this->state->document_mode = WP_HTML_Processor_State::LIMITED_QUIRKS_MODE;
+			return;
+		}
+
+		// > The system identifier is not missing and the public identifier starts with…
+		if (
+			! $system_identifier_is_missing && (
+				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 frameset//' ) ||
+				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 transitional//' )
+			)
+		) {
+			$this->state->document_mode = WP_HTML_Processor_State::LIMITED_QUIRKS_MODE;
+			return;
+		}
+
+		*/
+	}
+
+	/**
 	 * Get the document compatibility mode.
 	 *
 	 * @since 6.7.0
@@ -1087,15 +1260,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A DOCTYPE token
 			 */
 			case 'html':
-				$dt = $this->parse_doctype();
-				// force-quirks flag is set.
-				if ( $dt[3] ) {
-					$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
-				}
-				if ( $dt[0] !== 'html' ) {
-					$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
-				}
-
+				$this->update_document_mode_from_doctype();
 				/*
 				 * > Then, switch the insertion mode to "before html".
 				 */

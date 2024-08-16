@@ -4043,6 +4043,20 @@ class WP_HTML_Tag_Processor {
 		return $doctype[0];
 	}
 
+	/**
+	 * Parses the DOCTYPE declaration.
+	 *
+	 * DOCTYPE declarations can appear in many places in HTML, but in most locations they
+	 * are ignored. Perform full parsing of the doctype token on demand.
+	 *
+	 * @return array A 4-element tuple representing the DOCTYPE token of the form:
+	 *               array(
+	 *                 string? name,
+	 *                 string? public identifier,
+	 *                 string? system identifier,
+	 *                 bool force-quirks flag
+	 *               )
+	 */
 	public function parse_doctype(): ?array {
 		if ( self::STATE_DOCTYPE !== $this->parser_state ) {
 			return null;
@@ -4081,12 +4095,14 @@ class WP_HTML_Tag_Processor {
 		$system_identifier = null;
 		$force_quirks_flag = false;
 
+		$doctype = array( &$name, &$public_identifier, &$system_identifier, &$force_quirks_flag );
+
 		$at  = $this->text_starts_at + strspn( $this->html, " \t\n\f\r", $this->text_starts_at, $this->text_length );
 		$end = $this->text_starts_at + $this->text_length;
 
 		if ( $at >= $end ) {
 			$force_quirks_flag = true;
-			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+			return $doctype;
 		}
 		$name_length = strcspn( $this->html, " \t\n\f\r", $at, $end - $at );
 		$name        = strtolower( str_replace( "\x00", "\u{FFFD}", substr( $this->html, $at, $name_length ) ) );
@@ -4095,7 +4111,7 @@ class WP_HTML_Tag_Processor {
 		$at += strspn( $this->html, " \t\n\f\r", $at, $end - $at );
 
 		if ( $at >= $end ) {
-			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+			return $doctype;
 		}
 
 		/*
@@ -4104,7 +4120,7 @@ class WP_HTML_Tag_Processor {
 		 */
 		if ( $at + 6 >= $end ) {
 			$force_quirks_flag = true;
-			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+			return $doctype;
 		}
 
 		if ( 0 === substr_compare( $this->html, 'PUBLIC', $at, 6, true ) ) {
@@ -4117,16 +4133,20 @@ class WP_HTML_Tag_Processor {
 		}
 
 		$force_quirks_flag = true;
-		return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+		return $doctype;
 
 		parse_doctype_after_doctype_public_keyword:
-		$at += strcspn( $this->html, "'\"", $at, $end - $at );
+		$at += strspn( $this->html, " \t\n\f\r", $at, $end - $at );
 		if ( $at >= $end ) {
 			$force_quirks_flag = true;
-			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+			return $doctype;
 		}
 
-		$closer_quote = '"' === $this->html[ $at ] ? '"' : "'";
+		$closer_quote = $this->html[ $at ];
+		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
+			$force_quirks_flag = true;
+			return $doctype;
+		}
 		++$at;
 
 		$identifier_length = strcspn( $this->html, $closer_quote, $at, $end - $at );
@@ -4135,34 +4155,34 @@ class WP_HTML_Tag_Processor {
 		$at += $identifier_length;
 		if ( $at >= $end || $closer_quote !== $this->html[ $at ] ) {
 			$force_quirks_flag = true;
-			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+			return $doctype;
 		}
-
-		$at += strspn( $this->html, " \t\n\f\r", ++$at, $end - $at );
-		if ( $at >= $end ) {
-			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
-		}
+		++$at;
 
 		parse_doctype_after_doctype_system_keyword:
-		$at += strcspn( $this->html, "'\"", $at, $end - $at );
+		$at += strspn( $this->html, " \t\n\f\r", $at, $end - $at );
 		if ( $at >= $end ) {
 			$force_quirks_flag = true;
-			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+			return $doctype;
 		}
 
-		$closer_quote = '"' === $this->html[ $at ] ? '"' : "'";
+		$closer_quote = $this->html[ $at ];
+		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
+			$force_quirks_flag = true;
+			return $doctype;
+		}
 		++$at;
 
 		$identifier_length = strcspn( $this->html, $closer_quote, $at, $end - $at );
-		$system_identifier = str_replace( "\x00", "\u{FFFD}", substr( $this->html, $at, $identifier_length ) );
+		$system_identifier = substr( $this->html, $at, $identifier_length );
 
 		$at += $identifier_length;
 		if ( $at >= $end || $closer_quote !== $this->html[ $at ] ) {
 			$force_quirks_flag = true;
-			return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+			return $doctype;
 		}
 
-		return array( $name, $public_identifier, $system_identifier, $force_quirks_flag );
+		return $doctype;
 	}
 
 	/**
