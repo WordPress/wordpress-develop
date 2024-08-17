@@ -6387,3 +6387,42 @@ function wp_enqueue_global_styles_custom_css() {
 		wp_add_inline_style( 'global-styles', $custom_css );
 	}
 }
+
+/**
+ * Loads classic theme styles on classic themes in the editor.
+ *
+ * This is used for backwards compatibility for Button and File blocks specifically.
+ *
+ * @since 6.1.0
+ * @since 6.2.0 Added File block styles.
+ * @deprecated 6.7.0 Styles are enqueued, not printed in the body element.
+ *
+ * @param array $editor_settings The array of editor settings.
+ * @return array A filtered array of editor settings.
+ */
+function wp_add_editor_classic_theme_styles( $editor_settings ) {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_enqueue_classic_theme_styles' );
+
+	if ( wp_theme_has_theme_json() ) {
+		return $editor_settings;
+	}
+
+	$suffix               = wp_scripts_get_suffix();
+	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
+
+	/*
+	 * This follows the pattern of get_block_editor_theme_styles,
+	 * but we can't use get_block_editor_theme_styles directly as it
+	 * only handles external files or theme files.
+	 */
+	$classic_theme_styles_settings = array(
+		'css'            => file_get_contents( $classic_theme_styles ),
+		'__unstableType' => 'core',
+		'isGlobalStyles' => false,
+	);
+
+	// Add these settings to the start of the array so that themes can override them.
+	array_unshift( $editor_settings['styles'], $classic_theme_styles_settings );
+
+	return $editor_settings;
+}
