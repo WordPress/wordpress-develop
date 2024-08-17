@@ -2069,7 +2069,7 @@ table.is-style-stripes .has-background tbody tr,
 .wp-block-table.is-style-stripes .has-background thead tr,
 .wp-block-table.is-style-stripes .has-background tfoot tr,
 .wp-block-table.is-style-stripes .has-background tbody tr {
-	color: #28303d;
+	color: inherit;
 }
 
 table.is-style-stripes,
