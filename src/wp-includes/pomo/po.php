@@ -124,7 +124,7 @@ if ( ! class_exists( 'PO', false ) ) :
 				"\t"     => '\t',
 			);
 
-			$input_string = str_replace( array_keys( $replaces ), array_values( $replaces ), $input_string );
+			$input_string = str_replace( array_keys( $replaces ), array_values( $replaces ), (string) $input_string );
 
 			$po = $quote . implode( "{$slash}n{$quote}{$newline}{$quote}", explode( $newline, $input_string ) ) . $quote;
 			// Add empty string on first line for readability.
