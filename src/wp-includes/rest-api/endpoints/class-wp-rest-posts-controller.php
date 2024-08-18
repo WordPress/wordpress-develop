@@ -572,6 +572,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return $post;
 		}
 
+		if ( 'HEAD' === $request->get_method() ) {
+			return new WP_REST_Response();
+		}
+
 		$data     = $this->prepare_item_for_response( $post, $request );
 		$response = rest_ensure_response( $data );
 
