@@ -261,7 +261,7 @@ if ( ! class_exists( 'PO', false ) ) :
 		}
 
 		public static function match_begin_and_end_newlines( $translation, $original ) {
-			if ( '' === $translation ) {
+			if ( empty( $translation ) ) {
 				return $translation;
 			}
 
