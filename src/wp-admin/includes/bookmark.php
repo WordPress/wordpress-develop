@@ -28,26 +28,38 @@ function add_link() {
 function edit_link( $link_id = 0 ) {
 	if ( ! current_user_can( 'manage_links' ) ) {
 		wp_die(
-			'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
-			'<p>' . __( 'Sorry, you are not allowed to edit the links for this site.' ) . '</p>',
+			'<h1>' . esc_html__( 'You need a higher level of permission.' ) . '</h1>' .
+			'<p>' . esc_html__( 'Sorry, you are not allowed to edit the links for this site.' ) . '</p>',
 			403
 		);
 	}
 
-	$_POST['link_url']   = esc_url( $_POST['link_url'] );
-	$_POST['link_name']  = esc_html( $_POST['link_name'] );
-	$_POST['link_image'] = esc_html( $_POST['link_image'] );
-	$_POST['link_rss']   = esc_url( $_POST['link_rss'] );
-	if ( ! isset( $_POST['link_visible'] ) || 'N' !== $_POST['link_visible'] ) {
-		$_POST['link_visible'] = 'Y';
+	$link_url    = isset( $_POST['link_url'] ) ? esc_url_raw( $_POST['link_url'] ) : '';
+	$link_name   = isset( $_POST['link_name'] ) ? sanitize_text_field( $_POST['link_name'] ) : '';
+	$link_image  = isset( $_POST['link_image'] ) ? esc_url_raw( $_POST['link_image'] ) : '';
+	$link_rss    = isset( $_POST['link_rss'] ) ? esc_url_raw( $_POST['link_rss'] ) : '';
+	$link_visible = isset( $_POST['link_visible'] ) && 'N' === $_POST['link_visible'] ? 'N' : 'Y';
+
+	if ( empty( $link_url ) || empty( $link_name ) ) {
+		return new WP_Error( 'missing_data', __( 'Link URL and Name cannot be empty.' ) );
 	}
 
+	$link_data = compact( 'link_url', 'link_name', 'link_image', 'link_rss', 'link_visible' );
+
 	if ( ! empty( $link_id ) ) {
-		$_POST['link_id'] = $link_id;
-		return wp_update_link( $_POST );
+		$link_data['link_id'] = $link_id;
+		$result                = wp_update_link( $link_data );
 	} else {
-		return wp_insert_link( $_POST );
+		$result = wp_insert_link( $link_data );
 	}
+
+	if ( is_wp_error( $result ) ) {
+		return $result;
+	} elseif ( 0 === $result ) {
+		return new WP_Error( 'db_error', __( 'There was an error updating/inserting the link.' ) );
+	}
+
+	return $result;
 }
 
 /**
