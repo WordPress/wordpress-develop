@@ -573,6 +573,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( 'HEAD' === $request->get_method() ) {
+			// Don't send body in HEAD requests.
 			return new WP_REST_Response();
 		}
 
