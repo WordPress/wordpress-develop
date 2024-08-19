@@ -198,7 +198,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 
 		foreach ( $load as $handle => $ver ) {
 			// The src should not be empty.
-			wp_enqueue_script( $handle, 'https://example.cdn', array(), $ver );
+			wp_enqueue_script( $handle, 'https://example.org', array(), $ver );
 		}
 
 		$result = $instance->get_etag( array_keys( $load ) );
