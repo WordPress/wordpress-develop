@@ -403,6 +403,13 @@
 	line-height: 1.6;
 }
 
+.about__container .no-text-wrap h1,
+.about__container .no-text-wrap h2,
+.about__container .no-text-wrap h3,
+.about__container .no-text-wrap h4 {
+	text-wrap: unset;
+}
+
 .about__container h1,
 .about__container h2,
 .about__container h3,
