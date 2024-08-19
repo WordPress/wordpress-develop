@@ -1261,6 +1261,10 @@ button.toggle {
 	margin-right: auto;
 }
 
+.aligncenter figcaption {
+	text-align: center;
+}
+
 /* Search Form ------------------------------- */
 
 .search-form {
@@ -3061,6 +3065,15 @@ ol.wp-block-latest-comments {
 	letter-spacing: inherit;
 }
 
+/* Block: Calendar --------------------------- */
+
+.wp-block-calendar[class*="-font-size"] table,
+.wp-block-calendar[style*="font-size"] table,
+.wp-block-calendar[class*="-font-size"] .wp-calendar-nav,
+.wp-block-calendar[style*="font-size"] .wp-calendar-nav {
+	font-size: inherit;
+}
+
 /* Block: Columns ---------------------------- */
 
 .wp-block-columns.alignfull,
@@ -3306,6 +3319,19 @@ figure.wp-block-gallery.alignfull {
 	margin-right: 0;
 }
 
+.wp-block-pullquote[class*="-font-size"] p,
+.wp-block-pullquote[style*="font-size"] p {
+	font-size: inherit;
+}
+
+.wp-block-pullquote[style*="font-weight"] p {
+	font-weight: inherit;
+}
+
+.wp-block-pullquote[style*="letter-spacing"] p {
+	letter-spacing: inherit;
+}
+
 /* STYLE: SOLID BACKGROUND COLOR */
 
 .wp-block-pullquote.is-style-solid-color {
@@ -3400,6 +3426,11 @@ figure.wp-block-table.is-style-stripes {
 	border-collapse: inherit;
 }
 
+.wp-block-table[class*="-font-size"] table,
+.wp-block-table[style*="font-size"] table {
+	font-size: inherit;
+}
+
 /* Block: Quote ------------------------------ */
 
 .wp-block-quote p,
@@ -3427,6 +3458,13 @@ figure.wp-block-table.is-style-stripes {
 	padding: 0 2rem 0 0;
 
 	/*rtl:end:ignore*/
+}
+
+/* STYLE: PLAIN */
+
+.wp-block-quote.is-style-plain {
+	border-width: 0;
+	padding: 0.5rem 2rem;
 }
 
 /* STYLE: LARGE */
@@ -5988,10 +6026,6 @@ a.to-the-top > * {
 		/*rtl:ignore*/
 		margin-left: 0;
 	}
-
-    .wp-block-image .aligncenter figcaption {
-        text-align: center;
-    }
 
 	/* BLOCK: SEPARATOR */
 

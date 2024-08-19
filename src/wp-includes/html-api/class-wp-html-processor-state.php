@@ -300,18 +300,6 @@ class WP_HTML_Processor_State {
 	const INSERTION_MODE_AFTER_AFTER_FRAMESET = 'insertion-mode-after-after-frameset';
 
 	/**
-	 * In foreign content insertion mode for full HTML parser.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inforeign
-	 * @see WP_HTML_Processor_State::$insertion_mode
-	 *
-	 * @var string
-	 */
-	const INSERTION_MODE_IN_FOREIGN_CONTENT = 'insertion-mode-in-foreign-content';
-
-	/**
 	 * No-quirks mode document compatability mode.
 	 *
 	 * > In no-quirks mode, the behavior is (hopefully) the desired behavior
@@ -427,6 +415,38 @@ class WP_HTML_Processor_State {
 	 * @var [string, array]|null
 	 */
 	public $context_node = null;
+
+	/**
+	 * The recognized encoding of the input byte stream.
+	 *
+	 * > The stream of code points that comprises the input to the tokenization
+	 * > stage will be initially seen by the user agent as a stream of bytes
+	 * > (typically coming over the network or from the local file system).
+	 * > The bytes encode the actual characters according to a particular character
+	 * > encoding, which the user agent uses to decode the bytes into characters.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string|null
+	 */
+	public $encoding = null;
+
+	/**
+	 * The parser's confidence in the input encoding.
+	 *
+	 * > When the HTML parser is decoding an input byte stream, it uses a character
+	 * > encoding and a confidence. The confidence is either tentative, certain, or
+	 * > irrelevant. The encoding used, and whether the confidence in that encoding
+	 * > is tentative or certain, is used during the parsing to determine whether to
+	 * > change the encoding. If no encoding is necessary, e.g. because the parser is
+	 * > operating on a Unicode stream and doesn't have to use a character encoding
+	 * > at all, then the confidence is irrelevant.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	public $encoding_confidence = 'tentative';
 
 	/**
 	 * HEAD element pointer.
