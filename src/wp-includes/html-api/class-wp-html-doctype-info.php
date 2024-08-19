@@ -69,6 +69,7 @@ class WP_HTML_Doctype_Info {
 
 	/**
 	 * The compatibility (quirks) mode of the document that results from parsing this DOCTYPE.
+	 * One of "no-quirks", "limited-quirks", or "quirks".
 	 *
 	 * @var string
 	 */
