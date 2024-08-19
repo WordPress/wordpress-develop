@@ -595,11 +595,13 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	if ( 'wp_template' === $template_type ) {
 		$registered_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $template_file['slug'] );
 		if ( $registered_template ) {
-			$template->plugin = $registered_template->plugin;
-			$template->origin =
+			$template->plugin      = $registered_template->plugin;
+			$template->origin      =
 				'theme' !== $template->origin && 'theme' !== $template->source ?
 				'plugin' :
 				$template->origin;
+			$template->title       = empty( $template->title ) || $template->title === $template->slug ? $registered_template->title : $template->title;
+			$template->description = empty( $template->description ) ? $registered_template->description : $template->description;
 		}
 	}
 
@@ -1028,11 +1030,13 @@ function _build_block_template_result_from_post( $post ) {
 	if ( 'wp_template' === $post->template_type ) {
 		$registered_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $post->slug );
 		if ( $registered_template ) {
-			$template->plugin = $registered_template->plugin;
-			$template->origin =
+			$template->plugin      = $registered_template->plugin;
+			$template->origin      =
 				'theme' !== $template->origin && 'theme' !== $template->source ?
 				'plugin' :
 				$template->origin;
+			$template->title       = empty( $template->title ) || $template->title === $template->slug ? $registered_template->title : $template->title;
+			$template->description = empty( $template->description ) ? $registered_template->description : $template->description;
 		}
 	}
 
