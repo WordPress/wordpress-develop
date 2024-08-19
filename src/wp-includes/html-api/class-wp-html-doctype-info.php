@@ -52,6 +52,15 @@ class WP_HTML_Doctype_Info {
 	/**
 	 * Whether the DOCTYPE token force-quirks flag is set.
 	 *
+	 * A DOCTYPE can contain valid information (some combination of name, public ID, and system ID),
+	 * while still causing the document to enter quirks mode. This flag may be set while parsing
+	 * a DOCTYPE token to indicate the the document will be in quirks mode regardless of the
+	 * other quirks mode rules. For example, the following DOCTYPE has the HTML5 doctype name "html"
+	 * and a public ID with no special handling, but the lack of closing quotes on the public ID
+	 * will set the force quirks flag and cause the document to be handled in quirks mode:
+	 *
+	 * <!DOCTYPE html PUBLIC "public-id>
+	 *
 	 * > When a DOCTYPE token is created, its force-quirks flag must be set to off
 	 * > (its other state is on).
 	 *
@@ -247,9 +256,10 @@ class WP_HTML_Doctype_Info {
 	/**
 	 * Determines the resulting document compatibility mode for this DOCTYPE.
 	 *
-	 * When a DOCTYPE appears in the appropriate place in a document, its contents determine
-	 * the compatibility mode of the document. This implements an algorithm described in the
-	 * HTML standard for handling a DOCTYPE token in the "initial" insertion mode.
+	 * A DOCTYPE in the appropriate place in a document will determine the
+	 * compatibility (quirks) mode of the document. The algorithm for determining quirks mode
+	 * is described in the HTML standard for handling a DOCTYPE token in the "initial"
+	 * insertion mode.
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#the-initial-insertion-mode
 	 *
