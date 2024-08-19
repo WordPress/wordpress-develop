@@ -72,7 +72,7 @@ do_action( "{$taxonomy}_pre_edit_form", $tag, $taxonomy ); ?>
 <h1><?php echo $tax->labels->edit_item; ?></h1>
 
 <?php
-$class = ( isset( $msg ) && 5 === $msg ) ? 'error' : 'success';
+$class = isset( $_REQUEST['error'] ) ? 'error' : 'success';
 
 if ( $message ) {
 	$message = '<p><strong>' . $message . '</strong></p>';
