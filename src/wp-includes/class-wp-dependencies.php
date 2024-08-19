@@ -501,7 +501,7 @@ class WP_Dependencies {
 	 */
 	public function get_etag( $load ) {
 		/*
-		  * Note: wp_get_wp_version() is not used here, as this file can be included
+		 * Note: wp_get_wp_version() is not used here, as this file can be included
 		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
 		 * wp-includes/functions.php is not loaded.
 		 */

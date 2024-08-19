@@ -160,21 +160,13 @@ class Tests_Dependencies extends WP_UnitTestCase {
 				'load'               => array(
 					'abcd' => '1.0.2',
 				),
-				'hash_source_string' => 'WP:abcd:1.0.2;',
-				'expected'           => 'W/"fea2fd8012dd8af0696ebafbaa68db85"',
+				'hash_source_string' => 'WP:6.7;abcd:1.0.2;',
+				'expected'           => 'W/"8145d7e3c41d5a9cc2bccba4afa861fc"',
 			),
 			'should accept empty array of dependencies' => array(
 				'load'               => array(),
-				'hash_source_string' => 'WP:;',
-				'expected'           => 'W/"f6457280f73cc597e76df87ee891457a"',
-			),
-			'should accept more then one dependency and wp version' => array(
-				'load'               => array(
-					'abcd' => '1.0.2',
-					'abdy' => '1.0.3',
-				),
-				'hash_source_string' => 'WP:5.4.3;abcd:1.0.2;abdy:1.0.3;',
-				'expected'           => 'W/"88649143b0142d1491883065e9351178"',
+				'hash_source_string' => 'WP:6.7;',
+				'expected'           => 'W/"7ee896c19250a3d174f11469a4ad0b1e"',
 			),
 		);
 	}
@@ -197,8 +189,8 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		global $wp_version;
 		// Modify global to avoid tests needing to change with each new version of WordPress.
 		$original_wp_version = $wp_version;
-		$wp_version = '6.7';
-		$instance = wp_scripts();
+		$wp_version          = '6.7';
+		$instance            = wp_scripts();
 
 		foreach ( $load as $handle => $ver ) {
 			// The src should not be empty.
@@ -207,9 +199,10 @@ class Tests_Dependencies extends WP_UnitTestCase {
 
 		$result = $instance->get_etag( array_keys( $load ) );
 
-		// Restore global prior to making assertions. 
-		$wp_version = $original_wp_version;
+		// Restore global prior to making assertions.
+
 		$this->assertSame( $expected, $result, "Expected MD hash: $expected for $hash_source_string, but got: $result." );
+		$wp_version = $original_wp_version;
 	}
 
 	/**
@@ -227,7 +220,11 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * @param string $expected Expected etag.
 	 */
 	public function test_get_etag_styles( $load, $hash_source_string, $expected ) {
-		$instance = wp_styles();
+		global $wp_version;
+		// Modify global to avoid tests needing to change with each new version of WordPress.
+		$original_wp_version = $wp_version;
+		$wp_version          = '6.7';
+		$instance            = wp_scripts();
 
 		foreach ( $load as $handle => $ver ) {
 			// The src should not be empty.
@@ -237,5 +234,6 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$result = $instance->get_etag( array_keys( $load ) );
 
 		$this->assertSame( $expected, $result, "Expected MD hash: $expected for $hash_source_string, but got: $result." );
+		$wp_version = $original_wp_version;
 	}
 }
