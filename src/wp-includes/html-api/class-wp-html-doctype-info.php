@@ -10,6 +10,24 @@
 /**
  * Core class used by the HTML API processor to represent a DOCTYPE declaration.
  *
+ * This class is an important for the HTML API when parsing full HTML documents. It is unlikely
+ * to be of interest outside of the HTML API implementation except for very particular cases
+ * such as constructing a lossless HTML tree representation where the DOCTYPE is essential.
+ *
+ * DOCTYPEs in HTML will cause the document to be handled in "no-quirks", "limited-quirks",
+ * or "quirks" mode. DOCTYPEs in HTML can contain additional information, but there is little
+ * reason to use anything other than the HTML5 doctype: `<!DOCTYPE html>`. It's recommended
+ * to always use that DOCTYPE when authoring HTML.
+ *
+ * The HTML standard says this about DOCTYPEs:
+ *
+ * > DOCTYPEs are required for legacy reasons. When omitted, browsers tend to use a different
+ * > rendering mode that is incompatible with some specifications. Including the DOCTYPE in a
+ * > document ensures that the browser makes a best-effort attempt at following the
+ * > relevant specifications.
+ *
+ * @see https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
+ *
  * @since 6.7.0
  */
 class WP_HTML_Doctype_Info {
