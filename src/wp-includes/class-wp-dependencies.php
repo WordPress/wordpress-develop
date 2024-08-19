@@ -500,6 +500,11 @@ class WP_Dependencies {
 	 * @return string Etag header.
 	 */
 	public function get_etag( $load ) {
+		/*
+		  * Note: wp_get_wp_version() is not used here, as this file can be included
+		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+		 * wp-includes/functions.php is not loaded.
+		 */
 		global $wp_version;
 
 		$etag = "WP:{$wp_version};";
