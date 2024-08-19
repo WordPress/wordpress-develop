@@ -68,25 +68,11 @@ class WP_HTML_Doctype_Info {
 	private $system_identifier = null;
 
 	/**
-	 * Whether the DOCTYPE token force-quirks flag is set.
+	 * The compatibility (quirks) mode of the document that results from parsing this DOCTYPE.
 	 *
-	 * A DOCTYPE can contain valid information (some combination of name, public ID, and system ID),
-	 * while still causing the document to enter quirks mode. This flag may be set while parsing
-	 * a DOCTYPE token to indicate the the document will be in quirks mode regardless of the
-	 * other quirks mode rules. For example, the following DOCTYPE has the HTML5 doctype name "html"
-	 * and a public ID with no special handling, but the lack of closing quotes on the public ID
-	 * will set the force quirks flag and cause the document to be handled in quirks mode:
-	 *
-	 * <!DOCTYPE html PUBLIC "public-id>
-	 *
-	 * > When a DOCTYPE token is created, its force-quirks flag must be set to off
-	 * > (its other state is on).
-	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#tokenization
-	 *
-	 * @var bool
+	 * @var string
 	 */
-	private $force_quirks_flag = false;
+	private $compatibility_mode;
 
 	/**
 	 * Constructor.
@@ -127,7 +113,7 @@ class WP_HTML_Doctype_Info {
 		$end = strlen( $doctype_content );
 
 		if ( $at >= $end ) {
-			$this->force_quirks_flag = true;
+			$this->compatibility_mode = 'quirks';
 			return;
 		}
 		$name_length = strcspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
@@ -136,6 +122,7 @@ class WP_HTML_Doctype_Info {
 		$at += $name_length;
 		$at += strspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
 		if ( $at >= $end ) {
+			$this->compatibility_mode = self::apply_quirks_mode_algorithm( $this->name, $this->public_identifier, $this->system_identifier );
 			return;
 		}
 
@@ -148,7 +135,7 @@ class WP_HTML_Doctype_Info {
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-name-state
 		 */
 		if ( $at + 6 >= $end ) {
-			$this->force_quirks_flag = true;
+			$this->compatibility_mode = 'quirks';
 			return;
 		}
 
@@ -156,7 +143,7 @@ class WP_HTML_Doctype_Info {
 			$at += 6;
 			$at += strspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
 			if ( $at >= $end ) {
-				$this->force_quirks_flag = true;
+				$this->compatibility_mode = 'quirks';
 				return;
 			}
 			goto parse_doctype_public_identifier;
@@ -165,13 +152,13 @@ class WP_HTML_Doctype_Info {
 			$at += 6;
 			$at += strspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
 			if ( $at >= $end ) {
-				$this->force_quirks_flag = true;
+				$this->compatibility_mode = 'quirks';
 				return;
 			}
 			goto parse_doctype_system_identifier;
 		}
 
-		$this->force_quirks_flag = true;
+		$this->compatibility_mode = 'quirks';
 		return;
 
 		parse_doctype_public_identifier:
@@ -185,7 +172,7 @@ class WP_HTML_Doctype_Info {
 		 */
 		$closer_quote = $doctype_content[ $at ];
 		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
-			$this->force_quirks_flag = true;
+			$this->compatibility_mode = 'quirks';
 			return;
 		}
 		++$at;
@@ -195,7 +182,7 @@ class WP_HTML_Doctype_Info {
 
 		$at += $identifier_length;
 		if ( $at >= $end || $closer_quote !== $doctype_content[ $at ] ) {
-			$this->force_quirks_flag = true;
+			$this->compatibility_mode = 'quirks';
 			return;
 		}
 		++$at;
@@ -209,6 +196,7 @@ class WP_HTML_Doctype_Info {
 		 */
 		$at += strspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
 		if ( $at >= $end ) {
+			$this->compatibility_mode = self::apply_quirks_mode_algorithm( $this->name, $this->public_identifier, $this->system_identifier );
 			return;
 		}
 
@@ -223,7 +211,7 @@ class WP_HTML_Doctype_Info {
 		 */
 		$closer_quote = $doctype_content[ $at ];
 		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
-			$this->force_quirks_flag = true;
+			$this->compatibility_mode = 'quirks';
 			return;
 		}
 		++$at;
@@ -233,9 +221,11 @@ class WP_HTML_Doctype_Info {
 
 		$at += $identifier_length;
 		if ( $at >= $end || $closer_quote !== $doctype_content[ $at ] ) {
-			$this->force_quirks_flag = true;
+			$this->compatibility_mode = 'quirks';
 			return;
 		}
+
+		$this->compatibility_mode = self::apply_quirks_mode_algorithm( $this->name, $this->public_identifier, $this->system_identifier );
 	}
 
 	/**
@@ -272,6 +262,23 @@ class WP_HTML_Doctype_Info {
 	}
 
 	/**
+	 * Gets the document compatibility mode resulting from this DOCTYPE.
+	 *
+	 * When a DOCTYPE is encountered in the "initial" insertion mode, the DOCTYPE is used
+	 * to determine the document's compatibility or "quirks" mode.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#the-initial-insertion-mode
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string The compatibility mode "no-quirks", "limited-quirks", or "no-quirks".
+	 */
+	public function get_compatibility_mode(): string {
+		return $this->compatibility_mode;
+	}
+
+
+	/**
 	 * Determines the resulting document compatibility mode for this DOCTYPE.
 	 *
 	 * A DOCTYPE in the appropriate place in a document will determine the
@@ -281,42 +288,60 @@ class WP_HTML_Doctype_Info {
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#the-initial-insertion-mode
 	 *
+	 * This method does not accept a "force-quirks flag" argument. If the DOCTYPE token has
+	 * a "force-quirks flag" set, then the compatibility mode should be "quirks" and there
+	 * is no need to run this algorithm.
+	 *
 	 * @since 6.7.0
+	 *
+	 * @param string|null $name The DOCTYPE token name or null if omitted.
+	 * @param string|null $public_identifier The DOCTYPE public identifier or null if omitted.
+	 * @param string|null $system_identifier The DOCTYPE system identifier or null if omitted.
 	 *
 	 * @return string A string indicating the resulting quirks mode. One of "quirks",
 	 *                "limited-quirks", or "no-quirks".
 	 */
-	public function get_compatibility_mode(): string {
+	private static function apply_quirks_mode_algorithm(
+		?string $name,
+		?string $public_identifier,
+		?string $system_identifier
+	): string {
 		/*
 		 * > A system identifier whose value is the empty string is not considered missing for the
 		 * > purposes of the conditions above.
 		 */
-		$system_identifier_is_missing = null === $this->system_identifier;
+		$system_identifier_is_missing = null === $system_identifier;
 
 		/*
 		 * > The system identifier and public identifier strings must be compared to the values
 		 * > given in the lists above in an ASCII case-insensitive manner. A system identifier whose
 		 * > value is the empty string is not considered missing for the purposes of the conditions above.
 		 */
-		$public_identifier = null === $this->public_identifier ? '' : strtolower( $this->public_identifier );
-		$system_identifier = null === $this->system_identifier ? '' : strtolower( $this->system_identifier );
+		$public_identifier = null === $public_identifier ? '' : strtolower( $public_identifier );
+		$system_identifier = null === $system_identifier ? '' : strtolower( $system_identifier );
 
 		/*
 		 * > [If] the DOCTYPE token matches one of the conditions in the following list, then set
 		 * > the Document to quirks mode:
 		 */
 
-		// > The force-quirks flag is set to on.
-		if ( $this->force_quirks_flag ) {
+		/*
+		 * > The force-quirks flag is set to on.
+		 *
+		 * The force-quirks flag should be handled by calling code and is not accounted for
+		 * in this method.
+		 */
+
+		/*
+		 * > The name is not "html".
+		 */
+		if ( 'html' !== $name ) {
 			return 'quirks';
 		}
 
-		// > The name is not "html".
-		if ( 'html' !== $this->name ) {
-			return 'quirks';
-		}
-
-		// > The public identifier is set to…
+		/*
+		 * > The public identifier is set to…
+		 */
 		if (
 			'-//w3o//dtd w3 html strict 3.0//en//' === $public_identifier ||
 			'-/w3c/dtd html 4.0 transitional/en' === $public_identifier ||
@@ -325,7 +350,9 @@ class WP_HTML_Doctype_Info {
 			return 'quirks';
 		}
 
-		// > The system identifier is set to…
+		/*
+		 * > The system identifier is set to…
+		 */
 		if ( 'http://www.ibm.com/data/dtd/v11/ibmxhtml1-transitional.dtd' === $system_identifier ) {
 			return 'quirks';
 		}
@@ -338,7 +365,9 @@ class WP_HTML_Doctype_Info {
 			return 'no-quirks';
 		}
 
-		// > The public identifier starts with…
+		/*
+		 * > The public identifier starts with…
+		 */
 		if (
 			str_starts_with( $public_identifier, '+//silmaril//dtd html pro v0r11 19970101//' ) ||
 			str_starts_with( $public_identifier, '-//as//dtd html 3.0 aswedit + extensions//' ) ||
@@ -399,7 +428,9 @@ class WP_HTML_Doctype_Info {
 			return 'quirks';
 		}
 
-		// > The system identifier is missing and the public identifier starts with…
+		/*
+		 * > The system identifier is missing and the public identifier starts with…
+		 */
 		if (
 			$system_identifier_is_missing && (
 				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 frameset//' ) ||
@@ -414,7 +445,9 @@ class WP_HTML_Doctype_Info {
 		 * > the following list, then set the Document to limited-quirks mode.
 		 */
 
-		// > The public identifier starts with…
+		/*
+		 * > The public identifier starts with…
+		 */
 		if (
 			str_starts_with( $public_identifier, '-//w3c//dtd xhtml 1.0 frameset//' ) ||
 			str_starts_with( $public_identifier, '-//w3c//dtd xhtml 1.0 transitional//' )
@@ -422,7 +455,9 @@ class WP_HTML_Doctype_Info {
 			return 'limited-quirks';
 		}
 
-		// > The system identifier is not missing and the public identifier starts with…
+		/*
+		 * > The system identifier is not missing and the public identifier starts with…
+		 */
 		if (
 			! $system_identifier_is_missing && (
 				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 frameset//' ) ||
