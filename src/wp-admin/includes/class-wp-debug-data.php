@@ -1349,7 +1349,7 @@ class WP_Debug_Data {
 		// Check DB_COLLATE.
 		if ( defined( 'DB_COLLATE' ) && DB_COLLATE ) {
 			$wp_db_collate = DB_COLLATE;
-		} elseif ( defined( 'DB_COLLATE' ) && empty( DB_COLLATE )) {
+		} elseif ( defined( 'DB_COLLATE' ) && empty( DB_COLLATE ) ) {
 			$wp_db_collate = __( 'Defined, but empty' );
 		} else {
 			$wp_db_collate = __( 'Undefined' );
