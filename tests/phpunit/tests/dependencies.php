@@ -194,6 +194,10 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 * @param string $expected Expected etag.
 	 */
 	public function test_get_etag_scripts( $load, $hash_source_string, $expected ) {
+		global $wp_version;
+		// Modify global to avoid tests needing to change with each new version of WordPress.
+		$original_wp_version = $wp_version;
+		$wp_version = '6.7';
 		$instance = wp_scripts();
 
 		foreach ( $load as $handle => $ver ) {
