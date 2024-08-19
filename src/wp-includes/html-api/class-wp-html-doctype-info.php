@@ -16,59 +16,173 @@ class WP_HTML_Doctype_Info {
 	/**
 	 * The name of the DOCTYPE.
 	 *
+	 * > When a DOCTYPE token is created, its name… must be marked as missing (which is
+	 * > a distinct state from the empty string).
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#tokenization
+	 *
 	 * @var string|null
 	 */
-	private $name;
+	private $name = null;
 
 	/**
 	 * The public identifier of the DOCTYPE.
 	 *
+	 * > When a DOCTYPE token is created, its… public identifier… must be marked as missing
+	 * > (which is a distinct state from the empty string).
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#tokenization
+	 *
 	 * @var string|null
 	 */
-	private $public_identifier;
+	private $public_identifier = null;
 
 	/**
 	 * The system identifier of the DOCTYPE.
 	 *
+	 * > When a DOCTYPE token is created, its… system identifier must be marked as missing
+	 * > (which is a distinct state from the empty string).
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#tokenization
+	 *
 	 * @var string|null
 	 */
-	private $system_identifier;
+	private $system_identifier = null;
 
 	/**
 	 * Whether the DOCTYPE token force-quirks flag is set.
 	 *
+	 * > When a DOCTYPE token is created, its force-quirks flag must be set to off
+	 * > (its other state is on).
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#tokenization
+	 *
 	 * @var bool
 	 */
-	private $force_quirks_flag;
+	private $force_quirks_flag = false;
 
 	/**
 	 * Constructor.
 	 *
-	 * The arguments to this constructor correspond to the "DOCTYPE token" as defined in the
-	 * HTML specification.
-	 *
-	 * > DOCTYPE tokens have a name, a public identifier, a system identifier,
-	 * > and a force-quirks flag.
-	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#tokenization
+	 * This class should be instantiated by calling the `get_doctype_info()` method on the
+	 * WP_HTML_Tag_Processor or WP_HTML_Processor classes.
 	 *
 	 * @since 6.7.0
 	 *
-	 * @param string|null $name              The name of the DOCTYPE.
-	 * @param string|null $public_identifier The public identifier of the DOCTYPE.
-	 * @param string|null $system_identifier The system identifier of the DOCTYPE.
-	 * @param bool        $force_quirks_flag Whether the DOCTYPE token force-quirks flag is set.
+	 * @param string $doctype_content The contents of the DOCTYPE declaration. This function
+	 *                                should be passed the DOCTYPE string starting after
+	 *                                "<!DOCTYPE" and ending before the closing ">".
 	 */
-	public function __construct(
-		?string $name,
-		?string $public_identifier,
-		?string $system_identifier,
-		bool $force_quirks_flag
-	) {
-		$this->name              = $name;
-		$this->public_identifier = $public_identifier;
-		$this->system_identifier = $system_identifier;
-		$this->force_quirks_flag = $force_quirks_flag;
+	public function __construct( string $doctype_content ) {
+		/*
+		 * In this state, the doctype token has been found and its text start and length
+		 * have been stored in the parser. The text is the entire contents of the DOCTYPE
+		 * declaration, including the name, public, system, and force-quirks flags.
+		 *
+		 * The text is not parsed here, but rather is stored in the parser for later
+		 * retrieval. The parser will continue to parse the document and find the next
+		 * token, which may be a tag or text node.
+		 *
+		 * The parser has already set where the text starts (after "<!DOCTYPE") and
+		 * the text length (bytes until the next ">").
+		 *
+		 *           v--$this->text_starts_at
+		 * "<!DOCTYPE ...declaration...>"
+		 *           [<--------------->] $this->text_length
+		 *
+		 * Parsing is effectively in "Before DOCTYPE name state"
+		 *
+		 * https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-name-state
+		 */
+
+		$at  = strspn( $doctype_content, " \t\n\f\r" );
+		$end = strlen( $doctype_content );
+
+		if ( $at >= $end ) {
+			$this->force_quirks_flag = true;
+			return;
+		}
+		$name_length = strcspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
+		$this->name  = strtolower( substr( $doctype_content, $at, $name_length ) );
+
+		// Whitespace is allowed until the doctype token closes.
+		$at += $name_length;
+		$at += strspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
+		if ( $at >= $end ) {
+			return;
+		}
+
+		/*
+		 * Otherwise, we must find a case insensitive match for "PUBLIC" or "SYSTEM" at this point.
+		 * If now, set force-quirks and enter bogus DOCTYPE state (skip the rest of the doctype).
+		 */
+		if ( $at + 6 >= $end ) {
+			$this->force_quirks_flag = true;
+			return;
+		}
+
+		if ( 0 === substr_compare( $doctype_content, 'PUBLIC', $at, 6, true ) ) {
+			$at += 6;
+			$at += strspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
+			if ( $at >= $end ) {
+				$this->force_quirks_flag = true;
+				return;
+			}
+			goto parse_doctype_before_public_identifier;
+		}
+		if ( 0 === substr_compare( $doctype_content, 'SYSTEM', $at, 6, true ) ) {
+			$at += 6;
+			$at += strspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
+			if ( $at >= $end ) {
+				$this->force_quirks_flag = true;
+				return;
+			}
+			goto parse_doctype_before_system_identifier;
+		}
+
+		$this->force_quirks_flag = true;
+		return;
+
+		parse_doctype_before_public_identifier:
+		$closer_quote = $doctype_content[ $at ];
+		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
+			$this->force_quirks_flag = true;
+			return;
+		}
+		++$at;
+
+		$identifier_length       = strcspn( $doctype_content, $closer_quote, $at, $end - $at );
+		$this->public_identifier = substr( $doctype_content, $at, $identifier_length );
+
+		$at += $identifier_length;
+		if ( $at >= $end || $closer_quote !== $doctype_content[ $at ] ) {
+			$this->force_quirks_flag = true;
+			return;
+		}
+		++$at;
+
+		// Advance through whitespace between public and system identifiers.
+		$at += strspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
+		if ( $at >= $end ) {
+			return;
+		}
+
+		parse_doctype_before_system_identifier:
+		$closer_quote = $doctype_content[ $at ];
+		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
+			$this->force_quirks_flag = true;
+			return;
+		}
+		++$at;
+
+		$identifier_length       = strcspn( $doctype_content, $closer_quote, $at, $end - $at );
+		$this->system_identifier = substr( $doctype_content, $at, $identifier_length );
+
+		$at += $identifier_length;
+		if ( $at >= $end || $closer_quote !== $doctype_content[ $at ] ) {
+			$this->force_quirks_flag = true;
+			return;
+		}
 	}
 
 	/**
