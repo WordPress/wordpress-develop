@@ -41,6 +41,8 @@ class WP_HTML_Doctype_Info {
 	/**
 	 * The name of the DOCTYPE.
 	 *
+	 * This value should be considered "read only" and not modified.
+	 *
 	 * HTML5 documents should always use the name "html":
 	 *
 	 *             ⬐ Name "html"
@@ -55,6 +57,8 @@ class WP_HTML_Doctype_Info {
 	/**
 	 * The public identifier of the DOCTYPE.
 	 *
+	 * This value should be considered "read only" and not modified.
+	 *
 	 * The public identifier is optional and should not appear in HTML5 doctypes.
 	 * If this value is null, it indicates the public identifier was not present in the DOCTYPE.
 	 *
@@ -67,6 +71,8 @@ class WP_HTML_Doctype_Info {
 
 	/**
 	 * The system identifier of the DOCTYPE.
+	 *
+	 * This value should be considered "read only" and not modified.
 	 *
 	 * The system identifier is optional and should not appear in HTML5 doctypes.
 	 * If this value is null, it indicates the system identifier was not present in the DOCTYPE.
@@ -88,6 +94,8 @@ class WP_HTML_Doctype_Info {
 	/**
 	 * The compatibility (quirks) mode of the document that results from parsing this DOCTYPE.
 	 * One of "no-quirks", "limited-quirks", or "quirks".
+	 *
+	 * This value should be considered "read only" and not modified.
 	 *
 	 * When a DOCTYPE is encountered in the "initial" insertion mode, the DOCTYPE is used
 	 * to determine the document's compatibility or "quirks" mode.
