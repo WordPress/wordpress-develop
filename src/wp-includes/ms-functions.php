@@ -2558,7 +2558,7 @@ function get_space_allowed() {
 	$space_allowed = get_option( 'blog_upload_space' );
 
 	if ( ! is_numeric( $space_allowed ) ) {
-		$space_allowed = get_site_option( 'blog_upload_space' );
+		$space_allowed = (int) get_site_option( 'blog_upload_space' );
 	}
 
 	if ( ! is_numeric( $space_allowed ) ) {
