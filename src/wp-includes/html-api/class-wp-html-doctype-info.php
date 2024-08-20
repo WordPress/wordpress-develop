@@ -380,6 +380,16 @@ class WP_HTML_Doctype_Info {
 		}
 
 		/*
+		 * Perform newline normalization and ensure the $end value is correct after normalization.
+		 *
+		 * @see https://html.spec.whatwg.org/#preprocessing-the-input-stream
+		 * @see https://infra.spec.whatwg.org/#normalize-newlines
+		 */
+		$doctype_html = str_replace( "\r\n", "\n", $doctype_html );
+		$doctype_html = str_replace( "\r", "\n", $doctype_html );
+		$end          = strlen( $doctype_html ) - 1;
+
+		/*
 		 * In this state, the doctype token has been found and its "content" optionally including
 		 * name, public ID, and system ID is between $at and $end.
 		 *
@@ -410,7 +420,7 @@ class WP_HTML_Doctype_Info {
 			return new self( $doctype_name, $doctype_public_id, $doctype_system_id, true );
 		}
 		$name_length  = strcspn( $doctype_html, " \t\n\f\r", $at, $end - $at );
-		$doctype_name = strtolower( substr( $doctype_html, $at, $name_length ) );
+		$doctype_name = str_replace( "\0", "\u{FFFD}", strtolower( substr( $doctype_html, $at, $name_length ) ) );
 
 		$at += $name_length;
 		$at += strspn( $doctype_html, " \t\n\f\r", $at, $end - $at );
@@ -465,7 +475,7 @@ class WP_HTML_Doctype_Info {
 		++$at;
 
 		$identifier_length = strcspn( $doctype_html, $closer_quote, $at, $end - $at );
-		$doctype_public_id = substr( $doctype_html, $at, $identifier_length );
+		$doctype_public_id = str_replace( "\0", "\u{FFFD}", substr( $doctype_html, $at, $identifier_length ) );
 
 		$at += $identifier_length;
 		if ( $at >= $end || $closer_quote !== $doctype_html[ $at ] ) {
@@ -501,7 +511,7 @@ class WP_HTML_Doctype_Info {
 		++$at;
 
 		$identifier_length = strcspn( $doctype_html, $closer_quote, $at, $end - $at );
-		$doctype_system_id = substr( $doctype_html, $at, $identifier_length );
+		$doctype_system_id = str_replace( "\0", "\u{FFFD}", substr( $doctype_html, $at, $identifier_length ) );
 
 		$at += $identifier_length;
 		if ( $at >= $end || $closer_quote !== $doctype_html[ $at ] ) {
