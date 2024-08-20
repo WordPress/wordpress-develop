@@ -291,7 +291,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *     // Prevent inner closing tags from closing the containing element and leaking out.
 	 *     $processor = WP_HTML_Processor::create_fragment( 'No </div> escape.', '<div>' );
 	 *
-	 * @todo Verify that creating a fragment in self-contained elements works.
+	 * @todo Set the SVG or MathML namespace when creating with context node SVG or MATH.
 	 *
 	 * @since 6.4.0
 	 * @since 6.6.0 Returns `static` instead of `self` so it can create subclass instances.
