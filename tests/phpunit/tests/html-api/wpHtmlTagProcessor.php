@@ -2955,7 +2955,7 @@ HTML
 		if ( null === $expected_doctype_name ) {
 			$this->assertNull( $doctype );
 		} else {
-			$this->assertSame( $expected_doctype_name, $doctype->get_name() );
+			$this->assertSame( $expected_doctype_name, $doctype->name );
 		}
 	}
 
