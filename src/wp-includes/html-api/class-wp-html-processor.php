@@ -317,6 +317,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
+		if ( in_array( $context_node[0], array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				__( 'The context argument may not specify a self-contained element.' ),
+				'6.7.0'
+			);
+			return null;
+		}
+
 		$processor                             = new static( $html, self::CONSTRUCTOR_UNLOCK_CODE );
 		$processor->state->context_node        = $context_node;
 		$processor->state->insertion_mode      = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
