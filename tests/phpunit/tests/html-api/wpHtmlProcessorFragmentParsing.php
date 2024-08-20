@@ -13,29 +13,23 @@
  */
 class Tests_HtmlApi_WpHtmlProcessorFragmentParsing extends WP_UnitTestCase {
 	/**
-	 * Verifies that SCRIPT fragment parses behave as they should.
+	 * Verifies that the fragment parser doesn't allow invalid context nodes.
 	 *
-	 * @dataProvider data_script_fragments
+	 * This includes void elements and self-contained elements because they can
+	 * contain no inner HTML. Operations on self-contained elements should occur
+	 * through methods such as {@see WP_HTML_Tag_Processor::set_modifiable_text}.
 	 *
-	 * @param string      $inner_html    HTML to parse in SCRIPT fragment.
-	 * @param string|null $expected_html Expected output of the parse, or `null` if unsupported.
+	 * @ticket 61576
+	 *
+	 * @dataProvider data_invalid_fragment_contexts
+	 *
+	 * @param string $context Invalid context node for fragment parser.
 	 */
-	public function test_script_tag( string $inner_html, ?string $expected_html ) {
-		$processor  = WP_HTML_Processor::create_fragment( $inner_html, '<script></script>' );
-		$normalized = static::normalize_html( $processor );
-
-		if ( isset( $expected_html ) ) {
-			$this->assertSame(
-				$expected_html,
-				$normalized,
-				'Failed to properly parse SCRIPT fragment.'
-			);
-		} else {
-			$this->assertNull(
-				$normalized,
-				"Should have bailed when parsing but didn't."
-			);
-		}
+	public function test_rejects_invalid_fragment_contexts( string $context ) {
+		$this->assertNull(
+			WP_HTML_Processor::create_fragment( 'just a test', $context ),
+			"Should not have been able to create a fragment parser with context node {$context}"
+		);
 	}
 
 	/**
@@ -45,12 +39,44 @@ class Tests_HtmlApi_WpHtmlProcessorFragmentParsing extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_script_fragments() {
+	public static function data_invalid_fragment_contexts() {
 		return array(
-			'Basic SCRIPT'      => array( 'const x = 5 < y;', 'const x = 5 < y;' ),
-			'Text after SCRIPT' => array( 'const x = 5 < y;</script>test', null ),
-			'Tag after SCRIPT'  => array( 'end</script><img>', null ),
-			'Double escape'     => array( "<!--<script>\nconsole.log('</script>');\n-->\nconsole.log('<img>');", "<!--<script>\nconsole.log('\</script>');\n-->\nconsole.log('<img'>);" ),
+			// Invalid contexts.
+			'Invalid text'     => array( 'just some text' ),
+			'Invalid comment'  => array( '<!-- comment -->' ),
+			'Invalid closing'  => array( '</div>' ),
+			'Invalid DOCTYPE'  => array( '<!DOCTYPE html>' ),
+
+			// Void elements.
+			'AREA'             => array( '<area>' ),
+			'BASE'             => array( '<base>' ),
+			'BASEFONT'         => array( '<basefont>' ),
+			'BGSOUND'          => array( '<bgsound>' ),
+			'BR'               => array( '<br>' ),
+			'COL'              => array( '<col>' ),
+			'EMBED'            => array( '<embed>' ),
+			'FRAME'            => array( '<frame>' ),
+			'HR'               => array( '<hr>' ),
+			'IMG'              => array( '<img>' ),
+			'INPUT'            => array( '<input>' ),
+			'KEYGEN'           => array( '<keygen>' ),
+			'LINK'             => array( '<link>' ),
+			'META'             => array( '<meta>' ),
+			'PARAM'            => array( '<param>' ),
+			'SOURCE'           => array( '<source>' ),
+			'TRACK'            => array( '<track>' ),
+			'WBR'              => array( '<wbr>' ),
+
+			// Self-contained elements.
+			'IFRAME'           => array( '<iframe>' ),
+			'NOEMBED'          => array( '<noembed>' ),
+			'NOFRAMES'         => array( '<noframes>' ),
+			'SCRIPT'           => array( '<script>' ),
+			'SCRIPT with type' => array( '<script type="javascript">' ),
+			'STYLE'            => array( '<style>' ),
+			'TEXTAREA'         => array( '<textarea>' ),
+			'TITLE'            => array( '<title>' ),
+			'XMP'              => array( '<xmp>' ),
 		);
 	}
 
