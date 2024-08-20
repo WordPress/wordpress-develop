@@ -460,24 +460,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Sets the document compatibility mode (quirks or no-quirks) based on a DOCTYPE declaration.
-	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#parser-cannot-change-the-mode-flag
-	 *
-	 * @since 6.7.0
-	 */
-	private function update_document_mode_from_doctype(): void {
-		$doctype = $this->get_doctype_info();
-		if ( null === $doctype ) {
-			return;
-		}
-
-		if ( 'quirks' === $doctype->get_compatibility_mode() ) {
-			$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
-		}
-	}
-
-	/**
 	 * Returns the last error, if any.
 	 *
 	 * Various situations lead to parsing failure but this class will
@@ -1094,7 +1076,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A DOCTYPE token
 			 */
 			case 'html':
-				$this->update_document_mode_from_doctype();
+				$doctype = $this->get_doctype_info();
+				if ( null !== $doctype && 'quirks' === $doctype->compatibility_mode ) {
+					$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
+				}
+
 				/*
 				 * > Then, switch the insertion mode to "before html".
 				 */
