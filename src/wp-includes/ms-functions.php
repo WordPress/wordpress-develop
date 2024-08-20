@@ -2558,12 +2558,15 @@ function get_space_allowed() {
 	$space_allowed = get_option( 'blog_upload_space' );
 
 	if ( ! is_numeric( $space_allowed ) ) {
-		$space_allowed = (int) get_site_option( 'blog_upload_space' );
+		$space_allowed = get_site_option( 'blog_upload_space' );
 	}
 
 	if ( ! is_numeric( $space_allowed ) ) {
 		$space_allowed = 100;
 	}
+
+	// Cast the value to an integer.
+	$space_allowed = (int) $space_allowed;
 
 	/**
 	 * Filters the upload quota for the current site.
