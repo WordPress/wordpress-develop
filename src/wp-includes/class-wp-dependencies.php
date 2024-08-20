@@ -496,7 +496,7 @@ class WP_Dependencies {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @param string[] $load       Array of script or style handles to load.
+	 * @param string[] $load Array of script or style handles to load.
 	 * @return string Etag header.
 	 */
 	public function get_etag( $load ) {
