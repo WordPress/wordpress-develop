@@ -215,9 +215,9 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_provider_get_etag
 	 *
-	 * @param array $load List of scripts to load.
+	 * @param array $load                List of scripts to load.
 	 * @param string $hash_source_string Hash source string.
-	 * @param string $expected Expected etag.
+	 * @param string $expected           Expected etag.
 	 */
 	public function test_get_etag_styles( $load, $hash_source_string, $expected ) {
 		global $wp_version;
