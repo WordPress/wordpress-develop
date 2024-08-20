@@ -365,7 +365,7 @@ class WP_HTML_Doctype_Info {
 		 * - It must start with a case insensitive `<!DOCTYPE`.
 		 * - The only occurance of `>` must be the final byte in the HTML string.
 		 */
-		if ( $end < 10 ) {
+		if ( $end < 9 ) {
 			return null;
 		}
 		if ( 0 !== substr_compare( $doctype_html, '<!DOCTYPE', 0, 9, true ) ) {
