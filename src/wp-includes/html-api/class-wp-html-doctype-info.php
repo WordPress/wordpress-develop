@@ -78,248 +78,32 @@ class WP_HTML_Doctype_Info {
 	/**
 	 * Constructor.
 	 *
-	 * Do not instantiate this class directly. To access DOCTYPE information, use
-	 * the `get_doctype_info()` method from WP_HTML_Tag_Processor or WP_HTML_Processor classes.
+	 * The arguments to this constructor correspond to the "DOCTYPE token" as defined in the
+	 * HTML specification.
 	 *
-	 * This class should be instantiated with the result of `get_modifiable_text()` on a DOCTYPE
-	 * token.
+	 * > DOCTYPE tokens have a name, a public identifier, a system identifier,
+	 * > and a force-quirks flag. When a DOCTYPE token is created, its name, public identifier,
+	 * > and system identifier must be marked as missing (which is a distinct state from the
+	 * > empty string), and the force-quirks flag must be set to off (its other state is on).
 	 *
-	 * @access private
-	 *
-	 * @since 6.7.0
-	 *
-	 * @param string $doctype_content The contents of the DOCTYPE declaration. This function
-	 *                                should be passed the DOCTYPE string starting after
-	 *                                "<!DOCTYPE" and ending before the closing ">". Newline
-	 *                                normalization and null-byte replacement should have been
-	 *                                handled already.
-	 */
-	public function __construct( string $doctype_content ) {
-		/*
-		 * In this state, the doctype token has been found and its "content" has been passed
-		 * to this constructor. $doctype_content is the entire text of the DOCTYPE
-		 * declaration, including the name, public, system, and force-quirks flags.
-		 *
-		 * "<!DOCTYPE...declaration...>"
-		 *           [<------------->] $doctype_content
-		 *
-		 * This parser does not need to consider parsing rules for ">" which terminate the doctype
-		 * token as this has already been handled and ">" should never appear in the content.
-		 * This parser can assume ">" has been reached at the end of the content.
-		 *
-		 * Parsing effectively begins in "Before DOCTYPE name state", ignore whitespace and proceed to the next state.
-		 * @see https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-name-state
-		 */
-		$at  = strspn( $doctype_content, " \t\n\f\r" );
-		$end = strlen( $doctype_content );
-
-		if ( $at >= $end ) {
-			$this->compatibility_mode = 'quirks';
-			return;
-		}
-		$name_length = strcspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
-		$this->name  = strtolower( substr( $doctype_content, $at, $name_length ) );
-
-		$at += $name_length;
-		$at += strspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
-		if ( $at >= $end ) {
-			$this->compatibility_mode = self::apply_quirks_mode_algorithm( $this->name, $this->public_identifier, $this->system_identifier );
-			return;
-		}
-
-		/*
-		 * "After DOCTYPE name state"
-		 *
-		 * Find a case insensitive match for "PUBLIC" or "SYSTEM" at this point.
-		 * Otherwise, set force-quirks and enter bogus DOCTYPE state (skip the rest of the doctype).
-		 *
-		 * @see https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-name-state
-		 */
-		if ( $at + 6 >= $end ) {
-			$this->compatibility_mode = 'quirks';
-			return;
-		}
-
-		if ( 0 === substr_compare( $doctype_content, 'PUBLIC', $at, 6, true ) ) {
-			$at += 6;
-			$at += strspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
-			if ( $at >= $end ) {
-				$this->compatibility_mode = 'quirks';
-				return;
-			}
-			goto parse_doctype_public_identifier;
-		}
-		if ( 0 === substr_compare( $doctype_content, 'SYSTEM', $at, 6, true ) ) {
-			$at += 6;
-			$at += strspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
-			if ( $at >= $end ) {
-				$this->compatibility_mode = 'quirks';
-				return;
-			}
-			goto parse_doctype_system_identifier;
-		}
-
-		$this->compatibility_mode = 'quirks';
-		return;
-
-		parse_doctype_public_identifier:
-		/*
-		 * The parser should enter "DOCTYPE public identifier (double-quoted) state" or
-		 * "DOCTYPE public identifier (single-quoted) state" by finding one of the valid quotes.
-		 * Anything else forces quirks mode and ignores the rest of the contents.
-		 *
-		 * @see https://html.spec.whatwg.org/multipage/parsing.html#doctype-public-identifier-(double-quoted)-state
-		 * @see https://html.spec.whatwg.org/multipage/parsing.html#doctype-public-identifier-(single-quoted)-state
-		 */
-		$closer_quote = $doctype_content[ $at ];
-		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
-			$this->compatibility_mode = 'quirks';
-			return;
-		}
-		++$at;
-
-		$identifier_length       = strcspn( $doctype_content, $closer_quote, $at, $end - $at );
-		$this->public_identifier = substr( $doctype_content, $at, $identifier_length );
-
-		$at += $identifier_length;
-		if ( $at >= $end || $closer_quote !== $doctype_content[ $at ] ) {
-			$this->compatibility_mode = 'quirks';
-			return;
-		}
-		++$at;
-
-		/*
-		 * "Between DOCTYPE public and system identifiers state"
-		 *
-		 * Advance through whitespace between public and system identifiers.
-		 *
-		 * @see https://html.spec.whatwg.org/multipage/parsing.html#between-doctype-public-and-system-identifiers-state
-		 */
-		$at += strspn( $doctype_content, " \t\n\f\r", $at, $end - $at );
-		if ( $at >= $end ) {
-			$this->compatibility_mode = self::apply_quirks_mode_algorithm( $this->name, $this->public_identifier, $this->system_identifier );
-			return;
-		}
-
-		parse_doctype_system_identifier:
-		/*
-		 * The parser should enter "DOCTYPE system identifier (double-quoted) state" or
-		 * "DOCTYPE system identifier (single-quoted) state" by finding one of the valid quotes.
-		 * Anything else forces quirks mode and ignores the rest of the contents.
-		 *
-		 * @see https://html.spec.whatwg.org/multipage/parsing.html#doctype-system-identifier-(double-quoted)-state
-		 * @see https://html.spec.whatwg.org/multipage/parsing.html#doctype-system-identifier-(single-quoted)-state
-		 */
-		$closer_quote = $doctype_content[ $at ];
-		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
-			$this->compatibility_mode = 'quirks';
-			return;
-		}
-		++$at;
-
-		$identifier_length       = strcspn( $doctype_content, $closer_quote, $at, $end - $at );
-		$this->system_identifier = substr( $doctype_content, $at, $identifier_length );
-
-		$at += $identifier_length;
-		if ( $at >= $end || $closer_quote !== $doctype_content[ $at ] ) {
-			$this->compatibility_mode = 'quirks';
-			return;
-		}
-
-		$this->compatibility_mode = self::apply_quirks_mode_algorithm( $this->name, $this->public_identifier, $this->system_identifier );
-	}
-
-	/**
-	 * Gets the name of the DOCTYPE.
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#tokenization
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return string The name of the DOCTYPE.
+	 * @param string|null $name              The name of the DOCTYPE.
+	 * @param string|null $public_identifier The public identifier of the DOCTYPE.
+	 * @param string|null $system_identifier The system identifier of the DOCTYPE.
+	 * @param bool        $force_quirks_flag Whether the DOCTYPE token force-quirks flag is set.
 	 */
-	public function get_name(): string {
-		return $this->name ?? '';
-	}
-
-	/**
-	 * Gets the public identifier of the DOCTYPE.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @return string The public identifier of the DOCTYPE.
-	 */
-	public function get_public_identifier(): string {
-		return $this->public_identifier ?? '';
-	}
-
-	/**
-	 * Gets the system identifier of the DOCTYPE.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @return string The system identifier of the DOCTYPE.
-	 */
-	public function get_system_identifier(): string {
-		return $this->system_identifier ?? '';
-	}
-
-	/**
-	 * Gets the document compatibility mode resulting from this DOCTYPE.
-	 *
-	 * When a DOCTYPE is encountered in the "initial" insertion mode, the DOCTYPE is used
-	 * to determine the document's compatibility or "quirks" mode.
-	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#the-initial-insertion-mode
-	 *
-	 * @since 6.7.0
-	 *
-	 * @return string The compatibility mode "no-quirks", "limited-quirks", or "no-quirks".
-	 */
-	public function get_compatibility_mode(): string {
-		return $this->compatibility_mode;
-	}
-
-
-	/**
-	 * Determines the resulting document compatibility mode for this DOCTYPE.
-	 *
-	 * A DOCTYPE in the appropriate place in a document will determine the
-	 * compatibility (quirks) mode of the document. The algorithm for determining quirks mode
-	 * is described in the HTML standard for handling a DOCTYPE token in the "initial"
-	 * insertion mode.
-	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#the-initial-insertion-mode
-	 *
-	 * This method does not accept a "force-quirks flag" argument. If the DOCTYPE token has
-	 * a "force-quirks flag" set, then the compatibility mode should be "quirks" and there
-	 * is no need to run this algorithm.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @param string|null $name The DOCTYPE token name or null if omitted.
-	 * @param string|null $public_identifier The DOCTYPE public identifier or null if omitted.
-	 * @param string|null $system_identifier The DOCTYPE system identifier or null if omitted.
-	 *
-	 * @return string A string indicating the resulting quirks mode. One of "quirks",
-	 *                "limited-quirks", or "no-quirks".
-	 */
-	private static function apply_quirks_mode_algorithm(
+	private function __construct(
 		?string $name,
 		?string $public_identifier,
-		?string $system_identifier
-	): string {
-		/*
-		 * > A system identifier whose value is the empty string is not considered missing for the
-		 * > purposes of the conditions above.
-		 */
-		$system_identifier_is_missing = null === $system_identifier;
-
-		/*
-		 * > The system identifier and public identifier strings must be compared to the values
-		 * > given in the lists above in an ASCII case-insensitive manner. A system identifier whose
-		 * > value is the empty string is not considered missing for the purposes of the conditions above.
-		 */
-		$public_identifier = null === $public_identifier ? '' : strtolower( $public_identifier );
-		$system_identifier = null === $system_identifier ? '' : strtolower( $system_identifier );
+		?string $system_identifier,
+		bool $force_quirks_flag
+	) {
+		$this->name              = $name;
+		$this->public_identifier = $public_identifier;
+		$this->system_identifier = $system_identifier;
 
 		/*
 		 * > [If] the DOCTYPE token matches one of the conditions in the following list, then set
@@ -328,17 +112,33 @@ class WP_HTML_Doctype_Info {
 
 		/*
 		 * > The force-quirks flag is set to on.
-		 *
-		 * The force-quirks flag should be handled by calling code and is not accounted for
-		 * in this method.
 		 */
+		if ( $force_quirks_flag ) {
+			$this->compatibility_mode = 'quirks';
+			return;
+		}
 
 		/*
 		 * > The name is not "html".
 		 */
 		if ( 'html' !== $name ) {
-			return 'quirks';
+			$this->compatibility_mode = 'quirks';
+			return;
 		}
+
+		/*
+		 * Set up some variables to handle the rest of the conditions.
+		 *
+		 * > A system identifier whose value is the empty string is not considered missing for the
+		 * > purposes of the conditions above.
+		 * > The system identifier and public identifier strings must be compared to the values
+		 * > …
+		 * > given in the lists above in an ASCII case-insensitive manner. A system identifier whose
+		 * > value is the empty string is not considered missing for the purposes of the conditions above.
+		 */
+		$system_identifier_is_missing = null === $system_identifier;
+		$public_identifier            = null === $public_identifier ? '' : strtolower( $public_identifier );
+		$system_identifier            = null === $system_identifier ? '' : strtolower( $system_identifier );
 
 		/*
 		 * > The public identifier is set to…
@@ -348,14 +148,16 @@ class WP_HTML_Doctype_Info {
 			'-/w3c/dtd html 4.0 transitional/en' === $public_identifier ||
 			'html' === $public_identifier
 		) {
-			return 'quirks';
+			$this->compatibility_mode = 'quirks';
+			return;
 		}
 
 		/*
 		 * > The system identifier is set to…
 		 */
 		if ( 'http://www.ibm.com/data/dtd/v11/ibmxhtml1-transitional.dtd' === $system_identifier ) {
-			return 'quirks';
+			$this->compatibility_mode = 'quirks';
+			return;
 		}
 
 		/*
@@ -363,7 +165,8 @@ class WP_HTML_Doctype_Info {
 		 * If the public identifier is falsy, none of the following conditions will match.
 		 */
 		if ( '' === $public_identifier ) {
-			return 'no-quirks';
+			$this->compatibility_mode = 'no-quirks';
+			return;
 		}
 
 		/*
@@ -426,7 +229,8 @@ class WP_HTML_Doctype_Info {
 			str_starts_with( $public_identifier, '-//webtechs//dtd mozilla html 2.0//' ) ||
 			str_starts_with( $public_identifier, '-//webtechs//dtd mozilla html//' )
 		) {
-			return 'quirks';
+			$this->compatibility_mode = 'quirks';
+			return;
 		}
 
 		/*
@@ -438,7 +242,8 @@ class WP_HTML_Doctype_Info {
 				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 transitional//' )
 			)
 		) {
-			return 'quirks';
+			$this->compatibility_mode = 'quirks';
+			return;
 		}
 
 		/*
@@ -453,7 +258,8 @@ class WP_HTML_Doctype_Info {
 			str_starts_with( $public_identifier, '-//w3c//dtd xhtml 1.0 frameset//' ) ||
 			str_starts_with( $public_identifier, '-//w3c//dtd xhtml 1.0 transitional//' )
 		) {
-			return 'limited-quirks';
+			$this->compatibility_mode = 'limited-quirks';
+			return;
 		}
 
 		/*
@@ -465,9 +271,259 @@ class WP_HTML_Doctype_Info {
 				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 transitional//' )
 			)
 		) {
-			return 'limited-quirks';
+			$this->compatibility_mode = 'limited-quirks';
+			return;
 		}
 
-		return 'no-quirks';
+		$this->compatibility_mode = 'no-quirks';
+	}
+
+	/**
+	 * Creates a WP_HTML_Doctype_Info instance from a DOCTYPE HTML string.
+	 *
+	 * This method is the primary way to create a WP_HTML_Doctype_Info instance. The
+	 * WP_HTML_Doctype_Info constructor method is private and the class cannot be instantiated via
+	 * the new keyword: `new WP_HTML_Doctype_Info()`.
+	 *
+	 * This is not a general purpose HTML parser. The provided HTML must correspond precisely to a
+	 * DOCTYPE HTML Token, that is a string that:
+	 *
+	 * - Starts with "<!DOCTYPE" (case insensitive).
+	 * - Ends with ">".
+	 * - Contains no other ">" characters.
+	 *
+	 * If these conditions are not satisfied, this function will reject the input by returning
+	 * `null`. Otherwise, the DOCTYPE will be parsed and an instance of the WP_HTML_Doctype_Info
+	 * class will be returned that provides information about the parsed DOCTYPE. Note that the
+	 * DOCTYPE must be a valid DOCTYPE token satisfying the conditions above, but it does not need
+	 * to be a "correct" HTML5 DOCTYPE. For example, a DOCTYPE like `<!doctypeJSON SILLY "nonsense'>`
+	 * is an acceptable DOCTYPE token even if it appears nonsensical.
+	 *
+	 * @example
+	 * // This is the normative HTML5 DOCTYPE that should be used for all modern HTML documents.
+	 * WP_HTML_Doctype_Info::from_html( '<!DOCTYPE html>' ) instanceof WP_HTML_Doctype_Info;
+	 *
+	 * // This DOCTYPE token is silly, but returns an instance of WP_HTML_Doctype_Info.
+	 * WP_HTML_Doctype_Info::from_html( '<!doctypeJSON SILLY "nonsense\'>' ) instanceof WP_HTML_Doctype_Info;
+	 *
+	 * // NULL: The provided HTML string contains extra characters.
+	 * null === WP_HTML_Doctype_Info::from_html( '<!DOCTYPE ><p>' );
+	 *
+	 * // NULL: The provided HTML string is not parsed as a DOCTYPE token.
+	 * null === WP_HTML_Doctype_Info::from_html( '<!TYPEDOC>' );
+	 *
+	 * @param string $doctype_html The complete DOCTYPE HTML starting with "<!DOCTYPE"
+	 *                             (case-insensitive) and terminate with the next ">". ">" must
+	 *                             be the last character of the string and may not appear elswehre.
+	 *
+	 * @return WP_HTML_Doctype_Info|null A WP_HTML_Doctype_Info instance will be returned if the
+	 *                                   provided DOCTYPE HTML is a valid DOCTYPE. Otherwise, null.
+	 */
+	public static function from_html( string $doctype_html ): ?self {
+		$doctype_name      = null;
+		$doctype_public_id = null;
+		$doctype_system_id = null;
+
+		$end = strlen( $doctype_html ) - 1;
+
+		/*
+		 * - Valid DOCTYPE HTML token must be at least `<!DOCTYPE>` assuming a complete token not
+		 *   ending in end-of-file.
+		 * - It must start with a case insensitive `<!DOCTYPE`.
+		 * - The only occurance of `>` must be the final byte in the HTML string.
+		 */
+		if ( $end < 10 ) {
+			return null;
+		}
+		if ( 0 !== substr_compare( $doctype_html, '<!DOCTYPE', 0, 9, true ) ) {
+			return null;
+		}
+		$at = 9;
+		if (
+			'>' !== $doctype_html[ $end ] ||
+			$end > strcspn( $doctype_html, '>', $at ) + $at
+		) {
+			return null;
+		}
+
+		/*
+		 * In this state, the doctype token has been found and its "content" optionally including
+		 * name, public ID, and system ID is between $at and $end.
+		 *
+		 * "<!DOCTYPE...declaration...>"
+		 *           ⬑ $at            ⬑ $end
+		 *
+		 * It's possible that the declaration part is empty.
+		 *
+		 *           ⬐ $at
+		 * "<!DOCTYPE>"
+		 *           ⬑ $end
+		 *
+		 * Rules for parsing ">" which terminates the DOCTYPE do not need to be considered as they
+		 * have been handled above in the condition that the provided DOCTYPE HTML must contain
+		 * exactly one ">" character in the final position.
+		 */
+
+		/*
+		 *
+		 * Parsing effectively begins in "Before DOCTYPE name state". Ignore whitespace and
+		 * proceed to the next state.
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-name-state
+		 */
+		$at += strspn( $doctype_html, " \t\n\f\r", $at );
+
+		if ( $at >= $end ) {
+			return new self( $doctype_name, $doctype_public_id, $doctype_system_id, true );
+		}
+		$name_length  = strcspn( $doctype_html, " \t\n\f\r", $at, $end - $at );
+		$doctype_name = strtolower( substr( $doctype_html, $at, $name_length ) );
+
+		$at += $name_length;
+		$at += strspn( $doctype_html, " \t\n\f\r", $at, $end - $at );
+		if ( $at >= $end ) {
+			return new self( $doctype_name, $doctype_public_id, $doctype_system_id, false );
+		}
+
+		/*
+		 * "After DOCTYPE name state"
+		 *
+		 * Find a case insensitive match for "PUBLIC" or "SYSTEM" at this point.
+		 * Otherwise, set force-quirks and enter bogus DOCTYPE state (skip the rest of the doctype).
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-name-state
+		 */
+		if ( $at + 6 >= $end ) {
+			return new self( $doctype_name, $doctype_public_id, $doctype_system_id, true );
+		}
+
+		if ( 0 === substr_compare( $doctype_html, 'PUBLIC', $at, 6, true ) ) {
+			$at += 6;
+			$at += strspn( $doctype_html, " \t\n\f\r", $at, $end - $at );
+			if ( $at >= $end ) {
+				return new self( $doctype_name, $doctype_public_id, $doctype_system_id, true );
+			}
+			goto parse_doctype_public_identifier;
+		}
+		if ( 0 === substr_compare( $doctype_html, 'SYSTEM', $at, 6, true ) ) {
+			$at += 6;
+			$at += strspn( $doctype_html, " \t\n\f\r", $at, $end - $at );
+			if ( $at >= $end ) {
+				return new self( $doctype_name, $doctype_public_id, $doctype_system_id, true );
+			}
+			goto parse_doctype_system_identifier;
+		}
+
+		return new self( $doctype_name, $doctype_public_id, $doctype_system_id, true );
+
+		parse_doctype_public_identifier:
+		/*
+		 * The parser should enter "DOCTYPE public identifier (double-quoted) state" or
+		 * "DOCTYPE public identifier (single-quoted) state" by finding one of the valid quotes.
+		 * Anything else forces quirks mode and ignores the rest of the contents.
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#doctype-public-identifier-(double-quoted)-state
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#doctype-public-identifier-(single-quoted)-state
+		 */
+		$closer_quote = $doctype_html[ $at ];
+		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
+			return new self( $doctype_name, $doctype_public_id, $doctype_system_id, true );
+		}
+		++$at;
+
+		$identifier_length = strcspn( $doctype_html, $closer_quote, $at, $end - $at );
+		$doctype_public_id = substr( $doctype_html, $at, $identifier_length );
+
+		$at += $identifier_length;
+		if ( $at >= $end || $closer_quote !== $doctype_html[ $at ] ) {
+			return new self( $doctype_name, $doctype_public_id, $doctype_system_id, true );
+		}
+		++$at;
+
+		/*
+		 * "Between DOCTYPE public and system identifiers state"
+		 *
+		 * Advance through whitespace between public and system identifiers.
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#between-doctype-public-and-system-identifiers-state
+		 */
+		$at += strspn( $doctype_html, " \t\n\f\r", $at, $end - $at );
+		if ( $at >= $end ) {
+			return new self( $doctype_name, $doctype_public_id, $doctype_system_id, false );
+		}
+
+		parse_doctype_system_identifier:
+		/*
+		 * The parser should enter "DOCTYPE system identifier (double-quoted) state" or
+		 * "DOCTYPE system identifier (single-quoted) state" by finding one of the valid quotes.
+		 * Anything else forces quirks mode and ignores the rest of the contents.
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#doctype-system-identifier-(double-quoted)-state
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#doctype-system-identifier-(single-quoted)-state
+		 */
+		$closer_quote = $doctype_html[ $at ];
+		if ( '"' !== $closer_quote && "'" !== $closer_quote ) {
+			return new self( $doctype_name, $doctype_public_id, $doctype_system_id, true );
+		}
+		++$at;
+
+		$identifier_length = strcspn( $doctype_html, $closer_quote, $at, $end - $at );
+		$doctype_system_id = substr( $doctype_html, $at, $identifier_length );
+
+		$at += $identifier_length;
+		if ( $at >= $end || $closer_quote !== $doctype_html[ $at ] ) {
+			return new self( $doctype_name, $doctype_public_id, $doctype_system_id, true );
+		}
+
+		return new self( $doctype_name, $doctype_public_id, $doctype_system_id, false );
+	}
+
+	/**
+	 * Gets the name of the DOCTYPE.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string The name of the DOCTYPE.
+	 */
+	public function get_name(): string {
+		return $this->name ?? '';
+	}
+
+	/**
+	 * Gets the public identifier of the DOCTYPE.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string The public identifier of the DOCTYPE.
+	 */
+	public function get_public_identifier(): string {
+		return $this->public_identifier ?? '';
+	}
+
+	/**
+	 * Gets the system identifier of the DOCTYPE.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string The system identifier of the DOCTYPE.
+	 */
+	public function get_system_identifier(): string {
+		return $this->system_identifier ?? '';
+	}
+
+	/**
+	 * Gets the document compatibility mode resulting from this DOCTYPE.
+	 *
+	 * When a DOCTYPE is encountered in the "initial" insertion mode, the DOCTYPE is used
+	 * to determine the document's compatibility or "quirks" mode.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#the-initial-insertion-mode
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string The compatibility mode "no-quirks", "limited-quirks", or "no-quirks".
+	 */
+	public function get_compatibility_mode(): string {
+		return $this->compatibility_mode;
 	}
 }

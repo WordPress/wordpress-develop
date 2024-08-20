@@ -4044,7 +4044,7 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		return new WP_HTML_Doctype_Info( $this->get_modifiable_text() );
+		return WP_HTML_Doctype_Info::from_html( substr( $this->html, $this->token_starts_at, $this->token_length ) );
 	}
 
 	/**
