@@ -8,16 +8,16 @@
  */
 
 /**
- * Core class used by the HTML API processor to represent a DOCTYPE declaration.
+ * Core class used by the HTML API to represent a DOCTYPE declaration.
  *
  * This class is an important for the HTML API when parsing full HTML documents. It is unlikely
- * to be of interest outside of the HTML API implementation except for very particular cases
- * such as constructing a lossless HTML tree representation where the DOCTYPE is essential.
+ * to be of interest outside of the HTML API implementation except for cases such as faithfully
+ * constructing an HTML tree representation where the DOCTYPE is essential.
  *
- * DOCTYPEs in HTML will cause the document to be handled in "no-quirks", "limited-quirks",
- * or "quirks" mode. DOCTYPEs in HTML can contain additional information, but there is little
- * reason to use anything other than the HTML5 doctype: `<!DOCTYPE html>`. It's recommended
- * to always use that DOCTYPE when authoring HTML.
+ * The most important functions of DOCTYPEs in HTML is to determine the compatibility mode:
+ * "no-quirks", "limited-quirks", or "quirks". DOCTYPEs in HTML can contain additional information,
+ * but there is little reason to use anything other than the HTML5 doctype: `<!DOCTYPE html>`.
+ * It's recommended to always use that DOCTYPE when authoring HTML.
  *
  * The HTML standard says this about DOCTYPEs:
  *
@@ -28,52 +28,77 @@
  *
  * @see https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
  *
+ * This class exposes a "compatibility mode" property as well as the the three pieces of information
+ * that may appear in a DOCTYPE: name, public id and system id. The compatibility mode is the result
+ * of a applying set of rules described in the HTML standard for how a DOCTYPE determines the
+ * compatibility mode of an HTML document.
+ *
+ * @see https://html.spec.whatwg.org/#the-initial-insertion-mode
+ *
  * @since 6.7.0
  */
 class WP_HTML_Doctype_Info {
 	/**
 	 * The name of the DOCTYPE.
 	 *
-	 * > When a DOCTYPE token is created, its name… must be marked as missing (which is
-	 * > a distinct state from the empty string).
+	 * HTML5 documents should always use the name "html":
+	 *
+	 *             ⬐ Name "html"
+	 * <!DOCTYPE html>
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#tokenization
 	 *
 	 * @var string|null
 	 */
-	private $name = null;
+	public $name = null;
 
 	/**
 	 * The public identifier of the DOCTYPE.
 	 *
-	 * > When a DOCTYPE token is created, its… public identifier… must be marked as missing
-	 * > (which is a distinct state from the empty string).
+	 * The public identifier is optional and should not appear in HTML5 doctypes.
+	 * If this value is null, it indicates the public identifier was not present in the DOCTYPE.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#tokenization
+	 *             ⬐ Name     ⬐ ------- Public ID ------- ⬎
+	 * <!DOCTYPE html PUBLIC "public id goes here in quotes">
 	 *
 	 * @var string|null
 	 */
-	private $public_identifier = null;
+	public $public_identifier = null;
 
 	/**
 	 * The system identifier of the DOCTYPE.
 	 *
-	 * > When a DOCTYPE token is created, its… system identifier must be marked as missing
-	 * > (which is a distinct state from the empty string).
+	 * The system identifier is optional and should not appear in HTML5 doctypes.
+	 * If this value is null, it indicates the system identifier was not present in the DOCTYPE.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#tokenization
+	 * With a Public ID:
+	 *
+	 *             ⬐ Name     ⬐ ------- Public ID ------- ⬎   ⬐ ------- System ID ------- ⬎
+	 * <!DOCTYPE html PUBLIC "public id goes here in quotes" "system id goes here in quotes">
+	 *
+	 * Without a Public ID:
+	 *
+	 *             ⬐ Name     ⬐ ------- System ID ------- ⬎
+	 * <!DOCTYPE html SYSTEM "system id goes here in quotes">
 	 *
 	 * @var string|null
 	 */
-	private $system_identifier = null;
+	public $system_identifier = null;
 
 	/**
 	 * The compatibility (quirks) mode of the document that results from parsing this DOCTYPE.
 	 * One of "no-quirks", "limited-quirks", or "quirks".
 	 *
-	 * @var string
+	 * When a DOCTYPE is encountered in the "initial" insertion mode, the DOCTYPE is used
+	 * to determine the document's compatibility or "quirks" mode.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#the-initial-insertion-mode
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string One of "no-quirks", "limited-quirks", or "quirks".
 	 */
-	private $compatibility_mode;
+	public $compatibility_mode;
 
 	/**
 	 * Constructor.
@@ -476,54 +501,5 @@ class WP_HTML_Doctype_Info {
 		}
 
 		return new self( $doctype_name, $doctype_public_id, $doctype_system_id, false );
-	}
-
-	/**
-	 * Gets the name of the DOCTYPE.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @return string The name of the DOCTYPE.
-	 */
-	public function get_name(): string {
-		return $this->name ?? '';
-	}
-
-	/**
-	 * Gets the public identifier of the DOCTYPE.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @return string The public identifier of the DOCTYPE.
-	 */
-	public function get_public_identifier(): string {
-		return $this->public_identifier ?? '';
-	}
-
-	/**
-	 * Gets the system identifier of the DOCTYPE.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @return string The system identifier of the DOCTYPE.
-	 */
-	public function get_system_identifier(): string {
-		return $this->system_identifier ?? '';
-	}
-
-	/**
-	 * Gets the document compatibility mode resulting from this DOCTYPE.
-	 *
-	 * When a DOCTYPE is encountered in the "initial" insertion mode, the DOCTYPE is used
-	 * to determine the document's compatibility or "quirks" mode.
-	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#the-initial-insertion-mode
-	 *
-	 * @since 6.7.0
-	 *
-	 * @return string The compatibility mode "no-quirks", "limited-quirks", or "no-quirks".
-	 */
-	public function get_compatibility_mode(): string {
-		return $this->compatibility_mode;
 	}
 }
