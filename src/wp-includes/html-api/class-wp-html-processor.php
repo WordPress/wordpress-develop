@@ -317,6 +317,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
+		if ( self::is_void( $context_node[0] ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				__( 'The context argument may not specify a void element.' ),
+				'6.7.0'
+			);
+			return null;
+		}
+
 		if ( in_array( $context_node[0], array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) {
 			_doing_it_wrong(
 				__FUNCTION__,
