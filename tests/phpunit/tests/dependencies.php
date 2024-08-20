@@ -200,9 +200,9 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$result = $instance->get_etag( array_keys( $load ) );
 
 		// Restore global prior to making assertions.
+		$wp_version = $original_wp_version;
 
 		$this->assertSame( $expected, $result, "Expected MD hash: $expected for $hash_source_string, but got: $result." );
-		$wp_version = $original_wp_version;
 	}
 
 	/**
