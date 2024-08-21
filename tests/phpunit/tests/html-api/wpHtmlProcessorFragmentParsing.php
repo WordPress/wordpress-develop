@@ -23,6 +23,8 @@ class Tests_HtmlApi_WpHtmlProcessorFragmentParsing extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_invalid_fragment_contexts
 	 *
+	 * @expectedIncorrectUsage WP_HTML_Processor::create_fragment
+	 *
 	 * @param string $context Invalid context node for fragment parser.
 	 */
 	public function test_rejects_invalid_fragment_contexts( string $context ) {

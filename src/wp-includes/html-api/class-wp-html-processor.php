@@ -308,10 +308,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$context_node = self::parse_context_element( $context );
-		var_dump( $context_node );
 		if ( null === $context_node ) {
 			_doing_it_wrong(
-				__FUNCTION__,
+				__METHOD__,
 				__( 'The context argument must be an HTML start tag.' ),
 				'6.7.0'
 			);
@@ -320,7 +319,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		if ( self::is_void( $context_node[0] ) ) {
 			_doing_it_wrong(
-				__FUNCTION__,
+				__METHOD__,
 				__( 'The context argument may not specify a void element.' ),
 				'6.7.0'
 			);
@@ -329,7 +328,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		if ( in_array( $context_node[0], array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) {
 			_doing_it_wrong(
-				__FUNCTION__,
+				__METHOD__,
 				__( 'The context argument may not specify a self-contained element.' ),
 				'6.7.0'
 			);
@@ -387,7 +386,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return array|null Element name and associative array of attributes if parsed, otherwise NULL.
 	 */
 	private static function parse_context_element( $context = '<body>' ): ?array {
-		if ( '<body>' !== $context ) {
+		if ( '<body>' === $context ) {
 			return array( 'BODY', array() );
 		}
 
