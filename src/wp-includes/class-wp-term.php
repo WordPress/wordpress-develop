@@ -133,6 +133,72 @@ final class WP_Term {
 	public $link;
 
 	/**
+	 * Category's ID.
+	 *
+	 * Same as the WP_Term::$term_id property.
+	 * Previously a known, named dynamic property added by _make_cat_compat().
+	 *
+	 * @since 6.7.0
+	 * @var int
+	 */
+	public $cat_ID;
+
+	/**
+	 * The category's name.
+	 *
+	 * Same as the WP_Term::$name property.
+	 * Previously a known, named dynamic property added by _make_cat_compat().
+	 *
+	 * @since 6.7.0
+	 * @var string
+	 */
+	public $cat_name = '';
+
+	/**
+	 * The category's nicename.
+	 *
+	 * Same as the WP_Term::$slug property.
+	 * Previously a known, named dynamic property added by _make_cat_compat().
+	 *
+	 * @since 6.7.0
+	 * @var string
+	 */
+	public $category_nicename = '';
+
+	/**
+	 * The category's description.
+	 *
+	 * Same as the WP_Term::$description property.
+	 * Previously a known, named dynamic property added by _make_cat_compat().
+	 *
+	 * @since 6.7.0
+	 * @var string
+	 */
+	public $category_description = '';
+
+	/**
+	 * ID of a category's parent term.
+	 *
+	 * Same as the WP_Term::$parent property.
+	 * Previously a known, named dynamic property added by _make_cat_compat().
+	 *
+	 * @since 6.7.0
+	 * @var int
+	 */
+	public $category_parent = 0;
+
+	/**
+	 * Cached object count for this category.
+	 *
+	 * Same as the WP_Term::$count property.
+	 * Previously a known, named dynamic property added by _make_cat_compat().
+	 *
+	 * @since 6.7.0
+	 * @var int
+	 */
+	public $category_count = 0;
+
+	/**
 	 * Retrieve WP_Term instance.
 	 *
 	 * @since 4.4.0
