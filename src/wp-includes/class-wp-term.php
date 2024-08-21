@@ -199,6 +199,17 @@ final class WP_Term {
 	public $category_count = 0;
 
 	/**
+	 * Value of the menu's auto_add setting.
+	 *
+	 * Does not correspond to a database field.
+	 * Previously a known, named dynamic property added by WP_REST_Menus_Controller::get_term().
+	 *
+	 * @since 6.7.0
+	 * @var bool
+	 */
+	public $auto_add = false;
+
+	/**
 	 * Retrieve WP_Term instance.
 	 *
 	 * @since 4.4.0
