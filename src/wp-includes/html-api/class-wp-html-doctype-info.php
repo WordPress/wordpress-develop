@@ -10,14 +10,16 @@
 /**
  * Core class used by the HTML API to represent a DOCTYPE declaration.
  *
- * This class is an important for the HTML API when parsing full HTML documents. It is unlikely
- * to be of interest outside of the HTML API implementation except for cases such as faithfully
- * constructing an HTML tree representation where the DOCTYPE is essential.
+ * The HTML API relies on this class to parse DOCTYPEs in the full HTML parser. Most
+ * applications interacting with HTML will not need to inspect DOCTYPEs in detail
+ * with the exception of some niches such as faithfully constructring a tree representation.
  *
- * The most important functions of DOCTYPEs in HTML is to determine the compatibility mode:
- * "no-quirks", "limited-quirks", or "quirks". DOCTYPEs in HTML can contain additional information,
- * but there is little reason to use anything other than the HTML5 doctype: `<!DOCTYPE html>`.
- * It's recommended to always use that DOCTYPE when authoring HTML.
+ * DOCTYPEs in HTML determine the compatibility or "quirks" mode which can impact the structure
+ * and behavior of a document. There are three possible modes: "no-quirks", "limited-quirks",
+ * or "quirks". DOCTYPEs in HTML may contain additional information that is used to determine the
+ * compatibility mode.
+ *
+ * Any modern HTML document should start with the standard HTML5 DOCTYPE: `<!DOCTYPE html>`.
  *
  * The HTML standard says this about DOCTYPEs:
  *
@@ -45,7 +47,7 @@ class WP_HTML_Doctype_Info {
 	 *
 	 * HTML5 documents should always use the name "html":
 	 *
-	 *             ⬐ Name "html"
+	 *             ⬐ Name: "html"
 	 * <!DOCTYPE html>
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#tokenization
@@ -110,6 +112,9 @@ class WP_HTML_Doctype_Info {
 
 	/**
 	 * Constructor.
+	 *
+	 * This class is not instantiated directly. Use the static `::from_html( $html )` method
+	 * to create an instance.
 	 *
 	 * The arguments to this constructor correspond to the "DOCTYPE token" as defined in the
 	 * HTML specification.
@@ -314,29 +319,28 @@ class WP_HTML_Doctype_Info {
 	/**
 	 * Creates a WP_HTML_Doctype_Info instance from a DOCTYPE HTML string.
 	 *
-	 * This method is the primary way to create a WP_HTML_Doctype_Info instance. The
-	 * WP_HTML_Doctype_Info constructor method is private and the class cannot be instantiated via
-	 * the new keyword: `new WP_HTML_Doctype_Info()`.
+	 * This method is the primary way to create a WP_HTML_Doctype_Info instance. The class cannot
+	 * be instantiated via the new keyword: `new WP_HTML_Doctype_Info()`.
 	 *
-	 * This is not a general purpose HTML parser. The provided HTML must correspond precisely to a
-	 * DOCTYPE HTML Token, that is a string that:
+	 * This method parses a DOCTYPE but is not a general purpose HTML parser. The provided HTML
+	 * must correspond precisely to a DOCTYPE HTML Token. The provided HTML string must:
 	 *
-	 * - Starts with "<!DOCTYPE" (case insensitive).
-	 * - Ends with ">".
-	 * - Contains no other ">" characters.
+	 * - Start with "<!DOCTYPE" (case insensitive).
+	 * - End with ">".
+	 * - Contain no other ">" characters.
 	 *
-	 * If these conditions are not satisfied, this function will reject the input by returning
-	 * `null`. Otherwise, the DOCTYPE will be parsed and an instance of the WP_HTML_Doctype_Info
-	 * class will be returned that provides information about the parsed DOCTYPE. Note that the
-	 * DOCTYPE must be a valid DOCTYPE token satisfying the conditions above, but it does not need
-	 * to be a "correct" HTML5 DOCTYPE. For example, a DOCTYPE like `<!doctypeJSON SILLY "nonsense'>`
-	 * is an acceptable DOCTYPE token even if it appears nonsensical.
+	 * If these conditions are not satisfied, `null` is returned due to invalid input. Otherwise,
+	 * the DOCTYPE will be parsed and an instance of the WP_HTML_Doctype_Info class will be returned
+	 * that provides information about the parsed DOCTYPE. Note that the DOCTYPE must be a valid
+	 * DOCTYPE token satisfying the conditions above, but it does not need to be a "correct"
+	 * HTML5 DOCTYPE. For example, a DOCTYPE like `<!doctypeJSON SILLY "nonsense'>` is an
+	 * acceptable DOCTYPE token even if it appears nonsensical.
 	 *
 	 * @example
 	 * // This is the normative HTML5 DOCTYPE that should be used for all modern HTML documents.
 	 * WP_HTML_Doctype_Info::from_html( '<!DOCTYPE html>' ) instanceof WP_HTML_Doctype_Info;
 	 *
-	 * // This DOCTYPE token is silly, but returns an instance of WP_HTML_Doctype_Info.
+	 * // This DOCTYPE token is absurd, but will be parsed and return an instance.
 	 * WP_HTML_Doctype_Info::from_html( '<!doctypeJSON SILLY "nonsense\'>' ) instanceof WP_HTML_Doctype_Info;
 	 *
 	 * // NULL: The provided HTML string contains extra characters.
