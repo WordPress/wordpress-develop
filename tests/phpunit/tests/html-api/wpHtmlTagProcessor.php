@@ -2945,7 +2945,7 @@ HTML
 	 *
 	 * @ticket 61576
 	 */
-	public function test_doctype_doc_name( string $html, ?string $expected_doctype_name ) {
+	public function test_doctype_doc_name() {
 		$processor = new WP_HTML_Tag_Processor( '<!DOCTYPE html>' );
 		$this->assertTrue( $processor->next_token() );
 		$doctype = $processor->get_doctype_info();
