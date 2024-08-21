@@ -100,6 +100,17 @@ final class WP_Term {
 	public $filter = 'raw';
 
 	/**
+	 * Object's ID.
+	 *
+	 * Does not correspond to a database field.
+	 * Previously a known, named dynamic property added by WP_Term_Query::get_terms().
+	 *
+	 * @since 6.7.0
+	 * @var int
+	 */
+	public $object_id;
+
+	/**
 	 * Retrieve WP_Term instance.
 	 *
 	 * @since 4.4.0
