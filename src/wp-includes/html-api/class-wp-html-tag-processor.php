@@ -4036,8 +4036,8 @@ class WP_HTML_Tag_Processor {
 	 * This method can be called to perform a full parse of the DOCTYPE token and retrieve
 	 * its information.
 	 *
-	 * @return WP_HTML_Doctype_Info|null The DOCTYPE declaration information or null if not
-	 *                                   a DOCTYPE token.
+	 * @return WP_HTML_Doctype_Info|null The DOCTYPE declaration information or `null` if not
+	 *                                   currently at a DOCTYPE node.
 	 */
 	public function get_doctype_info(): ?WP_HTML_Doctype_Info {
 		if ( self::STATE_DOCTYPE !== $this->parser_state ) {
@@ -4138,7 +4138,7 @@ class WP_HTML_Tag_Processor {
 
 	/**
 	 * Indicates that the parser has found a DOCTYPE node and it's
-	 * possible to read and modify its modifiable text.
+	 * possible to read its DOCTYPE information via `get_doctype_info()`.
 	 *
 	 * @since 6.5.0
 	 *
