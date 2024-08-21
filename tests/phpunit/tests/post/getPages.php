@@ -10,8 +10,6 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 * @ticket 23167
 	 */
 	public function test_get_pages_cache() {
-		global $wpdb;
-
 		self::factory()->post->create_many( 3, array( 'post_type' => 'page' ) );
 		wp_cache_delete( 'last_changed', 'posts' );
 		$this->assertFalse( wp_cache_get( 'last_changed', 'posts' ) );
@@ -20,7 +18,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$this->assertCount( 3, $pages );
 		$time1 = wp_cache_get( 'last_changed', 'posts' );
 		$this->assertNotEmpty( $time1 );
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -29,7 +27,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$pages = get_pages();
 		$this->assertCount( 3, $pages );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -39,18 +37,18 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$pages = get_pages( array( 'number' => 2 ) );
 		$this->assertCount( 2, $pages );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		// Again. num_queries and last_changed should remain the same.
 		$pages = get_pages( array( 'number' => 2 ) );
 		$this->assertCount( 2, $pages );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -59,7 +57,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$pages = get_pages();
 		$this->assertCount( 3, $pages );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -68,13 +66,13 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		clean_post_cache( $pages[0]->ID );
 		$this->assertNotEquals( $time1, $time2 = wp_cache_get( 'last_changed', 'posts' ) );
 		get_post( $pages[0]->ID );
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		// last_changed bumped so num_queries should increment.
 		$pages = get_pages( array( 'number' => 2 ) );
 		$this->assertCount( 2, $pages );
 		$this->assertSame( $time2, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -87,14 +85,14 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$new_changed_float = $this->_microtime_to_float( wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertGreaterThan( $old_changed_float, $new_changed_float );
 
-		$num_queries  = $wpdb->num_queries;
+		$num_queries  = get_num_queries();
 		$last_changed = wp_cache_get( 'last_changed', 'posts' );
 
 		// num_queries should bump after wp_delete_post() bumps last_changed.
 		$pages = get_pages();
 		$this->assertCount( 2, $pages );
 		$this->assertSame( $last_changed, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -104,22 +102,20 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 * @ticket 43514
 	 */
 	public function test_get_pages_cache_empty() {
-		global $wpdb;
-
 		wp_cache_delete( 'last_changed', 'posts' );
 		$this->assertFalse( wp_cache_get( 'last_changed', 'posts' ) );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$pages = get_pages(); // Database gets queried.
 
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$pages = get_pages(); // Database should not get queried.
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
@@ -278,25 +274,21 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		add_post_meta( $posts[1], 'some-meta-key', '' );
 		add_post_meta( $posts[2], 'some-meta-key', '1' );
 
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				get_pages(
-					array(
-						'meta_key'   => 'some-meta-key',
-						'meta_value' => '0',
-					)
+			get_pages(
+				array(
+					'meta_key'   => 'some-meta-key',
+					'meta_value' => '0',
 				)
 			)
 		);
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				get_pages(
-					array(
-						'meta_key'   => 'some-meta-key',
-						'meta_value' => '1',
-					)
+			get_pages(
+				array(
+					'meta_key'   => 'some-meta-key',
+					'meta_value' => '1',
 				)
 			)
 		);
@@ -327,6 +319,189 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$exc_result = wp_list_pluck( $exclude, 'ID' );
 		sort( $exc_result );
 		$this->assertSame( $inc, $exc_result );
+	}
+
+	/**
+	 * @ticket 12821
+	 * @covers ::get_pages
+	 */
+	public function test_get_pages_test_filter() {
+		register_post_type( 'wptests_pt', array( 'hierarchical' => true ) );
+
+		$posts              = self::factory()->post->create_many(
+			2,
+			array(
+				'post_type' => 'wptests_pt',
+			)
+		);
+		$query_args_values  = array();
+		$parsed_args_values = array();
+
+		// Filter the query to return the wptests_pt post type.
+		add_filter(
+			'get_pages_query_args',
+			static function ( $query_args, $parsed_args ) use ( &$query_args_values, &$parsed_args_values ) {
+				$query_args['post_type'] = 'wptests_pt';
+				$query_args_values       = $query_args;
+				$parsed_args_values      = $parsed_args;
+				return $query_args;
+			},
+			10,
+			2
+		);
+
+		$pages    = get_pages();
+		$page_ids = wp_list_pluck( $pages, 'ID' );
+		$this->assertSameSets( $posts, $page_ids, 'The return post ids should match the post type wptests_pt.' );
+
+		$query_args = array(
+			'orderby'                => array( 'post_title' => 'ASC' ),
+			'order'                  => 'ASC',
+			'post__not_in'           => array(),
+			'meta_key'               => '',
+			'meta_value'             => '',
+			'posts_per_page'         => -1,
+			'offset'                 => 0,
+			'post_type'              => 'wptests_pt',
+			'post_status'            => array( 'publish' ),
+			'update_post_term_cache' => false,
+			'update_post_meta_cache' => false,
+			'ignore_sticky_posts'    => true,
+			'no_found_rows'          => true,
+		);
+
+		$this->assertSameSets( $query_args, $query_args_values, 'Query arguments should match expected values' );
+
+		$parsed_args = array(
+			'child_of'     => 0,
+			'sort_order'   => 'ASC',
+			'sort_column'  => 'post_title',
+			'hierarchical' => 1,
+			'exclude'      => array(),
+			'include'      => array(),
+			'meta_key'     => '',
+			'meta_value'   => '',
+			'authors'      => '',
+			'parent'       => -1,
+			'exclude_tree' => array(),
+			'number'       => '',
+			'offset'       => 0,
+			'post_type'    => 'page',
+			'post_status'  => 'publish',
+		);
+
+		$this->assertSameSets( $parsed_args, $parsed_args_values, 'Parsed arguments should match expected values' );
+	}
+
+	/**
+	 * @ticket 12821
+	 * @covers ::get_pages
+	 * @dataProvider data_get_pages_args
+	 */
+	public function test_get_pages_args_test_filter( $args, $expected_query_args ) {
+		$filter = new MockAction();
+		add_filter( 'get_pages_query_args', array( $filter, 'filter' ), 10, 2 );
+
+		$results = get_pages( $args );
+
+		$this->assertIsArray( $results, 'get_pages should result an array' );
+
+		$filter_args = $filter->get_args();
+
+		$default_args = array(
+			'orderby'                => array( 'post_title' => 'ASC' ),
+			'order'                  => 'ASC',
+			'post__not_in'           => array(),
+			'meta_key'               => '',
+			'meta_value'             => '',
+			'posts_per_page'         => -1,
+			'offset'                 => 0,
+			'post_type'              => 'page',
+			'post_status'            => array( 'publish' ),
+			'update_post_term_cache' => false,
+			'update_post_meta_cache' => false,
+			'ignore_sticky_posts'    => true,
+			'no_found_rows'          => true,
+		);
+
+		$query_args = wp_parse_args( $expected_query_args, $default_args );
+
+		$this->assertSameSets( $query_args, $filter_args[0][0], 'Unexpected $query_args for get_pages_query_args filter' );
+
+		$defaults = array(
+			'child_of'     => 0,
+			'sort_order'   => 'ASC',
+			'sort_column'  => 'post_title',
+			'hierarchical' => 1,
+			'exclude'      => array(),
+			'include'      => array(),
+			'meta_key'     => '',
+			'meta_value'   => '',
+			'authors'      => '',
+			'parent'       => -1,
+			'exclude_tree' => array(),
+			'number'       => '',
+			'offset'       => 0,
+			'post_type'    => 'page',
+			'post_status'  => 'publish',
+		);
+
+		$parsed_args = wp_parse_args( $args, $defaults );
+		$this->assertSameSets( $parsed_args, $filter_args[0][1], 'Unexpected $parsed_args for get_pages_query_args filter' );
+	}
+
+	public function data_get_pages_args() {
+		return array(
+			'default'            => array(
+				'args'                => array(),
+				'expected_query_args' => array(),
+			),
+			'exclude'            => array(
+				'args'                => array( 'exclude' => array( 1, 2, 4 ) ),
+				'expected_query_args' => array( 'post__not_in' => array( 1, 2, 4 ) ),
+			),
+			'post status'        => array(
+				'args'                => array( 'post_status' => 'draft' ),
+				'expected_query_args' => array( 'post_status' => array( 'draft' ) ),
+			),
+			'number'             => array(
+				'args'                => array( 'number' => 99 ),
+				'expected_query_args' => array( 'posts_per_page' => 99 ),
+			),
+			'meta query'         => array(
+				'args'                => array(
+					'meta_key'   => 'foo',
+					'meta_value' => 'bar',
+				),
+				'expected_query_args' => array(
+					'meta_key'   => 'foo',
+					'meta_value' => 'bar',
+				),
+			),
+			'post parent number' => array(
+				'args'                => array( 'parent' => 5 ),
+				'expected_query_args' => array( 'post_parent' => 5 ),
+			),
+			'post parent array'  => array(
+				'args'                => array( 'parent' => array( 5 ) ),
+				'expected_query_args' => array( 'post_parent__in' => array( 5 ) ),
+			),
+			'offset'             => array(
+				'args'                => array( 'offset' => 2 ),
+				'expected_query_args' => array( 'offset' => 2 ),
+			),
+			'authors'            => array(
+				'args'                => array( 'authors' => 2 ),
+				'expected_query_args' => array( 'author__in' => array( 2 ) ),
+			),
+			'sort order'         => array(
+				'args'                => array( 'sort_order' => 'DESC' ),
+				'expected_query_args' => array(
+					'order'   => 'DESC',
+					'orderby' => array( 'post_title' => 'DESC' ),
+				),
+			),
+		);
 	}
 
 	/**
@@ -726,7 +901,6 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		// How it should work.
 		$found_pages = wp_list_filter( $pages, array( 'post_parent' => $page_1 ) );
 		$this->assertSameSets( array( $page_3, $page_5 ), wp_list_pluck( $found_pages, 'ID' ) );
-
 	}
 
 	/**
@@ -1000,6 +1174,37 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			"ORDER BY $wpdb->posts.post_date ASC",
 			$wpdb->last_query,
 			'Check that ORDER is post date.'
+		);
+	}
+
+	/**
+	 * Tests that the legacy `post_modified_gmt` orderby values are translated to the proper `WP_Query` values.
+	 *
+	 * @ticket 59226
+	 */
+	public function test_get_pages_order_by_post_modified_gmt() {
+		global $wpdb;
+
+		get_pages(
+			array(
+				'sort_column' => 'post_modified_gmt',
+			)
+		);
+		$this->assertStringContainsString(
+			"ORDER BY $wpdb->posts.post_modified ASC",
+			$wpdb->last_query,
+			'Check that ORDER is post modified when using post_modified_gmt.'
+		);
+
+		get_pages(
+			array(
+				'sort_column' => 'modified_gmt',
+			)
+		);
+		$this->assertStringContainsString(
+			"ORDER BY $wpdb->posts.post_modified ASC",
+			$wpdb->last_query,
+			'Check that ORDER is post modified when using modified_gmt.'
 		);
 	}
 }

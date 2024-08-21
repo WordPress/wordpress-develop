@@ -38,7 +38,7 @@ function wp_get_db_schema( $scope = 'all', $blog_id = null ) {
 
 	$charset_collate = $wpdb->get_charset_collate();
 
-	if ( $blog_id && $blog_id != $wpdb->blogid ) {
+	if ( $blog_id && (int) $blog_id !== $wpdb->blogid ) {
 		$old_blog_id = $wpdb->set_blog_id( $blog_id );
 	}
 
@@ -548,12 +548,17 @@ function populate_options( array $options = array() ) {
 		// 5.6.0
 		'auto_update_core_dev'            => 'enabled',
 		'auto_update_core_minor'          => 'enabled',
-		// Default to enabled for new installs.
-		// See https://core.trac.wordpress.org/ticket/51742.
+		/*
+		 * Default to enabled for new installs.
+		 * See https://core.trac.wordpress.org/ticket/51742.
+		 */
 		'auto_update_core_major'          => 'enabled',
 
 		// 5.8.0
 		'wp_force_deactivated_plugins'    => array(),
+
+		// 6.4.0
+		'wp_attachment_pages_enabled'     => 0,
 	);
 
 	// 3.3.0
@@ -589,18 +594,16 @@ function populate_options( array $options = array() ) {
 		}
 
 		if ( in_array( $option, $fat_options, true ) ) {
-			$autoload = 'no';
+			$autoload = 'off';
 		} else {
-			$autoload = 'yes';
-		}
-
-		if ( is_array( $value ) ) {
-			$value = serialize( $value );
+			$autoload = 'on';
 		}
 
 		if ( ! empty( $insert ) ) {
 			$insert .= ', ';
 		}
+
+		$value = maybe_serialize( sanitize_option( $option, $value ) );
 
 		$insert .= $wpdb->prepare( '(%s, %s, %s)', $option, $value, $autoload );
 	}
@@ -977,11 +980,13 @@ endif;
  * @param string $path              Optional. The path to append to the network's domain name. Default '/'.
  * @param bool   $subdomain_install Optional. Whether the network is a subdomain installation or a subdirectory installation.
  *                                  Default false, meaning the network is a subdirectory installation.
- * @return bool|WP_Error True on success, or WP_Error on warning (with the installation otherwise successful,
+ * @return true|WP_Error True on success, or WP_Error on warning (with the installation otherwise successful,
  *                       so the error code must be checked) or failure.
  */
 function populate_network( $network_id = 1, $domain = '', $email = '', $site_name = '', $path = '/', $subdomain_install = false ) {
 	global $wpdb, $current_site, $wp_rewrite;
+
+	$network_id = (int) $network_id;
 
 	$errors = new WP_Error();
 	if ( '' === $domain ) {
@@ -994,11 +999,13 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 	// Check for network collision.
 	$network_exists = false;
 	if ( is_multisite() ) {
-		if ( get_network( (int) $network_id ) ) {
+		if ( get_network( $network_id ) ) {
 			$errors->add( 'siteid_exists', __( 'The network already exists.' ) );
 		}
 	} else {
-		if ( $network_id == $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $wpdb->site WHERE id = %d", $network_id ) ) ) {
+		if ( $network_id === (int) $wpdb->get_var(
+			$wpdb->prepare( "SELECT id FROM $wpdb->site WHERE id = %d", $network_id )
+		) ) {
 			$errors->add( 'siteid_exists', __( 'The network already exists.' ) );
 		}
 	}
@@ -1011,7 +1018,7 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		return $errors;
 	}
 
-	if ( 1 == $network_id ) {
+	if ( 1 === $network_id ) {
 		$wpdb->insert(
 			$wpdb->site,
 			array(
@@ -1040,8 +1047,6 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		)
 	);
 
-	$site_user = get_userdata( (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s AND site_id = %d", 'admin_user_id', $network_id ) ) );
-
 	/*
 	 * When upgrading from single to multisite, assume the current site will
 	 * become the main site of the network. When using populate_network()
@@ -1065,8 +1070,19 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 			)
 		);
 		$current_site->blog_id = $wpdb->insert_id;
-		update_user_meta( $site_user->ID, 'source_domain', $domain );
-		update_user_meta( $site_user->ID, 'primary_blog', $current_site->blog_id );
+
+		$site_user_id = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT meta_value
+				FROM $wpdb->sitemeta
+				WHERE meta_key = %s AND site_id = %d",
+				'admin_user_id',
+				$network_id
+			)
+		);
+
+		update_user_meta( $site_user_id, 'source_domain', $domain );
+		update_user_meta( $site_user_id, 'primary_blog', $current_site->blog_id );
 
 		// Unable to use update_network_option() while populating the network.
 		$wpdb->insert(
@@ -1102,7 +1118,7 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		);
 		if ( is_wp_error( $page ) ) {
 			$errstr = $page->get_error_message();
-		} elseif ( 200 == wp_remote_retrieve_response_code( $page ) ) {
+		} elseif ( 200 === wp_remote_retrieve_response_code( $page ) ) {
 				$vhost_ok = true;
 		}
 
@@ -1168,11 +1184,11 @@ function populate_network_meta( $network_id, array $meta = array() ) {
 	$stylesheet     = get_option( 'stylesheet' );
 	$allowed_themes = array( $stylesheet => true );
 
-	if ( $template != $stylesheet ) {
+	if ( $template !== $stylesheet ) {
 		$allowed_themes[ $template ] = true;
 	}
 
-	if ( WP_DEFAULT_THEME != $stylesheet && WP_DEFAULT_THEME != $template ) {
+	if ( WP_DEFAULT_THEME !== $stylesheet && WP_DEFAULT_THEME !== $template ) {
 		$allowed_themes[ WP_DEFAULT_THEME ] = true;
 	}
 
@@ -1227,38 +1243,13 @@ We hope you enjoy your new site. Thanks!
 --The Team @ SITE_NAME'
 	);
 
-	$misc_exts        = array(
-		// Images.
-		'jpg',
-		'jpeg',
-		'png',
-		'gif',
-		'webp',
-		// Video.
-		'mov',
-		'avi',
-		'mpg',
-		'3gp',
-		'3g2',
-		// "audio".
-		'midi',
-		'mid',
-		// Miscellaneous.
-		'pdf',
-		'doc',
-		'ppt',
-		'odt',
-		'pptx',
-		'docx',
-		'pps',
-		'ppsx',
-		'xls',
-		'xlsx',
-		'key',
-	);
-	$audio_exts       = wp_get_audio_extensions();
-	$video_exts       = wp_get_video_extensions();
-	$upload_filetypes = array_unique( array_merge( $misc_exts, $audio_exts, $video_exts ) );
+	$allowed_file_types = array();
+	$all_mime_types     = get_allowed_mime_types();
+
+	foreach ( $all_mime_types as $ext => $mime ) {
+		array_push( $allowed_file_types, ...explode( '|', $ext ) );
+	}
+	$upload_filetypes = array_unique( $allowed_file_types );
 
 	$sitemeta = array(
 		'site_name'                   => __( 'My Network' ),

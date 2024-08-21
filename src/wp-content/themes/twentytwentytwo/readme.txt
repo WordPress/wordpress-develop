@@ -1,9 +1,9 @@
 === Twenty Twenty-Two ===
 Contributors: wordpressdotorg
 Requires at least: 5.9
-Tested up to: 6.2
+Tested up to: 6.6
 Requires PHP: 5.6
-Stable tag: 1.4
+Stable tag: 1.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -16,6 +16,26 @@ The true richness of Twenty Twenty-Two lies in its opportunity for customization
 Whether you’re building a single-page website, a blog, a business website, or a portfolio, Twenty Twenty-Two will help you create a site that is uniquely yours.
 
 == Changelog ==
+
+= 1.8 =
+* Released: July 16, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-two-changelog/#Version_1.8
+
+= 1.7 =
+* Released: April 2, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-two-changelog/#Version_1.7
+
+= 1.6 =
+* Released: November 7, 2023
+
+https://wordpress.org/documentation/article/twenty-twenty-two-changelog/#Version_1.6
+
+= 1.5 =
+* Released: August 8, 2023
+
+https://wordpress.org/documentation/article/twenty-twenty-two-changelog/#Version_1.5
 
 = 1.4 =
 * Released: March 28, 2023
@@ -44,7 +64,7 @@ https://wordpress.org/documentation/article/twenty-twenty-two-changelog/#Version
 
 == Copyright ==
 
-Twenty Twenty-Two WordPress Theme, 2021-2023 WordPress.org
+Twenty Twenty-Two WordPress Theme, 2021-2024 WordPress.org
 Twenty Twenty-Two is distributed under the terms of the GNU GPL.
 
 This program is free software: you can redistribute it and/or modify

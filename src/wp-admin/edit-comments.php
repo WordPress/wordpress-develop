@@ -32,7 +32,14 @@ if ( $doaction ) {
 
 		$comment_status = wp_unslash( $_REQUEST['comment_status'] );
 		$delete_time    = wp_unslash( $_REQUEST['pagegen_timestamp'] );
-		$comment_ids    = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_approved = %s AND %s > comment_date_gmt", $comment_status, $delete_time ) );
+		$comment_ids    = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT comment_ID FROM $wpdb->comments
+				WHERE comment_approved = %s AND %s > comment_date_gmt",
+				$comment_status,
+				$delete_time
+			)
+		);
 		$doaction       = 'delete';
 	} elseif ( isset( $_REQUEST['delete_comments'] ) ) {
 		$comment_ids = $_REQUEST['delete_comments'];
@@ -52,7 +59,19 @@ if ( $doaction ) {
 	$untrashed  = 0;
 	$deleted    = 0;
 
-	$redirect_to = remove_query_arg( array( 'trashed', 'untrashed', 'deleted', 'spammed', 'unspammed', 'approved', 'unapproved', 'ids' ), wp_get_referer() );
+	$redirect_to = remove_query_arg(
+		array(
+			'trashed',
+			'untrashed',
+			'deleted',
+			'spammed',
+			'unspammed',
+			'approved',
+			'unapproved',
+			'ids',
+		),
+		wp_get_referer()
+	);
 	$redirect_to = add_query_arg( 'paged', $pagenum, $redirect_to );
 
 	wp_defer_comment_counting( true );
@@ -65,31 +84,31 @@ if ( $doaction ) {
 		switch ( $doaction ) {
 			case 'approve':
 				wp_set_comment_status( $comment_id, 'approve' );
-				$approved++;
+				++$approved;
 				break;
 			case 'unapprove':
 				wp_set_comment_status( $comment_id, 'hold' );
-				$unapproved++;
+				++$unapproved;
 				break;
 			case 'spam':
 				wp_spam_comment( $comment_id );
-				$spammed++;
+				++$spammed;
 				break;
 			case 'unspam':
 				wp_unspam_comment( $comment_id );
-				$unspammed++;
+				++$unspammed;
 				break;
 			case 'trash':
 				wp_trash_comment( $comment_id );
-				$trashed++;
+				++$trashed;
 				break;
 			case 'untrash':
 				wp_untrash_comment( $comment_id );
-				$untrashed++;
+				++$untrashed;
 				break;
 			case 'delete':
 				wp_delete_comment( $comment_id );
-				$deleted++;
+				++$deleted;
 				break;
 		}
 	}
@@ -197,7 +216,7 @@ get_current_screen()->add_help_tab(
 		'title'   => __( 'Moderating Comments' ),
 		'content' =>
 					'<p>' . __( 'A red bar on the left means the comment is waiting for you to moderate it.' ) . '</p>' .
-					'<p>' . __( 'In the <strong>Author</strong> column, in addition to the author&#8217;s name, email address, and blog URL, the commenter&#8217;s IP address is shown. Clicking on this link will show you all the comments made from this IP address.' ) . '</p>' .
+					'<p>' . __( 'In the <strong>Author</strong> column, in addition to the author&#8217;s name, email address, and site URL, the commenter&#8217;s IP address is shown. Clicking on this link will show you all the comments made from this IP address.' ) . '</p>' .
 					'<p>' . __( 'In the <strong>Comment</strong> column, hovering over any comment gives you options to approve, reply (and approve), quick edit, edit, spam mark, or trash that comment.' ) . '</p>' .
 					'<p>' . __( 'In the <strong>In response to</strong> column, there are three elements. The text is the name of the post that inspired the comment, and links to the post editor for that entry. The View Post link leads to that post on your live site. The small bubble with the number in it shows the number of approved comments that post has received. If there are pending comments, a red notification circle with the number of pending comments is displayed. Clicking the notification circle will filter the comments screen to show only pending comments on that post.' ) . '</p>' .
 					'<p>' . __( 'In the <strong>Submitted on</strong> column, the date and time the comment was left on your site appears. Clicking on the date/time link will take you to that comment on your live site.' ) . '</p>' .
@@ -282,11 +301,24 @@ if ( isset( $_REQUEST['error'] ) ) {
 			break;
 	}
 	if ( $error_msg ) {
-		echo '<div id="moderated" class="error"><p>' . $error_msg . '</p></div>';
+		wp_admin_notice(
+			$error_msg,
+			array(
+				'id'                 => 'moderated',
+				'additional_classes' => array( 'error' ),
+			)
+		);
 	}
 }
 
-if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $_REQUEST['trashed'] ) || isset( $_REQUEST['untrashed'] ) || isset( $_REQUEST['spammed'] ) || isset( $_REQUEST['unspammed'] ) || isset( $_REQUEST['same'] ) ) {
+if ( isset( $_REQUEST['approved'] )
+	|| isset( $_REQUEST['deleted'] )
+	|| isset( $_REQUEST['trashed'] )
+	|| isset( $_REQUEST['untrashed'] )
+	|| isset( $_REQUEST['spammed'] )
+	|| isset( $_REQUEST['unspammed'] )
+	|| isset( $_REQUEST['same'] )
+) {
 	$approved  = isset( $_REQUEST['approved'] ) ? (int) $_REQUEST['approved'] : 0;
 	$deleted   = isset( $_REQUEST['deleted'] ) ? (int) $_REQUEST['deleted'] : 0;
 	$trashed   = isset( $_REQUEST['trashed'] ) ? (int) $_REQUEST['trashed'] : 0;
@@ -297,35 +329,63 @@ if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $
 
 	if ( $approved > 0 || $deleted > 0 || $trashed > 0 || $untrashed > 0 || $spammed > 0 || $unspammed > 0 || $same > 0 ) {
 		if ( $approved > 0 ) {
-			/* translators: %s: Number of comments. */
-			$messages[] = sprintf( _n( '%s comment approved.', '%s comments approved.', $approved ), $approved );
+			$messages[] = sprintf(
+				/* translators: %s: Number of comments. */
+				_n( '%s comment approved.', '%s comments approved.', $approved ),
+				$approved
+			);
 		}
 
 		if ( $spammed > 0 ) {
 			$ids = isset( $_REQUEST['ids'] ) ? $_REQUEST['ids'] : 0;
-			/* translators: %s: Number of comments. */
-			$messages[] = sprintf( _n( '%s comment marked as spam.', '%s comments marked as spam.', $spammed ), $spammed ) . ' <a href="' . esc_url( wp_nonce_url( "edit-comments.php?doaction=undo&action=unspam&ids=$ids", 'bulk-comments' ) ) . '">' . __( 'Undo' ) . '</a><br />';
+
+			$messages[] = sprintf(
+				/* translators: %s: Number of comments. */
+				_n( '%s comment marked as spam.', '%s comments marked as spam.', $spammed ),
+				$spammed
+			) . sprintf(
+				' <a href="%1$s">%2$s</a><br />',
+				esc_url( wp_nonce_url( "edit-comments.php?doaction=undo&action=unspam&ids=$ids", 'bulk-comments' ) ),
+				__( 'Undo' )
+			);
 		}
 
 		if ( $unspammed > 0 ) {
-			/* translators: %s: Number of comments. */
-			$messages[] = sprintf( _n( '%s comment restored from the spam.', '%s comments restored from the spam.', $unspammed ), $unspammed );
+			$messages[] = sprintf(
+				/* translators: %s: Number of comments. */
+				_n( '%s comment restored from the spam.', '%s comments restored from the spam.', $unspammed ),
+				$unspammed
+			);
 		}
 
 		if ( $trashed > 0 ) {
 			$ids = isset( $_REQUEST['ids'] ) ? $_REQUEST['ids'] : 0;
-			/* translators: %s: Number of comments. */
-			$messages[] = sprintf( _n( '%s comment moved to the Trash.', '%s comments moved to the Trash.', $trashed ), $trashed ) . ' <a href="' . esc_url( wp_nonce_url( "edit-comments.php?doaction=undo&action=untrash&ids=$ids", 'bulk-comments' ) ) . '">' . __( 'Undo' ) . '</a><br />';
+
+			$messages[] = sprintf(
+				/* translators: %s: Number of comments. */
+				_n( '%s comment moved to the Trash.', '%s comments moved to the Trash.', $trashed ),
+				$trashed
+			) . sprintf(
+				' <a href="%1$s">%2$s</a><br />',
+				esc_url( wp_nonce_url( "edit-comments.php?doaction=undo&action=untrash&ids=$ids", 'bulk-comments' ) ),
+				__( 'Undo' )
+			);
 		}
 
 		if ( $untrashed > 0 ) {
-			/* translators: %s: Number of comments. */
-			$messages[] = sprintf( _n( '%s comment restored from the Trash.', '%s comments restored from the Trash.', $untrashed ), $untrashed );
+			$messages[] = sprintf(
+				/* translators: %s: Number of comments. */
+				_n( '%s comment restored from the Trash.', '%s comments restored from the Trash.', $untrashed ),
+				$untrashed
+			);
 		}
 
 		if ( $deleted > 0 ) {
-			/* translators: %s: Number of comments. */
-			$messages[] = sprintf( _n( '%s comment permanently deleted.', '%s comments permanently deleted.', $deleted ), $deleted );
+			$messages[] = sprintf(
+				/* translators: %s: Number of comments. */
+				_n( '%s comment permanently deleted.', '%s comments permanently deleted.', $deleted ),
+				$deleted
+			);
 		}
 
 		if ( $same > 0 ) {
@@ -333,19 +393,38 @@ if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $
 			if ( $comment ) {
 				switch ( $comment->comment_approved ) {
 					case '1':
-						$messages[] = __( 'This comment is already approved.' ) . ' <a href="' . esc_url( admin_url( "comment.php?action=editcomment&c=$same" ) ) . '">' . __( 'Edit comment' ) . '</a>';
+						$messages[] = __( 'This comment is already approved.' ) . sprintf(
+							' <a href="%1$s">%2$s</a>',
+							esc_url( admin_url( "comment.php?action=editcomment&c=$same" ) ),
+							__( 'Edit comment' )
+						);
 						break;
 					case 'trash':
-						$messages[] = __( 'This comment is already in the Trash.' ) . ' <a href="' . esc_url( admin_url( 'edit-comments.php?comment_status=trash' ) ) . '"> ' . __( 'View Trash' ) . '</a>';
+						$messages[] = __( 'This comment is already in the Trash.' ) . sprintf(
+							' <a href="%1$s">%2$s</a>',
+							esc_url( admin_url( 'edit-comments.php?comment_status=trash' ) ),
+							__( 'View Trash' )
+						);
 						break;
 					case 'spam':
-						$messages[] = __( 'This comment is already marked as spam.' ) . ' <a href="' . esc_url( admin_url( "comment.php?action=editcomment&c=$same" ) ) . '">' . __( 'Edit comment' ) . '</a>';
+						$messages[] = __( 'This comment is already marked as spam.' ) . sprintf(
+							' <a href="%1$s">%2$s</a>',
+							esc_url( admin_url( "comment.php?action=editcomment&c=$same" ) ),
+							__( 'Edit comment' )
+						);
 						break;
 				}
 			}
 		}
 
-		echo '<div id="moderated" class="updated notice is-dismissible"><p>' . implode( "<br />\n", $messages ) . '</p></div>';
+		wp_admin_notice(
+			implode( "<br />\n", $messages ),
+			array(
+				'id'                 => 'moderated',
+				'additional_classes' => array( 'updated' ),
+				'dismissible'        => true,
+			)
+		);
 	}
 }
 ?>

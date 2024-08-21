@@ -72,7 +72,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$class = get_called_class();
 
 		if ( method_exists( $class, 'wpSetUpBeforeClass' ) ) {
-			call_user_func( array( $class, 'wpSetUpBeforeClass' ), self::factory() );
+			call_user_func( array( $class, 'wpSetUpBeforeClass' ), static::factory() );
 		}
 
 		self::commit_transaction();
@@ -102,7 +102,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	public function set_up() {
 		set_time_limit( 0 );
 
-		$this->factory = self::factory();
+		$this->factory = static::factory();
 
 		if ( ! self::$ignore_files ) {
 			self::$ignore_files = $this->scan_user_uploads();
@@ -142,15 +142,18 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * After a test method runs, resets any state in WordPress the test method might have changed.
 	 */
 	public function tear_down() {
-		global $wpdb, $wp_query, $wp;
+		global $wpdb, $wp_the_query, $wp_query, $wp;
 		$wpdb->query( 'ROLLBACK' );
 		if ( is_multisite() ) {
 			while ( ms_is_switched() ) {
 				restore_current_blog();
 			}
 		}
-		$wp_query = new WP_Query();
-		$wp       = new WP();
+
+		// Reset query, main query, and WP globals similar to wp-settings.php.
+		$wp_the_query = new WP_Query();
+		$wp_query     = $wp_the_query;
+		$wp           = new WP();
 
 		// Reset globals related to the post loop and `setup_postdata()`.
 		$post_globals = array( 'post', 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' );
@@ -187,6 +190,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		 */
 		$GLOBALS['wp_sitemaps'] = null;
 
+		// Reset template globals.
+		$GLOBALS['wp_stylesheet_path'] = null;
+		$GLOBALS['wp_template_path']   = null;
+
 		$this->unregister_all_meta_keys();
 		remove_theme_support( 'html5' );
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
@@ -195,9 +202,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->_restore_hooks();
 		wp_set_current_user( 0 );
 
-		$lazyloader = wp_metadata_lazyloader();
-		$lazyloader->reset_queue( 'term' );
-		$lazyloader->reset_queue( 'comment' );
+		$this->reset_lazyload_queue();
 	}
 
 	/**
@@ -273,7 +278,16 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		if ( 0 === strpos( $response->get_error_message(), 'stream_socket_client(): unable to connect to tcp://s.w.org:80' ) ) {
 			$this->markTestSkipped( 'HTTP timeout' );
 		}
+	}
 
+	/**
+	 * Reset the lazy load meta queue.
+	 */
+	protected function reset_lazyload_queue() {
+		$lazyloader = wp_metadata_lazyloader();
+		$lazyloader->reset_queue( 'term' );
+		$lazyloader->reset_queue( 'comment' );
+		$lazyloader->reset_queue( 'blog' );
 	}
 
 	/**
@@ -380,12 +394,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	public static function flush_cache() {
 		global $wp_object_cache;
 
-		$wp_object_cache->group_ops      = array();
-		$wp_object_cache->stats          = array();
-		$wp_object_cache->memcache_debug = array();
-		$wp_object_cache->cache          = array();
+		wp_cache_flush_runtime();
 
-		if ( method_exists( $wp_object_cache, '__remoteset' ) ) {
+		if ( is_object( $wp_object_cache ) && method_exists( $wp_object_cache, '__remoteset' ) ) {
 			$wp_object_cache->__remoteset();
 		}
 
@@ -405,12 +416,13 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 				'site-options',
 				'site-queries',
 				'site-transient',
+				'theme_files',
 				'rss',
 				'users',
+				'user-queries',
+				'user_meta',
 				'useremail',
 				'userlogins',
-				'usermeta',
-				'user_meta',
 				'userslugs',
 			)
 		);
@@ -560,12 +572,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		add_action( 'deprecated_function_run', array( $this, 'deprecated_function_run' ), 10, 3 );
 		add_action( 'deprecated_argument_run', array( $this, 'deprecated_function_run' ), 10, 3 );
+		add_action( 'deprecated_class_run', array( $this, 'deprecated_function_run' ), 10, 3 );
 		add_action( 'deprecated_file_included', array( $this, 'deprecated_function_run' ), 10, 4 );
 		add_action( 'deprecated_hook_run', array( $this, 'deprecated_function_run' ), 10, 4 );
 		add_action( 'doing_it_wrong_run', array( $this, 'doing_it_wrong_run' ), 10, 3 );
 
 		add_action( 'deprecated_function_trigger_error', '__return_false' );
 		add_action( 'deprecated_argument_trigger_error', '__return_false' );
+		add_action( 'deprecated_class_trigger_error', '__return_false' );
 		add_action( 'deprecated_file_trigger_error', '__return_false' );
 		add_action( 'deprecated_hook_trigger_error', '__return_false' );
 		add_action( 'doing_it_wrong_trigger_error', '__return_false' );
@@ -738,6 +752,23 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 					}
 					break;
 
+				case 'deprecated_class_run':
+					if ( $replacement ) {
+						$message = sprintf(
+							'Class %1$s is deprecated since version %2$s! Use %3$s instead.',
+							$function_name,
+							$version,
+							$replacement
+						);
+					} else {
+						$message = sprintf(
+							'Class %1$s is deprecated since version %2$s with no alternative available.',
+							$function_name,
+							$version
+						);
+					}
+					break;
+
 				case 'deprecated_file_included':
 					if ( $replacement ) {
 						$message = sprintf(
@@ -861,7 +892,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->assertNotEmpty( $fields, $message . ' Fields array is empty.' );
 
 		foreach ( $fields as $field_name => $field_value ) {
-			$this->assertObjectHasAttribute( $field_name, $actual, $message . " Property $field_name does not exist on the object." );
+			$this->assertObjectHasProperty( $field_name, $actual, $message . " Property $field_name does not exist on the object." );
 			$this->assertSame( $field_value, $actual->$field_name, $message . " Value of property $field_name is not $field_value." );
 		}
 	}
@@ -1611,7 +1642,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Touches the given file and its directory if it doesn't already exist.
 	 *
-	 * This can be used to ensure a file that is implictly relied on in a test exists
+	 * This can be used to ensure a file that is implicitly relied on in a test exists
 	 * without it having to be built.
 	 *
 	 * @param string $file The file name.

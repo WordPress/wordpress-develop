@@ -10,6 +10,8 @@
  * @subpackage Meta
  */
 
+require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
+
 /**
  * Adds metadata for the specified object.
  *
@@ -908,8 +910,10 @@ function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = 
 		$original_key = $meta->meta_key;
 		$object_id    = $meta->{$column};
 
-		// If a new meta_key (last parameter) was specified, change the meta key,
-		// otherwise use the original key in the update statement.
+		/*
+		 * If a new meta_key (last parameter) was specified, change the meta key,
+		 * otherwise use the original key in the update statement.
+		 */
 		if ( false === $meta_key ) {
 			$meta_key = $original_key;
 		} elseif ( ! is_string( $meta_key ) ) {
@@ -1363,6 +1367,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  * @since 4.9.8 The `$object_subtype` argument was added to the arguments array.
  * @since 5.3.0 Valid meta types expanded to include "array" and "object".
  * @since 5.5.0 The `$default` argument was added to the arguments array.
+ * @since 6.4.0 The `$revisions_enabled` argument was added to the arguments array.
  *
  * @param string       $object_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
  *                                  or any other object type with an associated meta table.
@@ -1388,6 +1393,8 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *                                         support for custom fields for registered meta to be accessible via REST.
  *                                         When registering complex meta values this argument may optionally be an
  *                                         array with 'schema' or 'prepare_callback' keys instead of a boolean.
+ *     @type bool       $revisions_enabled Whether to enable revisions support for this meta_key. Can only be used when the
+ *                                         object type is 'post'.
  * }
  * @param string|array $deprecated Deprecated. Use `$args` instead.
  * @return bool True if the meta key was successfully registered in the global array, false if not.
@@ -1410,6 +1417,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 		'sanitize_callback' => null,
 		'auth_callback'     => null,
 		'show_in_rest'      => false,
+		'revisions_enabled' => false,
 	);
 
 	// There used to be individual args for sanitize and auth callbacks.
@@ -1456,6 +1464,17 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	}
 
 	$object_subtype = ! empty( $args['object_subtype'] ) ? $args['object_subtype'] : '';
+	if ( $args['revisions_enabled'] ) {
+		if ( 'post' !== $object_type ) {
+			_doing_it_wrong( __FUNCTION__, __( 'Meta keys cannot enable revisions support unless the object type supports revisions.' ), '6.4.0' );
+
+			return false;
+		} elseif ( ! empty( $object_subtype ) && ! post_type_supports( $object_subtype, 'revisions' ) ) {
+			_doing_it_wrong( __FUNCTION__, __( 'Meta keys cannot enable revisions support unless the object subtype supports revisions.' ), '6.4.0' );
+
+			return false;
+		}
+	}
 
 	// If `auth_callback` is not provided, fall back to `is_protected_meta()`.
 	if ( empty( $args['auth_callback'] ) ) {

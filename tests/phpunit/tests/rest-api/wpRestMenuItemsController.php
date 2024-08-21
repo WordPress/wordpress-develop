@@ -156,8 +156,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
-		sort( $keys );
-		$this->assertSame( array( 'context', 'id' ), $keys );
+		$this->assertEqualSets( array( 'context', 'id' ), $keys );
 	}
 
 	/**
@@ -743,7 +742,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 18, count( $properties ) );
+		$this->assertCount( 18, $properties );
 		$this->assertArrayHasKey( 'type_label', $properties );
 		$this->assertArrayHasKey( 'attr_title', $properties );
 		$this->assertArrayHasKey( 'classes', $properties );
@@ -863,8 +862,10 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		// Check filtered values.
 		if ( post_type_supports( self::POST_TYPE, 'title' ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 			$this->assertSame( $post->title, $data['title']['rendered'] );
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 			if ( 'edit' === $context ) {
 				$this->assertSame( $post->title, $data['title']['raw'] );
 			} else {
@@ -918,7 +919,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 			foreach ( $taxonomies as $taxonomy ) {
 				$this->assertSame( $taxonomy->name, $links['https://api.w.org/term'][ $num ]['attributes']['taxonomy'] );
 				$this->assertSame( add_query_arg( 'post', $data['id'], rest_url( 'wp/v2/' . $taxonomy->rest_base ) ), $links['https://api.w.org/term'][ $num ]['href'] );
-				$num++;
+				++$num;
 			}
 
 			if ( 'post_type' === $data['type'] ) {

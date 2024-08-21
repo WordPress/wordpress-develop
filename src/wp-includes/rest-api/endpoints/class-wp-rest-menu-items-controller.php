@@ -57,7 +57,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object or false otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$permission_check = parent::get_item_permissions_check( $request );
@@ -77,7 +77,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error Whether the current user has permission.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	protected function check_has_read_only_access( $request ) {
 		if ( current_user_can( 'edit_theme_options' ) ) {
@@ -510,6 +510,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 
 			/** This filter is documented in wp-includes/post-template.php */
 			$title = apply_filters( 'the_title', $menu_item->title, $menu_item->ID );
@@ -517,6 +518,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			$data['title']['rendered'] = $title;
 
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 		}
 
 		if ( rest_is_field_included( 'status', $fields ) ) {
@@ -710,6 +712,10 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
 		$schema = array(
 			'$schema' => 'http://json-schema.org/draft-04/schema#',
 			'title'   => $this->post_type,
@@ -792,7 +798,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			),
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'arg_options' => array(
-				'sanitize_callback' => function ( $value ) {
+				'sanitize_callback' => static function ( $value ) {
 					return array_map( 'sanitize_html_class', wp_parse_list( $value ) );
 				},
 			),
@@ -873,7 +879,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			),
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'arg_options' => array(
-				'sanitize_callback' => function ( $value ) {
+				'sanitize_callback' => static function ( $value ) {
 					return array_map( 'sanitize_html_class', wp_parse_list( $value ) );
 				},
 			),
@@ -914,7 +920,9 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			$schema['links'] = $schema_links;
 		}
 
-		return $this->add_additional_fields_schema( $schema );
+		$this->schema = $schema;
+
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 
 	/**
