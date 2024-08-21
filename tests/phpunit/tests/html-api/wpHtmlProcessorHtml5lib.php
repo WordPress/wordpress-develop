@@ -116,7 +116,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 				$test_context_element = $test[1];
 
-				if ( self::should_skip_test( $test_context_element, $test_name, $test[3] ) ) {
+				if ( self::should_skip_test( $test_context_element, $test_name ) ) {
 					continue;
 				}
 
@@ -134,7 +134,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *
 	 * @return bool True if the test case should be skipped. False otherwise.
 	 */
-	private static function should_skip_test( ?string $test_context_element, string $test_name, string $expected_tree ): bool {
+	private static function should_skip_test( ?string $test_context_element, string $test_name ): bool {
 		if ( null !== $test_context_element && 'body' !== $test_context_element ) {
 			return true;
 		}
