@@ -308,6 +308,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$context_node = self::parse_context_element( $context );
+		var_dump( $context_node );
 		if ( null === $context_node ) {
 			_doing_it_wrong(
 				__FUNCTION__,
