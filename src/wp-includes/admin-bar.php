@@ -86,7 +86,7 @@ function wp_admin_bar_render() {
 	/**
 	 * Loads all necessary admin bar items.
 	 *
-	 * This is the hook used to add, remove, or manipulate admin bar items.
+	 * This is the hook used to add, remove, or manipulate admin bar items. The recommended hook instead of this is wp_before_admin_bar_render.
 	 *
 	 * @since 3.1.0
 	 *
