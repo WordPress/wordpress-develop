@@ -1255,6 +1255,10 @@ button.toggle {
 	margin-left: auto;
 }
 
+.aligncenter figcaption {
+	text-align: center;
+}
+
 /* Search Form ------------------------------- */
 
 .search-form {
@@ -3293,6 +3297,19 @@ figure.wp-block-gallery.alignfull {
 
 .wp-block-pullquote.alignright::before {
 	margin-left: 0;
+}
+
+.wp-block-pullquote[class*="-font-size"] p,
+.wp-block-pullquote[style*="font-size"] p {
+	font-size: inherit;
+}
+
+.wp-block-pullquote[style*="font-weight"] p {
+	font-weight: inherit;
+}
+
+.wp-block-pullquote[style*="letter-spacing"] p {
+	letter-spacing: inherit;
 }
 
 /* STYLE: SOLID BACKGROUND COLOR */
@@ -5937,10 +5954,6 @@ a.to-the-top > * {
 	.wp-block-image .alignright {
 		margin-left: 0;
 	}
-
-    .wp-block-image .aligncenter figcaption {
-        text-align: center;
-    }
 
 	/* BLOCK: SEPARATOR */
 
