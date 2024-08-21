@@ -226,20 +226,28 @@ final class WP_Term {
 	 * Getter.
 	 *
 	 * @since 4.4.0
+	 * @since 6.7.0 Getting a dynamic property is deprecated.
 	 *
 	 * @param string $key Property to get.
 	 * @return mixed Property value.
 	 */
-	public function __get( $key ) {
-		switch ( $key ) {
-			case 'data':
-				$data    = new stdClass();
-				$columns = array( 'term_id', 'name', 'slug', 'term_group', 'term_taxonomy_id', 'taxonomy', 'description', 'parent', 'count' );
-				foreach ( $columns as $column ) {
-					$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
-				}
+	public function __get( $name ) {
+		if ( 'data' === $name ) {
+			$data    = new stdClass();
+			$columns = array( 'term_id', 'name', 'slug', 'term_group', 'term_taxonomy_id', 'taxonomy', 'description', 'parent', 'count' );
+			foreach ( $columns as $column ) {
+				$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
+			}
 
-				return sanitize_term( $data, $data->taxonomy, 'raw' );
+			return sanitize_term( $data, $data->taxonomy, 'raw' );
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"The property `{$name}` is not declared. Getting a dynamic property is " .
+			'deprecated since version 6.7.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
+		return null;
 	}
 }
