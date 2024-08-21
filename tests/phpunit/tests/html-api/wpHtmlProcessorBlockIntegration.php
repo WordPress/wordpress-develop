@@ -42,45 +42,26 @@ class Tests_HtmlApi_WpHtmlProcessorBlockIntegration extends WP_UnitTestCase {
 	 * Data provider.
 	 */
 	public static function data_do_block_test_filenames() {
-		$fixture_filenames = array_merge(
-			glob( self::FIXTURES_DIR . '/*.json' ),
-			glob( self::FIXTURES_DIR . '/*.html' )
-		);
+		$fixture_filenames = glob( self::FIXTURES_DIR . '/*.html' );
 
 		$fixture_filenames = array_values(
 			array_unique(
 				array_map(
-					array( __CLASS__, 'clean_fixture_filename' ),
+					function ( string $filename ): string {
+						$filename = wp_basename( $filename );
+						$filename = preg_replace( '/\..+$/', '.html', $filename );
+						return $filename;
+					},
 					$fixture_filenames
 				)
 			)
 		);
 
 		return array_map(
-			array( __CLASS__, 'pass_parser_fixture_filenames' ),
+			function ( string $filename ): array {
+				return array( $filename );
+			},
 			$fixture_filenames
 		);
-	}
-
-	/**
-	 * Helper function to remove relative paths and extension from a filename, leaving just the fixture name.
-	 *
-	 * @param string $filename The filename to clean.
-	 * @return string The cleaned fixture name.
-	 */
-	private static function clean_fixture_filename( $filename ) {
-		$filename = wp_basename( $filename );
-		$filename = preg_replace( '/\..+$/', '', $filename );
-		return $filename;
-	}
-
-	/**
-	 * Helper function to return the filenames needed to test the parser output.
-	 *
-	 * @param string $filename The cleaned fixture name.
-	 * @return array The input and expected output filenames for that fixture.
-	 */
-	private static function pass_parser_fixture_filenames( $filename ) {
-		return array( "$filename.html" );
 	}
 }
