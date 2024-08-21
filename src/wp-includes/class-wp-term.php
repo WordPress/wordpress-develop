@@ -111,6 +111,28 @@ final class WP_Term {
 	public $object_id;
 
 	/**
+	 * Term's ID.
+	 *
+	 * Same as the WP_Term::$term_id property.
+	 * Previously a known, named dynamic property added by wp_tag_cloud().
+	 *
+	 * @since 6.7.0
+	 * @var int
+	 */
+	public $id;
+
+	/**
+	 * Term's link.
+	 *
+	 * Does not correspond to a database field.
+	 * Previously a known, named dynamic property added by wp_tag_cloud().
+	 *
+	 * @since 6.7.0
+	 * @var string
+	 */
+	public $link;
+
+	/**
 	 * Retrieve WP_Term instance.
 	 *
 	 * @since 4.4.0
