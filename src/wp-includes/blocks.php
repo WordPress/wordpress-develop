@@ -1052,8 +1052,8 @@ function apply_block_hooks_to_content( $content, $context, $callback = 'insert_h
 	$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
 	$after_block_visitor  = null;
 	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $pattern, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
-		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $pattern, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
+		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $context, $callback );
+		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $context, $callback );
 	}
 
 	$blocks = parse_blocks( $content );
