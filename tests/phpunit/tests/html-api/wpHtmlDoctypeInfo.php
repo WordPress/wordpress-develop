@@ -21,7 +21,7 @@ class Tests_HtmlApi_WpHtmlDoctypeInfo extends WP_UnitTestCase {
 	 */
 	public function test_doctype_doc_info(
 		string $html,
-		string $expected_compat_mode = 'no-quirks',
+		string $expected_compat_mode,
 		?string $expected_name = null,
 		?string $expected_public_id = null,
 		?string $expected_system_id = null
