@@ -1151,6 +1151,7 @@ module.exports = function(grunt) {
 						flatten: true,
 						src: [
 							BUILD_DIR + 'wp-includes/js/dist/block-editor.js',
+							BUILD_DIR + 'wp-includes/js/dist/commands.js',
 						],
 						dest: BUILD_DIR + 'wp-includes/js/dist/'
 					}
