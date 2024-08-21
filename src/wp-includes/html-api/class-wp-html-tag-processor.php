@@ -3196,7 +3196,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether the currently-matched token is a self-contained element.
 	 */
-	public function is_self_contained(): bool {
+	public function is_self_contained_tag(): bool {
 		return (
 			self::STATE_MATCHED_TAG === $this->parser_state &&
 			! $this->is_tag_closer() &&
