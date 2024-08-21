@@ -16,16 +16,14 @@ class Tests_HtmlApi_WpHtmlProcessorBlockIntegration extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_do_block_test_filenames
+	 *
 	 * @ticket TBD
 	 */
-	public function test_do_block_output( $html_filename, $server_html_filename ) {
-		$html_path        = self::FIXTURES_DIR . '/' . $html_filename;
-		$server_html_path = self::FIXTURES_DIR . '/' . $server_html_filename;
+	public function test_do_block_output( string $html_filename ) {
+		$html_path = self::FIXTURES_DIR . '/' . $html_filename;
 
-		foreach ( array( $html_path, $server_html_path ) as $filename ) {
-			if ( ! file_exists( $filename ) ) {
-				throw new Exception( "Missing fixture file: '$filename'" );
-			}
+		if ( ! file_exists( $html_path ) ) {
+			throw new Exception( "Missing fixture file: '$html_path'" );
 		}
 
 		$html = do_blocks( file_get_contents( $html_path ) );
@@ -41,9 +39,9 @@ class Tests_HtmlApi_WpHtmlProcessorBlockIntegration extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket TBD
+	 * Data provider.
 	 */
-	public function data_do_block_test_filenames() {
+	public static function data_do_block_test_filenames() {
 		$fixture_filenames = array_merge(
 			glob( self::FIXTURES_DIR . '/*.json' ),
 			glob( self::FIXTURES_DIR . '/*.html' )
@@ -83,9 +81,6 @@ class Tests_HtmlApi_WpHtmlProcessorBlockIntegration extends WP_UnitTestCase {
 	 * @return array The input and expected output filenames for that fixture.
 	 */
 	private static function pass_parser_fixture_filenames( $filename ) {
-		return array(
-			"$filename.html",
-			"$filename.server.html",
-		);
+		return array( "$filename.html" );
 	}
 }
