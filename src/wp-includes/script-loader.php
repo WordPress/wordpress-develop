@@ -42,11 +42,10 @@ function wp_register_tinymce_scripts( $scripts, $force_uncompressed = false ) {
 
 	script_concat_settings();
 
-	$compressed = $compress_scripts && $concatenate_scripts && isset( $_SERVER['HTTP_ACCEPT_ENCODING'] )
-		&& false !== stripos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip' ) && ! $force_uncompressed;
+	$compressed = $compress_scripts && $concatenate_scripts && ! $force_uncompressed;
 
 	/*
-	 * Load tinymce.js when running from /src, otherwise load wp-tinymce.js.gz (in production)
+	 * Load tinymce.js when running from /src, otherwise load wp-tinymce.js (in production)
 	 * or tinymce.min.js (when SCRIPT_DEBUG is true).
 	 */
 	if ( $compressed ) {
@@ -1027,7 +1026,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'json2', "/wp-includes/js/json2$suffix.js", array(), '2015-05-03' );
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', 'lt IE 8' );
 
-	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.4', 1 );
+	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.7', 1 );
 	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.6.0', 1 );
 
 	$scripts->add( 'wp-util', "/wp-includes/js/wp-util$suffix.js", array( 'underscore', 'jquery' ), false, 1 );
