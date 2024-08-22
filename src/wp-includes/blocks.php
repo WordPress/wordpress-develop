@@ -385,6 +385,7 @@ function get_block_metadata_i18n_schema() {
  * @since 6.3.0 Added `selectors` field.
  * @since 6.4.0 Added support for `blockHooks` field.
  * @since 6.5.0 Added support for `allowedBlocks`, `viewScriptModule`, and `viewStyle` fields.
+ * @since 6.7.0 Allow PHP filename as `variations` argument.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -519,6 +520,34 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 				require $template_path;
 				return ob_get_clean();
 			};
+		}
+	}
+
+	// If `variations` is a string, it's the name of a PHP file that
+	// generates the variations.
+	if ( ! empty( $metadata['variations'] ) && is_string( $metadata['variations'] ) ) {
+		$variations_path = wp_normalize_path(
+			realpath(
+				dirname( $metadata['file'] ) . '/' .
+				remove_block_asset_path_prefix( $metadata['variations'] )
+			)
+		);
+		if ( $variations_path ) {
+			/**
+			 * Generates the list of block variations.
+			 *
+			 * @since 6.7.0
+			 *
+			 * @return string Returns the list of block variations.
+			 */
+			$settings['variation_callback'] = static function () use ( $variations_path ) {
+				$variations = require $variations_path;
+				return $variations;
+			};
+			// The block instance's `variations` field is only allowed to be an array
+			// (of known block variations). We unset it so that the block instance will
+			// provide a getter that returns the result of the `variation_callback` instead.
+			unset( $settings['variations'] );
 		}
 	}
 
@@ -1046,6 +1075,23 @@ function remove_serialized_parent_block( $serialized_block ) {
 }
 
 /**
+ * Accepts the serialized markup of a block and its inner blocks, and returns serialized markup of the wrapper block.
+ *
+ * @since 6.7.0
+ * @access private
+ *
+ * @see remove_serialized_parent_block()
+ *
+ * @param string $serialized_block The serialized markup of a block and its inner blocks.
+ * @return string The serialized markup of the wrapper block.
+ */
+function extract_serialized_parent_block( $serialized_block ) {
+	$start = strpos( $serialized_block, '-->' ) + strlen( '-->' );
+	$end   = strrpos( $serialized_block, '<!--' );
+	return substr( $serialized_block, 0, $start ) . substr( $serialized_block, $end );
+}
+
+/**
  * Updates the wp_postmeta with the list of ignored hooked blocks where the inner blocks are stored as post content.
  * Currently only supports `wp_navigation` post types.
  *
@@ -1095,7 +1141,10 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		$post->post_content
 	);
 
-	$serialized_block = apply_block_hooks_to_content( $markup, get_post( $post->ID ), 'set_ignored_hooked_blocks_metadata' );
+	$existing_post = get_post( $post->ID );
+	// Merge the existing post object with the updated post object to pass to the block hooks algorithm for context.
+	$context          = (object) array_merge( (array) $existing_post, (array) $post );
+	$serialized_block = apply_block_hooks_to_content( $markup, $context, 'set_ignored_hooked_blocks_metadata' );
 	$root_block       = parse_blocks( $serialized_block )[0];
 
 	$ignored_hooked_blocks = isset( $root_block['attrs']['metadata']['ignoredHookedBlocks'] )
@@ -1108,7 +1157,11 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 			$existing_ignored_hooked_blocks = json_decode( $existing_ignored_hooked_blocks, true );
 			$ignored_hooked_blocks          = array_unique( array_merge( $ignored_hooked_blocks, $existing_ignored_hooked_blocks ) );
 		}
-		update_post_meta( $post->ID, '_wp_ignored_hooked_blocks', json_encode( $ignored_hooked_blocks ) );
+
+		if ( ! isset( $post->meta_input ) ) {
+			$post->meta_input = array();
+		}
+		$post->meta_input['_wp_ignored_hooked_blocks'] = json_encode( $ignored_hooked_blocks );
 	}
 
 	$post->post_content = remove_serialized_parent_block( $serialized_block );
@@ -1774,17 +1827,16 @@ function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = ar
 	return $value;
 }
 
-
 /**
  * Sanitizes the value of the Template Part block's `tagName` attribute.
  *
  * @since 6.5.5
  *
- * @param string          $attribute_value   The attribute value to filter.
- * @param string          $attribute_name    The attribute name.
- * @param array[]|string  $allowed_html      An array of allowed HTML elements and attributes,
- *                                           or a context name such as 'post'. See wp_kses_allowed_html()
- *                                           for the list of accepted context names.
+ * @param string         $attribute_value The attribute value to filter.
+ * @param string         $attribute_name  The attribute name.
+ * @param array[]|string $allowed_html    An array of allowed HTML elements and attributes,
+ *                                        or a context name such as 'post'. See wp_kses_allowed_html()
+ *                                        for the list of accepted context names.
  * @return string The sanitized attribute value.
  */
 function filter_block_core_template_part_attributes( $attribute_value, $attribute_name, $allowed_html ) {

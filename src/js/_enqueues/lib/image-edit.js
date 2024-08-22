@@ -186,7 +186,7 @@
 	/**
 	 * Calculate the image size and save it to memory.
 	 *
-	 * @since 6.6.0
+	 * @since 6.7.0
 	 *
 	 * @memberof imageEdit
 	 *
