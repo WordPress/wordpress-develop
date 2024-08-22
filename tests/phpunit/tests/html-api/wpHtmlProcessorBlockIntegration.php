@@ -26,7 +26,7 @@ class Tests_HtmlApi_WpHtmlProcessorBlockIntegration extends WP_UnitTestCase {
 			throw new Exception( "Missing fixture file: '$html_path'" );
 		}
 
-		$html = do_blocks( file_get_contents( $html_path ) );
+		$html = file_get_contents( $html_path );
 
 		$processor = WP_HTML_Processor::create_fragment( $html );
 		while ( $processor->next_token() ) {
@@ -42,7 +42,7 @@ class Tests_HtmlApi_WpHtmlProcessorBlockIntegration extends WP_UnitTestCase {
 	 * Data provider.
 	 */
 	public static function data_do_block_test_filenames() {
-		$fixture_filenames = glob( self::FIXTURES_DIR . '/*.html' );
+		$fixture_filenames = glob( self::FIXTURES_DIR . '/*.server.html' );
 
 		$fixture_filenames = array_values(
 			array_unique(
