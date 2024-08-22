@@ -3997,7 +3997,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A comment token
 			 */
-			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
@@ -4085,7 +4084,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A comment token
 			 */
-			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
@@ -4206,7 +4204,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A comment token
 			 */
-			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
@@ -4269,7 +4266,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A comment token
 			 */
-			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
@@ -4334,7 +4330,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A comment token
 			 */
-			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
