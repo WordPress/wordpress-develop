@@ -190,6 +190,8 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 	 * @param float $partial_hour Partial hour GMT offset to test.
 	 */
 	public function test_partial_hour_timezones_with_timestamp( $partial_hour ) {
+		// Ensure `wp_timezone_override_offset()` doesn't override offset.
+		update_option( 'timezone_string', '' );
 		update_option( 'gmt_offset', $partial_hour );
 
 		$expected = time() + (int) ( $partial_hour * HOUR_IN_SECONDS );
