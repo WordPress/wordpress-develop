@@ -4113,7 +4113,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
-			 * A CDATA section should behave just like a text.
+			 * A CDATA section is effectively a text node and should have similar handling.
 			 */
 			case '#cdata-section':
 				/*
