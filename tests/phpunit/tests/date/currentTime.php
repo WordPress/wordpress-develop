@@ -143,7 +143,7 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_timezones() {
 		return array(
@@ -233,7 +233,7 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_partial_hour_timezones_with_timestamp() {
 		return array(
