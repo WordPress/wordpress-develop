@@ -183,6 +183,8 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures the offset applied in current_time() is correct.
+	 *
 	 * @ticket 57998
 	 *
 	 * @dataProvider data_partial_hour_timezones_with_timestamp
