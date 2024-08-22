@@ -4113,9 +4113,25 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
-			 * > A comment token
+			 * A CDATA section should behave just like a text.
 			 */
 			case '#cdata-section':
+				/*
+				 * NULL bytes and whitespace do not change the frameset-ok flag.
+				 */
+				$current_token        = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+				$cdata_content_start  = $current_token->start + 9;
+				$cdata_content_length = $current_token->length - 12;
+				if ( $cdata_content_length !== strspn( $this->html, "\0 \t\n\f\r", $cdata_content_start, $cdata_content_length ) ) {
+					$this->state->frameset_ok = false;
+				}
+
+				$this->insert_foreign_element( $this->state->current_token, false );
+				return true;
+
+			/*
+			 * > A comment token
+			 */
 			case '#comment':
 			case '#funky_comment':
 				$this->insert_foreign_element( $this->state->current_token, false );
