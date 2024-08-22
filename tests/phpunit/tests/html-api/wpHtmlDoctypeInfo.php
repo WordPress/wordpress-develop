@@ -15,9 +15,9 @@ class Tests_HtmlApi_WpHtmlDoctypeInfo extends WP_UnitTestCase {
 	/**
 	 * Test DOCTYPE handling.
 	 *
-	 * @dataProvider data_doctypes
-	 *
 	 * @ticket 61576
+	 *
+	 * @dataProvider data_parseable_raw_doctypes
 	 */
 	public function test_doctype_doc_info(
 		string $html,
@@ -26,12 +26,35 @@ class Tests_HtmlApi_WpHtmlDoctypeInfo extends WP_UnitTestCase {
 		?string $expected_public_id = null,
 		?string $expected_system_id = null
 	) {
-		$doctype = WP_HTML_Doctype_Info::from_html( $html );
-		$this->assertNotNull( $doctype );
-		$this->assertSame( $expected_compat_mode, $doctype->compatibility_mode );
-		$this->assertSame( $expected_name, $doctype->name );
-		$this->assertSame( $expected_public_id, $doctype->public_identifier );
-		$this->assertSame( $expected_system_id, $doctype->system_identifier );
+		$doctype = WP_HTML_Doctype_Info::from_doctype_token( $html );
+		$this->assertNotNull(
+			$doctype,
+			"Should have parsed the following doctype declaration: {$html}"
+		);
+
+		$this->assertSame(
+			$expected_compat_mode,
+			$doctype->indicated_compatability_mode,
+			'Failed to infer the expected document compatability mode.'
+		);
+
+		$this->assertSame(
+			$expected_name,
+			$doctype->name,
+			'Failed to parse the expected DOCTYPE name.'
+		);
+
+		$this->assertSame(
+			$expected_public_id,
+			$doctype->public_identifier,
+			'Failed to parse the expected DOCTYPE public identifier.'
+		);
+
+		$this->assertSame(
+			$expected_system_id,
+			$doctype->system_identifier,
+			'Failed to parse the expected DOCTYPE system identifier.'
+		);
 	}
 
 	/**
@@ -39,7 +62,7 @@ class Tests_HtmlApi_WpHtmlDoctypeInfo extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_doctypes(): array {
+	public static function data_parseable_raw_doctypes(): array {
 		return array(
 			'Missing doctype name'                      => array( '<!DOCTYPE>', 'quirks' ),
 			'HTML5 doctype'                             => array( '<!DOCTYPE html>', 'no-quirks', 'html' ),
@@ -74,7 +97,7 @@ class Tests_HtmlApi_WpHtmlDoctypeInfo extends WP_UnitTestCase {
 	 * @ticket 61576
 	 */
 	public function test_invalid_inputs_return_null( string $html ) {
-		$this->assertNull( WP_HTML_Doctype_Info::from_html( $html ) );
+		$this->assertNull( WP_HTML_Doctype_Info::from_doctype_token( $html ) );
 	}
 
 	/**

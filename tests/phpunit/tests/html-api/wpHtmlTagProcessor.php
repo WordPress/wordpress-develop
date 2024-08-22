@@ -2951,7 +2951,7 @@ HTML
 		$doctype = $processor->get_doctype_info();
 		$this->assertNotNull( $doctype );
 		$this->assertSame( 'html', $doctype->name );
-		$this->assertSame( 'no-quirks', $doctype->compatibility_mode );
+		$this->assertSame( 'no-quirks', $doctype->indicated_compatability_mode );
 		$this->assertNull( $doctype->public_identifier );
 		$this->assertNull( $doctype->system_identifier );
 	}
