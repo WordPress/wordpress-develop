@@ -165,49 +165,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that no new HTML elements are accidentally partially-supported.
-	 *
-	 * When introducing support for new HTML elements, there are multiple places
-	 * in the HTML Processor that need to be updated, until the time that the class
-	 * has full HTML5 support. Because of this, these tests lock down the interface
-	 * to ensure that support isn't accidentally updated in one place for a new
-	 * element while overlooked in another.
-	 *
-	 * @ticket 58517
-	 *
-	 * @covers WP_HTML_Processor::step
-	 *
-	 * @dataProvider data_unsupported_elements
-	 *
-	 * @param string $html HTML string containing unsupported elements.
-	 */
-	public function test_fails_when_encountering_unsupported_tag( $html ) {
-		$processor = WP_HTML_Processor::create_fragment( $html );
-
-		$this->assertFalse( $processor->step(), "Should not have stepped into unsupported {$processor->get_tag()} element." );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_unsupported_elements() {
-		$unsupported_elements = array(
-			'MATH',
-			'PLAINTEXT', // Neutralized.
-			'SVG',
-		);
-
-		$data = array();
-		foreach ( $unsupported_elements as $tag_name ) {
-			$data[ $tag_name ] = array( "<{$tag_name}>" );
-		}
-
-		return $data;
-	}
-
-	/**
 	 * @ticket 58517
 	 *
 	 * @dataProvider data_unsupported_markup
