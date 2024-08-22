@@ -4122,6 +4122,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$current_token        = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 				$cdata_content_start  = $current_token->start + 9;
 				$cdata_content_length = $current_token->length - 12;
+				// phpcs:ignore WordPress.PHP.YodaConditions.NotYoda -- A Yoda violation this is not.
 				if ( $cdata_content_length !== strspn( $this->html, "\0 \t\n\f\r", $cdata_content_start, $cdata_content_length ) ) {
 					$this->state->frameset_ok = false;
 				}
