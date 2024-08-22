@@ -197,6 +197,15 @@ class WP_HTML_Doctype_Info {
 		}
 
 		/*
+		 * Normative documents will contain the literal `<!DOCTYPE html>` with no
+		 * public or system identifiers; short-circuit to avoid extra parsing.
+		 */
+		if ( 'html' === $name && null === $public_identifier && null === $system_identifier ) {
+			$this->indicated_compatability_mode = 'no-quirks';
+			return;
+		}
+
+		/*
 		 * > The name is not "html".
 		 *
 		 * The tokenizer must report the name in lower case even if provided in
