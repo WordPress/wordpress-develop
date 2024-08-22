@@ -203,7 +203,7 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 	/**
 	 * Tests the tests.
 	 *
-	 * This is to ensure the data provider offsets are correct.
+	 * Ensures the offsets match the stated timezones in the data provider.
 	 *
 	 * @ticket 57998
 	 *
