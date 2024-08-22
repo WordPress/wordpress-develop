@@ -197,6 +197,7 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
 		$this->assertEqualsWithDelta( $expected, current_time( 'timestamp' ), 2, 'The timestamps should be equal' );
 	}
+
 	/**
 	 * Ensures the offset applied in current_time() is correct.
 	 *
