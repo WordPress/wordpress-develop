@@ -402,7 +402,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$this->assertNotEmpty( $terms );
 		foreach ( $terms as $term ) {
 			$this->assertInstanceOf( 'WP_Term', $term );
-			$this->assertObjectHasProperty( 'object_id', $term );
+			$this->assertIsInt( $term->object_id );
 		}
 
 		// Run again to check the cached response.
@@ -410,7 +410,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$this->assertNotEmpty( $terms );
 		foreach ( $terms as $term ) {
 			$this->assertInstanceOf( 'WP_Term', $term );
-			$this->assertObjectHasProperty( 'object_id', $term );
+			$this->assertIsInt( $term->object_id );
 		}
 	}
 

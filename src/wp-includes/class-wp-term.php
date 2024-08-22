@@ -14,7 +14,6 @@
  *
  * @property-read object $data Sanitized term data.
  */
-#[AllowDynamicProperties]
 final class WP_Term {
 
 	/**
@@ -98,6 +97,8 @@ final class WP_Term {
 	 * @var string
 	 */
 	public $filter = 'raw';
+
+	private $dynamic_properties = array();
 
 	/**
 	 * Retrieve WP_Term instance.
@@ -223,23 +224,66 @@ final class WP_Term {
 	}
 
 	/**
-	 * Getter.
+	 * Get a dynamic property.
 	 *
 	 * @since 4.4.0
+	 * @since 6.7.0 Added support for dynamic properties.
 	 *
-	 * @param string $key Property to get.
-	 * @return mixed Property value.
+	 * @param string $name Name of the dynamic property to get.
+	 * @return mixed Value of the dynamic property, if exists; otherwise null.
 	 */
-	public function __get( $key ) {
-		switch ( $key ) {
-			case 'data':
-				$data    = new stdClass();
-				$columns = array( 'term_id', 'name', 'slug', 'term_group', 'term_taxonomy_id', 'taxonomy', 'description', 'parent', 'count' );
-				foreach ( $columns as $column ) {
-					$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
-				}
-
-				return sanitize_term( $data, $data->taxonomy, 'raw' );
+	public function __get( $name ) {
+		if ( ! isset( $this->dynamic_properties[ $name ] ) ) {
+			$this->dynamic_properties[ $name ] = null;
 		}
+
+		// Get the db columns data.
+		if ( 'data' === $name ) {
+			$data    = new stdClass();
+			$columns = array( 'term_id', 'name', 'slug', 'term_group', 'term_taxonomy_id', 'taxonomy', 'description', 'parent', 'count' );
+			foreach ( $columns as $column ) {
+				$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
+			}
+
+			$this->dynamic_properties['data'] = sanitize_term( $data, $data->taxonomy, 'raw' );
+			return $this->dynamic_properties['data'];
+		}
+
+		return $this->dynamic_properties[ $name ];
+	}
+
+	/**
+	 * Set a dynamic property.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $name  Name of the dynamic property to set.
+	 * @param mixed  $value Value to set for the dynamic property.
+	 */
+	public function __set( $name, $value ) {
+		$this->dynamic_properties[ $name ] = $value;
+	}
+
+	/**
+	 * Determine if a dynamic property is declared and is different from null.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $name Name of dynamic property to check.
+	 * @return bool Whether the dyanmic property is set.
+	 */
+	public function __isset( $name ) {
+		return isset( $this->dynamic_properties[ $name ] );
+	}
+
+	/**
+	 * Unsets a dynamic property.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $name Name of the dynamic property to unset.
+	 */
+	public function __unset( $name ) {
+		unset( $this->dynamic_properties[ $name ] );
 	}
 }
