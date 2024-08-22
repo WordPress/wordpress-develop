@@ -183,6 +183,21 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures an empty offset does not cause a type error.
+	 *
+	 * @ticket 57998
+	 */
+	public function test_empty_offset_does_not_cause_a_type_error() {
+		// Ensure `wp_timezone_override_offset()` doesn't override offset.
+		update_option( 'timezone_string', '' );
+		update_option( 'gmt_offset', '' );
+
+		$expected = time();
+
+		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
+		$this->assertEqualsWithDelta( $expected, current_time( 'timestamp' ), 2, 'The timestamps should be equal' );
+	}
+	/**
 	 * Ensures the offset applied in current_time() is correct.
 	 *
 	 * @ticket 57998
