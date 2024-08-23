@@ -94,7 +94,7 @@ if ( isset( $_GET['postId'] ) ) {
 		case 'wp_block':
 			$post = get_post( (int) $_GET['postId'] );
 
-			if ( null === $post ) {
+			if ( null === $post || 'wp_block' !== get_post_type( $post ) ) {
 				wp_die( __( 'Invalid pattern ID.' ) );
 			}
 			break;
