@@ -35,6 +35,44 @@ if ( ! wp_is_block_theme() ) {
 	}
 }
 
+// Validate postId and postType.
+if ( isset( $_GET['postId'] ) && isset( $_GET['postType'] ) ) {
+
+	switch ( $post_type_param ) {
+		case 'page':
+			$post = get_post( (int) $_GET['postId'] );
+
+			if ( null === $post || 'page' !== get_post_type( $post ) ) {
+				wp_die( __( 'Invalid page ID.' ) );
+			}
+			break;
+
+		case 'wp_block':
+			$post = get_post( (int) $_GET['postId'] );
+
+			if ( null === $post || 'wp_block' !== get_post_type( $post ) ) {
+				wp_die( __( 'Invalid pattern ID.' ) );
+			}
+			break;
+
+		case 'wp_template':
+			$block_template = get_block_template( $_GET['postId'] );
+
+			if ( null === $block_template ) {
+				wp_die( __( 'Invalid template ID.' ) );
+			}
+			break;
+
+		case 'wp_template_part':
+			$block_template = get_block_template( $_GET['postId'], 'wp_template_part' );
+
+			if ( null === $block_template ) {
+				wp_die( __( 'Invalid template part ID.' ) );
+			}
+			break;
+	}
+}
+
 // Used in the HTML title tag.
 $title       = _x( 'Editor', 'site editor title tag' );
 $parent_file = 'themes.php';
@@ -78,43 +116,6 @@ if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 	$post_type = get_post_type_object( $_GET['postType'] );
 	if ( ! $post_type ) {
 		wp_die( __( 'Invalid post type.' ) );
-	}
-}
-
-if ( isset( $_GET['postId'] ) && isset( $_GET['postType'] ) ) {
-
-	switch ( $post_type_param ) {
-		case 'page':
-			$post = get_post( (int) $_GET['postId'] );
-
-			if ( null === $post || 'page' !== get_post_type( $post ) ) {
-				wp_die( __( 'Invalid page ID.' ) );
-			}
-			break;
-
-		case 'wp_block':
-			$post = get_post( (int) $_GET['postId'] );
-
-			if ( null === $post || 'wp_block' !== get_post_type( $post ) ) {
-				wp_die( __( 'Invalid pattern ID.' ) );
-			}
-			break;
-
-		case 'wp_template':
-			$block_template = get_block_template( $_GET['postId'] );
-
-			if ( null === $block_template ) {
-				wp_die( __( 'Invalid template ID.' ) );
-			}
-			break;
-
-		case 'wp_template_part':
-			$block_template = get_block_template( $_GET['postId'], 'wp_template_part' );
-
-			if ( null === $block_template ) {
-				wp_die( __( 'Invalid template part ID.' ) );
-			}
-			break;
 	}
 }
 
