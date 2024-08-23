@@ -155,10 +155,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 
 		$found_tag = $processor->next_tag();
 
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
-		}
-
 		$this->assertTrue(
 			$found_tag,
 			"Could not find first {$tag_name}."
@@ -219,10 +215,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	public function test_expects_closer_expects_no_closer_for_self_contained_tokens( $self_contained_token ) {
 		$processor   = WP_HTML_Processor::create_fragment( $self_contained_token );
 		$found_token = $processor->next_token();
-
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "HTML '{$self_contained_token}' is not supported." );
-		}
 
 		$this->assertTrue(
 			$found_token,
@@ -304,10 +296,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		 */
 
 		$found_tag = $processor->next_token();
-
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
-		}
 
 		$this->assertTrue(
 			$found_tag,
