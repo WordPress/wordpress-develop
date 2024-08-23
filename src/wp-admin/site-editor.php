@@ -19,10 +19,11 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
 	);
 }
 
-$is_template_part        = isset( $_GET['postType'] ) && 'wp_template_part' === sanitize_key( $_GET['postType'] );
+$post_type_param         = sanitize_key( $_GET['postType'] );
+$is_template_part        = isset( $_GET['postType'] ) && 'wp_template_part' === $post_type_param;
 $is_template_part_path   = isset( $_GET['path'] ) && 'wp_template_partall' === sanitize_key( $_GET['path'] );
 $is_template_part_editor = $is_template_part || $is_template_part_path;
-$is_patterns             = isset( $_GET['postType'] ) && 'wp_block' === sanitize_key( $_GET['postType'] );
+$is_patterns             = isset( $_GET['postType'] ) && 'wp_block' === $post_type_param;
 $is_patterns_path        = isset( $_GET['path'] ) && 'patterns' === sanitize_key( $_GET['path'] );
 $is_patterns_editor      = $is_patterns || $is_patterns_path;
 
@@ -82,7 +83,7 @@ if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 
 if ( isset( $_GET['postId'] ) && isset( $_GET['postType'] ) ) {
 
-	switch ( sanitize_key( $_GET['postType'] ) ) {
+	switch ( $post_type_param ) {
 		case 'page':
 			$post = get_post( (int) $_GET['postId'] );
 
@@ -116,7 +117,6 @@ if ( isset( $_GET['postId'] ) && isset( $_GET['postType'] ) ) {
 			break;
 	}
 }
-
 
 $active_global_styles_id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
 $active_theme            = get_stylesheet();
