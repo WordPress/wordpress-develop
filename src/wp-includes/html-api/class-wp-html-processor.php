@@ -4113,7 +4113,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
-			 * A CDATA section is effectively a text node and should have similar handling.
+			 * CDATA sections are alternate wrappers for text content and therefore
+			 * ought to follow the same rules as text nodes.
 			 */
 			case '#cdata-section':
 				/*
@@ -4122,8 +4123,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$current_token        = $this->bookmarks[ $this->state->current_token->bookmark_name ];
 				$cdata_content_start  = $current_token->start + 9;
 				$cdata_content_length = $current_token->length - 12;
-				// phpcs:ignore WordPress.PHP.YodaConditions.NotYoda -- A Yoda violation this is not.
-				if ( $cdata_content_length !== strspn( $this->html, "\0 \t\n\f\r", $cdata_content_start, $cdata_content_length ) ) {
+				if ( strspn( $this->html, "\0 \t\n\f\r", $cdata_content_start, $cdata_content_length ) !== $cdata_content_length ) {
 					$this->state->frameset_ok = false;
 				}
 
