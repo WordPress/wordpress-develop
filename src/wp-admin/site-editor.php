@@ -86,8 +86,8 @@ if ( isset( $_GET['postId'] ) ) {
 		case 'page':
 			$post = get_post( (int) $_GET['postId'] );
 
-			if ( null === $post ) {
-				wp_die( __( 'Invalid post ID.' ) );
+			if ( null === $post || 'page' !== get_post_type( $post ) ) {
+				wp_die( __( 'Invalid page ID.' ) );
 			}
 			break;
 
