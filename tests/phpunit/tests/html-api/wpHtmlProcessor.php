@@ -528,13 +528,13 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers ::remove_class
 	 */
 	public function test_remove_class_no_quirks_mode() {
-		$processor = WP_HTML_Processor::create_fragment( '<span class="UPPER"></span>' );
-		$processor->next_tag();
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
 		$processor->remove_class( 'upper' );
-		$this->assertSame( '<span class="UPPER"></span>', $processor->get_updated_html() );
+		$this->assertSame( '<!DOCTYPE html><span class="UPPER">', $processor->get_updated_html() );
 
 		$processor->remove_class( 'UPPER' );
-		$this->assertSame( '<span ></span>', $processor->get_updated_html() );
+		$this->assertSame( '<!DOCTYPE html><span >', $processor->get_updated_html() );
 	}
 
 	/**
@@ -545,13 +545,13 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers ::add_class
 	 */
 	public function test_add_class_no_quirks_mode() {
-		$processor = WP_HTML_Processor::create_fragment( '<span class="UPPER"></span>' );
-		$processor->next_tag();
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
 		$processor->add_class( 'UPPER' );
-		$this->assertSame( '<span class="UPPER"></span>', $processor->get_updated_html() );
+		$this->assertSame( '<!DOCTYPE html><span class="UPPER">', $processor->get_updated_html() );
 
 		$processor->add_class( 'upper' );
-		$this->assertSame( '<span class="UPPER upper"></span>', $processor->get_updated_html() );
+		$this->assertSame( '<!DOCTYPE html><span class="UPPER upper">', $processor->get_updated_html() );
 	}
 
 	/**
@@ -562,8 +562,8 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers ::has_class
 	 */
 	public function test_has_class_no_quirks_mode() {
-		$processor = WP_HTML_Processor::create_fragment( '<span class="UPPER"></span>' );
-		$processor->next_tag();
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
 		$this->assertFalse( $processor->has_class( 'upper' ) );
 		$this->assertTrue( $processor->has_class( 'UPPER' ) );
 	}
@@ -576,8 +576,8 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers ::class_list
 	 */
 	public function test_class_list_no_quirks_mode() {
-		$processor = WP_HTML_Processor::create_fragment( '<span class="A A a B b É É é"></span>' );
-		$processor->next_tag();
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="A A a B b É É é">' );
+		$processor->next_tag( 'SPAN' );
 		$class_list = iterator_to_array( $processor->class_list() );
 		$this->assertSame(
 			array( 'A', 'a', 'B', 'b', 'É', 'é' ),
@@ -593,10 +593,10 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers ::remove_class
 	 */
 	public function test_remove_class_quirks_mode() {
-		$processor = WP_HTML_Processor::create_fragment( '<span class="UPPER"></span>', '<body>', 'UTF-8', WP_HTML_Processor_State::QUIRKS_MODE );
-		$processor->next_tag();
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
 		$processor->remove_class( 'upper' );
-		$this->assertSame( '<span ></span>', $processor->get_updated_html() );
+		$this->assertSame( '<span >', $processor->get_updated_html() );
 	}
 
 	/**
@@ -607,10 +607,10 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers ::add_class
 	 */
 	public function test_add_class_quirks_mode() {
-		$processor = WP_HTML_Processor::create_fragment( '<span class="UPPER"></span>', '<body>', 'UTF-8', WP_HTML_Processor_State::QUIRKS_MODE );
-		$processor->next_tag();
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
 		$processor->add_class( 'upper' );
-		$this->assertSame( '<span class="UPPER"></span>', $processor->get_updated_html() );
+		$this->assertSame( '<span class="UPPER">', $processor->get_updated_html() );
 	}
 
 	/**
@@ -621,8 +621,8 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers ::has_class
 	 */
 	public function test_has_class_quirks_mode() {
-		$processor = WP_HTML_Processor::create_fragment( '<span class="UPPER"></span>', '<body>', 'UTF-8', WP_HTML_Processor_State::QUIRKS_MODE );
-		$processor->next_tag();
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
 		$this->assertTrue( $processor->has_class( 'upper' ) );
 		$this->assertTrue( $processor->has_class( 'UPPER' ) );
 	}
@@ -635,8 +635,8 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers ::class_list
 	 */
 	public function test_class_list_quirks_mode() {
-		$processor = WP_HTML_Processor::create_fragment( '<span class="A A a B b É É é"></span>', '<body>', 'UTF-8', WP_HTML_Processor_State::QUIRKS_MODE );
-		$processor->next_tag();
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="A A a B b É É é">' );
+		$processor->next_tag( 'SPAN' );
 		$class_list = iterator_to_array( $processor->class_list() );
 		$this->assertSame(
 			array( 'A', 'a', 'B', 'b', 'É', 'é' ),
