@@ -80,7 +80,7 @@ if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 	}
 }
 
-if ( isset( $_GET['postId'] ) ) {
+if ( isset( $_GET['postId'] ) && isset( $_GET['postType'] ) ) {
 
 	switch ( sanitize_key( $_GET['postType'] ) ) {
 		case 'page':
