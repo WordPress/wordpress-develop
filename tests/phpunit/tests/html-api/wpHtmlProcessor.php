@@ -155,10 +155,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 
 		$found_tag = $processor->next_tag();
 
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
-		}
-
 		$this->assertTrue(
 			$found_tag,
 			"Could not find first {$tag_name}."
@@ -219,10 +215,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	public function test_expects_closer_expects_no_closer_for_self_contained_tokens( $self_contained_token ) {
 		$processor   = WP_HTML_Processor::create_fragment( $self_contained_token );
 		$found_token = $processor->next_token();
-
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "HTML '{$self_contained_token}' is not supported." );
-		}
 
 		$this->assertTrue(
 			$found_token,
@@ -304,10 +296,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		 */
 
 		$found_tag = $processor->next_token();
-
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
-		}
 
 		$this->assertTrue(
 			$found_tag,
@@ -502,5 +490,33 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 
 		$subclass_processor = call_user_func( array( get_class( $subclass_instance ), 'create_fragment' ), '' );
 		$this->assertInstanceOf( get_class( $subclass_instance ), $subclass_processor, '::create_fragment did not return subclass instance.' );
+	}
+
+	/**
+	 * Ensures that self-closing elements in foreign content properly report
+	 * that they expect no closer.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_expects_closer_foreign_content_self_closing() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg /><math>' );
+
+		$this->assertTrue( $processor->next_tag() );
+		$this->assertSame( 'SVG', $processor->get_tag() );
+		$this->assertFalse( $processor->expects_closer() );
+
+		$this->assertTrue( $processor->next_tag() );
+		$this->assertSame( 'MATH', $processor->get_tag() );
+		$this->assertTrue( $processor->expects_closer() );
+	}
+
+	/**
+	 * Ensures that self-closing foreign SCRIPT elements are properly found.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_foreign_content_script_self_closing() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg><script />' );
+		$this->assertTrue( $processor->next_tag( 'script' ) );
 	}
 }

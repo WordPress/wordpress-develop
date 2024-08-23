@@ -775,9 +775,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * foreign content will also act just like a void tag, immediately
 	 * closing as soon as the processor advances to the next token.
 	 *
-	 * @todo Review the self-closing logic when no node is present, ensure it
-	 *       matches the expectations in `step()`.
-	 *
 	 * @since 6.6.0
 	 *
 	 * @param WP_HTML_Token|null $node Optional. Node to examine, if provided.
@@ -786,12 +783,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *                   or `null` if not matched on any token.
 	 */
 	public function expects_closer( WP_HTML_Token $node = null ): ?bool {
-		$token_name      = $node->node_name ?? $this->get_token_name();
-		$token_namespace = $node->namespace ?? $this->get_namespace();
+		$token_name = $node->node_name ?? $this->get_token_name();
 
 		if ( ! isset( $token_name ) ) {
 			return null;
 		}
+
+		$token_namespace        = $node->namespace ?? $this->get_namespace();
+		$token_has_self_closing = $node->has_self_closing_flag ?? $this->has_self_closing_flag();
 
 		return ! (
 			// Comments, text nodes, and other atomic tokens.
@@ -803,7 +802,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			// Special atomic elements.
 			( 'html' === $token_namespace && in_array( $token_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) ||
 			// Self-closing elements in foreign content.
-			( isset( $node ) && 'html' !== $node->namespace && $node->has_self_closing_flag )
+			( 'html' !== $token_namespace && $token_has_self_closing )
 		);
 	}
 
@@ -1077,19 +1076,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A DOCTYPE token
 			 */
 			case 'html':
-				$contents = $this->get_modifiable_text();
-				if ( ' html' !== $contents ) {
-					/*
-					 * @todo When the HTML Tag Processor fully parses the DOCTYPE declaration,
-					 *       this code should examine the contents to set the compatability mode.
-					 */
-					$this->bail( 'Cannot process any DOCTYPE other than a normative HTML5 doctype.' );
+				$doctype = $this->get_doctype_info();
+				if ( null !== $doctype && 'quirks' === $doctype->indicated_compatability_mode ) {
+					$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
 				}
 
 				/*
 				 * > Then, switch the insertion mode to "before html".
 				 */
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML;
+				$this->insert_html_element( $this->state->current_token );
 				return true;
 		}
 
@@ -1097,6 +1093,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Anything else
 		 */
 		initial_anything_else:
+		$this->state->document_mode  = WP_HTML_Processor_State::QUIRKS_MODE;
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -1502,7 +1499,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->state->stack_of_open_elements->pop_until( 'TEMPLATE' );
 				$this->state->active_formatting_elements->clear_up_to_last_marker();
 				array_pop( $this->state->stack_of_template_insertion_modes );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return true;
 		}
 
@@ -2956,7 +2953,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				$this->state->stack_of_open_elements->pop_until( 'TABLE' );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
 			/*
@@ -2969,7 +2966,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				$this->state->stack_of_open_elements->pop_until( 'TABLE' );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return true;
 
 			/*
@@ -3315,12 +3312,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TBODY':
 			case '-TFOOT':
 			case '-THEAD':
-				/*
-				 * @todo This needs to check if the element in scope is an HTML element, meaning that
-				 *       when SVG and MathML support is added, this needs to differentiate between an
-				 *       HTML element of the given name, such as `<center>`, and a foreign element of
-				 *       the same given name.
-				 */
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
@@ -3451,12 +3442,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TBODY':
 			case '-TFOOT':
 			case '-THEAD':
-				/*
-				 * @todo This needs to check if the element in scope is an HTML element, meaning that
-				 *       when SVG and MathML support is added, this needs to differentiate between an
-				 *       HTML element of the given name, such as `<center>`, and a foreign element of
-				 *       the same given name.
-				 */
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
@@ -3519,12 +3504,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-TD':
 			case '-TH':
-				/*
-				 * @todo This needs to check if the element in scope is an HTML element, meaning that
-				 *       when SVG and MathML support is added, this needs to differentiate between an
-				 *       HTML element of the given name, such as `<center>`, and a foreign element of
-				 *       the same given name.
-				 */
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
@@ -3588,12 +3567,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TFOOT':
 			case '-THEAD':
 			case '-TR':
-				/*
-				 * @todo This needs to check if the element in scope is an HTML element, meaning that
-				 *       when SVG and MathML support is added, this needs to differentiate between an
-				 *       HTML element of the given name, such as `<center>`, and a foreign element of
-				 *       the same given name.
-				 */
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
@@ -3754,7 +3727,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return true;
 
 			/*
@@ -3770,7 +3743,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
 			/*
@@ -3825,7 +3798,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TH':
 				// @todo Indicate a parse error once it's possible.
 				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
 			/*
@@ -3844,7 +3817,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 		}
 
@@ -3979,7 +3952,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$this->state->stack_of_open_elements->pop_until( 'TEMPLATE' );
 		$this->state->active_formatting_elements->clear_up_to_last_marker();
 		array_pop( $this->state->stack_of_template_insertion_modes );
-		$this->reset_insertion_mode();
+		$this->reset_insertion_mode_appropriately();
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
@@ -3999,7 +3972,71 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_body(): bool {
-		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY . ' state.' );
+		$tag_name   = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( $this->is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$tag_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
+			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 *
+			 * > Process the token using the rules for the "in body" insertion mode.
+			 */
+			case '#text':
+				$text = $this->get_modifiable_text();
+				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					return $this->step_in_body();
+				}
+				goto after_body_anything_else;
+				break;
+
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->bail( 'Content outside of BODY is unsupported.' );
+				break;
+
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > An end tag whose tag name is "html"
+			 *
+			 * > If the parser was created as part of the HTML fragment parsing algorithm,
+			 * > this is a parse error; ignore the token. (fragment case)
+			 * >
+			 * > Otherwise, switch the insertion mode to "after after body".
+			 */
+			case '-HTML':
+				if ( isset( $this->context_node ) ) {
+					return $this->step();
+				}
+
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY;
+				return true;
+		}
+
+		/*
+		 * > Parse error. Switch the insertion mode to "in body" and reprocess the token.
+		 */
+		after_body_anything_else:
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -4018,7 +4055,109 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_frameset(): bool {
-		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_FRAMESET . ' state.' );
+		$tag_name   = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( $this->is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$tag_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
+			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 * >
+			 * > Insert the character.
+			 *
+			 * This algorithm effectively strips non-whitespace characters from text and inserts
+			 * them under HTML. This is not supported at this time.
+			 */
+			case '#text':
+				$text = $this->get_modifiable_text();
+				$text = $this->get_modifiable_text();
+				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					return $this->step_in_body();
+				}
+				$this->bail( 'Non-whitespace characters cannot be handled in frameset.' );
+				break;
+
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > A start tag whose tag name is "frameset"
+			 */
+			case '+FRAMESET':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > An end tag whose tag name is "frameset"
+			 */
+			case '-FRAMESET':
+				/*
+				 * > If the current node is the root html element, then this is a parse error;
+				 * > ignore the token. (fragment case)
+				 */
+				if ( $this->state->stack_of_open_elements->current_node_is( 'HTML' ) ) {
+					return $this->step();
+				}
+
+				/*
+				 * > Otherwise, pop the current node from the stack of open elements.
+				 */
+				$this->state->stack_of_open_elements->pop();
+
+				/*
+				 * > If the parser was not created as part of the HTML fragment parsing algorithm
+				 * > (fragment case), and the current node is no longer a frameset element, then
+				 * > switch the insertion mode to "after frameset".
+				 */
+				if ( ! isset( $this->context_node ) && ! $this->state->stack_of_open_elements->current_node_is( 'FRAMESET' ) ) {
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_FRAMESET;
+				}
+
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "frame"
+			 *
+			 * > Insert an HTML element for the token. Immediately pop the
+			 * > current node off the stack of open elements.
+			 * >
+			 * > Acknowledge the token's self-closing flag, if it is set.
+			 */
+			case '+FRAME':
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->stack_of_open_elements->pop();
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "noframes"
+			 */
+			case '+NOFRAMES':
+				return $this->step_in_head();
+		}
+
+		// Parse error: ignore the token.
+		return $this->step();
 	}
 
 	/**
@@ -4037,7 +4176,67 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_frameset(): bool {
-		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_FRAMESET . ' state.' );
+		$tag_name   = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( $this->is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$tag_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
+			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 * >
+			 * > Insert the character.
+			 *
+			 * This algorithm effectively strips non-whitespace characters from text and inserts
+			 * them under HTML. This is not supported at this time.
+			 */
+			case '#text':
+				$text = $this->get_modifiable_text();
+				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					return $this->step_in_body();
+				}
+				$this->bail( 'Non-whitespace characters cannot be handled in after frameset' );
+				break;
+
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > An end tag whose tag name is "html"
+			 */
+			case '-HTML':
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET;
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "noframes"
+			 */
+			case '+NOFRAMES':
+				return $this->step_in_head();
+		}
+
+		// Parse error: ignore the token.
+		return $this->step();
 	}
 
 	/**
@@ -4056,7 +4255,52 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_after_body(): bool {
-		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY . ' state.' );
+		$tag_name   = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( $this->is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$tag_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->bail( 'Content outside of HTML is unsupported.' );
+				break;
+
+			/*
+			 * > A DOCTYPE token
+			 * > A start tag whose tag name is "html"
+			 *
+			 * > Process the token using the rules for the "in body" insertion mode.
+			 */
+			case 'html':
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
+			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 * >
+			 * > Process the token using the rules for the "in body" insertion mode.
+			 */
+			case '#text':
+				$text = $this->get_modifiable_text();
+				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					return $this->step_in_body();
+				}
+				goto after_after_body_anything_else;
+				break;
+		}
+
+		/*
+		 * > Parse error. Switch the insertion mode to "in body" and reprocess the token.
+		 */
+		after_after_body_anything_else:
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -4075,7 +4319,57 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_after_frameset(): bool {
-		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET . ' state.' );
+		$tag_name   = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( $this->is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$tag_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->bail( 'Content outside of HTML is unsupported.' );
+				break;
+
+			/*
+			 * > A DOCTYPE token
+			 * > A start tag whose tag name is "html"
+			 *
+			 * > Process the token using the rules for the "in body" insertion mode.
+			 */
+			case 'html':
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
+			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 * >
+			 * > Process the token using the rules for the "in body" insertion mode.
+			 *
+			 * This algorithm effectively strips non-whitespace characters from text and inserts
+			 * them under HTML. This is not supported at this time.
+			 */
+			case '#text':
+				$text = $this->get_modifiable_text();
+				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+					return $this->step_in_body();
+				}
+				$this->bail( 'Non-whitespace characters cannot be handled in after after frameset.' );
+				break;
+
+			/*
+			 * > A start tag whose tag name is "noframes"
+			 */
+			case '+NOFRAMES':
+				return $this->step_in_head();
+		}
+
+		// Parse error: ignore the token.
+		return $this->step();
 	}
 
 	/**
@@ -4142,7 +4436,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '#cdata-section':
 			case '#comment':
-			case '#funky_comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
 				$this->insert_foreign_element( $this->state->current_token, false );
 				return true;
 
@@ -4237,21 +4532,22 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > If the token has its self-closing flag set, then run
 			 * > the appropriate steps from the following list:
+			 * >
+			 * >   ↪ the token's tag name is "script", and the new current node is in the SVG namespace
+			 * >         Acknowledge the token's self-closing flag, and then act as
+			 * >         described in the steps for a "script" end tag below.
+			 * >
+			 * >   ↪ Otherwise
+			 * >         Pop the current node off the stack of open elements and
+			 * >         acknowledge the token's self-closing flag.
+			 *
+			 * Since the rules for SCRIPT below indicate to pop the element off of the stack of
+			 * open elements, which is the same for the Otherwise condition, there's no need to
+			 * separate these checks. The difference comes when a parser operates with the scripting
+			 * flag enabled, and executes the script, which this parser does not support.
 			 */
 			if ( $this->state->current_token->has_self_closing_flag ) {
-				if ( 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
-					/*
-					 * > Acknowledge the token's self-closing flag, and then act as
-					 * > described in the steps for a "script" end tag below.
-					 *
-					 * @todo Verify that this shouldn't be handled by the rule for
-					 *       "An end tag whose name is 'script', if the current node
-					 *       is an SVG script element."
-					 */
-					goto in_foreign_content_any_other_end_tag;
-				} else {
-					$this->state->stack_of_open_elements->pop();
-				}
+				$this->state->stack_of_open_elements->pop();
 			}
 			return true;
 		}
@@ -4261,13 +4557,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 */
 		if ( $this->is_tag_closer() && 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
 			$this->state->stack_of_open_elements->pop();
+			return true;
 		}
 
 		/*
 		 * > Any other end tag
 		 */
 		if ( $this->is_tag_closer() ) {
-			in_foreign_content_any_other_end_tag:
 			$node = $this->state->stack_of_open_elements->current_node();
 			if ( $tag_name !== $node->node_name ) {
 				// @todo Indicate a parse error once it's possible.
@@ -5124,7 +5420,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#reset-the-insertion-mode-appropriately
 	 */
-	public function reset_insertion_mode(): void {
+	private function reset_insertion_mode_appropriately(): void {
 		// Set the first node.
 		$first_node = null;
 		foreach ( $this->state->stack_of_open_elements->walk_down() as $first_node ) {
