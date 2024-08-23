@@ -366,8 +366,6 @@ function wp_ajax_autocomplete_user() {
  * @since 4.8.0
  */
 function wp_ajax_get_community_events() {
-	require_once ABSPATH . 'wp-admin/includes/class-wp-community-events.php';
-
 	check_ajax_referer( 'community_events' );
 
 	$search         = isset( $_POST['location'] ) ? wp_unslash( $_POST['location'] ) : '';
@@ -1934,10 +1932,6 @@ function wp_ajax_wp_link_ajax() {
 	}
 
 	$args['pagenum'] = ! empty( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
-
-	if ( ! class_exists( '_WP_Editors', false ) ) {
-		require ABSPATH . WPINC . '/class-wp-editor.php';
-	}
 
 	$results = _WP_Editors::wp_link_query( $args );
 
@@ -4024,7 +4018,6 @@ function wp_ajax_crop_image() {
 
 	switch ( $context ) {
 		case 'site-icon':
-			require_once ABSPATH . 'wp-admin/includes/class-wp-site-icon.php';
 			$wp_site_icon = new WP_Site_Icon();
 
 			// Skip creating a new attachment if the attachment is a Site Icon.
@@ -4175,7 +4168,6 @@ function wp_ajax_install_theme() {
 		wp_send_json_error( $status );
 	}
 
-	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 	require_once ABSPATH . 'wp-admin/includes/theme.php';
 
 	$api = themes_api(
@@ -4306,8 +4298,6 @@ function wp_ajax_update_theme() {
 	if ( $theme->exists() ) {
 		$status['oldVersion'] = $theme->get( 'Version' );
 	}
-
-	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
 	$current = get_site_transient( 'update_themes' );
 	if ( empty( $current ) ) {
@@ -4468,7 +4458,6 @@ function wp_ajax_install_plugin() {
 		wp_send_json_error( $status );
 	}
 
-	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 	require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
 	$api = plugins_api(
@@ -4639,8 +4628,6 @@ function wp_ajax_update_plugin() {
 		/* translators: %s: Plugin version. */
 		$status['oldVersion'] = sprintf( __( 'Version %s' ), $plugin_data['Version'] );
 	}
-
-	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
 	wp_update_plugins();
 
@@ -5367,10 +5354,6 @@ function wp_ajax_health_check_dotorg_communication() {
 		wp_send_json_error();
 	}
 
-	if ( ! class_exists( 'WP_Site_Health' ) ) {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
-	}
-
 	$site_health = WP_Site_Health::get_instance();
 	wp_send_json_success( $site_health->get_test_dotorg_communication() );
 }
@@ -5400,10 +5383,6 @@ function wp_ajax_health_check_background_updates() {
 		wp_send_json_error();
 	}
 
-	if ( ! class_exists( 'WP_Site_Health' ) ) {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
-	}
-
 	$site_health = WP_Site_Health::get_instance();
 	wp_send_json_success( $site_health->get_test_background_updates() );
 }
@@ -5431,10 +5410,6 @@ function wp_ajax_health_check_loopback_requests() {
 
 	if ( ! current_user_can( 'view_site_health_checks' ) ) {
 		wp_send_json_error();
-	}
-
-	if ( ! class_exists( 'WP_Site_Health' ) ) {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
 	}
 
 	$site_health = WP_Site_Health::get_instance();
@@ -5481,10 +5456,6 @@ function wp_ajax_health_check_get_sizes() {
 
 	if ( ! current_user_can( 'view_site_health_checks' ) || is_multisite() ) {
 		wp_send_json_error();
-	}
-
-	if ( ! class_exists( 'WP_Debug_Data' ) ) {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-debug-data.php';
 	}
 
 	$sizes_data = WP_Debug_Data::get_sizes();

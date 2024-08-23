@@ -51,10 +51,6 @@ if ( ! current_user_can( 'view_site_health_checks' ) ) {
 wp_enqueue_style( 'site-health' );
 wp_enqueue_script( 'site-health' );
 
-if ( ! class_exists( 'WP_Site_Health' ) ) {
-	require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
-}
-
 if ( 'update_https' === $action ) {
 	check_admin_referer( 'wp_update_https' );
 

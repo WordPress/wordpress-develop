@@ -122,7 +122,6 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 				)
 			)
 		);
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager(
 			array(
 				'changeset_uuid' => wp_generate_uuid4(),

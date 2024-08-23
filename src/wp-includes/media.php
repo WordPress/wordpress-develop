@@ -4110,10 +4110,6 @@ function wp_image_editor_supports( $args = array() ) {
  *                      False if no editor claims to support the request.
  */
 function _wp_image_editor_choose( $args = array() ) {
-	require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
-	require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
-	require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
-	require_once ABSPATH . WPINC . '/class-avif-info.php';
 	/**
 	 * Filters the list of image editing library classes.
 	 *
@@ -5650,8 +5646,6 @@ function wp_get_avif_info( $filename ) {
 	}
 
 	// Parse the file using libavifinfo's PHP implementation.
-	require_once ABSPATH . WPINC . '/class-avif-info.php';
-
 	$handle = fopen( $filename, 'rb' );
 	if ( $handle ) {
 		$parser  = new Avifinfo\Parser( $handle );

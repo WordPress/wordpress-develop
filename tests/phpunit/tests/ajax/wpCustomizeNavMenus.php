@@ -52,7 +52,6 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		global $wp_customize;
 		$this->wp_customize = new WP_Customize_Manager();

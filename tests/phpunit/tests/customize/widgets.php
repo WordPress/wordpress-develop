@@ -22,7 +22,6 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		add_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );

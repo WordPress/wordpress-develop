@@ -17,11 +17,6 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 */
 	private $instance;
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		// Include the `WP_Site_Health` file.
-		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
-	}
-
 	/**
 	 * Performs setup tasks for every test.
 	 *

@@ -26,7 +26,6 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 * Sets up shared fixtures.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updater.php';
 		self::$updater = new WP_Automatic_Updater();
 
 		self::$send_plugin_theme_email = new ReflectionMethod( self::$updater, 'send_plugin_theme_email' );

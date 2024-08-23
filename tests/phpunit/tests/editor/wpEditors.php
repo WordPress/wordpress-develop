@@ -1,9 +1,5 @@
 <?php
 
-if ( ! class_exists( '_WP_Editors', false ) ) {
-	require_once ABSPATH . WPINC . '/class-wp-editor.php';
-}
-
 /**
  * @group editor
  *

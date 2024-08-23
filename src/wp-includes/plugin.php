@@ -21,8 +21,10 @@
  * @since 1.5.0
  */
 
-// Initialize the filter globals.
-require __DIR__ . '/class-wp-hook.php';
+// Initialize WP_Hook if not loaded.
+if ( ! class_exists( 'WP_Autoload' ) && ! class_exists( 'WP_Hook' ) ) {
+	require_once __DIR__ . '/class-wp-hook.php';
+}
 
 /** @var WP_Hook[] $wp_filter */
 global $wp_filter;
