@@ -37,7 +37,6 @@ if ( ! wp_is_block_theme() ) {
 
 // Validate postId and postType.
 if ( isset( $_GET['postId'] ) && isset( $_GET['postType'] ) ) {
-
 	switch ( $post_type_param ) {
 		case 'page':
 			$post = get_post( (int) $_GET['postId'] );
