@@ -542,6 +542,23 @@ class WP_HTML_Tag_Processor {
 	protected $comment_type = null;
 
 	/**
+	 * What kind of text the matched text node represents, if it was subdivided.
+	 *
+	 * May be one of the following:
+	 *
+	 *  - "null-bytes" if the entire text span is null bytes.
+	 *  - "whitespace" if the entire decoded text span comprises whitespace characters.
+	 *  - null if the text span is not subdivided or represents mixed content.
+	 *
+	 * @see static::subdivide_text_appropriately
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string|null
+	 */
+	protected $text_type = null;
+
+	/**
 	 * How many bytes from the original HTML document have been read and parsed.
 	 *
 	 * This value points to the latest byte offset in the input document which
@@ -2208,6 +2225,7 @@ class WP_HTML_Tag_Processor {
 		$this->is_closing_tag       = null;
 		$this->attributes           = array();
 		$this->comment_type         = null;
+		$this->text_type            = null;
 		$this->duplicate_attributes = null;
 	}
 
@@ -3319,6 +3337,98 @@ class WP_HTML_Tag_Processor {
 		}
 
 		return $this->comment_type;
+	}
+
+	/**
+	 * Subdivides a matched text node or CDATA text node, splitting
+	 * NULL byte sequences and decoded whitespace as distinct prefixes.
+	 *
+	 * Example:
+	 *
+	 *     $processor = new WP_HTML_Tag_Processor( "\x00Apples & Oranges" );
+	 *     true  === $processor->next_token();                   // Text is "Apples & Oranges".
+	 *     true  === $processor->subdivide_text_appropriately(); // Text is "".
+	 *     true  === $processor->next_token();                   // Text is "Apples & Oranges".
+	 *     false === $processor->subdivide_text_appropriately();
+	 *
+	 *     $processor = new WP_HTML_Tag_Processor( "&#x13; \r\n\tMore" );
+	 *     true  === $processor->next_token();                   // Text is "␤ ␤␉More".
+	 *     true  === $processor->subdivide_text_appropriately(); // Text is "␤ ␤␉".
+	 *     true  === $processor->next_token();                   // Text is "More".
+	 *     false === $processor->subdivide_text_appropriately();
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return bool Whether the text node was subdivided.
+	 */
+	public function subdivide_text_appropriately(): bool {
+		if ( self::STATE_TEXT_NODE === $this->parser_state ) {
+			/*
+			 * NULL bytes are treated categorically different than numeric character
+			 * references whose number is zero. `&#x00;` is not the same as `"\x00"`.
+			 */
+			$leading_nulls = strspn( $this->html, "\x00", $this->text_starts_at, $this->text_length );
+			if ( $leading_nulls > 0 ) {
+				$this->token_length         = $leading_nulls;
+				$this->text_length          = $leading_nulls;
+				$this->bytes_already_parsed = $this->token_starts_at + $leading_nulls;
+				return true;
+			}
+
+			/*
+			 * Start a decoding loop to determine the point at which the
+			 * text subdivides. This entails raw whitespace bytes and any
+			 * character reference that decodes to the same.
+			 */
+			$at  = $this->text_starts_at;
+			$end = $this->text_starts_at + $this->text_length;
+			while ( $at < $end ) {
+				$skipped = strspn( $this->html, " \t\f\r\n", $at, $end - $at );
+				$at     += $skipped;
+
+				if ( $at < $end && '&' === $this->html[ $at ] ) {
+					$matched_byte_length = null;
+					$replacement         = WP_HTML_Decoder::read_character_reference( 'data', $this->html, $at, $matched_byte_length );
+					if ( isset( $replacement ) || 1 === strspn( $replacement, " \t\f\r\n" ) ) {
+						$at += $matched_byte_length;
+						continue;
+					}
+				}
+
+				break;
+			}
+
+			if ( $at > $this->text_starts_at ) {
+				$new_length                 = $at - $this->text_starts_at;
+				$this->text_length          = $new_length;
+				$this->token_length         = $new_length;
+				$this->bytes_already_parsed = $at;
+				return true;
+			}
+
+			return false;
+		}
+
+		// Unlike text nodes, there are no character references within CDATA sections.
+		if ( self::STATE_CDATA_NODE === $this->parser_state ) {
+			$leading_nulls = strspn( $this->html, "\x00", $this->text_starts_at, $this->text_length );
+			if ( $leading_nulls > 0 ) {
+				$this->token_length         = $leading_nulls;
+				$this->text_length          = $leading_nulls;
+				$this->bytes_already_parsed = $this->token_starts_at + $leading_nulls;
+				return true;
+			}
+
+			$leading_ws = strspn( $this->html, " \t\f\r\n", $this->text_starts_at, $this->text_length );
+			if ( $leading_ws > 0 ) {
+				$this->token_length         = $leading_ws;
+				$this->text_length          = $leading_ws;
+				$this->bytes_already_parsed = $this->token_starts_at + $leading_ws;
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
