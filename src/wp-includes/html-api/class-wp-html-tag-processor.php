@@ -512,6 +512,18 @@ class WP_HTML_Tag_Processor {
 	protected $parser_state = self::STATE_READY;
 
 	/**
+	 * Indicates if the document is in quirks mode or no-quirks mode.
+	 *
+	 * @see self::QUIRKS_MODE
+	 * @see self::NO_QUIRKS_MODE
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	protected $compat_mode = self::NO_QUIRKS_MODE;
+
+	/**
 	 * Indicates whether the parser is inside foreign content,
 	 * e.g. inside an SVG or MathML element.
 	 *
@@ -3858,8 +3870,15 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Transform a class name string to a comparable form.
 	 *
-	 * This method may be subclassed to customize class names for comparison. For example, this
-	 * allows for subclasses to support case-insensitive class name comparison.
+	 * When the document is in quirks mode, class names are transformed to
+	 * ASCII lowercase for comparison. In no quirks mode, class names are
+	 * compared as they are (case-sensitive).
+	 *
+	 * > When matching against a document which is in quirks mode, class names must be matched
+	 * > ASCII case-insensitively; class selectors are otherwise case-sensitive, only matching
+	 * > class names they are identical to.
+	 *
+	 * @see https://www.w3.org/TR/selectors-4/#class-html
 	 *
 	 * @since 6.7.0
 	 *
@@ -3867,7 +3886,9 @@ class WP_HTML_Tag_Processor {
 	 * @return string The transformed class name.
 	 */
 	protected function comparable_class_name( string $class_name ): string {
-		return $class_name;
+		return self::QUIRKS_MODE === $this->compat_mode
+			? strtolower( $class_name )
+			: $class_name;
 	}
 
 	/**
@@ -4259,4 +4280,29 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.5.0
 	 */
 	const COMMENT_AS_INVALID_HTML = 'COMMENT_AS_INVALID_HTML';
+
+	/**
+	 * No-quirks mode document compatability mode.
+	 *
+	 * > In no-quirks mode, the behavior is (hopefully) the desired behavior
+	 * > described by the modern HTML and CSS specifications.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	const NO_QUIRKS_MODE = 'no-quirks-mode';
+
+	/**
+	 * Quirks mode document compatability mode.
+	 *
+	 * > In quirks mode, layout emulates behavior in Navigator 4 and Internet
+	 * > Explorer 5. This is essential in order to support websites that were
+	 * > built before the widespread adoption of web standards.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	const QUIRKS_MODE = 'quirks-mode';
 }

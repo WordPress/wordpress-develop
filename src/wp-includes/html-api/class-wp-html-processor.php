@@ -1078,7 +1078,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'html':
 				$doctype = $this->get_doctype_info();
 				if ( null !== $doctype && 'quirks' === $doctype->indicated_compatability_mode ) {
-					$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
+					$this->compat_mode = WP_HTML_Tag_Processor::QUIRKS_MODE;
 				}
 
 				/*
@@ -1093,7 +1093,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Anything else
 		 */
 		initial_anything_else:
-		$this->state->document_mode  = WP_HTML_Processor_State::QUIRKS_MODE;
+		$this->compat_mode = WP_HTML_Tag_Processor::QUIRKS_MODE;
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -2465,7 +2465,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > has a p element in button scope, then close a p element.
 				 */
 				if (
-					WP_HTML_Processor_State::QUIRKS_MODE !== $this->state->document_mode &&
+					WP_HTML_Tag_Processor::QUIRKS_MODE !== $this->compat_mode &&
 					$this->state->stack_of_open_elements->has_p_in_button_scope()
 				) {
 					$this->close_a_p_element();
@@ -4632,30 +4632,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function remove_class( $class_name ): bool {
 		return $this->is_virtual() ? false : parent::remove_class( $class_name );
-	}
-
-	/**
-	 * Transform a class name string to a comparable form.
-	 *
-	 * When the document is in quirks mode, class names are transformed to
-	 * ASCII lowercase for comparison. In no quirks mode, class names are
-	 * compared as they are (case-sensitive).
-	 *
-	 * > When matching against a document which is in quirks mode, class names must be matched
-	 * > ASCII case-insensitively; class selectors are otherwise case-sensitive, only matching
-	 * > class names they are identical to.
-	 *
-	 * @see https://www.w3.org/TR/selectors-4/#class-html
-	 *
-	 * @since 6.7.0
-	 *
-	 * @param string $class_name The class name to transform.
-	 * @return string The transformed class name.
-	 */
-	protected function comparable_class_name( string $class_name ): string {
-		return WP_HTML_Processor_State::QUIRKS_MODE === $this->state->document_mode
-			? strtolower( $class_name )
-			: $class_name;
 	}
 
 	/**
