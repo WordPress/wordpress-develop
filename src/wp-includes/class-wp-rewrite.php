@@ -952,8 +952,9 @@ class WP_Rewrite {
 		$front = preg_replace( '|^/+|', '', $front );
 
 		// The main workhorse loop.
-		$post_rewrite = array();
-		$struct       = $front;
+		$post_rewrite   = array();
+		$rewrite_chucks = array();
+		$struct         = $front;
 		for ( $j = 0; $j < $num_dirs; ++$j ) {
 			// Get the struct for this dir, and trim slashes off the front.
 			$struct .= $dirs[ $j ] . '/'; // Accumulate. see comment near explode('/', $structure) above.
@@ -1025,26 +1026,33 @@ class WP_Rewrite {
 					$feedmatch2 => $feedquery2,
 					$embedmatch => $embedquery,
 				);
+				$rewrite_chucks[] = array(
+					$feedmatch  => $feedquery,
+					$feedmatch2 => $feedquery2,
+					$embedmatch => $embedquery,
+				);
 			}
 
 			// ...and /page/xx ones.
 			if ( $paged ) {
-				$rewrite = array_merge( $rewrite, array( $pagematch => $pagequery ) );
+				$rewrite_chucks[] = array( $pagematch => $pagequery );
 			}
+
 
 			// Only on pages with comments add ../comment-page-xx/.
 			if ( EP_PAGES & $ep_mask || EP_PERMALINK & $ep_mask ) {
-				$rewrite = array_merge( $rewrite, array( $commentmatch => $commentquery ) );
+				$rewrite_chucks[] = array( $commentmatch => $commentquery );
 			} elseif ( EP_ROOT & $ep_mask && get_option( 'page_on_front' ) ) {
-				$rewrite = array_merge( $rewrite, array( $rootcommentmatch => $rootcommentquery ) );
+				$rewrite_chucks[] = array( $rootcommentmatch => $rootcommentquery );
 			}
+
 
 			// Do endpoints.
 			if ( $endpoints ) {
 				foreach ( (array) $ep_query_append as $regex => $ep ) {
 					// Add the endpoints on if the mask fits.
 					if ( $ep[0] & $ep_mask || $ep[0] & $ep_mask_specific ) {
-						$rewrite[ $match . $regex ] = $index . '?' . $query . $ep[1] . $this->preg_index( $num_toks + 2 );
+						$rewrite_chucks[][ $match . $regex ] = $index . '?' . $query . $ep[1] . $this->preg_index( $num_toks + 2 );
 					}
 				}
 			}
@@ -1155,8 +1163,8 @@ class WP_Rewrite {
 					if ( ! empty( $endpoints ) ) {
 						foreach ( (array) $ep_query_append as $regex => $ep ) {
 							if ( $ep[0] & EP_ATTACHMENT ) {
-								$rewrite[ $sub1 . $regex ] = $subquery . $ep[1] . $this->preg_index( 3 );
-								$rewrite[ $sub2 . $regex ] = $subquery . $ep[1] . $this->preg_index( 3 );
+								$rewrite_chucks[][ $sub1 . $regex ] = $subquery . $ep[1] . $this->preg_index( 3 );
+								$rewrite_chucks[][ $sub2 . $regex ] = $subquery . $ep[1] . $this->preg_index( 3 );
 							}
 						}
 					}
@@ -1189,51 +1197,43 @@ class WP_Rewrite {
 				 * only contains rules/queries for trackback, pages etc) to the main regex/query for
 				 * this dir
 				 */
-				$rewrite = array_merge( $rewrite, array( $match => $query ) );
+				$rewrite_chucks[] = array( $match => $query );
 
 				// If we're matching a permalink, add those extras (attachments etc) on.
 				if ( $post ) {
 					// Add trackback.
-					$rewrite = array_merge( array( $trackbackmatch => $trackbackquery ), $rewrite );
+					array_unshift( $rewrite_chucks, array( $trackbackmatch => $trackbackquery ) );
 
 					// Add embed.
-					$rewrite = array_merge( array( $embedmatch => $embedquery ), $rewrite );
+					array_unshift( $rewrite_chucks, array( $embedmatch => $embedquery ) );
 
 					// Add regexes/queries for attachments, attachment trackbacks and so on.
 					if ( ! $page ) {
 						// Require <permalink>/attachment/stuff form for pages because of confusion with subpages.
-						$rewrite = array_merge(
-							$rewrite,
-							array(
+
+						$rewrite_chucks[] = array(
 								$sub1        => $subquery,
 								$sub1tb      => $subtbquery,
 								$sub1feed    => $subfeedquery,
 								$sub1feed2   => $subfeedquery,
 								$sub1comment => $subcommentquery,
 								$sub1embed   => $subembedquery,
-							)
 						);
 					}
 
-					$rewrite = array_merge(
-						array(
+					array_unshift( $rewrite_chucks, array(
 							$sub2        => $subquery,
 							$sub2tb      => $subtbquery,
 							$sub2feed    => $subfeedquery,
 							$sub2feed2   => $subfeedquery,
 							$sub2comment => $subcommentquery,
 							$sub2embed   => $subembedquery,
-						),
-						$rewrite
-					);
+						) );
 				}
 			}
-			// Add the rules for this dir to the accumulating $post_rewrite.
-			$post_rewrite = array_merge( $rewrite, $post_rewrite );
 		}
 
-		// The finished rules. phew!
-		return $post_rewrite;
+		return array_merge([], ...$rewrite_chucks);
 	}
 
 	/**
@@ -1400,7 +1400,7 @@ class WP_Rewrite {
 		 * @param string[] $page_rewrite Array of rewrite rules for the "page" post type, keyed by their regex pattern.
 		 */
 		$page_rewrite = apply_filters( 'page_rewrite_rules', $page_rewrite );
-
+		$rules_chucks = array();
 		// Extra permastructs.
 		foreach ( $this->extra_permastructs as $permastructname => $struct ) {
 			if ( is_array( $struct ) ) {
@@ -1444,8 +1444,10 @@ class WP_Rewrite {
 				$rules = apply_filters_deprecated( 'tag_rewrite_rules', array( $rules ), '3.1.0', 'post_tag_rewrite_rules' );
 			}
 
-			$this->extra_rules_top = array_merge( $this->extra_rules_top, $rules );
+			$rules_chucks[] = $rules;
 		}
+
+		$this->extra_rules_top = array_merge( $this->extra_rules_top, ...$rules_chucks );
 
 		// Put them together.
 		if ( $this->use_verbose_page_rules ) {
