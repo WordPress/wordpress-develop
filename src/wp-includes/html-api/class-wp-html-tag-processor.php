@@ -3885,7 +3885,7 @@ class WP_HTML_Tag_Processor {
 	 * @param string $class_name The class name to transform.
 	 * @return string The transformed class name.
 	 */
-	protected function comparable_class_name( string $class_name ): string {
+	private function comparable_class_name( string $class_name ): string {
 		return self::QUIRKS_MODE === $this->compat_mode
 			? strtolower( $class_name )
 			: $class_name;
