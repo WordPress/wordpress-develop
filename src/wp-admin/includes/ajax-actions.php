@@ -1165,7 +1165,7 @@ function wp_ajax_add_tag() {
 		array(
 			'what'         => 'term',
 			'position'     => $level,
-			'supplemental' => (array) $tag,
+			'supplemental' => $tag->to_array(),
 		)
 	);
 

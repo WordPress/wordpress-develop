@@ -220,7 +220,15 @@ final class WP_Term {
 	 * @return array Object as array.
 	 */
 	public function to_array() {
-		return get_object_vars( $this );
+		$object_vars = get_object_vars( $this );
+
+		foreach ( $this->dynamic_properties as $prop => $value ) {
+			$object_vars[ $prop ] = $value;
+		}
+
+		unset( $object_vars['dynamic_properties'] );
+
+		return $object_vars;
 	}
 
 	/**
