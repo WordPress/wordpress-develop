@@ -2213,17 +2213,17 @@ class WP_HTML_Tag_Processor {
 			unset( $this->lexical_updates[ $name ] );
 		}
 
-		$this->token_starts_at      = null;
-		$this->token_length         = null;
-		$this->tag_name_starts_at   = null;
-		$this->tag_name_length      = null;
-		$this->text_starts_at       = 0;
-		$this->text_length          = 0;
-		$this->is_closing_tag       = null;
-		$this->attributes           = array();
-		$this->comment_type         = null;
-		$this->text_node_classification            = null;
-		$this->duplicate_attributes = null;
+		$this->token_starts_at          = null;
+		$this->token_length             = null;
+		$this->tag_name_starts_at       = null;
+		$this->tag_name_length          = null;
+		$this->text_starts_at           = 0;
+		$this->text_length              = 0;
+		$this->is_closing_tag           = null;
+		$this->attributes               = array();
+		$this->comment_type             = null;
+		$this->text_node_classification = self::TEXT_IS_GENERIC;
+		$this->duplicate_attributes     = null;
 	}
 
 	/**
