@@ -1062,7 +1062,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
-				if ( 'whitespace' === $this->text_type ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step();
 				}
 				goto initial_anything_else;
@@ -1150,7 +1150,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
-				if ( 'whitespace' === $this->text_type ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step();
 				}
 				goto before_html_anything_else;
@@ -1231,7 +1231,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
-				if ( 'whitespace' === $this->text_type ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step();
 				}
 				goto before_head_anything_else;
@@ -1326,7 +1326,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
 				 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
 				 */
-				if ( 'whitespace' === $this->text_type ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					// Insert the character.
 					$this->insert_html_element( $this->state->current_token );
 					return true;
@@ -1546,7 +1546,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
-				if ( 'whitespace' === $this->text_type ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_head();
 				}
 
@@ -1647,7 +1647,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
 			 */
 			case '#text':
-				if ( 'whitespace' === $this->text_type ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					// Insert the character.
 					$this->insert_html_element( $this->state->current_token );
 					return true;
@@ -1794,7 +1794,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * here, but if there are any other characters in the stream
 				 * the active formats should be reconstructed.
 				 */
-				if ( 'null-bytes' === $this->text_type ) {
+				if ( parent::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -1806,7 +1806,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * It is probably inter-element whitespace, but it may also
 				 * contain character references which decode only to whitespace.
 				 */
-				if ( null === $this->text_type ) {
+				if ( parent::TEXT_IS_GENERIC === $this->text_node_classification ) {
 					$this->state->frameset_ok = false;
 				}
 
@@ -2817,7 +2817,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 * If the text is empty after processing HTML entities and stripping
 					 * U+0000 NULL bytes then ignore the token.
 					 */
-					if ( 'null-bytes' === $this->text_type ) {
+					if ( parent::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification ) {
 						return $this->step();
 					}
 
@@ -2840,7 +2840,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 *
 					 * @see https://html.spec.whatwg.org/#parsing-main-intabletext
 					 */
-					if ( 'whitespace' === $this->text_type ) {
+					if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 						$this->insert_html_element( $this->state->current_token );
 						return true;
 					}
@@ -3160,7 +3160,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
 			 */
 			case '#text':
-				if ( 'whitespace' === $this->text_type ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					// Insert the character.
 					$this->insert_html_element( $this->state->current_token );
 					return true;
@@ -3589,7 +3589,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * If a text node only comprises null bytes then it should be
 				 * entirely ignored and should not return to calling code.
 				 */
-				if ( 'null-bytes' === $this->text_type ) {
+				if ( parent::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -3954,7 +3954,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > Process the token using the rules for the "in body" insertion mode.
 			 */
 			case '#text':
-				if ( 'whitespace' === $this->text_type ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_body();
 				}
 				goto after_body_anything_else;
@@ -4039,7 +4039,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * them under HTML. This is not supported at this time.
 			 */
 			case '#text':
-				if ( 'whitespace' === $this->text_type ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_body();
 				}
 				$this->bail( 'Non-whitespace characters cannot be handled in frameset.' );
@@ -4158,7 +4158,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * them under HTML. This is not supported at this time.
 			 */
 			case '#text':
-				if ( 'whitespace' === $this->text_type ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_body();
 				}
 				$this->bail( 'Non-whitespace characters cannot be handled in after frameset' );
@@ -4252,7 +4252,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > Process the token using the rules for the "in body" insertion mode.
 			 */
 			case '#text':
-				if ( 'whitespace' === $this->text_type ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_body();
 				}
 				goto after_after_body_anything_else;
@@ -4318,7 +4318,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * them under HTML. This is not supported at this time.
 			 */
 			case '#text':
-				if ( 'whitespace' === $this->text_type ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_body();
 				}
 				$this->bail( 'Non-whitespace characters cannot be handled in after after frameset.' );
@@ -4387,7 +4387,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * It is probably inter-element whitespace, but it may also
 				 * contain character references which decode only to whitespace.
 				 */
-				if ( null === $this->text_type ) {
+				if ( parent::TEXT_IS_GENERIC === $this->text_node_classification ) {
 					$this->state->frameset_ok = false;
 				}
 

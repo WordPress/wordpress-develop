@@ -544,19 +544,16 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * What kind of text the matched text node represents, if it was subdivided.
 	 *
-	 * May be one of the following:
-	 *
-	 *  - "null-bytes" if the entire text span is null bytes.
-	 *  - "whitespace" if the entire decoded text span comprises whitespace characters.
-	 *  - null if the text span is not subdivided or represents mixed content.
-	 *
-	 * @see static::subdivide_text_appropriately
+	 * @see self::TEXT_IS_NULL_SEQUENCE
+	 * @see self::TEXT_IS_WHITESPACE
+	 * @see self::TEXT_IS_GENERIC
+	 * @see self::subdivide_text_appropriately
 	 *
 	 * @since 6.7.0
 	 *
-	 * @var string|null
+	 * @var string
 	 */
-	protected $text_type = null;
+	protected $text_node_classification = self::TEXT_IS_GENERIC;
 
 	/**
 	 * How many bytes from the original HTML document have been read and parsed.
@@ -2225,7 +2222,7 @@ class WP_HTML_Tag_Processor {
 		$this->is_closing_tag       = null;
 		$this->attributes           = array();
 		$this->comment_type         = null;
-		$this->text_type            = null;
+		$this->text_node_classification            = null;
 		$this->duplicate_attributes = null;
 	}
 
@@ -3348,21 +3345,29 @@ class WP_HTML_Tag_Processor {
 	 *     $processor = new WP_HTML_Tag_Processor( "\x00Apples & Oranges" );
 	 *     true  === $processor->next_token();                   // Text is "Apples & Oranges".
 	 *     true  === $processor->subdivide_text_appropriately(); // Text is "".
+	 *     WP_HTML_Tag_Processor::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification
+	 *
 	 *     true  === $processor->next_token();                   // Text is "Apples & Oranges".
 	 *     false === $processor->subdivide_text_appropriately();
+	 *     WP_HTML_Tag_Processor::TEXT_IS_GENERIC === $this->text_node_classification
 	 *
 	 *     $processor = new WP_HTML_Tag_Processor( "&#x13; \r\n\tMore" );
 	 *     true  === $processor->next_token();                   // Text is "␤ ␤␉More".
 	 *     true  === $processor->subdivide_text_appropriately(); // Text is "␤ ␤␉".
+	 *     WP_HTML_Tag_Processor::TEXT_IS_WHITESPACE === $this->text_node_classification
+	 *
 	 *     true  === $processor->next_token();                   // Text is "More".
 	 *     false === $processor->subdivide_text_appropriately();
+	 *     WP_HTML_Tag_Processor::TEXT_IS_GENERIC === $this->text_node_classification
+	 *
+	 * @see self::$text_node_classification
 	 *
 	 * @since 6.7.0
 	 *
 	 * @return bool Whether the text node was subdivided.
 	 */
 	public function subdivide_text_appropriately(): bool {
-		$this->text_type = null;
+		$this->text_node_classification = self::TEXT_IS_GENERIC;
 
 		if ( self::STATE_TEXT_NODE === $this->parser_state ) {
 			/*
@@ -3371,10 +3376,10 @@ class WP_HTML_Tag_Processor {
 			 */
 			$leading_nulls = strspn( $this->html, "\x00", $this->text_starts_at, $this->text_length );
 			if ( $leading_nulls > 0 ) {
-				$this->token_length         = $leading_nulls;
-				$this->text_length          = $leading_nulls;
-				$this->bytes_already_parsed = $this->token_starts_at + $leading_nulls;
-				$this->text_type            = 'null-bytes';
+				$this->token_length             = $leading_nulls;
+				$this->text_length              = $leading_nulls;
+				$this->bytes_already_parsed     = $this->token_starts_at + $leading_nulls;
+				$this->text_node_classification = self::TEXT_IS_NULL_SEQUENCE;
 				return true;
 			}
 
@@ -3402,11 +3407,11 @@ class WP_HTML_Tag_Processor {
 			}
 
 			if ( $at > $this->text_starts_at ) {
-				$new_length                 = $at - $this->text_starts_at;
-				$this->text_length          = $new_length;
-				$this->token_length         = $new_length;
-				$this->bytes_already_parsed = $at;
-				$this->text_type            = 'whitespace';
+				$new_length                     = $at - $this->text_starts_at;
+				$this->text_length              = $new_length;
+				$this->token_length             = $new_length;
+				$this->bytes_already_parsed     = $at;
+				$this->text_node_classification = self::TEXT_IS_WHITESPACE;
 				return true;
 			}
 
@@ -3417,13 +3422,13 @@ class WP_HTML_Tag_Processor {
 		if ( self::STATE_CDATA_NODE === $this->parser_state ) {
 			$leading_nulls = strspn( $this->html, "\x00", $this->text_starts_at, $this->text_length );
 			if ( $leading_nulls === $this->text_length ) {
-				$this->text_type = 'null-bytes';
+				$this->text_node_classification = self::TEXT_IS_NULL_SEQUENCE;
 				return true;
 			}
 
 			$leading_ws = strspn( $this->html, " \t\f\r\n", $this->text_starts_at, $this->text_length );
 			if ( $leading_ws === $this->text_length ) {
-				$this->text_type = 'whitespace';
+				$this->text_node_classification = self::TEXT_IS_WHITESPACE;
 				return true;
 			}
 		}
@@ -4358,4 +4363,35 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.5.0
 	 */
 	const COMMENT_AS_INVALID_HTML = 'COMMENT_AS_INVALID_HTML';
+
+	/**
+	 * Indicates that a span of text may contain any combination of significant
+	 * kinds of characters: NULL bytes, whitespace, and others.
+	 *
+	 * @see self::$text_node_classification
+	 * @see self::subdivide_text_appropriately
+	 *
+	 * @since 6.7.0
+	 */
+	const TEXT_IS_GENERIC = 'TEXT_IS_GENERIC';
+
+	/**
+	 * Indicates that a span of text comprises a sequence only of NULL bytes.
+	 *
+	 * @see self::$text_node_classification
+	 * @see self::subdivide_text_appropriately
+	 *
+	 * @since 6.7.0
+	 */
+	const TEXT_IS_NULL_SEQUENCE = 'TEXT_IS_NULL_SEQUENCE';
+
+	/**
+	 * Indicates that a span of decoded text comprises only whitespace.
+	 *
+	 * @see self::$text_node_classification
+	 * @see self::subdivide_text_appropriately
+	 *
+	 * @since 6.7.0
+	 */
+	const TEXT_IS_WHITESPACE = 'TEXT_IS_WHITESPACE';
 }
