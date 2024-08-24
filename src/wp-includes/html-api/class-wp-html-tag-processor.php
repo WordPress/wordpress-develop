@@ -3337,30 +3337,31 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Subdivides a matched text node or CDATA text node, splitting
-	 * NULL byte sequences and decoded whitespace as distinct prefixes.
+	 * Subdivides a matched text node or CDATA text node, splitting NULL byte sequences
+	 * and decoded whitespace as distinct prefixes.
+	 *
+	 * Note that once anything that's neither a NULL byte nor decoded whitespace is
+	 * encountered, then the remainder of the text node is left intact as generic text.
+	 *
+	 *  - The HTML Processor uses this to apply distinct rules for different kinds of text.
+	 *  - Inter-element whitespace can be detected and skipped with this method.
+	 *
+	 * Text nodes aren't eagerly subdivided because there's no need to split them unless
+	 * decisions are being made on NULL byte sequences or whitespace-only text.
 	 *
 	 * Example:
 	 *
 	 *     $processor = new WP_HTML_Tag_Processor( "\x00Apples & Oranges" );
 	 *     true  === $processor->next_token();                   // Text is "Apples & Oranges".
 	 *     true  === $processor->subdivide_text_appropriately(); // Text is "".
-	 *     WP_HTML_Tag_Processor::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification
-	 *
 	 *     true  === $processor->next_token();                   // Text is "Apples & Oranges".
 	 *     false === $processor->subdivide_text_appropriately();
-	 *     WP_HTML_Tag_Processor::TEXT_IS_GENERIC === $this->text_node_classification
 	 *
 	 *     $processor = new WP_HTML_Tag_Processor( "&#x13; \r\n\tMore" );
 	 *     true  === $processor->next_token();                   // Text is "␤ ␤␉More".
 	 *     true  === $processor->subdivide_text_appropriately(); // Text is "␤ ␤␉".
-	 *     WP_HTML_Tag_Processor::TEXT_IS_WHITESPACE === $this->text_node_classification
-	 *
 	 *     true  === $processor->next_token();                   // Text is "More".
 	 *     false === $processor->subdivide_text_appropriately();
-	 *     WP_HTML_Tag_Processor::TEXT_IS_GENERIC === $this->text_node_classification
-	 *
-	 * @see self::$text_node_classification
 	 *
 	 * @since 6.7.0
 	 *
