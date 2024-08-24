@@ -3362,6 +3362,8 @@ class WP_HTML_Tag_Processor {
 	 * @return bool Whether the text node was subdivided.
 	 */
 	public function subdivide_text_appropriately(): bool {
+		$this->text_type = null;
+
 		if ( self::STATE_TEXT_NODE === $this->parser_state ) {
 			/*
 			 * NULL bytes are treated categorically different than numeric character
@@ -3372,6 +3374,7 @@ class WP_HTML_Tag_Processor {
 				$this->token_length         = $leading_nulls;
 				$this->text_length          = $leading_nulls;
 				$this->bytes_already_parsed = $this->token_starts_at + $leading_nulls;
+				$this->text_type            = 'null-bytes';
 				return true;
 			}
 
@@ -3389,7 +3392,7 @@ class WP_HTML_Tag_Processor {
 				if ( $at < $end && '&' === $this->html[ $at ] ) {
 					$matched_byte_length = null;
 					$replacement         = WP_HTML_Decoder::read_character_reference( 'data', $this->html, $at, $matched_byte_length );
-					if ( isset( $replacement ) || 1 === strspn( $replacement, " \t\f\r\n" ) ) {
+					if ( isset( $replacement ) && 1 === strspn( $replacement, " \t\f\r\n" ) ) {
 						$at += $matched_byte_length;
 						continue;
 					}
@@ -3403,6 +3406,7 @@ class WP_HTML_Tag_Processor {
 				$this->text_length          = $new_length;
 				$this->token_length         = $new_length;
 				$this->bytes_already_parsed = $at;
+				$this->text_type            = 'whitespace';
 				return true;
 			}
 
@@ -3412,18 +3416,14 @@ class WP_HTML_Tag_Processor {
 		// Unlike text nodes, there are no character references within CDATA sections.
 		if ( self::STATE_CDATA_NODE === $this->parser_state ) {
 			$leading_nulls = strspn( $this->html, "\x00", $this->text_starts_at, $this->text_length );
-			if ( $leading_nulls > 0 ) {
-				$this->token_length         = $leading_nulls;
-				$this->text_length          = $leading_nulls;
-				$this->bytes_already_parsed = $this->token_starts_at + $leading_nulls;
+			if ( $leading_nulls === $this->text_length ) {
+				$this->text_type = 'null-bytes';
 				return true;
 			}
 
 			$leading_ws = strspn( $this->html, " \t\f\r\n", $this->text_starts_at, $this->text_length );
-			if ( $leading_ws > 0 ) {
-				$this->token_length         = $leading_ws;
-				$this->text_length          = $leading_ws;
-				$this->bytes_already_parsed = $this->token_starts_at + $leading_ws;
+			if ( $leading_ws === $this->text_length ) {
+				$this->text_type = 'whitespace';
 				return true;
 			}
 		}
