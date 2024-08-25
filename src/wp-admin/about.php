@@ -15,14 +15,14 @@ $title = _x( 'About', 'page title' );
 
 list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
 
-$curr_locale       = get_locale();
-$remove_prop_array = array( 'ja-JP' );
+$locale       = get_locale();
+$no_text_wrap_locales = array( 'ja-JP' );
 
-$additional_class = in_array( $curr_locale, $remove_prop_array, true ) ? 'no-text-wrap' : '';
+$no_text_wrap_class = in_array( $locale, $no_text_wrap_locales, true ) ? ' no-text-wrap' : '';
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
-	<div class="wrap about__container <?php echo esc_html( $additional_class ); ?>">
+	<div class="wrap about__container<?php echo esc_attr( $no_text_wrap_class ); ?>">
 
 		<div class="about__header">
 			<div class="about__header-title">
