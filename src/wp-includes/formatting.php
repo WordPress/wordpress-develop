@@ -762,8 +762,8 @@ function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
 	// Optimize when searching for one item.
 	if ( 1 === count( $replace_pairs ) ) {
 		// Extract $needle and $replace.
-		foreach ( $replace_pairs as $needle => $replace ) {
-		}
+		$needle  = array_key_first( $replace_pairs );
+		$replace = $replace_pairs[ $needle ];
 
 		// Loop through delimiters (elements) only.
 		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) {
@@ -3856,7 +3856,7 @@ function sanitize_email( $email ) {
  * Determines the difference between two timestamps.
  *
  * The difference is returned in a human-readable format such as "1 hour",
- * "5 mins", "2 days".
+ * "5 minutes", "2 days".
  *
  * @since 1.5.0
  * @since 5.3.0 Added support for showing a difference in seconds.
@@ -3884,8 +3884,8 @@ function human_time_diff( $from, $to = 0 ) {
 		if ( $mins <= 1 ) {
 			$mins = 1;
 		}
-		/* translators: Time difference between two dates, in minutes (min=minute). %s: Number of minutes. */
-		$since = sprintf( _n( '%s min', '%s mins', $mins ), $mins );
+		/* translators: Time difference between two dates, in minutes. %s: Number of minutes. */
+		$since = sprintf( _n( '%s minute', '%s minutes', $mins ), $mins );
 	} elseif ( $diff < DAY_IN_SECONDS && $diff >= HOUR_IN_SECONDS ) {
 		$hours = round( $diff / HOUR_IN_SECONDS );
 		if ( $hours <= 1 ) {
@@ -4790,12 +4790,13 @@ EOF;
  * Escapes an HTML tag name.
  *
  * @since 2.5.0
+ * @since 6.5.5 Allow hyphens in tag names (i.e. custom elements).
  *
  * @param string $tag_name
  * @return string
  */
 function tag_escape( $tag_name ) {
-	$safe_tag = strtolower( preg_replace( '/[^a-zA-Z0-9_:]/', '', $tag_name ) );
+	$safe_tag = strtolower( preg_replace( '/[^a-zA-Z0-9-_:]/', '', $tag_name ) );
 	/**
 	 * Filters a string cleaned and escaped for output as an HTML tag.
 	 *
@@ -5498,11 +5499,11 @@ function normalize_whitespace( $str ) {
 }
 
 /**
- * Properly strips all HTML tags including script and style
+ * Properly strips all HTML tags including 'script' and 'style'.
  *
  * This differs from strip_tags() because it removes the contents of
  * the `<script>` and `<style>` tags. E.g. `strip_tags( '<script>something</script>' )`
- * will return 'something'. wp_strip_all_tags will return ''
+ * will return 'something'. wp_strip_all_tags() will return an empty string.
  *
  * @since 2.9.0
  *
@@ -5518,10 +5519,11 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 	if ( ! is_scalar( $text ) ) {
 		/*
 		 * To maintain consistency with pre-PHP 8 error levels,
-		 * trigger_error() is used to trigger an E_USER_WARNING,
+		 * wp_trigger_error() is used to trigger an E_USER_WARNING,
 		 * rather than _doing_it_wrong(), which triggers an E_USER_NOTICE.
 		 */
-		trigger_error(
+		wp_trigger_error(
+			'',
 			sprintf(
 				/* translators: 1: The function name, 2: The argument number, 3: The argument name, 4: The expected type, 5: The provided type. */
 				__( 'Warning: %1$s expects parameter %2$s (%3$s) to be a %4$s, %5$s given.' ),

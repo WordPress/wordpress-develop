@@ -231,6 +231,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.9.0
 	 * @since 6.2.0 Added validation of styles.css property.
+	 * @since 6.6.0 Added registration of block style variations from theme.json sources (theme.json, user theme.json, partials).
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return stdClass|WP_Error Prepared item on success. WP_Error on when the custom CSS is not valid.
@@ -263,6 +264,11 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			} elseif ( isset( $existing_config['styles'] ) ) {
 				$config['styles'] = $existing_config['styles'];
 			}
+
+			// Register theme-defined variations e.g. from block style variation partials under `/styles`.
+			$variations = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
+			wp_register_block_style_variations_from_theme_json_partials( $variations );
+
 			if ( isset( $request['settings'] ) ) {
 				$config['settings'] = $request['settings'];
 			} elseif ( isset( $existing_config['settings'] ) ) {
@@ -321,10 +327,12 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		}
 		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 
 			$data['title']['rendered'] = get_the_title( $post->ID );
 
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 		}
 
 		if ( rest_is_field_included( 'settings', $fields ) ) {
@@ -625,8 +633,12 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$response   = array();
-		$variations = WP_Theme_JSON_Resolver::get_style_variations();
 
+		// Register theme-defined variations e.g. from block style variation partials under `/styles`.
+		$partials = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
+		wp_register_block_style_variations_from_theme_json_partials( $partials );
+
+		$variations = WP_Theme_JSON_Resolver::get_style_variations();
 		foreach ( $variations as $variation ) {
 			$variation_theme_json = new WP_Theme_JSON( $variation );
 			$resolved_theme_uris  = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $variation_theme_json );

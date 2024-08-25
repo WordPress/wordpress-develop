@@ -13014,6 +13014,8 @@ mockedApiResponse.TypesCollection = {
         ],
         "rest_base": "posts",
         "rest_namespace": "wp/v2",
+        "template": [],
+        "template_lock": false,
         "_links": {
             "collection": [
                 {
@@ -13044,6 +13046,8 @@ mockedApiResponse.TypesCollection = {
         "taxonomies": [],
         "rest_base": "pages",
         "rest_namespace": "wp/v2",
+        "template": [],
+        "template_lock": false,
         "_links": {
             "collection": [
                 {
@@ -13074,6 +13078,8 @@ mockedApiResponse.TypesCollection = {
         "taxonomies": [],
         "rest_base": "media",
         "rest_namespace": "wp/v2",
+        "template": [],
+        "template_lock": false,
         "_links": {
             "collection": [
                 {
@@ -13106,6 +13112,8 @@ mockedApiResponse.TypesCollection = {
         ],
         "rest_base": "menu-items",
         "rest_namespace": "wp/v2",
+        "template": [],
+        "template_lock": false,
         "_links": {
             "collection": [
                 {
@@ -13138,6 +13146,8 @@ mockedApiResponse.TypesCollection = {
         ],
         "rest_base": "blocks",
         "rest_namespace": "wp/v2",
+        "template": [],
+        "template_lock": false,
         "_links": {
             "collection": [
                 {
@@ -13168,6 +13178,8 @@ mockedApiResponse.TypesCollection = {
         "taxonomies": [],
         "rest_base": "templates",
         "rest_namespace": "wp/v2",
+        "template": [],
+        "template_lock": false,
         "_links": {
             "collection": [
                 {
@@ -13198,6 +13210,8 @@ mockedApiResponse.TypesCollection = {
         "taxonomies": [],
         "rest_base": "template-parts",
         "rest_namespace": "wp/v2",
+        "template": [],
+        "template_lock": false,
         "_links": {
             "collection": [
                 {
@@ -13228,6 +13242,8 @@ mockedApiResponse.TypesCollection = {
         "taxonomies": [],
         "rest_base": "global-styles",
         "rest_namespace": "wp/v2",
+        "template": [],
+        "template_lock": false,
         "_links": {
             "collection": [
                 {
@@ -13258,6 +13274,8 @@ mockedApiResponse.TypesCollection = {
         "taxonomies": [],
         "rest_base": "navigation",
         "rest_namespace": "wp/v2",
+        "template": [],
+        "template_lock": false,
         "_links": {
             "collection": [
                 {
@@ -13288,6 +13306,8 @@ mockedApiResponse.TypesCollection = {
         "taxonomies": [],
         "rest_base": "font-families",
         "rest_namespace": "wp/v2",
+        "template": [],
+        "template_lock": false,
         "_links": {
             "collection": [
                 {
@@ -13318,6 +13338,8 @@ mockedApiResponse.TypesCollection = {
         "taxonomies": [],
         "rest_base": "font-families/(?P<font_family_id>[\\d]+)/font-faces",
         "rest_namespace": "wp/v2",
+        "template": [],
+        "template_lock": false,
         "_links": {
             "collection": [
                 {
@@ -13352,7 +13374,9 @@ mockedApiResponse.TypeModel = {
         "post_tag"
     ],
     "rest_base": "posts",
-    "rest_namespace": "wp/v2"
+    "rest_namespace": "wp/v2",
+    "template": [],
+    "template_lock": false
 };
 
 mockedApiResponse.StatusesCollection = {
@@ -13724,9 +13748,9 @@ mockedApiResponse.UsersCollection = [
         "link": "http://example.org/?author=1",
         "slug": "admin",
         "avatar_urls": {
-            "24": "http://0.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=24&d=mm&r=g",
-            "48": "http://0.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=48&d=mm&r=g",
-            "96": "http://0.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=96&d=mm&r=g"
+            "24": "https://secure.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=96&d=mm&r=g"
         },
         "meta": {
             "meta_key": "meta_value"
@@ -13752,9 +13776,9 @@ mockedApiResponse.UsersCollection = [
         "link": "http://example.org/?author=2",
         "slug": "restapiclientfixtureuser",
         "avatar_urls": {
-            "24": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
-            "48": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
-            "96": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
+            "24": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
         },
         "meta": {
             "meta_key": ""
@@ -13782,9 +13806,9 @@ mockedApiResponse.UserModel = {
     "link": "http://example.org/?author=2",
     "slug": "restapiclientfixtureuser",
     "avatar_urls": {
-        "24": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
-        "48": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
-        "96": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
+        "24": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
+        "48": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
+        "96": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
     },
     "meta": {
         "meta_key": ""
@@ -13799,9 +13823,9 @@ mockedApiResponse.me = {
     "link": "http://example.org/?author=2",
     "slug": "restapiclientfixtureuser",
     "avatar_urls": {
-        "24": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
-        "48": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
-        "96": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
+        "24": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
+        "48": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
+        "96": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
     },
     "meta": {
         "meta_key": ""
@@ -13825,9 +13849,9 @@ mockedApiResponse.CommentsCollection = [
         "status": "approved",
         "type": "comment",
         "author_avatar_urls": {
-            "24": "http://2.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=24&d=mm&r=g",
-            "48": "http://2.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=48&d=mm&r=g",
-            "96": "http://2.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=96&d=mm&r=g"
+            "24": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=96&d=mm&r=g"
         },
         "meta": {
             "meta_key": "meta_value"
@@ -13870,9 +13894,9 @@ mockedApiResponse.CommentModel = {
     "status": "approved",
     "type": "comment",
     "author_avatar_urls": {
-        "24": "http://2.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=24&d=mm&r=g",
-        "48": "http://2.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=48&d=mm&r=g",
-        "96": "http://2.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=96&d=mm&r=g"
+        "24": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=24&d=mm&r=g",
+        "48": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=48&d=mm&r=g",
+        "96": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=96&d=mm&r=g"
     },
     "meta": {
         "meta_key": "meta_value"

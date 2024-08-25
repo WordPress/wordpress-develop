@@ -140,17 +140,9 @@
 
 /* CUSTOM COLORS */
 
-:root .has-accent-color {
-	color: #cd2653;
-}
-
 :root .has-accent-background-color {
 	background-color: #cd2653;
 	color: #fff;
-}
-
-:root .has-primary-color {
-	color: #000;
 }
 
 :root .has-primary-background-color {
@@ -158,17 +150,9 @@
 	color: #f5efe0;
 }
 
-:root .has-secondary-color {
-	color: #6d6d6d;
-}
-
 :root .has-secondary-background-color {
 	background-color: #6d6d6d;
 	color: #fff;
-}
-
-:root .has-subtle-background-color {
-	color: #dcd7ca;
 }
 
 :root .has-subtle-background-background-color {
@@ -176,13 +160,29 @@
 	color: #000;
 }
 
-:root .has-background-color {
-	color: #f5efe0;
-}
-
 :root .has-background-background-color {
 	background-color: #f5efe0;
 	color: #000;
+}
+
+:root .has-accent-color {
+	color: #cd2653;
+}
+
+:root .has-primary-color {
+	color: #000;
+}
+
+:root .has-secondary-color {
+	color: #6d6d6d;
+}
+
+:root .has-subtle-background-color {
+	color: #dcd7ca;
+}
+
+:root .has-background-color {
+	color: #f5efe0;
 }
 
 /* GENERAL COLORS */
@@ -687,6 +687,11 @@ hr.wp-block-separator.is-style-dots::before {
 	letter-spacing: inherit;
 }
 
+.editor-styles-wrapper .wp-block-quote.is-style-plain {
+	border-width: 0;
+	padding: 5px 20px;
+}
+
 .editor-styles-wrapper .wp-block-quote.is-style-large {
 	border: none;
 	padding: 0;
@@ -871,6 +876,10 @@ hr.wp-block-separator.is-style-dots::before {
 	transform: translateY(-50%);
 }
 
+.editor-styles-wrapper .wp-block-pullquote[style*="letter-spacing"] p {
+	letter-spacing: inherit;
+}
+
 .editor-styles-wrapper .wp-block-pullquote__citation,
 .editor-styles-wrapper .wp-block-pullquote cite,
 .editor-styles-wrapper .wp-block-pullquote footer {
@@ -917,7 +926,6 @@ hr.wp-block-separator.is-style-dots::before {
 
 .editor-styles-wrapper .wp-block-verse pre,
 .editor-styles-wrapper pre.wp-block-verse {
-	font-family: NonBreakingSpaceOverride, "Hoefler Text", Garamond, "Times New Roman", serif;
 	font-size: 0.9em;
 }
 
