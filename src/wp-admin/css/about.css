@@ -403,7 +403,6 @@
 	line-height: 1.6;
 }
 
-
 .about__container h1,
 .about__container h2,
 .about__container h3,
@@ -412,10 +411,7 @@
 	color: inherit;
 }
 
-.about__container .no-text-wrap h1,
-.about__container .no-text-wrap h2,
-.about__container .no-text-wrap h3,
-.about__container .no-text-wrap h4 {
+.about__container :is(h1, h2, h3, h4):lang(ja) {
 	text-wrap: unset;
 }
 
