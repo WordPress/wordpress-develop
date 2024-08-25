@@ -1078,12 +1078,27 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			'alt'   => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
 		);
 
-		// Add `loading` attribute.
-		if ( wp_lazy_loading_enabled( 'img', 'wp_get_attachment_image' ) ) {
-			$default_attr['loading'] = wp_get_loading_attr_default( 'wp_get_attachment_image' );
-		}
+		/**
+		 * Filters the context in which wp_get_attachment_image() is used.
+		 *
+		 * @since 6.3.0
+		 *
+		 * @param string $context The context. Default 'wp_get_attachment_image'.
+		 */
+		$context = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
+		$attr    = wp_parse_args( $attr, $default_attr );
 
-		$attr = wp_parse_args( $attr, $default_attr );
+		$loading_attr              = $attr;
+		$loading_attr['width']     = $width;
+		$loading_attr['height']    = $height;
+		$loading_optimization_attr = wp_get_loading_optimization_attributes(
+			'img',
+			$loading_attr,
+			$context
+		);
+
+		// Add loading optimization attributes if not available.
+		$attr = array_merge( $attr, $loading_optimization_attr );
 
 		// Omit the `decoding` attribute if the value is invalid according to the spec.
 		if ( empty( $attr['decoding'] ) || ! in_array( $attr['decoding'], array( 'async', 'sync', 'auto' ), true ) ) {
@@ -1350,8 +1365,21 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 	 * If currently on HTTPS, prefer HTTPS URLs when we know they're supported by the domain
 	 * (which is to say, when they share the domain name of the current request).
 	 */
-	if ( is_ssl() && ! str_starts_with( $image_baseurl, 'https' ) && parse_url( $image_baseurl, PHP_URL_HOST ) === $_SERVER['HTTP_HOST'] ) {
-		$image_baseurl = set_url_scheme( $image_baseurl, 'https' );
+	if ( is_ssl() && ! str_starts_with( $image_baseurl, 'https' ) ) {
+		/*
+		 * Since the `Host:` header might contain a port, it should
+		 * be compared against the image URL using the same port.
+		 */
+		$parsed = parse_url( $image_baseurl );
+		$domain = isset( $parsed['host'] ) ? $parsed['host'] : '';
+
+		if ( isset( $parsed['port'] ) ) {
+			$domain .= ':' . $parsed['port'];
+		}
+
+		if ( $_SERVER['HTTP_HOST'] === $domain ) {
+			$image_baseurl = set_url_scheme( $image_baseurl, 'https' );
+		}
 	}
 
 	/*
