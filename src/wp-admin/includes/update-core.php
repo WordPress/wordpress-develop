@@ -765,9 +765,13 @@ $_old_files = array(
 	'wp-admin/images/about-header-freedoms.svg',
 	'wp-admin/images/about-header-contribute.svg',
 	'wp-admin/images/about-header-background.svg',
+	// 6.6
+	'wp-includes/blocks/block/editor.css',
+	'wp-includes/blocks/block/editor.min.css',
+	'wp-includes/blocks/block/editor-rtl.css',
+	'wp-includes/blocks/block/editor-rtl.min.css',
 	// 6.7
 	'wp-content/plugins/hello.php',
-
 );
 
 /**
