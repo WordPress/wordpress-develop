@@ -97,7 +97,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 					'args'                => array(
 						'id' => array(
 							'description'       => __( 'The id of a template' ),
-							'type'              => 'int',
+							'type'              => 'integer',
 							'sanitize_callback' => array( $this, '_sanitize_global_styles_callback' ),
 						),
 					),
