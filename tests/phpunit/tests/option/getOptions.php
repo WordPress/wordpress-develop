@@ -115,6 +115,12 @@ class Tests_Option_GetOptions extends WP_UnitTestCase {
 
 		// Check that the return type is the same.
 		$this->assertSame( gettype( $option_cached ), gettype( $option_uncached ), 'The return type is not the same.' );
+		/*
+		 * Check canonicalized value.
+		 *
+		 * This is done separately from the above check to avoid false negatives
+		 * for objects as assertSame checks for the same instance.
+		 */
 		$this->assertEqualsCanonicalizing( $option_cached, $option_uncached, 'The option values are not the same.' );
 	}
 
