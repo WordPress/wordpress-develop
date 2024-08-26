@@ -4300,6 +4300,28 @@ class WP_HTML_Tag_Processor {
 	 * > Explorer 5. This is essential in order to support websites that were
 	 * > built before the widespread adoption of web standards.
 	 *
+	 * The behavior of the HTML API is impacted in the following ways when a document is in quirks mode:
+	 * - The CSS class name methods on the Tag and HTML Processors such as `has_class` are
+	 *   in ASCII case-insensitive. In no-quirks mode, they are case-sensitive.
+	 * - The HTML Processor may produce a different structure, namely when HTML attempts to nest
+	 *   a TABLE under a P. In no-quirks mode this is not allowed and a TABLE start tag closes
+	 *   open P elements. In quirks mode, TABLE is allowed to appear as a descendant of P so
+	 *   the tree structure will appear as authored. For example:
+	 *   - Quirks mode:
+	 *         <p><table>
+	 *     Produces:
+	 *          HTML
+	 *           └BODY
+	 *            └P
+	 *             └TABLE
+	 *   - No-quirks mode:
+	 *         <p><table>
+	 *     Produces:
+	 *         HTML
+	 *          └BODY
+	 *           ├P
+	 *           └TABLE
+	 *
 	 * @since 6.7.0
 	 *
 	 * @var string
