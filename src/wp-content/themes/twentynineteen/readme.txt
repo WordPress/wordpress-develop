@@ -39,7 +39,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 Material Design icons by Google
-Copyright 2014-2023 Google
+Copyright 2014-2024 Google
 Licensed under the Apache License, Version 2.0
 http://www.apache.org/licenses/LICENSE-2.0
 Includes a modified version of the 'comment' icon, without the speech lines.
