@@ -2308,8 +2308,12 @@ class WP_HTML_Tag_Processor {
 				break;
 			}
 
-			$name = $this->comparable_class_name( substr( $existing_class, $at, $name_length ) );
-			$at  += $name_length;
+			$name = substr( $existing_class, $at, $name_length );
+			if ( self::QUIRKS_MODE === $this->compat_mode ) {
+				$name = strtolower( $name );
+			}
+
+			$at += $name_length;
 
 			// If this class is marked for removal, start processing the next one.
 			$remove_class = (
@@ -3843,7 +3847,10 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		$this->classname_updates[ $this->comparable_class_name( $class_name ) ] = self::ADD_CLASS;
+		if ( self::QUIRKS_MODE === $this->compat_mode ) {
+			$class_name = strtolower( $class_name );
+		}
+		$this->classname_updates[ $class_name ] = self::ADD_CLASS;
 
 		return true;
 	}
@@ -3865,34 +3872,13 @@ class WP_HTML_Tag_Processor {
 		}
 
 		if ( null !== $this->tag_name_starts_at ) {
-			$this->classname_updates[ $this->comparable_class_name( $class_name ) ] = self::REMOVE_CLASS;
+			if ( self::QUIRKS_MODE === $this->compat_mode ) {
+				$class_name = strtolower( $class_name );
+			}
+			$this->classname_updates[ $class_name ] = self::REMOVE_CLASS;
 		}
 
 		return true;
-	}
-
-	/**
-	 * Transform a class name string to a comparable form.
-	 *
-	 * When the document is in quirks mode, class names are transformed to
-	 * ASCII lowercase for comparison. In no quirks mode, class names are
-	 * compared as they are (case-sensitive).
-	 *
-	 * > When matching against a document which is in quirks mode, class names must be matched
-	 * > ASCII case-insensitively; class selectors are otherwise case-sensitive, only matching
-	 * > class names they are identical to.
-	 *
-	 * @see https://www.w3.org/TR/selectors-4/#class-html
-	 *
-	 * @since 6.7.0
-	 *
-	 * @param string $class_name The class name to transform.
-	 * @return string The transformed class name.
-	 */
-	private function comparable_class_name( string $class_name ): string {
-		return self::QUIRKS_MODE === $this->compat_mode
-			? strtolower( $class_name )
-			: $class_name;
 	}
 
 	/**
