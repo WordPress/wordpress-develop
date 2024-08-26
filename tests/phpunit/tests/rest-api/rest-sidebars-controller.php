@@ -5,15 +5,12 @@
  * @package WordPress
  * @subpackage REST_API
  * @since 5.8.0
- */
-
-/**
- * Tests for REST API for Widgets.
+ *
+ * @covers WP_REST_Sidebars_Controller
  *
  * @see WP_Test_REST_Controller_Testcase
  * @group restapi
  * @group widgets
- * @covers WP_REST_Sidebars_Controller
  */
 class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase {
 
@@ -46,8 +43,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public static function wpTearDownAfterClass() {
-		wp_delete_user( self::$admin_id );
-		wp_delete_user( self::$author_id );
+		self::delete_user( self::$admin_id );
+		self::delete_user( self::$author_id );
 	}
 
 	public function set_up() {
@@ -314,7 +311,6 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 			),
 			$data
 		);
-
 	}
 
 	/**
@@ -1016,7 +1012,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 			if ( isset( $item['_links'] ) ) {
 				unset( $data[ $count ]['_links'] );
 			}
-			$count++;
+			++$count;
 		}
 
 		return $data;

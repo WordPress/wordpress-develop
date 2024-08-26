@@ -113,6 +113,20 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that WP_Theme::__construct() handles a numeric theme directory as a string.
+	 *
+	 * @ticket 54645
+	 *
+	 * @covers WP_Theme::__construct
+	 */
+	public function test_new_WP_Theme_numeric_theme_directory() {
+		$theme = new WP_Theme( 1234, $this->theme_root );
+
+		$this->assertSame( '1234', $theme->get_stylesheet(), 'The stylesheet property should be a string.' );
+		$this->assertSame( '1234', $theme->get_template(), 'The template property should be a string.' );
+	}
+
+	/**
 	 * @ticket 21749
 	 */
 	public function test_wp_theme_uris_with_spaces() {

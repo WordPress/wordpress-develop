@@ -410,5 +410,4 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 		$search_columns = array( 'post_non_existing_column' );
 		return $search_columns;
 	}
-
 }

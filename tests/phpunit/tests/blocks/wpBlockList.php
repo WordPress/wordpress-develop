@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_Block_List tests
+ * Tests for WP_Block_List.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.5.0
- */
-
-/**
- * Tests for WP_Block_List.
- *
  * @since 5.5.0
  *
  * @group blocks
@@ -77,10 +71,10 @@ class Tests_Blocks_wpBlockList extends WP_UnitTestCase {
 
 		foreach ( $blocks as $block ) {
 			$this->assertSame( 'core/example', $block->name );
-			$assertions++;
+			++$assertions;
 			foreach ( $block->inner_blocks as $inner_block ) {
 				$this->assertSame( 'core/example', $inner_block->name );
-				$assertions++;
+				++$assertions;
 			}
 		}
 
@@ -89,9 +83,9 @@ class Tests_Blocks_wpBlockList extends WP_UnitTestCase {
 			$key   = $blocks->key();
 			$block = $blocks->current();
 			$this->assertSame( 0, $key );
-			$assertions++;
+			++$assertions;
 			$this->assertSame( 'core/example', $block->name );
-			$assertions++;
+			++$assertions;
 			$blocks->next();
 		}
 
@@ -108,5 +102,4 @@ class Tests_Blocks_wpBlockList extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $blocks );
 	}
-
 }

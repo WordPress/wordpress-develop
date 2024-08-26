@@ -87,13 +87,22 @@ echo esc_html( $title );
 ?>
 </h1>
 
-<a href="link-add.php" class="page-title-action"><?php echo esc_html_x( 'Add New', 'link' ); ?></a>
+<a href="link-add.php" class="page-title-action"><?php echo esc_html__( 'Add New Link' ); ?></a>
 
 <hr class="wp-header-end">
 
-<?php if ( isset( $_GET['added'] ) ) : ?>
-<div id="message" class="updated notice is-dismissible"><p><?php _e( 'Link added.' ); ?></p></div>
-<?php endif; ?>
+<?php
+if ( isset( $_GET['added'] ) ) {
+	wp_admin_notice(
+		__( 'Link added.' ),
+		array(
+			'id'                 => 'message',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
+	);
+}
+?>
 
 <form name="<?php echo esc_attr( $form_name ); ?>" id="<?php echo esc_attr( $form_name ); ?>" method="post" action="link.php">
 <?php
@@ -121,7 +130,7 @@ wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false );
 <div id="addressdiv" class="postbox">
 <h2 class="postbox-header"><label for="link_url"><?php _e( 'Web Address' ); ?></label></h2>
 <div class="inside">
-	<input type="text" name="link_url" size="30" maxlength="255" class="code" value="<?php echo esc_attr( $link->link_url ); ?>" id="link_url" />
+	<input type="text" name="link_url" size="30" maxlength="255" class="code" value="<?php echo esc_url( $link->link_url ); ?>" id="link_url" />
 	<p><?php _e( 'Example: <code>https://wordpress.org/</code> &#8212; do not forget the <code>https://</code>' ); ?></p>
 </div>
 </div>

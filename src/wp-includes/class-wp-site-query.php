@@ -158,11 +158,11 @@ class WP_Site_Query {
 	 *     @type string          $path                   Limit results to those affiliated with a given path. Default empty.
 	 *     @type string[]        $path__in               Array of paths to include affiliated sites for. Default empty.
 	 *     @type string[]        $path__not_in           Array of paths to exclude affiliated sites for. Default empty.
-	 *     @type int             $public                 Limit results to public sites. Accepts '1' or '0'. Default empty.
-	 *     @type int             $archived               Limit results to archived sites. Accepts '1' or '0'. Default empty.
-	 *     @type int             $mature                 Limit results to mature sites. Accepts '1' or '0'. Default empty.
-	 *     @type int             $spam                   Limit results to spam sites. Accepts '1' or '0'. Default empty.
-	 *     @type int             $deleted                Limit results to deleted sites. Accepts '1' or '0'. Default empty.
+	 *     @type int             $public                 Limit results to public sites. Accepts 1 or 0. Default empty.
+	 *     @type int             $archived               Limit results to archived sites. Accepts 1 or 0. Default empty.
+	 *     @type int             $mature                 Limit results to mature sites. Accepts 1 or 0. Default empty.
+	 *     @type int             $spam                   Limit results to spam sites. Accepts 1 or 0. Default empty.
+	 *     @type int             $deleted                Limit results to deleted sites. Accepts 1 or 0. Default empty.
 	 *     @type int             $lang_id                Limit results to a language ID. Default empty.
 	 *     @type string[]        $lang__in               Array of language IDs to include affiliated sites for. Default empty.
 	 *     @type string[]        $lang__not_in           Array of language IDs to exclude affiliated sites for. Default empty.
@@ -358,7 +358,7 @@ class WP_Site_Query {
 		$last_changed = wp_cache_get_last_changed( 'sites' );
 
 		$cache_key   = "get_sites:$key:$last_changed";
-		$cache_value = wp_cache_get( $cache_key, 'sites' );
+		$cache_value = wp_cache_get( $cache_key, 'site-queries' );
 
 		if ( false === $cache_value ) {
 			$site_ids = $this->get_site_ids();
@@ -370,14 +370,14 @@ class WP_Site_Query {
 				'site_ids'    => $site_ids,
 				'found_sites' => $this->found_sites,
 			);
-			wp_cache_add( $cache_key, $cache_value, 'sites' );
+			wp_cache_add( $cache_key, $cache_value, 'site-queries' );
 		} else {
 			$site_ids          = $cache_value['site_ids'];
 			$this->found_sites = $cache_value['found_sites'];
 		}
 
 		if ( $this->found_sites && $this->query_vars['number'] ) {
-			$this->max_num_pages = ceil( $this->found_sites / $this->query_vars['number'] );
+			$this->max_num_pages = (int) ceil( $this->found_sites / $this->query_vars['number'] );
 		}
 
 		// If querying for a count only, there's nothing more to do.
@@ -388,6 +388,10 @@ class WP_Site_Query {
 
 		$site_ids = array_map( 'intval', $site_ids );
 
+		if ( $this->query_vars['update_site_meta_cache'] ) {
+			wp_lazyload_site_meta( $site_ids );
+		}
+
 		if ( 'ids' === $this->query_vars['fields'] ) {
 			$this->sites = $site_ids;
 
@@ -396,7 +400,7 @@ class WP_Site_Query {
 
 		// Prime site network caches.
 		if ( $this->query_vars['update_site_cache'] ) {
-			_prime_site_caches( $site_ids, $this->query_vars['update_site_meta_cache'] );
+			_prime_site_caches( $site_ids, false );
 		}
 
 		// Fetch full site objects from the primed cache.
@@ -656,7 +660,16 @@ class WP_Site_Query {
 		 *
 		 * @since 4.6.0
 		 *
-		 * @param string[]      $clauses An associative array of site query clauses.
+		 * @param string[]      $clauses {
+		 *     Associative array of the clauses for the query.
+		 *
+		 *     @type string $fields   The SELECT clause of the query.
+		 *     @type string $join     The JOIN clause of the query.
+		 *     @type string $where    The WHERE clause of the query.
+		 *     @type string $orderby  The ORDER BY clause of the query.
+		 *     @type string $limits   The LIMIT clause of the query.
+		 *     @type string $groupby  The GROUP BY clause of the query.
+		 * }
 		 * @param WP_Site_Query $query   Current instance of WP_Site_Query (passed by reference).
 		 */
 		$clauses = apply_filters_ref_array( 'sites_clauses', array( compact( $pieces ), &$this ) );
@@ -691,14 +704,14 @@ class WP_Site_Query {
 		$this->sql_clauses['orderby'] = $orderby;
 		$this->sql_clauses['limits']  = $limits;
 
-		$this->request = "
-			{$this->sql_clauses['select']}
-			{$this->sql_clauses['from']}
-			{$where}
-			{$this->sql_clauses['groupby']}
-			{$this->sql_clauses['orderby']}
-			{$this->sql_clauses['limits']}
-		";
+		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
+		$this->request =
+			"{$this->sql_clauses['select']}
+			 {$this->sql_clauses['from']}
+			 {$where}
+			 {$this->sql_clauses['groupby']}
+			 {$this->sql_clauses['orderby']}
+			 {$this->sql_clauses['limits']}";
 
 		if ( $this->query_vars['count'] ) {
 			return (int) $wpdb->get_var( $this->request );
@@ -749,7 +762,7 @@ class WP_Site_Query {
 	protected function get_search_sql( $search, $columns ) {
 		global $wpdb;
 
-		if ( false !== strpos( $search, '*' ) ) {
+		if ( str_contains( $search, '*' ) ) {
 			$like = '%' . implode( '%', array_map( array( $wpdb, 'esc_like' ), explode( '*', $search ) ) ) . '%';
 		} else {
 			$like = '%' . $wpdb->esc_like( $search ) . '%';

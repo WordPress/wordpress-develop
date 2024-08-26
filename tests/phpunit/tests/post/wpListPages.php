@@ -160,6 +160,42 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
+	/**
+	 * @ticket 61749
+	 */
+	public function test_wp_list_pages_depth_equals_zero() {
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a>
+<ul class=\'children\'>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][2] ) . '">Child 3</a></li>
+</ul>
+</li>
+<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a>
+<ul class=\'children\'>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][2] ) . '">Child 3</a></li>
+</ul>
+</li>
+<li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a>
+<ul class=\'children\'>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][2] ) . '">Child 3</a></li>
+</ul>
+</li>
+</ul></li>';
+
+		// Execute wp_list_pages() with a string to force calling wp_parse_args().
+		ob_start();
+		wp_list_pages( 'depth=0' );
+		$output = ob_get_clean();
+
+		// If depth equals 0, all levels should be displayed.
+		$this->assertSameIgnoreEOL( $expected, $output );
+	}
+
 	public function test_wp_list_pages_show_date() {
 		$args = array(
 			'echo'      => false,
@@ -447,5 +483,61 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$expected = str_replace( array( "\r\n", "\n", "\t" ), '', $expected );
 
 		$this->assertSame( $expected, wp_list_pages( $args ) );
+	}
+
+	/**
+	 * @ticket 17590
+	 */
+	public function test_wp_list_pages_classes_with_hierarchical_cpt() {
+		$args = array(
+			'echo'      => false,
+			'post_type' => 'taco',
+		);
+
+		register_post_type(
+			$args['post_type'],
+			array(
+				'hierarchical' => true,
+				'public'       => true,
+			)
+		);
+
+		$posts   = self::factory()->post->create_many( 2, array( 'post_type' => $args['post_type'] ) );
+		$post_id = reset( $posts );
+
+		$this->go_to( "/?p={$post_id}&post_type={$args['post_type']}" );
+
+		$this->assertSame(
+			$post_id,
+			get_queried_object_id(),
+			'The queried object ID should match the ID of the requested CPT item.'
+		);
+
+		$output = wp_list_pages( $args );
+
+		_unregister_post_type( $args['post_type'] );
+
+		$this->assertNotEmpty(
+			$output,
+			'The output should not be empty.'
+		);
+
+		$this->assertSame(
+			2,
+			substr_count( $output, 'class="page_item ' ),
+			'The number of "page_item" classes should be equal to the total CPT items count.'
+		);
+
+		$this->assertStringContainsString(
+			'current_page_item',
+			$output,
+			'The output should contain the "current_page_item" class.'
+		);
+
+		$this->assertSame(
+			1,
+			substr_count( $output, 'current_page_item' ),
+			'The output should contain exactly one "current_page_item" class.'
+		);
 	}
 }

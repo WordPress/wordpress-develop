@@ -63,7 +63,8 @@ class MagpieRSS {
 		# Check if PHP xml isn't compiled
 		#
 		if ( ! function_exists('xml_parser_create') ) {
-			return trigger_error( "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." );
+			wp_trigger_error( '', "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." );
+			return;
 		}
 
 		$parser = xml_parser_create();
@@ -387,7 +388,7 @@ class MagpieRSS {
 
 	function error( $errormsg, $lvl = E_USER_WARNING ) {
 		if ( MAGPIE_DEBUG ) {
-			trigger_error( $errormsg, $lvl);
+			wp_trigger_error('', $errormsg, $lvl);
 		} else {
 			error_log( $errormsg, 0);
 		}
@@ -631,6 +632,9 @@ function _response_to_rss ($resp) {
  * Set up constants with default values, unless user overrides.
  *
  * @since 1.5.0
+ * 
+ * @global string $wp_version The WordPress version string.
+ * 
  * @package External
  * @subpackage MagpieRSS
  */
@@ -820,7 +824,7 @@ class RSSCache {
 	function error ($errormsg, $lvl=E_USER_WARNING) {
 		$this->ERROR = $errormsg;
 		if ( MAGPIE_DEBUG ) {
-			trigger_error( $errormsg, $lvl);
+			wp_trigger_error( '', $errormsg, $lvl);
 		}
 		else {
 			error_log( $errormsg, 0);
@@ -836,7 +840,7 @@ class RSSCache {
 if ( !function_exists('parse_w3cdtf') ) :
 function parse_w3cdtf ( $date_str ) {
 
-	# regex to match wc3dtf
+	# regex to match W3C date/time formats
 	$pat = "/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(:(\d{2}))?(?:([-+])(\d{2}):?(\d{2})|(Z))?/";
 
 	if ( preg_match( $pat, $date_str, $match ) ) {

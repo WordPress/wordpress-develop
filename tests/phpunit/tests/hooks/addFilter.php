@@ -35,6 +35,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$accepted_args = 2;
 
 		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
+		$this->check_priority_exists( $hook, $priority );
 
 		$function_index = _wp_filter_build_unique_id( $hook_name, $callback, $priority );
 		$this->assertSame( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
@@ -50,6 +51,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$accepted_args = 2;
 
 		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
+		$this->check_priority_exists( $hook, $priority );
 
 		$function_index = _wp_filter_build_unique_id( $hook_name, $callback, $priority );
 		$this->assertSame( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
@@ -64,6 +66,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$accepted_args = 2;
 
 		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
+		$this->check_priority_exists( $hook, $priority );
 
 		$function_index = _wp_filter_build_unique_id( $hook_name, $callback, $priority );
 		$this->assertSame( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
@@ -79,6 +82,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$accepted_args = 2;
 
 		$hook->add_filter( $hook_name, $callback_one, $priority, $accepted_args );
+		$this->check_priority_exists( $hook, $priority );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 
 		$hook->add_filter( $hook_name, $callback_two, $priority, $accepted_args );
@@ -94,9 +98,11 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$accepted_args = 2;
 
 		$hook->add_filter( $hook_name, $callback_one, $priority, $accepted_args );
+		$this->check_priority_exists( $hook, $priority );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 
 		$hook->add_filter( $hook_name, $callback_two, $priority + 1, $accepted_args );
+		$this->check_priority_exists( $hook, $priority + 1 );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 		$this->assertCount( 1, $hook->callbacks[ $priority + 1 ] );
 	}
@@ -109,6 +115,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$accepted_args = 2;
 
 		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
+		$this->check_priority_exists( $hook, $priority );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 
 		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
@@ -123,9 +130,11 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$accepted_args = 2;
 
 		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
+		$this->check_priority_exists( $hook, $priority );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 
 		$hook->add_filter( $hook_name, $callback, $priority + 1, $accepted_args );
+		$this->check_priority_exists( $hook, $priority + 1 );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 		$this->assertCount( 1, $hook->callbacks[ $priority + 1 ] );
 	}
@@ -141,19 +150,21 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$hook->add_filter( $hook_name, array( $b, 'action' ), 5, 1 );
 		$hook->add_filter( $hook_name, array( $c, 'action' ), 8, 1 );
 
-		$this->assertSame( array( 5, 8, 10 ), array_keys( $hook->callbacks ) );
+		$this->assertSame( array( 5, 8, 10 ), $this->get_priorities( $hook ) );
 	}
 
 	public function test_remove_and_add() {
 		$this->hook = new WP_Hook();
 
 		$this->hook->add_filter( 'remove_and_add', '__return_empty_string', 10, 0 );
-
+		$this->check_priority_exists( $this->hook, 10 );
 		$this->hook->add_filter( 'remove_and_add', array( $this, '_filter_remove_and_add2' ), 11, 1 );
-
+		$this->check_priority_exists( $this->hook, 11 );
 		$this->hook->add_filter( 'remove_and_add', array( $this, '_filter_remove_and_add4' ), 12, 1 );
-
+		$this->check_priority_exists( $this->hook, 12 );
 		$value = $this->hook->apply_filters( '', array() );
+
+		$this->assertSameSets( array( 10, 11, 12 ), $this->get_priorities( $this->hook ), 'The priorities should match this array' );
 
 		$this->assertSame( '24', $value );
 	}
@@ -162,12 +173,14 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->hook = new WP_Hook();
 
 		$this->hook->add_filter( 'remove_and_add', '__return_empty_string', 10, 0 );
-
+		$this->check_priority_exists( $this->hook, 10 );
 		$this->hook->add_filter( 'remove_and_add', array( $this, '_filter_remove_and_add1' ), 11, 1 );
-
+		$this->check_priority_exists( $this->hook, 11 );
 		$this->hook->add_filter( 'remove_and_add', array( $this, '_filter_remove_and_add2' ), 12, 1 );
-
+		$this->check_priority_exists( $this->hook, 12 );
 		$value = $this->hook->apply_filters( '', array() );
+
+		$this->assertSameSets( array( 10, 11, 12 ), $this->get_priorities( $this->hook ), 'The priorities should match this array' );
 
 		$this->assertSame( '12', $value );
 	}
@@ -183,6 +196,8 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 
 		$this->hook->add_filter( 'remove_and_add', array( $this, '_filter_remove_and_add4' ), 12, 1 );
 
+		$this->assertSameSets( array( 10, 11, 12 ), $this->get_priorities( $this->hook ), 'The priorities should match this array' );
+
 		$value = $this->hook->apply_filters( '', array() );
 
 		$this->assertSame( '1-134-234', $value );
@@ -195,7 +210,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 	public function _filter_remove_and_add2( $value ) {
 		$this->hook->remove_filter( 'remove_and_add', array( $this, '_filter_remove_and_add2' ), 11 );
 		$this->hook->add_filter( 'remove_and_add', array( $this, '_filter_remove_and_add2' ), 11, 1 );
-
+		$this->check_priority_exists( $this->hook, 11 );
 		return $value . '2';
 	}
 
@@ -205,7 +220,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$value .= '-' . $this->hook->apply_filters( '', array() ) . '-';
 
 		$this->hook->add_filter( 'remove_and_add', array( $this, '_filter_remove_and_recurse_and_add2' ), 11, 1 );
-
+		$this->check_priority_exists( $this->hook, 11 );
 		return $value . '2';
 	}
 
@@ -290,5 +305,19 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 
 	public function _action_remove_and_add4() {
 		$this->action_output .= '4';
+	}
+
+	protected function check_priority_exists( $hook, $priority ) {
+		$priorities = $this->get_priorities( $hook );
+
+		$this->assertContains( $priority, $priorities );
+	}
+
+	protected function get_priorities( $hook ) {
+		$reflection          = new ReflectionClass( $hook );
+		$reflection_property = $reflection->getProperty( 'priorities' );
+		$reflection_property->setAccessible( true );
+
+		return $reflection_property->getValue( $hook );
 	}
 }

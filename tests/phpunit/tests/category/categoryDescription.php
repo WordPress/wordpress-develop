@@ -2,6 +2,7 @@
 
 /**
  * @group taxonomy
+ * @group category
  *
  * @covers ::category_description
  */

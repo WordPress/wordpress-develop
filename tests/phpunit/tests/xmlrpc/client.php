@@ -27,4 +27,3 @@ class Tests_XMLRPC_Client extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( '/server.php?this-is-needed=true', $client->path );
 	}
 }
-

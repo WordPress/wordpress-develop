@@ -158,7 +158,7 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 	</mtable>
 </math>';
 
-		$this->assertSame( "<p>$str</p>", trim( wpautop( $str ) ) );
+		$this->assertSameIgnoreEOL( "<p>$str</p>", trim( wpautop( $str ) ) );
 	}
 
 	/**
@@ -567,7 +567,7 @@ line 5</p>';
 	}
 
 	/**
-	 * wpautop() should convert multiple line breaks into a paragraph regarless of <br /> format
+	 * wpautop() should convert multiple line breaks into a paragraph regardless of <br /> format
 	 *
 	 * @ticket 33377
 	 */

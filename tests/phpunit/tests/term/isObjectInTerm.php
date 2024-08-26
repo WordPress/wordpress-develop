@@ -135,46 +135,42 @@ class Tests_IsObjectInTerm extends WP_UnitTestCase {
 	 * @ticket 32044
 	 */
 	public function test_should_populate_and_hit_relationships_cache() {
-		global $wpdb;
-
 		register_taxonomy( 'wptests_tax', 'post' );
 		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax' ) );
 
 		$o = 12345;
 		wp_set_object_terms( $o, $terms[0], 'wptests_tax' );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$this->assertTrue( is_object_in_term( $o, 'wptests_tax', $terms[0] ) );
 		$num_queries = $num_queries + 2;
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 
 		$this->assertFalse( is_object_in_term( $o, 'wptests_tax', $terms[1] ) );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
 	 * @ticket 32044
 	 */
 	public function test_should_not_be_fooled_by_a_stale_relationship_cache() {
-		global $wpdb;
-
 		register_taxonomy( 'wptests_tax', 'post' );
 		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax' ) );
 
 		$o = 12345;
 		wp_set_object_terms( $o, $terms[0], 'wptests_tax' );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$this->assertTrue( is_object_in_term( $o, 'wptests_tax', $terms[0] ) );
 		$num_queries = $num_queries + 2;
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 
 		wp_set_object_terms( $o, $terms[1], 'wptests_tax' );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$this->assertTrue( is_object_in_term( $o, 'wptests_tax', $terms[1] ) );
 		$num_queries = $num_queries + 2;
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
