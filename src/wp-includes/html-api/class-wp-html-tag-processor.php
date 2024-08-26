@@ -1138,7 +1138,6 @@ class WP_HTML_Tag_Processor {
 	 *     // Outputs: "free <egg> lang-en "
 	 *
 	 * @since 6.4.0
-	 * @since 6.7.0 Class names are no longer force lower-cased.
 	 */
 	public function class_list() {
 		if ( self::STATE_MATCHED_TAG !== $this->parser_state ) {
