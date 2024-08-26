@@ -610,7 +610,11 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$processor = WP_HTML_Processor::create_full_parser( '<span class="UPPER">' );
 		$processor->next_tag( 'SPAN' );
 		$processor->add_class( 'upper' );
+
 		$this->assertSame( '<span class="UPPER">', $processor->get_updated_html() );
+
+		$processor->add_class( 'ANOTHER-UPPER' );
+		$this->assertSame( '<span class="UPPER another-upper">', $processor->get_updated_html() );
 	}
 
 	/**
