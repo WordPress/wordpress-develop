@@ -1199,10 +1199,14 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$wanted_class = $this->comparable_class_name( $wanted_class );
+		$case_insensitive = self::QUIRKS_MODE === $this->compat_mode;
 
+		$wanted_length = strlen( $wanted_class );
 		foreach ( $this->class_list() as $class_name ) {
-			if ( $this->comparable_class_name( $class_name ) === $wanted_class ) {
+			if (
+				strlen( $class_name ) === $wanted_length &&
+				0 === substr_compare( $class_name, $wanted_class, 0, strlen( $wanted_class ), $case_insensitive )
+			) {
 				return true;
 			}
 		}
