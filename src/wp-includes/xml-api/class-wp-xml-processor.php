@@ -162,7 +162,9 @@ class WP_XML_Processor {
 			// Enter a Processing Instruction Node.
 			if ( 0 === substr_compare( $xml, '<?', $at, 2 ) ) {
 				$text_starts_at = $at + 2;
-				$closer_at      = strpos( $xml, '?>', min( $end, $text_starts_at ) );
+
+				// Because "?" followed by ">" is special syntax in PHP, this sequence is escaped here.
+				$closer_at = strpos( $xml, "\x3F\x3E", min( $end, $text_starts_at ) );
 
 				if ( false === $closer_at ) {
 					$this->parser_state = self::STATE_INCOMPLETE;
@@ -171,7 +173,6 @@ class WP_XML_Processor {
 
 				$target_length = self::skip_whitespace( $xml, $text_starts_at, $closer_at );
 
-				// "< ? ? >"
 				if ( $this->level_of_concern >= self::CONCERNED_ABOUT_INVALID_SYNTAX ) {
 					if ( 0 === $target_length ) {
 						$this->malformed(
