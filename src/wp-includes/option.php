@@ -379,8 +379,7 @@ function get_options( $options ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param array $options Associative array of option names and their autoload values to set. The option names are
- *                       expected to not be SQL-escaped. The autoload values accept 'yes'|true to enable or 'no'|false
- *                       to disable.
+ *                       expected to not be SQL-escaped. The autoload values should be boolean values.
  * @return array Associative array of all provided $options as keys and boolean values for whether their autoload value
  *               was updated.
  */
@@ -398,7 +397,12 @@ function wp_set_option_autoload_values( array $options ) {
 	$results         = array();
 	foreach ( $options as $option => $autoload ) {
 		wp_protect_special_option( $option ); // Ensure only valid options can be passed.
-		if ( 'off' === $autoload || 'no' === $autoload || false === $autoload ) { // Sanitize autoload value and categorize accordingly.
+
+		/*
+		 * Sanitize autoload value and categorize accordingly.
+		 * The values 'yes', 'no', 'on', and 'off' are supported for backward compatibility.
+		 */
+		if ( 'off' === $autoload || 'no' === $autoload || false === $autoload ) {
 			$grouped_options['off'][] = $option;
 		} else {
 			$grouped_options['on'][] = $option;
@@ -499,9 +503,8 @@ function wp_set_option_autoload_values( array $options ) {
  *
  * @see wp_set_option_autoload_values()
  *
- * @param string[]    $options  List of option names. Expected to not be SQL-escaped.
- * @param string|bool $autoload Autoload value to control whether to load the options when WordPress starts up.
- *                              Accepts 'yes'|true to enable or 'no'|false to disable.
+ * @param string[] $options  List of option names. Expected to not be SQL-escaped.
+ * @param bool     $autoload Autoload value to control whether to load the options when WordPress starts up.
  * @return array Associative array of all provided $options as keys and boolean values for whether their autoload value
  *               was updated.
  */
@@ -521,9 +524,8 @@ function wp_set_options_autoload( array $options, $autoload ) {
  *
  * @see wp_set_option_autoload_values()
  *
- * @param string      $option   Name of the option. Expected to not be SQL-escaped.
- * @param string|bool $autoload Autoload value to control whether to load the option when WordPress starts up.
- *                              Accepts 'yes'|true to enable or 'no'|false to disable.
+ * @param string $option   Name of the option. Expected to not be SQL-escaped.
+ * @param bool   $autoload Autoload value to control whether to load the option when WordPress starts up.
  * @return bool True if the autoload value was modified, false otherwise.
  */
 function wp_set_option_autoload( $option, $autoload ) {
