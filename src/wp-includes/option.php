@@ -379,7 +379,8 @@ function get_options( $options ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param array $options Associative array of option names and their autoload values to set. The option names are
- *                       expected to not be SQL-escaped. The autoload values should be boolean values.
+ *                       expected to not be SQL-escaped. The autoload values should be boolean values, though for
+ *                       backward compatibility 'yes' and 'no' are also accepted.
  * @return array Associative array of all provided $options as keys and boolean values for whether their autoload value
  *               was updated.
  */
@@ -505,6 +506,7 @@ function wp_set_option_autoload_values( array $options ) {
  *
  * @param string[] $options  List of option names. Expected to not be SQL-escaped.
  * @param bool     $autoload Autoload value to control whether to load the options when WordPress starts up.
+ *                           For backward compatibility 'yes' and 'no' are also accepted.
  * @return array Associative array of all provided $options as keys and boolean values for whether their autoload value
  *               was updated.
  */
@@ -526,6 +528,7 @@ function wp_set_options_autoload( array $options, $autoload ) {
  *
  * @param string $option   Name of the option. Expected to not be SQL-escaped.
  * @param bool   $autoload Autoload value to control whether to load the option when WordPress starts up.
+ *                         For backward compatibility 'yes' and 'no' are also accepted.
  * @return bool True if the autoload value was modified, false otherwise.
  */
 function wp_set_option_autoload( $option, $autoload ) {
