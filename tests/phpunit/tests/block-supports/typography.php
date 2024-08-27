@@ -295,6 +295,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * @ticket 57065
 	 * @ticket 58523
 	 * @ticket 61118
+	 * @ticket 61932
 	 *
 	 * @covers ::wp_get_typography_font_size_value
 	 *
