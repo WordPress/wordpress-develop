@@ -3199,7 +3199,6 @@ class WP_HTML_Tag_Processor {
 	public function is_self_contained_tag(): bool {
 		return (
 			self::STATE_MATCHED_TAG === $this->parser_state &&
-			! $this->is_tag_closer() &&
 			'html' === $this->get_namespace() &&
 			in_array( $this->get_tag(), array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true )
 		);
