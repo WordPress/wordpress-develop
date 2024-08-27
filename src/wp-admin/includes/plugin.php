@@ -711,7 +711,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 			$current   = get_option( 'active_plugins', array() );
 			$current[] = $plugin;
 			sort( $current );
-			update_option( 'active_plugins', $current, false );
+			update_option( 'active_plugins', $current );
 		}
 
 		if ( ! $silent ) {
@@ -1304,7 +1304,7 @@ function uninstall_plugin( $plugin ) {
 	if ( file_exists( WP_PLUGIN_DIR . '/' . dirname( $file ) . '/uninstall.php' ) ) {
 		if ( isset( $uninstallable_plugins[ $file ] ) ) {
 			unset( $uninstallable_plugins[ $file ] );
-			update_option( 'uninstall_plugins', $uninstallable_plugins, false );
+			update_option( 'uninstall_plugins', $uninstallable_plugins );
 		}
 		unset( $uninstallable_plugins );
 
@@ -1319,7 +1319,7 @@ function uninstall_plugin( $plugin ) {
 	if ( isset( $uninstallable_plugins[ $file ] ) ) {
 		$callable = $uninstallable_plugins[ $file ];
 		unset( $uninstallable_plugins[ $file ] );
-		update_option( 'uninstall_plugins', $uninstallable_plugins, false );
+		update_option( 'uninstall_plugins', $uninstallable_plugins );
 		unset( $uninstallable_plugins );
 
 		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $file );

@@ -515,7 +515,7 @@ if ( defined( 'RELOCATE' ) && RELOCATE ) { // Move flag is set.
 	$url = dirname( set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'] ) );
 
 	if ( get_option( 'siteurl' ) !== $url ) {
-		update_option( 'siteurl', $url, true );
+		update_option( 'siteurl', $url );
 	}
 }
 
@@ -645,7 +645,7 @@ switch ( $action ) {
 			$admin_email_check_interval = (int) apply_filters( 'admin_email_check_interval', 6 * MONTH_IN_SECONDS );
 
 			if ( $admin_email_check_interval > 0 ) {
-				update_option( 'admin_email_lifespan', time() + $admin_email_check_interval, false );
+				update_option( 'admin_email_lifespan', time() + $admin_email_check_interval );
 			}
 
 			wp_safe_redirect( $redirect_to );

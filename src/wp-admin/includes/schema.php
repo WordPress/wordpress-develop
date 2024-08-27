@@ -594,9 +594,9 @@ function populate_options( array $options = array() ) {
 		}
 
 		if ( in_array( $option, $fat_options, true ) ) {
-			$autoload = 'off';
+			$autoload = false;
 		} else {
-			$autoload = 'on';
+			$autoload = true;
 		}
 
 		if ( ! empty( $insert ) ) {
@@ -614,7 +614,7 @@ function populate_options( array $options = array() ) {
 
 	// In case it is set, but blank, update "home".
 	if ( ! __get_option( 'home' ) ) {
-		update_option( 'home', $guessurl, true );
+		update_option( 'home', $guessurl );
 	}
 
 	// Delete unused options.

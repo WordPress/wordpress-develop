@@ -359,7 +359,7 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		if ( isset( $past_failure_emails[ $theme ] ) ) {
 			unset( $past_failure_emails[ $theme ] );
-			update_option( 'auto_plugin_theme_update_emails', $past_failure_emails, false );
+			update_option( 'auto_plugin_theme_update_emails', $past_failure_emails );
 		}
 
 		return true;
@@ -545,7 +545,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			unset( $past_failure_emails[ $theme ] );
 		}
 
-		update_option( 'auto_plugin_theme_update_emails', $past_failure_emails, false );
+		update_option( 'auto_plugin_theme_update_emails', $past_failure_emails );
 
 		return $results;
 	}

@@ -1524,7 +1524,7 @@ class WP_Automatic_Updater {
 		$result = wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
 
 		if ( $result ) {
-			update_option( 'auto_plugin_theme_update_emails', $past_failure_emails, false );
+			update_option( 'auto_plugin_theme_update_emails', $past_failure_emails );
 		}
 	}
 

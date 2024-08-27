@@ -63,7 +63,7 @@ if ( ! empty( $_GET['adminhash'] ) ) {
 		&& hash_equals( $new_admin_details['hash'], $_GET['adminhash'] )
 		&& ! empty( $new_admin_details['newemail'] )
 	) {
-		update_option( 'admin_email', $new_admin_details['newemail'], false );
+		update_option( 'admin_email', $new_admin_details['newemail'] );
 		delete_option( 'adminhash' );
 		delete_option( 'new_admin_email' );
 		$redirect = 'options-general.php?updated=true';

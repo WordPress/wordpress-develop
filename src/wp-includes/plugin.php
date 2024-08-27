@@ -936,7 +936,7 @@ function register_uninstall_hook( $file, $callback ) {
 
 	if ( ! isset( $uninstallable_plugins[ $plugin_basename ] ) || $uninstallable_plugins[ $plugin_basename ] !== $callback ) {
 		$uninstallable_plugins[ $plugin_basename ] = $callback;
-		update_option( 'uninstall_plugins', $uninstallable_plugins, false );
+		update_option( 'uninstall_plugins', $uninstallable_plugins );
 	}
 }
 
