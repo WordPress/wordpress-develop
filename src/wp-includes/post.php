@@ -408,6 +408,8 @@ function create_initial_post_types() {
 			),
 		)
 	);
+	// Disable autosave endpoints for templates.
+	remove_post_type_support( 'wp_template', 'autosave' );
 
 	register_post_type(
 		'wp_template_part',
@@ -472,6 +474,8 @@ function create_initial_post_types() {
 			),
 		)
 	);
+	// Disable autosave endpoints for template parts.
+	remove_post_type_support( 'wp_template_part', 'autosave' );
 
 	register_post_type(
 		'wp_global_styles',
