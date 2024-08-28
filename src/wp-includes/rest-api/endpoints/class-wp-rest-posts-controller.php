@@ -374,22 +374,25 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			add_filter( 'post_password_required', array( $this, 'check_password_required' ), 10, 2 );
 		}
 
-		$posts = array();
+		$is_head_request = $request->is_method( 'head' );
+		if ( ! $is_head_request ) {
+			$posts = array();
 
-		update_post_author_caches( $query_result );
-		update_post_parent_caches( $query_result );
+			update_post_author_caches( $query_result );
+			update_post_parent_caches( $query_result );
 
-		if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
-			update_post_thumbnail_cache( $posts_query );
-		}
-
-		foreach ( $query_result as $post ) {
-			if ( ! $this->check_read_permission( $post ) ) {
-				continue;
+			if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
+				update_post_thumbnail_cache( $posts_query );
 			}
 
-			$data    = $this->prepare_item_for_response( $post, $request );
-			$posts[] = $this->prepare_response_for_collection( $data );
+			foreach ( $query_result as $post ) {
+				if ( ! $this->check_read_permission( $post ) ) {
+					continue;
+				}
+
+				$data    = $this->prepare_item_for_response( $post, $request );
+				$posts[] = $this->prepare_response_for_collection( $data );
+			}
 		}
 
 		// Reset filter.
@@ -419,7 +422,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$response = rest_ensure_response( $posts );
+		if ( $is_head_request ) {
+			$response = new WP_REST_Response();
+		} else {
+			$response = rest_ensure_response( $posts );
+		}
 
 		$response->header( 'X-WP-Total', (int) $total_posts );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
@@ -572,13 +579,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return $post;
 		}
 
-		if ( 'HEAD' === $request->get_method() ) {
-			// Don't send body in HEAD requests.
-			$response = new WP_REST_Response();
-		} else {
-			$data     = $this->prepare_item_for_response( $post, $request );
-			$response = rest_ensure_response( $data );
+
+		if ( $request->is_method( 'head' ) ) {
+			$data = $this->prepare_item_for_response( $post, $request );
+			rest_ensure_response( $data );
 		}
+
+		$response = rest_ensure_response( $data );
 
 		if ( is_post_type_viewable( get_post_type_object( $post->post_type ) ) ) {
 			$response->link_header( 'alternate', get_permalink( $post->ID ), array( 'type' => 'text/html' ) );
