@@ -155,23 +155,35 @@ window.addComment = {
 			i;
 
 		onReplyLinkClick = function( event ) {
-			// Check if the 'moveForm' function has been overridden
-			if (window.addComment.moveForm !== t.moveForm) {
-				// If overridden, maintain the original behavior (preventDefault) for compatibility
-				event.preventDefault();
-			}
-			commId      = this.dataset.commentid;
-			parentId    = this.dataset.postid;
-			respondId   = this.dataset.belowelement;
-			postId      = this.dataset.respondelement;
-			t.moveForm( commId, parentId, respondId, postId );
+			event.preventDefault(); // Prevent the default link behavior
+
+			// Dispatch a custom event with the necessary data
+			const customEvent = new CustomEvent('commentReplyLinkClicked', {
+				detail: {
+					commId: this.dataset.commentid,
+					parentId: this.dataset.postid,
+					respondId: this.dataset.belowelement,
+					postId: this.dataset.respondelement
+				}
+			});
+			this.dispatchEvent(customEvent);
 		};
 
 		for ( i = 0; i < responseLinks.length; i++ ) {
 			element = responseLinks[ i ];
-			// Use passive listeners if 'moveForm' is not overridden
-			element.addEventListener( 'click', onReplyLinkClick, { passive: window.addComment.moveForm === t.moveForm });
+			// Now we can safely use passive listeners
+			element.addEventListener( 'click', onReplyLinkClick, { passive: true });
 		}
+
+		// Listen for the custom event and handle the form movement
+		document.addEventListener('commentReplyLinkClicked', function(event) {
+			t.moveForm(
+				event.detail.commId,
+				event.detail.parentId,
+				event.detail.respondId,
+				event.detail.postId
+			);
+		});
 
 		cancelElement = document.getElementById( 'cancel-comment-reply-link' );
 		cancelLink    = t.cancelLink = cancelElement || document.getElementById( 'wp-cancel-comment-reply-link' );
