@@ -415,6 +415,10 @@
 	text-wrap: unset;
 }
 
+.about__container :is(h1, h2, h3, h4):lang(ko) {
+	word-break: keep-all;
+}
+
 .about__container p {
 	text-wrap: pretty;
 }
