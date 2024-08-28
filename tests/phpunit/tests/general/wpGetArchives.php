@@ -108,7 +108,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 		);
 		$this->assertIsString( $result );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries + 2, get_num_queries() );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 
 		$num_queries = get_num_queries();
 
@@ -132,7 +132,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 		);
 		$this->assertIsString( $result );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertSame( $num_queries + 2, get_num_queries() );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 
 		$num_queries = get_num_queries();
 
