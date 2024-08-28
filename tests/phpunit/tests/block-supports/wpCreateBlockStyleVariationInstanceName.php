@@ -13,6 +13,7 @@ class Tests_Block_Supports_WpCreateBlockStyleVariationInstanceName extends WP_Un
 	 * @ticket 61312
 	 *
 	 * @covers ::wp_create_block_style_variation_instance_name
+	 * @expectedDeprecated wp_create_block_style_variation_instance_name
 	 */
 	public function test_block_style_variation_instance_name_generation() {
 		$block    = array( 'name' => 'test/block' );
