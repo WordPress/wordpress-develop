@@ -472,7 +472,7 @@ if ( ! class_exists( 'PO', false ) ) :
 				// Handle \r-only terminated lines after the deprecation of auto_detect_line_endings in PHP 8.1.
 				$r = strpos( $line, "\r" );
 				if ( false !== $r ) {
-					if ( $r + 1 === strlen( $line ) && substr( $line, $r ) === "\r\n") {
+					if ( $r + 1 === strlen( $line ) && "\r\n" === substr( $line, $r ) ) {
 						$line = rtrim( $line, "\r\n" ) . "\n";
 					} else {
 						// The lines are terminated by just \r, so we end the line there and rewind.

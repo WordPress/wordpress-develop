@@ -352,7 +352,7 @@ msgstr[2] "бабаяга"',
 			$file .= '"Plural-Forms: nplurals=2; plural=n != 1;\n"';
 
 			$entries = array();
-			for ( $i = 1; $i <= 3; $i++) {
+			for ( $i = 1; $i <= 3; $i++ ) {
 				$file .= $newline;
 				$file .= $newline;
 				$entry = "Entry $i";
