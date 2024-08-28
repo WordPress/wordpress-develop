@@ -12,12 +12,12 @@
 window.addComment = {
 
 	moveForm : function( commId, parentId, respondId, postId ) {
-		var t             = this,
-		    div           = document.getElementById( 'wp-temp-form-div' ),
-		    respond       = document.getElementById( respondId ),
-		    comment       = document.getElementById( commId ),
-		    parentIdField = document.getElementById( 'comment_parent' ),
-		    postIdField   = document.getElementById( 'comment_post_ID' );
+		var t           = this,
+			div         = document.getElementById( 'wp-temp-form-div' ),
+			respond     = document.getElementById( respondId ),
+			comment     = document.getElementById( commId ),
+			parentIdField = document.getElementById( 'comment_parent' ),
+			postIdField  = document.getElementById( 'comment_post_ID' );
 
 		if ( ! div || ! respond || ! comment || ! parentIdField || ! postIdField ) {
 			return;
@@ -86,10 +86,10 @@ window.addComment = {
 	},
 
 	cancelReply : function() {
-		var self       = addComment,
-		    temp       = document.getElementById( 'wp-temp-form-div' ),
-		    respond    = document.getElementById( self.respondId ),
-		    cancelLink = self.cancelLink;
+		var self        = addComment,
+			temp        = document.getElementById( 'wp-temp-form-div' ),
+			respond     = document.getElementById( self.respondId ),
+			cancelLink  = self.cancelLink;
 
 		self.childs       = [];
 		self.cancelVisible = false;
@@ -126,7 +126,7 @@ window.addComment = {
 	},
 
 	ariaFocusForm : function() {
-		var div = document.getElementById( 'wp-temp-form-div' );
+		var div       = document.getElementById( 'wp-temp-form-div' );
 
 		if ( div && div.firstChild ) {
 			div.firstChild.setAttribute( 'aria-hidden', 'false' );
@@ -134,7 +134,7 @@ window.addComment = {
 	},
 
 	ariaUnfocusForm : function() {
-		var div = document.getElementById( 'wp-temp-form-div' );
+		var div       = document.getElementById( 'wp-temp-form-div' );
 
 		if ( div && div.firstChild ) {
 			div.firstChild.setAttribute( 'aria-hidden', 'true' );
@@ -142,7 +142,7 @@ window.addComment = {
 	},
 
 	init : function() {
-		var t = this,
+		var t                 = this,
 			commId,
 			parentId,
 			respondId,
@@ -155,38 +155,23 @@ window.addComment = {
 			i;
 
 		onReplyLinkClick = function( event ) {
-			event.preventDefault();
-			commId    = this.dataset.commentid;
-			parentId  = this.dataset.postid;
-			respondId = this.dataset.belowelement;
-			postId    = this.dataset.respondelement;
+			// Check if the 'moveForm' function has been overridden
+			if (window.addComment.moveForm !== t.moveForm) {
+				// If overridden, maintain the original behavior (preventDefault) for compatibility
+				event.preventDefault();
+			}
+			commId      = this.dataset.commentid;
+			parentId    = this.dataset.postid;
+			respondId   = this.dataset.belowelement;
+			postId      = this.dataset.respondelement;
 			t.moveForm( commId, parentId, respondId, postId );
 		};
 
 		for ( i = 0; i < responseLinks.length; i++ ) {
 			element = responseLinks[ i ];
-			element.addEventListener( 'click', onReplyLinkClick );
+			// Use passive listeners if 'moveForm' is not overridden
+			element.addEventListener( 'click', onReplyLinkClick, { passive: window.addComment.moveForm === t.moveForm });
 		}
-
-		// Attach a delegated event listener to the comment list (or a suitable parent container)
-		const commentList = document.getElementById('commentlist'); // Adjust the ID if necessary
-		commentList.addEventListener('click', function(event) {
-			if (event.target.classList.contains('comment-reply-link')) {
-				event.preventDefault(); // Prevent default link behavior
-
-				// Trigger a custom event or handle form movement directly
-				const commentId = event.target.dataset.commentid;       // Or however you identify the comment
-				const parentId  = event.target.dataset.postid;
-				const respondId = event.target.dataset.belowelement;
-				const postId    = event.target.dataset.respondelement;
-				t.moveForm( commentId, parentId, respondId, postId );
-			} else if (event.target.classList.contains('cancel-comment-reply-link')) {
-				event.preventDefault(); // Prevent default link behavior
-
-				// Handle cancel button logic
-				t.cancelReply();
-			}
-		}, { passive: true }); // Use passive listener on the parent container
 
 		cancelElement = document.getElementById( 'cancel-comment-reply-link' );
 		cancelLink    = t.cancelLink = cancelElement || document.getElementById( 'wp-cancel-comment-reply-link' );
