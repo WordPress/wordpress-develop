@@ -419,6 +419,13 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertSame( array( $value ), $found['foo'] );
 	}
 
+	public function test_get_metadata_non_existent_object_id() {
+		$this->assertSame( array(), get_metadata( 'user', PHP_INT_MAX ) );
+		$this->assertSame( array(), get_metadata( 'user', PHP_INT_MAX, 'meta_key' ) );
+		$this->assertSame( array(), get_metadata( 'user', PHP_INT_MAX, 'meta_key', false ) );
+		$this->assertSame( '', get_metadata( 'user', PHP_INT_MAX, 'meta_key', true ) );
+	}
+
 	/** Helpers */
 
 	public function updated_meta( $meta_id ) {
