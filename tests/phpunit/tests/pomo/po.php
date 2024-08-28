@@ -342,11 +342,11 @@ msgstr[2] "бабаяга"',
 
 		$temp_fn = $this->temp_filename();
 		foreach ( array(
-			"\\r" => "\r",
-			"\\n" => "\n",
+			"\\r"    => "\r",
+			"\\n"    => "\n",
 			"\\r\\n" => "\r\n",
 		) as $printable_new_line => $newline ) {
-			$file = 'msgid ""' . $newline;
+			$file  = 'msgid ""' . $newline;
 			$file .= 'msgstr ""' . $newline;
 			$file .= '"Project-Id-Version: WordPress 6.7\n"' . $newline;
 			$file .= '"Plural-Forms: nplurals=2; plural=n != 1;\n"';
@@ -355,11 +355,12 @@ msgstr[2] "бабаяга"',
 			for ( $i = 1; $i <= 3; $i++ ) {
 				$file .= $newline;
 				$file .= $newline;
-				$entry = "Entry $i";
-				$file .= 'msgid "' . $entry . '"' . $newline;
+				$line  = "Entry $i";
+				$file .= 'msgid "' . $line . '"' . $newline;
 				$file .= 'msgstr ""';
-				$translation_entry = new Translation_Entry( array( 'singular' => $entry ) );
-				$entries[ $translation_entry->key() ] = $translation_entry;
+				$entry = new Translation_Entry( array( 'singular' => $line ) );
+
+				$entries[ $entry->key() ] = $entry;
 			}
 
 			file_put_contents( $temp_fn, $file );
