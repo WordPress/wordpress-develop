@@ -1185,9 +1185,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 		}
 
 		if ( 'wp_template' === $template_type ) {
-			/*
-			 * Add templates registered in the template registry. Filtering out the ones which have a theme file.
-			 */
+			// Add templates registered in the template registry. Filtering out the ones which have a theme file.
 			$registered_templates          = WP_Block_Templates_Registry::get_instance()->get_by_query( $query );
 			$matching_registered_templates = array_filter(
 				$registered_templates,
