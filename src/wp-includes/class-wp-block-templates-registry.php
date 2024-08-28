@@ -45,17 +45,17 @@ final class WP_Block_Templates_Registry {
 		$error_code    = '';
 
 		if ( ! is_string( $template_name ) ) {
-			$error_message = __( 'Template names must be strings.', 'gutenberg' );
+			$error_message = __( 'Template names must be strings.' );
 			$error_code    = 'template_name_no_string';
 		} elseif ( preg_match( '/[A-Z]+/', $template_name ) ) {
-			$error_message = __( 'Template names must not contain uppercase characters.', 'gutenberg' );
+			$error_message = __( 'Template names must not contain uppercase characters.' );
 			$error_code    = 'template_name_no_uppercase';
 		} elseif ( ! preg_match( '/^[a-z0-9-]+\/\/[a-z0-9-]+$/', $template_name ) ) {
-			$error_message = __( 'Template names must contain a namespace prefix. Example: my-plugin//my-custom-template', 'gutenberg' );
+			$error_message = __( 'Template names must contain a namespace prefix. Example: my-plugin//my-custom-template' );
 			$error_code    = 'template_no_prefix';
 		} elseif ( $this->is_registered( $template_name ) ) {
 			/* translators: %s: Template name. */
-			$error_message = sprintf( __( 'Template "%s" is already registered.', 'gutenberg' ), $template_name );
+			$error_message = sprintf( __( 'Template "%s" is already registered.' ), $template_name );
 			$error_code    = 'template_already_registered';
 		}
 
@@ -223,11 +223,11 @@ final class WP_Block_Templates_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				/* translators: %s: Template name. */
-				sprintf( __( 'Template "%s" is not registered.', 'gutenberg' ), $template_name ),
+				sprintf( __( 'Template "%s" is not registered.' ), $template_name ),
 				'6.7.0'
 			);
 			/* translators: %s: Template name. */
-			return new WP_Error( 'template_not_registered', __( 'Template "%s" is not registered.', 'gutenberg' ) );
+			return new WP_Error( 'template_not_registered', __( 'Template "%s" is not registered.' ) );
 		}
 
 		$unregistered_template = $this->registered_templates[ $template_name ];
