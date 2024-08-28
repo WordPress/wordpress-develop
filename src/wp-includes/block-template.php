@@ -375,6 +375,8 @@ function _resolve_template_for_new_post( $wp_query ) {
  *     @type string        $plugin                Optional. Slug of the plugin that registers the template.
  * }
  * @return WP_Block_Template|WP_Error The registered template object on success, WP_Error object on failure.
+ *
+ * @since 6.7.0
  */
 function wp_register_block_template( $template_name, $args = array() ) {
 	return WP_Block_Templates_Registry::get_instance()->register( $template_name, $args );
@@ -385,6 +387,8 @@ function wp_register_block_template( $template_name, $args = array() ) {
  *
  * @param string $template_name Template name in the form of `plugin_uri//template_name`.
  * @return true|WP_Error True on success, WP_Error on failure or if the template doesn't exist.
+ *
+ * @since 6.7.0
  */
 function wp_unregister_block_template( $template_name ) {
 	return WP_Block_Templates_Registry::get_instance()->unregister( $template_name );
