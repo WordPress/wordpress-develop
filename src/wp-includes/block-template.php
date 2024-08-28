@@ -360,7 +360,7 @@ function _resolve_template_for_new_post( $wp_query ) {
 }
 
 /**
- * Register a template.
+ * Register a block template.
  *
  * @param string       $template_name  Template name in the form of `plugin_uri//template_name`.
  * @param array|string $args           Object type or array of object types with which the taxonomy should be associated.
@@ -383,7 +383,7 @@ function wp_register_block_template( $template_name, $args = array() ) {
 }
 
 /**
- * Unregister a template.
+ * Unregister a block template.
  *
  * @param string $template_name Template name in the form of `plugin_uri//template_name`.
  * @return true|WP_Error True on success, WP_Error on failure or if the template doesn't exist.
