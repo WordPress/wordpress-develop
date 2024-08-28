@@ -790,8 +790,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @global WP_Query $wp_query WordPress Query object.
-	 * @global int $per_page
+	 * @global int      $per_page
+	 *
 	 * @param array $posts
 	 * @param int   $level
 	 */
@@ -1837,6 +1842,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 							if ( $bulk ) {
 								$dropdown_args['show_option_no_change'] = __( '&mdash; No Change &mdash;' );
+								$dropdown_args['id']                    = 'bulk_edit_post_parent';
 							}
 
 							/**
