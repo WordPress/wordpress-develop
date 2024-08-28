@@ -3903,6 +3903,13 @@ img {
 		white-space: nowrap;
 	}
 
+	.subtitle {
+		display: block;
+		margin-top: 0.5em;
+		padding-left: 0;
+		line-height: 1.5;
+	}
+
 	/* Feedback Messages */
 	.notice,
 	.wrap div.updated,
