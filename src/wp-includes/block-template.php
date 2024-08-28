@@ -372,7 +372,7 @@ function _resolve_template_for_new_post( $wp_query ) {
  *     @type string        $content               Optional. Default content of the template that will be used when the
  *                                                template is rendered or edited in the editor.
  *     @type string[]      $post_types            Optional. Array of post types to which the template should be available.
- *     @type string        $plugin                Uri of the plugin that registers the template.
+ *     @type string        $plugin                Optional. Slug of the plugin that registers the template.
  * }
  * @return WP_Block_Template|WP_Error The registered template object on success, WP_Error object on failure.
  */
