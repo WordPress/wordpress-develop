@@ -245,6 +245,14 @@
 		&.has-custom-font-size .wp-block-button__link {
 			font-size: 1em;
 		}
+
+		&[style*="font-weight"] .wp-block-button__link {
+			font-weight: inherit;
+		}
+
+		&[style*="text-decoration"] .wp-block-button__link {
+			text-decoration: inherit;
+		}
 	}
 
 	//! Latest posts, categories, archives
@@ -933,19 +941,11 @@
 			font-size: inherit;
 		}
 
-		&.has-avatars {
-
-		}
-
 		&.has-dates {
 
 			.wp-block-latest-comments__comment-date {
 				font-size: $font__size-xs;
 			}
-		}
-
-		&.has-excerpts {
-
 		}
 	}
 

@@ -1297,7 +1297,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertSame( "Derived state: otherPlugin-state\nDerived context: otherPlugin-context", $result );
 	}
 
-
 	/**
 	 * Tests the `evaluate` method for derived state functions that throw.
 	 *
@@ -1320,6 +1319,29 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 
 		$result = $this->evaluate( 'state.derivedThatThrows' );
 		$this->assertNull( $result );
+	}
+
+	/**
+	 * Tests the `evaluate` method for derived state intermediate values.
+	 *
+	 * @ticket 61741
+	 *
+	 * @covers ::evaluate
+	 */
+	public function test_evaluate_derived_state_intermediate() {
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'derivedState' => function () {
+					return array( 'property' => 'value' );
+				},
+			)
+		);
+		$this->set_internal_context_stack();
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
+		$result = $this->evaluate( 'state.derivedState.property' );
+		$this->assertSame( 'value', $result );
 	}
 
 	/**

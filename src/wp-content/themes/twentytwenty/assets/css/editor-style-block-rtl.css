@@ -683,6 +683,11 @@ hr.wp-block-separator.is-style-dots::before {
 	letter-spacing: inherit;
 }
 
+.editor-styles-wrapper .wp-block-quote.is-style-plain {
+	border-width: 0;
+	padding: 5px 20px;
+}
+
 .editor-styles-wrapper .wp-block-quote.is-style-large {
 	border: none;
 	padding: 0;
@@ -865,6 +870,10 @@ hr.wp-block-separator.is-style-dots::before {
 .editor-styles-wrapper .wp-block[data-type="core/pullquote"][data-align="left"] .is-style-solid-color::before {
 	right: 20px;
 	transform: translateY(-50%);
+}
+
+.editor-styles-wrapper .wp-block-pullquote[style*="letter-spacing"] p {
+	letter-spacing: inherit;
 }
 
 .editor-styles-wrapper .wp-block-pullquote__citation,

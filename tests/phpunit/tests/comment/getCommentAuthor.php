@@ -22,7 +22,7 @@ class Tests_Comment_GetCommentAuthor extends WP_UnitTestCase {
 
 	public function get_comment_author_filter( $comment_author, $comment_id, $comment ) {
 		$this->assertSame( $comment_id, self::$comment->comment_ID, 'Comment IDs do not match.' );
-		$this->assertTrue( is_string( $comment_id ), '$comment_id parameter is not a string.' );
+		$this->assertIsString( $comment_id, '$comment_id parameter is not a string.' );
 
 		return $comment_author;
 	}
@@ -41,7 +41,7 @@ class Tests_Comment_GetCommentAuthor extends WP_UnitTestCase {
 
 	public function get_comment_author_filter_non_existent_id( $comment_author, $comment_id, $comment ) {
 		$this->assertSame( $comment_id, (string) self::$non_existent_comment_id, 'Comment IDs do not match.' );
-		$this->assertTrue( is_string( $comment_id ), '$comment_id parameter is not a string.' );
+		$this->assertIsString( $comment_id, '$comment_id parameter is not a string.' );
 
 		return $comment_author;
 	}
@@ -71,7 +71,9 @@ class Tests_Comment_GetCommentAuthor extends WP_UnitTestCase {
 			$user                   = self::factory()->user->create_and_get( $user_data );
 			$comment_props->user_id = $user->ID;
 		}
+
 		$comment = new WP_Comment( $comment_props );
+
 		$this->assertSame( $expected, get_comment_author( $comment ) );
 	}
 
