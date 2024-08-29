@@ -162,7 +162,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	public function test_context_param() {
 		// Collection.
-		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves' );
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
@@ -184,7 +184,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 
 		// Single.
-		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/1' );
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves/1' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount(
@@ -255,7 +255,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			'Failed asserting that the ID of the autosave matches the expected autosave post ID.'
 		);
 		$this->assertSame(
-			self::$template_post->ID,
+			$parent_post->ID,
 			$autosaves[0]['parent'],
 			'Failed asserting that the parent ID of the autosave matches the template post ID.'
 		);
@@ -273,8 +273,8 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	public function data_get_items_with_data() {
 		return array(
-			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '/' . self::TEMPLATE_NAME ),
-			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '/' . self::TEMPLATE_PART_NAME ),
+			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
+			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
 		);
 	}
 
@@ -339,8 +339,8 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	public function data_get_item_with_data() {
 		return array(
-			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '/' . self::TEMPLATE_NAME ),
-			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '/' . self::TEMPLATE_PART_NAME ),
+			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
+			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
 		);
 	}
 
@@ -355,21 +355,27 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * @dataProvider data_prepare_item_with_data
 	 * @covers WP_REST_Template_Autosaves_Controller::prepare_item_for_response
 	 * @ticket 56922
+	 *
+	 * @param WP_Post $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $rest_base Base part of the REST API endpoint to test.
+	 * @param string $template_id Template ID to use in the test.
 	 */
-	public function test_prepare_item_with_data( $parent_post_property_name, $rest_base, $template_id, $controller_class ) {
+	public function test_prepare_item_with_data( $parent_post_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
+		$parent_post      = self::$$parent_post_property_name;
 		$autosave_post_id = wp_create_post_autosave(
 			array(
 				'post_content' => 'Autosave content.',
-				'post_ID'      => self::$template_post->ID,
-				'post_type'    => self::TEMPLATE_POST_TYPE,
+				'post_ID'      => $parent_post->ID,
+				'post_type'    => $parent_post->post_type,
 			)
 		);
 		$autosave_db_post = get_post( $autosave_post_id );
-		$request          = new WP_REST_Request( 'GET', '/wp/v2/templates/' . $template_id . '/autosaves/' . $autosave_db_post->ID );
-		$controller       = new $controller_class( self::TEMPLATE_POST_TYPE );
+		$request          = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves/' . $autosave_db_post->ID );
+		$controller       = new WP_REST_Template_Autosaves_Controller( $parent_post->post_type );
 		$response         = $controller->prepare_item_for_response( $autosave_db_post, $request );
 		$this->assertInstanceOf(
 			WP_REST_Response::class,
@@ -385,11 +391,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			"Failed asserting that the autosave id is the same as $autosave_db_post->ID."
 		);
 		$this->assertSame(
-			self::$template_post->ID,
+			$parent_post->ID,
 			$autosave['parent'],
 			sprintf(
 				'Failed asserting that the parent id of the autosave is the same as %s.',
-				self::$template_post->ID
+				$parent_post->ID
 			)
 		);
 
@@ -410,11 +416,23 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * Data provider for test_prepare_item_with_data.
+	 *
+	 * @return array
+	 */
+	public function data_prepare_item_with_data() {
+		return array(
+			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
+			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
+		);
+	}
+
+	/**
 	 * @covers WP_REST_Template_Autosaves_Controller::get_item_schema
 	 * @ticket 56922
 	 */
 	public function test_get_item_schema() {
-		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves' );
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
@@ -494,8 +512,8 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	public function data_create_item_with_data() {
 		return array(
-			'templates'      => array( 'templates', self::TEST_THEME . '/' . self::TEMPLATE_NAME ),
-			'template parts' => array( 'template-parts', self::TEST_THEME . '/' . self::TEMPLATE_PART_NAME ),
+			'templates'     => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
+			'template part' => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
 		);
 	}
 
@@ -521,8 +539,8 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	public function data_create_item_incorrect_permission() {
 		return array(
-			'template'       => array( 'templates', self::TEST_THEME . '/' . self::TEMPLATE_NAME ),
-			'template parts' => array( 'template-parts', self::TEST_THEME . '/' . self::TEMPLATE_PART_NAME ),
+			'template'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
+			'template part' => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
 		);
 	}
 
@@ -548,8 +566,8 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	public function data_create_item_no_permission() {
 		return array(
-			'template'       => array( 'templates', self::TEST_THEME . '/' . self::TEMPLATE_NAME ),
-			'template parts' => array( 'template-parts', self::TEST_THEME . '/' . self::TEMPLATE_PART_NAME ),
+			'template'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
+			'template part' => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
 		);
 	}
 
