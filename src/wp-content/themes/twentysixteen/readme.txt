@@ -49,7 +49,7 @@ HTML5 Shiv v3.7.0, Copyright 2014 Alexander Farkas
 Licenses: MIT/GPL2
 Source: https://github.com/aFarkas/html5shiv
 
-Genericons icon font, Copyright 2013-2017 Automattic.com
+Genericons icon font, Copyright 2013-2017 Automattic Inc
 License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
 
