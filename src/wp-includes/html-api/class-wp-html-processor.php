@@ -2357,8 +2357,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 						case 'A':
 							$this->run_adoption_agency_algorithm();
 							$this->state->active_formatting_elements->remove_node( $item );
-							$this->state->stack_of_open_elements->remove_node( $item );
-							break;
+							$this->state->stack_of_open_elements->remove_node( $item->token );
+							break 2;
 					}
 				}
 
