@@ -113,7 +113,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 				'post_name'    => self::TEMPLATE_PART_NAME,
 				'post_title'   => 'My template part',
 				'post_content' => 'Content',
-				'post_excerpt' => 'Description of my template',
+				'post_excerpt' => 'Description of my template part',
 				'tax_input'    => array(
 					'wp_theme' => array(
 						self::TEST_THEME,
@@ -205,8 +205,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @depends test_get_items_with_data
-	 * @covers WP_REST_Template_Autosaves_Controller::get_items
+	 * @coversNothing
 	 * @ticket 56922
 	 */
 	public function test_get_items() {
@@ -280,8 +279,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @depends test_get_item_with_data
-	 * @covers WP_REST_Template_Autosaves_Controller::get_item
+	 * @coversNothing
 	 * @ticket 56922
 	 */
 	public function test_get_item() {
@@ -314,6 +312,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves/' . $autosave_post_id );
 		$response = rest_get_server()->dispatch( $request );
+
 		$this->assertSame( 200, $response->get_status(), 'Response is expected to have a status code of 200.' );
 		$autosave = $response->get_data();
 
@@ -434,14 +433,27 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @covers WP_REST_Template_Autosaves_Controller::create_item
+	 * @coversNothing
 	 * @ticket 56922
 	 */
 	public function test_create_item() {
+		// A proper data provider cannot be used because this method's signature must match the parent method.
+		// Therefore, actual tests are performed in the test_get_item_with_data method.
+		$this->assertTrue( true );
+	}
+
+	/**
+	 * @dataProvider data_create_item_with_data
+	 * @covers WP_REST_Template_Autosaves_Controller::create_item
+	 * @ticket 56922
+	 *
+	 * @param string $rest_base   Base part of the REST API endpoint to test.
+	 * @param string $template_id Template ID to use in the test.
+	 */
+	public function test_create_item_with_data( $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 
-		$template_id = self::TEST_THEME . '/' . self::TEMPLATE_NAME;
-		$request     = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $template_id . '/autosaves' );
+		$request     = new WP_REST_Request( 'POST', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves' );
 		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 
 		$request_parameters = array(
@@ -455,15 +467,27 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$request->set_body_params( $request_parameters );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertNotWPError( $response, 'The response from this request should not return a WP_Error object' );
+		$this->assertNotWPError( $response, 'The response from this request should not return a WP_Error object.' );
 		$response = rest_ensure_response( $response );
 		$data     = $response->get_data();
 
-		$this->assertArrayHasKey( 'content', $data, 'Response should contain a key called content' );
-		$this->assertSame( $request_parameters['content'], $data['content']['raw'], 'Response data should match for field content' );
+		$this->assertArrayHasKey( 'content', $data, 'Response should contain a key called content.' );
+		$this->assertSame( $request_parameters['content'], $data['content']['raw'], 'Response data should match for field content.' );
 
-		$this->assertArrayHasKey( 'title', $data, 'Response should contain a key called title' );
-		$this->assertSame( $request_parameters['title'], $data['title']['raw'], 'Response data should match for field title' );
+		$this->assertArrayHasKey( 'title', $data, 'Response should contain a key called title.' );
+		$this->assertSame( $request_parameters['title'], $data['title']['raw'], 'Response data should match for field title.' );
+	}
+
+	/**
+	 * Data provider for test_get_item_with_data.
+	 *
+	 * @return array
+	 */
+	public function data_create_item_with_data() {
+		return array(
+			'templates'      => array( 'templates', self::TEST_THEME . '/' . self::TEMPLATE_NAME ),
+			'template parts' => array( 'template-parts', self::TEST_THEME . '/' . self::TEMPLATE_PART_NAME ),
+		);
 	}
 
 	/**
