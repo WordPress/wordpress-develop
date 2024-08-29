@@ -2467,7 +2467,7 @@ EOF;
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_filter_content_tags_schemes() {
-		// Disable lazy loading attribute.
+		// Disable lazy loading attribute to not add the 'auto' keyword to the `sizes` attribute.
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -5120,7 +5120,7 @@ EOF;
 			}
 		);
 
-		// Remove sizes attribute as it is irrelevant for this test.
+		// Do not calculate sizes attribute as it is irrelevant for this test.
 		add_filter( 'wp_calculate_image_sizes', '__return_false' );
 
 		// Add shortcode that prints a large image, and a block type that wraps it.
@@ -6017,10 +6017,10 @@ EOF;
 	 * @ticket 61847
 	 */
 	public function test_image_without_lazy_loading_does_not_have_auto_sizes() {
-		$this->assertStringContainsString(
-			'sizes="(max-width: 1024px) 100vw, 1024px"',
-			wp_get_attachment_image( self::$large_id, 'large', false, array( 'loading' => '' ) ),
-			'Failed asserting that the sizes attribute for an image without lazy loading is set to the expected value.'
+		$this->assertStringNotContainsString(
+			'sizes="auto, ',
+			wp_get_attachment_image( self::$large_id, 'large', false, array( 'loading' => false ) ),
+			'Failed asserting that the sizes attribute for an image without lazy loading does not include "auto".'
 		);
 	}
 
@@ -6056,7 +6056,7 @@ EOF;
 		$this->assertStringContainsString(
 			'sizes="(max-width: 1024px) 100vw, 1024px"',
 			wp_filter_content_tags( get_image_tag( self::$large_id, '', '', '', 'large' ) ),
-			'Failed asserting that the sizes attribute for a content image without lazy loading is set to the expected value.'
+			'Failed asserting that the sizes attribute for a content image without lazy loading does not include "auto" with the expected sizes.'
 		);
 	}
 
@@ -6202,7 +6202,7 @@ EOF;
 	}
 
 	/**
-	 * Data provider for test_auto_sizes_update_content_img_tag().
+	 * Data provider for test_wp_img_tag_add_auto_sizes().
 	 *
 	 * @return array<string, mixed>
 	 */
@@ -6261,7 +6261,7 @@ EOF;
 	 * @param string $input    The input HTML string.
 	 * @param string $expected The expected output HTML string.
 	 */
-	public function test_auto_sizes_update_content_img_tag( string $input, string $expected ) {
+	public function test_wp_img_tag_add_auto_sizes( string $input, string $expected ) {
 		$this->assertSame(
 			$expected,
 			wp_img_tag_add_auto_sizes( $input ),

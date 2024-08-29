@@ -1980,14 +1980,10 @@ function wp_filter_content_tags( $content, $context = null ) {
  *
  * @since 6.7.0
  *
- * @param string|mixed $html The HTML image tag markup being filtered.
+ * @param string $html The HTML image tag markup being filtered.
  * @return string The filtered HTML image tag markup.
  */
 function wp_img_tag_add_auto_sizes( $image ) {
-	if ( ! is_string( $image ) ) {
-		$image = '';
-	}
-
 	$processor = new WP_HTML_Tag_Processor( $image );
 
 	// Bail if there is no IMG tag.
