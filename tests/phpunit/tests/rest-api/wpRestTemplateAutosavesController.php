@@ -492,7 +492,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 	/**
 	 * @dataProvider data_create_item_incorrect_permission
-	 * @covers WP_REST_Template_Autosaves_Controller::create_item
+	 * @covers WP_REST_Template_Autosaves_Controller::create_item_permissions_check
 	 * @ticket 56922
 	 *
 	 * @param string $rest_base   Base part of the REST API endpoint to test.
@@ -518,7 +518,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @covers WP_REST_Template_Autosaves_Controller::delete_item
+	 * @covers WP_REST_Template_Autosaves_Controller::create_item_permissions_check
 	 * @ticket 56922
 	 *
 	 * @param string $rest_base   Base part of the REST API endpoint to test.
