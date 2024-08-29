@@ -419,11 +419,32 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertSame( array( $value ), $found['foo'] );
 	}
 
-	public function test_get_metadata_non_existent_object_id() {
-		$this->assertSame( array(), get_metadata( 'user', PHP_INT_MAX ) );
-		$this->assertSame( array(), get_metadata( 'user', PHP_INT_MAX, 'meta_key' ) );
-		$this->assertSame( array(), get_metadata( 'user', PHP_INT_MAX, 'meta_key', false ) );
-		$this->assertSame( '', get_metadata( 'user', PHP_INT_MAX, 'meta_key', true ) );
+	/**
+	 * @dataProvider data_get_metadata_non_existent_object_id
+	 */
+	public function test_get_metadata_non_existent_object_id( $expected, $args ) {
+		$this->assertSame( $expected, get_metadata( 'user', ...$args ) );
+	}
+
+	public function data_get_metadata_non_existent_object_id() {
+		return array(
+			array(
+				'expected' => array(),
+				'args'     => array( PHP_INT_MAX ),
+			),
+			array(
+				'expected' => array(),
+				'args'     => array( PHP_INT_MAX, 'meta_key' ),
+			),
+			array(
+				'expected' => array(),
+				'args'     => array( PHP_INT_MAX, 'meta_key', false ),
+			),
+			array(
+				'expected' => '',
+				'args'     => array( PHP_INT_MAX, 'meta_key', true ),
+			),
+		);
 	}
 
 	/** Helpers */
