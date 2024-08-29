@@ -52,7 +52,7 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 	 */
 	public function test_should_set_autoload_yes_for_nonexistent_option_when_autoload_param_is_yes() {
 		$this->flush_cache();
-		update_option( 'test_update_option_default', 'value', 'yes' );
+		update_option( 'test_update_option_default', 'value', true );
 		$this->flush_cache();
 
 		// Populate the alloptions cache, which includes autoload=yes options.
@@ -75,7 +75,7 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 	 */
 	public function test_should_set_autoload_no_for_nonexistent_option_when_autoload_param_is_no() {
 		$this->flush_cache();
-		update_option( 'test_update_option_default', 'value', 'no' );
+		update_option( 'test_update_option_default', 'value', false );
 		$this->flush_cache();
 
 		// Populate the alloptions cache, which does not include autoload=no options.
@@ -122,7 +122,7 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 	 * @covers ::get_option
 	 */
 	public function test_autoload_should_be_updated_for_existing_option_when_value_is_changed() {
-		add_option( 'foo', 'bar', '', 'no' );
+		add_option( 'foo', 'bar', '', false );
 		$updated = update_option( 'foo', 'bar2', true );
 		$this->assertTrue( $updated );
 
@@ -146,7 +146,7 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 	 * @covers ::get_option
 	 */
 	public function test_autoload_should_not_be_updated_for_existing_option_when_value_is_unchanged() {
-		add_option( 'foo', 'bar', '', 'yes' );
+		add_option( 'foo', 'bar', '', true );
 		$updated = update_option( 'foo', 'bar', false );
 		$this->assertFalse( $updated );
 
@@ -171,7 +171,7 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 	 * @covers ::get_option
 	 */
 	public function test_autoload_should_not_be_updated_for_existing_option_when_value_is_changed_but_no_value_of_autoload_is_provided() {
-		add_option( 'foo', 'bar', '', 'yes' );
+		add_option( 'foo', 'bar', '', true );
 
 		// Don't pass a value for `$autoload`.
 		$updated = update_option( 'foo', 'bar2' );
