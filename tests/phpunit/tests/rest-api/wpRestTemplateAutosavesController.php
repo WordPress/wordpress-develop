@@ -22,7 +22,17 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	/**
 	 * @var string
 	 */
-	const PARENT_POST_TYPE = 'wp_template';
+	const TEMPLATE_PART_NAME = 'my_template_part';
+
+	/**
+	 * @var string
+	 */
+	const TEMPLATE_POST_TYPE = 'wp_template';
+
+	/**
+	 * @var string
+	 */
+	const TEMPLATE_PART_POST_TYPE = 'wp_template_part';
 
 	/**
 	 * Admin user ID.
@@ -82,9 +92,9 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		// Set up template post.
 		self::$template_post = $factory->post->create_and_get(
 			array(
-				'post_type'    => self::PARENT_POST_TYPE,
+				'post_type'    => self::TEMPLATE_POST_TYPE,
 				'post_name'    => self::TEMPLATE_NAME,
-				'post_title'   => 'My Template',
+				'post_title'   => 'My template',
 				'post_content' => 'Content',
 				'post_excerpt' => 'Description of my template',
 				'tax_input'    => array(
@@ -95,6 +105,27 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			)
 		);
 		wp_set_post_terms( self::$template_post->ID, self::TEST_THEME, 'wp_theme' );
+
+		// Set up template post.
+		self::$template_part_post = $factory->post->create_and_get(
+			array(
+				'post_type'    => self::TEMPLATE_PART_POST_TYPE,
+				'post_name'    => self::TEMPLATE_PART_NAME,
+				'post_title'   => 'My template part',
+				'post_content' => 'Content',
+				'post_excerpt' => 'Description of my template',
+				'tax_input'    => array(
+					'wp_theme' => array(
+						self::TEST_THEME,
+					),
+					'wp_template_part_area' => array(
+						WP_TEMPLATE_PART_AREA_HEADER,
+					),
+				),
+			)
+		);
+		wp_set_post_terms( self::$template_part_post->ID, self::TEST_THEME, 'wp_theme' );
+		wp_set_post_terms( self::$template_part_post->ID, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
 	}
 
 	/**
@@ -175,6 +206,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 	/**
 	 * @depends test_get_items_with_data
+	 * @covers WP_REST_Template_Autosaves_Controller::get_items
 	 * @ticket 56922
 	 */
 	public function test_get_items() {
@@ -249,14 +281,14 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @covers WP_REST_Template_Autosaves_Controller::get_item
 	 * @ticket 56922
 	 */
-	public function test_get_item_with_data() {
+	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
 
 		$autosave_post_id = wp_create_post_autosave(
 			array(
 				'post_content' => 'Autosave content.',
 				'post_ID'      => self::$template_post->ID,
-				'post_type'    => self::PARENT_POST_TYPE,
+				'post_type'    => self::TEMPLATE_POST_TYPE,
 			)
 		);
 
@@ -290,13 +322,13 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			array(
 				'post_content' => 'Autosave content.',
 				'post_ID'      => self::$template_post->ID,
-				'post_type'    => self::PARENT_POST_TYPE,
+				'post_type'    => self::TEMPLATE_POST_TYPE,
 			)
 		);
 		$autosave_db_post = get_post( $autosave_post_id );
 		$template_id      = self::TEST_THEME . '//' . self::TEMPLATE_NAME;
 		$request          = new WP_REST_Request( 'GET', '/wp/v2/templates/' . $template_id . '/autosaves/' . $autosave_db_post->ID );
-		$controller       = new WP_REST_Template_Autosaves_Controller( self::PARENT_POST_TYPE );
+		$controller       = new WP_REST_Template_Autosaves_Controller( self::TEMPLATE_POST_TYPE );
 		$response         = $controller->prepare_item_for_response( $autosave_db_post, $request );
 		$this->assertInstanceOf(
 			WP_REST_Response::class,
