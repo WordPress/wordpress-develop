@@ -115,7 +115,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 				'post_content' => 'Content',
 				'post_excerpt' => 'Description of my template part',
 				'tax_input'    => array(
-					'wp_theme' => array(
+					'wp_theme'              => array(
 						self::TEST_THEME,
 					),
 					'wp_template_part_area' => array(
@@ -221,7 +221,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 *
 	 * @param WP_Post $parent_post_property_name A class property name that contains the parent post object.
 	 * @param string $rest_base                  Base part of the REST API endpoint to test.
-	 * @param string $template_id				 Template ID to use in the test.
+	 * @param string $template_id                Template ID to use in the test.
 	 */
 	public function test_get_items_with_data( $parent_post_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
@@ -241,7 +241,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 		$response  = rest_get_server()->dispatch( $request );
 		$autosaves = $response->get_data();
-		$this->assertSame( 200, $response->get_status(), 'Response is expected to have a status code of 200.' );
+		$this->assertSame( WP_Http::OK, $response->get_status(), 'Response is expected to have a status code of 200.' );
 
 		$this->assertCount(
 			1,
@@ -300,7 +300,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	public function test_get_item_with_data( $parent_post_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 
-		$parent_post      = self::$$parent_post_property_name;
+		$parent_post = self::$$parent_post_property_name;
 
 		$autosave_post_id = wp_create_post_autosave(
 			array(
@@ -313,7 +313,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves/' . $autosave_post_id );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertSame( 200, $response->get_status(), 'Response is expected to have a status code of 200.' );
+		$this->assertSame( WP_Http::OK, $response->get_status(), 'Response is expected to have a status code of 200.' );
 		$autosave = $response->get_data();
 
 		$this->assertIsArray( $autosave, 'Failed asserting that the autosave is an array.' );
@@ -438,7 +438,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	public function test_create_item() {
 		// A proper data provider cannot be used because this method's signature must match the parent method.
-		// Therefore, actual tests are performed in the test_get_item_with_data method.
+		// Therefore, actual tests are performed in the test_create_item_with_data method.
 		$this->assertTrue( true );
 	}
 
@@ -453,7 +453,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	public function test_create_item_with_data( $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 
-		$request     = new WP_REST_Request( 'POST', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves' );
 		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 
 		$request_parameters = array(
@@ -491,27 +491,56 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @covers WP_REST_Template_Autosaves_Controller::delete_item
+	 * @dataProvider data_create_item_incorrect_permission
+	 * @covers WP_REST_Template_Autosaves_Controller::create_item
 	 * @ticket 56922
+	 *
+	 * @param string $rest_base   Base part of the REST API endpoint to test.
+	 * @param string $template_id Template ID to use in the test.
 	 */
-	public function test_create_item_incorrect_permission() {
+	public function test_create_item_incorrect_permission( $rest_base, $template_id ) {
 		wp_set_current_user( self::$contributor_id );
-		$template_id = self::TEST_THEME . '/' . self::TEMPLATE_NAME;
-		$request     = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $template_id . '/autosaves' );
-		$response    = rest_get_server()->dispatch( $request );
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves' );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, WP_Http::FORBIDDEN );
+	}
+
+	/**
+	 * Data provider for test_create_item_incorrect_permission.
+	 *
+	 * @return array
+	 */
+	public function data_create_item_incorrect_permission() {
+		return array(
+			'template'       => array( 'templates', self::TEST_THEME . '/' . self::TEMPLATE_NAME ),
+			'template parts' => array( 'template-parts', self::TEST_THEME . '/' . self::TEMPLATE_PART_NAME ),
+		);
 	}
 
 	/**
 	 * @covers WP_REST_Template_Autosaves_Controller::delete_item
 	 * @ticket 56922
+	 *
+	 * @param string $rest_base   Base part of the REST API endpoint to test.
+	 * @param string $template_id Template ID to use in the test.
 	 */
-	public function test_create_item_no_permission() {
+	public function test_create_item_no_permission( $rest_base, $template_id ) {
 		wp_set_current_user( 0 );
-		$template_id = self::TEST_THEME . '/' . self::TEMPLATE_NAME;
-		$request     = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $template_id . '/autosaves' );
-		$response    = rest_get_server()->dispatch( $request );
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves' );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, WP_Http::UNAUTHORIZED );
+	}
+
+	/**
+	 * Data provider for test_create_item_no_permission.
+	 *
+	 * @return array
+	 */
+	public function data_create_item_no_permission() {
+		return array(
+			'template'       => array( 'templates', self::TEST_THEME . '/' . self::TEMPLATE_NAME ),
+			'template parts' => array( 'template-parts', self::TEST_THEME . '/' . self::TEMPLATE_PART_NAME ),
+		);
 	}
 
 	/**
