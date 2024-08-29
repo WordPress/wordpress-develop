@@ -222,8 +222,9 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 *
 	 * @param WP_Post $parent_post_property_name A class property name that contains the parent post object.
 	 * @param string $rest_base                  Base part of the REST API endpoint to test.
+	 * @param string $template_id				 Template ID to use in the test.
 	 */
-	public function test_get_items_with_data( $parent_post_property_name, $rest_base ) {
+	public function test_get_items_with_data( $parent_post_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 		// Cannot access this property in the data provider because it is not initialized at the time of execution.
 		$parent_post      = self::$$parent_post_property_name;
@@ -241,6 +242,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 		$response  = rest_get_server()->dispatch( $request );
 		$autosaves = $response->get_data();
+		$this->assertSame( 200, $response->get_status(), 'Response is expected to have a status code of 200.' );
 
 		$this->assertCount(
 			1,
@@ -266,34 +268,53 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * Data provider for ::test_get_items.
+	 * Data provider for test_get_items_with_data.
 	 *
 	 * @return array
 	 */
 	public function data_get_items_with_data() {
 		return array(
-			'templates'      => array( 'template_post', 'templates' ),
-			'template_parts' => array( 'template_part_post', 'template-parts' ),
+			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '/' . self::TEMPLATE_NAME ),
+			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '/' . self::TEMPLATE_PART_NAME ),
 		);
 	}
 
 	/**
+	 * @depends test_get_item_with_data
 	 * @covers WP_REST_Template_Autosaves_Controller::get_item
 	 * @ticket 56922
 	 */
 	public function test_get_item() {
+		// A proper data provider cannot be used because this method's signature must match the parent method.
+		// Therefore, actual tests are performed in the test_get_item_with_data method.
+		$this->assertTrue( true );
+	}
+
+	/**
+	 * @dataProvider data_get_item_with_data
+	 * @covers WP_REST_Template_Autosaves_Controller::get_item
+	 * @ticket 56922
+	 *
+	 * @param WP_Post $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $rest_base                  Base part of the REST API endpoint to test.
+	 * @param string $template_id                Template ID to use in the test.
+	 */
+	public function test_get_item_with_data( $parent_post_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
+
+		$parent_post      = self::$$parent_post_property_name;
 
 		$autosave_post_id = wp_create_post_autosave(
 			array(
 				'post_content' => 'Autosave content.',
-				'post_ID'      => self::$template_post->ID,
-				'post_type'    => self::TEMPLATE_POST_TYPE,
+				'post_ID'      => $parent_post->ID,
+				'post_type'    => $parent_post->post_type,
 			)
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . $autosave_post_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves/' . $autosave_post_id );
 		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response is expected to have a status code of 200.' );
 		$autosave = $response->get_data();
 
 		$this->assertIsArray( $autosave, 'Failed asserting that the autosave is an array.' );
@@ -303,12 +324,24 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			"Failed asserting that the autosave id is the same as $autosave_post_id."
 		);
 		$this->assertSame(
-			self::$template_post->ID,
+			$parent_post->ID,
 			$autosave['parent'],
 			sprintf(
 				'Failed asserting that the parent id of the autosave is the same as %s.',
-				self::$template_post->ID
+				$parent_post->ID
 			)
+		);
+	}
+
+	/**
+	 * Data provider for test_get_item_with_data.
+	 *
+	 * @return array
+	 */
+	public function data_get_item_with_data() {
+		return array(
+			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '/' . self::TEMPLATE_NAME ),
+			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '/' . self::TEMPLATE_PART_NAME ),
 		);
 	}
 
