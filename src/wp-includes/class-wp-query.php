@@ -1165,16 +1165,16 @@ class WP_Query {
 		}
 
 		foreach ( get_taxonomies( array(), 'objects' ) as $taxonomy => $t ) {
+
 			if ( 'post_tag' === $taxonomy ) {
 				continue; // Handled further down in the $q['tag'] block.
 			}
 
-			if ( $t->query_var && ! empty( $q[ $t->query_var ] ) ) {
+			if ( $t->query_var && ( ! empty( $q[ $t->query_var ] || '' === $q[ $t->query_var ] ) ) ) {
 				$tax_query_defaults = array(
 					'taxonomy' => $taxonomy,
 					'field'    => 'slug',
 				);
-
 				if ( ! empty( $t->rewrite['hierarchical'] ) ) {
 					$q[ $t->query_var ] = wp_basename( $q[ $t->query_var ] );
 				}
@@ -1195,13 +1195,24 @@ class WP_Query {
 							)
 						);
 					}
-				} else {
+				} elseif ( '' !== $term ) {
 					$tax_query[] = array_merge(
 						$tax_query_defaults,
 						array(
 							'terms' => preg_split( '/[,]+/', $term ),
 						)
 					);
+				} else {
+					// FIXME: Figure out why 'category' is automatically
+					// added as a query arg and what to do about it.
+					if ( 'category' !== $taxonomy ) {
+						$tax_query[] = array_merge(
+							$tax_query_defaults,
+							array(
+								'operator' => 'EXISTS',
+							)
+						);
+					}
 				}
 			}
 		}
