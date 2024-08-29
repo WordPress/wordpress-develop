@@ -52,6 +52,15 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	private static $template_post;
 
 	/**
+	 * Template part post.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var WP_Post
+	 */
+	private static $template_part_post;
+
+	/**
 	 * Create fake data before our tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
@@ -165,22 +174,38 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @covers WP_REST_Template_Autosaves_Controller::get_items
+	 * @depends test_get_items_with_data
 	 * @ticket 56922
 	 */
 	public function test_get_items() {
+		// A proper data provider cannot be used because this method's signature must match the parent method.
+		// Therefore, actual tests are performed in the test_get_items_with_data method.
+		$this->assertTrue( true );
+	}
+
+	/**
+	 * @dataProvider data_get_items_with_data
+	 * @covers WP_REST_Template_Autosaves_Controller::get_items
+	 * @ticket 56922
+	 *
+	 * @param WP_Post $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $rest_base                  Base part of the REST API endpoint to test.
+	 */
+	public function test_get_items_with_data( $parent_post_property_name, $rest_base ) {
 		wp_set_current_user( self::$admin_id );
+		// Cannot access this property in the data provider because it is not initialized at the time of execution.
+		$parent_post      = self::$$parent_post_property_name;
 		$autosave_post_id = wp_create_post_autosave(
 			array(
 				'post_content' => 'Autosave content.',
-				'post_ID'      => self::$template_post->ID,
-				'post_type'    => self::PARENT_POST_TYPE,
+				'post_ID'      => $parent_post->ID,
+				'post_type'    => $parent_post->post_type,
 			)
 		);
 
 		$request   = new WP_REST_Request(
 			'GET',
-			'/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves'
+			'/wp/v2/' . $rest_base . '/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves'
 		);
 		$response  = rest_get_server()->dispatch( $request );
 		$autosaves = $response->get_data();
@@ -209,10 +234,22 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * Data provider for ::test_get_items.
+	 *
+	 * @return array
+	 */
+	public function data_get_items_with_data() {
+		return array(
+			'templates'      => array( 'template_post', 'templates' ),
+			'template_parts' => array( 'template_part_post', 'template-parts' ),
+		);
+	}
+
+	/**
 	 * @covers WP_REST_Template_Autosaves_Controller::get_item
 	 * @ticket 56922
 	 */
-	public function test_get_item() {
+	public function test_get_item_with_data() {
 		wp_set_current_user( self::$admin_id );
 
 		$autosave_post_id = wp_create_post_autosave(
