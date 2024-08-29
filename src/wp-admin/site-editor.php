@@ -88,7 +88,7 @@ $navigation_rest_route = rest_get_route_for_post_type_items(
 );
 
 $preload_paths = array(
-	array( '/wp/v2/media', 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'page' ), 'OPTIONS' ),
 	'/wp/v2/types?context=view',
 	'/wp/v2/types/wp_template?context=edit',
