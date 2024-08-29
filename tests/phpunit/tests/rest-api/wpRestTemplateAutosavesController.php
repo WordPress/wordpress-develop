@@ -237,7 +237,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 		$request   = new WP_REST_Request(
 			'GET',
-			'/wp/v2/' . $rest_base . '/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves'
+			'/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves'
 		);
 		$response  = rest_get_server()->dispatch( $request );
 		$autosaves = $response->get_data();
@@ -345,10 +345,20 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @covers WP_REST_Template_Autosaves_Controller::prepare_item_for_response
+	 * @coversNothing
 	 * @ticket 56922
 	 */
 	public function test_prepare_item() {
+		// A proper data provider cannot be used because this method's signature must match the parent method.
+		// Therefore, actual tests are performed in the test_prepare_item_with_data method.
+		$this->assertTrue( true );
+	}
+
+	/**
+	 * @covers WP_REST_Template_Autosaves_Controller::prepare_item_for_response
+	 * @ticket 56922
+	 */
+	public function test_prepare_item_with_data( $parent_post_property_name, $rest_base, $template_id, $controller_class ) {
 		wp_set_current_user( self::$admin_id );
 		$autosave_post_id = wp_create_post_autosave(
 			array(
@@ -358,9 +368,8 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			)
 		);
 		$autosave_db_post = get_post( $autosave_post_id );
-		$template_id      = self::TEST_THEME . '//' . self::TEMPLATE_NAME;
 		$request          = new WP_REST_Request( 'GET', '/wp/v2/templates/' . $template_id . '/autosaves/' . $autosave_db_post->ID );
-		$controller       = new WP_REST_Template_Autosaves_Controller( self::TEMPLATE_POST_TYPE );
+		$controller       = new $controller_class( self::TEMPLATE_POST_TYPE );
 		$response         = $controller->prepare_item_for_response( $autosave_db_post, $request );
 		$this->assertInstanceOf(
 			WP_REST_Response::class,
@@ -518,6 +527,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * @dataProvider data_create_item_no_permission
 	 * @covers WP_REST_Template_Autosaves_Controller::create_item_permissions_check
 	 * @ticket 56922
 	 *
