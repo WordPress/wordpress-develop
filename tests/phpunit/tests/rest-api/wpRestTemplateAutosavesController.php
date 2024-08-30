@@ -279,13 +279,13 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @dataProvider data_get_items_with_no_database_entity_should_return_bad_response_status
+	 * @dataProvider data_get_items_for_templates_based_on_theme_files_should_return_bad_response_status
 	 * @ticket 56922
 	 *
 	 * @param $rest_base
 	 * @param $template_id
 	 */
-	public function test_get_items_with_no_database_entity_should_return_bad_response_status( $rest_base, $template_id ) {
+	public function test_get_items_for_templates_based_on_theme_files_should_return_bad_response_status( $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 		switch_theme( 'block-theme' );
 
@@ -300,7 +300,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 	}
 
-	public function data_get_items_with_no_database_entity_should_return_bad_response_status() {
+	public function data_get_items_for_templates_based_on_theme_files_should_return_bad_response_status() {
 		return array(
 			'templates'      => array( 'templates', self::TEST_THEME . '//page-home' ),
 			'template parts' => array( 'template-parts', self::TEST_THEME . '//small-header' ),
@@ -308,13 +308,13 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @dataProvider data_get_item_with_no_database_entity_should_return_bad_response_status
+	 * @dataProvider data_get_item_for_templates_based_on_theme_files_should_return_bad_response_status
 	 * @ticket 56922
 	 *
 	 * @param $rest_base
 	 * @param $template_id
 	 */
-	public function test_get_item_with_no_database_entity_should_return_bad_response_status( $rest_base, $template_id ) {
+	public function test_get_item_for_templates_based_on_theme_files_should_return_bad_response_status( $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 		switch_theme( 'block-theme' );
 
@@ -329,7 +329,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 	}
 
-	public function data_get_item_with_no_database_entity_should_return_bad_response_status() {
+	public function data_get_item_for_templates_based_on_theme_files_should_return_bad_response_status() {
 		return array(
 			'templates'      => array( 'templates', self::TEST_THEME . '//page-home' ),
 			'template parts' => array( 'template-parts', self::TEST_THEME . '//small-header' ),
