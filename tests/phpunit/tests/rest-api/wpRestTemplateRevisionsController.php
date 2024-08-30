@@ -299,7 +299,6 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 	}
 
-
 	/**
 	 * @covers WP_REST_Template_Revisions_Controller::get_items_permissions_check
 	 * @ticket 56922
