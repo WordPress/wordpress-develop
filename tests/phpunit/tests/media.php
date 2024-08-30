@@ -6012,6 +6012,23 @@ EOF;
 	}
 
 	/**
+	 * Test that when the "wp_img_auto_sizes_enabled" filter is set to false,
+	 * the generated markup for an image does not include the "auto" keyword in the sizes attribute.
+	 *
+	 * @ticket 61847
+	 */
+	public function test_image_with_wp_img_auto_sizes_enabled_filter_does_not_have_auto_sizes() {
+		// Apply the filter to disable the auto sizes feature.
+		add_filter( 'wp_img_auto_sizes_enabled', '__return_false' );
+
+		$this->assertStringNotContainsString(
+			'sizes="auto, ',
+			wp_get_attachment_image( self::$large_id, 'large', false, array( 'loading' => 'lazy' ) ),
+			'Failed asserting that the sizes attribute for an image does not include "auto" when the auto sizes feature is disabled.'
+		);
+	}
+
+	/**
 	 * Test generated markup for an image without lazy loading does not get auto-sizes.
 	 *
 	 * @ticket 61847
@@ -6043,6 +6060,27 @@ EOF;
 	}
 
 	/**
+	 * Test content filtered markup with lazy loading gets auto-sizes.
+	 *
+	 * @ticket 61847
+	 *
+	 * @covers ::wp_img_tag_add_auto_sizes
+	 */
+	public function test_content_with_wp_img_auto_sizes_enabled_filter_does_not_have_auto_sizes() {
+		// Force lazy loading attribute.
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_true' );
+
+		// Apply the filter to disable the auto sizes feature.
+		add_filter( 'wp_img_auto_sizes_enabled', '__return_false' );
+
+		$this->assertStringNotContainsString(
+			'sizes="auto, ',
+			wp_filter_content_tags( get_image_tag( self::$large_id, '', '', '', 'large' ) ),
+			'Failed asserting that the sizes attribute for a content image with lazy loading includes "auto" with the expected sizes.'
+		);
+	}
+
+	/**
 	 * Test content filtered markup without lazy loading does not get auto-sizes.
 	 *
 	 * @ticket 61847
@@ -6053,8 +6091,8 @@ EOF;
 		// Disable lazy loading attribute.
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 
-		$this->assertStringContainsString(
-			'sizes="(max-width: 1024px) 100vw, 1024px"',
+		$this->assertStringNotContainsString(
+			'sizes="auto, ',
 			wp_filter_content_tags( get_image_tag( self::$large_id, '', '', '', 'large' ) ),
 			'Failed asserting that the sizes attribute for a content image without lazy loading does not include "auto" with the expected sizes.'
 		);
