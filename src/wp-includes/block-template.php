@@ -268,9 +268,15 @@ function get_the_block_template_html() {
 	$content = wp_filter_content_tags( $content, 'template' );
 	$content = str_replace( ']]>', ']]&gt;', $content );
 
+	/* 
+	 * Ticket : 61956
+	 * Filter to allow modification of the wrapper element.
+	 */
+	$wrapper_element = apply_filters( 'wp_site_blocks_wrapper_element', 'div', $content );
+
 	// Wrap block template in .wp-site-blocks to allow for specific descendant styles
 	// (e.g. `.wp-site-blocks > *`).
-	return '<div class="wp-site-blocks">' . $content . '</div>';
+	return "<{$wrapper_element} class=\"wp-site-blocks\">{$content}</{$wrapper_element}>";
 }
 
 /**
