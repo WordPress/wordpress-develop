@@ -428,19 +428,19 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	public function data_get_metadata_non_existent_object_id() {
 		return array(
-			'Default values for the $meta_key and $single params' => array(
+			'Return value will be an empty array when only required params are passed' => array(
 				'expected' => array(),
 				'args'     => array( PHP_INT_MAX ),
 			),
-			'Default value for the $single param' => array(
+			'Return value will be an empty array when all params are passed except `$single`' => array(
 				'expected' => array(),
 				'args'     => array( PHP_INT_MAX, 'meta_key' ),
 			),
-			'$single as `false`'                  => array(
+			'Return value will be an empty array when `$single` is `false`' => array(
 				'expected' => array(),
 				'args'     => array( PHP_INT_MAX, 'meta_key', false ),
 			),
-			'$single as `true`'                   => array(
+			'Return value will be an empty array when `$single` is `true`' => array(
 				'expected' => '',
 				'args'     => array( PHP_INT_MAX, 'meta_key', true ),
 			),
