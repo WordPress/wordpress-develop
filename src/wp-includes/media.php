@@ -1137,9 +1137,10 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			}
 		}
 
-		// Adds auto to the sizes attribute if applicable.
+		// Adds 'auto' to the sizes attribute if applicable.
 		if (
-			( isset( $attr['loading'] ) && 'lazy' === $attr['loading'] ) &&
+			isset( $attr['loading'] ) &&
+			'lazy' === $attr['loading'] &&
 			isset( $attr['sizes'] ) &&
 			! wp_sizes_attribute_includes_valid_auto( $attr['sizes'] )
 		) {
@@ -1926,7 +1927,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 			// Add loading optimization attributes if applicable.
 			$filtered_image = wp_img_tag_add_loading_optimization_attrs( $filtered_image, $context );
 
-			// Adds auto to the sizes attribute if applicable.
+			// Adds 'auto' to the sizes attribute if applicable.
 			$filtered_image = wp_img_tag_add_auto_sizes( $filtered_image );
 
 			/**
@@ -1976,7 +1977,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 }
 
 /**
- * Adds auto to the sizes attribute to the image, if image lazy loaded.
+ * Adds 'auto' to the sizes attribute to the image, if the image is lazy loaded and does not already include it.
  *
  * @since 6.7.0
  *
