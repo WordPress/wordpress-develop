@@ -157,12 +157,26 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @covers WP_REST_Template_Autosaves_Controller::get_context_param
+	 * @coversNothing
 	 * @ticket 56922
 	 */
 	public function test_context_param() {
+		// A proper data provider cannot be used because this method's signature must match the parent method.
+		// Therefore, actual tests are performed in the test_context_param_with_data_provider method.
+		$this->assertTrue( true );
+	}
+
+	/**
+	 * @dataProvider data_context_param_with_data_provider
+	 * @covers WP_REST_Template_Autosaves_Controller::get_context_param
+	 * @ticket 56922
+	 *
+	 * @param string $rest_base   Base part of the REST API endpoint to test.
+	 * @param string $template_id Template ID to use in the test.
+	 */
+	public function test_context_param_with_data_provider( $rest_base, $template_id ) {
 		// Collection.
-		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves' );
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
@@ -184,7 +198,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 
 		// Single.
-		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves/1' );
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves/1' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount(
@@ -205,6 +219,18 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * Data provider for test_context_param.
+	 *
+	 * @return array
+	 */
+	public function data_context_param_with_data_provider() {
+		return array(
+			'templates'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
+			'template parts' => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
+		);
+	}
+
+	/**
 	 * @coversNothing
 	 * @ticket 56922
 	 */
@@ -219,7 +245,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @covers WP_REST_Template_Autosaves_Controller::get_items
 	 * @ticket 56922
 	 *
-	 * @param WP_Post $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $parent_post_property_name A class property name that contains the parent post object.
 	 * @param string $rest_base                  Base part of the REST API endpoint to test.
 	 * @param string $template_id                Template ID to use in the test.
 	 */
@@ -282,8 +308,8 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @dataProvider data_get_items_for_templates_based_on_theme_files_should_return_bad_response_status
 	 * @ticket 56922
 	 *
-	 * @param $rest_base
-	 * @param $template_id
+	 * @param string $rest_base   Base part of the REST API endpoint to test.
+	 * @param string $template_id Template ID to use in the test.
 	 */
 	public function test_get_items_for_templates_based_on_theme_files_should_return_bad_response_status( $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
@@ -311,8 +337,8 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @dataProvider data_get_item_for_templates_based_on_theme_files_should_return_bad_response_status
 	 * @ticket 56922
 	 *
-	 * @param $rest_base
-	 * @param $template_id
+	 * @param string $rest_base   Base part of the REST API endpoint to test.
+	 * @param string $template_id Template ID to use in the test.
 	 */
 	public function test_get_item_for_templates_based_on_theme_files_should_return_bad_response_status( $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
@@ -351,9 +377,9 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @covers WP_REST_Template_Autosaves_Controller::get_item
 	 * @ticket 56922
 	 *
-	 * @param WP_Post $parent_post_property_name A class property name that contains the parent post object.
-	 * @param string $rest_base                  Base part of the REST API endpoint to test.
-	 * @param string $template_id                Template ID to use in the test.
+	 * @param string  $parent_post_property_name  A class property name that contains the parent post object.
+	 * @param string  $rest_base                  Base part of the REST API endpoint to test.
+	 * @param string  $template_id                Template ID to use in the test.
 	 */
 	public function test_get_item_with_data_provider( $parent_post_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
@@ -417,7 +443,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @covers WP_REST_Template_Autosaves_Controller::prepare_item_for_response
 	 * @ticket 56922
 	 *
-	 * @param WP_Post $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $parent_post_property_name A class property name that contains the parent post object.
 	 * @param string $rest_base Base part of the REST API endpoint to test.
 	 * @param string $template_id Template ID to use in the test.
 	 */
