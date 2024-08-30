@@ -3117,9 +3117,9 @@ HTML
 	 */
 	public function test_wp_get_script_polyfill() {
 		global $wp_scripts;
-		$script_name = 'wp-polyfill-importmap';
-		$test_script = 'HTMLScriptElement.supports && HTMLScriptElement.supports("importmap")';
-		$script_url  = 'https://example.com/wp-polyfill-importmap.js';
+		$script_name = 'tmp-polyfill-foo';
+		$test_script = 'HTMLScriptElement.supports && HTMLScriptElement.supports("foo")';
+		$script_url  = 'https://example.com/polyfill-foo.js';
 		wp_register_script( $script_name, $script_url );
 
 		$polyfill = wp_get_script_polyfill(
@@ -3133,7 +3133,7 @@ HTML
 
 		$expected = '( ' . $test_script . ' ) || document.write( \'<script src="' . $script_url . '"></scr\' + \'ipt>\' );';
 
-		$this->assertEquals( $expected, $polyfill );
+		$this->assertSame( $expected, $polyfill );
 	}
 
 	/**

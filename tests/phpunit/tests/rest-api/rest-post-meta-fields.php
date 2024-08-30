@@ -3621,7 +3621,6 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		return $query;
 	}
 
-
 	/**
 	 * Test that single post meta is revisioned when saving to the posts REST API endpoint.
 	 *
@@ -3659,7 +3658,6 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$revisions   = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
 		$revision_id = array_shift( $revisions )->ID;
 
-		// @todo Ensure the revisions endpoint returns the correct meta values
 		// Check that the revisions endpoint returns the correct meta value.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id ) );
 		$response = rest_get_server()->dispatch( $request );
