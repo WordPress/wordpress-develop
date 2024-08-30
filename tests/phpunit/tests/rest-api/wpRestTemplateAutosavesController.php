@@ -106,7 +106,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 		wp_set_post_terms( self::$template_post->ID, self::TEST_THEME, 'wp_theme' );
 
-		// Set up template post.
+		// Set up template part post.
 		self::$template_part_post = $factory->post->create_and_get(
 			array(
 				'post_type'    => self::TEMPLATE_PART_POST_TYPE,

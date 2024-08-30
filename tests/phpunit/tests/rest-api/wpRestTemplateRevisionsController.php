@@ -27,7 +27,22 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	/**
 	 * @var string
 	 */
-	const PARENT_POST_TYPE = 'wp_template';
+	const TEMPLATE_PART_NAME = 'my_template_part';
+
+	/**
+	 * @var string
+	 */
+	const TEMPLATE_PART_NAME_2 = 'my_template_part_2';
+
+	/**
+	 * @var string
+	 */
+	const TEMPLATE_POST_TYPE = 'wp_template';
+
+	/**
+	 * @var string
+	 */
+	const TEMPLATE_PART_POST_TYPE = 'wp_template_part';
 
 	/**
 	 * Admin user ID.
@@ -66,9 +81,32 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	private static $template_post_2;
 
 	/**
+	 * Template part post.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var WP_Post
+	 */
+	private static $template_part_post;
+
+	/**
+	 * Template part post.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var WP_Post
+	 */
+	private static $template_part_post_2;
+
+	/**
 	 * @var array
 	 */
-	private static $revisions = array();
+	private static $template_revisions = array();
+
+	/**
+	 * @var array
+	 */
+	private static $template_part_revisions = array();
 
 	/**
 	 * Create fake data before our tests run.
@@ -92,7 +130,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		// Set up template post.
 		self::$template_post = $factory->post->create_and_get(
 			array(
-				'post_type'    => self::PARENT_POST_TYPE,
+				'post_type'    => self::TEMPLATE_POST_TYPE,
 				'post_name'    => self::TEMPLATE_NAME,
 				'post_title'   => 'My Template',
 				'post_content' => 'Content',
@@ -106,42 +144,20 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 		wp_set_post_terms( self::$template_post->ID, self::TEST_THEME, 'wp_theme' );
 
-		// Update post to create a new revisions.
-		self::$revisions[] = _wp_put_post_revision(
-			array(
-				'ID'           => self::$template_post->ID,
-				'post_content' => 'Content revision #2',
-			)
-		);
-
-		// Update post to create a new revisions.
-		self::$revisions[] = _wp_put_post_revision(
-			array(
-				'ID'           => self::$template_post->ID,
-				'post_content' => 'Content revision #3',
-			)
-		);
-
-		// Update post to create a new revisions.
-		self::$revisions[] = _wp_put_post_revision(
-			array(
-				'ID'           => self::$template_post->ID,
-				'post_content' => 'Content revision #4',
-			)
-		);
-
-		// Update post to create a new revisions.
-		self::$revisions[] = _wp_put_post_revision(
-			array(
-				'ID'           => self::$template_post->ID,
-				'post_content' => 'Content revision #5',
-			)
-		);
+		// Update post to create new revisions.
+		foreach ( range( 2, 5 ) as $revision_index ) {
+			self::$template_revisions[] = _wp_put_post_revision(
+				array(
+					'ID'           => self::$template_post->ID,
+					'post_content' => 'Content revision #' . $revision_index,
+				)
+			);
+		}
 
 		// Create a new template post to test the get_item method.
 		self::$template_post_2 = $factory->post->create_and_get(
 			array(
-				'post_type'    => self::PARENT_POST_TYPE,
+				'post_type'    => self::TEMPLATE_POST_TYPE,
 				'post_name'    => self::TEMPLATE_NAME_2,
 				'post_title'   => 'My Template 2',
 				'post_content' => 'Content 2',
@@ -154,6 +170,58 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 			)
 		);
 		wp_set_post_terms( self::$template_post_2->ID, self::TEST_THEME, 'wp_theme' );
+
+		// Set up template part post.
+		self::$template_part_post = $factory->post->create_and_get(
+			array(
+				'post_type'    => self::TEMPLATE_PART_POST_TYPE,
+				'post_name'    => self::TEMPLATE_PART_NAME,
+				'post_title'   => 'My template part',
+				'post_content' => 'Content',
+				'post_excerpt' => 'Description of my template part',
+				'tax_input'    => array(
+					'wp_theme'              => array(
+						self::TEST_THEME,
+					),
+					'wp_template_part_area' => array(
+						WP_TEMPLATE_PART_AREA_HEADER,
+					),
+				),
+			)
+		);
+		wp_set_post_terms( self::$template_part_post->ID, self::TEST_THEME, 'wp_theme' );
+		wp_set_post_terms( self::$template_part_post->ID, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
+
+		// Update post to create new revisions.
+		foreach ( range( 2, 5 ) as $revision_index ) {
+			self::$template_part_revisions[] = _wp_put_post_revision(
+				array(
+					'ID'           => self::$template_part_post->ID,
+					'post_content' => 'Content revision #' . $revision_index,
+				)
+			);
+		}
+
+		// Set up template part post.
+		self::$template_part_post_2 = $factory->post->create_and_get(
+			array(
+				'post_type'    => self::TEMPLATE_PART_POST_TYPE,
+				'post_name'    => self::TEMPLATE_PART_NAME_2,
+				'post_title'   => 'My template part 2',
+				'post_content' => 'Content 2',
+				'post_excerpt' => 'Description of my template part 2',
+				'tax_input'    => array(
+					'wp_theme'              => array(
+						self::TEST_THEME,
+					),
+					'wp_template_part_area' => array(
+						WP_TEMPLATE_PART_AREA_HEADER,
+					),
+				),
+			)
+		);
+		wp_set_post_terms( self::$template_part_post_2->ID, self::TEST_THEME, 'wp_theme' );
+		wp_set_post_terms( self::$template_part_post_2->ID, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
 	}
 
 	/**
@@ -161,7 +229,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 */
 	public static function wpTearDownAfterClass() {
 		// Also deletes revisions.
-		foreach ( self::$revisions as $revision ) {
+		foreach ( self::$template_revisions as $revision ) {
 			wp_delete_post( $revision, true );
 		}
 	}
@@ -450,7 +518,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$revision_id = array_shift( $revisions );
 		$post        = get_post( $revision_id );
 		$request     = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
-		$controller  = new WP_REST_Template_Revisions_Controller( self::PARENT_POST_TYPE );
+		$controller  = new WP_REST_Template_Revisions_Controller( self::TEMPLATE_POST_TYPE );
 		$response    = $controller->prepare_item_for_response( $post, $request );
 		$this->assertInstanceOf(
 			WP_REST_Response::class,
@@ -560,8 +628,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	public function test_delete_item() {
 		wp_set_current_user( self::$admin_id );
 
-		$revision_id       = _wp_put_post_revision( self::$template_post );
-		self::$revisions[] = $revision_id;
+		$revision_id                = _wp_put_post_revision( self::$template_post );
+		self::$template_revisions[] = $revision_id;
 
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
 		$request->set_param( 'force', true );
@@ -577,8 +645,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 */
 	public function test_delete_item_incorrect_permission() {
 		wp_set_current_user( self::$contributor_id );
-		$revision_id       = _wp_put_post_revision( self::$template_post );
-		self::$revisions[] = $revision_id;
+		$revision_id                = _wp_put_post_revision( self::$template_post );
+		self::$template_revisions[] = $revision_id;
 
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
 		$request->set_param( 'force', true );
@@ -592,8 +660,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 */
 	public function test_delete_item_no_permission() {
 		wp_set_current_user( 0 );
-		$revision_id       = _wp_put_post_revision( self::$template_post );
-		self::$revisions[] = $revision_id;
+		$revision_id                = _wp_put_post_revision( self::$template_post );
+		self::$template_revisions[] = $revision_id;
 
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
 		$request->set_param( 'force', true );
@@ -608,8 +676,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	public function test_delete_item_not_found() {
 		wp_set_current_user( self::$admin_id );
 
-		$revision_id       = _wp_put_post_revision( self::$template_post );
-		self::$revisions[] = $revision_id;
+		$revision_id                = _wp_put_post_revision( self::$template_post );
+		self::$template_revisions[] = $revision_id;
 
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/invalid//parent/revisions/' . $revision_id );
 		$request->set_param( 'force', true );
