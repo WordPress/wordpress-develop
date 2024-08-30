@@ -279,13 +279,13 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @dataProvider data_get_item_with_no_database_entity_should_return_not_found_response
+	 * @dataProvider data_get_items_with_no_database_entity_should_return_bad_response_status
 	 * @ticket 56922
 	 *
 	 * @param $rest_base
 	 * @param $template_id
 	 */
-	public function test_get_item_with_no_database_entity_should_return_not_found_response( $rest_base, $template_id ) {
+	public function test_get_items_with_no_database_entity_should_return_bad_response_status( $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 		switch_theme( 'block-theme' );
 
@@ -300,7 +300,36 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 	}
 
-	public function data_get_item_with_no_database_entity_should_return_not_found_response() {
+	public function data_get_items_with_no_database_entity_should_return_bad_response_status() {
+		return array(
+			'templates'      => array( 'templates', self::TEST_THEME . '//page-home' ),
+			'template parts' => array( 'template-parts', self::TEST_THEME . '//small-header' ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_get_item_with_no_database_entity_should_return_bad_response_status
+	 * @ticket 56922
+	 *
+	 * @param $rest_base
+	 * @param $template_id
+	 */
+	public function test_get_item_with_no_database_entity_should_return_bad_response_status( $rest_base, $template_id ) {
+		wp_set_current_user( self::$admin_id );
+		switch_theme( 'block-theme' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves/1' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse(
+			'rest_invalid_template',
+			$response,
+			WP_Http::BAD_REQUEST,
+			sprintf( 'Response is expected to have a status code of %d.', WP_Http::BAD_REQUEST )
+		);
+	}
+
+	public function data_get_item_with_no_database_entity_should_return_bad_response_status() {
 		return array(
 			'templates'      => array( 'templates', self::TEST_THEME . '//page-home' ),
 			'template parts' => array( 'template-parts', self::TEST_THEME . '//small-header' ),
