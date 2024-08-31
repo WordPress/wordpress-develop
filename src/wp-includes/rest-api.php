@@ -1304,6 +1304,10 @@ function rest_get_avatar_sizes() {
 /**
  * Parses an RFC3339 time into a Unix timestamp.
  *
+ * Warning: This function returns Boolean false on failure, but it may also
+ * return zero (which evaluates to false) on success. Use the === operator when
+ * checking for failure.
+ *
  * @since 4.4.0
  *
  * @param string $date      RFC3339 timestamp.
@@ -1369,7 +1373,7 @@ function rest_get_date_with_gmt( $date, $is_utc = false ) {
 
 	$date = rest_parse_date( $date );
 
-	if ( empty( $date ) ) {
+	if ( false === $date ) {
 		return null;
 	}
 
@@ -2259,7 +2263,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 				break;
 
 			case 'date-time':
-				if ( ! rest_parse_date( $value ) ) {
+				if ( false === rest_parse_date( $value ) ) {
 					return new WP_Error( 'rest_invalid_date', __( 'Invalid date.' ) );
 				}
 				break;
