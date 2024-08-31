@@ -440,7 +440,7 @@ class Tests_Meta extends WP_UnitTestCase {
 				'expected' => array(),
 				'args'     => array( PHP_INT_MAX, 'meta_key', false ),
 			),
-			'Return value will be an empty array when `$single` is `true`' => array(
+			'Return value will be an empty string when `$single` is `true`' => array(
 				'expected' => '',
 				'args'     => array( PHP_INT_MAX, 'meta_key', true ),
 			),
