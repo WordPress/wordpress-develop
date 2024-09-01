@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<phpunit bootstrap="bootstrap.php" testdox="true" colors="true">
+	<php>
+<!--        <const name="DEBUG" value="FALSE"/>-->
+    </php>
+	<testsuites>
+		<testsuite name="html-api">
+			<file>WpHtmlProcessor.php</file>
+<!--			<file>WpHtmlProcessorHtml5lib.php</file>-->
+			<file>WpHtmlProcessorSemanticRules.php</file>
+			<file>WpHtmlProcessorSemanticRulesHeadingElements.php</file>
+			<file>WpHtmlProcessorSemanticRulesListElements.php</file>
+			<file>WpHtmlProcessorBreadcrumbs.php</file>
+<!--			<file>WpHtmlProcessorGetInnerMarkup.php</file>-->
+<!--			<file>WpHtmlProcessorGetOuterMarkup.php</file>-->
+<!--			<file>WpHtmlProcessorSetInnerMarkup.php</file>-->
+<!--			<file>WpHtmlProcessorSetOuterMarkup.php</file>-->
+			<file>WpHtmlSupportRequiredHtmlProcessor.php</file>
+			<file>WpHtmlSupportRequiredOpenElements.php</file>
+			<file>WpHtmlTagProcessor.php</file>
+			<file>WpHtmlTagProcessor-bookmark.php</file>
+<!--			<file>WpHtmlProcessor-bookmark.php</file>-->
+<!--			<file>WpHtmlTemplate.php</file>-->
+			<file>WpHtmlTagProcessor-token-scanning.php</file>
+<!--			<file>WpHtmlTagProcessor-internals.php</file>-->
+<!--			<file>WpHtmlProcessor-stringBuilder.php</file>-->
+		</testsuite>
+	</testsuites>
+</phpunit>
