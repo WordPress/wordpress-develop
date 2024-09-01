@@ -123,7 +123,6 @@
 .ui-helper-hidden-accessible {
 	border: 0;
 	clip: rect(1px, 1px, 1px, 1px);
-	-webkit-clip-path: inset(50%);
 	clip-path: inset(50%);
 	height: 1px;
 	margin: -1px;
@@ -1519,25 +1518,6 @@ div.error {
     margin-top: -5px;
 }
 
-#plugin-information-footer #plugin-activated-successfully {
-	margin-bottom: 0;
-}
-
-#plugin-information-footer #plugin-activated-successfully p {
-	display: flex;
-	gap: 1em;
-	align-items: center;
-	justify-content: space-between;
-	margin: 0;
-}
-
-#plugin-information-footer #plugin-activated-successfully .refresh-page {
-	flex-grow: 0;
-	line-height: 2.15384615;
-	min-height: 0;
-	margin-bottom: 0;
-}
-
 .update-message p:before,
 .updating-message p:before,
 .updated-message p:before,
@@ -2051,7 +2031,7 @@ p.auto-update-status {
 ------------------------------------------------------------------------------*/
 
 html.wp-toolbar {
-	padding-top: 32px;
+	padding-top: var(--wp-admin--admin-bar--height);
 	box-sizing: border-box;
 	-ms-overflow-style: scrollbar; /* See ticket #48545 */
 }
@@ -3860,7 +3840,7 @@ img {
 
 @media screen and (max-width: 782px) {
 	html.wp-toolbar {
-		padding-top: 46px;
+		padding-top: var(--wp-admin--admin-bar--height);
 	}
 
 	.screen-reader-shortcut:focus {

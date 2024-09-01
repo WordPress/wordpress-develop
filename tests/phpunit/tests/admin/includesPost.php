@@ -240,10 +240,10 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		$request = array(
 			'post_type'      => 'post',
-			'post_author'    => -1,
-			'ping_status'    => -1,
-			'comment_status' => -1,
-			'_status'        => -1,
+			'post_author'    => '-1',
+			'ping_status'    => '-1',
+			'comment_status' => '-1',
+			'_status'        => '-1',
 			'post'           => array( $post1, $post2 ),
 		);
 
@@ -273,8 +273,8 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		set_post_format( $post_ids[1], 'aside' );
 
 		$request = array(
-			'post_format' => -1, // Don't change the post format.
-			'_status'     => -1,
+			'post_format' => '-1', // Don't change the post format.
+			'_status'     => '-1',
 			'post'        => $post_ids,
 		);
 
@@ -367,7 +367,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		$request = array(
 			'post_format' => 'aside',
-			'_status'     => -1,
+			'_status'     => '-1',
 			'post'        => array( self::$post_id ),
 		);
 

@@ -134,6 +134,7 @@ class WP_Debug_Data {
 
 		if ( ! $is_multisite ) {
 			$info['wp-paths-sizes'] = array(
+				/* translators: Filesystem directory paths and storage sizes. */
 				'label'  => __( 'Directories and Sizes' ),
 				'fields' => array(),
 			);
@@ -198,185 +199,6 @@ class WP_Debug_Data {
 		$info['wp-database'] = array(
 			'label'  => __( 'Database' ),
 			'fields' => array(),
-		);
-
-		// Check if WP_DEBUG_LOG is set.
-		$wp_debug_log_value = __( 'Disabled' );
-
-		if ( is_string( WP_DEBUG_LOG ) ) {
-			$wp_debug_log_value = WP_DEBUG_LOG;
-		} elseif ( WP_DEBUG_LOG ) {
-			$wp_debug_log_value = __( 'Enabled' );
-		}
-
-		// Check CONCATENATE_SCRIPTS.
-		if ( defined( 'CONCATENATE_SCRIPTS' ) ) {
-			$concatenate_scripts       = CONCATENATE_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
-			$concatenate_scripts_debug = CONCATENATE_SCRIPTS ? 'true' : 'false';
-		} else {
-			$concatenate_scripts       = __( 'Undefined' );
-			$concatenate_scripts_debug = 'undefined';
-		}
-
-		// Check COMPRESS_SCRIPTS.
-		if ( defined( 'COMPRESS_SCRIPTS' ) ) {
-			$compress_scripts       = COMPRESS_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
-			$compress_scripts_debug = COMPRESS_SCRIPTS ? 'true' : 'false';
-		} else {
-			$compress_scripts       = __( 'Undefined' );
-			$compress_scripts_debug = 'undefined';
-		}
-
-		// Check COMPRESS_CSS.
-		if ( defined( 'COMPRESS_CSS' ) ) {
-			$compress_css       = COMPRESS_CSS ? __( 'Enabled' ) : __( 'Disabled' );
-			$compress_css_debug = COMPRESS_CSS ? 'true' : 'false';
-		} else {
-			$compress_css       = __( 'Undefined' );
-			$compress_css_debug = 'undefined';
-		}
-
-		// Check WP_ENVIRONMENT_TYPE.
-		if ( defined( 'WP_ENVIRONMENT_TYPE' ) && WP_ENVIRONMENT_TYPE ) {
-			$wp_environment_type = WP_ENVIRONMENT_TYPE;
-		} else {
-			$wp_environment_type = __( 'Undefined' );
-		}
-
-		$info['wp-constants'] = array(
-			'label'       => __( 'WordPress Constants' ),
-			'description' => __( 'These settings alter where and how parts of WordPress are loaded.' ),
-			'fields'      => array(
-				'ABSPATH'             => array(
-					'label'   => 'ABSPATH',
-					'value'   => ABSPATH,
-					'private' => true,
-				),
-				'WP_HOME'             => array(
-					'label' => 'WP_HOME',
-					'value' => ( defined( 'WP_HOME' ) ? WP_HOME : __( 'Undefined' ) ),
-					'debug' => ( defined( 'WP_HOME' ) ? WP_HOME : 'undefined' ),
-				),
-				'WP_SITEURL'          => array(
-					'label' => 'WP_SITEURL',
-					'value' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : __( 'Undefined' ) ),
-					'debug' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : 'undefined' ),
-				),
-				'WP_CONTENT_DIR'      => array(
-					'label' => 'WP_CONTENT_DIR',
-					'value' => WP_CONTENT_DIR,
-				),
-				'WP_PLUGIN_DIR'       => array(
-					'label' => 'WP_PLUGIN_DIR',
-					'value' => WP_PLUGIN_DIR,
-				),
-				'WP_MEMORY_LIMIT'     => array(
-					'label' => 'WP_MEMORY_LIMIT',
-					'value' => WP_MEMORY_LIMIT,
-				),
-				'WP_MAX_MEMORY_LIMIT' => array(
-					'label' => 'WP_MAX_MEMORY_LIMIT',
-					'value' => WP_MAX_MEMORY_LIMIT,
-				),
-				'WP_DEBUG'            => array(
-					'label' => 'WP_DEBUG',
-					'value' => WP_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
-					'debug' => WP_DEBUG,
-				),
-				'WP_DEBUG_DISPLAY'    => array(
-					'label' => 'WP_DEBUG_DISPLAY',
-					'value' => WP_DEBUG_DISPLAY ? __( 'Enabled' ) : __( 'Disabled' ),
-					'debug' => WP_DEBUG_DISPLAY,
-				),
-				'WP_DEBUG_LOG'        => array(
-					'label' => 'WP_DEBUG_LOG',
-					'value' => $wp_debug_log_value,
-					'debug' => WP_DEBUG_LOG,
-				),
-				'SCRIPT_DEBUG'        => array(
-					'label' => 'SCRIPT_DEBUG',
-					'value' => SCRIPT_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
-					'debug' => SCRIPT_DEBUG,
-				),
-				'WP_CACHE'            => array(
-					'label' => 'WP_CACHE',
-					'value' => WP_CACHE ? __( 'Enabled' ) : __( 'Disabled' ),
-					'debug' => WP_CACHE,
-				),
-				'CONCATENATE_SCRIPTS' => array(
-					'label' => 'CONCATENATE_SCRIPTS',
-					'value' => $concatenate_scripts,
-					'debug' => $concatenate_scripts_debug,
-				),
-				'COMPRESS_SCRIPTS'    => array(
-					'label' => 'COMPRESS_SCRIPTS',
-					'value' => $compress_scripts,
-					'debug' => $compress_scripts_debug,
-				),
-				'COMPRESS_CSS'        => array(
-					'label' => 'COMPRESS_CSS',
-					'value' => $compress_css,
-					'debug' => $compress_css_debug,
-				),
-				'WP_ENVIRONMENT_TYPE' => array(
-					'label' => 'WP_ENVIRONMENT_TYPE',
-					'value' => $wp_environment_type,
-					'debug' => $wp_environment_type,
-				),
-				'WP_DEVELOPMENT_MODE' => array(
-					'label' => 'WP_DEVELOPMENT_MODE',
-					'value' => WP_DEVELOPMENT_MODE ? WP_DEVELOPMENT_MODE : __( 'Disabled' ),
-					'debug' => WP_DEVELOPMENT_MODE,
-				),
-				'DB_CHARSET'          => array(
-					'label' => 'DB_CHARSET',
-					'value' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : __( 'Undefined' ) ),
-					'debug' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : 'undefined' ),
-				),
-				'DB_COLLATE'          => array(
-					'label' => 'DB_COLLATE',
-					'value' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : __( 'Undefined' ) ),
-					'debug' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : 'undefined' ),
-				),
-			),
-		);
-
-		$is_writable_abspath            = wp_is_writable( ABSPATH );
-		$is_writable_wp_content_dir     = wp_is_writable( WP_CONTENT_DIR );
-		$is_writable_upload_dir         = wp_is_writable( $upload_dir['basedir'] );
-		$is_writable_wp_plugin_dir      = wp_is_writable( WP_PLUGIN_DIR );
-		$is_writable_template_directory = wp_is_writable( get_theme_root( get_template() ) );
-
-		$info['wp-filesystem'] = array(
-			'label'       => __( 'Filesystem Permissions' ),
-			'description' => __( 'Shows whether WordPress is able to write to the directories it needs access to.' ),
-			'fields'      => array(
-				'wordpress'  => array(
-					'label' => __( 'The main WordPress directory' ),
-					'value' => ( $is_writable_abspath ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_abspath ? 'writable' : 'not writable' ),
-				),
-				'wp-content' => array(
-					'label' => __( 'The wp-content directory' ),
-					'value' => ( $is_writable_wp_content_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_wp_content_dir ? 'writable' : 'not writable' ),
-				),
-				'uploads'    => array(
-					'label' => __( 'The uploads directory' ),
-					'value' => ( $is_writable_upload_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_upload_dir ? 'writable' : 'not writable' ),
-				),
-				'plugins'    => array(
-					'label' => __( 'The plugins directory' ),
-					'value' => ( $is_writable_wp_plugin_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_wp_plugin_dir ? 'writable' : 'not writable' ),
-				),
-				'themes'     => array(
-					'label' => __( 'The themes directory' ),
-					'value' => ( $is_writable_template_directory ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_template_directory ? 'writable' : 'not writable' ),
-				),
-			),
 		);
 
 		// Conditionally add debug information for multisite setups.
@@ -482,6 +304,15 @@ class WP_Debug_Data {
 					'value' => $loading,
 					'debug' => 'loading...',
 				),
+				'fonts_path'     => array(
+					'label' => __( 'Fonts directory location' ),
+					'value' => wp_get_font_dir()['basedir'],
+				),
+				'fonts_size'     => array(
+					'label' => __( 'Fonts directory size' ),
+					'value' => $loading,
+					'debug' => 'loading...',
+				),
 				'database_size'  => array(
 					'label' => __( 'Database size' ),
 					'value' => $loading,
@@ -581,8 +412,8 @@ class WP_Debug_Data {
 				'value' => size_format( $effective ),
 			);
 			$info['wp-media']['fields']['max_file_uploads']    = array(
-				'label' => __( 'Max number of files allowed' ),
-				'value' => number_format( $max_file_uploads ),
+				'label' => __( 'Max simultaneous file uploads' ),
+				'value' => $max_file_uploads,
 			);
 		}
 
@@ -1283,7 +1114,7 @@ class WP_Debug_Data {
 				}
 
 				/** This filter is documented in wp-admin/includes/class-wp-debug-data.php */
-				$parent_theme_auto_update_string = apply_filters( 'theme_auto_update_debug_string', $auto_updates_string, $parent_theme, $enabled );
+				$parent_theme_auto_update_string = apply_filters( 'theme_auto_update_debug_string', $parent_theme_auto_update_string, $parent_theme, $enabled );
 
 				$info['wp-parent-theme']['fields']['auto_update'] = array(
 					'label' => __( 'Auto-update' ),
@@ -1397,16 +1228,8 @@ class WP_Debug_Data {
 			);
 		}
 
-		// Add more filesystem checks.
-		if ( defined( 'WPMU_PLUGIN_DIR' ) && is_dir( WPMU_PLUGIN_DIR ) ) {
-			$is_writable_wpmu_plugin_dir = wp_is_writable( WPMU_PLUGIN_DIR );
-
-			$info['wp-filesystem']['fields']['mu-plugins'] = array(
-				'label' => __( 'The must use plugins directory' ),
-				'value' => ( $is_writable_wpmu_plugin_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
-				'debug' => ( $is_writable_wpmu_plugin_dir ? 'writable' : 'not writable' ),
-			);
-		}
+		$info['wp-constants']  = self::get_wp_constants();
+		$info['wp-filesystem'] = self::get_wp_filesystem();
 
 		/**
 		 * Filters the debug information shown on the Tools -> Site Health -> Info screen.
@@ -1471,6 +1294,224 @@ class WP_Debug_Data {
 		$info = apply_filters( 'debug_information', $info );
 
 		return $info;
+	}
+
+	/**
+	 * Gets the WordPress constants section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	public static function get_wp_constants(): array {
+		// Check if WP_DEBUG_LOG is set.
+		$wp_debug_log_value = __( 'Disabled' );
+		if ( is_string( WP_DEBUG_LOG ) ) {
+			$wp_debug_log_value = WP_DEBUG_LOG;
+		} elseif ( WP_DEBUG_LOG ) {
+			$wp_debug_log_value = __( 'Enabled' );
+		}
+
+		// Check CONCATENATE_SCRIPTS.
+		if ( defined( 'CONCATENATE_SCRIPTS' ) ) {
+			$concatenate_scripts       = CONCATENATE_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
+			$concatenate_scripts_debug = CONCATENATE_SCRIPTS ? 'true' : 'false';
+		} else {
+			$concatenate_scripts       = __( 'Undefined' );
+			$concatenate_scripts_debug = 'undefined';
+		}
+
+		// Check COMPRESS_SCRIPTS.
+		if ( defined( 'COMPRESS_SCRIPTS' ) ) {
+			$compress_scripts       = COMPRESS_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
+			$compress_scripts_debug = COMPRESS_SCRIPTS ? 'true' : 'false';
+		} else {
+			$compress_scripts       = __( 'Undefined' );
+			$compress_scripts_debug = 'undefined';
+		}
+
+		// Check COMPRESS_CSS.
+		if ( defined( 'COMPRESS_CSS' ) ) {
+			$compress_css       = COMPRESS_CSS ? __( 'Enabled' ) : __( 'Disabled' );
+			$compress_css_debug = COMPRESS_CSS ? 'true' : 'false';
+		} else {
+			$compress_css       = __( 'Undefined' );
+			$compress_css_debug = 'undefined';
+		}
+
+		// Check WP_ENVIRONMENT_TYPE.
+		if ( defined( 'WP_ENVIRONMENT_TYPE' ) && WP_ENVIRONMENT_TYPE ) {
+			$wp_environment_type = WP_ENVIRONMENT_TYPE;
+		} else {
+			$wp_environment_type = __( 'Undefined' );
+		}
+
+		$fields = array(
+			'ABSPATH'             => array(
+				'label'   => 'ABSPATH',
+				'value'   => ABSPATH,
+				'private' => true,
+			),
+			'WP_HOME'             => array(
+				'label' => 'WP_HOME',
+				'value' => ( defined( 'WP_HOME' ) ? WP_HOME : __( 'Undefined' ) ),
+				'debug' => ( defined( 'WP_HOME' ) ? WP_HOME : 'undefined' ),
+			),
+			'WP_SITEURL'          => array(
+				'label' => 'WP_SITEURL',
+				'value' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : __( 'Undefined' ) ),
+				'debug' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : 'undefined' ),
+			),
+			'WP_CONTENT_DIR'      => array(
+				'label' => 'WP_CONTENT_DIR',
+				'value' => WP_CONTENT_DIR,
+			),
+			'WP_PLUGIN_DIR'       => array(
+				'label' => 'WP_PLUGIN_DIR',
+				'value' => WP_PLUGIN_DIR,
+			),
+			'WP_MEMORY_LIMIT'     => array(
+				'label' => 'WP_MEMORY_LIMIT',
+				'value' => WP_MEMORY_LIMIT,
+			),
+			'WP_MAX_MEMORY_LIMIT' => array(
+				'label' => 'WP_MAX_MEMORY_LIMIT',
+				'value' => WP_MAX_MEMORY_LIMIT,
+			),
+			'WP_DEBUG'            => array(
+				'label' => 'WP_DEBUG',
+				'value' => WP_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
+				'debug' => WP_DEBUG,
+			),
+			'WP_DEBUG_DISPLAY'    => array(
+				'label' => 'WP_DEBUG_DISPLAY',
+				'value' => WP_DEBUG_DISPLAY ? __( 'Enabled' ) : __( 'Disabled' ),
+				'debug' => WP_DEBUG_DISPLAY,
+			),
+			'WP_DEBUG_LOG'        => array(
+				'label' => 'WP_DEBUG_LOG',
+				'value' => $wp_debug_log_value,
+				'debug' => WP_DEBUG_LOG,
+			),
+			'SCRIPT_DEBUG'        => array(
+				'label' => 'SCRIPT_DEBUG',
+				'value' => SCRIPT_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
+				'debug' => SCRIPT_DEBUG,
+			),
+			'WP_CACHE'            => array(
+				'label' => 'WP_CACHE',
+				'value' => WP_CACHE ? __( 'Enabled' ) : __( 'Disabled' ),
+				'debug' => WP_CACHE,
+			),
+			'CONCATENATE_SCRIPTS' => array(
+				'label' => 'CONCATENATE_SCRIPTS',
+				'value' => $concatenate_scripts,
+				'debug' => $concatenate_scripts_debug,
+			),
+			'COMPRESS_SCRIPTS'    => array(
+				'label' => 'COMPRESS_SCRIPTS',
+				'value' => $compress_scripts,
+				'debug' => $compress_scripts_debug,
+			),
+			'COMPRESS_CSS'        => array(
+				'label' => 'COMPRESS_CSS',
+				'value' => $compress_css,
+				'debug' => $compress_css_debug,
+			),
+			'WP_ENVIRONMENT_TYPE' => array(
+				'label' => 'WP_ENVIRONMENT_TYPE',
+				'value' => $wp_environment_type,
+				'debug' => $wp_environment_type,
+			),
+			'WP_DEVELOPMENT_MODE' => array(
+				'label' => 'WP_DEVELOPMENT_MODE',
+				'value' => WP_DEVELOPMENT_MODE ? WP_DEVELOPMENT_MODE : __( 'Disabled' ),
+				'debug' => WP_DEVELOPMENT_MODE,
+			),
+			'DB_CHARSET'          => array(
+				'label' => 'DB_CHARSET',
+				'value' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : __( 'Undefined' ) ),
+				'debug' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : 'undefined' ),
+			),
+			'DB_COLLATE'          => array(
+				'label' => 'DB_COLLATE',
+				'value' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : __( 'Undefined' ) ),
+				'debug' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : 'undefined' ),
+			),
+		);
+
+		return array(
+			'label'       => __( 'WordPress Constants' ),
+			'description' => __( 'These settings alter where and how parts of WordPress are loaded.' ),
+			'fields'      => $fields,
+		);
+	}
+
+	/**
+	 * Gets the file system section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_filesystem(): array {
+		$upload_dir                     = wp_upload_dir();
+		$is_writable_abspath            = wp_is_writable( ABSPATH );
+		$is_writable_wp_content_dir     = wp_is_writable( WP_CONTENT_DIR );
+		$is_writable_upload_dir         = wp_is_writable( $upload_dir['basedir'] );
+		$is_writable_wp_plugin_dir      = wp_is_writable( WP_PLUGIN_DIR );
+		$is_writable_template_directory = wp_is_writable( get_theme_root( get_template() ) );
+		$is_writable_fonts_dir          = wp_is_writable( wp_get_font_dir()['basedir'] );
+
+		$fields = array(
+			'wordpress'  => array(
+				'label' => __( 'The main WordPress directory' ),
+				'value' => ( $is_writable_abspath ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_abspath ? 'writable' : 'not writable' ),
+			),
+			'wp-content' => array(
+				'label' => __( 'The wp-content directory' ),
+				'value' => ( $is_writable_wp_content_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_wp_content_dir ? 'writable' : 'not writable' ),
+			),
+			'uploads'    => array(
+				'label' => __( 'The uploads directory' ),
+				'value' => ( $is_writable_upload_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_upload_dir ? 'writable' : 'not writable' ),
+			),
+			'plugins'    => array(
+				'label' => __( 'The plugins directory' ),
+				'value' => ( $is_writable_wp_plugin_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_wp_plugin_dir ? 'writable' : 'not writable' ),
+			),
+			'themes'     => array(
+				'label' => __( 'The themes directory' ),
+				'value' => ( $is_writable_template_directory ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_template_directory ? 'writable' : 'not writable' ),
+			),
+			'fonts'      => array(
+				'label' => __( 'The fonts directory' ),
+				'value' => ( $is_writable_fonts_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_fonts_dir ? 'writable' : 'not writable' ),
+			),
+		);
+
+		// Add more filesystem checks.
+		if ( defined( 'WPMU_PLUGIN_DIR' ) && is_dir( WPMU_PLUGIN_DIR ) ) {
+			$is_writable_wpmu_plugin_dir = wp_is_writable( WPMU_PLUGIN_DIR );
+
+			$fields['mu-plugins'] = array(
+				'label' => __( 'The must use plugins directory' ),
+				'value' => ( $is_writable_wpmu_plugin_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_wpmu_plugin_dir ? 'writable' : 'not writable' ),
+			);
+		}
+
+		return array(
+			'label'       => __( 'Filesystem Permissions' ),
+			'description' => __( 'Shows whether WordPress is able to write to the directories it needs access to.' ),
+			'fields'      => $fields,
+		);
 	}
 
 	/**
@@ -1636,6 +1677,7 @@ class WP_Debug_Data {
 			'themes_size'    => get_theme_root(),
 			'plugins_size'   => WP_PLUGIN_DIR,
 			'uploads_size'   => $upload_dir['basedir'],
+			'fonts_size'     => wp_get_font_dir()['basedir'],
 		);
 
 		$exclude = $paths;
@@ -1652,6 +1694,18 @@ class WP_Debug_Data {
 				'path' => $path,
 				'raw'  => 0,
 			);
+
+			// If the directory does not exist, skip checking it, as it will skew the other results.
+			if ( ! is_dir( $path ) ) {
+				$all_sizes[ $name ] = array(
+					'path'  => $path,
+					'raw'   => 0,
+					'size'  => __( 'The directory does not exist.' ),
+					'debug' => 'directory not found',
+				);
+
+				continue;
+			}
 
 			if ( microtime( true ) - WP_START_TIMESTAMP < $max_execution_time ) {
 				if ( 'wordpress_size' === $name ) {

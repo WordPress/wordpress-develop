@@ -28,12 +28,33 @@ function render_block_core_image( $attributes, $content, $block ) {
 		return '';
 	}
 
+	$has_id_binding = isset( $attributes['metadata']['bindings']['id'] ) && isset( $attributes['id'] );
+
+	// Ensure the `wp-image-id` classname on the image block supports block bindings.
+	if ( $has_id_binding ) {
+		// If there's a mismatch with the 'wp-image-' class and the actual id, the id was
+		// probably overridden by block bindings. Update it to the correct value.
+		// See https://github.com/WordPress/gutenberg/issues/62886 for why this is needed.
+		$id                       = $attributes['id'];
+		$image_classnames         = $p->get_attribute( 'class' );
+		$class_with_binding_value = "wp-image-$id";
+		if ( is_string( $image_classnames ) && ! str_contains( $image_classnames, $class_with_binding_value ) ) {
+			$image_classnames = preg_replace( '/wp-image-(\d+)/', $class_with_binding_value, $image_classnames );
+			$p->set_attribute( 'class', $image_classnames );
+		}
+	}
+
+	// For backwards compatibility, the data-id html attribute is only set for
+	// image blocks nested in a gallery. Detect if the image is in a gallery by
+	// checking the data-id attribute.
+	// See the `block_core_gallery_data_id_backcompatibility` function.
 	if ( isset( $attributes['data-id'] ) ) {
-		// Adds the data-id="$id" attribute to the img element to provide backwards
-		// compatibility for the Gallery Block, which now wraps Image Blocks within
-		// innerBlocks. The data-id attribute is added in a core/gallery
-		// `render_block_data` hook.
-		$p->set_attribute( 'data-id', $attributes['data-id'] );
+		// If there's a binding for the `id`, the `id` attribute is used for the
+		// value, since `data-id` does not support block bindings.
+		// Else the `data-id` is used for backwards compatibility, since
+		// third parties may be filtering its value.
+		$data_id = $has_id_binding ? $attributes['id'] : $attributes['data-id'];
+		$p->set_attribute( 'data-id', $data_id );
 	}
 
 	$link_destination  = isset( $attributes['linkDestination'] ) ? $attributes['linkDestination'] : 'none';
@@ -188,12 +209,12 @@ function block_core_image_render_lightbox( $block_content, $block ) {
 	// Image.
 	$p->next_tag( 'img' );
 	$p->set_attribute( 'data-wp-init', 'callbacks.setButtonStyles' );
-	$p->set_attribute( 'data-wp-on--load', 'callbacks.setButtonStyles' );
-	$p->set_attribute( 'data-wp-on-window--resize', 'callbacks.setButtonStyles' );
+	$p->set_attribute( 'data-wp-on-async--load', 'callbacks.setButtonStyles' );
+	$p->set_attribute( 'data-wp-on-async-window--resize', 'callbacks.setButtonStyles' );
 	// Sets an event callback on the `img` because the `figure` element can also
 	// contain a caption, and we don't want to trigger the lightbox when the
 	// caption is clicked.
-	$p->set_attribute( 'data-wp-on--click', 'actions.showLightbox' );
+	$p->set_attribute( 'data-wp-on-async--click', 'actions.showLightbox' );
 
 	$body_content = $p->get_updated_html();
 
@@ -209,7 +230,7 @@ function block_core_image_render_lightbox( $block_content, $block ) {
 			aria-haspopup="dialog"
 			aria-label="' . esc_attr( $aria_label ) . '"
 			data-wp-init="callbacks.initTriggerButton"
-			data-wp-on--click="actions.showLightbox"
+			data-wp-on-async--click="actions.showLightbox"
 			data-wp-style--right="context.imageButtonRight"
 			data-wp-style--top="context.imageButtonTop"
 		>
@@ -258,12 +279,12 @@ function block_core_image_print_lightbox_overlay() {
 			data-wp-class--show-closing-animation="state.showClosingAnimation"
 			data-wp-watch="callbacks.setOverlayFocus"
 			data-wp-on--keydown="actions.handleKeydown"
-			data-wp-on--touchstart="actions.handleTouchStart"
+			data-wp-on-async--touchstart="actions.handleTouchStart"
 			data-wp-on--touchmove="actions.handleTouchMove"
-			data-wp-on--touchend="actions.handleTouchEnd"
-			data-wp-on--click="actions.hideLightbox"
-			data-wp-on-window--resize="callbacks.setOverlayStyles"
-			data-wp-on-window--scroll="actions.handleScroll"
+			data-wp-on-async--touchend="actions.handleTouchEnd"
+			data-wp-on-async--click="actions.hideLightbox"
+			data-wp-on-async-window--resize="callbacks.setOverlayStyles"
+			data-wp-on-async-window--scroll="actions.handleScroll"
 			tabindex="-1"
 			>
 				<button type="button" aria-label="$close_button_label" style="fill: $close_button_color" class="close-button">
