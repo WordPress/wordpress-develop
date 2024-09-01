@@ -632,20 +632,52 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * @dataProvider data_get_item_invalid_parent_id
+	 * @covers WP_REST_Template_Revisions_Controller::get_item
 	 * @ticket 59875
+	 *
+	 * @param string $parent_post_property_name        A class property name that contains the parent post object.
+	 * @param string $actual_parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $rest_base                        Base part of the REST API endpoint to test.
+	 * @param string $template_id                      Template ID to use in the test.
 	 */
-	public function test_get_item_invalid_parent_id() {
+	public function test_get_item_invalid_parent_id( $parent_post_property_name, $actual_parent_post_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
-		$revisions   = wp_get_post_revisions( self::$template_post, array( 'fields' => 'ids' ) );
-		$revision_id = array_shift( $revisions );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME_2 . '/revisions/' . $revision_id );
+		$parent_post        = self::$$parent_post_property_name;
+		$actual_parent_post = self::$$actual_parent_post_property_name;
+		$revisions          = wp_get_post_revisions( $parent_post, array( 'fields' => 'ids' ) );
+		$revision_id        = array_shift( $revisions );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions/' . $revision_id );
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_revision_parent_id_mismatch', $response, 404 );
 
-		$expected_message = 'The revision does not belong to the specified parent with id of "' . self::$template_post_2->ID . '"';
+		$expected_message = 'The revision does not belong to the specified parent with id of "' . $actual_parent_post->ID . '"';
 		$this->assertSame( $expected_message, $response->as_error()->get_error_messages()[0], 'The message must contain the correct parent ID.' );
+	}
+
+	/**
+	 * Data provider for test_get_item_invalid_parent_id.
+	 *
+	 * @return array
+	 */
+	public function data_get_item_invalid_parent_id() {
+		return array(
+			'templates'      => array(
+				'template_post',
+				'template_post_2',
+				'templates',
+				self::TEST_THEME . '//' . self::TEMPLATE_NAME_2,
+			),
+			'template parts' => array(
+				'template_part_post',
+				'template_part_post_2',
+				'template-parts',
+				self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME_2,
+			),
+		);
 	}
 
 	/**
