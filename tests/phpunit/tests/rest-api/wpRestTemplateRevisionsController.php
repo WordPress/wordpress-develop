@@ -437,7 +437,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 */
 	public function test_get_items_endpoint_should_return_unauthorized_https_status_code_for_unauthorized_request( $rest_base, $template_id ) {
 		wp_set_current_user( 0 );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, WP_Http::UNAUTHORIZED );
 	}
@@ -487,7 +487,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @param string $rest_base   Base part of the REST API endpoint to test.
 	 * @param string $template_id Template ID to use in the test.
-     */
+	 */
 	public function test_get_items_for_templates_based_on_theme_files_should_return_bad_response_status( $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 		switch_theme( 'block-theme' );
@@ -599,18 +599,36 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * @dataProvider data_get_item_not_found
 	 * @covers WP_REST_Template_Revisions_Controller::get_item
 	 * @ticket 56922
+	 *
+	 * @param string  $parent_post_property_name  A class property name that contains the parent post object.
+	 * @param string  $rest_base                  Base part of the REST API endpoint to test.
 	 */
-	public function test_get_item_not_found() {
+	public function test_get_item_not_found( $parent_post_property_name, $rest_base ) {
 		wp_set_current_user( self::$admin_id );
 
-		$revisions   = wp_get_post_revisions( self::$template_post, array( 'fields' => 'ids' ) );
+		$parent_post = self::$$parent_post_property_name;
+
+		$revisions   = wp_get_post_revisions( $parent_post, array( 'fields' => 'ids' ) );
 		$revision_id = array_shift( $revisions );
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/invalid//parent/revisions/' . $revision_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/invalid//parent/revisions/' . $revision_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, WP_Http::NOT_FOUND );
+	}
+
+	/**
+	 * Data provider for test_get_item_not_found.
+	 *
+	 * @return array
+	 */
+	public function data_get_item_not_found() {
+		return array(
+			'templates'      => array( 'template_post', 'templates' ),
+			'template parts' => array( 'template_part_post', 'template-parts' ),
+		);
 	}
 
 	/**
