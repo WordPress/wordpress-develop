@@ -5364,28 +5364,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			if ( null === $formatting_element ) {
 				return 'any-other-end-tag';
-				/*
-				 * These steps are copied here from above. This may remove the node
-				 * or ignore it, meaning the following code must respect that.
-				 */
-				foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
-					if ( 'html' === $node->namespace && $subject === $node->node_name ) {
-						break;
-					}
-
-					if ( self::is_special( $node ) ) {
-						return 'ignore';
-					}
-				}
-
-				$this->generate_implied_end_tags( $subject );
-				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
-					$this->state->stack_of_open_elements->pop();
-
-					if ( $node === $item ) {
-						return null;
-					}
-				}
 			}
 
 			/*
