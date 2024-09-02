@@ -219,7 +219,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * Data provider for test_context_param.
+	 * Data provider for test_context_param_with_data_provider.
 	 *
 	 * @return array
 	 */
@@ -326,6 +326,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 	}
 
+	/**
+	 * Data provider for test_get_items_for_templates_based_on_theme_files_should_return_bad_response_status.
+	 *
+	 * @return array
+	 */
 	public function data_get_items_for_templates_based_on_theme_files_should_return_bad_response_status() {
 		return array(
 			'templates'      => array( 'templates', self::TEST_THEME . '//page-home' ),
@@ -355,6 +360,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 	}
 
+	/**
+	 * Data provider for test_get_item_for_templates_based_on_theme_files_should_return_bad_response_status.
+	 *
+	 * @return array
+	 */
 	public function data_get_item_for_templates_based_on_theme_files_should_return_bad_response_status() {
 		return array(
 			'templates'      => array( 'templates', self::TEST_THEME . '//page-home' ),
@@ -627,7 +637,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * Data provider for test_get_item_with_data_provider.
+	 * Data provider for test_create_item_with_data_provider.
 	 *
 	 * @return array
 	 */
