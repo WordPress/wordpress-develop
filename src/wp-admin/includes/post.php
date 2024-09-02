@@ -1815,7 +1815,8 @@ function _admin_notice_post_locked() {
 			$sendback = add_query_arg( 'post_type', $post->post_type, $sendback );
 		}
 
-		$sendback_text = get_post_type_object( $post->post_type )->labels->all_items;
+		$post_type_object = get_post_type_object( $post->post_type );
+		$sendback_text    = $post_type_object ? $post_type_object->labels->all_items : __( 'Posts' );
 	}
 
 	$hidden = $locked ? '' : ' hidden';
