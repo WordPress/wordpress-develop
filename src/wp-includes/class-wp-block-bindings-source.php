@@ -72,6 +72,8 @@ final class WP_Block_Bindings_Source {
 	/**
 	 * Retrieves the value from the source.
 	 *
+	 * @since 6.5.0
+	 *
 	 * This function calls the callback function specified in the `$get_value_callback` property
 	 * with the given arguments and returns the result. It then applies the filter
 	 * `block_bindings_source_value` to the value before returning it.
