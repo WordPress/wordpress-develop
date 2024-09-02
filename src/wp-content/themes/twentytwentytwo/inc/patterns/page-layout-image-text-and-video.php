@@ -11,7 +11,7 @@ return array(
 					<h1 class="alignwide" style="font-size:clamp(3rem, 6vw, 4.5rem)">' . wp_kses_post( __( '<em>Warble</em>, a film about <br>hobbyist bird watchers.', 'twentytwentytwo' ) ) . '</h1>
 					<!-- /wp:heading -->
 
-					<!-- wp:spacer {"height":50} -->
+					<!-- wp:spacer {"height":"50px"} -->
 					<div style="height:50px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 

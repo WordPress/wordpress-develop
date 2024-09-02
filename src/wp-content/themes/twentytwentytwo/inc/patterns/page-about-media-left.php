@@ -6,7 +6,7 @@ return array(
 	'title'      => __( 'About page with media on the left', 'twentytwentytwo' ),
 	'categories' => array( 'twentytwentytwo_pages' ),
 	'content'    => '<!-- wp:media-text {"align":"full","mediaType":"image","imageFill":true,"focalPoint":{"x":"0.63","y":"0.16"},"backgroundColor":"foreground","className":"alignfull is-image-fill has-background-color has-text-color has-background has-link-color"} -->
-					<div class="wp-block-media-text alignfull is-stacked-on-mobile is-image-fill has-background-color has-text-color has-background has-link-color has-foreground-background-color has-background"><figure class="wp-block-media-text__media" style="background-image:url(' . esc_url( get_template_directory_uri() ) . '/assets/images/bird-on-salmon.jpg);background-position:63% 16%"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/bird-on-salmon.jpg" alt="' . esc_attr__( 'Image of a bird on a branch', 'twentytwentytwo' ) . '"/></figure><div class="wp-block-media-text__content"><!-- wp:spacer {"height":32} -->
+					<div class="wp-block-media-text alignfull is-stacked-on-mobile is-image-fill has-background-color has-text-color has-background has-link-color has-foreground-background-color has-background"><figure class="wp-block-media-text__media" style="background-image:url(' . esc_url( get_template_directory_uri() ) . '/assets/images/bird-on-salmon.jpg);background-position:63% 16%"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/bird-on-salmon.jpg" alt="' . esc_attr__( 'Image of a bird on a branch', 'twentytwentytwo' ) . '"/></figure><div class="wp-block-media-text__content"><!-- wp:spacer {"height":"32px"} -->
 					<div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -21,7 +21,7 @@ return array(
 					<p style="line-height:1.6">' . esc_html__( 'Oh hello. My name’s Doug, and you’ve found your way to my website. I’m an avid bird watcher, and I also broadcast my own radio show on Tuesday evenings at 11PM EDT.', 'twentytwentytwo' ) . '</p>
 					<!-- /wp:paragraph -->
 
-					<!-- wp:spacer {"height":40} -->
+					<!-- wp:spacer {"height":"40px"} -->
 					<div style="height:40px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -34,7 +34,7 @@ return array(
 					<!-- /wp:social-links --></div>
 					<!-- /wp:group -->
 
-					<!-- wp:spacer {"height":32} -->
+					<!-- wp:spacer {"height":"32px"} -->
 					<div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer --></div></div>
 					<!-- /wp:media-text -->',

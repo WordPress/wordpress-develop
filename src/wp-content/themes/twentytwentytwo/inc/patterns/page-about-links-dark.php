@@ -17,7 +17,7 @@ return array(
 					<h2 class="has-text-align-left" style="font-size:var(--wp--custom--typography--font-size--huge, clamp(2.25rem, 4vw, 2.75rem))">' . esc_html__( 'A trouble of hummingbirds', 'twentytwentytwo' ) . '</h2>
 					<!-- /wp:heading -->
 
-					<!-- wp:spacer {"height":40} -->
+					<!-- wp:spacer {"height":"40px"} -->
 					<div style="height:40px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 

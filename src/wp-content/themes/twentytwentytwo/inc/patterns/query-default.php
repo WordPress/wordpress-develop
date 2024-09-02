@@ -25,7 +25,7 @@ return array(
 					<!-- /wp:column --></div>
 					<!-- /wp:columns -->
 
-					<!-- wp:spacer {"height":16} -->
+					<!-- wp:spacer {"height":"16px"} -->
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -33,7 +33,7 @@ return array(
 					<hr class="wp-block-separator alignwide is-style-wide"/>
 					<!-- /wp:separator -->
 
-					<!-- wp:spacer {"height":16} -->
+					<!-- wp:spacer {"height":"16px"} -->
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer --></div>
 					<!-- /wp:group -->

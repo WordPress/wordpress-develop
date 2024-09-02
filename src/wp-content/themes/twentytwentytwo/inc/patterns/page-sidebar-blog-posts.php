@@ -12,13 +12,13 @@ return array(
 					<div class="wp-block-cover is-light" style="min-height:400px"><span aria-hidden="true" class="has-secondary-background-color has-background-dim-100 wp-block-cover__gradient-background has-background-dim"></span><div class="wp-block-cover__inner-container"><!-- wp:site-logo {"align":"center","width":60} /--></div></div>
 					<!-- /wp:cover -->
 
-					<!-- wp:spacer {"height":40} -->
+					<!-- wp:spacer {"height":"40px"} -->
 					<div style="height:40px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
 					<!-- wp:site-tagline {"fontSize":"small"} /-->
 
-					<!-- wp:spacer {"height":32} -->
+					<!-- wp:spacer {"height":"32px"} -->
 					<div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -26,7 +26,7 @@ return array(
 					<hr class="wp-block-separator has-text-color has-background has-foreground-background-color has-foreground-color is-style-wide"/>
 					<!-- /wp:separator -->
 
-					<!-- wp:spacer {"height":32} -->
+					<!-- wp:spacer {"height":"32px"} -->
 					<div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -34,7 +34,7 @@ return array(
 					<!-- wp:page-list /-->
 					<!-- /wp:navigation -->
 
-					<!-- wp:spacer {"height":32} -->
+					<!-- wp:spacer {"height":"32px"} -->
 					<div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -60,7 +60,7 @@ return array(
 					<!-- wp:post-terms {"term":"post_tag","fontSize":"small"} /--></div>
 					<!-- /wp:group -->
 
-					<!-- wp:spacer {"height":128} -->
+					<!-- wp:spacer {"height":"128px"} -->
 					<div style="height:128px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 					<!-- /wp:post-template -->

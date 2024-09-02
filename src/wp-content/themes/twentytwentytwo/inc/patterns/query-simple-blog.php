@@ -22,7 +22,7 @@ return array(
 					<!-- wp:post-terms {"term":"post_tag","fontSize":"small"} /--></div>
 					<!-- /wp:group -->
 
-					<!-- wp:spacer {"height":128} -->
+					<!-- wp:spacer {"height":"128px"} -->
 					<div style="height:128px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 					<!-- /wp:post-template -->

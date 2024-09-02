@@ -62,7 +62,7 @@ return array(
 					<!-- /wp:column --></div>
 					<!-- /wp:columns -->
 
-					<!-- wp:spacer {"height":50} -->
+					<!-- wp:spacer {"height":"50px"} -->
 					<div style="height:50px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 

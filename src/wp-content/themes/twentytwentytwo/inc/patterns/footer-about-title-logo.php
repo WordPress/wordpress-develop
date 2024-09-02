@@ -17,7 +17,7 @@ return array(
 					<p class="has-small-font-size">' . esc_html__( 'We are a rogue collective of bird watchers. We’ve been known to sneak through fences, climb perimeter walls, and generally trespass in order to observe the rarest of birds.', 'twentytwentytwo' ) . '</p>
 					<!-- /wp:paragraph -->
 
-					<!-- wp:spacer {"height":180} -->
+					<!-- wp:spacer {"height":"180px"} -->
 					<div style="height:180px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 

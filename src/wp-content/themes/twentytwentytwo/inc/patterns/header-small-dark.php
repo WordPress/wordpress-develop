@@ -25,7 +25,7 @@ return array(
 					<figure class="wp-block-image alignwide size-full is-resized"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-transparent-d.png" alt="' . esc_attr__( 'Illustration of a bird flying.', 'twentytwentytwo' ) . '" width="2000" height="474"/></figure>
 					<!-- /wp:image --></div>
 					<!-- /wp:group -->
-					<!-- wp:spacer {"height":66} -->
+					<!-- wp:spacer {"height":"66px"} -->
 					<div style="height:66px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->',
 );

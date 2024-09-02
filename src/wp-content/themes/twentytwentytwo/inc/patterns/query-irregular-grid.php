@@ -25,7 +25,7 @@ return array(
 					<!-- wp:column -->
 					<div class="wp-block-column"><!-- wp:query {"query":{"offset":"1","postType":"post","categoryIds":[],"tagIds":[],"order":"desc","orderBy":"date","author":"","search":"","sticky":"","perPage":"1"},"displayLayout":{"type":"list","columns":3},"align":"wide","layout":{"inherit":true}} -->
 					<div class="wp-block-query alignwide"><!-- wp:post-template {"align":"wide"} -->
-					<!-- wp:spacer {"height":64} -->
+					<!-- wp:spacer {"height":"64px"} -->
 					<div style="height:64px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -43,7 +43,7 @@ return array(
 					<!-- wp:column -->
 					<div class="wp-block-column"><!-- wp:query {"query":{"offset":"2","postType":"post","categoryIds":[],"tagIds":[],"order":"desc","orderBy":"date","author":"","search":"","sticky":"","perPage":"1"},"displayLayout":{"type":"list","columns":3},"align":"wide","layout":{"inherit":true}} -->
 					<div class="wp-block-query alignwide"><!-- wp:post-template {"align":"wide"} -->
-					<!-- wp:spacer {"height":128} -->
+					<!-- wp:spacer {"height":"128px"} -->
 					<div style="height:128px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -77,7 +77,7 @@ return array(
 					<!-- wp:column -->
 					<div class="wp-block-column"><!-- wp:query {"query":{"offset":"4","postType":"post","categoryIds":[],"tagIds":[],"order":"desc","orderBy":"date","author":"","search":"","sticky":"","perPage":"1"},"displayLayout":{"type":"list","columns":3},"align":"wide","layout":{"inherit":true}} -->
 					<div class="wp-block-query alignwide"><!-- wp:post-template {"align":"wide"} -->
-					<!-- wp:spacer {"height":96} -->
+					<!-- wp:spacer {"height":"96px"} -->
 					<div style="height:96px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -95,7 +95,7 @@ return array(
 					<!-- wp:column -->
 					<div class="wp-block-column"><!-- wp:query {"query":{"offset":"5","postType":"post","categoryIds":[],"tagIds":[],"order":"desc","orderBy":"date","author":"","search":"","sticky":"","perPage":"1"},"displayLayout":{"type":"list","columns":3},"align":"wide","layout":{"inherit":true}} -->
 					<div class="wp-block-query alignwide"><!-- wp:post-template {"align":"wide"} -->
-					<!-- wp:spacer {"height":160} -->
+					<!-- wp:spacer {"height":"160px"} -->
 					<div style="height:160px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -115,7 +115,7 @@ return array(
 					<div class="wp-block-columns alignwide"><!-- wp:column -->
 					<div class="wp-block-column"><!-- wp:query {"query":{"offset":"6","postType":"post","categoryIds":[],"tagIds":[],"order":"desc","orderBy":"date","author":"","search":"","sticky":"","perPage":"1"},"displayLayout":{"type":"list","columns":3},"align":"wide","layout":{"inherit":true}} -->
 					<div class="wp-block-query alignwide"><!-- wp:post-template {"align":"wide"} -->
-					<!-- wp:spacer {"height":32} -->
+					<!-- wp:spacer {"height":"32px"} -->
 					<div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -133,7 +133,7 @@ return array(
 					<!-- wp:column -->
 					<div class="wp-block-column"><!-- wp:query {"query":{"offset":"7","postType":"post","categoryIds":[],"tagIds":[],"order":"desc","orderBy":"date","author":"","search":"","sticky":"","perPage":"1"},"displayLayout":{"type":"list","columns":3},"align":"wide","layout":{"inherit":true}} -->
 					<div class="wp-block-query alignwide"><!-- wp:post-template {"align":"wide"} -->
-					<!-- wp:spacer {"height":160} -->
+					<!-- wp:spacer {"height":"160px"} -->
 					<div style="height:160px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -151,7 +151,7 @@ return array(
 					<!-- wp:column -->
 					<div class="wp-block-column"><!-- wp:query {"query":{"offset":"8","postType":"post","categoryIds":[],"tagIds":[],"order":"desc","orderBy":"date","author":"","search":"","sticky":"","perPage":"1"},"displayLayout":{"type":"list","columns":3},"align":"wide","layout":{"inherit":true}} -->
 					<div class="wp-block-query alignwide"><!-- wp:post-template {"align":"wide"} -->
-					<!-- wp:spacer {"height":96} -->
+					<!-- wp:spacer {"height":"96px"} -->
 					<div style="height:96px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 

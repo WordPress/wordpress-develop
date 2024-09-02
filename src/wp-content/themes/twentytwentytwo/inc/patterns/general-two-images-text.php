@@ -17,7 +17,7 @@ return array(
 					<figure class="wp-block-image size-large is-resized"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/bird-on-green.jpg" alt="' . esc_attr__( 'Illustration of a bird flying.', 'twentytwentytwo' ) . '" width="984" height="1426"/></figure>
 					<!-- /wp:image -->
 
-					<!-- wp:spacer {"height":30} -->
+					<!-- wp:spacer {"height":"30px"} -->
 					<div style="height:30px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -29,11 +29,11 @@ return array(
 					<p>' . wp_kses_post( __( 'May 14th, 2022 @ 7:00PM<br>The Vintagé Theater,<br>245 Arden Rd.<br>Gardenville, NH', 'twentytwentytwo' ) ) . '</p>
 					<!-- /wp:paragraph -->
 
-					<!-- wp:spacer {"height":8} -->
+					<!-- wp:spacer {"height":"8px"} -->
 					<div style="height:8px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
-					<!-- wp:spacer {"height":10} -->
+					<!-- wp:spacer {"height":"10px"} -->
 					<div style="height:10px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 

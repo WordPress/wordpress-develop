@@ -16,7 +16,7 @@ return array(
 					<!-- /wp:navigation --></div>
 					<!-- /wp:group -->
 
-					<!-- wp:spacer {"height":64} -->
+					<!-- wp:spacer {"height":"64px"} -->
 					<div style="height:64px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -38,7 +38,7 @@ return array(
 					<!-- wp:post-terms {"term":"post_tag","fontSize":"small"} /--></div>
 					<!-- /wp:group -->
 
-					<!-- wp:spacer {"height":64} -->
+					<!-- wp:spacer {"height":"64px"} -->
 					<div style="height:64px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 					<!-- /wp:post-template -->
@@ -58,7 +58,7 @@ return array(
 					<figure class="wp-block-image size-large is-resized"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-salmon.jpg" alt="' . esc_attr__( 'Illustration of a flying bird.', 'twentytwentytwo' ) . '" width="768" height="1160"/></figure>
 					<!-- /wp:image -->
 
-					<!-- wp:spacer {"height":4} -->
+					<!-- wp:spacer {"height":"4px"} -->
 					<div style="height:4px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -66,7 +66,7 @@ return array(
 
 					<!-- wp:site-tagline /-->
 
-					<!-- wp:spacer {"height":16} -->
+					<!-- wp:spacer {"height":"16px"} -->
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
