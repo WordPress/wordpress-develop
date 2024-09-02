@@ -1175,7 +1175,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			);
 			$schema['properties']['plugin']    = array(
 				'type'        => 'string',
-				'description' => __( 'Plugin that registered the template.', 'gutenberg' ),
+				'description' => __( 'Plugin that registered the template.' ),
 				'readonly'    => true,
 				'context'     => array( 'view', 'edit', 'embed' ),
 			);
