@@ -992,7 +992,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$revision_id = _wp_put_post_revision( $parent_post );
 		$revisions[] = $revision_id;
 
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . $template_id . '/revisions/' . $revision_id );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions/' . $revision_id );
 		$request->set_param( 'force', true );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_delete', $response, WP_Http::UNAUTHORIZED );
