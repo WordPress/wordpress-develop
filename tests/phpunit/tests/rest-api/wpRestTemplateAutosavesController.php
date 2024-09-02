@@ -306,7 +306,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 	/**
 	 * @dataProvider data_get_items_for_templates_based_on_theme_files_should_return_bad_response_status
-	 * @ticket 56922
+	 * @ticket 61970
 	 *
 	 * @param string $rest_base   Base part of the REST API endpoint to test.
 	 * @param string $template_id Template ID to use in the test.
