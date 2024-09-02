@@ -639,26 +639,34 @@ class WP_REST_Server {
 				$attributes         = $item['attributes'];
 				$attributes['href'] = $item['href'];
 
-				if ( 'self' === $rel ) {
-					$request = WP_REST_Request::from_url( $item['href'] );
-					$match   = $server->match_request_to_handler( $request );
+				if ( 'self' !== $rel ) {
+					$data[ $rel ][] = $attributes;
+					continue;
+				}
 
-					if ( ! is_wp_error( $match ) ) {
-						$response = new WP_REST_Response();
-						$response->set_matched_route( $match[0] );
-						$response->set_matched_handler( $match[1] );
-						$headers = rest_send_allow_header( $response, $server, $request )->get_headers();
+				// Prefer targetHints that were specifically designated by the developer.
+				if ( isset( $attributes['targetHints']['allow'] ) ) {
+					$data[ $rel ][] = $attributes;
+					continue;
+				}
 
-						foreach ( $headers as $name => $value ) {
-							$name = WP_REST_Request::canonicalize_header_name( $name );
+				$request = WP_REST_Request::from_url( $item['href'] );
+				if ( ! $request ) {
+					$data[ $rel ][] = $attributes;
+					continue;
+				}
 
-							// Prefer targetHints that were specifically designated by the developer.
-							if ( isset( $attributes['targetHints'][ $name ] ) ) {
-								continue;
-							}
+				$match = $server->match_request_to_handler( $request );
+				if ( ! is_wp_error( $match ) ) {
+					$response = new WP_REST_Response();
+					$response->set_matched_route( $match[0] );
+					$response->set_matched_handler( $match[1] );
+					$headers = rest_send_allow_header( $response, $server, $request )->get_headers();
 
-							$attributes['targetHints'][ $name ] = array_map( 'trim', explode( ',', $value ) );
-						}
+					foreach ( $headers as $name => $value ) {
+						$name = WP_REST_Request::canonicalize_header_name( $name );
+
+						$attributes['targetHints'][ $name ] = array_map( 'trim', explode( ',', $value ) );
 					}
 				}
 
