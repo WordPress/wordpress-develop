@@ -245,7 +245,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @covers WP_REST_Template_Autosaves_Controller::get_items
 	 * @ticket 56922
 	 *
-	 * @param string $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $parent_post_property_name  A class property name that contains the parent post object.
 	 * @param string $rest_base                  Base part of the REST API endpoint to test.
 	 * @param string $template_id                Template ID to use in the test.
 	 */
@@ -454,8 +454,8 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @ticket 56922
 	 *
 	 * @param string $parent_post_property_name A class property name that contains the parent post object.
-	 * @param string $rest_base Base part of the REST API endpoint to test.
-	 * @param string $template_id Template ID to use in the test.
+	 * @param string $rest_base                 Base part of the REST API endpoint to test.
+	 * @param string $template_id               Template ID to use in the test.
 	 */
 	public function test_prepare_item_with_data_provider( $parent_post_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
