@@ -643,7 +643,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$processor->next_tag( 'SPAN' );
 		$class_list = iterator_to_array( $processor->class_list() );
 		$this->assertSame(
-			array( 'A', 'a', 'B', 'b', 'É', 'é' ),
+			array( 'a', 'b', 'É', 'é' ),
 			$class_list
 		);
 	}

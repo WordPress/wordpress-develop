@@ -1153,6 +1153,8 @@ class WP_HTML_Tag_Processor {
 
 		$seen = array();
 
+		$is_quirks = self::QUIRKS_MODE === $this->compat_mode;
+
 		$at = 0;
 		while ( $at < strlen( $class ) ) {
 			// Skip past any initial boundary characters.
@@ -1168,6 +1170,9 @@ class WP_HTML_Tag_Processor {
 			}
 
 			$name = substr( $class, $at, $length );
+			if ( $is_quirks ) {
+				$name = strtolower( $name );
+			}
 			$at  += $length;
 
 			/*
