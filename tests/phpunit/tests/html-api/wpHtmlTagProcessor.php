@@ -2241,7 +2241,7 @@ HTML;
 	 *
 	 * @ticket 61531
 	 *
-	 * @covers ::class_list
+	 * @covers WP_HTML_Tag_Processor::class_list
 	 */
 	public function test_class_list_null_bytes_replaced() {
 		$processor = new WP_HTML_Tag_Processor( "<div class='a \0 b\0 \0c\0'>" );
@@ -2257,7 +2257,7 @@ HTML;
 	 *
 	 * @ticket 61531
 	 *
-	 * @covers ::has_class
+	 * @covers WP_HTML_Tag_Processor::has_class
 	 */
 	public function test_has_class_null_byte_class_name() {
 		$processor = new WP_HTML_Tag_Processor( "<div class='null-byte-\0-there'>" );
