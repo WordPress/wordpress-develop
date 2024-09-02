@@ -125,8 +125,8 @@ body > .is-root-container > .wp-block-template-part > .wp-block-cover,
 .wp-site-blocks .wp-block-columns .wp-block-column .alignfull,
 .is-root-container .wp-block-columns .wp-block-column .wp-block[data-align="full"],
 /* We also want to avoid stacking negative margins. */
-.wp-site-blocks .alignfull:not(.wp-block-group) .alignfull,
-.is-root-container .wp-block[data-align="full"] > *:not(.wp-block-group) .wp-block[data-align="full"] {
+.wp-site-blocks .alignfull:not(.wp-block-group):not(.wp-block-cover) .alignfull,
+.is-root-container .wp-block[data-align="full"] > *:not(.wp-block-group):not(.wp-block-cover) .wp-block[data-align="full"] {
 	margin-left: auto !important;
 	margin-right: auto !important;
 	width: inherit;
