@@ -273,7 +273,7 @@ function get_the_block_template_html() {
 	 *
 	 * This filter allows the modification of the wrapper element that encloses the site blocks.
 	 *
-	 * @since 6.6.2
+	 * @since 6.7.0
 	 *
 	 * @param string $element The HTML element to be used as the wrapper. Default 'div'.
 	 * @param string $content The content to be wrapped.
