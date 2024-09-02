@@ -822,3 +822,12 @@ table.wp-block-table td:last-child {
 	margin-left: 0;
 	margin-right: 0;
 }
+
+/* Search */
+
+.wp-block-search__button {
+	background-color: #222;
+	color: #fff;
+	font-weight: 800;
+	line-height: 1.5;
+}

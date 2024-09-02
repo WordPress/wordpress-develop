@@ -3667,7 +3667,7 @@ class WP_HTML_Tag_Processor {
 			 *
 			 * @see https://html.spec.whatwg.org/#attributes-3
 			 */
-			$escaped_new_value = in_array( $comparable_name, wp_kses_uri_attributes() ) ? esc_url( $value ) : esc_attr( $value );
+			$escaped_new_value = in_array( $comparable_name, wp_kses_uri_attributes(), true ) ? esc_url( $value ) : esc_attr( $value );
 
 			// If the escaping functions wiped out the update, reject it and indicate it was rejected.
 			if ( '' === $escaped_new_value && '' !== $value ) {
@@ -4009,7 +4009,13 @@ class WP_HTML_Tag_Processor {
 		}
 
 		// Does the tag name match the requested tag name in a case-insensitive manner?
-		if ( isset( $this->sought_tag_name ) && 0 !== substr_compare( $this->html, $this->sought_tag_name, $this->tag_name_starts_at, $this->tag_name_length, true ) ) {
+		if (
+			isset( $this->sought_tag_name ) &&
+			(
+				strlen( $this->sought_tag_name ) !== $this->tag_name_length ||
+				0 !== substr_compare( $this->html, $this->sought_tag_name, $this->tag_name_starts_at, $this->tag_name_length, true )
+			)
+		) {
 			return false;
 		}
 
@@ -4018,6 +4024,27 @@ class WP_HTML_Tag_Processor {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Gets DOCTYPE declaration info from a DOCTYPE token.
+	 *
+	 * DOCTYPE tokens may appear in many places in an HTML document. In most places, they are
+	 * simply ignored. The main parsing functions find the basic shape of DOCTYPE tokens but
+	 * do not perform detailed parsing.
+	 *
+	 * This method can be called to perform a full parse of the DOCTYPE token and retrieve
+	 * its information.
+	 *
+	 * @return WP_HTML_Doctype_Info|null The DOCTYPE declaration information or `null` if not
+	 *                                   currently at a DOCTYPE node.
+	 */
+	public function get_doctype_info(): ?WP_HTML_Doctype_Info {
+		if ( self::STATE_DOCTYPE !== $this->parser_state ) {
+			return null;
+		}
+
+		return WP_HTML_Doctype_Info::from_doctype_token( substr( $this->html, $this->token_starts_at, $this->token_length ) );
 	}
 
 	/**
@@ -4111,7 +4138,7 @@ class WP_HTML_Tag_Processor {
 
 	/**
 	 * Indicates that the parser has found a DOCTYPE node and it's
-	 * possible to read and modify its modifiable text.
+	 * possible to read its DOCTYPE information via `get_doctype_info()`.
 	 *
 	 * @since 6.5.0
 	 *
