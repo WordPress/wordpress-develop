@@ -2357,15 +2357,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				foreach ( $this->state->active_formatting_elements->walk_up() as $item ) {
 					switch ( $item->node_name ) {
 						case 'marker':
-							break;
+							break 2;
 
 						case 'A':
-							if ( 'ignore' === $this->run_adoption_agency_algorithm() ) {
-								$this->bail( 'Cannot ignore token after running adoption agency algorithm.' );
+							if ( 'any-other-end-tag' === $this->run_adoption_agency_algorithm() ) {
+								goto in_body_any_other_end_tag;
 							}
 							$this->state->active_formatting_elements->remove_node( $item );
 							$this->state->stack_of_open_elements->remove_node( $item );
-							break;
+							break 2;
 					}
 				}
 
@@ -2403,8 +2403,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'NOBR' ) ) {
 					// Parse error.
-					if ( 'ignore' === $this->run_adoption_agency_algorithm() ) {
-						$this->bail( 'Cannot ignore token after running adoption agency algorithm.' );
+					if ( 'any-other-end-tag' === $this->run_adoption_agency_algorithm() ) {
+						goto in_body_any_other_end_tag;
 					}
 					$this->reconstruct_active_formatting_elements();
 				}
@@ -2424,14 +2424,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-EM':
 			case '-FONT':
 			case '-I':
+			case '-NOBR':
 			case '-S':
 			case '-SMALL':
 			case '-STRIKE':
 			case '-STRONG':
 			case '-TT':
 			case '-U':
-				if ( 'ignore' === $this->run_adoption_agency_algorithm() ) {
-					$this->bail( 'Cannot ignore token after running adoption agency algorithm.' );
+				if ( 'any-other-end-tag' === $this->run_adoption_agency_algorithm() ) {
+					goto in_body_any_other_end_tag;
 				}
 				return true;
 
@@ -2768,6 +2769,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > Any other end tag
 			 */
+			in_body_any_other_end_tag:
 
 			/*
 			 * Find the corresponding tag opener in the stack of open elements, if
@@ -5361,6 +5363,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > described in the "any other end tag" entry above.
 			 */
 			if ( null === $formatting_element ) {
+				return 'any-other-end-tag';
 				/*
 				 * These steps are copied here from above. This may remove the node
 				 * or ignore it, meaning the following code must respect that.
