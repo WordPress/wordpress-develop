@@ -992,7 +992,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$revision_id = _wp_put_post_revision( $parent_post );
 		$revisions[] = $revision_id;
 
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . $template_id . '/revisions/' . $revision_id );
 		$request->set_param( 'force', true );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_delete', $response, WP_Http::UNAUTHORIZED );
@@ -1028,9 +1028,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 * @param string $parent_post_property_name A class property name that contains the parent post object.
 	 * @param string $revisions_property_name   A class property name that contains the revisions array.
 	 * @param string $rest_base                 Base part of the REST API endpoint to test.
-	 * @param string $template_id               Template ID to use in the test.
 	 */
-	public function test_delete_item_not_found( $parent_post_property_name, $revisions_property_name, $rest_base, $template_id ) {
+	public function test_delete_item_not_found( $parent_post_property_name, $revisions_property_name, $rest_base ) {
 		wp_set_current_user( self::$admin_id );
 
 		$parent_post = self::$$parent_post_property_name;
@@ -1056,13 +1055,11 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 				'template_post',
 				'template_revisions',
 				'templates',
-				self::TEST_THEME . '//' . self::TEMPLATE_NAME,
 			),
 			'template parts' => array(
 				'template_part_post',
 				'template_part_revisions',
 				'template-parts',
-				self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME,
 			),
 		);
 	}
