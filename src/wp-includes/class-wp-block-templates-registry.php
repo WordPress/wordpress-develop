@@ -2,7 +2,7 @@
 /**
  * Templates registry functions.
  *
- * @package Gutenberg
+ * @package WordPress
  * @since 6.7.0
  */
 
