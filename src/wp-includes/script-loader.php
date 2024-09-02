@@ -96,7 +96,6 @@ function wp_default_packages_vendor( $scripts ) {
 		'lodash',
 		'wp-polyfill-fetch',
 		'wp-polyfill-formdata',
-		'wp-polyfill-importmap',
 		'wp-polyfill-node-contains',
 		'wp-polyfill-url',
 		'wp-polyfill-dom-rect',
@@ -122,7 +121,6 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-object-fit'      => '2.3.5',
 		'wp-polyfill-inert'           => '3.1.2',
 		'wp-polyfill'                 => '3.15.0',
-		'wp-polyfill-importmap'       => '1.8.2',
 	);
 
 	foreach ( $vendor_scripts as $handle => $dependencies ) {
@@ -940,7 +938,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'jquery-form', "/wp-includes/js/jquery/jquery.form$suffix.js", array( 'jquery' ), '4.3.0', 1 );
 
 	// jQuery plugins.
-	$scripts->add( 'jquery-color', '/wp-includes/js/jquery/jquery.color.min.js', array( 'jquery' ), '2.2.0', 1 );
+	$scripts->add( 'jquery-color', '/wp-includes/js/jquery/jquery.color.min.js', array( 'jquery' ), '3.0.0', 1 );
 	$scripts->add( 'schedule', '/wp-includes/js/jquery/jquery.schedule.js', array( 'jquery' ), '20m', 1 );
 	$scripts->add( 'jquery-query', '/wp-includes/js/jquery/jquery.query.js', array( 'jquery' ), '2.2.3', 1 );
 	$scripts->add( 'jquery-serialize-object', '/wp-includes/js/jquery/jquery.serialize-object.js', array( 'jquery' ), '0.2-wp', 1 );
