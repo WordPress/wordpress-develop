@@ -277,7 +277,6 @@ function get_the_block_template_html() {
 	 *
 	 * @param string $element The HTML element to be used as the wrapper. Default 'div'.
 	 * @param string $content The content to be wrapped.
-	 * @return string The filtered wrapper element.
 	 */
 	$wrapper_element = apply_filters( 'wp_site_blocks_wrapper_element', 'div', $content );
 
