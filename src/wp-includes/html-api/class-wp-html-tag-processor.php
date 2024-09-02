@@ -2297,6 +2297,8 @@ class WP_HTML_Tag_Processor {
 		 */
 		$modified = false;
 
+		$is_quirks = self::QUIRKS_MODE === $this->compat_mode;
+
 		// Remove unwanted classes by only copying the new ones.
 		$existing_class_length = strlen( $existing_class );
 		while ( $at < $existing_class_length ) {
@@ -2313,21 +2315,19 @@ class WP_HTML_Tag_Processor {
 			}
 
 			$name = substr( $existing_class, $at, $name_length );
-			if ( self::QUIRKS_MODE === $this->compat_mode ) {
-				$name = strtolower( $name );
-			}
+			$comparable_class_name = $is_quirks ? strtolower( $name ) : $name;
 
 			$at += $name_length;
 
 			// If this class is marked for removal, start processing the next one.
 			$remove_class = (
-				isset( $this->classname_updates[ $name ] ) &&
-				self::REMOVE_CLASS === $this->classname_updates[ $name ]
+				isset( $this->classname_updates[ $comparable_class_name ] ) &&
+				self::REMOVE_CLASS === $this->classname_updates[ $comparable_class_name ]
 			);
 
 			// If a class has already been seen then skip it; it should not be added twice.
 			if ( ! $remove_class ) {
-				$this->classname_updates[ $name ] = self::SKIP_CLASS;
+				$this->classname_updates[ $comparable_class_name ] = self::SKIP_CLASS;
 			}
 
 			if ( $remove_class ) {
