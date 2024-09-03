@@ -84,6 +84,13 @@ final class WP_Block_Bindings_Source {
 	 * @return mixed The value of the source.
 	 */
 	public function get_value( array $source_args, $block_instance, string $attribute_name ) {
+		/**
+		 * Filters the output of a block bindings source.
+		 *
+		 * @since 6.7.0
+		 *
+		 * @param mixed $value Value returned by `get_value_callback` after applying the filter.
+		 */
 		$value = call_user_func_array( $this->get_value_callback, array( $source_args, $block_instance, $attribute_name ) );
 		return apply_filters( 'block_bindings_source_value', $value, $this->name, $source_args, $block_instance, $attribute_name );
 	}
