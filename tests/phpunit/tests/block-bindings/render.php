@@ -305,7 +305,6 @@ HTML;
 	 * @ticket 61181
 	 */
 	public function test_filter_block_bindings_source_value() {
-
 		register_block_bindings_source(
 			self::SOURCE_NAME,
 			array(
@@ -335,6 +334,7 @@ HTML;
 		$result        = $block->render();
 
 		remove_filter( 'block_bindings_source_value', $filter_value );
+
 		$this->assertSame(
 			'<p>Filtered value: test_arg</p>',
 			trim( $result ),
