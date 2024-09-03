@@ -1995,7 +1995,7 @@ function username_exists( $username ) {
  * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
  * Conditional Tags} article in the Theme Developer Handbook.
  *
- * @since 6.6.0
+ * @since 6.7.0
  *
  * @param string $nicename Nicename.
  * @param string $login (Optional) User login to compare against.
