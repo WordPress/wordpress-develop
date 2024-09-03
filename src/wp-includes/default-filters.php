@@ -109,9 +109,6 @@ add_filter( 'post_mime_type', 'sanitize_mime_type' );
 // Meta.
 add_filter( 'register_meta_args', '_wp_register_meta_args_allowed_list', 10, 2 );
 
-// admin options autoload
-add_action( 'admin_init', 'wp_prime_wp_admin_option_caches' );
-
 // Counts.
 add_action( 'admin_init', 'wp_schedule_update_user_counts' );
 add_action( 'wp_update_user_counts', 'wp_schedule_update_user_counts', 10, 0 );

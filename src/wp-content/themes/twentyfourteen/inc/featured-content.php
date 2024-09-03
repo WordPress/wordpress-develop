@@ -268,7 +268,7 @@ class Featured_Content {
 
 		$settings['tag-id'] = 0;
 		$settings           = self::validate_settings( $settings );
-		update_option( 'featured-content', $settings, true );
+		update_option( 'featured-content', $settings );
 	}
 
 	/**

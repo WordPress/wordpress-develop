@@ -4330,7 +4330,7 @@ class wp_xmlrpc_server extends IXR_Server {
 				continue;
 			}
 
-			update_option( $this->blog_options[ $o_name ]['option'], wp_unslash( $o_value ), true );
+			update_option( $this->blog_options[ $o_name ]['option'], wp_unslash( $o_value ) );
 		}
 
 		// Now return the updated values.

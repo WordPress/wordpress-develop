@@ -642,8 +642,8 @@ function install_blog( $blog_id, $blog_title = '' ) {
 		}
 	}
 
-	update_option( 'siteurl', $siteurl, true );
-	update_option( 'home', $home, true );
+	update_option( 'siteurl', $siteurl );
+	update_option( 'home', $home );
 
 	if ( get_site_option( 'ms_files_rewriting' ) ) {
 		update_option( 'upload_path', UPLOADBLOGSDIR . "/$blog_id/files", false );

@@ -2413,7 +2413,6 @@ function upgrade_670() {
 
 	if ( $wp_current_db_version < 57160 ) {
 		$options_ids = array(
-			'auto_plugin_theme_update_emails',
 			'recently_activated',
 			'_wp_suggested_policy_text_has_changed',
 			'dashboard_widget_options',
@@ -2421,8 +2420,6 @@ function upgrade_670() {
 			'recently_edited',
 			'adminhash',
 			'nav_menu_options',
-			'active_plugins',
-			'uninstall_plugins',
 			'wp_force_deactivated_plugins',
 			'delete_blog_hash',
 			'allowedthemes',
@@ -2435,7 +2432,7 @@ function upgrade_670() {
 			'admin_email_lifespan',
 		);
 
-		wp_set_options_autoload( $options_ids, 'no' );
+		wp_set_options_autoload( $options_ids, false );
 	}
 }
 /**

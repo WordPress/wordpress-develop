@@ -656,7 +656,7 @@ class WP_Customize_Setting {
 			if ( isset( self::$aggregated_multidimensionals[ $this->type ][ $this->id_data['base'] ]['autoload'] ) ) {
 				$autoload = self::$aggregated_multidimensionals[ $this->type ][ $this->id_data['base'] ]['autoload'];
 			}
-			return update_option( $id_base, $value, $autoload, true );
+			return update_option( $id_base, $value, $autoload );
 		} elseif ( 'theme_mod' === $this->type ) {
 			set_theme_mod( $id_base, $value );
 			return true;

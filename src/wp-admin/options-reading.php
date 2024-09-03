@@ -74,7 +74,7 @@ if ( ! is_utf8_charset() ) {
 <table class="form-table" role="presentation">
 	<?php
 	if ( 'posts' !== get_option( 'show_on_front' ) ) :
-		update_option( 'show_on_front', 'posts', true );
+		update_option( 'show_on_front', 'posts' );
 	endif;
 
 else :

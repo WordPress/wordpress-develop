@@ -460,11 +460,11 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
 	}
 
 	if ( get_current_blog_id() === $id ) {
-		return update_option( $option, $value, true );
+		return update_option( $option, $value );
 	}
 
 	switch_to_blog( $id );
-	$return = update_option( $option, $value, true );
+	$return = update_option( $option, $value );
 	restore_current_blog();
 
 	return $return;

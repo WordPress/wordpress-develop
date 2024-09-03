@@ -52,7 +52,7 @@ if ( ! empty( $action ) ) {
 
 	if ( 'set-privacy-page' === $action ) {
 		$privacy_policy_page_id = isset( $_POST['page_for_privacy_policy'] ) ? (int) $_POST['page_for_privacy_policy'] : 0;
-		update_option( 'wp_page_for_privacy_policy', $privacy_policy_page_id, true );
+		update_option( 'wp_page_for_privacy_policy', $privacy_policy_page_id );
 
 		$privacy_page_updated_message = __( 'Privacy Policy page updated successfully.' );
 
