@@ -27,23 +27,17 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	const SKIP_TESTS = array(
 		'comments01/line0155'    => 'Unimplemented: Need to access raw comment text on non-normative comments.',
 		'comments01/line0169'    => 'Unimplemented: Need to access raw comment text on non-normative comments.',
-		'doctype01/line0380'     => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly',
 		'html5test-com/line0129' => 'Unimplemented: Need to access raw comment text on non-normative comments.',
 		'noscript01/line0014'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests1/line0692'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly',
 		'tests14/line0022'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests14/line0055'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests19/line0488'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests19/line0500'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0965'       => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
 		'tests19/line1079'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0207'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0686'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0697'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0709'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests5/line0013'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
-		'tests5/line0077'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
-		'tests5/line0091'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly',
 		'webkit01/line0231'      => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 	);
 
