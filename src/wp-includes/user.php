@@ -1990,6 +1990,7 @@ function username_exists( $username ) {
 
 /**
  * Determines whether the given user_nicename exists.
+ *
  * For more information on this and similar theme functions, check out
  * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
  * Conditional Tags} article in the Theme Developer Handbook.
