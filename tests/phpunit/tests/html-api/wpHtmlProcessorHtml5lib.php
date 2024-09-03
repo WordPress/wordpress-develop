@@ -54,11 +54,18 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * @param string $expected_tree    Tree structure of parsed HTML.
 	 */
 	public function test_parse( ?string $fragment_context, string $html, string $expected_tree ) {
-		$processed_tree = self::build_tree_representation( $fragment_context, $html );
+		try {
+			$processed_tree = self::build_tree_representation( $fragment_context, $html );
+		} catch ( WP_HTML_Unsupported_Exception $e ) {
+			$this->markTestSkipped( "Unsupported markup: {$e->getMessage()}" );
+			return;
+		}
 
 		if ( null === $processed_tree ) {
 			$this->markTestSkipped( 'Test includes unsupported markup.' );
+			return;
 		}
+
 		$fragment_detail = $fragment_context ? " in context <{$fragment_context}>" : '';
 
 		/*
@@ -155,7 +162,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			? WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" )
 			: WP_HTML_Processor::create_full_parser( $html );
 		if ( null === $processor ) {
-			return null;
+			throw new WP_HTML_Unsupported_Exception( "Could not create a parser with the given fragment context: {$fragment_context}.", '', 0, '', array(), array() );
 		}
 
 		/*
@@ -170,8 +177,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$text_node    = '';
 
 		while ( $processor->next_token() ) {
-			if ( ! is_null( $processor->get_last_error() ) ) {
-				return null;
+			if ( null !== $processor->get_last_error() ) {
+				break;
 			}
 
 			$token_name = $processor->get_token_name();
@@ -335,12 +342,16 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			}
 		}
 
-		if ( ! is_null( $processor->get_last_error() ) ) {
-			return null;
+		if ( null !== $processor->get_unsupported_exception() ) {
+			throw $processor->get_unsupported_exception();
+		}
+
+		if ( null !== $processor->get_last_error() ) {
+			throw new WP_HTML_Unsupported_Exception( "Parser error: {$processor->get_last_error()}", '', 0, '', array(), array() );
 		}
 
 		if ( $processor->paused_at_incomplete_token() ) {
-			return null;
+			throw new WP_HTML_Unsupported_Exception( 'Paused at incomplete token.', '', 0, '', array(), array() );
 		}
 
 		if ( '' !== $text_node ) {

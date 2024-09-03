@@ -5579,6 +5579,42 @@ EOF;
 	}
 
 	/**
+	 * Tests that wp_img_tag_add_loading_optimization_attrs() passes the 'src' attribute to wp_get_loading_optimization_attributes().
+	 *
+	 * @ticket 61436
+	 *
+	 * @covers ::wp_img_tag_add_loading_optimization_attrs
+	 */
+	public function test_wp_img_tag_add_loading_optimization_attrs_passes_src() {
+		add_filter(
+			'wp_get_loading_optimization_attributes',
+			static function ( $loading_attrs, $tag_name, $attr ) {
+				if (
+					'img' === $tag_name &&
+					isset( $attr['src'] ) &&
+					'https://example.org/a-specific-image.jpg' === $attr['src']
+				) {
+					$loading_attrs['fetchpriority'] = 'low';
+					$loading_attrs['loading']       = 'eager';
+				}
+				return $loading_attrs;
+			},
+			10,
+			3
+		);
+
+		$image    = '<img src="https://example.org/a-specific-image.jpg" width="1280" height="720">';
+		$expected = '<img fetchpriority="low" loading="eager" decoding="async" src="https://example.org/a-specific-image.jpg" width="1280" height="720">';
+
+		// Ensure attributes are modified because image src was matched.
+		$this->assertSame(
+			$expected,
+			wp_img_tag_add_loading_optimization_attrs( $image, 'the_content' ),
+			'fetchpriority should be low when src is matched.'
+		);
+	}
+
+	/**
 	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
