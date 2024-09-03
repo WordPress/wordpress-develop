@@ -39,6 +39,15 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Helper to test filter.
+	 */
+	private function filter_block_bindings_source_value() {
+		return function () {
+			return 'Filtered value';
+		};
+	}
+
+	/**
 	 * Set up before each test.
 	 *
 	 * @since 6.5.0
@@ -264,6 +273,37 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			'<p>alert(&#8220;Unsafe HTML&#8221;)</p>',
 			$content,
 			'The post content should not include the script tag.'
+		);
+	}
+
+	/**
+	 * Tests that filter `block_bindings_source_value` is applied.
+	 *
+	 * @ticket 61181
+	 */
+
+	public function test_filter_block_bindings_source_value() {
+		register_meta(
+			'post',
+			'tests_filter_field',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+				'default'      => 'Original value',
+			)
+		);
+
+		add_filter( 'block_bindings_source_value', $this->filter_block_bindings_source_value(), 10 );
+
+		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_filter_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+
+		remove_filter( 'block_bindings_source_value', array( $this, 'filter_block_bindings_source_value' ), 10 );
+
+		$this->assertSame(
+			'<p>Filtered value</p>',
+			$content,
+			'The post content should show the filtered value.'
 		);
 	}
 }
