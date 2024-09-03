@@ -15,6 +15,9 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 	const SOURCE_LABEL = array(
 		'label' => 'Test source',
 	);
+	const SOURCE_ARGS  = array(
+		'key' => 'test',
+	);
 
 	/**
 	 * Tear down after each test.
@@ -296,6 +299,49 @@ HTML;
 			"<p>$expected_content</p>",
 			trim( $result ),
 			'The `__default` attribute should be replaced with the real attribute prior to the callback.'
+		);
+	}
+
+	/**
+	 * Tests that filter `block_bindings_source_value` is applied.
+	 *
+	 * @ticket 61181
+	 */
+	public function test_filter_block_bindings_source_value() {
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => function () {
+					return '$12.50';
+				},
+			)
+		);
+
+		$filter_value = function ( $value, $source_name, $source_args ) {
+			if ( self::SOURCE_NAME !== $source_name ) {
+				return $value;
+			}
+			return "Filtered value: {$source_args['test_key']}";
+		};
+
+		add_filter( 'block_bindings_source_value', $filter_value, 10, 3 );
+
+		$block_content = <<<HTML
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source", "args":{"test_key":"test_arg"}}}}} -->
+<p>Default content</p>
+<!-- /wp:paragraph -->
+HTML;
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
+
+		remove_filter( 'block_bindings_source_value', $filter_value );
+		$this->assertSame(
+			'<p>Filtered value: test_arg</p>',
+			trim( $result ),
+			'The block content should properly show the symbol and numbers.'
 		);
 	}
 }
