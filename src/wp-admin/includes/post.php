@@ -1816,7 +1816,7 @@ function _admin_notice_post_locked() {
 		}
 
 		$post_type_object = get_post_type_object( $post->post_type );
-		$sendback_text    = $post_type_object ? $post_type_object->labels->all_items : __( 'Go to All Posts' );
+		$sendback_text    = $post_type_object ? $post_type_object->labels->all_items : sprintf( __( 'Go to All %s' ), $post->post_type );
 	}
 
 	$hidden = $locked ? '' : ' hidden';
