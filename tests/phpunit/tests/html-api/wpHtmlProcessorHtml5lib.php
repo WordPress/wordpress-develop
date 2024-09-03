@@ -54,10 +54,16 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * @param string $expected_tree    Tree structure of parsed HTML.
 	 */
 	public function test_parse( ?string $fragment_context, string $html, string $expected_tree ) {
-		$processed_tree = self::build_tree_representation( $fragment_context, $html );
+		try {
+			$processed_tree = self::build_tree_representation( $fragment_context, $html );
+		} catch ( WP_HTML_Unsupported_Exception $e ) {
+			$this->markTestSkipped( $e->getMessage() );
+			return;
+		}
 
 		if ( null === $processed_tree ) {
 			$this->markTestSkipped( 'Test includes unsupported markup.' );
+			return;
 		}
 		$fragment_detail = $fragment_context ? " in context <{$fragment_context}>" : '';
 
@@ -170,7 +176,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$text_node    = '';
 
 		while ( $processor->next_token() ) {
-			if ( ! is_null( $processor->get_last_error() ) ) {
+			if ( null !== $processor->get_unsupported_exception() ) {
+				throw $processor->get_unsupported_exception();
+			}
+			if ( null !== $processor->get_last_error() ) {
 				return null;
 			}
 
