@@ -1,9 +1,9 @@
 === Twenty Thirteen ===
 Contributors: wordpressdotorg
 Requires at least: 3.6
-Tested up to: 6.5
+Tested up to: 6.6
 Requires PHP: 5.2.4
-Stable tag: 4.1
+Stable tag: 4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, two-columns, right-sidebar, custom-header, custom-menu, editor-style, featured-images, footer-widgets, microformats, post-formats, rtl-language-support, sticky-post, translation-ready, accessibility-ready, block-patterns
@@ -23,7 +23,7 @@ For more information about Twenty Thirteen please go to https://codex.wordpress.
 
 == Copyright ==
 
-Twenty Thirteen WordPress Theme, Copyright 2013-2024 WordPress.org & Automattic.com
+Twenty Thirteen WordPress Theme, Copyright 2013-2024 WordPress.org, Automattic Inc., and contributors.
 Twenty Thirteen is Distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -42,7 +42,7 @@ HTML5 Shiv v3.7.0, Copyright 2014 Alexander Farkas
 Licenses: MIT/GPL2
 Source: https://github.com/aFarkas/html5shiv
 
-Genericons icon font, Copyright 2013-2017 Automattic.com
+Genericons icon font, Copyright 2013-2017 Automattic Inc.
 License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
 
@@ -63,6 +63,11 @@ Torus Interior: https://www.flickr.com/photos/nasacommons/14076102195/in/album-7
 Toroidal Colony: https://www.flickr.com/photos/nasacommons/13889485757/in/album-72157644439092941/ Rick Guidice, NASA Ames Research Center.
 
 == Changelog ==
+
+= 4.2 =
+* Released: July 16, 2024
+
+https://wordpress.org/documentation/article/twenty-thirteen-changelog/#Version_4.2
 
 = 4.1 =
 * Released: April 2, 2024
