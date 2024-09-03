@@ -863,7 +863,7 @@ function upgrade_all() {
 		upgrade_650();
 	}
 
-	if ( $wp_current_db_version < 57160 ) {
+	if ( $wp_current_db_version < 58975 ) {
 		upgrade_670();
 	}
 	maybe_disable_link_manager();
@@ -2411,7 +2411,7 @@ function upgrade_650() {
 function upgrade_670() {
 	global $wp_current_db_version;
 
-	if ( $wp_current_db_version < 57160 ) {
+	if ( $wp_current_db_version < 58975 ) {
 		$options_ids = array(
 			'recently_activated',
 			'_wp_suggested_policy_text_has_changed',
