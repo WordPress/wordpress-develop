@@ -62,9 +62,8 @@ function _wp_admin_bar_init() {
  * the function is also called late on {@see 'wp_footer'}.
  *
  * It includes the {@see 'admin_bar_menu'} action which should be used to hook in and
- * add new menus to the admin bar. That way you can be sure that you are adding at most
- * optimal point, right before the admin bar is rendered. This also gives you access to
- * the `$post` global, among others.
+ * add new menus to the admin bar. This also gives you access to the `$post` global,
+ * among others.
  *
  * @since 3.1.0
  * @since 5.4.0 Called on 'wp_body_open' action first, with 'wp_footer' as a fallback.
