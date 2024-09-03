@@ -1004,7 +1004,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 			__FUNCTION__,
 			sprintf(
 				/* translators: 1: The text domain. 2: 'after_setup_theme'. */
-				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user has been already set up.' ),
+				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user is already set up.' ),
 				'<code>' . $domain . '</code>',
 				'<code>after_setup_theme</code>'
 			),
@@ -1069,7 +1069,7 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 			__FUNCTION__,
 			sprintf(
 				/* translators: 1: The text domain. 2: 'after_setup_theme'. */
-				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user has been already set up.' ),
+				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user is already set up.' ),
 				'<code>' . $domain . '</code>',
 				'<code>after_setup_theme</code>'
 			),
@@ -1125,7 +1125,7 @@ function load_theme_textdomain( $domain, $path = false ) {
 			__FUNCTION__,
 			sprintf(
 				/* translators: 1: The text domain. 2: 'after_setup_theme'. */
-				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user has been already set up.' ),
+				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user is already set up.' ),
 				'<code>' . $domain . '</code>',
 				'<code>after_setup_theme</code>'
 			),
@@ -1417,10 +1417,9 @@ function _load_textdomain_just_in_time( $domain ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				/* translators: 1: The text domain. 2: 'after_setup_theme'. */
-				__( 'Translation loading for the %1$s domain was triggered too early. This is usually an indicator for some code in the plugin/theme running too early.' ),
-				'<code>' . $domain . '</code>',
-				'<code>after_setup_theme</code>'
+				/* translators: %s: The text domain. */
+				__( 'Translation loading for the %s domain was triggered too early. This is usually an indicator for some code in the plugin or theme running too early.' ),
+				'<code>' . $domain . '</code>'
 			),
 			'6.7.0'
 		);
