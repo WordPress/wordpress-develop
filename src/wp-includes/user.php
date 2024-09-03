@@ -1989,7 +1989,7 @@ function username_exists( $username ) {
 }
 
 /**
- * Determines whether the given user_nicename exists.
+ * Determines whether the given user nicename exists.
  *
  * For more information on this and similar theme functions, check out
  * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
@@ -2001,7 +2001,7 @@ function username_exists( $username ) {
  * @param string $login    Optional. User login to compare against.
  * @return int|false The user ID on success, false on failure.
  */
-function nicename_exists( $nicename, $login = false ) {
+function user_nicename_exists($nicename, $login = false ) {
 	$user_id = false;
 	$user = get_user_by( 'slug', $nicename );
 	if ( $user && $login !== $user->user_login ) {
@@ -2229,7 +2229,7 @@ function wp_insert_user( $userdata ) {
 		return new WP_Error( 'user_nicename_too_long', __( 'Nicename may not be longer than 50 characters.' ) );
 	}
 
-	$user_nicename_check = nicename_exists( $user_nicename, $user_login );
+	$user_nicename_check = user_nicename_exists( $user_nicename, $user_login );
 
 	if ( $user_nicename_check ) {
 		$suffix = 2;
@@ -2237,7 +2237,7 @@ function wp_insert_user( $userdata ) {
 			// user_nicename allows 50 chars. Subtract one for a hyphen, plus the length of the suffix.
 			$base_length         = 49 - mb_strlen( $suffix );
 			$alt_user_nicename   = mb_substr( $user_nicename, 0, $base_length ) . "-$suffix";
-			$user_nicename_check = nicename_exists( $alt_user_nicename, $user_login );
+			$user_nicename_check = user_nicename_exists( $alt_user_nicename, $user_login );
 			++$suffix;
 		}
 		$user_nicename = $alt_user_nicename;
