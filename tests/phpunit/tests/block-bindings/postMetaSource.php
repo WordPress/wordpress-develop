@@ -42,9 +42,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 * Helper to test filter.
 	 */
 	private function filter_block_bindings_source_value() {
-		return function () {
-			return 'Filtered value';
-		};
+		return function () { return 'Filtered value'; };
 	}
 
 	/**
@@ -281,7 +279,6 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 *
 	 * @ticket 61181
 	 */
-
 	public function test_filter_block_bindings_source_value() {
 		register_meta(
 			'post',
