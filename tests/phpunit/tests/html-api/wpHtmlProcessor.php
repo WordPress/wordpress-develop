@@ -576,11 +576,22 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers ::class_list
 	 */
 	public function test_class_list_no_quirks_mode() {
-		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="A A a B b É É é">' );
+		$processor = WP_HTML_Processor::create_full_parser(
+			/*
+			 * U+00C9 is LATIN CAPITAL LETTER E WITH ACUTE
+			 * U+0045 is LATIN CAPITAL LETTER E
+			 * U+0301 is COMBINING ACUTE ACCENT
+			 *
+			 * This tests not only that the class matching deduplicates the É, but also
+			 * that it treats the same character in different normalization forms as
+			 * distinct, since matching occurs on a byte-for-byte basis.
+			 */
+			"<!DOCTYPE html><span class='A A a B b \u{C9} \u{45}\u{0301} \u{C9} é'>"
+		);
 		$processor->next_tag( 'SPAN' );
 		$class_list = iterator_to_array( $processor->class_list() );
 		$this->assertSame(
-			array( 'A', 'a', 'B', 'b', 'É', 'é' ),
+			array( 'A', 'a', 'B', 'b', 'É', "E\u{0301}", 'é' ),
 			$class_list
 		);
 	}
@@ -614,7 +625,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$this->assertSame( '<span class="UPPER">', $processor->get_updated_html() );
 
 		$processor->add_class( 'ANOTHER-UPPER' );
-		$this->assertSame( '<span class="UPPER another-upper">', $processor->get_updated_html() );
+		$this->assertSame( '<span class="UPPER ANOTHER-UPPER">', $processor->get_updated_html() );
 	}
 
 	/**
@@ -639,11 +650,23 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers ::class_list
 	 */
 	public function test_class_list_quirks_mode() {
-		$processor = WP_HTML_Processor::create_full_parser( '<span class="A A a B b É É é">' );
+		$processor = WP_HTML_Processor::create_full_parser(
+			/*
+			 * U+00C9 is LATIN CAPITAL LETTER E WITH ACUTE
+			 * U+0045 is LATIN CAPITAL LETTER E
+			 * U+0065 is LATIN SMALL LETTER E
+			 * U+0301 is COMBINING ACUTE ACCENT
+			 *
+			 * This tests not only that the class matching deduplicates the É, but also
+			 * that it treats the same character in different normalization forms as
+			 * distinct, since matching occurs on a byte-for-byte basis.
+			 */
+			"<span class='A A a B b \u{C9} \u{45}\u{301} \u{C9} é \u{65}\u{301}'>"
+		);
 		$processor->next_tag( 'SPAN' );
 		$class_list = iterator_to_array( $processor->class_list() );
 		$this->assertSame(
-			array( 'a', 'b', 'É', 'é' ),
+			array( 'a', 'b', 'É', "E\u{301}", 'é' ),
 			$class_list
 		);
 	}
