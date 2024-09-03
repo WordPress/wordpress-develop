@@ -1099,7 +1099,7 @@ function wp_set_sidebars_widgets( $sidebars_widgets ) {
 		$sidebars_widgets['array_version'] = 3;
 	}
 
-	update_option( 'sidebars_widgets', $sidebars_widgets, true );
+	update_option( 'sidebars_widgets', $sidebars_widgets );
 }
 
 /**
