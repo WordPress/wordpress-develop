@@ -176,11 +176,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$text_node    = '';
 
 		while ( $processor->next_token() ) {
-			if ( null !== $processor->get_unsupported_exception() ) {
-				throw $processor->get_unsupported_exception();
-			}
 			if ( null !== $processor->get_last_error() ) {
-				return null;
+				break;
 			}
 
 			$token_name = $processor->get_token_name();
