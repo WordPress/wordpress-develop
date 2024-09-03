@@ -536,14 +536,15 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @see WP_HTML_Open_Elements::pop
 	 *
-	 * @param string $tag_name Name of tag that needs to be popped off of the stack of open elements.
+	 * @param string $tag_name      Name of tag that needs to be popped off of the stack of open elements.
+	 * @param string $tag_namespace Optional. Tag namespace. One of 'html', 'svg', or 'math'. Default 'html'.
 	 * @return bool Whether a tag of the given name was found and popped off of the stack of open elements.
 	 */
-	public function pop_until( string $tag_name, string $namespace = 'html' ): bool {
+	public function pop_until( string $tag_name, string $tag_namespace = 'html' ): bool {
 		foreach ( $this->walk_up() as $item ) {
 			$this->pop();
 
-			if ( $item->namespace !== $namespace ) {
+			if ( $item->namespace !== $tag_namespace ) {
 				continue;
 			}
 
