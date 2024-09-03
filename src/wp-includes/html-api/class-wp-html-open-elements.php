@@ -541,10 +541,6 @@ class WP_HTML_Open_Elements {
 	 */
 	public function pop_until( string $tag_name, string $namespace = 'html' ): bool {
 		foreach ( $this->walk_up() as $item ) {
-			if ( 'context-node' === $item->bookmark_name ) {
-				return true;
-			}
-
 			$this->pop();
 
 			if ( $item->namespace !== $namespace ) {
