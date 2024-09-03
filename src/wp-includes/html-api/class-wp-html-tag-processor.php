@@ -514,6 +514,20 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Indicates if the document is in quirks mode or no-quirks mode.
 	 *
+	 *  Impact on HTML parsing:
+	 *
+	 *   - In `NO_QUIRKS_MODE` (also known as "standard mode"):
+	 *       - CSS class and ID selectors match byte-for-byte (case-sensitively).
+	 *       - A TABLE start tag `<table>` implicitly closes any open `P` element.
+	 *
+	 *   - In `QUIRKS_MODE`:
+	 *       - CSS class and ID selectors match match in an ASCII case-insensitive manner.
+	 *       - A TABLE start tag `<table>` opens a `TABLE` element as a child of a `P`
+	 *         element if one is open.
+	 *
+	 * Quirks and no-quirks mode are thus mostly about styling, but have an impact when
+	 * tables are found inside paragraph elements.
+	 *
 	 * @see self::QUIRKS_MODE
 	 * @see self::NO_QUIRKS_MODE
 	 *
