@@ -7,7 +7,7 @@
  *
  * @covers ::nicename_exists
  */
-class Tests_User_NicenameExists extends WP_UnitTestCase {
+class Tests_User_Nicename_Exists extends WP_UnitTestCase {
 
 	/**
 	 * Tests that `nicename_exists` returns the user ID when the nicename exists.
