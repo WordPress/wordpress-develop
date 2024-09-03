@@ -431,6 +431,13 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertSame( array(), $template_paths );
 	}
 
+	/**
+	 * Tests that get_block_templates() returns plugin-registered templates.
+	 *
+	 * @ticket 61804
+	 *
+	 * @covers ::get_block_templates
+	 */
 	public function test_get_block_templates_from_registry() {
 		$template_name = 'test-plugin//test-template';
 
@@ -443,6 +450,13 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		wp_unregister_block_template( $template_name );
 	}
 
+	/**
+	 * Tests that get_block_template() returns plugin-registered templates.
+	 *
+	 * @ticket 61804
+	 *
+	 * @covers ::get_block_template
+	 */
 	public function test_get_block_template_from_registry() {
 		$template_name = 'test-plugin//test-template';
 		$args          = array(

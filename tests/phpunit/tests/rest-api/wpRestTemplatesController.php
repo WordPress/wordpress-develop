@@ -528,6 +528,13 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 	}
 
+	/**
+	 * Tests that get_item() returns plugin-registered templates.
+	 *
+	 * @ticket 61804
+	 *
+	 * @covers WP_REST_Templates_Controller::get_item
+	 */
 	public function test_get_item_from_registry() {
 		wp_set_current_user( self::$admin_id );
 
