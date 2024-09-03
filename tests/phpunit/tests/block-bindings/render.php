@@ -315,14 +315,14 @@ HTML;
 			)
 		);
 
-		$filter_value = function ( $value, $source_name, $source_args ) {
+		$filter_value = function ( $value, $source_name, $source_args, $block_instance, $attribute_name ) {
 			if ( self::SOURCE_NAME !== $source_name ) {
 				return $value;
 			}
-			return "Filtered value: {$source_args['test_key']}";
+			return "Filtered value: {$source_args['test_key']}. Block instance: {$block_instance->name}. Attribute name: {$attribute_name}.";
 		};
 
-		add_filter( 'block_bindings_source_value', $filter_value, 10, 3 );
+		add_filter( 'block_bindings_source_value', $filter_value, 10, 5 );
 
 		$block_content = <<<HTML
 <!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source", "args":{"test_key":"test_arg"}}}}} -->
@@ -336,7 +336,7 @@ HTML;
 		remove_filter( 'block_bindings_source_value', $filter_value );
 
 		$this->assertSame(
-			'<p>Filtered value: test_arg</p>',
+			'<p>Filtered value: test_arg. Block instance: core/paragraph. Attribute name: content.</p>',
 			trim( $result ),
 			'The block content should show the filtered value.'
 		);
