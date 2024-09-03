@@ -2417,19 +2417,14 @@ function upgrade_670() {
 			'_wp_suggested_policy_text_has_changed',
 			'dashboard_widget_options',
 			'ftp_credentials',
-			'recently_edited',
 			'adminhash',
 			'nav_menu_options',
 			'wp_force_deactivated_plugins',
 			'delete_blog_hash',
 			'allowedthemes',
-			'admin_email',
-			'recently_activated',
 			'https_detection_errors',
 			'fresh_site',
-			'upload_path',
-			'admin_email',
-			'admin_email_lifespan',
+			'recovery_keys',
 		);
 
 		wp_set_options_autoload( $options_ids, false );

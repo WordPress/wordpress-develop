@@ -842,7 +842,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 	}
 
 	if ( $do_blog ) {
-		update_option( 'active_plugins', $current, false );
+		update_option( 'active_plugins', $current );
 	}
 	if ( $do_network ) {
 		update_site_option( 'active_sitewide_plugins', $network_current );
@@ -1070,7 +1070,7 @@ function validate_active_plugins() {
 	$plugins = get_option( 'active_plugins', array() );
 	// Validate vartype: array.
 	if ( ! is_array( $plugins ) ) {
-		update_option( 'active_plugins', array(), false );
+		update_option( 'active_plugins', array() );
 		$plugins = array();
 	}
 

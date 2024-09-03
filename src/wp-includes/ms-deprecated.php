@@ -646,13 +646,13 @@ function install_blog( $blog_id, $blog_title = '' ) {
 	update_option( 'home', $home );
 
 	if ( get_site_option( 'ms_files_rewriting' ) ) {
-		update_option( 'upload_path', UPLOADBLOGSDIR . "/$blog_id/files", false );
+		update_option( 'upload_path', UPLOADBLOGSDIR . "/$blog_id/files" );
 	} else {
-		update_option( 'upload_path', get_blog_option( get_network()->site_id, 'upload_path' ), false );
+		update_option( 'upload_path', get_blog_option( get_network()->site_id, 'upload_path' ) );
 	}
 
-	update_option( 'blogname', wp_unslash( $blog_title ), true );
-	update_option( 'admin_email', '', false );
+	update_option( 'blogname', wp_unslash( $blog_title ) );
+	update_option( 'admin_email', '' );
 
 	// Remove all permissions.
 	$table_prefix = $wpdb->get_blog_prefix();

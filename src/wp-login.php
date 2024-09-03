@@ -619,7 +619,7 @@ switch ( $action ) {
 			}
 
 			if ( $remind_interval > 0 ) {
-				update_option( 'admin_email_lifespan', time() + $remind_interval, false );
+				update_option( 'admin_email_lifespan', time() + $remind_interval );
 			}
 
 			$redirect_to = add_query_arg( 'admin_email_remind_later', 1, $redirect_to );

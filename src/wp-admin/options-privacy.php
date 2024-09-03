@@ -103,7 +103,7 @@ if ( ! empty( $action ) ) {
 				'error'
 			);
 		} else {
-			update_option( 'wp_page_for_privacy_policy', $privacy_policy_page_id, true );
+			update_option( 'wp_page_for_privacy_policy', $privacy_policy_page_id );
 
 			wp_redirect( admin_url( 'post.php?post=' . $privacy_policy_page_id . '&action=edit' ) );
 			exit;
