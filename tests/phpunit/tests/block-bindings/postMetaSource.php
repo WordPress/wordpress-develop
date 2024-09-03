@@ -39,13 +39,6 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Helper to test filter.
-	 */
-	private function filter_block_bindings_source_value() {
-		return function () { return 'Filtered value'; };
-	}
-
-	/**
 	 * Set up before each test.
 	 *
 	 * @since 6.5.0
@@ -291,14 +284,21 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		add_filter( 'block_bindings_source_value', $this->filter_block_bindings_source_value(), 10 );
+		$filter_value = function ( $value, $source_name, $source_args ) {
+			if ( 'core/post-meta' !== $source_name ) {
+				return $value;
+			}
+			return "Filtered value: {$source_args['key']}";
+		};
+
+		add_filter( 'block_bindings_source_value', $filter_value, 10, 3 );
 
 		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_filter_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
-		remove_filter( 'block_bindings_source_value', array( $this, 'filter_block_bindings_source_value' ), 10 );
+		remove_filter( 'block_bindings_source_value', $filter_value );
 
 		$this->assertSame(
-			'<p>Filtered value</p>',
+			'<p>Filtered value: tests_filter_field</p>',
 			$content,
 			'The post content should show the filtered value.'
 		);
