@@ -351,7 +351,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		}
 
 		if ( $processor->paused_at_incomplete_token() ) {
-			throw new WP_HTML_Unsupported_Exception( "Paused at incomplete token.", '', 0, '', array(), array() );
+			throw new WP_HTML_Unsupported_Exception( 'Paused at incomplete token.', '', 0, '', array(), array() );
 		}
 
 		if ( '' !== $text_node ) {
