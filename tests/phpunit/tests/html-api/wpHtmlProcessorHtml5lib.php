@@ -65,6 +65,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Test includes unsupported markup.' );
 			return;
 		}
+
 		$fragment_detail = $fragment_context ? " in context <{$fragment_context}>" : '';
 
 		/*
@@ -161,7 +162,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			? WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" )
 			: WP_HTML_Processor::create_full_parser( $html );
 		if ( null === $processor ) {
-			return null;
+			throw new WP_HTML_Unsupported_Exception( "Could not create a parser with the given fragment context: {$fragment_context}.", '', 0, '', array(), array() );
 		}
 
 		/*
@@ -346,11 +347,11 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		}
 
 		if ( null !== $processor->get_last_error() ) {
-			return null;
+			throw new WP_HTML_Unsupported_Exception( "Parser error: {$processor->get_last_error()}", '', 0, '', array(), array() );
 		}
 
 		if ( $processor->paused_at_incomplete_token() ) {
-			return null;
+			throw new WP_HTML_Unsupported_Exception( "Paused at incomplete token.", '', 0, '', array(), array() );
 		}
 
 		if ( '' !== $text_node ) {
