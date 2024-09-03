@@ -15,9 +15,6 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 	const SOURCE_LABEL = array(
 		'label' => 'Test source',
 	);
-	const SOURCE_ARGS  = array(
-		'key' => 'test',
-	);
 
 	/**
 	 * Tear down after each test.
