@@ -4938,11 +4938,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
 	 *
+	 * @todo When reconstructing active formatting elements with attributes, find a way
+	 *       to indicate if the virtually-reconstructed formatting elements contain the
+	 *       wanted class name.
+	 *
 	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
 	 */
 	public function has_class( $wanted_class ): ?bool {
-		return $this->is_virtual() ? false : parent::has_class( $wanted_class );
+		return $this->is_virtual() ? null : parent::has_class( $wanted_class );
 	}
 
 	/**
