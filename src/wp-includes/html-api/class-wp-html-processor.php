@@ -843,10 +843,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
 			parent::next_token();
-			if (
-				WP_HTML_Tag_Processor::STATE_TEXT_NODE === $this->parser_state ||
-				WP_HTML_Tag_Processor::STATE_CDATA_NODE === $this->parser_state
-			) {
+			if ( WP_HTML_Tag_Processor::STATE_TEXT_NODE === $this->parser_state ) {
 				parent::subdivide_text_appropriately();
 			}
 		}
