@@ -29,17 +29,15 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		'comments01/line0169'    => 'Unimplemented: Need to access raw comment text on non-normative comments.',
 		'html5test-com/line0129' => 'Unimplemented: Need to access raw comment text on non-normative comments.',
 		'noscript01/line0014'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests1/line0692'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly',
 		'tests14/line0022'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests14/line0055'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0965'       => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
+		'tests19/line0488'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0500'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests19/line1079'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0207'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0686'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0697'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0709'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests5/line0013'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
-		'tests5/line0077'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
-		'tests5/line0091'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly',
 		'webkit01/line0231'      => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 	);
 
@@ -115,7 +113,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 				$test_context_element = $test[1];
 
-				if ( self::should_skip_test( $test_context_element, $test_name, $test[3] ) ) {
+				if ( self::should_skip_test( $test_context_element, $test_name ) ) {
 					continue;
 				}
 
@@ -133,7 +131,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *
 	 * @return bool True if the test case should be skipped. False otherwise.
 	 */
-	private static function should_skip_test( ?string $test_context_element, string $test_name, string $expected_tree ): bool {
+	private static function should_skip_test( ?string $test_context_element, string $test_name ): bool {
 		if ( null !== $test_context_element && 'body' !== $test_context_element ) {
 			return true;
 		}
@@ -189,6 +187,15 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			}
 
 			switch ( $token_type ) {
+				case '#doctype':
+					$doctype = $processor->get_doctype_info();
+					$output .= "<!DOCTYPE {$doctype->name}";
+					if ( null !== $doctype->public_identifier || null !== $doctype->system_identifier ) {
+						$output .= " \"{$doctype->public_identifier}\" \"{$doctype->system_identifier}\"";
+					}
+					$output .= ">\n";
+					break;
+
 				case '#tag':
 					$namespace = $processor->get_namespace();
 					$tag_name  = 'html' === $namespace
@@ -450,15 +457,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				 */
 				case 'document':
 					if ( '|' === $line[0] ) {
-						/*
-						 * The next_token() method these tests rely on do not stop
-						 * at doctype nodes. Strip doctypes from output.
-						 * @todo Restore this line if and when the processor
-						 * exposes doctypes.
-						 */
-						if ( '| <!DOCTYPE ' !== substr( $line, 0, 12 ) ) {
-							$test_dom .= substr( $line, 2 );
-						}
+						$test_dom .= substr( $line, 2 );
 					} else {
 						// This is a text node that includes unescaped newlines.
 						// Everything else should be singles lines starting with "| ".
