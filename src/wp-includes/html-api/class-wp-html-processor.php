@@ -843,6 +843,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
 			parent::next_token();
+			if (
+				WP_HTML_Tag_Processor::STATE_TEXT_NODE === $this->parser_state ||
+				WP_HTML_Tag_Processor::STATE_CDATA_NODE === $this->parser_state
+			) {
+				parent::subdivide_text_appropriately();
+			}
 		}
 
 		// Finish stepping when there are no more tokens in the document.
@@ -1056,8 +1062,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step();
 				}
 				goto initial_anything_else;
@@ -1145,8 +1150,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step();
 				}
 				goto before_html_anything_else;
@@ -1227,8 +1231,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step();
 				}
 				goto before_head_anything_else;
@@ -1323,16 +1326,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
 				 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
 				 */
-				$text = $this->get_modifiable_text();
-				if ( '' === $text ) {
-					/*
-					 * If the text is empty after processing HTML entities and stripping
-					 * U+0000 NULL bytes then ignore the token.
-					 */
-					return $this->step();
-				}
-
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					// Insert the character.
 					$this->insert_html_element( $this->state->current_token );
 					return true;
@@ -1552,8 +1546,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_head();
 				}
 
@@ -1654,8 +1647,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					// Insert the character.
 					$this->insert_html_element( $this->state->current_token );
 					return true;
@@ -1793,8 +1785,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		switch ( $op ) {
 			case '#text':
-				$current_token = $this->bookmarks[ $this->state->current_token->bookmark_name ];
-
 				/*
 				 * > A character token that is U+0000 NULL
 				 *
@@ -1804,11 +1794,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * here, but if there are any other characters in the stream
 				 * the active formats should be reconstructed.
 				 */
-				if (
-					1 <= $current_token->length &&
-					"\x00" === $this->html[ $current_token->start ] &&
-					strspn( $this->html, "\x00", $current_token->start, $current_token->length ) === $current_token->length
-				) {
+				if ( parent::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -1820,8 +1806,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * It is probably inter-element whitespace, but it may also
 				 * contain character references which decode only to whitespace.
 				 */
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) !== strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_GENERIC === $this->text_node_classification ) {
 					$this->state->frameset_ok = false;
 				}
 
@@ -2352,13 +2337,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				foreach ( $this->state->active_formatting_elements->walk_up() as $item ) {
 					switch ( $item->node_name ) {
 						case 'marker':
-							break;
+							break 2;
 
 						case 'A':
 							$this->run_adoption_agency_algorithm();
 							$this->state->active_formatting_elements->remove_node( $item );
 							$this->state->stack_of_open_elements->remove_node( $item );
-							break;
+							break 2;
 					}
 				}
 
@@ -2415,6 +2400,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-EM':
 			case '-FONT':
 			case '-I':
+			case '-NOBR':
 			case '-S':
 			case '-SMALL':
 			case '-STRIKE':
@@ -2828,12 +2814,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 						'TR' === $current_node_name
 					)
 				) {
-					$text = $this->get_modifiable_text();
 					/*
 					 * If the text is empty after processing HTML entities and stripping
 					 * U+0000 NULL bytes then ignore the token.
 					 */
-					if ( '' === $text ) {
+					if ( parent::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification ) {
 						return $this->step();
 					}
 
@@ -2856,7 +2841,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 *
 					 * @see https://html.spec.whatwg.org/#parsing-main-intabletext
 					 */
-					if ( strlen( $text ) === strspn( $text, " \t\f\r\n" ) ) {
+					if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 						$this->insert_html_element( $this->state->current_token );
 						return true;
 					}
@@ -3176,16 +3161,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( '' === $text ) {
-					/*
-					 * If the text is empty after processing HTML entities and stripping
-					 * U+0000 NULL bytes then ignore the token.
-					 */
-					return $this->step();
-				}
-
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					// Insert the character.
 					$this->insert_html_element( $this->state->current_token );
 					return true;
@@ -3608,19 +3584,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > Any other character token
 			 */
 			case '#text':
-				$current_token = $this->bookmarks[ $this->state->current_token->bookmark_name ];
-
 				/*
 				 * > A character token that is U+0000 NULL
 				 *
 				 * If a text node only comprises null bytes then it should be
 				 * entirely ignored and should not return to calling code.
 				 */
-				if (
-					1 <= $current_token->length &&
-					"\x00" === $this->html[ $current_token->start ] &&
-					strspn( $this->html, "\x00", $current_token->start, $current_token->length ) === $current_token->length
-				) {
+				if ( parent::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -3972,7 +3942,70 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_body(): bool {
-		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY . ' state.' );
+		$tag_name   = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( $this->is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$tag_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
+			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 *
+			 * > Process the token using the rules for the "in body" insertion mode.
+			 */
+			case '#text':
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
+					return $this->step_in_body();
+				}
+				goto after_body_anything_else;
+				break;
+
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->bail( 'Content outside of BODY is unsupported.' );
+				break;
+
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > An end tag whose tag name is "html"
+			 *
+			 * > If the parser was created as part of the HTML fragment parsing algorithm,
+			 * > this is a parse error; ignore the token. (fragment case)
+			 * >
+			 * > Otherwise, switch the insertion mode to "after after body".
+			 */
+			case '-HTML':
+				if ( isset( $this->context_node ) ) {
+					return $this->step();
+				}
+
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY;
+				return true;
+		}
+
+		/*
+		 * > Parse error. Switch the insertion mode to "in body" and reprocess the token.
+		 */
+		after_body_anything_else:
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -3991,7 +4024,107 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_frameset(): bool {
-		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_IN_FRAMESET . ' state.' );
+		$tag_name   = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( $this->is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$tag_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
+			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 * >
+			 * > Insert the character.
+			 *
+			 * This algorithm effectively strips non-whitespace characters from text and inserts
+			 * them under HTML. This is not supported at this time.
+			 */
+			case '#text':
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
+					return $this->step_in_body();
+				}
+				$this->bail( 'Non-whitespace characters cannot be handled in frameset.' );
+				break;
+
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > A start tag whose tag name is "frameset"
+			 */
+			case '+FRAMESET':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > An end tag whose tag name is "frameset"
+			 */
+			case '-FRAMESET':
+				/*
+				 * > If the current node is the root html element, then this is a parse error;
+				 * > ignore the token. (fragment case)
+				 */
+				if ( $this->state->stack_of_open_elements->current_node_is( 'HTML' ) ) {
+					return $this->step();
+				}
+
+				/*
+				 * > Otherwise, pop the current node from the stack of open elements.
+				 */
+				$this->state->stack_of_open_elements->pop();
+
+				/*
+				 * > If the parser was not created as part of the HTML fragment parsing algorithm
+				 * > (fragment case), and the current node is no longer a frameset element, then
+				 * > switch the insertion mode to "after frameset".
+				 */
+				if ( ! isset( $this->context_node ) && ! $this->state->stack_of_open_elements->current_node_is( 'FRAMESET' ) ) {
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_FRAMESET;
+				}
+
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "frame"
+			 *
+			 * > Insert an HTML element for the token. Immediately pop the
+			 * > current node off the stack of open elements.
+			 * >
+			 * > Acknowledge the token's self-closing flag, if it is set.
+			 */
+			case '+FRAME':
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->stack_of_open_elements->pop();
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "noframes"
+			 */
+			case '+NOFRAMES':
+				return $this->step_in_head();
+		}
+
+		// Parse error: ignore the token.
+		return $this->step();
 	}
 
 	/**
@@ -4010,7 +4143,66 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_frameset(): bool {
-		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_FRAMESET . ' state.' );
+		$tag_name   = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( $this->is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$tag_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
+			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 * >
+			 * > Insert the character.
+			 *
+			 * This algorithm effectively strips non-whitespace characters from text and inserts
+			 * them under HTML. This is not supported at this time.
+			 */
+			case '#text':
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
+					return $this->step_in_body();
+				}
+				$this->bail( 'Non-whitespace characters cannot be handled in after frameset' );
+				break;
+
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A DOCTYPE token
+			 */
+			case 'html':
+				// Parse error: ignore the token.
+				return $this->step();
+
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > An end tag whose tag name is "html"
+			 */
+			case '-HTML':
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET;
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "noframes"
+			 */
+			case '+NOFRAMES':
+				return $this->step_in_head();
+		}
+
+		// Parse error: ignore the token.
+		return $this->step();
 	}
 
 	/**
@@ -4029,7 +4221,51 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_after_body(): bool {
-		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY . ' state.' );
+		$tag_name   = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( $this->is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$tag_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->bail( 'Content outside of HTML is unsupported.' );
+				break;
+
+			/*
+			 * > A DOCTYPE token
+			 * > A start tag whose tag name is "html"
+			 *
+			 * > Process the token using the rules for the "in body" insertion mode.
+			 */
+			case 'html':
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
+			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 * >
+			 * > Process the token using the rules for the "in body" insertion mode.
+			 */
+			case '#text':
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
+					return $this->step_in_body();
+				}
+				goto after_after_body_anything_else;
+				break;
+		}
+
+		/*
+		 * > Parse error. Switch the insertion mode to "in body" and reprocess the token.
+		 */
+		after_after_body_anything_else:
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -4048,7 +4284,56 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_after_after_frameset(): bool {
-		$this->bail( 'No support for parsing in the ' . WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET . ' state.' );
+		$tag_name   = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( $this->is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$tag_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A comment token
+			 */
+			case '#comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
+				$this->bail( 'Content outside of HTML is unsupported.' );
+				break;
+
+			/*
+			 * > A DOCTYPE token
+			 * > A start tag whose tag name is "html"
+			 *
+			 * > Process the token using the rules for the "in body" insertion mode.
+			 */
+			case 'html':
+			case '+HTML':
+				return $this->step_in_body();
+
+			/*
+			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
+			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+			 * >
+			 * > Process the token using the rules for the "in body" insertion mode.
+			 *
+			 * This algorithm effectively strips non-whitespace characters from text and inserts
+			 * them under HTML. This is not supported at this time.
+			 */
+			case '#text':
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
+					return $this->step_in_body();
+				}
+				$this->bail( 'Non-whitespace characters cannot be handled in after after frameset.' );
+				break;
+
+			/*
+			 * > A start tag whose tag name is "noframes"
+			 */
+			case '+NOFRAMES':
+				return $this->step_in_head();
+		}
+
+		// Parse error: ignore the token.
+		return $this->step();
 	}
 
 	/**
@@ -4090,6 +4375,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		switch ( $op ) {
+			case '#cdata-section':
 			case '#text':
 				/*
 				 * > A character token that is U+0000 NULL
@@ -4102,8 +4388,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * It is probably inter-element whitespace, but it may also
 				 * contain character references which decode only to whitespace.
 				 */
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) !== strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_GENERIC === $this->text_node_classification ) {
 					$this->state->frameset_ok = false;
 				}
 
@@ -4113,9 +4398,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A comment token
 			 */
-			case '#cdata-section':
 			case '#comment':
-			case '#funky_comment':
+			case '#funky-comment':
+			case '#presumptuous-tag':
 				$this->insert_foreign_element( $this->state->current_token, false );
 				return true;
 
@@ -4382,7 +4667,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function get_namespace(): string {
 		if ( ! isset( $this->current_element ) ) {
-			return 'html';
+			return parent::get_namespace();
 		}
 
 		return $this->current_element->token->namespace;
