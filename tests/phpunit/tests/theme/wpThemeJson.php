@@ -2335,6 +2335,115 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 61858
+	 */
+	public function test_merge_incoming_background_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'backgroundImage' => array(
+							'url' => 'http://example.org/quote.png',
+						),
+						'backgroundSize'  => 'cover',
+					),
+					'blocks'     => array(
+						'core/group' => array(
+							'background' => array(
+								'backgroundImage'      => array(
+									'ref' => 'styles.blocks.core/verse.background.backgroundImage',
+								),
+								'backgroundAttachment' => 'fixed',
+							),
+						),
+						'core/quote' => array(
+							'background' => array(
+								'backgroundImage'      => array(
+									'url' => 'http://example.org/quote.png',
+								),
+								'backgroundAttachment' => array(
+									'ref' => 'styles.blocks.core/group.background.backgroundAttachment',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$update_background_image_styles = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'background' => array(
+					'backgroundSize' => 'contain',
+				),
+				'blocks'     => array(
+					'core/group' => array(
+						'background' => array(
+							'backgroundImage' => array(
+								'url' => 'http://example.org/group.png',
+							),
+						),
+					),
+					'core/quote' => array(
+						'background' => array(
+							'backgroundAttachment' => 'fixed',
+						),
+					),
+					'core/verse' => array(
+						'background' => array(
+							'backgroundImage' => array(
+								'ref' => 'styles.blocks.core/group.background.backgroundImage',
+							),
+						),
+					),
+				),
+			),
+		);
+		$expected                       = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'background' => array(
+					'backgroundImage' => array(
+						'url' => 'http://example.org/quote.png',
+					),
+					'backgroundSize'  => 'contain',
+				),
+				'blocks'     => array(
+					'core/group' => array(
+						'background' => array(
+							'backgroundImage'      => array(
+								'url' => 'http://example.org/group.png',
+							),
+							'backgroundAttachment' => 'fixed',
+						),
+					),
+					'core/quote' => array(
+						'background' => array(
+							'backgroundImage'      => array(
+								'url' => 'http://example.org/quote.png',
+							),
+							'backgroundAttachment' => 'fixed',
+						),
+					),
+					'core/verse' => array(
+						'background' => array(
+							'backgroundImage' => array(
+								'ref' => 'styles.blocks.core/group.background.backgroundImage',
+							),
+						),
+					),
+				),
+			),
+		);
+		$theme_json->merge( new WP_Theme_JSON( $update_background_image_styles ) );
+		$actual = $theme_json->get_raw_data();
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
 	 * @ticket 54336
 	 */
 	public function test_remove_insecure_properties_removes_unsafe_styles() {
@@ -5006,12 +5115,15 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that theme background image styles are correctly generated.
+	 * Tests that theme background image styles are correctly generated,
+	 * and that default background size of "cover" isn't
+	 * applied (it's only applied to blocks).
 	 *
 	 * @ticket 61123
 	 * @ticket 61165
 	 * @ticket 61720
 	 * @ticket 61704
+	 * @ticket 61858
 	 */
 	public function test_get_top_level_background_image_styles() {
 		$theme_json = new WP_Theme_JSON(
@@ -5022,7 +5134,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'backgroundImage'      => array(
 							'url' => 'http://example.org/image.png',
 						),
-						'backgroundSize'       => 'contain',
 						'backgroundRepeat'     => 'no-repeat',
 						'backgroundPosition'   => 'center center',
 						'backgroundAttachment' => 'fixed',
@@ -5036,7 +5147,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'selector' => 'body',
 		);
 
-		$expected_styles = "html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}body{background-image: url('http://example.org/image.png');background-position: center center;background-repeat: no-repeat;background-size: contain;background-attachment: fixed;}";
+		$expected_styles = "html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}body{background-image: url('http://example.org/image.png');background-position: center center;background-repeat: no-repeat;background-attachment: fixed;}";
 		$this->assertSame( $expected_styles, $theme_json->get_styles_for_block( $body_node ), 'Styles returned from "::get_stylesheet()" with top-level background styles type do not match expectations' );
 
 		$theme_json = new WP_Theme_JSON(
@@ -5059,8 +5170,11 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Block-level global background image styles.
+	 *
 	 * @ticket 61588
 	 * @ticket 61720
+	 * @ticket 61858
 	 */
 	public function test_get_block_background_image_styles() {
 		$theme_json = new WP_Theme_JSON(
@@ -5071,7 +5185,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'core/group' => array(
 							'background' => array(
 								'backgroundImage'      => "url('http://example.org/group.png')",
-								'backgroundSize'       => 'cover',
 								'backgroundRepeat'     => 'no-repeat',
 								'backgroundPosition'   => 'center center',
 								'backgroundAttachment' => 'fixed',
@@ -5079,30 +5192,25 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						),
 						'core/quote' => array(
 							'background' => array(
-								'backgroundImage'    => array(
+								'backgroundImage' => array(
 									'url' => 'http://example.org/quote.png',
+									'id'  => 321,
 								),
-								'backgroundSize'     => 'cover',
-								'backgroundRepeat'   => 'no-repeat',
-								'backgroundPosition' => 'center center',
+								'backgroundSize'  => 'contain',
+							),
+						),
+						'core/verse' => array(
+							'background' => array(
+								'backgroundImage' => array(
+									'url' => 'http://example.org/verse.png',
+									'id'  => 123,
+								),
 							),
 						),
 					),
 				),
 			)
 		);
-
-		$quote_node = array(
-			'name'      => 'core/quote',
-			'path'      => array( 'styles', 'blocks', 'core/quote' ),
-			'selector'  => '.wp-block-quote',
-			'selectors' => array(
-				'root' => '.wp-block-quote',
-			),
-		);
-
-		$quote_styles = ":root :where(.wp-block-quote){background-image: url('http://example.org/quote.png');background-position: center center;background-repeat: no-repeat;background-size: cover;}";
-		$this->assertSame( $quote_styles, $theme_json->get_styles_for_block( $quote_node ), 'Styles returned from "::get_styles_for_block()" with block-level background styles do not match expectations' );
 
 		$group_node = array(
 			'name'      => 'core/group',
@@ -5113,8 +5221,88 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$group_styles = ":root :where(.wp-block-group){background-image: url('http://example.org/group.png');background-position: center center;background-repeat: no-repeat;background-size: cover;background-attachment: fixed;}";
-		$this->assertSame( $group_styles, $theme_json->get_styles_for_block( $group_node ), 'Styles returned from "::get_styles_for_block()" with block-level background styles as string type do not match expectations' );
+		$group_styles = ":root :where(.wp-block-group){background-image: url('http://example.org/group.png');background-position: center center;background-repeat: no-repeat;background-attachment: fixed;}";
+		$this->assertSame( $group_styles, $theme_json->get_styles_for_block( $group_node ), 'Styles returned from "::get_styles_for_block()" with core/group background styles as string type do not match expectations.' );
+
+		$quote_node = array(
+			'name'      => 'core/quote',
+			'path'      => array( 'styles', 'blocks', 'core/quote' ),
+			'selector'  => '.wp-block-quote',
+			'selectors' => array(
+				'root' => '.wp-block-quote',
+			),
+		);
+
+		$quote_styles = ":root :where(.wp-block-quote){background-image: url('http://example.org/quote.png');background-position: 50% 50%;background-size: contain;}";
+		$this->assertSame( $quote_styles, $theme_json->get_styles_for_block( $quote_node ), 'Styles returned from "::get_styles_for_block()" with core/quote default background styles do not match expectations.' );
+
+		$verse_node = array(
+			'name'      => 'core/verse',
+			'path'      => array( 'styles', 'blocks', 'core/verse' ),
+			'selector'  => '.wp-block-verse',
+			'selectors' => array(
+				'root' => '.wp-block-verse',
+			),
+		);
+
+		$verse_styles = ":root :where(.wp-block-verse){background-image: url('http://example.org/verse.png');background-size: cover;}";
+		$this->assertSame( $verse_styles, $theme_json->get_styles_for_block( $verse_node ), 'Styles returned from "::get_styles_for_block()" with default core/verse background styles as string type do not match expectations.' );
+	}
+
+	/**
+	 * Testing background dynamic properties in theme.json.
+	 *
+	 * @ticket 61858
+	 */
+	public function test_get_resolved_background_image_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'backgroundImage'      => array(
+							'url' => 'http://example.org/top.png',
+						),
+						'backgroundSize'       => 'contain',
+						'backgroundRepeat'     => 'repeat',
+						'backgroundPosition'   => '10% 20%',
+						'backgroundAttachment' => 'scroll',
+					),
+					'blocks'     => array(
+						'core/group'        => array(
+							'background' => array(
+								'backgroundImage' => array(
+									'id'  => 123,
+									'url' => 'http://example.org/group.png',
+								),
+							),
+						),
+						'core/post-content' => array(
+							'background' => array(
+								'backgroundImage'      => array(
+									'ref' => 'styles.background.backgroundImage',
+								),
+								'backgroundSize'       => array(
+									'ref' => 'styles.background.backgroundSize',
+								),
+								'backgroundRepeat'     => array(
+									'ref' => 'styles.background.backgroundRepeat',
+								),
+								'backgroundPosition'   => array(
+									'ref' => 'styles.background.backgroundPosition',
+								),
+								'backgroundAttachment' => array(
+									'ref' => 'styles.background.backgroundAttachment',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = "html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}body{background-image: url('http://example.org/top.png');background-position: 10% 20%;background-repeat: repeat;background-size: contain;background-attachment: scroll;}:root :where(.wp-block-group){background-image: url('http://example.org/group.png');background-size: cover;}:root :where(.wp-block-post-content){background-image: url('http://example.org/top.png');background-position: 10% 20%;background-repeat: repeat;background-size: contain;background-attachment: scroll;}";
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
 	}
 
 	/**

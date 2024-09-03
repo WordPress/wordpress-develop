@@ -137,6 +137,7 @@
 		width: 100%;
 
 		audio {
+			display: block;
 			width: 100%;
 		}
 
@@ -941,19 +942,11 @@
 			font-size: inherit;
 		}
 
-		&.has-avatars {
-
-		}
-
 		&.has-dates {
 
 			.wp-block-latest-comments__comment-date {
 				font-size: $font__size-xs;
 			}
-		}
-
-		&.has-excerpts {
-
 		}
 	}
 
