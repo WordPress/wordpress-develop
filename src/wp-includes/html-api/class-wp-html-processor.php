@@ -5410,6 +5410,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 
+			// All of the following rules are for matching HTML elements.
+			if ( 'html' !== $node->namespace ) {
+				continue;
+			}
+
 			switch ( $node->node_name ) {
 				/*
 				 * > 4. If node is a `select` element, run these substeps:
@@ -5425,6 +5430,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case 'SELECT':
 					if ( ! $last ) {
 						foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $ancestor ) {
+							if ( 'html' !== $ancestor->namespace ) {
+								continue;
+							}
 							switch ( $ancestor->node_name ) {
 								/*
 								 * > 5. If _ancestor_ is a `template` node, jump to the step below
