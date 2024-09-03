@@ -310,7 +310,7 @@ HTML;
 			array(
 				'label'              => self::SOURCE_LABEL,
 				'get_value_callback' => function () {
-					return '$12.50';
+					return '';
 				},
 			)
 		);
