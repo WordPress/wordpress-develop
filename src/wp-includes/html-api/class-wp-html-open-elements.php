@@ -539,13 +539,17 @@ class WP_HTML_Open_Elements {
 	 * @param string $tag_name Name of tag that needs to be popped off of the stack of open elements.
 	 * @return bool Whether a tag of the given name was found and popped off of the stack of open elements.
 	 */
-	public function pop_until( string $tag_name ): bool {
+	public function pop_until( string $tag_name, string $namespace = 'html' ): bool {
 		foreach ( $this->walk_up() as $item ) {
 			if ( 'context-node' === $item->bookmark_name ) {
 				return true;
 			}
 
 			$this->pop();
+
+			if ( $item->namespace !== $namespace ) {
+				continue;
+			}
 
 			if (
 				'(internal: H1 through H6 - do not use)' === $tag_name &&
