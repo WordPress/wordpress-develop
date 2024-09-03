@@ -57,7 +57,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		try {
 			$processed_tree = self::build_tree_representation( $fragment_context, $html );
 		} catch ( WP_HTML_Unsupported_Exception $e ) {
-			$this->markTestSkipped( $e->getMessage() );
+			$this->markTestSkipped( "Unsupported markup: {$e->getMessage()}" );
 			return;
 		}
 
@@ -344,7 +344,11 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			}
 		}
 
-		if ( ! is_null( $processor->get_last_error() ) ) {
+		if ( null !== $processor->get_unsupported_exception() ) {
+			throw $processor->get_unsupported_exception();
+		}
+
+		if ( null !== $processor->get_last_error() ) {
 			return null;
 		}
 
