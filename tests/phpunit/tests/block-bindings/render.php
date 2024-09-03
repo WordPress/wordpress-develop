@@ -338,7 +338,7 @@ HTML;
 		$this->assertSame(
 			'<p>Filtered value: test_arg</p>',
 			trim( $result ),
-			'The block content should properly show the symbol and numbers.'
+			'The block content should show the filtered value.'
 		);
 	}
 }
