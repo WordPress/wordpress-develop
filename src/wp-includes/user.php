@@ -2011,7 +2011,6 @@ function nicename_exists( $nicename, $login = false ) {
 	return $user_id;
 }
 
-
 /**
  * Determines whether the given email exists.
  *
