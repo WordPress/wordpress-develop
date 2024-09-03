@@ -1998,9 +1998,8 @@ function username_exists( $username ) {
  * @since 6.7.0
  *
  * @param string $nicename Nicename.
- * @param string $login (Optional) User login to compare against.
- *
- * @return int|false The user's ID on success, and false on failure.
+ * @param string $login    Optional. User login to compare against.
+ * @return int|false The user ID on success, false on failure.
  */
 function nicename_exists( $nicename, $login = false ) {
 	$user_id = false;
