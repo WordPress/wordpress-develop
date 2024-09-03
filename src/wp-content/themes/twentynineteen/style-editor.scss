@@ -381,6 +381,15 @@ figcaption,
 	}
 }
 
+/** === Audio === */
+
+.wp-block-audio {
+
+	audio {
+		display: block;
+	}
+}
+
 /** === Button === */
 
 .wp-block-buttons {
@@ -422,6 +431,18 @@ figcaption,
 				color: $color__background-button;
 			}
 		}
+	}
+}
+
+.wp-block-buttons,
+.wp-block-button {
+
+	&[style*="font-weight"] .wp-block-button__link {
+		font-weight: inherit;
+	}
+
+	&[style*="text-decoration"] .wp-block-button__link {
+		text-decoration: inherit;
 	}
 }
 
@@ -754,6 +775,11 @@ ul.wp-block-archives,
 		margin-bottom: ( -.75 * $size__spacing-unit );
 	}
 
+}
+
+.wp-block[data-align="center"] > .wp-block-archives,
+.wp-block[data-align="center"] > .wp-block-categories {
+	text-align: center;
 }
 
 /** === Latest Posts === */

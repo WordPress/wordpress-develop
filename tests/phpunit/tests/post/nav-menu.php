@@ -1209,6 +1209,35 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests `wp_update_nav_menu_item()` with a non-existing taxonomy.
+	 *
+	 * When inserting a term from a non-existing taxonomy as a nav item,
+	 * the `post_title` property should be empty, and the function
+	 * should not throw a fatal error for `wp_specialchars_decode()`.
+	 *
+	 * @ticket 61799
+	 */
+	public function test_wp_update_nav_menu_item_with_invalid_taxonomy() {
+		register_taxonomy( 'invalid', 'post' );
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'invalid' ) );
+		unregister_taxonomy( 'invalid' );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'taxonomy',
+				'menu-item-object'    => 'invalid',
+				'menu-item-object-id' => $term->term_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$menu_item = get_post( $menu_item_id );
+		$this->assertEmpty( $menu_item->post_title );
+	}
+
+	/**
 	 * Test passed post_date/post_date_gmt.
 	 *
 	 * When inserting a nav menu item, it should be possible to set the post_date

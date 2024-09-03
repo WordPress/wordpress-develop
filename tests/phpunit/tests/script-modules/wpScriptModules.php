@@ -701,35 +701,209 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60348
-	 *
-	 * @covers ::print_import_map_polyfill()
+	 * @ticket 61510
 	 */
-	public function test_wp_print_import_map_has_no_polyfill_when_no_modules_registered() {
-		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map' ) );
+	public function test_print_script_module_data_prints_enqueued_module_data() {
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/module',
+			function ( $data ) {
+				$data['foo'] = 'bar';
+				return $data;
+			}
+		);
 
-		$this->assertSame( '', $import_map_polyfill );
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$expected = <<<HTML
+<script type="application/json" id="wp-script-module-data-@test/module">
+{"foo":"bar"}
+</script>
+
+HTML;
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
-	 * @ticket 60348
-	 *
-	 * @covers ::print_import_map_polyfill()
+	 * @ticket 61510
 	 */
-	public function test_wp_print_import_map_has_polyfill_when_modules_registered() {
-		$script_name = 'wp-polyfill-importmap';
-		wp_register_script( $script_name, '/wp-polyfill-importmap.js' );
+	public function test_print_script_module_data_prints_dependency_module_data() {
+		$this->script_modules->register( '@test/dependency', '/dependency.js' );
+		$this->script_modules->enqueue( '@test/module', '/example.js', array( '@test/dependency' ) );
+		add_action(
+			'script_module_data_@test/dependency',
+			function ( $data ) {
+				$data['foo'] = 'bar';
+				return $data;
+			}
+		);
 
-		$this->script_modules->enqueue( 'foo', '/foo.js', array( 'dep' ), '1.0' );
-		$this->script_modules->register( 'dep', '/dep.js' );
-		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map' ) );
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
 
-		wp_deregister_script( $script_name );
+		$expected = <<<HTML
+<script type="application/json" id="wp-script-module-data-@test/dependency">
+{"foo":"bar"}
+</script>
 
-		$p = new WP_HTML_Tag_Processor( $import_map_polyfill );
-		$p->next_tag( array( 'tag' => 'SCRIPT' ) );
-		$id = $p->get_attribute( 'id' );
+HTML;
+		$this->assertSame( $expected, $actual );
+	}
 
-		$this->assertSame( 'wp-load-polyfill-importmap', $id );
+	/**
+	 * @ticket 61510
+	 */
+	public function test_print_script_module_data_does_not_print_nondependency_module_data() {
+		$this->script_modules->register( '@test/other', '/dependency.js' );
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/other',
+			function ( $data ) {
+				$data['foo'] = 'bar';
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * @ticket 61510
+	 */
+	public function test_print_script_module_data_does_not_print_empty_data() {
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/module',
+			function ( $data ) {
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * @ticket 61510
+	 *
+	 * @dataProvider data_special_chars_script_encoding
+	 * @param string $input    Raw input string.
+	 * @param string $expected Expected output string.
+	 * @param string $charset  Blog charset option.
+	 */
+	public function test_print_script_module_data_encoding( $input, $expected, $charset ) {
+		add_filter(
+			'pre_option_blog_charset',
+			function () use ( $charset ) {
+				return $charset;
+			}
+		);
+
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/module',
+			function ( $data ) use ( $input ) {
+				$data[''] = $input;
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$expected = <<<HTML
+<script type="application/json" id="wp-script-module-data-@test/module">
+{"":"{$expected}"}
+</script>
+
+HTML;
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_special_chars_script_encoding(): array {
+		return array(
+			// UTF-8
+			'Solidus'                                => array( '/', '/', 'UTF-8' ),
+			'Double quote'                           => array( '"', '\\"', 'UTF-8' ),
+			'Single quote'                           => array( '\'', '\'', 'UTF-8' ),
+			'Less than'                              => array( '<', '\u003C', 'UTF-8' ),
+			'Greater than'                           => array( '>', '\u003E', 'UTF-8' ),
+			'Ampersand'                              => array( '&', '&', 'UTF-8' ),
+			'Newline'                                => array( "\n", "\\n", 'UTF-8' ),
+			'Tab'                                    => array( "\t", "\\t", 'UTF-8' ),
+			'Form feed'                              => array( "\f", "\\f", 'UTF-8' ),
+			'Carriage return'                        => array( "\r", "\\r", 'UTF-8' ),
+			'Line separator'                         => array( "\u{2028}", "\u{2028}", 'UTF-8' ),
+			'Paragraph separator'                    => array( "\u{2029}", "\u{2029}", 'UTF-8' ),
+
+			/*
+			 * The following is the Flag of England emoji
+			 * PHP: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}"
+			 */
+			'Flag of england'                        => array( '🏴󠁧󠁢󠁥󠁮󠁧󠁿', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'UTF-8' ),
+			'Malicious script closer'                => array( '</script>', '\u003C/script\u003E', 'UTF-8' ),
+			'Entity-encoded malicious script closer' => array( '&lt;/script&gt;', '&lt;/script&gt;', 'UTF-8' ),
+
+			// Non UTF-8
+			'Solidus'                                => array( '/', '/', 'iso-8859-1' ),
+			'Less than'                              => array( '<', '\u003C', 'iso-8859-1' ),
+			'Greater than'                           => array( '>', '\u003E', 'iso-8859-1' ),
+			'Ampersand'                              => array( '&', '&', 'iso-8859-1' ),
+			'Newline'                                => array( "\n", "\\n", 'iso-8859-1' ),
+			'Tab'                                    => array( "\t", "\\t", 'iso-8859-1' ),
+			'Form feed'                              => array( "\f", "\\f", 'iso-8859-1' ),
+			'Carriage return'                        => array( "\r", "\\r", 'iso-8859-1' ),
+			'Line separator'                         => array( "\u{2028}", "\u2028", 'iso-8859-1' ),
+			'Paragraph separator'                    => array( "\u{2029}", "\u2029", 'iso-8859-1' ),
+			/*
+			 * The following is the Flag of England emoji
+			 * PHP: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}"
+			 */
+			'Flag of england'                        => array( '🏴󠁧󠁢󠁥󠁮󠁧󠁿', "\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f", 'iso-8859-1' ),
+			'Malicious script closer'                => array( '</script>', '\u003C/script\u003E', 'iso-8859-1' ),
+			'Entity-encoded malicious script closer' => array( '&lt;/script&gt;', '&lt;/script&gt;', 'iso-8859-1' ),
+
+		);
+	}
+
+	/**
+	 * @ticket 61510
+	 *
+	 * @dataProvider data_invalid_script_module_data
+	 * @param mixed $data Data to return in filter.
+	 */
+	public function test_print_script_module_data_does_not_print_invalid_data( $data ) {
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/module',
+			function ( $_ ) use ( $data ) {
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_invalid_script_module_data(): array {
+		return array(
+			'null'     => array( null ),
+			'stdClass' => array( new stdClass() ),
+			'number 1' => array( 1 ),
+			'string'   => array( 'string' ),
+		);
 	}
 }
