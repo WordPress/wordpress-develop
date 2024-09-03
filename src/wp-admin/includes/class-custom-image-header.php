@@ -47,11 +47,13 @@ class Custom_Image_Header {
 	private $updated;
 
 	/**
-	 * Constructor - Register administration header callback.
+	 * Constructor - Registers administration header callback.
 	 *
 	 * @since 2.1.0
-	 * @param callable $admin_header_callback
-	 * @param callable $admin_image_div_callback Optional custom image div output callback.
+	 *
+	 * @param callable $admin_header_callback    Administration header callback.
+	 * @param callable $admin_image_div_callback Optional. Custom image div output callback.
+	 *                                           Default empty string.
 	 */
 	public function __construct( $admin_header_callback, $admin_image_div_callback = '' ) {
 		$this->admin_header_callback    = $admin_header_callback;
@@ -932,7 +934,7 @@ endif;
 	<p class="hide-if-js"><strong><?php _e( 'You need JavaScript to choose a part of the image.' ); ?></strong></p>
 
 	<div id="crop_image" style="position: relative">
-		<img src="<?php echo esc_url( $url ); ?>" id="upload" width="<?php echo $width; ?>" height="<?php echo $height; ?>" alt="" />
+		<img src="<?php echo esc_url( $url ); ?>" id="upload" width="<?php echo esc_attr( $width ); ?>" height="<?php echo esc_attr( $height ); ?>" alt="" />
 	</div>
 
 	<input type="hidden" name="x1" id="x1" value="0" />
@@ -1075,7 +1077,7 @@ endif;
 		/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
 		$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
-		$attachment = $this->create_attachment_object( $cropped, $attachment_id );
+		$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, 'custom-header' );
 
 		if ( ! empty( $_POST['create-new-attachment'] ) ) {
 			unset( $attachment['ID'] );
@@ -1312,12 +1314,14 @@ endif;
 	 * Creates an attachment 'object'.
 	 *
 	 * @since 3.9.0
+	 * @deprecated 6.5.0
 	 *
 	 * @param string $cropped              Cropped image URL.
 	 * @param int    $parent_attachment_id Attachment ID of parent image.
 	 * @return array An array with attachment object data.
 	 */
 	final public function create_attachment_object( $cropped, $parent_attachment_id ) {
+		_deprecated_function( __METHOD__, '6.5.0', 'wp_copy_parent_attachment_properties()' );
 		$parent     = get_post( $parent_attachment_id );
 		$parent_url = wp_get_attachment_url( $parent->ID );
 		$url        = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
@@ -1419,7 +1423,7 @@ endif;
 		/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
 		$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
-		$attachment = $this->create_attachment_object( $cropped, $attachment_id );
+		$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, 'custom-header' );
 
 		$previous = $this->get_previous_crop( $attachment );
 

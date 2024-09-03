@@ -55,7 +55,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 14485
 	 */
-	public function test_hierachy_invalidation() {
+	public function test_hierarchy_invalidation() {
 		$tax = 'burrito';
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 		$this->assertTrue( get_taxonomy( $tax )->hierarchical );
@@ -115,9 +115,6 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$this->assertEmpty( wp_cache_get( $term, 'terms' ) );
 
 		$num_queries = get_num_queries();
-
-		// get_term() will only be update the cache if the 'filter' prop is unset.
-		unset( $term_object->filter );
 
 		$term_object_2 = get_term( $term_object, 'wptests_tax' );
 

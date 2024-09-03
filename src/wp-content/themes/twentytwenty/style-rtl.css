@@ -1,8 +1,8 @@
 /*
 Theme Name: Twenty Twenty
 Text Domain: twentytwenty
-Version: 2.3
-Tested up to: 6.3
+Version: 2.7
+Tested up to: 6.6
 Requires at least: 4.7
 Requires PHP: 5.2.4
 Description: Our default theme for 2020 is designed to take full advantage of the flexibility of the block editor. Organizations and businesses have the ability to create dynamic landing pages with endless layouts using the group and column blocks. The centered content column and fine-tuned typography also makes it perfect for traditional blogs. Complete editor styles give you a good idea of what your content will look like, even before you publish. You can give your site a personal touch by changing the background colors and the accent color in the Customizer. The colors of all elements on your site are automatically calculated based on the colors you pick, ensuring a high, accessible color contrast for your visitors.
@@ -595,9 +595,13 @@ pre {
 
 pre code {
 	background: transparent;
+	font-size: 1em;
 	padding: 0;
 }
 
+.entry-content > code {
+	display: block;
+}
 
 /* Media ------------------------------------- */
 
@@ -1250,6 +1254,10 @@ button.toggle {
 .wp-block-image.is-resized {
 	margin-right: auto;
 	margin-left: auto;
+}
+
+.aligncenter figcaption {
+	text-align: center;
 }
 
 /* Search Form ------------------------------- */
@@ -2731,17 +2739,9 @@ h2.entry-title {
 
 /* CUSTOM COLORS */
 
-:root .has-accent-color {
-	color: #cd2653;
-}
-
 :root .has-accent-background-color {
 	background-color: #cd2653;
 	color: #fff;
-}
-
-:root .has-primary-color {
-	color: #000;
 }
 
 :root .has-primary-background-color {
@@ -2749,17 +2749,9 @@ h2.entry-title {
 	color: #f5efe0;
 }
 
-:root .has-secondary-color {
-	color: #6d6d6d;
-}
-
 :root .has-secondary-background-color {
 	background-color: #6d6d6d;
 	color: #fff;
-}
-
-:root .has-subtle-background-color {
-	color: #dcd7ca;
 }
 
 :root .has-subtle-background-background-color {
@@ -2767,13 +2759,29 @@ h2.entry-title {
 	color: #000;
 }
 
-:root .has-background-color {
-	color: #f5efe0;
-}
-
 :root .has-background-background-color {
 	background-color: #f5efe0;
 	color: #000;
+}
+
+:root .has-accent-color {
+	color: #cd2653;
+}
+
+:root .has-primary-color {
+	color: #000;
+}
+
+:root .has-secondary-color {
+	color: #6d6d6d;
+}
+
+:root .has-subtle-background-color {
+	color: #dcd7ca;
+}
+
+:root .has-background-color {
+	color: #f5efe0;
 }
 
 
@@ -3033,6 +3041,20 @@ ol.wp-block-latest-comments {
 	text-transform: inherit;
 }
 
+.wp-block-buttons[style*="letter-spacing"] .wp-block-button__link,
+.wp-block-button[style*="letter-spacing"] .wp-block-button__link {
+	letter-spacing: inherit;
+}
+
+/* Block: Calendar --------------------------- */
+
+.wp-block-calendar[class*="-font-size"] table,
+.wp-block-calendar[style*="font-size"] table,
+.wp-block-calendar[class*="-font-size"] .wp-calendar-nav,
+.wp-block-calendar[style*="font-size"] .wp-calendar-nav {
+	font-size: inherit;
+}
+
 /* Block: Columns ---------------------------- */
 
 .wp-block-columns.alignfull,
@@ -3278,6 +3300,19 @@ figure.wp-block-gallery.alignfull {
 	margin-left: 0;
 }
 
+.wp-block-pullquote[class*="-font-size"] p,
+.wp-block-pullquote[style*="font-size"] p {
+	font-size: inherit;
+}
+
+.wp-block-pullquote[style*="font-weight"] p {
+	font-weight: inherit;
+}
+
+.wp-block-pullquote[style*="letter-spacing"] p {
+	letter-spacing: inherit;
+}
+
 /* STYLE: SOLID BACKGROUND COLOR */
 
 .wp-block-pullquote.is-style-solid-color {
@@ -3356,6 +3391,10 @@ hr.wp-block-separator {
 
 /* Block: Table ------------------------------ */
 
+.wp-block-table table:where(:not(.has-text-color)) * {
+	border-color: inherit;
+}
+
 .wp-block-table.is-style-stripes tbody tr:nth-child(odd) {
 	background: #dcd7ca;
 }
@@ -3366,6 +3405,11 @@ figure.wp-block-table.is-style-stripes {
 
 .wp-block-table.is-style-stripes table {
 	border-collapse: inherit;
+}
+
+.wp-block-table[class*="-font-size"] table,
+.wp-block-table[style*="font-size"] table {
+	font-size: inherit;
 }
 
 /* Block: Quote ------------------------------ */
@@ -3381,14 +3425,23 @@ figure.wp-block-table.is-style-stripes {
 	color: inherit;
 }
 
+.wp-block-quote.has-text-align-center,
 .wp-block-quote[style="text-align:center"] {
 	border-width: 0;
 	padding: 0;
 }
 
+.wp-block-quote.has-text-align-right,
 .wp-block-quote[style="text-align:right"] {
 	border-width: 0 0.2rem 0 0;
 	padding: 0 2rem 0 0;
+}
+
+/* STYLE: PLAIN */
+
+.wp-block-quote.is-style-plain {
+	border-width: 0;
+	padding: 0.5rem 2rem;
 }
 
 /* STYLE: LARGE */
@@ -4489,12 +4542,12 @@ ul.footer-social li {
 }
 
 .footer-copyright a,
-.privacy-policy a,
+.footer-credits .privacy-policy a,
 .powered-by-wordpress a {
 	color: inherit;
 }
 
-.privacy-policy,
+.footer-credits .privacy-policy,
 .powered-by-wordpress,
 .to-the-top {
 	color: #6d6d6d;
@@ -4519,7 +4572,7 @@ a.to-the-top > * {
 	margin: 0 2.4rem 0 0;
 }
 
-.privacy-policy {
+.footer-credits .privacy-policy {
 	margin: 1.2rem 0 0;
 }
 
@@ -5613,7 +5666,7 @@ a.to-the-top > * {
 		font-weight: 700;
 	}
 
-	.privacy-policy {
+	.footer-credits .privacy-policy {
 		margin: 0 2.4rem 0 0;
 	}
 
@@ -5902,10 +5955,6 @@ a.to-the-top > * {
 	.wp-block-image .alignright {
 		margin-left: 0;
 	}
-
-    .wp-block-image .aligncenter figcaption {
-        text-align: center;
-    }
 
 	/* BLOCK: SEPARATOR */
 
@@ -6402,5 +6451,14 @@ a.to-the-top > * {
 	.wp-block-pullquote.is-style-solid-color.alignleft::before,
 	.wp-block-pullquote.is-style-solid-color.alignright::before {
 		top: 0;
+	}
+}
+
+@media ( max-width: 800px ) {
+
+	/* Customizer ---------------------------- */
+
+	.customize-partial-edit-shortcuts-shown .footer-nav-widgets-wrapper .footer-inner.section-inner {
+		width: calc(100% - 8rem);
 	}
 }

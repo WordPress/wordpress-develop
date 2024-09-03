@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.5/theme.json",
 	"version": 2,
 	"title": "Onyx",
 	"settings": {
@@ -118,11 +118,6 @@
 					"color": "#303030",
 					"name": "Base / Two",
 					"slug": "base-2"
-				},
-				{
-					"color": "#ffffff26",
-					"name": "Base / Three",
-					"slug": "base-3"
 				},
 				{
 					"color": "#f9f9f9",

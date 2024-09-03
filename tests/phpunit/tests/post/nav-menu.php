@@ -764,7 +764,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Run tests required to confrim Walker_Nav_Menu receives an $args object.
+	 * Run tests required to confirm Walker_Nav_Menu receives an $args object.
 	 */
 	public function confirm_nav_menu_item_args_object( $args ) {
 		$this->assertIsObject( $args );
@@ -1206,6 +1206,35 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		$category_item = get_post( $category_item_id );
 		$this->assertEmpty( $category_item->post_title );
+	}
+
+	/**
+	 * Tests `wp_update_nav_menu_item()` with a non-existing taxonomy.
+	 *
+	 * When inserting a term from a non-existing taxonomy as a nav item,
+	 * the `post_title` property should be empty, and the function
+	 * should not throw a fatal error for `wp_specialchars_decode()`.
+	 *
+	 * @ticket 61799
+	 */
+	public function test_wp_update_nav_menu_item_with_invalid_taxonomy() {
+		register_taxonomy( 'invalid', 'post' );
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'invalid' ) );
+		unregister_taxonomy( 'invalid' );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'taxonomy',
+				'menu-item-object'    => 'invalid',
+				'menu-item-object-id' => $term->term_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$menu_item = get_post( $menu_item_id );
+		$this->assertEmpty( $menu_item->post_title );
 	}
 
 	/**

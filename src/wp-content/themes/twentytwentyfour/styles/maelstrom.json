@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.5/theme.json",
 	"version": 2,
 	"title": "Maelstrom",
 	"settings": {
@@ -14,11 +14,6 @@
 					"color": "#244E8A",
 					"name": "Base / Two",
 					"slug": "base-2"
-				},
-				{
-					"color": "#FFFFFF25",
-					"name": "Base / Three",
-					"slug": "base-3"
 				},
 				{
 					"color": "#FFFFFFA1",

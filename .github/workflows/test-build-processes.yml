@@ -14,16 +14,6 @@ on:
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
-    paths:
-      # These files configure npm. Changes could affect the outcome.
-      - 'package*.json'
-      # JavaScript files are built using npm.
-      - '**.js'
-      # CSS and SCSS files are built using npm.
-      - '**.scss'
-      - '**.css'
-      # Changes to workflow files should always verify all workflows are successful.
-      - '.github/workflows/**.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -41,7 +31,7 @@ jobs:
   # Tests the WordPress Core build process on multiple operating systems.
   test-core-build-process:
     name: Core running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@trunk
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -50,9 +40,18 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         directory: [ 'src', 'build' ]
+        include:
+          # Only prepare artifacts for Playground once.
+          - os: ubuntu-latest
+            directory: 'build'
+            save-build: true
+            prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
+
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      save-build: ${{ matrix.save-build && matrix.save-build || false }}
+      prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
 
   # Tests the WordPress Core build process on MacOS.
   #
@@ -64,7 +63,7 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-core-build-process-macos:
     name: Core running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@trunk
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -80,7 +79,7 @@ jobs:
   # Tests the Gutenberg plugin build process on multiple operating systems when run within a wordpress-develop checkout.
   test-gutenberg-build-process:
     name: Gutenberg running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/callable-test-gutenberg-build-process.yml@trunk
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-gutenberg-build-process.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -103,7 +102,7 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-gutenberg-build-process-macos:
     name: Gutenberg running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/callable-test-gutenberg-build-process.yml@trunk
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-gutenberg-build-process.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -150,7 +149,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           retries: 2
           retry-exempt-status-codes: 418

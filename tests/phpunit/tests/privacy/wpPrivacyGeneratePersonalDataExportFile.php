@@ -61,7 +61,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	/**
 	 * Set up the test fixture.
 	 *
-	 * Override `wp_die()`, pretend to be Ajax, and suppress `E_WARNING`s.
+	 * Override `wp_die()`, pretend to be Ajax, and suppress warnings.
 	 *
 	 * @since 5.2.0
 	 */
@@ -289,7 +289,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$this->expectOutputString( '' );
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 
-		$this->assertTrue( file_exists( self::$exports_dir . 'index.php' ) );
+		$this->assertFileExists( self::$exports_dir . 'index.php' );
 	}
 
 	/**
@@ -300,7 +300,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	public function test_can_succeed() {
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 
-		$this->assertTrue( file_exists( $this->export_file_name ) );
+		$this->assertFileExists( $this->export_file_name );
 	}
 
 	/**
@@ -374,7 +374,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 			$expected .= 'null}';
 		} else {
 			// "About" group: to avoid time difference, use the report's "on" timestamp.
-			$about_group = '{"about":{"group_label":"About","group_description":"Overview of export report.","items":{"about-1":[{"name":"Report generated for","value":"' . $request->email . '"},{"name":"For site","value":"Test Blog"},{"name":"At URL","value":"http:\/\/example.org"},{"name":"On","value":"{{TIMESTAMP}}"}]}}';
+			$about_group = '{"about":{"group_label":"About","group_description":"Overview of export report.","items":{"about-1":[{"name":"Report generated for","value":"' . $request->email . '"},{"name":"For site","value":"Test Blog"},{"name":"At URL","value":"http:\/\/' . WP_TESTS_DOMAIN . '"},{"name":"On","value":"{{TIMESTAMP}}"}]}}';
 			$expected   .= $this->replace_timestamp_placeholder( $actual_json, $about_group );
 			if ( isset( $expected_content['json'] ) ) {
 				$expected .= $expected_content['json'];
@@ -408,7 +408,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$this->expectOutputString( '' );
 
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
-		$this->assertTrue( file_exists( $this->export_file_name ) );
+		$this->assertFileExists( $this->export_file_name );
 
 		// Create a temporary export directory for the test's export files.
 		$report_dir = trailingslashit( self::$exports_dir . 'test_contents' );
@@ -469,7 +469,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 			'should contain only about when empty array' => array(
 				'groups'           => array(),
 				'expected_content' => array(
-					'html' => '<h2 id="about-about">About</h2><p>Overview of export report.</p><div><table><tbody><tr><th>Report generated for</th><td>export-requester@example.com</td></tr><tr><th>For site</th><td>Test Blog</td></tr><tr><th>At URL</th><td><a href="http://example.org">http://example.org</a></td></tr><tr><th>On</th><td>{{TIMESTAMP}}</td></tr></tbody></table></div>',
+					'html' => '<h2 id="about-about">About</h2><p>Overview of export report.</p><div><table><tbody><tr><th>Report generated for</th><td>export-requester@example.com</td></tr><tr><th>For site</th><td>Test Blog</td></tr><tr><th>At URL</th><td><a href="http://' . WP_TESTS_DOMAIN . '">http://' . WP_TESTS_DOMAIN . '</a></td></tr><tr><th>On</th><td>{{TIMESTAMP}}</td></tr></tbody></table></div>',
 				),
 			),
 			// Happy path.
@@ -513,7 +513,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 					),
 				),
 				'expected_content' => array(
-					'html' => '<div id="table_of_contents"><h2>Table of Contents</h2><ul><li><a href="#about-about">About</a></li><li><a href="#user-user">User</a></li></ul></div><h2 id="about-about">About</h2><p>Overview of export report.</p><div><table><tbody><tr><th>Report generated for</th><td>export-requester@example.com</td></tr><tr><th>For site</th><td>Test Blog</td></tr><tr><th>At URL</th><td><a href="http://example.org">http://example.org</a></td></tr><tr><th>On</th><td>{{TIMESTAMP}}</td></tr></tbody></table><div class="return-to-top"><a href="#top"><span aria-hidden="true">&uarr; </span> Go to top</a></div></div><h2 id="user-user">User</h2><p>User&#8217;s profile data.</p><div><table><tbody><tr><th>User ID</th><td>1</td></tr><tr><th>User Login Name</th><td>user_login</td></tr><tr><th>User Nice Name</th><td>User Name</td></tr><tr><th>User Email</th><td>export-requester@example.com</td></tr><tr><th>User Registration Date</th><td>2020-01-31 19:29:29</td></tr><tr><th>User Display Name</th><td>User Name</td></tr><tr><th>User Nickname</th><td>User</td></tr></tbody></table><div class="return-to-top"><a href="#top"><span aria-hidden="true">&uarr; </span> Go to top</a></div></div>',
+					'html' => '<div id="table_of_contents"><h2>Table of Contents</h2><ul><li><a href="#about-about">About</a></li><li><a href="#user-user">User</a></li></ul></div><h2 id="about-about">About</h2><p>Overview of export report.</p><div><table><tbody><tr><th>Report generated for</th><td>export-requester@example.com</td></tr><tr><th>For site</th><td>Test Blog</td></tr><tr><th>At URL</th><td><a href="http://' . WP_TESTS_DOMAIN . '">http://' . WP_TESTS_DOMAIN . '</a></td></tr><tr><th>On</th><td>{{TIMESTAMP}}</td></tr></tbody></table><div class="return-to-top"><a href="#top"><span aria-hidden="true">&uarr; </span> Go to top</a></div></div><h2 id="user-user">User</h2><p>User&#8217;s profile data.</p><div><table><tbody><tr><th>User ID</th><td>1</td></tr><tr><th>User Login Name</th><td>user_login</td></tr><tr><th>User Nice Name</th><td>User Name</td></tr><tr><th>User Email</th><td>export-requester@example.com</td></tr><tr><th>User Registration Date</th><td>2020-01-31 19:29:29</td></tr><tr><th>User Display Name</th><td>User Name</td></tr><tr><th>User Nickname</th><td>User</td></tr></tbody></table><div class="return-to-top"><a href="#top"><span aria-hidden="true">&uarr; </span> Go to top</a></div></div>',
 					'json' => ',"user":{"group_label":"User","group_description":"User&#8217;s profile data.","items":{"user-1":[{"name":"User ID","value":1},{"name":"User Login Name","value":"user_login"},{"name":"User Nice Name","value":"User Name"},{"name":"User Email","value":"export-requester@example.com"},{"name":"User Registration Date","value":"2020-01-31 19:29:29"},{"name":"User Display Name","value":"User Name"},{"name":"User Nickname","value":"User"}]}}',
 				),
 			),
@@ -623,7 +623,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 					),
 				),
 				'expected_content' => array(
-					'html' => '<div id="table_of_contents"><h2>Table of Contents</h2><ul><li><a href="#about-about">About</a></li><li><a href="#user-user">User</a></li><li><a href="#comments-comments">Comments <span class="count">(2)</span></a></li></ul></div><h2 id="about-about">About</h2><p>Overview of export report.</p><div><table><tbody><tr><th>Report generated for</th><td>export-requester@example.com</td></tr><tr><th>For site</th><td>Test Blog</td></tr><tr><th>At URL</th><td><a href="http://example.org">http://example.org</a></td></tr><tr><th>On</th><td>{{TIMESTAMP}}</td></tr></tbody></table><div class="return-to-top"><a href="#top"><span aria-hidden="true">&uarr; </span> Go to top</a></div></div><h2 id="user-user">User</h2><p>User&#8217;s profile data.</p><div><table><tbody><tr><th>User ID</th><td>1</td></tr><tr><th>User Login Name</th><td>user_login</td></tr><tr><th>User Nice Name</th><td>User Name</td></tr><tr><th>User Email</th><td>export-requester@example.com</td></tr><tr><th>User Registration Date</th><td>2020-01-31 19:29:29</td></tr><tr><th>User Display Name</th><td>User Name</td></tr><tr><th>User Nickname</th><td>User</td></tr></tbody></table><div class="return-to-top"><a href="#top"><span aria-hidden="true">&uarr; </span> Go to top</a></div></div><h2 id="comments-comments">Comments <span class="count">(2)</span></h2><p>User&#8217;s comment data.</p><div><table><tbody><tr><th>Comment Author</th><td>User Name</td></tr><tr><th>Comment Author Email</th><td>export-requester@example.com</td></tr><tr><th>Comment Author IP</th><td>::1</td></tr><tr><th>Comment Author User Agent</th><td>Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36</td></tr><tr><th>Comment Date</th><td>2020-01-31 19:55:19</td></tr><tr><th>Comment Content</th><td>Test</td></tr><tr><th>Comment URL</th><td><a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-2">http://localhost:8888/46894/2020/01/31/hello-world/#comment-2</a></td></tr></tbody></table><table><tbody><tr><th>Comment Author</th><td>User Name</td></tr><tr><th>Comment Author Email</th><td>export-requester@example.com</td></tr><tr><th>Comment Author IP</th><td>::1</td></tr><tr><th>Comment Author User Agent</th><td>Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36</td></tr><tr><th>Comment Date</th><td>2020-01-31 20:55:19</td></tr><tr><th>Comment Content</th><td>Test #2</td></tr><tr><th>Comment URL</th><td><a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-3">http://localhost:8888/46894/2020/01/31/hello-world/#comment-3</a></td></tr></tbody></table><div class="return-to-top"><a href="#top"><span aria-hidden="true">&uarr; </span> Go to top</a></div></div>',
+					'html' => '<div id="table_of_contents"><h2>Table of Contents</h2><ul><li><a href="#about-about">About</a></li><li><a href="#user-user">User</a></li><li><a href="#comments-comments">Comments <span class="count">(2)</span></a></li></ul></div><h2 id="about-about">About</h2><p>Overview of export report.</p><div><table><tbody><tr><th>Report generated for</th><td>export-requester@example.com</td></tr><tr><th>For site</th><td>Test Blog</td></tr><tr><th>At URL</th><td><a href="http://' . WP_TESTS_DOMAIN . '">http://' . WP_TESTS_DOMAIN . '</a></td></tr><tr><th>On</th><td>{{TIMESTAMP}}</td></tr></tbody></table><div class="return-to-top"><a href="#top"><span aria-hidden="true">&uarr; </span> Go to top</a></div></div><h2 id="user-user">User</h2><p>User&#8217;s profile data.</p><div><table><tbody><tr><th>User ID</th><td>1</td></tr><tr><th>User Login Name</th><td>user_login</td></tr><tr><th>User Nice Name</th><td>User Name</td></tr><tr><th>User Email</th><td>export-requester@example.com</td></tr><tr><th>User Registration Date</th><td>2020-01-31 19:29:29</td></tr><tr><th>User Display Name</th><td>User Name</td></tr><tr><th>User Nickname</th><td>User</td></tr></tbody></table><div class="return-to-top"><a href="#top"><span aria-hidden="true">&uarr; </span> Go to top</a></div></div><h2 id="comments-comments">Comments <span class="count">(2)</span></h2><p>User&#8217;s comment data.</p><div><table><tbody><tr><th>Comment Author</th><td>User Name</td></tr><tr><th>Comment Author Email</th><td>export-requester@example.com</td></tr><tr><th>Comment Author IP</th><td>::1</td></tr><tr><th>Comment Author User Agent</th><td>Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36</td></tr><tr><th>Comment Date</th><td>2020-01-31 19:55:19</td></tr><tr><th>Comment Content</th><td>Test</td></tr><tr><th>Comment URL</th><td><a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-2">http://localhost:8888/46894/2020/01/31/hello-world/#comment-2</a></td></tr></tbody></table><table><tbody><tr><th>Comment Author</th><td>User Name</td></tr><tr><th>Comment Author Email</th><td>export-requester@example.com</td></tr><tr><th>Comment Author IP</th><td>::1</td></tr><tr><th>Comment Author User Agent</th><td>Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36</td></tr><tr><th>Comment Date</th><td>2020-01-31 20:55:19</td></tr><tr><th>Comment Content</th><td>Test #2</td></tr><tr><th>Comment URL</th><td><a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-3">http://localhost:8888/46894/2020/01/31/hello-world/#comment-3</a></td></tr></tbody></table><div class="return-to-top"><a href="#top"><span aria-hidden="true">&uarr; </span> Go to top</a></div></div>',
 					'json' => ',"user":{"group_label":"User","group_description":"User&#8217;s profile data.","items":{"user-1":[{"name":"User ID","value":1},{"name":"User Login Name","value":"user_login"},{"name":"User Nice Name","value":"User Name"},{"name":"User Email","value":"export-requester@example.com"},{"name":"User Registration Date","value":"2020-01-31 19:29:29"},{"name":"User Display Name","value":"User Name"},{"name":"User Nickname","value":"User"}]}},"comments":{"group_label":"Comments","group_description":"User&#8217;s comment data.","items":{"comment-2":[{"name":"Comment Author","value":"User Name"},{"name":"Comment Author Email","value":"export-requester@example.com"},{"name":"Comment Author IP","value":"::1"},{"name":"Comment Author User Agent","value":"Mozilla\/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/79.0.3945.130 Safari\/537.36"},{"name":"Comment Date","value":"2020-01-31 19:55:19"},{"name":"Comment Content","value":"Test"},{"name":"Comment URL","value":"<a href=\"http:\/\/localhost:8888\/46894\/2020\/01\/31\/hello-world\/#comment-2\" target=\"_blank\" rel=\"noopener\">http:\/\/localhost:8888\/46894\/2020\/01\/31\/hello-world\/#comment-2<\/a>"}],"comment-3":[{"name":"Comment Author","value":"User Name"},{"name":"Comment Author Email","value":"export-requester@example.com"},{"name":"Comment Author IP","value":"::1"},{"name":"Comment Author User Agent","value":"Mozilla\/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/79.0.3945.130 Safari\/537.36"},{"name":"Comment Date","value":"2020-01-31 20:55:19"},{"name":"Comment Content","value":"Test #2"},{"name":"Comment URL","value":"<a href=\"http:\/\/localhost:8888\/46894\/2020\/01\/31\/hello-world\/#comment-3\" target=\"_blank\" rel=\"noopener\">http:\/\/localhost:8888\/46894\/2020\/01\/31\/hello-world\/#comment-3<\/a>"}]}}',
 				),
 			),

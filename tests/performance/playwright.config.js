@@ -19,15 +19,15 @@ process.env.TEST_RUNS ??= '20';
 const config = defineConfig( {
 	...baseConfig,
 	globalSetup: require.resolve( './config/global-setup.js' ),
-	reporter: process.env.CI
-		? './config/performance-reporter.js'
-		: [ [ 'list' ], [ './config/performance-reporter.js' ] ],
+	reporter: [ [ 'list' ], [ './config/performance-reporter.js' ] ],
 	forbidOnly: !! process.env.CI,
 	workers: 1,
 	retries: 0,
+	repeatEach: 2,
 	timeout: parseInt( process.env.TIMEOUT || '', 10 ) || 600_000, // Defaults to 10 minutes.
 	// Don't report slow test "files", as we will be running our tests in serial.
 	reportSlowTests: null,
+	preserveOutput: 'never',
 	webServer: {
 		...baseConfig.webServer,
 		command: 'npm run env:start',
@@ -39,4 +39,3 @@ const config = defineConfig( {
 } );
 
 export default config;
-

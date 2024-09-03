@@ -206,8 +206,8 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
  * The action will trigger when someone visits your WordPress site if the scheduled
  * time has passed.
  *
- * Valid values for the recurrence are 'hourly', 'daily', and 'twicedaily'. These can
- * be extended using the {@see 'cron_schedules'} filter in wp_get_schedules().
+ * Valid values for the recurrence are 'hourly', 'twicedaily', 'daily', and 'weekly'.
+ * These can be extended using the {@see 'cron_schedules'} filter in wp_get_schedules().
  *
  * Use wp_next_scheduled() to prevent duplicate events.
  *
@@ -659,8 +659,9 @@ function wp_unschedule_hook( $hook, $wp_error = false ) {
 	 * process, causing the function to return the filtered value instead.
 	 *
 	 * For plugins replacing wp-cron, return the number of events successfully
-	 * unscheduled (zero if no events were registered with the hook) or false
-	 * if unscheduling one or more events fails.
+	 * unscheduled (zero if no events were registered with the hook). If unscheduling
+	 * one or more events fails then return either a WP_Error object or false depending
+	 * on the value of the `$wp_error` parameter.
 	 *
 	 * @since 5.1.0
 	 * @since 5.7.0 The `$wp_error` parameter was added, and a `WP_Error` object can now be returned.
@@ -874,7 +875,7 @@ function spawn_cron( $gmt_time = 0 ) {
 		return false;
 	}
 
-	// Sanity check.
+	// Confidence check.
 	$crons = wp_get_ready_cron_jobs();
 	if ( empty( $crons ) ) {
 		return false;
@@ -1047,14 +1048,14 @@ function _wp_cron() {
  * one is 'interval' and the other is 'display'.
  *
  * The 'interval' is a number in seconds of when the cron job should run.
- * So for 'hourly' the time is `HOUR_IN_SECONDS` (60 * 60 or 3600). For 'monthly',
- * the value would be `MONTH_IN_SECONDS` (30 * 24 * 60 * 60 or 2592000).
+ * So for 'hourly' the time is `HOUR_IN_SECONDS` (`60 * 60` or `3600`). For 'monthly',
+ * the value would be `MONTH_IN_SECONDS` (`30 * 24 * 60 * 60` or `2592000`).
  *
  * The 'display' is the description. For the 'monthly' key, the 'display'
  * would be `__( 'Once Monthly' )`.
  *
- * For your plugin, you will be passed an array. You can easily add your
- * schedule by doing the following.
+ * For your plugin, you will be passed an array. You can add your
+ * schedule by doing the following:
  *
  *     // Filter parameter variable name is 'array'.
  *     $array['monthly'] = array(
@@ -1239,7 +1240,7 @@ function _set_cron_array( $cron, $wp_error = false ) {
 
 	$cron['version'] = 2;
 
-	$result = update_option( 'cron', $cron );
+	$result = update_option( 'cron', $cron, true );
 
 	if ( $wp_error && ! $result ) {
 		return new WP_Error(
@@ -1279,7 +1280,7 @@ function _upgrade_cron_array( $cron ) {
 
 	$new_cron['version'] = 2;
 
-	update_option( 'cron', $new_cron );
+	update_option( 'cron', $new_cron, true );
 
 	return $new_cron;
 }

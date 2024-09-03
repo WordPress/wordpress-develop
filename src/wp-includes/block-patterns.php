@@ -136,6 +136,20 @@ function _register_core_block_patterns_and_categories() {
 		)
 	);
 	register_block_pattern_category(
+		'videos',
+		array(
+			'label'       => _x( 'Videos', 'Block pattern category' ),
+			'description' => __( 'Different layouts containing videos.' ),
+		)
+	);
+	register_block_pattern_category(
+		'audio',
+		array(
+			'label'       => _x( 'Audio', 'Block pattern category' ),
+			'description' => __( 'Different layouts containing audio.' ),
+		)
+	);
+	register_block_pattern_category(
 		'posts',
 		array(
 			'label'       => _x( 'Posts', 'Block pattern category' ),
@@ -324,7 +338,7 @@ function _register_remote_theme_patterns() {
  * @since 6.0.0
  * @since 6.1.0 The `postTypes` property was added.
  * @since 6.2.0 The `templateTypes` property was added.
- * @since 6.4.0 Uses the `_wp_get_block_patterns` function.
+ * @since 6.4.0 Uses the `WP_Theme::get_block_patterns` method.
  * @access private
  */
 function _register_theme_block_patterns() {
@@ -377,13 +391,7 @@ function _register_theme_block_patterns() {
 				continue;
 			}
 
-			// The actual pattern content is the output of the file.
-			ob_start();
-			include $file_path;
-			$pattern_data['content'] = ob_get_clean();
-			if ( ! $pattern_data['content'] ) {
-				continue;
-			}
+			$pattern_data['filePath'] = $file_path;
 
 			// Translate the pattern metadata.
 			// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain,WordPress.WP.I18n.LowLevelTranslationFunction

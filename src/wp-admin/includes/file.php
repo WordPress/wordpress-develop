@@ -326,7 +326,7 @@ function wp_print_file_editor_templates() {
 					printf(
 						/* translators: %s: Documentation URL. */
 						__( 'You need to make this file writable before you can save your changes. See <a href="%s">Changing File Permissions</a> for more information.' ),
-						__( 'https://wordpress.org/documentation/article/changing-file-permissions/' )
+						__( 'https://developer.wordpress.org/advanced-administration/server/file-permissions/' )
 					);
 					?>
 				</p>
@@ -1089,7 +1089,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
  * @param array|false $overrides Optional. An associative array of names => values
  *                               to override default variables. Default false.
  *                               See _wp_handle_upload() for accepted values.
- * @param string      $time      Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param string|null $time      Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array See _wp_handle_upload() for return value.
  */
 function wp_handle_upload( &$file, $overrides = false, $time = null ) {
@@ -1120,7 +1120,7 @@ function wp_handle_upload( &$file, $overrides = false, $time = null ) {
  * @param array|false $overrides Optional. An associative array of names => values
  *                               to override default variables. Default false.
  *                               See _wp_handle_upload() for accepted values.
- * @param string      $time      Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param string|null $time      Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array See _wp_handle_upload() for return value.
  */
 function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
@@ -1155,7 +1155,7 @@ function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
 function download_url( $url, $timeout = 300, $signature_verification = false ) {
 	// WARNING: The file is not automatically deleted, the script must delete or move the file.
 	if ( ! $url ) {
-		return new WP_Error( 'http_no_url', __( 'Invalid URL Provided.' ) );
+		return new WP_Error( 'http_no_url', __( 'No URL Provided.' ) );
 	}
 
 	$url_path     = parse_url( $url, PHP_URL_PATH );
@@ -1402,30 +1402,6 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 		);
 	}
 
-	// Check for an edge-case affecting PHP Maths abilities.
-	if (
-		! extension_loaded( 'sodium' ) &&
-		in_array( PHP_VERSION_ID, array( 70200, 70201, 70202 ), true ) &&
-		extension_loaded( 'opcache' )
-	) {
-		/*
-		 * Sodium_Compat isn't compatible with PHP 7.2.0~7.2.2 due to a bug in the PHP Opcache extension, bail early as it'll fail.
-		 * https://bugs.php.net/bug.php?id=75938
-		 */
-		return new WP_Error(
-			'signature_verification_unsupported',
-			sprintf(
-				/* translators: %s: The filename of the package. */
-				__( 'The authenticity of %s could not be verified as signature verification is unavailable on this system.' ),
-				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
-			),
-			array(
-				'php'    => PHP_VERSION,
-				'sodium' => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
-			)
-		);
-	}
-
 	// Verify runtime speed of Sodium_Compat is acceptable.
 	if ( ! extension_loaded( 'sodium' ) && ! ParagonIE_Sodium_Compat::polyfill_is_fast() ) {
 		$sodium_compat_is_fast = false;
@@ -1561,6 +1537,37 @@ function wp_trusted_keys() {
 	 * @param string[] $trusted_keys The trusted keys that may sign packages.
 	 */
 	return apply_filters( 'wp_trusted_keys', $trusted_keys );
+}
+
+/**
+ * Determines whether the given file is a valid ZIP file.
+ *
+ * This function does not test to ensure that a file exists. Non-existent files
+ * are not valid ZIPs, so those will also return false.
+ *
+ * @since 6.4.4
+ *
+ * @param string $file Full path to the ZIP file.
+ * @return bool Whether the file is a valid ZIP file.
+ */
+function wp_zip_file_is_valid( $file ) {
+	/** This filter is documented in wp-admin/includes/file.php */
+	if ( class_exists( 'ZipArchive', false ) && apply_filters( 'unzip_file_use_ziparchive', true ) ) {
+		$archive          = new ZipArchive();
+		$archive_is_valid = $archive->open( $file, ZipArchive::CHECKCONS );
+		if ( true === $archive_is_valid ) {
+			$archive->close();
+			return true;
+		}
+	}
+
+	// Fall through to PclZip if ZipArchive is not available, or encountered an error opening the file.
+	require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
+
+	$archive          = new PclZip( $file );
+	$archive_is_valid = is_array( $archive->properties() );
+
+	return $archive_is_valid;
 }
 
 /**
@@ -2218,7 +2225,7 @@ function WP_Filesystem( $args = false, $context = false, $allow_relaxed_file_own
  * The return value can be overridden by defining the `FS_METHOD` constant in `wp-config.php`,
  * or filtering via {@see 'filesystem_method'}.
  *
- * @link https://wordpress.org/documentation/article/editing-wp-config-php/#wordpress-upgrade-constants
+ * @link https://developer.wordpress.org/advanced-administration/wordpress/wp-config/#wordpress-upgrade-constants
  *
  * Plugins may define a custom transport handler, See WP_Filesystem().
  *
@@ -2465,7 +2472,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		);
 
 		if ( ! wp_installing() ) {
-			update_option( 'ftp_credentials', $stored_credentials );
+			update_option( 'ftp_credentials', $stored_credentials, false );
 		}
 
 		return $credentials;
@@ -2633,7 +2640,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	<p class="request-filesystem-credentials-action-buttons">
 		<?php wp_nonce_field( 'filesystem-credentials', '_fs_nonce', false, true ); ?>
 		<button class="button cancel-button" data-js-action="close" type="button"><?php _e( 'Cancel' ); ?></button>
-		<?php submit_button( __( 'Proceed' ), '', 'upgrade', false ); ?>
+		<?php submit_button( __( 'Proceed' ), 'primary', 'upgrade', false ); ?>
 	</p>
 </div>
 </form>
@@ -2764,7 +2771,7 @@ function wp_opcache_invalidate_directory( $dir ) {
 				__( '%s expects a non-empty string.' ),
 				'<code>wp_opcache_invalidate_directory()</code>'
 			);
-			trigger_error( $error_message );
+			wp_trigger_error( '', $error_message );
 		}
 		return;
 	}

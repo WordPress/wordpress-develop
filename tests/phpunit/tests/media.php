@@ -399,7 +399,7 @@ https://w.org</a>',
 		$this->assertSame( '', $prepped['subtype'] );
 		// #21963, there will be a GUID always, so there will be a URL.
 		$this->assertNotEquals( '', $prepped['url'] );
-		$this->assertSame( site_url( 'wp-includes/images/media/default.png' ), $prepped['icon'] );
+		$this->assertSame( site_url( 'wp-includes/images/media/default.svg' ), $prepped['icon'] );
 
 		// Fake a mime.
 		$post->post_mime_type = 'image/jpeg';
@@ -434,7 +434,7 @@ https://w.org</a>',
 	 * @ticket 38965
 	 */
 	public function test_wp_prepare_attachment_for_js_without_image_sizes() {
-		// Create the attachement post.
+		// Create the attachment post.
 		$id = wp_insert_attachment(
 			array(
 				'post_title'     => 'Attachment Title',
@@ -1831,6 +1831,31 @@ EOF;
 			$expected_srcset = $this->src_first( $_expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
+	}
+
+	/**
+	 * @ticket 61690
+	 * @requires function imagejpeg
+	 */
+	public function test_wp_calculate_image_srcset_with_relative_content_url() {
+		$_SERVER['HTTPS'] = 'on';
+
+		add_filter(
+			'upload_dir',
+			static function ( $upload_dir ) {
+				$upload_dir['baseurl'] = '/wp-content/uploads';
+				return $upload_dir;
+			}
+		);
+
+		$image_url  = wp_get_attachment_image_url( self::$large_id, 'medium' );
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
+
+		$size_array = array( 300, 225 );
+
+		$srcset = wp_calculate_image_srcset( $size_array, $image_url, $image_meta );
+
+		$this->assertStringStartsWith( '/wp-content/uploads', $srcset );
 	}
 
 	/**
@@ -3257,14 +3282,15 @@ EOF;
 
 	/**
 	 * @ticket 52768
+	 * @ticket 58773
 	 */
-	public function test_wp_iframe_tag_add_loading_attr_skip_wp_embed() {
+	public function test_wp_iframe_tag_add_loading_attr_include_wp_embed() {
 		$iframe   = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$fallback = '<blockquote>Fallback content.</blockquote>';
 		$iframe   = wp_filter_oembed_result( $fallback . $iframe, (object) array( 'type' => 'rich' ), 'https://www.example.com' );
 		$iframe   = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
-		$this->assertStringNotContainsString( ' loading=', $iframe );
+		$this->assertStringContainsString( ' loading="lazy"', $iframe );
 	}
 
 	/**
@@ -5549,6 +5575,42 @@ EOF;
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'test' ),
 			'fetchpriority should be set to high.'
+		);
+	}
+
+	/**
+	 * Tests that wp_img_tag_add_loading_optimization_attrs() passes the 'src' attribute to wp_get_loading_optimization_attributes().
+	 *
+	 * @ticket 61436
+	 *
+	 * @covers ::wp_img_tag_add_loading_optimization_attrs
+	 */
+	public function test_wp_img_tag_add_loading_optimization_attrs_passes_src() {
+		add_filter(
+			'wp_get_loading_optimization_attributes',
+			static function ( $loading_attrs, $tag_name, $attr ) {
+				if (
+					'img' === $tag_name &&
+					isset( $attr['src'] ) &&
+					'https://example.org/a-specific-image.jpg' === $attr['src']
+				) {
+					$loading_attrs['fetchpriority'] = 'low';
+					$loading_attrs['loading']       = 'eager';
+				}
+				return $loading_attrs;
+			},
+			10,
+			3
+		);
+
+		$image    = '<img src="https://example.org/a-specific-image.jpg" width="1280" height="720">';
+		$expected = '<img fetchpriority="low" loading="eager" decoding="async" src="https://example.org/a-specific-image.jpg" width="1280" height="720">';
+
+		// Ensure attributes are modified because image src was matched.
+		$this->assertSame(
+			$expected,
+			wp_img_tag_add_loading_optimization_attrs( $image, 'the_content' ),
+			'fetchpriority should be low when src is matched.'
 		);
 	}
 
