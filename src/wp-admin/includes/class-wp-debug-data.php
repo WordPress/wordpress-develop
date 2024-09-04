@@ -66,11 +66,11 @@ class WP_Debug_Data {
 		 *
 		 * When iterating through the debug data, the ordering of the sections
 		 * occurs in insertion-order of the assignments into this array. Setting
-		 * up empty values up-front ensures that ordering so that it doesn't
-		 * depend on when inside this method the sections are filled out.
+		 * up empty values here preserves that specific ordering so it doesn't
+		 * depend on when inside this method each section is otherwise assigned.
 		 *
 		 * When all sections have been modularized, this will be the final single
-		 * assignment of the sections before filtering.
+		 * assignment of the sections before filtering and none will be empty.
 		 *
 		 * @ticket 61648.
 		 */
@@ -1180,10 +1180,6 @@ class WP_Debug_Data {
 				'debug' => $theme_version_string_debug,
 			);
 		}
-
-		$info['wp-constants']  = self::get_wp_constants();
-		$info['wp-database']   = self::get_wp_database();
-		$info['wp-filesystem'] = self::get_wp_filesystem();
 
 		/**
 		 * Filters the debug information shown on the Tools -> Site Health -> Info screen.
