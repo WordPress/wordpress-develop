@@ -64,6 +64,33 @@ class WP_Debug_Data {
 		// Set up the array that holds all debug information.
 		$info = array();
 
+		$section_ordering = array(
+			'wp-core',
+			'wp-paths-sizes',
+			'wp-dropins',
+			'wp-active-theme',
+			'wp-parent-theme',
+			'wp-themes-inactive',
+			'wp-mu-plugins',
+			'wp-plugins-active',
+			'wp-plugins-inactive',
+			'wp-media',
+			'wp-server',
+			'wp-database',
+			'wp-constants',
+			'wp-filesystem',
+		);
+
+		/*
+		 * When iterating through the debug data, the ordering of the sections
+		 * occurs in insertion-order of the assignments into this array. This
+		 * ensures that ordering so that it doesn't depend on when inside this
+		 * method the sections are filled out.
+		 */
+		foreach ( $section_ordering as $section_name ) {
+			$info[ $section_name ] = array();
+		}
+
 		$info['wp-core'] = array(
 			'label'  => __( 'WordPress' ),
 			'fields' => array(
