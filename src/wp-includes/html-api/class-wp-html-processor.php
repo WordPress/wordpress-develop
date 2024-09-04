@@ -843,10 +843,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
 			parent::next_token();
-			if (
-				WP_HTML_Tag_Processor::STATE_TEXT_NODE === $this->parser_state ||
-				WP_HTML_Tag_Processor::STATE_CDATA_NODE === $this->parser_state
-			) {
+			if ( WP_HTML_Tag_Processor::STATE_TEXT_NODE === $this->parser_state ) {
 				parent::subdivide_text_appropriately();
 			}
 		}
@@ -1083,7 +1080,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'html':
 				$doctype = $this->get_doctype_info();
 				if ( null !== $doctype && 'quirks' === $doctype->indicated_compatability_mode ) {
-					$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
+					$this->compat_mode = WP_HTML_Tag_Processor::QUIRKS_MODE;
 				}
 
 				/*
@@ -1098,7 +1095,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Anything else
 		 */
 		initial_anything_else:
-		$this->state->document_mode  = WP_HTML_Processor_State::QUIRKS_MODE;
+		$this->compat_mode           = WP_HTML_Tag_Processor::QUIRKS_MODE;
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -2451,7 +2448,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > has a p element in button scope, then close a p element.
 				 */
 				if (
-					WP_HTML_Processor_State::QUIRKS_MODE !== $this->state->document_mode &&
+					WP_HTML_Tag_Processor::QUIRKS_MODE !== $this->compat_mode &&
 					$this->state->stack_of_open_elements->has_p_in_button_scope()
 				) {
 					$this->close_a_p_element();
@@ -4375,7 +4372,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		switch ( $op ) {
-			case '#cdata-section':
 			case '#text':
 				/*
 				 * > A character token that is U+0000 NULL
@@ -4389,6 +4385,24 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * contain character references which decode only to whitespace.
 				 */
 				if ( parent::TEXT_IS_GENERIC === $this->text_node_classification ) {
+					$this->state->frameset_ok = false;
+				}
+
+				$this->insert_foreign_element( $this->state->current_token, false );
+				return true;
+
+			/*
+			 * CDATA sections are alternate wrappers for text content and therefore
+			 * ought to follow the same rules as text nodes.
+			 */
+			case '#cdata-section':
+				/*
+				 * NULL bytes and whitespace do not change the frameset-ok flag.
+				 */
+				$current_token        = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+				$cdata_content_start  = $current_token->start + 9;
+				$cdata_content_length = $current_token->length - 12;
+				if ( strspn( $this->html, "\0 \t\n\f\r", $cdata_content_start, $cdata_content_length ) !== $cdata_content_length ) {
 					$this->state->frameset_ok = false;
 				}
 
@@ -4923,6 +4937,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Returns if a matched tag contains the given ASCII case-insensitive class name.
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 *
+	 * @todo When reconstructing active formatting elements with attributes, find a way
+	 *       to indicate if the virtually-reconstructed formatting elements contain the
+	 *       wanted class name.
 	 *
 	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
@@ -5466,6 +5484,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 
+			// All of the following rules are for matching HTML elements.
+			if ( 'html' !== $node->namespace ) {
+				continue;
+			}
+
 			switch ( $node->node_name ) {
 				/*
 				 * > 4. If node is a `select` element, run these substeps:
@@ -5481,6 +5504,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case 'SELECT':
 					if ( ! $last ) {
 						foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $ancestor ) {
+							if ( 'html' !== $ancestor->namespace ) {
+								continue;
+							}
+
 							switch ( $ancestor->node_name ) {
 								/*
 								 * > 5. If _ancestor_ is a `template` node, jump to the step below
