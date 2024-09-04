@@ -6378,7 +6378,7 @@ function wp_insert_attachment( $args, $file = false, $parent_post_id = 0, $wp_er
 	 * @since 6.7.0
 	 *
 	 * @param bool   $use_generated_slug  Whether to use the generated post slug for the attachment.
-	 *                                    Defaults to false if attachment pages are enabled.
+	 *                                    Defaults to false during imports or if attachment pages are enabled.
 	 *                                    Otherwise, defaults to true.
 	 * @param string $generated_post_name The generated post slug.
 	 * @param string $file                The file path.
