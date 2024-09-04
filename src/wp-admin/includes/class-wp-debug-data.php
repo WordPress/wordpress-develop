@@ -61,35 +61,35 @@ class WP_Debug_Data {
 			}
 		}
 
-		// Set up the array that holds all debug information.
-		$info = array();
-
-		$section_ordering = array(
-			'wp-core',
-			'wp-paths-sizes',
-			'wp-dropins',
-			'wp-active-theme',
-			'wp-parent-theme',
-			'wp-themes-inactive',
-			'wp-mu-plugins',
-			'wp-plugins-active',
-			'wp-plugins-inactive',
-			'wp-media',
-			'wp-server',
-			'wp-database',
-			'wp-constants',
-			'wp-filesystem',
-		);
-
 		/*
+		 * Set up the array that holds all debug information.
+		 *
 		 * When iterating through the debug data, the ordering of the sections
-		 * occurs in insertion-order of the assignments into this array. This
-		 * ensures that ordering so that it doesn't depend on when inside this
-		 * method the sections are filled out.
+		 * occurs in insertion-order of the assignments into this array. Setting
+		 * up empty values up-front ensures that ordering so that it doesn't
+		 * depend on when inside this method the sections are filled out.
+		 *
+		 * When all sections have been modularized, this will be the final single
+		 * assignment of the sections before filtering.
+		 *
+		 * @ticket 61648.
 		 */
-		foreach ( $section_ordering as $section_name ) {
-			$info[ $section_name ] = array();
-		}
+		$info = array(
+			'wp-core'             => array(),
+			'wp-paths-sizes'      => array(),
+			'wp-dropins'          => array(),
+			'wp-active-theme'     => array(),
+			'wp-parent-theme'     => array(),
+			'wp-themes-inactive'  => array(),
+			'wp-mu-plugins'       => array(),
+			'wp-plugins-active'   => array(),
+			'wp-plugins-inactive' => array(),
+			'wp-media'            => array(),
+			'wp-server'           => array(),
+			'wp-database'         => self::get_wp_database(),
+			'wp-constants'        => self::get_wp_constants(),
+			'wp-filesystem'       => self::get_wp_filesystem(),
+		);
 
 		$info['wp-core'] = array(
 			'label'  => __( 'WordPress' ),
