@@ -1981,7 +1981,7 @@ function wp_filter_content_tags( $content, $context = null ) {
  *
  * @since 6.7.0
  *
- * @param string image The image tag markup being filtered.
+ * @param string $image The image tag markup being filtered.
  * @return string The filtered image tag markup.
  */
 function wp_img_tag_add_auto_sizes( $image ) {
