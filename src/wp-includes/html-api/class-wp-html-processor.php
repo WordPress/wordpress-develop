@@ -5451,6 +5451,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 							if ( 'html' !== $ancestor->namespace ) {
 								continue;
 							}
+
 							switch ( $ancestor->node_name ) {
 								/*
 								 * > 5. If _ancestor_ is a `template` node, jump to the step below

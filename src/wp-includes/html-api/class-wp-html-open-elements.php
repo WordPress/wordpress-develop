@@ -530,32 +530,31 @@ class WP_HTML_Open_Elements {
 	}
 
 	/**
-	 * Pops nodes off of the stack of open elements until one with the given tag name has been popped.
+	 * Pops nodes off of the stack of open elements until an HTML tag with the given name has been popped.
 	 *
 	 * @since 6.4.0
 	 *
 	 * @see WP_HTML_Open_Elements::pop
 	 *
-	 * @param string $tag_name      Name of tag that needs to be popped off of the stack of open elements.
-	 * @param string $tag_namespace Optional. Tag namespace. One of 'html', 'svg', or 'math'. Default 'html'.
+	 * @param string $html_tag_name Name of tag that needs to be popped off of the stack of open elements.
 	 * @return bool Whether a tag of the given name was found and popped off of the stack of open elements.
 	 */
-	public function pop_until( string $tag_name, string $tag_namespace = 'html' ): bool {
+	public function pop_until( string $html_tag_name ): bool {
 		foreach ( $this->walk_up() as $item ) {
 			$this->pop();
 
-			if ( $item->namespace !== $tag_namespace ) {
+			if ( 'html' !== $item->namespace ) {
 				continue;
 			}
 
 			if (
-				'(internal: H1 through H6 - do not use)' === $tag_name &&
+				'(internal: H1 through H6 - do not use)' === $html_tag_name &&
 				in_array( $item->node_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
 			) {
 				return true;
 			}
 
-			if ( $tag_name === $item->node_name ) {
+			if ( $html_tag_name === $item->node_name ) {
 				return true;
 			}
 		}
