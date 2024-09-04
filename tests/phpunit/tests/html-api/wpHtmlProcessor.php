@@ -604,9 +604,9 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers ::remove_class
 	 */
 	public function test_remove_class_quirks_mode() {
-		$processor = WP_HTML_Processor::create_full_parser( '<span class="UPPER">' );
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="uPPER">' );
 		$processor->next_tag( 'SPAN' );
-		$processor->remove_class( 'upper' );
+		$processor->remove_class( 'upPer' );
 		$this->assertSame( '<span >', $processor->get_updated_html() );
 	}
 

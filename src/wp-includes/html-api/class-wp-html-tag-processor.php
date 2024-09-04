@@ -2326,7 +2326,22 @@ class WP_HTML_Tag_Processor {
 		 */
 		$modified = false;
 
+		$seen      = array();
+		$to_remove = array();
 		$is_quirks = self::QUIRKS_MODE === $this->compat_mode;
+		if ( $is_quirks ) {
+			foreach ( $this->classname_updates as $updated_name => $action ) {
+				if ( self::REMOVE_CLASS === $action ) {
+					$to_remove[] = strtolower( $updated_name );
+				}
+			}
+		} else {
+			foreach ( $this->classname_updates as $updated_name => $action ) {
+				if ( self::REMOVE_CLASS === $action ) {
+					$to_remove[] = $updated_name;
+				}
+			}
+		}
 
 		// Remove unwanted classes by only copying the new ones.
 		$existing_class_length = strlen( $existing_class );
@@ -2347,21 +2362,18 @@ class WP_HTML_Tag_Processor {
 			$comparable_class_name = $is_quirks ? strtolower( $name ) : $name;
 			$at                   += $name_length;
 
-			// If this class is marked for removal, start processing the next one.
-			$remove_class = (
-				isset( $this->classname_updates[ $comparable_class_name ] ) &&
-				self::REMOVE_CLASS === $this->classname_updates[ $comparable_class_name ]
-			);
-
-			// If a class has already been seen then skip it; it should not be added twice.
-			if ( ! $remove_class ) {
-				$this->classname_updates[ $comparable_class_name ] = self::SKIP_CLASS;
-			}
-
-			if ( $remove_class ) {
+			// If this class is marked for removal, remove it and move on to the next one.
+			if ( in_array( $comparable_class_name, $to_remove, true ) ) {
 				$modified = true;
 				continue;
 			}
+
+			// If a class has already been seen then skip it; it should not be added twice.
+			if ( in_array( $comparable_class_name, $seen, true ) ) {
+				continue;
+			}
+
+			$seen[] = $comparable_class_name;
 
 			/*
 			 * Otherwise, append it to the new "class" attribute value.
@@ -2383,7 +2395,8 @@ class WP_HTML_Tag_Processor {
 
 		// Add new classes by appending those which haven't already been seen.
 		foreach ( $this->classname_updates as $name => $operation ) {
-			if ( self::ADD_CLASS === $operation ) {
+			$comparable_name = $is_quirks ? strtolower( $name ) : $name;
+			if ( self::ADD_CLASS === $operation && ! in_array( $comparable_name, $seen, true ) ) {
 				$modified = true;
 
 				$class .= strlen( $class ) > 0 ? ' ' : '';
