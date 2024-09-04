@@ -1137,12 +1137,8 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			}
 		}
 
-		/** This filter is documented in wp-includes/media.php */
-		$is_auto_sizes_enabled = apply_filters( 'wp_img_auto_sizes_enabled', true );
-
 		// Adds 'auto' to the sizes attribute if applicable.
 		if (
-			$is_auto_sizes_enabled &&
 			isset( $attr['loading'] ) &&
 			'lazy' === $attr['loading'] &&
 			isset( $attr['sizes'] ) &&
@@ -1911,15 +1907,6 @@ function wp_filter_content_tags( $content, $context = null ) {
 		_prime_post_caches( $attachment_ids, false, true );
 	}
 
-	/**
-	 * Filters whether the auto sizes enabled for lazy load images.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @param bool $is_auto_sizes_enabled Whether the auto sizes enabled for lazy load images. Default true.
-	 */
-	$is_auto_sizes_enabled = apply_filters( 'wp_img_auto_sizes_enabled', true );
-
 	// Iterate through the matches in order of occurrence as it is relevant for whether or not to lazy-load.
 	foreach ( $matches as $match ) {
 		// Filter an image match.
@@ -1941,9 +1928,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 			$filtered_image = wp_img_tag_add_loading_optimization_attrs( $filtered_image, $context );
 
 			// Adds 'auto' to the sizes attribute if applicable.
-			if ( $is_auto_sizes_enabled ) {
-				$filtered_image = wp_img_tag_add_auto_sizes( $filtered_image );
-			}
+			$filtered_image = wp_img_tag_add_auto_sizes( $filtered_image );
 
 			/**
 			 * Filters an img tag within the content for a given context.
