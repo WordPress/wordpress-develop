@@ -2025,8 +2025,8 @@ function wp_img_tag_add_auto_sizes( $image ) {
  * @return bool True if the 'auto' keyword is present, false otherwise.
  */
 function wp_sizes_attribute_includes_valid_auto( string $sizes_attr ) {
-	$token = strtok( strtolower( $sizes_attr ), ',' );
-	return false !== $token && 'auto' === trim( $token, " \t\f\r\n" );
+	list( $first_size ) = explode( ',', $sizes_attr, 2 );
+	return 'auto' === strtolower( trim( $first_size, " \t\f\r\n" ) );
 }
 
 /**
