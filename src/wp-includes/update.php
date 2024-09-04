@@ -121,6 +121,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 				array(
 					'webp' => isset( $gd_info['WebP Support'] ),
 					'avif' => isset( $gd_info['AVIF Support'] ),
+					'heic' => isset( $gd_info['HEIC Support'] ),
 				)
 			)
 		);
@@ -133,6 +134,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 				array(
 					'webp' => ! empty( Imagick::queryFormats( 'WEBP' ) ),
 					'avif' => ! empty( Imagick::queryFormats( 'AVIF' ) ),
+					'heic' => ! empty( Imagick::queryFormats( 'HEIC' ) ),
 				)
 			)
 		);
