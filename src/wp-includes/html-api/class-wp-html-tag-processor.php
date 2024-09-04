@@ -3965,11 +3965,29 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		if ( self::QUIRKS_MODE === $this->compat_mode ) {
-			$class_name = strtolower( $class_name );
+		if ( self::QUIRKS_MODE !== $this->compat_mode ) {
+			$this->classname_updates[ $class_name ] = self::ADD_CLASS;
+			return true;
 		}
-		$this->classname_updates[ $class_name ] = self::ADD_CLASS;
 
+		/*
+		 * Because class names are matched ASCII-case-insensitively in quirks mode,
+		 * this needs to see if a case variant of the given class name is already
+		 * enqueued and update that existing entry, if so. This picks the casing of
+		 * the first-provided class name for all lexical variations.
+		 */
+		$class_name_length = strlen( $class_name );
+		foreach ( $this->classname_updates as $updated_name => $action ) {
+			if (
+				strlen( $updated_name ) === $class_name_length &&
+				0 === substr_compare( $updated_name, $class_name, 0, $class_name_length, true )
+			) {
+				$this->classname_updates[ $updated_name ] = self::ADD_CLASS;
+				return true;
+			}
+		}
+
+		$this->classname_updates[ $class_name ] = self::ADD_CLASS;
 		return true;
 	}
 
@@ -3989,13 +4007,29 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		if ( null !== $this->tag_name_starts_at ) {
-			if ( self::QUIRKS_MODE === $this->compat_mode ) {
-				$class_name = strtolower( $class_name );
-			}
+		if ( self::QUIRKS_MODE !== $this->compat_mode ) {
 			$this->classname_updates[ $class_name ] = self::REMOVE_CLASS;
+			return true;
 		}
 
+		/*
+		 * Because class names are matched ASCII-case-insensitively in quirks mode,
+		 * this needs to see if a case variant of the given class name is already
+		 * enqueued and update that existing entry, if so. This picks the casing of
+		 * the first-provided class name for all lexical variations.
+		 */
+		$class_name_length = strlen( $class_name );
+		foreach ( $this->classname_updates as $updated_name => $action ) {
+			if (
+				strlen( $updated_name ) === $class_name_length &&
+				0 === substr_compare( $updated_name, $class_name, 0, $class_name_length, true )
+			) {
+				$this->classname_updates[ $updated_name ] = self::REMOVE_CLASS;
+				return true;
+			}
+		}
+
+		$this->classname_updates[ $class_name ] = self::REMOVE_CLASS;
 		return true;
 	}
 
