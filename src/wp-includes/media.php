@@ -2054,6 +2054,7 @@ function wp_sizes_attribute_includes_valid_auto( string $sizes_attr ) {
  * @return string Converted `img` tag with optimization attributes added.
  */
 function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
+	$src               = preg_match( '/ src=["\']?([^"\']*)/i', $image, $matche_src ) ? $matche_src[1] : null;
 	$width             = preg_match( '/ width=["\']([0-9]+)["\']/', $image, $match_width ) ? (int) $match_width[1] : null;
 	$height            = preg_match( '/ height=["\']([0-9]+)["\']/', $image, $match_height ) ? (int) $match_height[1] : null;
 	$loading_val       = preg_match( '/ loading=["\']([A-Za-z]+)["\']/', $image, $match_loading ) ? $match_loading[1] : null;
@@ -2068,6 +2069,7 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 	$optimization_attrs = wp_get_loading_optimization_attributes(
 		'img',
 		array(
+			'src'           => $src,
 			'width'         => $width,
 			'height'        => $height,
 			'loading'       => $loading_val,
