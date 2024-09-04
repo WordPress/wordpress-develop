@@ -606,6 +606,9 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 				case 'image/webp':
 					$ext = '.webp';
 					break;
+				case 'image/avif':
+					$ext = '.avif';
+					break;
 			}
 			$basename = str_replace( '.', '-', wp_basename( $file ) ) . '-image' . $ext;
 			$uploaded = wp_upload_bits( $basename, '', $metadata['image']['data'] );
