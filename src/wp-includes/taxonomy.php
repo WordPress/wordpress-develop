@@ -2300,7 +2300,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	if ( count( $taxonomies ) > 1 ) {
 		foreach ( $taxonomies as $index => $taxonomy ) {
 			$t = get_taxonomy( $taxonomy );
-			if ( ! isset( $t->args['orderby'] ) && isset( $t->sort ) && $t->sort ) {
+			if ( ! isset( $t->args['orderby'] ) && ! isset( $args['orderby'] ) && isset( $t->sort ) && $t->sort ) {
 				$t->args['orderby'] = 'term_order';
 			}
 			if ( isset( $t->args ) && is_array( $t->args ) && array_merge( $args, $t->args ) != $args ) {
@@ -2310,7 +2310,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 		}
 	} else {
 		$t = get_taxonomy( $taxonomies[0] );
-		if ( ! isset( $t->args['orderby'] ) && isset( $t->sort ) && $t->sort ) {
+		if ( ! isset( $t->args['orderby'] ) && ! isset( $args['orderby'] ) && isset( $t->sort ) && $t->sort ) {
 			$t->args['orderby'] = 'term_order';
 		}
 		if ( isset( $t->args ) && is_array( $t->args ) ) {
