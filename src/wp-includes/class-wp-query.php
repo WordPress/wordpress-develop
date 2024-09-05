@@ -1202,7 +1202,7 @@ class WP_Query {
 							'terms' => preg_split( '/[,]+/', $term ),
 						)
 					);
-				} elseif ( '' === $term ) {
+				} else {
 					// FIXME: Figure out why 'category' is automatically
 					// added as a query arg and what to do about it.
 					if ( 'category' !== $taxonomy ) {
