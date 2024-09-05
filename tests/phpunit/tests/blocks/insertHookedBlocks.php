@@ -22,6 +22,43 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 		),
 	);
 
+	public function set_up() {
+		register_block_type(
+			self::HOOKED_BLOCK_TYPE,
+			array(
+				'block_hooks' => array(
+					self::ANCHOR_BLOCK_TYPE => 'after',
+				),
+			)
+		);
+
+		register_block_type(
+			self::OTHER_HOOKED_BLOCK_TYPE,
+			array(
+				'block_hooks' => array(
+					self::ANCHOR_BLOCK_TYPE => 'before',
+				),
+			)
+		);
+	}
+
+	/**
+	 * Tear down each test method.
+	 */
+	public function tear_down() {
+		$registry = WP_Block_Type_Registry::get_instance();
+
+		if ( $registry->is_registered( self::HOOKED_BLOCK_TYPE ) ) {
+			$registry->unregister( self::HOOKED_BLOCK_TYPE );
+		}
+
+		if ( $registry->is_registered( self::OTHER_HOOKED_BLOCK_TYPE ) ) {
+			$registry->unregister( self::OTHER_HOOKED_BLOCK_TYPE );
+		}
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 59572
 	 * @ticket 60126
