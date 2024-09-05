@@ -1466,7 +1466,7 @@ function get_transient( $transient, $force = false ) {
 		}
 
 		if ( ! isset( $value ) ) {
-			$value = get_option( $transient_option , $force);
+			$value = get_option( $transient_option, $force );
 		}
 	}
 
