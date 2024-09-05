@@ -274,26 +274,40 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 56481
 	 */
 	public function test_get_items_with_head_request_should_not_prepare_post_data() {
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( 'HEAD', '/wp/v2/posts' );
 
+		$hook_name = 'rest_prepare_post';
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+
+		add_filter( $hook_name, $callback );
 		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
 
 		$this->assertNotWPError( $response );
 		$response = rest_ensure_response( $response );
-		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
 
 		$headers = $response->get_headers();
-		$this->assertArrayHasKey( 'X-WP-Total', $headers );
-		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
+		$this->assertSame( 0, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
+		$this->assertArrayHasKey( 'Link', $headers, 'The "Link" header should be present in the response.' );
+		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
 	/**
 	 * A valid query that returns 0 results should return an empty JSON list.
+	 * In case of a HEAD request, the response should not contain a body.
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @link https://github.com/WP-API/WP-API/issues/862
+	 * @ticket 56481
+	 * @covers WP_REST_Posts_Controller::get_items
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_empty_query() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+	public function test_get_items_empty_query( $method ) {
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_query_params(
 			array(
 				'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
@@ -301,8 +315,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEmpty( $response->get_data() );
-		$this->assertSame( 200, $response->get_status() );
+		if ( 'HEAD' === $method ) {
+			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+		} else {
+			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is an empty array for GET request.' );
+		}
+
+		$headers = $response->get_headers();
+		$this->assertSame( 0, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 0.' );
+		$this->assertSame( 0, $headers['X-WP-TotalPages'], 'Failed asserting that X-WP-TotalPages header is 0.' );
 	}
 
 	public function test_get_items_author_query() {
@@ -1676,7 +1697,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @dataProvider data_get_items_pagination_headers
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 56481
 	 *
 	 * @param string $method HTTP method to use.
@@ -1780,14 +1801,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * Data provider for test_get_items_pagination_headers.
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
 	 *
 	 * @return array
 	 */
-	public function data_get_items_pagination_headers() {
+	public function data_readable_http_methods() {
 		return array(
-			'HEAD request' => array('HEAD'),
-			'GET request' => array('GET')
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
 		);
 	}
 
@@ -1941,22 +1962,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 56481
 	 */
 	public function test_get_item_with_head_request_should_not_prepare_post_data() {
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
-
-		$filter = new MockAction();
+		$request = new WP_REST_Request( 'HEAD', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 
 		$hook_name = 'rest_prepare_' . get_post_type( self::$post_id );
 
-		add_filter( $hook_name, array( $filter, 'filter' ) );
+		$filter   = new MockAction();
+		$callback = array( $filter, 'filter' );
+		add_filter( $hook_name, $callback );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( $hook_name, array( $filter, 'filter' ) );
+		remove_filter( $hook_name, $callback );
 
 		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
 
 		$headers = $response->get_headers();
+		$this->assertSame( 0, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
 		$this->assertArrayHasKey( 'Link', $headers, 'The "Link" header should be present in the response.' );
 		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
-		$this->assertEmpty( $filter->get_events(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
 	}
 
 	public function test_get_item_links() {
