@@ -411,9 +411,15 @@ function wp_register_block_metadata( $namespace, $source, $metadata ) {
  * @param array  $args           Optional. Array of block type arguments. Accepts any public property
  *                               of `WP_Block_Type`. See WP_Block_Type::__construct() for information
  *                               on accepted arguments. Default empty array.
+ * @param string $metadata_source Optional. The source identifier for the metadata in the format `namespace/source`.
+ *                                The namespace is a unique identifier for your plugin or theme, and the source
+ *                                is a unique identifier for your block's metadata within that namespace.
+ *                                If provided, the function will attempt to retrieve the block's metadata
+ *                                from the `WP_Block_Metadata_Registry` before falling back to reading
+ *                                from the JSON file. Default empty string.
  * @return WP_Block_Type|false The registered block type on success, or false on failure.
  */
-function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
+function register_block_type_from_metadata( $file_or_folder, $args = array(), $metadata_source = '' ) {
 	$metadata = array();
 	$registry = WP_Block_Metadata_Registry::get_instance();
 
@@ -431,12 +437,12 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			}
 			$metadata = $registry->get_metadata( 'core', $core_block_name );
 		}
-	} else {
-		// Check if metadata is registered for a third-party source.
-		$namespace = ! empty( $args['namespace'] ) ? $args['namespace'] : '';
-		$source = ! empty( $args['source'] ) ? $args['source'] : '';
-
-		if ( $namespace && $source ) {
+	} elseif ( $metadata_source ) {
+		// Parse the metadata_source to get namespace and source
+		$parts = explode( '/', $metadata_source, 2 );
+		if ( count( $parts ) === 2 ) {
+			$namespace = $parts[0];
+			$source = $parts[1];
 			$metadata = $registry->get_metadata( $namespace, $source );
 		}
 	}

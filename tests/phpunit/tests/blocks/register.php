@@ -1503,11 +1503,14 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests registering a block with variations from a PHP file.
+	 * Tests registering a third-party block type using metadata from the registry.
+	 *
+	 * This test ensures that a block type can be registered using metadata stored
+	 * in the `WP_Block_Metadata_Registry` by providing a `$metadata_source` argument.
 	 *
 	 * @covers ::register_block_type_from_metadata
 	 */
-	public function test_register_third_party_block() {
+	public function test_register_block_type_from_registry_metadata() {
 		$metadata = array(
 			'name' => 'test/block-from-registry',
 			'title' => 'Test Block From Registry',
@@ -1517,23 +1520,24 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		);
 
 		$registry = WP_Block_Metadata_Registry::get_instance();
-		$registry->register( 'test', 'block', $metadata );
+		$registry->register( 'test', 'block-from-registry', $metadata );
 
-		$result = register_block_type_from_metadata( 'nonexistent/path', array(
-			'namespace' => 'test',
-			'source' => 'block-from-registry',
-		) );
+		$result = register_block_type_from_metadata( 'nonexistent/path', array(), 'test/block-from-registry' );
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
 		$this->assertEquals( 'test/block-from-registry', $result->name );
 	}
 
 	/**
-	 * Tests registering a block with variations from a PHP file.
+	 * Tests registering a block type from a `block.json` file.
+	 *
+	 * This test ensures that `register_block_type_from_metadata()` can still register
+	 * a block type using metadata from a `block.json` file when no `$metadata_source`
+	 * argument is provided.
 	 *
 	 * @covers ::register_block_type_from_metadata
 	 */
-	public function test_register_block_from_json_file() {
+	public function test_register_block_type_from_json_file() {
 		$temp_dir = get_temp_dir();
 		$block_json = $temp_dir . 'block.json';
 		file_put_contents( $block_json, json_encode( array(
