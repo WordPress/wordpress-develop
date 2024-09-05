@@ -916,6 +916,29 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 
 	$markup = '';
 	foreach ( $hooked_block_types as $hooked_block_type ) {
+		$hooked_block_type_definition = WP_Block_Type_Registry::get_instance()->get_registered( $hooked_block_type );
+		if ( ! $hooked_block_type_definition ) {
+			continue;
+		}
+		if ( false === block_has_support( $hooked_block_type_definition, 'multiple', true ) ) {
+			if ( $context instanceof WP_Block_Template ) {
+				// Template or template part.
+				$content = $context->content;
+			} elseif ( $context instanceof WP_Post ) {
+				// wp_navigation post.
+				$content = $context->post_content;
+			} elseif ( is_array( $context ) && isset( $context['content'] ) ) {
+				// Pattern.
+				$content = $context['content'];
+			} else {
+				$content = '';
+			}
+
+			if ( ! empty( $content ) && has_block( $hooked_block_type, $content ) ) {
+				continue;
+			}
+		}
+
 		$parsed_hooked_block = array(
 			'blockName'    => $hooked_block_type,
 			'attrs'        => array(),
