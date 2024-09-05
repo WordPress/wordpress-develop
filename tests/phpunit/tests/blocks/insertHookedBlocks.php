@@ -36,7 +36,7 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 				'block_hooks' => array(
 					self::ANCHOR_BLOCK_TYPE => 'before',
 				),
-				'supports' => array(
+				'supports'    => array(
 					'multiple' => false,
 				),
 			)
