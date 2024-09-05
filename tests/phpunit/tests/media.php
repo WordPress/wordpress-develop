@@ -51,15 +51,26 @@ CAP;
 				)
 			);
 
-			// Attachments without media.
-			self::$post_ids[ "$post_status-attachment" ] = $factory->attachment->create_object(
-				array(
-					'post_parent' => self::$post_ids[ $post_status ],
-					'post_status' => 'inherit',
-					'post_name'   => "$post_status-attachment",
-					'post_date'   => $date,
-				)
-			);
+			foreach ( array( 'enabled', 'disabled' ) as $attachment_page_status ) {
+				$attachment_pages_enabled = 'enabled' === $attachment_page_status;
+				$attachment_option_value  = $attachment_pages_enabled ? '1' : '0';
+				$filter                   = function ( $value ) use ( $attachment_option_value ) {
+					return $attachment_option_value;
+				};
+				add_filter( 'option_wp_attachment_pages_enabled', $filter );
+
+				// Attachments without media.
+				self::$post_ids[ "$post_status-attachment-attachment-page-$attachment_page_status" ] = $factory->attachment->create_object(
+					array(
+						'post_parent' => self::$post_ids[ $post_status ],
+						'post_status' => 'inherit',
+						'post_name'   => "$post_status-attachment-attachment-page-$attachment_page_status",
+						'post_date'   => $date,
+					)
+				);
+
+				remove_filter( 'option_wp_attachment_pages_enabled', $filter );
+			}
 		}
 
 		// Trash the trash post.
@@ -74,6 +85,8 @@ CAP;
 		wp_delete_attachment( self::$large_id, true );
 		parent::tear_down_after_class();
 	}
+
+
 
 	/**
 	 * Ensures that the static content media count, fetchpriority element flag and related filter are reset between tests.
@@ -3644,9 +3657,7 @@ EOF;
 	 */
 	public function test_attachment_permalinks_based_on_parent_status( $post_key, $expected_url, $expected_404, $attachment_pages_enabled = true ) {
 		$this->set_permalink_structure( '/%postname%' );
-		$post                    = get_post( self::$post_ids[ $post_key ] );
-		$attachment_option_value = $attachment_pages_enabled ? '1' : '0';
-		update_option( 'wp_attachment_pages_enabled', $attachment_option_value );
+		$post = get_post( self::$post_ids[ $post_key ] );
 
 		/*
 		 * The dataProvider runs before the fixures are set up, therefore the
@@ -3675,13 +3686,16 @@ EOF;
 	 */
 	public function data_attachment_permalinks_based_on_parent_status() {
 		return array(
-			'draft'                            => array( 'draft-attachment', '/?attachment_id=%ID%', true ),
-			'publish (attachment pages on)'    => array( 'publish-attachment', '/publish-post/publish-attachment', false ),
-			'future (attachment pages on)'     => array( 'future-attachment', '/future-post/future-attachment', false ),
-			'publish (attachment pages off)'   => array( 'publish-attachment', '/publish-post/da39a3ee5e6b4b0d3255bfef95601890afd80709', false, false ),
-			'future (attachment pages off)'    => array( 'future-attachment', '/future-post/da39a3ee5e6b4b0d3255bfef95601890afd80709-2', false, false ),
-			'auto-draft (attachment pages on)' => array( 'auto-draft-attachment', '/?attachment_id=%ID%', true ),
-			'trash (attachment pages on)'      => array( 'trash-attachment', '/?attachment_id=%ID%', false ),
+			'draft (attachment pages on)'       => array( 'draft-attachment-attachment-page-enabled', '/?attachment_id=%ID%', true ),
+			'draft (attachment pages off)'      => array( 'draft-attachment-attachment-page-disabled', '/?attachment_id=%ID%', true ),
+			'publish (attachment pages on)'     => array( 'publish-attachment-attachment-page-enabled', '/publish-post/publish-attachment-attachment-page-enabled', false ),
+			'publish (attachment pages off)'    => array( 'publish-attachment-attachment-page-disabled', '/publish-post/da39a3ee5e6b4b0d3255bfef95601890afd80709', false, false ),
+			'future (attachment pages on)'      => array( 'future-attachment-attachment-page-enabled', '/future-post/future-attachment-attachment-page-enabled', false ),
+			'future (attachment pages off)'     => array( 'future-attachment-attachment-page-disabled', '/future-post/da39a3ee5e6b4b0d3255bfef95601890afd80709-2', false, false ),
+			'auto-draft (attachment pages on)'  => array( 'auto-draft-attachment-attachment-page-enabled', '/?attachment_id=%ID%', true ),
+			'auto-draft (attachment pages off)' => array( 'auto-draft-attachment-attachment-page-disabled', '/?attachment_id=%ID%', true ),
+			'trash (attachment pages on)'       => array( 'trash-attachment-attachment-page-enabled', '/?attachment_id=%ID%', false ),
+			'trash (attachment pages off)'      => array( 'trash-attachment-attachment-page-disabled', '/?attachment_id=%ID%', false ),
 		);
 	}
 
