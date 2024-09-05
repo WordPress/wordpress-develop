@@ -6369,7 +6369,7 @@ function wp_insert_attachment( $args, $file = false, $parent_post_id = 0, $wp_er
 	$generated_post_name = sha1( basename( $file ) );
 	$use_generated_slug  = (
 		0 === absint( get_option( 'wp_attachment_pages_enabled' ) )
-		&& ( ! defined( 'WP_IMPORTING' ) || ! WP_IMPORTING )
+		&& ! empty( $data['import_id'] )
 	);
 
 	/**
