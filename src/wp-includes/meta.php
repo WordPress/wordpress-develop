@@ -1379,6 +1379,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *                                         the meta key will be registered on the entire object type. Default empty.
  *     @type string     $type              The type of data associated with this meta key.
  *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
+ *     @type string     $label             A human-readable label of the data attached to this meta key.
  *     @type string     $description       A description of the data attached to this meta key.
  *     @type bool       $single            Whether the meta key has one value per object, or an array of values per object.
  *     @type mixed      $default           The default value returned from get_metadata() if no value has been set yet.
@@ -1411,6 +1412,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	$defaults = array(
 		'object_subtype'    => '',
 		'type'              => 'string',
+		'label'             => '',
 		'description'       => '',
 		'default'           => '',
 		'single'            => false,
