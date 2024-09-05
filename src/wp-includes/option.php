@@ -69,13 +69,14 @@
  *
  * @param string $option        Name of the option to retrieve. Expected to not be SQL-escaped.
  * @param mixed  $default_value Optional. Default value to return if the option does not exist.
+ * @param bool   $force         Optional. Whether to force the option to be fetched uncached.
  * @return mixed Value of the option. A value of any type may be returned, including
  *               scalar (string, boolean, float, integer), null, array, object.
  *               Scalar and null values will be returned as strings as long as they originate
  *               from a database stored option value. If there is no option in the database,
  *               boolean `false` is returned.
  */
-function get_option( $option, $default_value = false ) {
+function get_option( $option, $default_value = false, $force = false ) {
 	global $wpdb;
 
 	if ( is_scalar( $option ) ) {
@@ -106,7 +107,7 @@ function get_option( $option, $default_value = false ) {
 				$deprecated_keys[ $option ]
 			)
 		);
-		return get_option( $deprecated_keys[ $option ], $default_value );
+		return get_option( $deprecated_keys[ $option ], $default_value, $force );
 	}
 
 	/**
@@ -166,11 +167,11 @@ function get_option( $option, $default_value = false ) {
 		if ( isset( $alloptions[ $option ] ) ) {
 			$value = $alloptions[ $option ];
 		} else {
-			$value = wp_cache_get( $option, 'options' );
+			$value = wp_cache_get( $option, 'options', $force );
 
 			if ( false === $value ) {
 				// Prevent non-existent options from triggering multiple queries.
-				$notoptions = wp_cache_get( 'notoptions', 'options' );
+				$notoptions = wp_cache_get( 'notoptions', 'options', $force );
 
 				// Prevent non-existent `notoptions` key from triggering multiple key lookups.
 				if ( ! is_array( $notoptions ) ) {
@@ -1417,9 +1418,10 @@ function delete_transient( $transient ) {
  * @since 2.8.0
  *
  * @param string $transient Transient name. Expected to not be SQL-escaped.
+ * @param bool   $force Whether to force retrieving from database.
  * @return mixed Value of transient.
  */
-function get_transient( $transient ) {
+function get_transient( $transient, $force = false ) {
 
 	/**
 	 * Filters the value of an existing transient before it is retrieved.
@@ -1444,7 +1446,7 @@ function get_transient( $transient ) {
 	}
 
 	if ( wp_using_ext_object_cache() || wp_installing() ) {
-		$value = wp_cache_get( $transient, 'transient' );
+		$value = wp_cache_get( $transient, 'transient', $force );
 	} else {
 		$transient_option = '_transient_' . $transient;
 		if ( ! wp_installing() ) {
@@ -1454,7 +1456,7 @@ function get_transient( $transient ) {
 			if ( ! isset( $alloptions[ $transient_option ] ) ) {
 				$transient_timeout = '_transient_timeout_' . $transient;
 				wp_prime_option_caches( array( $transient_option, $transient_timeout ) );
-				$timeout = get_option( $transient_timeout );
+				$timeout = get_option( $transient_timeout, $force );
 				if ( false !== $timeout && $timeout < time() ) {
 					delete_option( $transient_option );
 					delete_option( $transient_timeout );
@@ -1464,7 +1466,7 @@ function get_transient( $transient ) {
 		}
 
 		if ( ! isset( $value ) ) {
-			$value = get_option( $transient_option );
+			$value = get_option( $transient_option , $force);
 		}
 	}
 
