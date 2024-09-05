@@ -1906,10 +1906,11 @@ function delete_all_user_settings() {
  * @param string $option        Name of the option to retrieve. Expected to not be SQL-escaped.
  * @param mixed  $default_value Optional. Value to return if the option doesn't exist. Default false.
  * @param bool   $deprecated    Whether to use cache. Multisite only. Always set to true.
+ * @param bool   $force         Whether to force the option to be fetched uncached.
  * @return mixed Value set for the option.
  */
-function get_site_option( $option, $default_value = false, $deprecated = true ) {
-	return get_network_option( null, $option, $default_value );
+function get_site_option( $option, $default_value = false, $deprecated = true, $force = false ) {
+	return get_network_option( null, $option, $default_value, $force );
 }
 
 /**
@@ -1973,9 +1974,10 @@ function update_site_option( $option, $value ) {
  * @param int    $network_id    ID of the network. Can be null to default to the current network ID.
  * @param string $option        Name of the option to retrieve. Expected to not be SQL-escaped.
  * @param mixed  $default_value Optional. Value to return if the option doesn't exist. Default false.
+ * @param bool   $force         Whether to force the option to be fetched uncached.
  * @return mixed Value set for the option.
  */
-function get_network_option( $network_id, $option, $default_value = false ) {
+function get_network_option( $network_id, $option, $default_value = false, $force = false ) {
 	global $wpdb;
 
 	if ( $network_id && ! is_numeric( $network_id ) ) {
@@ -2020,7 +2022,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 
 	// Prevent non-existent options from triggering multiple queries.
 	$notoptions_key = "$network_id:notoptions";
-	$notoptions     = wp_cache_get( $notoptions_key, 'site-options' );
+	$notoptions     = wp_cache_get( $notoptions_key, 'site-options', $force );
 
 	if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
 
@@ -2044,10 +2046,10 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	if ( ! is_multisite() ) {
 		/** This filter is documented in wp-includes/option.php */
 		$default_value = apply_filters( 'default_site_option_' . $option, $default_value, $option, $network_id );
-		$value         = get_option( $option, $default_value );
+		$value         = get_option( $option, $default_value, $force );
 	} else {
 		$cache_key = "$network_id:$option";
-		$value     = wp_cache_get( $cache_key, 'site-options' );
+		$value     = wp_cache_get( $cache_key, 'site-options', $force );
 
 		if ( ! isset( $value ) || false === $value ) {
 			$row = $wpdb->get_row( $wpdb->prepare( "SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s AND site_id = %d", $option, $network_id ) );
@@ -2517,9 +2519,10 @@ function delete_site_transient( $transient ) {
  * @see get_transient()
  *
  * @param string $transient Transient name. Expected to not be SQL-escaped.
+ * @param bool   $force     Whether to force retrieval uncached transient.
  * @return mixed Value of transient.
  */
-function get_site_transient( $transient ) {
+function get_site_transient( $transient, $force = false ) {
 
 	/**
 	 * Filters the value of an existing site transient before it is retrieved.
@@ -2544,7 +2547,7 @@ function get_site_transient( $transient ) {
 	}
 
 	if ( wp_using_ext_object_cache() || wp_installing() ) {
-		$value = wp_cache_get( $transient, 'site-transient' );
+		$value = wp_cache_get( $transient, 'site-transient', $force );
 	} else {
 		// Core transients that do not have a timeout. Listed here so querying timeouts can be avoided.
 		$no_timeout       = array( 'update_core', 'update_plugins', 'update_themes' );
@@ -2553,7 +2556,7 @@ function get_site_transient( $transient ) {
 			$transient_timeout = '_site_transient_timeout_' . $transient;
 			wp_prime_site_option_caches( array( $transient_option, $transient_timeout ) );
 
-			$timeout = get_site_option( $transient_timeout );
+			$timeout = get_site_option( $transient_timeout, $force );
 			if ( false !== $timeout && $timeout < time() ) {
 				delete_site_option( $transient_option );
 				delete_site_option( $transient_timeout );
@@ -2562,7 +2565,7 @@ function get_site_transient( $transient ) {
 		}
 
 		if ( ! isset( $value ) ) {
-			$value = get_site_option( $transient_option );
+			$value = get_site_option( $transient_option, $force );
 		}
 	}
 
