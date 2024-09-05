@@ -1169,7 +1169,7 @@ class WP_Query {
 				continue; // Handled further down in the $q['tag'] block.
 			}
 
-			if ( $t->query_var && ( ! empty( $q[ $t->query_var ] || '' === $q[ $t->query_var ] ) ) ) {
+			if ( $t->query_var && isset( $q[ $t->query_var ] ) ) {
 				$tax_query_defaults = array(
 					'taxonomy' => $taxonomy,
 					'field'    => 'slug',
@@ -1195,14 +1195,14 @@ class WP_Query {
 							)
 						);
 					}
-				} elseif ( '' !== $term ) {
+				} elseif ( ! empty( $term ) ) {
 					$tax_query[] = array_merge(
 						$tax_query_defaults,
 						array(
 							'terms' => preg_split( '/[,]+/', $term ),
 						)
 					);
-				} else {
+				} elseif ( '' === $term ) {
 					// FIXME: Figure out why 'category' is automatically
 					// added as a query arg and what to do about it.
 					if ( 'category' !== $taxonomy ) {
