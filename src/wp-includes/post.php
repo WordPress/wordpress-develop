@@ -5851,7 +5851,18 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 
 	$hash      = md5( $page_path . serialize( $post_type ) );
-	$cache_key = "get_page_by_path:$hash:$last_changed";
+
+	/**
+	 * Filters the cache key for the ID found for the given path.
+	 *
+	 * @since unreleased
+	 *
+	 * @param string       $cache_key Default cache key.
+	 * @param string       $page_path Page path.
+	 * @param string|array $post_type Post type or array of post types.
+	 */
+	$cache_key = apply_filters( 'page_by_path_cache_key', "get_page_by_path:$hash:$last_changed", $page_path, $post_type );
+
 	$cached    = wp_cache_get( $cache_key, 'post-queries' );
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
@@ -5917,6 +5928,17 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 			}
 		}
 	}
+
+	/**
+	 * Filters the ID that was found for the (path, post type) pair.
+	 *
+	 * @since unreleased
+	 *
+	 * @param int          $foundid   ID found for the (path, post type) pair.
+	 * @param string       $page_path Page path.
+	 * @param string|array $post_type Post type or array of post types.
+	 */
+	$foundid = apply_filters( 'page_by_path_id', $foundid, $page_path, $post_type );
 
 	// We cache misses as well as hits.
 	wp_cache_set( $cache_key, $foundid, 'post-queries' );
