@@ -378,11 +378,16 @@ function get_block_metadata_i18n_schema() {
 /**
  * Registers block metadata from a given source.
  *
+ * This function allows core and third-party plugins to register their block metadata
+ * in a centralized location. Registering metadata can improve performance by avoiding
+ * multiple reads from the filesystem.
+ *
  * @since 6.X.0
  *
  * @param string $namespace The namespace for the metadata (e.g., 'core', 'mythirdpartyplugin').
  * @param string $source    The source identifier for the metadata within the namespace.
- * @param array  $metadata  The block metadata.
+ *                          This can be a unique identifier for your plugin's blocks.
+ * @param array  $metadata  The block metadata to be registered.
  */
 function wp_register_block_metadata( $namespace, $source, $metadata ) {
 	WP_Block_Metadata_Registry::get_instance()->register( $namespace, $source, $metadata );
