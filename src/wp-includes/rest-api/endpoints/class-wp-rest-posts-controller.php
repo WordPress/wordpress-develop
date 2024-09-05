@@ -422,11 +422,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( $is_head_request ) {
-			$response = new WP_REST_Response();
-		} else {
-			$response = rest_ensure_response( $posts );
-		}
+		$response = $is_head_request ? new WP_REST_Response() : rest_ensure_response( $posts );
 
 		$response->header( 'X-WP-Total', (int) $total_posts );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
@@ -581,11 +577,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 
 		if ( $request->is_method( 'head' ) ) {
-			$data = $this->prepare_item_for_response( $post, $request );
-			rest_ensure_response( $data );
+			$response = new WP_REST_Response();
+		} else {
+			$data     = $this->prepare_item_for_response( $post, $request );
+			$response = rest_ensure_response( $data );
 		}
-
-		$response = rest_ensure_response( $data );
 
 		if ( is_post_type_viewable( get_post_type_object( $post->post_type ) ) ) {
 			$response->link_header( 'alternate', get_permalink( $post->ID ), array( 'type' => 'text/html' ) );
