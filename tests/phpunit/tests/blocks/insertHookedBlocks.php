@@ -22,7 +22,12 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 		),
 	);
 
-	public function set_up() {
+	/**
+	 * Set up.
+	 *
+	 * @ticket 61902.
+	 */
+	public static function wpSetUpBeforeClass() {
 		register_block_type(
 			self::HOOKED_BLOCK_TYPE,
 			array(
@@ -43,20 +48,15 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tear down each test method.
+	 * Tear down.
+	 *
+	 * @ticket 61902.
 	 */
-	public function tear_down() {
+	public static function wpTearDownAfterClass() {
 		$registry = WP_Block_Type_Registry::get_instance();
 
-		if ( $registry->is_registered( self::HOOKED_BLOCK_TYPE ) ) {
-			$registry->unregister( self::HOOKED_BLOCK_TYPE );
-		}
-
-		if ( $registry->is_registered( self::OTHER_HOOKED_BLOCK_TYPE ) ) {
-			$registry->unregister( self::OTHER_HOOKED_BLOCK_TYPE );
-		}
-
-		parent::tear_down();
+		$registry->unregister( self::HOOKED_BLOCK_TYPE );
+		$registry->unregister( self::OTHER_HOOKED_BLOCK_TYPE );
 	}
 
 	/**
