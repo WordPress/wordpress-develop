@@ -1984,7 +1984,7 @@ function wp_filter_content_tags( $content, $context = null ) {
  * @param string $image The image tag markup being filtered.
  * @return string The filtered image tag markup.
  */
-function wp_img_tag_add_auto_sizes( $image ) {
+function wp_img_tag_add_auto_sizes( string $image ): string {
 	$processor = new WP_HTML_Tag_Processor( $image );
 
 	// Bail if there is no IMG tag.
