@@ -271,6 +271,23 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_with_head_request_should_not_prepare_post_data() {
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertNotWPError( $response );
+		$response = rest_ensure_response( $response );
+		$this->assertSame( 200, $response->get_status() );
+
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'X-WP-Total', $headers );
+		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
+	}
+
+	/**
 	 * A valid query that returns 0 results should return an empty JSON list.
 	 *
 	 * @link https://github.com/WP-API/WP-API/issues/862
@@ -1658,12 +1675,18 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSameSets( $parent_ids, $last[1] );
 	}
 
-	public function test_get_items_pagination_headers() {
+	/**
+	 * @dataProvider data_get_items_pagination_headers
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_pagination_headers( $method ) {
 		$total_posts = self::$total_posts;
 		$total_pages = (int) ceil( $total_posts / 10 );
 
 		// Start of the index.
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertSame( $total_posts, $headers['X-WP-Total'] );
@@ -1754,6 +1777,18 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+	}
+
+	/**
+	 * Data provider for test_get_items_pagination_headers.
+	 *
+	 * @return array
+	 */
+	public function data_get_items_pagination_headers() {
+		return array(
+			'HEAD request' => array('HEAD'),
+			'GET request' => array('GET')
+		);
 	}
 
 	public function test_get_items_status_draft_permissions() {
@@ -1906,33 +1941,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 56481
 	 */
 	public function test_get_item_with_head_request_should_not_prepare_post_data() {
-		$request = new WP_REST_Request( 'HEAD', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 
-		$callback_method_name = 'prepare_response_callback';
-		$mock                 = $this->getMockBuilder( stdClass::class )
-					->addMethods( array( $callback_method_name ) )
-					->getMock();
-
-		$mock->expects( $this->never() )
-			->method( $callback_method_name );
+		$filter = new MockAction();
 
 		$hook_name = 'rest_prepare_' . get_post_type( self::$post_id );
-		add_filter( $hook_name, array( $mock, $callback_method_name ) );
 
-		try {
-			$response = rest_get_server()->dispatch( $request );
-		} catch ( PHPUnit\Framework\ExpectationFailedException $e ) {
-			remove_filter( $hook_name, array( $mock, $callback_method_name ) );
-			$this->fail( 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
-		}
-
-		remove_filter( $hook_name, array( $mock, $callback_method_name ) );
+		add_filter( $hook_name, array( $filter, 'filter' ) );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, array( $filter, 'filter' ) );
 
 		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
 
 		$headers = $response->get_headers();
 		$this->assertArrayHasKey( 'Link', $headers, 'The "Link" header should be present in the response.' );
 		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+		$this->assertEmpty( $filter->get_events(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
 	}
 
 	public function test_get_item_links() {
