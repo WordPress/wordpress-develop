@@ -72,7 +72,7 @@ class WP_Debug_Data {
 		 * When all sections have been modularized, this will be the final single
 		 * assignment of the sections before filtering and none will be empty.
 		 *
-		 * @ticket 61648.
+		 * @ticket 61648
 		 */
 		$info = array(
 			'wp-core'             => array(),
