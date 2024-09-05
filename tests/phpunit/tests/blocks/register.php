@@ -1501,4 +1501,51 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			$block_type->block_hooks
 		);
 	}
+
+	/**
+	 * Tests registering a block with variations from a PHP file.
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 */
+	public function test_register_third_party_block() {
+		$metadata = array(
+			'name' => 'test/block-from-registry',
+			'title' => 'Test Block From Registry',
+			'category' => 'widgets',
+			'icon' => 'smiley',
+			'description' => 'This is a test block.',
+		);
+
+		$registry = WP_Block_Metadata_Registry::get_instance();
+		$registry->register( 'test', 'block', $metadata );
+
+		$result = register_block_type_from_metadata( 'nonexistent/path', array(
+			'namespace' => 'test',
+			'source' => 'block-from-registry',
+		) );
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result );
+		$this->assertEquals( 'test/block-from-registry', $result->name );
+	}
+
+	/**
+	 * Tests registering a block with variations from a PHP file.
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 */
+	public function test_register_block_from_json_file() {
+		$temp_dir = get_temp_dir();
+		$block_json = $temp_dir . 'block.json';
+		file_put_contents( $block_json, json_encode( array(
+			'name' => 'test/json-block',
+			'title' => 'Test JSON Block',
+		) ) );
+
+		$result = register_block_type_from_metadata( $temp_dir );
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result );
+		$this->assertEquals( 'test/json-block', $result->name );
+
+		unlink( $block_json );
+	}
 }

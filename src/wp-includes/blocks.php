@@ -376,6 +376,19 @@ function get_block_metadata_i18n_schema() {
 }
 
 /**
+ * Registers block metadata from a given source.
+ *
+ * @since 6.X.0
+ *
+ * @param string $namespace The namespace for the metadata (e.g., 'core', 'mythirdpartyplugin').
+ * @param string $source    The source identifier for the metadata within the namespace.
+ * @param array  $metadata  The block metadata.
+ */
+function wp_register_block_metadata( $namespace, $source, $metadata ) {
+	WP_Block_Metadata_Registry::get_instance()->register( $namespace, $source, $metadata );
+}
+
+/**
  * Registers a block type from the metadata stored in the `block.json` file.
  *
  * @since 5.5.0
@@ -396,40 +409,46 @@ function get_block_metadata_i18n_schema() {
  * @return WP_Block_Type|false The registered block type on success, or false on failure.
  */
 function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
-	/*
-	 * Get an array of metadata from a PHP file.
-	 * This improves performance for core blocks as it's only necessary to read a single PHP file
-	 * instead of reading a JSON file per-block, and then decoding from JSON to PHP.
-	 * Using a static variable ensures that the metadata is only read once per request.
-	 */
-	static $core_blocks_meta;
-	if ( ! $core_blocks_meta ) {
-		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
-	}
-
-	$metadata_file = ( ! str_ends_with( $file_or_folder, 'block.json' ) ) ?
-		trailingslashit( $file_or_folder ) . 'block.json' :
-		$file_or_folder;
+	$metadata = array();
+	$registry = WP_Block_Metadata_Registry::get_instance();
 
 	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
-	// If the block is not a core block, the metadata file must exist.
-	$metadata_file_exists = $is_core_block || file_exists( $metadata_file );
-	if ( ! $metadata_file_exists && empty( $args['name'] ) ) {
-		return false;
-	}
 
-	// Try to get metadata from the static cache for core blocks.
-	$metadata = array();
 	if ( $is_core_block ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
-		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
-			$metadata = $core_blocks_meta[ $core_block_name ];
+		$metadata = $registry->get_metadata( 'core', $core_block_name );
+
+		if ( null === $metadata ) {
+			// Load core metadata if not already registered.
+			$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
+			foreach ( $core_blocks_meta as $block_name => $block_meta ) {
+				wp_register_block_metadata( 'core', $block_name, $block_meta );
+			}
+			$metadata = $registry->get_metadata( 'core', $core_block_name );
+		}
+	} else {
+		// Check if metadata is registered for a third-party source.
+		$namespace = ! empty( $args['namespace'] ) ? $args['namespace'] : '';
+		$source = ! empty( $args['source'] ) ? $args['source'] : '';
+
+		if ( $namespace && $source ) {
+			$metadata = $registry->get_metadata( $namespace, $source );
 		}
 	}
 
-	// If metadata is not found in the static cache, read it from the file.
-	if ( $metadata_file_exists && empty( $metadata ) ) {
-		$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
+	// If metadata is not found in the registry, read from JSON file.
+	$metadata_file_exists = false;
+	if ( empty( $metadata ) ) {
+		$metadata_file = ( ! str_ends_with( $file_or_folder, 'block.json' ) ) ?
+			trailingslashit( $file_or_folder ) . 'block.json' :
+			$file_or_folder;
+
+		$metadata_file_exists = file_exists( $metadata_file );
+		if ( $metadata_file_exists ) {
+			$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
+		} else if ( ! $metadata_file_exists && empty( $args['name'] ) ) {
+			return false;
+		}
 	}
 
 	if ( ! is_array( $metadata ) || ( empty( $metadata['name'] ) && empty( $args['name'] ) ) ) {
