@@ -1902,6 +1902,39 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->check_get_post_response( $response, 'view' );
 	}
 
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_item_with_head_request_should_not_prepare_post_data() {
+		$request = new WP_REST_Request( 'HEAD', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+
+		$callback_method_name = 'prepare_response_callback';
+		$mock                 = $this->getMockBuilder( stdClass::class )
+					->addMethods( array( $callback_method_name ) )
+					->getMock();
+
+		$mock->expects( $this->never() )
+			->method( $callback_method_name );
+
+		$hook_name = 'rest_prepare_' . get_post_type( self::$post_id );
+		add_filter( $hook_name, array( $mock, $callback_method_name ) );
+
+		try {
+			$response = rest_get_server()->dispatch( $request );
+		} catch ( PHPUnit\Framework\ExpectationFailedException $e ) {
+			remove_filter( $hook_name, array( $mock, $callback_method_name ) );
+			$this->fail( 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
+		}
+
+		remove_filter( $hook_name, array( $mock, $callback_method_name ) );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'Link', $headers, 'The "Link" header should be present in the response.' );
+		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
 	public function test_get_item_links() {
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$response = rest_get_server()->dispatch( $request );
