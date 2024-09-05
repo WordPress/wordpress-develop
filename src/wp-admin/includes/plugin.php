@@ -2030,7 +2030,7 @@ function get_admin_page_parent( $parent_page = '' ) {
  *
  * @since 1.5.0
  *
- * @global string $title
+ * @global string $title       The title of the current screen.
  * @global array  $menu
  * @global array  $submenu
  * @global string $pagenow     The filename of the current screen.
@@ -2610,7 +2610,7 @@ function deactivated_plugins_notice() {
 
 	if ( false === $blog_deactivated_plugins ) {
 		// Option not in database, add an empty array to avoid extra DB queries on subsequent loads.
-		update_option( 'wp_force_deactivated_plugins', array() );
+		update_option( 'wp_force_deactivated_plugins', array(), false );
 	}
 
 	if ( is_multisite() ) {
@@ -2664,7 +2664,7 @@ function deactivated_plugins_notice() {
 	}
 
 	// Empty the options.
-	update_option( 'wp_force_deactivated_plugins', array() );
+	update_option( 'wp_force_deactivated_plugins', array(), false );
 	if ( is_multisite() ) {
 		update_site_option( 'wp_force_deactivated_plugins', array() );
 	}

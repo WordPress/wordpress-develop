@@ -118,11 +118,13 @@ themes.view.Appearance = wp.Backbone.View.extend({
 		// Render and append after screen title.
 		view.render();
 		this.searchContainer
-			.append( $.parseHTML( '<label class="screen-reader-text" for="wp-filter-search-input">' + l10n.search + '</label>' ) )
-			.append( view.el )
-			.on( 'submit', function( event ) {
-				event.preventDefault();
-			});
+			.find( '.search-box' )
+			.append( $.parseHTML( '<label for="wp-filter-search-input">' + l10n.search + '</label>' ) )
+			.append( view.el );
+
+		this.searchContainer.on( 'submit', function( event ) {
+			event.preventDefault();
+		});
 	},
 
 	// Checks when the user gets close to the bottom
@@ -1359,7 +1361,6 @@ themes.view.Search = wp.Backbone.View.extend({
 	searching: false,
 
 	attributes: {
-		placeholder: l10n.searchPlaceholder,
 		type: 'search',
 		'aria-describedby': 'live-search-desc'
 	},

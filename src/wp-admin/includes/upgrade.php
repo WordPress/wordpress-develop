@@ -52,6 +52,21 @@ if ( ! function_exists( 'wp_install' ) ) :
 		wp_check_mysql_version();
 		wp_cache_flush();
 		make_db_current_silent();
+
+		/*
+		 * Ensure update checks are delayed after installation.
+		 *
+		 * This prevents users being presented with a maintenance mode screen
+		 * immediately after installation.
+		 */
+		wp_unschedule_hook( 'wp_version_check' );
+		wp_unschedule_hook( 'wp_update_plugins' );
+		wp_unschedule_hook( 'wp_update_themes' );
+
+		wp_schedule_event( time() + HOUR_IN_SECONDS, 'twicedaily', 'wp_version_check' );
+		wp_schedule_event( time() + ( 1.5 * HOUR_IN_SECONDS ), 'twicedaily', 'wp_update_plugins' );
+		wp_schedule_event( time() + ( 2 * HOUR_IN_SECONDS ), 'twicedaily', 'wp_update_themes' );
+
 		populate_options();
 		populate_roles();
 
@@ -60,7 +75,7 @@ if ( ! function_exists( 'wp_install' ) ) :
 		update_option( 'blog_public', $is_public );
 
 		// Freshness of site - in the future, this could get more specific about actions taken, perhaps.
-		update_option( 'fresh_site', 1 );
+		update_option( 'fresh_site', 1, false );
 
 		if ( $language ) {
 			update_option( 'WPLANG', $language );
@@ -263,7 +278,8 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 To get started with moderating, editing, and deleting comments, please visit the Comments screen in the dashboard.
 Commenter avatars come from <a href="%s">Gravatar</a>.'
 			),
-			esc_url( __( 'https://en.gravatar.com/' ) )
+			/* translators: The localized Gravatar URL. */
+			esc_url( __( 'https://gravatar.com/' ) )
 		);
 		$wpdb->insert(
 			$wpdb->comments,
@@ -444,7 +460,7 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 			 * Delete any caps that snuck into the previously active blog. (Hardcoded to blog 1 for now.)
 			 * TODO: Get previous_blog_id.
 			 */
-			if ( ! is_super_admin( $user_id ) && 1 !== (int) $user_id ) {
+			if ( ! is_super_admin( $user_id ) && 1 !== $user_id ) {
 				$wpdb->delete(
 					$wpdb->usermeta,
 					array(
@@ -623,13 +639,13 @@ if ( ! function_exists( 'wp_upgrade' ) ) :
 	 *
 	 * @since 2.1.0
 	 *
-	 * @global int  $wp_current_db_version The old (current) database version.
-	 * @global int  $wp_db_version         The new database version.
+	 * @global int $wp_current_db_version The old (current) database version.
+	 * @global int $wp_db_version         The new database version.
 	 */
 	function wp_upgrade() {
 		global $wp_current_db_version, $wp_db_version;
 
-		$wp_current_db_version = __get_option( 'db_version' );
+		$wp_current_db_version = (int) __get_option( 'db_version' );
 
 		// We are up to date. Nothing to do.
 		if ( $wp_db_version === $wp_current_db_version ) {
@@ -684,7 +700,7 @@ endif;
 function upgrade_all() {
 	global $wp_current_db_version, $wp_db_version;
 
-	$wp_current_db_version = __get_option( 'db_version' );
+	$wp_current_db_version = (int) __get_option( 'db_version' );
 
 	// We are up to date. Nothing to do.
 	if ( $wp_db_version === $wp_current_db_version ) {
@@ -847,6 +863,9 @@ function upgrade_all() {
 		upgrade_650();
 	}
 
+	if ( $wp_current_db_version < 58975 ) {
+		upgrade_670();
+	}
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -973,7 +992,7 @@ function upgrade_110() {
 
 	$time_difference = $all_options->time_difference;
 
-		$server_time = time() + gmdate( 'Z' );
+	$server_time     = time() + gmdate( 'Z' );
 	$weblogger_time  = $server_time + $time_difference * HOUR_IN_SECONDS;
 	$gmt_time        = time();
 
@@ -1828,7 +1847,7 @@ function upgrade_340() {
 		if ( 'yes' === $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'uninstall_plugins'" ) ) {
 			$uninstall_plugins = get_option( 'uninstall_plugins' );
 			delete_option( 'uninstall_plugins' );
-			add_option( 'uninstall_plugins', $uninstall_plugins, null, 'no' );
+			add_option( 'uninstall_plugins', $uninstall_plugins, null, false );
 		}
 	}
 }
@@ -2324,7 +2343,7 @@ function upgrade_630() {
 			$can_compress_scripts = get_option( 'can_compress_scripts', false );
 			if ( false !== $can_compress_scripts ) {
 				delete_option( 'can_compress_scripts' );
-				add_option( 'can_compress_scripts', $can_compress_scripts, '', 'yes' );
+				add_option( 'can_compress_scripts', $can_compress_scripts, '', true );
 			}
 		}
 	}
@@ -2377,11 +2396,40 @@ function upgrade_650() {
 			)
 		);
 
-		$autoload = array_fill_keys( $theme_mods_options, 'no' );
+		$autoload = array_fill_keys( $theme_mods_options, false );
 		wp_set_option_autoload_values( $autoload );
 	}
 }
+/**
+ * Executes changes made in WordPress 6.7.0.
+ *
+ * @ignore
+ * @since 6.7.0
+ *
+ * @global int  $wp_current_db_version The old (current) database version.
+ */
+function upgrade_670() {
+	global $wp_current_db_version;
 
+	if ( $wp_current_db_version < 58975 ) {
+		$options = array(
+			'recently_activated',
+			'_wp_suggested_policy_text_has_changed',
+			'dashboard_widget_options',
+			'ftp_credentials',
+			'adminhash',
+			'nav_menu_options',
+			'wp_force_deactivated_plugins',
+			'delete_blog_hash',
+			'allowedthemes',
+			'recovery_keys',
+			'https_detection_errors',
+			'fresh_site',
+		);
+
+		wp_set_options_autoload( $options, false );
+	}
+}
 /**
  * Executes network-level upgrade routines.
  *

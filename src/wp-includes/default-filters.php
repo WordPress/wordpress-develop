@@ -3,6 +3,12 @@
  * Sets up the default filters and actions for most
  * of the WordPress hooks.
  *
+ * This file is loaded very early in the bootstrap which
+ * means many functions are not yet available and site
+ * information such as if this is multisite is unknown.
+ * Before using functions besides `add_filter` and
+ * `add_action`, verify things will work as expected.
+ *
  * If you need to remove a default hook, this file will
  * give you the priority to use for removing the hook.
  *
@@ -286,7 +292,7 @@ foreach (
 }
 
 // Misc filters.
-add_filter( 'wp_default_autoload_value', 'wp_filter_default_autoload_value_via_option_size', 10, 4 );
+add_filter( 'wp_default_autoload_value', 'wp_filter_default_autoload_value_via_option_size', 5, 4 ); // Allow the value to be overridden at the default priority.
 add_filter( 'option_ping_sites', 'privacy_ping_filter' );
 add_filter( 'option_blog_charset', '_wp_specialchars' ); // IMPORTANT: This must not be wp_specialchars() or esc_html() or it'll cause an infinite loop.
 add_filter( 'option_blog_charset', '_canonical_charset' );
@@ -599,9 +605,6 @@ add_filter( 'block_editor_settings_all', 'wp_add_editor_classic_theme_styles' );
 // Global styles can be enqueued in both the header and the footer. See https://core.trac.wordpress.org/ticket/53494.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
 add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
-
-// Global styles custom CSS.
-add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles_custom_css' );
 
 // Block supports, and other styles parsed and stored in the Style Engine.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_stored_styles' );
