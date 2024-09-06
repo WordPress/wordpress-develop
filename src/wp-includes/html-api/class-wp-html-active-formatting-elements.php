@@ -126,8 +126,9 @@ class WP_HTML_Active_Formatting_Elements {
 	 * @see https://html.spec.whatwg.org/#push-onto-the-list-of-active-formatting-elements
 	 *
 	 * @param WP_HTML_Token $token Push this node onto the stack.
+	 * @return bool Whether a node was pushed onto the stack of active formatting elements.
 	 */
-	public function push( WP_HTML_Token $token ) {
+	public function push( WP_HTML_Token $token ): bool {
 		/*
 		 * > If there are already three elements in the list of active formatting elements after the last marker,
 		 * > if any, or anywhere in the list if there are no markers, that have the same tag name, namespace, and
@@ -136,11 +137,32 @@ class WP_HTML_Active_Formatting_Elements {
 		 * > created by the parser; two elements have the same attributes if all their parsed attributes can be
 		 * > paired such that the two attributes in each pair have identical names, namespaces, and values
 		 * > (the order of the attributes does not matter).
-		 *
-		 * @todo Implement the "Noah's Ark clause" to only add up to three of any given kind of formatting elements to the stack.
 		 */
+
+		if ( 'marker' !== $token->node_name ) {
+			$existing_count = 0;
+			foreach ( $this->walk_up() as $item ) {
+				if ( 'marker' === $item->node_name ) {
+					break;
+				}
+
+				if (
+					$item->node_name === $token->node_name &&
+					$item->namespace === $token->namespace
+					// @todo Compare attributes. For now, bail if there are three matching tag names + namespaces.
+				) {
+					++$existing_count;
+					if ( $existing_count >= 3 ) {
+						// @todo Implement removing the earliest element and moving forward.
+						return false;
+					}
+				}
+			}
+		}
+
 		// > Add element to the list of active formatting elements.
 		$this->stack[] = $token;
+		return true;
 	}
 
 	/**

@@ -256,6 +256,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	private $context_node = null;
 
+	/**
+	 * If a formatting element has been reconstructed, this will hold
+	 * the parsed attributes from the original format, once requested.
+	 *
+	 * These attributes are not modifiable.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var array|null
+	 */
+	protected $actively_reconstructed_formatting_attributes = array();
+
 	/*
 	 * Public Interface Functions
 	 */
@@ -2346,7 +2358,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
-				$this->state->active_formatting_elements->push( $this->state->current_token );
+				if ( false === $this->state->active_formatting_elements->push( $this->state->current_token ) ) {
+					$this->bail( 'Cannot track formatting elements when encountering a fourth identical token.' );
+				}
+				$this->actively_reconstructed_formatting_attributes[ $this->state->current_token->bookmark_name ] = $this->attributes;
 				return true;
 
 			/*
@@ -2367,7 +2382,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+U':
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
-				$this->state->active_formatting_elements->push( $this->state->current_token );
+				if ( false === $this->state->active_formatting_elements->push( $this->state->current_token ) ) {
+					$this->bail( 'Cannot track formatting elements when encountering a fourth identical token.' );
+				}
+				$this->actively_reconstructed_formatting_attributes[ $this->state->current_token->bookmark_name ] = $this->attributes;
 				return true;
 
 			/*
@@ -2383,7 +2401,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				$this->insert_html_element( $this->state->current_token );
-				$this->state->active_formatting_elements->push( $this->state->current_token );
+				if ( false === $this->state->active_formatting_elements->push( $this->state->current_token ) ) {
+					$this->bail( 'Cannot track formatting elements when encountering a fourth identical token.' );
+				}
+				$this->actively_reconstructed_formatting_attributes[ $this->state->current_token->bookmark_name ] = $this->attributes;
 				return true;
 
 			/*
@@ -4845,7 +4866,27 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
 	 */
 	public function get_attribute( $name ) {
-		return $this->is_virtual() ? null : parent::get_attribute( $name );
+		if ( $this->is_virtual() ) {
+			$virtual_attributes = $this->actively_reconstructed_formatting_attributes[ $this->current_element->token->bookmark_name ?? '' ] ?? null;
+			if ( null === $virtual_attributes ) {
+				return null;
+			}
+
+			$current_attributes    = $this->attributes;
+			$current_updates       = $this->lexical_updates;
+			$this->lexical_updates = array();
+			$this->attributes      = $virtual_attributes;
+			$parser_state          = $this->parser_state;
+			$this->parser_state    = WP_HTML_Tag_Processor::STATE_MATCHED_TAG;
+			$attribute_names       = parent::get_attribute( $name );
+			$this->attributes      = $current_attributes;
+			$this->parser_state    = $parser_state;
+			$this->lexical_updates = $current_updates;
+
+			return $attribute_names;
+		}
+
+		return parent::get_attribute( $name );
 	}
 
 	/**
@@ -4906,7 +4947,24 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
 	 */
 	public function get_attribute_names_with_prefix( $prefix ): ?array {
-		return $this->is_virtual() ? null : parent::get_attribute_names_with_prefix( $prefix );
+		if ( $this->is_virtual() ) {
+			$virtual_attributes = $this->actively_reconstructed_formatting_attributes[ $this->current_element->token->bookmark_name ?? '' ] ?? null;
+			if ( null === $virtual_attributes ) {
+				return null;
+			}
+
+			$current_attributes = $this->attributes;
+			$this->attributes   = $virtual_attributes;
+			$parser_state       = $this->parser_state;
+			$this->parser_state = WP_HTML_Tag_Processor::STATE_MATCHED_TAG;
+			$attribute_names    = parent::get_attribute_names_with_prefix( $prefix );
+			$this->attributes   = $current_attributes;
+			$this->parser_state = $parser_state;
+
+			return $attribute_names;
+		}
+
+		return parent::get_attribute_names_with_prefix( $prefix );
 	}
 
 	/**
@@ -5400,6 +5458,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 */
 		rewind:
 		if ( 1 === $currently_at ) {
+			echo "\e[90mJumping to create\e[m\n";
 			goto create;
 		}
 
@@ -5435,7 +5494,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$this->insert_html_element( $entry );
 
 		/*
-		 * > 9. Replace the entry for entry in the list with an entry for new element.
+		 * > 9. Replace the entry for _entry_ in the list with an entry for new element.
 		 * >    This doesn't need to happen here since no DOM is being created.
 		 */
 
