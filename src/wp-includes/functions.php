@@ -6344,7 +6344,13 @@ function wp_suspend_cache_addition( $suspend = null ) {
  * invalidations every time a post is inserted. Callers must be sure that what they are
  * doing won't lead to an inconsistent cache when invalidation is suspended.
  *
+ * @ticket #57266 added check for if $suspend is boolean value
+ *
+ * @param bool $suspend Optional. Whether to suspend or enable cache invalidation. Default true.
+ *
+ * @return bool The current suspend setting.
  * @since 2.7.0
+ * @since 6.2.0
  *
  * @global bool $_wp_suspend_cache_invalidation
  *
@@ -6353,9 +6359,26 @@ function wp_suspend_cache_addition( $suspend = null ) {
  */
 function wp_suspend_cache_invalidation( $suspend = true ) {
 	global $_wp_suspend_cache_invalidation;
+	$current_suspend = $_wp_suspend_cache_invalidation;
 
-	$current_suspend                = $_wp_suspend_cache_invalidation;
-	$_wp_suspend_cache_invalidation = $suspend;
+	if ( ! is_bool( $suspend ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: The "$suspend" variable name. */
+				__( '"%s" must be of type "bool".' ),
+				$suspend
+			),
+			'6.2.0'
+		);
+
+		$suspend = (bool) $suspend;
+	}
+
+	if ( is_bool( $suspend ) ) {
+		$_wp_suspend_cache_invalidation = $suspend;
+	}
+
 	return $current_suspend;
 }
 
