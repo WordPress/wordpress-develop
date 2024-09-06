@@ -1368,6 +1368,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  * @since 5.3.0 Valid meta types expanded to include "array" and "object".
  * @since 5.5.0 The `$default` argument was added to the arguments array.
  * @since 6.4.0 The `$revisions_enabled` argument was added to the arguments array.
+ * @since 6.7.0 The `label` argument was added to the arguments array.
  *
  * @param string       $object_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
  *                                  or any other object type with an associated meta table.
