@@ -3994,17 +3994,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 			add_filter( 'the_content', 'wp_filter_content_tags', 12 );
 		}
 
-		/* translators: Maximum number of words used in a post excerpt. */
-		$excerpt_length = (int) _x( '55', 'excerpt_length' );
-
-		/**
-		 * Filters the maximum number of words in a post excerpt.
-		 *
-		 * @since 2.7.0
-		 *
-		 * @param int $number The maximum number of words. Default 55.
-		 */
-		$excerpt_length = (int) apply_filters( 'excerpt_length', $excerpt_length );
+		$excerpt_length = get_excerpt_length();
 
 		/**
 		 * Filters the string in the "more" link displayed after a trimmed excerpt.
@@ -4027,6 +4017,28 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 	 * @param string $raw_excerpt The text prior to trimming.
 	 */
 	return apply_filters( 'wp_trim_excerpt', $text, $raw_excerpt );
+}
+
+/**
+ * Returns the excerpt length.
+ *
+ * @return int The excerpt length.
+ */
+function get_excerpt_length() {
+
+	/* translators: Maximum number of words used in a post excerpt. */
+	$excerpt_length = (int) _x( '55', 'excerpt_length' );
+
+	/**
+	 * Filters the maximum number of words in a post excerpt.
+	 *
+	 * @since 2.7.0
+	 *
+	 * @param int $number The maximum number of words. Default 55.
+	 */
+	$excerpt_length = (int) apply_filters( 'excerpt_length', $excerpt_length );
+
+	return $excerpt_length;
 }
 
 /**
