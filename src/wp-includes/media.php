@@ -2024,7 +2024,7 @@ function wp_img_tag_add_auto_sizes( string $image ): string {
  * @param string $sizes_attr The 'sizes' attribute value.
  * @return bool True if the 'auto' keyword is present, false otherwise.
  */
-function wp_sizes_attribute_includes_valid_auto( string $sizes_attr ) {
+function wp_sizes_attribute_includes_valid_auto( string $sizes_attr ): bool {
 	list( $first_size ) = explode( ',', $sizes_attr, 2 );
 	return 'auto' === strtolower( trim( $first_size, " \t\f\r\n" ) );
 }
