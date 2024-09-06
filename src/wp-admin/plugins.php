@@ -730,7 +730,7 @@ if ( isset( $_GET['error'] ) ) {
 } elseif ( 'update-selected' === $action && ! isset( $_GET['plugins'] ) && ! isset( $_POST['checked'] ) ) {
 	$updated_notice_args['id']                 = 'no-items-selected';
 	$updated_notice_args['additional_classes'] = array( 'error' );
-	wp_admin_notice( __( 'No plugins selected to update.' ), $updated_notice_args );
+	wp_admin_notice( __( 'Please select at least one item to perform this action on.' ), $updated_notice_args );
 } elseif ( 'update-selected' === $action ) {
 	wp_admin_notice( __( 'All selected plugins are up to date.' ), $updated_notice_args );
 } elseif ( isset( $_GET['resume'] ) ) {
