@@ -243,6 +243,18 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 
+		register_post_meta(
+			'post',
+			'with_label',
+			array(
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'label'        => 'Meta Label',
+				'default'      => '',
+			)
+		);
+
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server();
@@ -3093,6 +3105,19 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$schema = $response->get_data()['schema']['properties']['meta']['properties']['with_default'];
 		$this->assertArrayHasKey( 'default', $schema );
 		$this->assertSame( 'Goodnight Moon', $schema['default'] );
+	}
+
+	/**
+	 * @ticket 61998
+	 */
+	public function test_title_is_added_to_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
+		$response = rest_do_request( $request );
+
+		$schema = $response->get_data()['schema']['properties']['meta']['properties']['with_label'];
+
+		$this->assertArrayHasKey( 'default', $schema );
+		$this->assertSame( 'Meta Label', $schema['title'] );
 	}
 
 	/**
