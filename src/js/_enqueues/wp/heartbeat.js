@@ -724,8 +724,8 @@
 		 *
 		 * @param {string|number} speed Interval: 'fast' or integer between 1 and 3600 (seconds).
 		 *                              Fast equals 5.
-		 * @param {number}        ticks Tells how many ticks before the interval reverts
-		 *                              back. Used with speed = 'fast' or 5.
+		 * @param {number}        ticks Tells how many ticks before the interval reverts back.
+		 *                              Value must be between 1 and 30. Used with speed = 'fast' or 5.
 		 *
 		 * @return {number} Current interval in seconds.
 		 */
