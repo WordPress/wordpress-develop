@@ -21,7 +21,7 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 		$source = 'test-source';
 		$metadata = array(
 			'name' => 'test-block',
-			'title' => 'Test Block'
+			'title' => 'Test Block',
 		);
 
 		$this->registry->register( $namespace, $source, $metadata );
