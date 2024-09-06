@@ -1085,54 +1085,57 @@ function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = 
 	$from_name       = ( '' !== get_site_option( 'site_name' ) ) ? esc_html( get_site_option( 'site_name' ) ) : 'WordPress';
 	$message_headers = "From: \"{$from_name}\" <{$admin_email}>\n" . 'Content-Type: text/plain; charset="' . get_option( 'blog_charset' ) . "\"\n";
 	$message         = sprintf(
-		/**
-		 * Filters the content of the notification email for new user sign-up.
-		 *
-		 * Content should be formatted for transmission via wp_mail().
-		 *
-		 * @since MU (3.0.0)
-		 *
-		 * @param string $content    Content of the notification email.
-		 * @param string $user_login User login name.
-		 * @param string $user_email User email address.
-		 * @param string $key        Activation key created in wpmu_signup_user().
-		 * @param array  $meta       Signup meta data. Default empty array.
-		 */
-		apply_filters(
-			'wpmu_signup_user_notification_email',
-			/* translators: New user notification email. %s: Activation URL. */
-			__( "To activate your user, please click the following link:\n\n%s\n\nAfter you activate, you will receive *another email* with your login." ),
-			$user_login,
-			$user_email,
-			$key,
-			$meta
-		),
+		/* translators: New user notification email. %s: Activation URL. */
+		__( "To activate your user, please click the following link:\n\n%s\n\nAfter you activate, you will receive *another email* with your login." ),
 		site_url( "wp-activate.php?key=$key" )
+	);
+	/**
+	 * Filters the content of the notification email for new user sign-up.
+	 *
+	 * Content should be formatted for transmission via wp_mail().
+	 *
+	 * @since MU (3.0.0)
+	 *
+	 * @param string $content    Content of the notification email.
+	 * @param string $user_login User login name.
+	 * @param string $user_email User email address.
+	 * @param string $key        Activation key created in wpmu_signup_user().
+	 * @param array  $meta       Signup meta data. Default empty array.
+	 */
+	$message = apply_filters(
+		'wpmu_signup_user_notification_email',
+		$message,
+		$user_login,
+		$user_email,
+		$key,
+		$meta
 	);
 
 	$subject = sprintf(
-		/**
-		 * Filters the subject of the notification email of new user signup.
-		 *
-		 * @since MU (3.0.0)
-		 *
-		 * @param string $subject    Subject of the notification email.
-		 * @param string $user_login User login name.
-		 * @param string $user_email User email address.
-		 * @param string $key        Activation key created in wpmu_signup_user().
-		 * @param array  $meta       Signup meta data. Default empty array.
-		 */
-		apply_filters(
-			'wpmu_signup_user_notification_subject',
-			/* translators: New user notification email subject. 1: Network title, 2: New user login. */
-			_x( '[%1$s] Activate %2$s', 'New user notification email subject' ),
-			$user_login,
-			$user_email,
-			$key,
-			$meta
-		),
+		/* translators: New user notification email subject. 1: Network title, 2: New user login. */
+		_x( '[%1$s] Activate %2$s', 'New user notification email subject' ),
 		$from_name,
 		$user_login
+	);
+
+	/**
+	* Filters the subject of the notification email of new user signup.
+	*
+	* @since MU (3.0.0)
+	*
+	* @param string $subject    Subject of the notification email.
+	* @param string $user_login User login name.
+	* @param string $user_email User email address.
+	* @param string $key        Activation key created in wpmu_signup_user().
+	* @param array  $meta       Signup meta data. Default empty array.
+	*/
+	$subject = apply_filters(
+		'wpmu_signup_user_notification_subject',
+		$subject,
+		$user_login,
+		$user_email,
+		$key,
+		$meta
 	);
 
 	wp_mail( $user_email, wp_specialchars_decode( $subject ), $message, $message_headers );
