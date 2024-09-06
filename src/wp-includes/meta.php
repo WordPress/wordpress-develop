@@ -1454,6 +1454,9 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	 * @param string $meta_key    Meta key.
 	 */
 	$args = apply_filters( 'register_meta_args', $args, $defaults, $object_type, $meta_key );
+	if ( isset( $args['label'] ) && ! isset( $args['show_in_rest'] ) ) {
+		$args['show_in_rest'] = true;
+	}
 	unset( $defaults['default'] );
 	$args = wp_parse_args( $args, $defaults );
 
