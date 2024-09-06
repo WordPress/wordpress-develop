@@ -1512,10 +1512,10 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 */
 	public function test_register_block_type_from_registry_metadata() {
 		$metadata = array(
-			'name' => 'test/block-from-registry',
-			'title' => 'Test Block From Registry',
-			'category' => 'widgets',
-			'icon' => 'smiley',
+			'name'        => 'test/block-from-registry',
+			'title'       => 'Test Block From Registry',
+			'category'    => 'widgets',
+			'icon'        => 'smiley',
 			'description' => 'This is a test block.',
 		);
 
@@ -1538,13 +1538,13 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @covers ::register_block_type_from_metadata
 	 */
 	public function test_register_block_type_from_json_file() {
-		$temp_dir = get_temp_dir();
+		$temp_dir   = get_temp_dir();
 		$block_json = $temp_dir . 'block.json';
 		file_put_contents(
 			$block_json,
 			json_encode(
 				array(
-					'name' => 'test/json-block',
+					'name'  => 'test/json-block',
 					'title' => 'Test JSON Block',
 				)
 			)
