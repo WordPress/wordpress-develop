@@ -132,7 +132,7 @@
 				}
 
 				/*
-				 * Sanity check: the interval can be from 1 to 3600 seconds and can be set temporarily
+				 * Logic check: the interval can be from 1 to 3600 seconds and can be set temporarily
 				 * to 5 seconds. It can be set in the initial options or changed later from JS
 				 * or from PHP through the AJAX responses.
 				 */
