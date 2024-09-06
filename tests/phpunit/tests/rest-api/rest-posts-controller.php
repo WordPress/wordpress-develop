@@ -449,7 +449,13 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
-	public function test_get_items_include_query() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_include_query( $method ) {
 		$id1 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
@@ -463,26 +469,40 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 
 		// Order defaults to date descending.
 		$request->set_param( 'include', array( $id1, $id2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertCount( 2, $data );
-		$this->assertSame( $id2, $data[0]['id'] );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( 2, $data );
+			$this->assertSame( $id2, $data[0]['id'] );
+		} else {
+			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
+		}
+
 		$this->assertPostsOrderedBy( '{posts}.post_date DESC' );
 
 		// 'orderby' => 'include'.
 		$request->set_param( 'orderby', 'include' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertCount( 2, $data );
-		$this->assertSame( $id1, $data[0]['id'] );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( 2, $data );
+			$this->assertSame( $id1, $data[0]['id'] );
+		} else {
+			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
+		}
+
 		$this->assertPostsOrderedBy( "FIELD({posts}.ID,$id1,$id2)" );
 
 		// Invalid 'include' should error.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'include', 'invalid' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
