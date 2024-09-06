@@ -259,6 +259,9 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$this->assertEmpty( $meta_keys );
 	}
 
+	/**
+	 * @ticket 61998
+	 */
 	public function test_get_registered_meta_keys_label_arg() {
 		register_meta( 'post', 'registered_key1', array( 'label' => 'Field label' ) );
 
