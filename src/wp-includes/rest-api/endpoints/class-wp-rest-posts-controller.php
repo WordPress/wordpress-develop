@@ -575,7 +575,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return $post;
 		}
 
-
 		if ( $request->is_method( 'head' ) ) {
 			$response = new WP_REST_Response();
 		} else {
