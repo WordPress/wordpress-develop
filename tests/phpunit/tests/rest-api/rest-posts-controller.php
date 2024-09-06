@@ -315,7 +315,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		$response = rest_get_server()->dispatch( $request );
 
-		if ( 'HEAD' === $method ) {
+		if ( $request->is_method( 'head' ) ) {
 			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
 		} else {
 			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is an empty array for GET request.' );
@@ -343,10 +343,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
-		if ( 'GET' === $method ) {
+		if ( $request->is_method( 'get' ) ) {
 			$this->assertCount( $total_posts, $response->get_data() );
 
-		} elseif ( 'HEAD' === $method ) {
+		} else {
 			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
 			$this->assertSame( $total_posts, $headers['X-WP-Total'] );
@@ -358,10 +358,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		if ( 'GET' === $method ) {
+		if ( $request->is_method( 'get' ) ) {
 			$this->assertCount( 2, $data );
 			$this->assertSameSets( array( self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
-		} elseif ( 'HEAD' === $method ) {
+		} else {
 			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
 			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 2.' );
@@ -373,10 +373,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		if ( 'GET' === $method ) {
+		if ( $request->is_method( 'get' ) ) {
 			$this->assertCount( 1, $data );
 			$this->assertSame( self::$editor_id, $data[0]['author'] );
-		} elseif ( 'HEAD' === $method ) {
+		} else {
 			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
 			$this->assertSame( 1, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 1.' );
