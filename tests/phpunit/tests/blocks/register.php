@@ -1540,10 +1540,15 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	public function test_register_block_type_from_json_file() {
 		$temp_dir = get_temp_dir();
 		$block_json = $temp_dir . 'block.json';
-		file_put_contents( $block_json, json_encode( array(
-			'name' => 'test/json-block',
-			'title' => 'Test JSON Block',
-		) ) );
+		file_put_contents(
+			$block_json,
+			json_encode(
+				array(
+					'name' => 'test/json-block',
+					'title' => 'Test JSON Block',
+				)
+			)
+		);
 
 		$result = register_block_type_from_metadata( $temp_dir );
 
