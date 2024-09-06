@@ -2939,4 +2939,20 @@ HTML
 		$this->assertFalse( $processor->next_tag() );
 		$this->assertTrue( $processor->paused_at_incomplete_token() );
 	}
+
+	/**
+	 * Test basic DOCTYPE handling.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_doctype_doc_name() {
+		$processor = new WP_HTML_Tag_Processor( '<!DOCTYPE html>' );
+		$this->assertTrue( $processor->next_token() );
+		$doctype = $processor->get_doctype_info();
+		$this->assertNotNull( $doctype );
+		$this->assertSame( 'html', $doctype->name );
+		$this->assertSame( 'no-quirks', $doctype->indicated_compatability_mode );
+		$this->assertNull( $doctype->public_identifier );
+		$this->assertNull( $doctype->system_identifier );
+	}
 }
