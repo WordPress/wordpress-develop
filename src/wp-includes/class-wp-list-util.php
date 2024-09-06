@@ -158,7 +158,7 @@ class WP_List_Util {
 	public function pluck( $field, $index_key = null ) {
 		$newlist = array();
 
-		if ( ! $index_key ) {
+		if ( is_null( $index_key ) ) {
 			/*
 			 * This is simple. Could at some point wrap array_column()
 			 * if we knew we had an array of arrays.
