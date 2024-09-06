@@ -326,36 +326,61 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 0, $headers['X-WP-TotalPages'], 'Failed asserting that X-WP-TotalPages header is 0.' );
 	}
 
-	public function test_get_items_author_query() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_author_query( $method ) {
 		self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
 		self::factory()->post->create( array( 'post_author' => self::$author_id ) );
 
 		$total_posts = self::$total_posts + 2;
 
 		// All posts in the database.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertCount( $total_posts, $response->get_data() );
+		if ( 'GET' === $method ) {
+			$this->assertCount( $total_posts, $response->get_data() );
+
+		} elseif ( 'HEAD' === $method ) {
+			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( $total_posts, $headers['X-WP-Total'] );
+		}
 
 		// Limit to editor and author.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'author', array( self::$editor_id, self::$author_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertCount( 2, $data );
-		$this->assertSameSets( array( self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
+		if ( 'GET' === $method ) {
+			$this->assertCount( 2, $data );
+			$this->assertSameSets( array( self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
+		} elseif ( 'HEAD' === $method ) {
+			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 2.' );
+		}
 
 		// Limit to editor.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'author', self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertCount( 1, $data );
-		$this->assertSame( self::$editor_id, $data[0]['author'] );
+		if ( 'GET' === $method ) {
+			$this->assertCount( 1, $data );
+			$this->assertSame( self::$editor_id, $data[0]['author'] );
+		} elseif ( 'HEAD' === $method ) {
+			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( 1, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 1.' );
+		}
 	}
 
 	public function test_get_items_author_exclude_query() {
