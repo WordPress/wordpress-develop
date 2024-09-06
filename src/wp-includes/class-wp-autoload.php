@@ -153,8 +153,9 @@ final class WP_Autoload {
 
 		// Classes in the wp-includes/html-api/ folder.
 		'wp_html_active_formatting_elements'          => 'wp-includes/html-api/class-wp-html-active-formatting-elements.php',
-		'wp_html_decoder'                             => 'wp-includes/html-api/class-wp-html-decoder.php',
 		'wp_html_attribute_token'                     => 'wp-includes/html-api/class-wp-html-attribute-token.php',
+		'wp_html_decoder'                             => 'wp-includes/html-api/class-wp-html-decoder.php',
+		'wp_html_doctype_info'                        => 'wp-includes/html-api/class-wp-html-doctype-info.php',
 		'wp_html_open_elements'                       => 'wp-includes/html-api/class-wp-html-open-elements.php',
 		'wp_html_processor_state'                     => 'wp-includes/html-api/class-wp-html-processor-state.php',
 		'wp_html_processor'                           => 'wp-includes/html-api/class-wp-html-processor.php',
