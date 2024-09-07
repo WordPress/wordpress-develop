@@ -807,9 +807,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * foreign content will also act just like a void tag, immediately
 	 * closing as soon as the processor advances to the next token.
 	 *
-	 * @todo Review the self-closing logic when no node is present, ensure it
-	 *       matches the expectations in `step()`.
-	 *
 	 * @since 6.6.0
 	 *
 	 * @param WP_HTML_Token|null $node Optional. Node to examine, if provided.
@@ -878,6 +875,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
 			parent::next_token();
+			if ( WP_HTML_Tag_Processor::STATE_TEXT_NODE === $this->parser_state ) {
+				parent::subdivide_text_appropriately();
+			}
 		}
 
 		// Finish stepping when there are no more tokens in the document.
@@ -1094,8 +1094,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step();
 				}
 				goto initial_anything_else;
@@ -1114,19 +1113,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A DOCTYPE token
 			 */
 			case 'html':
-				$contents = $this->get_modifiable_text();
-				if ( ' html' !== $contents ) {
-					/*
-					 * @todo When the HTML Tag Processor fully parses the DOCTYPE declaration,
-					 *       this code should examine the contents to set the compatability mode.
-					 */
-					$this->bail( 'Cannot process any DOCTYPE other than a normative HTML5 doctype.' );
+				$doctype = $this->get_doctype_info();
+				if ( null !== $doctype && 'quirks' === $doctype->indicated_compatability_mode ) {
+					$this->compat_mode = WP_HTML_Tag_Processor::QUIRKS_MODE;
 				}
 
 				/*
 				 * > Then, switch the insertion mode to "before html".
 				 */
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML;
+				$this->insert_html_element( $this->state->current_token );
 				return true;
 		}
 
@@ -1134,6 +1130,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Anything else
 		 */
 		initial_anything_else:
+		$this->compat_mode           = WP_HTML_Tag_Processor::QUIRKS_MODE;
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -1185,8 +1182,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step();
 				}
 				goto before_html_anything_else;
@@ -1267,8 +1263,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step();
 				}
 				goto before_head_anything_else;
@@ -1363,16 +1358,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > U+000A LINE FEED (LF), U+000C FORM FEED (FF),
 				 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
 				 */
-				$text = $this->get_modifiable_text();
-				if ( '' === $text ) {
-					/*
-					 * If the text is empty after processing HTML entities and stripping
-					 * U+0000 NULL bytes then ignore the token.
-					 */
-					return $this->step();
-				}
-
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					// Insert the character.
 					$this->insert_html_element( $this->state->current_token );
 					return true;
@@ -1539,7 +1525,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->state->stack_of_open_elements->pop_until( 'TEMPLATE' );
 				$this->state->active_formatting_elements->clear_up_to_last_marker();
 				array_pop( $this->state->stack_of_template_insertion_modes );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return true;
 		}
 
@@ -1592,8 +1578,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Parse error: ignore the token.
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_head();
 				}
 
@@ -1694,8 +1679,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					// Insert the character.
 					$this->insert_html_element( $this->state->current_token );
 					return true;
@@ -1833,8 +1817,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		switch ( $op ) {
 			case '#text':
-				$current_token = $this->bookmarks[ $this->state->current_token->bookmark_name ];
-
 				/*
 				 * > A character token that is U+0000 NULL
 				 *
@@ -1844,11 +1826,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * here, but if there are any other characters in the stream
 				 * the active formats should be reconstructed.
 				 */
-				if (
-					1 <= $current_token->length &&
-					"\x00" === $this->html[ $current_token->start ] &&
-					strspn( $this->html, "\x00", $current_token->start, $current_token->length ) === $current_token->length
-				) {
+				if ( parent::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -1860,8 +1838,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * It is probably inter-element whitespace, but it may also
 				 * contain character references which decode only to whitespace.
 				 */
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) !== strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_GENERIC === $this->text_node_classification ) {
 					$this->state->frameset_ok = false;
 				}
 
@@ -2392,13 +2369,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				foreach ( $this->state->active_formatting_elements->walk_up() as $item ) {
 					switch ( $item->node_name ) {
 						case 'marker':
-							break;
+							break 2;
 
 						case 'A':
 							$this->run_adoption_agency_algorithm();
 							$this->state->active_formatting_elements->remove_node( $item );
 							$this->state->stack_of_open_elements->remove_node( $item );
-							break;
+							break 2;
 					}
 				}
 
@@ -2455,6 +2432,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-EM':
 			case '-FONT':
 			case '-I':
+			case '-NOBR':
 			case '-S':
 			case '-SMALL':
 			case '-STRIKE':
@@ -2505,7 +2483,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > has a p element in button scope, then close a p element.
 				 */
 				if (
-					WP_HTML_Processor_State::QUIRKS_MODE !== $this->state->document_mode &&
+					WP_HTML_Tag_Processor::QUIRKS_MODE !== $this->compat_mode &&
 					$this->state->stack_of_open_elements->has_p_in_button_scope()
 				) {
 					$this->close_a_p_element();
@@ -2868,12 +2846,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 						'TR' === $current_node_name
 					)
 				) {
-					$text = $this->get_modifiable_text();
 					/*
 					 * If the text is empty after processing HTML entities and stripping
 					 * U+0000 NULL bytes then ignore the token.
 					 */
-					if ( '' === $text ) {
+					if ( parent::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification ) {
 						return $this->step();
 					}
 
@@ -2896,7 +2873,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 *
 					 * @see https://html.spec.whatwg.org/#parsing-main-intabletext
 					 */
-					if ( strlen( $text ) === strspn( $text, " \t\f\r\n" ) ) {
+					if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 						$this->insert_html_element( $this->state->current_token );
 						return true;
 					}
@@ -2993,7 +2970,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				$this->state->stack_of_open_elements->pop_until( 'TABLE' );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
 			/*
@@ -3006,7 +2983,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				$this->state->stack_of_open_elements->pop_until( 'TABLE' );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return true;
 
 			/*
@@ -3216,16 +3193,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( '' === $text ) {
-					/*
-					 * If the text is empty after processing HTML entities and stripping
-					 * U+0000 NULL bytes then ignore the token.
-					 */
-					return $this->step();
-				}
-
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					// Insert the character.
 					$this->insert_html_element( $this->state->current_token );
 					return true;
@@ -3352,12 +3320,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TBODY':
 			case '-TFOOT':
 			case '-THEAD':
-				/*
-				 * @todo This needs to check if the element in scope is an HTML element, meaning that
-				 *       when SVG and MathML support is added, this needs to differentiate between an
-				 *       HTML element of the given name, such as `<center>`, and a foreign element of
-				 *       the same given name.
-				 */
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
@@ -3488,12 +3450,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TBODY':
 			case '-TFOOT':
 			case '-THEAD':
-				/*
-				 * @todo This needs to check if the element in scope is an HTML element, meaning that
-				 *       when SVG and MathML support is added, this needs to differentiate between an
-				 *       HTML element of the given name, such as `<center>`, and a foreign element of
-				 *       the same given name.
-				 */
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
@@ -3556,12 +3512,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-TD':
 			case '-TH':
-				/*
-				 * @todo This needs to check if the element in scope is an HTML element, meaning that
-				 *       when SVG and MathML support is added, this needs to differentiate between an
-				 *       HTML element of the given name, such as `<center>`, and a foreign element of
-				 *       the same given name.
-				 */
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
@@ -3625,12 +3575,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TFOOT':
 			case '-THEAD':
 			case '-TR':
-				/*
-				 * @todo This needs to check if the element in scope is an HTML element, meaning that
-				 *       when SVG and MathML support is added, this needs to differentiate between an
-				 *       HTML element of the given name, such as `<center>`, and a foreign element of
-				 *       the same given name.
-				 */
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
 					return $this->step();
@@ -3672,19 +3616,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > Any other character token
 			 */
 			case '#text':
-				$current_token = $this->bookmarks[ $this->state->current_token->bookmark_name ];
-
 				/*
 				 * > A character token that is U+0000 NULL
 				 *
 				 * If a text node only comprises null bytes then it should be
 				 * entirely ignored and should not return to calling code.
 				 */
-				if (
-					1 <= $current_token->length &&
-					"\x00" === $this->html[ $current_token->start ] &&
-					strspn( $this->html, "\x00", $current_token->start, $current_token->length ) === $current_token->length
-				) {
+				if ( parent::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification ) {
 					// Parse error: ignore the token.
 					return $this->step();
 				}
@@ -3791,7 +3729,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return true;
 
 			/*
@@ -3807,7 +3745,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
 			/*
@@ -3862,7 +3800,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TH':
 				// @todo Indicate a parse error once it's possible.
 				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
 			/*
@@ -3881,7 +3819,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-				$this->reset_insertion_mode();
+				$this->reset_insertion_mode_appropriately();
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 		}
 
@@ -4016,7 +3954,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$this->state->stack_of_open_elements->pop_until( 'TEMPLATE' );
 		$this->state->active_formatting_elements->clear_up_to_last_marker();
 		array_pop( $this->state->stack_of_template_insertion_modes );
-		$this->reset_insertion_mode();
+		$this->reset_insertion_mode_appropriately();
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
 
@@ -4049,8 +3987,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > Process the token using the rules for the "in body" insertion mode.
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_body();
 				}
 				goto after_body_anything_else;
@@ -4059,7 +3996,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A comment token
 			 */
-			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
@@ -4129,14 +4065,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
 			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-			 *
+			 * >
 			 * > Insert the character.
+			 *
+			 * This algorithm effectively strips non-whitespace characters from text and inserts
+			 * them under HTML. This is not supported at this time.
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
-					$this->insert_html_element( $this->state->current_token );
-					return true;
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
+					return $this->step_in_body();
 				}
 				goto in_frameset_anything_else;
 				break;
@@ -4144,9 +4081,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A comment token
 			 */
-			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
+			case '#presumptuous-tag':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -4248,14 +4185,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
 			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-			 *
+			 * >
 			 * > Insert the character.
+			 *
+			 * This algorithm effectively strips non-whitespace characters from text and inserts
+			 * them under HTML. This is not supported at this time.
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
-					$this->insert_html_element( $this->state->current_token );
-					return true;
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
+					return $this->step_in_body();
 				}
 				goto after_frameset_anything_else;
 				break;
@@ -4263,9 +4201,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A comment token
 			 */
-			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
+			case '#presumptuous-tag':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -4326,7 +4264,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A comment token
 			 */
-			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
@@ -4346,12 +4283,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
 			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-			 *
+			 * >
 			 * > Process the token using the rules for the "in body" insertion mode.
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_body();
 				}
 				goto after_after_body_anything_else;
@@ -4391,9 +4327,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A comment token
 			 */
-			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
+			case '#presumptuous-tag':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -4410,12 +4346,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF),
 			 * >   U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
-			 *
+			 * >
 			 * > Process the token using the rules for the "in body" insertion mode.
+			 *
+			 * This algorithm effectively strips non-whitespace characters from text and inserts
+			 * them under HTML. This is not supported at this time.
 			 */
 			case '#text':
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) === strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 					return $this->step_in_body();
 				}
 				goto after_after_frameset_anything_else;
@@ -4484,8 +4422,25 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * It is probably inter-element whitespace, but it may also
 				 * contain character references which decode only to whitespace.
 				 */
-				$text = $this->get_modifiable_text();
-				if ( strlen( $text ) !== strspn( $text, " \t\n\f\r" ) ) {
+				if ( parent::TEXT_IS_GENERIC === $this->text_node_classification ) {
+					$this->state->frameset_ok = false;
+				}
+
+				$this->insert_foreign_element( $this->state->current_token, false );
+				return true;
+
+			/*
+			 * CDATA sections are alternate wrappers for text content and therefore
+			 * ought to follow the same rules as text nodes.
+			 */
+			case '#cdata-section':
+				/*
+				 * NULL bytes and whitespace do not change the frameset-ok flag.
+				 */
+				$current_token        = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+				$cdata_content_start  = $current_token->start + 9;
+				$cdata_content_length = $current_token->length - 12;
+				if ( strspn( $this->html, "\0 \t\n\f\r", $cdata_content_start, $cdata_content_length ) !== $cdata_content_length ) {
 					$this->state->frameset_ok = false;
 				}
 
@@ -4495,9 +4450,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > A comment token
 			 */
-			case '#cdata-section':
 			case '#comment':
 			case '#funky-comment':
+			case '#presumptuous-tag':
 				$this->insert_foreign_element( $this->state->current_token, false );
 				return true;
 
@@ -4764,7 +4719,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function get_namespace(): string {
 		if ( ! isset( $this->current_element ) ) {
-			return 'html';
+			return parent::get_namespace();
 		}
 
 		return $this->current_element->token->namespace;
@@ -4796,7 +4751,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		if ( $this->current_element ) {
+		if ( $this->is_virtual() ) {
 			return $this->current_element->token->node_name;
 		}
 
@@ -4857,7 +4812,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null Name of the matched token.
 	 */
 	public function get_token_name(): ?string {
-		return $this->current_element->token->node_name ?? parent::get_token_name();
+		return $this->is_virtual()
+			? $this->current_element->token->node_name
+			: parent::get_token_name();
 	}
 
 	/**
@@ -4883,7 +4840,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null What kind of token is matched, or null.
 	 */
 	public function get_token_type(): ?string {
-		if ( $this->current_element ) {
+		if ( $this->is_virtual() ) {
 			/*
 			 * This logic comes from the Tag Processor.
 			 *
@@ -5019,6 +4976,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
 	 *
+	 * @todo When reconstructing active formatting elements with attributes, find a way
+	 *       to indicate if the virtually-reconstructed formatting elements contain the
+	 *       wanted class name.
+	 *
 	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
 	 */
@@ -5090,7 +5051,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null
 	 */
 	public function get_comment_type(): ?string {
-		return $this->current_element->token->comment_type ?? parent::get_comment_type();
+		return $this->is_virtual() ? null : parent::get_comment_type();
 	}
 
 	/**
@@ -5478,7 +5439,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#reset-the-insertion-mode-appropriately
 	 */
-	public function reset_insertion_mode(): void {
+	private function reset_insertion_mode_appropriately(): void {
 		// Set the first node.
 		$first_node = null;
 		foreach ( $this->state->stack_of_open_elements->walk_down() as $first_node ) {
@@ -5505,6 +5466,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 
+			// All of the following rules are for matching HTML elements.
+			if ( 'html' !== $node->namespace ) {
+				continue;
+			}
+
 			switch ( $node->node_name ) {
 				/*
 				 * > 4. If node is a `select` element, run these substeps:
@@ -5520,6 +5486,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case 'SELECT':
 					if ( ! $last ) {
 						foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $ancestor ) {
+							if ( 'html' !== $ancestor->namespace ) {
+								continue;
+							}
+
 							switch ( $ancestor->node_name ) {
 								/*
 								 * > 5. If _ancestor_ is a `template` node, jump to the step below

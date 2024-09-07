@@ -27,15 +27,15 @@ class WP_Debug_Data {
 	 * @since 5.3.0 Added database charset, database collation,
 	 *              and timezone information.
 	 * @since 5.5.0 Added pretty permalinks support information.
+	 * @since 6.7.0 Modularized into separate theme-oriented methods.
 	 *
 	 * @throws ImagickException
-	 * @global wpdb  $wpdb               WordPress database abstraction object.
 	 * @global array $_wp_theme_features
 	 *
 	 * @return array The debug data for the site.
 	 */
 	public static function debug_data() {
-		global $wpdb, $_wp_theme_features;
+		global $_wp_theme_features;
 
 		// Save few function calls.
 		$upload_dir             = wp_upload_dir();
@@ -61,8 +61,35 @@ class WP_Debug_Data {
 			}
 		}
 
-		// Set up the array that holds all debug information.
-		$info = array();
+		/*
+		 * Set up the array that holds all debug information.
+		 *
+		 * When iterating through the debug data, the ordering of the sections
+		 * occurs in insertion-order of the assignments into this array. Setting
+		 * up empty values here preserves that specific ordering so it doesn't
+		 * depend on when inside this method each section is otherwise assigned.
+		 *
+		 * When all sections have been modularized, this will be the final single
+		 * assignment of the sections before filtering and none will be empty.
+		 *
+		 * @ticket 61648
+		 */
+		$info = array(
+			'wp-core'             => array(),
+			'wp-paths-sizes'      => array(),
+			'wp-dropins'          => array(),
+			'wp-active-theme'     => array(),
+			'wp-parent-theme'     => array(),
+			'wp-themes-inactive'  => array(),
+			'wp-mu-plugins'       => array(),
+			'wp-plugins-active'   => array(),
+			'wp-plugins-inactive' => array(),
+			'wp-media'            => array(),
+			'wp-server'           => array(),
+			'wp-database'         => self::get_wp_database(),
+			'wp-constants'        => self::get_wp_constants(),
+			'wp-filesystem'       => self::get_wp_filesystem(),
+		);
 
 		$info['wp-core'] = array(
 			'label'  => __( 'WordPress' ),
@@ -694,80 +721,6 @@ class WP_Debug_Data {
 			'value' => wp_date( 'c', $_SERVER['REQUEST_TIME'] ),
 		);
 
-		// Populate the database debug fields.
-		if ( is_object( $wpdb->dbh ) ) {
-			// mysqli or PDO.
-			$extension = get_class( $wpdb->dbh );
-		} else {
-			// Unknown sql extension.
-			$extension = null;
-		}
-
-		$server = $wpdb->get_var( 'SELECT VERSION()' );
-
-		$client_version = $wpdb->dbh->client_info;
-
-		$info['wp-database']['fields']['extension'] = array(
-			'label' => __( 'Extension' ),
-			'value' => $extension,
-		);
-
-		$info['wp-database']['fields']['server_version'] = array(
-			'label' => __( 'Server version' ),
-			'value' => $server,
-		);
-
-		$info['wp-database']['fields']['client_version'] = array(
-			'label' => __( 'Client version' ),
-			'value' => $client_version,
-		);
-
-		$info['wp-database']['fields']['database_user'] = array(
-			'label'   => __( 'Database username' ),
-			'value'   => $wpdb->dbuser,
-			'private' => true,
-		);
-
-		$info['wp-database']['fields']['database_host'] = array(
-			'label'   => __( 'Database host' ),
-			'value'   => $wpdb->dbhost,
-			'private' => true,
-		);
-
-		$info['wp-database']['fields']['database_name'] = array(
-			'label'   => __( 'Database name' ),
-			'value'   => $wpdb->dbname,
-			'private' => true,
-		);
-
-		$info['wp-database']['fields']['database_prefix'] = array(
-			'label'   => __( 'Table prefix' ),
-			'value'   => $wpdb->prefix,
-			'private' => true,
-		);
-
-		$info['wp-database']['fields']['database_charset'] = array(
-			'label'   => __( 'Database charset' ),
-			'value'   => $wpdb->charset,
-			'private' => true,
-		);
-
-		$info['wp-database']['fields']['database_collate'] = array(
-			'label'   => __( 'Database collation' ),
-			'value'   => $wpdb->collate,
-			'private' => true,
-		);
-
-		$info['wp-database']['fields']['max_allowed_packet'] = array(
-			'label' => __( 'Max allowed packet size' ),
-			'value' => self::get_mysql_var( 'max_allowed_packet' ),
-		);
-
-		$info['wp-database']['fields']['max_connections'] = array(
-			'label' => __( 'Max connections number' ),
-			'value' => self::get_mysql_var( 'max_connections' ),
-		);
-
 		// List must use plugins if there are any.
 		$mu_plugins = get_mu_plugins();
 
@@ -1228,9 +1181,6 @@ class WP_Debug_Data {
 			);
 		}
 
-		$info['wp-constants']  = self::get_wp_constants();
-		$info['wp-filesystem'] = self::get_wp_filesystem();
-
 		/**
 		 * Filters the debug information shown on the Tools -> Site Health -> Info screen.
 		 *
@@ -1444,6 +1394,90 @@ class WP_Debug_Data {
 			'label'       => __( 'WordPress Constants' ),
 			'description' => __( 'These settings alter where and how parts of WordPress are loaded.' ),
 			'fields'      => $fields,
+		);
+	}
+
+	/**
+	 * Gets the WordPress database section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @return array
+	 */
+	public static function get_wp_database(): array {
+		global $wpdb;
+
+		// Populate the database debug fields.
+		if ( is_object( $wpdb->dbh ) ) {
+			// mysqli or PDO.
+			$extension = get_class( $wpdb->dbh );
+		} else {
+			// Unknown sql extension.
+			$extension = null;
+		}
+
+		$server = $wpdb->get_var( 'SELECT VERSION()' );
+
+		$client_version = $wpdb->dbh->client_info;
+
+		$fields = array(
+			'extension'          => array(
+				'label' => __( 'Database Extension' ),
+				'value' => $extension,
+			),
+			'server_version'     => array(
+				'label' => __( 'Server version' ),
+				'value' => $server,
+			),
+			'client_version'     => array(
+				'label' => __( 'Client version' ),
+				'value' => $client_version,
+			),
+			'database_user'      => array(
+				'label'   => __( 'Database username' ),
+				'value'   => $wpdb->dbuser,
+				'private' => true,
+			),
+			'database_host'      => array(
+				'label'   => __( 'Database host' ),
+				'value'   => $wpdb->dbhost,
+				'private' => true,
+			),
+			'database_name'      => array(
+				'label'   => __( 'Database name' ),
+				'value'   => $wpdb->dbname,
+				'private' => true,
+			),
+			'database_prefix'    => array(
+				'label'   => __( 'Table prefix' ),
+				'value'   => $wpdb->prefix,
+				'private' => true,
+			),
+			'database_charset'   => array(
+				'label'   => __( 'Database charset' ),
+				'value'   => $wpdb->charset,
+				'private' => true,
+			),
+			'database_collate'   => array(
+				'label'   => __( 'Database collation' ),
+				'value'   => $wpdb->collate,
+				'private' => true,
+			),
+			'max_allowed_packet' => array(
+				'label' => __( 'Max allowed packet size' ),
+				'value' => self::get_mysql_var( 'max_allowed_packet' ),
+			),
+			'max_connections'    => array(
+				'label' => __( 'Max connections number' ),
+				'value' => self::get_mysql_var( 'max_connections' ),
+			),
+		);
+
+		return array(
+			'label'  => __( 'Database' ),
+			'fields' => $fields,
 		);
 	}
 
@@ -1694,6 +1728,18 @@ class WP_Debug_Data {
 				'path' => $path,
 				'raw'  => 0,
 			);
+
+			// If the directory does not exist, skip checking it, as it will skew the other results.
+			if ( ! is_dir( $path ) ) {
+				$all_sizes[ $name ] = array(
+					'path'  => $path,
+					'raw'   => 0,
+					'size'  => __( 'The directory does not exist.' ),
+					'debug' => 'directory not found',
+				);
+
+				continue;
+			}
 
 			if ( microtime( true ) - WP_START_TIMESTAMP < $max_execution_time ) {
 				if ( 'wordpress_size' === $name ) {
