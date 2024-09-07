@@ -92,7 +92,7 @@ class WP_Debug_Data {
 		);
 
 		// Remove accordion for Directories and Sizes if in Multisite.
-		if ( $is_multisite ) {
+		if ( is_multisite() ) {
 			unset( $info['wp-paths-sizes'] );
 		}
 
