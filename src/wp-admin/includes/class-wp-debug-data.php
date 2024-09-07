@@ -85,11 +85,16 @@ class WP_Debug_Data {
 			'wp-plugins-active'   => array(),
 			'wp-plugins-inactive' => array(),
 			'wp-media'            => array(),
-			'wp-server'           => array(),
+			'wp-server'           => self::get_wp_server(),
 			'wp-database'         => self::get_wp_database(),
 			'wp-constants'        => self::get_wp_constants(),
 			'wp-filesystem'       => self::get_wp_filesystem(),
 		);
+
+		// Remove accordion for Directories and Sizes if in Multisite.
+		if ( $is_multisite ) {
+			unset( $info['wp-paths-sizes'] );
+		}
 
 		$info['wp-core'] = array(
 			'label'  => __( 'WordPress' ),
