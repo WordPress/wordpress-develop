@@ -614,7 +614,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	} else {
 		unset( $redirect['port'] );
 	}
-
+	
+	$redirect['path'] = isset( $redirect['path'] ) ? $redirect['path'] : '';
 	// Trailing /index.php.
 	$redirect['path'] = preg_replace( '|/' . preg_quote( $wp_rewrite->index, '|' ) . '/*?$|', '/', $redirect['path'] );
 
@@ -728,6 +729,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$redirect['host'] = $original['host'];
 	}
 
+	$original['path'] = isset( $original['path' ] ) ? $original['path'] : '';
 	$compare_original = array( $original['host'], $original['path'] );
 
 	if ( ! empty( $original['port'] ) ) {
