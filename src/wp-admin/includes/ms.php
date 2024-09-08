@@ -1172,3 +1172,24 @@ function get_site_screen_help_sidebar_content() {
 		'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/#network-admin-sites-screen">Documentation on Site Management</a>' ) . '</p>' .
 		'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>';
 }
+
+
+/**
+ * Makes sure the passed $role is part of editable_roles
+ *
+ * @since 6.7.0
+ *
+ * @param string $role - name of the role
+ * @return void
+ */
+
+function ensure_editable_role( $role ) {
+	$roles = get_editable_roles();
+	if ( ! isset( $roles[ $role ] ) ) {
+		wp_die(
+			'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
+			'<p>' . __( 'Sorry, you are not allowed to assign users to this role.' ) . '</p>',
+			403
+		);
+	}
+}
