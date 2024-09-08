@@ -1591,6 +1591,9 @@ function bool_from_yn( $yn ) {
  * If the feed action does not have a hook, then the function will die with a
  * message telling the visitor that the feed is not valid.
  *
+ * If the request is for a comment feed for a post on which comments/pings are closed
+ * then the function will die with status code 410.
+ *
  * It is better to only have one hook for each feed.
  *
  * @since 2.1.0
@@ -1611,6 +1614,10 @@ function do_feed() {
 
 	if ( ! has_action( "do_feed_{$feed}" ) ) {
 		wp_die( __( '<strong>Error:</strong> This is not a valid feed template.' ), '', array( 'response' => 404 ) );
+	}
+
+	if ( is_comment_feed() && is_singular() && ! comments_open() && ! pings_open() ) {
+		wp_die( __( 'The feed you requested is no longer available because comments on the associated article are closed.' ), '', array( 'response' => 410 ) );
 	}
 
 	/**
