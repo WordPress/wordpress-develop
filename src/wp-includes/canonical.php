@@ -729,7 +729,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$redirect['host'] = $original['host'];
 	}
 
-	$original['path'] = isset( $original['path' ] ) ? $original['path'] : '';
+	$original['path'] = isset( $original['path'] ) ? $original['path'] : '';
 	$compare_original = array( $original['host'], $original['path'] );
 
 	if ( ! empty( $original['port'] ) ) {
