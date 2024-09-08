@@ -435,6 +435,12 @@ echo esc_html( $title );
 <?php
 if ( isset( $post_new_file ) && current_user_can( $post_type_object->cap->create_posts ) ) {
 	echo ' <a href="' . esc_url( admin_url( $post_new_file ) ) . '" class="page-title-action">' . esc_html( $post_type_object->labels->add_new ) . '</a>';
+	/**
+	 * Fires after the "Add New" button in the admin post type list.
+	 *
+	 * @param WP_Post_Type $post_type_object The post type object.
+	 */
+	do_action( 'wp_admin_after_add_new_button', $post_type_object );
 }
 ?>
 

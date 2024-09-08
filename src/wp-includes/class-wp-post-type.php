@@ -760,7 +760,7 @@ final class WP_Post_Type {
 	 * @since 4.6.0
 	 */
 	public function register_taxonomies() {
-		foreach ( $this->taxonomies as $taxonomy ) {
+		foreach ( (array) $this->taxonomies as $taxonomy ) {
 			register_taxonomy_for_object_type( $taxonomy, $this->name );
 		}
 	}
