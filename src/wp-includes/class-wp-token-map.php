@@ -546,7 +546,7 @@ class WP_Token_Map {
 			$group        = $this->large_words[ $group_at / ( $this->key_length + 1 ) ];
 			$group_length = strlen( $group );
 			$at           = 0;
-			while ( $at < $group_length ) {
+			while ( $at + $this->key_length < $group_length ) {
 				$token_length   = unpack( 'C', $group[ $at++ ] )[1];
 				$token          = substr( $group, $at, $token_length );
 				$at            += $token_length;

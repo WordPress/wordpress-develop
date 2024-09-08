@@ -3433,7 +3433,13 @@ function wp_remove_targeted_link_rel_filters() {
  * Looks up one smiley code in the $wpsmiliestrans global array and returns an
  * `<img>` string for that smiley.
  *
+ * This function expects as its input the output of a PCRE match given a
+ * specific pattern, which is not easy to replicate or ensure doesn't change.
+ * The {@link convert_smilies} function no longer needs this inner helper method.
+ *
  * @since 2.8.0
+ *
+ * @deprecated {WP_VERSION} Rely on {@link convert_smilies} instead.
  *
  * @global array $wpsmiliestrans
  *
@@ -3474,6 +3480,106 @@ function translate_smiley( $matches ) {
 }
 
 /**
+ * Finds next span of spaces in a given text string starting at a given
+ * byte offset into the text, returning the byte length of the span.
+ *
+ * This function assumes that it's searching plain UTF-8 encoded PHP strings.
+ * If sending it content extracted from HTML, decode the content first.
+ *
+ * Example:
+ *
+ *     5 === wp_find_whitespace_span( 'Where is all the whitespace?', 0, $ws_length );
+ *     1 === $ws_length;
+ *     8 === wp_find_whitespace_span( 'Where is all the whitespace?', 5 + $ws_length );
+ *
+ * @since {WP_VERSION}
+ *
+ * @param string   $utf8_input           Text in which to search for whitespace.
+ * @param int      $starting_byte_offset Where in the given text to start looking.
+ * @param int|null $span_byte_length     Optional. If provided, will be set to the length in bytes
+ *                                       of the found span of whitespace characters.
+ *
+ * @return int|null Byte offset into text where next span of whitespace begins after starting offset.
+ *                  If no whitespace found will return `null`.
+ */
+function wp_find_whitespace_span( string $utf8_input, int $starting_byte_offset, int &$span_byte_length = null ): ?int {
+	$end                = strlen( $utf8_input );
+	$whitespace_pattern = wp_spaces_regexp();
+
+	// Skip the PCRE match if nothing has filtered the default search.
+	if ( '[\r\n\t ]|\xC2\xA0|&nbsp;' === $whitespace_pattern ) {
+		$at = $starting_byte_offset;
+		if ( $at >= $end ) {
+			return null;
+		}
+
+		// Find the start of the space segment.
+		while ( $at < $end ) {
+			/*
+			 * HTML whitespace includes the form-feed `\f` so it's included here.
+			 * The `\xC2` character is the first byte of a two-byte UTF-8 sequence for non-breaking space (U+00A0).
+			 */
+			$space_after = strcspn( $utf8_input, " \t\f\r\n\xC2", $at );
+			$space_at    = $at + $space_after;
+
+			if ( $space_at >= $end ) {
+				return null;
+			}
+
+			$is_multi_byte = "\xC2" === $utf8_input[ $space_at ];
+			if ( ! $is_multi_byte || ( $space_at + 1 < $end && "\xA0" === $utf8_input[ $space_at + 1 ] ) ) {
+				$at = $space_at + ( $is_multi_byte ? 2 : 1 );
+				break;
+			}
+
+			++$at;
+		}
+
+		$span_ends_at = $at;
+		while ( $at < $end ) {
+			$space_length = strspn( $utf8_input, " \t\f\r\n\xC2", $at );
+			$span_ends_at = $at + $space_length;
+			if ( 0 === $space_length ) {
+				break;
+			}
+
+			$is_multi_byte = "\xC2" === $utf8_input[ $span_ends_at - 1 ];
+			if ( $is_multi_byte && ( $span_ends_at < $end ) && "\xA0" === $utf8_input[ $span_ends_at ] ) {
+				$at = $span_ends_at + 2;
+				continue;
+			}
+
+			if ( $is_multi_byte ) {
+				--$span_ends_at;
+			}
+
+			break;
+		}
+
+		$span_byte_length = $span_ends_at - $space_at;
+		return $space_at;
+	}
+
+	/*
+	 * The pattern may contain HTML character references, which is unfortunate since it
+	 * conflates encoded and un-encoded text. To combat this, decode the pattern so that
+	 * it's only checking normal UTF-8 encoded PHP strings.
+	 */
+	$whitespace_pattern = WP_HTML_Decoder::decode_text_node( $whitespace_pattern );
+	$whitespace_pattern = str_replace( '~', '\\~', $whitespace_pattern );
+	$whitespace_pattern = "~(?:{$whitespace_pattern})+~";
+
+	if ( 1 !== preg_match( $whitespace_pattern, $utf8_input, $whitespace_match, PREG_OFFSET_CAPTURE, $starting_byte_offset ) ) {
+		return null;
+	}
+
+	list( list( $full_match, $match_starts_at ) ) = $whitespace_match;
+
+	$span_byte_length = strlen( $full_match );
+	return $match_starts_at;
+}
+
+/**
  * Converts text equivalent of smilies to images.
  *
  * Will only convert smilies if the option 'use_smilies' is true and the global
@@ -3487,42 +3593,121 @@ function translate_smiley( $matches ) {
  * @return string Converted content with text smilies replaced with images.
  */
 function convert_smilies( $text ) {
-	global $wp_smiliessearch;
-	$output = '';
-	if ( get_option( 'use_smilies' ) && ! empty( $wp_smiliessearch ) ) {
-		// HTML loop taken from texturize function, could possible be consolidated.
-		$textarr = preg_split( '/(<.*>)/U', $text, -1, PREG_SPLIT_DELIM_CAPTURE ); // Capture the tags as well as in between.
-		$stop    = count( $textarr ); // Loop stuff.
+	/** @var WP_Token_Map $wp_smiley_mapping */
+	global $wp_smiliessearch, $wp_smiley_mapping;
 
-		// Ignore processing of specific tags.
-		$tags_to_ignore       = 'code|pre|style|script|textarea';
-		$ignore_block_element = '';
-
-		for ( $i = 0; $i < $stop; $i++ ) {
-			$content = $textarr[ $i ];
-
-			// If we're in an ignore block, wait until we find its closing tag.
-			if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')[^>]*>/', $content, $matches ) ) {
-				$ignore_block_element = $matches[1];
-			}
-
-			// If it's not a tag and not in ignore block.
-			if ( '' === $ignore_block_element && strlen( $content ) > 0 && '<' !== $content[0] ) {
-				$content = preg_replace_callback( $wp_smiliessearch, 'translate_smiley', $content );
-			}
-
-			// Did we exit ignore block?
-			if ( '' !== $ignore_block_element && '</' . $ignore_block_element . '>' === $content ) {
-				$ignore_block_element = '';
-			}
-
-			$output .= $content;
-		}
-	} else {
-		// Return default text.
-		$output = $text;
+	if ( ! get_option( 'use_smilies' ) || empty( $wp_smiliessearch ) ) {
+		// Return given text unchanged.
+		return $text;
 	}
-	return $output;
+
+	$processor = new class( $text ) extends WP_HTML_Tag_Processor {
+		/**
+		 * Replaces the text content for a matched text node.
+		 *
+		 * @param string $new_text Text to replace current content.
+		 * @return bool Whether the replacement was enqueued.
+		 */
+		public function set_already_escaped_modifiable_text( string $new_text ): bool {
+			if ( '#text' !== $this->get_token_name() ) {
+				return false;
+			}
+
+			if ( ! $this->set_bookmark( 'here' ) ) {
+				return false;
+			}
+
+			$here = $this->bookmarks['here'];
+
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+				$here->start,
+				$here->length,
+				$new_text
+			);
+
+			return true;
+		}
+	};
+
+	while ( $processor->next_token() ) {
+		$token_name = $processor->get_token_name();
+		$is_closer  = $processor->is_tag_closer();
+
+		switch ( $token_name ) {
+			case 'CODE':
+			case 'PRE':
+				if ( $is_closer ) {
+					break;
+				}
+
+				/*
+				 * Jump to the nearest closer. If there is none, then the processor will
+				 * continue to the end and no more replacements will be attempted.
+				 */
+				while ( $processor->next_token() ) {
+					if ( $token_name === $processor->get_token_name() && $processor->is_tag_closer() ) {
+						break;
+					}
+				}
+				break;
+
+			case '#text':
+				$chunk     = $processor->get_modifiable_text();
+				$at        = 0;
+				$end       = strlen( $chunk );
+				$new_chunk = '';
+
+				while ( $at < $end ) {
+					$smiley = $wp_smiley_mapping->read_token( $chunk, $at, $smiley_length );
+					if ( isset( $smiley ) ) {
+						$at         += $smiley_length;
+						$last_dot_at = strrpos( $smiley, '.' );
+						$extension   = false === $last_dot_at ? null : substr( $smiley, $last_dot_at + 1 );
+						$is_image    = in_array( $extension, array( 'avif', 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp' ), true );
+
+						// If not an image then the substitutions is probably a UTF-8 encoded Emoji.
+						if ( ! $is_image ) {
+							$new_chunk .= $smiley;
+						} else {
+							/**
+							 * Filters the Smiley image URL before it's used in the image element.
+							 *
+							 * @since 2.9.0
+							 *
+							 * @param string $smiley_url URL for the smiley image.
+							 * @param string $img        Filename for the smiley image.
+							 * @param string $site_url   Site URL, as returned by site_url().
+							 */
+							$src_url = apply_filters( 'smilies_src', includes_url( "images/smilies/{$smiley}" ), $smiley, site_url() );
+
+							$image = new WP_HTML_Tag_Processor( '<img class="wp-smiley" style="height: 1em; max-height: 1em;">' );
+							$image->next_tag();
+							$image->set_attribute( 'src', esc_url( $src_url ) );
+							$image->set_attribute( 'alt', $smiley );
+
+							$new_chunk .= $image->get_updated_html();
+						}
+					}
+
+					// Find the next space.
+					$space_at = wp_find_whitespace_span( $chunk, $at, $space_length );
+					if ( ! isset( $space_at ) ) {
+						break;
+					}
+
+					// Advance past the next span of whitespace.
+					$new_chunk .= substr( $chunk, $at, $space_at - $at + $space_length );
+					$at         = $space_at + $space_length;
+				}
+
+				if ( '' !== $new_chunk ) {
+					$new_chunk .= substr( $chunk, $at );
+					$processor->set_already_escaped_modifiable_text( $new_chunk );
+				}
+		}
+	}
+
+	return $processor->get_updated_html();
 }
 
 /**

@@ -4783,7 +4783,7 @@ function wp_is_serving_rest_request() {
  * @global array $wp_smiliessearch
  */
 function smilies_init() {
-	global $wpsmiliestrans, $wp_smiliessearch;
+	global $wpsmiliestrans, $wp_smiliessearch, $wp_smiley_mapping;
 
 	// Don't bother setting up smilies if they are disabled.
 	if ( ! get_option( 'use_smilies' ) ) {
@@ -4840,6 +4840,8 @@ function smilies_init() {
 		);
 	}
 
+	$unfiltered_smilies = $wpsmiliestrans;
+
 	/**
 	 * Filters all the smilies.
 	 *
@@ -4851,6 +4853,58 @@ function smilies_init() {
 	 * @param string[] $wpsmiliestrans List of the smilies' hexadecimal representations, keyed by their smily code.
 	 */
 	$wpsmiliestrans = apply_filters( 'smilies', $wpsmiliestrans );
+
+	if ( $unfiltered_smilies === $wpsmiliestrans ) {
+		$wp_smiley_mapping = WP_Token_Map::from_precomputed_table(
+			array(
+				'storage_version' => '6.6.0-trunk',
+				'key_length'      => 2,
+				'groups'          => "8-\x00:!\x00:-\x00:?\x00:a\x00:c\x00:e\x00:g\x00:i\x00:l\x00:m\x00:n\x00:o\x00:r\x00:s\x00:t\x00:w\x00;-\x00",
+				'large_words'     => array(
+					// 8-)[😎] 8-O[😯].
+					"\x01)\x04😎\x01O\x04😯",
+					// :!:[❗].
+					"\x01:\x03❗",
+					// :-([🙁] :-)[🙂] :-?[😕] :-D[😀] :-P[😛] :-o[😮] :-x[😡] :-|[😐].
+					"\x01(\x04🙁\x01)\x04🙂\x01?\x04😕\x01D\x04😀\x01P\x04😛\x01o\x04😮\x01x\x04😡\x01|\x04😐",
+					// :???:[😕] :?:[❓].
+					"\x03??:\x04😕\x01:\x03❓",
+					// :arrow:[➡].
+					"\x05rrow:\x03➡",
+					// :cool:[😎] :cry:[😥].
+					"\x04ool:\x04😎\x03ry:\x04😥",
+					// :evil:[👿] :eek:[😮].
+					"\x04vil:\x04👿\x03ek:\x04😮",
+					// :grin:[😀].
+					"\x04rin:\x04😀",
+					// :idea:[💡].
+					"\x04dea:\x04💡",
+					// :lol:[😆].
+					"\x03ol:\x04😆",
+					// :mrgreen:[mrgreen.png] :mad:[😡].
+					"\x07rgreen:\x0bmrgreen.png\x03ad:\x04😡",
+					// :neutral:[😐].
+					"\x07eutral:\x04😐",
+					// :oops:[😳].
+					"\x04ops:\x04😳",
+					// :razz:[😛] :roll:[🙄].
+					"\x04azz:\x04😛\x04oll:\x04🙄",
+					// :shock:[😯] :smile:[🙂] :sad:[🙁].
+					"\x05hock:\x04😯\x05mile:\x04🙂\x03ad:\x04🙁",
+					// :twisted:[😈].
+					"\x07wisted:\x04😈",
+					// :wink:[😉].
+					"\x04ink:\x04😉",
+					// ;-)[😉].
+					"\x01)\x04😉",
+				),
+				'small_words'     => "8O\x00:(\x00:)\x00:?\x00:D\x00:P\x00:o\x00:x\x00:|\x00;)\x00",
+				'small_mappings'  => array( '😯', '🙁', '🙂', '😕', '😀', '😛', '😮', '😡', '😐', '😉' ),
+			)
+		);
+	} else {
+		$wp_smiley_mapping = WP_Token_Map::from_array( $wpsmiliestrans );
+	}
 
 	if ( count( $wpsmiliestrans ) === 0 ) {
 		return;
