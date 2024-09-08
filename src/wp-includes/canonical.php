@@ -614,7 +614,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	} else {
 		unset( $redirect['port'] );
 	}
-	
+
 	$redirect['path'] = isset( $redirect['path'] ) ? $redirect['path'] : '';
 	// Trailing /index.php.
 	$redirect['path'] = preg_replace( '|/' . preg_quote( $wp_rewrite->index, '|' ) . '/*?$|', '/', $redirect['path'] );
