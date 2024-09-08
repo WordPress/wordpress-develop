@@ -64,12 +64,10 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 
 	if ( ! empty( $post_data['post_author_override'] ) ) {
 		$post_data['post_author'] = (int) $post_data['post_author_override'];
-	} else {
-		if ( ! empty( $post_data['post_author'] ) ) {
+	} elseif ( ! empty( $post_data['post_author'] ) ) {
 			$post_data['post_author'] = (int) $post_data['post_author'];
-		} else {
-			$post_data['post_author'] = (int) $post_data['user_ID'];
-		}
+	} else {
+		$post_data['post_author'] = (int) $post_data['user_ID'];
 	}
 
 	if ( isset( $post_data['user_ID'] ) && ( $post_data['post_author'] !== $post_data['user_ID'] )
@@ -81,12 +79,10 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 			} else {
 				return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to edit posts as this user.' ) );
 			}
-		} else {
-			if ( 'page' === $post_data['post_type'] ) {
+		} elseif ( 'page' === $post_data['post_type'] ) {
 				return new WP_Error( 'edit_others_pages', __( 'Sorry, you are not allowed to create pages as this user.' ) );
-			} else {
-				return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to create posts as this user.' ) );
-			}
+		} else {
+			return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to create posts as this user.' ) );
 		}
 	}
 
@@ -103,23 +99,27 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		}
 	}
 
-	// What to do based on which button they pressed.
-	if ( isset( $post_data['saveasdraft'] ) && '' !== $post_data['saveasdraft'] ) {
-		$post_data['post_status'] = 'draft';
-	}
-	if ( isset( $post_data['saveasprivate'] ) && '' !== $post_data['saveasprivate'] ) {
-		$post_data['post_status'] = 'private';
-	}
-	if ( isset( $post_data['publish'] ) && ( '' !== $post_data['publish'] )
-		&& ( ! isset( $post_data['post_status'] ) || 'private' !== $post_data['post_status'] )
-	) {
-		$post_data['post_status'] = 'publish';
-	}
-	if ( isset( $post_data['advanced'] ) && '' !== $post_data['advanced'] ) {
-		$post_data['post_status'] = 'draft';
-	}
-	if ( isset( $post_data['pending'] ) && '' !== $post_data['pending'] ) {
-		$post_data['post_status'] = 'pending';
+	// Ensure custom post statuses are preserved.
+	if ( ! isset( $post_data['post_status'] ) || ! array_key_exists( $post_data['post_status'], get_post_stati( array( '_builtin' => false ) ) ) ) {
+
+		// What to do based on which button they pressed.
+		if ( isset( $post_data['saveasdraft'] ) && '' !== $post_data['saveasdraft'] ) {
+			$post_data['post_status'] = 'draft';
+		}
+		if ( isset( $post_data['saveasprivate'] ) && '' !== $post_data['saveasprivate'] ) {
+			$post_data['post_status'] = 'private';
+		}
+		if ( isset( $post_data['publish'] ) && ( '' !== $post_data['publish'] )
+			&& ( ! isset( $post_data['post_status'] ) || 'private' !== $post_data['post_status'] )
+		) {
+			$post_data['post_status'] = 'publish';
+		}
+		if ( isset( $post_data['advanced'] ) && '' !== $post_data['advanced'] ) {
+			$post_data['post_status'] = 'draft';
+		}
+		if ( isset( $post_data['pending'] ) && '' !== $post_data['pending'] ) {
+			$post_data['post_status'] = 'pending';
+		}
 	}
 
 	if ( isset( $post_data['ID'] ) ) {
@@ -1554,13 +1554,11 @@ function get_sample_permalink_html( $post, $new_title = null, $new_slug = null )
 		if ( 'draft' === $post->post_status || empty( $post->post_name ) ) {
 			$view_link      = get_preview_post_link( $post );
 			$preview_target = " target='wp-preview-{$post->ID}'";
-		} else {
-			if ( 'publish' === $post->post_status || 'attachment' === $post->post_type ) {
+		} elseif ( 'publish' === $post->post_status || 'attachment' === $post->post_type ) {
 				$view_link = get_permalink( $post );
-			} else {
-				// Allow non-published (private, future) to be viewed at a pretty permalink, in case $post->post_name is set.
-				$view_link = str_replace( array( '%pagename%', '%postname%' ), $post->post_name, $permalink );
-			}
+		} else {
+			// Allow non-published (private, future) to be viewed at a pretty permalink, in case $post->post_name is set.
+			$view_link = str_replace( array( '%pagename%', '%postname%' ), $post->post_name, $permalink );
 		}
 	}
 
