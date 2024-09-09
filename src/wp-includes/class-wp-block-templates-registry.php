@@ -112,7 +112,7 @@ final class WP_Block_Templates_Registry {
 	 * @since 6.7.0
 	 *
 	 * @param string $template_name Template name including namespace.
-	 * @return WP_Block_Template|null|false The registered template, or null if it is not registered.
+	 * @return WP_Block_Template|null The registered template, or null if it is not registered.
 	 */
 	public function get_registered( $template_name ) {
 		if ( ! $this->is_registered( $template_name ) ) {
