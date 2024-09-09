@@ -9,7 +9,7 @@ test.describe( 'plugins.php', () => {
 
 			// Disable JavaScript.
 			await page.route( /.*\.js.*/, ( route ) => {
-				route.abort( 'blockedbyclient' );
+				route.fulfill( { status: 200, body: '' } );
 			} );
 
 			// Open plugins.php.
