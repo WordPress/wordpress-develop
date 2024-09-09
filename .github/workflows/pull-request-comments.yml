@@ -164,9 +164,9 @@ jobs:
 
             github.rest.issues.createComment( commentInfo );
 
-  # Leaves a comment on a pull request when no Trac ticket is included in the pull request description and delete the comment if the Trac ticket has been updated.
+  #  Manages comments reminding contributors to include a Trac ticket link when opening a pull request.
   trac-ticket-check:
-    name: Comment on a pull request when no Trac ticket is included and delete the comment when Trac Ticket has been updated
+    name: Manage Trac ticket reminders for pull requests
     runs-on: ubuntu-latest
     permissions:
       issues: write
