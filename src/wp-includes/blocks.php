@@ -2330,6 +2330,7 @@ function wp_migrate_old_typography_shape( $metadata ) {
  *
  * @since 5.8.0
  * @since 6.1.0 Added `query_loop_block_query_vars` filter and `parents` support in query.
+ * @since 6.7.0 Added support for the `format` property in query.
  *
  * @param WP_Block $block Block instance.
  * @param int      $page  Current query's page.
@@ -2418,6 +2419,52 @@ function build_query_vars_from_query_block( $block, $page ) {
 						'include_children' => false,
 					);
 				}
+			}
+		}
+		if ( ! empty( $block->context['query']['format'] ) ) {
+			$query['format'] = $block->context['query']['format'];
+			$tax_query = array( 'relation' => 'OR' );
+
+			// The default post format, 'standard', is not stored in the database.
+			// If 'standard' is part of the request, the query needs to exclude all post items that
+			// have a format assigned.
+			if ( in_array( 'standard', $formats, true ) ) {
+				$tax_query[] = array(
+					'taxonomy' => 'post_format',
+					'field'    => 'slug',
+					'terms'    => array(),
+					'operator' => 'NOT EXISTS',
+				);
+				// Remove the standard format, since it cannot be queried.
+				unset( $formats[ array_search( 'standard', $formats, true ) ] );
+
+				// Add any remaining formats to the tax query.
+				if ( ! empty( $formats ) ) {
+					// Add the post-format- prefix.
+					$terms = array_map(
+						static function ( $format ) {
+							return 'post-format-' . $format;
+						},
+						$formats
+					);
+
+					$tax_query[] = array(
+						'taxonomy' => 'post_format',
+						'field'    => 'slug',
+						'terms'    => $terms,
+						'operator' => 'IN',
+					);
+				}
+			}
+
+			if ( ! isset( $query['tax_query'] ) ) {
+				$query['tax_query'] = array();
+			}
+
+			// This condition is intended to prevent $tax_query from being added to $query
+			// if it only contains the relation.
+			if ( count( $tax_query ) > 1 ) {
+				$query['tax_query'][] = $tax_query;
 			}
 		}
 		if (
