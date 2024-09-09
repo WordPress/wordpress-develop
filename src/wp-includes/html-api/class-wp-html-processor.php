@@ -2770,6 +2770,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 		}
+
+		// Satisfies the return type, but no supported input should reach here.
+		return false;
 	}
 
 	/**
@@ -4645,6 +4648,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
 			}
 		}
+
+		// Satisfies the return type, but no supported input should reach here.
+		return false;
 	}
 
 	/*
@@ -5878,6 +5884,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				)
 			);
 		}
+
+		// Satisfies the return type, but no supported token should reach here.
+		return false;
 	}
 
 	/**

@@ -2965,6 +2965,9 @@ class WP_HTML_Tag_Processor {
 					return $lower_tag_name;
 			}
 		}
+
+		// Satisfies the return type, but no supported parsing context should reach here.
+		return null;
 	}
 
 	/**
