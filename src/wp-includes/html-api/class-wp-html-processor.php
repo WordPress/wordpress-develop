@@ -2771,7 +2771,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			}
 		}
 
-		// Satisfies the return type, but no supported input should reach here.
+		$this->bail( 'Should not have been able to reach end of IN BODY processing. Check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
 		return false;
 	}
 
@@ -4649,7 +4650,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			}
 		}
 
-		// Satisfies the return type, but no supported input should reach here.
+		$this->bail( 'Should not have been able to reach end of IN FOREIGN CONTENT processing. Check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
 		return false;
 	}
 
@@ -5885,7 +5887,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			);
 		}
 
-		// Satisfies the return type, but no supported token should reach here.
+		$this->bail( 'Should not have reached end of HTML Integration Point detection: check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
 		return false;
 	}
 

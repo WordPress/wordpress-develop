@@ -2966,8 +2966,8 @@ class WP_HTML_Tag_Processor {
 			}
 		}
 
-		// Satisfies the return type, but no supported parsing context should reach here.
-		return null;
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
+		return $tag_name;
 	}
 
 	/**
