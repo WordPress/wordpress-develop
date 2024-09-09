@@ -196,6 +196,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'categories_exclude',
 				'context',
 				'exclude',
+				'format',
 				'include',
 				'modified_after',
 				'modified_before',
