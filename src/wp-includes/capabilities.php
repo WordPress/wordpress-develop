@@ -103,8 +103,8 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
-			if ( ( (int) get_option( 'page_for_posts' ) === $post->ID )
-				|| ( (int) get_option( 'page_on_front' ) === $post->ID )
+			if ( (int) get_option( 'page_for_posts' ) === $post->ID
+				|| (int) get_option( 'page_on_front' ) === $post->ID
 			) {
 				$caps[] = 'manage_options';
 				break;
