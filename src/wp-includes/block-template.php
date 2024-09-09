@@ -385,7 +385,7 @@ function wp_register_block_template( $template_name, $args = array() ) {
  * Unregister a block template.
  *
  * @param string $template_name Template name in the form of `plugin_uri//template_name`.
- * @return true|WP_Error True on success, WP_Error on failure or if the template doesn't exist.
+ * @return WP_Block_Template|WP_Error True on success, WP_Error on failure or if the template doesn't exist.
  *
  * @since 6.7.0
  */
