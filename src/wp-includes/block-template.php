@@ -363,7 +363,6 @@ function _resolve_template_for_new_post( $wp_query ) {
  * Register a block template.
  *
  * @param string       $template_name  Template name in the form of `plugin_uri//template_name`.
- * @param array|string $args           Object type or array of object types with which the taxonomy should be associated.
  * @param array|string $args           {
  *     @type string        $title                 Optional. Title of the template as it will be shown in the Site Editor
  *                                                and other UI elements.
