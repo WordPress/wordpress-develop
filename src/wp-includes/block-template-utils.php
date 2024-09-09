@@ -1027,7 +1027,7 @@ function _build_block_template_result_from_post( $post ) {
 		}
 	}
 
-	if ( 'wp_template' === $post->template_type ) {
+	if ( 'wp_template' === $post->post_type ) {
 		$registered_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $post->slug );
 		if ( $registered_template ) {
 			$template->plugin      = $registered_template->plugin;
