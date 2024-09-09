@@ -5,10 +5,10 @@ Theme URI: https://wordpress.org/themes/twentynineteen/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Our 2019 default theme is designed to show off the power of the block editor. It features custom styles for all the default blocks, and is built so that what you see in the editor looks like what you'll see on your website. Twenty Nineteen is designed to be adaptable to a wide range of websites, whether you’re running a photo blog, launching a new business, or supporting a non-profit. Featuring ample whitespace and modern sans-serif headlines paired with classic serif body text, it's built to be beautiful on all screen sizes.
-Tested up to: 6.5
+Tested up to: 6.6
 Requires at least: 4.7
 Requires PHP: 5.2.4
-Version: 2.8
+Version: 2.9
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentynineteen
@@ -4674,6 +4674,10 @@ body.page .main-navigation {
   width: calc(100vw / 12);
 }
 
+#respond .comment-reply-title small {
+  margin-left: 0.5em;
+}
+
 #comments > .comments-title:last-child {
   display: none;
 }
@@ -5467,6 +5471,7 @@ body.page .main-navigation {
 }
 
 .entry .entry-content .wp-block-audio audio {
+  display: block;
   width: 100%;
 }
 
@@ -5575,6 +5580,16 @@ body.page .main-navigation {
 .entry .entry-content .wp-block-buttons.has-custom-font-size .wp-block-button__link,
 .entry .entry-content .wp-block-button.has-custom-font-size .wp-block-button__link {
   font-size: 1em;
+}
+
+.entry .entry-content .wp-block-buttons[style*="font-weight"] .wp-block-button__link,
+.entry .entry-content .wp-block-button[style*="font-weight"] .wp-block-button__link {
+  font-weight: inherit;
+}
+
+.entry .entry-content .wp-block-buttons[style*="text-decoration"] .wp-block-button__link,
+.entry .entry-content .wp-block-button[style*="text-decoration"] .wp-block-button__link {
+  text-decoration: inherit;
 }
 
 .entry .entry-content .wp-block-archives,
