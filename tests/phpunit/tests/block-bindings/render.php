@@ -298,4 +298,47 @@ HTML;
 			'The `__default` attribute should be replaced with the real attribute prior to the callback.'
 		);
 	}
+
+	/**
+	 * Tests that filter `block_bindings_source_value` is applied.
+	 *
+	 * @ticket 61181
+	 */
+	public function test_filter_block_bindings_source_value() {
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => function () {
+					return '';
+				},
+			)
+		);
+
+		$filter_value = function ( $value, $source_name, $source_args, $block_instance, $attribute_name ) {
+			if ( self::SOURCE_NAME !== $source_name ) {
+				return $value;
+			}
+			return "Filtered value: {$source_args['test_key']}. Block instance: {$block_instance->name}. Attribute name: {$attribute_name}.";
+		};
+
+		add_filter( 'block_bindings_source_value', $filter_value, 10, 5 );
+
+		$block_content = <<<HTML
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source", "args":{"test_key":"test_arg"}}}}} -->
+<p>Default content</p>
+<!-- /wp:paragraph -->
+HTML;
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
+
+		remove_filter( 'block_bindings_source_value', $filter_value );
+
+		$this->assertSame(
+			'<p>Filtered value: test_arg. Block instance: core/paragraph. Attribute name: content.</p>',
+			trim( $result ),
+			'The block content should show the filtered value.'
+		);
+	}
 }
