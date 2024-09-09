@@ -91,7 +91,7 @@ class WP_Debug_Data {
 			'wp-filesystem'       => self::get_wp_filesystem(),
 		);
 
-		// Remove accordion for Directories and Sizes if in Multisite.
+		// Remove debug data which is only relevant on single-site installs.
 		if ( is_multisite() ) {
 			unset( $info['wp-paths-sizes'] );
 		}
