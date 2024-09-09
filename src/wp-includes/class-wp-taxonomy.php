@@ -512,6 +512,10 @@ final class WP_Taxonomy {
 
 			add_rewrite_tag( "%$this->name%", $tag, $this->query_var ? "{$this->query_var}=" : "taxonomy=$this->name&term=" );
 			add_permastruct( $this->name, "{$this->rewrite['slug']}/%$this->name%", $this->rewrite );
+
+			// TODO: If rewrite tag exists, append taxonomy name to regex.
+			add_rewrite_tag( '%taxonomy%', "(?:$this->name)", $this->query_var ? "{$this->query_var}=" : "taxonomy=$this->name&term=" );
+			add_permastruct( 'taxonomy', '%taxonomy%', $this->rewrite );
 		}
 	}
 
