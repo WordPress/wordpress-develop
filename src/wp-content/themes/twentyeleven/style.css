@@ -1795,7 +1795,6 @@ video {
 
 /* Singular navigation */
 #nav-single {
-	float: right;
 	position: relative;
 	top: -0.3em;
 	text-align: right;
