@@ -1094,6 +1094,8 @@ class WP_Debug_Data {
 			$php_version_debug .= ' 64bit';
 		}
 
+		$fields = array();
+
 		$fields['server_architecture'] = array(
 			'label' => __( 'Server architecture' ),
 			'value' => ( 'unknown' !== $server_architecture ? $server_architecture : __( 'Unable to determine server architecture' ) ),
