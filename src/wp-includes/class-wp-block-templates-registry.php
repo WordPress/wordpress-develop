@@ -100,7 +100,7 @@ final class WP_Block_Templates_Registry {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return WP_Block_Template[]|false Associative array of `$template_name => $template` pairs.
+	 * @return WP_Block_Template[] Associative array of `$template_name => $template` pairs.
 	 */
 	public function get_all_registered() {
 		return $this->registered_templates;
