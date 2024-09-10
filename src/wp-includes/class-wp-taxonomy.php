@@ -538,6 +538,9 @@ final class WP_Taxonomy {
 
 		// Remove rewrite tags and permastructs.
 		if ( false !== $this->rewrite ) {
+			remove_rewrite_tag( "%$this->name-taxonomy%" );
+			remove_permastruct( "$this->name-taxonomy" );
+
 			remove_rewrite_tag( "%$this->name%" );
 			remove_permastruct( $this->name );
 		}
