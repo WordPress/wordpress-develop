@@ -464,6 +464,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding-right: 0;
 }
 
+/* Posts title size update */
+.editor-styles-wrapper .editor-visual-editor__post-title-wrapper h1{
+	font-size: 32px;
+}
+
 /*--------------------------------------------------------------
 7.0 Blocks - Colors
 --------------------------------------------------------------*/
