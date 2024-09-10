@@ -870,7 +870,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		);
 
 		$this->assertNotEmpty( $children, 'Child terms are expected to exist.' );
-		$this->assertContains( $child['term_id'], $children );
+		$this->assertContains( $child['term_id'], $children, 'Querying by parent ID is expected to include the new child term.' );
 	}
 
 	/**
