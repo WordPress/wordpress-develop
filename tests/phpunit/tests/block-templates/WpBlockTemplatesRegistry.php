@@ -4,7 +4,7 @@
  *
  * @covers WP_Block_Templates_Registry
  */
-class WP_Block_Templates_Registry_Test extends WP_UnitTestCase {
+class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * @var WP_Block_Templates_Registry
