@@ -19,6 +19,14 @@
 final class WP_Hook implements Iterator, ArrayAccess {
 
 	/**
+	 * Hook callers.
+	 *
+	 * @since 4.7.0
+	 * @var array
+	 */
+	public $callers = array();
+
+	/**
 	 * Hook callbacks.
 	 *
 	 * @since 4.7.0
@@ -98,6 +106,19 @@ final class WP_Hook implements Iterator, ArrayAccess {
 
 		if ( $this->nesting_level > 0 ) {
 			$this->resort_active_iterations( $priority, $priority_existed );
+		}
+
+		// Check if plugins are loaded
+		if ( defined( 'WP_PLUGIN_DIR' ) ) {
+			// Get the caller file path
+			$caller = debug_backtrace()[1]['file'];
+
+			// Check if a plugin is adding this filter
+			if ( substr( $caller, 0, strlen( WP_PLUGIN_DIR ) ) === WP_PLUGIN_DIR ) {
+				// Strip the WP_PLUGIN_DIR from the caller path
+				$caller = substr( $caller, strlen( WP_PLUGIN_DIR ) );
+				array_push( $this->callers, $caller );
+			}
 		}
 	}
 

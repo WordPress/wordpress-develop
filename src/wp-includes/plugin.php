@@ -714,6 +714,11 @@ function apply_filters_deprecated( $hook_name, $args, $version, $replacement = '
 		return $args[0];
 	}
 
+	// Filters added by plugins have a caller to easily identify the source
+	global $wp_filter;
+	$callers  = implode( ', ', $wp_filter[ $hook_name ]->callers );
+	$message .= ' ' . __( 'used_by' ) . ' ' . $callers;
+
 	_deprecated_hook( $hook_name, $version, $replacement, $message );
 
 	return apply_filters_ref_array( $hook_name, $args );
