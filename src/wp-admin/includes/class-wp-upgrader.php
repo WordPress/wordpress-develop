@@ -457,7 +457,11 @@ class WP_Upgrader {
 			if ( ! $wp_filesystem->is_writable( $remote_destination . $filename ) ) {
 				// Attempt to alter permissions to allow writes and try again.
 				$wp_filesystem->chmod( $remote_destination . $filename, ( 'd' === $file_details['type'] ? FS_CHMOD_DIR : FS_CHMOD_FILE ) );
-				if ( ! $wp_filesystem->is_writable( $remote_destination . $filename ) ) {
+				// is_writable() returns false on symlinks for some reason.
+				if (
+					! $wp_filesystem->is_writable( $remote_destination . $filename ) &&
+					! $wp_filesystem->is_link( $remote_destination . $filename )
+				) {
 					$unwritable_files[] = $filename;
 				}
 			}
