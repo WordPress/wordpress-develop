@@ -155,10 +155,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 
 		$found_tag = $processor->next_tag();
 
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
-		}
-
 		$this->assertTrue(
 			$found_tag,
 			"Could not find first {$tag_name}."
@@ -219,10 +215,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	public function test_expects_closer_expects_no_closer_for_self_contained_tokens( $self_contained_token ) {
 		$processor   = WP_HTML_Processor::create_fragment( $self_contained_token );
 		$found_token = $processor->next_token();
-
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "HTML '{$self_contained_token}' is not supported." );
-		}
 
 		$this->assertTrue(
 			$found_token,
@@ -305,10 +297,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 
 		$found_tag = $processor->next_token();
 
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
-		}
-
 		$this->assertTrue(
 			$found_tag,
 			"Could not find first {$tag_name}."
@@ -356,37 +344,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		unset( $all_void_tags['COL'] );
 
 		return $all_void_tags;
-	}
-
-	/**
-	 * Ensures that special handling of unsupported tags is cleaned up
-	 * as handling is implemented. Otherwise there's risk of leaving special
-	 * handling (that is never reached) when tag handling is implemented.
-	 *
-	 * @ticket 60092
-	 *
-	 * @dataProvider data_unsupported_special_in_body_tags
-	 *
-	 * @covers WP_HTML_Processor::step_in_body
-	 *
-	 * @param string $tag_name Name of the tag to test.
-	 */
-	public function test_step_in_body_fails_on_unsupported_tags( $tag_name ) {
-		$fragment = WP_HTML_Processor::create_fragment( '<' . $tag_name . '></' . $tag_name . '>' );
-		$this->assertFalse( $fragment->next_tag(), 'Should fail to find tag: ' . $tag_name . '.' );
-		$this->assertEquals( $fragment->get_last_error(), WP_HTML_Processor::ERROR_UNSUPPORTED, 'Should have unsupported last error.' );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_unsupported_special_in_body_tags() {
-		return array(
-			'MATH' => array( 'MATH' ),
-			'SVG'  => array( 'SVG' ),
-		);
 	}
 
 	/**
@@ -533,5 +490,208 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 
 		$subclass_processor = call_user_func( array( get_class( $subclass_instance ), 'create_fragment' ), '' );
 		$this->assertInstanceOf( get_class( $subclass_instance ), $subclass_processor, '::create_fragment did not return subclass instance.' );
+	}
+
+	/**
+	 * Ensures that self-closing elements in foreign content properly report
+	 * that they expect no closer.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_expects_closer_foreign_content_self_closing() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg /><math>' );
+
+		$this->assertTrue( $processor->next_tag() );
+		$this->assertSame( 'SVG', $processor->get_tag() );
+		$this->assertFalse( $processor->expects_closer() );
+
+		$this->assertTrue( $processor->next_tag() );
+		$this->assertSame( 'MATH', $processor->get_tag() );
+		$this->assertTrue( $processor->expects_closer() );
+	}
+
+	/**
+	 * Ensures that self-closing foreign SCRIPT elements are properly found.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_foreign_content_script_self_closing() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg><script />' );
+		$this->assertTrue( $processor->next_tag( 'script' ) );
+	}
+
+	/**
+	 * Ensures that the HTML Processor correctly handles TEMPLATE tag closing and namespaces.
+	 *
+	 * This is a tricky test case that corresponds to the html5lib tests "template/line1466".
+	 *
+	 * When the `</template>` token is reached it is in the HTML namespace (thanks to the
+	 * SVG `foreignObject` element). It is not handled as foreign content; therefore, it
+	 * closes the open HTML `TEMPLATE` element (the first `<template>` token) - _not_ the
+	 * SVG `TEMPLATE` element (the second `<template>` token).
+	 *
+	 * The test is included here because it may show up as unsupported markup and be skipped by
+	 * the html5lib test suite.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_template_tag_closes_html_template_element() {
+		$processor = WP_HTML_Processor::create_fragment( '<template><svg><template><foreignObject><div></template><div>' );
+
+		$this->assertTrue( $processor->next_tag( 'DIV' ) );
+		$this->assertSame( array( 'HTML', 'BODY', 'TEMPLATE', 'SVG', 'TEMPLATE', 'FOREIGNOBJECT', 'DIV' ), $processor->get_breadcrumbs() );
+		$this->assertTrue( $processor->next_tag( 'DIV' ) );
+		$this->assertSame( array( 'HTML', 'BODY', 'DIV' ), $processor->get_breadcrumbs() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when removing CSS classes in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::remove_class
+	 */
+	public function test_remove_class_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$processor->remove_class( 'upper' );
+		$this->assertSame( '<!DOCTYPE html><span class="UPPER">', $processor->get_updated_html() );
+
+		$processor->remove_class( 'UPPER' );
+		$this->assertSame( '<!DOCTYPE html><span >', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when adding CSS classes in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::add_class
+	 */
+	public function test_add_class_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$processor->add_class( 'UPPER' );
+		$this->assertSame( '<!DOCTYPE html><span class="UPPER">', $processor->get_updated_html() );
+
+		$processor->add_class( 'upper' );
+		$this->assertSame( '<!DOCTYPE html><span class="UPPER upper">', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when checking has CSS classes in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::has_class
+	 */
+	public function test_has_class_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$this->assertFalse( $processor->has_class( 'upper' ) );
+		$this->assertTrue( $processor->has_class( 'UPPER' ) );
+	}
+
+	/**
+	 * Ensures that the tag processor lists unique CSS class names in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::class_list
+	 */
+	public function test_class_list_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser(
+			/*
+			 * U+00C9 is LATIN CAPITAL LETTER E WITH ACUTE
+			 * U+0045 is LATIN CAPITAL LETTER E
+			 * U+0301 is COMBINING ACUTE ACCENT
+			 *
+			 * This tests not only that the class matching deduplicates the É, but also
+			 * that it treats the same character in different normalization forms as
+			 * distinct, since matching occurs on a byte-for-byte basis.
+			 */
+			"<!DOCTYPE html><span class='A A a B b \u{C9} \u{45}\u{0301} \u{C9} é'>"
+		);
+		$processor->next_tag( 'SPAN' );
+		$class_list = iterator_to_array( $processor->class_list() );
+		$this->assertSame(
+			array( 'A', 'a', 'B', 'b', 'É', "E\u{0301}", 'é' ),
+			$class_list
+		);
+	}
+
+	/**
+	 * Ensures that the tag processor is case insensitive when removing CSS classes in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::remove_class
+	 */
+	public function test_remove_class_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="uPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$processor->remove_class( 'upPer' );
+		$this->assertSame( '<span >', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case insensitive when adding CSS classes in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::add_class
+	 */
+	public function test_add_class_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$processor->add_class( 'upper' );
+
+		$this->assertSame( '<span class="UPPER">', $processor->get_updated_html() );
+
+		$processor->add_class( 'ANOTHER-UPPER' );
+		$this->assertSame( '<span class="UPPER ANOTHER-UPPER">', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when checking has CSS classes in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::has_class
+	 */
+	public function test_has_class_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$this->assertTrue( $processor->has_class( 'upper' ) );
+		$this->assertTrue( $processor->has_class( 'UPPER' ) );
+	}
+
+	/**
+	 * Ensures that the tag processor lists unique CSS class names in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::class_list
+	 */
+	public function test_class_list_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser(
+			/*
+			 * U+00C9 is LATIN CAPITAL LETTER E WITH ACUTE
+			 * U+0045 is LATIN CAPITAL LETTER E
+			 * U+0065 is LATIN SMALL LETTER E
+			 * U+0301 is COMBINING ACUTE ACCENT
+			 *
+			 * This tests not only that the class matching deduplicates the É, but also
+			 * that it treats the same character in different normalization forms as
+			 * distinct, since matching occurs on a byte-for-byte basis.
+			 */
+			"<span class='A A a B b \u{C9} \u{45}\u{301} \u{C9} é \u{65}\u{301}'>"
+		);
+		$processor->next_tag( 'SPAN' );
+		$class_list = iterator_to_array( $processor->class_list() );
+		$this->assertSame(
+			array( 'a', 'b', 'É', "e\u{301}", 'é' ),
+			$class_list
+		);
 	}
 }

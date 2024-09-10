@@ -2607,7 +2607,8 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  * @return mixed An array of values if `$single` is false.
  *               The value of the meta field if `$single` is true.
  *               False for an invalid `$post_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing post ID is passed.
+ *               An empty array if a valid but non-existing post ID is passed and `$single` is false.
+ *               An empty string if a valid but non-existing post ID is passed and `$single` is true.
  */
 function get_post_meta( $post_id, $key = '', $single = false ) {
 	return get_metadata( 'post', $post_id, $key, $single );
@@ -6829,7 +6830,7 @@ function wp_attachment_is( $type, $post = null ) {
 
 	switch ( $type ) {
 		case 'image':
-			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp', 'avif' );
+			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp', 'avif', 'heic' );
 			return in_array( $ext, $image_exts, true );
 
 		case 'audio':
