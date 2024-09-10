@@ -955,7 +955,7 @@ switch ( $action ) {
 		if ( ! $user || is_wp_error( $user ) ) {
 			setcookie( $rp_cookie, ' ', time() - YEAR_IN_SECONDS, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
 
-			if ( $user && $user->get_error_code() === 'expired_key' ) {
+			if ( $user && 'expired_key' === $user->get_error_code() ) {
 				wp_redirect( site_url( 'wp-login.php?action=lostpassword&error=expiredkey' ) );
 			} else {
 				wp_redirect( site_url( 'wp-login.php?action=lostpassword&error=invalidkey' ) );
@@ -1593,7 +1593,7 @@ switch ( $action ) {
 		} else {
 			$login_script .= 'd = document.getElementById( "user_login" );';
 
-			if ( $errors->get_error_code() === 'invalid_username' ) {
+			if ( 'invalid_username' === $errors->get_error_code() ) {
 				$login_script .= 'd.value = "";';
 			}
 		}

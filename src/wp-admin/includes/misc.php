@@ -829,7 +829,7 @@ function iis7_rewrite_rule_exists( $filename ) {
 
 	$doc = new DOMDocument();
 
-	if ( $doc->load( $filename ) === false ) {
+	if ( false === $doc->load( $filename ) ) {
 		return false;
 	}
 
@@ -864,7 +864,7 @@ function iis7_delete_rewrite_rule( $filename ) {
 	$doc                     = new DOMDocument();
 	$doc->preserveWhiteSpace = false;
 
-	if ( $doc->load( $filename ) === false ) {
+	if ( false === $doc->load( $filename ) ) {
 		return false;
 	}
 
@@ -906,7 +906,7 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 	$doc                     = new DOMDocument();
 	$doc->preserveWhiteSpace = false;
 
-	if ( $doc->load( $filename ) === false ) {
+	if ( false === $doc->load( $filename ) ) {
 		return false;
 	}
 

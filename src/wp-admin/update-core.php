@@ -330,9 +330,9 @@ function core_auto_updates_settings() {
 	$updater = new WP_Automatic_Updater();
 
 	// Defaults:
-	$upgrade_dev   = get_site_option( 'auto_update_core_dev', 'enabled' ) === 'enabled';
-	$upgrade_minor = get_site_option( 'auto_update_core_minor', 'enabled' ) === 'enabled';
-	$upgrade_major = get_site_option( 'auto_update_core_major', 'unset' ) === 'enabled';
+	$upgrade_dev   = 'enabled' === get_site_option( 'auto_update_core_dev', 'enabled' );
+	$upgrade_minor = 'enabled' === get_site_option( 'auto_update_core_minor', 'enabled' );
+	$upgrade_major = 'enabled' === get_site_option( 'auto_update_core_major', 'unset' );
 
 	$can_set_update_option = true;
 	// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'development', 'branch-development', 'minor', false.

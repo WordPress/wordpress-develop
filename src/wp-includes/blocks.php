@@ -2256,7 +2256,7 @@ function unregister_block_style( $block_name, $block_style_name ) {
 function block_has_support( $block_type, $feature, $default_value = false ) {
 	$block_support = $default_value;
 	if ( $block_type instanceof WP_Block_Type ) {
-		if ( is_array( $feature ) && count( $feature ) === 1 ) {
+		if ( is_array( $feature ) && 1 === count( $feature ) ) {
 			$feature = $feature[0];
 		}
 
@@ -2547,7 +2547,7 @@ function build_comment_query_vars_from_block( $block ) {
 		$comment_args['hierarchical'] = false;
 	}
 
-	if ( get_option( 'page_comments' ) === '1' || get_option( 'page_comments' ) === true ) {
+	if ( '1' === get_option( 'page_comments' ) || true === get_option( 'page_comments' ) ) {
 		$per_page     = get_option( 'comments_per_page' );
 		$default_page = get_option( 'default_comments_page' );
 		if ( $per_page > 0 ) {

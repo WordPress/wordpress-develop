@@ -2262,7 +2262,7 @@ class WP_Query {
 				}
 				if ( ! $post_type ) {
 					$post_type = 'any';
-				} elseif ( count( $post_type ) === 1 ) {
+				} elseif ( 1 === count( $post_type ) ) {
 					$post_type = $post_type[0];
 				} else {
 					// Sort post types to ensure same cache key generation.

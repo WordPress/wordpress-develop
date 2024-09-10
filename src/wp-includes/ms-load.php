@@ -331,7 +331,7 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 		if ( ! $current_site ) {
 			// Are there even two networks installed?
 			$networks = get_networks( array( 'number' => 2 ) );
-			if ( count( $networks ) === 1 ) {
+			if ( 1 === count( $networks ) ) {
 				$current_site = array_shift( $networks );
 				wp_cache_add( 'current_network', $current_site, 'site-options' );
 			} elseif ( empty( $networks ) ) {

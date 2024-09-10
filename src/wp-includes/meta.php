@@ -240,7 +240,7 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 	// Compare existing value to new value if no prev value given and the key exists only once.
 	if ( empty( $prev_value ) ) {
 		$old_value = get_metadata_raw( $meta_type, $object_id, $meta_key );
-		if ( is_countable( $old_value ) && count( $old_value ) === 1 ) {
+		if ( is_countable( $old_value ) && 1 === count( $old_value ) ) {
 			if ( $old_value[0] === $meta_value ) {
 				return false;
 			}

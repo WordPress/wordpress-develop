@@ -6644,7 +6644,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 	}
 
 	// If this is a deprecated, but valid, timezone string, display it at the top of the list as-is.
-	if ( in_array( $selected_zone, $tz_identifiers, true ) === false
+	if ( false === in_array( $selected_zone, $tz_identifiers, true )
 		&& in_array( $selected_zone, timezone_identifiers_list( DateTimeZone::ALL_WITH_BC ), true )
 	) {
 		$structure[] = '<option selected="selected" value="' . esc_attr( $selected_zone ) . '">' . esc_html( $selected_zone ) . '</option>';

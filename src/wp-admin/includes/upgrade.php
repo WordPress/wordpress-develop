@@ -1697,7 +1697,7 @@ function upgrade_300() {
 		populate_roles_300();
 	}
 
-	if ( $wp_current_db_version < 14139 && is_multisite() && is_main_site() && ! defined( 'MULTISITE' ) && get_site_option( 'siteurl' ) === false ) {
+	if ( $wp_current_db_version < 14139 && is_multisite() && is_main_site() && ! defined( 'MULTISITE' ) && false === get_site_option( 'siteurl' ) ) {
 		add_site_option( 'siteurl', '' );
 	}
 

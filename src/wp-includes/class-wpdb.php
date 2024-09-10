@@ -1253,7 +1253,7 @@ class wpdb {
 	 * @return string
 	 */
 	public function _weak_escape( $data ) {
-		if ( func_num_args() === 1 && function_exists( '_deprecated_function' ) ) {
+		if ( 1 === func_num_args() && function_exists( '_deprecated_function' ) ) {
 			_deprecated_function( __METHOD__, '3.6.0', 'wpdb::prepare() or esc_sql()' );
 		}
 		return addslashes( $data );
@@ -1329,7 +1329,7 @@ class wpdb {
 	 * @return string|array Escaped data, in the same type as supplied.
 	 */
 	public function escape( $data ) {
-		if ( func_num_args() === 1 && function_exists( '_deprecated_function' ) ) {
+		if ( 1 === func_num_args() && function_exists( '_deprecated_function' ) ) {
 			_deprecated_function( __METHOD__, '3.6.0', 'wpdb::prepare() or esc_sql()' );
 		}
 		if ( is_array( $data ) ) {

@@ -233,7 +233,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 				} elseif (
 					( ! isset( $plugin_page ) && $self === $sub_item[2] )
 					|| ( isset( $plugin_page ) && $plugin_page === $sub_item[2]
-						&& ( $item[2] === $self_type || $item[2] === $self || file_exists( $menu_file ) === false ) )
+						&& ( $item[2] === $self_type || $item[2] === $self || false === file_exists( $menu_file ) ) )
 				) {
 					$class[]          = 'current';
 					$aria_attributes .= ' aria-current="page"';
