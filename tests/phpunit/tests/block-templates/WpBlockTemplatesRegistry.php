@@ -2,7 +2,7 @@
 /**
  * Test WP_Block_Templates_Registry class.
  *
- * @covers WP_Block_Templates_Registry
+ * @coversDefaultClass WP_Block_Templates_Registry
  */
 class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 
