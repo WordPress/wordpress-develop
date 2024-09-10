@@ -772,11 +772,11 @@ window.wp = window.wp || {};
 			endElement.remove();
 
 			var startRegex = new RegExp(
-				'<span[^>]*\\s*class="mce_SELRES_start"[^>]+>\\s*' + selectionID + '[^<]*<\\/span>(\\s*)'
+				'<span[^>]*\\s*class="mce_SELRES_start"[^>]*>\\s*' + selectionID + '[^<]*<\\/span>(\\s*)'
 			);
 
 			var endRegex = new RegExp(
-				'(\\s*)<span[^>]*\\s*class="mce_SELRES_end"[^>]+>\\s*' + selectionID + '[^<]*<\\/span>'
+				'(\\s*)<span[^>]*\\s*class="mce_SELRES_end"[^>]*>\\s*' + selectionID + '[^<]*<\\/span>'
 			);
 
 			var startMatch = content.match( startRegex ),
