@@ -344,7 +344,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$is_head_request = $request->is_method( 'head' );
 		if ( $is_head_request ) {
-			// Force the 'fields' argument. For HEAD requests, only post IDs are needed to calculate pagination.
+			// Force the 'fields' argument. For HEAD requests, only post IDs are required to calculate pagination.
 			$args['fields'] = 'ids';
 		}
 
