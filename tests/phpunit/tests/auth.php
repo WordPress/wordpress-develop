@@ -10,13 +10,24 @@ class Tests_Auth extends WP_UnitTestCase {
 	const USER_LOGIN = 'password-user';
 	const USER_PASS  = 'password';
 
+	/**
+	 * @var WP_User
+	 */
 	protected $user;
 
 	/**
 	 * @var WP_User
 	 */
 	protected static $_user;
+
+	/**
+	 * @var int
+	 */
 	protected static $user_id;
+
+	/**
+	 * @var PasswordHash
+	 */
 	protected static $wp_hasher;
 
 	/**
@@ -160,6 +171,30 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 21022
+	 */
+	public function test_wp_check_password_supports_fallback_phpass_hashes() {
+		$password = 'password';
+		$this->assertTrue( wp_check_password( $password, self::$wp_hasher->HashPassword( $password ) ) );
+	}
+
+	/**
+	 * @ticket 21022
+	 */
+	public function test_wp_check_password_does_not_support_md5_hashes() {
+		$password = 'password';
+		$this->assertFalse( wp_check_password( $password, md5( $password ) ) );
+	}
+
+	/**
+	 * @ticket 21022
+	 */
+	public function test_wp_check_password_does_not_support_plain_text() {
+		$password = 'password';
+		$this->assertFalse( wp_check_password( $password, $password ) );
+	}
+
+	/**
 	 * @ticket 29217
 	 */
 	public function test_wp_verify_nonce_with_empty_arg() {
@@ -235,16 +270,24 @@ class Tests_Auth extends WP_UnitTestCase {
 		unset( $_REQUEST['_wpnonce'] );
 	}
 
+	/**
+	 * See https://core.trac.wordpress.org/changeset/30466 .
+	 *
+	 * @TODO bcrypt has a password length limit of 72, need to decide what our approach is.
+	 * @TODO See the discussion comments on https://core.trac.wordpress.org/ticket/21022
+	 * @TODO Reminder: https://blog.ircmaxell.com/2015/03/security-issue-combining-bcrypt-with.html
+	 */
 	public function test_password_length_limit() {
-		$limit = str_repeat( 'a', 4096 );
+		$limit = str_repeat( 'a', 72 );
 
 		wp_set_password( $limit, self::$user_id );
-		// phpass hashed password.
-		$this->assertStringStartsWith( '$P$', $this->user->data->user_pass );
+		// Ensure the password is hashed with bcrypt.
+		$this->assertStringStartsWith( '$2y$', $this->user->data->user_pass );
 
 		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
 		// Wrong password.
 		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 
 		$user = wp_authenticate( $this->user->user_login, $limit );
 		$this->assertInstanceOf( 'WP_User', $user );
@@ -254,6 +297,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$user = wp_authenticate( $this->user->user_login, $limit . 'a' );
 		// Wrong password.
 		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 
 		wp_set_password( $limit . 'a', self::$user_id );
 		$user = get_user_by( 'id', self::$user_id );
@@ -262,24 +306,30 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$user = wp_authenticate( $this->user->user_login, '*' );
 		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 
 		$user = wp_authenticate( $this->user->user_login, '*0' );
 		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 
 		$user = wp_authenticate( $this->user->user_login, '*1' );
 		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 
 		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
 		// Wrong password.
 		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 
 		$user = wp_authenticate( $this->user->user_login, $limit );
 		// Wrong password.
 		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 
 		$user = wp_authenticate( $this->user->user_login, $limit . 'a' );
 		// Password broken by setting it to be too long.
 		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 	}
 
 	/**
@@ -306,7 +356,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$wpdb->update(
 			$wpdb->users,
 			array(
-				'user_activation_key' => strtotime( '-1 hour' ) . ':' . self::$wp_hasher->HashPassword( $key ),
+				'user_activation_key' => strtotime( '-1 hour' ) . ':' . wp_hash_password( $key ),
 			),
 			array(
 				'ID' => $this->user->ID,
@@ -344,7 +394,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$wpdb->update(
 			$wpdb->users,
 			array(
-				'user_activation_key' => strtotime( '-48 hours' ) . ':' . self::$wp_hasher->HashPassword( $key ),
+				'user_activation_key' => strtotime( '-48 hours' ) . ':' . wp_hash_password( $key ),
 			),
 			array(
 				'ID' => $this->user->ID,
@@ -355,6 +405,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		// An expired but otherwise valid key should be rejected.
 		$check = check_password_reset_key( $key, $this->user->user_login );
 		$this->assertInstanceOf( 'WP_Error', $check );
+		$this->assertSame( 'expired_key', $check->get_error_code() );
 	}
 
 	/**
@@ -382,7 +433,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$wpdb->update(
 			$wpdb->users,
 			array(
-				'user_activation_key' => self::$wp_hasher->HashPassword( $key ),
+				'user_activation_key' => wp_hash_password( $key ),
 			),
 			array(
 				'ID' => $this->user->ID,
@@ -393,10 +444,73 @@ class Tests_Auth extends WP_UnitTestCase {
 		// A legacy user_activation_key should not be accepted.
 		$check = check_password_reset_key( $key, $this->user->user_login );
 		$this->assertInstanceOf( 'WP_Error', $check );
+		$this->assertSame( 'expired_key', $check->get_error_code() );
 
 		// An empty key with a legacy user_activation_key should be rejected.
 		$check = check_password_reset_key( '', $this->user->user_login );
 		$this->assertInstanceOf( 'WP_Error', $check );
+		$this->assertSame( 'invalid_key', $check->get_error_code() );
+	}
+
+	/**
+	 * @ticket 21022
+	 * @ticket 32429
+	 */
+	public function test_phpass_user_activation_key_is_rejected() {
+		global $wpdb;
+
+		// A legacy user_activation_key is one hashed using phpass between WordPress 4.3 and x.y.z.
+
+		$key = wp_generate_password( 20, false );
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_activation_key' => strtotime( '-48 hours' ) . ':' . self::$wp_hasher->HashPassword( $key ),
+			),
+			array(
+				'ID' => $this->user->ID,
+			)
+		);
+		clean_user_cache( $this->user );
+
+		// A legacy phpass user_activation_key should not be accepted even when it is otherwise valid.
+		$check = check_password_reset_key( $key, $this->user->user_login );
+		$this->assertWPError( $check );
+		$this->assertSame( 'invalid_key', $check->get_error_code() );
+
+		// An empty key with a legacy user_activation_key should be rejected.
+		$check = check_password_reset_key( '', $this->user->user_login );
+		$this->assertWPError( $check );
+		$this->assertSame( 'invalid_key', $check->get_error_code() );
+	}
+
+	/**
+	 * The `wp_password_needs_rehash()` function is just a wrapper around `password_needs_rehash()`, but this ensures
+	 * that it works as expected.
+	 *
+	 * @ticket 21022
+	 */
+	public function check_password_needs_rehashing() {
+		$password = 'password';
+
+		// Current password hashing algorithm.
+		$hash = wp_hash_password( $password );
+		$this->assertFalse( wp_password_needs_rehash( $hash ) );
+
+		// A future upgrade from a previously lower cost.
+		$opts = array(
+			'cost' => 8,
+		);
+		$hash = password_hash( $password, PASSWORD_BCRYPT, $opts );
+		$this->assertTrue( wp_password_needs_rehash( $hash ) );
+
+		// Previous phpass algorithm.
+		$hash = self::$wp_hasher->HashPassword( $password );
+		$this->assertTrue( wp_password_needs_rehash( $hash ) );
+
+		// o_O md5.
+		$hash = md5( $password );
+		$this->assertTrue( wp_password_needs_rehash( $hash ) );
 	}
 
 	/**
