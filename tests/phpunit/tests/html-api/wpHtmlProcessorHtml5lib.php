@@ -27,23 +27,17 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	const SKIP_TESTS = array(
 		'comments01/line0155'    => 'Unimplemented: Need to access raw comment text on non-normative comments.',
 		'comments01/line0169'    => 'Unimplemented: Need to access raw comment text on non-normative comments.',
-		'doctype01/line0380'     => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly',
 		'html5test-com/line0129' => 'Unimplemented: Need to access raw comment text on non-normative comments.',
 		'noscript01/line0014'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests1/line0692'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly',
 		'tests14/line0022'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests14/line0055'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests19/line0488'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests19/line0500'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0965'       => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
 		'tests19/line1079'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0207'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0686'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0697'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 		'tests2/line0709'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests5/line0013'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
-		'tests5/line0077'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly.',
-		'tests5/line0091'        => 'Bug: Mixed whitespace, non-whitespace text in head not split correctly',
 		'webkit01/line0231'      => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 	);
 
@@ -60,11 +54,18 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * @param string $expected_tree    Tree structure of parsed HTML.
 	 */
 	public function test_parse( ?string $fragment_context, string $html, string $expected_tree ) {
-		$processed_tree = self::build_tree_representation( $fragment_context, $html );
+		try {
+			$processed_tree = self::build_tree_representation( $fragment_context, $html );
+		} catch ( WP_HTML_Unsupported_Exception $e ) {
+			$this->markTestSkipped( "Unsupported markup: {$e->getMessage()}" );
+			return;
+		}
 
 		if ( null === $processed_tree ) {
 			$this->markTestSkipped( 'Test includes unsupported markup.' );
+			return;
 		}
+
 		$fragment_detail = $fragment_context ? " in context <{$fragment_context}>" : '';
 
 		/*
@@ -161,7 +162,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			? WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" )
 			: WP_HTML_Processor::create_full_parser( $html );
 		if ( null === $processor ) {
-			return null;
+			throw new WP_HTML_Unsupported_Exception( "Could not create a parser with the given fragment context: {$fragment_context}.", '', 0, '', array(), array() );
 		}
 
 		/*
@@ -176,8 +177,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$text_node    = '';
 
 		while ( $processor->next_token() ) {
-			if ( ! is_null( $processor->get_last_error() ) ) {
-				return null;
+			if ( null !== $processor->get_last_error() ) {
+				break;
 			}
 
 			$token_name = $processor->get_token_name();
@@ -341,12 +342,16 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			}
 		}
 
-		if ( ! is_null( $processor->get_last_error() ) ) {
-			return null;
+		if ( null !== $processor->get_unsupported_exception() ) {
+			throw $processor->get_unsupported_exception();
+		}
+
+		if ( null !== $processor->get_last_error() ) {
+			throw new WP_HTML_Unsupported_Exception( "Parser error: {$processor->get_last_error()}", '', 0, '', array(), array() );
 		}
 
 		if ( $processor->paused_at_incomplete_token() ) {
-			return null;
+			throw new WP_HTML_Unsupported_Exception( 'Paused at incomplete token.', '', 0, '', array(), array() );
 		}
 
 		if ( '' !== $text_node ) {
