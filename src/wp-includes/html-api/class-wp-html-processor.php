@@ -5025,6 +5025,66 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Replaces the inner markup of the currently-matched tag with provided HTML.
+	 *
+	 * This function will normalize the given input and enforce the boundaries
+	 * within the existing HTML where it's called.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $new_inner_html New HTML to inject as inner HTML for the currently-matched tag.
+	 * @return bool Whether the inner markup was modified for the currently-matched tag, or `NULL`
+	 *              if called on a node which doesn't allow changing the inner HTML.
+	 */
+	public function set_inner_html( string $new_inner_html ): ?bool {
+		$tag_name = $this->get_tag();
+
+		if (
+			WP_HTML_Tag_Processor::STATE_MATCHED_TAG !== $this->parser_state ||
+			$this->is_tag_closer() ||
+			( 'html' === $this->get_namespace() &&
+				(
+					self::is_void( $tag_name ) ||
+					in_array( $tag_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true )
+				)
+			)
+		) {
+			// @todo Support setting inner HTML for SCRIPT, STYLE, TEXTAREA, and TITLE.
+			return null;
+		}
+
+		$fragment   = $this->spawn_fragment_parser( $new_inner_html );
+		$new_markup = $fragment->serialize();
+
+		$this->set_bookmark( 'start' );
+		$depth = $this->get_current_depth();
+		while ( $this->get_current_depth() >= $depth && $this->next_token() ) {
+			continue;
+		}
+
+		if (
+			$this->paused_at_incomplete_token() ||
+			null !== $this->get_last_error()
+		) {
+			return false;
+		}
+
+		$this->set_bookmark( 'end' );
+		$start = $this->bookmarks['_start'];
+		$end   = $this->bookmarks['_end'];
+
+		$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+			$start->start + $start->length,
+			$end->start - ( $start->start + $start->length ),
+			$new_markup
+		);
+
+		$this->get_updated_html();
+		$this->seek( 'start' );
+		return true;
+	}
+
+	/**
 	 * Removes a bookmark that is no longer needed.
 	 *
 	 * Releasing a bookmark frees up the small
