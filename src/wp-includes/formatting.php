@@ -3819,6 +3819,16 @@ function sanitize_email( $email ) {
 	 * DOMAIN PART
 	 * Test for sequences of periods.
 	 */
+
+	// Check if domain is a bracketed IP address
+    if ( preg_match( '/^\[([0-9a-fA-F:\.]+)\]$/', $domain, $matches ) ) {
+        // Validate the IP address within brackets
+        if ( filter_var( $matches[1], FILTER_VALIDATE_IP ) ) {
+            // If valid IP, return sanitized email
+            $sanitized_email = $local . '@' . $domain;
+            return apply_filters( 'sanitize_email', $sanitized_email, $email, null );
+        }
+	}
 	$domain = preg_replace( '/\.{2,}/', '', $domain );
 	if ( '' === $domain ) {
 		/** This filter is documented in wp-includes/formatting.php */
@@ -3844,6 +3854,8 @@ function sanitize_email( $email ) {
 	// Create an array that will contain valid subs.
 	$new_subs = array();
 
+	$contains_alphabet = false;
+
 	// Loop through each sub.
 	foreach ( $subs as $sub ) {
 		// Test for leading and trailing hyphens.
@@ -3852,21 +3864,30 @@ function sanitize_email( $email ) {
 		// Test for invalid characters.
 		$sub = preg_replace( '/[^a-z0-9-]+/i', '', $sub );
 
+		// Check if the subdomain contains at least one alphabet character.
+        if (preg_match('/[a-zA-Z]/', $sub)) {
+            $contains_alphabet = true;
+        }
+
 		// If there's anything left, add it to the valid subs.
 		if ( '' !== $sub ) {
 			$new_subs[] = $sub;
 		}
 	}
 
-	$length_of_new_sub = count ( $new_subs );
+	$length_of_new_subs = count ( $new_subs );
 
 	// If there aren't 2 or more valid subs.
-	if ( 2 > $length_of_new_sub ) {
+	if ( 2 > $length_of_new_subs ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'domain_no_valid_subs' );
 	}
 
-	$new_subs[ $length_of_new_sub - 1 ] = preg_replace( '/\d*$/', '', $new_subs[ $length_of_new_sub - 1 ] );
+	// Only remove trailing numbers if the domain contains an alphabet.
+	if ( $contains_alphabet ) {
+		// Remove if any trailing number is present in the domain.
+		$subs[ $length_of_new_subs - 1 ] = preg_replace( '/\d*$/', '', $subs[ $length_of_new_subs - 1 ] );
+	}
 
 	// Join valid subs into the new domain.
 	$domain = implode( '.', $new_subs );
