@@ -1178,26 +1178,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$text = $this->get_modifiable_text();
 
 				switch ( $tag_name ) {
+					case 'SCRIPT':
 					case 'STYLE':
-						$text = preg_replace_callback(
-							'~</(?P<TAG_NAME>style)~i',
-							static function ( $tag_match ) {
-								return "\\3c\\2f{$tag_match['TAG_NAME']}";
-							},
-							$text
-						);
 						break;
 
-					case 'TEXTAREA':
-					case 'TITLE':
-						$text = preg_replace_callback(
-							"~</(?P<TAG_NAME>{$tag_name})~i",
-							static function ( $tag_match ) {
-								return "&lt;/{$tag_match['TAG_NAME']}";
-							},
-							$text
-						);
-						break;
+					default:
+						$text = htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
 				}
 
 				$html .= "{$text}</{$qualitified_name}>";
