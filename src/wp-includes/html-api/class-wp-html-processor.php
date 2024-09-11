@@ -1059,7 +1059,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *     // <div><p></p>fun<table><tbody><tr><td>cell</td></tr></tbody></table></div>
 	 *
 	 *     echo WP_HTML_Processor::normalize( '<![CDATA[invalid comment]]> syntax < <> "oddities"' );
-	 *     // <!--invalid comment--> syntax &lt; &lt;&gt; &quot;oddities&quot;
+	 *     // <!--[CDATA[invalid comment]]--> syntax &lt; &lt;&gt; &quot;oddities&quot;
 	 *
 	 * @since 6.7.0
 	 *
@@ -1103,7 +1103,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 *     $processor = WP_HTML_Processor::create_fragment( '<![CDATA[invalid comment]]> syntax < <> "oddities"' );
 	 *     echo $processor->serialize();
-	 *     // <!--invalid comment--> syntax &lt; &lt;&gt; &quot;oddities&quot;
+	 *     // <!--[CDATA[invalid comment]]--> syntax &lt; &lt;&gt; &quot;oddities&quot;
 	 *
 	 * @since 6.7.0
 	 *
