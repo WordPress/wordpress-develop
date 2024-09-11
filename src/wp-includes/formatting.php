@@ -3581,6 +3581,20 @@ function is_email( $email, $deprecated = false ) {
 	 * DOMAIN PART
 	 * Test for sequences of periods.
 	 */
+	// Check if the domain is an IP address enclosed in brackets.
+	if ( preg_match( '/^\[([0-9a-fA-F:\.]+)\]$/', $domain, $matches ) ) {
+		// If it's an IP address enclosed in brackets, validate it as an IP address.
+		if ( filter_var($matches[1], FILTER_VALIDATE_IP ) ) {
+			return apply_filters( 'is_email', $email, $email, null );
+		} else {
+			return apply_filters( 'is_email', false, $email, 'domain_invalid_ip_address' );
+		}
+	}
+
+	 // Check if the domain is a non-bracketed IP address
+	if ( filter_var($domain, FILTER_VALIDATE_IP ) ) {
+        return apply_filters( 'is_email', false, $email, 'domain_non_bracketed_ip_address' );
+    }
 	if ( preg_match( '/\.{2,}/', $domain ) ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'is_email', false, $email, 'domain_period_sequence' );
@@ -3595,8 +3609,10 @@ function is_email( $email, $deprecated = false ) {
 	// Split the domain into subs.
 	$subs = explode( '.', $domain );
 
+	$length_of_subs = count( $subs );
+
 	// Assume the domain will have at least two subs.
-	if ( 2 > count( $subs ) ) {
+	if ( 2 > $length_of_subs ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'is_email', false, $email, 'domain_no_periods' );
 	}
@@ -3614,6 +3630,13 @@ function is_email( $email, $deprecated = false ) {
 			/** This filter is documented in wp-includes/formatting.php */
 			return apply_filters( 'is_email', false, $email, 'sub_invalid_chars' );
 		}
+	}
+
+	if ( preg_match( '/\d+$/', $subs[ $length_of_subs - 1 ] ) ) {
+		/** 
+		 * This filter is documented in wp-includes/formatting.php 
+		 */
+		return apply_filters( 'is_email', false, $email, 'last_sub_ends_with_numbers' );
 	}
 
 	// Congratulations, your email made it!
