@@ -1178,6 +1178,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$text = $this->get_modifiable_text();
 
 				switch ( $tag_name ) {
+					case 'IFRAME':
+					case 'NOEMBED':
+					case 'NOFRAMES':
+						$text = '';
+						break;
+
 					case 'SCRIPT':
 					case 'STYLE':
 						break;
