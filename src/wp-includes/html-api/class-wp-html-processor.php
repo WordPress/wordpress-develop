@@ -1147,17 +1147,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				continue;
 			}
 
-			$tag_name         = $this->get_tag();
-			$qualitified_name = $this->get_qualified_tag_name();
-			$in_html          = 'html' === $this->get_namespace();
+			$tag_name       = $this->get_tag();
+			$in_html        = 'html' === $this->get_namespace();
+			$qualified_name = $in_html ? strtolower( $tag_name ) : $this->get_qualified_tag_name();
 
 			$attribute_names = $this->get_attribute_names_with_prefix( '' );
 			if ( ! isset( $attribute_names ) ) {
-				$html .= "<{$qualitified_name}>";
+				$html .= "<{$qualified_name}>";
 				continue;
 			}
 
-			$html .= "<{$qualitified_name}";
+			$html .= "<{$qualified_name}";
 			foreach ( $attribute_names as $attribute_name ) {
 				$html .= " {$this->get_qualified_attribute_name( $attribute_name )}";
 				$value = $this->get_attribute( $attribute_name );
@@ -1192,7 +1192,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 						$text = htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
 				}
 
-				$html .= "{$text}</{$qualitified_name}>";
+				$html .= "{$text}</{$qualified_name}>";
 			}
 		}
 
