@@ -3835,11 +3835,15 @@ function sanitize_email( $email ) {
 		}
 	}
 
+	$length_of_new_sub = count ( $new_subs );
+
 	// If there aren't 2 or more valid subs.
-	if ( 2 > count( $new_subs ) ) {
+	if ( 2 > $length_of_new_sub ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'domain_no_valid_subs' );
 	}
+
+	$new_subs[ $length_of_new_sub - 1 ] = preg_replace( '/\d*$/', '', $new_subs[ $length_of_new_sub - 1 ] );
 
 	// Join valid subs into the new domain.
 	$domain = implode( '.', $new_subs );
