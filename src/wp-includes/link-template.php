@@ -1618,9 +1618,6 @@ function get_edit_comment_link( $comment_id = 0, $context = 'display' ) {
 
 	$location = admin_url( $action ) . $comment->comment_ID;
 
-	// Ensure the $comment_id variable passed to the filter is always an ID.
-	$comment_id = (int) $comment->comment_ID;
-
 	/**
 	 * Filters the comment edit link.
 	 *
