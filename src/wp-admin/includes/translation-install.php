@@ -132,7 +132,7 @@ function wp_get_available_translations() {
 	}
 
 	$translations = array();
-	// Key the array with the language code for now.
+	// Key the array with the language code.
 	foreach ( $api['translations'] as $translation ) {
 		$translations[ $translation['language'] ] = $translation;
 	}
