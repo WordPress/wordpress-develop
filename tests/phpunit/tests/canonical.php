@@ -88,10 +88,27 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '?cat=%d', array( 'url' => '/category/parent/child-1/' ), 15256 ),
 			array( '?cat=%d', array( 'url' => '/category/parent/child-1/child-2/' ) ), // No children.
 			array(
+				'/category/',
+				array(
+					'url' => '/category/',
+					'qv'  => array( 'taxonomy' => 'category' ),
+				),
+			),
+			array(
 				'/category/uncategorized/',
 				array(
 					'url' => '/category/uncategorized/',
 					'qv'  => array( 'category_name' => 'uncategorized' ),
+				),
+			),
+			array(
+				'/category/page/2/',
+				array(
+					'url' => '/category/page/2/',
+					'qv'  => array(
+						'taxonomy' => 'category',
+						'paged'    => 2,
+					),
 				),
 			),
 			array(
@@ -101,6 +118,16 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 					'qv'  => array(
 						'category_name' => 'uncategorized',
 						'paged'         => 2,
+					),
+				),
+			),
+			array(
+				'/category/?paged=2',
+				array(
+					'url' => '/category/page/2/',
+					'qv'  => array(
+						'taxonomy' => 'category',
+						'paged'    => 2,
 					),
 				),
 			),
