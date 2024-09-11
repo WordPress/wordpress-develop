@@ -1626,9 +1626,9 @@ function get_edit_comment_link( $comment_id = 0, $context = 'display' ) {
 	 *
 	 * @since 6.7.0 The $comment_id and $context parameters are now being passed to the filter.
 	 *
-	 * @param string $location The edit link.
-	 * @param int    $comment_id Optional. Unique ID of the comment to generate an edit link.
-	 * @param string $context    Optional. Context to include HTML entities in link. Default 'display'.
+	 * @param string $location   The edit link.
+	 * @param int    $comment_id Unique ID of the comment to generate an edit link.
+	 * @param string $context    Context to include HTML entities in link. Default 'display'.
 	 */
 	return apply_filters( 'get_edit_comment_link', $location, $comment_id, $context );
 }
