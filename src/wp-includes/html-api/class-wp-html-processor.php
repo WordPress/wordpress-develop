@@ -1030,7 +1030,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Normalize an HTML fragment by serializing it.
+	 * Normalizes an HTML fragment by serializing it.
 	 *
 	 * This method assumes that the given HTML snippet is found in BODY context.
 	 * For normalizing full documents or fragments found in other contexts, create
@@ -1072,7 +1072,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Return normalized HTML for a fragment by serializing it.
+	 * Returns normalized HTML for a fragment by serializing it.
 	 *
 	 * This differs from {@see WP_HTML_Processor::normalize} in that it starts with
 	 * a specific HTML Processor, which _must_ not have already started scanning;
