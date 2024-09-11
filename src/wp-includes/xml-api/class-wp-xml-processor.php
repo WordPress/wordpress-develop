@@ -128,17 +128,17 @@ class WP_XML_Processor {
 				$this->next_byte_at = $closer_at + 3;
 
 				if (
-					$this->level_of_concern >= self::CONCERNED_ABOUT_CONTENT &&
+					$this->level_of_concern >= self::CONCERNED_ABOUT_CONTENT_ERRORS &&
 					( $closer_at - $text_starts_at ) !== self::skip_chars( $xml, $text_starts_at, $closer_at )
 				) {
 					$this->malformed(
-						self::CONCERNED_ABOUT_CONTENT,
+						self::CONCERNED_ABOUT_CONTENT_ERRORS,
 						'Comment nodes must contain only allowable characters.'
 					);
 				}
 
 				if (
-					$this->level_of_concern >= self::CONCERNED_ABOUT_BENIGN_SYNTAX &&
+					$this->level_of_concern >= self::CONCERNED_ABOUT_UNAMBIGUOUS_SYNTAX_ERRORS &&
 					strpos( $xml, '--', $text_starts_at ) < $closer_at
 				) {
 					/*
@@ -151,7 +151,7 @@ class WP_XML_Processor {
 					 * confuse the understanding of the structure of the input.
 					 */
 					$this->malformed(
-						self::CONCERNED_ABOUT_BENIGN_SYNTAX,
+						self::CONCERNED_ABOUT_UNAMBIGUOUS_SYNTAX_ERRORS,
 						'Comment nodes must not contain a double-hyphen.'
 					);
 				}
@@ -173,20 +173,18 @@ class WP_XML_Processor {
 
 				$target_length = self::skip_whitespace( $xml, $text_starts_at, $closer_at );
 
-				if ( $this->level_of_concern >= self::CONCERNED_ABOUT_INVALID_SYNTAX ) {
-					if ( 0 === $target_length ) {
-						$this->malformed(
-							self::CONCERNED_ABOUT_INVALID_SYNTAX,
-							'Processing instruction nodes must contain a target indicating to which application the instruction is directed.'
-						);
-					}
+				if ( $this->level_of_concern >= self::CONCERNED_ABOUT_UNRESOLVABLES && 0 === $target_length ) {
+					$this->malformed(
+						self::CONCERNED_ABOUT_UNRESOLVABLES,
+						'Processing instruction nodes must contain a target indicating to which application the instruction is directed.'
+					);
+				}
 
-					if ( self::skip_name( $xml, $text_starts_at ) !== $target_length ) {
-						$this->malformed(
-							self::CONCERNED_ABOUT_INVALID_SYNTAX,
-							'Processing instruction target names must contain only allowable characters.'
-						);
-					}
+				if ( $this->level_of_concern >= self::CONCERNED_ABOUT_CONTENT_ERRORS && self::skip_name( $xml, $text_starts_at ) !== $target_length ) {
+					$this->malformed(
+						self::CONCERNED_ABOUT_CONTENT_ERRORS,
+						'Processing instruction target names must contain only allowable characters.'
+					);
 				}
 
 				// This is an XML Declaration.
@@ -197,10 +195,10 @@ class WP_XML_Processor {
 					return true;
 				}
 
-				if ( $this->level_of_concern >= self::CONCERNED_ABOUT_BENIGN_SYNTAX ) {
+				if ( $this->level_of_concern >= self::CONCERNED_ABOUT_UNAMBIGUOUS_SYNTAX_ERRORS ) {
 					if ( 3 === $target_length && 0 === substr_compare( $xml, $text_starts_at, 'xml', 3, true ) ) {
 						$this->malformed(
-							self::CONCERNED_ABOUT_BENIGN_SYNTAX,
+							self::CONCERNED_ABOUT_UNAMBIGUOUS_SYNTAX_ERRORS,
 							'Processing instruction target names matching "XML" (in a case-insensitive manner) are reserved names.'
 						);
 					}
@@ -208,7 +206,7 @@ class WP_XML_Processor {
 					$character_data_length = $closer_at - ( $text_starts_at + $target_length );
 					if ( self::skip_chars( $xml, $text_starts_at + $target_length, $closer_at ) !== $character_data_length ) {
 						$this->malformed(
-							self::CONCERNED_ABOUT_CONTENT,
+							self::CONCERNED_ABOUT_CONTENT_ERRORS,
 							'Processing instruction nodes must contain only allowable characters.'
 						);
 					}
@@ -228,9 +226,9 @@ class WP_XML_Processor {
 	 * @since {WP_VERSION}
 	 *
 	 * @see self::CONCERNED_ABOUT_EVERYTHING
-	 * @see self::CONCERNED_ABOUT_CONTENT
-	 * @see self::CONCERNED_ABOUT_BENIGN_SYNTAX
-	 * @see self::CONCERNED_ABOUT_INVALID_SYNTAX
+	 * @see self::CONCERNED_ABOUT_CONTENT_ERRORS
+	 * @see self::CONCERNED_ABOUT_UNAMBIGUOUS_SYNTAX_ERRORS
+	 * @see self::CONCERNED_ABOUT_UNRESOLVABLE_SYNTAX_ERRORS
 	 * @see self::CONCERNED_ABOUT_UNRESOLVABLES
 	 *
 	 * @throws WP_XML_Malformed_Error This function is a helper to throw this error.
@@ -424,12 +422,10 @@ class WP_XML_Processor {
 
 	const CONCERNED_ABOUT_UNRESOLVABLES = 0;
 
-	const CONCERNED_ABOUT_INVALID_SYNTAX = self::CONCERNED_ABOUT_UNRESOLVABLES + 1;
+	const CONCERNED_ABOUT_UNAMBIGUOUS_SYNTAX_ERRORS = self::CONCERNED_ABOUT_UNRESOLVABLES + 1;
 
-	const CONCERNED_ABOUT_BENIGN_SYNTAX = self::CONCERNED_ABOUT_INVALID_SYNTAX + 1;
+	const CONCERNED_ABOUT_CONTENT_ERRORS = self::CONCERNED_ABOUT_UNAMBIGUOUS_SYNTAX_ERRORS + 1;
 
-	const CONCERNED_ABOUT_CONTENT = self::CONCERNED_ABOUT_BENIGN_SYNTAX + 1;
-
-	const CONCERNED_ABOUT_EVERYTHING = self::CONCERNED_ABOUT_CONTENT + 1;
+	const CONCERNED_ABOUT_EVERYTHING = self::CONCERNED_ABOUT_CONTENT_ERRORS + 1;
 
 }

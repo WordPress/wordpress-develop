@@ -13,13 +13,13 @@ class WP_XML_Malformed_Error extends ValueError {
 			case WP_XML_Processor::CONCERNED_ABOUT_EVERYTHING:
 				return 'EVERYTHING';
 
-			case WP_XML_Processor::CONCERNED_ABOUT_CONTENT:
+			case WP_XML_Processor::CONCERNED_ABOUT_CONTENT_ERRORS:
 				return 'CONTENT';
 
-			case WP_XML_Processor::CONCERNED_ABOUT_BENIGN_SYNTAX:
+			case WP_XML_Processor::CONCERNED_ABOUT_UNAMBIGUOUS_SYNTAX_ERRORS:
 				return 'BENIGN_SYNTAX';
 
-			case WP_XML_Processor::CONCERNED_ABOUT_INVALID_SYNTAX:
+			case WP_XML_Processor::CONCERNED_ABOUT_UNRESOLVABLE_SYNTAX_ERRORS:
 				return 'INVALID_SYNTAX';
 
 			case WP_XML_Processor::CONCERNED_ABOUT_UNRESOLVABLES:
