@@ -3054,7 +3054,7 @@ function check_password_reset_key( $key, $login ) {
 		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
 
-	$hash_is_correct = password_verify( $key, $pass_key );
+	$hash_is_correct = wp_check_password( $key, $pass_key );
 
 	if ( $hash_is_correct && $expiration_time && time() < $expiration_time ) {
 		return $user;

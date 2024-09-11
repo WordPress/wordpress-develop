@@ -517,7 +517,41 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 50027
 	 * @ticket 32429
 	 */
-	public function test_phpass_user_activation_key_is_rejected() {
+	public function test_phpass_user_activation_key_is_allowed() {
+		global $wpdb;
+
+		// A legacy user_activation_key is one hashed using phpass between WordPress 4.3 and x.y.z.
+
+		$key = wp_generate_password( 20, false );
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_activation_key' => strtotime( '-1 hour' ) . ':' . self::$wp_hasher->HashPassword( $key ),
+			),
+			array(
+				'ID' => $this->user->ID,
+			)
+		);
+		clean_user_cache( $this->user );
+
+		// A legacy phpass user_activation_key should remain valid.
+		$check = check_password_reset_key( $key, $this->user->user_login );
+		$this->assertNotWPError( $check );
+		$this->assertInstanceOf( 'WP_User', $check );
+		$this->assertSame( $this->user->ID, $check->ID );
+
+		// An empty key with a legacy user_activation_key should be rejected.
+		$check = check_password_reset_key( '', $this->user->user_login );
+		$this->assertWPError( $check );
+		$this->assertSame( 'invalid_key', $check->get_error_code() );
+	}
+
+	/**
+	 * @ticket 21022
+	 * @ticket 50027
+	 * @ticket 32429
+	 */
+	public function test_expired_phpass_user_activation_key_is_rejected() {
 		global $wpdb;
 
 		// A legacy user_activation_key is one hashed using phpass between WordPress 4.3 and x.y.z.
@@ -534,10 +568,10 @@ class Tests_Auth extends WP_UnitTestCase {
 		);
 		clean_user_cache( $this->user );
 
-		// A legacy phpass user_activation_key should not be accepted even when it is otherwise valid.
+		// A legacy phpass user_activation_key should still be subject to an expiry check.
 		$check = check_password_reset_key( $key, $this->user->user_login );
 		$this->assertWPError( $check );
-		$this->assertSame( 'invalid_key', $check->get_error_code() );
+		$this->assertSame( 'expired_key', $check->get_error_code() );
 
 		// An empty key with a legacy user_activation_key should be rejected.
 		$check = check_password_reset_key( '', $this->user->user_login );
