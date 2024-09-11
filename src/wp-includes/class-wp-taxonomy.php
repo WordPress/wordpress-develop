@@ -510,12 +510,12 @@ final class WP_Taxonomy {
 				$tag = '([^/]+)';
 			}
 
-			$query = $this->query_var ? "{$this->query_var}=" : "taxonomy=$this->name&term=";
-
-			add_rewrite_tag( "%$this->name%", $tag, $query );
+			add_rewrite_tag( "%$this->name%", $tag, $this->query_var ? "{$this->query_var}=" : "taxonomy=$this->name&term=" );
 			add_permastruct( $this->name, "{$this->rewrite['slug']}/%$this->name%", $this->rewrite );
 
-			add_rewrite_tag( "%$this->name-taxonomy%", "(?:$this->name)", $query );
+			// For the root taxonomy archive, the query string is simply the query var, with no value set,
+			// or, if no query var is defined, `taxonomy=$this->name`.
+			add_rewrite_tag( "%$this->name-taxonomy%", "(?:$this->name)", $this->query_var ? $this->query_var : "taxonomy=$this->name" );
 			add_permastruct( "$this->name-taxonomy", "%$this->name-taxonomy%", $this->rewrite );
 		}
 	}
