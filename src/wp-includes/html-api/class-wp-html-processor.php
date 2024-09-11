@@ -1112,6 +1112,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function serialize(): ?string {
 		if ( WP_HTML_Tag_Processor::STATE_READY !== $this->parser_state ) {
+			wp_trigger_error(
+				__METHOD__,
+				"An HTML Processor which has already started processing cannot serialize it's contents. Serialize immediately after creating the instance.",
+				E_USER_ERROR
+			);
 			return null;
 		}
 
@@ -1215,6 +1220,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		if ( null !== $this->get_last_error() ) {
+			wp_trigger_error(
+				__METHOD__,
+				"Cannot serialize HTML Processor with parsing error: {$this->get_last_error()}.",
+				E_USER_ERROR
+			);
 			return null;
 		}
 
