@@ -1111,6 +1111,18 @@ h6,
 	padding: var(--global--spacing-unit);
 }
 
+.wp-block[data-align=left] > .wp-block-image {
+
+	/*rtl:ignore*/
+	margin-left: 0;
+}
+
+.wp-block[data-align=right] > .wp-block-image {
+
+	/*rtl:ignore*/
+	margin-right: 0;
+}
+
 .wp-block-latest-comments {
 	padding-left: 0;
 }
