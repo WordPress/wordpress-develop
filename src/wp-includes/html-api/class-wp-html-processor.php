@@ -5025,6 +5025,88 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Normalize an HTML string by serializing it.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $html Input HTML to normalize.
+	 * @return string|null Normalized output, or `null` if unable to normalize.
+	 */
+	public static function normalize( string $html ): ?string {
+		return static::create_fragment( $html )->serialize();
+	}
+
+	/**
+	 * Generate normalized markup for the HTML in the provided processor.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string|null Normalized HTML markup represented by processor,
+	 *                     or `null` if unable to generate serialization.
+	 */
+	public function serialize(): ?string {
+		if ( WP_HTML_Tag_Processor::STATE_READY !== $this->parser_state ) {
+			return null;
+		}
+
+		$html = '';
+		while ( $this->next_token() ) {
+			$token_type = $this->get_token_type();
+
+			switch ( $token_type ) {
+				case '#text':
+					$html .= htmlspecialchars( $this->get_modifiable_text(), ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+					break;
+
+				case '#funky-comment':
+				case '#comment':
+					$html .= "<!--{$this->get_modifiable_text()}-->";
+					break;
+
+				case '#cdata-section':
+					$html .= "<![CDATA[{$this->get_modifiable_text()}]]>";
+					break;
+
+				case 'html':
+					$html .= '<!DOCTYPE html>';
+					break;
+			}
+
+			if ( '#tag' !== $token_type ) {
+				continue;
+			}
+
+			if ( $this->is_tag_closer() ) {
+				$html .= "</{$this->get_qualified_tag_name()}>";
+				continue;
+			}
+
+			$attribute_names = $this->get_attribute_names_with_prefix( '' );
+			if ( ! isset( $attribute_names ) ) {
+				$html .= "<{$this->get_qualified_tag_name()}>";
+				continue;
+			}
+
+			$html .= "<{$this->get_qualified_tag_name()}";
+			foreach ( $attribute_names as $attribute_name ) {
+				$html .= " {$this->get_qualified_attribute_name( $attribute_name )}";
+				$value = $this->get_attribute( $attribute_name );
+
+				if ( is_string( $value ) ) {
+					$html .= '"' . htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5 ) . '"';
+				}
+			}
+			$html .= '>';
+		}
+
+		if ( $this->paused_at_incomplete_token() || null !== $this->get_last_error() ) {
+			return null;
+		}
+
+		return $html;
+	}
+
+	/**
 	 * Replaces the inner markup of the currently-matched tag with provided HTML.
 	 *
 	 * This function will normalize the given input and enforce the boundaries
