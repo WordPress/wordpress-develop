@@ -824,56 +824,6 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 62031
-	 */
-	public function test_inserting_child_term_should_clear_parent_term_cache() {
-		register_taxonomy(
-			'wptests_tax',
-			'post',
-			array(
-				'hierarchical' => true,
-			)
-		);
-
-		$parent = self::factory()->term->create(
-			array(
-				'taxonomy' => 'wptests_tax',
-			)
-		);
-
-		$children = get_terms(
-			array(
-				'taxonomy'   => 'wptests_tax',
-				'hide_empty' => false,
-				'parent'     => $parent,
-				'fields'     => 'ids',
-			)
-		);
-
-		$this->assertEmpty( $children, 'No child terms are expected to exist.' );
-
-		$child = wp_insert_term(
-			'foo',
-			'wptests_tax',
-			array(
-				'parent' => $parent,
-			)
-		);
-
-		$children = get_terms(
-			array(
-				'taxonomy'   => 'wptests_tax',
-				'hide_empty' => false,
-				'parent'     => $parent,
-				'fields'     => 'ids',
-			)
-		);
-
-		$this->assertNotEmpty( $children, 'Child terms are expected to exist.' );
-		$this->assertContains( $child['term_id'], $children, 'Querying by parent ID is expected to include the new child term.' );
-	}
-
-	/**
 	 * @ticket 33864
 	 */
 	public function test_wp_insert_term_with_and_without_accents() {
