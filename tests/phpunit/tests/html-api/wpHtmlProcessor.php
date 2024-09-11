@@ -55,6 +55,44 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that the proper tag-name remapping happens for the `IMAGE` tag.
+	 *
+	 * @ticket 61576
+	 *
+	 * @covers WP_HTML_Processor::get_tag
+	 */
+	public function test_get_tag_replaces_image_with_namespace_awareness() {
+		$processor = WP_HTML_Processor::create_fragment( '<image/><svg><image/></svg>' );
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find initial "<image/>" tag: check test setup.'
+		);
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'HTML tags with the name "IMAGE" should be remapped to "IMG"'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find "<svg>" tag: check test setup.'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find SVG "<image/>" tag: check test setup.'
+		);
+
+		$this->assertSame(
+			'IMAGE',
+			$processor->get_tag(),
+			'Should not remap "IMAGE" to "IMG" for foreign elements.'
+		);
+	}
+
+	/**
 	 * Ensures that the HTML Processor maintains its internal state through seek calls.
 	 *
 	 * Because the HTML Processor must track a stack of open elements and active formatting
