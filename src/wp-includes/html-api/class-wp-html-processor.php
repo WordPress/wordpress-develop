@@ -1030,6 +1030,188 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Normalize an HTML fragment by serializing it.
+	 *
+	 * This method assumes that the given HTML snippet is found in BODY context.
+	 * For normalizing full documents or fragments found in other contexts, create
+	 * a new processor using {@see WP_HTML_Processor::create_fragment} or
+	 * {@see WP_HTML_Processor::create_full_parser} and call {@see WP_HTML_Processor::serialize}
+	 * on the created instances.
+	 *
+	 * Many aspects of an input HTML fragment may be changed during normalization.
+	 *
+	 *  - Attribute values will be double-quoted.
+	 *  - Duplicate attributes will be removed.
+	 *  - Omitted tags will be added.
+	 *  - Tag and attribute name casing will be lower-cased,
+	 *    except for specific SVG and MathML tags or attributes.
+	 *  - Text will be re-encoded, null bytes handled,
+	 *     and invalid UTF-8 replaced with U+FFFD.
+	 *  - Any incomplete syntax trailing at the end will be omitted,
+	 *    for example, an unclosed comment opener will be removed.
+	 *
+	 * Example:
+	 *
+	 *     echo WP_HTML_Processor::normalize( '<a href=#anchor v=5 href="/" enabled>One</a another v=5><!--' );
+	 *     // <a href="#anchor" v="5" enabled>One</a>
+	 *
+	 *     echo WP_HTML_Processor::normalize( '<div></p>fun<table><td>cell</div>' );
+	 *     // <div><p></p>fun<table><tbody><tr><td>cell</td></tr></tbody></table></div>
+	 *
+	 *     echo WP_HTML_Processor::normalize( '<![CDATA[invalid comment]]> syntax < <> "oddities"' );
+	 *     // <!--invalid comment--> syntax &lt; &lt;&gt; &quot;oddities&quot;
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $html Input HTML to normalize.
+	 *
+	 * @return string|null Normalized output, or `null` if unable to normalize.
+	 */
+	public static function normalize( string $html ): ?string {
+		return static::create_fragment( $html )->serialize();
+	}
+
+	/**
+	 * Return normalized HTML for a fragment by serializing it.
+	 *
+	 * This differs from {@see WP_HTML_Processor::normalize} in that it starts with
+	 * a specific HTML Processor, which _must_ not have already started scanning;
+	 * it must be in the initial ready state and will be in the completed state once
+	 * serialization is complete.
+	 *
+	 * Many aspects of an input HTML fragment may be changed during normalization.
+	 *
+	 *  - Attribute values will be double-quoted.
+	 *  - Duplicate attributes will be removed.
+	 *  - Omitted tags will be added.
+	 *  - Tag and attribute name casing will be lower-cased,
+	 *    except for specific SVG and MathML tags or attributes.
+	 *  - Text will be re-encoded, null bytes handled,
+	 *     and invalid UTF-8 replaced with U+FFFD.
+	 *  - Any incomplete syntax trailing at the end will be omitted,
+	 *    for example, an unclosed comment opener will be removed.
+	 *
+	 * Example:
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment( '<a href=#anchor v=5 href="/" enabled>One</a another v=5><!--' );
+	 *     echo $processor->serialize();
+	 *     // <a href="#anchor" v="5" enabled>One</a>
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment( '<div></p>fun<table><td>cell</div>' );
+	 *     echo $processor->serialize();
+	 *     // <div><p></p>fun<table><tbody><tr><td>cell</td></tr></tbody></table></div>
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment( '<![CDATA[invalid comment]]> syntax < <> "oddities"' );
+	 *     echo $processor->serialize();
+	 *     // <!--invalid comment--> syntax &lt; &lt;&gt; &quot;oddities&quot;
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string|null Normalized HTML markup represented by processor,
+	 *                     or `null` if unable to generate serialization.
+	 */
+	public function serialize(): ?string {
+		if ( WP_HTML_Tag_Processor::STATE_READY !== $this->parser_state ) {
+			return null;
+		}
+
+		$html = '';
+		while ( $this->next_token() ) {
+			$token_type = $this->get_token_type();
+
+			switch ( $token_type ) {
+				case '#text':
+					$html .= htmlspecialchars( $this->get_modifiable_text(), ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+					break;
+
+				case '#funky-comment':
+				case '#comment':
+					$html .= "<!--{$this->get_modifiable_text()}-->";
+					break;
+
+				case '#cdata-section':
+					$html .= "<![CDATA[{$this->get_modifiable_text()}]]>";
+					break;
+
+				case 'html':
+					$html .= '<!DOCTYPE html>';
+					break;
+			}
+
+			if ( '#tag' !== $token_type ) {
+				continue;
+			}
+
+			if ( $this->is_tag_closer() ) {
+				$html .= "</{$this->get_qualified_tag_name()}>";
+				continue;
+			}
+
+			$tag_name         = $this->get_tag();
+			$qualitified_name = $this->get_qualified_tag_name();
+			$in_html          = 'html' === $this->get_namespace();
+
+			$attribute_names = $this->get_attribute_names_with_prefix( '' );
+			if ( ! isset( $attribute_names ) ) {
+				$html .= "<{$qualitified_name}>";
+				continue;
+			}
+
+			$html .= "<{$qualitified_name}";
+			foreach ( $attribute_names as $attribute_name ) {
+				$html .= " {$this->get_qualified_attribute_name( $attribute_name )}";
+				$value = $this->get_attribute( $attribute_name );
+
+				if ( is_string( $value ) ) {
+					$html .= '="' . htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5 ) . '"';
+				}
+			}
+
+			if ( ! $in_html && $this->has_self_closing_flag() ) {
+				$html .= '/';
+			}
+
+			$html .= '>';
+
+			// Flush out self-contained elements.
+			if ( $in_html && in_array( $tag_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) {
+				$text = $this->get_modifiable_text();
+
+				switch ( $tag_name ) {
+					case 'STYLE':
+						$text = preg_replace_callback(
+							'~</(?P<TAG_NAME>style)~i',
+							static function ( $tag_match ) {
+								return "\\3c\\2f{$tag_match['TAG_NAME']}";
+							},
+							$text
+						);
+						break;
+
+					case 'TEXTAREA':
+					case 'TITLE':
+						$text = preg_replace_callback(
+							"~</(?P<TAG_NAME>{$tag_name})~i",
+							static function ( $tag_match ) {
+								return "&lt;/{$tag_match['TAG_NAME']}";
+							},
+							$text
+						);
+						break;
+				}
+
+				$html .= "{$text}</{$qualitified_name}>";
+			}
+		}
+
+		if ( null !== $this->get_last_error() ) {
+			return null;
+		}
+
+		return $html;
+	}
+
+	/**
 	 * Parses next element in the 'initial' insertion mode.
 	 *
 	 * This internal function performs the 'initial' insertion mode
