@@ -3012,7 +3012,7 @@ function get_password_reset_key( $user ) {
  *
  * @since 3.1.0
  *
- * @param string $key       Hash to validate sending user's password.
+ * @param string $key       The password reset key.
  * @param string $login     The user login.
  * @return WP_User|WP_Error WP_User object on success, WP_Error object for invalid or expired keys.
  */
@@ -3069,7 +3069,7 @@ function check_password_reset_key( $key, $login ) {
 
 		/**
 		 * Filters the return value of check_password_reset_key() when an
-		 * old-style key is used.
+		 * old-style key or an expired key is used.
 		 *
 		 * @since 3.7.0 Previously plain-text keys were stored in the database.
 		 * @since 4.3.0 Previously key hashes were stored without an expiration time.
@@ -3090,7 +3090,7 @@ function check_password_reset_key( $key, $login ) {
  * @since 2.5.0
  * @since 5.7.0 Added `$user_login` parameter.
  *
- * @global wpdb         $wpdb      WordPress database abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $user_login Optional. Username to send a password retrieval email for.
  *                           Defaults to `$_POST['user_login']` if not set.
