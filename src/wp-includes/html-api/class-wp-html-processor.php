@@ -4727,17 +4727,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		$tag_name = parent::get_tag();
 
-		switch ( $tag_name ) {
-			case 'IMAGE':
-				/*
-				 * > A start tag whose tag name is "image"
-				 * > Change the token's tag name to "img" and reprocess it. (Don't ask.)
-				 */
-				return 'IMG';
-
-			default:
-				return $tag_name;
-		}
+		/*
+		 * > A start tag whose tag name is "image"
+		 * > Change the token's tag name to "img" and reprocess it. (Don't ask.)
+		 */
+		return ( 'IMAGE' === $tag_name && 'html' === $this->get_namespace() )
+			? 'IMG'
+			: $tag_name;
 	}
 
 	/**
@@ -5101,6 +5097,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$html .= '="' . htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5 ) . '"';
 				}
 			}
+
+			if ( 'html' !== $this->get_namespace() && $this->has_self_closing_flag() ) {
+				$html .= '/';
+			}
+
 			$html .= '>';
 		}
 
