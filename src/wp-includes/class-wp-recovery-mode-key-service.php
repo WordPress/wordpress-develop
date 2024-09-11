@@ -96,7 +96,7 @@ final class WP_Recovery_Mode_Key_Service {
 			return new WP_Error( 'invalid_recovery_key_format', __( 'Invalid recovery key format.' ) );
 		}
 
-		if ( ! password_verify( $key, $record['hashed_key'] ) ) {
+		if ( ! wp_check_password( $key, $record['hashed_key'] ) ) {
 			return new WP_Error( 'hash_mismatch', __( 'Invalid recovery key.' ) );
 		}
 
