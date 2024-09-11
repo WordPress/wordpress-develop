@@ -622,6 +622,7 @@ mockedApiResponse.Schema = {
                         "format": {
                             "description": "Limit result set to items assigned one or more given formats.",
                             "type": "array",
+                            "uniqueItems": true,
                             "items": {
                                 "enum": [
                                     "standard",
