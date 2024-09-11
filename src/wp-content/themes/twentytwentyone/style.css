@@ -2284,11 +2284,21 @@ h6,
 }
 
 .wp-block-image .alignright {
+
+	/*rtl:ignore*/
 	margin-left: var(--global--spacing-horizontal);
+
+	/*rtl:ignore*/
+	margin-right: 0;
 }
 
 .wp-block-image .alignleft {
+
+	/*rtl:ignore*/
 	margin-right: var(--global--spacing-horizontal);
+
+	/*rtl:ignore*/
+	margin-left: 0;
 }
 
 .wp-block-image a:focus img {
