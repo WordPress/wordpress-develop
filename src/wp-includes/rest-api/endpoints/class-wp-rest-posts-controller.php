@@ -342,6 +342,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Force the post_type argument, since it's not a user input variable.
 		$args['post_type'] = $this->post_type;
 
+		$is_head_request = $request->is_method( 'head' );
+		if ( $is_head_request ) {
+			// Force the 'fields' argument. For HEAD requests, only post IDs are needed to calculate pagination.
+			$args['fields'] = 'ids';
+		}
+
 		/**
 		 * Filters WP_Query arguments when querying posts via the REST API.
 		 *
@@ -374,7 +380,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			add_filter( 'post_password_required', array( $this, 'check_password_required' ), 10, 2 );
 		}
 
-		$is_head_request = $request->is_method( 'head' );
 		if ( ! $is_head_request ) {
 			$posts = array();
 
