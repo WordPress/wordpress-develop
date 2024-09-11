@@ -40,14 +40,17 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	}
 
 	/**
-	 * Searches the object type content for a given search request.
+	 * Searches posts for a given search request.
 	 *
 	 * @since 5.0.0
 	 *
 	 * @param WP_REST_Request $request Full REST request.
-	 * @return array Associative array containing an `WP_REST_Search_Handler::RESULT_IDS` containing
-	 *               an array of found IDs and `WP_REST_Search_Handler::RESULT_TOTAL` containing the
-	 *               total count for the matching search results.
+	 * @return array {
+	 *     Associative array containing found IDs and total count for the matching search results.
+	 *
+	 *     @type int[] $ids   Array containing the matching post IDs.
+	 *     @type int   $total Total count for the matching search results.
+	 * }
 	 */
 	public function search_items( WP_REST_Request $request ) {
 
@@ -63,15 +66,22 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 			'paged'               => (int) $request['page'],
 			'posts_per_page'      => (int) $request['per_page'],
 			'ignore_sticky_posts' => true,
-			'fields'              => 'ids',
 		);
 
 		if ( ! empty( $request['search'] ) ) {
 			$query_args['s'] = $request['search'];
 		}
 
+		if ( ! empty( $request['exclude'] ) ) {
+			$query_args['post__not_in'] = $request['exclude'];
+		}
+
+		if ( ! empty( $request['include'] ) ) {
+			$query_args['post__in'] = $request['include'];
+		}
+
 		/**
-		 * Filters the query arguments for a REST API search request.
+		 * Filters the query arguments for a REST API post search request.
 		 *
 		 * Enables adding extra arguments or setting defaults for a post search request.
 		 *
@@ -82,8 +92,10 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 		 */
 		$query_args = apply_filters( 'rest_post_search_query', $query_args, $request );
 
-		$query     = new WP_Query();
-		$found_ids = $query->query( $query_args );
+		$query = new WP_Query();
+		$posts = $query->query( $query_args );
+		// Querying the whole post object will warm the object cache, avoiding an extra query per result.
+		$found_ids = wp_list_pluck( $posts, 'ID' );
 		$total     = $query->found_posts;
 
 		return array(
@@ -93,13 +105,20 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	}
 
 	/**
-	 * Prepares the search result for a given ID.
+	 * Prepares the search result for a given post ID.
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param int   $id     Item ID.
-	 * @param array $fields Fields to include for the item.
-	 * @return array Associative array containing all fields for the item.
+	 * @param int   $id     Post ID.
+	 * @param array $fields Fields to include for the post.
+	 * @return array {
+	 *     Associative array containing fields for the post based on the `$fields` parameter.
+	 *
+	 *     @type int    $id    Optional. Post ID.
+	 *     @type string $title Optional. Post title.
+	 *     @type string $url   Optional. Post permalink URL.
+	 *     @type string $type  Optional. Post type.
+	 * }
 	 */
 	public function prepare_item( $id, array $fields ) {
 		$post = get_post( $id );
@@ -113,8 +132,10 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 		if ( in_array( WP_REST_Search_Controller::PROP_TITLE, $fields, true ) ) {
 			if ( post_type_supports( $post->post_type, 'title' ) ) {
 				add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+				add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 				$data[ WP_REST_Search_Controller::PROP_TITLE ] = get_the_title( $post->ID );
 				remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+				remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 			} else {
 				$data[ WP_REST_Search_Controller::PROP_TITLE ] = '';
 			}
@@ -164,15 +185,15 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	}
 
 	/**
-	 * Overwrites the default protected title format.
+	 * Overwrites the default protected and private title format.
 	 *
-	 * By default, WordPress will show password protected posts with a title of
-	 * "Protected: %s". As the REST API communicates the protected status of a post
-	 * in a machine readable format, we remove the "Protected: " prefix.
+	 * By default, WordPress will show password protected or private posts with a title of
+	 * "Protected: %s" or "Private: %s", as the REST API communicates the status of a post
+	 * in a machine-readable format, we remove the prefix.
 	 *
 	 * @since 5.0.0
 	 *
-	 * @return string Protected title format.
+	 * @return string Title format.
 	 */
 	public function protected_title_format() {
 		return '%s';
@@ -193,5 +214,4 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 
 		return rest_get_route_for_post( $post );
 	}
-
 }

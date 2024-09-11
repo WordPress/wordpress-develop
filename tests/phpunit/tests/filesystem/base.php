@@ -24,7 +24,7 @@ abstract class WP_Filesystem_UnitTestCase extends WP_UnitTestCase {
 		return 'MockFS';
 	}
 	public function filter_abstraction_file( $file ) {
-		return dirname( dirname( __DIR__ ) ) . '/includes/mock-fs.php';
+		return dirname( __DIR__, 2 ) . '/includes/mock-fs.php';
 	}
 
 	public function test_is_MockFS_sane() {

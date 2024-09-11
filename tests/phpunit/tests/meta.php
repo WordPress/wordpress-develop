@@ -6,6 +6,14 @@
 class Tests_Meta extends WP_UnitTestCase {
 	protected $updated_mids = array();
 
+	/**
+	 * @var \WP_User
+	 */
+	private $author;
+
+	private $meta_id;
+	private $delete_meta_id;
+
 	public function set_up() {
 		parent::set_up();
 		$this->author         = new WP_User( self::factory()->user->create( array( 'role' => 'author' ) ) );
@@ -143,56 +151,50 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertNotEquals( $this->author->user_login, $u[0]->user_login );
 
 		// Test EXISTS and NOT EXISTS together, no users should be found.
-		$this->assertSame(
+		$this->assertCount(
 			0,
-			count(
-				get_users(
-					array(
-						'meta_query' => array(
-							array(
-								'key'     => 'meta_key',
-								'compare' => 'NOT EXISTS',
-							),
-							array(
-								'key'     => 'delete_meta_key',
-								'compare' => 'EXISTS',
-							),
+			get_users(
+				array(
+					'meta_query' => array(
+						array(
+							'key'     => 'meta_key',
+							'compare' => 'NOT EXISTS',
 						),
-					)
+						array(
+							'key'     => 'delete_meta_key',
+							'compare' => 'EXISTS',
+						),
+					),
 				)
 			)
 		);
 
-		$this->assertSame(
+		$this->assertCount(
 			2,
-			count(
-				get_users(
-					array(
-						'meta_query' => array(
-							array(
-								'key'     => 'non_existing_meta',
-								'compare' => 'NOT EXISTS',
-							),
+			get_users(
+				array(
+					'meta_query' => array(
+						array(
+							'key'     => 'non_existing_meta',
+							'compare' => 'NOT EXISTS',
 						),
-					)
+					),
 				)
 			)
 		);
 
 		delete_metadata( 'user', $this->author->ID, 'meta_key' );
 
-		$this->assertSame(
+		$this->assertCount(
 			2,
-			count(
-				get_users(
-					array(
-						'meta_query' => array(
-							array(
-								'key'     => 'meta_key',
-								'compare' => 'NOT EXISTS',
-							),
+			get_users(
+				array(
+					'meta_query' => array(
+						array(
+							'key'     => 'meta_key',
+							'compare' => 'NOT EXISTS',
 						),
-					)
+					),
 				)
 			)
 		);
@@ -370,7 +372,7 @@ class Tests_Meta extends WP_UnitTestCase {
 
 		$string_mid = "{$meta_id}.0";
 
-		// phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison -- intentional implicit casting check
+		// phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- intentional implicit casting check
 		$this->assertTrue( floor( $string_mid ) == $string_mid );
 		$this->assertNotFalse( get_metadata_by_mid( 'user', $string_mid ) );
 		$this->assertNotFalse( update_metadata_by_mid( 'user', $string_mid, 'meta_new_value_2' ) );
@@ -393,7 +395,7 @@ class Tests_Meta extends WP_UnitTestCase {
 	 * @ticket 15030
 	 */
 	public function test_get_metadata_with_empty_key_object_value() {
-		$data      = new stdClass;
+		$data      = new stdClass();
 		$data->foo = 'bar';
 		$value     = serialize( $data );
 		add_metadata( 'user', $this->author->ID, 'foo', $data );
@@ -415,6 +417,34 @@ class Tests_Meta extends WP_UnitTestCase {
 		$found = get_metadata( 'user', $this->author->ID );
 
 		$this->assertSame( array( $value ), $found['foo'] );
+	}
+
+	/**
+	 * @dataProvider data_get_metadata_with_non_existent_object_id
+	 */
+	public function test_get_metadata_with_non_existent_object_id( $expected, $args ) {
+		$this->assertSame( $expected, get_metadata( 'user', ...$args ) );
+	}
+
+	public function data_get_metadata_with_non_existent_object_id() {
+		return array(
+			'should return empty array for default `$meta_key` and `$single` values' => array(
+				'expected' => array(),
+				'args'     => array( PHP_INT_MAX ),
+			),
+			'should return empty array for default `$single` value' => array(
+				'expected' => array(),
+				'args'     => array( PHP_INT_MAX, 'meta_key' ),
+			),
+			'should return empty array when `$single` is `false`' => array(
+				'expected' => array(),
+				'args'     => array( PHP_INT_MAX, 'meta_key', false ),
+			),
+			'should return empty string when `$single` is `true`' => array(
+				'expected' => '',
+				'args'     => array( PHP_INT_MAX, 'meta_key', true ),
+			),
+		);
 	}
 
 	/** Helpers */

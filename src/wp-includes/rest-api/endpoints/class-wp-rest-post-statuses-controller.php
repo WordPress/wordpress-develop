@@ -113,7 +113,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 		$statuses          = get_post_stati( array( 'internal' => false ), 'object' );
 		$statuses['trash'] = get_post_status_object( 'trash' );
 
-		foreach ( $statuses as $slug => $obj ) {
+		foreach ( $statuses as $obj ) {
 			$ret = $this->check_read_permission( $obj );
 
 			if ( ! $ret ) {
@@ -222,6 +222,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$status = $item;
+
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
 
@@ -369,5 +370,4 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
 		);
 	}
-
 }

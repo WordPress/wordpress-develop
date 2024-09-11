@@ -1,6 +1,12 @@
 <?php
 
 class TestFactoryFor extends WP_UnitTestCase {
+
+	/**
+	 * @var WP_UnitTest_Factory_For_Term
+	 */
+	private $category_factory;
+
 	public function set_up() {
 		parent::set_up();
 		$this->category_factory = new WP_UnitTest_Factory_For_Term( null, 'category' );
@@ -8,12 +14,12 @@ class TestFactoryFor extends WP_UnitTestCase {
 
 	public function test_create_creates_a_category() {
 		$id = $this->category_factory->create();
-		$this->assertTrue( (bool) get_term_by( 'id', $id, 'category' ) );
+		$this->assertInstanceOf( 'WP_Term', get_term_by( 'id', $id, 'category' ) );
 	}
 
 	public function test_get_object_by_id_gets_an_object() {
 		$id = $this->category_factory->create();
-		$this->assertTrue( (bool) $this->category_factory->get_object_by_id( $id ) );
+		$this->assertInstanceOf( 'WP_Term', $this->category_factory->get_object_by_id( $id ) );
 	}
 
 	public function test_get_object_by_id_gets_an_object_with_the_same_name() {

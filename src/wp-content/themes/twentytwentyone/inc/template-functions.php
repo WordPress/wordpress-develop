@@ -134,7 +134,7 @@ function twenty_twenty_one_get_avatar_size() {
  */
 function twenty_twenty_one_continue_reading_text() {
 	$continue_reading = sprintf(
-		/* translators: %s: Name of current post. */
+		/* translators: %s: Post title. Only visible to screen readers. */
 		esc_html__( 'Continue reading %s', 'twentytwentyone' ),
 		the_title( '<span class="screen-reader-text">', '</span>', false )
 	);
@@ -167,7 +167,7 @@ function twenty_twenty_one_continue_reading_link() {
 	}
 }
 
-// Filter the excerpt more link.
+// Filter the content more link.
 add_filter( 'the_content_more_link', 'twenty_twenty_one_continue_reading_link' );
 
 if ( ! function_exists( 'twenty_twenty_one_post_title' ) ) {
@@ -367,7 +367,7 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 	// Loop blocks.
 	foreach ( $blocks as $block ) {
 
-		// Sanity check.
+		// Confidence check.
 		if ( ! isset( $block['blockName'] ) ) {
 			continue;
 		}
@@ -384,7 +384,7 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 
 		if ( $is_matching_block ) {
 			// Increment count.
-			$instances_count++;
+			++$instances_count;
 
 			// Add the block HTML.
 			$blocks_content .= render_block( $block );
@@ -421,7 +421,7 @@ function twenty_twenty_one_password_form( $output, $post = 0 ) {
 	$label  = 'pwbox-' . ( empty( $post->ID ) ? wp_rand() : $post->ID );
 	$output = '<p class="post-password-message">' . esc_html__( 'This content is password protected. Please enter a password to view.', 'twentytwentyone' ) . '</p>
 	<form action="' . esc_url( site_url( 'wp-login.php?action=postpass', 'login_post' ) ) . '" class="post-password-form" method="post">
-	<label class="post-password-form__label" for="' . esc_attr( $label ) . '">' . esc_html_x( 'Password', 'Post password form', 'twentytwentyone' ) . '</label><input class="post-password-form__input" name="post_password" id="' . esc_attr( $label ) . '" type="password" size="20" /><input type="submit" class="post-password-form__submit" name="' . esc_attr_x( 'Submit', 'Post password form', 'twentytwentyone' ) . '" value="' . esc_attr_x( 'Enter', 'Post password form', 'twentytwentyone' ) . '" /></form>
+	<label class="post-password-form__label" for="' . esc_attr( $label ) . '">' . esc_html_x( 'Password', 'Post password form', 'twentytwentyone' ) . '</label><input class="post-password-form__input" name="post_password" id="' . esc_attr( $label ) . '" type="password" spellcheck="false" size="20" /><input type="submit" class="post-password-form__submit" name="' . esc_attr_x( 'Submit', 'Post password form', 'twentytwentyone' ) . '" value="' . esc_attr_x( 'Enter', 'Post password form', 'twentytwentyone' ) . '" /></form>
 	';
 	return $output;
 }

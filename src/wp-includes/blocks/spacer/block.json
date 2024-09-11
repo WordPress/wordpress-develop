@@ -1,5 +1,6 @@
 {
-	"apiVersion": 2,
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
 	"name": "core/spacer",
 	"title": "Spacer",
 	"category": "design",
@@ -7,16 +8,25 @@
 	"textdomain": "default",
 	"attributes": {
 		"height": {
-			"type": "number",
-			"default": 100
+			"type": "string",
+			"default": "100px"
 		},
 		"width": {
-			"type": "number"
+			"type": "string"
 		}
 	},
 	"usesContext": [ "orientation" ],
 	"supports": {
-		"anchor": true
+		"anchor": true,
+		"spacing": {
+			"margin": [ "top", "bottom" ],
+			"__experimentalDefaultControls": {
+				"margin": true
+			}
+		},
+		"interactivity": {
+			"clientNavigation": true
+		}
 	},
 	"editorStyle": "wp-block-spacer-editor",
 	"style": "wp-block-spacer"

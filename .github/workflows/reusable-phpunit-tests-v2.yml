@@ -1,0 +1,205 @@
+##
+# DEPRECATED
+#
+# A reusable workflow that runs the PHPUnit test suite with the specified configuration.
+#
+# This workflow is used by branches 5.2 through 5.8.
+##
+name: Run PHPUnit tests
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run tests on'
+        required: false
+        type: 'string'
+        default: 'ubuntu-latest'
+      php:
+        description: 'The version of PHP to use, in the format of X.Y'
+        required: true
+        type: 'string'
+      multisite:
+        description: 'Whether to run tests as multisite'
+        required: false
+        type: 'boolean'
+        default: false
+      split_slow:
+        description: 'Whether to run slow tests group.'
+        required: false
+        type: 'boolean'
+        default: false
+      test_ajax:
+        description: 'Whether to run AJAX tests.'
+        required: false
+        type: 'boolean'
+        default: true
+      memcached:
+        description: 'Whether to test with memcached enabled'
+        required: false
+        type: 'boolean'
+        default: false
+      phpunit-config:
+        description: 'The PHPUnit configuration file to use'
+        required: false
+        type: 'string'
+        default: 'phpunit.xml.dist'
+      report:
+        description: 'Whether to report results to WordPress.org Hosting Tests'
+        required: false
+        type: 'boolean'
+        default: false
+      allow-errors:
+        description: 'Whether to continue when test errors occur.'
+        required: false
+        type: boolean
+        default: false
+env:
+  LOCAL_PHP: ${{ inputs.php }}-fpm
+  LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
+  PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  # Controls which npm script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
+  PHPUNIT_SCRIPT: php
+  SLOW_TESTS: 'external-http,media'
+
+jobs:
+  # Runs the PHPUnit tests for WordPress.
+  #
+  # Performs the following steps:
+  # - Sets environment variables.
+  # - Checks out the repository.
+  # - Installs Node.js.
+  # - Installs npm dependencies
+  # - Configures caching for Composer.
+  # - Installs Composer dependencies.
+  # - Logs Docker debug information (about the Docker installation within the runner).
+  # - Starts the WordPress Docker container.
+  # - Logs general debug information about the runner.
+  # - Logs the running Docker containers.
+  # - Logs debug information from inside the WordPress Docker container.
+  # - Install WordPress within the Docker container.
+  # - Run the PHPUnit tests.
+  # - Ensures version-controlled files are not modified or deleted.
+  test-php:
+    name: PHP ${{ inputs.php }} / ${{ inputs.multisite && ' Multisite' || 'Single Site' }}${{ inputs.split_slow && ' slow tests' || '' }}${{ inputs.memcached && ' with memcached' || '' }}
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Configure environment variables
+        run: |
+          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
+          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Install Node.js
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "composer_dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.composer_dir }}
+          key: ${{ runner.os }}-php-${{ inputs.php }}-composer-${{ hashFiles('**/composer.lock') }}
+
+      - name: Install Composer dependencies
+        run: |
+          docker compose run --rm php composer --version
+
+          # The PHPUnit 7.x phar is not compatible with PHP 8 and won't be updated,
+          # as PHPUnit 7 is no longer supported. The Composer-installed PHPUnit should be
+          # used for PHP 8 testing instead.
+          if [ ${{ env.LOCAL_PHP }} == '8.0-fpm' ]; then
+            docker compose run --rm php composer install --ignore-platform-reqs
+            echo "PHPUNIT_SCRIPT=php-composer" >> $GITHUB_ENV
+          elif [ ${{ env.LOCAL_PHP }} == '7.1-fpm' ]; then
+            docker compose run --rm php composer update
+            git checkout -- composer.lock
+          elif [[ ${{ env.LOCAL_PHP }} == '5.6-fpm' || ${{ env.LOCAL_PHP }} == '7.0-fpm' ]]; then
+            docker compose run --rm php composer require --dev phpunit/phpunit:"^5.7" --update-with-dependencies
+            git checkout -- composer.lock composer.json
+          else
+            docker compose run --rm php composer install
+          fi
+
+      - name: Docker debug information
+        run: |
+          docker -v
+          docker compose -v
+
+      - name: Start Docker environment
+        run: |
+          npm run env:start
+
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+
+      - name: Log running Docker containers
+        run: docker ps -a
+
+      - name: WordPress Docker container debug information
+        run: |
+          docker compose run --rm mysql mysql --version
+          docker compose run --rm php php --version
+          docker compose run --rm php php -m
+          docker compose run --rm php php -i
+          docker compose run --rm php locale -a
+
+      - name: Install WordPress
+        run: npm run env:install
+
+      - name: Run slow PHPUnit tests
+        if: ${{ inputs.split_slow }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
+
+      - name: Run PHPUnit tests for single site excluding slow tests
+        if: ${{ inputs.php < '7.0' && ! inputs.split_slow && ! inputs.multisite }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-required
+
+      - name: Run PHPUnit tests for Multisite excluding slow tests
+        if: ${{ inputs.php < '7.0' && ! inputs.split_slow && inputs.multisite }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-excluded,oembed-headers
+
+      - name: Run PHPUnit tests
+        if: ${{ inputs.php >= '7.0' }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
+
+      - name: Run AJAX tests
+        if: ${{ ! inputs.split_slow&& inputs.test_ajax }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
+
+      - name: Run ms-files tests as a multisite install
+        if: ${{ inputs.multisite && ! inputs.split_slow }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ms-files
+
+      - name: Run external HTTP tests
+        if: ${{ ! inputs.multisite && ! inputs.split_slow }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group external-http
+
+      # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
+      - name: Run (xDebug) tests
+        if: ${{ ! inputs.split_slow }}
+        run: LOCAL_PHP_XDEBUG=true npm run test:${{ env.PHPUNIT_SCRIPT }} -- -v --group xdebug --exclude-group __fakegroup__
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code

@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_Edit_Site_Export_Controller tests.
+ * Unit tests covering WP_REST_Edit_Site_Export_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.9.0
- */
-
-/**
- * Tests for WP_REST_Edit_Site_Export_Controller.
- *
  * @since 5.9.0
  *
  * @covers WP_REST_Edit_Site_Export_Controller
@@ -99,58 +93,58 @@ class Tests_REST_WpRestEditSiteExportController extends WP_Test_REST_Controller_
 	}
 
 	/**
-	 * @ticket 54448
+	 * @doesNotPerformAssertions
 	 */
 	public function test_context_param() {
-		$this->markTestSkipped( 'Controller does not implement context_param().' );
+		// Controller does not use get_context_param().
 	}
 
 	/**
-	 * @ticket 54448
+	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item() {
-		$this->markTestSkipped( 'Controller does not implement get_item().' );
+		// Controller does not implement get_item().
 	}
 
 	/**
-	 * @ticket 54448
+	 * @doesNotPerformAssertions
 	 */
 	public function test_get_items() {
-		$this->markTestSkipped( 'Controller does not implement get_items().' );
+		// Controller does not implement get_items().
 	}
 
 	/**
-	 * @ticket 54448
+	 * @doesNotPerformAssertions
 	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not implement create_item().' );
+		// Controller does not implement create_item().
 	}
 
 	/**
-	 * @ticket 54448
+	 * @doesNotPerformAssertions
 	 */
 	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not implement update_item().' );
+		// Controller does not implement update_item().
 	}
 
 	/**
-	 * @ticket 54448
+	 * @doesNotPerformAssertions
 	 */
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not implement delete_item().' );
+		// Controller does not implement delete_item().
 	}
 
 	/**
-	 * @ticket 54448
+	 * @doesNotPerformAssertions
 	 */
 	public function test_prepare_item() {
-		$this->markTestSkipped( 'Controller does not implement prepare_item().' );
+		// Controller does not implement prepare_item().
 	}
 
 	/**
-	 * @ticket 54448
+	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item_schema() {
-		$this->markTestSkipped( 'Controller does not implement get_item_schema().' );
+		// Controller does not implement get_item_schema().
 	}
 }

@@ -3,6 +3,8 @@
 /**
  * @group l10n
  * @group i18n
+ *
+ * @covers ::get_locale
  */
 class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	public function test_should_respect_locale_global() {
@@ -38,10 +40,6 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_network_option_should_be_fallback_on_multisite() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'This test requires Multisite.' );
-		}
-
 		global $locale;
 		$old_locale = $locale;
 		$locale     = null;
@@ -58,10 +56,6 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 * @group ms-excluded
 	 */
 	public function test_option_should_be_respected_on_nonmultisite() {
-		if ( is_multisite() ) {
-			$this->markTestSkipped( 'This test does not apply to Multisite.' );
-		}
-
 		global $locale;
 		$old_locale = $locale;
 		$locale     = null;
@@ -72,7 +66,6 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 		$locale = $old_locale;
 
 		$this->assertSame( 'es_ES', $found );
-
 	}
 
 	public function test_should_fall_back_on_en_US() {

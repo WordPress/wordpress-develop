@@ -1,0 +1,56 @@
+##
+# A reusable workflow that checks the JavaScript coding standards.
+##
+name: JavaScript coding standards
+
+on:
+  workflow_call:
+
+env:
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
+jobs:
+  # Runs the JavaScript coding standards checks.
+  #
+  # JSHint violations are not currently reported inline with annotations.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs npm dependencies.
+  # - Run the WordPress JSHint checks.
+  # - Ensures version-controlled files are not modified or deleted.
+  jshint:
+    name: Run coding standards checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          git --version
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      - name: Run JSHint
+        run: npm run grunt jshint
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
