@@ -1115,7 +1115,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			wp_trigger_error(
 				__METHOD__,
 				"An HTML Processor which has already started processing cannot serialize it's contents. Serialize immediately after creating the instance.",
-				E_USER_ERROR
+				E_USER_WARNING
 			);
 			return null;
 		}
@@ -1223,7 +1223,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			wp_trigger_error(
 				__METHOD__,
 				"Cannot serialize HTML Processor with parsing error: {$this->get_last_error()}.",
-				E_USER_ERROR
+				E_USER_WARNING
 			);
 			return null;
 		}
