@@ -2422,11 +2422,15 @@ pre.wp-block-verse {
 
 	.wp-block[data-align=left] > * {
 		max-width: 290px;
+
+		/*rtl:ignore*/
 		margin-right: 25px;
 	}
 
 	.wp-block[data-align=right] > * {
 		max-width: 290px;
+
+		/*rtl:ignore*/
 		margin-left: 25px;
 	}
 }
