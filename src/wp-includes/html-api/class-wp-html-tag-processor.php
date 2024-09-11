@@ -2826,8 +2826,31 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Returns the adjusted tag name for a given token, taking into
-	 * account the current parsing context, whether HTML, SVG, or MathML.
+	 * Returns the adjusted tag name for a displaying given tag name, taking
+	 * into account the current parsing context, whether HTML, SVG, or MathML.
+	 *
+	 * Use this function when the purpose is displaying or printing HTML tags.
+	 * For checking if a tag has a given name, rely on {@see static::get_tag}
+	 * which takes HTML case-folding rules into account and always returns an
+	 * ASCII upper-case variant of the matched tag name.
+	 *
+	 * Some SVG tags have specifically-called out case-folding rules, such as
+	 * with `altGlyph`. These tags are normatively mixed-case.
+	 *
+	 * Example:
+	 *
+	 *     $processor = new WP_HTML_Tag_Processor( '<div>' );
+	 *     $processor->next_tag();
+	 *     'DIV' === $processor->get_tag();
+	 *     'div' === $processor->get_qualified_tag_name();
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment( '<svg><altglyph/><rect/></svg>' );
+	 *     $processor->next_tag( 'altglyph' );
+	 *     'ALTGLYPH' === $processor->get_tag();
+	 *     'altGlyph' === $processor->get_qualified_tag_name();
+	 *     $processor->next_tag();
+	 *     'RECT' === $processor->get_tag();
+	 *     'rect' === $processor->get_qualified_tag_name();
 	 *
 	 * @since 6.7.0
 	 *
