@@ -1144,7 +1144,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 						default:
 							$html .= "<!--{$this->get_modifiable_text()}-->";
-
 					}
 					break;
 
