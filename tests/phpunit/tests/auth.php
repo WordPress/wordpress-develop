@@ -274,19 +274,65 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * See https://core.trac.wordpress.org/changeset/30466 .
-	 *
 	 * @TODO bcrypt has a password length limit of 72, need to decide what our approach is.
 	 * @TODO See the discussion comments on https://core.trac.wordpress.org/ticket/21022
 	 * @TODO See the discussion comments on https://core.trac.wordpress.org/ticket 50027
 	 * @TODO Reminder: https://blog.ircmaxell.com/2015/03/security-issue-combining-bcrypt-with.html
 	 */
-	public function test_password_length_limit() {
+	public function test_password_length_limit_with_bcrypt() {
 		$limit = str_repeat( 'a', 72 );
 
 		wp_set_password( $limit, self::$user_id );
 		// Ensure the password is hashed with bcrypt.
 		$this->assertStringStartsWith( '$2y$', $this->user->data->user_pass );
+
+		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
+		// Wrong password.
+		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+
+		$user = wp_authenticate( $this->user->user_login, $limit );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+
+		// One char too many.
+		$user = wp_authenticate( $this->user->user_login, $limit . 'a' );
+		// Wrong password.
+		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+
+		wp_set_password( $limit . 'a', self::$user_id );
+		$user = get_user_by( 'id', self::$user_id );
+		// Password broken by setting it to be too long.
+		$this->assertSame( '*', $user->data->user_pass );
+
+		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
+		// Wrong password.
+		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+
+		$user = wp_authenticate( $this->user->user_login, $limit );
+		// Wrong password.
+		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+
+		$user = wp_authenticate( $this->user->user_login, $limit . 'a' );
+		// Password broken by setting it to be too long.
+		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+	}
+
+	/**
+	 * See https://core.trac.wordpress.org/changeset/30466 .
+	 */
+	public function test_password_length_limit_with_phpass() {
+		$limit = str_repeat( 'a', 4096 );
+
+		// Set the user password with the old phpass algorithm.
+		self::set_password_with_phpass( self::$user_id, $limit );
+
+		// phpass hashed password.
+		$this->assertStringStartsWith( '$P$', $this->user->data->user_pass );
 
 		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
 		// Wrong password.
@@ -492,6 +538,8 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * The `wp_password_needs_rehash()` function is just a wrapper around `password_needs_rehash()`, but this ensures
 	 * that it works as expected.
+	 *
+	 * Notably the bcrypt cost may get increased in PHP 8.4: https://wiki.php.net/rfc/bcrypt_cost_2023 .
 	 *
 	 * @ticket 21022
 	 * @ticket 50027
@@ -1064,5 +1112,20 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$this->assertSame( $_SERVER['PHP_AUTH_USER'], 'username' );
 		$this->assertSame( $_SERVER['PHP_AUTH_PW'], 'pass:word' );
+	}
+
+	private static function set_password_with_phpass( string $password, int $user_id ) {
+		global $wpdb;
+
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_pass' => self::$wp_hasher->HashPassword( $password ),
+			),
+			array(
+				'ID' => $user_id,
+			)
+		);
+		clean_user_cache( $user_id );
 	}
 }
