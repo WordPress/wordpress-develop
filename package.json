@@ -189,6 +189,7 @@
 		"env:pull": "node ./tools/local-env/scripts/docker.js pull",
 		"test:performance": "wp-scripts test-playwright --config tests/performance/playwright.config.js",
 		"test:php": "node ./tools/local-env/scripts/docker.js run -T php composer update -W && node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit",
+		"test:php-skip-install": "node ./tools/local-env/scripts/docker.js run -e WP_TESTS_SKIP_INSTALL=1 php ./vendor/bin/phpunit",
 		"test:e2e": "wp-scripts test-playwright --config tests/e2e/playwright.config.js",
 		"test:visual": "wp-scripts test-playwright --config tests/visual-regression/playwright.config.js",
 		"sync-gutenberg-packages": "grunt sync-gutenberg-packages",
