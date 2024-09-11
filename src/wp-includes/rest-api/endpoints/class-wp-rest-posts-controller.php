@@ -340,10 +340,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args = $this->prepare_tax_query( $args, $request );
 
 		if ( ! empty( $request['format'] ) ) {
-			// If format is not an array, convert it to an array so that the
-			// required prefix can be added to all items.
-			$formats = is_array( $request['format'] ) ? $request['format'] : array( $request['format'] );
-
+			$formats   = $request['format'];
 			$tax_query = array( 'relation' => 'OR' );
 
 			// The default post format, 'standard', is not stored in the database.
