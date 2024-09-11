@@ -266,4 +266,41 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			'The post content should not include the script tag.'
 		);
 	}
+
+	/**
+	 * Tests that filter `block_bindings_source_value` is applied.
+	 *
+	 * @ticket 61181
+	 */
+	public function test_filter_block_bindings_source_value() {
+		register_meta(
+			'post',
+			'tests_filter_field',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+				'default'      => 'Original value',
+			)
+		);
+
+		$filter_value = function ( $value, $source_name, $source_args ) {
+			if ( 'core/post-meta' !== $source_name ) {
+				return $value;
+			}
+			return "Filtered value: {$source_args['key']}";
+		};
+
+		add_filter( 'block_bindings_source_value', $filter_value, 10, 3 );
+
+		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_filter_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+
+		remove_filter( 'block_bindings_source_value', $filter_value );
+
+		$this->assertSame(
+			'<p>Filtered value: tests_filter_field</p>',
+			$content,
+			'The post content should show the filtered value.'
+		);
+	}
 }
