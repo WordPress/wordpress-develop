@@ -1168,7 +1168,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			}
 
 			if ( ! $in_html && $this->has_self_closing_flag() ) {
-				$html .= '/';
+				$html .= ' /';
 			}
 
 			$html .= '>';
