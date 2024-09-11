@@ -91,7 +91,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 				'/category/',
 				array(
 					'url' => '/category/',
-					'qv'  => array( 'taxonomy' => 'category' ),
+					'qv'  => array( 'category_name' => '' ),
 				),
 			),
 			array(
@@ -106,8 +106,8 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 				array(
 					'url' => '/category/page/2/',
 					'qv'  => array(
-						'taxonomy' => 'category',
-						'paged'    => 2,
+						'category_name' => '',
+						'paged'         => 2,
 					),
 				),
 			),
@@ -126,8 +126,8 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 				array(
 					'url' => '/category/page/2/',
 					'qv'  => array(
-						'taxonomy' => 'category',
-						'paged'    => 2,
+						'category_name' => '',
+						'paged'         => 2,
 					),
 				),
 			),
