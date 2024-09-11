@@ -437,7 +437,7 @@ final class WP_Translation_Controller {
 
 	/**
 	 * Returns a boolean to indicate whether a translation exists for a given string with optional text domain and locale.
-	 * 
+	 *
 	 * @since 6.7.0
 	 *
 	 * @param string  $singular   Singular translation to check.
