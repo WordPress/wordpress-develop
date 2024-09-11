@@ -343,8 +343,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$formats   = $request['format'];
 			$tax_query = array( 'relation' => 'OR' );
 
-			// The default post format, 'standard', is not stored in the database.
-			// If 'standard' is part of the request, the query needs to exclude all post items that
+			// The default post format, `standard`, is not stored in the database.
+			// If `standard` is part of the request, the query needs to exclude all post items that
 			// have a format assigned.
 			if ( in_array( 'standard', $formats, true ) ) {
 				$tax_query[] = array(
@@ -353,13 +353,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'terms'    => array(),
 					'operator' => 'NOT EXISTS',
 				);
-				// Remove the standard format, since it cannot be queried.
+				// Remove the `standard` format, since it cannot be queried.
 				unset( $formats[ array_search( 'standard', $formats, true ) ] );
 			}
 
 			// Add any remaining formats to the tax query.
 			if ( ! empty( $formats ) ) {
-				// Add the post-format- prefix.
+				// Add the `post-format-` prefix.
 				$terms = array_map(
 					static function ( $format ) {
 						return 'post-format-' . $format;
@@ -375,7 +375,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				);
 			}
 
-			// Enable filtering by both post formats and other taxonomies by combining them with AND.
+			// Enable filtering by both post formats and other taxonomies by combining them with `AND`.
 			if ( isset( $args['tax_query'] ) ) {
 				$args['tax_query'][] = array(
 					'relation' => 'AND',
