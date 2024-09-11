@@ -2584,6 +2584,11 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	/**
 	 * Checks a plaintext password against a hashed password.
 	 *
+	 * Note that this function is used for checking more than just user passwords, for
+	 * example it's used for checking password reset keys, application passwords, post
+	 * passwords, recovery mode keys, and more. There is not always a user ID associated
+	 * with the password.
+	 *
 	 * For integration with other applications, this function can be overwritten to
 	 * instead use the other package password hashing algorithm.
 	 *
@@ -2594,9 +2599,9 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	 * @global PasswordHash $wp_hasher phpass object. Used as a fallback for verifying
 	 *                                 passwords that were hashed with phpass.
 	 *
-	 * @param string     $password Plaintext user's password.
-	 * @param string     $hash     Hash of the user's password to check against.
-	 * @param string|int $user_id  Optional. User ID.
+	 * @param string     $password Plaintext password.
+	 * @param string     $hash     Hash of the password to check against.
+	 * @param string|int $user_id  Optional. ID of a user associated with the password.
 	 * @return bool False, if the $password does not match the hashed password.
 	 */
 	function wp_check_password( $password, $hash, $user_id = '' ) {
@@ -2620,7 +2625,7 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 		}
 
 		/**
-		 * Filters whether the plaintext password matches the encrypted password.
+		 * Filters whether the plaintext password matches the hashed password.
 		 *
 		 * @since 2.5.0
 		 * @since x.y.z Passwords are now hashed with bcrypt by default.
@@ -2629,7 +2634,8 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 		 * @param bool       $check    Whether the passwords match.
 		 * @param string     $password The plaintext password.
 		 * @param string     $hash     The hashed password.
-		 * @param string|int $user_id  User ID. Can be empty.
+		 * @param string|int $user_id  Optional ID of a user associated with the password.
+		 *                             Can be empty.
 		 */
 		return apply_filters( 'check_password', $check, $password, $hash, $user_id );
 	}
