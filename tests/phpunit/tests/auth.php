@@ -172,6 +172,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21022
+	 * @ticket 50027
 	 */
 	public function test_wp_check_password_supports_fallback_phpass_hashes() {
 		$password = 'password';
@@ -180,6 +181,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21022
+	 * @ticket 50027
 	 */
 	public function test_wp_check_password_does_not_support_md5_hashes() {
 		$password = 'password';
@@ -188,6 +190,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21022
+	 * @ticket 50027
 	 */
 	public function test_wp_check_password_does_not_support_plain_text() {
 		$password = 'password';
@@ -275,6 +278,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 *
 	 * @TODO bcrypt has a password length limit of 72, need to decide what our approach is.
 	 * @TODO See the discussion comments on https://core.trac.wordpress.org/ticket/21022
+	 * @TODO See the discussion comments on https://core.trac.wordpress.org/ticket 50027
 	 * @TODO Reminder: https://blog.ircmaxell.com/2015/03/security-issue-combining-bcrypt-with.html
 	 */
 	public function test_password_length_limit() {
@@ -454,6 +458,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21022
+	 * @ticket 50027
 	 * @ticket 32429
 	 */
 	public function test_phpass_user_activation_key_is_rejected() {
@@ -489,6 +494,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * that it works as expected.
 	 *
 	 * @ticket 21022
+	 * @ticket 50027
 	 */
 	public function check_password_needs_rehashing() {
 		$password = 'password';
