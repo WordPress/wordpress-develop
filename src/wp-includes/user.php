@@ -2001,7 +2001,7 @@ function username_exists( $username ) {
  * @param string $login    Optional. User login to compare against.
  * @return int|false The user ID on success, false on failure.
  */
-function user_nicename_exists($nicename, $login = false ) {
+function user_nicename_exists( $nicename, $login = false ) {
 	$user_id = false;
 	$user = get_user_by( 'slug', $nicename );
 	if ( $user && $login !== $user->user_login ) {
