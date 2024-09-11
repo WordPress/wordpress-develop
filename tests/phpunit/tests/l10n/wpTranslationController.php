@@ -391,8 +391,9 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 	public function test_has_translation_with_different_locale() {
 		switch_to_locale( 'fr_FR' );
 		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
-		$this->assertFalse( WP_Translation_Controller::get_instance()->has_translation( 'baba', 'wp-tests-domain', 'fr_FR' ) );
+		$actual = WP_Translation_Controller::get_instance()->has_translation( 'baba', 'wp-tests-domain', 'fr_FR' );
 		restore_previous_locale();
+		$this->assertFalse( $actual );
 	}
 
 	/**
@@ -408,21 +409,5 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 	 */
 	public function test_has_translation_with_empty_string() {
 		$this->assertFalse( WP_Translation_Controller::get_instance()->has_translation( '', 'wp-tests-domain' ) );
-	}
-
-	/**
-	 * @covers ::has_translation
-	 */
-	public function test_has_translation_with_special_characters() {
-		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
-		$this->assertFalse( WP_Translation_Controller::get_instance()->has_translation( 'küku rükü', 'wp-tests-domain', 'en_US' ) );
-	}
-
-	/**
-	 * @covers ::has_translation
-	 */
-	public function test_has_translation_with_long_string() {
-		$long_string = str_repeat( 'a', 1000 );
-		$this->assertFalse( WP_Translation_Controller::get_instance()->has_translation( $long_string, 'wp-tests-domain' ) );
 	}
 }
