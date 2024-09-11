@@ -515,8 +515,8 @@ final class WP_Taxonomy {
 
 			// For the root taxonomy archive, the query string is simply the query var, with no value set,
 			// or, if no query var is defined, `taxonomy=$this->name`.
-			add_rewrite_tag( "%$this->name-taxonomy%", "(?:$this->name)", $this->query_var ? $this->query_var : "taxonomy=$this->name" );
-			add_permastruct( "$this->name-taxonomy", "%$this->name-taxonomy%", $this->rewrite );
+			add_rewrite_tag( "%taxonomy-$this->name%", "(?:$this->name)", $this->query_var ? $this->query_var : "taxonomy=$this->name" );
+			add_permastruct( "taxonomy-$this->name", "%taxonomy-$this->name%", $this->rewrite );
 		}
 	}
 
@@ -538,8 +538,8 @@ final class WP_Taxonomy {
 
 		// Remove rewrite tags and permastructs.
 		if ( false !== $this->rewrite ) {
-			remove_rewrite_tag( "%$this->name-taxonomy%" );
-			remove_permastruct( "$this->name-taxonomy" );
+			remove_rewrite_tag( "%taxonomy-$this->name%" );
+			remove_permastruct( "taxonomy-$this->name" );
 
 			remove_rewrite_tag( "%$this->name%" );
 			remove_permastruct( $this->name );
