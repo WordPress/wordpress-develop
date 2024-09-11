@@ -200,7 +200,14 @@ function wp_authenticate_username_password( $user, $username, $password ) {
 		return $user;
 	}
 
-	if ( ! wp_check_password( $password, $user->user_pass, $user->ID ) ) {
+	$valid = wp_check_password( $password, $user->user_pass, $user->ID );
+
+	if ( $valid && wp_password_needs_rehash( $user->user_pass ) ) {
+		// @TODO test coverage
+		wp_set_password( $password, $user->ID );
+	}
+
+	if ( ! $valid ) {
 		return new WP_Error(
 			'incorrect_password',
 			sprintf(
@@ -272,7 +279,14 @@ function wp_authenticate_email_password( $user, $email, $password ) {
 		return $user;
 	}
 
-	if ( ! wp_check_password( $password, $user->user_pass, $user->ID ) ) {
+	$valid = wp_check_password( $password, $user->user_pass, $user->ID );
+
+	if ( $valid && wp_password_needs_rehash( $user->user_pass ) ) {
+		// @TODO test coverage
+		wp_set_password( $password, $user->ID );
+	}
+
+	if ( ! $valid ) {
 		return new WP_Error(
 			'incorrect_password',
 			sprintf(
@@ -425,8 +439,16 @@ function wp_authenticate_application_password( $input_user, $username, $password
 	$hashed_passwords = WP_Application_Passwords::get_user_application_passwords( $user->ID );
 
 	foreach ( $hashed_passwords as $key => $item ) {
-		if ( ! wp_check_password( $password, $item['password'], $user->ID ) ) {
+		$valid = wp_check_password( $password, $item['password'], $user->ID );
+
+		if ( ! $valid ) {
 			continue;
+		}
+
+		if ( wp_password_needs_rehash( $item['password'] ) ) {
+			// @TODO test coverage
+			$item['password'] = wp_hash_password( $password );
+			WP_Application_Passwords::update_application_password( $user->ID, $item['uuid'], $item );
 		}
 
 		$error = new WP_Error();
