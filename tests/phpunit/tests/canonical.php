@@ -93,6 +93,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 					'url' => '/category/',
 					'qv'  => array( 'category_name' => '' ),
 				),
+				61957,
 			),
 			array(
 				'/category/uncategorized/',
@@ -110,6 +111,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 						'paged'         => 2,
 					),
 				),
+				61957,
 			),
 			array(
 				'/category/uncategorized/page/2/',
@@ -130,6 +132,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 						'paged'         => 2,
 					),
 				),
+				61957,
 			),
 			array(
 				'/category/uncategorized/?paged=2',
