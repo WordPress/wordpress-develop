@@ -57,6 +57,19 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensures that the proper tag-name remapping happens for the `IMAGE` tag.
 	 *
+	 * An HTML parser should treat an IMAGE tag as if it were an IMG tag, but
+	 * only when found in the HTML namespace. As part of this rule, IMAGE tags
+	 * in the HTML namespace are also void elements, while those in foreign
+	 * content are not, making the self-closing flag significant.
+	 *
+	 * Example:
+	 *
+	 *     // This input...
+	 *     <image/><svg><image/></svg>
+	 *
+	 *     // ...is equivalent to this normative HTML.
+	 *     <img><svg><image/></svg>
+	 *
 	 * @ticket 61576
 	 *
 	 * @covers WP_HTML_Processor::get_tag
