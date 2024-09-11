@@ -2003,7 +2003,7 @@ function username_exists( $username ) {
  */
 function user_nicename_exists( $nicename, $login = false ) {
 	$user_id = false;
-	$user = get_user_by( 'slug', $nicename );
+	$user    = get_user_by( 'slug', $nicename );
 	if ( $user && $login !== $user->user_login ) {
 		$user_id = $user->ID;
 	}
