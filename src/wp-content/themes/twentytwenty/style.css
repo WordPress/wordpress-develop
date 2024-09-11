@@ -552,6 +552,14 @@ blockquote {
 	padding: 0.5rem 0 0.5rem 2rem;
 }
 
+blockquote.is-style-plain {
+	/*rtl:ignore*/
+	border-width: 0;
+
+	/*rtl:ignore*/
+	padding: 0.5rem 0 0.5rem 0;
+}
+
 cite {
 	color: #6d6d6d;
 	font-size: 1.4rem;
