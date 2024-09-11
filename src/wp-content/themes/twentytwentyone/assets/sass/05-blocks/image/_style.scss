@@ -59,14 +59,36 @@
 
 	> .wp-block-image {
 
-		> .alignleft,
-		> .alignright {
-			@include media(mobile) {
+		@include media(mobile) {
+
+			> .alignleft,
+			> .alignright {
 				max-width: 50%;
 			}
-			@include media(mobile-only) {
+		}
+
+		@include media(mobile-only) {
+
+			> .alignleft,
+			> .alignright {
 				margin-left: 0;
 				margin-right: 0;
+
+				&:after {
+					content: "";
+					display: block;
+					height: 1px;
+					width: 1em;
+
+					/*rtl:ignore*/
+					float: right;
+				}
+			}
+
+			> .alignright:after {
+
+				/*rtl:ignore*/
+				float: left;
 			}
 		}
 	}

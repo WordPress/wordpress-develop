@@ -2339,6 +2339,23 @@ h6,
 		margin-left: 0;
 		margin-right: 0;
 	}
+
+	.entry-content > .wp-block-image > .alignleft:after,
+	.entry-content > .wp-block-image > .alignright:after {
+		content: "";
+		display: block;
+		height: 1px;
+		width: 1em;
+
+		/*rtl:ignore*/
+		float: right;
+	}
+
+	.entry-content > .wp-block-image > .alignright:after {
+
+		/*rtl:ignore*/
+		float: left;
+	}
 }
 
 .wp-block-latest-comments {
