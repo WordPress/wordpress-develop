@@ -5027,9 +5027,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Normalize an HTML string by serializing it.
 	 *
+	 * This removes any partial syntax at the end of the string.
+	 *
 	 * @since 6.7.0
 	 *
 	 * @param string $html Input HTML to normalize.
+	 *
 	 * @return string|null Normalized output, or `null` if unable to normalize.
 	 */
 	public static function normalize( string $html ): ?string {
@@ -5038,6 +5041,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 	/**
 	 * Generate normalized markup for the HTML in the provided processor.
+	 *
+	 * This removes any partial syntax at the end of the string.
 	 *
 	 * @since 6.7.0
 	 *
@@ -5093,13 +5098,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$value = $this->get_attribute( $attribute_name );
 
 				if ( is_string( $value ) ) {
-					$html .= '"' . htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5 ) . '"';
+					$html .= '="' . htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5 ) . '"';
 				}
 			}
 			$html .= '>';
 		}
 
-		if ( $this->paused_at_incomplete_token() || null !== $this->get_last_error() ) {
+		if ( null !== $this->get_last_error() ) {
 			return null;
 		}
 
