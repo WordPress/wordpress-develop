@@ -1628,7 +1628,7 @@ function get_edit_comment_link( $comment_id = 0, $context = 'display' ) {
 	 *
 	 * @param string $location The edit link.
 	 * @param int    $comment_id Optional. Unique ID of the comment to generate an edit link.
-	 * @param int    $context    Optional. Context to include HTML entities in link. Default 'display'.
+	 * @param string $context    Optional. Context to include HTML entities in link. Default 'display'.
 	 */
 	return apply_filters( 'get_edit_comment_link', $location, $comment_id, $context );
 }
