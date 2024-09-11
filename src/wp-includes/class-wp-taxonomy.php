@@ -513,8 +513,6 @@ final class WP_Taxonomy {
 			add_rewrite_tag( "%$this->name%", $tag, $this->query_var ? "{$this->query_var}=" : "taxonomy=$this->name&term=" );
 			add_permastruct( $this->name, "{$this->rewrite['slug']}/%$this->name%", $this->rewrite );
 
-			// For the root taxonomy archive, the query string is simply the query var, with no value set,
-			// or, if no query var is defined, `taxonomy=$this->name`.
 			add_rewrite_tag( "%taxonomy-$this->name%", "$this->name", "taxonomy=$this->name" );
 			add_permastruct( "taxonomy-$this->name", "%taxonomy-$this->name%", $this->rewrite );
 		}
