@@ -4923,7 +4923,7 @@ function wp_validate_user_request_key( $request_id, $key ) {
 	$expiration_duration = (int) apply_filters( 'user_request_key_expiration', DAY_IN_SECONDS );
 	$expiration_time     = $key_request_time + $expiration_duration;
 
-	if ( ! password_verify( $key, $saved_key ) ) {
+	if ( ! wp_check_password( $key, $saved_key ) ) {
 		return new WP_Error( 'invalid_key', __( 'The confirmation key is invalid for this personal data request.' ) );
 	}
 
