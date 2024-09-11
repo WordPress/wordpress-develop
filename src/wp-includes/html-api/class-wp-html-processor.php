@@ -1124,9 +1124,28 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$html .= htmlspecialchars( $this->get_modifiable_text(), ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
 					break;
 
+				// Unlike the `<>` which is interpreted as plaintext, this is ignored entirely.
+				case '#presumptuous-tag':
+					break;
+
 				case '#funky-comment':
-				case '#comment':
 					$html .= "<!--{$this->get_modifiable_text()}-->";
+					break;
+
+				case '#comment':
+					switch ( $this->get_comment_type() ) {
+						case WP_HTML_Tag_Processor::COMMENT_AS_CDATA_LOOKALIKE:
+							$html .= "<!--[CDATA[{$this->get_modifiable_text()}]]-->";
+							break;
+
+						case WP_HTML_Tag_Processor::COMMENT_AS_PI_NODE_LOOKALIKE:
+							$html .= "<!--?{$this->get_tag()}{$this->get_modifiable_text()}?-->";
+							break;
+
+						default:
+							$html .= "<!--{$this->get_modifiable_text()}-->";
+
+					}
 					break;
 
 				case '#cdata-section':
@@ -1142,14 +1161,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				continue;
 			}
 
-			if ( $this->is_tag_closer() ) {
-				$html .= "</{$this->get_qualified_tag_name()}>";
-				continue;
-			}
-
 			$tag_name       = $this->get_tag();
 			$in_html        = 'html' === $this->get_namespace();
 			$qualified_name = $in_html ? strtolower( $tag_name ) : $this->get_qualified_tag_name();
+
+			if ( $this->is_tag_closer() ) {
+				$html .= "</{$qualified_name}>";
+				continue;
+			}
 
 			$attribute_names = $this->get_attribute_names_with_prefix( '' );
 			if ( ! isset( $attribute_names ) ) {
