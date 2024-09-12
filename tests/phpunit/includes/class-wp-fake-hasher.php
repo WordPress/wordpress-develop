@@ -24,7 +24,7 @@ class WP_Fake_Hasher {
 	 * @param string $password Password to hash.
 	 * @return string Hashed password.
 	 */
-	public function HashPassword( string $password ) {
+	public function HashPassword( string $password ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		return $this->hash;
 	}
 
@@ -35,7 +35,7 @@ class WP_Fake_Hasher {
 	 * @param string $hash     Hash to check against.
 	 * @return bool Whether the password hash is valid.
 	 */
-	public function CheckPassword( string $password, string $hash ) {
-		return $hash == $this->hash;
+	public function CheckPassword( string $password, string $hash ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		return $hash === $this->hash;
 	}
 }
