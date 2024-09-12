@@ -29,7 +29,6 @@ class WP_Debug_Data {
 	 * @since 5.5.0 Added pretty permalinks support information.
 	 * @since 6.7.0 Modularized into separate theme-oriented methods.
 	 *
-	 * @throws ImagickException
 	 * @global array $_wp_theme_features
 	 *
 	 * @return array The debug data for the site.
@@ -847,6 +846,8 @@ class WP_Debug_Data {
 	 * Gets the WordPress server section of the debug data.
 	 *
 	 * @since 6.7.0
+	 *
+	 * @throws ImagickException
 	 *
 	 * @return array
 	 */
