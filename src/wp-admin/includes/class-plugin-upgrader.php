@@ -517,7 +517,16 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return new WP_Error( 'incompatible_wp_required_version', $this->strings['incompatible_archive'], $error );
 		}
 
-		return $source;
+		/**
+		 * Filters the path of the downloaded package source, allowing
+		 * extra checks to return WP_Error to prevent the upgrade.
+		 *
+		 * @since 6.7.0
+		 *
+		 * @param string $source The path to the downloaded package source.
+		 * @param array  $info   The data of the upgraded plugin.
+		 */
+		return apply_filters( 'plugin_upgrader_checked_package', $source, $info );
 	}
 
 	/**
