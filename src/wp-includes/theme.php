@@ -1547,10 +1547,32 @@ function get_uploaded_header_images() {
 		}
 	}
 
-	set_transient( $transient_key, $header_images, HOUR_IN_SECONDS );
+	set_transient( $transient_key, $header_images, DAY_IN_SECONDS );
 
 	return $header_images;
 }
+
+/**
+ * Invalidates the cache for header images when a custom header image is changed or deleted.
+ *
+ * @since 6.7
+ *
+ * @param int $meta_id The meta ID of the attachment meta data.
+ * @param int $post_id The post ID of the attachment.
+ * @param string $meta_key The meta key of the attachment meta data.
+ * @param mixed $meta_value The new value of the attachment meta data.
+ *
+ * @return void
+ */
+function invalidate_header_images_cache( $meta_id, $post_id, $meta_key, $meta_value ) {
+	if ( '_wp_attachment_is_custom_header' === $meta_key ) {
+		$stylesheet    = get_option( 'stylesheet' );
+		$transient_key = 'uploaded_header_images' . $stylesheet;
+		delete_transient( $transient_key );
+	}
+}
+add_action( 'updated_post_meta', 'invalidate_header_images_cache', 10, 4 );
+add_action( 'deleted_post_meta', 'invalidate_header_images_cache', 10, 4 );
 
 /**
  * Gets the header image data.

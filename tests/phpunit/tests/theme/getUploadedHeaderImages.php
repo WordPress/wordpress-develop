@@ -1,6 +1,8 @@
 <?php
 /**
  * @group themes
+ *
+ * @coversDefaultClass ::get_uploaded_header_images
  */
 class Tests_Theme_GetUploadedHeaderImages extends WP_UnitTestCase {
 	public $custom_image_header;
