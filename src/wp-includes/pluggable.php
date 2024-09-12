@@ -2610,7 +2610,22 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 
 		// If the hash is still md5 or otherwise truncated then invalidate it.
 		if ( strlen( $hash ) <= 32 ) {
-			return false;
+			$check = false;
+
+			/**
+			 * Filters whether the plaintext password matches the hashed password.
+			 *
+			 * @since 2.5.0
+			 * @since x.y.z Passwords are now hashed with bcrypt by default.
+			 *              Old passwords may still be hashed with phpass.
+			 *
+			 * @param bool       $check    Whether the passwords match.
+			 * @param string     $password The plaintext password.
+			 * @param string     $hash     The hashed password.
+			 * @param string|int $user_id  Optional ID of a user associated with the password.
+			 *                             Can be empty.
+			 */
+			return apply_filters( 'check_password', $check, $password, $hash, $user_id );
 		}
 
 		if ( str_starts_with( $hash, '$P$' ) ) {
@@ -2625,19 +2640,7 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 			$check = password_verify( $password, $hash );
 		}
 
-		/**
-		 * Filters whether the plaintext password matches the hashed password.
-		 *
-		 * @since 2.5.0
-		 * @since x.y.z Passwords are now hashed with bcrypt by default.
-		 *              Old passwords may still be hashed with phpass.
-		 *
-		 * @param bool       $check    Whether the passwords match.
-		 * @param string     $password The plaintext password.
-		 * @param string     $hash     The hashed password.
-		 * @param string|int $user_id  Optional ID of a user associated with the password.
-		 *                             Can be empty.
-		 */
+		/** This filter is documented in wp-includes/pluggable.php */
 		return apply_filters( 'check_password', $check, $password, $hash, $user_id );
 	}
 endif;

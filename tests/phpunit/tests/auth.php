@@ -179,6 +179,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$password = 'password';
 		$hash     = self::$wp_hasher->HashPassword( $password );
 		$this->assertTrue( wp_check_password( $password, $hash ) );
+		$this->assertSame( 1, did_filter( 'check_password' ) );
 	}
 
 	/**
@@ -201,6 +202,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		);
 		$hash     = password_hash( trim( $password ), PASSWORD_BCRYPT, $options );
 		$this->assertTrue( wp_check_password( $password, $hash ) );
+		$this->assertSame( 1, did_filter( 'check_password' ) );
 	}
 
 	/**
@@ -223,6 +225,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		);
 		$hash     = password_hash( trim( $password ), PASSWORD_BCRYPT, $options );
 		$this->assertTrue( wp_check_password( $password, $hash ) );
+		$this->assertSame( 1, did_filter( 'check_password' ) );
 	}
 
 	/**
@@ -237,6 +240,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		);
 		$hash     = password_hash( trim( $password ), PASSWORD_BCRYPT, $options );
 		$this->assertTrue( wp_check_password( $password, $hash ) );
+		$this->assertSame( 1, did_filter( 'check_password' ) );
 	}
 
 	/**
@@ -253,6 +257,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$password = 'password';
 		$hash     = password_hash( trim( $password ), PASSWORD_ARGON2I );
 		$this->assertTrue( wp_check_password( $password, $hash ) );
+		$this->assertSame( 1, did_filter( 'check_password' ) );
 	}
 
 	/**
@@ -271,6 +276,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$password = 'password';
 		$hash     = password_hash( trim( $password ), PASSWORD_ARGON2ID );
 		$this->assertTrue( wp_check_password( $password, $hash ) );
+		$this->assertSame( 1, did_filter( 'check_password' ) );
 	}
 
 	/**
@@ -281,6 +287,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$password = 'password';
 		$hash     = md5( $password );
 		$this->assertFalse( wp_check_password( $password, $hash ) );
+		$this->assertSame( 1, did_filter( 'check_password' ) );
 	}
 
 	/**
@@ -291,6 +298,18 @@ class Tests_Auth extends WP_UnitTestCase {
 		$password = 'password';
 		$hash     = $password;
 		$this->assertFalse( wp_check_password( $password, $hash ) );
+		$this->assertSame( 1, did_filter( 'check_password' ) );
+	}
+
+	/**
+	 * @ticket 21022
+	 * @ticket 50027
+	 */
+	public function test_wp_check_password_does_not_support_empty_value() {
+		$password = 'password';
+		$hash     = '';
+		$this->assertFalse( wp_check_password( $password, $hash ) );
+		$this->assertSame( 1, did_filter( 'check_password' ) );
 	}
 
 	/**
