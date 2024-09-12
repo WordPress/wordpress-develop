@@ -2572,10 +2572,18 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 	 * @since 2.5.0
 	 * @since x.y.z The password is now hashed using bcrypt instead of phpass.
 	 *
+	 * @global PasswordHash $wp_hasher phpass object.
+	 *
 	 * @param string $password Plain text user password to hash.
 	 * @return string The hash string of the password.
 	 */
 	function wp_hash_password( $password ) {
+		global $wp_hasher;
+
+		if ( ! empty( $wp_hasher ) ) {
+			return $wp_hasher->HashPassword( trim( $password ) );
+		}
+
 		return password_hash( trim( $password ), PASSWORD_BCRYPT );
 	}
 endif;
@@ -2628,14 +2636,13 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 			return apply_filters( 'check_password', $check, $password, $hash, $user_id );
 		}
 
-		if ( str_starts_with( $hash, '$P$' ) ) {
-			if ( empty( $wp_hasher ) ) {
-				require_once ABSPATH . WPINC . '/class-phpass.php';
-				// Use the portable hash from phpass.
-				$wp_hasher = new PasswordHash( 8, true );
-			}
-
+		if ( ! empty( $wp_hasher ) ) {
 			$check = $wp_hasher->CheckPassword( $password, $hash );
+		} elseif ( str_starts_with( $hash, '$P$' ) ) {
+			require_once ABSPATH . WPINC . '/class-phpass.php';
+			// Use the portable hash from phpass.
+			$hasher = new PasswordHash( 8, true );
+			$check  = $hasher->CheckPassword( $password, $hash );
 		} else {
 			$check = password_verify( $password, $hash );
 		}
@@ -2656,10 +2663,18 @@ if ( ! function_exists( 'wp_password_needs_rehash' ) ) :
 	 *
 	 * @since x.y.z
 	 *
+	 * @global PasswordHash $wp_hasher phpass object.
+	 *
 	 * @param string $hash Hash of a password to check.
 	 * @return bool Whether the hash needs to be rehashed.
 	 */
 	function wp_password_needs_rehash( $hash ) {
+		global $wp_hasher;
+
+		if ( ! empty( $wp_hasher ) ) {
+			return false;
+		}
+
 		return password_needs_rehash( $hash, PASSWORD_BCRYPT );
 	}
 endif;

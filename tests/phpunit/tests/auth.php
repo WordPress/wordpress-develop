@@ -833,6 +833,28 @@ class Tests_Auth extends WP_UnitTestCase {
 		);
 	}
 
+	public function test_password_checks_support_wp_hasher_fallback() {
+		global $wp_hasher;
+
+		$password = 'password';
+
+		// Ensure the global $wp_hasher is set.
+		$wp_hasher = new WP_Fake_Hasher();
+
+		$hasher_hash  = $wp_hasher->HashPassword( $password );
+		$wp_hash      = wp_hash_password( $password );
+		$valid        = wp_check_password( $password, $wp_hash );
+		$needs_rehash = wp_password_needs_rehash( $wp_hash );
+
+		// Reset the global $wp_hasher.
+		$wp_hasher = null;
+
+		$this->assertSame( $hasher_hash, $wp_hash );
+		$this->assertTrue( $valid );
+		$this->assertFalse( $needs_rehash );
+		$this->assertSame( 1, did_filter( 'check_password' ) );
+	}
+
 	/**
 	 * Ensure users can log in using both their username and their email address.
 	 *
