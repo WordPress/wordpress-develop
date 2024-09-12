@@ -2862,135 +2862,134 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		if ( 'html' === $this->get_namespace() ) {
-			return strtolower( $tag_name );
+		$lower_tag_name = strtolower( $tag_name );
+		$namespace      = $this->get_namespace();
+
+		switch ( $namespace ) {
+			case 'html':
+			case 'math':
+				return $lower_tag_name;
 		}
 
-		$lower_tag_name = strtolower( $tag_name );
-		if ( 'math' === $this->get_namespace() ) {
+		if ( 'svg' !== $namespace ) {
+			// This should be unreachable, but prevents tools from inaccurately reporting type errors.
 			return $lower_tag_name;
 		}
 
-		if ( 'svg' === $this->get_namespace() ) {
-			switch ( $lower_tag_name ) {
-				case 'altglyph':
-					return 'altGlyph';
+		switch ( $lower_tag_name ) {
+			case 'altglyph':
+				return 'altGlyph';
 
-				case 'altglyphdef':
-					return 'altGlyphDef';
+			case 'altglyphdef':
+				return 'altGlyphDef';
 
-				case 'altglyphitem':
-					return 'altGlyphItem';
+			case 'altglyphitem':
+				return 'altGlyphItem';
 
-				case 'animatecolor':
-					return 'animateColor';
+			case 'animatecolor':
+				return 'animateColor';
 
-				case 'animatemotion':
-					return 'animateMotion';
+			case 'animatemotion':
+				return 'animateMotion';
 
-				case 'animatetransform':
-					return 'animateTransform';
+			case 'animatetransform':
+				return 'animateTransform';
 
-				case 'clippath':
-					return 'clipPath';
+			case 'clippath':
+				return 'clipPath';
 
-				case 'feblend':
-					return 'feBlend';
+			case 'feblend':
+				return 'feBlend';
 
-				case 'fecolormatrix':
-					return 'feColorMatrix';
+			case 'fecolormatrix':
+				return 'feColorMatrix';
 
-				case 'fecomponenttransfer':
-					return 'feComponentTransfer';
+			case 'fecomponenttransfer':
+				return 'feComponentTransfer';
 
-				case 'fecomposite':
-					return 'feComposite';
+			case 'fecomposite':
+				return 'feComposite';
 
-				case 'feconvolvematrix':
-					return 'feConvolveMatrix';
+			case 'feconvolvematrix':
+				return 'feConvolveMatrix';
 
-				case 'fediffuselighting':
-					return 'feDiffuseLighting';
+			case 'fediffuselighting':
+				return 'feDiffuseLighting';
 
-				case 'fedisplacementmap':
-					return 'feDisplacementMap';
+			case 'fedisplacementmap':
+				return 'feDisplacementMap';
 
-				case 'fedistantlight':
-					return 'feDistantLight';
+			case 'fedistantlight':
+				return 'feDistantLight';
 
-				case 'fedropshadow':
-					return 'feDropShadow';
+			case 'fedropshadow':
+				return 'feDropShadow';
 
-				case 'feflood':
-					return 'feFlood';
+			case 'feflood':
+				return 'feFlood';
 
-				case 'fefunca':
-					return 'feFuncA';
+			case 'fefunca':
+				return 'feFuncA';
 
-				case 'fefuncb':
-					return 'feFuncB';
+			case 'fefuncb':
+				return 'feFuncB';
 
-				case 'fefuncg':
-					return 'feFuncG';
+			case 'fefuncg':
+				return 'feFuncG';
 
-				case 'fefuncr':
-					return 'feFuncR';
+			case 'fefuncr':
+				return 'feFuncR';
 
-				case 'fegaussianblur':
-					return 'feGaussianBlur';
+			case 'fegaussianblur':
+				return 'feGaussianBlur';
 
-				case 'feimage':
-					return 'feImage';
+			case 'feimage':
+				return 'feImage';
 
-				case 'femerge':
-					return 'feMerge';
+			case 'femerge':
+				return 'feMerge';
 
-				case 'femergenode':
-					return 'feMergeNode';
+			case 'femergenode':
+				return 'feMergeNode';
 
-				case 'femorphology':
-					return 'feMorphology';
+			case 'femorphology':
+				return 'feMorphology';
 
-				case 'feoffset':
-					return 'feOffset';
+			case 'feoffset':
+				return 'feOffset';
 
-				case 'fepointlight':
-					return 'fePointLight';
+			case 'fepointlight':
+				return 'fePointLight';
 
-				case 'fespecularlighting':
-					return 'feSpecularLighting';
+			case 'fespecularlighting':
+				return 'feSpecularLighting';
 
-				case 'fespotlight':
-					return 'feSpotLight';
+			case 'fespotlight':
+				return 'feSpotLight';
 
-				case 'fetile':
-					return 'feTile';
+			case 'fetile':
+				return 'feTile';
 
-				case 'feturbulence':
-					return 'feTurbulence';
+			case 'feturbulence':
+				return 'feTurbulence';
 
-				case 'foreignobject':
-					return 'foreignObject';
+			case 'foreignobject':
+				return 'foreignObject';
 
-				case 'glyphref':
-					return 'glyphRef';
+			case 'glyphref':
+				return 'glyphRef';
 
-				case 'lineargradient':
-					return 'linearGradient';
+			case 'lineargradient':
+				return 'linearGradient';
 
-				case 'radialgradient':
-					return 'radialGradient';
+			case 'radialgradient':
+				return 'radialGradient';
 
-				case 'textpath':
-					return 'textPath';
-
-				default:
-					return $lower_tag_name;
-			}
+			case 'textpath':
+				return 'textPath';
 		}
 
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return $tag_name;
+		return $lower_tag_name;
 	}
 
 	/**
