@@ -21,7 +21,7 @@ class Tests_User_Nicename_Exists extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that `nicename_exists` returns false when the nicename does not exist.
+	 * Tests that `user_nicename_exists` returns false when the nicename does not exist.
 	 *
 	 * @ticket 44921
 	 */
