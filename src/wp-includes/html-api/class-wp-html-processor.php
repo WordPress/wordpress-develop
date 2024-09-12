@@ -453,11 +453,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$fragment_processor              = self::create_fragment( $html );
 		$fragment_processor->compat_mode = $this->compat_mode;
 
-		// @todo The context element probably needs a namespace{
 		$context_element = array( $this->get_tag(), array() );
 		foreach ( $this->get_attribute_names_with_prefix( '' ) as $name => $value ) {
 			$context_element[1][ $name ] = $value;
 		}
+
+		$fragment_processor->context_node           = new WP_HTML_Token(
+			'context-node',
+			$context_element[0],
+			$this->has_self_closing_flag()
+		);
+		$fragment_processor->context_node->namespace = $this->get_namespace();
+
 		$fragment_processor->state->context_node = $context_element;
 
 		if ( 'TEMPLATE' === $context_element[0] ) {
