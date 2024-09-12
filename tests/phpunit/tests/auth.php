@@ -391,20 +391,40 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * @ticket 21022
 	 * @ticket 50027
+	 */
+	public function test_password_is_hashed_and_verified_with_bcrypt() {
+		$password = 'password';
+
+		// Set the user password.
+		wp_set_password( $password, self::$user_id );
+
+		// Ensure the password is hashed with bcrypt.
+		$this->assertStringStartsWith( '$2y$', get_userdata( self::$user_id )->user_pass );
+
+		// Authenticate.
+		$user = wp_authenticate( $this->user->user_login, $password );
+
+		// Verify correct password.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+	}
+
+	/**
+	 * @ticket 21022
+	 * @ticket 50027
 	 *
 	 * @TODO bcrypt has a password length limit of 72, need to decide what our approach is.
 	 * @TODO See the discussion comments on https://core.trac.wordpress.org/ticket/21022
 	 * @TODO See the discussion comments on https://core.trac.wordpress.org/ticket 50027
 	 * @TODO Reminder: https://blog.ircmaxell.com/2015/03/security-issue-combining-bcrypt-with.html
+	 * @TODO split up this test
 	 */
 	public function test_password_length_limit_with_bcrypt() {
 		$limit = str_repeat( 'a', 72 );
 
 		// Set the user password.
 		wp_set_password( $limit, self::$user_id );
-
-		// Ensure the password is hashed with bcrypt.
-		$this->assertStringStartsWith( '$2y$', get_userdata( self::$user_id )->user_pass );
 
 		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
 		// Wrong password.
@@ -453,10 +473,8 @@ class Tests_Auth extends WP_UnitTestCase {
 		// Set the user password with the old phpass algorithm.
 		self::set_password_with_phpass( $limit, self::$user_id );
 
-		// phpass hashed password.
-		$this->assertStringStartsWith( '$P$', get_userdata( self::$user_id )->user_pass );
-
 		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
+
 		// Wrong password.
 		$this->assertInstanceOf( 'WP_Error', $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
@@ -1342,6 +1360,23 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$this->assertSame( $_SERVER['PHP_AUTH_USER'], 'username' );
 		$this->assertSame( $_SERVER['PHP_AUTH_PW'], 'pass:word' );
+	}
+
+	/**
+	 * Test the tests
+	 *
+	 * @covers Tests_Auth::set_password_with_phpass
+	 *
+	 * @ticket 21022
+	 * @ticket 50027
+	 */
+	public function test_set_password_with_phpass() {
+		// Set the user password with the old phpass algorithm.
+		self::set_password_with_phpass( 'password', self::$user_id );
+
+		// Ensure the password is hashed with phpass.
+		$hash = get_userdata( self::$user_id )->user_pass;
+		$this->assertStringStartsWith( '$P$', $hash );
 	}
 
 	private static function set_password_with_phpass( string $password, int $user_id ) {
