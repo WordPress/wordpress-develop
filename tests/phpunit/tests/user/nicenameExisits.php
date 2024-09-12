@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests the `nicename_exists` function.
+ * Tests the `user_nicename_exists` function.
  *
  * @group user
  *
