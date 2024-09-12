@@ -203,7 +203,6 @@ function wp_authenticate_username_password( $user, $username, $password ) {
 	$valid = wp_check_password( $password, $user->user_pass, $user->ID );
 
 	if ( $valid && wp_password_needs_rehash( $user->user_pass ) ) {
-		// @TODO test coverage
 		wp_set_password( $password, $user->ID );
 	}
 
@@ -282,7 +281,6 @@ function wp_authenticate_email_password( $user, $email, $password ) {
 	$valid = wp_check_password( $password, $user->user_pass, $user->ID );
 
 	if ( $valid && wp_password_needs_rehash( $user->user_pass ) ) {
-		// @TODO test coverage
 		wp_set_password( $password, $user->ID );
 	}
 

@@ -670,6 +670,53 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_usernames
+	 */
+	public function test_phpass_password_is_rehashed_after_successful_login( $username_or_email ) {
+		$password = 'password';
+
+		// Set the user password with the old phpass algorithm.
+		self::set_password_with_phpass( $password, self::$user_id );
+
+		// Verify that the password is hashed with phpass.
+		$hash = get_userdata( self::$user_id )->user_pass;
+		$this->assertStringStartsWith( '$P$', $hash );
+		$this->assertTrue( wp_password_needs_rehash( $hash ) );
+
+		// Authenticate.
+		$user = wp_authenticate( $username_or_email, $password );
+
+		// Verify that the phpass password hash was valid.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+
+		// Verify that the password has been rehashed with bcrypt.
+		$hash = get_userdata( self::$user_id )->user_pass;
+		$this->assertStringStartsWith( '$2y$', $hash );
+		$this->assertFalse( wp_password_needs_rehash( $hash ) );
+
+		// Authenticate a second time to ensure the new hash is valid.
+		$user = wp_authenticate( $username_or_email, $password );
+
+		// Verify that the bcrypt password hash is valid.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+	}
+
+	public function data_usernames() {
+		return array(
+			array(
+				self::USER_LOGIN,
+			),
+			array(
+				self::USER_EMAIL,
+			),
+		);
+	}
+
+	/**
 	 * Ensure users can log in using both their username and their email address.
 	 *
 	 * @ticket 9568
