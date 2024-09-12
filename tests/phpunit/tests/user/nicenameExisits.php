@@ -43,7 +43,7 @@ class Tests_User_Nicename_Exists extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that `nicename_exists` returns false when the nicename exists but belongs to a different user.
+	 * Tests that `user_nicename_exists` returns false when the nicename exists but belongs to a different user.
 	 *
 	 * @ticket 44921
 	 */
