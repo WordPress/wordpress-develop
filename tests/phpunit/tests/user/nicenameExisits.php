@@ -10,7 +10,7 @@
 class Tests_User_Nicename_Exists extends WP_UnitTestCase {
 
 	/**
-	 * Tests that `nicename_exists` returns the user ID when the nicename exists.
+	 * Tests that `user_nicename_exists` returns the user ID when the nicename exists.
 	 *
 	 * @ticket 44921
 	 */
