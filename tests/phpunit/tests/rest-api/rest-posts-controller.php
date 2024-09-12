@@ -1881,6 +1881,61 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 	}
 
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_returns_only_fetches_ids_for_head_requests( $method, $fields, $pattern ) {
+		$is_head_request = 'HEAD' === $method;
+		$request         = new WP_REST_Request( $method, '/wp/v2/posts' );
+
+		$filter = new MockAction();
+
+		add_filter( 'posts_pre_query', [ $filter, 'filter' ], 10, 2 );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEmpty( $response->get_data() );
+		$args = $filter->get_args();
+		$this->assertTrue( isset( $args[0][1] ), 'Query was not captured.' );
+		$this->assertInstanceOf( WP_Query::class, $args[0][1], 'Query was not captured.' );
+
+		/** @var WP_Query $query */
+		$query = $args[0][1];
+
+		$this->assertArrayHasKey( 'fields', $query->query, 'The fields parameter is not set in the query vars.' );
+		$this->assertSame( $fields, $query->query['fields'], 'The query does not fetch only post IDs.' );
+		$this->assertArrayHasKey( 'fields', $query->query_vars, 'The fields parameter is not set in the query vars.' );
+		$this->assertSame( $fields, $query->query_vars['fields'], 'The query does not fetch only post IDs.' );
+
+		// Assert that the captured SQL query is not empty
+		$this->assertTrue( isset( $query->request ), 'The SQL query was not captured.' );
+
+		global $wpdb;
+		$posts_table = preg_quote( $wpdb->posts, '/' );
+		// Assert that the SQL query only selects the ID column
+		$pattern = '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $posts_table . '\.ID\s+FROM\s+' . $posts_table . '\s+WHERE/i';
+		$this->assertMatchesRegularExpression( $pattern, $query->request, 'The SQL query does not match the exp.' );
+	}
+
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public function data_get_items_returns_only_fetches_ids_for_head_requests() {
+		global $wpdb;
+		$posts_table = preg_quote($wpdb->posts, '/');
+
+		return array(
+			'GET request'  => array( 'GET', '*',  '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $posts_table . '\.*\s+FROM\s+' . $posts_table . '\s+WHERE/i'),
+			'HEAD request' => array( 'HEAD', 'ids', '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $posts_table . '\.ID\s+FROM\s+' . $posts_table . '\s+WHERE/i'),
+		);
+	}
+
 	public function test_get_items_status_draft_permissions() {
 		$draft_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
 
