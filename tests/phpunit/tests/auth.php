@@ -175,14 +175,14 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 21022
 	 * @ticket 50027
 	 */
-	public function test_wp_check_password_supports_fallback_phpass_hashes() {
+	public function test_wp_check_password_supports_phpass_hash() {
 		$password = 'password';
 		$hash     = self::$wp_hasher->HashPassword( $password );
 		$this->assertTrue( wp_check_password( $password, $hash ) );
 	}
 
 	/**
-	 * Ensure wp_check_password() remains compatible with increases to the default bcrypt cost.
+	 * Ensure wp_check_password() remains compatible with an increase to the default bcrypt cost.
 	 *
 	 * Notably the bcrypt cost may get increased in PHP 8.4: https://wiki.php.net/rfc/bcrypt_cost_2023 .
 	 *
@@ -204,7 +204,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure wp_check_password() remains compatible with decreases to the default bcrypt cost.
+	 * Ensure wp_check_password() remains compatible with a decrease to the default bcrypt cost.
 	 *
 	 * This is unlikely to occur but is fully supported.
 	 *
@@ -236,6 +236,40 @@ class Tests_Auth extends WP_UnitTestCase {
 			'cost' => $default,
 		);
 		$hash     = password_hash( trim( $password ), PASSWORD_BCRYPT, $options );
+		$this->assertTrue( wp_check_password( $password, $hash ) );
+	}
+
+	/**
+	 * Ensure wp_check_password() is compatible with Argon2i hashes.
+	 *
+	 * @ticket 21022
+	 * @ticket 50027
+	 */
+	public function test_wp_check_password_supports_argon2i_hash() {
+		if ( ! defined( 'PASSWORD_ARGON2I' ) ) {
+			$this->fail( 'Argon2i is not supported.' );
+		}
+
+		$password = 'password';
+		$hash     = password_hash( trim( $password ), PASSWORD_ARGON2I );
+		$this->assertTrue( wp_check_password( $password, $hash ) );
+	}
+
+	/**
+	 * Ensure wp_check_password() is compatible with Argon2id hashes.
+	 *
+	 * @requires PHP >= 7.3
+	 *
+	 * @ticket 21022
+	 * @ticket 50027
+	 */
+	public function test_wp_check_password_supports_argon2id_hash() {
+		if ( ! defined( 'PASSWORD_ARGON2ID' ) ) {
+			$this->fail( 'Argon2id is not supported.' );
+		}
+
+		$password = 'password';
+		$hash     = password_hash( trim( $password ), PASSWORD_ARGON2ID );
 		$this->assertTrue( wp_check_password( $password, $hash ) );
 	}
 
