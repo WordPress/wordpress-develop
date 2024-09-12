@@ -185,10 +185,10 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * Ensure wp_check_password() remains compatible with an increase to the default bcrypt cost.
 	 *
-	 * Notably the bcrypt cost may get increased in PHP 8.4: https://wiki.php.net/rfc/bcrypt_cost_2023 .
+	 * The test verifies this by reducing the cost used to generate the hash, therefore mimicing a hash
+	 * which was generated prior to the default cost being increased.
 	 *
-	 * It does this by reducing the cost used to generate the hash, therefore mimicing a hash which
-	 * was generated prior to the default cost being increased.
+	 * Notably the bcrypt cost may get increased in PHP 8.4: https://wiki.php.net/rfc/bcrypt_cost_2023 .
 	 *
 	 * @ticket 21022
 	 * @ticket 50027
@@ -197,7 +197,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$password = 'password';
 		$default  = self::get_default_bcrypt_cost();
 		$options  = array(
-			// Reducing the cost mimics an increase in the default cost.
+			// Reducing the cost mimics an increase to the default cost.
 			'cost' => $default - 1,
 		);
 		$hash     = password_hash( trim( $password ), PASSWORD_BCRYPT, $options );
@@ -206,12 +206,12 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure wp_check_password() remains compatible with a decrease to the default bcrypt cost.
+	 * Ensure wp_check_password() remains compatible with a reduction of the default bcrypt cost.
 	 *
-	 * This is unlikely to occur but is fully supported.
+	 * The test verifies this by increasing the cost used to generate the hash, therefore mimicing a hash
+	 * which was generated prior to the default cost being reduced.
 	 *
-	 * It does this by increasing the cost used to generate the hash, therefore mimicing a hash which
-	 * was generated prior to the default cost being reduced.
+	 * A reduction of the cost is unlikely to occur but is fully supported.
 	 *
 	 * @ticket 21022
 	 * @ticket 50027
@@ -220,7 +220,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$password = 'password';
 		$default  = self::get_default_bcrypt_cost();
 		$options  = array(
-			// Increasing the cost mimics a decrease in the default cost.
+			// Increasing the cost mimics a reduction of the default cost.
 			'cost' => $default + 1,
 		);
 		$hash     = password_hash( trim( $password ), PASSWORD_BCRYPT, $options );
@@ -392,7 +392,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 21022
 	 * @ticket 50027
 	 */
-	public function test_password_is_hashed_and_verified_with_bcrypt() {
+	public function test_password_is_hashed_with_bcrypt() {
 		$password = 'password';
 
 		// Set the user password.
@@ -423,7 +423,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	public function test_password_length_limit_with_bcrypt() {
 		$limit = str_repeat( 'a', 72 );
 
-		// Set the user password.
+		// Set the user password to the bcrypt limit.
 		wp_set_password( $limit, self::$user_id );
 
 		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
@@ -462,10 +462,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 21022
-	 * @ticket 50027
-	 *
-	 * See https://core.trac.wordpress.org/changeset/30466 .
+	 * @see https://core.trac.wordpress.org/changeset/30466
 	 */
 	public function test_password_length_limit_with_phpass() {
 		$limit = str_repeat( 'a', 4096 );
@@ -473,6 +470,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		// Set the user password with the old phpass algorithm.
 		self::set_password_with_phpass( $limit, self::$user_id );
 
+		// Authenticate.
 		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
 
 		// Wrong password.
@@ -648,7 +646,6 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * @ticket 21022
 	 * @ticket 50027
-	 * @ticket 32429
 	 */
 	public function test_phpass_user_activation_key_is_allowed() {
 		global $wpdb;
@@ -682,7 +679,6 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * @ticket 21022
 	 * @ticket 50027
-	 * @ticket 32429
 	 */
 	public function test_expired_phpass_user_activation_key_is_rejected() {
 		global $wpdb;
@@ -807,7 +803,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_usernames
 	 */
-	public function test_phpass_password_is_rehashed_after_successful_login( $username_or_email ) {
+	public function test_phpass_password_is_rehashed_after_successful_authentication( $username_or_email ) {
 		$password = 'password';
 
 		// Set the user password with the old phpass algorithm.
