@@ -2826,7 +2826,7 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Returns the adjusted tag name for a displaying given tag name, taking
+	 * Returns the adjusted tag name for displaying a given tag name, taking
 	 * into account the current parsing context, whether HTML, SVG, or MathML.
 	 *
 	 * Use this function when the purpose is displaying or printing HTML tags.
