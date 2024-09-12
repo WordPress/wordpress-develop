@@ -2613,9 +2613,7 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 			return false;
 		}
 
-		$needs_rehash = wp_password_needs_rehash( $hash );
-
-		if ( $needs_rehash && str_starts_with( $hash, '$P$' ) ) {
+		if ( str_starts_with( $hash, '$P$' ) ) {
 			if ( empty( $wp_hasher ) ) {
 				require_once ABSPATH . WPINC . '/class-phpass.php';
 				// Use the portable hash from phpass.
