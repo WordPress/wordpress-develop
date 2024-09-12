@@ -34,7 +34,7 @@ class Tests_User_Nicename_Exists extends WP_UnitTestCase {
 	 *
 	 * @ticket 44921
 	 */
-	public function test_nicename_exists_with_different_user_login() {
+	public function test_user_nicename_exists_with_different_user_login() {
 		$user_id_1 = $this->factory()->user->create( array( 'user_nicename' => 'test-nicename' ) );
 		$user_id_2 = $this->factory()->user->create();
 		$user_2    = get_user_by( 'id', $user_id_2 );
