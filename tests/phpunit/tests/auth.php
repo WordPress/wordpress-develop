@@ -117,6 +117,7 @@ class Tests_Auth extends WP_UnitTestCase {
 			wp_set_password( $password_to_test, $this->user->ID );
 			$authed_user = wp_authenticate( $this->user->user_login, $password_to_test );
 
+			$this->assertNotWPError( $authed_user );
 			$this->assertInstanceOf( 'WP_User', $authed_user );
 			$this->assertSame( $this->user->ID, $authed_user->ID );
 		}
@@ -176,7 +177,66 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_check_password_supports_fallback_phpass_hashes() {
 		$password = 'password';
-		$this->assertTrue( wp_check_password( $password, self::$wp_hasher->HashPassword( $password ) ) );
+		$hash     = self::$wp_hasher->HashPassword( $password );
+		$this->assertTrue( wp_check_password( $password, $hash ) );
+	}
+
+	/**
+	 * Ensure wp_check_password() remains compatible with increases to the default bcrypt cost.
+	 *
+	 * Notably the bcrypt cost may get increased in PHP 8.4: https://wiki.php.net/rfc/bcrypt_cost_2023 .
+	 *
+	 * It does this by reducing the cost used to generate the hash, therefore mimicing a hash which
+	 * was generated prior to the default cost being increased.
+	 *
+	 * @ticket 21022
+	 * @ticket 50027
+	 */
+	public function test_wp_check_password_supports_hash_with_increased_bcrypt_cost() {
+		$password = 'password';
+		$default  = self::get_default_bcrypt_cost();
+		$options  = array(
+			// Reducing the cost mimics an increase in the default cost.
+			'cost' => $default - 1,
+		);
+		$hash     = password_hash( trim( $password ), PASSWORD_BCRYPT, $options );
+		$this->assertTrue( wp_check_password( $password, $hash ) );
+	}
+
+	/**
+	 * Ensure wp_check_password() remains compatible with decreases to the default bcrypt cost.
+	 *
+	 * This is unlikely to occur but is fully supported.
+	 *
+	 * It does this by increasing the cost used to generate the hash, therefore mimicing a hash which
+	 * was generated prior to the default cost being reduced.
+	 *
+	 * @ticket 21022
+	 * @ticket 50027
+	 */
+	public function test_wp_check_password_supports_hash_with_reduced_bcrypt_cost() {
+		$password = 'password';
+		$default  = self::get_default_bcrypt_cost();
+		$options  = array(
+			// Increasing the cost mimics a decrease in the default cost.
+			'cost' => $default + 1,
+		);
+		$hash     = password_hash( trim( $password ), PASSWORD_BCRYPT, $options );
+		$this->assertTrue( wp_check_password( $password, $hash ) );
+	}
+
+	/**
+	 * @ticket 21022
+	 * @ticket 50027
+	 */
+	public function test_wp_check_password_supports_hash_with_default_bcrypt_cost() {
+		$password = 'password';
+		$default  = self::get_default_bcrypt_cost();
+		$options  = array(
+			'cost' => $default,
+		);
+		$hash     = password_hash( trim( $password ), PASSWORD_BCRYPT, $options );
+		$this->assertTrue( wp_check_password( $password, $hash ) );
 	}
 
 	/**
@@ -185,7 +245,8 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_check_password_does_not_support_md5_hashes() {
 		$password = 'password';
-		$this->assertFalse( wp_check_password( $password, md5( $password ) ) );
+		$hash     = md5( $password );
+		$this->assertFalse( wp_check_password( $password, $hash ) );
 	}
 
 	/**
@@ -194,7 +255,8 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_check_password_does_not_support_plain_text() {
 		$password = 'password';
-		$this->assertFalse( wp_check_password( $password, $password ) );
+		$hash     = $password;
+		$this->assertFalse( wp_check_password( $password, $hash ) );
 	}
 
 	/**
@@ -596,8 +658,10 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertFalse( wp_password_needs_rehash( $hash ) );
 
 		// A future upgrade from a previously lower cost.
-		$opts = array(
-			'cost' => 8,
+		$default = self::get_default_bcrypt_cost();
+		$opts    = array(
+			// Reducing the cost mimics an increase in the default cost.
+			'cost' => $default - 1,
 		);
 		$hash = password_hash( $password, PASSWORD_BCRYPT, $opts );
 		$this->assertTrue( wp_password_needs_rehash( $hash ) );
@@ -1218,5 +1282,12 @@ class Tests_Auth extends WP_UnitTestCase {
 			)
 		);
 		clean_user_cache( $user_id );
+	}
+
+	private static function get_default_bcrypt_cost() {
+		$hash = password_hash( 'password', PASSWORD_BCRYPT );
+		$matches = array();
+		preg_match( '/^\$2y\$(\d+)\$/', $hash, $matches );
+		return (int) $matches[1];
 	}
 }
