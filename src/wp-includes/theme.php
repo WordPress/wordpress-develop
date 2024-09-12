@@ -1498,7 +1498,6 @@ function header_image() {
  * @return array
  */
 function get_uploaded_header_images() {
-
 	$stylesheet    = get_option( 'stylesheet' );
 	$transient_key = 'uploaded_header_images' . $stylesheet;
 	$header_images = get_transient( $transient_key );
