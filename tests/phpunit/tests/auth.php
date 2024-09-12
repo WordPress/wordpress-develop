@@ -30,6 +30,10 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	protected static $wp_hasher;
 
+	protected static $bcrypt_length_limit = 72;
+
+	protected static $phpass_length_limit = 4096;
+
 	/**
 	 * Action hook.
 	 */
@@ -420,8 +424,8 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @TODO Reminder: https://blog.ircmaxell.com/2015/03/security-issue-combining-bcrypt-with.html
 	 * @TODO split up this test
 	 */
-	public function test_password_length_limit_with_bcrypt() {
-		$limit = str_repeat( 'a', 72 );
+	public function test_invalid_password_at_bcrypt_length_limit_is_rejected() {
+		$limit = str_repeat( 'a', self::$bcrypt_length_limit );
 
 		// Set the user password to the bcrypt limit.
 		wp_set_password( $limit, self::$user_id );
@@ -430,33 +434,46 @@ class Tests_Auth extends WP_UnitTestCase {
 		// Wrong password.
 		$this->assertWPError( $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+	}
 
-		// Correct password.
-		$user = wp_authenticate( $this->user->user_login, $limit );
-		$this->assertInstanceOf( 'WP_User', $user );
-		$this->assertSame( self::$user_id, $user->ID );
+	public function test_invalid_password_beyond_bcrypt_length_limit_is_rejected() {
+		$limit = str_repeat( 'a', self::$bcrypt_length_limit + 1 );
 
-		// One char too many, still accepted by bcrypt.
-		$user = wp_authenticate( $this->user->user_login, $limit . 'a' );
-		// Correct password.
-		$this->assertInstanceOf( 'WP_User', $user );
-		$this->assertSame( self::$user_id, $user->ID );
-
-		// Set the password longer than the bcrypt limit.
-		wp_set_password( $limit . 'a', self::$user_id );
+		// Set the user password beyond the bcrypt limit.
+		wp_set_password( $limit, self::$user_id );
 
 		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
 		// Wrong password.
 		$this->assertWPError( $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+	}
 
+	public function test_valid_password_at_bcrypt_length_limit_is_accepted() {
+		$limit = str_repeat( 'a', self::$bcrypt_length_limit );
+
+		// Set the user password to the bcrypt limit.
+		wp_set_password( $limit, self::$user_id );
+
+		// Authenticate.
 		$user = wp_authenticate( $this->user->user_login, $limit );
+
 		// Correct password.
+		$this->assertNotWPError( $user );
 		$this->assertInstanceOf( 'WP_User', $user );
 		$this->assertSame( self::$user_id, $user->ID );
+	}
 
-		$user = wp_authenticate( $this->user->user_login, $limit . 'a' );
-		// Correct password.
+	public function test_valid_password_beyond_bcrypt_length_limit_is_accepted() {
+		$limit = str_repeat( 'a', self::$bcrypt_length_limit + 1 );
+
+		// Set the user password beyond the bcrypt limit.
+		wp_set_password( $limit, self::$user_id );
+
+		// Authenticate.
+		$user = wp_authenticate( $this->user->user_login, $limit );
+
+		// Correct password depite its length.
+		$this->assertNotWPError( $user );
 		$this->assertInstanceOf( 'WP_User', $user );
 		$this->assertSame( self::$user_id, $user->ID );
 	}
@@ -464,8 +481,8 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * @see https://core.trac.wordpress.org/changeset/30466
 	 */
-	public function test_password_length_limit_with_phpass() {
-		$limit = str_repeat( 'a', 4096 );
+	public function test_invalid_password_at_phpass_length_limit_is_rejected() {
+		$limit = str_repeat( 'a', self::$phpass_length_limit );
 
 		// Set the user password with the old phpass algorithm.
 		self::set_password_with_phpass( $limit, self::$user_id );
@@ -476,46 +493,90 @@ class Tests_Auth extends WP_UnitTestCase {
 		// Wrong password.
 		$this->assertInstanceOf( 'WP_Error', $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+	}
 
-		// Correct password is accepted even though its hash in the database was hashed with phpass.
+	public function test_valid_password_at_phpass_length_limit_is_accepted() {
+		$limit = str_repeat( 'a', self::$phpass_length_limit );
+
+		// Set the user password with the old phpass algorithm.
+		self::set_password_with_phpass( $limit, self::$user_id );
+
+		// Authenticate.
 		$user = wp_authenticate( $this->user->user_login, $limit );
+
+		// Correct password.
+		$this->assertNotWPError( $user );
 		$this->assertInstanceOf( 'WP_User', $user );
 		$this->assertSame( self::$user_id, $user->ID );
+	}
 
-		// One char too many.
-		$long = $limit . 'a';
-		$this->assertTrue( wp_password_needs_rehash( $long ) );
-		$user = wp_authenticate( $this->user->user_login, $long );
+	public function test_too_long_password_at_phpass_length_limit_is_rejected() {
+		$limit = str_repeat( 'a', self::$phpass_length_limit );
+
+		// Set the user password with the old phpass algorithm.
+		self::set_password_with_phpass( $limit, self::$user_id );
+
+		// Authenticate with a password that is one character too long.
+		$user = wp_authenticate( $this->user->user_login, $limit . 'a' );
+
 		// Wrong password.
 		$this->assertInstanceOf( 'WP_Error', $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+	}
 
-		self::set_password_with_phpass( $long, self::$user_id );
+	public function test_too_long_password_beyond_phpass_length_limit_is_rejected() {
+		// One char too many.
+		$too_long = str_repeat( 'a', self::$phpass_length_limit + 1 );
+
+		// Set the user password with the old phpass algorithm.
+		self::set_password_with_phpass( $too_long, self::$user_id );
+
 		$user = get_user_by( 'id', self::$user_id );
 		// Password broken by setting it to be too long.
 		$this->assertSame( '*', $user->data->user_pass );
 
+		// Password is not accepted.
 		$user = wp_authenticate( $this->user->user_login, '*' );
 		$this->assertInstanceOf( 'WP_Error', $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+	}
+
+	public function test_f() {
+		$this->markTestIncomplete();
 
 		$user = wp_authenticate( $this->user->user_login, '*0' );
 		$this->assertInstanceOf( 'WP_Error', $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+	}
+
+	public function test_g() {
+		$this->markTestIncomplete();
 
 		$user = wp_authenticate( $this->user->user_login, '*1' );
 		$this->assertInstanceOf( 'WP_Error', $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+	}
+
+	public function test_h() {
+		$this->markTestIncomplete();
 
 		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
 		// Wrong password.
 		$this->assertInstanceOf( 'WP_Error', $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+	}
+
+	public function test_i() {
+		$this->markTestIncomplete();
 
 		$user = wp_authenticate( $this->user->user_login, $limit );
 		// Wrong password.
 		$this->assertInstanceOf( 'WP_Error', $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
+	}
+
+	public function test_j() {
+		$this->markTestIncomplete();
 
 		$user = wp_authenticate( $this->user->user_login, $limit . 'a' );
 		// Password broken by setting it to be too long.
