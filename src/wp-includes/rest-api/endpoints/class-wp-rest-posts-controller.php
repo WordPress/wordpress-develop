@@ -343,9 +343,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$formats   = $request['format'];
 			$tax_query = array( 'relation' => 'OR' );
 
-			// The default post format, `standard`, is not stored in the database.
-			// If `standard` is part of the request, the query needs to exclude all post items that
-			// have a format assigned.
+			/*
+			 * The default post format, `standard`, is not stored in the database.
+			 * If `standard` is part of the request, the query needs to exclude all post items that
+			 * have a format assigned.
+			 */
 			if ( in_array( 'standard', $formats, true ) ) {
 				$tax_query[] = array(
 					'taxonomy' => 'post_format',

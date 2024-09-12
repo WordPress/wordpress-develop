@@ -2425,9 +2425,11 @@ function build_query_vars_from_query_block( $block, $page ) {
 			$formats   = $block->context['query']['format'];
 			$tax_query = array( 'relation' => 'OR' );
 
-			// The default post format, `standard`, is not stored in the database.
-			// If `standard` is part of the request, the query needs to exclude all post items that
-			// have a format assigned.
+			/*
+			 * The default post format, `standard`, is not stored in the database.
+			 * If `standard` is part of the request, the query needs to exclude all post items that
+			 * have a format assigned.
+			 */
 			if ( in_array( 'standard', $formats, true ) ) {
 				$tax_query[] = array(
 					'taxonomy' => 'post_format',
@@ -2457,8 +2459,10 @@ function build_query_vars_from_query_block( $block, $page ) {
 			if ( ! isset( $query['tax_query'] ) ) {
 				$query['tax_query'] = array();
 			}
-			// This condition is intended to prevent `$tax_query` from being added to `$query`
-			// if it only contains the relation.
+			/*
+			 * This condition is intended to prevent `$tax_query` from being added to `$query`
+			 * if it only contains the relation.
+			 */
 			if ( count( $tax_query ) > 1 ) {
 				$query['tax_query'][] = $tax_query;
 			}
