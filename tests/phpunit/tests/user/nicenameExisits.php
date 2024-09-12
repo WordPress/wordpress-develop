@@ -25,7 +25,7 @@ class Tests_User_Nicename_Exists extends WP_UnitTestCase {
 	 *
 	 * @ticket 44921
 	 */
-	public function test_nicename_exists_with_nonexistent_nicename() {
+	public function test_user_nicename_exists_with_nonexistent_nicename() {
 		$this->assertFalse( user_nicename_exists( 'nonexistent-nicename' ) );
 	}
 
