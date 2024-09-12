@@ -2595,6 +2595,7 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	 * @since 2.5.0
 	 * @since x.y.z Passwords in WordPress are now hashed with bcrypt by default. A
 	 *              password that wasn't hashed with bcrypt will be checked with phpass.
+	 *              Passwords hashed with md5 are no longer supported.
 	 *
 	 * @global PasswordHash $wp_hasher phpass object. Used as a fallback for verifying
 	 *                                 passwords that were hashed with phpass.
