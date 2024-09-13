@@ -48,7 +48,7 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 		$this->setExpectedIncorrectUsage( 'WP_Block_Templates_Registry::register' );
 		$result = self::$registry->register( $template_name );
 
-		$this->assertWPError( $result );
+		$this->assertWPError( $result, 'Template registration is expected to trigger an error.' );
 		$this->assertSame( 'template_name_no_string', $result->get_error_code(), 'Error code mismatch.' );
 		$this->assertSame( 'Template names must be strings.', $result->get_error_message(), 'Error message mismatch.' );
 	}
@@ -68,7 +68,7 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 		$this->setExpectedIncorrectUsage( 'WP_Block_Templates_Registry::register' );
 		$result = self::$registry->register( $template_name );
 
-		$this->assertWPError( $result );
+		$this->assertWPError( $result, 'Template registration is expected to trigger an error.' );
 		$this->assertSame( 'template_name_no_uppercase', $result->get_error_code(), 'Error code mismatch.' );
 		$this->assertSame( 'Template names must not contain uppercase characters.', $result->get_error_message(), 'Error message mismatch.' );
 	}
@@ -85,7 +85,7 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 		$this->setExpectedIncorrectUsage( 'WP_Block_Templates_Registry::register' );
 		$result = self::$registry->register( 'template-no-plugin', array() );
 
-		$this->assertWPError( $result );
+		$this->assertWPError( $result, 'Template registration is expected to trigger an error.' );
 		$this->assertSame( 'template_no_prefix', $result->get_error_code(), 'Error code mismatch.' );
 		$this->assertSame( 'Template names must contain a namespace prefix. Example: my-plugin//my-custom-template', $result->get_error_message(), 'Error message mismatch.' );
 	}
@@ -106,7 +106,7 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 		$this->setExpectedIncorrectUsage( 'WP_Block_Templates_Registry::register' );
 		$result = self::$registry->register( $template_name );
 
-		$this->assertWPError( $result );
+		$this->assertWPError( $result, 'Template registration is expected to trigger an error.' );
 		$this->assertSame( 'template_already_registered', $result->get_error_code(), 'Error code mismatch.' );
 		$this->assertStringContainsString( 'Template "test-plugin//duplicate-template" is already registered.', $result->get_error_message(), 'Error message mismatch.' );
 
@@ -164,7 +164,7 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 		$this->assertSame( 'Description of registered template', $registered_template->description, 'Template description mismatch.' );
 		$this->assertSame( 'plugin', $registered_template->source, "Template source should be 'plugin'." );
 		$this->assertSame( 'plugin', $registered_template->origin, "Template origin should be 'plugin'." );
-		$this->assertEquals( array( 'post', 'page' ), $registered_template->post_types, 'Template post types mismatch.' );
+		$this->assertSameSets( array( 'post', 'page' ), $registered_template->post_types, 'Template post types mismatch.' );
 		$this->assertSame( 'test-plugin', $registered_template->plugin, 'Plugin name mismatch.' );
 
 		self::$registry->unregister( $template_name );
