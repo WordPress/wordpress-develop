@@ -10808,6 +10808,11 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "admin_language": {
+                            "description": "WordPress admin locale code.",
+                            "type": "string",
+                            "required": false
+                        },
                         "use_smilies": {
                             "title": "",
                             "description": "Convert emoticons like :-) and :-P to graphics on display.",
@@ -13913,6 +13918,7 @@ mockedApiResponse.settings = {
     "time_format": "g:i a",
     "start_of_week": 1,
     "language": "en_US",
+    "admin_language": "en_US",
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",

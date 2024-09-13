@@ -103,12 +103,77 @@ function get_user_locale( $user = 0 ) {
 	}
 
 	if ( ! $user_object ) {
+		if ( is_admin() ) {
+			return get_admin_locale();
+		}
+
 		return get_locale();
 	}
 
 	$locale = $user_object->locale;
 
-	return $locale ? $locale : get_locale();
+	if ( $locale ) {
+		return $locale;
+	}
+
+	if ( is_admin() ) {
+		return get_admin_locale();
+	}
+
+	return get_locale();
+}
+
+
+/**
+ * Retrieves the current locale.
+ *
+ * If the locale is set, then it will filter the locale in the {@see 'locale'}
+ * filter hook and return the value.
+ *
+ * If the locale is not set already, then the WPLANG constant is used if it is
+ * defined. Then it is filtered through the {@see 'locale'} filter hook and
+ * the value for the locale global set and the locale is returned.
+ *
+ * The process to get the locale should only be done once, but the locale will
+ * always be filtered using the {@see 'locale'} hook.
+ *
+ * @since 6.5.0
+ *
+ * @global string $locale           The current locale.
+ * @global string $wp_local_package Locale code of the package.
+ *
+ * @return string The locale of the blog or from the {@see 'locale'} hook.
+ */
+function get_admin_locale() {
+	// If multisite, check options.
+	if ( is_multisite() ) {
+		$ms_locale = get_option( 'admin_locale' );
+		if ( false === $ms_locale ) {
+			$ms_locale = get_site_option( 'admin_locale' );
+		}
+
+		if ( false !== $ms_locale ) {
+			$locale = $ms_locale;
+		}
+	} else {
+		$db_locale = get_option( 'admin_locale' );
+		if ( false !== $db_locale ) {
+			$locale = $db_locale;
+		}
+	}
+
+	if ( empty( $locale ) ) {
+		$locale = get_locale();
+	}
+
+	/**
+	 * Filters the admin locale.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $locale The admin locale.
+	 */
+	return apply_filters( 'admin_locale', $locale );
 }
 
 /**

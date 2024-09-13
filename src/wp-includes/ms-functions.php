@@ -1744,7 +1744,7 @@ function wpmu_new_site_admin_notification( $site_id, $user_id ) {
 		$switched_locale = switch_to_user_locale( $network_admin->ID );
 	} else {
 		// Otherwise switch to the locale of the current site.
-		$switched_locale = switch_to_locale( get_locale() );
+		$switched_locale = switch_to_locale( get_admin_locale() );
 	}
 
 	$subject = sprintf(
