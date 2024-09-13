@@ -160,10 +160,10 @@ class WP_Roles {
 			return;
 		}
 
-		foreach( $capabilities as $key => $value ) {
-			if(!is_bool($value)) {
-				$capabilities[$value] = true;
-				unset($capabilities[$key]);
+		foreach ( $capabilities as $key => $value ) {
+			if ( !is_bool( $value ) ) {
+				$capabilities[ $value ] = true;
+				unset( $capabilities[$key] );
 			}
 		}
 
