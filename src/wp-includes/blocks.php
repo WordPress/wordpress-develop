@@ -389,7 +389,7 @@ function get_block_metadata_i18n_schema() {
  * @param array  $metadata  The block metadata to be registered.
  */
 function wp_register_block_metadata( $source, $metadata ) {
-	WP_Block_Metadata_Registry::get_instance()->register( $source, $metadata );
+	WP_Block_Metadata_Registry::register( $source, $metadata );
 }
 
 /**
@@ -416,10 +416,9 @@ function wp_register_block_metadata( $source, $metadata ) {
  */
 function register_block_type_from_metadata( $file_or_metadata_source, $args = array() ) {
 	$metadata = array();
-	$registry = WP_Block_Metadata_Registry::get_instance();
 
 	// Determine if we're dealing with a file/folder or a metadata source
-	if ( $registry->has_metadata( $file_or_metadata_source ) ) {
+	if ( WP_Block_Metadata_Registry::has_metadata( $file_or_metadata_source ) ) {
 		$metadata_source = $file_or_metadata_source;
 		$file_or_folder = null;
 	} else {
@@ -430,19 +429,20 @@ function register_block_type_from_metadata( $file_or_metadata_source, $args = ar
 	$is_core_block = $file_or_folder && str_starts_with( $file_or_folder, ABSPATH . WPINC );
 
 	if ( $is_core_block ) {
-		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
-		$metadata = $registry->get_metadata( $core_block_name );
+		$core_block_name = 'core/' . str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
+		$metadata = WP_Block_Metadata_Registry::get_metadata( $core_block_name );
 
 		if ( null === $metadata ) {
 			// Load core metadata if not already registered.
 			$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
 			foreach ( $core_blocks_meta as $block_name => $block_meta ) {
+				$block_name = 'core/' . $block_name;
 				wp_register_block_metadata( $block_name, $block_meta );
 			}
-			$metadata = $registry->get_metadata( $core_block_name );
+			$metadata = WP_Block_Metadata_Registry::get_metadata( $core_block_name );
 		}
 	} elseif ( $metadata_source ) {
-		$metadata = $registry->get_metadata( $metadata_source );
+		$metadata = WP_Block_Metadata_Registry::get_metadata( $metadata_source );
 	}
 
 	// If metadata is not found in the registry, read from JSON file.

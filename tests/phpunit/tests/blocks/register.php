@@ -1519,8 +1519,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			'description' => 'This is a test block.',
 		);
 
-		$registry = WP_Block_Metadata_Registry::get_instance();
-		$registry->register( 'test/block-from-registry', $metadata );
+		WP_Block_Metadata_Registry::register( 'test/block-from-registry', $metadata );
 
 		$result = register_block_type_from_metadata( 'test/block-from-registry', array() );
 

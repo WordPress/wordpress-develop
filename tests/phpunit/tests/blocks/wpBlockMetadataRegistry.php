@@ -6,16 +6,6 @@
  * @group blocks
  */
 class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
-	/**
-	 * @var WP_Block_Metadata_Registry
-	 */
-	private $registry;
-
-	public function set_up() {
-		parent::set_up();
-		$this->registry = WP_Block_Metadata_Registry::get_instance();
-	}
-
 	public function test_register_and_get_metadata() {
 		$source    = 'test-source';
 		$metadata  = array(
@@ -23,21 +13,14 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 			'title' => 'Test Block',
 		);
 
-		$this->registry->register( $source, $metadata );
+		WP_Block_Metadata_Registry::register( $source, $metadata );
 
-		$retrieved_metadata = $this->registry->get_metadata( $source );
+		$retrieved_metadata = WP_Block_Metadata_Registry::get_metadata( $source );
 		$this->assertEquals( $metadata, $retrieved_metadata );
 	}
 
 	public function test_get_nonexistent_metadata() {
-		$retrieved_metadata = $this->registry->get_metadata( 'nonexistent', 'nonexistent' );
+		$retrieved_metadata = WP_Block_Metadata_Registry::get_metadata( 'nonexistent', 'nonexistent' );
 		$this->assertNull( $retrieved_metadata );
-	}
-
-	public function test_singleton_instance() {
-		$instance1 = WP_Block_Metadata_Registry::get_instance();
-		$instance2 = WP_Block_Metadata_Registry::get_instance();
-
-		$this->assertSame( $instance1, $instance2 );
 	}
 }
