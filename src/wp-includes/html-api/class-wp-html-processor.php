@@ -437,6 +437,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
+		$namespace = $this->get_namespace();
+
 		/*
 		 * Prevent creating fragments at "self-contained" nodes.
 		 *
@@ -444,7 +446,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * @see https://github.com/WordPress/wordpress-develop/pull/7198
 		 */
 		if (
-			'html' === $this->get_namespace() &&
+			'html' === $namespace &&
 			in_array( $this->get_tag(), array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true )
 		) {
 			return null;
@@ -453,19 +455,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$fragment_processor              = self::create_fragment( $html );
 		$fragment_processor->compat_mode = $this->compat_mode;
 
-		$context_element = array( $this->get_tag(), array() );
+
+		$fragment_processor->context_node                = clone $this->state->current_token;
+		$fragment_processor->context_node->bookmark_name = 'context-node';
+		$fragment_processor->context_node->on_destroy    = null;
+
+		$context_element = array( $fragment_processor->context_node->node_name, array() );
 		foreach ( $this->get_attribute_names_with_prefix( '' ) as $name => $value ) {
 			$context_element[1][ $name ] = $value;
 		}
 
-		$fragment_processor->context_node           = new WP_HTML_Token(
-			'context-node',
-			$context_element[0],
-			$this->has_self_closing_flag()
-		);
-		$fragment_processor->context_node->namespace = $this->get_namespace();
-
-		$fragment_processor->state->context_node = $context_element;
+		$fragment_processor->breadcrumbs = array();
 
 		if ( 'TEMPLATE' === $context_element[0] ) {
 			$fragment_processor->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE;
