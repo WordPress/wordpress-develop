@@ -115,7 +115,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		// Filter to supported values.
 		$gd_info = array_filter( $gd_info );
 
-		// Add data for GD WebP and AVIF support.
+		// Add data for GD WebP, AVIF and HEIC support.
 		$query['image_support']['gd'] = array_keys(
 			array_filter(
 				array(
@@ -128,7 +128,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	}
 
 	if ( class_exists( 'Imagick' ) ) {
-		// Add data for Imagick WebP and AVIF support.
+		// Add data for Imagick WebP, AVIF and HEIC support.
 		$query['image_support']['imagick'] = array_keys(
 			array_filter(
 				array(
