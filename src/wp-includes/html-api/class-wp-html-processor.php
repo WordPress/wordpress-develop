@@ -432,7 +432,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $html     Input HTML fragment to process.
 	 * @return static|null     The created processor if successful, otherwise null.
 	 */
-	private function spawn_fragment_parser( string $html ): ?self {
+	public function spawn_fragment_parser( string $html ): ?self {
 		if ( $this->get_token_type() !== '#tag' ) {
 			return null;
 		}
