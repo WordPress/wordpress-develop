@@ -25,17 +25,17 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
-		'noscript01/line0014'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0022'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0055'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0488'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0500'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line1079'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0207'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0686'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0697'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0709'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'webkit01/line0231'      => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'noscript01/line0014' => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0022'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0055'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0488'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0500'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line1079'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0207'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0686'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0697'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0709'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'webkit01/line0231'   => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 	);
 
 	/**
