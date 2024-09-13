@@ -67,7 +67,7 @@ ul.add-menu-item-tabs li {
 #menu-settings-column .posttypediv div.tabs-panel,
 #menu-settings-column .taxonomydiv div.tabs-panel {
 	/* Allow space for content after tab panels in nav menu editor. */
-	max-height: calc(100% - 75px);
+	max-height: calc( 100% - 75px );
 	height: 100%;
 }
 
@@ -87,8 +87,7 @@ ul.add-menu-item-tabs li {
 }
 
 .is-submenu {
-	color: #50575e;
-	/* #fafafa background */
+	color: #50575e; /* #fafafa background */
 	font-style: italic;
 	font-weight: 400;
 	margin-left: 4px;
@@ -125,7 +124,7 @@ ul.add-menu-item-tabs li {
 
 #nav-menu-bulk-actions-bottom {
 	margin: 1em 0;
-	margin: calc(1em + 9px) 0;
+	margin: calc( 1em + 9px ) 0;
 }
 
 .bulk-actions input.button {
@@ -179,7 +178,7 @@ ul.add-menu-item-tabs li {
 	display: inline;
 }
 
-input.bulk-select-switcher+.bulk-select-button-label {
+input.bulk-select-switcher + .bulk-select-button-label {
 	vertical-align: inherit;
 }
 
@@ -191,7 +190,7 @@ label.bulk-select-button:focus-within {
 	color: #0a4b78;
 }
 
-input.bulk-select-switcher:focus+.bulk-select-button-label {
+input.bulk-select-switcher:focus + .bulk-select-button-label {
 	color: #0a4b78;
 }
 
@@ -241,8 +240,7 @@ input.bulk-select-switcher:focus+.bulk-select-button-label {
 	clear: both;
 	width: 25%;
 	padding: 3px 0 0;
-	margin-left: -25%;
-	/* 20 container left padding x ( 100 container % width / 80 this % width ) */
+	margin-left: -25%; /* 20 container left padding x ( 100 container % width / 80 this % width ) */
 }
 
 .menu-settings label {
@@ -418,9 +416,7 @@ input.bulk-select-switcher:focus+.bulk-select-button-label {
 	margin-top: 5px;
 }
 
-.button.right,
-.button-secondary.right,
-.button-primary.right {
+.button.right, .button-secondary.right, .button-primary.right {
 	float: right;
 }
 
@@ -621,15 +617,13 @@ li.menu-item.ui-sortable-helper .menu-item-bar {
 }
 
 li.menu-item.ui-sortable-helper .menu-item-transport .menu-item-bar {
-	margin-top: 9px;
-	/* Must use the same value used by the dragged item .menu-item-bar */
+	margin-top: 9px; /* Must use the same value used by the dragged item .menu-item-bar */
 }
 
 .menu .sortable-placeholder {
 	height: 35px;
 	width: 410px;
-	margin-top: 9px;
-	/* Must use the same value used by the dragged item .menu-item-bar */
+	margin-top: 9px; /* Must use the same value used by the dragged item .menu-item-bar */
 }
 
 /* Hide the transport list when it's empty */
@@ -638,149 +632,44 @@ li.menu-item.ui-sortable-helper .menu-item-transport .menu-item-bar {
 }
 
 /* WARNING: The factor of 30px is hardcoded into the nav-menus JavaScript. */
-.menu-item-depth-0 {
-	margin-left: 0;
-}
+.menu-item-depth-0 { margin-left: 0; }
+.menu-item-depth-1 { margin-left: 30px; }
+.menu-item-depth-2 { margin-left: 60px; }
+.menu-item-depth-3 { margin-left: 90px; }
+.menu-item-depth-4 { margin-left: 120px; }
+.menu-item-depth-5 { margin-left: 150px; }
+.menu-item-depth-6 { margin-left: 180px; }
+.menu-item-depth-7 { margin-left: 210px; }
+.menu-item-depth-8 { margin-left: 240px; }
+.menu-item-depth-9 { margin-left: 270px; }
+.menu-item-depth-10 { margin-left: 300px; }
+.menu-item-depth-11 { margin-left: 330px; }
 
-.menu-item-depth-1 {
-	margin-left: 30px;
-}
+.menu-item-depth-0 .menu-item-transport { margin-left: 0; }
+.menu-item-depth-1 .menu-item-transport { margin-left: -30px; }
+.menu-item-depth-2 .menu-item-transport { margin-left: -60px; }
+.menu-item-depth-3 .menu-item-transport { margin-left: -90px; }
+.menu-item-depth-4 .menu-item-transport { margin-left: -120px; }
+.menu-item-depth-5 .menu-item-transport { margin-left: -150px; }
+.menu-item-depth-6 .menu-item-transport { margin-left: -180px; }
+.menu-item-depth-7 .menu-item-transport { margin-left: -210px; }
+.menu-item-depth-8 .menu-item-transport { margin-left: -240px; }
+.menu-item-depth-9 .menu-item-transport { margin-left: -270px; }
+.menu-item-depth-10 .menu-item-transport { margin-left: -300px; }
+.menu-item-depth-11 .menu-item-transport { margin-left: -330px; }
 
-.menu-item-depth-2 {
-	margin-left: 60px;
-}
-
-.menu-item-depth-3 {
-	margin-left: 90px;
-}
-
-.menu-item-depth-4 {
-	margin-left: 120px;
-}
-
-.menu-item-depth-5 {
-	margin-left: 150px;
-}
-
-.menu-item-depth-6 {
-	margin-left: 180px;
-}
-
-.menu-item-depth-7 {
-	margin-left: 210px;
-}
-
-.menu-item-depth-8 {
-	margin-left: 240px;
-}
-
-.menu-item-depth-9 {
-	margin-left: 270px;
-}
-
-.menu-item-depth-10 {
-	margin-left: 300px;
-}
-
-.menu-item-depth-11 {
-	margin-left: 330px;
-}
-
-.menu-item-depth-0 .menu-item-transport {
-	margin-left: 0;
-}
-
-.menu-item-depth-1 .menu-item-transport {
-	margin-left: -30px;
-}
-
-.menu-item-depth-2 .menu-item-transport {
-	margin-left: -60px;
-}
-
-.menu-item-depth-3 .menu-item-transport {
-	margin-left: -90px;
-}
-
-.menu-item-depth-4 .menu-item-transport {
-	margin-left: -120px;
-}
-
-.menu-item-depth-5 .menu-item-transport {
-	margin-left: -150px;
-}
-
-.menu-item-depth-6 .menu-item-transport {
-	margin-left: -180px;
-}
-
-.menu-item-depth-7 .menu-item-transport {
-	margin-left: -210px;
-}
-
-.menu-item-depth-8 .menu-item-transport {
-	margin-left: -240px;
-}
-
-.menu-item-depth-9 .menu-item-transport {
-	margin-left: -270px;
-}
-
-.menu-item-depth-10 .menu-item-transport {
-	margin-left: -300px;
-}
-
-.menu-item-depth-11 .menu-item-transport {
-	margin-left: -330px;
-}
-
-body.menu-max-depth-0 {
-	min-width: 950px !important;
-}
-
-body.menu-max-depth-1 {
-	min-width: 980px !important;
-}
-
-body.menu-max-depth-2 {
-	min-width: 1010px !important;
-}
-
-body.menu-max-depth-3 {
-	min-width: 1040px !important;
-}
-
-body.menu-max-depth-4 {
-	min-width: 1070px !important;
-}
-
-body.menu-max-depth-5 {
-	min-width: 1100px !important;
-}
-
-body.menu-max-depth-6 {
-	min-width: 1130px !important;
-}
-
-body.menu-max-depth-7 {
-	min-width: 1160px !important;
-}
-
-body.menu-max-depth-8 {
-	min-width: 1190px !important;
-}
-
-body.menu-max-depth-9 {
-	min-width: 1220px !important;
-}
-
-body.menu-max-depth-10 {
-	min-width: 1250px !important;
-}
-
-body.menu-max-depth-11 {
-	min-width: 1280px !important;
-}
+body.menu-max-depth-0 { min-width: 950px !important; }
+body.menu-max-depth-1 { min-width: 980px !important; }
+body.menu-max-depth-2 { min-width: 1010px !important; }
+body.menu-max-depth-3 { min-width: 1040px !important; }
+body.menu-max-depth-4 { min-width: 1070px !important; }
+body.menu-max-depth-5 { min-width: 1100px !important; }
+body.menu-max-depth-6 { min-width: 1130px !important; }
+body.menu-max-depth-7 { min-width: 1160px !important; }
+body.menu-max-depth-8 { min-width: 1190px !important; }
+body.menu-max-depth-9 { min-width: 1220px !important; }
+body.menu-max-depth-10 { min-width: 1250px !important; }
+body.menu-max-depth-11 { min-width: 1280px !important; }
 
 /* Menu item controls */
 .item-type {
@@ -846,8 +735,7 @@ body.menu-max-depth-11 {
 	margin-left: 4px;
 	width: 20px;
 	border-radius: 50%;
-	text-indent: -1px;
-	/* account for the dashicon alignment */
+	text-indent: -1px; /* account for the dashicon alignment */
 }
 
 .no-js.nav-menus-php .item-edit:before {
@@ -855,8 +743,7 @@ body.menu-max-depth-11 {
 }
 
 .rtl .nav-menus-php .item-edit:before {
-	text-indent: 1px;
-	/* account for the dashicon alignment */
+	text-indent: 1px; /* account for the dashicon alignment */
 }
 
 .js.nav-menus-php .item-edit:focus {
@@ -879,8 +766,7 @@ body.menu-max-depth-11 {
 	max-width: 392px;
 	padding: 10px;
 	position: relative;
-	z-index: 10;
-	/* Keep .item-title's shadow from appearing on top of .menu-item-settings */
+	z-index: 10; /* Keep .item-title's shadow from appearing on top of .menu-item-settings */
 	border: 1px solid #c3c4c7;
 	border-top: none;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
@@ -951,7 +837,7 @@ body.menu-max-depth-11 {
 	width: calc(50% - 5px);
 }
 
-.menu-item-settings .description-thin+.description-thin {
+.menu-item-settings .description-thin + .description-thin {
 	margin-right: 0;
 }
 
@@ -976,7 +862,7 @@ body.menu-max-depth-11 {
 	justify-content: space-between;
 }
 
-.nav-menus-php .major-publishing-actions>* {
+.nav-menus-php .major-publishing-actions > * {
 	margin-right: 10px;
 }
 
@@ -1010,7 +896,6 @@ body.menu-max-depth-11 {
 }
 
 @media screen and (max-width: 782px) {
-
 	body.nav-menus-php,
 	body.wp-customizer {
 		min-width: 0 !important;
@@ -1125,23 +1010,22 @@ body.menu-max-depth-11 {
 }
 
 @media only screen and (min-width: 783px) {
-	@supports (position: sticky) and (scroll-margin-bottom: 130px) {
+    @supports (position: sticky) and (scroll-margin-bottom: 130px) {
 
 		#nav-menu-footer {
-			position: sticky;
-			bottom: 0;
-			z-index: 10;
-			box-shadow: 0 -1px 0 0 #ddd;
-		}
+                position: sticky;
+				bottom: 0;
+				z-index: 10;
+				box-shadow: 0 -1px 0 0 #ddd;
+        }
 
-		#save_menu_header {
-			display: none;
-		}
-	}
+        #save_menu_header {
+                display: none;
+        }
+    }
 }
 
 @media only screen and (max-width: 768px) {
-
 	/* menu locations */
 	#menu-locations-wrap .widefat {
 		width: 100%;
