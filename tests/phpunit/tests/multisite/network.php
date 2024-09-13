@@ -137,6 +137,27 @@ if ( is_multisite() ) :
 		}
 
 		/**
+		 * Test that the network id property is stored as int.
+		 * Use reflection to access the private property.
+		 * Differs from using the public getter method, which casts to int.
+		 *
+		 * @ticket 62035
+		 *
+		 * @covers WP_Network::__construct
+		 */
+		public function test_wp_network_object_id_property_stored_as_int() {
+			$id = self::factory()->network->create();
+
+			$network = WP_Network::get_instance( $id );
+
+			$reflection = new ReflectionObject( $network );
+			$property   = $reflection->getProperty( 'id' );
+			$property->setAccessible( true );
+
+			$this->assertSame( (int) $id, $property->getValue( $network ) );
+		}
+
+		/**
 		 * @ticket 22917
 		 */
 		public function test_get_blog_count_no_filter_applied() {
