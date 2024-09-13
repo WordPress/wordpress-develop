@@ -7,6 +7,11 @@ require_once __DIR__ . '/base.php';
  */
 class Tests_Import_Parser extends WP_Import_UnitTestCase {
 	public function set_up() {
+		$importer = DIR_TESTDATA . '/plugins/wordpress-importer/wordpress-importer.php';
+		if ( ! file_exists( $importer ) ) {
+			$this->markTestSkipped( 'This test requires the WordPress Importer plugin to be installed in the test suite. See: https://make.wordpress.org/core/handbook/contribute/git/#unit-tests' );
+		}
+
 		parent::set_up();
 
 		if ( ! defined( 'WP_IMPORTING' ) ) {
@@ -17,11 +22,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			define( 'WP_LOAD_IMPORTERS', true );
 		}
 
-		if ( ! file_exists( DIR_TESTDATA . '/plugins/wordpress-importer/wordpress-importer.php' ) ) {
-			$this->fail( 'This test requires the WordPress Importer plugin to be installed in the test suite. See: https://make.wordpress.org/core/handbook/contribute/git/#unit-tests' );
-		}
-
-		require_once DIR_TESTDATA . '/plugins/wordpress-importer/wordpress-importer.php';
+		require_once $importer;
 	}
 
 	/**
