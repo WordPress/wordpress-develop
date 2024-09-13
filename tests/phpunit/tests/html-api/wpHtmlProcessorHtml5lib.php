@@ -170,8 +170,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		 * and requires adjustment to initial parameters.
 		 * The full parser will not.
 		 */
-		$output       = $fragment_context ? "<html>\n  <head>\n  <body>\n" : '';
-		$indent_level = $fragment_context ? 2 : 0;
+		$output       = '';
+		$indent_level = 0;
 		$indent       = '  ';
 		$was_text     = null;
 		$text_node    = '';
