@@ -449,7 +449,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				 * context element as context.
 				 */
 				case 'document-fragment':
-					$test_context_element = explode( ' ', $line )[0];
+					$test_context_element = trim( $line );
 					break;
 
 				/*
