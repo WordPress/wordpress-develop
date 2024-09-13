@@ -2584,6 +2584,7 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 			return $wp_hasher->HashPassword( trim( $password ) );
 		}
 
+		// @TODO this can return false, null, or throw an exception
 		return password_hash( trim( $password ), PASSWORD_BCRYPT );
 	}
 endif;
