@@ -7,8 +7,8 @@
  */
 class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 	public function test_register_and_get_metadata() {
-		$source    = 'test-source';
-		$metadata  = array(
+		$source   = 'test-source';
+		$metadata = array(
 			'name'  => 'test-block',
 			'title' => 'Test Block',
 		);
