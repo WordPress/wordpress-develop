@@ -55,6 +55,18 @@ class WP_Block_Metadata_Registry {
 	}
 
 	/**
+	 * Checks if metadata exists for a given source.
+	 *
+	 * @since 6.X.0
+	 *
+	 * @param string $source The source identifier for the metadata.
+	 * @return bool          True if metadata exists for the source, false otherwise.
+	 */
+	public function has_metadata( $source ) {
+		return isset( $this->metadata[ $source ] );
+	}
+
+	/**
 	 * Retrieves the instance of this class.
 	 *
 	 * @since 6.X.0

@@ -404,25 +404,30 @@ function wp_register_block_metadata( $source, $metadata ) {
  * @since 6.5.0 Added support for `allowedBlocks`, `viewScriptModule`, and `viewStyle` fields.
  * @since 6.7.0 Allow PHP filename as `variations` argument.
  *
- * @param string $file_or_folder Path to the JSON file with metadata definition for
+ * @param string $file_or_metadata_source Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
  *                               If providing the path to a JSON file, the filename must end with `block.json`.
+ *                               Alternatively, it can be a metadata source identifier
+ *                               (previously registered with `wp_register_block_metadata`).
  * @param array  $args           Optional. Array of block type arguments. Accepts any public property
  *                               of `WP_Block_Type`. See WP_Block_Type::__construct() for information
  *                               on accepted arguments. Default empty array.
- * @param string $metadata_source Optional. The source identifier for the metadata in the format `namespace/source`.
- *                                The namespace is a unique identifier for your plugin or theme, and the source
- *                                is a unique identifier for your block's metadata within that namespace.
- *                                If provided, the function will attempt to retrieve the block's metadata
- *                                from the `WP_Block_Metadata_Registry` before falling back to reading
- *                                from the JSON file. Default empty string.
  * @return WP_Block_Type|false The registered block type on success, or false on failure.
  */
-function register_block_type_from_metadata( $file_or_folder, $args = array(), $metadata_source = '' ) {
+function register_block_type_from_metadata( $file_or_metadata_source, $args = array() ) {
 	$metadata = array();
 	$registry = WP_Block_Metadata_Registry::get_instance();
 
-	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
+	// Determine if we're dealing with a file/folder or a metadata source
+	if ( $registry->has_metadata( $file_or_metadata_source ) ) {
+		$metadata_source = $file_or_metadata_source;
+		$file_or_folder = null;
+	} else {
+		$metadata_source = null;
+		$file_or_folder = $file_or_metadata_source;
+	}
+
+	$is_core_block = $file_or_folder && str_starts_with( $file_or_folder, ABSPATH . WPINC );
 
 	if ( $is_core_block ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
@@ -437,13 +442,12 @@ function register_block_type_from_metadata( $file_or_folder, $args = array(), $m
 			$metadata = $registry->get_metadata( $core_block_name );
 		}
 	} elseif ( $metadata_source ) {
-		// Parse the metadata_source to get namespace and source
 		$metadata = $registry->get_metadata( $metadata_source );
 	}
 
 	// If metadata is not found in the registry, read from JSON file.
 	$metadata_file_exists = false;
-	if ( empty( $metadata ) ) {
+	if ( empty( $metadata ) && $file_or_folder ) {
 		$metadata_file = ( ! str_ends_with( $file_or_folder, 'block.json' ) ) ?
 			trailingslashit( $file_or_folder ) . 'block.json' :
 			$file_or_folder;
