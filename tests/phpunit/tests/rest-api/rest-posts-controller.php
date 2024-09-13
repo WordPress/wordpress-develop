@@ -1887,53 +1887,50 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 *
 	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_items_returns_only_fetches_ids_for_head_requests( $method, $fields, $pattern ) {
+	public function test_get_items_returns_only_fetches_ids_for_head_requests( $method ) {
 		$is_head_request = 'HEAD' === $method;
 		$request         = new WP_REST_Request( $method, '/wp/v2/posts' );
 
 		$filter = new MockAction();
 
-		add_filter( 'posts_pre_query', [ $filter, 'filter' ], 10, 2 );
+		add_filter( 'posts_pre_query', array( $filter, 'filter' ), 10, 2 );
 
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertEmpty( $response->get_data() );
+		if ( $is_head_request ) {
+			$this->assertEmpty( $response->get_data() );
+		} else {
+			$this->assertNotEmpty( $response->get_data() );
+		}
+
 		$args = $filter->get_args();
-		$this->assertTrue( isset( $args[0][1] ), 'Query was not captured.' );
-		$this->assertInstanceOf( WP_Query::class, $args[0][1], 'Query was not captured.' );
+		$this->assertTrue( isset( $args[0][1] ), 'Query parameters were not captured.' );
+		$this->assertInstanceOf( WP_Query::class, $args[0][1], 'Query parameters were not captured.' );
 
 		/** @var WP_Query $query */
 		$query = $args[0][1];
 
-		$this->assertArrayHasKey( 'fields', $query->query, 'The fields parameter is not set in the query vars.' );
-		$this->assertSame( $fields, $query->query['fields'], 'The query does not fetch only post IDs.' );
-		$this->assertArrayHasKey( 'fields', $query->query_vars, 'The fields parameter is not set in the query vars.' );
-		$this->assertSame( $fields, $query->query_vars['fields'], 'The query does not fetch only post IDs.' );
+		if ( $is_head_request ) {
+			$this->assertArrayHasKey( 'fields', $query->query, 'The fields parameter is not set in the query vars.' );
+			$this->assertSame( 'ids', $query->query['fields'], 'The query must fetch only post IDs.' );
+			$this->assertArrayHasKey( 'fields', $query->query_vars, 'The fields parameter is not set in the query vars.' );
+			$this->assertSame( 'ids', $query->query_vars['fields'], 'The query must fetch only post IDs.' );
+		} else {
+			$this->assertTrue( ! array_key_exists( 'fields', $query->query ) || 'ids' !== $query->query['fields'], 'The fields parameter should not be forced to "ids" for non-HEAD requests.' );
+			$this->assertTrue( ! array_key_exists( 'fields', $query->query_vars ) || 'ids' !== $query->query_vars['fields'], 'The fields parameter should not be forced to "ids" for non-HEAD requests.' );
+		}
 
-		// Assert that the captured SQL query is not empty
-		$this->assertTrue( isset( $query->request ), 'The SQL query was not captured.' );
+		if ( ! $is_head_request ) {
+			return;
+		}
 
 		global $wpdb;
 		$posts_table = preg_quote( $wpdb->posts, '/' );
-		// Assert that the SQL query only selects the ID column
-		$pattern = '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $posts_table . '\.ID\s+FROM\s+' . $posts_table . '\s+WHERE/i';
-		$this->assertMatchesRegularExpression( $pattern, $query->request, 'The SQL query does not match the exp.' );
-	}
+		$pattern     = '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $posts_table . '\.ID\s+FROM\s+' . $posts_table . '\s+WHERE/i';
 
-	/**
-	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
-	 *
-	 * @return array
-	 */
-	public function data_get_items_returns_only_fetches_ids_for_head_requests() {
-		global $wpdb;
-		$posts_table = preg_quote($wpdb->posts, '/');
-
-		return array(
-			'GET request'  => array( 'GET', '*',  '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $posts_table . '\.*\s+FROM\s+' . $posts_table . '\s+WHERE/i'),
-			'HEAD request' => array( 'HEAD', 'ids', '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $posts_table . '\.ID\s+FROM\s+' . $posts_table . '\s+WHERE/i'),
-		);
+		// Assert that the SQL query only fetches the ID column.
+		$this->assertMatchesRegularExpression( $pattern, $query->request, 'The SQL query does not match the expected string.' );
 	}
 
 	public function test_get_items_status_draft_permissions() {
