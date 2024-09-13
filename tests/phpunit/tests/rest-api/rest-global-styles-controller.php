@@ -15,7 +15,10 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 * @var int
 	 */
 	protected static $admin_id;
-
+	/**
+	 * @var int
+	 */
+	protected static $editor_id;
 	/**
 	 * @var int
 	 */
@@ -51,6 +54,12 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		self::$admin_id = $factory->user->create(
 			array(
 				'role' => 'administrator',
+			)
+		);
+
+		self::$editor_id = $factory->user->create(
+			array(
+				'role' => 'editor',
 			)
 		);
 
@@ -264,18 +273,35 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		wp_set_current_user( 0 );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/tt1-blocks' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_global_styles', $response, 401 );
+		$this->assertErrorResponse( 'rest_cannot_read_global_styles', $response, 401 );
 	}
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
 	 * @ticket 54516
+	 * @ticket 62042
 	 */
-	public function test_get_theme_item_permission_check() {
+	public function test_get_theme_item_subscriber_permission_check() {
 		wp_set_current_user( self::$subscriber_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/tt1-blocks' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_global_styles', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read_global_styles', $response, 403 );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller_Gutenberg::get_theme_item
+	 * @ticket 62042
+	 */
+	public function test_get_theme_item_editor_permission_check() {
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/tt1-blocks' );
+		$response = rest_get_server()->dispatch( $request );
+		// Checks that the response has the expected keys.
+		$data  = $response->get_data();
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'settings', $data, 'Data does not have "settings" key' );
+		$this->assertArrayHasKey( 'styles', $data, 'Data does not have "styles" key' );
+		$this->assertArrayHasKey( 'self', $links, 'Links do not have a "self" key' );
 	}
 
 	/**
