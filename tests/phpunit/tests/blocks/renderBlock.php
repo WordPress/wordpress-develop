@@ -192,4 +192,70 @@ class Tests_Blocks_RenderBlock extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'example' => 'ok' ), $provided_context[0] );
 	}
+
+	/**
+	 * Tests the behavior of the 'render_block_context' filter based on the location of the filtered block.
+	 *
+	 * @ticket 62046
+	 */
+	public function test_render_block_context_inner_blocks() {
+		$provided_context = array();
+
+		register_block_type(
+			'tests/context-provider',
+			array(
+				'provides_context' => array( 'example' ),
+			)
+		);
+
+		register_block_type(
+			'tests/context-consumer',
+			array(
+				'uses_context'    => array( 'example' ),
+				'render_callback' => static function ( $attributes, $content, $block ) use ( &$provided_context ) {
+					$provided_context = $block->context;
+
+					return '';
+				},
+			)
+		);
+
+		// Filter the context provided by the test block.
+		add_filter(
+			'render_block_context',
+			function ( $context, $parsed_block ) {
+				if ( isset( $parsed_block['blockName'] ) && 'tests/context-provider' === $parsed_block['blockName'] ) {
+					$context['example'] = 'ok';
+				}
+
+				return $context;
+			},
+			10,
+			2
+		);
+
+		// Test inner block context when the provider block is a top-level block.
+		do_blocks(
+			<<<HTML
+<!-- wp:tests/context-provider -->
+<!-- wp:tests/context-consumer /-->
+<!-- /wp:tests/context-provider -->
+HTML
+		);
+		$this->assertTrue( isset( $provided_context['example'] ), 'Test block is top-level block: Context should include "example"' );
+		$this->assertSame( 'ok', $provided_context['example'], 'Test block is top-level block: "example" in context should be "ok"' );
+
+		// Test inner block context when the provider block is an inner block.
+		do_blocks(
+			<<<HTML
+<!-- wp:group {"layout":{"type":"constrained"}} -->
+<!-- wp:tests/context-provider -->
+<!-- wp:tests/context-consumer /-->
+<!-- /wp:tests/context-provider -->
+<!-- /wp:group -->
+HTML
+		);
+		$this->assertTrue( isset( $provided_context['example'] ), 'Test block is inner block: Block context should include "example"' );
+		$this->assertSame( 'ok', $provided_context['example'], 'Test block is inner block: "example" in context should be "ok"' );
+	}
 }
