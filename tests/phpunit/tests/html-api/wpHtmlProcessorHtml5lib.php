@@ -138,10 +138,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * @return bool True if the test case should be skipped. False otherwise.
 	 */
 	private static function should_skip_test( ?string $test_context_element, string $test_name ): bool {
-		if ( null !== $test_context_element && 'body' !== $test_context_element ) {
-			return true;
-		}
-
 		if ( array_key_exists( $test_name, self::SKIP_TESTS ) ) {
 			return true;
 		}
