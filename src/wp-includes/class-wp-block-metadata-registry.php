@@ -31,32 +31,27 @@ class WP_Block_Metadata_Registry {
 	private $metadata = array();
 
 	/**
-	 * Registers block metadata for a given source and namespace.
+	 * Registers block metadata for a given source.
 	 *
 	 * @since 6.X.0
 	 *
-	 * @param string $namespace The namespace for the metadata (e.g., 'core', 'mythirdpartyplugin').
-	 * @param string $source    The source identifier for the metadata within the namespace.
-	 * @param array  $metadata  The block metadata.
+	 * @param string $source   The source identifier for the metadata.
+	 * @param array  $metadata The block metadata.
 	 */
-	public function register( $namespace, $source, $metadata ) {
-		if ( ! isset( $this->metadata[ $namespace ] ) ) {
-			$this->metadata[ $namespace ] = array();
-		}
-		$this->metadata[ $namespace ][ $source ] = $metadata;
+	public function register( $source, $metadata ) {
+		$this->metadata[ $source ] = $metadata;
 	}
 
 	/**
-	 * Retrieves block metadata for a given namespace and source.
+	 * Retrieves block metadata for a given source.
 	 *
 	 * @since 6.X.0
 	 *
-	 * @param string $namespace The namespace for the metadata.
-	 * @param string $source    The source identifier for the metadata within the namespace.
-	 * @return array|null       The block metadata for the source, or null if not found.
+	 * @param string $source The source identifier for the metadata.
+	 * @return array|null    The block metadata for the source, or null if not found.
 	 */
-	public function get_metadata( $namespace, $source ) {
-		return isset( $this->metadata[ $namespace ][ $source ] ) ? $this->metadata[ $namespace ][ $source ] : null;
+	public function get_metadata( $source ) {
+		return isset( $this->metadata[ $source ] ) ? $this->metadata[ $source ] : null;
 	}
 
 	/**

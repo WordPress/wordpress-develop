@@ -384,13 +384,12 @@ function get_block_metadata_i18n_schema() {
  *
  * @since 6.X.0
  *
- * @param string $namespace The namespace for the metadata (e.g., 'core', 'mythirdpartyplugin').
  * @param string $source    The source identifier for the metadata within the namespace.
  *                          This can be a unique identifier for your plugin's blocks.
  * @param array  $metadata  The block metadata to be registered.
  */
-function wp_register_block_metadata( $namespace, $source, $metadata ) {
-	WP_Block_Metadata_Registry::get_instance()->register( $namespace, $source, $metadata );
+function wp_register_block_metadata( $source, $metadata ) {
+	WP_Block_Metadata_Registry::get_instance()->register( $source, $metadata );
 }
 
 /**
@@ -427,24 +426,19 @@ function register_block_type_from_metadata( $file_or_folder, $args = array(), $m
 
 	if ( $is_core_block ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
-		$metadata = $registry->get_metadata( 'core', $core_block_name );
+		$metadata = $registry->get_metadata( $core_block_name );
 
 		if ( null === $metadata ) {
 			// Load core metadata if not already registered.
 			$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
 			foreach ( $core_blocks_meta as $block_name => $block_meta ) {
-				wp_register_block_metadata( 'core', $block_name, $block_meta );
+				wp_register_block_metadata( $block_name, $block_meta );
 			}
-			$metadata = $registry->get_metadata( 'core', $core_block_name );
+			$metadata = $registry->get_metadata( $core_block_name );
 		}
 	} elseif ( $metadata_source ) {
 		// Parse the metadata_source to get namespace and source
-		$parts = explode( '/', $metadata_source, 2 );
-		if ( count( $parts ) === 2 ) {
-			$namespace = $parts[0];
-			$source = $parts[1];
-			$metadata = $registry->get_metadata( $namespace, $source );
-		}
+		$metadata = $registry->get_metadata( $metadata_source );
 	}
 
 	// If metadata is not found in the registry, read from JSON file.

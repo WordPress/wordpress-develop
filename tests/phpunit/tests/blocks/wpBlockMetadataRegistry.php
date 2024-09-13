@@ -17,16 +17,15 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 	}
 
 	public function test_register_and_get_metadata() {
-		$namespace = 'test-namespace';
 		$source    = 'test-source';
 		$metadata  = array(
 			'name'  => 'test-block',
 			'title' => 'Test Block',
 		);
 
-		$this->registry->register( $namespace, $source, $metadata );
+		$this->registry->register( $source, $metadata );
 
-		$retrieved_metadata = $this->registry->get_metadata( $namespace, $source );
+		$retrieved_metadata = $this->registry->get_metadata( $source );
 		$this->assertEquals( $metadata, $retrieved_metadata );
 	}
 

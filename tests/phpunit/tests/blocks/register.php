@@ -1520,7 +1520,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		);
 
 		$registry = WP_Block_Metadata_Registry::get_instance();
-		$registry->register( 'test', 'block-from-registry', $metadata );
+		$registry->register( 'test/block-from-registry', $metadata );
 
 		$result = register_block_type_from_metadata( 'nonexistent/path', array(), 'test/block-from-registry' );
 
