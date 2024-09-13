@@ -2021,7 +2021,7 @@ function check_upload_mimes( $mimes ) {
  */
 function update_posts_count( $deprecated = '' ) {
 	global $wpdb;
-	update_option( 'post_count', (int) $wpdb->get_var( "SELECT COUNT(ID) FROM {$wpdb->posts} WHERE post_status = 'publish' and post_type = 'post'" ) );
+	update_option( 'post_count', (int) $wpdb->get_var( "SELECT COUNT(ID) FROM {$wpdb->posts} WHERE post_status = 'publish' and post_type = 'post'" ), true );
 }
 
 /**
@@ -2081,8 +2081,6 @@ function redirect_this_site( $deprecated = '' ) {
  * Checks whether an upload is too big.
  *
  * @since MU (3.0.0)
- *
- * @blessed
  *
  * @param array $upload An array of information about the newly-uploaded file.
  * @return string|array If the upload is under the size limit, $upload is returned. Otherwise returns an error message.

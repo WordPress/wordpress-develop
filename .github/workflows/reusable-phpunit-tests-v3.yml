@@ -1,0 +1,204 @@
+##
+# A reusable workflow that runs the PHPUnit test suite with the specified configuration.
+#
+# This workflow is used by `trunk` and branches >= 5.9.
+##
+name: Run PHPUnit tests
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run tests on'
+        required: false
+        type: 'string'
+        default: 'ubuntu-latest'
+      php:
+        description: 'The version of PHP to use, in the format of X.Y'
+        required: true
+        type: 'string'
+      db-type:
+        description: 'Database type. Valid types are mysql and mariadb'
+        required: false
+        type: 'string'
+        default: 'mysql'
+      db-version:
+        description: 'Database version'
+        required: false
+        type: 'string'
+        default: '8.0'
+      multisite:
+        description: 'Whether to run tests as multisite'
+        required: false
+        type: 'boolean'
+        default: false
+      memcached:
+        description: 'Whether to test with memcached enabled'
+        required: false
+        type: 'boolean'
+        default: false
+      phpunit-config:
+        description: 'The PHPUnit configuration file to use'
+        required: false
+        type: 'string'
+        default: 'phpunit.xml.dist'
+      tests-domain:
+        description: 'The domain to use for the tests'
+        required: false
+        type: 'string'
+        default: 'example.org'
+      report:
+        description: 'Whether to report results to WordPress.org Hosting Tests'
+        required: false
+        type: 'boolean'
+        default: false
+      allow-errors:
+        description: 'Whether to continue when test errors occur.'
+        required: false
+        type: boolean
+        default: false
+env:
+  LOCAL_PHP: ${{ inputs.php }}-fpm
+  LOCAL_DB_TYPE: ${{ inputs.db-type }}
+  LOCAL_DB_VERSION: ${{ inputs.db-version }}
+  LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
+  LOCAL_WP_TESTS_DOMAIN: ${{ inputs.tests-domain }}
+  PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
+jobs:
+  # Runs the PHPUnit tests for WordPress.
+  #
+  # Performs the following steps:
+  # - Sets environment variables.
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Sets up PHP.
+  # - Installs Composer dependencies.
+  # - Installs npm dependencies
+  # - Logs general debug information about the runner.
+  # - Logs Docker debug information (about the Docker installation within the runner).
+  # - Starts the WordPress Docker container.
+  # - Logs the running Docker containers.
+  # - Logs debug information about what's installed within the WordPress Docker containers.
+  # - Install WordPress within the Docker container.
+  # - Run the PHPUnit tests.
+  # - Ensures version-controlled files are not modified or deleted.
+  # - Checks out the WordPress Test reporter repository.
+  # - Submit the test results to the WordPress.org host test results.
+  phpunit-tests:
+    name: PHP ${{ inputs.php }} / ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Configure environment variables
+        run: |
+          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
+          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      ##
+      # This allows Composer dependencies to be installed using a single step.
+      #
+      # Since the tests are currently run within the Docker containers where the PHP version varies,
+      # the same PHP version needs to be configured for the action runner machine so that the correct
+      # dependency versions are installed and cached.
+      ##
+      - name: Set up PHP
+        uses: shivammathur/setup-php@c541c155eee45413f5b09a52248675b1a2575231 # v2.31.1
+        with:
+          php-version: '${{ inputs.php }}'
+          coverage: none
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@57532f8be5bda426838819c5ee9afb8af389d51a # v3.0.0
+        with:
+          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          composer --version
+          locale -a
+
+      - name: Docker debug information
+        run: |
+          docker -v
+
+      - name: Start Docker environment
+        run: |
+          npm run env:start
+
+      - name: Log running Docker containers
+        run: docker ps -a
+
+      - name: WordPress Docker container debug information
+        run: |
+          docker compose run --rm mysql ${{ env.LOCAL_DB_TYPE }} --version
+          docker compose run --rm php php --version
+          docker compose run --rm php php -m
+          docker compose run --rm php php -i
+          docker compose run --rm php locale -a
+
+      - name: Install WordPress
+        run: npm run env:install
+
+      - name: Run PHPUnit tests
+        continue-on-error: ${{ inputs.allow-errors }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }}
+
+      - name: Run AJAX tests
+        continue-on-error: ${{ inputs.allow-errors }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
+
+      - name: Run ms-files tests as a multisite install
+        if: ${{ inputs.multisite }}
+        continue-on-error: ${{ inputs.allow-errors }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ms-files
+
+      - name: Run external HTTP tests
+        if: ${{ ! inputs.multisite }}
+        continue-on-error: ${{ inputs.allow-errors }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group external-http
+
+      # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
+      - name: Run (Xdebug) tests
+        if: ${{ inputs.php != '8.3' }}
+        continue-on-error: ${{ inputs.allow-errors }}
+        run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
+
+      - name: Checkout the WordPress Test Reporter
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && inputs.report }}
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          repository: 'WordPress/phpunit-test-runner'
+          path: 'test-runner'
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Submit test results to the WordPress.org host test results
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && inputs.report }}
+        env:
+          WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
+        run: docker compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php

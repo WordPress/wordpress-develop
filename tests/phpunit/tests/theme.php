@@ -317,12 +317,12 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertSame( $root_uri . '/' . get_template(), get_template_directory_uri() );
 
 				// Skip block themes for get_query_template() tests since this test is focused on classic templates.
-				if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
+				if ( wp_is_block_theme() || wp_theme_has_theme_json() ) {
 					continue;
 				}
 
 				// Template file that doesn't exist.
-				$this->assertSame( '', get_query_template( 'nonexistant' ) );
+				$this->assertSame( '', get_query_template( 'nonexistent' ) );
 
 				// Template files that do exist.
 				foreach ( $theme['Template Files'] as $path ) {
@@ -746,6 +746,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @ticket 54597
 	 * @ticket 54731
+	 * @ticket 59732
 	 *
 	 * @dataProvider data_block_theme_has_default_support
 	 *
@@ -774,7 +775,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			"Could not remove support for $support_data_str."
 		);
 
-		do_action( 'setup_theme' );
+		do_action( 'after_setup_theme' );
 
 		$this->assertTrue(
 			current_theme_supports( ...$support_data ),
@@ -858,6 +859,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Tests that block themes load separate core block assets by default.
 	 *
 	 * @ticket 54597
+	 * @ticket 59732
 	 *
 	 * @covers ::_add_default_theme_supports
 	 * @covers ::wp_should_load_separate_core_block_assets
@@ -872,7 +874,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			'Could not disable loading separate core block assets.'
 		);
 
-		do_action( 'setup_theme' );
+		do_action( 'after_setup_theme' );
 
 		$this->assertTrue(
 			wp_should_load_separate_core_block_assets(),
@@ -1059,6 +1061,102 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests whether a switched site retrieves the correct stylesheet directory.
+	 *
+	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_stylesheet_directory
+	 */
+	public function test_get_stylesheet_directory_with_switched_site() {
+		$blog_id = self::factory()->blog->create();
+
+		update_blog_option( $blog_id, 'stylesheet', 'switched_stylesheet' );
+
+		// Prime global storage with the current site's data.
+		get_stylesheet_directory();
+
+		switch_to_blog( $blog_id );
+		$switched_stylesheet = get_stylesheet_directory();
+		restore_current_blog();
+
+		$this->assertSame( WP_CONTENT_DIR . '/themes/switched_stylesheet', $switched_stylesheet );
+	}
+
+	/**
+	 * Tests whether a switched site retrieves the correct template directory.
+	 *
+	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_template_directory
+	 */
+	public function test_get_template_directory_with_switched_site() {
+		$blog_id = self::factory()->blog->create();
+
+		update_blog_option( $blog_id, 'template', 'switched_template' );
+
+		// Prime global storage with the current site's data.
+		get_template_directory();
+
+		switch_to_blog( $blog_id );
+		$switched_template = get_template_directory();
+		restore_current_blog();
+
+		$this->assertSame( WP_CONTENT_DIR . '/themes/switched_template', $switched_template );
+	}
+
+	/**
+	 * Tests whether a restored site retrieves the correct stylesheet directory.
+	 *
+	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_stylesheet_directory
+	 */
+	public function test_get_stylesheet_directory_with_restored_site() {
+		$blog_id = self::factory()->blog->create();
+
+		update_option( 'stylesheet', 'original_stylesheet' );
+		update_blog_option( $blog_id, 'stylesheet', 'switched_stylesheet' );
+
+		$stylesheet = get_stylesheet_directory();
+
+		switch_to_blog( $blog_id );
+
+		// Prime global storage with the restored site's data.
+		get_stylesheet_directory();
+		restore_current_blog();
+
+		$this->assertSame( WP_CONTENT_DIR . '/themes/original_stylesheet', $stylesheet );
+	}
+
+	/**
+	 * Tests whether a restored site retrieves the correct template directory.
+	 *
+	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_template_directory
+	 */
+	public function test_get_template_directory_with_restored_site() {
+		$blog_id = self::factory()->blog->create();
+
+		update_option( 'template', 'original_template' );
+		update_blog_option( $blog_id, 'template', 'switched_template' );
+
+		$template = get_template_directory();
+
+		switch_to_blog( $blog_id );
+
+		// Prime global storage with the switched site's data.
+		get_template_directory();
+		restore_current_blog();
+
+		$this->assertSame( WP_CONTENT_DIR . '/themes/original_template', $template );
+	}
+
+	/**
 	 * Helper function to ensure that a block theme is available and active.
 	 */
 	private function helper_requires_block_theme() {
@@ -1080,5 +1178,157 @@ class Tests_Theme extends WP_UnitTestCase {
 		if ( wp_get_theme()->stylesheet !== $block_theme ) {
 			$this->markTestSkipped( "Could not switch to $block_theme." );
 		}
+	}
+
+	/**
+	 * Make sure filters added after the initial call are fired.
+	 *
+	 * @ticket 59847
+	 *
+	 * @covers ::get_stylesheet_directory
+	 */
+	public function test_get_stylesheet_directory_filters_apply() {
+		// Call the function prior to the filter being added.
+		get_stylesheet_directory();
+
+		$expected = 'test_root/dir';
+
+		// Add the filer.
+		add_filter(
+			'stylesheet_directory',
+			function () use ( $expected ) {
+				return $expected;
+			}
+		);
+
+		$this->assertSame( $expected, get_stylesheet_directory() );
+	}
+
+	/**
+	 * Make sure filters added after the initial call are fired.
+	 *
+	 * @ticket 59847
+	 *
+	 * @covers ::get_template_directory
+	 */
+	public function test_get_template_directory_filters_apply() {
+		// Call the function prior to the filter being added.
+		get_template_directory();
+
+		$expected = 'test_root/dir';
+
+		// Add the filer.
+		add_filter(
+			'template_directory',
+			function () use ( $expected ) {
+				return $expected;
+			}
+		);
+
+		$this->assertSame( $expected, get_template_directory() );
+	}
+
+	/**
+	 * Make sure get_stylesheet_directory uses the correct path when the root theme dir changes.
+	 *
+	 * @ticket 59847
+	 *
+	 * @covers ::get_stylesheet_directory
+	 */
+	public function test_get_stylesheet_directory_uses_registered_theme_dir() {
+		$old_theme = wp_get_theme();
+
+		switch_theme( 'test' );
+
+		$old_root = get_theme_root( 'test' );
+		$path1    = get_stylesheet_directory();
+
+		$new_root = DIR_TESTDATA . '/themedir2';
+		register_theme_directory( $new_root );
+
+		// Mock the stylesheet root option to mimic that the active root has changed.
+		add_filter(
+			'pre_option_stylesheet_root',
+			function () use ( $new_root ) {
+				return $new_root;
+			}
+		);
+
+		$path2 = get_stylesheet_directory();
+
+		// Cleanup.
+		switch_theme( $old_theme->get_stylesheet() );
+
+		$this->assertSame( $old_root . '/test', $path1, 'The original stylesheet path is not correct' );
+		$this->assertSame( $new_root . '/test', $path2, 'The new stylesheet path is not correct' );
+	}
+
+	/**
+	 * Make sure get_template_directory uses the correct path when the root theme dir changes.
+	 *
+	 * @ticket 59847
+	 *
+	 * @covers ::get_template_directory
+	 */
+	public function test_get_template_directory_uses_registered_theme_dir() {
+		$old_theme = wp_get_theme();
+
+		switch_theme( 'test' );
+
+		// Mock parent theme to be returned as the template.
+		add_filter(
+			'pre_option_template',
+			function () {
+				return 'test-parent';
+			}
+		);
+
+		$old_root = get_theme_root( 'test' );
+		$path1    = get_template_directory();
+
+		$new_root = DIR_TESTDATA . '/themedir2';
+		register_theme_directory( $new_root );
+
+		// Mock the template root option to mimic that the active root has changed.
+		add_filter(
+			'pre_option_template_root',
+			function () use ( $new_root ) {
+				return $new_root;
+			}
+		);
+
+		$path2 = get_template_directory();
+
+		// Cleanup.
+		switch_theme( $old_theme->get_stylesheet() );
+
+		$this->assertSame( $old_root . '/test-parent', $path1, 'The original template path is not correct' );
+		$this->assertSame( $new_root . '/test-parent', $path2, 'The new template path is not correct' );
+	}
+
+	/**
+	 * Tests that switch_to_blog() uses the original template path.
+	 *
+	 * @ticket 60290
+	 *
+	 * @group ms-required
+	 *
+	 * @covers ::locate_template
+	 */
+	public function test_switch_to_blog_uses_original_template_path() {
+		$old_theme     = wp_get_theme();
+		$template_path = locate_template( 'index.php' );
+
+		$blog_id = self::factory()->blog->create();
+		switch_to_blog( $blog_id );
+
+		switch_theme( 'block-theme' );
+		$new_template_path = locate_template( 'index.php' );
+
+		// Cleanup.
+		restore_current_blog();
+		switch_theme( $old_theme->get_stylesheet() );
+
+		$this->assertSame( $template_path, $new_template_path, 'Switching blogs switches the template path' );
 	}
 }

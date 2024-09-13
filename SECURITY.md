@@ -9,7 +9,10 @@ Full details of the WordPress Security Policy and the list of covered projects a
 ## Supported Versions
 
 | Version | Supported |
-| ------- | --------- |
+|---------| --------- |
+| 6.6.x   | Yes       |
+| 6.5.x   | Yes       |
+| 6.4.x   | Yes       |
 | 6.3.x   | Yes       |
 | 6.2.x   | Yes       |
 | 6.1.x   | Yes       |

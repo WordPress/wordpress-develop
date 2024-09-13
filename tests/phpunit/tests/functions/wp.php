@@ -1,8 +1,9 @@
 <?php
 
 /**
- * @group functions.php
+ * @group functions
  * @group query
+ *
  * @covers ::wp
  */
 class Tests_Functions_WP extends WP_UnitTestCase {

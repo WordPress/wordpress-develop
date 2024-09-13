@@ -357,7 +357,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	 *
 	 * @ticket 27020
 	 */
-	public function test_authorless_posts_capabilties() {
+	public function test_authorless_posts_capabilities() {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author' => 0,

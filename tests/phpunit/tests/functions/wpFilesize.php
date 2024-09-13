@@ -3,7 +3,8 @@
 /**
  * Tests for the wp_filesize() function.
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_filesize
  */
 class Tests_Functions_wpFilesize extends WP_UnitTestCase {

@@ -2,6 +2,7 @@
 
 /**
  * @group taxonomy
+ * @group category
  */
 class Tests_Term extends WP_UnitTestCase {
 	protected $taxonomy        = 'category';
@@ -127,9 +128,6 @@ class Tests_Term extends WP_UnitTestCase {
 		}
 	}
 
-	/**
-	 * @group category.php
-	 */
 	public function test_term_is_ancestor_of() {
 		$term  = rand_str();
 		$term2 = rand_str();

@@ -3,7 +3,8 @@
 /**
  * Tests copy_dir().
  *
- * @group file.php
+ * @group file
+ * @group filesystem
  *
  * @covers ::copy_dir
  */

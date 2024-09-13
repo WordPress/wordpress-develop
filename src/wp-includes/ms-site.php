@@ -439,8 +439,8 @@ function update_sitemeta_cache( $site_ids ) {
  *
  * @param string|array $args Optional. Array or string of arguments. See WP_Site_Query::__construct()
  *                           for information on accepted arguments. Default empty array.
- * @return array|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
- *                   or the number of sites when 'count' is passed as a query var.
+ * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
+ *                             or the number of sites when 'count' is passed as a query var.
  */
 function get_sites( $args = array() ) {
 	$query = new WP_Site_Query();
@@ -524,11 +524,7 @@ function wp_prepare_site_data( $data, $defaults, $old_site = null ) {
 function wp_normalize_site_data( $data ) {
 	// Sanitize domain if passed.
 	if ( array_key_exists( 'domain', $data ) ) {
-		$data['domain'] = trim( $data['domain'] );
-		$data['domain'] = preg_replace( '/\s+/', '', sanitize_user( $data['domain'], true ) );
-		if ( is_subdomain_install() ) {
-			$data['domain'] = str_replace( '@', '', $data['domain'] );
-		}
+		$data['domain'] = preg_replace( '/[^a-z0-9\-.:]+/i', '', $data['domain'] );
 	}
 
 	// Sanitize path if passed.
@@ -1073,7 +1069,8 @@ function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
  * @return mixed An array of values if `$single` is false.
  *               The value of meta data field if `$single` is true.
  *               False for an invalid `$site_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing site ID is passed.
+ *               An empty array if a valid but non-existing site ID is passed and `$single` is false.
+ *               An empty string if a valid but non-existing site ID is passed and `$single` is true.
  */
 function get_site_meta( $site_id, $key = '', $single = false ) {
 	return get_metadata( 'blog', $site_id, $key, $single );

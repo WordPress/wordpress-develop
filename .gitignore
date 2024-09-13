@@ -43,6 +43,7 @@ wp-tests-config.php
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
+/src/wp-content/fonts
 /src/wp-content/languages
 /src/wp-content/mu-plugins
 /src/wp-content/plugins
@@ -100,4 +101,4 @@ wp-tests-config.php
 /docker-compose.override.yml
 
 # Visual regression test diffs
-tests/visual-regression/specs/__image_snapshots__
+tests/visual-regression/specs/__snapshots__

@@ -19,6 +19,37 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that block supports leaves block content alone if the block type
+	 * isn't registered.
+	 *
+	 * @ticket 59578
+	 *
+	 * @covers ::wp_render_elements_support
+	 */
+	public function test_leaves_block_content_alone_when_block_type_not_registered() {
+		$block = array(
+			'blockName' => 'test/element-block-supports',
+			'attrs'     => array(
+				'style' => array(
+					'elements' => array(
+						'button' => array(
+							'color' => array(
+								'text'       => 'var:preset|color|vivid-red',
+								'background' => '#fff',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$block_markup = '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>';
+		$actual       = wp_render_elements_class_name( $block_markup, $block );
+
+		$this->assertSame( $block_markup, $actual, 'Expected to leave block content unmodified, but found changes.' );
+	}
+
+	/**
 	 * Tests that elements block support applies the correct classname.
 	 *
 	 * @ticket 59555
@@ -59,12 +90,19 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 			),
 		);
 
-		$actual = wp_render_elements_support( $block_markup, $block );
+		/*
+		 * To ensure a consistent elements class name it is generated within a
+		 * `render_block_data` filter and stored in the `className` attribute.
+		 * As a result, the block data needs to be passed through the same
+		 * function for this test.
+		 */
+		$filtered_block = wp_render_elements_support_styles( $block );
+		$actual         = wp_render_elements_class_name( $block_markup, $filtered_block );
 
 		$this->assertMatchesRegularExpression(
 			$expected_markup,
 			$actual,
-			'Position block wrapper markup should be correct'
+			'Block wrapper markup should be correct'
 		);
 	}
 
@@ -80,6 +118,34 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 		);
 
 		return array(
+			// @ticket 59578
+			'empty block markup remains untouched'         => array(
+				'color_settings'  => array(
+					'button' => true,
+				),
+				'elements_styles' => array(
+					'button' => array( 'color' => $color_styles ),
+				),
+				'block_markup'    => '',
+				'expected_markup' => '/^$/',
+			),
+			'empty block markup remains untouched when no block attributes' => array(
+				'color_settings'  => array(
+					'button' => true,
+				),
+				'elements_styles' => null,
+				'block_markup'    => '',
+				'expected_markup' => '/^$/',
+			),
+			'block markup remains untouched when block has no attributes' => array(
+				'color_settings'  => array(
+					'button' => true,
+				),
+				'elements_styles' => null,
+				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
+				'expected_markup' => '/^<p>Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+			),
+			// @ticket 5418
 			'button element styles with serialization skipped' => array(
 				'color_settings'  => array(
 					'button'                          => true,

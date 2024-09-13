@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.5/theme.json",
 	"version": 2,
 	"title": "Mint",
 	"settings": {
@@ -14,11 +14,6 @@
 					"color": "#f1fefb",
 					"name": "Base / Two",
 					"slug": "base-2"
-				},
-				{
-					"color": "#00000025",
-					"name": "Base / Three",
-					"slug": "base-3"
 				},
 				{
 					"color": "#000000",
@@ -83,6 +78,16 @@
 					"fontFamily": "\"Jost\", sans-serif",
 					"name": "Jost",
 					"slug": "body"
+				},
+				{
+					"fontFamily": "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif",
+					"name": "System Sans-serif",
+					"slug": "system-sans-serif"
+				},
+				{
+					"fontFamily": "Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol",
+					"name": "System Serif",
+					"slug": "system-serif"
 				}
 			]
 		}
