@@ -289,7 +289,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @covers WP_REST_Global_Styles_Controller_Gutenberg::get_theme_item
+	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
 	 * @ticket 62042
 	 */
 	public function test_get_theme_item_editor_permission_check() {
@@ -633,7 +633,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 * within a theme style variation and wouldn't be registered at the time
 	 * of saving via the API.
 	 *
-	 * @covers WP_REST_Global_Styles_Controller_Gutenberg::update_item
+	 * @covers WP_REST_Global_Styles_Controller::update_item
 	 * @ticket 61312
 	 * @ticket 61451
 	 */
