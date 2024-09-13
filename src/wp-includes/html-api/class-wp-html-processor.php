@@ -2770,6 +2770,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 		}
+
+		$this->bail( 'Should not have been able to reach end of IN BODY processing. Check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
+		return false;
 	}
 
 	/**
@@ -4645,6 +4649,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
 			}
 		}
+
+		$this->bail( 'Should not have been able to reach end of IN FOREIGN CONTENT processing. Check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
+		return false;
 	}
 
 	/*
@@ -4719,17 +4727,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		$tag_name = parent::get_tag();
 
-		switch ( $tag_name ) {
-			case 'IMAGE':
-				/*
-				 * > A start tag whose tag name is "image"
-				 * > Change the token's tag name to "img" and reprocess it. (Don't ask.)
-				 */
-				return 'IMG';
-
-			default:
-				return $tag_name;
-		}
+		/*
+		 * > A start tag whose tag name is "image"
+		 * > Change the token's tag name to "img" and reprocess it. (Don't ask.)
+		 */
+		return ( 'IMAGE' === $tag_name && 'html' === $this->get_namespace() )
+			? 'IMG'
+			: $tag_name;
 	}
 
 	/**
@@ -5428,6 +5432,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 
+			// All of the following rules are for matching HTML elements.
+			if ( 'html' !== $node->namespace ) {
+				continue;
+			}
+
 			switch ( $node->node_name ) {
 				/*
 				 * > 4. If node is a `select` element, run these substeps:
@@ -5443,6 +5452,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case 'SELECT':
 					if ( ! $last ) {
 						foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $ancestor ) {
+							if ( 'html' !== $ancestor->namespace ) {
+								continue;
+							}
+
 							switch ( $ancestor->node_name ) {
 								/*
 								 * > 5. If _ancestor_ is a `template` node, jump to the step below
@@ -5869,6 +5882,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				)
 			);
 		}
+
+		$this->bail( 'Should not have reached end of HTML Integration Point detection: check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
+		return false;
 	}
 
 	/**
