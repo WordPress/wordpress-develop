@@ -455,7 +455,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$fragment_processor              = self::create_fragment( $html );
 		$fragment_processor->compat_mode = $this->compat_mode;
 
-
 		$fragment_processor->context_node                = clone $this->state->current_token;
 		$fragment_processor->context_node->bookmark_name = 'context-node';
 		$fragment_processor->context_node->on_destroy    = null;
