@@ -4,8 +4,10 @@ $ansi = true;
 
 require_once __DIR__ . '/src/wp-load.php';
 
-$opts     = getopt( 'b:' );
+$opts     = getopt( 'b:', [ 'skip:', 'skip-first:' ] );
 $base_url = isset( $opts['b'] ) ? $opts['b'] : null;
+$skip_nodes = $opts['skip'] ?? [];
+$skip_first_nodes = $opts['skip-first'] ?? [];
 
 $html = file_get_contents( 'php://stdin' );
 
@@ -14,7 +16,7 @@ $html = str_replace( "\x00", '�', $html );
 $html = str_replace( "\r\n", "\n", $html );
 $html = str_replace( "\r", "\n", $html );
 
-$p = new WP_HTML_Tag_Processor( $html );
+$p = WP_HTML_Processor::create_full_parser( $html );
 
 $text_content  = '';
 $in_pre        = false;
@@ -24,8 +26,39 @@ $prev_was_tag  = false;
 $prev_was_li   = false;
 $has_seen_head = false;
 
+if ( is_string( $skip_nodes ) ) {
+	$skip_nodes = [ $skip_nodes ];
+}
+foreach ( $skip_nodes as &$node ) {
+	$node = strtolower( $node );
+}
+
+if ( is_string( $skip_first_nodes ) ) {
+	$skip_first_nodes = [ $skip_first_nodes ];
+}
+foreach ( $skip_first_nodes as &$node ) {
+	$node = strtolower( $node );
+}
+
 while ( $p->next_token() ) {
 	$node_name = $p->get_token_name();
+
+	if ( in_array( strtolower( $node_name ), $skip_first_nodes, true ) )  {
+		$depth = $p->get_current_depth();
+		while ( $p->get_current_depth() >= $depth ) {
+			$p->next_token();
+		}
+		array_shift( $skip_first_nodes );
+		continue;
+	}
+
+	if ( in_array( strtolower( $node_name ), $skip_nodes, true ) )  {
+		$depth = $p->get_current_depth();
+		while ( $p->get_current_depth() >= $depth ) {
+			$p->next_token();
+		}
+		continue;
+	}
 
 	$node_text = WP_HTML_Decoder::decode_text_node( $p->get_modifiable_text() );
 	$tag_name  = '#tag' === $p->get_token_type()
@@ -85,6 +118,24 @@ while ( $p->next_token() ) {
 				$text_content .= "\e[m";
 				break;
 
+			case '+H1':
+			case '+H2':
+			case '+H3':
+			case '+H4':
+			case '+H5':
+			case '+H6':
+				$text_content .= "\e[1m";
+				break;
+
+			case '-H1':
+			case '-H2':
+			case '-H3':
+			case '-H4':
+			case '-H5':
+			case '-H6':
+				$text_content .= "\e[22m";
+				break;
+
 			case '+I':
 			case '+EM':
 				$text_content .= "\e[3m";
@@ -95,8 +146,20 @@ while ( $p->next_token() ) {
 				$text_content .= "\e[23m";
 				break;
 
+			case '+SUB':
+				$text_content .= "\e[74m";
+				break;
 
-			case 'TITLE':
+			case '+SUP':
+				$text_content .= "\e[73m";
+				break;
+
+			case '-SUB':
+			case '-SUP':
+				$text_content .= "\e[75m";
+				break;
+
+			case '+TITLE':
 				$text_content .= "\e]0;{$node_text}\x07";
 				break;
 		}
@@ -104,7 +167,7 @@ while ( $p->next_token() ) {
 
 	switch ( $tag_name ) {
 		case '+LI':
-			$text_content .= "\n - ";
+			$text_content .= "\n \e[31m•\e[39m ";
 			$needs_newline = false;
 			break;
 
@@ -160,7 +223,40 @@ while ( $p->next_token() ) {
 
 		case '+PRE':
 		case '-PRE':
-			$in_pre = ! $p->is_tag_closer();
+			if ( $p->is_tag_closer() ) {
+				$in_pre = false;
+				$text_content .= "\e[90m```\e[m\n";
+			} else {
+				$in_pre = true;
+				$text_content .= "\n\n\e[90m```";
+				$lang = $p->get_attribute( 'lang' );
+				if ( is_string( $lang ) ) {
+					$text_content .= $lang;
+				}
+				$text_content .= "\e[m\n";
+			}
+
+			break;
+
+		case '+TABLE':
+			$text_content .= "\n\n";
+			break;
+
+		case '+TH':
+			$text_content .= "\e[1;3m";
+			break;
+
+		case '-TD':
+		case '-TH':
+			$text_content .= "\t\e[0;90m|\e[m ";
+			break;
+
+		case '+TR':
+			$text_content .= "\e[90m| \e[m";
+			break;
+
+		case '-TR':
+			$text_content .= "\e[90m |\e[m\n";
 			break;
 
 		case '#text':
@@ -175,6 +271,17 @@ while ( $p->next_token() ) {
 }
 
 echo trim( $text_content );
+
+if ( null !== $p->get_last_error() ) {
+	echo "\n\e[31mFailed\e[90m because of '\e[2,31m{$p->get_last_error()}\e[0,90m'\e[m\n";
+	$unsupported = $p->get_unsupported_exception();
+	if ( isset( $unsupported ) ) {
+		echo "\e[90m    ┤ {$unsupported->getMessage()}\e[m\n";
+	}
+} else if ( $p->paused_at_incomplete_token() ) {
+	echo trim( $text_content );
+	echo "\n\e[31mIncomplete input\e[90m found at end of document; unable to proceed.\e[m\n";
+}
 
 function is_line_breaker( $tag_name ) {
 	switch ( $tag_name ) {

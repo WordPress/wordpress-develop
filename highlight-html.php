@@ -23,13 +23,15 @@ if ( isset( $options['u'] ) ) {
 
 $html = file_get_contents( $uri );
 
-$p = new class( $html ) extends WP_HTML_Tag_Processor {
+$p = new class( $html ) extends WP_HTML_Processor {
 	public function get_raw_token() {
 		$this->set_bookmark('here');
-		$here = $this->bookmarks['here'];
+		$here = $this->bookmarks['_here'];
 		return substr( $this->html, $here->start, $here->length );
 	}
 };
+
+$p = $p::create_Full_parser( $html );
 
 while ( $p->next_token() ) {
 	switch ( $p->get_token_type() ) {
