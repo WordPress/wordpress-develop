@@ -744,10 +744,13 @@ function register_block_type_from_metadata( $file_or_metadata_source, $args = ar
  *
  * @since 5.0.0
  * @since 5.8.0 First parameter now accepts a path to the `block.json` file.
+ * @since x.x.x First parameter now also accepts a metadata source identifier.
  *
  * @param string|WP_Block_Type $block_type Block type name including namespace, or alternatively
  *                                         a path to the JSON file with metadata definition for the block,
  *                                         or a path to the folder where the `block.json` file is located,
+ *                                         or a metadata source identifier (previously registered with
+ *                                         `wp_register_block_metadata`),
  *                                         or a complete WP_Block_Type instance.
  *                                         In case a WP_Block_Type is provided, the $args parameter will be ignored.
  * @param array                $args       Optional. Array of block type arguments. Accepts any public property
@@ -757,7 +760,13 @@ function register_block_type_from_metadata( $file_or_metadata_source, $args = ar
  * @return WP_Block_Type|false The registered block type on success, or false on failure.
  */
 function register_block_type( $block_type, $args = array() ) {
-	if ( is_string( $block_type ) && file_exists( $block_type ) ) {
+	$passed_metadata_source = false;
+	if ( WP_Block_Metadata_Registry::has_metadata( $block_type ) && ( empty( $args ) || is_array( $args ) ) ) {
+		$passed_metadata_source = true;
+	}
+
+	if ( is_string( $block_type ) &&
+		 ( $passed_metadata_source || file_exists( $block_type ) ) ) {
 		return register_block_type_from_metadata( $block_type, $args );
 	}
 
