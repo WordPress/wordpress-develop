@@ -314,3 +314,100 @@ function wp_create_term( $tag_name, $taxonomy = 'post_tag' ) {
 
 	return wp_insert_term( $tag_name, $taxonomy );
 }
+
+/**
+ * Retrieves a term given its path.
+ *
+ * @since 6.0.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string $term_path Term path.
+ * @param string $taxonomy  Optional. Taxonomy. Default 'category'.
+ * @param string $output    Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                correspond to a WP_Term object, an associative array, or a numeric array,
+ *                                respectively. Default OBJECT.
+ * @return WP_Term|array|null WP_Term (or array) on success, or null on failure.
+ */
+function get_term_by_path( $term_path, $taxonomy = 'category', $output = OBJECT ) {
+	global $wpdb;
+
+	$last_changed = wp_cache_get_last_changed( 'terms' );
+
+	$hash      = md5( $term_path . $taxonomy );
+	$cache_key = "get_term_by_path:$hash:$last_changed";
+	$cached    = wp_cache_get( $cache_key, 'terms' );
+
+	if ( false !== $cached ) {
+		// Special case: '0' is a bad `$term_path`.
+		if ( '0' === $cached || 0 === $cached ) {
+			return;
+		} else {
+			return get_term( $cached, $taxonomy, $output );
+		}
+	}
+
+	$term_path     = rawurlencode( urldecode( $term_path ) );
+	$term_path     = str_replace( '%2F', '/', $term_path );
+	$term_path     = str_replace( '%20', ' ', $term_path );
+	$parts         = explode( '/', trim( $term_path, '/' ) );
+	$parts         = array_map( 'sanitize_title_for_query', $parts );
+	$escaped_parts = esc_sql( $parts );
+
+	$in_string = "'" . implode( "','", $escaped_parts ) . "'";
+
+	$sql                 = "
+		SELECT term_id, name, slug, parent, taxonomy
+		FROM $wpdb->terms
+		LEFT JOIN $wpdb->term_taxonomy USING(`term_id`)
+		WHERE slug IN ($in_string)
+		AND `taxonomy` = %s
+	";
+
+	$terms = $wpdb->get_results(
+		$wpdb->prepare(
+			$sql,
+			$taxonomy
+		),
+		OBJECT_K
+	);
+
+	$revparts = array_reverse( $parts );
+
+	$foundid = 0;
+	foreach ( (array) $terms as $term ) {
+		if ( $term->slug == $revparts[0] ) {
+			$count = 0;
+			$t     = $term;
+
+			/*
+			 * Loop through the given path parts from right to left,
+			 * ensuring each matches the post ancestry.
+			 */
+			while ( 0 != $t->parent && isset( $terms[ $t->parent ] ) ) {
+				$count++;
+				$parent = $terms[ $t->parent ];
+				if ( ! isset( $revparts[ $count ] ) || $parent->slug != $revparts[ $count ] ) {
+					break;
+				}
+				$t = $parent;
+			}
+
+			if ( 0 == $t->parent && count( $revparts ) == $count + 1 && $t->slug == $revparts[ $count ] ) {
+				$foundid = $term->term_id;
+				if ( $term->taxonomy == $taxonomy ) {
+					break;
+				}
+			}
+		}
+	}
+
+	// We cache misses as well as hits.
+	wp_cache_set( $cache_key, $foundid, 'terms' );
+
+	if ( $foundid ) {
+		return get_term( $foundid, $taxonomy, $output );
+	}
+
+	return null;
+}
