@@ -2562,11 +2562,12 @@ if ( ! function_exists( 'wp_hash' ) ) :
 
 		// Ensure the algorithm is supported by the hash_hmac function.
 		if ( ! in_array( $algo, hash_hmac_algos(), true ) ) {
-			throw new InvalidArgumentException( 
-				sprintf( 'Unsupported hashing algorithm: %s. Supported algorithms are: %s', 
-					$algo, 
-					implode( ', ', hash_hmac_algos() ) 
-				) 
+			throw new InvalidArgumentException(
+				sprintf(
+					'Unsupported hashing algorithm: %s. Supported algorithms are: %s',
+					$algo,
+					implode( ', ', hash_hmac_algos() )
+				)
 			);
 		}
 
