@@ -158,6 +158,7 @@ final class WP_Block_Templates_Registry {
 	 *     @type string[] $slug__not_in List of slugs to skip.
 	 *     @type string   $post_type    Post type to get the templates for.
 	 * }
+	 * @return WP_Block_Template[] Associative array of `$template_name => $template` pairs.
 	 */
 	public function get_by_query( $query = array() ) {
 		$all_templates = $this->get_all_registered();
