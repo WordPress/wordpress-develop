@@ -49,7 +49,7 @@ function render_empty_block_template_warning( $block_template ) {
 		sprintf(
 			'%1$s/wp-admin/site-editor.php?postId=%2$s&postType=wp_template&canvas=edit',
 			get_site_url(),
-			urlencode( $block_template->id ),
+			urlencode( $block_template->id )
 		),
 		__( 'Edit Template' )
 	);
