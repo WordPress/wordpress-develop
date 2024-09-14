@@ -976,7 +976,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				'block-theme',
 				'stylesheet_directory',
 				static function ( $dir ) {
-					return str_replace( realpath( DIR_TESTDATA ) . '/themedir1', '/fantasy-dir', $dir );
+					return str_replace( realpath( DIR_TESTDATA ) . DIRECTORY_SEPARATOR . 'themedir1', '/fantasy-dir', $dir );
 				},
 				'/fantasy-dir/block-theme',
 			),
@@ -1036,7 +1036,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				'block-theme',
 				'template_directory',
 				static function ( $dir ) {
-					return str_replace( realpath( DIR_TESTDATA ) . '/themedir1', '/fantasy-dir', $dir );
+					return str_replace( realpath( DIR_TESTDATA ) . DIRECTORY_SEPARATOR . 'themedir1', '/fantasy-dir', $dir );
 				},
 				'/fantasy-dir/block-theme',
 			),
