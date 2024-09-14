@@ -925,7 +925,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function test_get_stylesheet_directory() {
 		switch_theme( 'block-theme-child' );
-		$this->assertSame( realpath( DIR_TESTDATA ) . '/themedir1/block-theme-child', get_stylesheet_directory() );
+		$this->assertSamePathIgnoringDirectorySeparators( realpath( DIR_TESTDATA ) . '/themedir1/block-theme-child', get_stylesheet_directory() );
 	}
 
 	/**
@@ -937,7 +937,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function test_get_template_directory() {
 		switch_theme( 'block-theme-child' );
-		$this->assertSame( realpath( DIR_TESTDATA ) . '/themedir1/block-theme', get_template_directory() );
+		$this->assertSamePathIgnoringDirectorySeparators( realpath( DIR_TESTDATA ) . '/themedir1/block-theme', get_template_directory() );
 	}
 
 	/**
