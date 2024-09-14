@@ -2512,9 +2512,18 @@ function get_posts( $args = null ) {
 		'meta_value'       => '',
 		'post_type'        => 'post',
 		'suppress_filters' => true,
+                'unregistered_post' => false,
 	);
 
 	$parsed_args = wp_parse_args( $args, $defaults );
+
+	if ( ! $parsed_args['unregistered_post'] ) {
+		$registered_post_types = get_post_types( array(), 'names' );
+		if ( ! in_array( $parsed_args['post_type'], $registered_post_types ) ) {
+			return array();
+		}
+	}
+
 	if ( empty( $parsed_args['post_status'] ) ) {
 		$parsed_args['post_status'] = ( 'attachment' === $parsed_args['post_type'] ) ? 'inherit' : 'publish';
 	}
