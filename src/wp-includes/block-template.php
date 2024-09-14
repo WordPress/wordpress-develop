@@ -18,6 +18,44 @@ function _add_template_loader_filters() {
 }
 
 /**
+ * Renders a warning screen for empty block templates.
+ *
+ * @since x.x
+ *
+ * @param WP_Block_Template $block_template The block template object.
+ * @return string           The warning screen HTML.
+ */
+function render_empty_block_template_warning( $block_template ) {
+	wp_enqueue_style( 'empty-template-alert' );
+	return sprintf(
+		'<div id="empty-template-alert">
+			<div class="icon">
+				<span class="dashicons dashicons-warning"></span>
+			</div>
+			<div class="content">
+				<div class="message">
+					<h2>%1$s</h2>
+					<p>%2$s</p>
+				</div>
+				<div class="actions">
+					<a href="%3$s" class="wp-element-button">
+						%4$s
+					</a>
+				</div>
+			</div>
+		</div>',
+		$block_template->title,
+		__( 'This page is blank because the template might have been deleted or has no content yet. You can reset or edit this template in the Site Editor.' ),
+		sprintf(
+			'%1$s/wp-admin/site-editor.php?postId=%2$s&postType=wp_template&canvas=edit',
+			get_site_url(),
+			urlencode( $block_template->id ),
+		),
+		__( 'Edit Template' )
+	);
+}
+
+/**
  * Finds a block template with equal or higher specificity than a given PHP template file.
  *
  * Internally, this communicates the block content that needs to be used by the template canvas through a global variable.
@@ -69,12 +107,7 @@ function locate_block_template( $template, $type, array $templates ) {
 		$_wp_current_template_id = $block_template->id;
 
 		if ( empty( $block_template->content ) && is_user_logged_in() ) {
-			$_wp_current_template_content =
-			sprintf(
-				/* translators: %s: Template title */
-				__( 'Empty template: %s' ),
-				$block_template->title
-			);
+			$_wp_current_template_content = render_empty_block_template_warning( $block_template );
 		} elseif ( ! empty( $block_template->content ) ) {
 			$_wp_current_template_content = $block_template->content;
 		}
