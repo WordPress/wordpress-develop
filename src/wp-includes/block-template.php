@@ -46,10 +46,7 @@ function render_empty_block_template_warning( $block_template ) {
 		</div>',
 		$block_template->title,
 		__( 'This page is blank because the template might have been deleted or has no content yet. You can reset or edit this template in the Site Editor.' ),
-		sprintf(
-			esc_url( admin_url( 'site-editor.php?postId=%s&postType=wp_template&canvas=edit' ) ),
-			urlencode( $block_template->id )
-		),
+		get_edit_post_link( $block_template->wp_id, 'site-editor' ),
 		__( 'Edit Template' )
 	);
 }
