@@ -46,6 +46,7 @@ jobs:
   build-matrix:
     name: Determine PHP Versions to test
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     timeout-minutes: 5
     outputs:
       major-wp-version: ${{ steps.major-wp-version.outputs.version }}
@@ -104,6 +105,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ${{ matrix.os }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     timeout-minutes: 10
     needs: [ build-matrix ]
     strategy:
