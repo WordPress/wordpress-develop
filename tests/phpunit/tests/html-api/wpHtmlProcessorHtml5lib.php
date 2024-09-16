@@ -51,9 +51,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_external_html5lib_tests
 	 *
-	 * @param string $fragment_context Context element in which to parse HTML, such as BODY or SVG.
-	 * @param string $html             Given test HTML.
-	 * @param string $expected_tree    Tree structure of parsed HTML.
+	 * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
+	 * @param string      $html             Given test HTML.
+	 * @param string      $expected_tree    Tree structure of parsed HTML.
 	 */
 	public function test_parse( ?string $fragment_context, string $html, string $expected_tree ) {
 		try {
