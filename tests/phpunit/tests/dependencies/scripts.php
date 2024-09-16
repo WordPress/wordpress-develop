@@ -3391,9 +3391,14 @@ HTML
 	 * Ensures that vendor scripts registered in wp_default_scripts() are
 	 * registered with the correct version number from package.json.
 	 *
+	 * element-closest (wp-polyfill-element-closest) uses a range in package.json
+	 * so is excluded from this test.
+	 *
 	 * @ticket 61855
+	 * @ticket 60048
 	 *
 	 * @covers ::wp_default_scripts
+	 * @covers ::wp_default_packages_vendor
 	 *
 	 * @dataProvider data_vendor_script_versions_registered_manually
 	 *
@@ -3402,6 +3407,7 @@ HTML
 	 */
 	public function test_vendor_script_versions_registered_manually( $script, $handle = null ) {
 		global $wp_scripts;
+		wp_default_packages_vendor( $wp_scripts );
 		wp_default_scripts( $wp_scripts );
 
 		$package_json = $this->_scripts_from_package_json();
@@ -3423,44 +3429,32 @@ HTML
 	 */
 	public function data_vendor_script_versions_registered_manually() {
 		return array(
-			'backbone'               => array( 'backbone' ),
-			'clipboard'              => array( 'clipboard' ),
-			'imagesloaded'           => array( 'imagesloaded' ),
-			'jquery-color'           => array( 'jquery-color' ),
-			'jquery-core'            => array( 'jquery', 'jquery-core' ),
-			'jquery-form'            => array( 'jquery-form' ),
-			'jquery-hoverintent'     => array( 'jquery-hoverintent', 'hoverIntent' ),
-			'masonry'                => array( 'masonry-layout', 'masonry' ),
-			'underscore'             => array( 'underscore' ),
-			'vanilla-js-hoverintent' => array( 'hoverintent', 'hoverintent-js' ),
+			'backbone'                         => array( 'backbone' ),
+			'clipboard'                        => array( 'clipboard' ),
+			'core-js-url-browser'              => array( 'core-js-url-browser', 'wp-polyfill-url' ),
+			'formdata-polyfill'                => array( 'formdata-polyfill', 'wp-polyfill-formdata' ),
+			'imagesloaded'                     => array( 'imagesloaded' ),
+			'jquery-color'                     => array( 'jquery-color' ),
+			'jquery-core'                      => array( 'jquery', 'jquery-core' ),
+			'jquery-form'                      => array( 'jquery-form' ),
+			'jquery-hoverintent'               => array( 'jquery-hoverintent', 'hoverIntent' ),
+			'lodash'                           => array( 'lodash' ),
+			'masonry'                          => array( 'masonry-layout', 'masonry' ),
+			'moment'                           => array( 'moment' ),
+			'objectFitPolyfill'                => array( 'objectFitPolyfill', 'wp-polyfill-object-fit' ),
+			'polyfill-library (dom rect)'      => array( 'polyfill-library', 'wp-polyfill-dom-rect' ),
+			'polyfill-library (node contains)' => array( 'polyfill-library', 'wp-polyfill-node-contains' ),
+			'react (jsx-runtime)'              => array( 'react', 'react-jsx-runtime' ),
+			'react (React)'                    => array( 'react' ),
+			'react-dom'                        => array( 'react-dom' ),
+			'regenerator-runtime'              => array( 'regenerator-runtime' ),
+			'underscore'                       => array( 'underscore' ),
+			'vanilla-js-hoverintent'           => array( 'hoverintent', 'hoverintent-js' ),
+			'whatwg-fetch'                     => array( 'whatwg-fetch', 'wp-polyfill-fetch' ),
+			'wicg-inert'                       => array( 'wicg-inert', 'wp-polyfill-inert' ),
 		);
 	}
 
-	/**
-	 * @ticket 60048
-	 *
-	 * @covers ::wp_default_packages_vendor
-	 *
-	 * @dataProvider data_wp_default_packages_vendor
-	 */
-	public function test_wp_default_packages_vendor( $script ) {
-		global $wp_scripts;
-		$package_json = $this->_scripts_from_package_json();
-
-		wp_default_packages_vendor( $wp_scripts );
-
-		$this->assertSame( $package_json[ $script ], $wp_scripts->query( $script, 'registered' )->ver );
-	}
-
-	public function data_wp_default_packages_vendor() {
-		return array(
-			array( 'script' => 'lodash' ),
-			array( 'script' => 'moment' ),
-			array( 'script' => 'react' ),
-			array( 'script' => 'react-dom' ),
-			array( 'script' => 'regenerator-runtime' ),
-		);
-	}
 
 	/**
 	 * Helper to return dependencies from package.json.
