@@ -3103,8 +3103,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$response = rest_do_request( $request );
 
 		$schema = $response->get_data()['schema']['properties']['meta']['properties']['with_default'];
-		$this->assertArrayHasKey( 'default', $schema );
-		$this->assertSame( 'Goodnight Moon', $schema['default'] );
+		$this->assertArrayHasKey( 'default', $schema, 'Schema is expected to have the default property' );
+		$this->assertSame( 'Goodnight Moon', $schema['default'], 'Schema default is expected to be defined and contain the value of the meta default argument.' );
 	}
 
 	/**
@@ -3116,8 +3116,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		$schema = $response->get_data()['schema']['properties']['meta']['properties']['with_label'];
 
-		$this->assertArrayHasKey( 'default', $schema );
-		$this->assertSame( 'Meta Label', $schema['title'] );
+		$this->assertArrayHasKey( 'title', $schema, 'Schema is expected to have the title property' );
+		$this->assertSame( 'Meta Label', $schema['title'], 'Schema title is expected to be defined and contain the value of the meta label argument.' );
 	}
 
 	/**
