@@ -211,8 +211,6 @@ class WP_Debug_Data {
 			'fields'     => array(),
 		);
 
-
-
 		// Conditionally add debug information for multisite setups.
 		if ( is_multisite() ) {
 			$site_id = get_current_blog_id();
