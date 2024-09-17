@@ -258,6 +258,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'search_columns' => 'search_columns',
 			'slug'           => 'post_name__in',
 			'status'         => 'post_status',
+			'exact_search'   => 'exact',
 		);
 
 		/*
@@ -2885,6 +2886,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'        => 'integer',
 			);
 		}
+
+		$query_params['exact_search'] = array(
+			'description' => __( 'Use exact search instead of full search.' ),
+			'type'        => 'boolean',
+		);
 
 		$query_params['offset'] = array(
 			'description' => __( 'Offset the result set by a specific number of items.' ),

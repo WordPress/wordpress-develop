@@ -214,6 +214,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'author_exclude',
 				'before',
 				'context',
+				'exact_search',
 				'exclude',
 				'include',
 				'media_type',

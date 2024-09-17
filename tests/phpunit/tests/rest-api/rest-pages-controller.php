@@ -71,6 +71,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'author_exclude',
 				'before',
 				'context',
+				'exact_search',
 				'exclude',
 				'include',
 				'menu_order',
