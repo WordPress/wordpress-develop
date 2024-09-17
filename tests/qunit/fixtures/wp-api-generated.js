@@ -362,6 +362,14 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -1719,6 +1727,14 @@ mockedApiResponse.Schema = {
                             "type": "integer",
                             "required": false
                         },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -2820,6 +2836,14 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -3569,6 +3593,14 @@ mockedApiResponse.Schema = {
                                 "type": "integer"
                             },
                             "default": [],
+                            "required": false
+                        },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -4380,6 +4412,14 @@ mockedApiResponse.Schema = {
                                 "type": "integer"
                             },
                             "default": [],
+                            "required": false
+                        },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -6995,6 +7035,14 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -7812,6 +7860,14 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -8015,6 +8071,14 @@ mockedApiResponse.Schema = {
                                 "type": "integer"
                             },
                             "default": [],
+                            "required": false
+                        },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
