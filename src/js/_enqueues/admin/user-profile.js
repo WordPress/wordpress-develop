@@ -366,7 +366,7 @@
 		}, 3000 );
 
 		// Handle success audible feedback.
-		wp.a11y.speak( __( 'Site information has been copied to your clipboard.' ) );
+		wp.a11y.speak( __( 'Application password has been copied to your clipboard.' ) );
 	} );
 
 	$( function() {
