@@ -485,7 +485,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$limit = str_repeat( 'a', self::$phpass_length_limit );
 
 		// Set the user password with the old phpass algorithm.
-		self::set_password_with_phpass( $limit, self::$user_id );
+		self::set_user_password_with_phpass( $limit, self::$user_id );
 
 		// Authenticate.
 		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
@@ -499,7 +499,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$limit = str_repeat( 'a', self::$phpass_length_limit );
 
 		// Set the user password with the old phpass algorithm.
-		self::set_password_with_phpass( $limit, self::$user_id );
+		self::set_user_password_with_phpass( $limit, self::$user_id );
 
 		// Authenticate.
 		$user = wp_authenticate( $this->user->user_login, $limit );
@@ -514,7 +514,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$limit = str_repeat( 'a', self::$phpass_length_limit );
 
 		// Set the user password with the old phpass algorithm.
-		self::set_password_with_phpass( $limit, self::$user_id );
+		self::set_user_password_with_phpass( $limit, self::$user_id );
 
 		// Authenticate with a password that is one character too long.
 		$user = wp_authenticate( $this->user->user_login, $limit . 'a' );
@@ -529,7 +529,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$too_long = str_repeat( 'a', self::$phpass_length_limit + 1 );
 
 		// Set the user password with the old phpass algorithm.
-		self::set_password_with_phpass( $too_long, self::$user_id );
+		self::set_user_password_with_phpass( $too_long, self::$user_id );
 
 		$user = get_user_by( 'id', self::$user_id );
 		// Password broken by setting it to be too long.
@@ -861,14 +861,52 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertEmpty( $activation_key_from_database, 'The `user_activation_key` was not empty in the database.' );
 	}
 
+	public function test_phpass_password_is_rehashed_after_successful_application_password_authentication() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		$password = 'password';
+
+		// Set an application password with the old phpass algorithm.
+		$uuid = self::set_application_password_with_phpass( $password, self::$user_id );
+
+		// Verify that the password is hashed with phpass.
+		$hash = WP_Application_Passwords::get_user_application_password( self::$user_id, $uuid )['password'];
+		$this->assertStringStartsWith( '$P$', $hash );
+		$this->assertTrue( wp_password_needs_rehash( $hash ) );
+		$this->assertTrue( WP_Application_Passwords::is_in_use() );
+
+		// Authenticate.
+		$user = wp_authenticate_application_password( null, self::USER_LOGIN, $password );
+
+		// Verify that the phpass password hash was valid.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+
+		// Verify that the password has been rehashed with bcrypt.
+		$hash = WP_Application_Passwords::get_user_application_password( self::$user_id, $uuid )['password'];
+		$this->assertStringStartsWith( '$2y$', $hash );
+		$this->assertFalse( wp_password_needs_rehash( $hash ) );
+		$this->assertTrue( WP_Application_Passwords::is_in_use() );
+
+		// Authenticate a second time to ensure the new hash is valid.
+		$user = wp_authenticate_application_password( null, self::USER_LOGIN, $password );
+
+		// Verify that the bcrypt password hash is valid.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+	}
+
 	/**
 	 * @dataProvider data_usernames
 	 */
-	public function test_phpass_password_is_rehashed_after_successful_authentication( $username_or_email ) {
+	public function test_phpass_password_is_rehashed_after_successful_user_password_authentication( $username_or_email ) {
 		$password = 'password';
 
 		// Set the user password with the old phpass algorithm.
-		self::set_password_with_phpass( $password, self::$user_id );
+		self::set_user_password_with_phpass( $password, self::$user_id );
 
 		// Verify that the password is hashed with phpass.
 		$hash = get_userdata( self::$user_id )->user_pass;
@@ -1430,21 +1468,21 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * Test the tests
 	 *
-	 * @covers Tests_Auth::set_password_with_phpass
+	 * @covers Tests_Auth::set_user_password_with_phpass
 	 *
 	 * @ticket 21022
 	 * @ticket 50027
 	 */
-	public function test_set_password_with_phpass() {
+	public function test_set_user_password_with_phpass() {
 		// Set the user password with the old phpass algorithm.
-		self::set_password_with_phpass( 'password', self::$user_id );
+		self::set_user_password_with_phpass( 'password', self::$user_id );
 
 		// Ensure the password is hashed with phpass.
 		$hash = get_userdata( self::$user_id )->user_pass;
 		$this->assertStringStartsWith( '$P$', $hash );
 	}
 
-	private static function set_password_with_phpass( string $password, int $user_id ) {
+	private static function set_user_password_with_phpass( string $password, int $user_id ) {
 		global $wpdb;
 
 		$wpdb->update(
@@ -1457,6 +1495,50 @@ class Tests_Auth extends WP_UnitTestCase {
 			)
 		);
 		clean_user_cache( $user_id );
+	}
+
+	/**
+	 * Test the tests
+	 *
+	 * @covers Tests_Auth::set_application_password_with_phpass
+	 *
+	 * @ticket 21022
+	 * @ticket 50027
+	 */
+	public function test_set_application_password_with_phpass() {
+		// Set an application password with the old phpass algorithm.
+		$uuid = self::set_application_password_with_phpass( 'password', self::$user_id );
+
+		// Ensure the password is hashed with phpass.
+		$hash = WP_Application_Passwords::get_user_application_password( self::$user_id, $uuid )['password'];
+		$this->assertStringStartsWith( '$P$', $hash );
+	}
+
+	private static function set_application_password_with_phpass( string $password, int $user_id ) {
+		$uuid = wp_generate_uuid4();
+		$item = array(
+			'uuid'      => $uuid,
+			'app_id'    => '',
+			'name'      => 'Test',
+			'password'  => self::$wp_hasher->HashPassword( $password ),
+			'created'   => time(),
+			'last_used' => null,
+			'last_ip'   => null,
+		);
+
+		$saved = update_user_meta(
+			$user_id,
+			WP_Application_Passwords::USERMETA_KEY_APPLICATION_PASSWORDS,
+			array( $item ),
+		);
+
+		if ( ! $saved ) {
+			throw new Exception( 'Could not save application password.' );
+		}
+
+		update_network_option( get_main_network_id(), WP_Application_Passwords::OPTION_KEY_IN_USE, true );
+
+		return $uuid;
 	}
 
 	private static function get_default_bcrypt_cost() {

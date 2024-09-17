@@ -279,22 +279,17 @@ class WP_Application_Passwords {
 			}
 
 			if ( ! empty( $update['name'] ) ) {
-				$update['name'] = sanitize_text_field( $update['name'] );
+				$item['name'] = sanitize_text_field( $update['name'] );
 			}
 
-			$save = false;
-
-			if ( ! empty( $update['name'] ) && $item['name'] !== $update['name'] ) {
-				$item['name'] = $update['name'];
-				$save         = true;
+			if ( ! empty( $update['password'] ) ) {
+				$item['password'] = $update['password'];
 			}
 
-			if ( $save ) {
-				$saved = static::set_user_application_passwords( $user_id, $passwords );
+			$saved = static::set_user_application_passwords( $user_id, $passwords );
 
-				if ( ! $saved ) {
-					return new WP_Error( 'db_error', __( 'Could not save application password.' ) );
-				}
+			if ( ! $saved ) {
+				return new WP_Error( 'db_error', __( 'Could not save application password.' ) );
 			}
 
 			/**
