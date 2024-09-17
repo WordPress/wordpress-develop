@@ -195,7 +195,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'categories',
 				'categories_exclude',
 				'context',
-				'exact_search',
 				'exclude',
 				'include',
 				'modified_after',
@@ -207,6 +206,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'per_page',
 				'search',
 				'search_columns',
+				'search_semantics',
 				'slug',
 				'status',
 				'sticky',
@@ -790,10 +790,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
-		$request                 = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request['search']       = $search_term;
-		$request['exact_search'] = $exact_search;
-		$response                = rest_get_server()->dispatch( $request );
+		$request           = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request['search'] = $search_term;
+		if ( $exact_search ) {
+			$request['search_semantics'] = 'exact';
+		}
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( $expected, $response->get_data() );
 	}
 

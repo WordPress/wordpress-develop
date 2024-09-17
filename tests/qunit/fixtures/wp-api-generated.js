@@ -362,9 +362,12 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
-                        "exact_search": {
-                            "description": "Use exact search instead of full search.",
-                            "type": "boolean",
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -1724,9 +1727,12 @@ mockedApiResponse.Schema = {
                             "type": "integer",
                             "required": false
                         },
-                        "exact_search": {
-                            "description": "Use exact search instead of full search.",
-                            "type": "boolean",
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -2830,9 +2836,12 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
-                        "exact_search": {
-                            "description": "Use exact search instead of full search.",
-                            "type": "boolean",
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -3586,9 +3595,12 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
-                        "exact_search": {
-                            "description": "Use exact search instead of full search.",
-                            "type": "boolean",
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -4402,9 +4414,12 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
-                        "exact_search": {
-                            "description": "Use exact search instead of full search.",
-                            "type": "boolean",
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -7020,9 +7035,12 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
-                        "exact_search": {
-                            "description": "Use exact search instead of full search.",
-                            "type": "boolean",
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -7842,9 +7860,12 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
-                        "exact_search": {
-                            "description": "Use exact search instead of full search.",
-                            "type": "boolean",
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -8052,9 +8073,12 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
-                        "exact_search": {
-                            "description": "Use exact search instead of full search.",
-                            "type": "boolean",
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {

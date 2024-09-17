@@ -245,7 +245,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$parameter_mappings = array(
 			'author'         => 'author__in',
 			'author_exclude' => 'author__not_in',
-			'exact_search'   => 'exact',
 			'exclude'        => 'post__not_in',
 			'include'        => 'post__in',
 			'menu_order'     => 'menu_order',
@@ -336,6 +335,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				 */
 				$args['post__not_in'] = array_merge( $args['post__not_in'], $sticky_posts );
 			}
+		}
+
+		if (
+			isset( $registered['search_semantics'], $request['search_semantics'] )
+			&& 'exact' === $request['search_semantics']
+		) {
+			$args['exact'] = true;
 		}
 
 		$args = $this->prepare_tax_query( $args, $request );
@@ -2887,9 +2893,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$query_params['exact_search'] = array(
-			'description' => __( 'Use exact search instead of full search.' ),
-			'type'        => 'boolean',
+		$query_params['search_semantics'] = array(
+			'description' => __( 'How to interpret the search input.' ),
+			'type'        => 'string',
+			'enum'        => array( 'exact' ),
 		);
 
 		$query_params['offset'] = array(
