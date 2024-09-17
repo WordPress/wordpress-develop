@@ -155,7 +155,6 @@ class WP_Roles {
 	 *                             e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
 	 *                             Also supports an array of capabilities assumed to be granted.
 	 *                             Default empty array.
-	 *
 	 * @return WP_Role|void WP_Role object, if the role is added.
 	 */
 	public function add_role( $role, $display_name, $capabilities = array() ) {

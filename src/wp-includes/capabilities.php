@@ -1028,7 +1028,6 @@ function get_role( $role ) {
  * @param bool[]|string[] $capabilities List of capabilities keyed by the capability name,
  *                             e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
  *                             Also supports an array of capabilities assumed to be granted.
- *
  * @return WP_Role|void WP_Role object, if the role is added.
  */
 function add_role( $role, $display_name, $capabilities = array() ) {
