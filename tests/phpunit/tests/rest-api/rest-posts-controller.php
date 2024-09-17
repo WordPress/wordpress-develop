@@ -793,7 +793,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request                 = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request['search']       = $search_term;
 		$request['exact_search'] = $exact_search;
-		$response = rest_get_server()->dispatch( $request );
+		$response                = rest_get_server()->dispatch( $request );
 		$this->assertCount( $expected, $response->get_data() );
 	}
 
