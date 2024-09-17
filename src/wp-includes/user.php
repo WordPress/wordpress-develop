@@ -2137,18 +2137,18 @@ function wp_insert_user( $userdata ) {
 	} else {
 		$update = false;
 
-        /**
-         * Filters a password before hashing it.
-         *
-         * @since 6.7.0
-         *
-         * @param string $userdata['user_pass'] The user's password.
-         */
-        $pre_hash_password = apply_filters( 'pre_hash_password', $userdata['user_pass'] );
+		/**
+		 * Filters a password before hashing it.
+		 *
+		 * @since 6.7.0
+		 *
+		 * @param string $userdata['user_pass'] The user's password.
+		 */
+		$pre_hash_password = apply_filters( 'pre_hash_password', $userdata['user_pass'] );
 
-        if ( empty( $pre_hash_password ) ) {
-            return new WP_Error( 'empty_pre_hash_password', __( 'Cannot create a user with an empty password.' ) );
-        }
+		if ( empty( $pre_hash_password ) ) {
+			return new WP_Error( 'empty_pre_hash_password', __( 'Cannot create a user with an empty password.' ) );
+		}
 
 		// Hash the password.
 		$user_pass = wp_hash_password( $pre_hash_password );
@@ -2606,16 +2606,16 @@ function wp_update_user( $userdata ) {
 
 	if ( ! empty( $userdata['user_pass'] ) && $userdata['user_pass'] !== $user_obj->user_pass ) {
 
-        /** This filter is documented in wp-includes/user.php */
-        $pre_hash_password = apply_filters( 'pre_hash_password', $userdata['user_pass'] );
+		/** This filter is documented in wp-includes/user.php */
+		$pre_hash_password = apply_filters( 'pre_hash_password', $userdata['user_pass'] );
 
-        if ( empty( $pre_hash_password ) ) {
-            return new WP_Error( 'empty_pre_hash_password', __( 'Empty password.' ) );
-        }
+		if ( empty( $pre_hash_password ) ) {
+			return new WP_Error( 'empty_pre_hash_password', __( 'Empty password.' ) );
+		}
 
-        if ( false !== strpos( $pre_hash_password, '\\' ) ) {
-            return new WP_Error( 'illegal_pre_hash_password', __( 'Passwords may not contain the character "\\".' ) );
-        }
+		if ( false !== strpos( $pre_hash_password, '\\' ) ) {
+			return new WP_Error( 'illegal_pre_hash_password', __( 'Passwords may not contain the character "\\".' ) );
+		}
 
 		// If password is changing, hash it now.
 		$plaintext_pass        = $pre_hash_password;
