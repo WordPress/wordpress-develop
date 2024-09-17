@@ -56,9 +56,11 @@ class Tests_XMLRPC_Message extends WP_UnitTestCase {
 			}
 		};
 
-		$this->assertTrue( $message->parse() );
-		$this->assertSame( 4, $message->tag_open_call_counter );
-		$this->assertSame( 4, $message->tag_close_call_counter );
-		$this->assertSame( 1, $message->cdata_call_counter );
+		$this->assertTrue( $message->parse(), 'XML parsing failed' );
+
+		$msg = '%s() handler did not get called expected nr of times';
+		$this->assertSame( 4, $message->tag_open_call_counter, sprintf( $msg, 'tag_open' ) );
+		$this->assertSame( 4, $message->tag_close_call_counter, sprintf( $msg, 'tag_close' ) );
+		$this->assertSame( 1, $message->cdata_call_counter, sprintf( $msg, 'cdata' ) );
 	}
 }
