@@ -70,6 +70,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	 * @ticket 60175
 	 * @ticket 61123
 	 * @ticket 61720
+	 * @ticket 61858
 	 *
 	 * @covers ::wp_render_background_support
 	 *
@@ -154,7 +155,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 					'backgroundSize'       => 'contain',
 					'backgroundAttachment' => 'fixed',
 				),
-				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&#039;https://example.com/image.jpg&#039;);background-position:center;background-repeat:no-repeat;background-size:contain;background-attachment:fixed;">Content</div>',
+				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&#039;https://example.com/image.jpg&#039;);background-position:50% 50%;background-repeat:no-repeat;background-size:contain;background-attachment:fixed;">Content</div>',
 				'wrapper'             => '<div>Content</div>',
 			),
 			'background image style is appended if a style attribute already exists' => array(

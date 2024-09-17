@@ -6002,7 +6002,7 @@ function wp_update_https_detection_errors() {
 	 */
 	$support_errors = apply_filters( 'pre_wp_update_https_detection_errors', null );
 	if ( is_wp_error( $support_errors ) ) {
-		update_option( 'https_detection_errors', $support_errors->errors );
+		update_option( 'https_detection_errors', $support_errors->errors, false );
 		return;
 	}
 
@@ -6386,4 +6386,22 @@ function wp_enqueue_global_styles_custom_css() {
 	if ( ! empty( $custom_css ) ) {
 		wp_add_inline_style( 'global-styles', $custom_css );
 	}
+}
+
+/**
+ * Generate block style variation instance name.
+ *
+ * @since 6.6.0
+ * @deprecated 6.7.0 Use `wp_unique_id( $variation . '--' )` instead.
+ *
+ * @access private
+ *
+ * @param array  $block     Block object.
+ * @param string $variation Slug for the block style variation.
+ *
+ * @return string The unique variation name.
+ */
+function wp_create_block_style_variation_instance_name( $block, $variation ) {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_unique_id' );
+	return $variation . '--' . md5( serialize( $block ) );
 }

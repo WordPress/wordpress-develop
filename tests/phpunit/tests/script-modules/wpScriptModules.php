@@ -701,39 +701,6 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60348
-	 *
-	 * @covers ::print_import_map_polyfill()
-	 */
-	public function test_wp_print_import_map_has_no_polyfill_when_no_modules_registered() {
-		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map' ) );
-
-		$this->assertSame( '', $import_map_polyfill );
-	}
-
-	/**
-	 * @ticket 60348
-	 *
-	 * @covers ::print_import_map_polyfill()
-	 */
-	public function test_wp_print_import_map_has_polyfill_when_modules_registered() {
-		$script_name = 'wp-polyfill-importmap';
-		wp_register_script( $script_name, '/wp-polyfill-importmap.js' );
-
-		$this->script_modules->enqueue( 'foo', '/foo.js', array( 'dep' ), '1.0' );
-		$this->script_modules->register( 'dep', '/dep.js' );
-		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map' ) );
-
-		wp_deregister_script( $script_name );
-
-		$p = new WP_HTML_Tag_Processor( $import_map_polyfill );
-		$p->next_tag( array( 'tag' => 'SCRIPT' ) );
-		$id = $p->get_attribute( 'id' );
-
-		$this->assertSame( 'wp-load-polyfill-importmap', $id );
-	}
-
-	/**
 	 * @ticket 61510
 	 */
 	public function test_print_script_module_data_prints_enqueued_module_data() {
