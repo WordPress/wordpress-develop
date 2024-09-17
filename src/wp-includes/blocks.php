@@ -1687,10 +1687,11 @@ function resolve_pattern_blocks( $blocks ) {
  * @return string Serialized block markup.
  */
 function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_callback = null ) {
-	$result       = '';
-	$parent_block = null; // At the top level, there is no parent block to pass to the callbacks; yet the callbacks expect a reference.
-	$pre_callback_is_callable = is_callable( $pre_callback );
+	$pre_callback_is_callable  = is_callable( $pre_callback );
 	$post_callback_is_callable = is_callable( $post_callback );
+	$result                    = '';
+	$parent_block              = null; // At the top level, there is no parent block to pass to the callbacks; yet the callbacks expect a reference.
+
 	foreach ( $blocks as $index => $block ) {
 		if ( $pre_callback_is_callable ) {
 			$prev = 0 === $index
