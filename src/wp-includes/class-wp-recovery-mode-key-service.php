@@ -151,8 +151,8 @@ final class WP_Recovery_Mode_Key_Service {
 	 * Gets the recovery key records.
 	 *
 	 * @since 5.2.0
-	 * @since x.y.z Each key should now be hashed using bcrypt instead of phpass, but
-	 *              existing keys may still be hashed using phpass.
+	 * @since x.y.z Each key is now hashed using bcrypt instead of phpass.
+	 *              Existing keys may still be hashed using phpass.
 	 *
 	 * @return array {
 	 *     Associative array of token => data pairs, where the data is an associative

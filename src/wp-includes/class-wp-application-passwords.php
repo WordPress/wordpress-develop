@@ -306,8 +306,8 @@ class WP_Application_Passwords {
 			 * Fires when an application password is updated.
 			 *
 			 * @since 5.6.0
-			 * @since x.y.z The password is now hashed using bcrypt instead of phpass, but
-			 *              existing passwords may still be hashed using phpass.
+			 * @since x.y.z The password is now hashed using bcrypt instead of phpass.
+			 *              Existing passwords may still be hashed using phpass.
 			 *
 			 * @param int   $user_id The user ID.
 			 * @param array $item    {
