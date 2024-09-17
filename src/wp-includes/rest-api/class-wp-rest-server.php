@@ -628,8 +628,6 @@ class WP_REST_Server {
 			return array();
 		}
 
-		$server = rest_get_server();
-
 		// Convert links to part of the data.
 		$data = array();
 		foreach ( $links as $rel => $items ) {
@@ -644,30 +642,9 @@ class WP_REST_Server {
 					continue;
 				}
 
-				// Prefer targetHints that were specifically designated by the developer.
-				if ( isset( $attributes['targetHints']['allow'] ) ) {
-					$data[ $rel ][] = $attributes;
-					continue;
-				}
-
-				$request = WP_REST_Request::from_url( $item['href'] );
-				if ( ! $request ) {
-					$data[ $rel ][] = $attributes;
-					continue;
-				}
-
-				$match = $server->match_request_to_handler( $request );
-				if ( ! is_wp_error( $match ) ) {
-					$response = new WP_REST_Response();
-					$response->set_matched_route( $match[0] );
-					$response->set_matched_handler( $match[1] );
-					$headers = rest_send_allow_header( $response, $server, $request )->get_headers();
-
-					foreach ( $headers as $name => $value ) {
-						$name = WP_REST_Request::canonicalize_header_name( $name );
-
-						$attributes['targetHints'][ $name ] = array_map( 'trim', explode( ',', $value ) );
-					}
+				$target_hints = self::get_target_hints_for_link( $item['href'] );
+				if ( $target_hints ) {
+					$attributes['targetHints'] = $target_hints;
 				}
 
 				$data[ $rel ][] = $attributes;
@@ -675,6 +652,57 @@ class WP_REST_Server {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Gets the target links for a REST API Link.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param array $link
+	 *
+	 * @return array|null
+	 */
+	protected static function get_target_hints_for_link( $link ) {
+		// Prefer targetHints that were specifically designated by the developer.
+		if ( isset( $link['targetHints']['allow'] ) ) {
+			return null;
+		}
+
+		$request = WP_REST_Request::from_url( $link['href'] );
+		if ( ! $request ) {
+			return null;
+		}
+
+		$server = rest_get_server();
+		$match = $server->match_request_to_handler( $request );
+
+		if ( is_wp_error( $match ) ) {
+			return null;
+		}
+
+		if ( is_wp_error( $request->has_valid_params() ) ) {
+			return null;
+		}
+
+		if ( is_wp_error( $request->sanitize_params() ) ) {
+			return null;
+		}
+
+		$target_hints = array();
+
+		$response = new WP_REST_Response();
+		$response->set_matched_route( $match[0] );
+		$response->set_matched_handler( $match[1] );
+		$headers = rest_send_allow_header( $response, $server, $request )->get_headers();
+
+		foreach ( $headers as $name => $value ) {
+			$name = WP_REST_Request::canonicalize_header_name( $name );
+
+			$target_hints[ $name ] = array_map( 'trim', explode( ',', $value ) );
+		}
+
+		return $target_hints;
 	}
 
 	/**
