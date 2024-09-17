@@ -1154,7 +1154,9 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 42790
 	 */
 	public function test_authenticate_application_password_respects_existing_user() {
-		$this->assertSame( self::$_user, wp_authenticate_application_password( self::$_user, self::$_user->user_login, 'password' ) );
+		$user = wp_authenticate_application_password( self::$_user, self::$_user->user_login, 'password' );
+		$this->assertNotWPError( $user );
+		$this->assertSame( self::$_user, $user );
 	}
 
 	/**
@@ -1163,7 +1165,9 @@ class Tests_Auth extends WP_UnitTestCase {
 	public function test_authenticate_application_password_is_rejected_if_not_api_request() {
 		add_filter( 'application_password_is_api_request', '__return_false' );
 
-		$this->assertNull( wp_authenticate_application_password( null, self::$_user->user_login, 'password' ) );
+		$user = wp_authenticate_application_password( null, self::$_user->user_login, 'password' );
+		$this->assertNotWPError( $user );
+		$this->assertNull( $user );
 	}
 
 	/**
@@ -1256,6 +1260,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		list( $password ) = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'phpunit' ) );
 
 		$user = wp_authenticate_application_password( null, self::$_user->user_login, $password );
+		$this->assertNotWPError( $user );
 		$this->assertInstanceOf( WP_User::class, $user );
 		$this->assertSame( self::$user_id, $user->ID );
 	}
@@ -1270,6 +1275,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		list( $password ) = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'phpunit' ) );
 
 		$user = wp_authenticate_application_password( null, self::$_user->user_email, $password );
+		$this->assertNotWPError( $user );
 		$this->assertInstanceOf( WP_User::class, $user );
 		$this->assertSame( self::$user_id, $user->ID );
 	}
@@ -1284,6 +1290,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		list( $password ) = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'phpunit' ) );
 
 		$user = wp_authenticate_application_password( null, self::$_user->user_email, WP_Application_Passwords::chunk_password( $password ) );
+		$this->assertNotWPError( $user );
 		$this->assertInstanceOf( WP_User::class, $user );
 		$this->assertSame( self::$user_id, $user->ID );
 	}
@@ -1295,6 +1302,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		delete_site_option( 'using_application_passwords' );
 
 		$authenticated = wp_authenticate_application_password( null, 'idonotexist', 'password' );
+		$this->assertNotWPError( $authenticated );
 		$this->assertNull( $authenticated );
 	}
 
