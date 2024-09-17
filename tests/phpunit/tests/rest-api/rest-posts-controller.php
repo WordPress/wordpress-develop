@@ -2179,8 +2179,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_item_permissions_check_while_updating_password() {
 		$endpoint = new WP_REST_Posts_Controller( 'post' );
 
-		$request_with_post_password = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
-		$request_with_post_password->set_body_params(
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_url_params( array( 'id' => self::$post_id ) );
+		$request->set_body_params(
 			$this->set_post_data(
 				array(
 					'id'       => self::$post_id,
@@ -2188,7 +2189,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				)
 			)
 		);
-		$permission = $endpoint->get_item_permissions_check( $request_with_post_password );
+		$permission = $endpoint->get_item_permissions_check( $request );
 
 		// Password provided in POST data, password check should not kick in.
 		$this->assertNotInstanceOf( 'WP_Error', $permission, 'Password should be ignored by permissions check if provided in post body.' );
@@ -2201,8 +2202,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_item_permissions_check_while_updating_password_with_invalid_type() {
 		$endpoint = new WP_REST_Posts_Controller( 'post' );
 
-		$request_with_post_password = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
-		$request_with_post_password->set_body_params(
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_url_params( array( 'id' => self::$post_id ) );
+		$request->set_body_params(
 			$this->set_post_data(
 				array(
 					'id'       => self::$post_id,
@@ -2210,7 +2212,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				)
 			)
 		);
-		$permission = $endpoint->get_item_permissions_check( $request_with_post_password );
+		$permission = $endpoint->get_item_permissions_check( $request );
 
 		$this->assertNotInstanceOf( 'WP_Error', $permission, 'Password should be ignored by permissions chedk even if invalid type' );
 		$this->assertTrue( $permission );
