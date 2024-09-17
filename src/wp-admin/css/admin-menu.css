@@ -11,6 +11,9 @@
 	top: 0;
 	bottom: -120px;
 	z-index: 1; /* positive z-index to avoid elastic scrolling woes in Safari */
+
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
 .php-error #adminmenuback {

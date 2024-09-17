@@ -97,6 +97,9 @@ html:lang(he-il) .rtl #wpadminbar * {
 	min-width: 600px; /* match the min-width of the body in wp-admin/css/common.css */
 	z-index: 99999;
 	background: #1d2327;
+
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
 #wpadminbar .ab-sub-wrapper,
