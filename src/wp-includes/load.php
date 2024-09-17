@@ -585,7 +585,7 @@ function wp_debug_mode() {
 		error_reporting( E_ALL );
 
 		if ( WP_DEBUG_DISPLAY ) {
-			if ( function_exists('ini_set') ) {
+			if ( function_exists( 'ini_set' ) ) {
 				ini_set( 'display_errors', 1 );
 			}
 		} elseif ( null !== WP_DEBUG_DISPLAY ) {
