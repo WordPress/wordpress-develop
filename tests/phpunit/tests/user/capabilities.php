@@ -992,13 +992,14 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test add_role with implied capabilities grant 
-	 * successfully grants capabilities.
+	 * Test add_role with implied capabilities grant successfully grants capabilities.
 	 */
 	public function test_add_role_with_single_level_capabilities() {
-		global $wp_roles;
 		$role_name = 'janitor';
-		add_role( $role_name, 'Janitor', array( 'level_1', 'sweep_floors' => false ) );
+		add_role( $role_name, 'Janitor', array( 
+			'level_1', 
+			'sweep_floors' => false 
+		) );
 		$this->flush_roles();
 
 		// Assign a user to that role.
@@ -1007,7 +1008,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$this->assertTrue( $user->has_cap( 'level_1' ) );
 		$this->assertFalse( $user->has_cap( 'sweep_floors' ) );
-
 	}
 
 	/**
