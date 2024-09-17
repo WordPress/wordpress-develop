@@ -96,7 +96,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'args'                => array(
 						'id' => array(
-							'description'       => __( 'The id of a template' ),
+							'description'       => __( 'ID of global styles config.' ),
 							'type'              => 'integer',
 							'sanitize_callback' => array( $this, '_sanitize_global_styles_callback' ),
 						),
