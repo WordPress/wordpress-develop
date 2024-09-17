@@ -642,7 +642,7 @@ class WP_REST_Server {
 					continue;
 				}
 
-				$target_hints = self::get_target_hints_for_link( $item['href'] );
+				$target_hints = self::get_target_hints_for_link( $attributes );
 				if ( $target_hints ) {
 					$attributes['targetHints'] = $target_hints;
 				}
@@ -675,7 +675,7 @@ class WP_REST_Server {
 		}
 
 		$server = rest_get_server();
-		$match = $server->match_request_to_handler( $request );
+		$match  = $server->match_request_to_handler( $request );
 
 		if ( is_wp_error( $match ) ) {
 			return null;
