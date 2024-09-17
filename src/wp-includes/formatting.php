@@ -762,8 +762,8 @@ function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
 	// Optimize when searching for one item.
 	if ( 1 === count( $replace_pairs ) ) {
 		// Extract $needle and $replace.
-		foreach ( $replace_pairs as $needle => $replace ) {
-		}
+		$needle  = array_key_first( $replace_pairs );
+		$replace = $replace_pairs[ $needle ];
 
 		// Loop through delimiters (elements) only.
 		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) {
@@ -5499,11 +5499,11 @@ function normalize_whitespace( $str ) {
 }
 
 /**
- * Properly strips all HTML tags including script and style
+ * Properly strips all HTML tags including 'script' and 'style'.
  *
  * This differs from strip_tags() because it removes the contents of
  * the `<script>` and `<style>` tags. E.g. `strip_tags( '<script>something</script>' )`
- * will return 'something'. wp_strip_all_tags will return ''
+ * will return 'something'. wp_strip_all_tags() will return an empty string.
  *
  * @since 2.9.0
  *

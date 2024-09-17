@@ -355,7 +355,7 @@ function _get_block_template_file( $template_type, $slug ) {
  *     @type string   $post_type    Post type to get the templates for.
  * }
  *
- * @return array Template
+ * @return array|null Template files on success, null if `$template_type` is not matched.
  */
 function _get_block_templates_files( $template_type, $query = array() ) {
 	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
@@ -1149,7 +1149,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 
 	if ( ! isset( $query['wp_id'] ) ) {
 		/*
-		 * If the query has found some use templates, those have priority
+		 * If the query has found some user templates, those have priority
 		 * over the theme-provided ones, so we skip querying and building them.
 		 */
 		$query['slug__not_in'] = wp_list_pluck( $query_result, 'slug' );
@@ -1600,6 +1600,10 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated = null ) {
 	if ( null !== $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '6.5.3' );
+	}
+
+	if ( ! isset( $changes->post_content ) ) {
+		return $changes;
 	}
 
 	$hooked_blocks = get_hooked_blocks();
