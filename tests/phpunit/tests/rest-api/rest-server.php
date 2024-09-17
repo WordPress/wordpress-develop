@@ -2466,7 +2466,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$links = rest_get_server()::get_response_links( $response );
 
-		$this->assertArrayHasKey( 'self', $links['self'] );
+		$this->assertArrayHasKey( 'self', $links );
 		$this->assertArrayNotHasKey( 'targetHints', $links['self'][0] );
 	}
 
