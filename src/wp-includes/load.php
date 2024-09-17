@@ -1508,6 +1508,9 @@ function wp_load_translations_early() {
 	require_once ABSPATH . WPINC . '/class-wp-locale.php';
 	require_once ABSPATH . WPINC . '/class-wp-locale-switcher.php';
 
+	// For sanitize_locale_name().
+	require_once ABSPATH . WPINC . '/formatting.php';
+
 	// General libraries.
 	require_once ABSPATH . WPINC . '/plugin.php';
 
@@ -1529,6 +1532,9 @@ function wp_load_translations_early() {
 		if ( isset( $wp_local_package ) ) {
 			$locales[] = $wp_local_package;
 		}
+
+		// Try the browser's locale
+		$locales = array_merge( $locales, get_locales_from_accept_language_header() );
 
 		if ( ! $locales ) {
 			break;

@@ -619,4 +619,163 @@ class Tests_L10n extends WP_UnitTestCase {
 
 		$this->assertSame( $expect, $comment_excerpt );
 	}
+
+	/**
+	 * @ticket 30049
+	 *
+	 * @covers ::get_locales_from_accept_language_header
+	 *
+	 * @dataProvider data_get_locales_from_accept_language_header
+	 */
+	public function test_get_locales_from_accept_language_header( $input, $expected, $has_transient = false ) {
+		if ( 'missing' === $input ) {
+			unset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] );
+		} else {
+			$_SERVER['HTTP_ACCEPT_LANGUAGE'] = $input;
+		}
+
+		if ( $has_transient ) {
+			// Fetches available translations and stores them in a transient.
+			require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+
+			wp_get_available_translations();
+		} else {
+			delete_site_transient( 'available_translations' );
+			wp_cache_delete( 'available_translations', 'site-transient' );
+		}
+
+		$actual = get_locales_from_accept_language_header();
+
+		unset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] );
+
+		$this->assertSame( $expected, $actual, 'Parsed locales list does not expect actual list' );
+	}
+
+	public static function data_get_locales_from_accept_language_header() {
+		return array(
+			'Missing header'                          => array(
+				'missing', // Will be handled specially in the test.
+				array(),
+			),
+			'Null header'                             => array(
+				null,
+				array(),
+			),
+			'Empty header'                            => array(
+				false,
+				array(),
+			),
+			'Invalid type'                            => array(
+				array(),
+				array(),
+			),
+			'Wildcard'                                => array(
+				'*',
+				array(),
+			),
+			'Two-letter locales'                      => array(
+				'de, fr, el, bn, ky',
+				array(
+					'de',
+					'de_DE',
+					'fr',
+					'fr_FR',
+					'el',
+					'el_EL',
+					'bn',
+					'bn_BN',
+					'ky',
+					'ky_KY',
+				),
+			),
+			'Two-letter locales, with transient'      => array(
+				'de, fr, el, bn, ky',
+				array(
+					'de_AT',
+					'de_CH',
+					'de_CH_informal',
+					'de_DE',
+					'de_DE_formal',
+					'fr_BE',
+					'fr_CA',
+					'fr_FR',
+					'el',
+					'bn_BD',
+					'kir',
+				),
+				true,
+			),
+			// en-GB-oxendict is supported by Chrome, ca-valencia by Firefox.
+			'Longer variants'                         => array(
+				'en-GB-oxendict, de-DE, ca-valencia, ca',
+				array(
+					'en_GB_oxendict',
+					'de_DE',
+					'ca_valencia',
+					'ca',
+					'ca_CA',
+				),
+			),
+			'Longer variants, with transient'         => array(
+				'en-GB-oxendict, de-DE, ca-valencia, ca',
+				array(
+					'de_DE',
+					// Absent because there is no language pack for ca_valencia yet, see https://make.wordpress.org/polyglots/teams/.
+					//'ca_valencia',
+					'ca',
+				),
+				true,
+			),
+			'Multiple types, weighed'                 => array(
+				'fr-BE, fr;q=0.7, en;q=0.6, de;q=0.8, es-ES;q=0.5',
+				array(
+					'fr_BE',
+					'de',
+					'de_DE',
+					'fr',
+					'fr_FR',
+				),
+			),
+			'Multiple types, weighed, with transient' => array(
+				'fr-BE, fr;q=0.7, en;q=0.6, de;q=0.8, es-ES;q=0.5',
+				array(
+					'fr_BE',
+					'de_AT',
+					'de_CH',
+					'de_CH_informal',
+					'de_DE',
+					'de_DE_formal',
+					'fr_BE',
+					'fr_CA',
+					'fr_FR',
+				),
+				true,
+			),
+			'Multiple types, weighed, with wildcard'  => array(
+				'fr-BE, fr;q=0.7, *;q=0.6, de;q=0.8, es-ES;q=0.5',
+				array(
+					'fr_BE',
+					'de',
+					'de_DE',
+					'fr',
+					'fr_FR',
+				),
+			),
+			'Multiple types, weighed, with wildcard, with transient' => array(
+				'fr-BE, fr;q=0.7, *;q=0.6, de;q=0.8, es-ES;q=0.5',
+				array(
+					'fr_BE',
+					'de_AT',
+					'de_CH',
+					'de_CH_informal',
+					'de_DE',
+					'de_DE_formal',
+					'fr_BE',
+					'fr_CA',
+					'fr_FR',
+				),
+				true,
+			),
+		);
+	}
 }
