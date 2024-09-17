@@ -17,12 +17,13 @@ const {
 	getBaseConfig,
 	normalizeJoin,
 	MODULES,
+	SCRIPT_AND_MODULE_DUAL_PACKAGES,
 	WORDPRESS_NAMESPACE,
 } = require( './shared' );
 
 /** @type {Map<string, string>} */
 const scriptModules = new Map();
-for ( const packageName of MODULES ) {
+for ( const packageName of MODULES.concat( SCRIPT_AND_MODULE_DUAL_PACKAGES ) ) {
 	const packageRequire = createRequire(
 		`${dirname( require.resolve( `${ packageName }/package.json` ) )}/`
 	);
@@ -102,6 +103,8 @@ module.exports = function (
 			...baseConfig.plugins,
 			new DependencyExtractionPlugin( {
 				injectPolyfill: false,
+				combineAssets: true,
+				combinedOutputFile: `../../../assets/script-modules-packages${ suffix }.php`,
 			} ),
 		],
 	};
