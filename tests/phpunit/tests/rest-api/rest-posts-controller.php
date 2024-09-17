@@ -2192,7 +2192,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$permission = $endpoint->get_item_permissions_check( $request );
 
 		// Password provided in POST data, password check should not kick in.
-		$this->assertNotInstanceOf( 'WP_Error', $permission, 'Password should be ignored by permissions check if provided in post body.' );
+		$this->assertNotWPError( $permission, 'Password should be ignored by permissions check if provided in post body.' );
 		$this->assertTrue( $permission );
 	}
 
@@ -2214,7 +2214,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		$permission = $endpoint->get_item_permissions_check( $request );
 
-		$this->assertNotInstanceOf( 'WP_Error', $permission, 'Password should be ignored by permissions chedk even if invalid type' );
+		$this->assertNotWPError( $permission, 'Password in post body should be ignored by permissions check even when invalid type' );
 		$this->assertTrue( $permission );
 	}
 
