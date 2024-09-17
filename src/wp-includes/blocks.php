@@ -2434,7 +2434,6 @@ function build_query_vars_from_query_block( $block, $page ) {
 				$tax_query[] = array(
 					'taxonomy' => 'post_format',
 					'field'    => 'slug',
-					'terms'    => array(),
 					'operator' => 'NOT EXISTS',
 				);
 				// Remove the `standard` format, since it cannot be queried.
