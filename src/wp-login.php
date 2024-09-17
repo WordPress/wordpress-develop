@@ -193,6 +193,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	?>
 	</head>
 	<body class="login no-js <?php echo esc_attr( implode( ' ', $classes ) ); ?>">
+	<main role="main">
 	<script type="text/javascript">
 		document.body.className = document.body.className.replace('no-js','js');
 	</script>
@@ -206,7 +207,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 
 	?>
 	<div id="login">
-		<h1><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
+		<div class="logo"><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></div>
 	<?php
 	/**
 	 * Filters the message to display above the login form.
@@ -400,6 +401,7 @@ function login_footer( $input_id = '' ) {
 
 	?>
 	<div class="clear"></div>
+	</main>
 	</body>
 	</html>
 	<?php
@@ -956,6 +958,15 @@ switch ( $action ) {
 
 		login_header( __( 'Reset Password' ), '<p class="message reset-pass">' . __( 'Enter your new password below or generate one.' ) . '</p>', $errors );
 
+		?>
+		<?php
+		/**
+		 * Login text 
+		 * 
+		 * @since 6.4.0
+		 * @param string Displays Login text.
+		 * */
+		sprintf( '<h1>%</h1>', _( 'Login' ) );
 		?>
 		<form name="resetpassform" id="resetpassform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=resetpass', 'login_post' ) ); ?>" method="post" autocomplete="off">
 			<input type="hidden" id="user_login" value="<?php echo esc_attr( $rp_login ); ?>" autocomplete="off" />
