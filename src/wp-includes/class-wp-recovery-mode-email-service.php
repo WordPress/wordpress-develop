@@ -153,9 +153,9 @@ final class WP_Recovery_Mode_Email_Service {
 		$message = __(
 			'Howdy!
 
-WordPress has a built-in feature that detects when a plugin or theme causes a fatal error on your site, and notifies you with this automated email.
-###CAUSE###
-First, visit your website (###SITEURL###) and check for any visible issues. Next, visit the page where the error was caught (###PAGEURL###) and check for any visible issues.
+WordPress has a built-in feature that detects when a plugin or theme causes a fatal error on your website and notifies you with this automated email.
+
+Please note that there may or may not be an active issue on your website. Start with visiting your website (###SITEURL###) and check for any visible issues. If you see an issue, visit the page where the issue was caught (###PAGEURL###) and check for any errors.
 
 ###SUPPORT###
 
@@ -165,10 +165,12 @@ If your site appears broken and you can\'t access your dashboard normally, WordP
 
 To keep your site safe, this link will expire in ###EXPIRES###. Don\'t worry about that, though: a new link will be emailed to you if the error occurs again after it expires.
 
-When seeking help with this issue, you may be asked for some of the following information:
+Reach out to your host or your developer to resolve the issue. You may want to provide the following information to speed up with the resolution:
 ###DEBUG###
 
-###DETAILS###'
+###DETAILS###
+
+###CAUSE###'
 		);
 		$message = str_replace(
 			array(
