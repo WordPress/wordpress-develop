@@ -7868,7 +7868,7 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			return false;
 		}
 	} elseif ( -1 === $wp_max_limit_int || $wp_max_limit_int > $current_limit_int ) {
-		if ( function_exists('ini_set') && false !== ini_set( 'memory_limit', $wp_max_limit ) ) {
+		if ( function_exists( 'ini_set' ) && false !== ini_set( 'memory_limit', $wp_max_limit ) ) {
 			return $wp_max_limit;
 		} else {
 			return false;
