@@ -160,7 +160,7 @@
 }
 
 .screen-reader-shortcut:focus {
-	top: calc(7px - var(--wp-admin--admin-bar--height));
+	top: calc(7px - var(--wp-admin--admin-bar--height, 32px));
 	/* Overrides a:focus in the admin. See ticket #56789. */
 	color: #2271b1;
 	box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
@@ -2031,7 +2031,7 @@ p.auto-update-status {
 ------------------------------------------------------------------------------*/
 
 html.wp-toolbar {
-	padding-top: var(--wp-admin--admin-bar--height);
+	padding-top: var(--wp-admin--admin-bar--height, 32px);
 	box-sizing: border-box;
 }
 
@@ -4158,7 +4158,7 @@ img {
 	}
 
 	#wpbody {
-		padding-top: var(--wp-admin--admin-bar--height);
+		padding-top: var(--wp-admin--admin-bar--height, 32px);
 	}
 
 	/* Keep full-width boxes on Edit Post page from causing horizontal scroll */
