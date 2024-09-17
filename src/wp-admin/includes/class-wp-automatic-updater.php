@@ -1787,6 +1787,8 @@ Thanks! -- The WordPress Team"
 		if ( $is_debug ) {
 			if ( str_contains( $response['body'], '###### wp_scraping_result_start:' ) ) {
 				error_log( 'true' );
+			} else {
+				error_log( 'fatal error detected' );
 			}
 		}
 
