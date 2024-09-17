@@ -64,7 +64,6 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			),
 			$count['avail_roles']
 		);
-
 	}
 
 	/**
@@ -174,7 +173,6 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			),
 			$count['avail_roles']
 		);
-
 	}
 
 	/**
@@ -248,7 +246,6 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			),
 			$count['avail_roles']
 		);
-
 	}
 
 	/**
@@ -291,5 +288,4 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

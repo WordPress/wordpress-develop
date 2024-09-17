@@ -38,7 +38,7 @@ nocache_headers();
 if ( get_option( 'db_upgraded' ) ) {
 
 	flush_rewrite_rules();
-	update_option( 'db_upgraded', false );
+	update_option( 'db_upgraded', false, true );
 
 	/**
 	 * Fires on the next page load after a successful DB upgrade.
@@ -348,7 +348,7 @@ if ( isset( $plugin_page ) ) {
 	define( 'WP_IMPORTING', true );
 
 	/**
-	 * Whether to filter imported data through kses on import.
+	 * Filters whether to filter imported data through kses on import.
 	 *
 	 * Multisite uses this hook to filter all data through kses by default,
 	 * as a super administrator may be assisting an untrusted user.

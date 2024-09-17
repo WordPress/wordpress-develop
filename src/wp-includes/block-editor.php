@@ -11,6 +11,7 @@
  * Returns the list of default categories for block types.
  *
  * @since 5.8.0
+ * @since 6.3.0 Reusable Blocks renamed to Patterns.
  *
  * @return array[] Array of categories for block types.
  */
@@ -48,7 +49,7 @@ function get_default_block_categories() {
 		),
 		array(
 			'slug'  => 'reusable',
-			'title' => _x( 'Reusable Blocks', 'block category' ),
+			'title' => _x( 'Patterns', 'block category' ),
 			'icon'  => null,
 		),
 	);
@@ -216,13 +217,6 @@ function get_default_block_editor_settings() {
 		'allowedMimeTypes'                 => get_allowed_mime_types(),
 		'defaultEditorStyles'              => $default_editor_styles,
 		'blockCategories'                  => get_default_block_categories(),
-		'disableCustomColors'              => get_theme_support( 'disable-custom-colors' ),
-		'disableCustomFontSizes'           => get_theme_support( 'disable-custom-font-sizes' ),
-		'disableCustomGradients'           => get_theme_support( 'disable-custom-gradients' ),
-		'disableLayoutStyles'              => get_theme_support( 'disable-layout-styles' ),
-		'enableCustomLineHeight'           => get_theme_support( 'custom-line-height' ),
-		'enableCustomSpacing'              => get_theme_support( 'custom-spacing' ),
-		'enableCustomUnits'                => get_theme_support( 'custom-units' ),
 		'isRTL'                            => is_rtl(),
 		'imageDefaultSize'                 => $image_default_size,
 		'imageDimensions'                  => $image_dimensions,
@@ -233,20 +227,9 @@ function get_default_block_editor_settings() {
 		'__unstableGalleryWithImageBlocks' => true,
 	);
 
-	// Theme settings.
-	$color_palette = current( (array) get_theme_support( 'editor-color-palette' ) );
-	if ( false !== $color_palette ) {
-		$editor_settings['colors'] = $color_palette;
-	}
-
-	$font_sizes = current( (array) get_theme_support( 'editor-font-sizes' ) );
-	if ( false !== $font_sizes ) {
-		$editor_settings['fontSizes'] = $font_sizes;
-	}
-
-	$gradient_presets = current( (array) get_theme_support( 'editor-gradient-presets' ) );
-	if ( false !== $gradient_presets ) {
-		$editor_settings['gradients'] = $gradient_presets;
+	$theme_settings = get_classic_theme_supports_block_editor_settings();
+	foreach ( $theme_settings as $key => $value ) {
+		$editor_settings[ $key ] = $value;
 	}
 
 	return $editor_settings;
@@ -304,7 +287,8 @@ function get_legacy_widget_block_editor_settings() {
  * @since 6.0.0
  * @access private
  *
- * @global string $pagenow The filename of the current screen.
+ * @global WP_Styles  $wp_styles  The WP_Styles current instance.
+ * @global WP_Scripts $wp_scripts The WP_Scripts current instance.
  *
  * @return array {
  *     The block editor assets.
@@ -314,66 +298,180 @@ function get_legacy_widget_block_editor_settings() {
  * }
  */
 function _wp_get_iframed_editor_assets() {
-	global $pagenow;
+	global $wp_styles, $wp_scripts;
 
-	$script_handles = array();
-	$style_handles  = array(
-		'wp-block-editor',
-		'wp-block-library',
-		'wp-edit-blocks',
-	);
+	// Keep track of the styles and scripts instance to restore later.
+	$current_wp_styles  = $wp_styles;
+	$current_wp_scripts = $wp_scripts;
+
+	// Create new instances to collect the assets.
+	$wp_styles  = new WP_Styles();
+	$wp_scripts = new WP_Scripts();
+
+	/*
+	 * Register all currently registered styles and scripts. The actions that
+	 * follow enqueue assets, but don't necessarily register them.
+	 */
+	$wp_styles->registered  = $current_wp_styles->registered;
+	$wp_scripts->registered = $current_wp_scripts->registered;
+
+	/*
+	 * We generally do not need reset styles for the iframed editor.
+	 * However, if it's a classic theme, margins will be added to every block,
+	 * which is reset specifically for list items, so classic themes rely on
+	 * these reset styles.
+	 */
+	$wp_styles->done =
+		wp_theme_has_theme_json() ? array( 'wp-reset-editor-styles' ) : array();
+
+	wp_enqueue_script( 'wp-polyfill' );
+	// Enqueue the `editorStyle` handles for all core block, and dependencies.
+	wp_enqueue_style( 'wp-edit-blocks' );
 
 	if ( current_theme_supports( 'wp-block-styles' ) ) {
-		$style_handles[] = 'wp-block-library-theme';
+		wp_enqueue_style( 'wp-block-library-theme' );
 	}
 
-	if ( 'widgets.php' === $pagenow || 'customize.php' === $pagenow ) {
-		$style_handles[] = 'wp-widgets';
-		$style_handles[] = 'wp-edit-widgets';
-	}
+	/*
+	 * We don't want to load EDITOR scripts in the iframe, only enqueue
+	 * front-end assets for the content.
+	 */
+	add_filter( 'should_load_block_editor_scripts_and_styles', '__return_false' );
+	do_action( 'enqueue_block_assets' );
+	remove_filter( 'should_load_block_editor_scripts_and_styles', '__return_false' );
 
 	$block_registry = WP_Block_Type_Registry::get_instance();
 
+	/*
+	 * Additionally, do enqueue `editorStyle` assets for all blocks, which
+	 * contains editor-only styling for blocks (editor content).
+	 */
 	foreach ( $block_registry->get_all_registered() as $block_type ) {
-		$style_handles = array_merge(
-			$style_handles,
-			$block_type->style_handles,
-			$block_type->editor_style_handles
-		);
-
-		$script_handles = array_merge(
-			$script_handles,
-			$block_type->script_handles
-		);
+		if ( isset( $block_type->editor_style_handles ) && is_array( $block_type->editor_style_handles ) ) {
+			foreach ( $block_type->editor_style_handles as $style_handle ) {
+				wp_enqueue_style( $style_handle );
+			}
+		}
 	}
 
-	$style_handles = array_unique( $style_handles );
-	$done          = wp_styles()->done;
+	/**
+	 * Remove the deprecated `print_emoji_styles` handler.
+	 * It avoids breaking style generation with a deprecation message.
+	 */
+	$has_emoji_styles = has_action( 'wp_print_styles', 'print_emoji_styles' );
+	if ( $has_emoji_styles ) {
+		remove_action( 'wp_print_styles', 'print_emoji_styles' );
+	}
 
 	ob_start();
-
-	// We do not need reset styles for the iframed editor.
-	wp_styles()->done = array( 'wp-reset-editor-styles' );
-	wp_styles()->do_items( $style_handles );
-	wp_styles()->done = $done;
-
+	wp_print_styles();
+	wp_print_font_faces();
 	$styles = ob_get_clean();
 
-	$script_handles = array_unique( $script_handles );
-	$done           = wp_scripts()->done;
+	if ( $has_emoji_styles ) {
+		add_action( 'wp_print_styles', 'print_emoji_styles' );
+	}
 
 	ob_start();
-
-	wp_scripts()->done = array();
-	wp_scripts()->do_items( $script_handles );
-	wp_scripts()->done = $done;
-
+	wp_print_head_scripts();
+	wp_print_footer_scripts();
 	$scripts = ob_get_clean();
+
+	// Restore the original instances.
+	$wp_styles  = $current_wp_styles;
+	$wp_scripts = $current_wp_scripts;
 
 	return array(
 		'styles'  => $styles,
 		'scripts' => $scripts,
 	);
+}
+
+/**
+ * Finds the first occurrence of a specific block in an array of blocks.
+ *
+ * @since 6.3.0
+ *
+ * @param array  $blocks     Array of blocks.
+ * @param string $block_name Name of the block to find.
+ * @return array Found block, or empty array if none found.
+ */
+function wp_get_first_block( $blocks, $block_name ) {
+	foreach ( $blocks as $block ) {
+		if ( $block_name === $block['blockName'] ) {
+			return $block;
+		}
+		if ( ! empty( $block['innerBlocks'] ) ) {
+			$found_block = wp_get_first_block( $block['innerBlocks'], $block_name );
+
+			if ( ! empty( $found_block ) ) {
+				return $found_block;
+			}
+		}
+	}
+
+	return array();
+}
+
+/**
+ * Retrieves Post Content block attributes from the current post template.
+ *
+ * @since 6.3.0
+ * @since 6.4.0 Return null if there is no post content block.
+ * @access private
+ *
+ * @global int $post_ID
+ *
+ * @return array|null Post Content block attributes array or null if Post Content block doesn't exist.
+ */
+function wp_get_post_content_block_attributes() {
+	global $post_ID;
+
+	$is_block_theme = wp_is_block_theme();
+
+	if ( ! $is_block_theme || ! $post_ID ) {
+		return null;
+	}
+
+	$template_slug = get_page_template_slug( $post_ID );
+
+	if ( ! $template_slug ) {
+		$post_slug      = 'singular';
+		$page_slug      = 'singular';
+		$template_types = get_block_templates();
+
+		foreach ( $template_types as $template_type ) {
+			if ( 'page' === $template_type->slug ) {
+				$page_slug = 'page';
+			}
+			if ( 'single' === $template_type->slug ) {
+				$post_slug = 'single';
+			}
+		}
+
+		$what_post_type = get_post_type( $post_ID );
+		switch ( $what_post_type ) {
+			case 'page':
+				$template_slug = $page_slug;
+				break;
+			default:
+				$template_slug = $post_slug;
+				break;
+		}
+	}
+
+	$current_template = get_block_templates( array( 'slug__in' => array( $template_slug ) ) );
+
+	if ( ! empty( $current_template ) ) {
+		$template_blocks    = parse_blocks( $current_template[0]->content );
+		$post_content_block = wp_get_first_block( $template_blocks, 'core/post-content' );
+
+		if ( isset( $post_content_block['attrs'] ) ) {
+			return $post_content_block['attrs'];
+		}
+	}
+
+	return null;
 }
 
 /**
@@ -417,7 +515,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		}
 	}
 
-	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
+	if ( wp_theme_has_theme_json() ) {
 		$block_classes = array(
 			'css'            => 'styles',
 			'__unstableType' => 'theme',
@@ -428,6 +526,16 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 			$block_classes['css'] = $actual_css;
 			$global_styles[]      = $block_classes;
 		}
+
+		/*
+		 * Add the custom CSS as a separate stylesheet so any invalid CSS
+		 * entered by users does not break other global styles.
+		 */
+		$global_styles[] = array(
+			'css'            => wp_get_global_stylesheet( array( 'custom-css' ) ),
+			'__unstableType' => 'user',
+			'isGlobalStyles' => true,
+		);
 	} else {
 		// If there is no `theme.json` file, ensure base layout styles are still available.
 		$block_classes = array(
@@ -513,6 +621,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	}
 
 	$editor_settings['__unstableResolvedAssets']         = _wp_get_iframed_editor_assets();
+	$editor_settings['__unstableIsBlockBasedTheme']      = wp_is_block_theme();
 	$editor_settings['localAutosaveInterval']            = 15;
 	$editor_settings['disableLayoutStyles']              = current_theme_supports( 'disable-layout-styles' );
 	$editor_settings['__experimentalDiscussionSettings'] = array(
@@ -532,6 +641,29 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 			)
 		),
 	);
+
+	$post_content_block_attributes = wp_get_post_content_block_attributes();
+
+	if ( isset( $post_content_block_attributes ) ) {
+		$editor_settings['postContentAttributes'] = $post_content_block_attributes;
+	}
+
+	// Expose block bindings sources in the editor settings.
+	$registered_block_bindings_sources = get_all_registered_block_bindings_sources();
+	if ( ! empty( $registered_block_bindings_sources ) ) {
+		// Initialize array.
+		$editor_settings['blockBindingsSources'] = array();
+		foreach ( $registered_block_bindings_sources as $source_name => $source_properties ) {
+			// Add source with the label to editor settings.
+			$editor_settings['blockBindingsSources'][ $source_name ] = array(
+				'label' => $source_properties->label,
+			);
+			// Add `usesContext` property if exists.
+			if ( ! empty( $source_properties->uses_context ) ) {
+				$editor_settings['blockBindingsSources'][ $source_name ]['usesContext'] = $source_properties->uses_context;
+			}
+		}
+	}
 
 	/**
 	 * Filters the settings to pass to the block editor for all editor type.
@@ -693,4 +825,47 @@ function get_block_editor_theme_styles() {
 	}
 
 	return $styles;
+}
+
+/**
+ * Returns the classic theme supports settings for block editor.
+ *
+ * @since 6.2.0
+ * @since 6.6.0 Add support for 'editor-spacing-sizes' theme support.
+ *
+ * @return array The classic theme supports settings.
+ */
+function get_classic_theme_supports_block_editor_settings() {
+	$theme_settings = array(
+		'disableCustomColors'    => get_theme_support( 'disable-custom-colors' ),
+		'disableCustomFontSizes' => get_theme_support( 'disable-custom-font-sizes' ),
+		'disableCustomGradients' => get_theme_support( 'disable-custom-gradients' ),
+		'disableLayoutStyles'    => get_theme_support( 'disable-layout-styles' ),
+		'enableCustomLineHeight' => get_theme_support( 'custom-line-height' ),
+		'enableCustomSpacing'    => get_theme_support( 'custom-spacing' ),
+		'enableCustomUnits'      => get_theme_support( 'custom-units' ),
+	);
+
+	// Theme settings.
+	$color_palette = current( (array) get_theme_support( 'editor-color-palette' ) );
+	if ( false !== $color_palette ) {
+		$theme_settings['colors'] = $color_palette;
+	}
+
+	$font_sizes = current( (array) get_theme_support( 'editor-font-sizes' ) );
+	if ( false !== $font_sizes ) {
+		$theme_settings['fontSizes'] = $font_sizes;
+	}
+
+	$gradient_presets = current( (array) get_theme_support( 'editor-gradient-presets' ) );
+	if ( false !== $gradient_presets ) {
+		$theme_settings['gradients'] = $gradient_presets;
+	}
+
+	$spacing_sizes = current( (array) get_theme_support( 'editor-spacing-sizes' ) );
+	if ( false !== $spacing_sizes ) {
+		$theme_settings['spacingSizes'] = $spacing_sizes;
+	}
+
+	return $theme_settings;
 }

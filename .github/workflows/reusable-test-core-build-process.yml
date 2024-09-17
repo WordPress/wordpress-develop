@@ -1,0 +1,124 @@
+##
+# A reusable workflow that tests the WordPress Core build process.
+##
+name: Test the WordPress Build Process
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run tests on'
+        required: false
+        type: 'string'
+        default: 'ubuntu-latest'
+      directory:
+        description: 'Directory to run WordPress from. Valid values are `src` or `build`'
+        required: false
+        type: 'string'
+        default: 'src'
+      test-emoji:
+        description: 'Whether to run the grunt precommit:emoji script.'
+        required: false
+        type: 'boolean'
+        default: true
+      save-build:
+        description: 'Whether to save a ZIP of built WordPress as an artifact.'
+        required: false
+        type: 'boolean'
+        default: false
+      prepare-playground:
+        description: 'Whether to prepare the artifacts needed for Playground testing.'
+        required: false
+        type: 'boolean'
+        default: false
+
+env:
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
+jobs:
+  # Verifies that installing npm dependencies and building WordPress works as expected.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs npm dependencies.
+  # - Builds WordPress to run from the desired location (src or build).
+  # - Ensures version-controlled files are not modified or deleted.
+  # - Creates a ZIP of the built WordPress files (when building to the build directory).
+  # - Cleans up after building WordPress.
+  # - Ensures version-controlled files are not modified or deleted.
+  # - Uploads the ZIP as a GitHub Actions artifact (when building to the build directory).
+  # - Saves the pull request number to a text file.
+  # - Uploads the pull request number as an artifact.
+  build-process-tests:
+    name: Core running from ${{ inputs.directory }} / ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      - name: Run Emoji precommit task
+        if: ${{ inputs.test-emoji }}
+        run: npm run grunt precommit:emoji
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build WordPress to run from ${{ inputs.directory }}
+        run: npm run build${{ inputs.directory == 'src' && ':dev' || '' }}
+
+      - name: Ensure version-controlled files are not modified or deleted during building
+        run: git diff --exit-code
+
+      - name: Create ZIP of built files
+        if: ${{ inputs.directory == 'build' && 'ubuntu-latest' == inputs.os }}
+        run: zip -r wordpress.zip build/.
+
+      - name: Clean after building to run from ${{ inputs.directory }}
+        run: npm run grunt clean${{ inputs.directory == 'src' && ' -- --dev' || '' }}
+
+      - name: Ensure version-controlled files are not modified or deleted during cleaning
+        run: git diff --exit-code
+
+      - name: Upload ZIP as a GitHub Actions artifact
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+        if: ${{ inputs.save-build || inputs.prepare-playground }}
+        with:
+          name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
+          path: wordpress.zip
+          if-no-files-found: error
+
+      - name: Save PR number
+        if: ${{ inputs.prepare-playground }}
+        run: |
+          mkdir -p ./pr-number
+          echo ${{ github.event.number }} > ./pr-number/NR
+
+      # Uploads the PR number as an artifact for the Pull Request Commenting workflow to download and then
+      # leave a comment detailing how to test the PR within WordPress Playground.
+      - name: Upload PR number as artifact
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+        if: ${{ inputs.prepare-playground && github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
+        with:
+          name: pr-number
+          path: pr-number/

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @group functions.php
+ * @group functions
  */
 class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_parse_args_object() {
@@ -133,7 +133,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Tests path_join().
 	 *
 	 * @ticket 55897
-	 * @dataProvider path_join_data_provider
+	 * @dataProvider data_path_join
 	 */
 	public function test_path_join( $base, $path, $expected ) {
 		$this->assertSame( $expected, path_join( $base, $path ) );
@@ -144,7 +144,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *
 	 * @return string[][]
 	 */
-	public function path_join_data_provider() {
+	public function data_path_join() {
 		return array(
 			// Absolute paths.
 			'absolute path should return path' => array(
@@ -229,7 +229,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$testdir = DIR_TESTDATA . '/images/';
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcdefg.png' ), 'Test non-existing file, file name should be unchanged.' );
 
 		// Ensure correct images exist.
@@ -258,12 +258,12 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( 'abcdefgh.png', wp_unique_filename( $testdir, 'abcdefg"h.png' ), 'File with quote failed' );
 
 		// Test crazy name (useful for regression tests).
-		$this->assertSame( '12af34567890@..^_qwerty-fghjkl-zx.png', wp_unique_filename( $testdir, '12%af34567890#~!@#$..%^&*()|_+qwerty  fgh`jkl zx<>?:"{}[]="\'/?.png' ), 'Failed crazy file name' );
+		$this->assertSame( '12af34567890@.^_qwerty-fghjkl-zx.png', wp_unique_filename( $testdir, '12%af34567890#~!@#$..%^&*()|_+qwerty  fgh`jkl zx<>?:"{}[]="\'/?.png' ), 'Failed crazy file name' );
 
 		// Test slashes in names.
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\fg.png' ), 'Slash not removed' );
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\fg.png' ), 'Double slashed not removed' );
-		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Tripple slashed not removed' );
+		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Triple slashed not removed' );
 	}
 
 	/**
@@ -727,65 +727,6 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 43977
-	 * @dataProvider data_wp_parse_list
-	 */
-	public function test_wp_parse_list( $expected, $actual ) {
-		$this->assertSame( $expected, array_values( wp_parse_list( $actual ) ) );
-	}
-
-	public function data_wp_parse_list() {
-		return array(
-			array( array( '1', '2', '3', '4' ), '1,2,3,4' ),
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple,banana,carrot,dog' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1,2,apple,banana' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1, 2,apple,banana' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1,2,apple,,banana' ),
-			array( array( '1', '2', 'apple', 'banana' ), ',1,2,apple,banana' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1,2,apple,banana,' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1,2 ,apple,banana' ),
-			array( array(), '' ),
-			array( array(), ',' ),
-			array( array(), ',,' ),
-		);
-	}
-
-	/**
-	 * @dataProvider data_wp_parse_id_list
-	 */
-	public function test_wp_parse_id_list( $expected, $actual ) {
-		$this->assertSame( $expected, array_values( wp_parse_id_list( $actual ) ) );
-	}
-
-	public function data_wp_parse_id_list() {
-		return array(
-			array( array( 1, 2, 3, 4 ), '1,2,3,4' ),
-			array( array( 1, 2, 3, 4 ), '1, 2,,3,4' ),
-			array( array( 1, 2, 3, 4 ), '1,2,2,3,4' ),
-			array( array( 1, 2, 3, 4 ), array( '1', '2', '3', '4', '3' ) ),
-			array( array( 1, 2, 3, 4 ), array( 1, '2', 3, '4' ) ),
-			array( array( 1, 2, 3, 4 ), '-1,2,-3,4' ),
-			array( array( 1, 2, 3, 4 ), array( -1, 2, '-3', '4' ) ),
-		);
-	}
-
-	/**
-	 * @dataProvider data_wp_parse_slug_list
-	 */
-	public function test_wp_parse_slug_list( $expected, $actual ) {
-		$this->assertSame( $expected, array_values( wp_parse_slug_list( $actual ) ) );
-	}
-
-	public function data_wp_parse_slug_list() {
-		return array(
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple,banana,carrot,dog' ),
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple, banana,,carrot,dog' ),
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple banana carrot dog' ),
-			array( array( 'apple', 'banana-carrot', 'd-o-g' ), array( 'apple ', 'banana carrot', 'd o g' ) ),
-		);
-	}
-
-	/**
 	 * @dataProvider data_device_can_upload
 	 */
 	public function test_device_can_upload( $user_agent, $expected ) {
@@ -1158,7 +1099,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36054
-	 * @dataProvider datetime_provider
+	 * @dataProvider data_mysql_to_rfc3339
 	 */
 	public function test_mysql_to_rfc3339( $expected, $actual ) {
 		$date_return = mysql_to_rfc3339( $actual );
@@ -1169,7 +1110,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertEquals( new DateTime( $expected ), new DateTime( $date_return ), 'The date is not the same after the call method' );
 	}
 
-	public function datetime_provider() {
+	public function data_mysql_to_rfc3339() {
 		return array(
 			array( '2016-03-15T18:54:46', '15-03-2016 18:54:46' ),
 			array( '2016-03-02T19:13:25', '2016-03-02 19:13:25' ),
@@ -1334,7 +1275,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40017
-	 * @dataProvider wp_get_image_mime
+	 * @dataProvider data_wp_get_image_mime
 	 */
 	public function test_wp_get_image_mime( $file, $expected ) {
 		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
@@ -1345,105 +1286,9 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 35725
-	 * @dataProvider data_wp_getimagesize
-	 */
-	public function test_wp_getimagesize( $file, $expected ) {
-		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
-			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
-		}
-
-		$result = wp_getimagesize( $file );
-
-		// The getimagesize() function varies in its response, so
-		// let's restrict comparison to expected keys only.
-		if ( is_array( $expected ) ) {
-			foreach ( $expected as $k => $v ) {
-				$this->assertArrayHasKey( $k, $result );
-				$this->assertSame( $expected[ $k ], $result[ $k ] );
-			}
-		} else {
-			$this->assertSame( $expected, $result );
-		}
-	}
-
-	/**
-	 * @ticket 39550
-	 * @dataProvider wp_check_filetype_and_ext_data
-	 * @requires extension fileinfo
-	 */
-	public function test_wp_check_filetype_and_ext( $file, $filename, $expected ) {
-		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
-	}
-
-	/**
-	 * @ticket 39550
-	 * @group ms-excluded
-	 * @requires extension fileinfo
-	 */
-	public function test_wp_check_filetype_and_ext_with_filtered_svg() {
-		$file     = DIR_TESTDATA . '/uploads/video-play.svg';
-		$filename = 'video-play.svg';
-
-		$expected = array(
-			'ext'             => 'svg',
-			'type'            => 'image/svg+xml',
-			'proper_filename' => false,
-		);
-
-		add_filter( 'upload_mimes', array( $this, 'filter_mime_types_svg' ) );
-		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
-
-		// Cleanup.
-		remove_filter( 'upload_mimes', array( $this, 'filter_mime_types_svg' ) );
-	}
-
-	/**
-	 * @ticket 39550
-	 * @group ms-excluded
-	 * @requires extension fileinfo
-	 */
-	public function test_wp_check_filetype_and_ext_with_filtered_woff() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, this test is marked skipped on PHP 8.1+ as a recent change introduced
-			 * an inconsistency with how the mime-type for WOFF files are handled compared to older versions.
-			 *
-			 * See https://core.trac.wordpress.org/ticket/56817 for more details.
-			 */
-			$this->markTestSkipped( 'This test currently fails on PHP 8.1+ and requires further investigation.' );
-		}
-
-		$file     = DIR_TESTDATA . '/uploads/dashicons.woff';
-		$filename = 'dashicons.woff';
-
-		$expected = array(
-			'ext'             => 'woff',
-			'type'            => 'application/font-woff',
-			'proper_filename' => false,
-		);
-
-		add_filter( 'upload_mimes', array( $this, 'filter_mime_types_woff' ) );
-		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
-
-		// Cleanup.
-		remove_filter( 'upload_mimes', array( $this, 'filter_mime_types_woff' ) );
-	}
-
-	public function filter_mime_types_svg( $mimes ) {
-		$mimes['svg'] = 'image/svg+xml';
-		return $mimes;
-	}
-
-	public function filter_mime_types_woff( $mimes ) {
-		$mimes['woff'] = 'application/font-woff';
-		return $mimes;
-	}
-
-	/**
 	 * Data provider for test_wp_get_image_mime().
 	 */
-	public function wp_get_image_mime() {
+	public function data_wp_get_image_mime() {
 		$data = array(
 			// Standard JPEG.
 			array(
@@ -1490,13 +1335,61 @@ class Tests_Functions extends WP_UnitTestCase {
 				DIR_TESTDATA . '/uploads/dashicons.woff',
 				false,
 			),
+			// Animated AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-animated.avif',
+				'image/avif',
+			),
+			// Lossless AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossless.avif',
+				'image/avif',
+			),
+			// Lossy AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossy.avif',
+				'image/avif',
+			),
+			// Transparent AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-transparent.avif',
+				'image/avif',
+			),
+			// HEIC.
+			array(
+				DIR_TESTDATA . '/images/test-image.heic',
+				'image/heic',
+			),
 		);
 
 		return $data;
 	}
 
 	/**
-	 * Data profider for test_wp_getimagesize().
+	 * @ticket 35725
+	 * @dataProvider data_wp_getimagesize
+	 */
+	public function test_wp_getimagesize( $file, $expected ) {
+		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
+			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
+		}
+
+		$result = wp_getimagesize( $file );
+
+		// The getimagesize() function varies in its response, so
+		// let's restrict comparison to expected keys only.
+		if ( is_array( $expected ) ) {
+			foreach ( $expected as $k => $v ) {
+				$this->assertArrayHasKey( $k, $result );
+				$this->assertSame( $expected[ $k ], $result[ $k ] );
+			}
+		} else {
+			$this->assertSame( $expected, $result );
+		}
+	}
+
+	/**
+	 * Data provider for test_wp_getimagesize().
 	 */
 	public function data_wp_getimagesize() {
 		$data = array(
@@ -1593,12 +1486,105 @@ class Tests_Functions extends WP_UnitTestCase {
 				DIR_TESTDATA . '/uploads/dashicons.woff',
 				false,
 			),
+			// Animated AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-animated.avif',
+				array(
+					150,
+					150,
+					IMAGETYPE_AVIF,
+					'width="150" height="150"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Lossless AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossless.avif',
+				array(
+					400,
+					400,
+					IMAGETYPE_AVIF,
+					'width="400" height="400"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Lossy AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossy.avif',
+				array(
+					400,
+					400,
+					IMAGETYPE_AVIF,
+					'width="400" height="400"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Transparent AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-transparent.avif',
+				array(
+					128,
+					128,
+					IMAGETYPE_AVIF,
+					'width="128" height="128"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Grid AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-alpha-grid2x1.avif',
+				array(
+					199,
+					200,
+					IMAGETYPE_AVIF,
+					'width="199" height="200"',
+					'mime' => 'image/avif',
+				),
+			),
 		);
 
 		return $data;
 	}
 
-	public function wp_check_filetype_and_ext_data() {
+	/**
+	 * Tests that wp_getimagesize() correctly handles HEIC image files.
+	 *
+	 * @ticket 53645
+	 */
+	public function test_wp_getimagesize_heic() {
+		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
+			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
+		}
+
+		$file = DIR_TESTDATA . '/images/test-image.heic';
+
+		$editor = wp_get_image_editor( $file );
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/heic' ) ) {
+			$this->markTestSkipped( 'No HEIC support in the editor engine on this system.' );
+		}
+
+		$expected = array(
+			50,
+			50,
+			IMAGETYPE_HEIC,
+			'width="50" height="50"',
+			'mime' => 'image/heic',
+		);
+		$result   = wp_getimagesize( $file );
+		$this->assertSame( $expected, $result );
+	}
+
+
+	/**
+	 * @ticket 39550
+	 * @dataProvider data_wp_check_filetype_and_ext
+	 * @requires extension fileinfo
+	 */
+	public function test_wp_check_filetype_and_ext( $file, $filename, $expected ) {
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+	}
+
+	public function data_wp_check_filetype_and_ext() {
 		$data = array(
 			// Standard image.
 			array(
@@ -1707,6 +1693,16 @@ class Tests_Functions extends WP_UnitTestCase {
 							'proper_filename' => false,
 						),
 					),
+					// Google Docs file for which finfo_file() returns a duplicate mime type.
+					array(
+						DIR_TESTDATA . '/uploads/double-mime-type.docx',
+						'double-mime-type.docx',
+						array(
+							'ext'             => 'docx',
+							'type'            => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+							'proper_filename' => false,
+						),
+					),
 					// Non-image file with wrong sub-type.
 					array(
 						DIR_TESTDATA . '/uploads/pages-to-word.docx',
@@ -1764,10 +1760,75 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 39550
+	 * @group ms-excluded
+	 * @requires extension fileinfo
+	 */
+	public function test_wp_check_filetype_and_ext_with_filtered_svg() {
+		$file     = DIR_TESTDATA . '/uploads/video-play.svg';
+		$filename = 'video-play.svg';
+
+		$expected = array(
+			'ext'             => 'svg',
+			'type'            => 'image/svg+xml',
+			'proper_filename' => false,
+		);
+
+		add_filter(
+			'upload_mimes',
+			static function ( $mimes ) {
+				$mimes['svg'] = 'image/svg+xml';
+				return $mimes;
+			}
+		);
+
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+	}
+
+	/**
+	 * @ticket 39550
+	 * @group ms-excluded
+	 * @requires extension fileinfo
+	 */
+	public function test_wp_check_filetype_and_ext_with_filtered_woff() {
+		$file     = DIR_TESTDATA . '/uploads/dashicons.woff';
+		$filename = 'dashicons.woff';
+
+		$woff_mime_type = 'application/font-woff';
+
+		/*
+		 * As of PHP 8.1.12, which includes libmagic/file update to version 5.42,
+		 * the expected mime type for WOFF files is 'font/woff'.
+		 *
+		 * See https://github.com/php/php-src/issues/8805.
+		 */
+		if ( PHP_VERSION_ID >= 80112 ) {
+			$woff_mime_type = 'font/woff';
+		}
+
+		$expected = array(
+			'ext'             => 'woff',
+			'type'            => $woff_mime_type,
+			'proper_filename' => false,
+		);
+
+		add_filter(
+			'upload_mimes',
+			static function ( $mimes ) use ( $woff_mime_type ) {
+				$mimes['woff'] = $woff_mime_type;
+				return $mimes;
+			}
+		);
+
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+	}
+
+	/**
 	 * Test file path validation
 	 *
 	 * @ticket 42016
-	 * @dataProvider data_test_validate_file()
+	 * @ticket 61488
+	 * @dataProvider data_validate_file
 	 *
 	 * @param string $file          File path.
 	 * @param array  $allowed_files List of allowed files.
@@ -1781,14 +1842,14 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Data provider for file validation.
 	 *
 	 * @return array {
-	 *     @type array $0... {
+	 *     @type array ...$0 {
 	 *         @type string $0 File path.
 	 *         @type array  $1 List of allowed files.
 	 *         @type int    $2 Expected result.
 	 *     }
 	 * }
 	 */
-	public function data_test_validate_file() {
+	public function data_validate_file() {
 		return array(
 
 			// Allowed files:
@@ -1887,6 +1948,13 @@ class Tests_Functions extends WP_UnitTestCase {
 				2,
 			),
 
+			// Windows Path with allowed file
+			array(
+				'Apache24\htdocs\wordpress/wp-content/themes/twentyten/style.css',
+				array( 'Apache24\htdocs\wordpress/wp-content/themes/twentyten/style.css' ),
+				0,
+			),
+
 			// Disallowed files:
 			array(
 				'foo.ext',
@@ -1910,7 +1978,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Test stream URL validation.
 	 *
-	 * @dataProvider data_test_wp_is_stream
+	 * @dataProvider data_wp_is_stream
 	 *
 	 * @param string $path     The resource path or URL.
 	 * @param bool   $expected Expected result.
@@ -1927,13 +1995,13 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Data provider for stream URL validation.
 	 *
 	 * @return array {
-	 *     @type array $0... {
+	 *     @type array ...$0 {
 	 *         @type string $0 The resource path or URL.
 	 *         @type bool   $1 Expected result.
 	 *     }
 	 * }
 	 */
-	public function data_test_wp_is_stream() {
+	public function data_wp_is_stream() {
 		return array(
 			// Legitimate stream examples.
 			array( 'http://example.com', true ),
@@ -1954,7 +2022,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Test human_readable_duration().
 	 *
 	 * @ticket 39667
-	 * @dataProvider data_test_human_readable_duration
+	 * @dataProvider data_human_readable_duration
 	 *
 	 * @param string $input    Duration.
 	 * @param string $expected Expected human readable duration.
@@ -1964,7 +2032,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Dataprovider for test_duration_format().
+	 * Data provider for test_duration_format().
 	 *
 	 * @return array {
 	 *     @type array {
@@ -1973,7 +2041,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_test_human_readable_duration() {
+	public function data_human_readable_duration() {
 		return array(
 			// Valid ii:ss cases.
 			array( '0:0', '0 minutes, 0 seconds' ),
@@ -2030,14 +2098,14 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49404
-	 * @dataProvider data_test_wp_is_json_media_type
+	 * @dataProvider data_wp_is_json_media_type
 	 */
 	public function test_wp_is_json_media_type( $input, $expected ) {
 		$this->assertSame( $expected, wp_is_json_media_type( $input ) );
 	}
 
 
-	public function data_test_wp_is_json_media_type() {
+	public function data_wp_is_json_media_type() {
 		return array(
 			array( 'application/ld+json', true ),
 			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),
@@ -2150,5 +2218,4 @@ class Tests_Functions extends WP_UnitTestCase {
 		);
 		$this->assertSameSetsWithIndex( $theme_json, $expected_theme_json );
 	}
-
 }
