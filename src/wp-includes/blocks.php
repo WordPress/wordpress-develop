@@ -2422,7 +2422,15 @@ function build_query_vars_from_query_block( $block, $page ) {
 			}
 		}
 		if ( ! empty( $block->context['query']['format'] ) && is_array( $block->context['query']['format'] ) ) {
-			$formats   = $block->context['query']['format'];
+			$formats = $block->context['query']['format'];
+			/*
+			 * Validate that the format is either `standard` or a supported post format.
+			 * - First, add `standard` to the array of valid formats.
+			 * - Then, remove any invalid formats.
+			 */
+			$valid_formats = array_merge( ['standard'], get_post_format_slugs() );
+			$formats       = array_intersect( $formats, $valid_formats );
+
 			/*
 			 * Ensure that the format can be combinied with other taxonomies.
 			 * For example, a post that has both a specific category and a specific format.
