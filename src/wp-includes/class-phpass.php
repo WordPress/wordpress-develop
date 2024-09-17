@@ -3,14 +3,14 @@
  * Portable PHP password hashing framework.
  * @package phpass
  * @since 2.5.0
- * @version 0.5 / WordPress
+ * @version 0.5.1 / WordPress
  * @link https://www.openwall.com/phpass/
  */
 
 #
 # Portable PHP password hashing framework.
 #
-# Version 0.5 / WordPress.
+# Version 0.5.1 / WordPress.
 #
 # Written by Solar Designer <solar at openwall.com> in 2004-2006 and placed in
 # the public domain.  Revised in subsequent years, still public domain.
@@ -33,14 +33,6 @@
 # requirements (there can be none), but merely suggestions.
 #
 
-/**
- * Portable PHP password hashing framework.
- *
- * @package phpass
- * @version 0.5 / WordPress
- * @link https://www.openwall.com/phpass/
- * @since 2.5.0
- */
 class PasswordHash {
 	var $itoa64;
 	var $iteration_count_log2;
@@ -172,7 +164,9 @@ class PasswordHash {
 		# of entropy.
 		$itoa64 = './ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-		$output = '$2a$';
+		# Use prefix '2y' for new hashes for PHP versions 5.2.7 and later
+		# Use BSD '2a' for PHP versions prior to 5.2.7
+		$output = PHP_VERSION_ID < 50307 ? '$2a$' : '$2y$';
 		$output .= chr((int)(ord('0') + $this->iteration_count_log2 / 10));
 		$output .= chr((ord('0') + $this->iteration_count_log2 % 10));
 		$output .= '$';
@@ -247,4 +241,10 @@ class PasswordHash {
 		# cases (that is, when we use /dev/urandom and bcrypt).
 		return $hash === $stored_hash;
 	}
+}
+
+# Define PHP_VERSION_ID for PHP versions prior to 5.2.7
+if (!defined('PHP_VERSION_ID')) {
+	$version = explode('.', PHP_VERSION);
+	define('PHP_VERSION_ID', ($version[0] * 10000 + $version[1] * 100 + $version[2]));
 }
