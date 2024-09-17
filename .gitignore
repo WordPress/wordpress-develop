@@ -31,6 +31,7 @@ wp-tests-config.php
 /src/wp-admin/js
 /src/wp-includes/assets/*
 !/src/wp-includes/assets/script-loader-packages.min.php
+!/src/wp-includes/assets/script-modules-packages.min.php
 /src/wp-includes/js
 /src/wp-includes/css/dist
 /src/wp-includes/css/*.min.css

@@ -123,3 +123,31 @@ function wp_dequeue_script_module( string $id ) {
 function wp_deregister_script_module( string $id ) {
 	wp_script_modules()->deregister( $id );
 }
+
+/**
+ * Registers all the default WordPress Script Modules.
+ *
+ * @since 6.7.0
+ */
+function wp_default_script_modules() {
+	$suffix = defined( 'WP_RUN_CORE_TESTS' ) ? '.min' : wp_scripts_get_suffix();
+
+	/*
+	 * Expects multidimensional array like:
+	 *
+	 *     'interactivity/index.min.js' => array('dependencies' => array(…), 'version' => '…'),
+	 *     'interactivity/debug.min.js' => array('dependencies' => array(…), 'version' => '…'),
+	 *     'interactivity-router/index.min.js' => …
+	 */
+	$assets = include ABSPATH . WPINC . "/assets/script-modules-packages{$suffix}.php";
+
+	foreach ( $assets as $file_name => $script_module_data ) {
+		if ( basename( $file_name ) !== "index{$suffix}.js" ) {
+			continue;
+		}
+		$script_module_id = '@wordpress/' . dirname( $file_name );
+		$path             = "/wp-includes/js/dist/script-modules/{$file_name}";
+
+		wp_register_script_module( $script_module_id, $path, $script_module_data['dependencies'], $script_module_data['version'] );
+	}
+}
