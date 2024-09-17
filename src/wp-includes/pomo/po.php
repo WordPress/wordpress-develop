@@ -21,7 +21,7 @@ if ( ! defined( 'PO_MAX_LINE_LEN' ) ) {
  * which still use the old MacOS standalone `\r` as a line ending.
  * This fix should be revisited when PHP 9.0 is in alpha/beta.
  */
-if ( function_exists('ini_set') ) {
+if ( function_exists( 'ini_set' ) ) {
 	@ini_set( 'auto_detect_line_endings', 1 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 }
 
