@@ -1785,7 +1785,9 @@ Thanks! -- The WordPress Team"
 
 		// If this outputs `true` in the log, it means there were no fatal errors detected.
 		if ( $is_debug ) {
-			error_log( var_export( substr( $response['body'], strpos( $response['body'], '###### wp_scraping_result_start:' ) ), true ) );
+			if ( str_contains( $response['body'], '###### wp_scraping_result_start:' ) ) {
+				error_log( 'true' );
+			}
 		}
 
 		$body                   = wp_remote_retrieve_body( $response );
