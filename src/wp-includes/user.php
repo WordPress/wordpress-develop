@@ -444,7 +444,6 @@ function wp_authenticate_application_password( $input_user, $username, $password
 		}
 
 		if ( wp_password_needs_rehash( $item['password'] ) ) {
-			// @TODO test coverage
 			$item['password'] = wp_hash_password( $password );
 			WP_Application_Passwords::update_application_password( $user->ID, $item['uuid'], $item );
 		}
