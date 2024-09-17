@@ -464,7 +464,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			'properties' => array(
 				'id'       => array(
 					'description' => __( 'ID of global styles config.' ),
-					'type'        => 'string',
+					'type'        => 'integer',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
