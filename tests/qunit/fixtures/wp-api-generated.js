@@ -7842,6 +7842,11 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "exact_search": {
+                            "description": "Use exact search instead of full search.",
+                            "type": "boolean",
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -8045,6 +8050,11 @@ mockedApiResponse.Schema = {
                                 "type": "integer"
                             },
                             "default": [],
+                            "required": false
+                        },
+                        "exact_search": {
+                            "description": "Use exact search instead of full search.",
+                            "type": "boolean",
                             "required": false
                         },
                         "offset": {
