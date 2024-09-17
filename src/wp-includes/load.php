@@ -603,7 +603,7 @@ function wp_debug_mode() {
 		}
 
 		if ( $log_path ) {
-			if ( function_exists('ini_set') ) {
+			if ( function_exists( 'ini_set' ) ) {
 				ini_set( 'log_errors', 1 );
 				ini_set( 'error_log', $log_path );
 			}
