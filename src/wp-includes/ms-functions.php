@@ -62,7 +62,7 @@ function get_active_blog_for_user( $user_id ) {
 			$primary = get_site( $primary_blog );
 		}
 	} else {
-		// TODO: Review this call to add_user_to_blog too - to get here the user must have a role on this blog?
+		// @todo Review this call to add_user_to_blog too - to get here the user must have a role on this blog?
 		$result = add_user_to_blog( $first_blog->userblog_id, $user_id, 'subscriber' );
 
 		if ( ! is_wp_error( $result ) ) {
@@ -1227,7 +1227,7 @@ function wpmu_activate_signup( $key ) {
 
 	$blog_id = wpmu_create_blog( $signup->domain, $signup->path, $signup->title, $user_id, $meta, get_current_network_id() );
 
-	// TODO: What to do if we create a user but cannot create a blog?
+	// @todo What to do if we create a user but cannot create a blog?
 	if ( is_wp_error( $blog_id ) ) {
 		/*
 		 * If blog is taken, that means a previous attempt to activate this blog

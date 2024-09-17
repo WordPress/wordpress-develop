@@ -324,10 +324,10 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 						$image_meta['image_meta']['orientation'] = 1;
 					}
 				} else {
-					// TODO: Log errors.
+					// @todo Log errors.
 				}
 			} else {
-				// TODO: Log errors.
+				// @todo Log errors.
 			}
 		} elseif ( ! empty( $exif_meta['orientation'] ) && 1 !== (int) $exif_meta['orientation'] ) {
 			// Rotate the whole original image if there is EXIF data and "orientation" is not 1.
@@ -354,7 +354,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 						$image_meta['image_meta']['orientation'] = 1;
 					}
 				} else {
-					// TODO: Log errors.
+					// @todo Log errors.
 				}
 			}
 		}
@@ -453,7 +453,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 		$rotated = $editor->maybe_exif_rotate();
 
 		if ( is_wp_error( $rotated ) ) {
-			// TODO: Log errors.
+			// @todo Log errors.
 		}
 	}
 
@@ -462,7 +462,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 			$new_size_meta = $editor->make_subsize( $new_size_data );
 
 			if ( is_wp_error( $new_size_meta ) ) {
-				// TODO: Log errors.
+				// @todo Log errors.
 			} else {
 				// Save the size meta value.
 				$image_meta['sizes'][ $new_size_name ] = $new_size_meta;

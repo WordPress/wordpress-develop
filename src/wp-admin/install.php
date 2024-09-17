@@ -400,22 +400,22 @@ switch ( $step ) {
 		// Check email address.
 		$error = false;
 		if ( empty( $user_name ) ) {
-			// TODO: Poka-yoke.
+			// @todo Poka-yoke.
 			display_setup_form( __( 'Please provide a valid username.' ) );
 			$error = true;
 		} elseif ( sanitize_user( $user_name, true ) !== $user_name ) {
 			display_setup_form( __( 'The username you provided has invalid characters.' ) );
 			$error = true;
 		} elseif ( $admin_password !== $admin_password_check ) {
-			// TODO: Poka-yoke.
+			// @todo Poka-yoke.
 			display_setup_form( __( 'Your passwords do not match. Please try again.' ) );
 			$error = true;
 		} elseif ( empty( $admin_email ) ) {
-			// TODO: Poka-yoke.
+			// @todo Poka-yoke.
 			display_setup_form( __( 'You must provide an email address.' ) );
 			$error = true;
 		} elseif ( ! is_email( $admin_email ) ) {
-			// TODO: Poka-yoke.
+			// @todo Poka-yoke.
 			display_setup_form( __( 'Sorry, that is not a valid email address. Email addresses look like <code>username@example.com</code>.' ) );
 			$error = true;
 		}
