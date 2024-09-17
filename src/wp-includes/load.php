@@ -620,7 +620,7 @@ function wp_debug_mode() {
 		|| ( defined( 'WP_INSTALLING' ) && WP_INSTALLING )
 		|| wp_doing_ajax() || wp_is_json_request()
 	) {
-		if ( function_exists('ini_set') ) {
+		if ( function_exists( 'ini_set' ) ) {
 			ini_set( 'display_errors', 0 );
 		}
 	}
