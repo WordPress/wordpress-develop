@@ -2150,10 +2150,6 @@ function wp_insert_user( $userdata ) {
             return new WP_Error( 'empty_pre_hash_password', __( 'Cannot create a user with an empty password.' ) );
         }
 
-		if ( str_contains( ( $pre_hash_password ), '\\' ) ) {
-            return new WP_Error( 'illegal_pre_hash_password', __( 'Passwords may not contain the character "\\".' ) );
-        }
-
 		// Hash the password.
 		$user_pass = wp_hash_password( $pre_hash_password );
 	}
