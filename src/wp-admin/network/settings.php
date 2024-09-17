@@ -61,7 +61,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/documentation/article/network-admin-settings-screen/">Documentation on Network Settings</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/settings/">Documentation on Network Settings</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
@@ -138,9 +138,14 @@ if ( $_POST ) {
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( isset( $_GET['updated'] ) ) {
-	?>
-	<div id="message" class="notice notice-success is-dismissible"><p><?php _e( 'Settings saved.' ); ?></p></div>
-	<?php
+	wp_admin_notice(
+		__( 'Settings saved.' ),
+		array(
+			'type'        => 'success',
+			'dismissible' => true,
+			'id'          => 'message',
+		)
+	);
 }
 ?>
 
@@ -167,24 +172,28 @@ if ( isset( $_GET['updated'] ) ) {
 					<?php
 					$new_admin_email = get_site_option( 'new_admin_email' );
 					if ( $new_admin_email && get_site_option( 'admin_email' ) !== $new_admin_email ) :
-						?>
-						<div class="notice notice-warning is-dismissible inline">
-						<p>
-						<?php
-							printf(
-								/* translators: %s: New network admin email. */
-								__( 'There is a pending change of the network admin email to %s.' ),
-								'<code>' . esc_html( $new_admin_email ) . '</code>'
-							);
-							printf(
-								' <a href="%1$s">%2$s</a>',
-								esc_url( wp_nonce_url( network_admin_url( 'settings.php?dismiss=new_network_admin_email' ), 'dismiss_new_network_admin_email' ) ),
-								__( 'Cancel' )
-							);
-						?>
-						</p>
-						</div>
-					<?php endif; ?>
+						$notice_message = sprintf(
+							/* translators: %s: New network admin email. */
+							__( 'There is a pending change of the network admin email to %s.' ),
+							'<code>' . esc_html( $new_admin_email ) . '</code>'
+						);
+
+						$notice_message .= sprintf(
+							' <a href="%1$s">%2$s</a>',
+							esc_url( wp_nonce_url( network_admin_url( 'settings.php?dismiss=new_network_admin_email' ), 'dismiss_new_network_admin_email' ) ),
+							__( 'Cancel' )
+						);
+
+						wp_admin_notice(
+							$notice_message,
+							array(
+								'type'               => 'warning',
+								'dismissible'        => true,
+								'additional_classes' => array( 'inline' ),
+							)
+						);
+					endif;
+					?>
 				</td>
 			</tr>
 		</table>

@@ -106,7 +106,7 @@ final class _WP_Editors {
 		self::$this_tinymce = ( $set['tinymce'] && user_can_richedit() );
 
 		if ( self::$this_tinymce ) {
-			if ( false !== strpos( $editor_id, '[' ) ) {
+			if ( str_contains( $editor_id, '[' ) ) {
 				self::$this_tinymce = false;
 				_deprecated_argument( 'wp_editor()', '3.9.0', 'TinyMCE editor IDs cannot have brackets.' );
 			}
@@ -148,6 +148,8 @@ final class _WP_Editors {
 	 * Outputs the HTML for a single instance of the editor.
 	 *
 	 * @since 3.3.0
+	 *
+	 * @global WP_Screen $current_screen WordPress current screen object.
 	 *
 	 * @param string $content   Initial content for the editor.
 	 * @param string $editor_id HTML ID for the textarea and TinyMCE and Quicktags instances.
@@ -458,8 +460,10 @@ final class _WP_Editors {
 
 					$key = array_search( 'spellchecker', $plugins, true );
 					if ( false !== $key ) {
-						// Remove 'spellchecker' from the internal plugins if added with 'tiny_mce_plugins' filter to prevent errors.
-						// It can be added with 'mce_external_plugins'.
+						/*
+						 * Remove 'spellchecker' from the internal plugins if added with 'tiny_mce_plugins' filter to prevent errors.
+						 * It can be added with 'mce_external_plugins'.
+						 */
 						unset( $plugins[ $key ] );
 					}
 
@@ -509,9 +513,13 @@ final class _WP_Editors {
 							// Try to load langs/[locale].js and langs/[locale]_dlg.js.
 							if ( ! in_array( $name, $loaded_langs, true ) ) {
 								$path = str_replace( content_url(), '', $plugurl );
-								$path = WP_CONTENT_DIR . $path . '/langs/';
+								$path = realpath( WP_CONTENT_DIR . $path . '/langs/' );
 
-								$path = trailingslashit( realpath( $path ) );
+								if ( ! $path ) {
+									continue;
+								}
+
+								$path = trailingslashit( $path );
 
 								if ( @is_file( $path . $mce_locale . '.js' ) ) {
 									$strings .= @file_get_contents( $path . $mce_locale . '.js' ) . "\n";
@@ -571,7 +579,7 @@ final class _WP_Editors {
 					if ( ! empty( $editor_styles ) ) {
 						// Force urlencoding of commas.
 						foreach ( $editor_styles as $key => $url ) {
-							if ( strpos( $url, ',' ) !== false ) {
+							if ( str_contains( $url, ',' ) ) {
 								$editor_styles[ $key ] = str_replace( ',', '%2C', $url );
 							}
 						}
@@ -1484,7 +1492,7 @@ final class _WP_Editors {
 				continue;
 			}
 
-			if ( false !== strpos( $value, '&' ) ) {
+			if ( str_contains( $value, '&' ) ) {
 				$mce_translation[ $key ] = html_entity_decode( $value, ENT_QUOTES, 'UTF-8' );
 			}
 		}
@@ -1867,7 +1875,7 @@ final class _WP_Editors {
 		// `display: none` is required here, see #WP27605.
 		?>
 		<div id="wp-link-backdrop" style="display: none"></div>
-		<div id="wp-link-wrap" class="wp-core-ui" style="display: none" role="dialog" aria-labelledby="link-modal-title">
+		<div id="wp-link-wrap" class="wp-core-ui" style="display: none" role="dialog" aria-modal="true" aria-labelledby="link-modal-title">
 		<form id="wp-link" tabindex="-1">
 		<?php wp_nonce_field( 'internal-linking', '_ajax_linking_nonce', false ); ?>
 		<h1 id="link-modal-title"><?php _e( 'Insert/edit link' ); ?></h1>

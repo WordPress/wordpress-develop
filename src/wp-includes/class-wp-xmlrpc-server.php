@@ -137,8 +137,10 @@ class wp_xmlrpc_server extends IXR_Server {
 			'metaWeblog.getCategories'         => 'this:mw_getCategories',
 			'metaWeblog.newMediaObject'        => 'this:mw_newMediaObject',
 
-			// MetaWeblog API aliases for Blogger API.
-			// See http://www.xmlrpc.com/stories/storyReader$2460
+			/*
+			 * MetaWeblog API aliases for Blogger API.
+			 * See http://www.xmlrpc.com/stories/storyReader$2460
+			 */
 			'metaWeblog.deletePost'            => 'this:blogger_deletePost',
 			'metaWeblog.getUsersBlogs'         => 'this:blogger_getUsersBlogs',
 
@@ -1065,6 +1067,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			'description'      => $media_item->post_content,
 			'metadata'         => wp_get_attachment_metadata( $media_item->ID ),
 			'type'             => $media_item->post_mime_type,
+			'alt'              => get_post_meta( $media_item->ID, '_wp_attachment_image_alt', true ),
 		);
 
 		$thumbnail_src = image_downsize( $media_item->ID, $thumbnail_size );
@@ -3121,8 +3124,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
 		do_action( 'xmlrpc_call', 'wp.deletePage', $args, $this );
 
-		// Get the current page based on the 'page_id' and
-		// make sure it is a page and not a post.
+		/*
+		 * Get the current page based on the 'page_id' and
+		 * make sure it is a page and not a post.
+		 */
 		$actual_page = get_post( $page_id, ARRAY_A );
 		if ( ! $actual_page || ( 'page' !== $actual_page['post_type'] ) ) {
 			return new IXR_Error( 404, __( 'Sorry, no such page.' ) );
@@ -3411,14 +3416,18 @@ class wp_xmlrpc_server extends IXR_Server {
 			return new IXR_Error( 401, __( 'Sorry, you are not allowed to add a category.' ) );
 		}
 
-		// If no slug was provided, make it empty
-		// so that WordPress will generate one.
+		/*
+		 * If no slug was provided, make it empty
+		 * so that WordPress will generate one.
+		 */
 		if ( empty( $category['slug'] ) ) {
 			$category['slug'] = '';
 		}
 
-		// If no parent_id was provided, make it empty
-		// so that it will be a top-level page (no parent).
+		/*
+		 * If no parent_id was provided, make it empty
+		 * so that it will be a top-level page (no parent).
+		 */
 		if ( ! isset( $category['parent_id'] ) ) {
 			$category['parent_id'] = '';
 		}
@@ -4878,7 +4887,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			return $blogs;
 		} else {
 			foreach ( (array) $blogs as $blog ) {
-				if ( strpos( $blog['url'], $_SERVER['HTTP_HOST'] ) ) {
+				if ( str_contains( $blog['url'], $_SERVER['HTTP_HOST'] ) ) {
 					return array( $blog );
 				}
 			}
@@ -5618,8 +5627,10 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		$this->attach_uploads( $post_id, $post_content );
 
-		// Handle post formats if assigned, value is validated earlier
-		// in this function.
+		/*
+		 * Handle post formats if assigned, value is validated earlier
+		 * in this function.
+		 */
 		if ( isset( $content_struct['wp_post_format'] ) ) {
 			set_post_format( $post_id, $content_struct['wp_post_format'] );
 		}
@@ -5691,7 +5702,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$attachments = $wpdb->get_results( "SELECT ID, guid FROM {$wpdb->posts} WHERE post_parent = '0' AND post_type = 'attachment'" );
 		if ( is_array( $attachments ) ) {
 			foreach ( $attachments as $file ) {
-				if ( ! empty( $file->guid ) && strpos( $post_content, $file->guid ) !== false ) {
+				if ( ! empty( $file->guid ) && str_contains( $post_content, $file->guid ) ) {
 					$wpdb->update( $wpdb->posts, array( 'post_parent' => $post_id ), array( 'ID' => $file->ID ) );
 				}
 			}
@@ -6360,8 +6371,6 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
 	 *
@@ -6373,8 +6382,6 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @return array|IXR_Error
 	 */
 	public function mw_newMediaObject( $args ) {
-		global $wpdb;
-
 		$username = $this->escape( $args[1] );
 		$password = $this->escape( $args[2] );
 		$data     = $args[3];
@@ -6473,7 +6480,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 	/*
 	 * MovableType API functions.
-	 * Specs on http://www.movabletype.org/docs/mtmanual_programmatic.html
+	 * Specs archive on http://web.archive.org/web/20050220091302/http://www.movabletype.org:80/docs/mtmanual_programmatic.html
 	 */
 
 	/**
@@ -6932,7 +6939,19 @@ class wp_xmlrpc_server extends IXR_Server {
 			return $this->pingback_error( 48, __( 'The pingback has already been registered.' ) );
 		}
 
-		// Very stupid, but gives time to the 'from' server to publish!
+		/*
+		 * The remote site may have sent the pingback before it finished publishing its own content
+		 * containing this pingback URL. If that happens then it won't be immediately possible to fetch
+		 * the pinging post; adding a small delay reduces the likelihood of this happening.
+		 *
+		 * While there are more robust methods than calling `sleep()` here (because `sleep()` merely
+		 * mitigates the risk of requesting the remote post before it's available), this is effective
+		 * enough for most cases and avoids introducing more complexity into this code.
+		 *
+		 * One way to improve the reliability of this code might be to add failure-handling to the remote
+		 * fetch and retry up to a set number of times if it receives a 404. This could also handle 401 and
+		 * 403 responses to differentiate the "does not exist" failure from the "may not access" failure.
+		 */
 		sleep( 1 );
 
 		$remote_ip = preg_replace( '/[^0-9a-fA-F:., ]/', '', $_SERVER['REMOTE_ADDR'] );
@@ -6990,7 +7009,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$preg_target = preg_quote( $pagelinkedto, '|' );
 
 		foreach ( $p as $para ) {
-			if ( strpos( $para, $pagelinkedto ) !== false ) { // It exists, but is it a link?
+			if ( str_contains( $para, $pagelinkedto ) ) { // It exists, but is it a link?
 				preg_match( '|<a[^>]+?' . $preg_target . '[^>]*>([^>]+?)</a>|', $para, $context );
 
 				// If the URL isn't in a link context, keep looking.
@@ -6998,8 +7017,10 @@ class wp_xmlrpc_server extends IXR_Server {
 					continue;
 				}
 
-				// We're going to use this fake tag to mark the context in a bit.
-				// The marker is needed in case the link text appears more than once in the paragraph.
+				/*
+				 * We're going to use this fake tag to mark the context in a bit.
+				 * The marker is needed in case the link text appears more than once in the paragraph.
+				 */
 				$excerpt = preg_replace( '|\</?wpcontext\>|', '', $para );
 
 				// prevent really long link text

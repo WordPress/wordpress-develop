@@ -36,7 +36,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 
 		$data       = $response->get_data();
 		$post_types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
-		$this->assertSame( count( $post_types ), count( $data ) );
+		$this->assertCount( count( $post_types ), $data );
 		$this->assertSame( $post_types['post']->name, $data['post']['slug'] );
 		$this->check_post_type_obj( 'view', $post_types['post'], $data['post'], $data['post']['_links'] );
 		$this->assertSame( $post_types['page']->name, $data['page']['slug'] );
@@ -75,6 +75,27 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/types/cpt' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->check_post_type_object_response( 'view', $response, 'cpt' );
+	}
+
+	/**
+	 * @ticket 61477
+	 */
+	public function test_get_item_template_cpt() {
+		register_post_type(
+			'cpt_template',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'cpt_template',
+				'rest_namespace' => 'wordpress/v1',
+				'template'       => array(
+					array( 'core/paragraph', array( 'placeholder' => 'Content' ) ),
+				),
+				'template_lock'  => 'all',
+			)
+		);
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/types/cpt_template' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->check_post_type_object_response( 'view', $response, 'cpt_template' );
 	}
 
 	public function test_get_item_page() {
@@ -165,7 +186,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 
-		$this->assertCount( 14, $properties, 'Schema should have 14 properties' );
+		$this->assertCount( 16, $properties, 'Schema should have 16 properties' );
 		$this->assertArrayHasKey( 'capabilities', $properties, '`capabilities` should be included in the schema' );
 		$this->assertArrayHasKey( 'description', $properties, '`description` should be included in the schema' );
 		$this->assertArrayHasKey( 'hierarchical', $properties, '`hierarchical` should be included in the schema' );
@@ -180,6 +201,8 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( 'rest_namespace', $properties, '`rest_namespace` should be included in the schema' );
 		$this->assertArrayHasKey( 'visibility', $properties, '`visibility` should be included in the schema' );
 		$this->assertArrayHasKey( 'icon', $properties, '`icon` should be included in the schema' );
+		$this->assertArrayHasKey( 'template', $properties, '`template` should be included in the schema' );
+		$this->assertArrayHasKey( 'template_lock', $properties, '`template_lock` should be included in the schema' );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -230,6 +253,8 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( $post_type_obj->rest_base, $data['rest_base'] );
 		$this->assertSame( $post_type_obj->rest_namespace, $data['rest_namespace'] );
 		$this->assertSame( $post_type_obj->has_archive, $data['has_archive'] );
+		$this->assertSame( $post_type_obj->template ?? array(), $data['template'] );
+		$this->assertSame( ! empty( $post_type_obj->template_lock ) ? $post_type_obj->template_lock : false, $data['template_lock'] );
 
 		$links = test_rest_expand_compact_links( $links );
 		$this->assertSame( rest_url( 'wp/v2/types' ), $links['collection'][0]['href'] );
@@ -263,5 +288,4 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$obj  = get_post_type_object( $post_type );
 		$this->check_post_type_obj( $context, $obj, $data, $response->get_links() );
 	}
-
 }

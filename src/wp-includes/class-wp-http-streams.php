@@ -12,6 +12,8 @@
  *
  * @since 2.7.0
  * @since 3.7.0 Combined with the fsockopen transport and switched to `stream_socket_client()`.
+ * @deprecated 6.4.0 Use WP_Http
+ * @see WP_Http
  */
 #[AllowDynamicProperties]
 class WP_Http_Streams {
@@ -37,6 +39,9 @@ class WP_Http_Streams {
 			'headers'     => array(),
 			'body'        => null,
 			'cookies'     => array(),
+			'decompress'  => false,
+			'stream'      => false,
+			'filename'    => null,
 		);
 
 		$parsed_args = wp_parse_args( $args, $defaults );

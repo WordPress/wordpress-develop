@@ -14,7 +14,6 @@ class Tests_Post_Filtering extends WP_UnitTestCase {
 		parent::set_up();
 		update_option( 'use_balanceTags', 1 );
 		kses_init_filters();
-
 	}
 
 	public function tear_down() {

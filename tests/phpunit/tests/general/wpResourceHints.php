@@ -147,7 +147,6 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		wp_dequeue_style( 'googlefonts' );
 
 		$this->assertSame( $expected, $actual );
-
 	}
 
 	public function test_dns_prefetch_scripts() {

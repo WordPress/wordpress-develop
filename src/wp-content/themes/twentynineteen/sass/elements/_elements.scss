@@ -16,18 +16,9 @@ html {
 	box-sizing: inherit;
 }
 
-body {
-	background-color: $color__background-body;
-	color: $color__text-main;
-}
-
 a {
 	@include link-transition;
 	color: $color__link;
-}
-
-a:visited {
-
 }
 
 a:hover,

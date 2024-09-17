@@ -77,7 +77,16 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			$this->assertSame( get_page_template_slug( $post->ID ), $data['template'] );
 		}
 
-		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
+		if (
+			post_type_supports( $post->post_type, 'thumbnail' ) ||
+			(
+				'attachment' === $post->post_type &&
+				(
+					post_type_supports( 'attachment:audio', 'thumbnail' ) ||
+					post_type_supports( 'attachment:video', 'thumbnail' )
+				)
+			)
+		) {
 			$this->assertSame( (int) get_post_thumbnail_id( $post->ID ), $data['featured_media'] );
 		} else {
 			$this->assertArrayNotHasKey( 'featured_media', $data );
@@ -98,8 +107,10 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		// Check filtered values.
 		if ( post_type_supports( $post->post_type, 'title' ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 			$this->assertSame( get_the_title( $post->ID ), $data['title']['rendered'] );
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 			if ( 'edit' === $context ) {
 				$this->assertSame( $post->post_title, $data['title']['raw'] );
 			} else {
@@ -193,10 +204,9 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			foreach ( $taxonomies as $key => $taxonomy ) {
 				$this->assertSame( $taxonomy->name, $links['https://api.w.org/term'][ $num ]['attributes']['taxonomy'] );
 				$this->assertSame( add_query_arg( 'post', $data['id'], rest_url( 'wp/v2/' . $taxonomy->rest_base ) ), $links['https://api.w.org/term'][ $num ]['href'] );
-				$num++;
+				++$num;
 			}
 		}
-
 	}
 
 	protected function check_get_posts_response( $response, $context = 'view' ) {
@@ -240,7 +250,6 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
 		$this->check_post_data( $post, $data, $context, $response->get_links() );
-
 	}
 
 	protected function check_create_post_response( $response ) {

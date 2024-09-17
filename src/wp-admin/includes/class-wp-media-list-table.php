@@ -297,7 +297,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				<?php
 				$this->extra_tablenav( 'bar' );
 
-				/** This filter is documented in wp-admin/inclues/class-wp-list-table.php */
+				/** This filter is documented in wp-admin/includes/class-wp-list-table.php */
 				$views = apply_filters( "views_{$this->screen->id}", array() );
 
 				// Back compat for pre-4.0 view links.
@@ -312,8 +312,16 @@ class WP_Media_List_Table extends WP_List_Table {
 			</div>
 
 			<div class="search-form">
-				<label for="media-search-input" class="media-search-input-label"><?php esc_html_e( 'Search' ); ?></label>
-				<input type="search" id="media-search-input" class="search" name="s" value="<?php _admin_search_query(); ?>">
+				<p class="search-box">
+					<label class="screen-reader-text" for="media-search-input">
+					<?php
+					/* translators: Hidden accessibility text. */
+					esc_html_e( 'Search Media' );
+					?>
+					</label>
+					<input type="search" id="media-search-input" class="search" name="s" value="<?php _admin_search_query(); ?>">
+					<input id="search-submit" type="submit" class="button" value="<?php esc_attr_e( 'Search Media' ); ?>">
+				</p>
 			</div>
 		</div>
 		<?php
@@ -389,11 +397,11 @@ class WP_Media_List_Table extends WP_List_Table {
 	 */
 	protected function get_sortable_columns() {
 		return array(
-			'title'    => 'title',
-			'author'   => 'author',
-			'parent'   => 'parent',
-			'comments' => 'comment_count',
-			'date'     => array( 'date', true ),
+			'title'    => array( 'title', false, _x( 'File', 'column name' ), __( 'Table ordered by File Name.' ) ),
+			'author'   => array( 'author', false, __( 'Author' ), __( 'Table ordered by Author.' ) ),
+			'parent'   => array( 'parent', false, _x( 'Uploaded to', 'column name' ), __( 'Table ordered by Uploaded To.' ) ),
+			'comments' => array( 'comment_count', __( 'Comments' ), false, __( 'Table ordered by Comments.' ) ),
+			'date'     => array( 'date', true, __( 'Date' ), __( 'Table ordered by Date.' ), 'desc' ),
 		);
 	}
 
@@ -411,7 +419,8 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		if ( current_user_can( 'edit_post', $post->ID ) ) {
 			?>
-			<label class="label-covers-full-cell" for="cb-select-<?php echo $post->ID; ?>">
+			<input type="checkbox" name="media[]" id="cb-select-<?php echo $post->ID; ?>" value="<?php echo $post->ID; ?>" />
+			<label for="cb-select-<?php echo $post->ID; ?>">
 				<span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. %s: Attachment title. */
@@ -419,7 +428,6 @@ class WP_Media_List_Table extends WP_List_Table {
 				?>
 				</span>
 			</label>
-			<input type="checkbox" name="media[]" id="cb-select-<?php echo $post->ID; ?>" value="<?php echo $post->ID; ?>" />
 			<?php
 		}
 	}
@@ -700,6 +708,10 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @global WP_Post  $post     Global post object.
 	 * @global WP_Query $wp_query WordPress Query object.
 	 */
@@ -808,23 +820,27 @@ class WP_Media_List_Table extends WP_List_Table {
 				);
 			}
 
-			$actions['copy'] = sprintf(
-				'<span class="copy-to-clipboard-container"><button type="button" class="button-link copy-attachment-url media-library" data-clipboard-text="%s" aria-label="%s">%s</button><span class="success hidden" aria-hidden="true">%s</span></span>',
-				esc_url( $attachment_url ),
-				/* translators: %s: Attachment title. */
-				esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
-				__( 'Copy URL' ),
-				__( 'Copied!' )
-			);
+			if ( $attachment_url ) {
+				$actions['copy'] = sprintf(
+					'<span class="copy-to-clipboard-container"><button type="button" class="button-link copy-attachment-url media-library" data-clipboard-text="%s" aria-label="%s">%s</button><span class="success hidden" aria-hidden="true">%s</span></span>',
+					esc_url( $attachment_url ),
+					/* translators: %s: Attachment title. */
+					esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
+					__( 'Copy URL' ),
+					__( 'Copied!' )
+				);
+			}
 		}
 
-		$actions['download'] = sprintf(
-			'<a href="%s" aria-label="%s" download>%s</a>',
-			esc_url( $attachment_url ),
-			/* translators: %s: Attachment title. */
-			esc_attr( sprintf( __( 'Download &#8220;%s&#8221;' ), $att_title ) ),
-			__( 'Download file' )
-		);
+		if ( $attachment_url ) {
+			$actions['download'] = sprintf(
+				'<a href="%s" aria-label="%s" download>%s</a>',
+				esc_url( $attachment_url ),
+				/* translators: %s: Attachment title. */
+				esc_attr( sprintf( __( 'Download &#8220;%s&#8221;' ), $att_title ) ),
+				__( 'Download file' )
+			);
+		}
 
 		if ( $this->detached && current_user_can( 'edit_post', $post->ID ) ) {
 			$actions['attach'] = sprintf(
@@ -868,11 +884,11 @@ class WP_Media_List_Table extends WP_List_Table {
 			return '';
 		}
 
+		// Restores the more descriptive, specific name for use within this method.
+		$post = $item;
+
 		$att_title = _draft_or_post_title();
-		$actions   = $this->_get_row_actions(
-			$item, // WP_Post object for an attachment.
-			$att_title
-		);
+		$actions   = $this->_get_row_actions( $post, $att_title );
 
 		return $this->row_actions( $actions );
 	}

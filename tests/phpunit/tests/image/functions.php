@@ -111,6 +111,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'webp-lossless.webp',
 			'webp-lossy.webp',
 			'webp-transparent.webp',
+			'avif-animated.avif',
+			'avif-lossless.avif',
+			'avif-lossy.avif',
+			'avif-transparent.avif',
 		);
 
 		return $this->text_array_to_dataprovider( $files );
@@ -186,6 +190,17 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$files[] = 'webp-transparent.webp';
 		}
 
+		// Add AVIF images if the image editor supports them.
+		$file   = DIR_TESTDATA . '/images/avif-lossless.avif';
+		$editor = wp_get_image_editor( $file );
+
+		if ( ! is_wp_error( $editor ) && $editor->supports_mime_type( 'image/avif' ) ) {
+			$files[] = 'avif-animated.avif';
+			$files[] = 'avif-lossless.avif';
+			$files[] = 'avif-lossy.avif';
+			$files[] = 'avif-transparent.avif';
+		}
+
 		return $this->text_array_to_dataprovider( $files );
 	}
 
@@ -222,6 +237,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.jp2',
 			'test-image.psd',
 			'test-image-zip.tiff',
+			'test-image.heic',
 		);
 
 		return $this->text_array_to_dataprovider( $files );
@@ -623,7 +639,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_crop_image_with_url() {
 		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
+			'https://s.w.org/screenshots/3.9/dashboard.png',
 			0,
 			0,
 			100,
@@ -631,7 +647,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100,
 			false,
-			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.jpg'
+			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
 		);
 
 		if ( is_wp_error( $file ) && $file->get_error_code() === 'invalid_image' ) {
@@ -672,7 +688,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_crop_image_should_fail_with_wp_error_object_if_url_does_not_exist() {
 		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
+			'https://wordpress.org/screenshots/3.9/canoladoesnotexist.jpg',
 			0,
 			0,
 			100,
@@ -692,7 +708,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_image_editors',
-			static function( $editors ) {
+			static function ( $editors ) {
 				return array( 'WP_Image_Editor_Mock' );
 			}
 		);
@@ -718,7 +734,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_wp_crop_image_should_return_correct_file_extension_if_output_format_was_modified() {
 		add_filter(
 			'image_editor_output_format',
-			static function() {
+			static function () {
 				return array_fill_keys( array( 'image/jpg', 'image/jpeg', 'image/png' ), 'image/webp' );
 			}
 		);

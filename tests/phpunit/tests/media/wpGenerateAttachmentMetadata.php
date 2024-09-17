@@ -73,7 +73,7 @@ class Tests_Media_wpGenerateAttachmentMetadata extends WP_UnitTestCase {
 			// PSD mime type is not allowed by default on multisite.
 			add_filter(
 				'upload_mimes',
-				static function( $mimes ) {
+				static function ( $mimes ) {
 					$mimes['psd'] = 'application/octet-stream';
 					return $mimes;
 				}

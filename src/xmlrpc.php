@@ -91,13 +91,16 @@ exit;
 /**
  * logIO() - Writes logging info to a file.
  *
+ * @since 1.2.0
  * @deprecated 3.4.0 Use error_log()
  * @see error_log()
  *
- * @param string $io Whether input or output
+ * @global int|bool $xmlrpc_logging Whether to enable XML-RPC logging.
+ *
+ * @param string $io  Whether input or output.
  * @param string $msg Information describing logging reason.
  */
-function logIO( $io, $msg ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+function logIO( $io, $msg ) {
 	_deprecated_function( __FUNCTION__, '3.4.0', 'error_log()' );
 	if ( ! empty( $GLOBALS['xmlrpc_logging'] ) ) {
 		error_log( $io . ' - ' . $msg );

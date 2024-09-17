@@ -41,6 +41,13 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	private static $admin;
 
 	/**
+	 * JSON decoded response from the WordPress.org plugin API.
+	 *
+	 * @var stdClass
+	 */
+	private static $plugin_api_decoded_response;
+
+	/**
 	 * Set up class test fixtures.
 	 *
 	 * @since 5.5.0
@@ -67,6 +74,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		if ( is_multisite() ) {
 			grant_super_admin( self::$super_admin );
 		}
+
+		self::$plugin_api_decoded_response = json_decode( file_get_contents( DIR_TESTDATA . '/plugins/link-manager.json' ) );
 	}
 
 	/**
@@ -537,7 +546,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$super_admin );
 		add_filter(
 			'pre_http_request',
-			static function() {
+			static function () {
 				/*
 				 * Mocks the request to:
 				 * https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&request%5Bslug%5D=alex-says-this-block-definitely-doesnt-exist&request%5Bfields%5D%5Bsections%5D=0&request%5Bfields%5D%5Blanguage_packs%5D=1&request%5Blocale%5D=en_US&request%5Bwp_version%5D=5.9
@@ -1012,12 +1021,17 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 'My &#8216;Cool&#8217; Plugin <cite>By <a href="https://wordpress.org/">WordPress.org</a>.</cite>', $data['description']['rendered'] );
 		$this->assertSame( $network_only, $data['network_only'] );
 		$this->assertSame( '5.6.0', $data['requires_php'] );
-		$this->assertSame( '5.4.0', $data['requires_wp'] );
+		$this->assertSame( '5.4', $data['requires_wp'] );
 		$this->assertSame( 'test-plugin', $data['textdomain'] );
 	}
 
 	/**
-	 * Sets up the plugin download to come locally instead of downloading it from .org
+	 * Sets up the plugin repository requests to use local data.
+	 *
+	 * Requests to the plugin repository are mocked to avoid external HTTP requests so
+	 * the test suite does not produce false negatives due to network failures.
+	 *
+	 * Both the plugin ZIP file and the plugin API response are mocked.
 	 *
 	 * @since 5.5.0
 	 */
@@ -1036,8 +1050,23 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			3
 		);
 
-		// Remove upgrade hooks which are not required for plugin installation tests
-		// and may interfere with the results due to a timeout in external HTTP requests.
+		add_filter(
+			'plugins_api',
+			function ( $bypass, $action, $args ) {
+				// Only mock the plugin_information (link-manager) request.
+				if ( 'plugin_information' !== $action || 'link-manager' !== $args->slug ) {
+					return $bypass;
+				}
+				return self::$plugin_api_decoded_response;
+			},
+			10,
+			3
+		);
+
+		/*
+		 * Remove upgrade hooks which are not required for plugin installation tests
+		 * and may interfere with the results due to a timeout in external HTTP requests.
+		 */
 		remove_action( 'upgrader_process_complete', array( 'Language_Pack_Upgrader', 'async_upgrade' ), 20 );
 		remove_action( 'upgrader_process_complete', 'wp_version_check' );
 		remove_action( 'upgrader_process_complete', 'wp_update_plugins' );
@@ -1120,7 +1149,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
  * Author URI: https://wordpress.org/
  * Text Domain: test-plugin
  * Requires PHP: 5.6.0
- * Requires at least: 5.4.0{$network}
+ * Requires at least: 5.4{$network}
  */
 PHP;
 		wp_mkdir_p( WP_PLUGIN_DIR . '/test-plugin' );

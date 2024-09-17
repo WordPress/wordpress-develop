@@ -43,8 +43,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public static function wpTearDownAfterClass() {
-		wp_delete_user( self::$admin_id );
-		wp_delete_user( self::$author_id );
+		self::delete_user( self::$admin_id );
+		self::delete_user( self::$author_id );
 	}
 
 	public function set_up() {
@@ -311,7 +311,6 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 			),
 			$data
 		);
-
 	}
 
 	/**
@@ -1013,7 +1012,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 			if ( isset( $item['_links'] ) ) {
 				unset( $data[ $count ]['_links'] );
 			}
-			$count++;
+			++$count;
 		}
 
 		return $data;

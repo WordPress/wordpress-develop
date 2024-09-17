@@ -730,7 +730,7 @@ class Tests_Query extends WP_UnitTestCase {
 	public function test_posts_clauses_filter_should_receive_filtered_clauses() {
 		add_filter(
 			'posts_join_paged',
-			static function() {
+			static function () {
 				return '/* posts_join_paged */';
 			}
 		);
@@ -755,7 +755,7 @@ class Tests_Query extends WP_UnitTestCase {
 	public function test_posts_clauses_request_filter_should_receive_filtered_clauses() {
 		add_filter(
 			'posts_join_request',
-			static function() {
+			static function () {
 				return '/* posts_join_request */';
 			}
 		);
