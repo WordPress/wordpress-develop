@@ -985,7 +985,7 @@ function wp_default_scripts( $scripts ) {
 		/* translators: %s: File name. */
 		'file_exceeds_size_limit'   => __( '%s exceeds the maximum upload size for this site.' ),
 		'zero_byte_file'            => __( 'This file is empty. Please try another.' ),
-		'invalid_filetype'          => __( 'This image cannot be processed by the web server to generate responsive image sizes. Convert it to JPEG or PNG before uploading.' ),
+		'invalid_filetype'          => __( 'This file cannot be processed by the web server.' ),
 		'not_an_image'              => __( 'This file is not an image. Please try another.' ),
 		'image_memory_exceeded'     => __( 'Memory exceeded. Please try another smaller file.' ),
 		'image_dimensions_exceeded' => __( 'This is larger than the maximum size. Please try another.' ),
