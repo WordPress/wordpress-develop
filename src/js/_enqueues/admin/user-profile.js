@@ -2,7 +2,7 @@
  * @output wp-admin/js/user-profile.js
  */
 
-/* global ajaxurl, pwsL10n, userProfileL10n */
+/* global ajaxurl, pwsL10n, userProfileL10n, ClipboardJS */
 (function($) {
 	var updateLock = false,
 		isSubmitting = false,
