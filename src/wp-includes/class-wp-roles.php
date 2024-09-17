@@ -147,12 +147,15 @@ class WP_Roles {
 	 * To explicitly deny the role a capability, set the value for that capability to false.
 	 *
 	 * @since 2.0.0
+	 * @since x.y.z Support an array of strings for the capabilities array.
 	 *
 	 * @param string $role         Role name.
 	 * @param string $display_name Role display name.
-	 * @param bool[] $capabilities Optional. List of capabilities keyed by the capability name,
-	 *                             e.g. `array( 'edit_posts' => true, 'delete_posts' => false )`.
+	 * @param bool[]|string[] $capabilities List of capabilities keyed by the capability name,
+	 *                             e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
+	 *                             Also supports an array of capabilities assumed to be granted.
 	 *                             Default empty array.
+	 *
 	 * @return WP_Role|void WP_Role object, if the role is added.
 	 */
 	public function add_role( $role, $display_name, $capabilities = array() ) {
@@ -160,11 +163,8 @@ class WP_Roles {
 			return;
 		}
 
-		foreach ( $capabilities as $key => $value ) {
-			if ( ! is_bool( $value ) ) {
-				$capabilities[ $value ] = true;
-				unset( $capabilities[ $key ] );
-			}
+		if ( wp_is_numeric_array( $capabilities ) ) {
+			$capabilities = array_fill_keys( $capabilities, true );
 		}
 
 		$this->roles[ $role ] = array(

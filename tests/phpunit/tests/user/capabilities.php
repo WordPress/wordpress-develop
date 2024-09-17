@@ -1001,7 +1001,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'Janitor',
 			array(
 				'level_1',
-				'sweep_floors' => false,
 			)
 		);
 		$this->flush_roles();
@@ -1011,7 +1010,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$user = new WP_User( $id );
 
 		$this->assertTrue( $user->has_cap( 'level_1' ) );
-		$this->assertFalse( $user->has_cap( 'sweep_floors' ) );
 	}
 
 	/**
