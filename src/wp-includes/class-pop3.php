@@ -60,7 +60,7 @@ class POP3 {
             settype($timeout,"integer");
             $this->TIMEOUT = $timeout;
             if(function_exists("set_time_limit")){
-                // Extends script POP3 request timeout an additional 60 seonds or to user specified timeout.
+                // Extends POP3 request timeout to specified TIMEOUT property.
                 set_time_limit($timeout);
             }
         }
@@ -76,7 +76,7 @@ class POP3 {
 
     function update_timer () {
         if(function_exists("set_time_limit")){
-            // Allows additional extension of script timeout to specified TIMEOUT variable when function is called.
+            // Allows additional extension of POP3 request timeout to specified TIMEOUT property when update_timer is called.
             set_time_limit($this->TIMEOUT);
         }
         return true;
