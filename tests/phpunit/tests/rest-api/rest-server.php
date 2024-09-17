@@ -2477,6 +2477,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @ticket 61739
 	 */
 	public function test_sanitizes_request_when_building_target_hints() {
+		$validated_param = null;
 		register_rest_route(
 			'test-ns/v1',
 			'/test/(?P<id>\d+)',
@@ -2486,8 +2487,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 					'callback'            => static function () {
 						return new \WP_REST_Response();
 					},
-					'permission_callback' => function ( WP_REST_Request $request ) {
-						$this->assertIsInt( $request['id'] );
+					'permission_callback' => function ( WP_REST_Request $request ) use ( &$validated_param ) {
+						$validated_param = $request['id'];
 
 						return true;
 					},
@@ -2507,6 +2508,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$this->assertArrayHasKey( 'self', $links );
 		$this->assertArrayHasKey( 'targetHints', $links['self'][0] );
+		$this->assertIsInt( $validated_param );
 	}
 
 	/**
