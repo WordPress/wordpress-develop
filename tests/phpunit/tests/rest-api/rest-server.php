@@ -2441,6 +2441,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( '/test-allowed-cors-headers', $mock_hook->get_events()[0]['args'][1]->get_route() );
 	}
 
+	/**
+	 * @ticket 61739
+	 */
 	public function test_validates_request_when_building_target_hints() {
 		register_rest_route(
 			'test-ns/v1',
@@ -2470,6 +2473,45 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( 'targetHints', $links['self'][0] );
 	}
 
+	/**
+	 * @ticket 61739
+	 */
+	public function test_sanitizes_request_when_building_target_hints() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test/(?P<id>\d+)',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => static function () {
+						return new \WP_REST_Response();
+					},
+					'permission_callback' => function( WP_REST_Request $request ) {
+						$this->assertIsInt( $request['id'] );
+
+						return true;
+					},
+					'args'                => array(
+						'id' => array(
+							'type' => 'integer',
+						),
+					),
+				),
+			)
+		);
+
+		$response = new WP_REST_Response();
+		$response->add_link( 'self', rest_url( 'test-ns/v1/test/5' ) );
+
+		$links = rest_get_server()::get_response_links( $response );
+
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertArrayHasKey( 'targetHints', $links['self'][0] );
+	}
+
+	/**
+	 * @ticket 61739
+	 */
 	public function test_populates_target_hints_for_administrator() {
 		wp_set_current_user( self::$admin_id );
 		$response = rest_do_request( '/wp/v2/posts' );
@@ -2481,6 +2523,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( array( 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' ), $link['targetHints']['allow'] );
 	}
 
+	/**
+	 * @ticket 61739
+	 */
 	public function test_populates_target_hints_for_logged_out_user() {
 		$response = rest_do_request( '/wp/v2/posts' );
 		$post     = $response->get_data()[0];
@@ -2491,6 +2536,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( array( 'GET' ), $link['targetHints']['allow'] );
 	}
 
+	/**
+	 * @ticket 61739
+	 */
 	public function test_does_not_error_on_invalid_urls() {
 		$response = new WP_REST_Response();
 		$response->add_link( 'self', 'this is not a real URL' );
@@ -2499,6 +2547,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( 'targetHints', $links['self'][0] );
 	}
 
+	/**
+	 * @ticket 61739
+	 */
 	public function test_does_not_error_on_bad_rest_api_routes() {
 		$response = new WP_REST_Response();
 		$response->add_link( 'self', rest_url( '/this/is/not/a/real/route' ) );
@@ -2507,6 +2558,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( 'targetHints', $links['self'][0] );
 	}
 
+	/**
+	 * @ticket 61739
+	 */
 	public function test_prefers_developer_defined_target_hints() {
 		$response = new WP_REST_Response();
 		$response->add_link(
