@@ -2486,7 +2486,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 					'callback'            => static function () {
 						return new \WP_REST_Response();
 					},
-					'permission_callback' => function( WP_REST_Request $request ) {
+					'permission_callback' => function ( WP_REST_Request $request ) {
 						$this->assertIsInt( $request['id'] );
 
 						return true;
