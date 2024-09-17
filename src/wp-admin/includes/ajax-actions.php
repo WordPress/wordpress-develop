@@ -3556,6 +3556,8 @@ function wp_ajax_get_revision_diffs() {
 
 	$return = array();
 
+
+	// Removes the script timeout limit by setting it to 0 allowing ample time for diff ui setup.
 	if ( function_exists( 'set_time_limit' ) ) {
 		set_time_limit( 0 );
 	}

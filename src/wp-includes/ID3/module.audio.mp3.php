@@ -1325,6 +1325,7 @@ class getid3_mp3 extends getid3_handler
 
 		$previousvalidframe = $info['avdataoffset'];
 		while ($this->ftell() < $info['avdataend']) {
+			// Extends the script timeout an extra 30 seconds to process each AV datum found in the MPEG ensuring it does not prematurely time out when processing larger files.
 			set_time_limit(30);
 			$head4 = $this->fread(4);
 			if (strlen($head4) < 4) {
