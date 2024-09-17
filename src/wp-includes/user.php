@@ -2140,7 +2140,7 @@ function wp_insert_user( $userdata ) {
         /**
          * Filters a password before hashing it.
          *
-         * @since 5.7.3
+         * @since 6.7.0
          *
          * @param string $userdata['user_pass'] The user's password.
          */
