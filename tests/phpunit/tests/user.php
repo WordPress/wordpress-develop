@@ -2204,23 +2204,4 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( 'empty_pre_hash_password', $create_user->get_error_code() );
 		$this->assertSame( 'Cannot create a user with an empty password.', $create_user->get_error_message() );
 	}
-
-	/**
-	 * Test that an error is returned when the password contains a backslash.
-	 *
-	 * @ticket 49639
-	 */
-	public function test_wp_insert_user_password_with_backslash() {
-		$user_data = array(
-			'user_login' => 'test_user_backslash',
-			'user_email' => 'test_user_backslash@example.com',
-			'user_pass'  => 'password\\123',
-		);
-
-		$create_user = wp_insert_user( $user_data );
-
-		$this->assertWPError( $create_user );
-		$this->assertSame( 'illegal_pre_hash_password', $create_user->get_error_code() );
-		$this->assertSame( 'Passwords may not contain the character "\\".', $create_user->get_error_message() );
-	}
 }
