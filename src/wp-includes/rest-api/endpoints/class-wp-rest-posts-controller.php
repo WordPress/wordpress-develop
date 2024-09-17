@@ -341,7 +341,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $request['format'] ) ) {
 			$formats   = $request['format'];
-			$tax_query = array( 'relation' => 'OR' );
+			/*
+			 * Ensure that the format can be combinied with other taxonomies.
+			 * For example, a post that has both a specific category and a specific format.
+			 */
+			$tax_query = array( 'relation' => 'AND' );
 
 			/*
 			 * The default post format, `standard`, is not stored in the database.

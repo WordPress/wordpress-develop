@@ -2423,7 +2423,11 @@ function build_query_vars_from_query_block( $block, $page ) {
 		}
 		if ( ! empty( $block->context['query']['format'] ) && is_array( $block->context['query']['format'] ) ) {
 			$formats   = $block->context['query']['format'];
-			$tax_query = array( 'relation' => 'OR' );
+			/*
+			 * Ensure that the format can be combinied with other taxonomies.
+			 * For example, a post that has both a specific category and a specific format.
+			 */
+			$tax_query = array( 'relation' => 'AND' );
 
 			/*
 			 * The default post format, `standard`, is not stored in the database.
