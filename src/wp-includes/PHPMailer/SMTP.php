@@ -453,7 +453,6 @@ class SMTP
             $max = (int)ini_get('max_execution_time');
             //Don't bother if unlimited or if set_time_limit is disabled.
             if (0 !== $max && $timeout > $max && strpos(ini_get('disable_functions'), 'set_time_limit') === false) {
-                //Otherwise, set to $timeout parameter defining how long the function should wait to establish a connection to the SMTP server.
                 @set_time_limit($timeout);
             }
             stream_set_timeout($connection, $timeout, 0);
