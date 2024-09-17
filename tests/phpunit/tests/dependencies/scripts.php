@@ -3455,7 +3455,6 @@ HTML
 		);
 	}
 
-
 	/**
 	 * Helper to return dependencies from package.json.
 	 */
