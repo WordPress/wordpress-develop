@@ -1122,101 +1122,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		$html = '';
 		while ( $this->next_token() ) {
-			$token_type = $this->get_token_type();
-
-			switch ( $token_type ) {
-				case '#text':
-					$html .= htmlspecialchars( $this->get_modifiable_text(), ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
-					break;
-
-				// Unlike the `<>` which is interpreted as plaintext, this is ignored entirely.
-				case '#presumptuous-tag':
-					break;
-
-				case '#funky-comment':
-					$html .= "<!--{$this->get_modifiable_text()}-->";
-					break;
-
-				case '#comment':
-					switch ( $this->get_comment_type() ) {
-						case WP_HTML_Tag_Processor::COMMENT_AS_CDATA_LOOKALIKE:
-							$html .= "<!--[CDATA[{$this->get_modifiable_text()}]]-->";
-							break;
-
-						case WP_HTML_Tag_Processor::COMMENT_AS_PI_NODE_LOOKALIKE:
-							$html .= "<!--?{$this->get_tag()}{$this->get_modifiable_text()}?-->";
-							break;
-
-						default:
-							$html .= "<!--{$this->get_modifiable_text()}-->";
-					}
-					break;
-
-				case '#cdata-section':
-					$html .= "<![CDATA[{$this->get_modifiable_text()}]]>";
-					break;
-
-				case 'html':
-					$html .= '<!DOCTYPE html>';
-					break;
-			}
-
-			if ( '#tag' !== $token_type ) {
-				continue;
-			}
-
-			$tag_name       = $this->get_tag();
-			$in_html        = 'html' === $this->get_namespace();
-			$qualified_name = $in_html ? strtolower( $tag_name ) : $this->get_qualified_tag_name();
-
-			if ( $this->is_tag_closer() ) {
-				$html .= "</{$qualified_name}>";
-				continue;
-			}
-
-			$attribute_names = $this->get_attribute_names_with_prefix( '' );
-			if ( ! isset( $attribute_names ) ) {
-				$html .= "<{$qualified_name}>";
-				continue;
-			}
-
-			$html .= "<{$qualified_name}";
-			foreach ( $attribute_names as $attribute_name ) {
-				$html .= " {$this->get_qualified_attribute_name( $attribute_name )}";
-				$value = $this->get_attribute( $attribute_name );
-
-				if ( is_string( $value ) ) {
-					$html .= '="' . htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5 ) . '"';
-				}
-			}
-
-			if ( ! $in_html && $this->has_self_closing_flag() ) {
-				$html .= ' /';
-			}
-
-			$html .= '>';
-
-			// Flush out self-contained elements.
-			if ( $in_html && in_array( $tag_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) {
-				$text = $this->get_modifiable_text();
-
-				switch ( $tag_name ) {
-					case 'IFRAME':
-					case 'NOEMBED':
-					case 'NOFRAMES':
-						$text = '';
-						break;
-
-					case 'SCRIPT':
-					case 'STYLE':
-						break;
-
-					default:
-						$text = htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
-				}
-
-				$html .= "{$text}</{$qualified_name}>";
-			}
+			$html .= $this->serialize_token();
 		}
 
 		if ( null !== $this->get_last_error() ) {
@@ -1226,6 +1132,112 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				E_USER_WARNING
 			);
 			return null;
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Serializes a token.
+	 *
+	 * @return string Serialization of token, or empty string if no serialization exists.
+	 */
+	protected function serialize_token(): string {
+		$html       = '';
+		$token_type = $this->get_token_type();
+
+		switch ( $token_type ) {
+			case '#text':
+				$html .= htmlspecialchars( $this->get_modifiable_text(), ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+				break;
+
+			// Unlike the `<>` which is interpreted as plaintext, this is ignored entirely.
+			case '#presumptuous-tag':
+				break;
+
+			case '#funky-comment':
+				$html .= "<!--{$this->get_modifiable_text()}-->";
+				break;
+
+			case '#comment':
+				switch ( $this->get_comment_type() ) {
+					case WP_HTML_Tag_Processor::COMMENT_AS_CDATA_LOOKALIKE:
+						$html .= "<!--[CDATA[{$this->get_modifiable_text()}]]-->";
+						break;
+
+					case WP_HTML_Tag_Processor::COMMENT_AS_PI_NODE_LOOKALIKE:
+						$html .= "<!--?{$this->get_tag()}{$this->get_modifiable_text()}?-->";
+						break;
+
+					default:
+						$html .= "<!--{$this->get_modifiable_text()}-->";
+				}
+				break;
+
+			case '#cdata-section':
+				$html .= "<![CDATA[{$this->get_modifiable_text()}]]>";
+				break;
+
+			case 'html':
+				$html .= '<!DOCTYPE html>';
+				break;
+		}
+
+		if ( '#tag' !== $token_type ) {
+			return $html;
+		}
+
+		$tag_name       = $this->get_tag();
+		$in_html        = 'html' === $this->get_namespace();
+		$qualified_name = $in_html ? strtolower( $tag_name ) : $this->get_qualified_tag_name();
+
+		if ( $this->is_tag_closer() ) {
+			$html .= "</{$qualified_name}>";
+			return $html;
+		}
+
+		$attribute_names = $this->get_attribute_names_with_prefix( '' );
+		if ( ! isset( $attribute_names ) ) {
+			$html .= "<{$qualified_name}>";
+			return $html;
+		}
+
+		$html .= "<{$qualified_name}";
+		foreach ( $attribute_names as $attribute_name ) {
+			$html .= " {$this->get_qualified_attribute_name( $attribute_name )}";
+			$value = $this->get_attribute( $attribute_name );
+
+			if ( is_string( $value ) ) {
+				$html .= '="' . htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5 ) . '"';
+			}
+		}
+
+		if ( ! $in_html && $this->has_self_closing_flag() ) {
+			$html .= ' /';
+		}
+
+		$html .= '>';
+
+		// Flush out self-contained elements.
+		if ( $in_html && in_array( $tag_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) {
+			$text = $this->get_modifiable_text();
+
+			switch ( $tag_name ) {
+				case 'IFRAME':
+				case 'NOEMBED':
+				case 'NOFRAMES':
+					$text = '';
+					break;
+
+				case 'SCRIPT':
+				case 'STYLE':
+					break;
+
+				default:
+					$text = htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+			}
+
+			$html .= "{$text}</{$qualified_name}>";
 		}
 
 		return $html;
