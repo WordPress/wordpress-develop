@@ -3388,11 +3388,9 @@ HTML
 	/**
 	 * Tests default scripts are registered with the correct versions.
 	 *
-	 * Ensures that vendor scripts registered in wp_default_scripts() are
-	 * registered with the correct version number from package.json.
-	 *
-	 * element-closest (wp-polyfill-element-closest) uses a range in package.json
-	 * so is excluded from this test.
+	 * Ensures that vendor scripts registered in wp_default_scripts() and
+	 * wp_default_packages_vendor() are registered with the correct version
+	 * number from package.json.
 	 *
 	 * @ticket 61855
 	 * @ticket 60048
