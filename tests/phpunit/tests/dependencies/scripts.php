@@ -3432,6 +3432,7 @@ HTML
 			'backbone'                         => array( 'backbone' ),
 			'clipboard'                        => array( 'clipboard' ),
 			'core-js-url-browser'              => array( 'core-js-url-browser', 'wp-polyfill-url' ),
+			'element-closest'                  => array( 'element-closest', 'wp-polyfill-element-closest' ),
 			'formdata-polyfill'                => array( 'formdata-polyfill', 'wp-polyfill-formdata' ),
 			'imagesloaded'                     => array( 'imagesloaded' ),
 			'jquery-color'                     => array( 'jquery-color' ),
