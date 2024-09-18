@@ -163,11 +163,6 @@ function wp_default_script_modules() {
 				$script_module_id = '@wordpress/interactivity';
 				break;
 
-			/*
-			 * @wordpress/block-library block view script modules
-			 */
-			case 'interactivity':
-
 			default:
 				$script_module_id = 'index' === $package_sub_name ?
 					"@wordpress/{$package_name}" :
