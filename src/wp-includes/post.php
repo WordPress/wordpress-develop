@@ -4766,7 +4766,6 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	 */
 	do_action( "save_post_{$post->post_type}", $post_id, $post, $update, $postarr );
 
-
 	/**
 	 * Fires once a post has been saved.
 	 *
