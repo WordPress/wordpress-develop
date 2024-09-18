@@ -142,12 +142,39 @@ function wp_default_script_modules() {
 	$assets = include ABSPATH . WPINC . "/assets/script-modules-packages{$suffix}.php";
 
 	foreach ( $assets as $file_name => $script_module_data ) {
-		if ( basename( $file_name ) !== "index{$suffix}.js" ) {
-			continue;
-		}
-		$script_module_id = '@wordpress/' . dirname( $file_name );
-		$path             = "/wp-includes/js/dist/script-modules/{$file_name}";
+		$package_name     = dirname( $file_name );
+		$package_sub_name = basename( $file_name, "{$suffix}.js" );
 
+		switch ( $package_name ) {
+			/*
+			 * Interactivity exposes two entrypoints, `/index` and `/debug`.
+			 * They're the production and development versions of the package.
+			 */
+			case 'interactivity':
+				if ( SCRIPT_DEBUG ) {
+					if ( 'index' === $package_sub_name ) {
+						continue 2;
+					}
+				} else {
+					if ( 'debug' === $package_sub_name ) {
+						continue 2;
+					}
+				}
+				$script_module_id = '@wordpress/interactivity';
+				break;
+
+			/*
+			 * @wordpress/block-library block view script modules
+			 */
+			case 'interactivity':
+
+			default:
+				$script_module_id = 'index' === $package_sub_name ?
+					"@wordpress/{$package_name}" :
+					"@wordpress/{$package_name}/{$package_sub_name}";
+		}
+
+		$path = "/wp-includes/js/dist/script-modules/{$file_name}";
 		wp_register_script_module( $script_module_id, $path, $script_module_data['dependencies'], $script_module_data['version'] );
 	}
 }
