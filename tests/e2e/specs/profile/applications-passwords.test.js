@@ -31,7 +31,12 @@ test.describe( 'Manage applications passwords', () => {
 		await expect(
 			successMessage
 		).toContainText(
-			`Your new password for ${TEST_APPLICATION_NAME} is: \n\nBe sure to save this in a safe location. You will not be able to retrieve it.`
+			`Your new password for ${TEST_APPLICATION_NAME} is:`
+		);
+		await expect(
+			successMessage
+		).toContainText(
+			`Be sure to save this in a safe location. You will not be able to retrieve it.`
 		);
 	} );
 
