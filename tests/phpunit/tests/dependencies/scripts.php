@@ -3457,9 +3457,9 @@ HTML
 	}
 
 	/**
-	 * Test the tests.
+	 * Ensures that all the scripts in the package.json are included in the data provider.
 	 *
-	 * Ensure that all the scripts in the package.json are included in the data provider.
+	 * This is a test the tests to ensure the data provider includes all the scripts in package.json.
 	 *
 	 * @ticket 61855
 	 */
