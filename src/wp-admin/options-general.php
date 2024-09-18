@@ -371,12 +371,14 @@ if ( str_contains( $tzstring, 'Etc/GMT' ) ) {
 
 if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 	$check_zone_info = false;
-	if ( 0 === (int) $current_offset ) {
+	if ( 0 === $current_offset || '0' === $current_offset ) {
 		$tzstring = 'UTC+0';
-	} elseif ( $current_offset < 0 ) {
+	} elseif ( ( is_numeric( $current_offset ) && (float) $current_offset < 0 ) ) {
 		$tzstring = 'UTC' . $current_offset;
-	} else {
+	} elseif ( is_numeric( $current_offset ) ) {
 		$tzstring = 'UTC+' . $current_offset;
+	} else {
+		$tzstring = 'UTC+0';
 	}
 }
 
