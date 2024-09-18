@@ -489,7 +489,7 @@ function create_initial_post_types() {
 			'revisions_rest_controller_class' => 'WP_REST_Global_Styles_Revisions_Controller',
 			'late_route_registration'         => true,
 			'capabilities'                    => array(
-				'read'                   => 'edit_theme_options',
+				'read'                   => 'edit_posts',
 				'create_posts'           => 'edit_theme_options',
 				'edit_posts'             => 'edit_theme_options',
 				'edit_published_posts'   => 'edit_theme_options',
@@ -2968,7 +2968,11 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			 *  - `edit_post_comment_status`
 			 *  - `edit_post_guid`
 			 *  - `edit_post_menu_order`
-			 * @since
+			 *
+			 * @since 2.3.0
+			 *
+			 * @param mixed $value   Value of the post field.
+			 * @param int   $post_id Post ID.
 			 */
 			$value = apply_filters( "edit_post_{$field}", $value, $post_id );
 		}
