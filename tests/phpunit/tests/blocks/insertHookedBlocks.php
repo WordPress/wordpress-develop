@@ -145,6 +145,42 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 			$actual,
 			'Hooked block with "multiple": false should not be inserted if another instance is already present.'
 		);
+		$actual = insert_hooked_blocks( $anchor_block, 'before', get_hooked_blocks(), $context );
+		$this->assertSame(
+			'',
+			$actual,
+			'Hooked block with "multiple": false should not be inserted if another instance is already present.'
+		);
+	}
+
+	/**
+	 * @ticket 61902
+	 *
+	 * @covers ::insert_hooked_blocks
+	 */
+	public function test_insert_hooked_blocks_if_block_has_multiple_false_but_is_not_yet_present() {
+		$anchor_block = array(
+			'blockName' => 'tests/anchor-block',
+		);
+
+		$context          = new WP_Block_Template();
+		$context->content = '<!-- wp:' . self::ANCHOR_BLOCK_TYPE . ' /-->';
+
+		$expected = '<!-- wp:' . self::OTHER_HOOKED_BLOCK_TYPE . ' /-->';
+		$actual   = insert_hooked_blocks( $anchor_block, 'before', get_hooked_blocks(), $context );
+		$this->assertSame(
+			$expected,
+			$actual,
+			'Hooked block with "multiple": false should be inserted if another instance is not present.'
+		);
+
+		$context->content = $expected . $context->content; // Simulate result of first insertion.
+		$actual           = insert_hooked_blocks( $anchor_block, 'before', get_hooked_blocks(), $context );
+		$this->assertSame(
+			'',
+			$actual,
+			'Hooked block with "multiple": false should not be inserted if another instance is already present.'
+		);
 	}
 
 	/**
