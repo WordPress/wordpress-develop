@@ -529,6 +529,13 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
+		/*
+		 * Verify if the current user has edit_theme_options capability.
+		 */
+		if ( current_user_can( 'edit_theme_options' ) ) {
+			return true;
+		}
+
 		return new WP_Error(
 			'rest_cannot_read_global_styles',
 			__( 'Sorry, you are not allowed to access the global styles on this site.' ),
