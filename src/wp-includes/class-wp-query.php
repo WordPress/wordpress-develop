@@ -4375,7 +4375,7 @@ class WP_Query {
 		if ( 'posts' === get_option( 'show_on_front' ) && $this->is_home() ) {
 			return true;
 		} elseif ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' )
-			&& $this->is_page( get_option( 'page_on_front' ) )
+			&& $this->is_page() && $this->get_queried_object_id() === absint( get_option( 'page_on_front' ) )
 		) {
 			return true;
 		} else {

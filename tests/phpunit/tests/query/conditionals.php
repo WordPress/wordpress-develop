@@ -1299,6 +1299,31 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 31711
+	 */
+	public function test_is_front_page_id_equals_the_title_of_other_page() {
+		$post_1 = $this->factory->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+		$post_2 = $this->factory->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => $post_1,
+			)
+		);
+
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $post_1 );
+
+		$this->go_to( "/?page_id=$post_1" );
+		$this->assertTrue( is_front_page() );
+		$this->go_to( "/?page_id=$post_2" );
+		$this->assertFalse( is_front_page() );
+	}
+
+	/**
 	 * @ticket 35902
 	 */
 	public function test_is_attachment_should_not_match_numeric_id_to_post_title_beginning_with_id() {
