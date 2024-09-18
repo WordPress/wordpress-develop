@@ -1,6 +1,7 @@
 # gitignore file for WordPress Core
 
 # Configuration files with possibly sensitive information
+.env
 wp-config.php
 wp-tests-config.php
 .htaccess
