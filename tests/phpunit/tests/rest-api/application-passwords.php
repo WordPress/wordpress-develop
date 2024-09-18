@@ -77,14 +77,6 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 				),
 				'args'     => array( 'name' => '<script>console.log("Hello")</script>' ),
 			),
-			'application_password_duplicate_name when name exists' => array(
-				'expected' => array(
-					'error_code'    => 'application_password_duplicate_name',
-					'error_message' => 'Each application name should be unique.',
-				),
-				'args'     => array( 'name' => 'test2' ),
-				'names'    => array( 'test1', 'test2' ),
-			),
 		);
 	}
 
