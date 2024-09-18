@@ -4789,7 +4789,6 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	 */
 	do_action( 'wp_insert_post', $post_id, $post, $update, $postarr );
 
-
 	if ( $fire_after_hooks ) {
 		wp_after_insert_post( $post, $update, $post_before );
 	}
