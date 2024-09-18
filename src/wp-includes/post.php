@@ -4728,7 +4728,6 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 
 		do_action( 'edit_post', $post_id, $post, $postarr );
 
-
 		$post_after = get_post( $post_id );
 
 		/**
