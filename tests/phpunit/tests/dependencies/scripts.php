@@ -3457,6 +3457,49 @@ HTML
 	}
 
 	/**
+	 * Test the tests.
+	 *
+	 * Ensure that all the scripts in the package.json are included in the data provider.
+	 *
+	 * @ticket 61855
+	 */
+	public function test_vendor_script_data_provider_includes_all_packages() {
+		$package_json_dependencies  = array_keys( $this->_scripts_from_package_json() );
+		$data_provider_dependencies = $this->data_vendor_script_versions_registered_manually();
+
+		// Exclude `@wordpress/*` packages from the packages in package.json.
+		$package_json_dependencies = array_filter(
+			$package_json_dependencies,
+			static function ( $dependency ) {
+				return 0 !== strpos( $dependency, '@wordpress/' );
+			}
+		);
+
+		// Get the script names from the data provider.
+		$data_provider_dependencies = array_map(
+			static function ( $dependency ) {
+				return $dependency[0];
+			},
+			$data_provider_dependencies
+		);
+
+		// Snowflake code for items in package.json that are not included in the script loader.
+		$exclude                   = array( 'react-is', 'json2php' );
+		$package_json_dependencies = array_diff( $package_json_dependencies, $exclude );
+
+		/*
+		 * Ensure the arrays are unique.
+		 *
+		 * This is for the react package as it is included in the data provider
+		 * as both `react` and `react-jsx-runtime`.
+		 */
+		$package_json_dependencies  = array_unique( $package_json_dependencies );
+		$data_provider_dependencies = array_unique( $data_provider_dependencies );
+
+		$this->assertSameSets( $package_json_dependencies, $data_provider_dependencies );
+	}
+
+	/**
 	 * Helper to return dependencies from package.json.
 	 */
 	private function _scripts_from_package_json() {
