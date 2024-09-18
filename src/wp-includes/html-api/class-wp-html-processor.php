@@ -782,7 +782,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool|null Whether to expect a closer for the currently-matched node,
 	 *                   or `null` if not matched on any token.
 	 */
-	public function expects_closer( WP_HTML_Token $node = null ): ?bool {
+	public function expects_closer( ?WP_HTML_Token $node = null ): ?bool {
 		$token_name = $node->node_name ?? $this->get_token_name();
 
 		if ( ! isset( $token_name ) ) {
@@ -2770,6 +2770,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 		}
+
+		$this->bail( 'Should not have been able to reach end of IN BODY processing. Check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
+		return false;
 	}
 
 	/**
@@ -4497,7 +4501,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					$this->state->stack_of_open_elements->pop();
 				}
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				goto in_foreign_content_process_in_current_insertion_mode;
 		}
 
 		/*
@@ -4573,6 +4577,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				goto in_foreign_content_end_tag_loop;
 			}
 
+			in_foreign_content_process_in_current_insertion_mode:
 			switch ( $this->state->insertion_mode ) {
 				case WP_HTML_Processor_State::INSERTION_MODE_INITIAL:
 					return $this->step_initial();
@@ -4645,6 +4650,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
 			}
 		}
+
+		$this->bail( 'Should not have been able to reach end of IN FOREIGN CONTENT processing. Check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
+		return false;
 	}
 
 	/*
@@ -4719,17 +4728,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		$tag_name = parent::get_tag();
 
-		switch ( $tag_name ) {
-			case 'IMAGE':
-				/*
-				 * > A start tag whose tag name is "image"
-				 * > Change the token's tag name to "img" and reprocess it. (Don't ask.)
-				 */
-				return 'IMG';
-
-			default:
-				return $tag_name;
-		}
+		/*
+		 * > A start tag whose tag name is "image"
+		 * > Change the token's tag name to "img" and reprocess it. (Don't ask.)
+		 */
+		return ( 'IMAGE' === $tag_name && 'html' === $this->get_namespace() )
+			? 'IMG'
+			: $tag_name;
 	}
 
 	/**
@@ -5878,6 +5883,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				)
 			);
 		}
+
+		$this->bail( 'Should not have reached end of HTML Integration Point detection: check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
+		return false;
 	}
 
 	/**
