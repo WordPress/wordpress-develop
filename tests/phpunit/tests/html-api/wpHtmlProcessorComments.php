@@ -19,7 +19,7 @@ class Tests_HtmlApi_WpHtmlProcessorComments extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_comments
 	 */
-	public function test_comment_processing( string $html, string $expected_comment_type, string $expected_modifiable_text, string $expected_tag = null ) {
+	public function test_comment_processing( $html, $expected_comment_type, $expected_modifiable_text, $expected_tag = null ) {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 		$processor->next_token();
 
@@ -53,7 +53,7 @@ class Tests_HtmlApi_WpHtmlProcessorComments extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_funky_comments
 	 */
-	public function test_funky_comment( string $html, string $expected_modifiable_text ) {
+	public function test_funky_comment( $html, $expected_modifiable_text ) {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 		$processor->next_token();
 
