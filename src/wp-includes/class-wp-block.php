@@ -310,6 +310,13 @@ class WP_Block {
 			}
 		}
 
+		// Update the bindings in the computed attributes.
+		// This ensures the block receives the expanded __default binding when it renders.
+		$computed_attributes['metadata'] = array_merge(
+			$parsed_block['attrs']['metadata'],
+			array( 'bindings' => $bindings )
+		);
+
 		return $computed_attributes;
 	}
 
