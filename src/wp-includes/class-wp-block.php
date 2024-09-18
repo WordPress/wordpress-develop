@@ -237,6 +237,7 @@ class WP_Block {
 	 *
 	 * @since 6.5.0
 	 * @since 6.6.0 Handle the `__default` attribute for pattern overrides.
+	 * @since 6.7.0 Return any updated bindings metadata in the computed attributes.
 	 *
 	 * @return array The computed block attributes for the provided block bindings.
 	 */
@@ -310,8 +311,8 @@ class WP_Block {
 			}
 		}
 
-		// Update the bindings in the computed attributes.
-		// This ensures the block receives the expanded __default binding when it renders.
+		// Update the bindings metadata in the computed attributes.
+		// This ensures the block receives the expanded __default binding metadata when it renders.
 		$computed_attributes['metadata'] = array_merge(
 			$parsed_block['attrs']['metadata'],
 			array( 'bindings' => $bindings )

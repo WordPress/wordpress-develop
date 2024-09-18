@@ -272,30 +272,40 @@ HTML;
 	}
 
 	/**
-	 * Tests if the `__default` attribute is replaced with real attribues for
+	 * Tests if the `__default` attribute is replaced with real attributes for
 	 * pattern overrides.
 	 *
 	 * @ticket 61333
+	 * @ticket 62069
 	 *
 	 * @covers WP_Block::process_block_bindings
 	 */
 	public function test_default_binding_for_pattern_overrides() {
-		$expected_content = 'This is the content value';
-
 		$block_content = <<<HTML
 <!-- wp:paragraph {"metadata":{"bindings":{"__default":{"source":"core/pattern-overrides"}},"name":"Test"}} -->
 <p>This should not appear</p>
 <!-- /wp:paragraph -->
 HTML;
 
-		$parsed_blocks = parse_blocks( $block_content );
-		$block         = new WP_Block( $parsed_blocks[0], array( 'pattern/overrides' => array( 'Test' => array( 'content' => $expected_content ) ) ) );
-		$result        = $block->render();
+		$expected_content = 'This is the content value';
+		$parsed_blocks    = parse_blocks( $block_content );
+		$block            = new WP_Block( $parsed_blocks[0], array( 'pattern/overrides' => array( 'Test' => array( 'content' => $expected_content ) ) ) );
+
+		$result = $block->render();
 
 		$this->assertSame(
 			"<p>$expected_content</p>",
 			trim( $result ),
 			'The `__default` attribute should be replaced with the real attribute prior to the callback.'
+		);
+
+		$expected_bindings_metadata = array(
+			'content' => array( 'source' => 'core/pattern-overrides' ),
+		);
+		$this->assertSame(
+			$expected_bindings_metadata,
+			$block->attributes['metadata']['bindings'],
+			'The __default binding should be updated with the individual binding attributes in the block metadata.'
 		);
 	}
 
