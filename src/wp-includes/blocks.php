@@ -2468,17 +2468,25 @@ function build_query_vars_from_query_block( $block, $page ) {
 					'operator' => 'IN',
 				);
 			}
-			if ( ! isset( $query['tax_query'] ) ) {
-				$query['tax_query'] = array();
-			}
+
 			/*
-			 * This condition is intended to prevent `$formats_query` from being added to `$query`
-			 * if it only contains the relation.
+			 * Add `$formats_query` to `$query`, as long as it contains more than one key:
+			 * If `$formats_query` only contains the initial `relation` key, there are no valid formats to query,
+			 * and the query should not be modified.
 			 */
 			if ( count( $formats_query ) > 1 ) {
-				$query['tax_query'][] = $formats_query;
+				// Enable filtering by both post formats and other taxonomies by combining them with `AND`.
+				if ( isset( $query['tax_query'] ) ) {
+					$query['tax_query'][] = array(
+						'relation' => 'AND',
+						$formats_query,
+					);
+				} else {
+					$query['tax_query'] = $formats_query;
+				}
 			}
 		}
+
 		if (
 			isset( $block->context['query']['order'] ) &&
 				in_array( strtoupper( $block->context['query']['order'] ), array( 'ASC', 'DESC' ), true )
