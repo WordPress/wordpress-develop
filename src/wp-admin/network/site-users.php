@@ -147,7 +147,7 @@ if ( $action ) {
 			$editable_roles = get_editable_roles();
 			$role           = $_REQUEST['new_role'];
 
-			// Mocking the `none` role so we are able to save it to the database
+			// Mock the `none` role as editable.
 			$editable_roles['none'] = array(
 				'name' => __( '&mdash; No role for this site &mdash;' ),
 			);
