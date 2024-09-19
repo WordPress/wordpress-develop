@@ -2444,6 +2444,9 @@ function img_caption_shortcode( $attr, $content = '' ) {
 	if ( ! isset( $attr['caption'] ) ) {
 		if ( preg_match( '#((?:<a [^>]+>\s*)?<img [^>]+>(?:\s*</a>)?)(.*)#is', $content, $matches ) ) {
 			$content         = $matches[1];
+			if ( empty( $attr ) ) {
+				$attr = array();
+			}
 			$attr['caption'] = trim( $matches[2] );
 		}
 	} elseif ( str_contains( $attr['caption'], '<' ) ) {
