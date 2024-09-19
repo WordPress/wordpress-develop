@@ -2432,10 +2432,11 @@ function build_query_vars_from_query_block( $block, $page ) {
 			$formats       = array_intersect( $formats, $valid_formats );
 
 			/*
-			 * Ensure that the format can be combinied with other taxonomies.
-			 * For example, a post that has both a specific category and a specific format.
+			 * The relation needs to be set to `OR` since the request can contain
+			 * two separate conditions. The user may be querying for items that have
+			 * either the `standard` format or a specific format.
 			 */
-			$tax_query = array( 'relation' => 'AND' );
+			$formats_query = array( 'relation' => 'OR' );
 
 			/*
 			 * The default post format, `standard`, is not stored in the database.
@@ -2443,7 +2444,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 			 * have a format assigned.
 			 */
 			if ( in_array( 'standard', $formats, true ) ) {
-				$tax_query[] = array(
+				$formats_query[] = array(
 					'taxonomy' => 'post_format',
 					'field'    => 'slug',
 					'operator' => 'NOT EXISTS',
@@ -2460,7 +2461,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 					},
 					$formats
 				);
-				$tax_query[] = array(
+				$formats_query[] = array(
 					'taxonomy' => 'post_format',
 					'field'    => 'slug',
 					'terms'    => $terms,
@@ -2471,11 +2472,11 @@ function build_query_vars_from_query_block( $block, $page ) {
 				$query['tax_query'] = array();
 			}
 			/*
-			 * This condition is intended to prevent `$tax_query` from being added to `$query`
+			 * This condition is intended to prevent `$formats_query` from being added to `$query`
 			 * if it only contains the relation.
 			 */
-			if ( count( $tax_query ) > 1 ) {
-				$query['tax_query'][] = $tax_query;
+			if ( count( $formats_query ) > 1 ) {
+				$query['tax_query'][] = $formats_query;
 			}
 		}
 		if (
