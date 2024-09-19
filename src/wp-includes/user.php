@@ -1185,7 +1185,8 @@ function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
  * @return mixed An array of values if `$single` is false.
  *               The value of meta data field if `$single` is true.
  *               False for an invalid `$user_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing user ID is passed.
+ *               An empty array if a valid but non-existing user ID is passed and `$single` is false.
+ *               An empty string if a valid but non-existing user ID is passed and `$single` is true.
  */
 function get_user_meta( $user_id, $key = '', $single = false ) {
 	return get_metadata( 'user', $user_id, $key, $single );
@@ -1549,12 +1550,10 @@ function setup_userdata( $for_user_id = 0 ) {
 /**
  * Creates dropdown HTML content of users.
  *
- * The content can either be displayed, which it is by default or retrieved by
- * setting the 'echo' argument. The 'include' and 'exclude' arguments do not
- * need to be used; all users will be displayed in that case. Only one can be
- * used, either 'include' or 'exclude', but not both.
- *
- * The available arguments are as follows:
+ * The content can either be displayed, which it is by default, or retrieved by
+ * setting the 'echo' argument to false. The 'include' and 'exclude' arguments
+ * are optional; if they are not specified, all users will be displayed. Only one
+ * can be used in a single call, either 'include' or 'exclude', but not both.
  *
  * @since 2.3.0
  * @since 4.5.0 Added the 'display_name_with_login' value for 'show'.

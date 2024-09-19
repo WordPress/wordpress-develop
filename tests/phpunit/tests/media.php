@@ -2467,6 +2467,9 @@ EOF;
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_filter_content_tags_schemes() {
+		// Disable lazy loading attribute to not add the 'auto' keyword to the `sizes` attribute.
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->get_image_size_array_from_meta( $image_meta, 'medium' );
 
@@ -2680,7 +2683,7 @@ EOF;
 			'src="' . $uploads_url . 'test-image-testsize-999x999.jpg" ' .
 			'class="attachment-testsize size-testsize" alt="" decoding="async" loading="lazy" ' .
 			'srcset="' . $uploads_url . 'test-image-testsize-999x999.jpg 999w, ' . $uploads_url . $basename . '-150x150.jpg 150w" ' .
-			'sizes="(max-width: 999px) 100vw, 999px" />';
+			'sizes="auto, (max-width: 999px) 100vw, 999px" />';
 
 		$actual = wp_get_attachment_image( self::$large_id, 'testsize' );
 
@@ -5117,6 +5120,9 @@ EOF;
 			}
 		);
 
+		// Do not calculate sizes attribute as it is irrelevant for this test.
+		add_filter( 'wp_calculate_image_sizes', '__return_false' );
+
 		// Add shortcode that prints a large image, and a block type that wraps it.
 		add_shortcode(
 			'full_image',
@@ -5579,6 +5585,42 @@ EOF;
 	}
 
 	/**
+	 * Tests that wp_img_tag_add_loading_optimization_attrs() passes the 'src' attribute to wp_get_loading_optimization_attributes().
+	 *
+	 * @ticket 61436
+	 *
+	 * @covers ::wp_img_tag_add_loading_optimization_attrs
+	 */
+	public function test_wp_img_tag_add_loading_optimization_attrs_passes_src() {
+		add_filter(
+			'wp_get_loading_optimization_attributes',
+			static function ( $loading_attrs, $tag_name, $attr ) {
+				if (
+					'img' === $tag_name &&
+					isset( $attr['src'] ) &&
+					'https://example.org/a-specific-image.jpg' === $attr['src']
+				) {
+					$loading_attrs['fetchpriority'] = 'low';
+					$loading_attrs['loading']       = 'eager';
+				}
+				return $loading_attrs;
+			},
+			10,
+			3
+		);
+
+		$image    = '<img src="https://example.org/a-specific-image.jpg" width="1280" height="720">';
+		$expected = '<img fetchpriority="low" loading="eager" decoding="async" src="https://example.org/a-specific-image.jpg" width="1280" height="720">';
+
+		// Ensure attributes are modified because image src was matched.
+		$this->assertSame(
+			$expected,
+			wp_img_tag_add_loading_optimization_attrs( $image, 'the_content' ),
+			'fetchpriority should be low when src is matched.'
+		);
+	}
+
+	/**
 	 * @ticket 58235
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
@@ -5989,6 +6031,277 @@ EOF;
 			),
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'After the filter it will not return the fetchpriority attribute.'
+		);
+	}
+
+	/**
+	 * Test generated markup for an image with lazy loading gets auto-sizes.
+	 *
+	 * @ticket 61847
+	 */
+	public function test_image_with_lazy_loading_has_auto_sizes() {
+		$this->assertStringContainsString(
+			'sizes="auto, ',
+			wp_get_attachment_image( self::$large_id, 'large', false, array( 'loading' => 'lazy' ) ),
+			'Failed asserting that the sizes attribute for a lazy-loaded image includes "auto".'
+		);
+	}
+
+	/**
+	 * Test generated markup for an image without lazy loading does not get auto-sizes.
+	 *
+	 * @ticket 61847
+	 */
+	public function test_image_without_lazy_loading_does_not_have_auto_sizes() {
+		$this->assertStringNotContainsString(
+			'sizes="auto, ',
+			wp_get_attachment_image( self::$large_id, 'large', false, array( 'loading' => false ) ),
+			'Failed asserting that the sizes attribute for an image without lazy loading does not include "auto".'
+		);
+	}
+
+	/**
+	 * Test content filtered markup with lazy loading gets auto-sizes.
+	 *
+	 * @ticket 61847
+	 *
+	 * @covers ::wp_img_tag_add_auto_sizes
+	 */
+	public function test_content_image_with_lazy_loading_has_auto_sizes() {
+		// Force lazy loading attribute.
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_true' );
+
+		$this->assertStringContainsString(
+			'sizes="auto, (max-width: 1024px) 100vw, 1024px"',
+			wp_filter_content_tags( get_image_tag( self::$large_id, '', '', '', 'large' ) ),
+			'Failed asserting that the sizes attribute for a content image with lazy loading includes "auto" with the expected sizes.'
+		);
+	}
+
+	/**
+	 * Test content filtered markup without lazy loading does not get auto-sizes.
+	 *
+	 * @ticket 61847
+	 *
+	 * @covers ::wp_img_tag_add_auto_sizes
+	 */
+	public function test_content_image_without_lazy_loading_does_not_have_auto_sizes() {
+		// Disable lazy loading attribute.
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+
+		$this->assertStringNotContainsString(
+			'sizes="auto, ',
+			wp_filter_content_tags( get_image_tag( self::$large_id, '', '', '', 'large' ) ),
+			'Failed asserting that the sizes attribute for a content image without lazy loading does not include "auto" with the expected sizes.'
+		);
+	}
+
+	/**
+	 * Test generated markup for an image with 'auto' keyword already present in sizes does not receive it again.
+	 *
+	 * @ticket 61847
+	 *
+	 * @covers ::wp_img_tag_add_auto_sizes
+	 * @covers ::wp_sizes_attribute_includes_valid_auto
+	 *
+	 * @dataProvider data_image_with_existing_auto_sizes
+	 *
+	 * @param string $initial_sizes      The initial sizes attribute to test.
+	 * @param bool   $expected_processed Whether the auto sizes should be processed or not.
+	 */
+	public function test_image_with_existing_auto_sizes_is_not_processed_again( string $initial_sizes, bool $expected_processed ) {
+		$image_tag = wp_get_attachment_image(
+			self::$large_id,
+			'large',
+			false,
+			array(
+				// Force pre-existing 'sizes' attribute and lazy-loading.
+				'sizes'   => $initial_sizes,
+				'loading' => 'lazy',
+			)
+		);
+		if ( $expected_processed ) {
+			$this->assertStringContainsString(
+				'sizes="auto, ' . $initial_sizes . '"',
+				$image_tag,
+				'Failed asserting that "auto" keyword is not added to sizes attribute when it already exists.'
+			);
+		} else {
+			$this->assertStringContainsString(
+				'sizes="' . $initial_sizes . '"',
+				$image_tag,
+				'Failed asserting that "auto" keyword is not added to sizes attribute when it already exists.'
+			);
+		}
+	}
+
+	/**
+	 * Test content filtered markup with 'auto' keyword already present in sizes does not receive it again.
+	 *
+	 * @ticket 61847
+	 *
+	 * @covers ::wp_img_tag_add_auto_sizes
+	 * @covers ::wp_sizes_attribute_includes_valid_auto
+	 *
+	 * @dataProvider data_image_with_existing_auto_sizes
+	 *
+	 * @param string $initial_sizes      The initial sizes attribute to test.
+	 * @param bool   $expected_processed Whether the auto sizes should be processed or not.
+	 */
+	public function test_content_image_with_existing_auto_sizes_is_not_processed_again( string $initial_sizes, bool $expected_processed ) {
+		// Force lazy loading attribute.
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_true' );
+
+		add_filter(
+			'get_image_tag',
+			static function ( $html ) use ( $initial_sizes ) {
+				return str_replace(
+					'" />',
+					'" sizes="' . $initial_sizes . '" />',
+					$html
+				);
+			}
+		);
+
+		$image_content = wp_filter_content_tags( get_image_tag( self::$large_id, '', '', '', 'large' ) );
+		if ( $expected_processed ) {
+			$this->assertStringContainsString(
+				'sizes="auto, ' . $initial_sizes . '"',
+				$image_content,
+				'Failed asserting that "auto" keyword is not added to sizes attribute in filtered content when it already exists.'
+			);
+		} else {
+			$this->assertStringContainsString(
+				'sizes="' . $initial_sizes . '"',
+				$image_content,
+				'Failed asserting that "auto" keyword is not added to sizes attribute in filtered content when it already exists.'
+			);
+		}
+	}
+
+	/**
+	 * Returns data for the above test methods to assert correct behavior with a pre-existing sizes attribute.
+	 *
+	 * @return array<string, mixed[]> Arguments for the test scenarios.
+	 */
+	public function data_image_with_existing_auto_sizes() {
+		return array(
+			'not present'                 => array(
+				'(max-width: 1024px) 100vw, 1024px',
+				true,
+			),
+			'in beginning, without space' => array(
+				'auto,(max-width: 1024px) 100vw, 1024px',
+				false,
+			),
+			'in beginning, with space'    => array(
+				'auto, (max-width: 1024px) 100vw, 1024px',
+				false,
+			),
+			'sole keyword'                => array(
+				'auto',
+				false,
+			),
+			'with space before'           => array(
+				' auto, (max-width: 1024px) 100vw, 1024px',
+				false,
+			),
+			'with uppercase'              => array(
+				'AUTO, (max-width: 1024px) 100vw, 1024px',
+				false,
+			),
+
+			/*
+			 * The following scenarios technically include the 'auto' keyword,
+			 * but it is in the wrong place, as per the HTML spec it must be
+			 * the first entry in the list.
+			 * Therefore in these invalid cases the 'auto' keyword should still
+			 * be added to the beginning of the list.
+			 */
+			'within, without space'       => array(
+				'(max-width: 1024px) 100vw, auto,1024px',
+				true,
+			),
+			'within, with space'          => array(
+				'(max-width: 1024px) 100vw, auto, 1024px',
+				true,
+			),
+			'at the end, without space'   => array(
+				'(max-width: 1024px) 100vw,auto',
+				true,
+			),
+			'at the end, with space'      => array(
+				'(max-width: 1024px) 100vw, auto',
+				true,
+			),
+		);
+	}
+
+	/**
+	 * Data provider for test_wp_img_tag_add_auto_sizes().
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function data_provider_to_test_wp_img_tag_add_auto_sizes() {
+		return array(
+			'expected_with_single_quoted_attributes'       => array(
+				'input'    => "<img src='https://example.com/foo-300x225.jpg' srcset='https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w' sizes='(max-width: 650px) 100vw, 650px' loading='lazy'>",
+				'expected' => "<img src='https://example.com/foo-300x225.jpg' srcset='https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w' sizes=\"auto, (max-width: 650px) 100vw, 650px\" loading='lazy'>",
+			),
+			'expected_with_data_sizes_attribute'           => array(
+				'input'    => '<img data-tshirt-sizes="S M L" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" loading="lazy">',
+				'expected' => '<img data-tshirt-sizes="S M L" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="auto, (max-width: 650px) 100vw, 650px" loading="lazy">',
+			),
+			'expected_with_data_sizes_attribute_already_present' => array(
+				'input'    => '<img data-tshirt-sizes="S M L" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="AUTO, (max-width: 650px) 100vw, 650px" loading="lazy">',
+				'expected' => '<img data-tshirt-sizes="S M L" src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="AUTO, (max-width: 650px) 100vw, 650px" loading="lazy">',
+			),
+			'not_expected_with_loading_lazy_in_attr_value' => array(
+				'input'    => '<img src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" alt=\'This is the LCP image and it should not get loading="lazy"!\'>',
+				'expected' => '<img src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" alt=\'This is the LCP image and it should not get loading="lazy"!\'>',
+			),
+			'not_expected_with_data_loading_attribute_present' => array(
+				'input'    => '<img src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" data-removed-loading="lazy">',
+				'expected' => '<img src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" data-removed-loading="lazy">',
+			),
+			'expected_when_attributes_have_spaces_after_them' => array(
+				'input'    => '<img src = "https://example.com/foo-300x225.jpg" srcset = "https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes = "(max-width: 650px) 100vw, 650px" loading = "lazy">',
+				'expected' => '<img src = "https://example.com/foo-300x225.jpg" srcset = "https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="auto, (max-width: 650px) 100vw, 650px" loading = "lazy">',
+			),
+			'expected_when_attributes_are_upper_case'      => array(
+				'input'    => '<IMG SRC="https://example.com/foo-300x225.jpg" SRCSET="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" SIZES="(max-width: 650px) 100vw, 650px" LOADING="LAZY">',
+				'expected' => '<IMG SRC="https://example.com/foo-300x225.jpg" SRCSET="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="auto, (max-width: 650px) 100vw, 650px" LOADING="LAZY">',
+			),
+			'expected_when_loading_lazy_lacks_quotes'      => array(
+				'input'    => '<img src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" loading=lazy>',
+				'expected' => '<img src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="auto, (max-width: 650px) 100vw, 650px" loading=lazy>',
+			),
+			'expected_when_loading_lazy_has_whitespace'    => array(
+				'input'    => '<img src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="(max-width: 650px) 100vw, 650px" loading=" lazy ">',
+				'expected' => '<img src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes="auto, (max-width: 650px) 100vw, 650px" loading=" lazy ">',
+			),
+			'not_expected_when_sizes_auto_lacks_quotes'    => array(
+				'input'    => '<img src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes=auto loading="lazy">',
+				'expected' => '<img src="https://example.com/foo-300x225.jpg" srcset="https://example.com/foo-300x225.jpg 300w, https://example.com/foo-1024x768.jpg 1024w, https://example.com/foo-768x576.jpg 768w, https://example.com/foo-1536x1152.jpg 1536w, https://example.com/foo-2048x1536.jpg 2048w" sizes=auto loading="lazy">',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 61847
+	 *
+	 * @covers ::wp_img_tag_add_auto_sizes
+	 *
+	 * @dataProvider data_provider_to_test_wp_img_tag_add_auto_sizes
+	 *
+	 * @param string $input    The input HTML string.
+	 * @param string $expected The expected output HTML string.
+	 */
+	public function test_wp_img_tag_add_auto_sizes( string $input, string $expected ) {
+		$this->assertSame(
+			$expected,
+			wp_img_tag_add_auto_sizes( $input ),
+			'Failed asserting that "auto" keyword is correctly added or not added to sizes attribute in the image tag.'
 		);
 	}
 

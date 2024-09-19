@@ -55,6 +55,57 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that the proper tag-name remapping happens for the `IMAGE` tag.
+	 *
+	 * An HTML parser should treat an IMAGE tag as if it were an IMG tag, but
+	 * only when found in the HTML namespace. As part of this rule, IMAGE tags
+	 * in the HTML namespace are also void elements, while those in foreign
+	 * content are not, making the self-closing flag significant.
+	 *
+	 * Example:
+	 *
+	 *     // This input...
+	 *     <image/><svg><image/></svg>
+	 *
+	 *     // ...is equivalent to this normative HTML.
+	 *     <img><svg><image/></svg>
+	 *
+	 * @ticket 61576
+	 *
+	 * @covers WP_HTML_Processor::get_tag
+	 */
+	public function test_get_tag_replaces_image_with_namespace_awareness() {
+		$processor = WP_HTML_Processor::create_fragment( '<image/><svg><image/></svg>' );
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find initial "<image/>" tag: check test setup.'
+		);
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'HTML tags with the name "IMAGE" should be remapped to "IMG"'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find "<svg>" tag: check test setup.'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find SVG "<image/>" tag: check test setup.'
+		);
+
+		$this->assertSame(
+			'IMAGE',
+			$processor->get_tag(),
+			'Should not remap "IMAGE" to "IMG" for foreign elements.'
+		);
+	}
+
+	/**
 	 * Ensures that the HTML Processor maintains its internal state through seek calls.
 	 *
 	 * Because the HTML Processor must track a stack of open elements and active formatting
@@ -518,5 +569,180 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	public function test_foreign_content_script_self_closing() {
 		$processor = WP_HTML_Processor::create_fragment( '<svg><script />' );
 		$this->assertTrue( $processor->next_tag( 'script' ) );
+	}
+
+	/**
+	 * Ensures that the HTML Processor correctly handles TEMPLATE tag closing and namespaces.
+	 *
+	 * This is a tricky test case that corresponds to the html5lib tests "template/line1466".
+	 *
+	 * When the `</template>` token is reached it is in the HTML namespace (thanks to the
+	 * SVG `foreignObject` element). It is not handled as foreign content; therefore, it
+	 * closes the open HTML `TEMPLATE` element (the first `<template>` token) - _not_ the
+	 * SVG `TEMPLATE` element (the second `<template>` token).
+	 *
+	 * The test is included here because it may show up as unsupported markup and be skipped by
+	 * the html5lib test suite.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_template_tag_closes_html_template_element() {
+		$processor = WP_HTML_Processor::create_fragment( '<template><svg><template><foreignObject><div></template><div>' );
+
+		$this->assertTrue( $processor->next_tag( 'DIV' ) );
+		$this->assertSame( array( 'HTML', 'BODY', 'TEMPLATE', 'SVG', 'TEMPLATE', 'FOREIGNOBJECT', 'DIV' ), $processor->get_breadcrumbs() );
+		$this->assertTrue( $processor->next_tag( 'DIV' ) );
+		$this->assertSame( array( 'HTML', 'BODY', 'DIV' ), $processor->get_breadcrumbs() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when removing CSS classes in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::remove_class
+	 */
+	public function test_remove_class_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$processor->remove_class( 'upper' );
+		$this->assertSame( '<!DOCTYPE html><span class="UPPER">', $processor->get_updated_html() );
+
+		$processor->remove_class( 'UPPER' );
+		$this->assertSame( '<!DOCTYPE html><span >', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when adding CSS classes in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::add_class
+	 */
+	public function test_add_class_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$processor->add_class( 'UPPER' );
+		$this->assertSame( '<!DOCTYPE html><span class="UPPER">', $processor->get_updated_html() );
+
+		$processor->add_class( 'upper' );
+		$this->assertSame( '<!DOCTYPE html><span class="UPPER upper">', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when checking has CSS classes in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::has_class
+	 */
+	public function test_has_class_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$this->assertFalse( $processor->has_class( 'upper' ) );
+		$this->assertTrue( $processor->has_class( 'UPPER' ) );
+	}
+
+	/**
+	 * Ensures that the tag processor lists unique CSS class names in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::class_list
+	 */
+	public function test_class_list_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser(
+			/*
+			 * U+00C9 is LATIN CAPITAL LETTER E WITH ACUTE
+			 * U+0045 is LATIN CAPITAL LETTER E
+			 * U+0301 is COMBINING ACUTE ACCENT
+			 *
+			 * This tests not only that the class matching deduplicates the É, but also
+			 * that it treats the same character in different normalization forms as
+			 * distinct, since matching occurs on a byte-for-byte basis.
+			 */
+			"<!DOCTYPE html><span class='A A a B b \u{C9} \u{45}\u{0301} \u{C9} é'>"
+		);
+		$processor->next_tag( 'SPAN' );
+		$class_list = iterator_to_array( $processor->class_list() );
+		$this->assertSame(
+			array( 'A', 'a', 'B', 'b', 'É', "E\u{0301}", 'é' ),
+			$class_list
+		);
+	}
+
+	/**
+	 * Ensures that the tag processor is case insensitive when removing CSS classes in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::remove_class
+	 */
+	public function test_remove_class_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="uPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$processor->remove_class( 'upPer' );
+		$this->assertSame( '<span >', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case insensitive when adding CSS classes in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::add_class
+	 */
+	public function test_add_class_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$processor->add_class( 'upper' );
+
+		$this->assertSame( '<span class="UPPER">', $processor->get_updated_html() );
+
+		$processor->add_class( 'ANOTHER-UPPER' );
+		$this->assertSame( '<span class="UPPER ANOTHER-UPPER">', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when checking has CSS classes in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::has_class
+	 */
+	public function test_has_class_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$this->assertTrue( $processor->has_class( 'upper' ) );
+		$this->assertTrue( $processor->has_class( 'UPPER' ) );
+	}
+
+	/**
+	 * Ensures that the tag processor lists unique CSS class names in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::class_list
+	 */
+	public function test_class_list_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser(
+			/*
+			 * U+00C9 is LATIN CAPITAL LETTER E WITH ACUTE
+			 * U+0045 is LATIN CAPITAL LETTER E
+			 * U+0065 is LATIN SMALL LETTER E
+			 * U+0301 is COMBINING ACUTE ACCENT
+			 *
+			 * This tests not only that the class matching deduplicates the É, but also
+			 * that it treats the same character in different normalization forms as
+			 * distinct, since matching occurs on a byte-for-byte basis.
+			 */
+			"<span class='A A a B b \u{C9} \u{45}\u{301} \u{C9} é \u{65}\u{301}'>"
+		);
+		$processor->next_tag( 'SPAN' );
+		$class_list = iterator_to_array( $processor->class_list() );
+		$this->assertSame(
+			array( 'a', 'b', 'É', "e\u{301}", 'é' ),
+			$class_list
+		);
 	}
 }

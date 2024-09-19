@@ -479,7 +479,8 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  * @return mixed An array of values if `$single` is false.
  *               The value of meta data field if `$single` is true.
  *               False for an invalid `$comment_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing comment ID is passed.
+ *               An empty array if a valid but non-existing comment ID is passed and `$single` is false.
+ *               An empty string if a valid but non-existing comment ID is passed and `$single` is true.
  */
 function get_comment_meta( $comment_id, $key = '', $single = false ) {
 	return get_metadata( 'comment', $comment_id, $key, $single );
@@ -3115,6 +3116,7 @@ function pingback( $content, $post ) {
 
 		if ( $pingback_server_url ) {
 			if ( function_exists( 'set_time_limit' ) ) {
+				// Allows an additional 60 seconds for each pingback to complete.
 				set_time_limit( 60 );
 			}
 

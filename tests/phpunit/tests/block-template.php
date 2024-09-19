@@ -395,7 +395,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * @covers ::_get_block_templates_paths
 	 */
 	public function test_get_block_templates_paths_dir_exists() {
-		$theme_dir = get_template_directory();
+		$theme_dir = $this->normalizeDirectorySeparatorsInPath( get_template_directory() );
 		// Templates in the current theme.
 		$templates = array(
 			'parts/small-header.html',
@@ -415,6 +415,8 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		);
 
 		$template_paths = _get_block_templates_paths( $theme_dir );
+		$template_paths = array_map( array( $this, 'normalizeDirectorySeparatorsInPath' ), _get_block_templates_paths( $theme_dir ) );
+
 		$this->assertSameSets( $expected_template_paths, $template_paths );
 	}
 
