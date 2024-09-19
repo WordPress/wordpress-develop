@@ -2455,4 +2455,161 @@ class Tests_DB extends WP_UnitTestCase {
 
 		$this->assertTrue( $wpdb->use_mysqli );
 	}
+
+	/**
+	 * Tests that the current value of `suppress_errors` is sent to the 'suppress_query_error' filter.
+	 *
+	 * @ticket 55414
+	 *
+	 * @covers wpdb::print_error
+	 *
+	 * @dataProvider data_suppress_errors_passed_to_filter
+	 *
+	 * @param bool $suppress_errors Whether to suppress errors.
+	 */
+	public function test_wpdb_print_error_should_pass_suppress_errors_to_suppress_query_error_filter( $suppress_errors ) {
+		global $wpdb;
+
+		// Save original settings to be restored later
+		$old_show_errors     = $wpdb->show_errors;
+		$old_suppress_errors = $wpdb->suppress_errors;
+		$old_last_query      = $wpdb->last_query;
+		$old_error_log_path  = ini_get( 'error_log' );
+
+		// Redirect error logging so this test doesn't print messages in the test output.
+		$temp_error_log      = tmpfile();
+		$temp_error_log_meta = stream_get_meta_data( $temp_error_log );
+		ini_set( 'error_log', $temp_error_log_meta['uri'] );
+
+		// Disable `show_errors` to avoid being labeled a risky test.
+		$wpdb->show_errors = false;
+		$wpdb->last_query  = 'expected-query';
+
+		$suppress_query_error_filter = new MockAction();
+
+		add_filter( 'suppress_query_error', array( $suppress_query_error_filter, 'filter' ), 10, 3 );
+
+		// Test that the current suppress_errors setting is passed to filter.
+		$wpdb->suppress_errors = $suppress_errors;
+		$wpdb->print_error( 'expected-error' );
+
+		// Restore original settings
+		ini_set( 'error_log', $old_error_log_path );
+		$wpdb->show_errors     = $old_show_errors;
+		$wpdb->suppress_errors = $old_suppress_errors;
+		$wpdb->last_query      = $old_last_query;
+
+		$this->assertSame(
+			1,
+			$suppress_query_error_filter->get_call_count(),
+			'The suppress_query_error filter was not called'
+		);
+		$this->assertSame(
+			$suppress_query_error_filter->events[0]['args'],
+			array( $suppress_errors, 'expected-error', 'expected-query' ),
+			'The suppress_query_error filter was not called with the expected arguments'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_suppress_errors_passed_to_filter() {
+		return array(
+			'false' => array( 'suppress_errors' => false ),
+			'true'  => array( 'suppress_errors' => true ),
+		);
+	}
+
+	/**
+	 * Tests that `wpdb::print_error()` respects the value returned from the 'suppress_query_error' filter.
+	 *
+	 * @ticket 55414
+	 *
+	 * @covers wpdb::print_error
+	 *
+	 * @dataProvider data_suppress_errors_filter_respected
+	 *
+	 * @param bool   $suppress_errors Whether to suppress errors.
+	 * @param string $filter_callback The filter function to use.
+	 * @param bool   $expect_logging  Whether to expect error logging.
+	 */
+	public function test_wpdb_print_error_should_respect_suppress_query_error_filtered_value( $suppress_errors, $filter_callback, $expect_logging ) {
+		global $wpdb;
+
+		// Save original settings to be restored later
+		$old_show_errors     = $wpdb->show_errors;
+		$old_suppress_errors = $wpdb->suppress_errors;
+		$old_last_query      = $wpdb->last_query;
+		$old_error_log_path  = ini_get( 'error_log' );
+
+		// Redirect error logging so this test doesn't print messages in the test output.
+		$temp_error_log      = tmpfile();
+		$temp_error_log_meta = stream_get_meta_data( $temp_error_log );
+		ini_set( 'error_log', $temp_error_log_meta['uri'] );
+
+		// Disable `show_errors` to avoid being labeled a risky test.
+		$wpdb->show_errors = false;
+		$wpdb->last_query  = 'expected-query';
+
+		$log_query_error_action = new MockAction();
+		add_action( 'log_query_error', array( $log_query_error_action, 'action' ) );
+
+		// Test altering error suppression with the filter.
+		$wpdb->suppress_errors = $suppress_errors;
+		add_filter( 'suppress_query_error', $filter_callback );
+		$wpdb->print_error( 'expected-error' );
+
+		// Restore original settings
+		ini_set( 'error_log', $old_error_log_path );
+		$wpdb->show_errors     = $old_show_errors;
+		$wpdb->suppress_errors = $old_suppress_errors;
+		$wpdb->last_query      = $old_last_query;
+
+		if ( $expect_logging ) {
+			$this->assertSame(
+				1,
+				$log_query_error_action->get_call_count(),
+				'Query error was not logged as expected'
+			);
+		} else {
+			$this->assertSame(
+				0,
+				$log_query_error_action->get_call_count(),
+				'Query error was unexpectedly logged'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_suppress_errors_filter_respected() {
+		return array(
+			array(
+				'suppress_errors' => true,
+				'filter_callback' => '__return_true',
+				'expect_logging'  => false,
+			),
+			array(
+				'suppress_errors' => true,
+				'filter_callback' => '__return_false',
+				'expect_logging'  => true,
+			),
+			array(
+				'suppress_errors' => false,
+				'filter_callback' => '__return_true',
+				'expect_logging'  => false,
+			),
+			array(
+				'suppress_errors' => false,
+				'filter_callback' => '__return_false',
+				'expect_logging'  => true,
+			),
+		);
+	}
 }
