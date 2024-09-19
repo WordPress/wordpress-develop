@@ -2458,6 +2458,8 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * Verify "pinging" the database works cross-version PHP.
+	 *
+	 * @ticket 62061
 	 */
 	public function test_check_connection_returns_true_when_there_is_a_connection() {
 		global $wpdb;
