@@ -358,6 +358,8 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function chmod( $file, $mode = false, $recursive = false ) {
+		static $supports_ssh2_sftp_chmod;
+
 		if ( ! $this->exists( $file ) ) {
 			return false;
 		}
@@ -372,11 +374,31 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			}
 		}
 
-		if ( ! $recursive || ! $this->is_dir( $file ) ) {
-			return $this->run_command( sprintf( 'chmod %o %s', $mode, escapeshellarg( $file ) ), true );
+		if ( null === $supports_ssh2_sftp_chmod ) {
+			$supports_ssh2_sftp_chmod = function_exists( 'ssh2_sftp_chmod' );
 		}
 
-		return $this->run_command( sprintf( 'chmod -R %o %s', $mode, escapeshellarg( $file ) ), true );
+		if ( $supports_ssh2_sftp_chmod ) {
+			if ( ! $recursive || ! $this->is_dir( $file ) ) {
+				return ssh2_sftp_chmod( $this->sftp_link, $file, $mode );
+			}
+
+			// Is a directory, and we want recursive.
+			$file     = trailingslashit( $file );
+			$filelist = $this->dirlist( $file );
+
+			foreach ( (array) $filelist as $filename => $filemeta ) {
+				$this->chmod( $file . $filename, $mode, $recursive );
+			}
+		} else {
+			if ( ! $recursive || ! $this->is_dir( $file ) ) {
+				return $this->run_command( sprintf( 'chmod %o %s', $mode, escapeshellarg( $file ) ), true );
+			}
+
+			return $this->run_command( sprintf( 'chmod -R %o %s', $mode, escapeshellarg( $file ) ), true );
+		}
+
+		return true;
 	}
 
 	/**
