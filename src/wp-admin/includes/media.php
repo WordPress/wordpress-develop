@@ -3648,6 +3648,10 @@ function wp_read_video_metadata( $file ) {
 		$metadata['audio'] = $data['audio'];
 	}
 
+	if ( ! empty( $data['video']['rotate'] ) ) {
+		$metadata['rotate'] = $data['video']['rotate'];
+	}
+
 	if ( empty( $metadata['created_timestamp'] ) ) {
 		$created_timestamp = wp_get_media_creation_timestamp( $data );
 

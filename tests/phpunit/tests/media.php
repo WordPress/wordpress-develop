@@ -2858,6 +2858,26 @@ EOF;
 	}
 
 	/**
+	 * @ticket 56217
+	 * @covers ::wp_read_video_metadata
+	 */
+	public function test_wp_read_video_metadata_adds_rotation_with_quicktime() {
+
+		$video    = DIR_TESTDATA . '/uploads/rotated-video-180.mov';
+		$metadata = wp_read_video_metadata( $video );
+
+		$this->assertArrayHasKey( 'rotate', $metadata );
+		$this->assertEquals( 180, $metadata['rotate'] );
+
+		$video    = DIR_TESTDATA . '/uploads/rotated-video-270.mov';
+		$metadata = wp_read_video_metadata( $video );
+
+		$this->assertArrayHasKey( 'rotate', $metadata );
+		$this->assertEquals( 270, $metadata['rotate'] );
+
+	}
+
+	/**
 	 * @ticket 10752
 	 */
 	public function test_media_handle_upload_uses_post_parent_for_directory_date() {
