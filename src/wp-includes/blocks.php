@@ -2428,7 +2428,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 			 * - First, add `standard` to the array of valid formats.
 			 * - Then, remove any invalid formats.
 			 */
-			$valid_formats = array_merge( ['standard'], get_post_format_slugs() );
+			$valid_formats = array_merge( array( 'standard' ), get_post_format_slugs() );
 			$formats       = array_intersect( $formats, $valid_formats );
 
 			/*
@@ -2452,12 +2452,12 @@ function build_query_vars_from_query_block( $block, $page ) {
 				// Remove the `standard` format, since it cannot be queried.
 				unset( $formats[ array_search( 'standard', $formats, true ) ] );
 			}
-			// Add any remaining formats to the tax query.
+			// Add any remaining formats to the formats query.
 			if ( ! empty( $formats ) ) {
 				// Add the `post-format-` prefix.
 				$terms = array_map(
 					static function ( $format ) {
-						return 'post-format-' . $format;
+						return "post-format-$format";
 					},
 					$formats
 				);

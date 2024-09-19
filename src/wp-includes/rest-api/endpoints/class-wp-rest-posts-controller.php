@@ -343,7 +343,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$formats = $request['format'];
 			/*
 			 * The relation needs to be set to `OR` since the request can contain
-			 * two separate conditions. The user may be querying for posts that have
+			 * two separate conditions. The user may be querying for items that have
 			 * either the `standard` format or a specific format.
 			 */
 			$formats_query = array( 'relation' => 'OR' );
@@ -363,12 +363,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				unset( $formats[ array_search( 'standard', $formats, true ) ] );
 			}
 
-			// Add any remaining formats to the tax query.
+			// Add any remaining formats to the formats query.
 			if ( ! empty( $formats ) ) {
 				// Add the `post-format-` prefix.
 				$terms = array_map(
 					static function ( $format ) {
-						return 'post-format-' . $format;
+						return "post-format-$format";
 					},
 					$formats
 				);
