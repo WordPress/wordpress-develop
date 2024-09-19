@@ -152,7 +152,7 @@ if ( $action ) {
 				'name' => __( '&mdash; No role for this site &mdash;' ),
 			);
 
-			if ( ! $role || empty( $editable_roles[ $role ] ) ) {
+			if ( empty( $editable_roles[ $role ] ) ) {
 				wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
 			}
 
