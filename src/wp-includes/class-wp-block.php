@@ -285,6 +285,14 @@ class WP_Block {
 					: array( 'source' => 'core/pattern-overrides' );
 			}
 			$bindings = $updated_bindings;
+			/*
+			* Update the bindings metadata of the computed attributes.
+			* This ensures the block receives the expanded __default binding metadata when it renders.
+			*/
+			$computed_attributes['metadata'] = array_merge(
+				$parsed_block['attrs']['metadata'],
+				array( 'bindings' => $bindings )
+			);
 		}
 
 		foreach ( $bindings as $attribute_name => $block_binding ) {
@@ -310,15 +318,6 @@ class WP_Block {
 				$computed_attributes[ $attribute_name ] = $source_value;
 			}
 		}
-
-		/*
-		 * Update the bindings metadata of the computed attributes.
-		 * This ensures the block receives the expanded __default binding metadata when it renders.
-		 */
-		$computed_attributes['metadata'] = array_merge(
-			$parsed_block['attrs']['metadata'],
-			array( 'bindings' => $bindings )
-		);
 
 		return $computed_attributes;
 	}
