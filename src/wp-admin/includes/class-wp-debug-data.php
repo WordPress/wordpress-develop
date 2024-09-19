@@ -60,7 +60,7 @@ class WP_Debug_Data {
 			'wp-dropins'          => array(),
 			'wp-active-theme'     => array(),
 			'wp-parent-theme'     => array(),
-			'wp-themes-inactive'  => self::get_wp_themes_inactive(),
+			'wp-themes-inactive'  => array(),
 			'wp-mu-plugins'       => self::get_wp_mu_plugins(),
 			'wp-plugins-active'   => array(),
 			'wp-plugins-inactive' => array(),
