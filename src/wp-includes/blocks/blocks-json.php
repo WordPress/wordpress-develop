@@ -413,7 +413,10 @@
         )
       ),
       'spacing' => array(
-        'blockGap' => true,
+        'blockGap' => array(
+          'horizontal',
+          'vertical'
+        ),
         'padding' => true,
         'margin' => array(
           'top',
@@ -518,11 +521,18 @@
     '$schema' => 'https://schemas.wp.org/trunk/block.json',
     'apiVersion' => 3,
     'name' => 'core/categories',
-    'title' => 'Categories List',
+    'title' => 'Terms List',
     'category' => 'widgets',
-    'description' => 'Display a list of all categories.',
+    'description' => 'Display a list of all terms of a given taxonomy.',
+    'keywords' => array(
+      'categories'
+    ),
     'textdomain' => 'default',
     'attributes' => array(
+      'taxonomy' => array(
+        'type' => 'string',
+        'default' => 'category'
+      ),
       'displayAsDropdown' => array(
         'type' => 'boolean',
         'default' => false
@@ -3695,6 +3705,19 @@
     'supports' => array(
       'reusable' => false,
       'html' => false,
+      'typography' => array(
+        'fontSize' => true,
+        'lineHeight' => true,
+        '__experimentalFontFamily' => true,
+        '__experimentalFontWeight' => true,
+        '__experimentalFontStyle' => true,
+        '__experimentalTextTransform' => true,
+        '__experimentalTextDecoration' => true,
+        '__experimentalLetterSpacing' => true,
+        '__experimentalDefaultControls' => array(
+          'fontSize' => true
+        )
+      ),
       'interactivity' => array(
         'clientNavigation' => true
       )
@@ -5072,6 +5095,9 @@
           'taxQuery' => null,
           'parents' => array(
             
+          ),
+          'format' => array(
+            
           )
         )
       ),
@@ -5086,6 +5112,9 @@
         'type' => 'boolean',
         'default' => false
       )
+    ),
+    'usesContext' => array(
+      'postType'
     ),
     'providesContext' => array(
       'queryId' => 'queryId',
