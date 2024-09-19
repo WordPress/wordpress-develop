@@ -340,12 +340,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args = $this->prepare_tax_query( $args, $request );
 
 		if ( ! empty( $request['format'] ) ) {
-			$formats   = $request['format'];
+			$formats = $request['format'];
 			/*
-			 * Ensure that the format can be combinied with other taxonomies.
-			 * For example, a post that has both a specific category and a specific format.
+			 * The relation needs to be set to `OR` since the request can contain
+			 * two separate conditions. The user may be querying for posts that have
+			 * either the `standard` format or a specific format.
 			 */
-			$tax_query = array( 'relation' => 'AND' );
+			$formats_query = array( 'relation' => 'OR' );
 
 			/*
 			 * The default post format, `standard`, is not stored in the database.
@@ -353,7 +354,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 * have a format assigned.
 			 */
 			if ( in_array( 'standard', $formats, true ) ) {
-				$tax_query[] = array(
+				$formats_query[] = array(
 					'taxonomy' => 'post_format',
 					'field'    => 'slug',
 					'operator' => 'NOT EXISTS',
@@ -372,7 +373,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					$formats
 				);
 
-				$tax_query[] = array(
+				$formats_query[] = array(
 					'taxonomy' => 'post_format',
 					'field'    => 'slug',
 					'terms'    => $terms,
@@ -384,10 +385,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			if ( isset( $args['tax_query'] ) ) {
 				$args['tax_query'][] = array(
 					'relation' => 'AND',
-					$tax_query,
+					$formats_query,
 				);
 			} else {
-				$args['tax_query'] = $tax_query;
+				$args['tax_query'] = $formats_query;
 			}
 		}
 
