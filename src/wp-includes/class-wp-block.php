@@ -301,7 +301,7 @@ class WP_Block {
 				continue;
 			}
 
-			// Add the necessary context.
+			// Add the necessary context defined by the source.
 			if ( ! empty( $block_binding_source->uses_context ) ) {
 				foreach ( $block_binding_source->uses_context as $context_name ) {
 					if ( array_key_exists( $context_name, $this->available_context ) ) {
