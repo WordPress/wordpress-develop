@@ -1762,7 +1762,7 @@ EOF;
 			),
 			'multiple type attributes, first uppercase, last invalid' => array(
 				'<object TYPE="application/pdf" type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'<object TYPE="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'multiple type attributes, last upper case and invalid' => array(
 				'<object type="application/pdf" TYPE="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',

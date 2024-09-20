@@ -63,7 +63,7 @@ EOF;
 EOF;
 
 		$expected = <<<EOF
-<img src='foo' width='500' />
+<img src="foo" width="500" />
 EOF;
 
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
@@ -83,7 +83,7 @@ EOF;
 EOF;
 
 		$expected = <<<EOF
-<img src='foo' width='500' height='300' />
+<img src="foo" width="500" height="300" />
 EOF;
 
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
