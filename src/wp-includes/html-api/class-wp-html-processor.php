@@ -1046,7 +1046,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *  - Tag and attribute name casing will be lower-cased,
 	 *    except for specific SVG and MathML tags or attributes.
 	 *  - Text will be re-encoded, null bytes handled,
-	 *     and invalid UTF-8 replaced with U+FFFD.
+	 *    and invalid UTF-8 replaced with U+FFFD.
 	 *  - Any incomplete syntax trailing at the end will be omitted,
 	 *    for example, an unclosed comment opener will be removed.
 	 *
