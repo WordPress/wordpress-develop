@@ -104,7 +104,10 @@ module.exports = function (
 			new DependencyExtractionPlugin( {
 				injectPolyfill: false,
 				combineAssets: true,
-				combinedOutputFile: `../../../assets/script-modules-packages${ suffix }.php`,
+				combinedOutputFile: normalizeJoin(
+					baseDir,
+					`${ buildTarget }/assets/script-modules-packages${ suffix }.php`
+				),
 			} ),
 		],
 	};
