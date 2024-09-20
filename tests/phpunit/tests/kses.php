@@ -102,7 +102,6 @@ class Tests_Kses extends WP_UnitTestCase {
 			}
 			$content  = "<a $attr>I link this</a>";
 			$expected = "<a $expected_attr>I link this</a>";
-
 			$data[]   = array( $content, $expected );
 		}
 
