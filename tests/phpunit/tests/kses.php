@@ -46,7 +46,7 @@ class Tests_Kses extends WP_UnitTestCase {
 		foreach ( $attributes as $name => $values ) {
 			foreach ( (array) $values as $value ) {
 				$content  = "<address $name='$value'>1 WordPress Avenue, The Internet.</address>";
-				$expected = "<address $name='" . str_replace( '; ', ';', trim( $value, ';' ) ) . "'>1 WordPress Avenue, The Internet.</address>";
+				$expected = "<address $name=\"" . str_replace( '; ', ';', trim( $value, ';' ) ) . '">1 WordPress Avenue, The Internet.</address>';
 
 				$data[] = array( $content, $expected );
 			}
@@ -95,13 +95,14 @@ class Tests_Kses extends WP_UnitTestCase {
 		foreach ( $attributes as $name => $value ) {
 			if ( $value ) {
 				$attr          = "$name='$value'";
-				$expected_attr = "$name='" . trim( $value, ';' ) . "'";
+				$expected_attr = "$name=\"" . trim( $value, ';' ) . "\"";
 			} else {
 				$attr          = $name;
 				$expected_attr = $name;
 			}
 			$content  = "<a $attr>I link this</a>";
 			$expected = "<a $expected_attr>I link this</a>";
+
 			$data[]   = array( $content, $expected );
 		}
 
@@ -194,7 +195,7 @@ class Tests_Kses extends WP_UnitTestCase {
 
 		foreach ( $attributes as $name => $value ) {
 			$content  = "<abbr $name='$value'>WP</abbr>";
-			$expected = "<abbr $name='" . trim( $value, ';' ) . "'>WP</abbr>";
+			$expected = "<abbr {$name}=\"" . trim( $value, ';' ) . '">WP</abbr>';
 			$data[]   = array( $content, $expected );
 		}
 
@@ -1994,7 +1995,7 @@ HTML;
 			),
 			'valid dir attribute value, upper case' => array(
 				'<p DIR="RTL">foo</p>',
-				'<p DIR="RTL">foo</p>',
+				'<p dir="RTL">foo</p>',
 			),
 			'invalid dir attribute value'           => array(
 				'<p dir="up">foo</p>',
@@ -2054,9 +2055,9 @@ HTML;
 			),
 			'valid dir attribute value, upper case' => array(
 				'<p DIR="RTL">foo</p>',
-				'<p DIR="RTL">foo</p>',
-				'<p DIR="RTL">foo</p>',
-				'<p DIR="RTL">foo</p>',
+				'<p dir="RTL">foo</p>',
+				'<p dir="RTL">foo</p>',
+				'<p dir="RTL">foo</p>',
 			),
 			'invalid dir attribute value'           => array(
 				'<p dir="up">foo</p>',
