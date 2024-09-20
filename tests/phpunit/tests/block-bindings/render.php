@@ -158,22 +158,21 @@ HTML;
 	}
 
 	/**
-	 * Tests passing `uses_context` as argument to the source.
+	 * Tests that blocks can only access the context from the specific source.
 	 *
 	 * @ticket 99999
 	 *
 	 * @covers ::register_block_bindings_source
 	 */
-	public function test_passing_uses_context_to_multiple_sources() {
+	public function test_blocks_can_just_access_the_specific_uses_context() {
 		register_block_bindings_source(
 			'test/source-one',
 			array(
 				'label'              => 'Test Source One',
-				'get_value_callback' => function ( $source_args, $block_instance, $attribute_name ) {
-					$value = $block_instance->context['sourceOneContext'];
-					return "Source One value: $value";
+				'get_value_callback' => function () {
+					return;
 				},
-				'uses_context'       => array( 'commonContext', 'sourceOneContext' ),
+				'uses_context'       => array( 'contextOne' ),
 			)
 		);
 
@@ -182,65 +181,40 @@ HTML;
 			array(
 				'label'              => 'Test Source Two',
 				'get_value_callback' => function ( $source_args, $block_instance, $attribute_name ) {
-					$value = $block_instance->context['commonContext'];
-					return "Source Two value: $value";
+					$value = $block_instance->context['contextTwo'];
+					// Try to use the context from source one, which shouldn't be available.
+					if ( ! empty( $block_instance->context['contextOne'] ) ) {
+						$value = $block_instance->context['contextOne'];
+					}
+					return "Value: $value";
 				},
-				'uses_context'       => array( 'commonContext', 'sourceTwoContext' ),
+				'uses_context'       => array( 'contextTwo' ),
 			)
 		);
 
-		$block_content                               = <<<HTML
-<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source-one", "args": {"key": "test"}}}}} -->
-<p>First source value placeholder</p>
-<!-- /wp:paragraph -->
+		$block_content = <<<HTML
 <!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source-two", "args": {"key": "test"}}}}} -->
-<p>Second source value placeholder</p>
+<p>Default content</p>
 <!-- /wp:paragraph -->
 HTML;
-		[ $first_parsed_block, $second_parsed_block] = array_values(
-			array_filter(
-				parse_blocks( $block_content ),
-				function ( $block ) {
-					return 'core/paragraph' === $block['blockName'];
-				}
-			)
-		);
-
-		$first_block         = new WP_Block(
-			$first_parsed_block,
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block(
+			$parsed_blocks[0],
 			array(
-				'commonContext'    => 'common context value',
-				'sourceOneContext' => 'source one context value',
+				'contextOne' => 'source one context value',
+				'contextTwo' => 'source two context value',
 			)
 		);
-		$first_block_render  = $first_block->render();
-		$second_block        = new WP_Block(
-			$second_parsed_block,
-			array(
-				'commonContext'    => 'common context value',
-				'sourceTwoContext' => 'source two context value',
-			)
-		);
-		$second_block_render = $second_block->render();
+		$result        = $block->render();
 
 		$this->assertSame(
-			'Source One value: source one context value',
-			$first_block->attributes['content'],
-			"The 'content' should be updated with the value of the first source context value."
+			'Value: source two context value',
+			$block->attributes['content'],
+			"The 'content' should be updated with the value of the second source context value."
 		);
 		$this->assertSame(
-			'<p>Source One value: source one context value</p>',
-			trim( $first_block_render ),
-			'The block content should be updated with the value of the first source context value.'
-		);
-		$this->assertSame(
-			'Source Two value: common context value',
-			$second_block->attributes['content'],
-			"The 'content' should be updated with the value of the common context value."
-		);
-		$this->assertSame(
-			'<p>Source Two value: common context value</p>',
-			trim( $second_block_render ),
+			'<p>Value: source two context value</p>',
+			trim( $result ),
 			'The block content should be updated with the value of the source context.'
 		);
 	}
