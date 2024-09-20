@@ -102,7 +102,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	 */
 	public function test_duplicate_attributes_are_removed() {
 		$this->assertSame(
-			WP_HTML_Processor::normalize( '<div one=1 one="one" one=\'won\' one>'),
+			WP_HTML_Processor::normalize( '<div one=1 one="one" one=\'won\' one>' ),
 			'<div one="1"></div>',
 			'Should have removed all but the first copy of an attribute when duplicates exist.'
 		);
@@ -249,4 +249,3 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		);
 	}
 }
-
