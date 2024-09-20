@@ -25,7 +25,7 @@ const {
 const scriptModules = new Map();
 for ( const packageName of MODULES.concat( SCRIPT_AND_MODULE_DUAL_PACKAGES ) ) {
 	const packageRequire = createRequire(
-		`${dirname( require.resolve( `${ packageName }/package.json` ) )}/`
+		`${ dirname( require.resolve( `${ packageName }/package.json` ) ) }/`
 	);
 
 	const depPackageJson = packageRequire( './package.json' );
@@ -83,14 +83,17 @@ module.exports = function (
 	const baseConfig = getBaseConfig( env );
 	const config = {
 		...baseConfig,
-		entry: Object.fromEntries( scriptModules.entries()),
+		entry: Object.fromEntries( scriptModules.entries() ),
 		experiments: {
 			outputModule: true,
 		},
 		output: {
 			devtoolNamespace: 'wp',
 			filename: `[name]${ suffix }.js`,
-			path: normalizeJoin( baseDir, `${ buildTarget }/js/dist/script-modules` ),
+			path: normalizeJoin(
+				baseDir,
+				`${ buildTarget }/js/dist/script-modules`
+			),
 			library: {
 				type: 'module',
 			},
