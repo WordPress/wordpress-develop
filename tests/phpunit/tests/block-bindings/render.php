@@ -305,15 +305,31 @@ HTML;
 	 * @ticket 62090
 	 */
 	public function test_filter_block_bindings_supported_block_attributes() {
+		register_block_type(
+			'plugin/custom-block',
+			array(
+				'attributes'      => array(
+					'content' => array(
+						'type'    => 'string',
+						'default' => '',
+					),
+				),
+				'render_callback' => function ( $attributes, $content ) {
+					return '<p>' . ( $attributes['content'] ?? 'Default content' ) . '</p>';
+				},
+			)
+		);
+
 		$filter_supported_attributes = function ( $supported_block_attributes ) {
-			$supported_block_attributes['core/custom-block'] = array( 'custom_attribute' );
+			$supported_block_attributes['plugin/custom-block'] = array( 'content' );
 			return $supported_block_attributes;
 		};
 
 		add_filter( 'block_bindings_supported_block_attributes', $filter_supported_attributes );
 
-		$get_value_callback = function () {
-			return 'Custom value';
+		$get_value_callback = function ( $source_args ) {
+			$key = $source_args['key'];
+			return "Source value: $key";
 		};
 
 		register_block_bindings_source(
@@ -325,9 +341,9 @@ HTML;
 		);
 
 		$block_content = <<<HTML
-<!-- wp:custom-block {"metadata":{"bindings":{"custom_attribute":{"source":"test/source"}}}} -->
-<div>Default content</div>
-<!-- /wp:custom-block -->
+<!-- wp:plugin/custom-block {"metadata":{"bindings":{"content":{"source":"test/source", "args": {"key": "custom_attribute"}}}}} -->
+<p>Default content</p>
+<!-- /wp:plugin/custom-block -->
 HTML;
 
 		$parsed_blocks = parse_blocks( $block_content );
@@ -337,7 +353,7 @@ HTML;
 		remove_filter( 'block_bindings_supported_block_attributes', $filter_supported_attributes );
 
 		$this->assertSame(
-			'<div>Custom value</div>',
+			'<p>Source value: custom_attribute</p>',
 			trim( $result ),
 			'The block content should show the custom attribute value after applying the filter.'
 		);
