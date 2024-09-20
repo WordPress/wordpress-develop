@@ -3386,15 +3386,14 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Returns the text of a matched comment or null if not on a comment type
-	 * node.
+	 * Returns the text of a matched comment or null if not on a comment type node.
 	 *
 	 * This method returns the entire text content of a comment node as it
 	 * would appear in the browser.
 	 *
 	 * This differs from {@see ::get_modifiable_text()} in that certain comment
 	 * types in the HTML API cannot allow their entire comment text content to
-	 * be modified. Namely, "bogus comments" of the form <?not allowed in html>
+	 * be modified. Namely, "bogus comments" of the form `<?not allowed in html>`
 	 * will create a comment whose text content starts with `?`. Note that if
 	 * that character were modified, it would be possible to change the node
 	 * type.
@@ -3430,8 +3429,8 @@ class WP_HTML_Tag_Processor {
 			 * the comment text but `!` is not.
 			 */
 			case self::COMMENT_AS_INVALID_HTML:
-				$preceeding_character = $this->html[ $this->text_starts_at - 1 ];
-				$comment_start        = '?' === $preceeding_character ? '?' : '';
+				$preceding_character = $this->html[ $this->text_starts_at - 1 ];
+				$comment_start       = '?' === $preceding_character ? '?' : '';
 				return "{$comment_start}{$this->get_modifiable_text()}";
 		}
 
