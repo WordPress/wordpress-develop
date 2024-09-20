@@ -1138,7 +1138,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Serializes a token.
+	 * Serializes the currently-matched token.
+	 *
+	 * This method produces a fully-normative HTML string for the currently-matched token,
+	 * if able. If not matched at any token or if the token doesn't correspond to any HTML
+	 * it will return an empty string (for example, presumptuous end tags are ignored).
+	 *
+	 * @see static::serialize()
+	 *
+	 * @since 6.7.0
 	 *
 	 * @return string Serialization of token, or empty string if no serialization exists.
 	 */
