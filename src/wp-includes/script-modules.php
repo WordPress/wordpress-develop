@@ -150,7 +150,7 @@ function wp_default_script_modules() {
 		 *   - block-library/query/view.js => @wordpress/block-library/query/view
 		 */
 		$script_module_id = '@wordpress/' . preg_replace( '~(?:/index)?(?:\.min)?\.js$~D', '', $file_name, 1 );
-		\sirreal\d( "{$file_name} => {$script_module_id}" );
+
 		switch ( $script_module_id ) {
 			/*
 			 * Interactivity exposes two entrypoints, "/index" and "/debug".
