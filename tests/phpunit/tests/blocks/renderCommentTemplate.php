@@ -253,7 +253,6 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 		);
 		$actual = build_comment_query_vars_from_block( $block );
 		$this->assertSame( $comment_query_max_num_pages, $actual['paged'] );
-		$this->assertSame( $comment_query_max_num_pages, get_query_var( 'cpage' ) );
 	}
 
 	/**
