@@ -300,6 +300,50 @@ HTML;
 	}
 
 	/**
+	 * Tests that filter `block_bindings_supported_block_attributes` is applied.
+	 *
+	 * @ticket 61181
+	 */
+	public function test_filter_block_bindings_supported_block_attributes() {
+		$filter_supported_attributes = function( $supported_block_attributes ) {
+			$supported_block_attributes['core/custom-block'] = array( 'custom_attribute' );
+			return $supported_block_attributes;
+		};
+
+		add_filter( 'block_bindings_supported_block_attributes', $filter_supported_attributes );
+
+		$get_value_callback = function() {
+			return 'Custom value';
+		};
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => $get_value_callback,
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:custom-block {"metadata":{"bindings":{"custom_attribute":{"source":"test/source"}}}} -->
+<div>Default content</div>
+<!-- /wp:custom-block -->
+HTML;
+
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
+
+		remove_filter( 'block_bindings_supported_block_attributes', $filter_supported_attributes );
+
+		$this->assertSame(
+			'<div>Custom value</div>',
+			trim( $result ),
+			'The block content should show the custom attribute value after applying the filter.'
+		);
+	}
+
+	/**
 	 * Tests that filter `block_bindings_source_value` is applied.
 	 *
 	 * @ticket 61181
