@@ -302,17 +302,17 @@ HTML;
 	/**
 	 * Tests that filter `block_bindings_supported_block_attributes` is applied.
 	 *
-	 * @ticket 61181
+	 * @ticket 62090
 	 */
 	public function test_filter_block_bindings_supported_block_attributes() {
-		$filter_supported_attributes = function( $supported_block_attributes ) {
+		$filter_supported_attributes = function ( $supported_block_attributes ) {
 			$supported_block_attributes['core/custom-block'] = array( 'custom_attribute' );
 			return $supported_block_attributes;
 		};
 
 		add_filter( 'block_bindings_supported_block_attributes', $filter_supported_attributes );
 
-		$get_value_callback = function() {
+		$get_value_callback = function () {
 			return 'Custom value';
 		};
 
