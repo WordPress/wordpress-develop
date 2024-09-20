@@ -129,3 +129,6 @@ function get_all_registered_block_bindings_sources() {
 function get_block_bindings_source( string $source_name ) {
 	return WP_Block_Bindings_Registry::get_instance()->get_registered( $source_name );
 }
+
+// Add the `uses_context` to the block editor settings to ensure it can be consumed in the client.
+add_filter( 'block_editor_settings_all', array( 'WP_Block_Bindings_Registry', 'add_uses_context_to_editor_settings' ), 10 );
