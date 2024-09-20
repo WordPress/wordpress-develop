@@ -160,7 +160,7 @@ HTML;
 	/**
 	 * Tests that blocks can only access the context from the specific source.
 	 *
-	 * @ticket 99999
+	 * @ticket 61642
 	 *
 	 * @covers ::register_block_bindings_source
 	 */
