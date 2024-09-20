@@ -1390,7 +1390,7 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
  */
 function wp_kses_hair( $attr, $allowed_protocols ) {
 	$uri_names = wp_kses_uri_attributes();
-	$processor = new WP_HTML_Tag_Processor( "<my-tag {$attr}>" );
+	$processor = new WP_HTML_Tag_Processor( "<wp-fake-tag {$attr}>" );
 	$processor->next_tag();
 
 	$attribute_names = $processor->get_attribute_names_with_prefix( '' );
@@ -1405,6 +1405,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 
 		if ( ! $is_boolean ) {
 			$value = str_replace( "\x00", "\u{FFFD}", $value );
+			$value = htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
 		}
 
 		if ( ! $is_boolean && in_array( $attribute_name, $uri_names, true ) ) {
@@ -1413,10 +1414,8 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 
 		$attributes[ $attribute_name ] = array(
 			'name'  => $attribute_name,
-			'value' => $is_boolean ? '' : $processor->get_attribute( $attribute_name ),
-			'whole' => $is_boolean
-				? $attribute_name
-				: ( "{$attribute_name}=\"" . htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' ) . '"' ),
+			'value' => $is_boolean ? '' : $value,
+			'whole' => $is_boolean ? $attribute_name : "{$attribute_name}=\"{$value}\"",
 			'vless' => $is_boolean,
 		);
 	}
