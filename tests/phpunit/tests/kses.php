@@ -95,7 +95,7 @@ class Tests_Kses extends WP_UnitTestCase {
 		foreach ( $attributes as $name => $value ) {
 			if ( $value ) {
 				$attr          = "$name='$value'";
-				$expected_attr = "$name=\"" . trim( $value, ';' ) . "\"";
+				$expected_attr = "$name=\"" . trim( $value, ';' ) . '"';
 			} else {
 				$attr          = $name;
 				$expected_attr = $name;
