@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PHPUnit">
+    <option name="directories">
+      <list>
+        <option value="$PROJECT_DIR$/src/wp-includes/sodium_compat/tests" />
+        <option value="$PROJECT_DIR$/tests/phpunit/tests" />
+      </list>
+    </option>
+  </component>
+</project>
