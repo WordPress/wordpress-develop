@@ -1156,22 +1156,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				break;
 
 			case '#funky-comment':
-				$html .= "<!--{$this->get_modifiable_text()}-->";
-				break;
-
 			case '#comment':
-				switch ( $this->get_comment_type() ) {
-					case WP_HTML_Tag_Processor::COMMENT_AS_CDATA_LOOKALIKE:
-						$html .= "<!--[CDATA[{$this->get_modifiable_text()}]]-->";
-						break;
-
-					case WP_HTML_Tag_Processor::COMMENT_AS_PI_NODE_LOOKALIKE:
-						$html .= "<!--?{$this->get_tag()}{$this->get_modifiable_text()}?-->";
-						break;
-
-					default:
-						$html .= "<!--{$this->get_modifiable_text()}-->";
-				}
+				$html .= "<!--{$this->get_full_comment_text()}-->";
 				break;
 
 			case '#cdata-section':
