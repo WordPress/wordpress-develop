@@ -665,7 +665,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		}
 	}
 
-	$editor_settings['canUpdateBlockBindings'] = current_user_can( 'manage_block_bindings' );
+	$editor_settings['canUpdateBlockBindings'] = current_user_can( 'edit_block_binding', $block_editor_context->post->ID );
 
 	/**
 	 * Filters the settings to pass to the block editor for all editor type.
