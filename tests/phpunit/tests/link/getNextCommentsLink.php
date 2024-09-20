@@ -45,8 +45,14 @@ class Tests_Link_GetNextCommentsLink extends WP_UnitTestCase {
 		$p = self::factory()->post->create();
 		$this->go_to( get_permalink( $p ) );
 
+		// Check setting the query var is ignored.
+		$cpage = get_query_var( 'cpage' );
+		set_query_var( 'cpage', 2 );
+
 		$link = get_next_comments_link( 'Next', 5, 3 );
 
 		$this->assertStringContainsString( 'cpage=4', $link );
+
+		set_query_var( 'cpage', $cpage );
 	}
 }
