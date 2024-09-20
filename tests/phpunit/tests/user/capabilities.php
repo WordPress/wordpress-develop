@@ -570,7 +570,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$expected['read_app_password'],
 			$expected['edit_app_password'],
 			$expected['delete_app_passwords'],
-			$expected['delete_app_password']
+			$expected['delete_app_password'],
+			$expected['manage_block_bindings'],
 		);
 
 		$expected = array_keys( $expected );
