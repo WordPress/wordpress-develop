@@ -801,6 +801,9 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'delete_app_password':
 			$caps = map_meta_cap( 'edit_user', $user_id, $args[0] );
 			break;
+		case 'manage_block_bindings':
+			$caps[] = 'manage_options';
+			break;
 		default:
 			// Handle meta capabilities for custom post types.
 			global $post_type_meta_caps;
