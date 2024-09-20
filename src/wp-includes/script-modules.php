@@ -142,31 +142,31 @@ function wp_default_script_modules() {
 	$assets = include ABSPATH . WPINC . "/assets/script-modules-packages{$suffix}.php";
 
 	foreach ( $assets as $file_name => $script_module_data ) {
-		$package_name     = dirname( $file_name );
-		$package_sub_name = basename( $file_name, "{$suffix}.js" );
-
-		switch ( $package_name ) {
+		/*
+		 * Build the WordPress Script Module ID from the file name.
+		 * Prepend `@wordpress/` and remove extensions and `/index` if present:
+		 *   - interactivity/index.min.js  => @wordpress/interactivity
+		 *   - interactivity/debug.min.js  => @wordpress/interactivity/debug
+		 *   - block-library/query/view.js => @wordpress/block-library/query/view
+		 */
+		$script_module_id = '@wordpress/' . preg_replace( '~(?:/index)?(?:\.min)?\.js$~D', '', $file_name, 1 );
+		\sirreal\d( "{$file_name} => {$script_module_id}" );
+		switch ( $script_module_id ) {
 			/*
-			 * Interactivity exposes two entrypoints, `/index` and `/debug`.
-			 * They're the production and development versions of the package.
+			 * Interactivity exposes two entrypoints, "/index" and "/debug".
+			 * "/debug" should replalce "/index" in devlopment.
 			 */
-			case 'interactivity':
-				if ( SCRIPT_DEBUG ) {
-					if ( 'index' === $package_sub_name ) {
-						continue 2;
-					}
-				} else {
-					if ( 'debug' === $package_sub_name ) {
-						continue 2;
-					}
+			case '@wordpress/interactivity/debug':
+				if ( ! SCRIPT_DEBUG ) {
+					continue 2;
 				}
 				$script_module_id = '@wordpress/interactivity';
 				break;
-
-			default:
-				$script_module_id = 'index' === $package_sub_name ?
-					"@wordpress/{$package_name}" :
-					"@wordpress/{$package_name}/{$package_sub_name}";
+			case '@wordpress/interactivity':
+				if ( SCRIPT_DEBUG ) {
+					continue 2;
+				}
+				break;
 		}
 
 		$path = "/wp-includes/js/dist/script-modules/{$file_name}";
