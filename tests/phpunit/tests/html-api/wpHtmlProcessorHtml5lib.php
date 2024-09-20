@@ -27,20 +27,17 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
-		'comments01/line0155'    => 'Unimplemented: Need to access raw comment text on non-normative comments.',
-		'comments01/line0169'    => 'Unimplemented: Need to access raw comment text on non-normative comments.',
-		'html5test-com/line0129' => 'Unimplemented: Need to access raw comment text on non-normative comments.',
-		'noscript01/line0014'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0022'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0055'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0488'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0500'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line1079'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0207'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0686'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0697'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0709'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'webkit01/line0231'      => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'noscript01/line0014' => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0022'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0055'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0488'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0500'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line1079'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0207'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0686'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0697'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0709'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'webkit01/line0231'   => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 	);
 
 	/**
@@ -315,26 +312,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					break;
 
 				case '#comment':
-					switch ( $processor->get_comment_type() ) {
-						case WP_HTML_Processor::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT:
-						case WP_HTML_Processor::COMMENT_AS_HTML_COMMENT:
-						case WP_HTML_Processor::COMMENT_AS_INVALID_HTML:
-							$comment_text_content = $processor->get_modifiable_text();
-							break;
-
-						case WP_HTML_Processor::COMMENT_AS_CDATA_LOOKALIKE:
-							$comment_text_content = "[CDATA[{$processor->get_modifiable_text()}]]";
-							break;
-
-						case WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE:
-							$comment_text_content = "?{$processor->get_tag()}{$processor->get_modifiable_text()}?";
-							break;
-
-						default:
-							throw new Error( "Unhandled comment type for tree construction: {$processor->get_comment_type()}" );
-					}
 					// Comments must be "<" then "!-- " then the data then " -->".
-					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<!-- {$comment_text_content} -->\n";
+					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<!-- {$processor->get_full_comment_text()} -->\n";
 					break;
 
 				default:
