@@ -485,6 +485,11 @@ class WP_Script_Modules {
 		}
 	}
 
+	/**
+	 * @access private This is only intended to be called by the registered actions.
+	 *
+	 * @since 6.7.0
+	 */
 	public function print_a11y_script_module_html() {
 		if ( ! $this->a11y_available ) {
 			return;
