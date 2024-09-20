@@ -21,6 +21,8 @@
  * @group html-api-html5lib-tests
  */
 class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
+	const TREE_INDENT = '  ';
+
 	/**
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
@@ -46,9 +48,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_external_html5lib_tests
 	 *
-	 * @param string $fragment_context Context element in which to parse HTML, such as BODY or SVG.
-	 * @param string $html             Given test HTML.
-	 * @param string $expected_tree    Tree structure of parsed HTML.
+	 * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
+	 * @param string      $html             Given test HTML.
+	 * @param string      $expected_tree    Tree structure of parsed HTML.
 	 */
 	public function test_parse( ?string $fragment_context, string $html, string $expected_tree ) {
 		try {
@@ -167,9 +169,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		 * and requires adjustment to initial parameters.
 		 * The full parser will not.
 		 */
-		$output       = $fragment_context ? "<html>\n  <head>\n  <body>\n" : '';
-		$indent_level = $fragment_context ? 2 : 0;
-		$indent       = '  ';
+		$output       = '';
+		$indent_level = 0;
 		$was_text     = null;
 		$text_node    = '';
 
@@ -222,7 +223,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 						++$indent_level;
 					}
 
-					$output .= str_repeat( $indent, $tag_indent ) . "<{$tag_name}>\n";
+					$output .= str_repeat( self::TREE_INDENT, $tag_indent ) . "<{$tag_name}>\n";
 
 					$attribute_names = $processor->get_attribute_names_with_prefix( '' );
 					if ( $attribute_names ) {
@@ -275,18 +276,18 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 							if ( true === $val ) {
 								$val = '';
 							}
-							$output .= str_repeat( $indent, $tag_indent + 1 ) . "{$display_name}=\"{$val}\"\n";
+							$output .= str_repeat( self::TREE_INDENT, $tag_indent + 1 ) . "{$display_name}=\"{$val}\"\n";
 						}
 					}
 
 					// Self-contained tags contain their inner contents as modifiable text.
 					$modifiable_text = $processor->get_modifiable_text();
 					if ( '' !== $modifiable_text ) {
-						$output .= str_repeat( $indent, $tag_indent + 1 ) . "\"{$modifiable_text}\"\n";
+						$output .= str_repeat( self::TREE_INDENT, $tag_indent + 1 ) . "\"{$modifiable_text}\"\n";
 					}
 
 					if ( 'html' === $namespace && 'TEMPLATE' === $token_name ) {
-						$output .= str_repeat( $indent, $indent_level ) . "content\n";
+						$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "content\n";
 						++$indent_level;
 					}
 
@@ -300,19 +301,19 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					}
 					$was_text = true;
 					if ( '' === $text_node ) {
-						$text_node .= str_repeat( $indent, $indent_level ) . '"';
+						$text_node .= str_repeat( self::TREE_INDENT, $indent_level ) . '"';
 					}
 					$text_node .= $text_content;
 					break;
 
 				case '#funky-comment':
 					// Comments must be "<" then "!-- " then the data then " -->".
-					$output .= str_repeat( $indent, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";
+					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";
 					break;
 
 				case '#comment':
 					// Comments must be "<" then "!-- " then the data then " -->".
-					$output .= str_repeat( $indent, $indent_level ) . "<!-- {$processor->get_full_comment_text()} -->\n";
+					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<!-- {$processor->get_full_comment_text()} -->\n";
 					break;
 
 				default:
@@ -428,7 +429,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				 * context element as context.
 				 */
 				case 'document-fragment':
-					$test_context_element = explode( ' ', $line )[0];
+					$test_context_element = trim( $line );
 					break;
 
 				/*

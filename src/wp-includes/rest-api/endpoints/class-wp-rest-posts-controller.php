@@ -337,6 +337,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
+		if (
+			isset( $registered['search_semantics'], $request['search_semantics'] )
+			&& 'exact' === $request['search_semantics']
+		) {
+			$args['exact'] = true;
+		}
+
 		$args = $this->prepare_tax_query( $args, $request );
 
 		// Force the post_type argument, since it's not a user input variable.
@@ -497,9 +504,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( $post && ! empty( $request['password'] ) ) {
+		if ( $post && ! empty( $request->get_query_params()['password'] ) ) {
 			// Check post password, and return error if invalid.
-			if ( ! hash_equals( $post->post_password, $request['password'] ) ) {
+			if ( ! hash_equals( $post->post_password, $request->get_query_params()['password'] ) ) {
 				return new WP_Error(
 					'rest_post_incorrect_password',
 					__( 'Incorrect post password.' ),
@@ -1809,7 +1816,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 * with the site's timezone offset applied.
 			 */
 			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-				$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
+				$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - (int) ( (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
 			} else {
 				$post_modified_gmt = $post->post_modified_gmt;
 			}
@@ -2885,6 +2892,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'        => 'integer',
 			);
 		}
+
+		$query_params['search_semantics'] = array(
+			'description' => __( 'How to interpret the search input.' ),
+			'type'        => 'string',
+			'enum'        => array( 'exact' ),
+		);
 
 		$query_params['offset'] = array(
 			'description' => __( 'Offset the result set by a specific number of items.' ),
