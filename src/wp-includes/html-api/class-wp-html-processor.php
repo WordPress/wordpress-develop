@@ -1173,7 +1173,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return $html;
 		}
 
-		$tag_name       = $this->get_tag();
+		$tag_name       = str_replace( "\x00", "\u{FFFD}", $this->get_tag() );
 		$in_html        = 'html' === $this->get_namespace();
 		$qualified_name = $in_html ? strtolower( $tag_name ) : $this->get_qualified_tag_name();
 
@@ -1196,6 +1196,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			if ( is_string( $value ) ) {
 				$html .= '="' . htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5 ) . '"';
 			}
+
+			$html = str_replace( "\x00", "\u{FFFD}", $html );
 		}
 
 		if ( ! $in_html && $this->has_self_closing_flag() ) {

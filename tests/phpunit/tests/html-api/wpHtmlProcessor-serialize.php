@@ -248,4 +248,40 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'XML Processing Instruction look-alike' => array( '<', '?xml foo ', '>' ),
 		);
 	}
+
+	/**
+	 * Ensures that NULL bytes are properly handled.
+	 *
+	 * @ticket 62036
+	 *
+	 * @dataProvider data_tokens_with_null_bytes
+	 *
+	 * @param string $html_with_nulls HTML token containing NULL bytes in various places.
+	 * @param string $expected_output Expected parse of HTML after handling NULL bytes.
+	 */
+	public function test_replaces_null_bytes_appropriately( string $html_with_nulls, string $expected_output ) {
+		$this->assertSame(
+			WP_HTML_Processor::normalize( $html_with_nulls ),
+			$expected_output,
+			'Should have properly replaced or removed NULL bytes.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_tokens_with_null_bytes() {
+		return array(
+			'Tag name'             => array( "<img\x00id=5>", "<img\u{FFFD}id=5></img\u{FFFD}id=5>" ),
+			'Attribute name'       => array( "<img/\x00id=5>", "<img \u{FFFD}id=\"5\">" ),
+			'Attribute value'      => array( "<img id='5\x00'>", "<img id=\"5\u{FFFD}\">" ),
+			'Body text'            => array( "one\x00two", 'onetwo' ),
+			'Foreign content text' => array( "<svg>one\x00two</svg>", "<svg>one\u{FFFD}two</svg>" ),
+			'SCRIPT content'       => array( "<script>alert(\x00)</script>", "<script>alert(\u{FFFD})</script>" ),
+			'STYLE content'        => array( "<style>\x00 {}</style>", "<style>\u{FFFD} {}</style>" ),
+			'Comment text'         => array( "<!-- \x00 -->", "<!-- \u{FFFD} -->" ),
+		);
+	}
 }
