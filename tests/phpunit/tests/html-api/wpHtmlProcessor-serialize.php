@@ -243,7 +243,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'CDATA look-alike'                      => array( '<!', '[CDATA[inside]]', '>' ),
 			'Immediately-closed markup instruction' => array( '<!', '?', '>' ),
 			'Warning Symbol'                        => array( '<!', '', '>' ),
-			'PHP block look-alike'                  => array( '<?', 'php foo(); ?', '>' ),
+			'PHP block look-alike'                  => array( '<', '?php foo(); ?', '>' ),
 			'Funky comment'                         => array( '</', '%display-name', '>' ),
 			'XML Processing Instruction look-alike' => array( '<', '?xml foo ', '>' ),
 		);
