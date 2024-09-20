@@ -44,13 +44,13 @@ class Tests_Link_GetPreviousCommentsLink extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $p ) );
 
 		// Check setting the query var is ignored.
-		$cpage = get_query_var( 'cpage' );
+		$old_cpage = get_query_var( 'cpage' );
 		set_query_var( 'cpage', 4 );
 
 		$link = get_previous_comments_link( 'Previous', 3 );
 
-		$this->assertStringContainsString( 'cpage=2', $link );
+		set_query_var( 'cpage', $old_cpage );
 
-		set_query_var( 'cpage', $cpage );
+		$this->assertStringContainsString( 'cpage=2', $link );
 	}
 }
