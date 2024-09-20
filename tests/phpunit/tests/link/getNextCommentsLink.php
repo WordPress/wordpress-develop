@@ -11,14 +11,14 @@ class Tests_Link_GetNextCommentsLink extends WP_UnitTestCase {
 		$p = self::factory()->post->create();
 		$this->go_to( get_permalink( $p ) );
 
-		$cpage = get_query_var( 'cpage' );
+		$old_cpage = get_query_var( 'cpage' );
 		set_query_var( 'cpage', 3 );
 
 		$link = get_next_comments_link( 'Next', 5 );
 
-		$this->assertStringContainsString( 'cpage=4', $link );
+		set_query_var( 'cpage', $old_cpage );
 
-		set_query_var( 'cpage', $cpage );
+		$this->assertStringContainsString( 'cpage=4', $link );
 	}
 
 	/**
@@ -28,14 +28,14 @@ class Tests_Link_GetNextCommentsLink extends WP_UnitTestCase {
 		$p = self::factory()->post->create();
 		$this->go_to( get_permalink( $p ) );
 
-		$cpage = get_query_var( 'cpage' );
+		$old_cpage = get_query_var( 'cpage' );
 		set_query_var( 'cpage', '' );
 
 		$link = get_next_comments_link( 'Next', 5 );
 
-		$this->assertStringContainsString( 'cpage=2', $link );
+		set_query_var( 'cpage', $old_cpage );
 
-		set_query_var( 'cpage', $cpage );
+		$this->assertStringContainsString( 'cpage=2', $link );
 	}
 
 	/**
