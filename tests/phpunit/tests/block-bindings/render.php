@@ -158,6 +158,94 @@ HTML;
 	}
 
 	/**
+	 * Tests passing `uses_context` as argument to the source.
+	 *
+	 * @ticket 99999
+	 *
+	 * @covers ::register_block_bindings_source
+	 */
+	public function test_passing_uses_context_to_multiple_sources() {
+		register_block_bindings_source(
+			'test/source-one',
+			array(
+				'label'              => 'Test Source One',
+				'get_value_callback' => function ( $source_args, $block_instance, $attribute_name ) {
+					$value = $block_instance->context['sourceOneContext'];
+					return "Source One value: $value";
+				},
+				'uses_context'       => array( 'commonContext', 'sourceOneContext' ),
+			)
+		);
+
+		register_block_bindings_source(
+			'test/source-two',
+			array(
+				'label'              => 'Test Source Two',
+				'get_value_callback' => function ( $source_args, $block_instance, $attribute_name ) {
+					$value = $block_instance->context['commonContext'];
+					return "Source Two value: $value";
+				},
+				'uses_context'       => array( 'commonContext', 'sourceTwoContext' ),
+			)
+		);
+
+		$block_content                               = <<<HTML
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source-one", "args": {"key": "test"}}}}} -->
+<p>First source value placeholder</p>
+<!-- /wp:paragraph -->
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source-two", "args": {"key": "test"}}}}} -->
+<p>Second source value placeholder</p>
+<!-- /wp:paragraph -->
+HTML;
+		[ $first_parsed_block, $second_parsed_block] = array_values(
+			array_filter(
+				parse_blocks( $block_content ),
+				function ( $block ) {
+					return 'core/paragraph' === $block['blockName'];
+				}
+			)
+		);
+
+		$first_block         = new WP_Block(
+			$first_parsed_block,
+			array(
+				'commonContext'    => 'common context value',
+				'sourceOneContext' => 'source one context value',
+			)
+		);
+		$first_block_render  = $first_block->render();
+		$second_block        = new WP_Block(
+			$second_parsed_block,
+			array(
+				'commonContext'    => 'common context value',
+				'sourceTwoContext' => 'source two context value',
+			)
+		);
+		$second_block_render = $second_block->render();
+
+		$this->assertSame(
+			'Source One value: source one context value',
+			$first_block->attributes['content'],
+			"The 'content' should be updated with the value of the first source context value."
+		);
+		$this->assertSame(
+			'<p>Source One value: source one context value</p>',
+			trim( $first_block_render ),
+			'The block content should be updated with the value of the first source context value.'
+		);
+		$this->assertSame(
+			'Source Two value: common context value',
+			$second_block->attributes['content'],
+			"The 'content' should be updated with the value of the common context value."
+		);
+		$this->assertSame(
+			'<p>Source Two value: common context value</p>',
+			trim( $second_block_render ),
+			'The block content should be updated with the value of the source context.'
+		);
+	}
+
+	/**
 	 * Tests if the block content is updated with the value returned by the source
 	 * for the Image block in the placeholder state.
 	 *
