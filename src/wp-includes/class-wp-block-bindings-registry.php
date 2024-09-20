@@ -291,24 +291,4 @@ final class WP_Block_Bindings_Registry {
 
 		return self::$instance;
 	}
-
-	/**
-	 * Adds the `uses_context` to the editor settings.
-	 *
-	 * This allows to reuse the `uses_context` definition in the editor.
-	 *
-	 * @since 6.6.0
-	 *
-	 * @param array $settings The block editor settings from the `block_editor_settings_all` filter.
-	 * @return array The editor settings with extended block bindings `uses_context`.
-	 */
-	public static function add_uses_context_to_editor_settings( $settings ) {
-		$registered_block_bindings_sources = get_all_registered_block_bindings_sources();
-		foreach ( $registered_block_bindings_sources as $source ) {
-			if ( ! empty( $source->uses_context ) ) {
-				$settings['__experimentalBlockBindings'][ $source->name ]['usesContext'] = $source->uses_context;
-			}
-		}
-		return $settings;
-	}
 }
