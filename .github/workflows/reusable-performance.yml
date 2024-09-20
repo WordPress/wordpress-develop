@@ -118,7 +118,7 @@ jobs:
         run: echo "TARGET_SHA=$(git rev-parse HEAD^1)" >> $GITHUB_ENV
 
       - name: Set up Node.js
-        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -281,7 +281,7 @@ jobs:
         run: npm run test:performance
 
       - name: Archive artifacts
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         if: always()
         with:
           name: performance-artifacts${{ inputs.memcached && '-memcached' || '' }}-${{ github.run_id }}
