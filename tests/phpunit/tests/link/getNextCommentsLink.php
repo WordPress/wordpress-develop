@@ -37,4 +37,16 @@ class Tests_Link_GetNextCommentsLink extends WP_UnitTestCase {
 
 		set_query_var( 'cpage', $cpage );
 	}
+
+	/**
+	 * @ticket 60806
+	 */
+	public function test_page_should_respect_value_of_page_argument() {
+		$p = self::factory()->post->create();
+		$this->go_to( get_permalink( $p ) );
+
+		$link = get_next_comments_link( 'Next', 5, 3 );
+
+		$this->assertStringContainsString( 'cpage=4', $link );
+	}
 }
