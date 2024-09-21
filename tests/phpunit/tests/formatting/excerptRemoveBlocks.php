@@ -14,6 +14,28 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 <!-- wp:paragraph -->
 <p>paragraph</p>
 <!-- /wp:paragraph -->
+<!-- wp:list -->
+<ul>
+	<!-- wp:list-item -->
+	<li>list item</li>
+	<!-- /wp:list-item -->
+	<!-- wp:list-item -->
+	<li>
+		list item
+		<!-- wp:list {"ordered":true} -->
+		<ol>
+			<!-- wp:list-item -->
+			<li>list item</li>
+			<!-- /wp:list-item -->
+			<!-- wp:list-item -->
+			<li>list item</li>
+			<!-- /wp:list-item -->
+		</ol>
+		<!-- /wp:list -->
+	</li>
+	<!-- /wp:list-item -->
+</ul>
+<!-- /wp:list -->
 <!-- wp:latest-posts {"postsToShow":3,"displayPostDate":true,"order":"asc","orderBy":"title"} /-->
 <!-- wp:spacer -->
 <div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div>
@@ -36,6 +58,28 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	public $filtered_content = '
 
 <p>paragraph</p>
+
+
+<ul>
+	
+	<li>list item</li>
+	
+	
+	<li>
+		list item
+		
+		<ol>
+			
+			<li>list item</li>
+			
+			
+			<li>list item</li>
+			
+		</ol>
+		
+	</li>
+	
+</ul>
 
 
 

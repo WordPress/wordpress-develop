@@ -1924,6 +1924,14 @@ function excerpt_remove_blocks( $content ) {
 					continue;
 				}
 
+				if (
+					in_array( $block['blockName'], $allowed_inner_blocks, true ) &&
+					'core/list' === $block['blockName']
+				) {
+					$output .= render_block( $block );
+					continue;
+				}
+
 				// Skip the block if it has disallowed or nested inner blocks.
 				foreach ( $block['innerBlocks'] as $inner_block ) {
 					if (
