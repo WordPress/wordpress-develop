@@ -1416,7 +1416,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 			'name'  => $attribute_name,
 			'value' => $is_boolean ? '' : $value,
 			'whole' => $is_boolean ? $attribute_name : "{$attribute_name}=\"{$value}\"",
-			'vless' => $is_boolean,
+			'vless' => $is_boolean ? 'y' : 'n',
 		);
 	}
 
