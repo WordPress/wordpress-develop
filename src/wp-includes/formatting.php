@@ -2549,10 +2549,12 @@ function balanceTags( $text, $force = false ) {  // phpcs:ignore WordPress.Namin
 }
 
 /**
- * Balances tags of string using a modified stack.
+ * "Balances" an input HTML string by normalizing, ensuring that all missing
+ * implicit tags, or overlapping tags, are present and accounted for.
  *
  * @since 2.0.4
  * @since 5.3.0 Improve accuracy and add support for custom element tags.
+ * @since 6.7.0 Internal logic replaced by HTML API.
  *
  * @author Leonard Lin <leonard@acm.org>
  * @license GPL
@@ -2568,6 +2570,11 @@ function balanceTags( $text, $force = false ) {  // phpcs:ignore WordPress.Namin
  * @return string Balanced text.
  */
 function force_balance_tags( $text ) {
+	$normalized = WP_HTML_Processor::normalize( $text );
+	if ( is_string( $normalized ) ) {
+		return $normalized;
+	}
+
 	$tagstack  = array();
 	$stacksize = 0;
 	$tagqueue  = '';
