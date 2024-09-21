@@ -19,10 +19,7 @@
  */
 function wp_credits( $version = '', $locale = '' ) {
 	if ( ! $version ) {
-		// Include an unmodified $wp_version.
-		require ABSPATH . WPINC . '/version.php';
-
-		$version = $wp_version;
+		$version = wp_get_wp_version();
 	}
 
 	if ( ! $locale ) {
@@ -32,7 +29,7 @@ function wp_credits( $version = '', $locale = '' ) {
 	$results = get_site_transient( 'wordpress_credits_' . $locale );
 
 	if ( ! is_array( $results )
-		|| false !== strpos( $version, '-' )
+		|| str_contains( $version, '-' )
 		|| ( isset( $results['data']['version'] ) && ! str_starts_with( $version, $results['data']['version'] ) )
 	) {
 		$url     = "http://api.wordpress.org/core/credits/1.1/?version={$version}&locale={$locale}";

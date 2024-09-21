@@ -248,7 +248,7 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'thumbnail_url', $data );
 		$this->assertArrayHasKey( 'thumbnail_width', $data );
 		$this->assertArrayHasKey( 'thumbnail_height', $data );
-		$this->assertTrue( 400 >= $data['thumbnail_width'] );
+		$this->assertLessThanOrEqual( 400, $data['thumbnail_width'] );
 	}
 
 	public function test_get_oembed_response_data_for_attachment() {
@@ -267,6 +267,6 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'thumbnail_url', $data );
 		$this->assertArrayHasKey( 'thumbnail_width', $data );
 		$this->assertArrayHasKey( 'thumbnail_height', $data );
-		$this->assertTrue( 400 >= $data['thumbnail_width'] );
+		$this->assertLessThanOrEqual( 400, $data['thumbnail_width'] );
 	}
 }

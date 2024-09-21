@@ -38,7 +38,7 @@ class WP_Query {
 	 * Taxonomy query, as passed to get_tax_sql().
 	 *
 	 * @since 3.1.0
-	 * @var WP_Tax_Query A taxonomy query instance.
+	 * @var WP_Tax_Query|null A taxonomy query instance.
 	 */
 	public $tax_query;
 
@@ -1015,7 +1015,7 @@ class WP_Query {
 			$this->is_admin = true;
 		}
 
-		if ( false !== strpos( $qv['feed'], 'comments-' ) ) {
+		if ( str_contains( $qv['feed'], 'comments-' ) ) {
 			$qv['feed']         = str_replace( 'comments-', '', $qv['feed'] );
 			$qv['withcomments'] = 1;
 		}
@@ -1027,7 +1027,7 @@ class WP_Query {
 		}
 
 		if ( ! ( $this->is_singular || $this->is_archive || $this->is_search || $this->is_feed
-				|| ( defined( 'REST_REQUEST' ) && REST_REQUEST && $this->is_main_query() )
+				|| ( wp_is_serving_rest_request() && $this->is_main_query() )
 				|| $this->is_trackback || $this->is_404 || $this->is_admin || $this->is_robots || $this->is_favicon ) ) {
 			$this->is_home = true;
 		}
@@ -1185,7 +1185,7 @@ class WP_Query {
 					$term = implode( ',', $term );
 				}
 
-				if ( strpos( $term, '+' ) !== false ) {
+				if ( str_contains( $term, '+' ) ) {
 					$terms = preg_split( '/[+]+/', $term );
 					foreach ( $terms as $term ) {
 						$tax_query[] = array_merge(
@@ -1298,7 +1298,7 @@ class WP_Query {
 		// Tag stuff.
 
 		if ( '' !== $q['tag'] && ! $this->is_singular && $this->query_vars_changed ) {
-			if ( strpos( $q['tag'], ',' ) !== false ) {
+			if ( str_contains( $q['tag'], ',' ) ) {
 				$tags = preg_split( '/[,\r\n\t ]+/', $q['tag'] );
 				foreach ( (array) $tags as $tag ) {
 					$tag                 = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
@@ -1461,7 +1461,7 @@ class WP_Query {
 
 		foreach ( $q['search_terms'] as $term ) {
 			// If there is an $exclusion_prefix, terms prefixed with it should be excluded.
-			$exclude = $exclusion_prefix && ( substr( $term, 0, 1 ) === $exclusion_prefix );
+			$exclude = $exclusion_prefix && str_starts_with( $term, $exclusion_prefix );
 			if ( $exclude ) {
 				$like_op  = 'NOT LIKE';
 				$andor_op = 'AND';
@@ -1616,8 +1616,10 @@ class WP_Query {
 				$search_orderby .= $wpdb->prepare( "WHEN {$wpdb->posts}.post_title LIKE %s THEN 1 ", $like );
 			}
 
-			// Sanity limit, sort as sentence when more than 6 terms
-			// (few searches are longer than 6 terms and most titles are not).
+			/*
+			 * Sanity limit, sort as sentence when more than 6 terms
+			 * (few searches are longer than 6 terms and most titles are not).
+			 */
 			if ( $num_terms < 7 ) {
 				// All words in title.
 				$search_orderby .= 'WHEN ' . implode( ' AND ', $q['search_orderby_title'] ) . ' THEN 2 ';
@@ -2018,8 +2020,7 @@ class WP_Query {
 		}
 
 		if ( isset( $q['page'] ) ) {
-			$q['page'] = trim( $q['page'], '/' );
-			$q['page'] = absint( $q['page'] );
+			$q['page'] = is_scalar( $q['page'] ) ? absint( trim( $q['page'], '/' ) ) : 0;
 		}
 
 		// If true, forcibly turns off SQL_CALC_FOUND_ROWS even when limits are present.
@@ -2263,6 +2264,9 @@ class WP_Query {
 					$post_type = 'any';
 				} elseif ( count( $post_type ) === 1 ) {
 					$post_type = $post_type[0];
+				} else {
+					// Sort post types to ensure same cache key generation.
+					sort( $post_type );
 				}
 
 				$post_status_join = true;
@@ -2354,7 +2358,7 @@ class WP_Query {
 		// Author stuff for nice URLs.
 
 		if ( '' !== $q['author_name'] ) {
-			if ( strpos( $q['author_name'], '/' ) !== false ) {
+			if ( str_contains( $q['author_name'], '/' ) ) {
 				$q['author_name'] = explode( '/', $q['author_name'] );
 				if ( $q['author_name'][ count( $q['author_name'] ) - 1 ] ) {
 					$q['author_name'] = $q['author_name'][ count( $q['author_name'] ) - 1 ]; // No trailing slash.
@@ -2541,6 +2545,8 @@ class WP_Query {
 				$post_type_where = " AND {$wpdb->posts}.post_type IN ('" . implode( "', '", array_map( 'esc_sql', $in_search_post_types ) ) . "')";
 			}
 		} elseif ( ! empty( $post_type ) && is_array( $post_type ) ) {
+			// Sort post types to ensure same cache key generation.
+			sort( $post_type );
 			$post_type_where = " AND {$wpdb->posts}.post_type IN ('" . implode( "', '", esc_sql( $post_type ) ) . "')";
 		} elseif ( ! empty( $post_type ) ) {
 			$post_type_where  = $wpdb->prepare( " AND {$wpdb->posts}.post_type = %s", $post_type );
@@ -2646,7 +2652,7 @@ class WP_Query {
 			}
 
 			if ( ! empty( $queried_post_types ) ) {
-
+				sort( $queried_post_types );
 				$status_type_clauses = array();
 
 				foreach ( $queried_post_types as $queried_post_type ) {
@@ -3103,14 +3109,24 @@ class WP_Query {
 			$found_rows = 'SQL_CALC_FOUND_ROWS';
 		}
 
-		$old_request = "
-			SELECT $found_rows $distinct $fields
-			FROM {$wpdb->posts} $join
-			WHERE 1=1 $where
-			$groupby
-			$orderby
-			$limits
-		";
+		/*
+		 * Beginning of the string is on a new line to prevent leading whitespace.
+		 *
+		 * The additional indentation of subsequent lines is to ensure the SQL
+		 * queries are identical to those generated when splitting queries. This
+		 * improves caching of the query by ensuring the same cache key is
+		 * generated for the same database queries functionally.
+		 *
+		 * See https://core.trac.wordpress.org/ticket/56841.
+		 * See https://github.com/WordPress/wordpress-develop/pull/6393#issuecomment-2088217429
+		 */
+		$old_request =
+			"SELECT $found_rows $distinct $fields
+					 FROM {$wpdb->posts} $join
+					 WHERE 1=1 $where
+					 $groupby
+					 $orderby
+					 $limits";
 
 		$this->request = $old_request;
 
@@ -3177,36 +3193,41 @@ class WP_Query {
 				$cached_results = wp_cache_get( $cache_key, 'post-queries', false, $cache_found );
 
 				if ( $cached_results ) {
-					if ( 'ids' === $q['fields'] ) {
-						/** @var int[] */
-						$this->posts = array_map( 'intval', $cached_results['posts'] );
-					} else {
-						_prime_post_caches( $cached_results['posts'], $q['update_post_term_cache'], $q['update_post_meta_cache'] );
-						/** @var WP_Post[] */
-						$this->posts = array_map( 'get_post', $cached_results['posts'] );
-					}
+					/** @var int[] */
+					$post_ids = array_map( 'intval', $cached_results['posts'] );
 
-					$this->post_count    = count( $this->posts );
+					$this->post_count    = count( $post_ids );
 					$this->found_posts   = $cached_results['found_posts'];
 					$this->max_num_pages = $cached_results['max_num_pages'];
 
 					if ( 'ids' === $q['fields'] ) {
+						$this->posts = $post_ids;
+
 						return $this->posts;
 					} elseif ( 'id=>parent' === $q['fields'] ) {
+						_prime_post_parent_id_caches( $post_ids );
+
+						$post_parent_cache_keys = array();
+						foreach ( $post_ids as $post_id ) {
+							$post_parent_cache_keys[] = 'post_parent:' . (string) $post_id;
+						}
+
 						/** @var int[] */
-						$post_parents = array();
+						$post_parents = wp_cache_get_multiple( $post_parent_cache_keys, 'posts' );
 
-						foreach ( $this->posts as $key => $post ) {
+						foreach ( $post_parents as $cache_key => $post_parent ) {
 							$obj              = new stdClass();
-							$obj->ID          = (int) $post->ID;
-							$obj->post_parent = (int) $post->post_parent;
+							$obj->ID          = (int) str_replace( 'post_parent:', '', $cache_key );
+							$obj->post_parent = (int) $post_parent;
 
-							$this->posts[ $key ] = $obj;
-
-							$post_parents[ $obj->ID ] = $obj->post_parent;
+							$this->posts[] = $obj;
 						}
 
 						return $post_parents;
+					} else {
+						_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+						/** @var WP_Post[] */
+						$this->posts = array_map( 'get_post', $post_ids );
 					}
 				}
 			}
@@ -3244,8 +3265,9 @@ class WP_Query {
 			$this->set_found_posts( $q, $limits );
 
 			/** @var int[] */
-			$post_parents = array();
-			$post_ids     = array();
+			$post_parents       = array();
+			$post_ids           = array();
+			$post_parents_cache = array();
 
 			foreach ( $this->posts as $key => $post ) {
 				$this->posts[ $key ]->ID          = (int) $post->ID;
@@ -3253,7 +3275,11 @@ class WP_Query {
 
 				$post_parents[ (int) $post->ID ] = (int) $post->post_parent;
 				$post_ids[]                      = (int) $post->ID;
+
+				$post_parents_cache[ 'post_parent:' . (string) $post->ID ] = (int) $post->post_parent;
 			}
+			// Prime post parent caches, so that on second run, there is not another database query.
+			wp_cache_add_multiple( $post_parents_cache, 'posts' );
 
 			if ( $q['cache_results'] && $id_query_is_cacheable ) {
 				$cache_value = array(
@@ -3268,8 +3294,16 @@ class WP_Query {
 			return $post_parents;
 		}
 
+		$is_unfiltered_query = $old_request == $this->request && "{$wpdb->posts}.*" === $fields;
+
 		if ( null === $this->posts ) {
-			$split_the_query = ( $old_request == $this->request && "{$wpdb->posts}.*" === $fields && ! empty( $limits ) && $q['posts_per_page'] < 500 );
+			$split_the_query = (
+				$is_unfiltered_query
+				&& (
+					wp_using_ext_object_cache()
+					|| ( ! empty( $limits ) && $q['posts_per_page'] < 500 )
+				)
+			);
 
 			/**
 			 * Filters whether to split the query.
@@ -3279,23 +3313,36 @@ class WP_Query {
 			 * complete row at once. One massive result vs. many small results.
 			 *
 			 * @since 3.4.0
+			 * @since 6.6.0 Added the `$old_request` and `$clauses` parameters.
 			 *
 			 * @param bool     $split_the_query Whether or not to split the query.
 			 * @param WP_Query $query           The WP_Query instance.
+			 * @param string   $old_request     The complete SQL query before filtering.
+			 * @param string[] $clauses {
+			 *     Associative array of the clauses for the query.
+			 *
+			 *     @type string $where    The WHERE clause of the query.
+			 *     @type string $groupby  The GROUP BY clause of the query.
+			 *     @type string $join     The JOIN clause of the query.
+			 *     @type string $orderby  The ORDER BY clause of the query.
+			 *     @type string $distinct The DISTINCT clause of the query.
+			 *     @type string $fields   The SELECT clause of the query.
+			 *     @type string $limits   The LIMIT clause of the query.
+			 * }
 			 */
-			$split_the_query = apply_filters( 'split_the_query', $split_the_query, $this );
+			$split_the_query = apply_filters( 'split_the_query', $split_the_query, $this, $old_request, compact( $pieces ) );
 
 			if ( $split_the_query ) {
 				// First get the IDs and then fill in the objects.
 
-				$this->request = "
-					SELECT $found_rows $distinct {$wpdb->posts}.ID
-					FROM {$wpdb->posts} $join
-					WHERE 1=1 $where
-					$groupby
-					$orderby
-					$limits
-				";
+				// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
+				$this->request =
+					"SELECT $found_rows $distinct {$wpdb->posts}.ID
+					 FROM {$wpdb->posts} $join
+					 WHERE 1=1 $where
+					 $groupby
+					 $orderby
+					 $limits";
 
 				/**
 				 * Filters the Post IDs SQL request before sending.
@@ -3327,6 +3374,8 @@ class WP_Query {
 			/** @var WP_Post[] */
 			$this->posts = array_map( 'get_post', $this->posts );
 		}
+
+		$unfiltered_posts = $this->posts;
 
 		if ( $q['cache_results'] && $id_query_is_cacheable && ! $cache_found ) {
 			$post_ids = wp_list_pluck( $this->posts, 'ID' );
@@ -3461,7 +3510,7 @@ class WP_Query {
 					// Move to front, after other stickies.
 					array_splice( $this->posts, $sticky_offset, 0, array( $sticky_post ) );
 					// Increment the sticky offset. The next sticky will be placed at this offset.
-					$sticky_offset++;
+					++$sticky_offset;
 					// Remove post from sticky posts array.
 					$offset = array_search( $sticky_post->ID, $sticky_posts, true );
 					unset( $sticky_posts[ $offset ] );
@@ -3491,7 +3540,7 @@ class WP_Query {
 
 				foreach ( $stickies as $sticky_post ) {
 					array_splice( $this->posts, $sticky_offset, 0, array( $sticky_post ) );
-					$sticky_offset++;
+					++$sticky_offset;
 				}
 			}
 		}
@@ -3509,8 +3558,10 @@ class WP_Query {
 			$this->posts = apply_filters_ref_array( 'the_posts', array( $this->posts, &$this ) );
 		}
 
-		// Ensure that any posts added/modified via one of the filters above are
-		// of the type WP_Post and are filtered.
+		/*
+		 * Ensure that any posts added/modified via one of the filters above are
+		 * of the type WP_Post and are filtered.
+		 */
 		if ( $this->posts ) {
 			$this->post_count = count( $this->posts );
 
@@ -3518,7 +3569,12 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $q['cache_results'] ) {
-				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				if ( $is_unfiltered_query && $unfiltered_posts === $this->posts ) {
+					update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				} else {
+					$post_ids = wp_list_pluck( $this->posts, 'ID' );
+					_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				}
 			}
 
 			/** @var WP_Post */
@@ -3553,8 +3609,10 @@ class WP_Query {
 	private function set_found_posts( $q, $limits ) {
 		global $wpdb;
 
-		// Bail if posts is an empty array. Continue if posts is an empty string,
-		// null, or false to accommodate caching plugins that fill posts later.
+		/*
+		 * Bail if posts is an empty array. Continue if posts is an empty string,
+		 * null, or false to accommodate caching plugins that fill posts later.
+		 */
 		if ( $q['no_found_rows'] || ( is_array( $this->posts ) && ! $this->posts ) ) {
 			return;
 		}
@@ -3594,7 +3652,7 @@ class WP_Query {
 		$this->found_posts = (int) apply_filters_ref_array( 'found_posts', array( $this->found_posts, &$this ) );
 
 		if ( ! empty( $limits ) ) {
-			$this->max_num_pages = ceil( $this->found_posts / $q['posts_per_page'] );
+			$this->max_num_pages = (int) ceil( $this->found_posts / $q['posts_per_page'] );
 		}
 	}
 
@@ -3607,7 +3665,7 @@ class WP_Query {
 	 */
 	public function next_post() {
 
-		$this->current_post++;
+		++$this->current_post;
 
 		/** @var WP_Post */
 		$this->post = $this->posts[ $this->current_post ];
@@ -3717,7 +3775,7 @@ class WP_Query {
 	 * @return WP_Comment Comment object.
 	 */
 	public function next_comment() {
-		$this->current_comment++;
+		++$this->current_comment;
 
 		/** @var WP_Comment */
 		$this->comment = $this->comments[ $this->current_comment ];
@@ -4306,7 +4364,7 @@ class WP_Query {
 	 * If you set a static page for the front page of your site, this function will return
 	 * true when viewing that page.
 	 *
-	 * Otherwise the same as @see WP_Query::is_home()
+	 * Otherwise the same as {@see WP_Query::is_home()}.
 	 *
 	 * @since 3.1.0
 	 *
@@ -4631,7 +4689,7 @@ class WP_Query {
 	 *
 	 * @since 3.3.0
 	 *
-	 * @global WP_Query $wp_query WordPress Query object.
+	 * @global WP_Query $wp_the_query WordPress Query object.
 	 *
 	 * @return bool Whether the query is the main query.
 	 */
@@ -4754,7 +4812,7 @@ class WP_Query {
 		}
 
 		$content = $post->post_content;
-		if ( false !== strpos( $content, '<!--nextpage-->' ) ) {
+		if ( str_contains( $content, '<!--nextpage-->' ) ) {
 			$content = str_replace( "\n<!--nextpage-->\n", '<!--nextpage-->', $content );
 			$content = str_replace( "\n<!--nextpage-->", '<!--nextpage-->', $content );
 			$content = str_replace( "<!--nextpage-->\n", '<!--nextpage-->', $content );
@@ -4826,6 +4884,32 @@ class WP_Query {
 			$args['suppress_filters']
 		);
 
+		if ( empty( $args['post_type'] ) ) {
+			if ( $this->is_attachment ) {
+				$args['post_type'] = 'attachment';
+			} elseif ( $this->is_page ) {
+				$args['post_type'] = 'page';
+			} else {
+				$args['post_type'] = 'post';
+			}
+		} elseif ( 'any' === $args['post_type'] ) {
+			$args['post_type'] = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
+		}
+		$args['post_type'] = (array) $args['post_type'];
+		// Sort post types to ensure same cache key generation.
+		sort( $args['post_type'] );
+
+		if ( isset( $args['post_status'] ) ) {
+			$args['post_status'] = (array) $args['post_status'];
+			// Sort post status to ensure same cache key generation.
+			sort( $args['post_status'] );
+		}
+
+		// Add a default orderby value of date to ensure same cache key generation.
+		if ( ! isset( $q['orderby'] ) ) {
+			$args['orderby'] = 'date';
+		}
+
 		$placeholder = $wpdb->placeholder_escape();
 		array_walk_recursive(
 			$args,
@@ -4843,6 +4927,8 @@ class WP_Query {
 				}
 			}
 		);
+
+		ksort( $args );
 
 		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );

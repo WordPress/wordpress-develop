@@ -163,7 +163,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * with this table.
 	 *
 	 * Provides a list of roles and user count for that role for easy
-	 * Filtersing of the user table.
+	 * filtering of the user table.
 	 *
 	 * @since 3.1.0
 	 *
@@ -393,8 +393,8 @@ class WP_Users_List_Table extends WP_List_Table {
 	 */
 	protected function get_sortable_columns() {
 		$columns = array(
-			'username' => 'login',
-			'email'    => 'email',
+			'username' => array( 'login', false, __( 'Username' ), __( 'Table ordered by Username.' ), 'asc' ),
+			'email'    => array( 'email', false, __( 'E-mail' ), __( 'Table ordered by E-mail.' ) ),
 		);
 
 		return $columns;
@@ -502,6 +502,7 @@ class WP_Users_List_Table extends WP_List_Table {
 			// Add a link to send the user a reset password link by email.
 			if ( get_current_user_id() !== $user_object->ID
 				&& current_user_can( 'edit_user', $user_object->ID )
+				&& true === wp_is_password_reset_allowed_for_user( $user_object )
 			) {
 				$actions['resetpassword'] = "<a class='resetpassword' href='" . wp_nonce_url( "users.php?action=resetpassword&amp;users=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Send password reset' ) . '</a>';
 			}
@@ -523,12 +524,12 @@ class WP_Users_List_Table extends WP_List_Table {
 
 			// Set up the checkbox (because the user is editable, otherwise it's empty).
 			$checkbox = sprintf(
-				'<label class="screen-reader-text" for="user_%1$s">%2$s</label>' .
-				'<input type="checkbox" name="users[]" id="user_%1$s" class="%3$s" value="%1$s" />',
+				'<input type="checkbox" name="users[]" id="user_%1$s" class="%2$s" value="%1$s" />' .
+				'<label for="user_%1$s"><span class="screen-reader-text">%3$s</span></label>',
 				$user_object->ID,
+				$role_classes,
 				/* translators: Hidden accessibility text. %s: User login. */
-				sprintf( __( 'Select %s' ), $user_object->user_login ),
-				$role_classes
+				sprintf( __( 'Select %s' ), $user_object->user_login )
 			);
 
 		} else {
@@ -679,5 +680,4 @@ class WP_Users_List_Table extends WP_List_Table {
 		 */
 		return apply_filters( 'get_role_list', $role_list, $user_object );
 	}
-
 }

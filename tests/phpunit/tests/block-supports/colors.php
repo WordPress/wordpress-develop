@@ -18,7 +18,7 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 	public function tear_down() {
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
-		parent::set_up();
+		parent::tear_down();
 	}
 
 	/**

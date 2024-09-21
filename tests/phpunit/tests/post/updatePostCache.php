@@ -57,7 +57,7 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 			'The cached post is not an object'
 		);
 
-		$this->assertObjectHasAttribute(
+		$this->assertObjectHasProperty(
 			'filter',
 			$cached_post,
 			'The cached post does not have a "filter" property'
@@ -98,7 +98,7 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 			'The cached post is not an object'
 		);
 
-		$this->assertObjectHasAttribute(
+		$this->assertObjectHasProperty(
 			'filter',
 			$cached_post,
 			'The cached post does not have a "filter" property'
@@ -126,7 +126,7 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 			'The cached post is not an object'
 		);
 
-		$this->assertObjectHasAttribute(
+		$this->assertObjectHasProperty(
 			'filter',
 			$cached_post,
 			'The cached post does not have a "filter" property'

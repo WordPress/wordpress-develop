@@ -39,8 +39,10 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		return false;
 	}
 
-	// If comparing revisions, make sure we're dealing with the right post parent.
-	// The parent post may be a 'revision' when revisions are disabled and we're looking at autosaves.
+	/*
+	 * If comparing revisions, make sure we are dealing with the right post parent.
+	 * The parent post may be a 'revision' when revisions are disabled and we're looking at autosaves.
+	 */
 	if ( $compare_from && $compare_from->post_parent !== $post->ID && $compare_from->ID !== $post->ID ) {
 		return false;
 	}
@@ -83,7 +85,7 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		 * @param string  $field          The current revision field.
 		 * @param WP_Post $compare_from   The revision post object to compare to or from.
 		 * @param string  $context        The context of whether the current revision is the old
-		 *                                or the new one. Values are 'to' or 'from'.
+		 *                                or the new one. Either 'to' or 'from'.
 		 */
 		$content_from = $compare_from ? apply_filters( "_wp_post_revision_field_{$field}", $compare_from->$field, $field, $compare_from, 'from' ) : '';
 
@@ -118,8 +120,10 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		$diff = wp_text_diff( $content_from, $content_to, $args );
 
 		if ( ! $diff && 'post_title' === $field ) {
-			// It's a better user experience to still show the Title, even if it didn't change.
-			// No, you didn't see this.
+			/*
+			 * It's a better user experience to still show the Title, even if it didn't change.
+			 * No, you didn't see this.
+			 */
 			$diff = '<table class="diff"><colgroup><col class="content diffsplit left"><col class="content diffsplit middle"><col class="content diffsplit right"></colgroup><tbody><tr>';
 
 			// In split screen mode, show the title before/after side by side.
@@ -157,7 +161,6 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 	 * @param WP_Post $compare_to   The revision post to compare to.
 	 */
 	return apply_filters( 'wp_get_revision_ui_diff', $return, $compare_from, $compare_to );
-
 }
 
 /**

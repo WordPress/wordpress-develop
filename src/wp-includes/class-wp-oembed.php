@@ -4,7 +4,7 @@
  *
  * Used internally by the WP_Embed class, but is designed to be generic.
  *
- * @link https://wordpress.org/documentation/article/embeds/
+ * @link https://developer.wordpress.org/advanced-administration/wordpress/oembed/
  * @link http://oembed.com/
  *
  * @package WordPress
@@ -75,7 +75,6 @@ class WP_oEmbed {
 			'#https?://(www\.)?twitter\.com/\w{1,15}/timelines/.*#i' => array( 'https://publish.twitter.com/oembed', true ),
 			'#https?://(www\.)?twitter\.com/i/moments/.*#i' => array( 'https://publish.twitter.com/oembed', true ),
 			'#https?://(www\.)?soundcloud\.com/.*#i'       => array( 'https://soundcloud.com/oembed', true ),
-			'#https?://(.+?\.)?slideshare\.net/.*#i'       => array( 'https://www.slideshare.net/api/oembed/2', true ),
 			'#https?://(open|play)\.spotify\.com/.*#i'     => array( 'https://embed.spotify.com/oembed/', true ),
 			'#https?://(.+\.)?imgur\.com/.*#i'             => array( 'https://api.imgur.com/oembed', true ),
 			'#https?://(www\.)?issuu\.com/.+/docs/.+#i'    => array( 'https://issuu.com/oembed_wp', true ),
@@ -109,6 +108,8 @@ class WP_oEmbed {
 			'#https?://([a-z]{2}|www)\.pinterest\.com(\.(au|mx))?/.*#i' => array( 'https://www.pinterest.com/oembed.json', true ),
 			'#https?://(www\.)?wolframcloud\.com/obj/.+#i' => array( 'https://www.wolframcloud.com/oembed', true ),
 			'#https?://pca\.st/.+#i'                       => array( 'https://pca.st/oembed.json', true ),
+			'#https?://((play|www)\.)?anghami\.com/.*#i'   => array( 'https://api.anghami.com/rest/v1/oembed.view', true ),
+			'#https?://bsky.app/profile/.*/post/.*#i'      => array( 'https://embed.bsky.app/oembed', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
@@ -146,7 +147,6 @@ class WP_oEmbed {
 		 * | SmugMug      | smugmug.com                               | 3.0.0   |
 		 * | YouTube      | youtu.be                                  | 3.0.0   |
 		 * | Twitter      | twitter.com                               | 3.4.0   |
-		 * | Slideshare   | slideshare.net                            | 3.5.0   |
 		 * | SoundCloud   | soundcloud.com                            | 3.5.0   |
 		 * | Dailymotion  | dai.ly                                    | 3.6.0   |
 		 * | Flickr       | flic.kr                                   | 3.6.0   |
@@ -188,6 +188,8 @@ class WP_oEmbed {
 		 * | WolframCloud | wolframcloud.com                          | 5.9.0   |
 		 * | Pocket Casts | pocketcasts.com                           | 6.1.0   |
 		 * | Crowdsignal  | crowdsignal.net                           | 6.2.0   |
+		 * | Anghami      | anghami.com                               | 6.3.0   |
+		 * | Bluesky      | bsky.app                                  | 6.6.0   |
 		 *
 		 * No longer supported providers:
 		 *
@@ -211,6 +213,7 @@ class WP_oEmbed {
 		 * | Facebook     | facebook.com         | 4.7.0     | 5.5.2     |
 		 * | Meetup.com   | meetup.com           | 3.9.0     | 6.0.1     |
 		 * | Meetup.com   | meetu.ps             | 3.9.0     | 6.0.1     |
+		 * | SlideShare   | slideshare.net       | 3.5.0     | 6.6.0     |
 		 *
 		 * @see wp_oembed_add_provider()
 		 *
@@ -618,9 +621,10 @@ class WP_oEmbed {
 		}
 
 		if ( PHP_VERSION_ID < 80000 ) {
-			// This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
-			// is disabled by default, so this function is no longer needed to protect against XXE attacks.
-			// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.libxml_disable_entity_loaderDeprecated
+			/*
+			 * This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
+			 * is disabled by default, so this function is no longer needed to protect against XXE attacks.
+			 */
 			$loader = libxml_disable_entity_loader( true );
 		}
 
@@ -752,7 +756,7 @@ class WP_oEmbed {
 	 * @return string Possibly modified $html
 	 */
 	public function _strip_newlines( $html, $data, $url ) {
-		if ( false === strpos( $html, "\n" ) ) {
+		if ( ! str_contains( $html, "\n" ) ) {
 			return $html;
 		}
 

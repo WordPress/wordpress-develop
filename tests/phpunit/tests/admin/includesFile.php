@@ -15,7 +15,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		$home    = get_option( 'home' );
 		$siteurl = get_option( 'siteurl' );
 		$sfn     = $_SERVER['SCRIPT_FILENAME'];
-		$this->assertSame( str_replace( '\\', '/', ABSPATH ), get_home_path() );
+		$this->assertSamePathIgnoringDirectorySeparators( ABSPATH, get_home_path() );
 
 		update_option( 'home', 'http://localhost' );
 		update_option( 'siteurl', 'http://localhost/wp' );
@@ -294,7 +294,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		$error = download_url( $url );
 		$this->assertWPError( $error );
 		$this->assertSame( 'http_no_url', $error->get_error_code() );
-		$this->assertSame( 'Invalid URL Provided.', $error->get_error_message() );
+		$this->assertSame( 'No URL Provided.', $error->get_error_message() );
 	}
 
 	/**
@@ -343,7 +343,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_signature_hosts',
-			static function( $urls ) {
+			static function ( $urls ) {
 				$urls[] = 'example.com';
 				return $urls;
 			}

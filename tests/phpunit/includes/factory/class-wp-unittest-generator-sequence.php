@@ -9,7 +9,7 @@ class WP_UnitTest_Generator_Sequence {
 		if ( $start ) {
 			$this->next = $start;
 		} else {
-			self::$incr++;
+			++self::$incr;
 			$this->next = self::$incr;
 		}
 		$this->template_string = $template_string;
@@ -17,7 +17,7 @@ class WP_UnitTest_Generator_Sequence {
 
 	public function next() {
 		$generated = sprintf( $this->template_string, $this->next );
-		$this->next++;
+		++$this->next;
 		return $generated;
 	}
 

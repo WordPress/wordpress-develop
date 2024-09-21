@@ -59,15 +59,15 @@ if ( is_multisite() ) :
 			// Each site retrieved should match the expected structure.
 			foreach ( $blogs_of_user as $blog_id => $blog ) {
 				$this->assertSame( $blog_id, $blog->userblog_id );
-				$this->assertObjectHasAttribute( 'userblog_id', $blog );
-				$this->assertObjectHasAttribute( 'blogname', $blog );
-				$this->assertObjectHasAttribute( 'domain', $blog );
-				$this->assertObjectHasAttribute( 'path', $blog );
-				$this->assertObjectHasAttribute( 'site_id', $blog );
-				$this->assertObjectHasAttribute( 'siteurl', $blog );
-				$this->assertObjectHasAttribute( 'archived', $blog );
-				$this->assertObjectHasAttribute( 'spam', $blog );
-				$this->assertObjectHasAttribute( 'deleted', $blog );
+				$this->assertObjectHasProperty( 'userblog_id', $blog );
+				$this->assertObjectHasProperty( 'blogname', $blog );
+				$this->assertObjectHasProperty( 'domain', $blog );
+				$this->assertObjectHasProperty( 'path', $blog );
+				$this->assertObjectHasProperty( 'site_id', $blog );
+				$this->assertObjectHasProperty( 'siteurl', $blog );
+				$this->assertObjectHasProperty( 'archived', $blog );
+				$this->assertObjectHasProperty( 'spam', $blog );
+				$this->assertObjectHasProperty( 'deleted', $blog );
 			}
 
 			// Mark each remaining site as spam, archived, and deleted.
@@ -448,7 +448,6 @@ if ( is_multisite() ) :
 
 			$wp_roles->remove_role( $role );
 		}
-
 	}
 
 endif;

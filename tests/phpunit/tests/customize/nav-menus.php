@@ -655,7 +655,6 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		add_filter( 'customize_nav_menu_available_item_types', array( $this, 'filter_item_types' ) );
 		$this->assertSame( $expected, $menus->available_item_types() );
 		remove_filter( 'customize_nav_menu_available_item_types', array( $this, 'filter_item_types' ) );
-
 	}
 
 	/**
