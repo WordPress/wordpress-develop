@@ -108,8 +108,8 @@ EOD;
 				'<blockquote class="wp-embedded-content"><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title="Hola" width="100"></iframe></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title="Hola"></iframe>',
 			),
 			array(
-				"<blockquote><iframe title=" width=&quot;"></iframe></blockquote><iframe title=\"&apos; height=\" title=&apos; width=\"></iframe>",
-				'<blockquote class="wp-embedded-content"><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title=" width=&quot;"></iframe></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title=" width=&quot;" height=\' title=\' width="\'\' height=\'123\'"></iframe>',
+				"<blockquote><iframe title=' width=\"'></iframe></blockquote><iframe title='' height=' title=' width=\"'' height='123'\"></iframe>",
+				'<blockquote class="wp-embedded-content"><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title=" width=&quot;"></iframe></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title=" width=&quot;" height=" title=&apos; width="></iframe>',
 			),
 		);
 	}
