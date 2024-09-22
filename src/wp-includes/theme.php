@@ -3576,9 +3576,14 @@ function _wp_customize_include() {
 	$branching = false;
 
 	if ( $is_customize_admin_page && isset( $input_vars['changeset_uuid'] ) ) {
-		$changeset_uuid = sanitize_key( $input_vars['changeset_uuid'] );
+		$changeset_uuid = $input_vars['changeset_uuid'];
 	} elseif ( ! empty( $input_vars['customize_changeset_uuid'] ) ) {
-		$changeset_uuid = sanitize_key( $input_vars['customize_changeset_uuid'] );
+		$changeset_uuid = $input_vars['customize_changeset_uuid'];
+	}
+
+	// Sanitize UUID
+	if ( $changeset_uuid && ! wp_is_uuid( $changeset_uuid ) ) {
+		$changeset_uuid = false;
 	}
 
 	// Note that theme will be sanitized via WP_Theme.
@@ -3592,7 +3597,7 @@ function _wp_customize_include() {
 		$autosaved = true;
 	}
 
-	if ( isset( $input_vars['customize_messenger_channel'] ) ) {
+	if ( isset( $input_vars['customize_messenger_channel'] ) && is_string( $input_vars['customize_messenger_channel'] ) ) {
 		$messenger_channel = sanitize_key( $input_vars['customize_messenger_channel'] );
 	}
 
