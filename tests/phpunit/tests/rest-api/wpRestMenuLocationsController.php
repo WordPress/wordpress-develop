@@ -181,7 +181,7 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 3, count( $properties ) );
+		$this->assertCount( 3, $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'menu', $properties );

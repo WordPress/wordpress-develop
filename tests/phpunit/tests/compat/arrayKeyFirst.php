@@ -24,15 +24,7 @@ class Tests_Compat_arrayKeyFirst extends WP_UnitTestCase {
 	 * @param array $arr     The array to get first key from.
 	 */
 	public function test_array_key_first( $expected, $arr ) {
-		if ( ! function_exists( 'array_key_first' ) ) {
-			$this->markTestSkipped( 'array_key_first() is not available.' );
-		} else {
-			$this->assertSame(
-				$expected,
-				array_key_first( $arr )
-			);
-		}
-
+		$this->assertSame( $expected, array_key_first( $arr ) );
 	}
 
 	/**

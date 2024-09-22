@@ -3,7 +3,8 @@
 /**
  * Tests for `maybe_serialize()` and `maybe_unserialize()`.
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::maybe_serialize
  * @covers ::maybe_unserialize
  */
@@ -52,7 +53,7 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 	/**
 	 * Data provider for `test_maybe_unserialize()`.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_is_serialized() {
 		return array(
@@ -120,7 +121,7 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 	/**
 	 * Data provider for `test_maybe_serialize()`.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_is_not_serialized() {
 		return array(
@@ -228,7 +229,7 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_deserialize_request_utility_filtered_iterator_objects().
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_serialize_deserialize_objects() {
 		return array(

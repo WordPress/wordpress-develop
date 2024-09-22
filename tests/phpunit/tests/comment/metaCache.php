@@ -7,6 +7,14 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	protected $queries = 0;
 
 	/**
+	 * Performs setup tasks for every test.
+	 */
+	public function set_up() {
+		parent::set_up();
+		switch_theme( 'default' );
+	}
+
+	/**
 	 * @ticket 16894
 	 *
 	 * @covers ::update_comment_meta
@@ -243,7 +251,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 		// First comment will cause the cache to be primed.
 		$num_queries = get_num_queries();
 		$this->assertSame( 'bar', get_comment_meta( $comments[0], 'foo', 'bar' ) );
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 
 		// Second comment from the results should not cause more queries.
@@ -252,7 +260,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 
 		// A comment from outside the results will not be primed.
 		$this->assertSame( 'bar', get_comment_meta( $comments[4], 'foo', 'bar' ) );
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
@@ -293,7 +301,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 		// First comment will cause the cache to be primed.
 		$num_queries = get_num_queries();
 		$this->assertSame( 'bar', get_comment_meta( $comments[0], 'foo', 'bar' ) );
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 
 		// Second comment from the results should not cause more queries.
@@ -302,7 +310,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 
 		// A comment from outside the results will not be primed.
 		$this->assertSame( 'bar', get_comment_meta( $comments[4], 'foo', 'bar' ) );
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
 

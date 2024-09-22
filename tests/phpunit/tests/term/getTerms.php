@@ -425,7 +425,6 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( array( $term_id2, $term_id22 ), $terms );
-
 	}
 
 	/**
@@ -801,7 +800,6 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			),
 			$terms
 		);
-
 	}
 
 	/**
@@ -2939,7 +2937,6 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$term0       = get_term( $terms[0] );
 		$this->assertSame( $num_queries, get_num_queries() );
-
 	}
 
 	/**
@@ -3026,6 +3023,39 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSameSets( array( $terms[1] ), $found );
+	}
+
+	/**
+	 * @ticket 52710
+	 */
+	public function test_get_terms_without_update_get_terms_cache() {
+		$this->set_up_three_posts_and_tags();
+
+		$num_queries = get_num_queries();
+
+		// last_changed and num_queries should bump.
+		$terms = get_terms(
+			'post_tag',
+			array(
+				'cache_results'          => false,
+				'update_term_meta_cache' => false,
+			)
+		);
+		$this->assertCount( 3, $terms, 'After running get_terms, 3 terms should be returned' );
+		$this->assertSame( $num_queries + 2, get_num_queries(), 'There should be only 2 queries run, only term query and priming terms' );
+
+		$num_queries = get_num_queries();
+
+		// last_changed and num_queries should bump again.
+		$terms = get_terms(
+			'post_tag',
+			array(
+				'cache_results'          => false,
+				'update_term_meta_cache' => false,
+			)
+		);
+		$this->assertCount( 3, $terms, 'After running get_terms for a second time, 3 terms should be returned' );
+		$this->assertSame( $num_queries + 1, get_num_queries(), 'On the second run, only run the term query, priming terms happens on the first run' );
 	}
 
 	/**
@@ -3142,7 +3172,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$num_queries_1 = get_num_queries();
 		$query2        = get_terms( $args_2 );
 		$this->assertSame( $num_queries_1, get_num_queries() );
-		$this->assertSame( count( $query1 ), count( $query2 ) );
+		$this->assertCount( count( $query1 ), $query2 );
 	}
 
 	/**

@@ -219,8 +219,10 @@ class WP_Locale {
 		$this->meridiem['AM'] = __( 'AM' );
 		$this->meridiem['PM'] = __( 'PM' );
 
-		// Numbers formatting.
-		// See https://www.php.net/number_format
+		/*
+		 * Numbers formatting.
+		 * See https://www.php.net/number_format
+		 */
 
 		/* translators: $thousands_sep argument for https://www.php.net/number_format, default is ',' */
 		$thousands_sep = __( 'number_format_thousands_sep' );
@@ -353,6 +355,7 @@ class WP_Locale {
 	 *
 	 * For backward compatibility only.
 	 *
+	 * @since 2.1.0
 	 * @deprecated For backward compatibility only.
 	 *
 	 * @global array $weekday
@@ -360,8 +363,6 @@ class WP_Locale {
 	 * @global array $weekday_abbrev
 	 * @global array $month
 	 * @global array $month_abbrev
-	 *
-	 * @since 2.1.0
 	 */
 	public function register_globals() {
 		$GLOBALS['weekday']         = $this->weekday;

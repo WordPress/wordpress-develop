@@ -4,7 +4,7 @@
  *
  * @since 5.1.0
  *
- * @group functions.php
+ * @group functions
  */
 class Tests_Functions_UnderscoreReturn extends WP_UnitTestCase {
 

@@ -2,10 +2,12 @@
  * @output wp-admin/js/user-profile.js
  */
 
-/* global ajaxurl, pwsL10n, userProfileL10n */
+/* global ajaxurl, pwsL10n, userProfileL10n, ClipboardJS */
 (function($) {
 	var updateLock = false,
+		isSubmitting = false,
 		__ = wp.i18n.__,
+		clipboard = new ClipboardJS( '.application-password-display .copy-button' ),
 		$pass1Row,
 		$pass1,
 		$pass2,
@@ -15,7 +17,10 @@
 		$submitButtons,
 		$submitButton,
 		currentPass,
-		$passwordWrapper;
+		$form,
+		originalFormContent,
+		$passwordWrapper,
+		successTimeout;
 
 	function generatePassword() {
 		if ( typeof zxcvbn !== 'function' ) {
@@ -52,7 +57,9 @@
 		$( '#pw-weak-text-label' ).text( __( 'Confirm use of weak password' ) );
 
 		// Focus the password field.
-		$( $pass1 ).trigger( 'focus' );
+		if ( 'mailserver_pass' !== $pass1.prop('id' ) ) {
+			$( $pass1 ).trigger( 'focus' );
+		}
 	}
 
 	function bindPass1() {
@@ -146,7 +153,9 @@
 	 * @param {string}        message The message to insert.
 	 */
 	function addInlineNotice( $this, success, message ) {
-		var resultDiv = $( '<div />' );
+		var resultDiv = $( '<div />', {
+			role: 'alert'
+		} );
 
 		// Set up the notice div.
 		resultDiv.addClass( 'notice inline' );
@@ -171,7 +180,7 @@
 		var $generateButton,
 			$cancelButton;
 
-		$pass1Row = $( '.user-pass1-wrap, .user-pass-wrap, .reset-pass-submit' );
+		$pass1Row = $( '.user-pass1-wrap, .user-pass-wrap, .mailserver-pass-wrap, .reset-pass-submit' );
 
 		// Hide the confirm password field when JavaScript support is enabled.
 		$('.user-pass2-wrap').hide();
@@ -188,7 +197,7 @@
 			$submitButtons.prop( 'disabled', ! $weakCheckbox.prop( 'checked' ) );
 		} );
 
-		$pass1 = $('#pass1');
+		$pass1 = $('#pass1, #mailserver_pass');
 		if ( $pass1.length ) {
 			bindPass1();
 		} else {
@@ -309,31 +318,56 @@
 				$('#pass-strength-result').addClass('short').html( pwsL10n.mismatch );
 				break;
 			default:
-				$('#pass-strength-result').addClass('short').html( pwsL10n['short'] );
+				$('#pass-strength-result').addClass('short').html( pwsL10n.short );
 		}
 	}
 
 	function showOrHideWeakPasswordCheckbox() {
-		var passStrength = $('#pass-strength-result')[0];
+		var passStrengthResult = $('#pass-strength-result');
 
-		if ( passStrength.className ) {
-			$pass1.addClass( passStrength.className );
-			if ( $( passStrength ).is( '.short, .bad' ) ) {
-				if ( ! $weakCheckbox.prop( 'checked' ) ) {
-					$submitButtons.prop( 'disabled', true );
-				}
-				$weakRow.show();
-			} else {
-				if ( $( passStrength ).is( '.empty' ) ) {
-					$submitButtons.prop( 'disabled', true );
-					$weakCheckbox.prop( 'checked', false );
+		if ( passStrengthResult.length ) {
+			var passStrength = passStrengthResult[0];
+
+			if ( passStrength.className ) {
+				$pass1.addClass( passStrength.className );
+				if ( $( passStrength ).is( '.short, .bad' ) ) {
+					if ( ! $weakCheckbox.prop( 'checked' ) ) {
+						$submitButtons.prop( 'disabled', true );
+					}
+					$weakRow.show();
 				} else {
-					$submitButtons.prop( 'disabled', false );
+					if ( $( passStrength ).is( '.empty' ) ) {
+						$submitButtons.prop( 'disabled', true );
+						$weakCheckbox.prop( 'checked', false );
+					} else {
+						$submitButtons.prop( 'disabled', false );
+					}
+					$weakRow.hide();
 				}
-				$weakRow.hide();
 			}
 		}
 	}
+
+	// Debug information copy section.
+	clipboard.on( 'success', function( e ) {
+		var triggerElement = $( e.trigger ),
+			successElement = $( '.success', triggerElement.closest( '.application-password-display' ) );
+
+		// Clear the selection and move focus back to the trigger.
+		e.clearSelection();
+
+		// Show success visual feedback.
+		clearTimeout( successTimeout );
+		successElement.removeClass( 'hidden' );
+
+		// Hide success visual feedback after 3 seconds since last success.
+		successTimeout = setTimeout( function() {
+			successElement.addClass( 'hidden' );
+		}, 3000 );
+
+		// Handle success audible feedback.
+		wp.a11y.speak( __( 'Application password has been copied to your clipboard.' ) );
+	} );
 
 	$( function() {
 		var $colorpicker, $stylesheet, user_id, current_user_id,
@@ -448,6 +482,12 @@
 
 		bindPasswordForm();
 		bindPasswordResetLink();
+		$submitButtons.on( 'click', function() {
+			isSubmitting = true;
+		});
+
+		$form = $( '#your-profile, #createuser' );
+		originalFormContent = $form.serialize();
 	});
 
 	$( '#destroy-sessions' ).on( 'click', function( e ) {
@@ -459,10 +499,10 @@
 		}).done( function( response ) {
 			$this.prop( 'disabled', true );
 			$this.siblings( '.notice' ).remove();
-			$this.before( '<div class="notice notice-success inline"><p>' + response.message + '</p></div>' );
+			$this.before( '<div class="notice notice-success inline" role="alert"><p>' + response.message + '</p></div>' );
 		}).fail( function( response ) {
 			$this.siblings( '.notice' ).remove();
-			$this.before( '<div class="notice notice-error inline"><p>' + response.message + '</p></div>' );
+			$this.before( '<div class="notice notice-error inline" role="alert"><p>' + response.message + '</p></div>' );
 		});
 
 		e.preventDefault();
@@ -475,7 +515,10 @@
 		if ( true === updateLock ) {
 			return __( 'Your new password has not been saved.' );
 		}
-	} );
+		if ( originalFormContent !== $form.serialize() && ! isSubmitting ) {
+			return __( 'The changes you made will be lost if you navigate away from this page.' );
+		}
+	});
 
 	/*
 	 * We need to generate a password as soon as the Reset Password page is loaded,

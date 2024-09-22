@@ -60,7 +60,11 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( 1, $result );
 
 		$comment = get_comment( $comments[0] );
-		$this->assertEquals( $comments[1], $comment->comment_parent );
+		/*
+		 * ::create_post_comments() returns comment IDs as integers,
+		 * but WP_Comment::$comment_parent is a string.
+		 */
+		$this->assertSame( (string) $comments[1], $comment->comment_parent );
 
 		$result = wp_update_comment(
 			array(
@@ -78,7 +82,8 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$comment = get_comment( $comments[0] );
-		$this->assertEquals( $post2->ID, $comment->comment_post_ID );
+		// WP_Post::$ID is an integer, but WP_Comment::$comment_post_ID is a string.
+		$this->assertSame( (string) $post2->ID, $comment->comment_post_ID );
 	}
 
 	public function test_update_comment_from_privileged_user_by_privileged_user() {
@@ -116,14 +121,14 @@ class Tests_Comment extends WP_UnitTestCase {
 			)
 		);
 
+		wp_set_current_user( 0 );
+
 		$comment          = get_comment( $comment_id );
 		$expected_content = is_multisite()
 			? 'new comment '
 			: 'new comment <img onerror=demo src=x>';
 
 		$this->assertSame( $expected_content, $comment->comment_content );
-
-		wp_set_current_user( 0 );
 	}
 
 	public function test_update_comment_from_unprivileged_user_by_privileged_user() {
@@ -160,9 +165,10 @@ class Tests_Comment extends WP_UnitTestCase {
 			)
 		);
 
+		wp_set_current_user( 0 );
+
 		$comment = get_comment( $comment_id );
 		$this->assertSame( '<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>', $comment->comment_content, 'Comment: ' . $comment->comment_content );
-		wp_set_current_user( 0 );
 	}
 
 	/**
@@ -221,7 +227,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$comment = get_comment( $comment_id );
-		$this->assertEquals( 1, $comment->user_id );
+		$this->assertSame( '1', $comment->user_id );
 	}
 
 	/**
@@ -476,7 +482,7 @@ class Tests_Comment extends WP_UnitTestCase {
 			'The comment is not an instance of WP_Comment.'
 		);
 
-		$this->assertObjectHasAttribute(
+		$this->assertObjectHasProperty(
 			'comment_author',
 			$comment,
 			'The comment object does not have a "comment_author" property.'
@@ -1007,7 +1013,6 @@ class Tests_Comment extends WP_UnitTestCase {
 			),
 			$this->preprocess_comment_data
 		);
-
 	}
 
 	public function filter_preprocess_comment( $commentdata ) {

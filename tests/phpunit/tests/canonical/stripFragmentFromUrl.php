@@ -4,6 +4,7 @@
  * @group canonical
  * @group rewrite
  * @group query
+ *
  * @covers ::strip_fragment_from_url
  */
 class Tests_Canonical_StripFragmentFromUrl extends WP_UnitTestCase {

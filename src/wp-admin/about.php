@@ -26,13 +26,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: Version number. */
 						__( 'WordPress %s' ),
-						str_replace( '.', '<span>.</span>', $display_version )
+						$display_version
 					);
 					?>
 				</h1>
 			</div>
-
-			<div class="about__header-text"></div>
 		</div>
 
 		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
@@ -40,6 +38,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<a href="credits.php" class="nav-tab"><?php _e( 'Credits' ); ?></a>
 			<a href="freedoms.php" class="nav-tab"><?php _e( 'Freedoms' ); ?></a>
 			<a href="privacy.php" class="nav-tab"><?php _e( 'Privacy' ); ?></a>
+			<a href="contribute.php" class="nav-tab"><?php _e( 'Get Involved' ); ?></a>
 		</nav>
 
 		<div class="about__section">
@@ -54,162 +53,116 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</h2>
 				<p class="is-subheading">
-					<?php
-					printf(
-						/* translators: 1: Count of enhancements, 2: Count of bug fixes. */
-						__( 'WordPress 6.2 includes more than %1$s enhancements and %2$s bug fixes. This page highlights the latest features since the November 2022 release of WordPress 6.1. From quick highlights to developer resources, there&#8217;s a lot to explore.' ),
-						292, // Enhancements.
-						394 // Bug fixes.
-					);
-					?>
+					<?php _e( 'Create and deploy beautiful and coherent design elements across your sites with WordPress 6.6. A new rollback option for auto-updating plugins gives you control, flexibility, and peace of mind.' ); ?>
 				</p>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.2/about-site-editor.png" alt="" />
-				</div>
+			<div class="column is-vertically-aligned-center">
+				<h3><?php _e( 'Color palettes & font sets' ); ?></h3>
+				<p><strong><?php _e( 'Add more design options to any block theme.' ); ?></strong> <?php _e( 'Block theme authors can create unlimited individual color or font sets to offer more specific design options within the same theme. These sets provide more contained design possibilities, allowing for customization without changing the site&#8217;s broader styling, beyond color or typography settings.' ); ?></p>
 			</div>
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Explore and edit your site from the Site Editor' ); ?></h3>
-				<p><?php _e( 'An updated interface gives you more control over your site editing experience. Browse through full previews of your templates and template parts, then jump into editing your site from wherever you choose.' ); ?></p>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Manage your menu in more ways with the Navigation block' ); ?></h3>
-				<p><?php _e( 'A new sidebar experience makes it easier to edit your site&#8217;s navigation. Add, remove, and reorder menu items faster—no matter how complex your menus are.' ); ?></p>
-			</div>
-			<div class="column">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.2/about-navigation.png" alt="" />
+					<img src="https://s.w.org/images/core/6.6/color-palettes.webp" alt="" height="436" width="436" />
 				</div>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.2/about-block-inserter.png" alt="" />
-				</div>
-			</div>
-			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Discover a smoother experience for the Block Inserter' ); ?></h3>
-				<p><?php _e( 'A refreshed design gives you more visibility and easier access to the content you need. Use the Media tab to drag and drop content from your existing Media Library quickly. Find patterns faster with a split view that lets you navigate categories and see previews all at once.' ); ?></p>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Find the controls you want when you need them' ); ?></h3>
-				<p><?php _e( 'Your block settings sidebar is better organized with tabs for Settings and Styles. So the tools you need are easy to identify and access.' ); ?></p>
-			</div>
-			<div class="column">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.2/about-split-controls-fixed.png" alt="" />
+					<img src="https://s.w.org/images/core/6.6/page-previews.webp" alt="" height="436" width="436" />
+				</div>
+			</div>
+			<div class="column is-vertically-aligned-center">
+				<h3><?php _e( 'Quick previews for pages' ); ?></h3>
+				<p><strong><?php _e( 'Simplify your workflow with a new layout built for pages.' ); ?></strong> <?php _e( 'See all of your pages and a preview of any selected page before you edit via a new side-by-side layout in the Site Editor.' ); ?></p>
+			</div>
+		</div>
+
+		<div class="about__section has-2-columns">
+			<div class="column is-vertically-aligned-center">
+				<h3><?php _e( 'Rollbacks for plugin auto-updates' ); ?></h3>
+				<p><strong><?php _e( 'Auto-update your plugins with peace of mind.' ); ?></strong> <?php _e( 'Enjoy the ease of plugin auto-updates with the safety of rollbacks if anything goes wrong, improving your site&#8217;s security while minimizing potential downtime.' ); ?></p>
+			</div>
+			<div class="column is-vertically-aligned-center">
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.6/feature-rollbacks.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
-			<div class="column">
+			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.2/about-headers.png" alt="" />
+					<img src="https://s.w.org/images/core/6.6/overrides.webp" alt="" height="436" width="436" />
 				</div>
-				<h3><?php _e( 'Build faster with headers and footers for block themes' ); ?></h3>
-				<p><?php _e( 'Discover a new collection of header and footer patterns to choose from. Use them with any block theme as a quick, high-quality starting point for your site&#8217;s templates.' ); ?></p>
 			</div>
-			<div class="column">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.2/about-openverse.png" alt="" />
-				</div>
-				<h3><?php _e( 'Explore Openverse media right from the Editor' ); ?></h3>
-				<p><?php _e( 'Openverse&#8217;s library catalogs over 600 million free, openly licensed stock images and audio—and now it&#8217;s directly integrated into the Editor.' ); ?></p>
+			<div class="column is-vertically-aligned-center">
+				<h3><?php _e( 'Overrides' ); ?></h3>
+				<p><strong><?php _e( 'Add the ability to customize content in synced patterns.' ); ?></strong> <?php _e( 'Allow specific pieces of content to be customized in each instance of a synced pattern while keeping a consistent style for all instances, simplifying future updates. Currently, you can set overrides for Heading, Paragraph, Button, and Image blocks.' ); ?></p>
 			</div>
 		</div>
+
+		<hr class="is-invisible is-large" />
 
 		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.2/about-distraction-free.png" alt="" />
-				</div>
-				<h3><?php _e( 'Focus on writing with Distraction Free mode' ); ?></h3>
-				<p><?php _e( 'For those times you want to be alone with your ideas. You can now hide all your panels and controls, leaving you free to bring your content to life.' ); ?></p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.2/about-out-of-beta.png" alt="" />
-				</div>
-				<h3><?php _e( 'Experience the Site Editor, now out of beta' ); ?></h3>
-				<p><?php _e( 'Stable and ready for you to dive in and explore: 6.2 is your personal invitation to discover what the next generation of WordPress—and Block themes—can do.' ); ?></p>
-			</div>
-		</div>
-
-		<div class="about__section has-3-columns">
-			<div class="column">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.2/about-style-book.png" alt="" />
-				</div>
-				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Style Book' ); ?></h3>
-				<p><?php _e( 'Use the new Style Book to get a complete overview of how every block in your site&#8217;s library looks. All in one place, all at a glance.' ); ?></p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.2/about-copy-paste.png" alt="" />
-				</div>
-				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Copy and paste styles' ); ?></h3>
-				<p><?php _e( 'Perfect the design on one type of block, then copy and paste those styles to other blocks to get just the look you want.' ); ?></p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.2/about-custom-css.png" alt="" />
-				</div>
-				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Custom CSS' ); ?></h3>
-				<p><?php _e( 'Power up your site any way you wish. Add CSS to your site, or your blocks, for another level of control over your site&#8217;s look and feel.' ); ?></p>
-			</div>
-		</div>
-
-		<div class="about__section has-3-columns">
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1D35B4"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M19.138 20.765a6.012 6.012 0 0 1 3.614-.62l4.15-5.617 6.57 6.57-5.616 4.15a6.01 6.01 0 0 1-.772 3.886c-.252.427-.561.828-.927 1.195l-3.713-3.713-5.692 5.693h-1.06v-1.061l5.692-5.692-3.713-3.713a6.007 6.007 0 0 1 1.467-1.078Zm7.936-3.944 4.105 4.105-4.933 3.647.124.884c.122.87-.01 1.766-.394 2.57l-6.002-6.003a4.515 4.515 0 0 1 2.57-.394l.883.124 3.647-4.933Z" fill="#fff"/>
+						<rect width="48" height="48" rx="4"/>
+						<path d="M28.4287 20.6507C28.8387 20.8874 28.9791 21.4116 28.7424 21.8215L24.7424 28.7498C24.5057 29.1597 23.9815 29.3002 23.5715 29.0635C23.1616 28.8268 23.0211 28.3026 23.2578 27.8926L27.2578 20.9644C27.4945 20.5544 28.0187 20.414 28.4287 20.6507Z" fill="#1e1e1e"/>
+						<path d="M18.6433 23.579C18.2333 23.3423 17.7091 23.4828 17.4724 23.8927C17.2357 24.3027 17.3761 24.8269 17.7861 25.0636L18.281 25.3493C18.691 25.586 19.2152 25.4456 19.4519 25.0356C19.6886 24.6256 19.5481 24.1014 19.1381 23.8647L18.6433 23.579Z" fill="#1e1e1e"/>
+						<path d="M20.0358 20.6508C20.4458 20.4141 20.97 20.5546 21.2067 20.9645L21.4924 21.4594C21.7291 21.8694 21.5887 22.3936 21.1787 22.6303C20.7687 22.867 20.2445 22.7265 20.0078 22.3166L19.7221 21.8217C19.4854 21.4117 19.6259 20.8875 20.0358 20.6508Z" fill="#1e1e1e"/>
+						<path d="M24.8571 20C24.8571 19.5266 24.4734 19.1429 24 19.1429C23.5266 19.1429 23.1429 19.5266 23.1429 20V20.5714C23.1429 21.0448 23.5266 21.4286 24 21.4286C24.4734 21.4286 24.8571 21.0448 24.8571 20.5714V20Z" fill="#1e1e1e"/>
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M14 26C14 20.4772 18.4772 16 24 16C29.5228 16 34 20.4772 34 26C34 28.0846 33.3612 30.0225 32.2686 31.6256L32.0135 32H15.9865L15.7314 31.6256C14.6388 30.0225 14 28.0846 14 26ZM24 17.7143C19.4239 17.7143 15.7143 21.4239 15.7143 26C15.7143 27.5698 16.1501 29.0357 16.9072 30.2857H31.0928C31.8499 29.0357 32.2857 27.5698 32.2857 26C32.2857 21.4239 28.5761 17.7143 24 17.7143Z" fill="#1e1e1e"/>
 					</svg>
 				</div>
-				<h3 class="is-smaller-heading" style="margin-top:0;margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Sticky positioning' ); ?></h3>
-				<p><?php _e( 'Choose to keep top-level group blocks fixed to the top of a page as visitors scroll.' ); ?></p>
+				<h3><?php _e( 'Performance updates' ); ?></h3>
+				<p>
+					<?php
+					printf(
+						/* translators: %1$s: code-formatted "WP_Theme_JSON", %2$s: code-formatted "data-wp-on-async", %%: escaped percent sign, leave as %%. */
+						__( 'WordPress 6.6 includes important updates like removing redundant %1$s calls, disabling autoload for large options, eliminating unnecessary polyfill dependencies, lazy loading post embeds, introducing the %2$s directive, and a 33%% reduction in template loading time in the editor.' ),
+						'<code>WP_Theme_JSON</code>',
+						'<code>data-wp-on-async</code>'
+					);
+					?>
+				</p>
 			</div>
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1D35B4"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M18 15h2v2h8v-2h2v2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2V19a2 2 0 0 1 2-2v-2Zm12 3.5H18a.5.5 0 0 0-.5.5v1h13v-1a.5.5 0 0 0-.5-.5Zm.5 3h-13V31a.5.5 0 0 0 .5.5h12a.5.5 0 0 0 .5-.5v-9.5ZM23 23h2v2h-2v-2Zm-4 0v2h2v-2h-2Zm8 2v-2h2v2h-2Z" fill="#fff"/>
+						<rect width="48" height="48" rx="4"/>
+						<path d="M24 18.285C23.55 18.285 23.1637 18.1237 22.8412 17.8012C22.5187 17.4788 22.3575 17.0925 22.3575 16.6425C22.3575 16.1925 22.5187 15.8062 22.8412 15.4837C23.1637 15.1612 23.55 15 24 15C24.45 15 24.8362 15.1612 25.1587 15.4837C25.4812 15.8062 25.6425 16.1925 25.6425 16.6425C25.6425 17.0925 25.4812 17.4788 25.1587 17.8012C24.8362 18.1237 24.45 18.285 24 18.285ZM21.5925 33V21.0075C20.5725 20.9325 19.5862 20.8275 18.6337 20.6925C17.6812 20.5575 16.77 20.385 15.9 20.175L16.2375 18.825C17.5125 19.125 18.78 19.3387 20.04 19.4662C21.3 19.5938 22.62 19.6575 24 19.6575C25.38 19.6575 26.7 19.5938 27.96 19.4662C29.22 19.3387 30.4875 19.125 31.7625 18.825L32.1 20.175C31.23 20.385 30.3187 20.5575 29.3662 20.6925C28.4137 20.8275 27.4275 20.9325 26.4075 21.0075V33H25.0575V27.15H22.9425V33H21.5925Z" fill="#1e1e1e"/>
 					</svg>
 				</div>
-				<h3 class="is-smaller-heading" style="margin-top:0;margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Importing widgets' ); ?></h3>
-				<p><?php _e( 'Options to import your favorite widgets from Classic themes to Block themes.' ); ?></p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1D35B4"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M17.681 27.075h4.076l.977 2.774h1.72L20.564 19h-1.69L15 29.849h1.705l.976-2.774Zm2.046-5.766 1.503 4.262h-3.006l1.503-4.262Zm6.755 8.064c.332.366.864.549 1.595.549.498 0 .963-.1 1.395-.3.443-.21.825-.586 1.147-1.13.01.377.11.71.299.998.2.288.603.432 1.212.432.366 0 .665-.056.898-.166.243-.111.482-.26.714-.449l-.166-.282c-.11.088-.222.166-.332.232a.697.697 0 0 1-.366.1c-.177 0-.299-.061-.365-.183-.067-.122-.1-.316-.1-.581v-4.586c0-.543-.044-1.002-.133-1.379a1.828 1.828 0 0 0-.548-.963 1.974 1.974 0 0 0-.88-.499c-.344-.11-.754-.166-1.23-.166-.51 0-.975.06-1.396.183-.41.122-.747.271-1.013.448a2.84 2.84 0 0 0-.598.532c-.144.188-.216.432-.216.731 0 .288.083.543.249.764.166.21.42.316.764.316.31 0 .565-.089.764-.266.21-.177.316-.42.316-.73a1.04 1.04 0 0 0-.25-.715 1.108 1.108 0 0 0-.597-.4c.166-.21.393-.348.681-.414.288-.078.56-.117.814-.117.3 0 .554.05.764.15.222.1.393.271.515.515.133.232.2.548.2.947v1.13c0 .254-.117.465-.35.63-.22.167-.509.317-.863.45-.343.121-.714.254-1.113.398-.388.133-.759.3-1.113.499a2.583 2.583 0 0 0-.848.73c-.221.3-.332.687-.332 1.164 0 .576.16 1.052.482 1.428Zm3.356-.481c-.277.155-.56.232-.848.232-.354 0-.647-.116-.88-.349-.233-.232-.349-.598-.349-1.096 0-.51.116-.908.349-1.196.233-.288.51-.515.83-.682.333-.177.654-.337.964-.481.322-.144.56-.333.715-.565v3.306c-.244.388-.504.665-.781.83Z" fill="#fff"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading" style="margin-top:0;margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Local fonts in themes' ); ?></h3>
-				<p><?php _e( 'Default WordPress themes offer better privacy with Google Fonts now included.' ); ?></p>
+				<h3><?php _e( 'Accessibility improvements' ); ?></h3>
+				<p><?php _e( '55+ accessibility fixes and enhancements focus on foundational aspects of the WordPress experience, particularly the data views component powering the new site editing experience and areas like the Inserter that provide a key way of interacting with blocks and patterns.' ); ?></p>
 			</div>
 		</div>
 
-		<hr />
+		<hr class="is-invisible is-large" style="margin-bottom:calc(2 * var(--gap));" />
+
+		<div class="about__section has-2-columns is-wider-left is-feature" style="background-color:var(--background);border-radius:var(--border-radius);">
+			<h3 class="is-section-header"><?php _e( 'And much more' ); ?></h3>
+			<div class="column">
+				<p><?php _e( 'For a comprehensive overview of all the new features and enhancements in WordPress 6.6, please visit the feature-showcase website.' ); ?></p>
+			</div>
+			<div class="column aligncenter">
+				<div class="about__image">
+					<a href="<?php echo esc_url( __( 'https://wordpress.org/download/releases/6-6/' ) ); ?>" class="button button-primary button-hero"><?php _e( 'See everything new' ); ?></a>
+				</div>
+			</div>
+		</div>
+
+		<hr class="is-large" style="margin-top:calc(2 * var(--gap));" />
 
 		<div class="about__section has-3-columns">
 			<div class="column about__image is-vertically-aligned-top">
-				<img src="data:image/svg+xml,%3Csvg width='280' height='280' viewBox='0 0 280 280' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg clip-path='url(%23a)'%3E%3Cpath fill='%23fff' d='M0 0h280v280H0z'/%3E%3Cg clip-path='url(%23b)'%3E%3Cpath fill='%231D35B4' d='M0 0h294v294H0z'/%3E%3Cpath d='M481.83 466.968c41.746-43.822 74.081-94.951 96.101-151.939 21.264-55.026 32.042-113.169 32.042-172.787 0-59.618-10.778-117.76-32.042-172.786-22.02-57.002-54.355-108.117-96.101-151.94-41.747-43.823-90.454-77.765-144.742-100.88C284.669-305.686 229.28-317 172.487-317c-56.794 0-112.183 11.314-164.601 33.636-54.302 23.115-102.995 57.057-144.742 100.88-41.747 43.823-74.081 94.952-96.101 151.94C-254.222 24.48-265 82.624-265 142.256c0 59.632 10.778 117.761 32.043 172.787 22.02 57.001 54.354 108.116 96.101 151.939a457.117 457.117 0 0 0 9.518 9.686l56.277-59.075a376.997 376.997 0 0 1-9.558-9.658c-67.612-70.974-104.838-165.327-104.838-265.693 0-100.365 37.226-194.718 104.838-265.692 67.611-70.974 157.495-110.051 253.106-110.051 95.61 0 185.494 39.077 253.106 110.051C493.204-52.476 530.43 41.877 530.43 142.242c0 100.366-37.226 194.719-104.837 265.693l-318.159 333.98H32.438l355.65-373.336c57.589-60.453 89.314-140.834 89.314-226.323 0-85.488-31.711-165.87-89.314-226.323-57.589-60.453-134.162-93.755-215.601-93.755-81.44 0-158.012 33.288-215.602 93.755-57.589 60.467-89.313 140.835-89.313 226.323 0 85.489 31.711 165.87 89.313 226.323 3.129 3.284 6.337 6.471 9.585 9.616l56.317-59.117a236.726 236.726 0 0 1-9.665-9.546c-87.868-92.238-87.868-242.327 0-334.58 87.869-92.237 230.847-92.237 318.729 0 42.569 44.686 66.008 104.096 66.008 167.29 0 63.195-23.439 122.604-66.008 167.29l-411.9 432.383h-74.996L294.36 270.176c67.201-70.542 67.201-185.311 0-255.854C261.814-19.842 218.529-38.67 172.5-38.67c-46.029 0-89.314 18.815-121.86 52.993C18.094 48.487.157 93.924.157 142.242s17.923 93.755 50.483 127.92a176.57 176.57 0 0 0 9.73 9.463l56.569-59.381a95.934 95.934 0 0 1-10.049-9.129c-17.526-18.398-27.177-42.863-27.177-68.887 0-26.023 9.651-50.489 27.177-68.886 17.526-18.398 40.832-28.529 65.623-28.529 24.791 0 48.097 10.131 65.623 28.529 36.179 37.978 36.179 99.781 0 137.773l-503.109 528.128V825.4H610v-83.499H219.947l261.909-274.933h-.026Z' fill='%23213FD4'/%3E%3C/g%3E%3Cpath d='M237 173.237h-81.39v-4.11l1.098-.242H237v4.352ZM237 190.647h-81.39V195H237v-4.353ZM237 179.767h-81.39v4.352H237v-4.352Z' fill='%23fff'/%3E%3Cpath d='M216.676 96.287c-6.635-6.577-15.456-10.2-24.839-10.2-9.382 0-18.204 3.623-24.839 10.2-6.634 6.577-10.289 15.321-10.289 24.621 0 9.3 3.655 18.044 10.289 24.621.26.256.522.508.789.757l3.106-3.079a31.284 31.284 0 0 1-.79-.755c-5.806-5.754-9.003-13.406-9.003-21.544s3.198-15.789 9.003-21.544c5.805-5.755 13.524-8.924 21.734-8.924 8.21 0 15.929 3.169 21.735 8.924 5.806 5.755 9.002 13.406 9.002 21.544s-3.196 15.789-9.002 21.544l-26.97 26.733 3.106 3.078 26.969-26.733c6.635-6.576 10.29-15.321 10.29-24.621 0-9.3-3.655-18.044-10.29-24.621l-.001-.001Z' fill='%23fff'/%3E%3Cpath d='M208.914 103.982c-4.561-4.522-10.626-7.012-17.077-7.012-6.45 0-12.515 2.49-17.076 7.012-4.561 4.521-7.074 10.533-7.074 16.927 0 6.393 2.511 12.405 7.074 16.926.259.257.524.506.794.751l3.109-3.081a20.109 20.109 0 0 1-.798-.748c-7.704-7.636-7.704-20.063 0-27.699 7.704-7.637 20.241-7.637 27.945 0 7.704 7.636 7.704 20.063 0 27.699l-35.072 34.765 3.105 3.078 35.072-34.765c4.561-4.521 7.074-10.533 7.074-16.926 0-6.394-2.512-12.406-7.074-16.927h-.002Z' fill='%23fff'/%3E%3Cpath d='M201.151 111.675a13.15 13.15 0 0 0-9.315-3.824 13.144 13.144 0 0 0-9.314 3.824c-5.137 5.092-5.137 13.376 0 18.467.26.258.53.504.808.738l3.122-3.095a8.661 8.661 0 0 1-.826-13.031 8.765 8.765 0 0 1 6.21-2.55c2.346 0 4.551.906 6.21 2.55a8.661 8.661 0 0 1 0 12.311l-42.436 42.064 3.777 2.412 41.764-41.398c5.136-5.091 5.136-13.375 0-18.467v-.001Z' fill='%23fff'/%3E%3Cpath d='M138.677 195c-4.233 0-7.677-3.417-7.677-7.616 0-4.2 3.444-7.616 7.677-7.616s7.677 3.416 7.677 7.616c0 4.199-3.444 7.616-7.677 7.616Z' fill='%2333F078'/%3E%3Cpath d='m95.363 126.168-3.735 3.702a19.68 19.68 0 0 1 11.449 5.579c7.704 7.636 7.704 20.063 0 27.699-7.704 7.637-20.24 7.637-27.945 0-3.732-3.699-5.787-8.618-5.787-13.849 0-5.232 2.055-10.15 5.787-13.85L126.028 85h-6.21l-47.79 47.371c-4.561 4.521-7.074 10.533-7.074 16.927 0 6.393 2.512 12.405 7.074 16.926 4.56 4.522 10.626 7.012 17.076 7.012 6.45 0 12.516-2.49 17.077-7.012 4.561-4.521 7.074-10.533 7.074-16.926 0-6.394-2.512-12.406-7.074-16.927a24.055 24.055 0 0 0-10.82-6.203h.002Z' fill='%23fff'/%3E%3Cpath d='M124.234 149.299c0-9.301-3.655-18.045-10.289-24.621a35.277 35.277 0 0 0-10.049-6.967l-3.337 3.308a30.885 30.885 0 0 1 10.281 6.737c5.806 5.755 9.003 13.406 9.003 21.544s-3.197 15.788-9.003 21.544c-5.805 5.755-13.524 8.923-21.734 8.923-8.21 0-15.929-3.168-21.735-8.923-5.806-5.756-9.002-13.406-9.002-21.544s3.196-15.789 9.002-21.544L110.504 85h-6.21l-40.027 39.676c-6.635 6.577-10.29 15.321-10.29 24.622s3.655 18.044 10.289 24.622c6.634 6.576 15.456 10.199 24.838 10.199 9.383 0 18.205-3.623 24.841-10.199 6.634-6.577 10.289-15.321 10.289-24.621Z' fill='%23fff'/%3E%3Cpath d='M131.836 132.102c-2.32-5.67-5.727-10.757-10.128-15.12a46.043 46.043 0 0 0-9.669-7.342l-3.23 3.201a41.577 41.577 0 0 1 9.793 7.22c3.983 3.947 7.066 8.549 9.164 13.677a40.899 40.899 0 0 1 3.054 15.561 40.886 40.886 0 0 1-3.054 15.56c-2.098 5.127-5.181 9.73-9.164 13.678a41.479 41.479 0 0 1-13.798 9.083 41.902 41.902 0 0 1-15.698 3.027c-5.419 0-10.701-1.018-15.698-3.027a41.492 41.492 0 0 1-13.799-9.083c-3.983-3.948-7.066-8.55-9.164-13.678a40.9 40.9 0 0 1-3.054-15.56 40.905 40.905 0 0 1 3.054-15.561c2.098-5.127 5.181-9.73 9.164-13.677L94.979 85h-6.21l-32.266 31.982c-4.4 4.363-7.808 9.45-10.127 15.12A45.215 45.215 0 0 0 43 149.299c0 5.934 1.136 11.72 3.376 17.196 2.32 5.671 5.727 10.758 10.128 15.12a45.85 45.85 0 0 0 15.253 10.039 46.302 46.302 0 0 0 17.349 3.347 46.322 46.322 0 0 0 17.349-3.346 45.854 45.854 0 0 0 15.253-10.039c4.401-4.362 7.808-9.449 10.128-15.12a45.203 45.203 0 0 0 3.376-17.196 45.222 45.222 0 0 0-3.375-17.197l-.001-.001Z' fill='%23fff'/%3E%3C/g%3E%3Cdefs%3E%3CclipPath id='a'%3E%3Cpath fill='%23fff' d='M0 0h280v280H0z'/%3E%3C/clipPath%3E%3CclipPath id='b'%3E%3Cpath fill='%23fff' d='M0 0h294v294H0z'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E%0A" alt="" />
+				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=6.6' ) ); ?>" alt="" height="280" width="280" />
 			</div>
 			<div class="column is-vertically-aligned-center" style="grid-column-end:span 2">
 				<h3>
@@ -221,12 +174,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					);
 					?>
 				</h3>
-				<p class="is-subheading">
+				<p>
 					<?php
 					printf(
-						/* translators: 1: Learn WordPress link. */
-						__( 'Explore <a href="%s">learn.wordpress.org</a> for tutorial videos, online workshops, courses, and lesson plans for Meetup organizers, including new features in WordPress.' ),
-						'https://learn.wordpress.org/'
+						/* translators: 1: Learn WordPress link, 2: Workshops link. */
+						__( '<a href="%1$s">Learn WordPress</a> is a free resource for new and experienced WordPress users. Learn is stocked with how-to videos on using various features in WordPress, <a href="%2$s">interactive workshops</a> for exploring topics in-depth, and lesson plans for diving deep into specific areas of WordPress.' ),
+						'https://learn.wordpress.org/',
+						'https://learn.wordpress.org/online-workshops/'
 					);
 					?>
 				</p>
@@ -237,16 +191,17 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1D35B4"/>
-						<path d="M23 34v-4h-5l-2.293-2.293a1 1 0 0 1 0-1.414L18 24h5v-2h-7v-6h7v-2h2v2h5l2.293 2.293a1 1 0 0 1 0 1.414L30 22h-5v2h7v6h-7v4h-2Zm-5-14h11.175l.646-.646a.5.5 0 0 0 0-.708L29.175 18H18v2Zm.825 8H30v-2H18.825l-.646.646a.5.5 0 0 0 0 .708l.646.646Z" fill="#fff"/>
+						<rect width="48" height="48" rx="4"/>
+						<path d="M23 34v-4h-5l-2.293-2.293a1 1 0 0 1 0-1.414L18 24h5v-2h-7v-6h7v-2h2v2h5l2.293 2.293a1 1 0 0 1 0 1.414L30 22h-5v2h7v6h-7v4h-2Zm-5-14h11.175l.646-.646a.5.5 0 0 0 0-.708L29.175 18H18v2Zm.825 8H30v-2H18.825l-.646.646a.5.5 0 0 0 0 .708l.646.646Z" fill="#1e1e1e"/>
 					</svg>
 				</div>
-				<p>
+				<p style="margin-top:calc(var(--gap) / 2);">
 					<?php
 					printf(
-						/* translators: %s: WordPress Field Guide link. */
-						__( 'Check out the latest version of the <a href="%s">WordPress Field Guide</a>. It is overflowing with detailed developer notes to help you build with WordPress.' ),
-						__( 'https://make.wordpress.org/core/2023/03/09/wordpress-6-2-field-guide/' )
+						/* translators: 1: WordPress Field Guide link, 2: WordPress version number. */
+						__( 'Explore the <a href="%1$s">WordPress %2$s Field Guide</a>. Learn about the changes in this release with detailed developer notes to help you build with WordPress.' ),
+						esc_url( __( 'https://make.wordpress.org/core/wordpress-6-6-field-guide/' ) ),
+						'6.6'
 					);
 					?>
 				</p>
@@ -254,22 +209,22 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1D35B4"/>
-						<path d="M28 19.75h-8v1.5h8v-1.5ZM20 23h8v1.5h-8V23ZM26 26.25h-6v1.5h6v-1.5Z" fill="#fff"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M29 16H19a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V18a2 2 0 0 0-2-2Zm-10 1.5h10a.5.5 0 0 1 .5.5v12a.5.5 0 0 1-.5.5H19a.5.5 0 0 1-.5-.5V18a.5.5 0 0 1 .5-.5Z" fill="#fff"/>
+						<rect width="48" height="48" rx="4"/>
+						<path d="M28 19.75h-8v1.5h8v-1.5ZM20 23h8v1.5h-8V23ZM26 26.25h-6v1.5h6v-1.5Z" fill="#151515"/>
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M29 16H19a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V18a2 2 0 0 0-2-2Zm-10 1.5h10a.5.5 0 0 1 .5.5v12a.5.5 0 0 1-.5.5H19a.5.5 0 0 1-.5-.5V18a.5.5 0 0 1 .5-.5Z" fill="#1e1e1e"/>
 					</svg>
 				</div>
-				<p>
+				<p style="margin-top:calc(var(--gap) / 2);">
 					<?php
 					printf(
 						/* translators: 1: WordPress Release Notes link, 2: WordPress version number. */
-						__( '<a href="%1$s">Read the WordPress %2$s Release Notes</a> for more information on the included enhancements and issues fixed, installation information, developer notes and resources, release contributors, and the list of file changes in this release.' ),
+						__( '<a href="%1$s">Read the WordPress %2$s Release Notes</a> for information on installation, enhancements, fixed issues, release contributors, learning resources, and the list of file changes.' ),
 						sprintf(
 							/* translators: %s: WordPress version number. */
 							esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
-							'6-2'
+							'6-6'
 						),
-						'6.2'
+						'6.6'
 					);
 					?>
 				</p>

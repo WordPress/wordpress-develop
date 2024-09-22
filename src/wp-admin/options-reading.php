@@ -32,7 +32,7 @@ get_current_screen()->add_help_tab(
 			'<p>' . sprintf(
 				/* translators: %s: Documentation URL. */
 				__( 'You can also control the display of your content in RSS feeds, including the maximum number of posts to display and whether to show full text or an excerpt. <a href="%s">Learn more about feeds</a>.' ),
-				__( 'https://wordpress.org/documentation/article/wordpress-feeds/' )
+				__( 'https://developer.wordpress.org/advanced-administration/wordpress/feeds/' )
 			) . '</p>' .
 			'<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>',
 	)
@@ -64,7 +64,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php
 settings_fields( 'reading' );
 
-if ( ! in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
+if ( ! is_utf8_charset() ) {
 	add_settings_field( 'blog_charset', __( 'Encoding for pages and feeds' ), 'options_reading_blog_charset', 'reading', 'default', array( 'label_for' => 'blog_charset' ) );
 }
 ?>
@@ -144,12 +144,28 @@ else :
 	?>
 </label></li>
 </ul>
-	<?php if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) === get_option( 'page_on_front' ) ) : ?>
-	<div id="front-page-warning" class="notice notice-warning inline"><p><?php _e( '<strong>Warning:</strong> these pages should not be the same!' ); ?></p></div>
-	<?php endif; ?>
-	<?php if ( get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_for_posts' ) || get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_on_front' ) ) : ?>
-	<div id="privacy-policy-page-warning" class="notice notice-warning inline"><p><?php _e( '<strong>Warning:</strong> these pages should not be the same as your Privacy Policy page!' ); ?></p></div>
-	<?php endif; ?>
+	<?php
+	if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) === get_option( 'page_on_front' ) ) :
+		wp_admin_notice(
+			__( '<strong>Warning:</strong> these pages should not be the same!' ),
+			array(
+				'type'               => 'warning',
+				'id'                 => 'front-page-warning',
+				'additional_classes' => array( 'inline' ),
+			)
+		);
+	endif;
+	if ( get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_for_posts' ) || get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_on_front' ) ) :
+		wp_admin_notice(
+			__( '<strong>Warning:</strong> these pages should not be the same as your Privacy Policy page!' ),
+			array(
+				'type'               => 'warning',
+				'id'                 => 'privacy-policy-page-warning',
+				'additional_classes' => array( 'inline' ),
+			)
+		);
+	endif;
+	?>
 </fieldset></td>
 </tr>
 <?php endif; ?>
@@ -181,7 +197,7 @@ else :
 		printf(
 			/* translators: %s: Documentation URL. */
 			__( 'Your theme determines how content is displayed in browsers. <a href="%s">Learn more about feeds</a>.' ),
-			__( 'https://wordpress.org/documentation/article/wordpress-feeds/' )
+			__( 'https://developer.wordpress.org/advanced-administration/wordpress/feeds/' )
 		);
 		?>
 	</p>

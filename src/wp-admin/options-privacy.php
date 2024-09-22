@@ -23,7 +23,7 @@ $title = __( 'Privacy' );
 
 add_filter(
 	'admin_body_class',
-	static function( $body_class ) {
+	static function ( $body_class ) {
 		$body_class .= ' privacy-settings ';
 
 		return $body_class;
@@ -177,9 +177,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <hr class="wp-header-end">
 
-<div class="notice notice-error hide-if-js">
-	<p><?php _e( 'The Privacy Settings require JavaScript.' ); ?></p>
-</div>
+<?php
+wp_admin_notice(
+	__( 'The Privacy Settings require JavaScript.' ),
+	array(
+		'type'               => 'error',
+		'additional_classes' => array( 'hide-if-js' ),
+	)
+);
+?>
 
 <div class="privacy-settings-body hide-if-no-js">
 	<h2><?php _e( 'Privacy Settings' ); ?></h2>
@@ -264,7 +270,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</label>
 			</th>
 			<td>
-				<form class="wp-create-privacy-page" method="post" action="">
+				<form class="wp-create-privacy-page" method="post">
 					<input type="hidden" name="action" value="create-privacy-page" />
 					<?php
 					wp_nonce_field( 'create-privacy-page' );
@@ -287,7 +293,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</label>
 			</th>
 			<td>
-				<form method="post" action="">
+				<form method="post">
 					<input type="hidden" name="action" value="set-privacy-page" />
 					<?php
 					wp_dropdown_pages(

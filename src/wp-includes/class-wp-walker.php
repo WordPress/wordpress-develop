@@ -135,6 +135,9 @@ class Walker {
 			return;
 		}
 
+		$max_depth = (int) $max_depth;
+		$depth     = (int) $depth;
+
 		$id_field = $this->db_fields['id'];
 		$id       = $element->$id_field;
 
@@ -147,7 +150,7 @@ class Walker {
 		$this->start_el( $output, $element, $depth, ...array_values( $args ) );
 
 		// Descend only when the depth is right and there are children for this element.
-		if ( ( 0 == $max_depth || $max_depth > $depth + 1 ) && isset( $children_elements[ $id ] ) ) {
+		if ( ( 0 === $max_depth || $max_depth > $depth + 1 ) && isset( $children_elements[ $id ] ) ) {
 
 			foreach ( $children_elements[ $id ] as $child ) {
 
@@ -191,6 +194,8 @@ class Walker {
 	public function walk( $elements, $max_depth, ...$args ) {
 		$output = '';
 
+		$max_depth = (int) $max_depth;
+
 		// Invalid parameter or nothing to walk.
 		if ( $max_depth < -1 || empty( $elements ) ) {
 			return $output;
@@ -199,7 +204,7 @@ class Walker {
 		$parent_field = $this->db_fields['parent'];
 
 		// Flat display.
-		if ( -1 == $max_depth ) {
+		if ( -1 === $max_depth ) {
 			$empty_array = array();
 			foreach ( $elements as $e ) {
 				$this->display_element( $e, $empty_array, 1, 0, $args, $output );
@@ -235,7 +240,7 @@ class Walker {
 			$top_level_elements = array();
 			$children_elements  = array();
 			foreach ( $elements as $e ) {
-				if ( $root->$parent_field == $e->$parent_field ) {
+				if ( $root->$parent_field === $e->$parent_field ) {
 					$top_level_elements[] = $e;
 				} else {
 					$children_elements[ $e->$parent_field ][] = $e;
@@ -251,7 +256,7 @@ class Walker {
 		 * If we are displaying all levels, and remaining children_elements is not empty,
 		 * then we got orphans, which should be displayed regardless.
 		 */
-		if ( ( 0 == $max_depth ) && count( $children_elements ) > 0 ) {
+		if ( ( 0 === $max_depth ) && count( $children_elements ) > 0 ) {
 			$empty_array = array();
 			foreach ( $children_elements as $orphans ) {
 				foreach ( $orphans as $op ) {
@@ -285,23 +290,25 @@ class Walker {
 	 * @return string XHTML of the specified page of elements.
 	 */
 	public function paged_walk( $elements, $max_depth, $page_num, $per_page, ...$args ) {
-		if ( empty( $elements ) || $max_depth < -1 ) {
-			return '';
-		}
-
 		$output = '';
+
+		$max_depth = (int) $max_depth;
+
+		if ( empty( $elements ) || $max_depth < -1 ) {
+			return $output;
+		}
 
 		$parent_field = $this->db_fields['parent'];
 
 		$count = -1;
-		if ( -1 == $max_depth ) {
+		if ( -1 === $max_depth ) {
 			$total_top = count( $elements );
 		}
 		if ( $page_num < 1 || $per_page < 0 ) {
 			// No paging.
 			$paging = false;
 			$start  = 0;
-			if ( -1 == $max_depth ) {
+			if ( -1 === $max_depth ) {
 				$end = $total_top;
 			}
 			$this->max_pages = 1;
@@ -309,13 +316,13 @@ class Walker {
 			$paging = true;
 			$start  = ( (int) $page_num - 1 ) * (int) $per_page;
 			$end    = $start + $per_page;
-			if ( -1 == $max_depth ) {
-				$this->max_pages = ceil( $total_top / $per_page );
+			if ( -1 === $max_depth ) {
+				$this->max_pages = (int) ceil( $total_top / $per_page );
 			}
 		}
 
 		// Flat display.
-		if ( -1 == $max_depth ) {
+		if ( -1 === $max_depth ) {
 			if ( ! empty( $args[0]['reverse_top_level'] ) ) {
 				$elements = array_reverse( $elements );
 				$oldstart = $start;
@@ -325,7 +332,7 @@ class Walker {
 
 			$empty_array = array();
 			foreach ( $elements as $e ) {
-				$count++;
+				++$count;
 				if ( $count < $start ) {
 					continue;
 				}
@@ -354,7 +361,7 @@ class Walker {
 
 		$total_top = count( $top_level_elements );
 		if ( $paging ) {
-			$this->max_pages = ceil( $total_top / $per_page );
+			$this->max_pages = (int) ceil( $total_top / $per_page );
 		} else {
 			$end = $total_top;
 		}
@@ -372,7 +379,7 @@ class Walker {
 		}
 
 		foreach ( $top_level_elements as $e ) {
-			$count++;
+			++$count;
 
 			// For the last page, need to unset earlier children in order to keep track of orphans.
 			if ( $end >= $total_top && $count < $start ) {
@@ -416,7 +423,7 @@ class Walker {
 
 		foreach ( $elements as $e ) {
 			if ( empty( $e->$parent_field ) ) {
-				$num++;
+				++$num;
 			}
 		}
 		return $num;
@@ -446,5 +453,4 @@ class Walker {
 
 		unset( $children_elements[ $id ] );
 	}
-
 }
