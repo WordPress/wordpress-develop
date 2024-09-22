@@ -47,7 +47,7 @@
  * IE7 and IE6 hacks
  */
 
- .genericon {
+.genericon {
 	*overflow: auto;
 	*zoom: 1;
 	*display: inline;
