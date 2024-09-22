@@ -44,6 +44,16 @@
 }
 
 /**
+ * IE7 and IE6 hacks
+ */
+
+ .genericon {
+	*overflow: auto;
+	*zoom: 1;
+	*display: inline;
+}
+
+/**
  * Individual icons
  */
 
