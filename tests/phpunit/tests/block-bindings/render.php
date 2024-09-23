@@ -304,7 +304,7 @@ HTML;
 	 *
 	 * @ticket 62090
 	 */
-	public function test_filter_block_bindings_supported_block_attributes() {
+	public function test_filter_block_bindings_supported_block_attributes_custom_block_content_attribute() {
 		register_block_type(
 			'plugin/custom-block',
 			array(
@@ -356,6 +356,63 @@ HTML;
 			'<p>Source value: custom_attribute</p>',
 			trim( $result ),
 			'The block content should show the custom attribute value after applying the filter.'
+		);
+	}
+
+	/**
+	 * Tests that the 'block_bindings_supported_block_attributes' filter works for custom blocks and attributes.
+	 *
+	 * @ticket 61181
+	 */
+	public function test_filter_block_bindings_supported_block_attributes_custom_block_custom_attribute() {
+		register_block_type(
+			'plugin/custom-block',
+			array(
+				'attributes'      => array(
+					'customAttribute' => array(
+						'type'    => 'string',
+						'default' => '',
+					),
+				),
+				'render_callback' => function ( $attributes ) {
+					return '<div data-value="' . ( $attributes['customAttribute'] ?? 'Default value' ) . '">static content</div>';
+				},
+			)
+		);
+
+		$filter_supported_attributes = function ( $supported_block_attributes ) {
+			$supported_block_attributes['plugin/custom-block'] = array( 'customAttribute' );
+			return $supported_block_attributes;
+		};
+
+		add_filter( 'block_bindings_supported_block_attributes', $filter_supported_attributes );
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => function ( $source_args ) {
+					return "Bound value: {$source_args['key']}";
+				},
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:plugin/custom-block {"metadata":{"bindings":{"customAttribute":{"source":"test/source", "args": {"key": "custom_key"}}}}} -->
+<div>Default value</div>
+<!-- /wp:plugin/custom-block -->
+HTML;
+
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
+
+		remove_filter( 'block_bindings_supported_block_attributes', $filter_supported_attributes );
+
+		$this->assertSame(
+			'<div data-value="Bound value: custom_key">static content</div>',
+			trim( $result ),
+			'The block content should show the bound value for the custom attribute after applying the filter.'
 		);
 	}
 
