@@ -376,23 +376,6 @@ function get_block_metadata_i18n_schema() {
 }
 
 /**
- * Registers block metadata from a given source.
- *
- * This function allows core and third-party plugins to register their block metadata
- * in a centralized location. Registering metadata can improve performance by avoiding
- * multiple reads from the filesystem.
- *
- * @since 6.X.0
- *
- * @param string $source    The source identifier for the metadata within the namespace.
- *                          This can be a unique identifier for your plugin's blocks.
- * @param array  $metadata  The block metadata to be registered.
- */
-function wp_register_block_metadata( $source, $metadata ) {
-	WP_Block_Metadata_Registry::register( $source, $metadata );
-}
-
-/**
  * Registers a block type from the metadata stored in the `block.json` file.
  *
  * @since 5.5.0
@@ -404,60 +387,49 @@ function wp_register_block_metadata( $source, $metadata ) {
  * @since 6.5.0 Added support for `allowedBlocks`, `viewScriptModule`, and `viewStyle` fields.
  * @since 6.7.0 Allow PHP filename as `variations` argument.
  *
- * @param string $file_or_metadata_source Path to the JSON file with metadata definition for
+ * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
  *                               If providing the path to a JSON file, the filename must end with `block.json`.
- *                               Alternatively, it can be a metadata source identifier
- *                               (previously registered with `wp_register_block_metadata`).
  * @param array  $args           Optional. Array of block type arguments. Accepts any public property
  *                               of `WP_Block_Type`. See WP_Block_Type::__construct() for information
  *                               on accepted arguments. Default empty array.
  * @return WP_Block_Type|false The registered block type on success, or false on failure.
  */
-function register_block_type_from_metadata( $file_or_metadata_source, $args = array() ) {
+function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
+	/*
+	 * Get an array of metadata from a PHP file.
+	 * This improves performance for core blocks as it's only necessary to read a single PHP file
+	 * instead of reading a JSON file per-block, and then decoding from JSON to PHP.
+	 * Using a static variable ensures that the metadata is only read once per request.
+	 */
+	static $core_blocks_meta;
+	if ( ! $core_blocks_meta ) {
+		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
+	}
+
+	$metadata_file = ( ! str_ends_with( $file_or_folder, 'block.json' ) ) ?
+		trailingslashit( $file_or_folder ) . 'block.json' :
+		$file_or_folder;
+
+	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
+	// If the block is not a core block, the metadata file must exist.
+	$metadata_file_exists = $is_core_block || file_exists( $metadata_file );
+	if ( ! $metadata_file_exists && empty( $args['name'] ) ) {
+		return false;
+	}
+
+	// Try to get metadata from the static cache for core blocks.
 	$metadata = array();
-
-	// Determine if we're dealing with a file/folder or a metadata source
-	if ( WP_Block_Metadata_Registry::has_metadata( $file_or_metadata_source ) ) {
-		$metadata_source = $file_or_metadata_source;
-		$file_or_folder = null;
-	} else {
-		$metadata_source = null;
-		$file_or_folder = $file_or_metadata_source;
-	}
-
-	$is_core_block = $file_or_folder && str_starts_with( $file_or_folder, ABSPATH . WPINC );
-
 	if ( $is_core_block ) {
-		$core_block_name = 'core/' . str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
-		$metadata = WP_Block_Metadata_Registry::get_metadata( $core_block_name );
-
-		if ( null === $metadata ) {
-			// Load core metadata if not already registered.
-			$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
-			foreach ( $core_blocks_meta as $block_name => $block_meta ) {
-				$block_name = 'core/' . $block_name;
-				wp_register_block_metadata( $block_name, $block_meta );
-			}
-			$metadata = WP_Block_Metadata_Registry::get_metadata( $core_block_name );
+		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
+		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
+			$metadata = $core_blocks_meta[ $core_block_name ];
 		}
-	} elseif ( $metadata_source ) {
-		$metadata = WP_Block_Metadata_Registry::get_metadata( $metadata_source );
 	}
 
-	// If metadata is not found in the registry, read from JSON file.
-	$metadata_file_exists = false;
-	if ( empty( $metadata ) && $file_or_folder ) {
-		$metadata_file = ( ! str_ends_with( $file_or_folder, 'block.json' ) ) ?
-			trailingslashit( $file_or_folder ) . 'block.json' :
-			$file_or_folder;
-
-		$metadata_file_exists = file_exists( $metadata_file );
-		if ( $metadata_file_exists ) {
-			$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
-		} else if ( ! $metadata_file_exists && empty( $args['name'] ) ) {
-			return false;
-		}
+	// If metadata is not found in the static cache, read it from the file.
+	if ( $metadata_file_exists && empty( $metadata ) ) {
+		$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 	}
 
 	if ( ! is_array( $metadata ) || ( empty( $metadata['name'] ) && empty( $args['name'] ) ) ) {
@@ -744,13 +716,10 @@ function register_block_type_from_metadata( $file_or_metadata_source, $args = ar
  *
  * @since 5.0.0
  * @since 5.8.0 First parameter now accepts a path to the `block.json` file.
- * @since x.x.x First parameter now also accepts a metadata source identifier.
  *
  * @param string|WP_Block_Type $block_type Block type name including namespace, or alternatively
  *                                         a path to the JSON file with metadata definition for the block,
  *                                         or a path to the folder where the `block.json` file is located,
- *                                         or a metadata source identifier (previously registered with
- *                                         `wp_register_block_metadata`),
  *                                         or a complete WP_Block_Type instance.
  *                                         In case a WP_Block_Type is provided, the $args parameter will be ignored.
  * @param array                $args       Optional. Array of block type arguments. Accepts any public property
@@ -760,13 +729,7 @@ function register_block_type_from_metadata( $file_or_metadata_source, $args = ar
  * @return WP_Block_Type|false The registered block type on success, or false on failure.
  */
 function register_block_type( $block_type, $args = array() ) {
-	$passed_metadata_source = false;
-	if ( WP_Block_Metadata_Registry::has_metadata( $block_type ) && ( empty( $args ) || is_array( $args ) ) ) {
-		$passed_metadata_source = true;
-	}
-
-	if ( is_string( $block_type ) &&
-		 ( $passed_metadata_source || file_exists( $block_type ) ) ) {
+	if ( is_string( $block_type ) && file_exists( $block_type ) ) {
 		return register_block_type_from_metadata( $block_type, $args );
 	}
 
