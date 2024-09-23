@@ -20,7 +20,7 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 	}
 
 	public function test_register_collection_and_get_metadata() {
-		$path = '/test/path';
+		$path          = '/test/path';
 		$manifest_data = array(
 			'test-block' => array(
 				'name'  => 'test-block',
@@ -37,13 +37,13 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 	}
 
 	public function test_get_nonexistent_metadata() {
-		$path = '/nonexistent/path';
+		$path               = '/nonexistent/path';
 		$retrieved_metadata = WP_Block_Metadata_Registry::get_metadata( $path, 'nonexistent-block' );
 		$this->assertNull( $retrieved_metadata );
 	}
 
 	public function test_has_metadata() {
-		$path = '/another/test/path';
+		$path          = '/another/test/path';
 		$manifest_data = array(
 			'existing-block' => array(
 				'name'  => 'existing-block',
