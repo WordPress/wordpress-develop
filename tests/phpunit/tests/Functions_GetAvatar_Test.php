@@ -8,6 +8,11 @@
  * @covers ::get_avatar
  */
 class Functions_GetAvatar_Test extends WP_UnitTestCase {
+	/**
+	 * @var string
+	 */
+	private $fake_url;
+
 	public function test_get_avatar() {
 		$img = get_avatar( 1 );
 		$this->assertSame( preg_match( "|^<img alt='[^']*' src='[^']*' srcset='[^']*' class='[^']*' height='[^']*' width='[^']*' loading='lazy' decoding='async'/>$|", $img ), 1 );
