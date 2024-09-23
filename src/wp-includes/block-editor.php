@@ -532,7 +532,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		 * entered by users does not break other global styles.
 		 */
 		$global_styles[] = array(
-			'css'            => wp_get_global_styles_custom_css(),
+			'css'            => wp_get_global_stylesheet( array( 'custom-css' ) ),
 			'__unstableType' => 'user',
 			'isGlobalStyles' => true,
 		);
@@ -646,6 +646,23 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 
 	if ( isset( $post_content_block_attributes ) ) {
 		$editor_settings['postContentAttributes'] = $post_content_block_attributes;
+	}
+
+	// Expose block bindings sources in the editor settings.
+	$registered_block_bindings_sources = get_all_registered_block_bindings_sources();
+	if ( ! empty( $registered_block_bindings_sources ) ) {
+		// Initialize array.
+		$editor_settings['blockBindingsSources'] = array();
+		foreach ( $registered_block_bindings_sources as $source_name => $source_properties ) {
+			// Add source with the label to editor settings.
+			$editor_settings['blockBindingsSources'][ $source_name ] = array(
+				'label' => $source_properties->label,
+			);
+			// Add `usesContext` property if exists.
+			if ( ! empty( $source_properties->uses_context ) ) {
+				$editor_settings['blockBindingsSources'][ $source_name ]['usesContext'] = $source_properties->uses_context;
+			}
+		}
 	}
 
 	/**

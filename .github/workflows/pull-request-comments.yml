@@ -195,7 +195,7 @@ jobs:
             const prBody = pr.body ?? '';
             const prTitle = pr.title ?? '';
 
-            const tracTicketRegex = new RegExp( 'https?://core.trac.wordpress.org/ticket/([0-9]+)', 'g' );
+            const tracTicketRegex = new RegExp( '(https?://core.trac.wordpress.org/ticket/|Core-|ticket:)([0-9]+)', 'g' );
             const tracTicketMatches = prBody.match( tracTicketRegex ) || prTitle.match( tracTicketRegex );
 
             if ( ! tracTicketMatches ) {

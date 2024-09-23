@@ -192,13 +192,28 @@ final class WP_Interactivity_API {
 	 * configuration will be available using a `getConfig` utility.
 	 *
 	 * @since 6.5.0
+	 *
+	 * @deprecated 6.7.0 Client data passing is handled by the {@see "script_module_data_{$module_id}"} filter.
 	 */
 	public function print_client_interactivity_data() {
-		if ( empty( $this->state_data ) && empty( $this->config_data ) ) {
-			return;
-		}
+		_deprecated_function( __METHOD__, '6.7.0' );
+	}
 
-		$interactivity_data = array();
+	/**
+	 * Set client-side interactivity data.
+	 *
+	 * Once in the browser, the state will be parsed and used to hydrate the client-side
+	 * interactivity stores and the configuration will be available using a `getConfig` utility.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param array $data Data to filter.
+	 * @return array Data for the Interactivity API script module.
+	 */
+	public function filter_script_module_interactivity_data( array $data ): array {
+		if ( empty( $this->state_data ) && empty( $this->config_data ) ) {
+			return $data;
+		}
 
 		$config = array();
 		foreach ( $this->config_data as $key => $value ) {
@@ -207,7 +222,7 @@ final class WP_Interactivity_API {
 			}
 		}
 		if ( ! empty( $config ) ) {
-			$interactivity_data['config'] = $config;
+			$data['config'] = $config;
 		}
 
 		$state = array();
@@ -217,52 +232,10 @@ final class WP_Interactivity_API {
 			}
 		}
 		if ( ! empty( $state ) ) {
-			$interactivity_data['state'] = $state;
+			$data['state'] = $state;
 		}
 
-		if ( ! empty( $interactivity_data ) ) {
-			/*
-			 * This data will be printed as JSON inside a script tag like this:
-			 *   <script type="application/json"></script>
-			 *
-			 * A script tag must be closed by a sequence beginning with `</`. It's impossible to
-			 * close a script tag without using `<`. We ensure that `<` is escaped and `/` can
-			 * remain unescaped, so `</script>` will be printed as `\u003C/script\u00E3`.
-			 *
-			 *   - JSON_HEX_TAG: All < and > are converted to \u003C and \u003E.
-			 *   - JSON_UNESCAPED_SLASHES: Don't escape /.
-			 *
-			 * If the page will use UTF-8 encoding, it's safe to print unescaped unicode:
-			 *
-			 *   - JSON_UNESCAPED_UNICODE: Encode multibyte Unicode characters literally (instead of as `\uXXXX`).
-			 *   - JSON_UNESCAPED_LINE_TERMINATORS: The line terminators are kept unescaped when
-			 *     JSON_UNESCAPED_UNICODE is supplied. It uses the same behaviour as it was
-			 *     before PHP 7.1 without this constant. Available as of PHP 7.1.0.
-			 *
-			 * The JSON specification requires encoding in UTF-8, so if the generated HTML page
-			 * is not encoded in UTF-8 then it's not safe to include those literals. They must
-			 * be escaped to avoid encoding issues.
-			 *
-			 * @see https://www.rfc-editor.org/rfc/rfc8259.html for details on encoding requirements.
-			 * @see https://www.php.net/manual/en/json.constants.php for details on these constants.
-			 * @see https://html.spec.whatwg.org/#script-data-state for details on script tag parsing.
-			 */
-			$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS;
-			if ( ! is_utf8_charset() ) {
-				$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES;
-			}
-
-			wp_print_inline_script_tag(
-				wp_json_encode(
-					$interactivity_data,
-					$json_encode_flags
-				),
-				array(
-					'type' => 'application/json',
-					'id'   => 'wp-interactivity-data',
-				)
-			);
-		}
+		return $data;
 	}
 
 	/**
@@ -329,13 +302,13 @@ final class WP_Interactivity_API {
 	 * Adds the necessary hooks for the Interactivity API.
 	 *
 	 * @since 6.5.0
+	 * @since 6.7.0 Use the {@see "script_module_data_{$module_id}"} filter to pass client-side data.
 	 */
 	public function add_hooks() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_script_modules' ) );
-		add_action( 'wp_footer', array( $this, 'print_client_interactivity_data' ) );
-
 		add_action( 'admin_enqueue_scripts', array( $this, 'register_script_modules' ) );
-		add_action( 'admin_print_footer_scripts', array( $this, 'print_client_interactivity_data' ) );
+
+		add_filter( 'script_module_data_@wordpress/interactivity', array( $this, 'filter_script_module_interactivity_data' ) );
 	}
 
 	/**
@@ -521,6 +494,7 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 * @since 6.6.0 The function now adds a warning when the namespace is null, falsy, or the directive value is empty.
 	 * @since 6.6.0 Removed `default_namespace` and `context` arguments.
+	 * @since 6.6.0 Add support for derived state.
 	 *
 	 * @param string|true $directive_value The directive attribute value string or `true` when it's a boolean attribute.
 	 * @return mixed|null The result of the evaluation. Null if the reference path doesn't exist or the namespace is falsy.
@@ -557,32 +531,32 @@ final class WP_Interactivity_API {
 			} else {
 				return null;
 			}
-		}
 
-		if ( $current instanceof Closure ) {
-			/*
-			 * This state getter's namespace is added to the stack so that
-			 * `state()` or `get_config()` read that namespace when called
-			 * without specifying one.
-			 */
-			array_push( $this->namespace_stack, $ns );
-			try {
-				$current = $current();
-			} catch ( Throwable $e ) {
-				_doing_it_wrong(
-					__METHOD__,
-					sprintf(
-						/* translators: 1: Path pointing to an Interactivity API state property, 2: Namespace for an Interactivity API store. */
-						__( 'Uncaught error executing a derived state callback with path "%1$s" and namespace "%2$s".' ),
-						$path,
-						$ns
-					),
-					'6.6.0'
-				);
-				return null;
-			} finally {
-				// Remove the property's namespace from the stack.
-				array_pop( $this->namespace_stack );
+			if ( $current instanceof Closure ) {
+				/*
+				 * This state getter's namespace is added to the stack so that
+				 * `state()` or `get_config()` read that namespace when called
+				 * without specifying one.
+				 */
+				array_push( $this->namespace_stack, $ns );
+				try {
+					$current = $current();
+				} catch ( Throwable $e ) {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: 1: Path pointing to an Interactivity API state property, 2: Namespace for an Interactivity API store. */
+							__( 'Uncaught error executing a derived state callback with path "%1$s" and namespace "%2$s".' ),
+							$path,
+							$ns
+						),
+						'6.6.0'
+					);
+					return null;
+				} finally {
+					// Remove the property's namespace from the stack.
+					array_pop( $this->namespace_stack );
+				}
 			}
 		}
 

@@ -737,10 +737,14 @@ $_old_files = array(
 	'wp-includes/blocks/query-title/editor.min.css',
 	'wp-includes/blocks/query-title/editor-rtl.css',
 	'wp-includes/blocks/query-title/editor-rtl.min.css',
-	'wp-includes/blocks/tag-cloud/editor.css',
-	'wp-includes/blocks/tag-cloud/editor.min.css',
-	'wp-includes/blocks/tag-cloud/editor-rtl.css',
-	'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
+	/*
+	 * Restored in WordPress 6.7
+	 *
+	 * 'wp-includes/blocks/tag-cloud/editor.css',
+	 * 'wp-includes/blocks/tag-cloud/editor.min.css',
+	 * 'wp-includes/blocks/tag-cloud/editor-rtl.css',
+	 * 'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
+	 */
 	// 6.1
 	'wp-includes/blocks/post-comments.php',
 	'wp-includes/blocks/post-comments',
@@ -765,6 +769,11 @@ $_old_files = array(
 	'wp-admin/images/about-header-freedoms.svg',
 	'wp-admin/images/about-header-contribute.svg',
 	'wp-admin/images/about-header-background.svg',
+	// 6.6
+	'wp-includes/blocks/block/editor.css',
+	'wp-includes/blocks/block/editor.min.css',
+	'wp-includes/blocks/block/editor-rtl.css',
+	'wp-includes/blocks/block/editor-rtl.min.css',
 );
 
 /**
@@ -957,6 +966,7 @@ function update_core( $from, $to ) {
 	global $wp_filesystem, $_old_files, $_old_requests_files, $_new_bundled_files, $wpdb;
 
 	if ( function_exists( 'set_time_limit' ) ) {
+		// Gives core update script time an additional 300 seconds(5 minutes) to finish updating large files or run on slower servers.
 		set_time_limit( 300 );
 	}
 
@@ -1758,7 +1768,7 @@ function _upgrade_core_deactivate_incompatible_plugins() {
 		} else {
 			$deactivated_plugins = get_option( 'wp_force_deactivated_plugins', array() );
 			$deactivated_plugins = array_merge( $deactivated_plugins, $deactivated_gutenberg );
-			update_option( 'wp_force_deactivated_plugins', $deactivated_plugins );
+			update_option( 'wp_force_deactivated_plugins', $deactivated_plugins, false );
 		}
 		deactivate_plugins( array( 'gutenberg/gutenberg.php' ), true );
 	}

@@ -7,9 +7,9 @@ Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Twenty Twenty-One is a blank canvas for your ideas and it makes the block editor your best brush. With new block patterns, which allow you to create a beautiful layout in a matter of seconds, this theme’s soft colors and eye-catching — yet timeless — design will let your work shine. Take it for a spin! See how Twenty Twenty-One elevates your portfolio, business website, or personal blog.
 Requires at least: 5.3
-Tested up to: 6.5
+Tested up to: 6.6
 Requires PHP: 5.6
-Version: 2.2
+Version: 2.3
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentytwentyone
@@ -1565,6 +1565,10 @@ pre {
 	overflow-x: auto;
 }
 
+.entry-content > code {
+	display: block;
+}
+
 /*
  * text-underline-offset doesn't work in Chrome at all 👎
  * But looks nice in Safari/Firefox, so let's keep it and
@@ -2137,16 +2141,7 @@ input[type=reset]:disabled,
 }
 
 .wp-block-group {
-	display: block;
-	clear: both;
 	display: flow-root;
-}
-
-.wp-block-group:before,
-.wp-block-group:after {
-	content: "";
-	display: block;
-	clear: both;
 }
 
 .wp-block-group .wp-block-group__inner-container {
@@ -3745,7 +3740,7 @@ table.wp-calendar-table caption {
 
 	.site-branding {
 		margin-right: initial;
-		margin-top: 4px;
+		margin-top: calc(var(--primary-nav--padding) - 0.3em);
 	}
 }
 
@@ -4677,7 +4672,7 @@ h1.page-title {
 }
 
 .primary-navigation-open .primary-navigation > .primary-menu-container {
-	position: absolute;
+	position: relative;
 	visibility: visible;
 	opacity: 1;
 	transform: translateY(0);
@@ -5913,4 +5908,11 @@ footer {
 
 .is-IE .post-thumbnail .wp-post-image {
 	min-width: auto;
+}
+
+.is-IE .wp-block-group:before,
+.is-IE .wp-block-group:after {
+	content: "";
+	display: block;
+	clear: both;
 }

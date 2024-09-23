@@ -995,10 +995,10 @@ class WP_List_Table {
 		 *  - `edit_comments_per_page`
 		 *  - `sites_network_per_page`
 		 *  - `site_themes_network_per_page`
-		 *  - `themes_network_per_page'`
+		 *  - `themes_network_per_page`
 		 *  - `users_network_per_page`
 		 *  - `edit_post_per_page`
-		 *  - `edit_page_per_page'`
+		 *  - `edit_page_per_page`
 		 *  - `edit_{$post_type}_per_page`
 		 *  - `edit_post_tag_per_page`
 		 *  - `edit_category_per_page`
@@ -1718,7 +1718,7 @@ class WP_List_Table {
 	}
 
 	/**
-	 * Generates the table rows.
+	 * Generates the list table rows.
 	 *
 	 * @since 3.1.0
 	 */

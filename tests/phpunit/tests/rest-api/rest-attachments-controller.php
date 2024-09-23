@@ -229,6 +229,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'per_page',
 				'search',
 				'search_columns',
+				'search_semantics',
 				'slug',
 				'status',
 			),
@@ -2377,6 +2378,43 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['crop'] );
 		$this->assertSame(
 			array( 320, 48, 64, 24 ),
+			WP_Image_Editor_Mock::$spy['crop'][0]
+		);
+	}
+
+	/**
+	 * @ticket 61514
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_crop_one_axis() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->setup_mock_editor();
+		WP_Image_Editor_Mock::$size_return = array(
+			'width'  => 640,
+			'height' => 480,
+		);
+
+		WP_Image_Editor_Mock::$edit_return['crop'] = new WP_Error();
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params(
+			array(
+				'x'      => 50,
+				'y'      => 0,
+				'width'  => 10,
+				'height' => 100,
+				'src'    => wp_get_attachment_image_url( $attachment, 'full' ),
+
+			)
+		);
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_image_crop_failed', $response, 500 );
+
+		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['crop'] );
+		$this->assertSame(
+			array( 320, 0, 64, 480 ),
 			WP_Image_Editor_Mock::$spy['crop'][0]
 		);
 	}

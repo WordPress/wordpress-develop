@@ -192,6 +192,7 @@ require ABSPATH . WPINC . '/class-wp-theme-json-resolver.php';
 require ABSPATH . WPINC . '/class-wp-duotone.php';
 require ABSPATH . WPINC . '/global-styles-and-settings.php';
 require ABSPATH . WPINC . '/class-wp-block-template.php';
+require ABSPATH . WPINC . '/class-wp-block-templates-registry.php';
 require ABSPATH . WPINC . '/block-template-utils.php';
 require ABSPATH . WPINC . '/block-template.php';
 require ABSPATH . WPINC . '/theme-templates.php';
@@ -252,6 +253,7 @@ require ABSPATH . WPINC . '/http.php';
 require ABSPATH . WPINC . '/html-api/html5-named-character-references.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-attribute-token.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-span.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-doctype-info.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-text-replacement.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-decoder.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-tag-processor.php';
@@ -715,7 +717,7 @@ if ( is_multisite() ) {
  * Ajax requests should use wp-admin/admin-ajax.php. admin-ajax.php can handle requests for
  * users not logged in.
  *
- * @link https://codex.wordpress.org/AJAX_in_Plugins
+ * @link https://developer.wordpress.org/plugins/javascript/ajax
  *
  * @since 3.0.0
  */

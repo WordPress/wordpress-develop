@@ -62,14 +62,10 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 	 *
 	 * @ticket 61312
 	 * @ticket 61440
+	 * @ticket 61451
 	 */
 	public function test_add_registered_block_styles_to_theme_data() {
 		switch_theme( 'block-theme' );
-
-		// Register theme-defined variations.
-		WP_Theme_JSON_Resolver::get_theme_data();
-		// Register user-defined variations.
-		WP_Theme_JSON_Resolver::get_user_data();
 
 		$variation_styles_data = array(
 			'color'    => array(
@@ -125,14 +121,6 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 		$group_styles = $theme_json['styles']['blocks']['core/group'] ?? array();
 		$expected     = array(
 			'variations' => array(
-				// @ticket 61440
-				'WithSlug'                => array(
-					'color' => array(
-						'background' => 'aliceblue',
-						'text'       => 'midnightblue',
-					),
-				),
-				'my-variation'            => $variation_styles_data,
 
 				/*
 				 * The following block style variations are registered
@@ -151,12 +139,98 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 						'text'       => 'lightblue',
 					),
 				),
+
+				/*
+				 * Manually registered variations.
+				 * @ticket 61440
+				 */
+				'WithSlug'                => array(
+					'color' => array(
+						'background' => 'aliceblue',
+						'text'       => 'midnightblue',
+					),
+				),
+				'my-variation'            => $variation_styles_data,
 			),
 		);
 
 		unregister_block_style( 'core/group', 'my-variation' );
 		unregister_block_style( 'core/group', 'WithSlug' );
 
-		$this->assertSameSetsWithIndex( $expected, $group_styles );
+		$this->assertSameSetsWithIndex( $expected, $group_styles, 'Variation data does not match' );
+	}
+
+	/**
+	 * Tests that block style variations resolve any `ref` values when generating styles.
+	 *
+	 * @ticket 61589
+	 */
+	public function test_block_style_variation_ref_values() {
+		switch_theme( 'block-theme' );
+
+		$variation_data = array(
+			'color'    => array(
+				'text'       => array(
+					'ref' => 'styles.does-not-exist',
+				),
+				'background' => array(
+					'ref' => 'styles.blocks.core/group.variations.block-style-variation-a.color.text',
+				),
+			),
+			'blocks'   => array(
+				'core/heading' => array(
+					'color' => array(
+						'text'       => array(
+							'ref' => 'styles.blocks.core/group.variations.block-style-variation-a.color.background',
+						),
+						'background' => array(
+							'ref' => '',
+						),
+					),
+				),
+			),
+			'elements' => array(
+				'link' => array(
+					'color'  => array(
+						'text'       => array(
+							'ref' => 'styles.blocks.core/group.variations.block-style-variation-b.color.text',
+						),
+						'background' => array(
+							'ref' => null,
+						),
+					),
+					':hover' => array(
+						'color' => array(
+							'text' => array(
+								'ref' => 'styles.blocks.core/group.variations.block-style-variation-b.color.background',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$theme_json = WP_Theme_JSON_Resolver::get_theme_data()->get_raw_data();
+
+		wp_resolve_block_style_variation_ref_values( $variation_data, $theme_json );
+
+		$expected = array(
+			'color'    => array( 'background' => 'plum' ),
+			'blocks'   => array(
+				'core/heading' => array(
+					'color' => array( 'text' => 'indigo' ),
+				),
+			),
+			'elements' => array(
+				'link' => array(
+					'color'  => array( 'text' => 'lightblue' ),
+					':hover' => array(
+						'color' => array( 'text' => 'midnightblue' ),
+					),
+				),
+			),
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $variation_data, 'Variation data with resolved ref values does not match' );
 	}
 }

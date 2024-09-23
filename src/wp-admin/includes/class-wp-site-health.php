@@ -728,8 +728,8 @@ class WP_Site_Health {
 
 		$result = array(
 			'label'       => sprintf(
-				/* translators: %s: The current PHP version. */
-				__( 'Your site is running the current version of PHP (%s)' ),
+				/* translators: %s: The recommended PHP version. */
+				__( 'Your site is running a recommended version of PHP (%s)' ),
 				PHP_VERSION
 			),
 			'status'      => 'good',
@@ -1817,7 +1817,7 @@ class WP_Site_Health {
 	 * @return array The test results.
 	 */
 	public function get_test_available_updates_disk_space() {
-		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR . '/upgrade/' ) : false;
+		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR ) : false;
 
 		$result = array(
 			'label'       => __( 'Disk space available to safely perform updates' ),

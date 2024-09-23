@@ -31,6 +31,7 @@ class Tests_User_WpRegisterPersistedPreferencesMeta extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				'type'              => 'object',
+				'label'             => '',
 				'description'       => '',
 				'single'            => true,
 				'sanitize_callback' => null,
