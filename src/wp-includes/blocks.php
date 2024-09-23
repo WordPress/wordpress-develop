@@ -2090,29 +2090,8 @@ function render_block( $parsed_block ) {
 		$context['postType'] = $post->post_type;
 	}
 
-	/**
-	 * Filters the default context provided to a rendered block.
-	 *
-	 * @since 5.5.0
-	 * @since 5.9.0 The `$parent_block` parameter was added.
-	 *
-	 * @param array         $context      Default context.
-	 * @param array         $parsed_block {
-	 *     An associative array of the block being rendered. See WP_Block_Parser_Block.
-	 *
-	 *     @type string   $blockName    Name of block.
-	 *     @type array    $attrs        Attributes from block comment delimiters.
-	 *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
-	 *                                  have the same structure as this one.
-	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
-	 *     @type array    $innerContent List of string fragments and null markers where
-	 *                                  inner blocks were found.
-	 * }
-	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
-	 */
-	$context = apply_filters( 'render_block_context', $context, $parsed_block, $parent_block );
+	$block = new WP_Block( $parsed_block, $context, null, $parent_block );
 
-	$block = new WP_Block( $parsed_block, $context );
 
 	return $block->render();
 }
