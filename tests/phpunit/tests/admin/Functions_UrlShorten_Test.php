@@ -2,11 +2,13 @@
 
 /**
  * @group admin
+ *
+ * @covers ::url_shorten
  */
-class Tests_Admin_IncludesMisc extends WP_UnitTestCase {
+class Functions_UrlShorten_Test extends WP_UnitTestCase {
 
 	/**
-	 * @covers ::url_shorten
+	 *
 	 */
 	public function test_shorten_url() {
 		$tests = array(

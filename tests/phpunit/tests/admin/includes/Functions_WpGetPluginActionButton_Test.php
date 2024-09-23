@@ -8,7 +8,7 @@
  *
  * @covers ::wp_get_plugin_action_button
  */
-class Tests_Admin_Includes_WpGetPluginActionButton extends WP_UnitTestCase {
+class Functions_WpGetPluginActionButton_Test extends WP_UnitTestCase {
 
 	/**
 	 * User role.
