@@ -868,6 +868,13 @@ class WP_Debug_Data {
 		return $info;
 	}
 
+	/**
+	 * Gets the WordPress core section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
 	public static function get_wp_core(): array {
 		// Save few function calls.
 		$permalink_structure    = get_option( 'permalink_structure' );
