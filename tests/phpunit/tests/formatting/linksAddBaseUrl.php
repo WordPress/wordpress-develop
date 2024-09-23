@@ -24,7 +24,7 @@ class Tests_formatting_linksAddBaseUrl extends WP_UnitTestCase {
 
 	public function data_links_add_base_url() {
 		return array(
-			'https'          => array(
+			'https'           => array(
 				'content'  => '<a href="url" />',
 				'base'     => 'https://localhost',
 				'attrs'    => null,
