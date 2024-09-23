@@ -194,8 +194,8 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 	 */
 	public function test_can_create_duplicate_app_password_names() {
 		$created = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'My App' ) );
-		$this->assertNotWPError( $created );
+		$this->assertNotWPError( $created, 'First attempt to create an application password should not return an error' );
 		$created = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'My App' ) );
-		$this->assertNotWPError( $created );
+		$this->assertNotWPError( $created, 'Second attempt to create an application password should not return an error' );
 	}
 }
