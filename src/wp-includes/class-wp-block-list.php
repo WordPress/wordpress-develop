@@ -42,17 +42,28 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	protected $registry;
 
 	/**
+	 * Reference to the parent block.
+	 *
+	 * @since 6.7.0
+	 * @var WP_Block|null
+	 * @access protected
+	 */
+	protected $parent_block;
+
+	/**
 	 * Constructor.
 	 *
 	 * Populates object properties from the provided block instance argument.
 	 *
 	 * @since 5.5.0
+	 * @since 6.7.0 Added the optional `$parent_block` argument.
 	 *
 	 * @param array[]|WP_Block[]     $blocks            Array of parsed block data, or block instances.
 	 * @param array                  $available_context Optional array of ancestry context values.
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
+	 * @param WP_Block|null          $parent_block      Optional. If this is a nested block, a reference to the parent block.
 	 */
-	public function __construct( $blocks, $available_context = array(), $registry = null ) {
+	public function __construct( $blocks, $available_context = array(), $registry = null, $parent_block = null ) {
 		if ( ! $registry instanceof WP_Block_Type_Registry ) {
 			$registry = WP_Block_Type_Registry::get_instance();
 		}
@@ -60,6 +71,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 		$this->blocks            = $blocks;
 		$this->available_context = $available_context;
 		$this->registry          = $registry;
+		$this->parent_block      = $parent_block;
 	}
 
 	/**
@@ -93,7 +105,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 		$block = $this->blocks[ $offset ];
 
 		if ( isset( $block ) && is_array( $block ) ) {
-			$block = new WP_Block( $block, $this->available_context, $this->registry );
+			$block = new WP_Block( $block, $this->available_context, $this->registry, $this->parent_block );
 
 			$this->blocks[ $offset ] = $block;
 		}
