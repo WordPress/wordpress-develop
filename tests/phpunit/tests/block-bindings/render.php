@@ -366,7 +366,7 @@ HTML;
 	 */
 	public function test_filter_block_bindings_supported_block_attributes_custom_block_custom_attribute() {
 		register_block_type(
-			'plugin/custom-block',
+			'plugin/custom-block-with-custom-attr',
 			array(
 				'attributes'      => array(
 					'customAttribute' => array(
@@ -381,7 +381,7 @@ HTML;
 		);
 
 		$filter_supported_attributes = function ( $supported_block_attributes ) {
-			$supported_block_attributes['plugin/custom-block'] = array( 'customAttribute' );
+			$supported_block_attributes['plugin/custom-block-with-custom-attr'] = array( 'customAttribute' );
 			return $supported_block_attributes;
 		};
 
@@ -398,9 +398,8 @@ HTML;
 		);
 
 		$block_content = <<<HTML
-<!-- wp:plugin/custom-block {"metadata":{"bindings":{"customAttribute":{"source":"test/source", "args": {"key": "custom_key"}}}}} -->
-<div>Default value</div>
-<!-- /wp:plugin/custom-block -->
+<!-- wp:plugin/custom-block-with-custom-attr {"metadata":{"bindings":{"customAttribute":{"source":"test/source", "args": {"key": "custom_key"}}}}} -->
+<!-- /wp:plugin/custom-block-with-custom-attr -->
 HTML;
 
 		$parsed_blocks = parse_blocks( $block_content );
