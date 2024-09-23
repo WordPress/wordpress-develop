@@ -2092,7 +2092,6 @@ function render_block( $parsed_block ) {
 
 	$block = new WP_Block( $parsed_block, $context, null, $parent_block );
 
-
 	return $block->render();
 }
 
