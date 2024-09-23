@@ -105,6 +105,12 @@ class WP_Debug_Data {
 			'fields' => array(),
 		);
 
+		$info['wp-themes-inactive'] = array(
+			'label'      => __( 'Inactive Themes' ),
+			'show_count' => true,
+			'fields'     => array(),
+		);
+
 		$info['wp-plugins-active'] = array(
 			'label'      => __( 'Active Plugins' ),
 			'show_count' => true,
