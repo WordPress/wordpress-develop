@@ -24,61 +24,61 @@ class Tests_formatting_linksAddBaseUrl extends WP_UnitTestCase {
 
 	public function data_links_add_base_url() {
 		return array(
-			'https'      => array(
+			'https'          => array(
 				'content'  => '<a href="url" />',
 				'base'     => 'https://localhost',
 				'attrs'    => null,
 				'expected' => '<a href="https://localhost/url" />',
 			),
-			'http'             => array(
+			'http'            => array(
 				'content'  => '<a href="url" />',
 				'base'     => 'http://localhost',
 				'attrs'    => null,
 				'expected' => '<a href="http://localhost/url" />',
 			),
-			'relative_scheme'  => array(
+			'relative_scheme' => array(
 				'content'  => '<a href="//localhost/url" />',
 				'base'     => 'http://localhost',
 				'attrs'    => null,
 				'expected' => '<a href="http://localhost/url" />',
 			),
-			'empty_array'      => array(
+			'empty_array'     => array(
 				'content'  => '<a href="url" target="_blank" />',
 				'base'     => 'https://localhost',
 				'attrs'    => array(),
 				'expected' => '<a href="https://localhost/url" target="_blank" />',
 			),
-			'data_url'         => array(
+			'data_url'        => array(
 				'content'  => '<a href="url" data-url="url" />',
 				'base'     => 'https://localhost',
 				'attrs'    => array( 'data-url', 'href' ),
 				'expected' => '<a href="https://localhost/url" data-url="https://localhost/url" />',
 			),
-			'not relative'     => array(
+			'not relative'    => array(
 				'content'  => '<a href="https://localhost/url" />',
 				'base'     => 'https://localbase',
 				'attrs'    => null,
 				'expected' => '<a href="https://localhost/url" />',
 			),
-			'no_href'          => array(
+			'no_href'         => array(
 				'content'  => '<a data-url="/url" />',
 				'base'     => 'https://localhost',
 				'attrs'    => null,
 				'expected' => '<a data-url="/url" />',
 			),
-			'img'              => array(
+			'img'             => array(
 				'content'  => '<img src="/url" />',
 				'base'     => 'https://localhost',
 				'attrs'    => null,
 				'expected' => '<img src="https://localhost/url" />',
 			),
-			'ftp'              => array(
+			'ftp'             => array(
 				'content'  => '<a href="/url" >sss</a>',
 				'base'     => 'ftp://localhost',
 				'attrs'    => null,
 				'expected' => '<a href="ftp://localhost/url" >sss</a>',
 			),
-			'ftps'             => array(
+			'ftps'            => array(
 				'content'  => '<a href="/url" >sss</a>',
 				'base'     => 'ftps://localhost',
 				'attrs'    => null,
