@@ -112,6 +112,7 @@ class WP_Block {
 	 * its registered type will be assigned to the block's `context` property.
 	 *
 	 * @since 5.5.0
+	 * @since 6.7.0 Added the optional `$parent_block` argument.
 	 *
 	 * @param array                  $block             {
 	 *     An associative array of a single parsed block object. See WP_Block_Parser_Block.
@@ -126,7 +127,7 @@ class WP_Block {
 	 * @param array                  $available_context Optional array of ancestry context values.
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
 	 */
-	public function __construct( $block, $available_context = array(), $registry = null ) {
+	public function __construct( $block, $available_context = array(), $registry = null, $parent_block = null ) {
 		$this->parsed_block = $block;
 		$this->name         = $block['blockName'];
 
@@ -138,7 +139,7 @@ class WP_Block {
 
 		$this->block_type = $registry->get_registered( $this->name );
 
-		$this->available_context = $available_context;
+		$this->available_context = apply_filters( 'render_block_context', $available_context, $block, $parent_block );
 
 		if ( ! empty( $this->block_type->uses_context ) ) {
 			foreach ( $this->block_type->uses_context as $context_name ) {
@@ -159,7 +160,7 @@ class WP_Block {
 				}
 			}
 
-			$this->inner_blocks = new WP_Block_List( $block['innerBlocks'], $child_context, $registry );
+			$this->inner_blocks = new WP_Block_List( $block['innerBlocks'], $child_context, $registry, $parent_block );
 		}
 
 		if ( ! empty( $block['innerHTML'] ) ) {
