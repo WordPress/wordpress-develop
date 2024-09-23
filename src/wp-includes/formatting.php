@@ -2124,6 +2124,113 @@ function sanitize_file_name( $filename ) {
 }
 
 /**
+ * Returns true if the string contains no more than one unicode
+ * script, and false if it contains two or more. This only considers
+ * alphabetic characters.
+ *
+ * This returns true for an empty string.
+ *
+
+ * IntlChar does not support returning the script property defined by
+ * https://www.unicode.org/reports/tr24/, so this implementation uses
+ * a workaround. Some of the old scripts have several code blocks, but
+ * the scripts currently being added have only one, since the
+ * committee has grown better at estimating the necessary size.
+
+ * This maps the known extension blocks ("latin extended a" etc) to
+ * the first block for that script, and then checks that the string
+ * uses only a single block. This works for the scripts currently in
+ * Unicode, and will work for future scripts as long as the committee
+ * keeps estimating correctly.
+
+ */
+
+function uses_single_unicode_script( $input ) {
+    $block = 0;
+    foreach ( mb_str_split($input) as $cp ) {
+	if(IntlChar::isalpha($cp)) {
+	    $b = IntlChar::getBlockCode($cp);
+	    switch($b) {
+	    case IntlChar::BLOCK_CODE_LATIN_1_SUPPLEMENT:
+	    case IntlChar::BLOCK_CODE_LATIN_EXTENDED_A:
+	    case IntlChar::BLOCK_CODE_LATIN_EXTENDED_B:
+	    case IntlChar::BLOCK_CODE_LATIN_EXTENDED_C:
+	    case IntlChar::BLOCK_CODE_LATIN_EXTENDED_D:
+	    case IntlChar::BLOCK_CODE_IPA_EXTENSIONS: // used in Ghana etc
+	    case IntlChar::BLOCK_CODE_LATIN_EXTENDED_ADDITIONAL:
+		    $b = IntlChar::BLOCK_CODE_BASIC_LATIN;
+		    break;
+	    case IntlChar::BLOCK_CODE_GREEK_EXTENDED:
+	    case IntlChar::BLOCK_CODE_COPTIC:
+	    case IntlChar::BLOCK_CODE_COPTIC_EPACT_NUMBERS:
+		// Greek and coptic overlap. Coptic looks like Greek
+		// upper case, so readers of Greek can read Coptic,
+		// but readers of Coptic can't necessarily read
+		// Greek. This led to an unfortunate situation in
+		// Unicode, where the two can't be properly
+		// distinguished by block. However, because of the
+		// overlap, this isn't really a problem.
+		$b = IntlChar::BLOCK_CODE_GREEK;
+	    case IntlChar::BLOCK_CODE_ETHIOPIC_EXTENDED:
+	    case IntlChar::BLOCK_CODE_ETHIOPIC_EXTENDED_A:
+	    case IntlChar::BLOCK_CODE_ETHIOPIC_SUPPLEMENT:
+		$b = IntlChar::BLOCK_CODE_ETHIOPIC;
+		break;
+	    case IntlChar::BLOCK_CODE_ARABIC_EXTENDED_A:
+	    case IntlChar::BLOCK_CODE_ARABIC_SUPPLEMENT:
+	    case IntlChar::BLOCK_CODE_ARABIC_PRESENTATION_FORMS_A:
+	    case IntlChar::BLOCK_CODE_ARABIC_PRESENTATION_FORMS_B:
+	    case IntlChar::BLOCK_CODE_ARABIC_SUPPLEMENT:
+		$b = IntlChar::BLOCK_CODE_ARABIC;
+		break;
+	    case IntlChar::BLOCK_CODE_CYRILLIC_EXTENDED_A:
+	    case IntlChar::BLOCK_CODE_CYRILLIC_EXTENDED_B:
+		$b = IntlChar::BLOCK_CODE_CYRILLIC;
+		break;
+	    case IntlChar::BLOCK_CODE_BOPOMOFO_EXTENDED:
+		$b = IntlChar::BLOCK_CODE_BOPOMOFO;
+		break;
+	    case IntlChar::BLOCK_CODE_UNIFIED_CANADIAN_ABORIGINAL_SYLLABICS_EXTENDED:
+		$b = IntlChar::BLOCK_CODE_UNIFIED_CANADIAN_ABORIGINAL_SYLLABICS;
+		break;
+	    case IntlChar::BLOCK_CODE_DEVANAGARI_EXTENDED:
+		$b = IntlChar::BLOCK_CODE_DEVANAGARI;
+		break;
+	    case IntlChar::BLOCK_CODE_HANGUL_JAMO:
+	    case IntlChar::BLOCK_CODE_HANGUL_JAMO_EXTENDED_A:
+	    case IntlChar::BLOCK_CODE_HANGUL_JAMO_EXTENDED_B:
+		$b = IntlChar::BLOCK_CODE_HANGUL;
+		break;
+	    case IntlChar::BLOCK_CODE_MYANMAR_EXTENDED_A:
+	    case IntlChar::BLOCK_CODE_MYANMAR_EXTENDED_B:
+		$b = IntlChar::BLOCK_CODE_MYANMAR;
+		break;
+	    case IntlChar::BLOCK_CODE_CJK_STROKES:
+	    case IntlChar::BLOCK_CODE_CJK_UNIFIED_IDEOGRAPHS:
+	    case IntlChar::BLOCK_CODE_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A:
+	    case IntlChar::BLOCK_CODE_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B:
+	    case IntlChar::BLOCK_CODE_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_C:
+	    case IntlChar::BLOCK_CODE_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_D:
+	    case IntlChar::BLOCK_CODE_CJK_COMPATIBILITY_IDEOGRAPHS:
+	    case IntlChar::BLOCK_CODE_CJK_RADICALS_SUPPLEMENT:
+	    case IntlChar::BLOCK_CODE_ENCLOSED_CJK_LETTERS_AND_MONTHS:
+	    case IntlChar::BLOCK_CODE_CJK_COMPATIBILITY_FORMS:
+	    case IntlChar::BLOCK_CODE_CJK_COMPATIBILITY_IDEOGRAPHS_SUPPLEMENT:
+		$b = IntlChar::BLOCK_CODE_CJK_UNIFIED_IDEOGRAPHS;
+		break;
+	    }
+	    if($block == 0) {
+		$block = $b;
+	    }
+	    if($block != $b) {
+		return false;
+	    }
+	}
+    }
+    return true;
+}
+
+/**
  * Sanitizes a username, stripping out unsafe characters.
  *
  * Removes tags, percent-encoded characters, HTML entities, and if strict is enabled,
@@ -2143,9 +2250,14 @@ function sanitize_user( $username, $strict = false ) {
 	$username     = wp_strip_all_tags( $username );
 	$username     = remove_accents( $username );
 	// Remove percent-encoded characters.
-	$username = preg_replace( '|%([a-fA-F0-9][a-fA-F0-9])|', '', $username );
+	$username = urldecode($username);
 	// Remove HTML entities.
 	$username = preg_replace( '/&.+?;/', '', $username );
+
+	// If mixing different scripts, remove all but ASCII.
+	if ( !uses_single_unicode_script($username) ) {
+		$username = preg_replace( '|[^a-z0-9 _.\-@]|i', '', $username );
+	}
 
 	// If strict, reduce to ASCII for max portability.
 	if ( $strict ) {
