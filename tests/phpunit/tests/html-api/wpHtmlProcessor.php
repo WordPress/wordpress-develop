@@ -745,4 +745,37 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			$class_list
 		);
 	}
+
+	/**
+	 * Ensures that the processor correctly adjusts namespace for different integration points.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_namespace_parser_adjustment() {
+		$processor = WP_HTML_Processor::create_full_parser(
+			'<svg><foreignobject><image /><svg /><image />'
+		);
+
+		// At the foreignObject, the processor is in the SVG namespace.
+		$this->assertTrue( $processor->next_tag( 'foreignObject' ) );
+		$this->assertSame( 'svg', $processor->get_namespace() );
+
+		/*
+		 * The IMAGE tag should be handled according to HTML processing rules
+		 * and transformted to an IMG tag because `foreignObject` is an HTML
+		 * integration point. At this point, the processor is entering the HTML
+		 * integration point.
+		 */
+		$this->assertTrue( $processor->next_tag( 'IMG' ) );
+		$this->assertSame( 'html', $processor->get_namespace() );
+
+		/*
+		 * Again, the IMAGE tag should be handled according to HTML processing
+		 * rules and transformted to an IMG tag because `foreignObject` is an
+		 * HTML integration point. At this point, the processor is has entered
+		 * SVG and is returning to an HTML integration point.
+		 */
+		$this->assertTrue( $processor->next_tag( 'IMG' ) );
+		$this->assertSame( 'html', $processor->get_namespace() );
+	}
 }
