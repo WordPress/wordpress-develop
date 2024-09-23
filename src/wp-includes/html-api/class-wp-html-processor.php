@@ -393,7 +393,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$provenance            = ( ! $same_node || $is_virtual ) ? 'virtual' : 'real';
 				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::PUSH, $provenance );
 
-				$this->change_parsing_namespace( $token->namespace );
+				$this->change_parsing_namespace( $token->integration_node_type ?? $token->namespace );
 			}
 		);
 
