@@ -3382,13 +3382,14 @@ class WP_Site_Health {
 			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
 		}
 
+		$caching_url                   = apply_filters( 'site_status_persistent_page_cache_url', home_url( '/' ) );
 		$caching_headers               = $this->get_page_cache_headers();
 		$page_caching_response_headers = array();
 		$response_timing               = array();
 
 		for ( $i = 1; $i <= 3; $i++ ) {
 			$start_time    = microtime( true );
-			$http_response = wp_remote_get( home_url( '/' ), compact( 'sslverify', 'headers' ) );
+			$http_response = wp_remote_get( $caching_url, compact( 'sslverify', 'headers' ) );
 			$end_time      = microtime( true );
 
 			if ( is_wp_error( $http_response ) ) {
