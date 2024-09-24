@@ -1840,7 +1840,12 @@ Name: %3$s'
  * @param array  $meta     Optional. Signup meta data. Default empty array.
  * @return bool
  */
-function wpmu_welcome_user_notification( $user_id, $password, $meta = array() ) {
+function wpmu_welcome_user_notification(
+	$user_id,
+	#[\SensitiveParameter ]
+	$password,
+	$meta = array()
+) {
 	$current_network = get_network();
 
 	/**
@@ -2266,7 +2271,12 @@ function add_existing_user_to_blog( $details = false ) {
  * @param string $password User password. Ignored.
  * @param array  $meta     Signup meta data.
  */
-function add_new_user_to_blog( $user_id, $password, $meta ) {
+function add_new_user_to_blog(
+	$user_id,
+	#[\SensitiveParameter ]
+	$password,
+	$meta
+) {
 	if ( ! empty( $meta['add_to_blog'] ) ) {
 		$blog_id = $meta['add_to_blog'];
 		$role    = $meta['new_role'];
