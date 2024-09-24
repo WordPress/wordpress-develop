@@ -287,7 +287,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 */
 	public function login(
 		$username,
-		#[\SensitiveParameter ]
+		#[\SensitiveParameter]
 		$password
 	) {
 		if ( ! $this->is_enabled ) {
@@ -336,7 +336,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 */
 	public function login_pass_ok(
 		$username,
-		#[\SensitiveParameter ]
+		#[\SensitiveParameter]
 		$password
 	) {
 		return (bool) $this->login( $username, $password );

@@ -1313,7 +1313,7 @@ function wp_delete_signup_on_user_delete( $id, $reassign, $user ) {
  */
 function wpmu_create_user(
 	$user_name,
-	#[\SensitiveParameter ]
+	#[\SensitiveParameter]
 	$password,
 	$email
 ) {
@@ -1603,7 +1603,7 @@ function domain_exists( $domain, $path, $network_id = 1 ) {
 function wpmu_welcome_notification(
 	$blog_id,
 	$user_id,
-	#[\SensitiveParameter ]
+	#[\SensitiveParameter]
 	$password,
 	$title,
 	$meta = array()
@@ -1842,7 +1842,7 @@ Name: %3$s'
  */
 function wpmu_welcome_user_notification(
 	$user_id,
-	#[\SensitiveParameter ]
+	#[\SensitiveParameter]
 	$password,
 	$meta = array()
 ) {
@@ -2273,7 +2273,7 @@ function add_existing_user_to_blog( $details = false ) {
  */
 function add_new_user_to_blog(
 	$user_id,
-	#[\SensitiveParameter ]
+	#[\SensitiveParameter]
 	$password,
 	$meta
 ) {

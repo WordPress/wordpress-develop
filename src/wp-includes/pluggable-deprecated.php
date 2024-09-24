@@ -103,7 +103,7 @@ if ( !function_exists('wp_setcookie') ) :
  */
 function wp_setcookie(
 	$username,
-	#[\SensitiveParameter ]
+	#[\SensitiveParameter]
 	$password = '',
 	$already_md5 = false,
 	$home = '',
@@ -178,7 +178,7 @@ if ( !function_exists('wp_login') ) :
  */
 function wp_login(
 	$username,
-	#[\SensitiveParameter ]
+	#[\SensitiveParameter]
 	$password,
 	$deprecated = ''
 ) {

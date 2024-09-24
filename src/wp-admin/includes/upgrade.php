@@ -50,7 +50,7 @@ if ( ! function_exists( 'wp_install' ) ) :
 		$user_email,
 		$is_public,
 		$deprecated = '',
-		#[\SensitiveParameter ]
+		#[\SensitiveParameter]
 		$user_password = '',
 		$language = ''
 	) {
@@ -576,7 +576,7 @@ if ( ! function_exists( 'wp_new_blog_notification' ) ) :
 		$blog_title,
 		$blog_url,
 		$user_id,
-		#[\SensitiveParameter ]
+		#[\SensitiveParameter]
 		$password
 	) {
 		$user      = new WP_User( $user_id );

@@ -751,7 +751,7 @@ class wpdb {
 	 */
 	public function __construct(
 		$dbuser,
-		#[\SensitiveParameter ]
+		#[\SensitiveParameter]
 		$dbpassword,
 		$dbname,
 		$dbhost

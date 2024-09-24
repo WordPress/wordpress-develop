@@ -153,7 +153,7 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 function wp_authenticate_username_password(
 	$user,
 	$username,
-	#[\SensitiveParameter ]
+	#[\SensitiveParameter]
 	$password
 ) {
 	if ( $user instanceof WP_User ) {
@@ -236,7 +236,7 @@ function wp_authenticate_username_password(
 function wp_authenticate_email_password(
 	$user,
 	$email,
-	#[\SensitiveParameter ]
+	#[\SensitiveParameter]
 	$password
 ) {
 	if ( $user instanceof WP_User ) {
@@ -314,7 +314,7 @@ function wp_authenticate_email_password(
 function wp_authenticate_cookie(
 	$user,
 	$username,
-	#[\SensitiveParameter ]
+	#[\SensitiveParameter]
 	$password
 ) {
 	global $auth_secure_cookie;
@@ -360,7 +360,7 @@ function wp_authenticate_cookie(
 function wp_authenticate_application_password(
 	$input_user,
 	$username,
-	#[\SensitiveParameter ]
+	#[\SensitiveParameter]
 	$password
 ) {
 	if ( $input_user instanceof WP_User ) {
@@ -2839,7 +2839,7 @@ All at ###SITENAME###
  */
 function wp_create_user(
 	$username,
-	#[\SensitiveParameter ]
+	#[\SensitiveParameter]
 	$password,
 	$email = ''
 ) {
@@ -3031,7 +3031,7 @@ function get_password_reset_key( $user ) {
  * @return WP_User|WP_Error WP_User object on success, WP_Error object for invalid or expired keys.
  */
 function check_password_reset_key(
-	#[\SensitiveParameter ]
+	#[\SensitiveParameter]
 	$key,
 	$login
 ) {
@@ -3373,7 +3373,7 @@ function retrieve_password( $user_login = null ) {
  */
 function reset_password(
 	$user,
-	#[\SensitiveParameter ]
+	#[\SensitiveParameter]
 	$new_pass
 ) {
 	/**

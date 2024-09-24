@@ -198,7 +198,7 @@ class WP_Importer {
 	public function get_page(
 		$url,
 		$username = '',
-		#[\SensitiveParameter ]
+		#[\SensitiveParameter]
 		$password = '',
 		$head = false
 	) {

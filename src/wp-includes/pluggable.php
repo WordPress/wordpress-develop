@@ -599,7 +599,7 @@ if ( ! function_exists( 'wp_authenticate' ) ) :
 	 */
 	function wp_authenticate(
 		$username,
-		#[\SensitiveParameter ]
+		#[\SensitiveParameter]
 		$password
 	) {
 		$username = sanitize_user( $username );
@@ -2581,7 +2581,7 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 	 * @return string The hash string of the password.
 	 */
 	function wp_hash_password(
-		#[\SensitiveParameter ]
+		#[\SensitiveParameter]
 		$password
 	) {
 		global $wp_hasher;
@@ -2620,7 +2620,7 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	 * @return bool False, if the $password does not match the hashed password.
 	 */
 	function wp_check_password(
-		#[\SensitiveParameter ]
+		#[\SensitiveParameter]
 		$password,
 		$hash,
 		$user_id = ''
@@ -2821,7 +2821,7 @@ if ( ! function_exists( 'wp_set_password' ) ) :
 	 * @param int    $user_id  User ID.
 	 */
 	function wp_set_password(
-		#[\SensitiveParameter ]
+		#[\SensitiveParameter]
 		$password,
 		$user_id
 	) {

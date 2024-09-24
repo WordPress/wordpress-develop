@@ -464,7 +464,7 @@ class WP_Application_Passwords {
 	 * @return string The chunked password.
 	 */
 	public static function chunk_password(
-		#[\SensitiveParameter ]
+		#[\SensitiveParameter]
 		$raw_password
 	) {
 		$raw_password = preg_replace( '/[^a-z\d]/i', '', $raw_password );
