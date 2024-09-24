@@ -45,9 +45,9 @@ class WP_Block_Metadata_Registry {
 			// Core path is valid.
 		} elseif ( str_starts_with( $path, wp_normalize_path( WP_PLUGIN_DIR ) ) ) {
 			// For plugins, ensure the path is within a specific plugin directory and not the base plugin directory.
-			$plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
+			$plugin_dir    = wp_normalize_path( WP_PLUGIN_DIR );
 			$relative_path = substr( $path, strlen( $plugin_dir ) + 1 );
-			$plugin_name = strtok( $relative_path, '/' );
+			$plugin_name   = strtok( $relative_path, '/' );
 
 			if ( empty( $plugin_name ) || $plugin_name === $relative_path ) {
 				// Invalid plugin path.
