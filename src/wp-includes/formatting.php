@@ -4166,10 +4166,17 @@ function wp_trim_words( $text, $num_words = 55, $more = null ) {
 				for ( $i = $at; $i < $i_end; $i++ ) {
 					$state = utf8_decoder_apply_byte( $buffer[ $i ], $state );
 
-					// @todo Skip over invalid UTF-8 bytes and do not copy them.
+					// Replace sequence of invalid bytes as U+FFFD `�`.
 					if ( UTF8_DECODER_REJECT === $state ) {
-						$at = $i;
-						continue 2;
+						$output .= "\u{FFFD}";
+
+						// Skip to the start of the next code point.
+						while ( UTF8_DECODER_REJECT === $state && $i < $i_end ) {
+							$state = utf8_decoder_apply_byte( $text[ ++$i ], UTF8_DECODER_ACCEPT );
+						}
+
+						$at = --$i;
+						continue;
 					}
 
 					if ( UTF8_DECODER_ACCEPT !== $state ) {
@@ -4179,7 +4186,7 @@ function wp_trim_words( $text, $num_words = 55, $more = null ) {
 					++$length;
 
 					if ( $length === $num_words ) {
-						$output .= substr( $buffer, $at, $i - $at );
+						$output .= substr( $buffer, $at, $i - $at  + 1 );
 						continue;
 					}
 
