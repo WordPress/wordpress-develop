@@ -525,6 +525,10 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @dataProvider data_get_item_schema_with_data_provider
 	 * @covers WP_REST_Template_Autosaves_Controller::get_item_schema
 	 * @ticket 56922
+	 *
+	 * @param string $rest_base             Base part of the REST API endpoint to test.
+	 * @param string $template_id           Template ID to use in the test.
+	 * @param array  $additional_properties Additional properties to check for in the schema.
 	 */
 	public function test_get_item_schema_with_data_provider( $rest_base, $template_id, $additional_properties = array() ) {
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves' );

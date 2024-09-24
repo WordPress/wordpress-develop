@@ -503,6 +503,11 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 	}
 
+	/**
+	 * Data provider for test_get_items_for_templates_based_on_theme_files_should_return_bad_response_status.
+	 *
+	 * @return array
+	 */
 	public function data_get_items_for_templates_based_on_theme_files_should_return_bad_response_status() {
 		return array(
 			'templates'      => array( 'templates', self::TEST_THEME . '//page-home' ),
@@ -532,6 +537,11 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 	}
 
+	/**
+	 * Data provider for test_get_item_for_templates_based_on_theme_files_should_return_bad_response_status.
+	 *
+	 * @return array
+	 */
 	public function data_get_item_for_templates_based_on_theme_files_should_return_bad_response_status() {
 		return array(
 			'templates'      => array( 'templates', self::TEST_THEME . '//page-home' ),
@@ -681,15 +691,31 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @covers WP_REST_Template_Revisions_Controller::prepare_item_for_response
+	 * @coversNothing
 	 * @ticket 56922
 	 */
 	public function test_prepare_item() {
-		$revisions   = wp_get_post_revisions( self::$template_post, array( 'fields' => 'ids' ) );
+		// A proper data provider cannot be used because this method's signature must match the parent method.
+		// Therefore, actual tests are performed in the test_prepare_item_with_data_provider method.
+		$this->assertTrue( true );
+	}
+
+	/**
+	 * @dataProvider data_prepare_item_with_data_provider
+	 * @covers WP_REST_Template_Revisions_Controller::prepare_item_for_response
+	 * @ticket 56922
+	 *
+	 * @param string $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $rest_base                 Base part of the REST API endpoint to test.
+	 * @param string $template_id               Template ID to use in the test.
+	 */
+	public function test_prepare_item_with_data_provider( $parent_post_property_name, $rest_base, $template_id ) {
+		$parent_post = self::$$parent_post_property_name;
+		$revisions   = wp_get_post_revisions( $parent_post, array( 'fields' => 'ids' ) );
 		$revision_id = array_shift( $revisions );
 		$post        = get_post( $revision_id );
-		$request     = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
-		$controller  = new WP_REST_Template_Revisions_Controller( self::TEMPLATE_POST_TYPE );
+		$request     = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions/' . $revision_id );
+		$controller  = new WP_REST_Template_Revisions_Controller( $parent_post->post_type );
 		$response    = $controller->prepare_item_for_response( $post, $request );
 		$this->assertInstanceOf(
 			WP_REST_Response::class,
@@ -705,11 +731,11 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 			"Failed asserting that the revision id is the same as $revision_id."
 		);
 		$this->assertSame(
-			self::$template_post->ID,
+			$parent_post->ID,
 			$revision['parent'],
 			sprintf(
 				'Failed asserting that the parent id of the revision is the same as %s.',
-				self::$template_post->ID
+				$parent_post->ID
 			)
 		);
 
@@ -717,30 +743,57 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertIsArray( $links, 'Failed asserting that the links are an array.' );
 
 		$this->assertStringEndsWith(
-			self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/revisions/' . $revision_id,
+			$template_id . '/revisions/' . $revision_id,
 			$links['self'][0]['href'],
 			sprintf(
 				'Failed asserting that the self link ends with %s.',
-				self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/revisions/' . $revision_id
+				$template_id . '/revisions/' . $revision_id
 			)
 		);
 
 		$this->assertStringEndsWith(
-			self::TEST_THEME . '//' . self::TEMPLATE_NAME,
+			$template_id,
 			$links['parent'][0]['href'],
 			sprintf(
 				'Failed asserting that the parent link ends with %s.',
-				self::TEST_THEME . '//' . self::TEMPLATE_NAME
+				$template_id
 			)
 		);
 	}
 
 	/**
-	 * @covers WP_REST_Template_Revisions_Controller::get_item_schema
+	 * Data provider for test_prepare_item_with_data_provider.
+	 *
+	 * @return array
+	 */
+	public function data_prepare_item_with_data_provider() {
+		return array(
+			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
+			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
+		);
+	}
+
+	/**
+	 * @coversNothing
 	 * @ticket 56922
 	 */
 	public function test_get_item_schema() {
-		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions' );
+		// A proper data provider cannot be used because this method's signature must match the parent method.
+		// Therefore, actual tests are performed in the test_prepare_item_with_data_provider method.
+		$this->assertTrue( true );
+	}
+
+	/**
+	 * @dataProvider data_get_item_schema_with_data_provider
+	 * @covers WP_REST_Template_Revisions_Controller::get_item_schema
+	 * @ticket 56922
+	 *
+	 * @param string $rest_base             Base part of the REST API endpoint to test.
+	 * @param string $template_id           Template ID to use in the test.
+	 * @param array  $additional_properties Additional properties to check for in the schema.
+	 */
+	public function test_get_item_schema_with_data_provider( $rest_base, $template_id, $additional_properties = array() ) {
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions' );
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
@@ -759,11 +812,34 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertArrayHasKey( 'has_theme_file', $properties, 'has_theme_file key should exist in properties.' );
 		$this->assertArrayHasKey( 'author', $properties, 'author key should exist in properties.' );
 		$this->assertArrayHasKey( 'modified', $properties, 'modified key should exist in properties.' );
-		$this->assertArrayHasKey( 'is_custom', $properties, 'is_custom key should exist in properties.' );
 		$this->assertArrayHasKey( 'parent', $properties, 'Parent key should exist in properties.' );
 		$this->assertArrayHasKey( 'author_text', $properties, 'author_text key should exist in properties.' );
 		$this->assertArrayHasKey( 'original_source', $properties, 'original_source key should exist in properties.' );
 		$this->assertArrayHasKey( 'plugin', $properties, 'plugin key should exist in properties.' );
+
+		foreach ( $additional_properties as $additional_property ) {
+			$this->assertArrayHasKey( $additional_property, $properties, $additional_property . ' key should exist in properties.' );
+		}
+	}
+
+	/**
+	 * Data provider for data_get_item_schema_with_data_provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_item_schema_with_data_provider() {
+		return array(
+			'templates'      => array(
+				'templates',
+				self::TEST_THEME . '//' . self::TEMPLATE_NAME,
+				array( 'is_custom' ),
+			),
+			'template parts' => array(
+				'template-parts',
+				self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME,
+				array( 'area' ),
+			),
+		);
 	}
 
 	/**
@@ -793,16 +869,35 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @covers WP_REST_Templates_Controller::delete_item
+	 * @coversNothing
 	 * @ticket 56922
 	 */
 	public function test_delete_item() {
+		// A proper data provider cannot be used because this method's signature must match the parent method.
+		// Therefore, actual tests are performed in the test_delete_item_with_data_provider method.
+		$this->assertTrue( true );
+	}
+
+	/**
+	 * @dataProvider data_delete_item_with_data_provider
+	 * @covers WP_REST_Templates_Controller::delete_item
+	 * @ticket 56922
+	 *
+	 * @param string $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $revisions_property_name   A class property name that contains the revisions array.
+	 * @param string $rest_base                 Base part of the REST API endpoint to test.
+	 * @param string $template_id               Template ID to use in the test.
+	 */
+	public function test_delete_item_with_data_provider( $parent_post_property_name, $revisions_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 
-		$revision_id                = _wp_put_post_revision( self::$template_post );
-		self::$template_revisions[] = $revision_id;
+		$parent_post = self::$$parent_post_property_name;
+		$revisions   = self::$$revisions_property_name;
 
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
+		$revision_id = _wp_put_post_revision( $parent_post );
+		$revisions[] = $revision_id;
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions/' . $revision_id );
 		$request->set_param( 'force', true );
 		$response = rest_get_server()->dispatch( $request );
 
@@ -811,28 +906,91 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * Data provider for test_delete_item_with_data_provider.
+	 *
+	 * @return array
+	 */
+	public function data_delete_item_with_data_provider() {
+		return array(
+			'templates'      => array(
+				'template_post',
+				'template_revisions',
+				'templates',
+				self::TEST_THEME . '//' . self::TEMPLATE_NAME,
+			),
+			'template parts' => array(
+				'template_part_post',
+				'template_part_revisions',
+				'template-parts',
+				self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME,
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider data_delete_item_incorrect_permission
 	 * @covers WP_REST_Templates_Controller::delete_item
 	 * @ticket 56922
+	 *
+	 * @param string $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $revisions_property_name   A class property name that contains the revisions array.
+	 * @param string $rest_base                 Base part of the REST API endpoint to test.
+	 * @param string $template_id               Template ID to use in the test.
 	 */
-	public function test_delete_item_incorrect_permission() {
+	public function test_delete_item_incorrect_permission( $parent_post_property_name, $revisions_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$contributor_id );
-		$revision_id                = _wp_put_post_revision( self::$template_post );
-		self::$template_revisions[] = $revision_id;
+		$parent_post = self::$$parent_post_property_name;
+		$revisions   = self::$$revisions_property_name;
 
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
+		$revision_id = _wp_put_post_revision( $parent_post );
+		$revisions[] = $revision_id;
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions/' . $revision_id );
 		$request->set_param( 'force', true );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_delete', $response, WP_Http::FORBIDDEN );
 	}
 
 	/**
+	 * Data provider for test_delete_item_with_data_provider.
+	 *
+	 * @return array
+	 */
+	public function data_delete_item_incorrect_permission() {
+		return array(
+			'templates'      => array(
+				'template_post',
+				'template_revisions',
+				'templates',
+				self::TEST_THEME . '//' . self::TEMPLATE_NAME,
+			),
+			'template parts' => array(
+				'template_part_post',
+				'template_part_revisions',
+				'template-parts',
+				self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME,
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider data_delete_item_no_permission
 	 * @covers WP_REST_Templates_Controller::delete_item
 	 * @ticket 56922
+	 *
+	 * @param string $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $revisions_property_name   A class property name that contains the revisions array.
+	 * @param string $rest_base                 Base part of the REST API endpoint to test.
+	 * @param string $template_id               Template ID to use in the test.
 	 */
-	public function test_delete_item_no_permission() {
+	public function test_delete_item_no_permission( $parent_post_property_name, $revisions_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( 0 );
-		$revision_id                = _wp_put_post_revision( self::$template_post );
-		self::$template_revisions[] = $revision_id;
+
+		$parent_post = self::$$parent_post_property_name;
+		$revisions   = self::$$revisions_property_name;
+
+		$revision_id = _wp_put_post_revision( $parent_post );
+		$revisions[] = $revision_id;
 
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
 		$request->set_param( 'force', true );
@@ -841,18 +999,71 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * Data provider for test_delete_item_no_permission.
+	 *
+	 * @return array
+	 */
+	public function data_delete_item_no_permission() {
+		return array(
+			'templates'      => array(
+				'template_post',
+				'template_revisions',
+				'templates',
+				self::TEST_THEME . '//' . self::TEMPLATE_NAME,
+			),
+			'template parts' => array(
+				'template_part_post',
+				'template_part_revisions',
+				'template-parts',
+				self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME,
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider data_delete_item_not_found
 	 * @covers WP_REST_Template_Revisions_Controller::get_item
 	 * @ticket 56922
+	 *
+	 * @param string $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $revisions_property_name   A class property name that contains the revisions array.
+	 * @param string $rest_base                 Base part of the REST API endpoint to test.
+	 * @param string $template_id               Template ID to use in the test.
 	 */
-	public function test_delete_item_not_found() {
+	public function test_delete_item_not_found( $parent_post_property_name, $revisions_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 
-		$revision_id                = _wp_put_post_revision( self::$template_post );
-		self::$template_revisions[] = $revision_id;
+		$parent_post = self::$$parent_post_property_name;
+		$revisions   = self::$$revisions_property_name;
 
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/templates/invalid//parent/revisions/' . $revision_id );
+		$revision_id = _wp_put_post_revision( $parent_post );
+		$revisions[] = $revision_id;
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/' . $rest_base . '/invalid//parent/revisions/' . $revision_id );
 		$request->set_param( 'force', true );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, WP_Http::NOT_FOUND );
+	}
+
+	/**
+	 * Data provider for test_delete_item_not_found.
+	 *
+	 * @return array
+	 */
+	public function data_delete_item_not_found() {
+		return array(
+			'templates'      => array(
+				'template_post',
+				'template_revisions',
+				'templates',
+				self::TEST_THEME . '//' . self::TEMPLATE_NAME,
+			),
+			'template parts' => array(
+				'template_part_post',
+				'template_part_revisions',
+				'template-parts',
+				self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME,
+			),
+		);
 	}
 }
