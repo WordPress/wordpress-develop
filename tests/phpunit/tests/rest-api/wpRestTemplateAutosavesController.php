@@ -71,7 +71,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	private static $template_part_post;
 
 	/**
-	 * Create fake data before our tests run.
+	 * Create fake data before the tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
@@ -210,12 +210,12 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	public function test_get_items() {
 		// A proper data provider cannot be used because this method's signature must match the parent method.
-		// Therefore, actual tests are performed in the test_get_items_with_data method.
+		// Therefore, actual tests are performed in the test_get_items_with_data_provider method.
 		$this->assertTrue( true );
 	}
 
 	/**
-	 * @dataProvider data_get_items_with_data
+	 * @dataProvider data_get_items_with_data_provider
 	 * @covers WP_REST_Template_Autosaves_Controller::get_items
 	 * @ticket 56922
 	 *
@@ -223,7 +223,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @param string $rest_base                  Base part of the REST API endpoint to test.
 	 * @param string $template_id                Template ID to use in the test.
 	 */
-	public function test_get_items_with_data( $parent_post_property_name, $rest_base, $template_id ) {
+	public function test_get_items_with_data_provider( $parent_post_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 		// Cannot access this property in the data provider because it is not initialized at the time of execution.
 		$parent_post      = self::$$parent_post_property_name;
@@ -267,11 +267,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * Data provider for test_get_items_with_data.
+	 * Data provider for test_get_items_with_data_provider.
 	 *
 	 * @return array
 	 */
-	public function data_get_items_with_data() {
+	public function data_get_items_with_data_provider() {
 		return array(
 			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
@@ -313,12 +313,12 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	public function test_get_item() {
 		// A proper data provider cannot be used because this method's signature must match the parent method.
-		// Therefore, actual tests are performed in the test_get_item_with_data method.
+		// Therefore, actual tests are performed in the test_get_item_with_data_provider method.
 		$this->assertTrue( true );
 	}
 
 	/**
-	 * @dataProvider data_get_item_with_data
+	 * @dataProvider data_get_item_with_data_provider
 	 * @covers WP_REST_Template_Autosaves_Controller::get_item
 	 * @ticket 56922
 	 *
@@ -326,7 +326,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @param string $rest_base                  Base part of the REST API endpoint to test.
 	 * @param string $template_id                Template ID to use in the test.
 	 */
-	public function test_get_item_with_data( $parent_post_property_name, $rest_base, $template_id ) {
+	public function test_get_item_with_data_provider( $parent_post_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 
 		$parent_post = self::$$parent_post_property_name;
@@ -362,11 +362,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * Data provider for test_get_item_with_data.
+	 * Data provider for test_get_item_with_data_provider.
 	 *
 	 * @return array
 	 */
-	public function data_get_item_with_data() {
+	public function data_get_item_with_data_provider() {
 		return array(
 			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
@@ -379,12 +379,12 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	public function test_prepare_item() {
 		// A proper data provider cannot be used because this method's signature must match the parent method.
-		// Therefore, actual tests are performed in the test_prepare_item_with_data method.
+		// Therefore, actual tests are performed in the test_prepare_item_with_data_provider method.
 		$this->assertTrue( true );
 	}
 
 	/**
-	 * @dataProvider data_prepare_item_with_data
+	 * @dataProvider data_prepare_item_with_data_provider
 	 * @covers WP_REST_Template_Autosaves_Controller::prepare_item_for_response
 	 * @ticket 56922
 	 *
@@ -392,7 +392,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 * @param string $rest_base Base part of the REST API endpoint to test.
 	 * @param string $template_id Template ID to use in the test.
 	 */
-	public function test_prepare_item_with_data( $parent_post_property_name, $rest_base, $template_id ) {
+	public function test_prepare_item_with_data_provider( $parent_post_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 		$parent_post      = self::$$parent_post_property_name;
 		$autosave_post_id = wp_create_post_autosave(
@@ -445,11 +445,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * Data provider for test_prepare_item_with_data.
+	 * Data provider for test_prepare_item_with_data_provider.
 	 *
 	 * @return array
 	 */
-	public function data_prepare_item_with_data() {
+	public function data_prepare_item_with_data_provider() {
 		return array(
 			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
@@ -457,11 +457,22 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @covers WP_REST_Template_Autosaves_Controller::get_item_schema
+	 * @coversNothing
 	 * @ticket 56922
 	 */
 	public function test_get_item_schema() {
-		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates/' . self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves' );
+		// A proper data provider cannot be used because this method's signature must match the parent method.
+		// Therefore, actual tests are performed in the test_prepare_item_with_data_provider method.
+		$this->assertTrue( true );
+	}
+
+	/**
+	 * @dataProvider data_get_item_schema_with_data_provider
+	 * @covers WP_REST_Template_Autosaves_Controller::get_item_schema
+	 * @ticket 56922
+	 */
+	public function test_get_item_schema_with_data_provider( $rest_base, $template_id, $additional_properties = array() ) {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
@@ -481,11 +492,33 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$this->assertArrayHasKey( 'has_theme_file', $properties, 'has_theme_file key should exist in properties.' );
 		$this->assertArrayHasKey( 'author', $properties, 'author key should exist in properties.' );
 		$this->assertArrayHasKey( 'modified', $properties, 'modified key should exist in properties.' );
-		$this->assertArrayHasKey( 'is_custom', $properties, 'is_custom key should exist in properties.' );
 		$this->assertArrayHasKey( 'parent', $properties, 'Parent key should exist in properties.' );
 		$this->assertArrayHasKey( 'author_text', $properties, 'author_text key should exist in properties.' );
 		$this->assertArrayHasKey( 'original_source', $properties, 'original_source key should exist in properties.' );
 		$this->assertArrayHasKey( 'plugin', $properties, 'plugin key should exist in properties.' );
+		foreach ( $additional_properties as $additional_property ) {
+			$this->assertArrayHasKey( $additional_property, $properties, $additional_property . ' key should exist in properties.' );
+		}
+	}
+
+	/**
+	 * Data provider for test_get_item_schema_with_data_provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_item_schema_with_data_provider() {
+		return array(
+			'templates'      => array(
+				'templates',
+				self::TEST_THEME . '//' . self::TEMPLATE_NAME,
+				array( 'is_custom' ),
+			),
+			'template parts' => array(
+				'template-parts',
+				self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME,
+				array( 'area' ),
+			),
+		);
 	}
 
 	/**
@@ -494,19 +527,19 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	public function test_create_item() {
 		// A proper data provider cannot be used because this method's signature must match the parent method.
-		// Therefore, actual tests are performed in the test_create_item_with_data method.
+		// Therefore, actual tests are performed in the test_create_item_with_data_provider method.
 		$this->assertTrue( true );
 	}
 
 	/**
-	 * @dataProvider data_create_item_with_data
+	 * @dataProvider data_create_item_with_data_provider
 	 * @covers WP_REST_Template_Autosaves_Controller::create_item
 	 * @ticket 56922
 	 *
 	 * @param string $rest_base   Base part of the REST API endpoint to test.
 	 * @param string $template_id Template ID to use in the test.
 	 */
-	public function test_create_item_with_data( $rest_base, $template_id ) {
+	public function test_create_item_with_data_provider( $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves' );
@@ -535,11 +568,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * Data provider for test_get_item_with_data.
+	 * Data provider for test_get_item_with_data_provider.
 	 *
 	 * @return array
 	 */
-	public function data_create_item_with_data() {
+	public function data_create_item_with_data_provider() {
 		return array(
 			'templates'     => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template part' => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
