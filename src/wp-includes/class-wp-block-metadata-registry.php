@@ -23,6 +23,14 @@ class WP_Block_Metadata_Registry {
 	private static $collections = array();
 
 	/**
+	 * Caches the last matched collection path for performance optimization.
+	 *
+	 * @since 6.X.0
+	 * @var string|null
+	 */
+	private static $last_matched_collection = null;
+
+	/**
 	 * Registers a block metadata collection.
 	 *
 	 * @since 6.X.0
@@ -108,9 +116,20 @@ class WP_Block_Metadata_Registry {
 	 * @return string|null The collection path if found, or null if not found.
 	 */
 	private static function find_collection_path( $file_or_folder ) {
+		if ( empty( $file_or_folder ) ) {
+			return null;
+		}
+
+		// Check the last matched collection first, since block registration usually happens in batches per plugin or theme.
 		$path = wp_normalize_path( rtrim( $file_or_folder, '/' ) );
-		foreach ( self::$collections as $collection_path => $collection ) {
+		if ( self::$last_matched_collection && str_starts_with( $path, self::$last_matched_collection ) ) {
+			return self::$last_matched_collection;
+		}
+
+		$collection_paths = array_keys( self::$collections );
+		foreach ( $collection_paths as $collection_path ) {
 			if ( str_starts_with( $path, $collection_path ) ) {
+				self::$last_matched_collection = $collection_path;
 				return $collection_path;
 			}
 		}
