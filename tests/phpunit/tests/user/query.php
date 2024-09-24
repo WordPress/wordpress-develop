@@ -49,6 +49,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_User_Query::get
+	 */
 	public function test_get_and_set() {
 		$users = new WP_User_Query();
 
@@ -69,6 +72,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertNull( $users->get( 'does-not-exist' ) );
 	}
 
+	/**
+	 * @covers WP_User_Query::__construct
+	 */
 	public function test_include_single() {
 		$q   = new WP_User_Query(
 			array(
@@ -81,6 +87,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertEqualSets( array( self::$author_ids[0] ), $ids );
 	}
 
+	/**
+	 * @covers WP_User_Query::__construct
+	 */
 	public function test_include_comma_separated() {
 		$q   = new WP_User_Query(
 			array(
@@ -93,6 +102,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertEqualSets( array( self::$author_ids[0], self::$author_ids[2] ), $ids );
 	}
 
+	/**
+	 * @covers WP_User_Query::__construct
+	 */
 	public function test_include_array() {
 		$q   = new WP_User_Query(
 			array(
@@ -105,6 +117,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertEqualSets( array( self::$author_ids[0], self::$author_ids[2] ), $ids );
 	}
 
+	/**
+	 * @covers WP_User_Query::__construct
+	 */
 	public function test_include_array_bad_values() {
 		$q   = new WP_User_Query(
 			array(
@@ -117,6 +132,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertEqualSets( array( self::$author_ids[0], self::$author_ids[2] ), $ids );
 	}
 
+	/**
+	 * @covers WP_User_Query::__construct
+	 */
 	public function test_exclude() {
 		$q = new WP_User_Query(
 			array(
@@ -132,6 +150,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertNotContains( self::$author_ids[1], $ids );
 	}
 
+	/**
+	 * @covers WP_User_Query::__construct
+	 */
 	public function test_get_all() {
 		$users = new WP_User_Query( array( 'blog_id' => get_current_blog_id() ) );
 		$users = $users->get_results();
@@ -177,6 +198,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39297
+	 *
+	 * @covers WP_User_Query::get_total
 	 */
 	public function test_get_total_is_int() {
 		$users       = new WP_User_Query( array( 'blog_id' => get_current_blog_id() ) );
@@ -187,6 +210,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_orderby_should_convert_non_prefixed_keys
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_should_convert_non_prefixed_keys( $short_key, $full_key ) {
 		$q = new WP_User_Query(
@@ -208,6 +233,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_User_Query::__construct
+	 */
 	public function test_orderby_meta_value() {
 		update_user_meta( self::$author_ids[0], 'last_name', 'Jones' );
 		update_user_meta( self::$author_ids[1], 'last_name', 'Albert' );
@@ -229,6 +257,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27887
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_meta_value_num() {
 		update_user_meta( self::$author_ids[0], 'user_age', '101' );
@@ -251,6 +281,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31265
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_somekey_where_meta_key_is_somekey() {
 		update_user_meta( self::$author_ids[0], 'foo', 'zzz' );
@@ -273,6 +305,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31265
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_clause_key() {
 		add_user_meta( self::$author_ids[0], 'foo', 'aaa' );
@@ -298,6 +332,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31265
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_clause_key_as_secondary_sort() {
 		$u1 = self::factory()->user->create(
@@ -341,6 +377,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31265
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_more_than_one_clause_key() {
 		add_user_meta( self::$author_ids[0], 'foo', 'jjj' );
@@ -375,6 +413,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30064
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_include_with_empty_include() {
 		$q = new WP_User_Query(
@@ -388,6 +428,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30064
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_include() {
 		global $wpdb;
@@ -409,6 +451,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30064
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_include_duplicate_values() {
 		global $wpdb;
@@ -430,6 +474,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31265
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_space_separated() {
 		$q = new WP_User_Query(
@@ -444,6 +490,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31265
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_flat_array() {
 		$q = new WP_User_Query(
@@ -457,6 +505,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31265
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_array_contains_invalid_item() {
 		$q = new WP_User_Query(
@@ -470,6 +520,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31265
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_array_contains_all_invalid_items() {
 		$q = new WP_User_Query(
@@ -483,6 +535,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31265
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_array() {
 		$q = new WP_User_Query(
@@ -500,6 +554,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31265
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_array_should_discard_invalid_columns() {
 		$q = new WP_User_Query(
@@ -517,6 +573,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28631
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_number() {
 		// +1 for the default user created by the test suite.
@@ -554,6 +612,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21119
+	 *
+	 * @covers WP_User_Query::prepare_query
 	 */
 	public function test_prepare_query() {
 		$query = new WP_User_Query();
@@ -593,6 +653,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertEmpty( $query->query_limit );
 	}
 
+	/**
+	 * @covers WP_User_Query::__construct
+	 */
 	public function test_meta_vars_should_be_converted_to_meta_query() {
 		$q = new WP_User_Query(
 			array(
@@ -619,6 +682,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23849
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_meta_query_with_role() {
 		add_user_meta( self::$author_ids[0], 'foo', 'bar' );
@@ -646,6 +711,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertEquals( array( self::$author_ids[0], self::$author_ids[1] ), $query->get_results() );
 	}
 
+	/**
+	 * @covers WP_User_Query::__construct
+	 */
 	public function test_roles_and_caps_should_be_populated_for_default_value_of_blog_id() {
 		$query = new WP_User_Query(
 			array(
@@ -663,6 +731,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-excluded
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_roles_and_caps_should_be_populated_for_explicit_value_of_blog_id_on_nonms() {
 		$query = new WP_User_Query(
@@ -682,6 +752,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_roles_and_caps_should_be_populated_for_explicit_value_of_current_blog_id_on_ms() {
 		$query = new WP_User_Query(
@@ -701,6 +773,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_roles_and_caps_should_be_populated_for_explicit_value_of_different_blog_id_on_ms_when_fields_all_with_meta() {
 		$b = self::factory()->blog->create();
@@ -726,6 +800,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 31878
 	 * @group ms-required
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_roles_and_caps_should_be_populated_for_explicit_value_of_different_blog_id_on_ms_when_fields_all() {
 		$b = self::factory()->blog->create();
@@ -751,6 +827,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @ticket 32019
 	 * @group ms-required
 	 * @expectedDeprecated WP_User_Query
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_who_authors() {
 		$b = self::factory()->blog->create();
@@ -777,6 +855,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @ticket 32019
 	 * @group ms-required
 	 * @expectedDeprecated WP_User_Query
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_who_authors_should_work_alongside_meta_query() {
 		$b = self::factory()->blog->create();
@@ -812,6 +892,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @ticket 36724
 	 * @group ms-required
 	 * @expectedDeprecated WP_User_Query
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_who_authors_should_work_alongside_meta_params() {
 		$b = self::factory()->blog->create();
@@ -841,6 +923,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 32250
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_has_published_posts_with_value_true_should_show_authors_of_posts_in_public_post_types() {
 		register_post_type( 'wptests_pt_public', array( 'public' => true ) );
@@ -875,6 +959,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 32250
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_has_published_posts_should_obey_post_types() {
 		register_post_type( 'wptests_pt_public', array( 'public' => true ) );
@@ -916,6 +1002,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 32250
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_has_published_posts_should_ignore_non_published_posts() {
 		register_post_type( 'wptests_pt_public', array( 'public' => true ) );
@@ -958,6 +1046,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 32250
 	 * @group ms-required
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_has_published_posts_should_respect_blog_id() {
 		$blogs = self::factory()->blog->create_many( 2 );
@@ -1002,6 +1092,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 32592
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_top_level_or_meta_query_should_eliminate_duplicate_matches() {
 		add_user_meta( self::$author_ids[0], 'foo', 'bar' );
@@ -1032,6 +1124,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 32592
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_nested_or_meta_query_should_eliminate_duplicate_matches() {
 		add_user_meta( self::$author_ids[0], 'foo', 'bar' );
@@ -1070,6 +1164,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36624
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_nicename_returns_user_with_nicename() {
 		wp_update_user(
@@ -1094,6 +1190,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36624
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_nicename__in_returns_users_with_included_nicenames() {
 		wp_update_user(
@@ -1132,6 +1230,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36624
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_nicename__not_in_returns_users_without_included_nicenames() {
 		wp_update_user(
@@ -1170,6 +1270,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36624
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_nicename__in() {
 		wp_update_user(
@@ -1209,6 +1311,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36624
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_login_returns_user_with_login() {
 
@@ -1229,6 +1333,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36624
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_login__in_returns_users_with_included_logins() {
 		$user_login1 = get_userdata( self::$author_ids[0] )->user_login;
@@ -1250,6 +1356,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36624
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_login__not_in_returns_users_without_included_logins() {
 		$user_login1 = get_userdata( self::$author_ids[0] )->user_login;
@@ -1271,6 +1379,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36624
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_orderby_login__in() {
 		$user_login1 = get_userdata( self::$author_ids[0] )->user_login;
@@ -1293,6 +1403,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25145
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_paged() {
 		$q = new WP_User_Query(
@@ -1310,6 +1422,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33449
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_query_vars_should_be_filled_in_after_pre_get_users() {
 		$query_vars = array( 'blog_id', 'role', 'meta_key', 'meta_value', 'meta_compare', 'include', 'exclude', 'search', 'search_columns', 'orderby', 'order', 'offset', 'number', 'paged', 'count_total', 'fields', 'who', 'has_published_posts' );
@@ -1331,6 +1445,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22212
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_get_single_role_by_user_query() {
 		$wp_user_search = new WP_User_Query( array( 'role' => 'subscriber' ) );
@@ -1341,6 +1457,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22212
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_get_multiple_roles_by_user_query() {
 		$wp_user_search = new WP_User_Query( array( 'role__in' => array( 'subscriber', 'editor' ) ) );
@@ -1350,6 +1468,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22212
+	 *
+	 * @covers ::get_users
 	 */
 	public function test_get_single_role_by_string() {
 		$users = get_users(
@@ -1363,6 +1483,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22212
+	 *
+	 * @covers ::get_users
 	 */
 	public function test_get_single_role_by_string_which_is_similar() {
 		$another_editor = self::factory()->user->create(
@@ -1386,6 +1508,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22212
+	 *
+	 * @covers ::get_users
 	 */
 	public function test_get_single_role_by_array() {
 		$users = get_users(
@@ -1399,6 +1523,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22212
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_get_multiple_roles_should_only_match_users_who_have_each_role() {
 		$users = new WP_User_Query( array( 'role' => array( 'subscriber', 'editor' ) ) );
@@ -1423,6 +1549,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22212
+	 *
+	 * @covers WP_User_Query::__construct
 	 */
 	public function test_get_multiple_roles_or() {
 		$users = new WP_User_Query( array( 'role__in' => array( 'subscriber', 'editor', 'administrator' ) ) );
@@ -1437,6 +1565,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22212
+	 *
+	 * @covers ::get_users
 	 */
 	public function test_get_multiple_roles_by_comma_separated_list() {
 		$users = get_users(
@@ -1463,6 +1593,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22212
+	 *
+	 * @covers ::get_users
 	 */
 	public function test_get_multiple_roles_with_meta() {
 		// Create administrator user + meta.
@@ -1510,6 +1642,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22212
+	 *
+	 * @covers ::get_users
 	 */
 	public function test_role_exclusion() {
 		$users = get_users(
@@ -1533,6 +1667,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22212
+	 *
+	 * @covers ::get_users
 	 */
 	public function test_role__in_role__not_in_combined() {
 		foreach ( self::$sub_ids as $subscriber ) {
@@ -1560,6 +1696,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22212
+	 *
+	 * @covers ::get_users
 	 */
 	public function test_role__not_in_role_combined() {
 		$subscriber = get_user_by( 'ID', self::$sub_ids[0] );
@@ -1577,6 +1715,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22212
+	 *
+	 * @covers ::get_users
 	 */
 	public function test_role__not_in_user_without_role() {
 		$user_without_rule = get_user_by( 'ID', self::$sub_ids[0] );
@@ -1605,6 +1745,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 22212
 	 * @group ms-required
+	 *
+	 * @covers ::get_users
 	 */
 	public function test_blog_id_should_restrict_by_blog_without_requiring_a_named_role() {
 		$sites = self::factory()->blog->create_many( 2 );
@@ -1626,6 +1768,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @ticket 22212
 	 * @ticket 21119
 	 * @group ms-required
+	 *
+	 * @covers  WP_User_Query::__construct
 	 */
 	public function test_calling_prepare_query_a_second_time_should_not_add_another_cap_query_on_multisite() {
 		$site_id = get_current_blog_id();
@@ -1661,6 +1805,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39643
+	 *
+	 * @covers  WP_User_Query::__construct
 	 */
 	public function test_search_by_display_name_only() {
 
@@ -1689,6 +1835,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39643
+	 *
+	 * @covers  WP_User_Query::__construct
 	 */
 	public function test_search_by_display_name_only_ignore_others() {
 
@@ -1717,6 +1865,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44169
+	 *
+	 * @covers  WP_User_Query::__construct
 	 */
 	public function test_users_pre_query_filter_should_bypass_database_query() {
 		add_filter( 'users_pre_query', array( __CLASS__, 'filter_users_pre_query' ), 10, 2 );
