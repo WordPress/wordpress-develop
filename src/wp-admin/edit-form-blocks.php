@@ -126,9 +126,14 @@ wp_add_inline_script(
 // Set Heartbeat interval to 10 seconds, used to refresh post locks.
 wp_add_inline_script(
 	'heartbeat',
-	'if ( window.wp && window.wp.heartbeat ) {
-		window.wp.heartbeat.interval( 10 );
-	}'
+	'if ( window.wp && window.wp.domReady ) {
+		window.wp.domReady( function() {
+			if ( window.wp.heartbeat ) {
+				window.wp.heartbeat.interval( 10 );
+			}
+		} );
+	}',
+	'before'
 );
 
 /*
