@@ -35,14 +35,36 @@ class WP_Block_Metadata_Registry {
 	 *                                      and return a string (the block identifier).
 	 *                                      The block identifier is used to uniquely identify a block within a collection,
 	 *                                      and should be the keys used in the metadata array.
+	 * @return bool                         True if the collection was registered successfully, false otherwise.
 	 */
 	public static function register_collection( $path, $manifest, $identifier_callback = null ) {
-		$path = rtrim( $path, '/' );
+		$path = wp_normalize_path( rtrim( $path, '/' ) );
+
+		// Check if the path is valid:
+		if ( str_starts_with( $path, wp_normalize_path( ABSPATH . WPINC ) ) ) {
+			// Core path is valid.
+		} elseif ( str_starts_with( $path, wp_normalize_path( WP_PLUGIN_DIR ) ) ) {
+			// For plugins, ensure the path is within a specific plugin directory and not the base plugin directory.
+			$plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
+			$relative_path = substr( $path, strlen( $plugin_dir ) + 1 );
+			$plugin_name = strtok( $relative_path, '/' );
+
+			if ( empty( $plugin_name ) || $plugin_name === $relative_path ) {
+				// Invalid plugin path.
+				return false;
+			}
+		} else {
+			// Path is neither core nor a valid plugin path.
+			return false;
+		}
+
 		self::$collections[ $path ] = array(
 			'manifest' => $manifest,
 			'metadata' => null,
 			'identifier_callback' => $identifier_callback,
 		);
+
+		return true;
 	}
 
 	/**
