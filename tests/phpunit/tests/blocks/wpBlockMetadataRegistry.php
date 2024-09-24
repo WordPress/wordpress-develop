@@ -61,25 +61,25 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 
 	public function test_register_collection_with_core_path() {
 		$core_path = ABSPATH . WPINC . '/blocks';
-		$result = WP_Block_Metadata_Registry::register_collection( $core_path, $this->temp_manifest_file );
+		$result    = WP_Block_Metadata_Registry::register_collection( $core_path, $this->temp_manifest_file );
 		$this->assertTrue( $result, 'Core path should be registered successfully' );
 	}
 
 	public function test_register_collection_with_valid_plugin_path() {
 		$plugin_path = WP_PLUGIN_DIR . '/my-plugin/blocks';
-		$result = WP_Block_Metadata_Registry::register_collection( $plugin_path, $this->temp_manifest_file );
+		$result      = WP_Block_Metadata_Registry::register_collection( $plugin_path, $this->temp_manifest_file );
 		$this->assertTrue( $result, 'Valid plugin path should be registered successfully' );
 	}
 
 	public function test_register_collection_with_invalid_plugin_path() {
 		$invalid_plugin_path = WP_PLUGIN_DIR;
-		$result = WP_Block_Metadata_Registry::register_collection( $invalid_plugin_path, $this->temp_manifest_file );
+		$result              = WP_Block_Metadata_Registry::register_collection( $invalid_plugin_path, $this->temp_manifest_file );
 		$this->assertFalse( $result, 'Invalid plugin path should not be registered' );
 	}
 
 	public function test_register_collection_with_non_existent_path() {
 		$non_existent_path = '/path/that/does/not/exist';
-		$result = WP_Block_Metadata_Registry::register_collection( $non_existent_path, $this->temp_manifest_file );
+		$result            = WP_Block_Metadata_Registry::register_collection( $non_existent_path, $this->temp_manifest_file );
 		$this->assertFalse( $result, 'Non-existent path should not be registered' );
 	}
 }
