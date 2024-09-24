@@ -36,7 +36,7 @@ class WP_Block_Metadata_Registry {
 	 *                                      The block identifier is used to uniquely identify a block within a collection,
 	 *                                      and should be the keys used in the metadata array.
 	 */
-	public static function register_collection( $path, $manifest, $identifier_callback=null ) {
+	public static function register_collection( $path, $manifest, $identifier_callback = null ) {
 		$path = rtrim( $path, '/' );
 		self::$collections[ $path ] = array(
 			'manifest' => $manifest,
