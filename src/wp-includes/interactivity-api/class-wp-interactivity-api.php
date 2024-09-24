@@ -1031,16 +1031,16 @@ HTML;
 		if ( 'enter' === $mode && ! $this->has_processed_router_region ) {
 			$this->has_processed_router_region = true;
 
-			// Initialize the `core/router` store.
+			/*
+			 * Initialize the `core/router` store.
+			 * If the store is not initialized like this with minimal
+			 * navigation object, the interactivity-router script module
+			 * errors.
+			 */
 			$this->state(
 				'core/router',
 				array(
-					'navigation' => array(
-						'texts' => array(
-							'loading' => __( 'Loading page, please wait.' ),
-							'loaded'  => __( 'Page Loaded.' ),
-						),
-					),
+					'navigation' => new stdClass(),
 				)
 			);
 
