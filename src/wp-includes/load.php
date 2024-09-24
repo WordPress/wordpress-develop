@@ -1808,7 +1808,7 @@ function wp_start_scraping_edited_file_errors() {
 	$nonce = wp_unslash( $_REQUEST['wp_scrape_nonce'] );
 	$transient = get_transient( 'scrape_key_' . $key );
 
-	if ( $transient === false ) {
+	if ( false === $transient ) {
 		return;
 	}
 
