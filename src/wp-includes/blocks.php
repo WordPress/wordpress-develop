@@ -436,6 +436,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	}
 
 	// Try to get metadata from the static cache for core blocks.
+	$metadata = array();
 	if ( $has_metadata_from_registry ) {
 		$metadata = WP_Block_Metadata_Registry::get_metadata( $collection, $block_identifier );
 	}
