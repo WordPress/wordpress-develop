@@ -418,7 +418,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'read_post_meta':
 			// Extract the object type from the capability (expected to be 'post').
 			$object_type = explode( '_', $cap )[1];
-		
+
 			// Check if the first argument (object ID) is provided.
 			if ( ! isset( $args[0] ) ) {
 				/* translators: %s: Capability name. */
@@ -431,17 +431,17 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				$caps[] = 'do_not_allow';
 				break;
 			}
-		
+
 			// Get the object ID and ensure it is an integer.
 			$object_id = (int) $args[0];
-		
+
 			// Retrieve the post object to validate existence.
-			$post = get_post($object_id);
+			$post = get_post( $object_id );
 			if ( ! $post ) {
 				$caps[] = 'do_not_allow';
 				break;
 			}
-		
+
 			// Check for revision post type.
 			if ( 'revision' === $post->post_type ) {
 				$post = get_post( $post->post_parent );
@@ -450,27 +450,27 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 					break;
 				}
 			}
-		
+
 			// Retrieve the object subtype (not strictly necessary for 'post').
 			$object_subtype = get_object_subtype( $object_type, $object_id );
-		
+
 			// If the object subtype is empty, deny access.
 			if ( empty( $object_subtype ) ) {
 				$caps[] = 'do_not_allow';
 				break;
 			}
-		
+
 			// Map the read capability for the specific object type.
 			$caps = map_meta_cap( "read_{$object_type}", $user_id, $object_id );
-		
+
 			// Check if a specific meta key is provided.
 			$meta_key = isset( $args[1] ) ? $args[1] : false;
-		
+
 			// If a meta key is provided, perform additional checks.
 			if ( $meta_key ) {
 				// Check if the meta key is protected (i.e., cannot be accessed).
 				$allowed = ! is_protected_meta( $meta_key, $object_type );
-		
+
 				/**
 				 * Filters whether the user is allowed to read a specific meta key of a specific object type.
 				 *
@@ -489,7 +489,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				 * @param string[] $caps      Array of the user's capabilities.
 				 */
 				$allowed = apply_filters( "auth_{$object_type}_meta_{$meta_key}", $allowed, $meta_key, $object_id, $user_id, $cap, $caps );
-		
+
 				// If there's an object subtype, check for specific subtype filters
 				if ( ! empty( $object_subtype ) ) {
 					/**
