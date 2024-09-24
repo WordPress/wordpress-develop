@@ -32,6 +32,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * @see register_widget()
 	 * @see unregister_widget()
+	 *
+	 * @covers ::register_widget
+	 * @covers ::unregister_widget
 	 */
 	public function test_register_and_unregister_widget_core_widget() {
 		global $wp_widget_factory;
@@ -51,6 +54,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 * @see register_widget()
 	 * @see unregister_widget()
 	 * @ticket 28216
+	 *
+	 * @covers ::register_widget
+	 * @covers ::unregister_widget
 	 */
 	public function test_register_and_unregister_widget_instance() {
 		global $wp_widget_factory, $wp_registered_widgets;
@@ -128,6 +134,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @group sidebar
+	 *
+	 * @covers ::register_sidebars
 	 */
 	public function test_register_sidebars_single() {
 		global $wp_registered_sidebars;
@@ -139,6 +147,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @group sidebar
+	 *
+	 * @covers ::register_sidebars
 	 */
 	public function test_register_sidebars_multiple() {
 		global $wp_registered_sidebars;
@@ -160,6 +170,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @group sidebar
+	 *
+	 * @covers ::register_sidebars
 	 */
 	public function test_register_sidebar_with_no_id() {
 		global $wp_registered_sidebars;
@@ -177,6 +189,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @group sidebar
+	 *
+	 * @covers ::register_sidebars
 	 */
 	public function test_unregister_sidebar_registered_with_no_id() {
 		global $wp_registered_sidebars;
@@ -196,6 +210,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @group sidebar
+	 *
+	 * @covers ::register_sidebars
 	 */
 	public function test_register_sidebar_with_string_id() {
 		global $wp_registered_sidebars;
@@ -208,6 +224,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @group sidebar
+	 *
+	 * @covers ::unregister_sidebar
 	 */
 	public function test_unregister_sidebar_with_string_id() {
 		global $wp_registered_sidebars;
@@ -221,6 +239,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @group sidebar
+	 *
+	 * @covers ::register_sidebars
 	 */
 	public function test_register_sidebar_with_numeric_id() {
 		global $wp_registered_sidebars;
@@ -233,6 +253,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @group sidebar
+	 *
+	 * @covers ::unregister_sidebar
 	 */
 	public function test_unregister_sidebar_with_numeric_id() {
 		global $wp_registered_sidebars;
@@ -247,6 +269,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * @group sidebar
 	 * @ticket 19709
+	 *
+	 * @covers ::register_sidebars
 	 */
 	public function test_register_sidebar_with_after_and_before_sidebar() {
 		global $wp_registered_sidebars;
@@ -269,6 +293,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * @group sidebar
 	 * @ticket 19709
+	 *
+	 * @covers ::register_sidebars
 	 */
 	public function test_register_sidebar_without_after_and_before_sidebar() {
 		global $wp_registered_sidebars;
@@ -295,6 +321,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @group sidebar
+	 *
+	 * @covers ::dynamic_sidebar
 	 */
 	public function test_dynamic_sidebar_using_sidebar_registered_with_no_id() {
 		$this->setExpectedIncorrectUsage( 'register_sidebar' );
@@ -314,6 +342,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @group sidebar
+	 *
+	 * @covers ::dynamic_sidebar
 	 */
 	public function test_dynamic_sidebar_using_invalid_sidebar_id() {
 		register_sidebar( array( 'id' => 'wp-unit-text' ) );
@@ -332,6 +362,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @group sidebar
+	 *
+	 * @covers ::dynamic_sidebar
 	 */
 	public function test_dynamic_sidebar_numeric_id() {
 		$sidebar_id = 2;
@@ -346,6 +378,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @group sidebar
+	 *
+	 * @covers ::dynamic_sidebar
 	 */
 	public function test_dynamic_sidebar_string_id() {
 		$sidebar_id = 'wp-unit-tests';
@@ -360,6 +394,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Widget_Search::form()
+	 *
+	 * @covers WP_Widget_Search::form
 	 */
 	public function test_wp_widget_search_form() {
 		$widget = new WP_Widget_Search( 'foo', 'Foo' );
@@ -382,6 +418,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Widget::form()
+	 *
+	 * @covers WP_Widget_Search::form
 	 */
 	public function test_wp_widget_form() {
 		$widget = new WP_Widget( 'foo', 'Foo' );
@@ -394,6 +432,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Widget::__construct()
+	 *
+	 * @covers WP_Widget::__construct
 	 */
 	public function test_wp_widget_constructor() {
 		$id_base    = 'foo';
@@ -468,6 +508,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * @see WP_Widget::get_field_name()
 	 * @dataProvider data_wp_widget_get_field_name
+	 *
+	 * @covers WP_Widget::get_field_name
 	 */
 	public function test_wp_widget_get_field_name( $expected, $value_to_test ) {
 		$widget = new WP_Widget( 'foo', 'Foo' );
@@ -517,6 +559,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * @see WP_Widget::get_field_id()
 	 * @dataProvider data_wp_widget_get_field_id
+	 *
+	 * @covers WP_Widget::get_field_id
 	 */
 	public function test_wp_widget_get_field_id( $expected, $value_to_test ) {
 		$widget = new WP_Widget( 'foo', 'Foo' );
@@ -566,6 +610,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Widget::_register()
+	 *
+	 * @covers WP_Widget::_register
+	 * @covers ::wp_widgets_init
 	 */
 	public function test_wp_widget__register() {
 		global $wp_registered_widgets;
@@ -624,6 +671,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Widget::is_preview()
+	 *
+	 * @covers WP_Widget::is_preview
 	 */
 	public function test_wp_widget_is_preview() {
 		global $wp_customize;
@@ -647,6 +696,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Widget::get_settings()
+	 *
+	 * @covers WP_Widget::get_settings
 	 */
 	public function test_wp_widget_get_settings() {
 		global $wp_registered_widgets;
@@ -739,6 +790,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Widget::save_settings()
+	 *
+	 * @covers WP_Widget::save_settings
 	 */
 	public function test_wp_widget_save_settings() {
 		global $wp_registered_widgets;
@@ -770,6 +823,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Widget::save_settings()
+	 *
+	 * @covers WP_Widget::save_settings
 	 */
 	public function test_wp_widget_save_settings_delete() {
 		global $wp_registered_widgets;
@@ -787,6 +842,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @see wp_widget_control()
+	 *
+	 * @covers ::wp_widget_control
 	 */
 	public function test_wp_widget_control() {
 		global $wp_registered_widgets;
@@ -866,6 +923,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::the_widget
+	 */
 	public function test_the_widget_custom_before_title_arg() {
 		register_widget( 'WP_Widget_Text' );
 
@@ -893,6 +953,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 * display an unregistered widget.
 	 *
 	 * @see \the_widget()
+	 *
+	 * @covers ::the_widget
 	 */
 	public function test_the_widget_with_unregistered_widget() {
 		$this->setExpectedIncorrectUsage( 'the_widget' );
@@ -901,6 +963,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34226
+	 *
+	 * @covers ::the_widget
 	 */
 	public function test_the_widget_should_short_circuit_with_widget_display_callback() {
 		add_filter( 'widget_display_callback', '__return_false' );
@@ -1168,6 +1232,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertNotEquals( $sidebars_widgets, wp_get_sidebars_widgets() );
 	}
 
+	/**
+	 * @covers ::retrieve_widgets
+	 */
 	public function test_retrieve_widgets_with_single_widget() {
 		global $sidebars_widgets;
 
