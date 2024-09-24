@@ -73,7 +73,7 @@ class WP_Block_Metadata_Registry {
 	 * @since 6.X.0
 	 *
 	 * @param string $file_or_folder The path to the file or folder containing the block metadata.
-	 * @return array|null        The block metadata for the block, or null if not found.
+	 * @return array|null            The block metadata for the block, or null if not found.
 	 */
 	public static function get_metadata( $file_or_folder ) {
 		$path = self::find_collection_path( $file_or_folder );
