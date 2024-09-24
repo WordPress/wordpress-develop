@@ -10,6 +10,11 @@
 /**
  * Class used for managing block metadata collections.
  *
+ * The WP_Block_Metadata_Registry allows plugins to register metadata for large
+ * collections of blocks (e.g., 50-100+) using a single PHP file. This approach
+ * reduces the need to read and decode multiple `block.json` files, enhancing
+ * performance through opcode caching.
+ *
  * @since 6.X.0
  */
 class WP_Block_Metadata_Registry {
@@ -17,8 +22,10 @@ class WP_Block_Metadata_Registry {
 	/**
 	 * Container for storing block metadata collections.
 	 *
+	 * Each entry maps a base path to its corresponding metadata and callback.
+	 *
 	 * @since 6.X.0
-	 * @var array
+	 * @var array<string, array<string, mixed>>
 	 */
 	private static $collections = array();
 
@@ -33,16 +40,20 @@ class WP_Block_Metadata_Registry {
 	/**
 	 * Registers a block metadata collection.
 	 *
+	 * This method allows registering a collection of block metadata from a single
+	 * manifest file, improving performance for large sets of blocks.
+	 *
 	 * @since 6.X.0
 	 *
-	 * @param string   $path                The base path for the collection.
-	 * @param string   $manifest            The path to the manifest file for the collection.
-	 * @param callable $identifier_callback Optional. A callback function to determine the block identifier from a given path.
-	 *                                      Default null, which uses the default identifier callback.
-	 *                                      The callback should accept a single string parameter (the file or folder path)
-	 *                                      and return a string (the block identifier).
-	 *                                      The block identifier is used to uniquely identify a block within a collection,
-	 *                                      and should be the keys used in the metadata array.
+	 * @param string   $path                The absolute base path for the collection ( e.g., WP_PLUGIN_DIR . '/my-plugin/blocks/' ).
+	 * @param string   $manifest            The absolute path to the manifest file containing the metadata collection.
+	 * @param callable $identifier_callback Optional. Callback to determine the block identifier from a path.
+	 *                                      The callback should accept a string (file or folder path) and return a string (block identifier).
+	 *                                      This allows custom mapping between file paths and block names in the manifest.
+	 *                                      If null, the default identifier callback is used, which extracts the parent
+	 *                                      directory name. For example, when calling get_metadata() with a path like
+	 *                                      'WP_PLUGIN_DIR/my-plugin/blocks/example/block.json', it would look for
+	 *                                      a key named "example" in the manifest.
 	 * @return bool                         True if the collection was registered successfully, false otherwise.
 	 */
 	public static function register_collection( $path, $manifest, $identifier_callback = null ) {
@@ -76,11 +87,14 @@ class WP_Block_Metadata_Registry {
 	}
 
 	/**
-	 * Retrieves block metadata for a given block name within a specific collection.
+	 * Retrieves block metadata for a given block within a specific collection.
+	 *
+	 * This method uses the registered collections to efficiently lookup
+	 * block metadata without reading individual `block.json` files.
 	 *
 	 * @since 6.X.0
 	 *
-	 * @param string $file_or_folder The path to the file or folder containing the block metadata.
+	 * @param string $file_or_folder The path to the file or folder containing the block.
 	 * @return array|null            The block metadata for the block, or null if not found.
 	 */
 	public static function get_metadata( $file_or_folder ) {
@@ -151,12 +165,19 @@ class WP_Block_Metadata_Registry {
 	/**
 	 * Default callback function to determine the block identifier from a given path.
 	 *
-	 * This function is used when no custom identifier callback is provided during the
-	 * registration of a block metadata collection. It determines the block identifier
-	 * based on the provided path.
+	 * This function is used when no custom identifier callback is provided during
+	 * collection registration. It extracts the block identifier from the path:
+	 * - For 'block.json' files, it uses the parent directory name.
+	 * - For directories, it uses the directory name itself.
 	 *
-	 * If the path ends with 'block.json', the parent directory name is used as the block
-	 * identifier. Otherwise, the name of the directory itself is used.
+	 * For example:
+	 * - Path: '/wp-content/plugins/my-plugin/blocks/example/block.json'
+	 *   Identifier: 'example'
+	 * - Path: '/wp-content/plugins/my-plugin/blocks/another-block'
+	 *   Identifier: 'another-block'
+	 *
+	 * This default behavior matches the standard WordPress block structure.
+	 * Custom callbacks can be provided for non-standard structures.
 	 *
 	 * @since 6.X.0
 	 *
