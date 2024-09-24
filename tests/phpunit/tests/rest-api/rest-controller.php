@@ -362,7 +362,6 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		// Ignored properties.
 		$this->assertArrayNotHasKey( 'ignored_prop', $args['someobject'] );
-
 	}
 
 	/**

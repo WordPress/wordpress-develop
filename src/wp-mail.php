@@ -44,7 +44,7 @@ if ( $last_checked ) {
 
 set_transient( 'mailserver_last_checked', true, WP_MAIL_INTERVAL );
 
-$time_difference = get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
+$time_difference = (int) ( (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 
 $phone_delim = '::';
 
@@ -107,7 +107,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 				$content_transfer_encoding = explode( ';', $content_transfer_encoding );
 				$content_transfer_encoding = $content_transfer_encoding[0];
 			}
-			if ( ( 'multipart/alternative' === $content_type ) && ( str_contains( $line, 'boundary="' ) ) && ( '' === $boundary ) ) {
+			if ( 'multipart/alternative' === $content_type && str_contains( $line, 'boundary="' ) && '' === $boundary ) {
 				$boundary = trim( $line );
 				$boundary = explode( '"', $boundary );
 				$boundary = $boundary[1];

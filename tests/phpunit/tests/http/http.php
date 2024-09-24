@@ -47,7 +47,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( '../file-in-parent.ext', 'http://example.com/directory/', 'http://example.com/file-in-parent.ext' ),
 			array( '../file-in-parent.ext', 'http://example.com/directory/filename', 'http://example.com/file-in-parent.ext' ),
 
-			// Location provided in muliple levels higher, including impossible to reach (../ below DOCROOT).
+			// Location provided in multiple levels higher, including impossible to reach (../ below DOCROOT).
 			array( '../../file-in-grand-parent.ext', 'http://example.com', 'http://example.com/file-in-grand-parent.ext' ),
 			array( '../../file-in-grand-parent.ext', 'http://example.com/filename', 'http://example.com/file-in-grand-parent.ext' ),
 			array( '../../file-in-grand-parent.ext', 'http://example.com/directory/', 'http://example.com/file-in-grand-parent.ext' ),
@@ -114,7 +114,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				),
 			),
 
-			// < PHP 5.4.7: Schemeless URL.
+			// Schemeless URL.
 			array(
 				'//example.com/path/',
 				array(
@@ -138,7 +138,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				),
 			),
 
-			// < PHP 5.4.7: Scheme separator in the URL.
+			// Scheme separator in the URL.
 			array(
 				'http://example.com/http://example.net/',
 				array(
@@ -149,7 +149,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			),
 			array( '/path/http://example.net/', array( 'path' => '/path/http://example.net/' ) ),
 
-			// < PHP 5.4.7: IPv6 literals in schemeless URLs are handled incorrectly.
+			// IPv6 literals in schemeless URLs.
 			array(
 				'//[::FFFF::127.0.0.1]/',
 				array(
@@ -238,7 +238,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( self::FULL_TEST_URL, PHP_URL_QUERY, 'arg1=value1&arg2=value2' ),
 			array( self::FULL_TEST_URL, PHP_URL_FRAGMENT, 'anchor' ),
 
-			// < PHP 5.4.7: Schemeless URL.
+			// Schemeless URL.
 			array( '//example.com/path/', PHP_URL_HOST, 'example.com' ),
 			array( '//example.com/path/', PHP_URL_PATH, '/path/' ),
 			array( '//example.com/', PHP_URL_HOST, 'example.com' ),
@@ -246,13 +246,13 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( 'http://example.com//path/', PHP_URL_HOST, 'example.com' ),
 			array( 'http://example.com//path/', PHP_URL_PATH, '//path/' ),
 
-			// < PHP 5.4.7: Scheme separator in the URL.
+			// Scheme separator in the URL.
 			array( 'http://example.com/http://example.net/', PHP_URL_HOST, 'example.com' ),
 			array( 'http://example.com/http://example.net/', PHP_URL_PATH, '/http://example.net/' ),
 			array( '/path/http://example.net/', PHP_URL_HOST, null ),
 			array( '/path/http://example.net/', PHP_URL_PATH, '/path/http://example.net/' ),
 
-			// < PHP 5.4.7: IPv6 literals in schemeless URLs are handled incorrectly.
+			// IPv6 literals in schemeless URLs.
 			array( '//[::FFFF::127.0.0.1]/', PHP_URL_HOST, '[::FFFF::127.0.0.1]' ),
 			array( '//[::FFFF::127.0.0.1]/', PHP_URL_PATH, '/' ),
 
@@ -292,7 +292,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		get_status_header_desc( 200 );
 
 		$this->assertSame( array_keys( $wp_header_to_desc ), array_values( $constants ) );
-
 	}
 
 	/**
@@ -594,7 +593,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		// Filter the response made by WP_Http::handle_redirects().
 		add_filter(
 			'pre_http_request',
-			function( $response, $parsed_args, $url ) use ( &$pre_http_request_filter_has_run ) {
+			function ( $response, $parsed_args, $url ) use ( &$pre_http_request_filter_has_run ) {
 				$pre_http_request_filter_has_run = true;
 
 				// Assert the redirect URL is correct.
@@ -661,5 +660,57 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		);
 		$this->assertSame( 'PASS', wp_remote_retrieve_body( $redirect_response ), 'Redirect response body is expected to be PASS.' );
 		$this->assertTrue( $pre_http_request_filter_has_run, 'The pre_http_request filter is expected to run.' );
+	}
+
+	/**
+	 * Test that WP_Http::normalize_cookies method correctly casts integer keys to string.
+	 * @ticket 58566
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_casts_integer_keys_to_string() {
+		$http = _wp_http_get_object();
+
+		$cookies = array(
+			'1'   => 'foo',
+			2     => 'bar',
+			'qux' => 7,
+		);
+
+		$cookie_jar = $http->normalize_cookies( $cookies );
+
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie\Jar', $cookie_jar );
+
+		foreach ( array_keys( $cookies ) as $cookie ) {
+			if ( is_string( $cookie ) ) {
+				$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar[ $cookie ] );
+			} else {
+				$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar[ (string) $cookie ] );
+			}
+		}
+	}
+
+	/**
+	 * Test that WP_Http::normalize_cookies method correctly casts integer cookie names to strings.
+	 * @ticket 58566
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_casts_cookie_name_integer_to_string() {
+		$http = _wp_http_get_object();
+
+		$cookies = array(
+			'foo' => new WP_Http_Cookie(
+				array(
+					'name'  => 1,
+					'value' => 'foo',
+				)
+			),
+		);
+
+		$cookie_jar = $http->normalize_cookies( $cookies );
+
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie\Jar', $cookie_jar );
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['1'] );
 	}
 }

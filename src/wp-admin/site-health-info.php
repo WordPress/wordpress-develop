@@ -18,11 +18,15 @@ if ( ! class_exists( 'WP_Site_Health' ) ) {
 }
 
 $health_check_site_status = WP_Site_Health::get_instance();
-?>
 
-<div class="notice notice-error hide-if-js">
-	<p><?php _e( 'The Site Health check requires JavaScript.' ); ?></p>
-</div>
+wp_admin_notice(
+	__( 'The Site Health check requires JavaScript.' ),
+	array(
+		'type'               => 'error',
+		'additional_classes' => array( 'hide-if-js' ),
+	)
+);
+?>
 
 <div class="health-check-body health-check-debug-tab hide-if-no-js">
 	<?php
@@ -60,7 +64,7 @@ $health_check_site_status = WP_Site_Health::get_instance();
 
 		<?php
 
-		$sizes_fields = array( 'uploads_size', 'themes_size', 'plugins_size', 'wordpress_size', 'database_size', 'total_size' );
+		$sizes_fields = array( 'uploads_size', 'themes_size', 'plugins_size', 'fonts_size', 'wordpress_size', 'database_size', 'total_size' );
 
 		foreach ( $info as $section => $details ) {
 			if ( ! isset( $details['fields'] ) || empty( $details['fields'] ) ) {

@@ -99,7 +99,9 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	public function prepare_items() {
 		global $status, $totals, $page, $orderby, $order, $s;
 
-		wp_reset_vars( array( 'orderby', 'order', 's' ) );
+		$orderby = ! empty( $_REQUEST['orderby'] ) ? sanitize_text_field( $_REQUEST['orderby'] ) : '';
+		$order   = ! empty( $_REQUEST['order'] ) ? sanitize_text_field( $_REQUEST['order'] ) : '';
+		$s       = ! empty( $_REQUEST['s'] ) ? sanitize_text_field( $_REQUEST['s'] ) : '';
 
 		$themes = array(
 			/**
@@ -492,6 +494,9 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
 	 */
 	public function display_rows() {
 		foreach ( $this->items as $theme ) {
@@ -509,10 +514,12 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 */
 	public function column_cb( $item ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$theme       = $item;
+		$theme = $item;
+
 		$checkbox_id = 'checkbox_' . md5( $theme->get( 'Name' ) );
 		?>
-		<label class="label-covers-full-cell" for="<?php echo $checkbox_id; ?>" >
+		<input type="checkbox" name="checked[]" value="<?php echo esc_attr( $theme->get_stylesheet() ); ?>" id="<?php echo $checkbox_id; ?>" />
+		<label for="<?php echo $checkbox_id; ?>" >
 			<span class="screen-reader-text">
 			<?php
 			printf(
@@ -523,7 +530,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			?>
 			</span>
 		</label>
-		<input type="checkbox" name="checked[]" value="<?php echo esc_attr( $theme->get_stylesheet() ); ?>" id="<?php echo $checkbox_id; ?>" />
 		<?php
 	}
 
@@ -878,6 +884,11 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * @param string   $column_name The current column name.
 	 */
 	public function column_default( $item, $column_name ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$theme = $item;
+
+		$stylesheet = $theme->get_stylesheet();
+
 		/**
 		 * Fires inside each custom column of the Multisite themes list table.
 		 *
@@ -887,12 +898,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		 * @param string   $stylesheet  Directory name of the theme.
 		 * @param WP_Theme $theme       Current WP_Theme object.
 		 */
-		do_action(
-			'manage_themes_custom_column',
-			$column_name,
-			$item->get_stylesheet(), // Directory name of the theme.
-			$item // Theme object.
-		);
+		do_action( 'manage_themes_custom_column', $column_name, $stylesheet, $theme );
 	}
 
 	/**

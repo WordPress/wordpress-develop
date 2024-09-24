@@ -23,7 +23,7 @@
 <!--<![endif]-->
 <head>
 <meta charset="<?php bloginfo( 'charset' ); ?>" />
-<meta name="viewport" content="width=device-width" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>
 <?php
 	// Print the <title> tag based on what is being viewed.
@@ -49,7 +49,7 @@ if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
 ?>
 	</title>
 <link rel="profile" href="https://gmpg.org/xfn/11" />
-<link rel="stylesheet" type="text/css" media="all" href="<?php echo esc_url( get_stylesheet_uri() ); ?>?ver=20230808" />
+<link rel="stylesheet" type="text/css" media="all" href="<?php echo esc_url( get_stylesheet_uri() ); ?>?ver=20240716" />
 <link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>">
 <!--[if lt IE 9]>
 <script src="<?php echo esc_url( get_template_directory_uri() ); ?>/js/html5.js?ver=3.7.0" type="text/javascript"></script>
@@ -111,17 +111,7 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 					// Houston, we have a new header image!
 					echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
 				} else {
-					// Compatibility with versions of WordPress prior to 3.4.
-					if ( function_exists( 'get_custom_header' ) ) {
-						$header_image_width  = get_custom_header()->width;
-						$header_image_height = get_custom_header()->height;
-					} else {
-						$header_image_width  = HEADER_IMAGE_WIDTH;
-						$header_image_height = HEADER_IMAGE_HEIGHT;
-					}
-					?>
-					<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $header_image_width ); ?>" height="<?php echo esc_attr( $header_image_height ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name', 'display' ) ); ?>" />
-					<?php
+					twentyeleven_header_image();
 				} // End check for featured image or standard header.
 				?>
 			</a>

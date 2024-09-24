@@ -10,14 +10,14 @@
  * servers with known pretty permalink capability.
  *
  * Note: Though Nginx is detected, WordPress does not currently
- * generate rewrite rules for it. See https://wordpress.org/documentation/article/nginx/
+ * generate rewrite rules for it. See https://developer.wordpress.org/advanced-administration/server/web-server/nginx/
  *
  * @package WordPress
  */
 
 global $pagenow,
 	$is_lynx, $is_gecko, $is_winIE, $is_macIE, $is_opera, $is_NS4, $is_safari, $is_chrome, $is_iphone, $is_IE, $is_edge,
-	$is_apache, $is_IIS, $is_iis7, $is_nginx;
+	$is_apache, $is_IIS, $is_iis7, $is_nginx, $is_caddy;
 
 // On which page are we?
 if ( is_admin() ) {
@@ -91,7 +91,9 @@ if ( isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
 		}
 	} elseif ( stripos( $_SERVER['HTTP_USER_AGENT'], 'safari' ) !== false ) {
 		$is_safari = true;
-	} elseif ( ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'MSIE' ) || str_contains( $_SERVER['HTTP_USER_AGENT'], 'Trident' ) ) && str_contains( $_SERVER['HTTP_USER_AGENT'], 'Win' ) ) {
+	} elseif ( ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'MSIE' ) || str_contains( $_SERVER['HTTP_USER_AGENT'], 'Trident' ) )
+		&& str_contains( $_SERVER['HTTP_USER_AGENT'], 'Win' )
+	) {
 		$is_winIE = true;
 	} elseif ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'MSIE' ) && str_contains( $_SERVER['HTTP_USER_AGENT'], 'Mac' ) ) {
 		$is_macIE = true;
@@ -111,42 +113,54 @@ $is_IE = ( $is_macIE || $is_winIE );
 // Server detection.
 
 /**
- * Whether the server software is Apache or something else
+ * Whether the server software is Apache or something else.
  *
  * @global bool $is_apache
  */
 $is_apache = ( str_contains( $_SERVER['SERVER_SOFTWARE'], 'Apache' ) || str_contains( $_SERVER['SERVER_SOFTWARE'], 'LiteSpeed' ) );
 
 /**
- * Whether the server software is Nginx or something else
+ * Whether the server software is Nginx or something else.
  *
  * @global bool $is_nginx
  */
 $is_nginx = ( str_contains( $_SERVER['SERVER_SOFTWARE'], 'nginx' ) );
 
 /**
- * Whether the server software is IIS or something else
+ * Whether the server software is Caddy / FrankenPHP or something else.
+ *
+ * @global bool $is_caddy
+ */
+$is_caddy = ( str_contains( $_SERVER['SERVER_SOFTWARE'], 'Caddy' ) || str_contains( $_SERVER['SERVER_SOFTWARE'], 'FrankenPHP' ) );
+
+/**
+ * Whether the server software is IIS or something else.
  *
  * @global bool $is_IIS
  */
 $is_IIS = ! $is_apache && ( str_contains( $_SERVER['SERVER_SOFTWARE'], 'Microsoft-IIS' ) || str_contains( $_SERVER['SERVER_SOFTWARE'], 'ExpressionDevServer' ) );
 
 /**
- * Whether the server software is IIS 7.X or greater
+ * Whether the server software is IIS 7.X or greater.
  *
  * @global bool $is_iis7
  */
 $is_iis7 = $is_IIS && (int) substr( $_SERVER['SERVER_SOFTWARE'], strpos( $_SERVER['SERVER_SOFTWARE'], 'Microsoft-IIS/' ) + 14 ) >= 7;
 
 /**
- * Test if the current browser runs on a mobile device (smart phone, tablet, etc.)
+ * Test if the current browser runs on a mobile device (smart phone, tablet, etc.).
  *
  * @since 3.4.0
+ * @since 6.4.0 Added checking for the Sec-CH-UA-Mobile request header.
  *
  * @return bool
  */
 function wp_is_mobile() {
-	if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
+	if ( isset( $_SERVER['HTTP_SEC_CH_UA_MOBILE'] ) ) {
+		// This is the `Sec-CH-UA-Mobile` user agent client hint HTTP request header.
+		// See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Mobile>.
+		$is_mobile = ( '?1' === $_SERVER['HTTP_SEC_CH_UA_MOBILE'] );
+	} elseif ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
 		$is_mobile = false;
 	} elseif ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'Mobile' ) // Many mobile devices (all iPhone, iPad, etc.)
 		|| str_contains( $_SERVER['HTTP_USER_AGENT'], 'Android' )

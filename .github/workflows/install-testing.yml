@@ -1,0 +1,210 @@
+# Confirms that installing WordPress using WP-CLI works successfully.
+#
+# This workflow is not meant to test wordpress-develop checkouts, but rather tagged versions officially available on WordPress.org.
+name: Installation Tests
+
+on:
+  push:
+    branches:
+      - trunk
+    # Always test the workflow after it's updated.
+    paths:
+      - '.github/workflows/install-testing.yml'
+      - '.version-support-*.json'
+  pull_request:
+    # Always test the workflow when changes are suggested.
+    paths:
+      - '.github/workflows/install-testing.yml'
+      - '.version-support-*.json'
+  schedule:
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+    inputs:
+      wp-version:
+        description: 'The version to test installing. Accepts major and minor versions, "latest", or "nightly". Major releases must not end with ".0".'
+        type: string
+        default: 'nightly'
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ inputs.wp-version || github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Determines the appropriate values for PHP and database versions based on the WordPress version being tested.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Fetches the versions of PHP to test.
+  # - Fetches the versions of MySQL to test.
+  build-matrix:
+    name: Determine PHP Versions to test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      major-wp-version: ${{ steps.major-wp-version.outputs.version }}
+      php-versions: ${{ steps.php-versions.outputs.versions }}
+      mysql-versions: ${{ steps.mysql-versions.outputs.versions }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Determine the major WordPress version
+        id: major-wp-version
+        run: |
+          if [ "${{ inputs.wp-version }}" ] && [ "${{ inputs.wp-version }}" != "nightly" ] && [ "${{ inputs.wp-version }}" != "latest" ]; then
+            echo "version=$(echo "${{ inputs.wp-version }}" | tr '.' '-' | cut -d '-' -f1-2)" >> $GITHUB_OUTPUT
+          elif [ "${{ inputs.wp-version }}" ]; then
+            echo "version=$(echo "${{ inputs.wp-version }}")" >> $GITHUB_OUTPUT
+          else
+            echo "version=nightly" >> $GITHUB_OUTPUT
+          fi
+
+      # Look up the major version's specific PHP support policy when a version is provided.
+      # Otherwise, use the current PHP support policy.
+      - name: Get supported PHP versions
+        id: php-versions
+        run: |
+          if [ "${{ steps.major-wp-version.outputs.version }}" != "latest" ] && [ "${{ steps.major-wp-version.outputs.version }}" != "nightly" ]; then
+            echo "versions=$(jq -r '.["${{ steps.major-wp-version.outputs.version }}"] | @json' .version-support-php.json)" >> $GITHUB_OUTPUT
+          else
+            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' .version-support-php.json)" >> $GITHUB_OUTPUT
+          fi
+
+      # Look up the major version's specific MySQL support policy when a version is provided.
+      # Otherwise, use the current MySQL support policy.
+      - name: Get supported MySQL versions
+        id: mysql-versions
+        run: |
+          if [ "${{ steps.major-wp-version.outputs.version }}" != "latest" ] && [ "${{ steps.major-wp-version.outputs.version }}" != "nightly" ]; then
+            echo "versions=$(jq -r '.["${{ steps.major-wp-version.outputs.version }}"] | @json' .version-support-mysql.json)" >> $GITHUB_OUTPUT
+          else
+            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' .version-support-mysql.json)" >> $GITHUB_OUTPUT
+          fi
+
+  # Test the WordPress installation process through WP-CLI.
+  #
+  # Performs the following steps:
+  # - Sets up PHP.
+  # - Starts the database server.
+  # - Downloads the specified version of WordPress.
+  # - Creates a `wp-config.php` file.
+  # - Installs WordPress.
+  install-tests-mysql:
+    name: WP ${{ inputs.wp-version || 'nightly' }} / PHP ${{ matrix.php }} / ${{ 'mariadb' == matrix.db-type && 'MariaDB' || 'MySQL' }} ${{ matrix.db-version }}${{ matrix.multisite && ' multisite' || '' }}
+    permissions:
+      contents: read
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    needs: [ build-matrix ]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        php: ${{ fromJSON( needs.build-matrix.outputs.php-versions ) }}
+        db-type: [ 'mysql' ]
+        db-version: ${{ fromJSON( needs.build-matrix.outputs.mysql-versions ) }}
+        multisite: [ false, true ]
+        memcached: [ false ]
+
+        # Exclude some PHP and MySQL versions that cannot currently be tested with Docker containers.
+        exclude:
+          - php: '5.2'
+          - php: '5.3'
+          - db-version: '5.0'
+          - db-version: '5.1'
+          - db-version: '5.5'
+
+    services:
+      database:
+        image: ${{ matrix.db-type }}:${{ matrix.db-version }}
+        ports:
+          - 3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=30s
+          --health-timeout=10s
+          --health-retries=5
+          -e MYSQL_ROOT_PASSWORD=root
+          -e MYSQL_DATABASE=test_db
+          --entrypoint sh ${{ matrix.db-type }}:${{ matrix.db-version }}
+          -c "exec docker-entrypoint.sh mysqld${{ matrix.db-version != '5.5' && ' --default-authentication-plugin=mysql_native_password"' || '' }}
+
+    steps:
+      - name: Set up PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@c541c155eee45413f5b09a52248675b1a2575231 # v2.31.1
+        with:
+          php-version: '${{ matrix.php }}'
+          coverage: none
+          tools: wp-cli${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && ':2.4.0' || '' }}
+
+      - name: Start the database server
+        run: |
+          sudo systemctl start ${{ matrix.db-type }}
+
+      - name: Download WordPress
+        run: wp core download ${{ inputs.wp-version && format( '--version={0}', inputs.wp-version ) || '--version=nightly' }}
+
+      - name: Create wp-config.php file
+        run: wp config create --dbname=test_db --dbuser=root --dbpass=root --dbhost=127.0.0.1:${{ job.services.database.ports['3306'] }}
+
+      - name: Install WordPress
+        run: wp core ${{ matrix.multisite && 'multisite-' || '' }}install --url=http://localhost/ --title="Upgrade Test" --admin_user=admin --admin_password=password --admin_email=me@example.org --skip-email
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
+    needs: [ install-tests-mysql ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    needs: [ slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });

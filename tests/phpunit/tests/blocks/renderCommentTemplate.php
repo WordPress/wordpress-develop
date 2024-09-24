@@ -219,12 +219,12 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	/**
 	 * Test that both "Older Comments" and "Newer Comments" are displayed in the correct order
 	 * inside the Comment Query Loop when we enable pagination on Discussion Settings.
-	 * In order to do that, it should exist a query var 'cpage' set with the $comment_args['paged'] value.
 	 *
 	 * @ticket 55505
+	 * @ticket 60806
 	 * @covers ::build_comment_query_vars_from_block
 	 */
-	public function test_build_comment_query_vars_from_block_sets_cpage_var() {
+	public function test_build_comment_query_vars_from_block_sets_max_num_pages() {
 
 		// This could be any number, we set a fixed one instead of a random for better performance.
 		$comment_query_max_num_pages = 5;
@@ -253,7 +253,6 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 		);
 		$actual = build_comment_query_vars_from_block( $block );
 		$this->assertSame( $comment_query_max_num_pages, $actual['paged'] );
-		$this->assertSame( $comment_query_max_num_pages, get_query_var( 'cpage' ) );
 	}
 
 	/**
@@ -536,7 +535,7 @@ END
 
 		add_filter(
 			'render_block',
-			static function( $block_content, $block ) use ( $parsed_comment_author_name_block ) {
+			static function ( $block_content, $block ) use ( $parsed_comment_author_name_block ) {
 				/*
 				* Insert a Comment Author Name block (which requires `commentId`
 				* block context to work) after the Comment Content block.
@@ -591,7 +590,7 @@ END
 		$render_block_callback = new MockAction();
 		add_filter( 'render_block', array( $render_block_callback, 'filter' ), 10, 3 );
 
-		$render_block_data_callback = static function( $parsed_block ) {
+		$render_block_data_callback = static function ( $parsed_block ) {
 			// Add a Social Links block to a Comment Template block's inner blocks.
 			if ( 'core/comment-template' === $parsed_block['blockName'] ) {
 				$inserted_block_markup = <<<END

@@ -1,6 +1,7 @@
 # gitignore file for WordPress Core
 
 # Configuration files with possibly sensitive information
+.env
 wp-config.php
 wp-tests-config.php
 .htaccess
@@ -30,6 +31,7 @@ wp-tests-config.php
 /src/wp-admin/js
 /src/wp-includes/assets/*
 !/src/wp-includes/assets/script-loader-packages.min.php
+!/src/wp-includes/assets/script-modules-packages.min.php
 /src/wp-includes/js
 /src/wp-includes/css/dist
 /src/wp-includes/css/*.min.css
@@ -43,6 +45,7 @@ wp-tests-config.php
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
+/src/wp-content/fonts
 /src/wp-content/languages
 /src/wp-content/mu-plugins
 /src/wp-content/plugins
@@ -60,6 +63,7 @@ wp-tests-config.php
 !/src/wp-content/themes/twentytwentyone
 !/src/wp-content/themes/twentytwentytwo
 !/src/wp-content/themes/twentytwentythree
+!/src/wp-content/themes/twentytwentyfour
 /src/wp-content/upgrade
 /src/wp-content/uploads
 /src/wp-content/advanced-cache.php
@@ -99,4 +103,4 @@ wp-tests-config.php
 /docker-compose.override.yml
 
 # Visual regression test diffs
-tests/visual-regression/specs/__image_snapshots__
+tests/visual-regression/specs/__snapshots__

@@ -60,7 +60,8 @@ if ( ! is_customize_preview() ) {
 add_action( 'admin_print_scripts', 'print_emoji_detection_script' );
 add_action( 'admin_print_scripts', 'print_head_scripts', 20 );
 add_action( 'admin_print_footer_scripts', '_wp_footer_scripts' );
-add_action( 'admin_print_styles', 'print_emoji_styles' );
+add_action( 'admin_enqueue_scripts', 'wp_enqueue_emoji_styles' );
+add_action( 'admin_print_styles', 'print_emoji_styles' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_emoji_styles().
 add_action( 'admin_print_styles', 'print_admin_styles', 20 );
 
 add_action( 'admin_print_scripts-index.php', 'wp_localize_community_events' );
@@ -168,3 +169,6 @@ add_action( 'post_updated', array( 'WP_Privacy_Policy_Content', '_policy_page_up
 
 // Append '(Draft)' to draft page titles in the privacy page dropdown.
 add_filter( 'list_pages', '_wp_privacy_settings_filter_draft_page_titles', 10, 2 );
+
+// Font management.
+add_action( 'admin_print_styles', 'wp_print_font_faces', 50 );

@@ -239,9 +239,9 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 					$resend = _wp_privacy_resend_request( $request_id );
 
 					if ( $resend && ! is_wp_error( $resend ) ) {
-						$count++;
+						++$count;
 					} else {
-						$failures++;
+						++$failures;
 					}
 				}
 
@@ -286,7 +286,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 					$result = _wp_privacy_completed_request( $request_id );
 
 					if ( $result && ! is_wp_error( $result ) ) {
-						$count++;
+						++$count;
 					}
 				}
 
@@ -309,9 +309,9 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			case 'delete':
 				foreach ( $request_ids as $request_id ) {
 					if ( wp_delete_post( $request_id, true ) ) {
-						$count++;
+						++$count;
 					} else {
-						$failures++;
+						++$failures;
 					}
 				}
 
@@ -416,8 +416,8 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 */
 	public function column_cb( $item ) {
 		return sprintf(
-			'<label class="label-covers-full-cell" for="requester_%1$s"><span class="screen-reader-text">%2$s</span></label>' .
-			'<input type="checkbox" name="request_id[]" id="requester_%1$s" value="%1$s" /><span class="spinner"></span>',
+			'<input type="checkbox" name="request_id[]" id="requester_%1$s" value="%1$s" />' .
+			'<label for="requester_%1$s"><span class="screen-reader-text">%2$s</span></label><span class="spinner"></span>',
 			esc_attr( $item->ID ),
 			/* translators: Hidden accessibility text. %s: Email address. */
 			sprintf( __( 'Select %s' ), $item->email )

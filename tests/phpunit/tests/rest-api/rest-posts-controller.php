@@ -18,6 +18,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	protected static $supported_formats;
 	protected static $post_ids    = array();
+	protected static $terms       = array();
 	protected static $total_posts = 30;
 	protected static $per_page    = 50;
 
@@ -28,6 +29,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
+		self::$terms   = $factory->term->create_many( 15, array( 'taxonomy' => 'category' ) );
+		wp_set_object_terms( self::$post_id, self::$terms, 'category' );
 
 		self::$superadmin_id  = $factory->user->create(
 			array(
@@ -203,6 +206,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'per_page',
 				'search',
 				'search_columns',
+				'search_semantics',
 				'slug',
 				'status',
 				'sticky',
@@ -219,8 +223,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
-		sort( $keys );
-		$this->assertSame( array( 'context', 'id', 'password' ), $keys );
+		$this->assertEqualSets( array( 'context', 'id', 'password', 'excerpt_length' ), $keys );
+	}
+
+	public function test_registered_get_items_embed() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'include', array( self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$response = rest_get_server()->response_to_data( $response, true );
+		$this->assertArrayHasKey( '_embedded', $response[0], 'The _embedded key must exist' );
+		$this->assertArrayHasKey( 'wp:term', $response[0]['_embedded'], 'The wp:term key must exist' );
+		$this->assertCount( 15, $response[0]['_embedded']['wp:term'][0], 'Should should be 15 terms and not the default 10' );
+		$i = 0;
+		foreach ( $response[0]['_embedded']['wp:term'][0] as $term ) {
+			$this->assertSame( self::$terms[ $i ], $term['id'], 'Check term id existing in response' );
+			++$i;
+		}
 	}
 
 	/**
@@ -256,7 +274,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	/**
 	 * A valid query that returns 0 results should return an empty JSON list.
 	 *
-	 * @issue 862
+	 * @link https://github.com/WP-API/WP-API/issues/862
 	 */
 	public function test_get_items_empty_query() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
@@ -746,6 +764,64 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		foreach ( $all_data as $post ) {
 			$this->assertNotEquals( $draft_id, $post['id'] );
 		}
+	}
+
+	/**
+	 * @ticket 56350
+	 *
+	 * @dataProvider data_get_items_exact_search
+	 *
+	 * @param string $search_term  The search term.
+	 * @param bool   $exact_search Whether the search is an exact or general search.
+	 * @param int    $expected     The expected number of matching posts.
+	 */
+	public function test_get_items_exact_search( $search_term, $exact_search, $expected ) {
+		self::factory()->post->create(
+			array(
+				'post_title'   => 'Rye',
+				'post_content' => 'This is a post about Rye Bread',
+			)
+		);
+
+		self::factory()->post->create(
+			array(
+				'post_title'   => 'Types of Bread',
+				'post_content' => 'Types of bread are White and Rye Bread',
+			)
+		);
+
+		$request           = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request['search'] = $search_term;
+		if ( $exact_search ) {
+			$request['search_semantics'] = 'exact';
+		}
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( $expected, $response->get_data() );
+	}
+
+	/**
+	 * Data provider for test_get_items_exact_search().
+	 *
+	 * @return array[]
+	 */
+	public function data_get_items_exact_search() {
+		return array(
+			'general search, one exact match and one partial match' => array(
+				'search_term'  => 'Rye',
+				'exact_search' => false,
+				'expected'     => 2,
+			),
+			'exact search, one exact match and one partial match' => array(
+				'search_term'  => 'Rye',
+				'exact_search' => true,
+				'expected'     => 1,
+			),
+			'exact search, no match and one partial match' => array(
+				'search_term'  => 'Rye Bread',
+				'exact_search' => true,
+				'expected'     => 0,
+			),
+		);
 	}
 
 	public function test_get_items_order_and_orderby() {
@@ -1662,8 +1738,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// 3rd page.
 		self::factory()->post->create();
-		$total_posts++;
-		$total_pages++;
+		++$total_posts;
+		++$total_pages;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
@@ -2157,6 +2233,51 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * @ticket 61837
+	 */
+	public function test_get_item_permissions_check_while_updating_password() {
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_url_params( array( 'id' => self::$post_id ) );
+		$request->set_body_params(
+			$this->set_post_data(
+				array(
+					'id'       => self::$post_id,
+					'password' => '123',
+				)
+			)
+		);
+		$permission = $endpoint->get_item_permissions_check( $request );
+
+		// Password provided in POST data, should not be used as authentication.
+		$this->assertNotWPError( $permission, 'Password in post body should be ignored by permissions check.' );
+		$this->assertTrue( $permission );
+	}
+
+	/**
+	 * @ticket 61837
+	 */
+	public function test_get_item_permissions_check_while_updating_password_with_invalid_type() {
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_url_params( array( 'id' => self::$post_id ) );
+		$request->set_body_params(
+			$this->set_post_data(
+				array(
+					'id'       => self::$post_id,
+					'password' => 123,
+				)
+			)
+		);
+		$permission = $endpoint->get_item_permissions_check( $request );
+
+		$this->assertNotWPError( $permission, 'Password in post body should be ignored by permissions check even when it is an invalid type.' );
+		$this->assertTrue( $permission );
+	}
+
+	/**
 	 * The post response should not have `block_version` when in view context.
 	 *
 	 * @ticket 43887
@@ -2278,8 +2399,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_filters_content_when_needed() {
 		$filter_count   = 0;
-		$filter_content = static function() use ( &$filter_count ) {
-			$filter_count++;
+		$filter_content = static function () use ( &$filter_count ) {
+			++$filter_count;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
@@ -2314,8 +2435,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_skips_content_filter_if_not_needed() {
 		$filter_count   = 0;
-		$filter_content = static function() use ( &$filter_count ) {
-			$filter_count++;
+		$filter_content = static function () use ( &$filter_count ) {
+			++$filter_count;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
@@ -2343,6 +2464,42 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$response->get_data()
 		);
 		$this->assertSame( 0, $filter_count );
+	}
+
+	/**
+	 * @ticket 59043
+	 *
+	 * @covers WP_REST_Posts_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_override_excerpt_length() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_excerpt' => '',
+				'post_content' => 'Bacon ipsum dolor amet porchetta capicola sirloin prosciutto brisket shankle jerky. Ham hock filet mignon boudin ground round, prosciutto alcatra spare ribs meatball turducken pork beef ribs ham beef. Bacon pastrami short loin, venison tri-tip ham short ribs doner swine. Tenderloin pig tongue pork jowl doner. Pork loin rump t-bone, beef strip steak flank drumstick tri-tip short loin capicola jowl. Cow filet mignon hamburger doner rump. Short loin jowl drumstick, tongue tail beef ribs pancetta flank brisket landjaeger chuck venison frankfurter turkey.
+
+Brisket shank rump, tongue beef ribs swine fatback turducken capicola meatball picanha chicken cupim meatloaf turkey. Bacon biltong shoulder tail frankfurter boudin cupim turkey drumstick. Porchetta pig shoulder, jerky flank pork tail meatball hamburger. Doner ham hock ribeye tail jerky swine. Leberkas ribeye pancetta, tenderloin capicola doner turducken chicken venison ground round boudin pork chop. Tail pork loin pig spare ribs, biltong ribeye brisket pork chop cupim. Short loin leberkas spare ribs jowl landjaeger tongue kevin flank bacon prosciutto.
+
+Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket bacon pork chop. Cupim hamburger pork loin short loin. Boudin ball tip cupim ground round ham shoulder. Sausage rump cow tongue bresaola pork pancetta biltong tail chicken turkey hamburger. Kevin flank pork loin salami biltong. Alcatra landjaeger pastrami andouille kielbasa ham tenderloin drumstick sausage turducken tongue corned beef.',
+			)
+		);
+
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'excerpt' );
+		$request->set_param( 'excerpt_length', 43 );
+		$response = $endpoint->prepare_item_for_response( get_post( $post_id ), $request );
+		$data     = $response->get_data();
+		$this->assertArrayHasKey( 'excerpt', $data, 'Response must contain an "excerpt" key.' );
+
+		// 43 words plus the ellipsis added via the 'excerpt_more' filter.
+		$this->assertCount(
+			44,
+			explode( ' ', $data['excerpt']['rendered'] ),
+			'Incorrect word count in the excerpt. Expected the excerpt to contain 44 words (43 words plus an ellipsis), but a different word count was found.'
+		);
 	}
 
 	public function test_create_item() {
@@ -4302,7 +4459,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayNotHasKey( '/wp/v2/invalid-controller', $routes );
 		_unregister_post_type( 'invalid-controller' );
-
 	}
 
 	public function test_get_item_schema() {
@@ -4310,7 +4466,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 26, $properties );
+		$this->assertCount( 27, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
@@ -4337,6 +4493,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'type', $properties );
 		$this->assertArrayHasKey( 'tags', $properties );
 		$this->assertArrayHasKey( 'categories', $properties );
+		$this->assertArrayHasKey( 'class_list', $properties );
 	}
 
 	/**
@@ -4366,6 +4523,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$expected_keys = array(
 			'author',
 			'categories',
+			'class_list',
 			'comment_status',
 			'content',
 			'date',
@@ -4404,6 +4562,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$expected_keys = array(
 			'author',
 			'categories',
+			'class_list',
 			'comment_status',
 			'content',
 			'date',
@@ -5028,7 +5187,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'permalink_template', $data );
 		$this->assertArrayNotHasKey( 'generated_slug', $data );
-
 	}
 
 	/**

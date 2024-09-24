@@ -146,7 +146,6 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		_unregister_taxonomy( 'wptests_tax' );
 
 		$this->assertSame( 'quality', $term->slug );
-
 	}
 
 	public function test_wp_insert_term_slug_whitespace_string() {
@@ -187,7 +186,6 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	public function test_wp_insert_term_duplicate_name() {
 		$term = self::factory()->tag->create_and_get( array( 'name' => 'Bozo' ) );
 		$this->assertNotWPError( $term );
-		$this->assertEmpty( $term->errors );
 
 		// Test existing term name with unique slug.
 		$term1 = self::factory()->tag->create(
@@ -851,7 +849,6 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$term_2 = get_term( $t2, 'wptests_tax' );
 		$this->assertSame( $t2, $term_2->term_id );
 		$this->assertSame( 'Foo', $term_2->name );
-
 	}
 
 	/**
@@ -895,6 +892,19 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( 'WP_Term', $term_object );
 		$this->assertSame( '', $term_object->description );
+	}
+
+	/**
+	 * @ticket 59995
+	 */
+	public function test_wp_insert_term_with_empty_name_after_db_sanitization() {
+		$term = wp_insert_term(
+			'<script>onclick=alert("hello")</script>',
+			'post_tag'
+		);
+
+		$this->assertWPError( $term );
+		$this->assertSame( 'invalid_term_name', $term->get_error_code() );
 	}
 
 	/** Helpers */

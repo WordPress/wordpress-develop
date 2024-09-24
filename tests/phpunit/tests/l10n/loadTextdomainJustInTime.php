@@ -48,6 +48,10 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 
 		$wp_textdomain_registry = new WP_Textdomain_Registry();
 
+		unload_textdomain( 'internationalized-plugin' );
+		unload_textdomain( 'internationalized-plugin-2' );
+		unload_textdomain( 'internationalized-theme' );
+
 		parent::tear_down();
 	}
 
@@ -75,6 +79,27 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		$is_textdomain_loaded_before = is_textdomain_loaded( 'internationalized-plugin' );
 		$actual_output               = i18n_plugin_test();
 		$is_textdomain_loaded_after  = is_textdomain_loaded( 'internationalized-plugin' );
+
+		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		$this->assertFalse( $is_textdomain_loaded_before );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $actual_output );
+		$this->assertTrue( $is_textdomain_loaded_after );
+	}
+
+	/**
+	 * @ticket 59656
+	 *
+	 * @covers ::is_textdomain_loaded
+	 */
+	public function test_plugin_translation_should_be_translated_with_only_an_l10n_php_file() {
+		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		require_once DIR_TESTDATA . '/plugins/internationalized-plugin-2.php';
+
+		$is_textdomain_loaded_before = is_textdomain_loaded( 'internationalized-plugin-2' );
+		$actual_output               = i18n_plugin_2_test();
+		$is_textdomain_loaded_after  = is_textdomain_loaded( 'internationalized-plugin-2' );
 
 		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
 

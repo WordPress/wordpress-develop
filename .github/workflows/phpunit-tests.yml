@@ -30,170 +30,121 @@ concurrency:
 # Any needed permissions should be configured at the job level.
 permissions: {}
 
-env:
-  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
-  LOCAL_PHP_MEMCACHED: ${{ false }}
-
 jobs:
-  # Runs the PHPUnit tests for WordPress.
   #
-  # Performs the following steps:
-  # - Sets environment variables.
-  # - Checks out the repository.
-  # - Sets up Node.js.
-  # - Sets up PHP.
-  # - Installs Composer dependencies.
-  # - Installs npm dependencies
-  # - Logs general debug information about the runner.
-  # - Logs Docker debug information (about the Docker installation within the runner).
-  # - Starts the WordPress Docker container.
-  # - Logs the running Docker containers.
-  # - Logs debug information about what's installed within the WordPress Docker containers.
-  # - Install WordPress within the Docker container.
-  # - Run the PHPUnit tests.
-  # - Ensures version-controlled files are not modified or deleted.
-  # - Checks out the WordPress Test reporter repository.
-  # - Submit the test results to the WordPress.org host test results.
-  test-php:
-    name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+  # Creates a PHPUnit test job for each PHP/MySQL combination.
+  #
+  test-with-mysql:
+    name: PHP ${{ matrix.php }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
     permissions:
       contents: read
-    timeout-minutes: 20
+    secrets: inherit
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
-        php: [ '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2' ]
         os: [ ubuntu-latest ]
-        memcached: [ false ]
+        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.0', '8.1', '8.2', '8.3' ]
+        tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
+        memcached: [ false ]
+
         include:
           # Include jobs for PHP 7.4 with memcached.
-          - php: '7.4'
-            os: ubuntu-latest
-            memcached: true
+          - os: ubuntu-latest
+            php: '7.4'
+            db-type: 'mysql'
+            db-version: '5.7'
+            tests-domain: 'example.org'
             multisite: false
-          - php: '7.4'
-            os: ubuntu-latest
             memcached: true
+          - os: ubuntu-latest
+            php: '7.4'
+            db-type: 'mysql'
+            db-version: '5.7'
+            tests-domain: 'example.org'
             multisite: true
-          # Report the results of the PHP 7.4 without memcached job.
-          - php: '7.4'
-            os: ubuntu-latest
-            memcached: false
+            memcached: true
+          # Include jobs with a port on the test domain for both single and multisite.
+          - os: ubuntu-latest
+            php: '7.4'
+            db-type: 'mysql'
+            db-version: '5.7'
+            tests-domain: 'example.org:8889'
             multisite: false
+            memcached: false
+          - os: ubuntu-latest
+            php: '7.4'
+            db-type: 'mysql'
+            db-version: '5.7'
+            tests-domain: 'example.org:8889'
+            multisite: true
+            memcached: false
+          # Report test results to the Host Test Results.
+          - os: ubuntu-latest
+            db-type: 'mysql'
+            db-version: '8.0'
+            tests-domain: 'example.org'
+            multisite: false
+            memcached: false
             report: true
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      multisite: ${{ matrix.multisite }}
+      memcached: ${{ matrix.memcached }}
+      phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      tests-domain: ${{ matrix.tests-domain }}
+      report: ${{ matrix.report || false }}
 
-    env:
-      LOCAL_PHP: ${{ matrix.php }}-fpm
-      LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
-      PHPUNIT_CONFIG: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+  #
+  # Creates a PHPUnit test job for each PHP/MariaDB combination.
+  #
+  test-with-mariadb:
+    name: PHP ${{ matrix.php }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    permissions:
+      contents: read
+    secrets: inherit
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
+        db-type: [ 'mariadb' ]
+        db-version: [ '10.4', '10.6', '10.11', '11.2' ]
+        multisite: [ false, true ]
+        memcached: [ false ]
 
-    steps:
-      - name: Configure environment variables
-        run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
-
-      - name: Checkout repository
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      ##
-      # This allows Composer dependencies to be installed using a single step.
-      #
-      # Since the tests are currently run within the Docker containers where the PHP version varies,
-      # the same PHP version needs to be configured for the action runner machine so that the correct
-      # dependency versions are installed and cached.
-      ##
-      - name: Set up PHP
-        uses: shivammathur/setup-php@d30ad8b1843ace22e6698ab99bbafaa747b6bd0d # v2.24.0
-        with:
-          php-version: '${{ matrix.php }}'
-          coverage: none
-
-      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
-      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
-      - name: Install Composer dependencies
-        uses: ramsey/composer-install@83af392bf5f031813d25e6fe4cd626cdba9a2df6 # v2.2.0
-        with:
-          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
-
-      - name: Install npm dependencies
-        run: npm ci
-
-      - name: General debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
-          composer --version
-          locale -a
-
-      - name: Docker debug information
-        run: |
-          docker -v
-          docker-compose -v
-
-      - name: Start Docker environment
-        run: |
-          npm run env:start
-
-      - name: Log running Docker containers
-        run: docker ps -a
-
-      - name: WordPress Docker container debug information
-        run: |
-          docker-compose run --rm mysql mysql --version
-          docker-compose run --rm php php --version
-          docker-compose run --rm php php -m
-          docker-compose run --rm php php -i
-          docker-compose run --rm php locale -a
-
-      - name: Install WordPress
-        run: npm run env:install
-
-      - name: Run PHPUnit tests
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }}
-
-      - name: Run AJAX tests
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
-
-      - name: Run ms-files tests as a multisite install
-        if: ${{ matrix.multisite }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c tests/phpunit/multisite.xml --group ms-files
-
-      - name: Run external HTTP tests
-        if: ${{ ! matrix.multisite }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group external-http
-
-      # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
-      - name: Run (Xdebug) tests
-        run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
-
-      - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
-
-      - name: Checkout the WordPress Test Reporter
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && matrix.report }}
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
-        with:
-          repository: 'WordPress/phpunit-test-runner'
-          path: 'test-runner'
-
-      - name: Submit test results to the WordPress.org host test results
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && matrix.report }}
-        env:
-          WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
-        run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+        include:
+        # Include jobs for PHP 7.4 with memcached.
+        - os: ubuntu-latest
+          php: '7.4'
+          db-type: 'mariadb'
+          db-version: '11.2'
+          multisite: false
+          memcached: true
+        - os: ubuntu-latest
+          php: '7.4'
+          db-type: 'mariadb'
+          db-version: '11.2'
+          multisite: true
+          memcached: true
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      multisite: ${{ matrix.multisite }}
+      memcached: ${{ matrix.memcached }}
+      phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      report: ${{ matrix.report || false }}
 
   slack-notifications:
     name: Slack Notifications
@@ -201,10 +152,10 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ test-php ]
+    needs: [ test-with-mysql, test-with-mariadb ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
-      calling_status: ${{ needs.test-php.result == 'success' && 'success' || needs.test-php.result == 'cancelled' && 'cancelled' || 'failure' }}
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
@@ -223,12 +174,13 @@ jobs:
       github.event_name != 'pull_request' &&
       github.run_attempt < 2 &&
       (
-        needs.test-php.result == 'cancelled' || needs.test-php.result == 'failure'
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
       )
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           retries: 2
           retry-exempt-status-codes: 418

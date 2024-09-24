@@ -150,11 +150,13 @@ function wp_title_rss( $deprecated = '&#8211;' ) {
  * Retrieves the current post title for the feed.
  *
  * @since 2.0.0
+ * @since 6.6.0 Added the `$post` parameter.
  *
+ * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string Current post title.
  */
-function get_the_title_rss() {
-	$title = get_the_title();
+function get_the_title_rss( $post = 0 ) {
+	$title = get_the_title( $post );
 
 	/**
 	 * Filters the post title for use in a feed.
@@ -585,7 +587,7 @@ function prep_atom_text_construct( $data ) {
 	}
 
 	if ( ! function_exists( 'xml_parser_create' ) ) {
-		trigger_error( __( "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." ) );
+		wp_trigger_error( '', __( "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." ) );
 
 		return array( 'html', "<![CDATA[$data]]>" );
 	}
@@ -658,8 +660,14 @@ function rss2_site_icon() {
  * @return string Correct link for the atom:self element.
  */
 function get_self_link() {
-	$host = parse_url( home_url() );
-	return set_url_scheme( 'http://' . $host['host'] . wp_unslash( $_SERVER['REQUEST_URI'] ) );
+	$parsed = parse_url( home_url() );
+
+	$domain = $parsed['host'];
+	if ( isset( $parsed['port'] ) ) {
+		$domain .= ':' . $parsed['port'];
+	}
+
+	return set_url_scheme( 'http://' . $domain . wp_unslash( $_SERVER['REQUEST_URI'] ) );
 }
 
 /**
@@ -689,9 +697,9 @@ function self_link() {
  * If viewing a comment feed, the time of the most recently modified
  * comment will be returned.
  *
- * @global WP_Query $wp_query WordPress Query object.
- *
  * @since 5.2.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
  *
  * @param string $format Date format string to return the time in.
  * @return string|false The time in requested format, or false on failure.

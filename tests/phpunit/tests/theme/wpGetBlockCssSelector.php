@@ -47,7 +47,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type );
-		$this->assertEquals( '.wp-custom-block-class', $selector );
+		$this->assertSame( '.wp-custom-block-class', $selector );
 	}
 
 	/**
@@ -61,7 +61,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type );
-		$this->assertEquals( '.experimental-selector', $selector );
+		$this->assertSame( '.experimental-selector', $selector );
 	}
 
 	/**
@@ -75,7 +75,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type );
-		$this->assertEquals( '.wp-block-without-selectors-or-supports', $selector );
+		$this->assertSame( '.wp-block-without-selectors-or-supports', $selector );
 	}
 
 	/**
@@ -89,7 +89,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type );
-		$this->assertEquals( '.wp-block-test-without-selectors-or-supports', $selector );
+		$this->assertSame( '.wp-block-test-without-selectors-or-supports', $selector );
 	}
 
 	/**
@@ -103,7 +103,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography' );
-		$this->assertEquals( '.typography', $selector );
+		$this->assertSame( '.typography', $selector );
 	}
 
 	/**
@@ -117,7 +117,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography' );
-		$this->assertEquals( '.typography', $selector );
+		$this->assertSame( '.typography', $selector );
 	}
 
 	/**
@@ -131,7 +131,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography' );
-		$this->assertEquals( null, $selector );
+		$this->assertSame( null, $selector );
 	}
 
 	/**
@@ -145,7 +145,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography', true );
-		$this->assertEquals( '.wp-block-test-fallback-feature-selector', $selector );
+		$this->assertSame( '.wp-block-test-fallback-feature-selector', $selector );
 	}
 
 	/**
@@ -159,7 +159,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography', true );
-		$this->assertEquals( '.fallback-root-selector', $selector );
+		$this->assertSame( '.fallback-root-selector', $selector );
 	}
 
 	/**
@@ -177,7 +177,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography' );
-		$this->assertEquals( '.wp-block-test-experimental-feature-selector .experimental-typography', $selector );
+		$this->assertSame( '.wp-block-test-experimental-feature-selector .experimental-typography', $selector );
 	}
 
 	/**
@@ -191,7 +191,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography', true );
-		$this->assertEquals( '.wp-block-test-fallback-feature-selector', $selector );
+		$this->assertSame( '.wp-block-test-fallback-feature-selector', $selector );
 	}
 
 	/**
@@ -205,7 +205,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography' );
-		$this->assertEquals( null, $selector );
+		$this->assertSame( null, $selector );
 	}
 
 	/**
@@ -227,7 +227,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 			array( 'typography', 'textDecoration' )
 		);
 
-		$this->assertEquals( '.root .typography .text-decoration', $selector );
+		$this->assertSame( '.root .typography .text-decoration', $selector );
 	}
 
 	/**
@@ -248,7 +248,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 			true
 		);
 
-		$this->assertEquals( '.root .typography', $selector );
+		$this->assertSame( '.root .typography', $selector );
 	}
 
 	/**
@@ -262,7 +262,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, array( 'typography', 'fontSize' ) );
-		$this->assertEquals( null, $selector );
+		$this->assertSame( null, $selector );
 	}
 
 	/**
@@ -280,7 +280,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 			array( 'typography', 'fontSize' ),
 			true
 		);
-		$this->assertEquals( '.wp-block-test-fallback-subfeature-selector', $selector );
+		$this->assertSame( '.wp-block-test-fallback-subfeature-selector', $selector );
 	}
 
 	/**
@@ -297,7 +297,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 			$block_type,
 			array( 'typography', 'fontSize' )
 		);
-		$this->assertEquals( null, $selector );
+		$this->assertSame( null, $selector );
 	}
 
 	/**
@@ -311,10 +311,10 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, array() );
-		$this->assertEquals( null, $selector );
+		$this->assertSame( null, $selector );
 
 		$selector = wp_get_block_css_selector( $block_type, '' );
-		$this->assertEquals( null, $selector );
+		$this->assertSame( null, $selector );
 	}
 
 	/**
@@ -328,10 +328,10 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography' );
-		$this->assertEquals( '.found', $selector );
+		$this->assertSame( '.found', $selector );
 
 		$selector = wp_get_block_css_selector( $block_type, array( 'typography' ) );
-		$this->assertEquals( '.found', $selector );
+		$this->assertSame( '.found', $selector );
 	}
 
 	/**
@@ -347,10 +347,9 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography.fontSize' );
-		$this->assertEquals( '.found', $selector );
+		$this->assertSame( '.found', $selector );
 
 		$selector = wp_get_block_css_selector( $block_type, array( 'typography', 'fontSize' ) );
-		$this->assertEquals( '.found', $selector );
+		$this->assertSame( '.found', $selector );
 	}
 }
-

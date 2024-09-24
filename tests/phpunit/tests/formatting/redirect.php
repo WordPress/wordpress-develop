@@ -76,6 +76,9 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 * @dataProvider data_wp_validate_redirect_valid_url
 	 *
 	 * @covers ::wp_validate_redirect
+	 *
+	 * @param string $url      Redirect requested.
+	 * @param string $expected Expected destination.
 	 */
 	public function test_wp_validate_redirect_valid_url( $url, $expected ) {
 		$this->assertSame( $expected, wp_validate_redirect( $url ) );
@@ -101,15 +104,18 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 * @dataProvider data_wp_validate_redirect_invalid_url
 	 *
 	 * @covers ::wp_validate_redirect
+	 *
+	 * @param string       $url      Redirect requested.
+	 * @param string|false $expected Optional. Expected destination. Default false.
 	 */
-	public function test_wp_validate_redirect_invalid_url( $url ) {
-		$this->assertEquals( false, wp_validate_redirect( $url, false ) );
+	public function test_wp_validate_redirect_invalid_url( $url, $expected = false ) {
+		$this->assertSame( $expected, wp_validate_redirect( $url, false ) );
 	}
 
 	public function data_wp_validate_redirect_invalid_url() {
 		return array(
 			// parse_url() fails.
-			array( '' ),
+			array( '', '' ),
 			array( 'http://:' ),
 
 			// Non-safelisted domain.
@@ -179,6 +185,10 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 * @dataProvider data_wp_validate_redirect_relative_url
 	 *
 	 * @covers ::wp_validate_redirect
+	 *
+	 * @param string $current_uri Current URI (i.e. path and query string only).
+	 * @param string $url         Redirect requested.
+	 * @param string $expected    Expected destination.
 	 */
 	public function test_wp_validate_redirect_relative_url( $current_uri, $url, $expected ) {
 		// Backup the global.
@@ -203,7 +213,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_wp_validate_redirect_relative_url.
+	 * Data provider for test_wp_validate_redirect_relative_url().
 	 *
 	 * @return array[] {
 	 *      string Current URI (i.e. path and query string only).

@@ -92,7 +92,7 @@ function ms_site_check() {
 
 	$blog = get_site();
 
-	if ( '1' == $blog->deleted ) {
+	if ( '1' === $blog->deleted ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-deleted.php' ) ) {
 			return WP_CONTENT_DIR . '/blog-deleted.php';
 		} else {
@@ -100,7 +100,7 @@ function ms_site_check() {
 		}
 	}
 
-	if ( '2' == $blog->deleted ) {
+	if ( '2' === $blog->deleted ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-inactive.php' ) ) {
 			return WP_CONTENT_DIR . '/blog-inactive.php';
 		} else {
@@ -115,7 +115,7 @@ function ms_site_check() {
 		}
 	}
 
-	if ( '1' == $blog->archived || '1' == $blog->spam ) {
+	if ( '1' === $blog->archived || '1' === $blog->spam ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-suspended.php' ) ) {
 			return WP_CONTENT_DIR . '/blog-suspended.php';
 		} else {
@@ -377,7 +377,7 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 	}
 
 	// The network declared by the site trumps any constants.
-	if ( $current_blog && $current_blog->site_id != $current_site->id ) {
+	if ( $current_blog && (int) $current_blog->site_id !== $current_site->id ) {
 		$current_site = WP_Network::get_instance( $current_blog->site_id );
 	}
 
@@ -497,7 +497,7 @@ function ms_not_installed( $domain, $path ) {
 	$msg .= sprintf(
 		/* translators: %s: Documentation URL. */
 		__( 'Read the <a href="%s" target="_blank">Debugging a WordPress Network</a> article. Some of the suggestions there may help you figure out what went wrong.' ),
-		__( 'https://wordpress.org/documentation/article/debugging-a-wordpress-network/' )
+		__( 'https://developer.wordpress.org/advanced-administration/debug/debug-network/' )
 	);
 	$msg .= ' ' . __( 'If you are still stuck with this message, then check that your database contains the following tables:' ) . '</p><ul>';
 	foreach ( $wpdb->tables( 'global' ) as $t => $table ) {

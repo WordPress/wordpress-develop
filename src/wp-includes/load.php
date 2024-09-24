@@ -126,7 +126,12 @@ function wp_populate_basic_auth_from_authorization_header() {
 	$token    = substr( $header, 6 );
 	$userpass = base64_decode( $token );
 
-	list( $user, $pass ) = explode( ':', $userpass );
+	// There must be at least one colon in the string.
+	if ( ! str_contains( $userpass, ':' ) ) {
+		return;
+	}
+
+	list( $user, $pass ) = explode( ':', $userpass, 2 );
 
 	// Now shove them in the proper keys where we're expecting later on.
 	$_SERVER['PHP_AUTH_USER'] = $user;
@@ -134,7 +139,7 @@ function wp_populate_basic_auth_from_authorization_header() {
 }
 
 /**
- * Checks for the required PHP version, and the MySQL extension or
+ * Checks for the required PHP version, and the mysqli extension or
  * a database drop-in.
  *
  * Dies if requirements are not met.
@@ -166,7 +171,7 @@ function wp_check_php_mysql_versions() {
 	// This runs before default constants are defined, so we can't assume WP_CONTENT_DIR is set yet.
 	$wp_content_dir = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
 
-	if ( ! function_exists( 'mysqli_connect' ) && ! function_exists( 'mysql_connect' )
+	if ( ! function_exists( 'mysqli_connect' )
 		&& ! file_exists( $wp_content_dir . '/db.php' )
 	) {
 		require_once ABSPATH . WPINC . '/functions.php';
@@ -415,6 +420,16 @@ function wp_is_maintenance_mode() {
 		return false;
 	}
 
+	// Don't enable maintenance mode while scraping for fatal errors.
+	if ( is_int( $upgrading ) && isset( $_REQUEST['wp_scrape_key'], $_REQUEST['wp_scrape_nonce'] ) ) {
+		$key   = stripslashes( $_REQUEST['wp_scrape_key'] );
+		$nonce = stripslashes( $_REQUEST['wp_scrape_nonce'] );
+
+		if ( md5( $upgrading ) === $key && (int) $nonce === $upgrading ) {
+			return false;
+		}
+	}
+
 	/**
 	 * Filters whether to enable maintenance mode.
 	 *
@@ -437,8 +452,6 @@ function wp_is_maintenance_mode() {
 
 /**
  * Gets the time elapsed so far during this PHP script.
- *
- * Uses REQUEST_TIME_FLOAT that appeared in PHP 5.4.0.
  *
  * @since 5.8.0
  *
@@ -593,6 +606,10 @@ function wp_debug_mode() {
 		error_reporting( E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_ERROR | E_WARNING | E_PARSE | E_USER_ERROR | E_USER_WARNING | E_RECOVERABLE_ERROR );
 	}
 
+	/*
+	 * The 'REST_REQUEST' check here is optimistic as the constant is most
+	 * likely not set at this point even if it is in fact a REST request.
+	 */
 	if ( defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || defined( 'MS_FILES_REQUEST' )
 		|| ( defined( 'WP_INSTALLING' ) && WP_INSTALLING )
 		|| wp_doing_ajax() || wp_is_json_request()
@@ -866,6 +883,8 @@ function wp_start_object_cache() {
 				'site-options',
 				'site-queries',
 				'site-transient',
+				'theme_files',
+				'translation_files',
 				'rss',
 				'users',
 				'user-queries',
@@ -1004,6 +1023,8 @@ function wp_get_active_and_valid_plugins() {
  *
  * @since 5.2.0
  *
+ * @global WP_Paused_Extensions_Storage $_paused_plugins
+ *
  * @param string[] $plugins Array of absolute plugin main file paths.
  * @return string[] Filtered array of plugins, without any paused plugins.
  */
@@ -1036,12 +1057,14 @@ function wp_skip_paused_plugins( array $plugins ) {
  * @since 5.1.0
  * @access private
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string $pagenow            The filename of the current screen.
+ * @global string $wp_stylesheet_path Path to current theme's stylesheet directory.
+ * @global string $wp_template_path   Path to current theme's template directory.
  *
  * @return string[] Array of absolute paths to theme directories.
  */
 function wp_get_active_and_valid_themes() {
-	global $pagenow;
+	global $pagenow, $wp_stylesheet_path, $wp_template_path;
 
 	$themes = array();
 
@@ -1049,11 +1072,11 @@ function wp_get_active_and_valid_themes() {
 		return $themes;
 	}
 
-	if ( TEMPLATEPATH !== STYLESHEETPATH ) {
-		$themes[] = STYLESHEETPATH;
+	if ( is_child_theme() ) {
+		$themes[] = $wp_stylesheet_path;
 	}
 
-	$themes[] = TEMPLATEPATH;
+	$themes[] = $wp_template_path;
 
 	/*
 	 * Remove themes from the list of active themes when we're on an endpoint
@@ -1075,6 +1098,8 @@ function wp_get_active_and_valid_themes() {
  * Filters a given list of themes, removing any paused themes from it.
  *
  * @since 5.2.0
+ *
+ * @global WP_Paused_Extensions_Storage $_paused_themes
  *
  * @param string[] $themes Array of absolute theme directory paths.
  * @return string[] Filtered array of absolute paths to themes, without any paused themes.
@@ -1178,6 +1203,7 @@ function is_protected_ajax_action() {
 		'search-install-plugins', // Searching for a plugin in the plugin install screen.
 		'update-plugin',          // Update an existing plugin.
 		'update-theme',           // Update an existing theme.
+		'activate-plugin',        // Activating an existing plugin.
 	);
 
 	/**
@@ -1472,6 +1498,11 @@ function wp_load_translations_early() {
 
 	// Translation and localization.
 	require_once ABSPATH . WPINC . '/pomo/mo.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-controller.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translations.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file-mo.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file-php.php';
 	require_once ABSPATH . WPINC . '/l10n.php';
 	require_once ABSPATH . WPINC . '/class-wp-textdomain-registry.php';
 	require_once ABSPATH . WPINC . '/class-wp-locale.php';
@@ -1648,9 +1679,8 @@ function wp_is_ini_value_changeable( $setting ) {
 		}
 	}
 
-	// Bit operator to workaround https://bugs.php.net/bug.php?id=44936 which changes access level to 63 in PHP 5.2.6 - 5.2.17.
 	if ( isset( $ini_all[ $setting ]['access'] )
-		&& ( INI_ALL === ( $ini_all[ $setting ]['access'] & 7 ) || INI_USER === ( $ini_all[ $setting ]['access'] & 7 ) )
+		&& ( INI_ALL === $ini_all[ $setting ]['access'] || INI_USER === $ini_all[ $setting ]['access'] )
 	) {
 		return true;
 	}
@@ -1865,7 +1895,6 @@ function wp_is_jsonp_request() {
 	$jsonp_enabled = apply_filters( 'rest_jsonp_enabled', true );
 
 	return $jsonp_enabled;
-
 }
 
 /**

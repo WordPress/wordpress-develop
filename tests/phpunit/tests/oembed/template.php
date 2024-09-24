@@ -321,7 +321,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$this->assertFalse( $scripts->query( 'wp-embed', 'enqueued' ) );
 
-		$post_embed     = '<blockquote class="wp-embedded-content" data-secret="S24AQCJW9i"><a href="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/">Embeds Changes in WordPress 4.5</a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);" title="&#8220;Embeds Changes in WordPress 4.5&#8221; &#8212; Make WordPress Core" src="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/embed/#?secret=S24AQCJW9i" data-secret="S24AQCJW9i" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>';
+		$post_embed     = '<blockquote class="wp-embedded-content" data-secret="S24AQCJW9i"><a href="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/">Embeds Changes in WordPress 4.5</a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title="&#8220;Embeds Changes in WordPress 4.5&#8221; &#8212; Make WordPress Core" src="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/embed/#?secret=S24AQCJW9i" data-secret="S24AQCJW9i" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>';
 		$non_post_embed = '<iframe title="Zoo Cares For 23 Tiny Pond Turtles" width="750" height="422" src="https://www.youtube.com/embed/6ZXHqUjL6f8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
 
 		wp_maybe_enqueue_oembed_host_js( $non_post_embed );
@@ -338,7 +338,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		remove_action( 'wp_head', 'wp_oembed_add_host_js' );
 		$this->assertFalse( $scripts->query( 'wp-embed', 'enqueued' ) );
 
-		$post_embed = '<blockquote class="wp-embedded-content" data-secret="S24AQCJW9i"><a href="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/">Embeds Changes in WordPress 4.5</a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);" title="&#8220;Embeds Changes in WordPress 4.5&#8221; &#8212; Make WordPress Core" src="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/embed/#?secret=S24AQCJW9i" data-secret="S24AQCJW9i" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>';
+		$post_embed = '<blockquote class="wp-embedded-content" data-secret="S24AQCJW9i"><a href="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/">Embeds Changes in WordPress 4.5</a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title="&#8220;Embeds Changes in WordPress 4.5&#8221; &#8212; Make WordPress Core" src="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/embed/#?secret=S24AQCJW9i" data-secret="S24AQCJW9i" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>';
 
 		wp_maybe_enqueue_oembed_host_js( $post_embed );
 		$this->assertFalse( $scripts->query( 'wp-embed', 'enqueued' ) );

@@ -126,7 +126,11 @@ if ( is_multisite() ) :
 		}
 
 		/**
+		 * Tests that the `WP_Network::$id` property is an integer.
+		 *
 		 * @ticket 37050
+		 *
+		 * @covers WP_Network::__get
 		 */
 		public function test_wp_network_object_id_property_is_int() {
 			$id = self::factory()->network->create();
@@ -134,6 +138,65 @@ if ( is_multisite() ) :
 			$network = WP_Network::get_instance( $id );
 
 			$this->assertSame( (int) $id, $network->id );
+		}
+
+		/**
+		 * Tests that the `WP_Network::$id` property is stored as an integer.
+		 *
+		 * Uses reflection to access the private property.
+		 * Differs from using the public getter method, which casts to an integer.
+		 *
+		 * @ticket 62035
+		 *
+		 * @covers WP_Network::__construct
+		 */
+		public function test_wp_network_object_id_property_stored_as_int() {
+			$id = self::factory()->network->create();
+
+			$network = WP_Network::get_instance( $id );
+
+			$reflection = new ReflectionObject( $network );
+			$property   = $reflection->getProperty( 'id' );
+			$property->setAccessible( true );
+
+			$this->assertSame( (int) $id, $property->getValue( $network ) );
+		}
+
+		/**
+		 * Tests that the `WP_Network::$blog_id` property is a string.
+		 *
+		 * @ticket 62035
+		 *
+		 * @covers WP_Network::__get
+		 */
+		public function test_wp_network_object_blog_id_property_is_int() {
+			$id = self::factory()->network->create();
+
+			$network = WP_Network::get_instance( $id );
+
+			$this->assertIsString( $network->blog_id );
+		}
+
+		/**
+		 * Tests that the `WP_Network::$blog_id` property is stored as a string.
+		 *
+		 * Uses reflection to access the private property.
+		 * Differs from using the public getter method, which casts to a string.
+		 *
+		 * @ticket 62035
+		 *
+		 * @covers WP_Network::__construct
+		 */
+		public function test_wp_network_object_blog_id_property_stored_as_string() {
+			$id = self::factory()->network->create();
+
+			$network = WP_Network::get_instance( $id );
+
+			$reflection = new ReflectionObject( $network );
+			$property   = $reflection->getProperty( 'blog_id' );
+			$property->setAccessible( true );
+
+			$this->assertIsString( $property->getValue( $network ) );
 		}
 
 		/**
@@ -267,7 +330,7 @@ if ( is_multisite() ) :
 		}
 
 		public function helper_deactivate_hook() {
-			$this->plugin_hook_count++;
+			++$this->plugin_hook_count;
 		}
 
 		public function test_wp_schedule_update_network_counts() {

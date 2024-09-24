@@ -84,31 +84,31 @@ if ( $doaction ) {
 		switch ( $doaction ) {
 			case 'approve':
 				wp_set_comment_status( $comment_id, 'approve' );
-				$approved++;
+				++$approved;
 				break;
 			case 'unapprove':
 				wp_set_comment_status( $comment_id, 'hold' );
-				$unapproved++;
+				++$unapproved;
 				break;
 			case 'spam':
 				wp_spam_comment( $comment_id );
-				$spammed++;
+				++$spammed;
 				break;
 			case 'unspam':
 				wp_unspam_comment( $comment_id );
-				$unspammed++;
+				++$unspammed;
 				break;
 			case 'trash':
 				wp_trash_comment( $comment_id );
-				$trashed++;
+				++$trashed;
 				break;
 			case 'untrash':
 				wp_untrash_comment( $comment_id );
-				$untrashed++;
+				++$untrashed;
 				break;
 			case 'delete':
 				wp_delete_comment( $comment_id );
-				$deleted++;
+				++$deleted;
 				break;
 		}
 	}
@@ -301,7 +301,13 @@ if ( isset( $_REQUEST['error'] ) ) {
 			break;
 	}
 	if ( $error_msg ) {
-		echo '<div id="moderated" class="error"><p>' . $error_msg . '</p></div>';
+		wp_admin_notice(
+			$error_msg,
+			array(
+				'id'                 => 'moderated',
+				'additional_classes' => array( 'error' ),
+			)
+		);
 	}
 }
 
@@ -411,9 +417,13 @@ if ( isset( $_REQUEST['approved'] )
 			}
 		}
 
-		printf(
-			'<div id="moderated" class="updated notice is-dismissible"><p>%s</p></div>',
-			implode( "<br />\n", $messages )
+		wp_admin_notice(
+			implode( "<br />\n", $messages ),
+			array(
+				'id'                 => 'moderated',
+				'additional_classes' => array( 'updated' ),
+				'dismissible'        => true,
+			)
 		);
 	}
 }

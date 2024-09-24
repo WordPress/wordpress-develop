@@ -235,7 +235,8 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			return;
 		}
 		?>
-		<label class="label-covers-full-cell" for="blog_<?php echo $user->ID; ?>">
+		<input type="checkbox" id="blog_<?php echo $user->ID; ?>" name="allusers[]" value="<?php echo esc_attr( $user->ID ); ?>" />
+		<label for="blog_<?php echo $user->ID; ?>">
 			<span class="screen-reader-text">
 			<?php
 			/* translators: Hidden accessibility text. %s: User login. */
@@ -243,7 +244,6 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			?>
 			</span>
 		</label>
-		<input type="checkbox" id="blog_<?php echo $user->ID; ?>" name="allusers[]" value="<?php echo esc_attr( $user->ID ); ?>" />
 		<?php
 	}
 
@@ -383,25 +383,30 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 
 			$path         = ( '/' === $site->path ) ? '' : $site->path;
 			$site_classes = array( 'site-' . $site->site_id );
+
 			/**
-			 * Filters the span class for a site listing on the mulisite user list table.
+			 * Filters the span class for a site listing on the multisite user list table.
 			 *
 			 * @since 5.2.0
 			 *
-			 * @param string[] $site_classes Array of class names used within the span tag. Default "site-#" with the site's network ID.
+			 * @param string[] $site_classes Array of class names used within the span tag.
+			 *                               Default "site-#" with the site's network ID.
 			 * @param int      $site_id      Site ID.
 			 * @param int      $network_id   Network ID.
 			 * @param WP_User  $user         WP_User object.
 			 */
 			$site_classes = apply_filters( 'ms_user_list_site_class', $site_classes, $site->userblog_id, $site->site_id, $user );
+
 			if ( is_array( $site_classes ) && ! empty( $site_classes ) ) {
 				$site_classes = array_map( 'sanitize_html_class', array_unique( $site_classes ) );
 				echo '<span class="' . esc_attr( implode( ' ', $site_classes ) ) . '">';
 			} else {
 				echo '<span>';
 			}
+
 			echo '<a href="' . esc_url( network_admin_url( 'site-info.php?id=' . $site->userblog_id ) ) . '">' . str_replace( '.' . get_network()->domain, '', $site->domain . $path ) . '</a>';
 			echo ' <small class="row-actions">';
+
 			$actions         = array();
 			$actions['edit'] = '<a href="' . esc_url( network_admin_url( 'site-info.php?id=' . $site->userblog_id ) ) . '">' . __( 'Edit' ) . '</a>';
 
@@ -458,15 +463,18 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 * @param string  $column_name The current column name.
 	 */
 	public function column_default( $item, $column_name ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$user = $item;
+
 		/** This filter is documented in wp-admin/includes/class-wp-users-list-table.php */
-		echo apply_filters(
-			'manage_users_custom_column',
-			'', // Custom column output. Default empty.
-			$column_name,
-			$item->ID // User ID.
-		);
+		echo apply_filters( 'manage_users_custom_column', '', $column_name, $user->ID );
 	}
 
+	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 */
 	public function display_rows() {
 		foreach ( $this->items as $user ) {
 			$class = '';
@@ -519,10 +527,10 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		}
 
 		// Restores the more descriptive, specific name for use within this method.
-		$user         = $item;
-		$super_admins = get_super_admins();
+		$user = $item;
 
-		$actions = array();
+		$super_admins = get_super_admins();
+		$actions      = array();
 
 		if ( current_user_can( 'edit_user', $user->ID ) ) {
 			$edit_link       = esc_url( add_query_arg( 'wp_http_referer', urlencode( wp_unslash( $_SERVER['REQUEST_URI'] ) ), get_edit_user_link( $user->ID ) ) );

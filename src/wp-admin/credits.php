@@ -29,13 +29,7 @@ $credits = wp_credits();
 		</div>
 
 		<div class="about__header-text">
-			<?php
-			printf(
-				/* translators: %s: Version number. */
-				__( 'WordPress %s was created by a worldwide team of passionate individuals' ),
-				$display_version
-			);
-			?>
+			<?php _e( 'Created by a worldwide team of passionate individuals' ); ?>
 		</div>
 	</div>
 

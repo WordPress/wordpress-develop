@@ -19,16 +19,19 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
 	);
 }
 
-if ( ! ( current_theme_supports( 'block-template-parts' ) || wp_is_block_theme() ) ) {
-	wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
-}
-
-$is_template_part = isset( $_GET['postType'] ) && 'wp_template_part' === sanitize_key( $_GET['postType'] );
-$is_template_part_path = isset( $_GET['path'] ) && 'wp_template_partall' === sanitize_key( $_GET['path'] );
+$is_template_part        = isset( $_GET['postType'] ) && 'wp_template_part' === sanitize_key( $_GET['postType'] );
+$is_template_part_path   = isset( $_GET['path'] ) && 'wp_template_partall' === sanitize_key( $_GET['path'] );
 $is_template_part_editor = $is_template_part || $is_template_part_path;
+$is_patterns             = isset( $_GET['postType'] ) && 'wp_block' === sanitize_key( $_GET['postType'] );
+$is_patterns_path        = isset( $_GET['path'] ) && 'patterns' === sanitize_key( $_GET['path'] );
+$is_patterns_editor      = $is_patterns || $is_patterns_path;
 
-if ( ! wp_is_block_theme() && ! $is_template_part_editor ) {
-	wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
+if ( ! wp_is_block_theme() ) {
+	if ( ! current_theme_supports( 'block-template-parts' ) && $is_template_part_editor ) {
+		wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
+	} elseif ( ! $is_patterns_editor && ! $is_template_part_editor ) {
+		wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
+	}
 }
 
 // Used in the HTML title tag.
@@ -42,7 +45,7 @@ $current_screen->is_block_editor( true );
 // Default to is-fullscreen-mode to avoid jumps in the UI.
 add_filter(
 	'admin_body_class',
-	static function( $classes ) {
+	static function ( $classes ) {
 		return "$classes is-fullscreen-mode";
 	}
 );
@@ -85,10 +88,11 @@ $navigation_rest_route = rest_get_route_for_post_type_items(
 );
 
 $preload_paths = array(
-	array( '/wp/v2/media', 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'page' ), 'OPTIONS' ),
 	'/wp/v2/types?context=view',
 	'/wp/v2/types/wp_template?context=edit',
-	'/wp/v2/types/wp_template-part?context=edit',
+	'/wp/v2/types/wp_template_part?context=edit',
 	'/wp/v2/templates?context=edit&per_page=-1',
 	'/wp/v2/template-parts?context=edit&per_page=-1',
 	'/wp/v2/themes?context=edit&status=active',
@@ -160,22 +164,25 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<?php // JavaScript is disabled. ?>
 	<div class="wrap hide-if-js site-editor-no-js">
 		<h1 class="wp-heading-inline"><?php _e( 'Edit site' ); ?></h1>
-		<div class="notice notice-error">
-			<p>
-				<?php
-					/**
-					 * Filters the message displayed in the site editor interface when JavaScript is
-					 * not enabled in the browser.
-					 *
-					 * @since 6.3.0
-					 *
-					 * @param string  $message The message being displayed.
-					 * @param WP_Post $post    The post being edited.
-					 */
-					echo apply_filters( 'site_editor_no_javascript_message', __( 'The site editor requires JavaScript. Please enable JavaScript in your browser settings.' ), $post );
-				?>
-			</p>
-		</div>
+		<?php
+		/**
+		 * Filters the message displayed in the site editor interface when JavaScript is
+		 * not enabled in the browser.
+		 *
+		 * @since 6.3.0
+		 *
+		 * @param string  $message The message being displayed.
+		 * @param WP_Post $post    The post being edited.
+		 */
+		$message = apply_filters( 'site_editor_no_javascript_message', __( 'The site editor requires JavaScript. Please enable JavaScript in your browser settings.' ), $post );
+		wp_admin_notice(
+			$message,
+			array(
+				'type'               => 'error',
+				'additional_classes' => array( 'hide-if-js' ),
+			)
+		);
+		?>
 	</div>
 </div>
 

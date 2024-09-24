@@ -32,7 +32,7 @@ if ( ! is_multisite() ) {
 		'<p>' . sprintf(
 			/* translators: %s: Documentation URL. */
 			__( 'Though the terms refer to two different concepts, in practice, they can be the same address or different. For example, you can have the core WordPress installation files in the root directory (<code>https://example.com</code>), in which case the two URLs would be the same. Or the <a href="%s">WordPress files can be in a subdirectory</a> (<code>https://example.com/wordpress</code>). In that case, the WordPress URL and the site URL would be different.' ),
-			__( 'https://wordpress.org/documentation/article/giving-wordpress-its-own-directory/' )
+			__( 'https://developer.wordpress.org/advanced-administration/server/wordpress-in-directory/' )
 		) . '</p>' .
 		'<p>' . sprintf(
 			/* translators: 1: http://, 2: https:// */
@@ -97,7 +97,136 @@ $tagline_description = sprintf(
 <p class="description" id="tagline-description"><?php echo $tagline_description; ?></p></td>
 </tr>
 
-<?php
+<?php if ( current_user_can( 'upload_files' ) ) : ?>
+<tr class="hide-if-no-js site-icon-section">
+<th scope="row"><?php _e( 'Site Icon' ); ?></th>
+<td>
+	<?php
+	wp_enqueue_media();
+	wp_enqueue_script( 'site-icon' );
+
+	$classes_for_upload_button = 'upload-button button-add-media button-add-site-icon';
+	$classes_for_update_button = 'button';
+	$classes_for_wrapper       = '';
+
+	if ( has_site_icon() ) {
+		$classes_for_wrapper         .= ' has-site-icon';
+		$classes_for_button           = $classes_for_update_button;
+		$classes_for_button_on_change = $classes_for_upload_button;
+	} else {
+		$classes_for_wrapper         .= ' hidden';
+		$classes_for_button           = $classes_for_upload_button;
+		$classes_for_button_on_change = $classes_for_update_button;
+	}
+
+	// Handle alt text for site icon on page load.
+	$site_icon_id           = (int) get_option( 'site_icon' );
+	$app_icon_alt_value     = '';
+	$browser_icon_alt_value = '';
+
+	$site_icon_url = get_site_icon_url();
+
+	if ( $site_icon_id ) {
+		$img_alt            = get_post_meta( $site_icon_id, '_wp_attachment_image_alt', true );
+		$filename           = wp_basename( $site_icon_url );
+		$app_icon_alt_value = sprintf(
+			/* translators: %s: The selected image filename. */
+			__( 'App icon preview: The current image has no alternative text. The file name is: %s' ),
+			$filename
+		);
+
+		$browser_icon_alt_value = sprintf(
+			/* translators: %s: The selected image filename. */
+			__( 'Browser icon preview: The current image has no alternative text. The file name is: %s' ),
+			$filename
+		);
+
+		if ( $img_alt ) {
+			$app_icon_alt_value = sprintf(
+				/* translators: %s: The selected image alt text. */
+				__( 'App icon preview: Current image: %s' ),
+				$img_alt
+			);
+
+			$browser_icon_alt_value = sprintf(
+				/* translators: %s: The selected image alt text. */
+				__( 'Browser icon preview: Current image: %s' ),
+				$img_alt
+			);
+		}
+	}
+	?>
+
+	<style>
+	:root {
+		--site-icon-url: url( '<?php echo esc_url( $site_icon_url ); ?>' );
+	}
+	</style>
+
+	<div id="site-icon-preview" class="site-icon-preview settings <?php echo esc_attr( $classes_for_wrapper ); ?>">
+		<div class="direction-wrap">
+			<img id="app-icon-preview" src="<?php echo esc_url( $site_icon_url ); ?>" class="app-icon-preview" alt="<?php echo esc_attr( $app_icon_alt_value ); ?>" />
+			<div class="site-icon-preview-browser">
+				<svg role="img" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg" class="browser-buttons"><path fill-rule="evenodd" clip-rule="evenodd" d="M0 20a6 6 0 1 1 12 0 6 6 0 0 1-12 0Zm18 0a6 6 0 1 1 12 0 6 6 0 0 1-12 0Zm24-6a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z" /></svg>
+				<div class="site-icon-preview-tab">
+					<img id="browser-icon-preview" src="<?php echo esc_url( $site_icon_url ); ?>" class="browser-icon-preview" alt="<?php echo esc_attr( $browser_icon_alt_value ); ?>" />
+					<div class="site-icon-preview-site-title" id="site-icon-preview-site-title" aria-hidden="true"><?php bloginfo( 'name' ); ?></div>
+						<svg role="img" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg" class="close-button">
+							<path d="M12 13.0607L15.7123 16.773L16.773 15.7123L13.0607 12L16.773 8.28772L15.7123 7.22706L12 10.9394L8.28771 7.22705L7.22705 8.28771L10.9394 12L7.22706 15.7123L8.28772 16.773L12 13.0607Z" />
+						</svg>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>" />
+	<div class="site-icon-action-buttons">
+		<button type="button"
+			id="choose-from-library-button"
+			type="button"
+			class="<?php echo esc_attr( $classes_for_button ); ?>"
+			data-alt-classes="<?php echo esc_attr( $classes_for_button_on_change ); ?>"
+			data-size="512"
+			data-choose-text="<?php esc_attr_e( 'Choose a Site Icon' ); ?>"
+			data-update-text="<?php esc_attr_e( 'Change Site Icon' ); ?>"
+			data-update="<?php esc_attr_e( 'Set as Site Icon' ); ?>"
+			data-state="<?php echo esc_attr( has_site_icon() ); ?>"
+
+		>
+			<?php if ( has_site_icon() ) : ?>
+				<?php _e( 'Change Site Icon' ); ?>
+			<?php else : ?>
+				<?php _e( 'Choose a Site Icon' ); ?>
+			<?php endif; ?>
+		</button>
+		<button
+			id="js-remove-site-icon"
+			type="button"
+			<?php echo has_site_icon() ? 'class="button button-secondary reset remove-site-icon"' : 'class="button button-secondary reset hidden"'; ?>
+		>
+			<?php _e( 'Remove Site Icon' ); ?>
+		</button>
+	</div>
+
+	<p class="description">
+		<?php
+			printf(
+				/* translators: 1: pixel value for icon size. 2: pixel value for icon size. */
+				__( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <code>%1$s by %2$s</code> pixels.' ),
+				512,
+				512
+			);
+		?>
+	</p>
+
+</td>
+</tr>
+
+	<?php
+endif;
+	/* End Site Icon */
+
 if ( ! is_multisite() ) {
 	$wp_site_url_class = '';
 	$wp_home_class     = '';
@@ -123,7 +252,7 @@ if ( ! is_multisite() ) {
 		printf(
 			/* translators: %s: Documentation URL. */
 			__( 'Enter the same address here unless you <a href="%s">want your site home page to be different from your WordPress installation directory</a>.' ),
-			__( 'https://wordpress.org/documentation/article/giving-wordpress-its-own-directory/' )
+			__( 'https://developer.wordpress.org/advanced-administration/server/wordpress-in-directory/' )
 		);
 		?>
 </p>
@@ -139,25 +268,25 @@ if ( ! is_multisite() ) {
 <p class="description" id="new-admin-email-description"><?php _e( 'This address is used for admin purposes. If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?></p>
 <?php
 $new_admin_email = get_option( 'new_admin_email' );
-if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) :
-	?>
-	<div class="updated inline">
-	<p>
-	<?php
-		printf(
-			/* translators: %s: New admin email. */
-			__( 'There is a pending change of the admin email to %s.' ),
-			'<code>' . esc_html( $new_admin_email ) . '</code>'
-		);
-		printf(
-			' <a href="%1$s">%2$s</a>',
-			esc_url( wp_nonce_url( admin_url( 'options.php?dismiss=new_admin_email' ), 'dismiss-' . get_current_blog_id() . '-new_admin_email' ) ),
-			__( 'Cancel' )
-		);
-	?>
-	</p>
-	</div>
-<?php endif; ?>
+if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
+	$pending_admin_email_message = sprintf(
+		/* translators: %s: New admin email. */
+		__( 'There is a pending change of the admin email to %s.' ),
+		'<code>' . esc_html( $new_admin_email ) . '</code>'
+	);
+	$pending_admin_email_message .= sprintf(
+		' <a href="%1$s">%2$s</a>',
+		esc_url( wp_nonce_url( admin_url( 'options.php?dismiss=new_admin_email' ), 'dismiss-' . get_current_blog_id() . '-new_admin_email' ) ),
+		__( 'Cancel' )
+	);
+	wp_admin_notice(
+		$pending_admin_email_message,
+		array(
+			'additional_classes' => array( 'updated', 'inline' ),
+		)
+	);
+}
+?>
 </td>
 </tr>
 
@@ -242,7 +371,7 @@ if ( str_contains( $tzstring, 'Etc/GMT' ) ) {
 
 if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 	$check_zone_info = false;
-	if ( 0 == $current_offset ) {
+	if ( 0 === (int) $current_offset ) {
 		$tzstring = 'UTC+0';
 	} elseif ( $current_offset < 0 ) {
 		$tzstring = 'UTC' . $current_offset;
@@ -442,7 +571,7 @@ foreach ( $time_formats as $format ) {
 global $wp_locale;
 
 for ( $day_index = 0; $day_index <= 6; $day_index++ ) :
-	$selected = ( get_option( 'start_of_week' ) == $day_index ) ? 'selected="selected"' : '';
+	$selected = ( (int) get_option( 'start_of_week' ) === $day_index ) ? 'selected="selected"' : '';
 	echo "\n\t<option value='" . esc_attr( $day_index ) . "' $selected>" . $wp_locale->get_weekday( $day_index ) . '</option>';
 endfor;
 ?>

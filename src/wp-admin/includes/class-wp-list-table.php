@@ -186,7 +186,8 @@ class WP_List_Table {
 			return $this->$name;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"The property `{$name}` is not declared. Getting a dynamic property is " .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
@@ -209,7 +210,8 @@ class WP_List_Table {
 			return;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"The property `{$name}` is not declared. Setting a dynamic property is " .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
@@ -230,7 +232,8 @@ class WP_List_Table {
 			return isset( $this->$name );
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"The property `{$name}` is not declared. Checking `isset()` on a dynamic property " .
 			'is deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
@@ -252,7 +255,8 @@ class WP_List_Table {
 			return;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"A property `{$name}` is not declared. Unsetting a dynamic property is " .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
@@ -315,7 +319,7 @@ class WP_List_Table {
 		);
 
 		if ( ! $args['total_pages'] && $args['per_page'] > 0 ) {
-			$args['total_pages'] = ceil( $args['total_items'] / $args['per_page'] );
+			$args['total_pages'] = (int) ceil( $args['total_items'] / $args['per_page'] );
 		}
 
 		// Redirect if page number is invalid and headers are not already sent.
@@ -384,7 +388,13 @@ class WP_List_Table {
 		$input_id = $input_id . '-search-input';
 
 		if ( ! empty( $_REQUEST['orderby'] ) ) {
-			echo '<input type="hidden" name="orderby" value="' . esc_attr( $_REQUEST['orderby'] ) . '" />';
+			if ( is_array( $_REQUEST['orderby'] ) ) {
+				foreach ( $_REQUEST['orderby'] as $key => $value ) {
+					echo '<input type="hidden" name="orderby[' . esc_attr( $key ) . ']" value="' . esc_attr( $value ) . '" />';
+				}
+			} else {
+				echo '<input type="hidden" name="orderby" value="' . esc_attr( $_REQUEST['orderby'] ) . '" />';
+			}
 		}
 		if ( ! empty( $_REQUEST['order'] ) ) {
 			echo '<input type="hidden" name="order" value="' . esc_attr( $_REQUEST['order'] ) . '" />';
@@ -560,7 +570,7 @@ class WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param string $which The location of the bulk actions: 'top' or 'bottom'.
+	 * @param string $which The location of the bulk actions: Either 'top' or 'bottom'.
 	 *                      This is designated as optional for backward compatibility.
 	 */
 	protected function bulk_actions( $which = '' ) {
@@ -631,7 +641,7 @@ class WP_List_Table {
 			return false;
 		}
 
-		if ( isset( $_REQUEST['action'] ) && -1 != $_REQUEST['action'] ) {
+		if ( isset( $_REQUEST['action'] ) && '-1' !== $_REQUEST['action'] ) {
 			return $_REQUEST['action'];
 		}
 
@@ -749,7 +759,7 @@ class WP_List_Table {
 
 		$month_count = count( $months );
 
-		if ( ! $month_count || ( 1 == $month_count && 0 == $months[0]->month ) ) {
+		if ( ! $month_count || ( 1 === $month_count && 0 === (int) $months[0]->month ) ) {
 			return;
 		}
 
@@ -760,7 +770,7 @@ class WP_List_Table {
 			<option<?php selected( $m, 0 ); ?> value="0"><?php _e( 'All dates' ); ?></option>
 		<?php
 		foreach ( $months as $arc_row ) {
-			if ( 0 == $arc_row->year ) {
+			if ( 0 === (int) $arc_row->year ) {
 				continue;
 			}
 
@@ -824,6 +834,17 @@ class WP_List_Table {
 	 * @param int $pending_comments Number of pending comments.
 	 */
 	protected function comments_bubble( $post_id, $pending_comments ) {
+		$post_object   = get_post( $post_id );
+		$edit_post_cap = $post_object ? 'edit_post' : 'edit_posts';
+
+		if ( ! current_user_can( $edit_post_cap, $post_id )
+			&& ( post_password_required( $post_id )
+				|| ! current_user_can( 'read_post', $post_id ) )
+		) {
+			// The user has no access to the post and thus cannot see the comments.
+			return false;
+		}
+
 		$approved_comments = get_comments_number();
 
 		$approved_comments_number = number_format_i18n( $approved_comments );
@@ -974,10 +995,10 @@ class WP_List_Table {
 		 *  - `edit_comments_per_page`
 		 *  - `sites_network_per_page`
 		 *  - `site_themes_network_per_page`
-		 *  - `themes_network_per_page'`
+		 *  - `themes_network_per_page`
 		 *  - `users_network_per_page`
 		 *  - `edit_post_per_page`
-		 *  - `edit_page_per_page'`
+		 *  - `edit_page_per_page`
 		 *  - `edit_{$post_type}_per_page`
 		 *  - `edit_post_tag_per_page`
 		 *  - `edit_category_per_page`
@@ -997,7 +1018,7 @@ class WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param string $which
+	 * @param string $which The location of the pagination: Either 'top' or 'bottom'.
 	 */
 	protected function pagination( $which ) {
 		if ( empty( $this->_pagination_args ) ) {
@@ -1038,11 +1059,11 @@ class WP_List_Table {
 		$disable_prev  = false;
 		$disable_next  = false;
 
-		if ( 1 == $current ) {
+		if ( 1 === $current ) {
 			$disable_first = true;
 			$disable_prev  = true;
 		}
-		if ( $total_pages == $current ) {
+		if ( $total_pages === $current ) {
 			$disable_last = true;
 			$disable_next = true;
 		}
@@ -1399,14 +1420,14 @@ class WP_List_Table {
 
 		if ( ! empty( $columns['cb'] ) ) {
 			static $cb_counter = 1;
-			$columns['cb']     = '<label class="label-covers-full-cell" for="cb-select-all-' . $cb_counter . '">' .
+			$columns['cb']     = '<input id="cb-select-all-' . $cb_counter . '" type="checkbox" />
+			<label for="cb-select-all-' . $cb_counter . '">' .
 				'<span class="screen-reader-text">' .
 					/* translators: Hidden accessibility text. */
 					__( 'Select All' ) .
 				'</span>' .
-				'</label>' .
-				'<input id="cb-select-all-' . $cb_counter . '" type="checkbox" />';
-			$cb_counter++;
+				'</label>';
+			++$cb_counter;
 		}
 
 		foreach ( $columns as $column_key => $column_display_name ) {
@@ -1648,7 +1669,7 @@ class WP_List_Table {
 	 * Generates the table navigation above or below the table
 	 *
 	 * @since 3.1.0
-	 * @param string $which
+	 * @param string $which The location of the navigation: Either 'top' or 'bottom'.
 	 */
 	protected function display_tablenav( $which ) {
 		if ( 'top' === $which ) {
@@ -1697,7 +1718,7 @@ class WP_List_Table {
 	}
 
 	/**
-	 * Generates the table rows.
+	 * Generates the list table rows.
 	 *
 	 * @since 3.1.0
 	 */

@@ -1,6 +1,6 @@
 <?php
 /**
- * Test WP_User Query, in wp-includes/user.php
+ * Test WP_User_Query, in wp-includes/class-wp-user-query.php.
  *
  * @group user
  */
@@ -1321,7 +1321,6 @@ class Tests_User_Query extends WP_UnitTestCase {
 		foreach ( $query_vars as $query_var ) {
 			$this->assertArrayHasKey( $query_var, $q->query_vars, "$query_var does not exist." );
 		}
-
 	}
 
 	public function filter_pre_get_users_args( $q ) {
@@ -2253,6 +2252,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_User_Query::__get(): ' .
 			'The property `undefined_property` is not declared. Getting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -2285,6 +2285,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_User_Query::__set(): ' .
 			'The property `undefined_property` is not declared. Setting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -2321,6 +2322,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_User_Query::__isset(): ' .
 			'The property `undefined_property` is not declared. Checking `isset()` on a dynamic property ' .
 			'is deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -2352,6 +2354,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_User_Query::__unset(): ' .
 			'A property `undefined_property` is not declared. Unsetting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -2374,5 +2377,18 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'expected'      => 0,
 			),
 		);
+	}
+
+	/**
+	 * @ticket 56841
+	 */
+	public function test_query_does_not_have_leading_whitespace() {
+		$q = new WP_User_Query(
+			array(
+				'number' => 2,
+			)
+		);
+
+		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
 	}
 }

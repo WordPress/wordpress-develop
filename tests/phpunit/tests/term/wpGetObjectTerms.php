@@ -850,7 +850,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		}
 
 		$term = get_term( $t );
-		$this->assertObjectNotHasAttribute( 'object_id', $term );
+		$this->assertObjectNotHasProperty( 'object_id', $term );
 	}
 
 	/**

@@ -148,7 +148,7 @@ function wp_ajax_ajax_tag_search() {
 	 * Require $term_search_min_chars chars for matching (default: 2)
 	 * ensure it's a non-negative, non-zero integer.
 	 */
-	if ( ( 0 == $term_search_min_chars ) || ( strlen( $search ) < $term_search_min_chars ) ) {
+	if ( ( 0 === $term_search_min_chars ) || ( strlen( $search ) < $term_search_min_chars ) ) {
 		wp_die();
 	}
 
@@ -192,7 +192,7 @@ function wp_ajax_wp_compression_test() {
 		if ( is_multisite() ) {
 			update_site_option( 'can_compress_scripts', 0 );
 		} else {
-			update_option( 'can_compress_scripts', 0, 'yes' );
+			update_option( 'can_compress_scripts', 0, true );
 		}
 		wp_die( 0 );
 	}
@@ -205,10 +205,10 @@ function wp_ajax_wp_compression_test() {
 		$force_gzip = ( defined( 'ENFORCE_GZIP' ) && ENFORCE_GZIP );
 		$test_str   = '"wpCompressionTest Lorem ipsum dolor sit amet consectetuer mollis sapien urna ut a. Eu nonummy condimentum fringilla tempor pretium platea vel nibh netus Maecenas. Hac molestie amet justo quis pellentesque est ultrices interdum nibh Morbi. Cras mattis pretium Phasellus ante ipsum ipsum ut sociis Suspendisse Lorem. Ante et non molestie. Porta urna Vestibulum egestas id congue nibh eu risus gravida sit. Ac augue auctor Ut et non a elit massa id sodales. Elit eu Nulla at nibh adipiscing mattis lacus mauris at tempus. Netus nibh quis suscipit nec feugiat eget sed lorem et urna. Pellentesque lacus at ut massa consectetuer ligula ut auctor semper Pellentesque. Ut metus massa nibh quam Curabitur molestie nec mauris congue. Volutpat molestie elit justo facilisis neque ac risus Ut nascetur tristique. Vitae sit lorem tellus et quis Phasellus lacus tincidunt nunc Fusce. Pharetra wisi Suspendisse mus sagittis libero lacinia Integer consequat ac Phasellus. Et urna ac cursus tortor aliquam Aliquam amet tellus volutpat Vestibulum. Justo interdum condimentum In augue congue tellus sollicitudin Quisque quis nibh."';
 
-		if ( 1 == $_GET['test'] ) {
+		if ( '1' === $_GET['test'] ) {
 			echo $test_str;
 			wp_die();
-		} elseif ( 2 == $_GET['test'] ) {
+		} elseif ( '2' === $_GET['test'] ) {
 			if ( ! isset( $_SERVER['HTTP_ACCEPT_ENCODING'] ) ) {
 				wp_die( -1 );
 			}
@@ -231,7 +231,7 @@ function wp_ajax_wp_compression_test() {
 			if ( is_multisite() ) {
 				update_site_option( 'can_compress_scripts', 0 );
 			} else {
-				update_option( 'can_compress_scripts', 0, 'yes' );
+				update_option( 'can_compress_scripts', 0, true );
 			}
 		} elseif ( 'yes' === $_GET['test'] ) {
 			check_ajax_referer( 'update_can_compress_scripts' );
@@ -239,7 +239,7 @@ function wp_ajax_wp_compression_test() {
 			if ( is_multisite() ) {
 				update_site_option( 'can_compress_scripts', 1 );
 			} else {
-				update_option( 'can_compress_scripts', 1, 'yes' );
+				update_option( 'can_compress_scripts', 1, true );
 			}
 		}
 	}
@@ -274,7 +274,7 @@ function wp_ajax_imgedit_preview() {
  *
  * @since 3.1.0
  *
- * @global WP_Embed $wp_embed
+ * @global WP_Embed $wp_embed WordPress Embed object.
  */
 function wp_ajax_oembed_cache() {
 	$GLOBALS['wp_embed']->cache_oembed( $_GET['post'] );
@@ -513,7 +513,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 	}
 
 	// Only do the expensive stuff on a page-break, and about 1 other time per page.
-	if ( 0 == $total % $per_page || 1 == mt_rand( 1, $per_page ) ) {
+	if ( 0 === $total % $per_page || 1 === mt_rand( 1, $per_page ) ) {
 		$post_id = 0;
 		// What type of comment count are we looking for?
 		$status = 'all';
@@ -561,8 +561,8 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 				'postId'               => $comment ? $comment->comment_post_ID : '',
 				/* translators: %s: Number of comments. */
 				'total_items_i18n'     => sprintf( _n( '%s item', '%s items', $total ), number_format_i18n( $total ) ),
-				'total_pages'          => ceil( $total / $per_page ),
-				'total_pages_i18n'     => number_format_i18n( ceil( $total / $per_page ) ),
+				'total_pages'          => (int) ceil( $total / $per_page ),
+				'total_pages_i18n'     => number_format_i18n( (int) ceil( $total / $per_page ) ),
 				'total'                => $total,
 				'time'                 => $time,
 				'in_moderation'        => $counts->moderated,
@@ -733,13 +733,13 @@ function wp_ajax_delete_comment() {
 	$status = wp_get_comment_status( $comment );
 	$delta  = -1;
 
-	if ( isset( $_POST['trash'] ) && 1 == $_POST['trash'] ) {
+	if ( isset( $_POST['trash'] ) && '1' === $_POST['trash'] ) {
 		if ( 'trash' === $status ) {
 			wp_die( time() );
 		}
 
 		$r = wp_trash_comment( $comment );
-	} elseif ( isset( $_POST['untrash'] ) && 1 == $_POST['untrash'] ) {
+	} elseif ( isset( $_POST['untrash'] ) && '1' === $_POST['untrash'] ) {
 		if ( 'trash' !== $status ) {
 			wp_die( time() );
 		}
@@ -750,13 +750,13 @@ function wp_ajax_delete_comment() {
 		if ( ! isset( $_POST['comment_status'] ) || 'trash' !== $_POST['comment_status'] ) {
 			$delta = 1;
 		}
-	} elseif ( isset( $_POST['spam'] ) && 1 == $_POST['spam'] ) {
+	} elseif ( isset( $_POST['spam'] ) && '1' === $_POST['spam'] ) {
 		if ( 'spam' === $status ) {
 			wp_die( time() );
 		}
 
 		$r = wp_spam_comment( $comment );
-	} elseif ( isset( $_POST['unspam'] ) && 1 == $_POST['unspam'] ) {
+	} elseif ( isset( $_POST['unspam'] ) && '1' === $_POST['unspam'] ) {
 		if ( 'spam' !== $status ) {
 			wp_die( time() );
 		}
@@ -767,7 +767,7 @@ function wp_ajax_delete_comment() {
 		if ( ! isset( $_POST['comment_status'] ) || 'spam' !== $_POST['comment_status'] ) {
 			$delta = 1;
 		}
-	} elseif ( isset( $_POST['delete'] ) && 1 == $_POST['delete'] ) {
+	} elseif ( isset( $_POST['delete'] ) && '1' === $_POST['delete'] ) {
 		$r = wp_delete_comment( $comment );
 	} else {
 		wp_die( -1 );
@@ -1000,7 +1000,7 @@ function wp_ajax_dim_comment() {
 
 	$current = wp_get_comment_status( $comment );
 
-	if ( isset( $_POST['new'] ) && $_POST['new'] == $current ) {
+	if ( isset( $_POST['new'] ) && $_POST['new'] === $current ) {
 		wp_die( time() );
 	}
 
@@ -1339,7 +1339,7 @@ function wp_ajax_replyto_comment( $action ) {
 				$_POST['_wp_unfiltered_html_comment'] = '';
 			}
 
-			if ( wp_create_nonce( 'unfiltered-html-comment' ) != $_POST['_wp_unfiltered_html_comment'] ) {
+			if ( wp_create_nonce( 'unfiltered-html-comment' ) !== $_POST['_wp_unfiltered_html_comment'] ) {
 				kses_remove_filters(); // Start with a clean slate.
 				kses_init_filters();   // Set up the filters.
 				remove_filter( 'pre_comment_content', 'wp_filter_post_kses' );
@@ -1384,7 +1384,7 @@ function wp_ajax_replyto_comment( $action ) {
 	if ( ! empty( $_POST['approve_parent'] ) ) {
 		$parent = get_comment( $comment_parent );
 
-		if ( $parent && '0' === $parent->comment_approved && $parent->comment_post_ID == $comment_post_id ) {
+		if ( $parent && '0' === $parent->comment_approved && (int) $parent->comment_post_ID === $comment_post_id ) {
 			if ( ! current_user_can( 'edit_comment', $parent->comment_ID ) ) {
 				wp_die( -1 );
 			}
@@ -1482,8 +1482,12 @@ function wp_ajax_edit_comment() {
 		wp_die( $updated->get_error_message() );
 	}
 
-	$position      = ( isset( $_POST['position'] ) && (int) $_POST['position'] ) ? (int) $_POST['position'] : '-1';
-	$checkbox      = ( isset( $_POST['checkbox'] ) && true == $_POST['checkbox'] ) ? 1 : 0;
+	$position = ( isset( $_POST['position'] ) && (int) $_POST['position'] ) ? (int) $_POST['position'] : '-1';
+	/*
+	 * Checkbox is used to differentiate between the Edit Comments screen (1)
+	 * and the Comments section on the Edit Post screen (0).
+	 */
+	$checkbox      = ( isset( $_POST['checkbox'] ) && '1' === $_POST['checkbox'] ) ? 1 : 0;
 	$wp_list_table = _get_list_table( $checkbox ? 'WP_Comments_List_Table' : 'WP_Post_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
 
 	$comment = get_comment( $comment_id );
@@ -1628,8 +1632,13 @@ function wp_ajax_add_meta() {
 			$post_data['post_type']   = $post->post_type;
 			$post_data['post_status'] = 'draft';
 			$now                      = time();
-			/* translators: 1: Post creation date, 2: Post creation time. */
-			$post_data['post_title'] = sprintf( __( 'Draft created on %1$s at %2$s' ), gmdate( __( 'F j, Y' ), $now ), gmdate( __( 'g:i a' ), $now ) );
+
+			$post_data['post_title'] = sprintf(
+				/* translators: 1: Post creation date, 2: Post creation time. */
+				__( 'Draft created on %1$s at %2$s' ),
+				gmdate( __( 'F j, Y' ), $now ),
+				gmdate( __( 'g:i a' ), $now )
+			);
 
 			$pid = edit_post( $post_data );
 
@@ -1694,7 +1703,7 @@ function wp_ajax_add_meta() {
 			wp_die( -1 );
 		}
 
-		if ( $meta->meta_value != $value || $meta->meta_key != $key ) {
+		if ( $meta->meta_value !== $value || $meta->meta_key !== $key ) {
 			$u = update_metadata_by_mid( 'post', $mid, $value, $key );
 			if ( ! $u ) {
 				wp_die( 0 ); // We know meta exists; we also know it's unchanged (or DB error, in which case there are bigger problems).
@@ -1792,7 +1801,7 @@ function wp_ajax_closed_postboxes() {
 
 	$page = isset( $_POST['page'] ) ? $_POST['page'] : '';
 
-	if ( sanitize_key( $page ) != $page ) {
+	if ( sanitize_key( $page ) !== $page ) {
 		wp_die( 0 );
 	}
 
@@ -1823,7 +1832,7 @@ function wp_ajax_hidden_columns() {
 	check_ajax_referer( 'screen-options-nonce', 'screenoptionnonce' );
 	$page = isset( $_POST['page'] ) ? $_POST['page'] : '';
 
-	if ( sanitize_key( $page ) != $page ) {
+	if ( sanitize_key( $page ) !== $page ) {
 		wp_die( 0 );
 	}
 
@@ -1978,7 +1987,7 @@ function wp_ajax_meta_box_order() {
 
 	$page = isset( $_POST['page'] ) ? $_POST['page'] : '';
 
-	if ( sanitize_key( $page ) != $page ) {
+	if ( sanitize_key( $page ) !== $page ) {
 		wp_die( 0 );
 	}
 
@@ -2149,7 +2158,7 @@ function wp_ajax_inline_save() {
 		while ( $parent > 0 ) {
 			$parent_post = get_post( $parent );
 			$parent      = $parent_post->post_parent;
-			$level++;
+			++$level;
 		}
 	}
 
@@ -2211,7 +2220,7 @@ function wp_ajax_inline_save_tax() {
 	while ( $parent > 0 ) {
 		$parent_tag = get_term( $parent, $taxonomy );
 		$parent     = $parent_tag->parent;
-		$level++;
+		++$level;
 	}
 
 	$wp_list_table->single_row( $tag, $level );
@@ -2407,7 +2416,7 @@ function wp_ajax_save_widget() {
 
 	foreach ( (array) $wp_registered_widget_updates as $name => $control ) {
 
-		if ( $name == $id_base ) {
+		if ( $name === $id_base ) {
 			if ( ! is_callable( $control['callback'] ) ) {
 				continue;
 			}
@@ -2737,7 +2746,7 @@ function wp_ajax_set_post_thumbnail() {
 		check_ajax_referer( "set_post_thumbnail-$post_id" );
 	}
 
-	if ( '-1' == $thumbnail_id ) {
+	if ( -1 === $thumbnail_id ) {
 		if ( delete_post_thumbnail( $post_id ) ) {
 			$return = _wp_post_thumbnail_html( null, $post_id );
 			$json ? wp_send_json_success( $return ) : wp_die( $return );
@@ -2821,7 +2830,7 @@ function wp_ajax_set_attachment_thumbnail() {
 		}
 
 		if ( set_post_thumbnail( $post_id, $thumbnail_id ) ) {
-			$success++;
+			++$success;
 		}
 	}
 
@@ -2921,7 +2930,7 @@ function wp_ajax_wp_remove_post_lock() {
 
 	$active_lock = array_map( 'absint', explode( ':', $_POST['active_post_lock'] ) );
 
-	if ( get_current_user_id() != $active_lock[1] ) {
+	if ( get_current_user_id() !== $active_lock[1] ) {
 		wp_die( 0 );
 	}
 
@@ -2946,7 +2955,7 @@ function wp_ajax_wp_remove_post_lock() {
 function wp_ajax_dismiss_wp_pointer() {
 	$pointer = $_POST['pointer'];
 
-	if ( sanitize_key( $pointer ) != $pointer ) {
+	if ( sanitize_key( $pointer ) !== $pointer ) {
 		wp_die( 0 );
 	}
 
@@ -3084,10 +3093,10 @@ function wp_ajax_query_attachments() {
 
 	$posts_per_page = (int) $attachments_query->get( 'posts_per_page' );
 
-	$max_pages = $posts_per_page ? ceil( $total_posts / $posts_per_page ) : 0;
+	$max_pages = $posts_per_page ? (int) ceil( $total_posts / $posts_per_page ) : 0;
 
 	header( 'X-WP-Total: ' . (int) $total_posts );
-	header( 'X-WP-TotalPages: ' . (int) $max_pages );
+	header( 'X-WP-TotalPages: ' . $max_pages );
 
 	wp_send_json_success( $posts );
 }
@@ -3318,7 +3327,7 @@ function wp_ajax_send_attachment_to_editor() {
 		// If this attachment is unattached, attach it. Primarily a back compat thing.
 		$insert_into_post_id = (int) $_POST['post_id'];
 
-		if ( 0 == $post->post_parent && $insert_into_post_id ) {
+		if ( 0 === $post->post_parent && $insert_into_post_id ) {
 			wp_update_post(
 				array(
 					'ID'          => $id,
@@ -3376,7 +3385,7 @@ function wp_ajax_send_attachment_to_editor() {
  * @since 3.5.0
  *
  * @global WP_Post  $post     Global post object.
- * @global WP_Embed $wp_embed
+ * @global WP_Embed $wp_embed WordPress Embed object.
  */
 function wp_ajax_send_link_to_editor() {
 	global $post, $wp_embed;
@@ -3547,6 +3556,7 @@ function wp_ajax_get_revision_diffs() {
 
 	$return = array();
 
+	// Removes the script timeout limit by setting it to 0 allowing ample time for diff UI setup.
 	if ( function_exists( 'set_time_limit' ) ) {
 		set_time_limit( 0 );
 	}
@@ -3728,8 +3738,8 @@ function wp_ajax_query_themes() {
  *
  * @since 4.0.0
  *
- * @global WP_Post    $post       Global post object.
- * @global WP_Embed   $wp_embed   Embed API instance.
+ * @global WP_Post    $post          Global post object.
+ * @global WP_Embed   $wp_embed      WordPress Embed object.
  * @global WP_Scripts $wp_scripts
  * @global int        $content_width
  */
@@ -3882,13 +3892,29 @@ function wp_ajax_parse_media_shortcode() {
 
 	$shortcode = wp_unslash( $_POST['shortcode'] );
 
+	// Only process previews for media related shortcodes:
+	$found_shortcodes = get_shortcode_tags_in_content( $shortcode );
+	$media_shortcodes = array(
+		'audio',
+		'embed',
+		'playlist',
+		'video',
+		'gallery',
+	);
+
+	$other_shortcodes = array_diff( $found_shortcodes, $media_shortcodes );
+
+	if ( ! empty( $other_shortcodes ) ) {
+		wp_send_json_error();
+	}
+
 	if ( ! empty( $_POST['post_ID'] ) ) {
 		$post = get_post( (int) $_POST['post_ID'] );
 	}
 
 	// The embed shortcode requires a post.
 	if ( ! $post || ! current_user_can( 'edit_post', $post->ID ) ) {
-		if ( 'embed' === $shortcode ) {
+		if ( in_array( 'embed', $found_shortcodes, true ) ) {
 			wp_send_json_error();
 		}
 	} else {
@@ -4003,7 +4029,7 @@ function wp_ajax_crop_image() {
 			$wp_site_icon = new WP_Site_Icon();
 
 			// Skip creating a new attachment if the attachment is a Site Icon.
-			if ( get_post_meta( $attachment_id, '_wp_attachment_context', true ) == $context ) {
+			if ( get_post_meta( $attachment_id, '_wp_attachment_context', true ) === $context ) {
 
 				// Delete the temporary cropped file, we don't need it.
 				wp_delete_file( $cropped );
@@ -4014,9 +4040,10 @@ function wp_ajax_crop_image() {
 			}
 
 			/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
-			$cropped    = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
-			$attachment = $wp_site_icon->create_attachment_object( $cropped, $attachment_id );
-			unset( $attachment['ID'] );
+			$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
+
+			// Copy attachment properties.
+			$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, $context );
 
 			// Update the attachment.
 			add_filter( 'intermediate_image_sizes_advanced', array( $wp_site_icon, 'additional_sizes' ) );
@@ -4044,46 +4071,8 @@ function wp_ajax_crop_image() {
 			/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
 			$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
-			$parent_url      = wp_get_attachment_url( $attachment_id );
-			$parent_basename = wp_basename( $parent_url );
-			$url             = str_replace( $parent_basename, wp_basename( $cropped ), $parent_url );
-
-			$size       = wp_getimagesize( $cropped );
-			$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
-
-			// Get the original image's post to pre-populate the cropped image.
-			$original_attachment  = get_post( $attachment_id );
-			$sanitized_post_title = sanitize_file_name( $original_attachment->post_title );
-			$use_original_title   = (
-				( '' !== trim( $original_attachment->post_title ) ) &&
-				/*
-				 * Check if the original image has a title other than the "filename" default,
-				 * meaning the image had a title when originally uploaded or its title was edited.
-				 */
-				( $parent_basename !== $sanitized_post_title ) &&
-				( pathinfo( $parent_basename, PATHINFO_FILENAME ) !== $sanitized_post_title )
-			);
-			$use_original_description = ( '' !== trim( $original_attachment->post_content ) );
-
-			$attachment = array(
-				'post_title'     => $use_original_title ? $original_attachment->post_title : wp_basename( $cropped ),
-				'post_content'   => $use_original_description ? $original_attachment->post_content : $url,
-				'post_mime_type' => $image_type,
-				'guid'           => $url,
-				'context'        => $context,
-			);
-
-			// Copy the image caption attribute (post_excerpt field) from the original image.
-			if ( '' !== trim( $original_attachment->post_excerpt ) ) {
-				$attachment['post_excerpt'] = $original_attachment->post_excerpt;
-			}
-
-			// Copy the image alt text attribute from the original image.
-			if ( '' !== trim( $original_attachment->_wp_attachment_image_alt ) ) {
-				$attachment['meta_input'] = array(
-					'_wp_attachment_image_alt' => wp_slash( $original_attachment->_wp_attachment_image_alt ),
-				);
-			}
+			// Copy attachment properties.
+			$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, $context );
 
 			$attachment_id = wp_insert_attachment( $attachment, $cropped );
 			$metadata      = wp_generate_attachment_metadata( $attachment_id, $cropped );
@@ -4558,6 +4547,56 @@ function wp_ajax_install_plugin() {
 }
 
 /**
+ * Handles activating a plugin via AJAX.
+ *
+ * @since 6.5.0
+ */
+function wp_ajax_activate_plugin() {
+	check_ajax_referer( 'updates' );
+
+	if ( empty( $_POST['name'] ) || empty( $_POST['slug'] ) || empty( $_POST['plugin'] ) ) {
+		wp_send_json_error(
+			array(
+				'slug'         => '',
+				'pluginName'   => '',
+				'plugin'       => '',
+				'errorCode'    => 'no_plugin_specified',
+				'errorMessage' => __( 'No plugin specified.' ),
+			)
+		);
+	}
+
+	$status = array(
+		'activate'   => 'plugin',
+		'slug'       => wp_unslash( $_POST['slug'] ),
+		'pluginName' => wp_unslash( $_POST['name'] ),
+		'plugin'     => wp_unslash( $_POST['plugin'] ),
+	);
+
+	if ( ! current_user_can( 'activate_plugin', $status['plugin'] ) ) {
+		$status['errorMessage'] = __( 'Sorry, you are not allowed to activate plugins on this site.' );
+		wp_send_json_error( $status );
+	}
+
+	if ( is_plugin_active( $status['plugin'] ) ) {
+		$status['errorMessage'] = sprintf(
+			/* translators: %s: Plugin name. */
+			__( '%s is already active.' ),
+			$status['pluginName']
+		);
+	}
+
+	$activated = activate_plugin( $status['plugin'] );
+
+	if ( is_wp_error( $activated ) ) {
+		$status['errorMessage'] = $activated->get_error_message();
+		wp_send_json_error( $status );
+	}
+
+	wp_send_json_success( $status );
+}
+
+/**
  * Handles updating a plugin via AJAX.
  *
  * @since 4.2.0
@@ -4939,8 +4978,8 @@ function wp_ajax_wp_privacy_export_personal_data() {
 	 *         Array of personal data exporters.
 	 *
 	 *         @type callable $callback               Callable exporter function that accepts an
-	 *                                                email address and a page and returns an array
-	 *                                                of name => value pairs of personal data.
+	 *                                                email address and a page number and returns an
+	 *                                                array of name => value pairs of personal data.
 	 *         @type string   $exporter_friendly_name Translated user facing friendly name for the
 	 *                                                exporter.
 	 *     }
@@ -5051,10 +5090,10 @@ function wp_ajax_wp_privacy_export_personal_data() {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @param array  $response        The personal data for the given exporter and page.
+	 * @param array  $response        The personal data for the given exporter and page number.
 	 * @param int    $exporter_index  The index of the exporter that provided this data.
 	 * @param string $email_address   The email address associated with this personal data.
-	 * @param int    $page            The page for this response.
+	 * @param int    $page            The page number for this response.
 	 * @param int    $request_id      The privacy request post ID associated with this request.
 	 * @param bool   $send_as_email   Whether the final results of the export should be emailed to the user.
 	 * @param string $exporter_key    The key (slug) of the exporter that provided this data.
@@ -5128,8 +5167,8 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 	 *     @type array ...$0 {
 	 *         Array of personal data exporters.
 	 *
-	 *         @type callable $callback               Callable eraser that accepts an email address and
-	 *                                                a page and returns an array with boolean values for
+	 *         @type callable $callback               Callable eraser that accepts an email address and a page
+	 *                                                number, and returns an array with boolean values for
 	 *                                                whether items were removed or retained and any messages
 	 *                                                from the eraser, as well as if additional pages are
 	 *                                                available.
@@ -5281,10 +5320,17 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @param array  $response        The personal data for the given exporter and page.
+	 * @param array  $response        {
+	 *     The personal data for the given exporter and page number.
+	 *
+	 *     @type bool     $items_removed  Whether items were actually removed or not.
+	 *     @type bool     $items_retained Whether items were retained or not.
+	 *     @type string[] $messages       An array of messages to add to the personal data export file.
+	 *     @type bool     $done           Whether the eraser is finished or not.
+	 * }
 	 * @param int    $eraser_index    The index of the eraser that provided this data.
 	 * @param string $email_address   The email address associated with this personal data.
-	 * @param int    $page            The page for this response.
+	 * @param int    $page            The page number for this response.
 	 * @param int    $request_id      The privacy request post ID associated with this request.
 	 * @param string $eraser_key      The key (slug) of the eraser that provided this data.
 	 */

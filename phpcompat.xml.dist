@@ -2,10 +2,12 @@
 <ruleset name="WordPress PHP Compatibility">
 	<description>Apply PHP compatibility checks to all WordPress Core files</description>
 
-	<rule ref="PHPCompatibilityWP"/>
-
-	<!-- WordPress Core currently supports PHP 7.0+. -->
-	<config name="testVersion" value="7.0-"/>
+	<!--
+	#############################################################################
+	COMMAND LINE ARGUMENTS
+	https://github.com/squizlabs/PHP_CodeSniffer/wiki/Annotated-Ruleset
+	#############################################################################
+	-->
 
 	<!-- Only scan PHP files. -->
 	<arg name="extensions" value="php"/>
@@ -28,32 +30,51 @@
 	<!-- Show sniff codes in all reports. -->
 	<arg value="ps"/>
 
+	<!--
+	#############################################################################
+	FILE SELECTION
+	Set which files will be subject to the scans executed using this ruleset.
+	#############################################################################
+	-->
+
 	<!-- For now, only the files in src are scanned. -->
 	<file>./src/</file>
 
-	<!-- Code which doesn't go into production may have different requirements. -->
-	<exclude-pattern>/node_modules/*</exclude-pattern>
-
-	<!--
-		Currently, there are no dependencies managed by Composer.
-		This will need to be modified when that changes to ensure external packages meet compatibility requirements.
-	-->
-	<exclude-pattern>/vendor/*</exclude-pattern>
-
-	<!-- Must-Use plugins. -->
+	<!-- Exclude Must-Use plugins. -->
 	<exclude-pattern>/src/wp-content/mu-plugins/*</exclude-pattern>
 
-	<!-- Plugins. -->
+	<!-- Exclude plugins. -->
 	<exclude-pattern>/src/wp-content/plugins/*</exclude-pattern>
 
-	<!-- Themes except the twenty* themes. -->
+	<!-- Exclude themes except the twenty* themes. -->
 	<exclude-pattern>/src/wp-content/themes/(?!twenty)*</exclude-pattern>
+
+	<!-- Exclude translation files. -->
+	<exclude-pattern>/src/wp-content/languages/*</exclude-pattern>
 
 	<!--
 		PHPCompatibilityParagonieSodiumCompat prevents false positives in `sodium_compat`.
 		However, because these files are included in a non-standard path, false positives are triggered in WordPress Core.
 	-->
 	<exclude-pattern>src/wp-includes/sodium_compat/lib/php72compat_const\.php$</exclude-pattern>
+
+	<!--
+	#############################################################################
+	SET UP THE RULESET
+	#############################################################################
+	-->
+
+	<rule ref="PHPCompatibilityWP"/>
+
+	<!-- WordPress Core currently supports PHP 7.2+. -->
+	<config name="testVersion" value="7.2-"/>
+
+	<!--
+	#############################################################################
+	SELECTIVE EXCLUSIONS
+	Exclude specific files for specific sniffs and/or exclude sub-groups in sniffs.
+	#############################################################################
+	-->
 
 	<rule ref="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_keypair_from_secretkey_and_publickeyFound">
 		<exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
@@ -65,25 +86,4 @@
 		<exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
 	</rule>
 
-	<!--
-		PHPCompatibilityParagonieRandomCompat prevents false positives in `random_compat`.
-		However, because these files are included in a non-standard path, false positives are triggered in WordPress Core.
-	-->
-	<rule ref="PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecated">
-		<exclude-pattern>/random_compat/byte_safe_strings\.php$</exclude-pattern>
-	</rule>
-	<rule ref="PHPCompatibility.Constants.RemovedConstants.mcrypt_dev_urandomDeprecatedRemoved">
-		<exclude-pattern>/random_compat/random_bytes_mcrypt\.php$</exclude-pattern>
-	</rule>
-	<rule ref="PHPCompatibility.Extensions.RemovedExtensions.mcryptDeprecatedRemoved">
-		<exclude-pattern>/random_compat/random_bytes_mcrypt\.php$</exclude-pattern>
-	</rule>
-	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.mcrypt_create_ivDeprecatedRemoved">
-		<exclude-pattern>/random_compat/random_bytes_mcrypt\.php$</exclude-pattern>
-	</rule>
-
-	<!-- Allow the WP DB Class for use of `mysql_` extension in PHP < 7.0. -->
-	<rule ref="PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved">
-		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
-	</rule>
 </ruleset>

@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 
-// Sanity check.
+// Confidence check.
 if ( false ) {
 	?>
 <!DOCTYPE html>
@@ -67,7 +67,7 @@ function display_header( $body_classes = '' ) {
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
-	<meta name="viewport" content="width=device-width" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="robots" content="noindex,nofollow" />
 	<title><?php _e( 'WordPress &rsaquo; Installation' ); ?></title>
@@ -329,7 +329,7 @@ if ( defined( 'DO_NOT_UPGRADE_GLOBAL_TABLES' ) ) {
  */
 $language = '';
 if ( ! empty( $_REQUEST['language'] ) ) {
-	$language = preg_replace( '/[^a-zA-Z0-9_]/', '', $_REQUEST['language'] );
+	$language = sanitize_locale_name( $_REQUEST['language'] );
 } elseif ( isset( $GLOBALS['wp_local_package'] ) ) {
 	$language = $GLOBALS['wp_local_package'];
 }

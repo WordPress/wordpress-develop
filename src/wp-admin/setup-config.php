@@ -105,7 +105,7 @@ function setup_config_display_header( $body_classes = array() ) {
 <!DOCTYPE html>
 <html<?php echo $dir_attr; ?>>
 <head>
-	<meta name="viewport" content="width=device-width" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="robots" content="noindex,nofollow" />
 	<title><?php _e( 'WordPress &rsaquo; Setup Configuration File' ); ?></title>
@@ -116,6 +116,10 @@ function setup_config_display_header( $body_classes = array() ) {
 	<?php
 } // End function setup_config_display_header();
 
+/**
+ * @global string    $wp_local_package Locale code of the package.
+ * @global WP_Locale $wp_locale        WordPress date and time locale object.
+ */
 $language = '';
 if ( ! empty( $_REQUEST['language'] ) ) {
 	$language = preg_replace( '/[^a-zA-Z0-9_]/', '', $_REQUEST['language'] );
@@ -193,7 +197,7 @@ switch ( $step ) {
 		printf(
 			/* translators: 1: Documentation URL, 2: wp-config.php */
 			__( 'Need more help? <a href="%1$s">Read the support article on %2$s</a>.' ),
-			__( 'https://wordpress.org/documentation/article/editing-wp-config-php/' ),
+			__( 'https://developer.wordpress.org/advanced-administration/wordpress/wp-config/' ),
 			'<code>wp-config.php</code>'
 		);
 		?>
@@ -392,7 +396,7 @@ switch ( $step ) {
 					$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'" . addcslashes( constant( $constant ), "\\'" ) . "' );\r\n";
 					break;
 				case 'DB_CHARSET':
-					if ( 'utf8mb4' === $wpdb->charset || ( ! $wpdb->charset && $wpdb->has_cap( 'utf8mb4' ) ) ) {
+					if ( 'utf8mb4' === $wpdb->charset || ( ! $wpdb->charset ) ) {
 						$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'utf8mb4' );\r\n";
 					}
 					break;
@@ -480,7 +484,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 						/* translators: 1: wp-config.php, 2: Documentation URL. */
 						__( 'You need to make the file %1$s writable before you can save your changes. See <a href="%2$s">Changing File Permissions</a> for more information.' ),
 						'<code>wp-config.php</code>',
-						__( 'https://wordpress.org/documentation/article/changing-file-permissions/' )
+						__( 'https://developer.wordpress.org/advanced-administration/server/file-permissions/' )
 					);
 				} else {
 					$error_message = sprintf(

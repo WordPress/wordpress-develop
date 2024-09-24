@@ -455,7 +455,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	 *
 	 * @ticket 58212
 	 *
-	 * @covers::_wp_post_thumbnail_context_filter
+	 * @covers ::_wp_post_thumbnail_context_filter
 	 */
 	public function test_wp_post_thumbnail_context_filter_should_return_the_post_thumbnail() {
 		$this->assertSame( 'the_post_thumbnail', _wp_post_thumbnail_context_filter( 'wp_get_attachment_image' ) );
@@ -571,7 +571,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	private function track_last_attachment_image_context( &$last_context ) {
 		add_filter(
 			'wp_get_attachment_image_context',
-			static function( $context ) use ( &$last_context ) {
+			static function ( $context ) use ( &$last_context ) {
 				$last_context = $context;
 				return $context;
 			},

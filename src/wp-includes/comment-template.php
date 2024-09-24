@@ -24,7 +24,13 @@
 function get_comment_author( $comment_id = 0 ) {
 	$comment = get_comment( $comment_id );
 
-	$comment_id = ! empty( $comment->comment_ID ) ? $comment->comment_ID : $comment_id;
+	if ( ! empty( $comment->comment_ID ) ) {
+		$comment_id = $comment->comment_ID;
+	} elseif ( is_scalar( $comment_id ) ) {
+		$comment_id = (string) $comment_id;
+	} else {
+		$comment_id = '0';
+	}
 
 	if ( empty( $comment->comment_author ) ) {
 		$user = ! empty( $comment->user_id ) ? get_userdata( $comment->user_id ) : false;
@@ -227,7 +233,13 @@ function get_comment_author_email_link( $link_text = '', $before = '', $after = 
 function get_comment_author_link( $comment_id = 0 ) {
 	$comment = get_comment( $comment_id );
 
-	$comment_id = ! empty( $comment->comment_ID ) ? $comment->comment_ID : (string) $comment_id;
+	if ( ! empty( $comment->comment_ID ) ) {
+		$comment_id = $comment->comment_ID;
+	} elseif ( is_scalar( $comment_id ) ) {
+		$comment_id = (string) $comment_id;
+	} else {
+		$comment_id = '0';
+	}
 
 	$comment_author_url = get_comment_author_url( $comment );
 	$comment_author     = get_comment_author( $comment );
@@ -549,7 +561,7 @@ function get_comment_class( $css_class = '', $comment_id = null, $post = null ) 
 		$classes[] = 'even';
 	}
 
-	$comment_alt++;
+	++$comment_alt;
 
 	// Alt for top-level comments.
 	if ( 1 == $comment_depth ) {
@@ -559,7 +571,7 @@ function get_comment_class( $css_class = '', $comment_id = null, $post = null ) 
 		} else {
 			$classes[] = 'thread-even';
 		}
-		$comment_thread_alt++;
+		++$comment_thread_alt;
 	}
 
 	$classes[] = "depth-$comment_depth";
@@ -1366,7 +1378,7 @@ function wp_comment_form_unfiltered_html_nonce() {
 
 	if ( current_user_can( 'unfiltered_html' ) ) {
 		wp_nonce_field( 'unfiltered-html-comment_' . $post_id, '_wp_unfiltered_html_comment_disabled', false );
-		echo "<script>(function(){if(window===window.parent){document.getElementById('_wp_unfiltered_html_comment_disabled').name='_wp_unfiltered_html_comment';}})();</script>\n";
+		wp_print_inline_script_tag( "(function(){if(window===window.parent){document.getElementById('_wp_unfiltered_html_comment_disabled').name='_wp_unfiltered_html_comment';}})();" );
 	}
 }
 
@@ -1381,7 +1393,7 @@ function wp_comment_form_unfiltered_html_nonce() {
  * and the post ID respectively.
  *
  * The `$file` path is passed through a filter hook called {@see 'comments_template'},
- * which includes the TEMPLATEPATH and $file combined. Tries the $filtered path
+ * which includes the template directory and $file combined. Tries the $filtered path
  * first and if it fails it will require the default comment template from the
  * default theme. If either does not exist, then the WordPress process will be
  * halted. It is advised for that reason, that the default theme is not deleted.
@@ -1390,22 +1402,24 @@ function wp_comment_form_unfiltered_html_nonce() {
  *
  * @since 1.5.0
  *
- * @global WP_Query   $wp_query         WordPress Query object.
- * @global WP_Post    $post             Global post object.
- * @global wpdb       $wpdb             WordPress database abstraction object.
+ * @global WP_Query   $wp_query           WordPress Query object.
+ * @global WP_Post    $post               Global post object.
+ * @global wpdb       $wpdb               WordPress database abstraction object.
  * @global int        $id
- * @global WP_Comment $comment          Global comment object.
+ * @global WP_Comment $comment            Global comment object.
  * @global string     $user_login
  * @global string     $user_identity
  * @global bool       $overridden_cpage
  * @global bool       $withcomments
+ * @global string     $wp_stylesheet_path Path to current theme's stylesheet directory.
+ * @global string     $wp_template_path   Path to current theme's template directory.
  *
  * @param string $file              Optional. The file to load. Default '/comments.php'.
  * @param bool   $separate_comments Optional. Whether to separate the comments by comment type.
  *                                  Default false.
  */
 function comments_template( $file = '/comments.php', $separate_comments = false ) {
-	global $wp_query, $withcomments, $post, $wpdb, $id, $comment, $user_login, $user_identity, $overridden_cpage;
+	global $wp_query, $withcomments, $post, $wpdb, $id, $comment, $user_login, $user_identity, $overridden_cpage, $wp_stylesheet_path, $wp_template_path;
 
 	if ( ! ( is_single() || is_page() || $withcomments ) || empty( $post ) ) {
 		return;
@@ -1515,7 +1529,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 
 			$top_level_count = $top_level_query->query( $top_level_args );
 
-			$comment_args['offset'] = ( ceil( $top_level_count / $per_page ) - 1 ) * $per_page;
+			$comment_args['offset'] = ( (int) ceil( $top_level_count / $per_page ) - 1 ) * $per_page;
 		}
 	}
 
@@ -1600,7 +1614,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 		define( 'COMMENTS_TEMPLATE', true );
 	}
 
-	$theme_template = STYLESHEETPATH . $file;
+	$theme_template = trailingslashit( $wp_stylesheet_path ) . $file;
 
 	/**
 	 * Filters the path to the theme template file used for the comments template.
@@ -1613,8 +1627,8 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 
 	if ( file_exists( $include ) ) {
 		require $include;
-	} elseif ( file_exists( TEMPLATEPATH . $file ) ) {
-		require TEMPLATEPATH . $file;
+	} elseif ( file_exists( trailingslashit( $wp_template_path ) . $file ) ) {
+		require trailingslashit( $wp_template_path ) . $file;
 	} else { // Backward compat code will be removed in a future release.
 		require ABSPATH . WPINC . '/theme-compat/comments.php';
 	}

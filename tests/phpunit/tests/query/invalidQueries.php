@@ -98,7 +98,7 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test WP Query with an invalid post type in a mutiple post type query.
+	 * Test WP Query with an invalid post type in a multiple post type query.
 	 *
 	 * @ticket 48556
 	 */
@@ -158,5 +158,21 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 
 		// Only the published post should be returned.
 		$this->assertCount( 1, $query->posts );
+	}
+
+	/**
+	 * Ensure a non-scalar page parameter does not throw a fatal error for trim().
+	 *
+	 * @ticket 56558
+	 * @covers WP_Query::get_posts
+	 */
+	public function test_non_scalar_page_value() {
+		$query = new WP_Query(
+			array(
+				'page' => array( 1, 2, 3 ),
+			)
+		);
+
+		$this->assertSame( 0, $query->query_vars['page'] );
 	}
 }

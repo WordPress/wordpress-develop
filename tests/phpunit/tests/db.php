@@ -573,10 +573,10 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * Test the `get_col()` method.
 	 *
-	 * @param string|null        $query       The query to run.
-	 * @param string|array       $expected    The expected resulting value.
-	 * @param arrray|string|null $last_result The value to assign to `$wpdb->last_result`.
-	 * @param int|string         $column      The column index to retrieve.
+	 * @param string|null       $query       The query to run.
+	 * @param string|array      $expected    The expected resulting value.
+	 * @param array|string|null $last_result The value to assign to `$wpdb->last_result`.
+	 * @param int|string        $column      The column index to retrieve.
 	 *
 	 * @dataProvider data_get_col
 	 *
@@ -607,10 +607,10 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @return array {
 	 *     Arguments for testing `get_col()`.
 	 *
-	 *     @type string|null        $query       The query to run.
-	 *     @type string|array       $expected    The resulting expected value.
-	 *     @type arrray|string|null $last_result The value to assign to `$wpdb->last_result`.
-	 *     @type int|string         $column      The column index to retrieve.
+	 *     @type string|null       $query       The query to run.
+	 *     @type string|array      $expected    The resulting expected value.
+	 *     @type array|string|null $last_result The value to assign to `$wpdb->last_result`.
+	 *     @type int|string        $column      The column index to retrieve.
 	 */
 	public function data_get_col() {
 		global $wpdb;
@@ -713,9 +713,6 @@ class Tests_DB extends WP_UnitTestCase {
 	 */
 	public function test_mysqli_flush_sync() {
 		global $wpdb;
-		if ( ! $wpdb->use_mysqli ) {
-			$this->markTestSkipped( 'mysqli not being used.' );
-		}
 
 		$suppress = $wpdb->suppress_errors( true );
 
@@ -1442,10 +1439,6 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_charset_switched_to_utf8mb4() {
 		global $wpdb;
 
-		if ( ! $wpdb->has_cap( 'utf8mb4' ) ) {
-			$this->markTestSkipped( 'This test requires utf8mb4 support.' );
-		}
-
 		$charset = 'utf8';
 		$collate = 'utf8_general_ci';
 
@@ -1480,35 +1473,12 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_non_unicode_collations() {
 		global $wpdb;
 
-		if ( ! $wpdb->has_cap( 'utf8mb4' ) ) {
-			$this->markTestSkipped( 'This test requires utf8mb4 support.' );
-		}
-
 		$charset = 'utf8';
 		$collate = 'utf8_swedish_ci';
 
 		$result = $wpdb->determine_charset( $charset, $collate );
 
 		$this->assertSame( 'utf8mb4_swedish_ci', $result['collate'] );
-	}
-
-	/**
-	 * @ticket 37982
-	 */
-	public function test_charset_switched_to_utf8() {
-		global $wpdb;
-
-		if ( $wpdb->has_cap( 'utf8mb4' ) ) {
-			$this->markTestSkipped( 'This test requires utf8mb4 to not be supported.' );
-		}
-
-		$charset = 'utf8mb4';
-		$collate = 'utf8mb4_general_ci';
-
-		$result = $wpdb->determine_charset( $charset, $collate );
-
-		$this->assertSame( 'utf8', $result['charset'] );
-		$this->assertSame( 'utf8_general_ci', $result['collate'] );
 	}
 
 	/**
@@ -1715,7 +1685,7 @@ class Tests_DB extends WP_UnitTestCase {
 			),
 
 			/*
-			 * @ticket 56933.
+			 * @ticket 56933
 			 * When preparing a '%%%s%%', test that the inserted value
 			 * is not wrapped in single quotes between the 2 "%".
 			 */
@@ -1868,7 +1838,7 @@ class Tests_DB extends WP_UnitTestCase {
 			),
 
 			/*
-			 * @ticket 52506.
+			 * @ticket 52506
 			 * Adding an escape method for Identifiers (e.g. table/field names).
 			 */
 			array(
@@ -2471,5 +2441,29 @@ class Tests_DB extends WP_UnitTestCase {
 				false,
 			),
 		);
+	}
+
+	/**
+	 * This private property is no longer used but needs to be retained as it can be
+	 * accessed externally due to the `__get()` magic method.
+	 *
+	 * @ticket 59118
+	 * @ticket 59846
+	 */
+	public function test_use_mysqli_property_access() {
+		global $wpdb;
+
+		$this->assertTrue( $wpdb->use_mysqli );
+	}
+
+	/**
+	 * Verify "pinging" the database works cross-version PHP.
+	 *
+	 * @ticket 62061
+	 */
+	public function test_check_connection_returns_true_when_there_is_a_connection() {
+		global $wpdb;
+
+		$this->assertTrue( $wpdb->check_connection( false ) );
 	}
 }

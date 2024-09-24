@@ -4,7 +4,7 @@
  *
  * @todo Reuse the init/load code in init.php
  */
-error_reporting( E_ALL & ~E_DEPRECATED & ~E_STRICT );
+error_reporting( E_ALL & ~E_DEPRECATED );
 
 $config_file_path = $argv[1];
 $multisite        = in_array( 'run_ms_tests', $argv, true );
@@ -64,12 +64,12 @@ echo 'Installing...' . PHP_EOL;
 
 $wpdb->query( 'SET foreign_key_checks = 0' );
 foreach ( $wpdb->tables() as $table => $prefixed_table ) {
-	//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$wpdb->query( "DROP TABLE IF EXISTS $prefixed_table" );
 }
 
 foreach ( $wpdb->tables( 'ms_global' ) as $table => $prefixed_table ) {
-	//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$wpdb->query( "DROP TABLE IF EXISTS $prefixed_table" );
 
 	// We need to create references to ms global tables.

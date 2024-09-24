@@ -17,7 +17,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			'cpt',
 			array(
 				'show_in_rest' => true,
-				'supports'     => array( 'custom-fields' ),
+				'supports'     => array( 'custom-fields', 'revisions' ),
 			)
 		);
 
@@ -157,7 +157,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			'cpt',
 			array(
 				'show_in_rest' => true,
-				'supports'     => array( 'custom-fields' ),
+				'supports'     => array( 'custom-fields', 'revisions' ),
 			)
 		);
 
@@ -240,6 +240,18 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				'single'       => true,
 				'show_in_rest' => true,
 				'default'      => 'Goodnight Moon',
+			)
+		);
+
+		register_post_meta(
+			'post',
+			'with_label',
+			array(
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'label'        => 'Meta Label',
+				'default'      => '',
 			)
 		);
 
@@ -1376,8 +1388,6 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	 * @dataProvider data_update_value_return_success_with_same_value
 	 */
 	public function test_update_value_return_success_with_same_value( $meta_key, $meta_value ) {
-		add_post_meta( self::$post_id, $meta_key, $meta_value );
-
 		$this->grant_write_permission();
 
 		$data = array(
@@ -1392,6 +1402,12 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
+
+		// Verify the returned meta value is correct.
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+		$this->assertArrayHasKey( $meta_key, $data['meta'] );
+		$this->assertSame( $meta_value, $data['meta'][ $meta_key ] );
 	}
 
 	public function data_update_value_return_success_with_same_value() {
@@ -2742,7 +2758,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				'single'            => true,
 				'type'              => 'boolean',
 				'show_in_rest'      => true,
-				'sanitize_callback' => static function( $value ) {
+				'sanitize_callback' => static function ( $value ) {
 					return $value ? '1' : '0';
 				},
 			)
@@ -3087,8 +3103,525 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$response = rest_do_request( $request );
 
 		$schema = $response->get_data()['schema']['properties']['meta']['properties']['with_default'];
-		$this->assertArrayHasKey( 'default', $schema );
-		$this->assertSame( 'Goodnight Moon', $schema['default'] );
+		$this->assertArrayHasKey( 'default', $schema, 'Schema is expected to have the default property' );
+		$this->assertSame( 'Goodnight Moon', $schema['default'], 'Schema default is expected to be defined and contain the value of the meta default argument.' );
+	}
+
+	/**
+	 * @ticket 61998
+	 */
+	public function test_title_is_added_to_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
+		$response = rest_do_request( $request );
+
+		$schema = $response->get_data()['schema']['properties']['meta']['properties']['with_label'];
+
+		$this->assertArrayHasKey( 'title', $schema, 'Schema is expected to have the title property' );
+		$this->assertSame( 'Meta Label', $schema['title'], 'Schema title is expected to be defined and contain the value of the meta label argument.' );
+	}
+
+	/**
+	 * Ensures that REST API calls with post meta containing the default value for the
+	 * registered meta field stores the default value into the database.
+	 *
+	 * When the default value isn't persisted in the database, a read of the post meta
+	 * at some point in the future might return a different value if the code setting the
+	 * default changed. This ensures that once a value is intentionally saved into the
+	 * database that it will remain durably in future reads.
+	 *
+	 * @ticket 55600
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Ignored in this test.
+	 */
+	public function test_scalar_singular_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
+		$this->grant_write_permission();
+
+		$meta_key_single = "with_{$type}_default";
+
+		register_post_meta(
+			'post',
+			$meta_key_single,
+			array(
+				'type'         => $type,
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => $default_value,
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key_single => $default_value,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
+
+		$this->assertSame(
+			array( (string) $default_value ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_single, false ),
+			'Should have stored a single meta value with string-cast version of default value.'
+		);
+	}
+
+	/**
+	 * Ensures that REST API calls with multi post meta values (containing the default)
+	 * for the registered meta field stores the default value into the database.
+	 *
+	 * When the default value isn't persisted in the database, a read of the post meta
+	 * at some point in the future might return a different value if the code setting the
+	 * default changed. This ensures that once a value is intentionally saved into the
+	 * database that it will remain durably in future reads.
+	 *
+	 * Further, the total count of stored values may be wrong if the default value
+	 * is culled from the results of a "multi" read.
+	 *
+	 * @ticket 55600
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Appropriate value for given type that doesn't match the default value.
+	 */
+	public function test_scalar_multi_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
+		$this->grant_write_permission();
+
+		$meta_key_multiple = "with_multi_{$type}_default";
+
+		// Register non-singular post meta for type.
+		register_post_meta(
+			'post',
+			$meta_key_multiple,
+			array(
+				'type'         => $type,
+				'single'       => false,
+				'show_in_rest' => true,
+				'default'      => $default_value,
+			)
+		);
+
+		// Write the default value as the sole value.
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key_multiple => array( $default_value ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
+
+		$this->assertSame(
+			array( (string) $default_value ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false ),
+			'Should have stored a single meta value with string-cast version of default value.'
+		);
+
+		// Write multiple values, including the default, to ensure it remains.
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key_multiple => array(
+						$default_value,
+						$alternative_value,
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
+
+		$this->assertSame(
+			array( (string) $default_value, (string) $alternative_value ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false ),
+			'Should have stored both the default and non-default string-cast values.'
+		);
+	}
+
+	/**
+	 * Ensures that REST API calls with post meta containing an object as the default
+	 * value for the registered meta field stores the default value into the database.
+	 *
+	 * When the default value isn't persisted in the database, a read of the post meta
+	 * at some point in the future might return a different value if the code setting the
+	 * default changed. This ensures that once a value is intentionally saved into the
+	 * database that it will remain durably in future reads.
+	 *
+	 * @ticket 55600
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Ignored in this test.
+	 */
+	public function test_object_singular_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
+		$this->grant_write_permission();
+
+		$meta_key_single = "with_{$type}_default";
+
+		// Register singular post meta for type.
+		register_post_meta(
+			'post',
+			$meta_key_single,
+			array(
+				'type'         => 'object',
+				'single'       => true,
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							$type => array( 'type' => $type ),
+						),
+					),
+				),
+				'default'      => (object) array( $type => $default_value ),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key_single => (object) array( $type => $default_value ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
+
+		// Objects stored into the database are read back as arrays.
+		$this->assertSame(
+			array( array( $type => $default_value ) ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_single, false ),
+			'Should have stored a single meta value with an object representing the default value.'
+		);
+	}
+
+	/**
+	 * Ensures that REST API calls with multi post meta values (containing an object as
+	 * the default) for the registered meta field stores the default value into the database.
+	 *
+	 * When the default value isn't persisted in the database, a read of the post meta
+	 * at some point in the future might return a different value if the code setting the
+	 * default changed. This ensures that once a value is intentionally saved into the
+	 * database that it will remain durably in future reads.
+	 *
+	 * Further, the total count of stored values may be wrong if the default value
+	 * is culled from the results of a "multi" read.
+	 *
+	 * @ticket 55600
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Appropriate value for given type that doesn't match the default value.
+	 */
+	public function test_object_multi_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
+		$this->grant_write_permission();
+
+		$meta_key_multiple = "with_multi_{$type}_default";
+
+		// Register non-singular post meta for type.
+		register_post_meta(
+			'post',
+			$meta_key_multiple,
+			array(
+				'type'         => 'object',
+				'single'       => false,
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							$type => array( 'type' => $type ),
+						),
+					),
+				),
+				'default'      => (object) array( $type => $default_value ),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key_multiple => array( (object) array( $type => $default_value ) ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
+
+		// Objects stored into the database are read back as arrays.
+		$this->assertSame(
+			array( array( $type => $default_value ) ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false ),
+			'Should have stored a single meta value with an object representing the default value.'
+		);
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key_multiple => array(
+						(object) array( $type => $default_value ),
+						(object) array( $type => $alternative_value ),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
+
+		// Objects stored into the database are read back as arrays.
+		$this->assertSame(
+			array( array( $type => $default_value ), array( $type => $alternative_value ) ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false ),
+			'Should have stored a single meta value with an object representing the default value.'
+		);
+	}
+
+	/**
+	 * Ensures that REST API calls with post meta containing a list array as the default
+	 * value for the registered meta field stores the default value into the database.
+	 *
+	 * When the default value isn't persisted in the database, a read of the post meta
+	 * at some point in the future might return a different value if the code setting the
+	 * default changed. This ensures that once a value is intentionally saved into the
+	 * database that it will remain durably in future reads.
+	 *
+	 * @ticket 55600
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Ignored in this test.
+	 */
+	public function test_array_singular_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
+		$this->grant_write_permission();
+
+		$meta_key_single = "with_{$type}_default";
+
+		// Register singular post meta for type.
+		register_post_meta(
+			'post',
+			$meta_key_single,
+			array(
+				'type'         => 'array',
+				'single'       => true,
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'  => 'array',
+						'items' => array(
+							'type' => $type,
+						),
+					),
+				),
+				'default'      => $default_value,
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key_single => array( $default_value ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
+
+		$this->assertSame(
+			array( array( $default_value ) ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_single, false ),
+			'Should have stored a single meta value with an array containing only the default value.'
+		);
+	}
+
+	/**
+	 * Ensures that REST API calls with multi post meta values (containing a list array as
+	 * the default) for the registered meta field stores the default value into the database.
+	 *
+	 * When the default value isn't persisted in the database, a read of the post meta
+	 * at some point in the future might return a different value if the code setting the
+	 * default changed. This ensures that once a value is intentionally saved into the
+	 * database that it will remain durably in future reads.
+	 *
+	 * Further, the total count of stored values may be wrong if the default value
+	 * is culled from the results of a "multi" read.
+	 *
+	 * @ticket 55600
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Appropriate value for given type that doesn't match the default value.
+	 */
+	public function test_array_multi_default_is_saved_to_db( $type, $default_value, $alternative_value ) {
+		$this->grant_write_permission();
+
+		$meta_key_multiple = "with_multi_{$type}_default";
+
+		// Register non-singular post meta for type.
+		register_post_meta(
+			'post',
+			$meta_key_multiple,
+			array(
+				'type'         => 'array',
+				'single'       => false,
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'  => 'array',
+						'items' => array(
+							'type' => $type,
+						),
+					),
+				),
+				'default'      => $default_value,
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key_multiple => array( array( $default_value ) ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
+
+		$this->assertSame(
+			array( array( $default_value ) ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false ),
+			'Should have stored a single meta value with an object representing the default value.'
+		);
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key_multiple => array(
+						array( $default_value ),
+						array( $alternative_value ),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			"API call should have returned successfully but didn't: check test setup."
+		);
+
+		$this->assertSame(
+			array( array( $default_value ), array( $alternative_value ) ),
+			get_metadata_raw( 'post', self::$post_id, $meta_key_multiple, false ),
+			'Should have stored a single meta value with an object representing the default value.'
+		);
+	}
+
+	/**
+	 * @ticket 48823
+	 */
+	public function test_multiple_errors_are_returned_at_once() {
+		$this->grant_write_permission();
+		register_post_meta(
+			'post',
+			'error_1',
+			array(
+				'single'       => true,
+				'show_in_rest' => array(
+					'schema' => array(
+						'enum' => array( 'a', 'b' ),
+					),
+				),
+			)
+		);
+		register_post_meta(
+			'post',
+			'error_2',
+			array(
+				'single'       => true,
+				'show_in_rest' => array(
+					'schema' => array(
+						'minLength' => 1,
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/posts/' . self::$post_id );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'error_1' => 'c',
+					'error_2' => '',
+				),
+			)
+		);
+		$response = rest_do_request( $request );
+		$error    = $response->as_error();
+		$this->assertWPError( $error );
+		$this->assertContains( 'meta.error_1 is not one of a and b.', $error->get_error_messages() );
+		$this->assertContains( 'meta.error_2 must be at least 1 character long.', $error->get_error_messages() );
 	}
 
 	/**
@@ -3111,5 +3644,374 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			$query = '],';
 		}
 		return $query;
+	}
+
+	/**
+	 * Test that single post meta is revisioned when saving to the posts REST API endpoint.
+	 *
+	 * @ticket 20564
+	 */
+	public function test_revisioned_single_post_meta_with_posts_endpoint() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'foo',
+			array(
+				'single'            => true,
+				'show_in_rest'      => true,
+				'revisions_enabled' => true,
+			)
+		);
+
+		$post_id = self::$post_id;
+
+		// Update the post, saving the meta.
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 1',
+				'meta'  => array(
+					'foo' => 'bar',
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Get the last revision.
+		$revisions   = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+		$revision_id = array_shift( $revisions )->ID;
+
+		// Check that the revisions endpoint returns the correct meta value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'bar', $response->get_data()['meta']['foo'] );
+
+		// Check that the post meta is set correctly.
+		$this->assertSame( 'bar', get_post_meta( $revision_id, 'foo', true ) );
+
+		// Create two more revisions with different meta values for the foo key.
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 2',
+				'meta'  => array(
+					'foo' => 'baz',
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Get the last revision.
+		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+		$revision_id_2 = array_shift( $revisions )->ID;
+
+		// Check that the revision has the correct meta value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_2 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'baz', $response->get_data()['meta']['foo'] );
+
+		// Check that the post meta is set correctly.
+		$this->assertSame( 'baz', get_post_meta( $revision_id_2, 'foo', true ) );
+
+		// One more revision!
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 3',
+				'meta'  => array(
+					'foo' => 'qux',
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Get the last revision.
+		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+		$revision_id_3 = array_shift( $revisions )->ID;
+
+		// Check that the revision has the correct meta value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_3 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'qux', $response->get_data()['meta']['foo'] );
+
+		// Check that the post meta is set correctly.
+		$this->assertSame( 'qux', get_post_meta( $revision_id_3, 'foo', true ) );
+
+		// Restore Revision 3 and verify the post gets the correct meta value.
+		wp_restore_post_revision( $revision_id_3 );
+		$this->assertSame( 'qux', get_post_meta( $post_id, 'foo', true ) );
+
+		// Restore Revision 2 and verify the post gets the correct meta value.
+		wp_restore_post_revision( $revision_id_2 );
+		$this->assertSame( 'baz', get_post_meta( $post_id, 'foo', true ) );
+	}
+
+	/**
+	 * Test that multi-post meta is revisioned when saving to the posts REST API endpoint.
+	 *
+	 * @ticket 20564
+	 */
+	public function test_revisioned_multiple_post_meta_with_posts_endpoint() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'foo',
+			array(
+				'single'            => false,
+				'show_in_rest'      => true,
+				'revisions_enabled' => true,
+			)
+		);
+
+		$post_id = self::$post_id;
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 1',
+				'meta'  => array(
+					'foo' => array(
+						'bar',
+						'bat',
+						'baz',
+					),
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Log the current post meta.
+		$meta = get_post_meta( $post_id );
+
+		// Update the post.
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 1 update',
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Get the last revision.
+		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+		$revision_id_1 = array_shift( $revisions )->ID;
+
+		// Check that the revision has the correct meta value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_1 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertSame(
+			array( 'bar', 'bat', 'baz' ),
+			$response->get_data()['meta']['foo']
+		);
+		$this->assertSame(
+			array( 'bar', 'bat', 'baz' ),
+			get_post_meta( $revision_id_1, 'foo' )
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 2',
+				'meta'  => array(
+					'foo' => array(
+						'car',
+						'cat',
+					),
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Get the last revision.
+		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+		$revision_id_2 = array_shift( $revisions )->ID;
+
+		// Check that the revision has the correct meta value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_2 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertSame(
+			array( 'car', 'cat' ),
+			$response->get_data()['meta']['foo']
+		);
+		$this->assertSame( array( 'car', 'cat' ), get_post_meta( $revision_id_2, 'foo' ) );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 3',
+				'meta'  => array(
+					'foo' => null,
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Get the last revision.
+		$revisions     = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+		$revision_id_3 = array_shift( $revisions )->ID;
+
+		// Check that the revision has the correct meta value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/revisions/%d', $post_id, $revision_id_3 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertSame(
+			array(),
+			$response->get_data()['meta']['foo']
+		);
+		$this->assertSame( array(), get_post_meta( $revision_id_3, 'foo' ) );
+
+		// Restore Revision 3 and verify the post gets the correct meta value.
+		wp_restore_post_revision( $revision_id_3 );
+		$this->assertSame( array(), get_post_meta( $post_id, 'foo' ) );
+
+		// Restore Revision 2 and verify the post gets the correct meta value.
+		wp_restore_post_revision( $revision_id_2 );
+		$this->assertSame( array( 'car', 'cat' ), get_post_meta( $post_id, 'foo' ) );
+	}
+
+	/**
+	 * Test post meta revisions with a custom post type and the page post type.
+	 *
+	 * @group revision
+	 * @dataProvider data_revisioned_single_post_meta_with_posts_endpoint_page_and_cpt_data_provider
+	 */
+	public function test_revisioned_single_post_meta_with_posts_endpoint_page_and_cpt( $passed, $expected, $post_type ) {
+
+		$this->grant_write_permission();
+
+		// Create the custom meta.
+		register_post_meta(
+			$post_type,
+			'foo',
+			array(
+				'show_in_rest'      => true,
+				'revisions_enabled' => true,
+				'single'            => true,
+				'type'              => 'string',
+			)
+		);
+
+		// Set up a new post.
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => 'initial content',
+				'post_type'    => $post_type,
+				'meta_input'   => array(
+					'foo' => 'foo',
+				),
+			)
+		);
+
+		$plural_mapping = array(
+			'page' => 'pages',
+			'cpt'  => 'cpt',
+		);
+		$request        = new WP_REST_Request( 'GET', sprintf( '/wp/v2/%s', $plural_mapping[ $post_type ] ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/%s/%d', $plural_mapping[ $post_type ], $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 1',
+				'meta'  => array(
+					'foo' => $passed,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Update the post.
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/%s/%d', $plural_mapping[ $post_type ], $post_id ) );
+		$request->set_body_params(
+			array(
+				'title' => 'Revision 1 update',
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		// Get the last revision.
+		$revisions = wp_get_post_revisions( $post_id, array( 'posts_per_page' => 1 ) );
+
+		$revision_id_1 = array_shift( $revisions )->ID;
+
+		// Check that the revision has the correct meta value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/%s/%d/revisions/%d', $plural_mapping[ $post_type ], $post_id, $revision_id_1 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertSame(
+			$passed,
+			$response->get_data()['meta']['foo']
+		);
+
+		$this->assertSame(
+			array( $passed ),
+			get_post_meta( $revision_id_1, 'foo' )
+		);
+
+		unregister_post_meta( $post_type, 'foo' );
+		wp_delete_post( $post_id, true );
+	}
+
+	/**
+	 * Provide data for the meta revision checks.
+	 */
+	public function data_revisioned_single_post_meta_with_posts_endpoint_page_and_cpt_data_provider() {
+		return array(
+			array(
+				'Test string',
+				'Test string',
+				'cpt',
+			),
+			array(
+				'Test string',
+				'Test string',
+				'page',
+			),
+			array(
+				'Test string',
+				false,
+				'cpt',
+			),
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * Provides example default values of scalar types;
+	 * in contrast to arrays, objects, etc...
+	 *
+	 * @return array[]
+	 */
+	public static function data_scalar_default_values() {
+		return array(
+			'boolean default' => array( 'boolean', true, false ),
+			'integer default' => array( 'integer', 42, 43 ),
+			'number default'  => array( 'number', 42.99, 43.99 ),
+			'string default'  => array( 'string', 'string', 'string2' ),
+		);
 	}
 }

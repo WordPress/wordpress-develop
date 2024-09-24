@@ -39,11 +39,12 @@ function got_mod_rewrite() {
  * @since 3.7.0
  *
  * @global bool $is_nginx
+ * @global bool $is_caddy
  *
  * @return bool Whether the server supports URL rewriting.
  */
 function got_url_rewrite() {
-	$got_url_rewrite = ( got_mod_rewrite() || $GLOBALS['is_nginx'] || iis7_supports_permalinks() );
+	$got_url_rewrite = ( got_mod_rewrite() || $GLOBALS['is_nginx'] || $GLOBALS['is_caddy'] || iis7_supports_permalinks() );
 
 	/**
 	 * Filters whether URL rewriting is available.
@@ -403,7 +404,7 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 		$size  = count( $tree );
 
 		foreach ( $tree as $label => $theme_file ) :
-			$index++;
+			++$index;
 
 			if ( ! is_array( $theme_file ) ) {
 				wp_print_theme_file_tree( $theme_file, $level, $index, $size );
@@ -505,7 +506,7 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 		$size  = count( $tree );
 
 		foreach ( $tree as $label => $plugin_file ) :
-			$index++;
+			++$index;
 
 			if ( ! is_array( $plugin_file ) ) {
 				wp_print_plugin_file_tree( $plugin_file, $label, $level, $index, $size );
@@ -555,7 +556,7 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 }
 
 /**
- * Flushes rewrite rules if siteurl, home or page_on_front changed.
+ * Flushes rewrite rules if `siteurl`, `home` or `page_on_front` changed.
  *
  * @since 2.1.0
  *
@@ -574,13 +575,12 @@ function update_home_siteurl( $old_value, $value ) {
 	}
 }
 
-
 /**
- * Resets global variables based on $_GET and $_POST.
+ * Resets global variables based on `$_GET` and `$_POST`.
  *
  * This function resets global variables based on the names passed
- * in the $vars array to the value of $_POST[$var] or $_GET[$var] or ''
- * if neither is defined.
+ * in the `$vars` array to the value of `$_POST[$var]` or `$_GET[$var]` or an
+ * empty string if neither is defined.
  *
  * @since 2.0.0
  *
@@ -754,7 +754,7 @@ function set_screen_options() {
 				/**
 				 * Filters a screen option value before it is set.
 				 *
-				 * The filter can also be used to modify non-standard [items]_per_page
+				 * The filter can also be used to modify non-standard `[items]_per_page`
 				 * settings. See the parent function for a full list of standard options.
 				 *
 				 * Returning false from the filter will skip saving the current option.
@@ -1038,17 +1038,15 @@ function admin_color_scheme_picker( $user_id ) {
 				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>" />
 				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
 				<label for="admin_color_<?php echo esc_attr( $color ); ?>"><?php echo esc_html( $color_info->name ); ?></label>
-				<table class="color-palette">
-					<tr>
-					<?php
-					foreach ( $color_info->colors as $html_color ) {
-						?>
-						<td style="background-color: <?php echo esc_attr( $html_color ); ?>">&nbsp;</td>
-						<?php
-					}
+				<div class="color-palette">
+				<?php
+				foreach ( $color_info->colors as $html_color ) {
 					?>
-					</tr>
-				</table>
+					<div class="color-palette-shade" style="background-color: <?php echo esc_attr( $html_color ); ?>">&nbsp;</div>
+					<?php
+				}
+				?>
+				</div>
 			</div>
 			<?php
 
@@ -1306,7 +1304,7 @@ function wp_refresh_metabox_loader_nonces( $response, $data ) {
 }
 
 /**
- * Adds the latest Heartbeat and REST-API nonce to the Heartbeat response.
+ * Adds the latest Heartbeat and REST API nonce to the Heartbeat response.
  *
  * @since 5.0.0
  *
@@ -1398,6 +1396,15 @@ function wp_admin_canonical_url() {
 	// Ensure we're using an absolute URL.
 	$current_url  = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$filtered_url = remove_query_arg( $removable_query_args, $current_url );
+
+	/**
+	 * Filters the admin canonical URL value.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $filtered_url The admin canonical URL value.
+	 */
+	$filtered_url = apply_filters( 'wp_admin_canonical_url', $filtered_url );
 	?>
 	<link id="wp-admin-canonical" rel="canonical" href="<?php echo esc_url( $filtered_url ); ?>" />
 	<script>
@@ -1470,7 +1477,7 @@ function update_option_new_admin_email( $old_value, $value ) {
 		'hash'     => $hash,
 		'newemail' => $value,
 	);
-	update_option( 'adminhash', $new_admin_email );
+	update_option( 'adminhash', $new_admin_email, false );
 
 	$switched_locale = switch_to_user_locale( get_current_user_id() );
 
@@ -1499,11 +1506,11 @@ All at ###SITENAME###
 	 * Filters the text of the email sent when a change of site admin email address is attempted.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
-	 * ###USERNAME###  The current user's username.
-	 * ###ADMIN_URL### The link to click on to confirm the email change.
-	 * ###EMAIL###     The proposed new site admin email address.
-	 * ###SITENAME###  The name of the site.
-	 * ###SITEURL###   The URL to the site.
+	 *  - ###USERNAME###  The current user's username.
+	 *  - ###ADMIN_URL### The link to click on to confirm the email change.
+	 *  - ###EMAIL###     The proposed new site admin email address.
+	 *  - ###SITENAME###  The name of the site.
+	 *  - ###SITEURL###   The URL to the site.
 	 *
 	 * @since MU (3.0.0)
 	 * @since 4.9.0 This filter is no longer Multisite specific.
@@ -1531,15 +1538,22 @@ All at ###SITENAME###
 		$site_title = parse_url( home_url(), PHP_URL_HOST );
 	}
 
-	wp_mail(
-		$value,
-		sprintf(
-			/* translators: New admin email address notification email subject. %s: Site title. */
-			__( '[%s] New Admin Email Address' ),
-			$site_title
-		),
-		$content
+	$subject = sprintf(
+		/* translators: New admin email address notification email subject. %s: Site title. */
+		__( '[%s] New Admin Email Address' ),
+		$site_title
 	);
+
+	/**
+	 * Filters the subject of the email sent when a change of site admin email address is attempted.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $subject Subject of the email.
+	 */
+	$subject = apply_filters( 'new_admin_email_subject', $subject );
+
+	wp_mail( $value, $subject, $content );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
@@ -1632,8 +1646,8 @@ function wp_check_php_version() {
 
 	$response['is_lower_than_future_minimum'] = false;
 
-	// The minimum supported PHP version will be updated to 7.2. Check if the current version is lower.
-	if ( version_compare( $version, '7.2', '<' ) ) {
+	// The minimum supported PHP version will be updated to 7.4 in the future. Check if the current version is lower.
+	if ( version_compare( $version, '7.4', '<' ) ) {
 		$response['is_lower_than_future_minimum'] = true;
 
 		// Force showing of warnings.
@@ -1641,132 +1655,4 @@ function wp_check_php_version() {
 	}
 
 	return $response;
-}
-
-/**
- * Creates and returns the markup for an admin notice.
- *
- * @since 6.4.0
- *
- * @param string $message The message.
- * @param array  $args {
- *     Optional. An array of arguments for the admin notice. Default empty array.
- *
- *     @type string   $type               Optional. The type of admin notice.
- *                                        For example, 'error', 'success', 'warning', 'info'.
- *                                        Default empty string.
- *     @type bool     $dismissible        Optional. Whether the admin notice is dismissible. Default false.
- *     @type string   $id                 Optional. The value of the admin notice's ID attribute. Default empty string.
- *     @type string[] $additional_classes Optional. A string array of class names. Default empty array.
- *     @type bool     $paragraph_wrap     Optional. Whether to wrap the message in paragraph tags. Default true.
- * }
- * @return string The markup for an admin notice.
- */
-function wp_get_admin_notice( $message, $args = array() ) {
-	$defaults = array(
-		'type'               => '',
-		'dismissible'        => false,
-		'id'                 => '',
-		'additional_classes' => array(),
-		'paragraph_wrap'     => true,
-	);
-
-	$args = wp_parse_args( $args, $defaults );
-
-	/**
-	 * Filters the arguments for an admin notice.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param array  $args    The arguments for the admin notice.
-	 * @param string $message The message for the admin notice.
-	 */
-	$args    = apply_filters( 'wp_admin_notice_args', $args, $message );
-	$id      = '';
-	$classes = 'notice';
-
-	if ( is_string( $args['id'] ) ) {
-		$trimmed_id = trim( $args['id'] );
-
-		if ( '' !== $trimmed_id ) {
-			$id = 'id="' . $trimmed_id . '" ';
-		}
-	}
-
-	if ( is_string( $args['type'] ) ) {
-		$type = trim( $args['type'] );
-
-		if ( str_contains( $type, ' ' ) ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: %s: The "type" key. */
-					__( 'The %s key must be a string without spaces.' ),
-					'<code>type</code>'
-				),
-				'6.4.0'
-			);
-		}
-
-		if ( '' !== $type ) {
-			$classes .= ' notice-' . $type;
-		}
-	}
-
-	if ( true === $args['dismissible'] ) {
-		$classes .= ' is-dismissible';
-	}
-
-	if ( is_array( $args['additional_classes'] ) && ! empty( $args['additional_classes'] ) ) {
-		$classes .= ' ' . implode( ' ', $args['additional_classes'] );
-	}
-
-	if ( false !== $args['paragraph_wrap'] ) {
-		$message = "<p>$message</p>";
-	}
-
-	$markup = sprintf( '<div %1$sclass="%2$s">%3$s</div>', $id, $classes, $message );
-
-	/**
-	 * Filters the markup for an admin notice.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $markup  The HTML markup for the admin notice.
-	 * @param string $message The message for the admin notice.
-	 * @param array  $args    The arguments for the admin notice.
-	 */
-	return apply_filters( 'wp_admin_notice_markup', $markup, $message, $args );
-}
-
-/**
- * Outputs an admin notice.
- *
- * @since 6.4.0
- *
- * @param string $message The message to output.
- * @param array  $args {
- *     Optional. An array of arguments for the admin notice. Default empty array.
- *
- *     @type string   $type               Optional. The type of admin notice.
- *                                        For example, 'error', 'success', 'warning', 'info'.
- *                                        Default empty string.
- *     @type bool     $dismissible        Optional. Whether the admin notice is dismissible. Default false.
- *     @type string   $id                 Optional. The value of the admin notice's ID attribute. Default empty string.
- *     @type string[] $additional_classes Optional. A string array of class names. Default empty array.
- *     @type bool     $paragraph_wrap     Optional. Whether to wrap the message in paragraph tags. Default true.
- * }
- */
-function wp_admin_notice( $message, $args = array() ) {
-	/**
-	 * Fires before an admin notice is output.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @param string $message The message for the admin notice.
-	 * @param array  $args    The arguments for the admin notice.
-	 */
-	do_action( 'wp_admin_notice', $message, $args );
-
-	echo wp_kses_post( wp_get_admin_notice( $message, $args ) );
 }

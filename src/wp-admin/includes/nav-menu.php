@@ -204,7 +204,7 @@ function wp_nav_menu_setup() {
  *
  * @since 3.0.0
  *
- * @global array $wp_meta_boxes
+ * @global array $wp_meta_boxes Global meta box state.
  */
 function wp_initial_nav_menu_meta_boxes() {
 	global $wp_meta_boxes;
@@ -874,7 +874,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 		return;
 	}
 
-	$num_pages = ceil(
+	$num_pages = (int) ceil(
 		wp_count_terms(
 			array_merge(
 				$args,
@@ -1291,15 +1291,21 @@ function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 		}
 
 		if ( $some_pending_menu_items ) {
-			$result .= '<div class="notice notice-info notice-alt inline"><p>'
-				. __( 'Click Save Menu to make pending menu items public.' )
-				. '</p></div>';
+			$message     = __( 'Click Save Menu to make pending menu items public.' );
+			$notice_args = array(
+				'type'               => 'info',
+				'additional_classes' => array( 'notice-alt', 'inline' ),
+			);
+			$result     .= wp_get_admin_notice( $message, $notice_args );
 		}
 
 		if ( $some_invalid_menu_items ) {
-			$result .= '<div class="notice notice-error notice-alt inline"><p>'
-				. __( 'There are some invalid menu items. Please check or delete them.' )
-				. '</p></div>';
+			$message     = __( 'There are some invalid menu items. Please check or delete them.' );
+			$notice_args = array(
+				'type'               => 'error',
+				'additional_classes' => array( 'notice-alt', 'inline' ),
+			);
+			$result     .= wp_get_admin_notice( $message, $notice_args );
 		}
 
 		$result .= '<ul class="menu" id="menu-to-edit"> ';
@@ -1314,7 +1320,6 @@ function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 	} elseif ( is_wp_error( $menu ) ) {
 		return $menu;
 	}
-
 }
 
 /**
@@ -1432,7 +1437,13 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 			);
 
 			if ( is_wp_error( $menu_item_db_id ) ) {
-				$messages[] = '<div id="message" class="error"><p>' . $menu_item_db_id->get_error_message() . '</p></div>';
+				$messages[] = wp_get_admin_notice(
+					$menu_item_db_id->get_error_message(),
+					array(
+						'id'                 => 'message',
+						'additional_classes' => array( 'error' ),
+					)
+				);
 			} else {
 				unset( $menu_items[ $menu_item_db_id ] );
 			}
@@ -1473,19 +1484,22 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 		wp_get_nav_menus( array( 'fields' => 'ids' ) )
 	);
 
-	update_option( 'nav_menu_options', $nav_menu_option );
+	update_option( 'nav_menu_options', $nav_menu_option, false );
 
 	wp_defer_term_counting( false );
 
 	/** This action is documented in wp-includes/nav-menu.php */
 	do_action( 'wp_update_nav_menu', $nav_menu_selected_id );
 
-	$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' .
-		sprintf(
-			/* translators: %s: Nav menu title. */
-			__( '%s has been updated.' ),
-			'<strong>' . $nav_menu_selected_title . '</strong>'
-		) . '</p></div>';
+	/* translators: %s: Nav menu title. */
+	$message     = sprintf( __( '%s has been updated.' ), '<strong>' . $nav_menu_selected_title . '</strong>' );
+	$notice_args = array(
+		'id'                 => 'message',
+		'dismissible'        => true,
+		'additional_classes' => array( 'updated' ),
+	);
+
+	$messages[] = wp_get_admin_notice( $message, $notice_args );
 
 	unset( $menu_items, $unsorted_menu_items );
 

@@ -3,7 +3,7 @@
 	Normalize an XML document to make it easier to compare whether 2 documents will
 	be seen as "equal" to an XML processor.
 
-	The normalization is similiar, in spirit, to {@link https://www.w3.org/TR/xml-c14n11/ Canonical XML},
+	The normalization is similar, in spirit, to {@link https://www.w3.org/TR/xml-c14n11/ Canonical XML},
 	but without some aspects of C14N that make the kinds of assertions we need difficult.
 
 	For example, the following XML documents will be interpreted the same by an XML processor,
@@ -23,7 +23,7 @@
 	>
 
 	<!--
-		Output UTF-8 XML, no indendation and all CDATA sections replaced with their character content. 
+		Output UTF-8 XML, no indentation and all CDATA sections replaced with their character content.
 	  -->
 	<xsl:output
 		method='xml'
@@ -61,12 +61,12 @@
 	</xsl:template>
 
 	<!--
-		Strip comments. 
+		Strip comments.
 	  -->
 	<xsl:template match='comment()' priority='10' />
 
 	<!--
-		Pass all other nodes through unchanged.  
+		Pass all other nodes through unchanged.
 	  -->
 	<xsl:template match='node()'>
 		<xsl:copy>

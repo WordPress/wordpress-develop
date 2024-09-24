@@ -54,7 +54,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 	 * is always fresh from the potential modifications done via hooks
 	 * that can use dynamic data (modify the stylesheet depending on some option,
 	 * settings depending on user permissions, etc.).
-	 * See some of the existing hooks to modify theme.json behaviour:
+	 * See some of the existing hooks to modify theme.json behavior:
 	 * https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
 	 *
 	 * A different alternative considered was to invalidate the cache upon certain
@@ -139,6 +139,7 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  *
  * @since 5.9.0
  * @since 6.1.0 Added 'base-layout-styles' support.
+ * @since 6.6.0 Resolves relative paths in theme.json styles to theme absolute paths.
  *
  * @param array $types Optional. Types of styles to load.
  *                     It accepts as values 'variables', 'presets', 'styles', 'base-layout-styles'.
@@ -179,9 +180,9 @@ function wp_get_global_stylesheet( $types = array() ) {
 		}
 	}
 
-	$tree = WP_Theme_JSON_Resolver::get_merged_data();
-
+	$tree                = WP_Theme_JSON_Resolver::resolve_theme_file_uris( WP_Theme_JSON_Resolver::get_merged_data() );
 	$supports_theme_json = wp_theme_has_theme_json();
+
 	if ( empty( $types ) && ! $supports_theme_json ) {
 		$types = array( 'variables', 'presets', 'base-layout-styles' );
 	} elseif ( empty( $types ) ) {
@@ -222,7 +223,13 @@ function wp_get_global_stylesheet( $types = array() ) {
 		 * @see wp_add_global_styles_for_blocks
 		 */
 		$origins = array( 'default', 'theme', 'custom' );
-		if ( ! $supports_theme_json ) {
+		/*
+		 * If the theme doesn't have theme.json but supports both appearance tools and color palette,
+		 * the 'theme' origin should be included so color palette presets are also output.
+		 */
+		if ( ! $supports_theme_json && ( current_theme_supports( 'appearance-tools' ) || current_theme_supports( 'border' ) ) && current_theme_supports( 'editor-color-palette' ) ) {
+			$origins = array( 'default', 'theme' );
+		} elseif ( ! $supports_theme_json ) {
 			$origins = array( 'default' );
 		}
 		$styles_rest = $tree->get_stylesheet( $types, $origins );
@@ -237,64 +244,18 @@ function wp_get_global_stylesheet( $types = array() ) {
 }
 
 /**
- * Gets the global styles custom CSS from theme.json.
- *
- * @since 6.2.0
- *
- * @return string The global styles custom CSS.
- */
-function wp_get_global_styles_custom_css() {
-	if ( ! wp_theme_has_theme_json() ) {
-		return '';
-	}
-	/*
-	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
-	 * developer's workflow.
-	 */
-	$can_use_cached = ! wp_is_development_mode( 'theme' );
-
-	/*
-	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
-	 * @see `wp_cache_add_non_persistent_groups()`.
-	 *
-	 * The rationale for this is to make sure derived data from theme.json
-	 * is always fresh from the potential modifications done via hooks
-	 * that can use dynamic data (modify the stylesheet depending on some option,
-	 * settings depending on user permissions, etc.).
-	 * See some of the existing hooks to modify theme.json behavior:
-	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
-	 *
-	 * A different alternative considered was to invalidate the cache upon certain
-	 * events such as options add/update/delete, user meta, etc.
-	 * It was judged not enough, hence this approach.
-	 * @see https://github.com/WordPress/gutenberg/pull/45372
-	 */
-	$cache_key   = 'wp_get_global_styles_custom_css';
-	$cache_group = 'theme_json';
-	if ( $can_use_cached ) {
-		$cached = wp_cache_get( $cache_key, $cache_group );
-		if ( $cached ) {
-			return $cached;
-		}
-	}
-
-	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
-	$stylesheet = $tree->get_custom_css();
-
-	if ( $can_use_cached ) {
-		wp_cache_set( $cache_key, $stylesheet, $cache_group );
-	}
-
-	return $stylesheet;
-}
-
-/**
  * Adds global style rules to the inline style for each block.
  *
  * @since 6.1.0
+ * @since 6.7.0 Resolve relative paths in block styles.
+ *
+ * @global WP_Styles $wp_styles
  */
 function wp_add_global_styles_for_blocks() {
+	global $wp_styles;
+
 	$tree        = WP_Theme_JSON_Resolver::get_merged_data();
+	$tree        = WP_Theme_JSON_Resolver::resolve_theme_file_uris( $tree );
 	$block_nodes = $tree->get_styles_block_nodes();
 	foreach ( $block_nodes as $metadata ) {
 		$block_css = $tree->get_styles_for_block( $metadata );
@@ -305,17 +266,26 @@ function wp_add_global_styles_for_blocks() {
 		}
 
 		$stylesheet_handle = 'global-styles';
+
+		/*
+		 * When `wp_should_load_separate_core_block_assets()` is true, block styles are
+		 * enqueued for each block on the page in class WP_Block's render function.
+		 * This means there will be a handle in the styles queue for each of those blocks.
+		 * Block-specific global styles should be attached to the global-styles handle, but
+		 * only for blocks on the page, thus we check if the block's handle is in the queue
+		 * before adding the inline style.
+		 * This conditional loading only applies to core blocks.
+		 */
 		if ( isset( $metadata['name'] ) ) {
-			/*
-			 * These block styles are added on block_render.
-			 * This hooks inline CSS to them so that they are loaded conditionally
-			 * based on whether or not the block is used on the page.
-			 */
 			if ( str_starts_with( $metadata['name'], 'core/' ) ) {
-				$block_name        = str_replace( 'core/', '', $metadata['name'] );
-				$stylesheet_handle = 'wp-block-' . $block_name;
+				$block_name   = str_replace( 'core/', '', $metadata['name'] );
+				$block_handle = 'wp-block-' . $block_name;
+				if ( in_array( $block_handle, $wp_styles->queue, true ) ) {
+					wp_add_inline_style( $stylesheet_handle, $block_css );
+				}
+			} else {
+				wp_add_inline_style( $stylesheet_handle, $block_css );
 			}
-			wp_add_inline_style( $stylesheet_handle, $block_css );
 		}
 
 		// The likes of block element styles from theme.json do not have  $metadata['name'] set.
@@ -323,10 +293,14 @@ function wp_add_global_styles_for_blocks() {
 			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
 			if ( $block_name ) {
 				if ( str_starts_with( $block_name, 'core/' ) ) {
-					$block_name        = str_replace( 'core/', '', $block_name );
-					$stylesheet_handle = 'wp-block-' . $block_name;
+					$block_name   = str_replace( 'core/', '', $block_name );
+					$block_handle = 'wp-block-' . $block_name;
+					if ( in_array( $block_handle, $wp_styles->queue, true ) ) {
+						wp_add_inline_style( $stylesheet_handle, $block_css );
+					}
+				} else {
+					wp_add_inline_style( $stylesheet_handle, $block_css );
 				}
-				wp_add_inline_style( $stylesheet_handle, $block_css );
 			}
 		}
 	}
@@ -539,7 +513,7 @@ function wp_get_block_css_selector( $block_type, $target = 'root', $fallback = f
 		// Prefer the selectors API if available.
 		if ( $has_selectors ) {
 			// Look for selector under `feature.root`.
-			$path             = array_merge( $target, array( 'root' ) );
+			$path             = array( current( $target ), 'root' );
 			$feature_selector = _wp_array_get( $block_type->selectors, $path, null );
 
 			if ( $feature_selector ) {
@@ -553,7 +527,7 @@ function wp_get_block_css_selector( $block_type, $target = 'root', $fallback = f
 		}
 
 		// Try getting old experimental supports selector value.
-		$path             = array_merge( $target, array( '__experimentalSelector' ) );
+		$path             = array( current( $target ), '__experimentalSelector' );
 		$feature_selector = _wp_array_get( $block_type->supports, $path, null );
 
 		// Nothing to work with, provide fallback or null.

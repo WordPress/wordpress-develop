@@ -31,6 +31,11 @@ class Tests_REST_API extends WP_UnitTestCase {
 		return 'Spy_REST_Server';
 	}
 
+	public function test_rest_get_server_fails_with_undefined_method() {
+		$this->expectException( Error::class );
+		rest_get_server()->does_not_exist();
+	}
+
 	/**
 	 * Checks that the main classes are loaded.
 	 */
@@ -2512,10 +2517,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'description', $preload_data['/']['body'] );
 		$this->assertArrayHasKey( 'routes', $preload_data['/']['body'] );
 
-		// Filtered request only has the desired fields + links
+		// Filtered request only has the desired fields.
 		$this->assertSame(
 			array_keys( $preload_data['/?_fields=description']['body'] ),
-			array( 'description', '_links' )
+			array( 'description' )
 		);
 	}
 

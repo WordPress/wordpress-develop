@@ -1,0 +1,212 @@
+# Responsible for making comments on pull requests, such as commenting for first time contributors.
+name: Pull Request Comments
+
+on:
+  pull_request_target:
+    types: [ 'opened' ]
+  workflow_run:
+    workflows: [ 'Test Build Processes' ]
+    types:
+      - completed
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request_target' && github.head_ref || github.event_name == 'workflow_dispatch' && github.event.number || github.sha }}
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Comments on a pull request when the author is a first time contributor.
+  post-welcome-message:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    timeout-minutes: 5
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' }}
+    steps:
+      - name: Post a welcome comment
+        uses: wow-actions/welcome@72817eb31cda1de60f51893d80e2e82ce57f7e76 # v1.3.0
+        with:
+          FIRST_PR_REACTIONS: 'hooray'
+          FIRST_PR_COMMENT: >
+            Hi @{{ author }}! 👋
+
+
+            Thank you for your contribution to WordPress! 💖
+
+
+            It looks like this is your first pull request to `wordpress-develop`. Here are a few things to be aware of that may help you out!
+
+
+            **No one monitors this repository for new pull requests.** Pull requests **must** be attached to a Trac ticket to be considered for inclusion in WordPress Core. To attach a pull request to a Trac ticket, please include the ticket's full URL in your pull request description.
+
+
+            **Pull requests are never merged on GitHub.** The WordPress codebase continues to be managed through the SVN repository that this GitHub repository mirrors. Please feel free to open pull requests to work on any contribution you are making.
+
+
+            More information about how GitHub pull requests can be used to contribute to WordPress can be found in [the Core Handbook](https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/).
+
+
+            **Please include automated tests.** Including tests in your pull request is one way to help your patch be considered faster. To learn about WordPress' test suites, visit the [Automated Testing](https://make.wordpress.org/core/handbook/testing/automated-testing/) page in the handbook.
+
+
+            If you have not had a chance, please review the [Contribute with Code page](https://make.wordpress.org/core/handbook/contribute/) in the [WordPress Core Handbook](https://make.wordpress.org/core/handbook/).
+
+
+            The [Developer Hub](https://developer.wordpress.org/) also documents the various [coding standards](https://make.wordpress.org/core/handbook/best-practices/coding-standards/) that are followed:
+
+            - [PHP Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/)
+
+            - [CSS Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/css/)
+
+            - [HTML Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/html/)
+
+            - [JavaScript Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/javascript/)
+
+            - [Accessibility Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/accessibility/)
+
+            - [Inline Documentation Standards](https://developer.wordpress.org/coding-standards/inline-documentation-standards/)
+
+
+            Thank you,
+
+            The WordPress Project
+
+  # Leaves a comment on a pull request with a link to test the changes in a WordPress Playground instance.
+  playground-details:
+    name: Comment on a pull request with Playground details
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    if: >
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Download artifact
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts( {
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{ github.event.workflow_run.id }},
+            } );
+
+            const matchArtifact = artifacts.data.artifacts.filter( ( artifact ) => {
+              return artifact.name === 'pr-number'
+            } )[0];
+
+            if ( ! matchArtifact ) {
+              core.setFailed( 'No artifact found!' );
+              return;
+            }
+
+            const download = await github.rest.actions.downloadArtifact( {
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            } );
+
+            const fs = require( 'fs' );
+            fs.writeFileSync( '${{github.workspace}}/pr-number.zip', Buffer.from( download.data ) )
+
+      - name: Unzip the artifact containing the PR number
+        run: unzip pr-number.zip
+
+      - name: Leave a comment about testing with Playground
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require( 'fs' );
+            const issue_number = Number( fs.readFileSync( './NR' ) );
+
+            // Comments are only added after the first successful build. Check for the presence of a comment and bail early.
+            const commentInfo = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+            };
+
+            const comments = ( await github.rest.issues.listComments( commentInfo ) ).data;
+
+            for ( const currentComment of comments ) {
+              if ( currentComment.user.type === 'Bot' && currentComment.body.includes( 'Test using WordPress Playground' ) ) {
+                return;
+              }
+            };
+
+            // No comment was found. Create one.
+            commentInfo.body = `## Test using WordPress Playground
+            The changes in this pull request can previewed and tested using a [WordPress Playground](https://developer.wordpress.org/playground/) instance.
+
+            [WordPress Playground](https://developer.wordpress.org/playground/) is an experimental project that creates a full WordPress instance entirely within the browser.
+
+            ### Some things to be aware of
+            - The Plugin and Theme Directories cannot be accessed within Playground.
+            - All changes will be lost when closing a tab with a Playground instance.
+            - All changes will be lost when refreshing the page.
+            - A fresh instance is created each time the link below is clicked.
+            - Every time this pull request is updated, a new ZIP file containing all changes is created. If changes are not reflected in the Playground instance,
+            it's possible that the most recent build failed, or has not completed. Check the [list of workflow runs to be sure](https://github.com/WordPress/wordpress-develop/actions/workflows/wordpress-playground.yml).
+
+            For more details about these limitations and more, check out the [Limitations page](https://wordpress.github.io/wordpress-playground/limitations/) in the WordPress Playground documentation.
+
+            [Test this pull request with WordPress Playground](https://playground.wordpress.net/wordpress.html?pr=${ issue_number }).
+            `;
+
+            github.rest.issues.createComment( commentInfo );
+
+  # Leaves a comment on a pull request when no Trac ticket is included in the pull request description.
+  trac-ticket-check:
+    name: Comment on a pull request when no Trac ticket is included
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' && ! github.event.pull_request.draft && github.event.pull_request.state == 'open' }}
+    steps:
+      - name: Check for Trac ticket and comment if missing
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const { number } = context.issue;
+
+            // Check for the presence of a comment and bail early.
+            const comments = ( await github.rest.issues.listComments( { owner, repo, issue_number: number } ) ).data;
+
+            const hasMissingTicketComment = comments.some( comment =>
+              comment.user.type === 'Bot' && comment.body.includes( 'Trac Ticket Missing' )
+            );
+
+            if ( hasMissingTicketComment ) return;
+
+            // No comment was found. Create one.
+            const pr = ( await github.rest.pulls.get( { owner, repo, pull_number: number } ) ).data;
+
+            const prBody = pr.body ?? '';
+            const prTitle = pr.title ?? '';
+
+            const tracTicketRegex = new RegExp( '(https?://core.trac.wordpress.org/ticket/|Core-|ticket:)([0-9]+)', 'g' );
+            const tracTicketMatches = prBody.match( tracTicketRegex ) || prTitle.match( tracTicketRegex );
+
+            if ( ! tracTicketMatches ) {
+              github.rest.issues.createComment( {
+                owner,
+                repo,
+                issue_number: number,
+                body: `## Trac Ticket Missing
+            This pull request is missing a link to a [Trac ticket](https://core.trac.wordpress.org/). For a contribution to be considered, there must be a corresponding ticket in Trac.
+
+            To attach a pull request to a Trac ticket, please include the ticket's full URL in your pull request description. More information about contributing to WordPress on GitHub can be found in [the Core Handbook](https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/).
+            `,
+              } );
+            }

@@ -92,11 +92,13 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				'' => array(
 					'flight_number' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => null,
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'revisions_enabled' => false,
 					),
 				),
 			),
@@ -116,11 +118,13 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				'' => array(
 					'category_icon' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => null,
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'revisions_enabled' => false,
 					),
 				),
 			),
@@ -170,11 +174,13 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				'' => array(
 					'flight_number' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => array( $this, '_new_sanitize_meta_cb' ),
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'revisions_enabled' => false,
 					),
 				),
 			),
@@ -251,6 +257,19 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		unregister_meta_key( 'post', 'registered_key2' );
 
 		$this->assertEmpty( $meta_keys );
+	}
+
+	/**
+	 * @ticket 61998
+	 */
+	public function test_get_registered_meta_keys_label_arg() {
+		register_meta( 'post', 'registered_key1', array( 'label' => 'Field label' ) );
+
+		$meta_keys = get_registered_meta_keys( 'post' );
+
+		unregister_meta_key( 'post', 'registered_key1' );
+
+		$this->assertSame( 'Field label', $meta_keys['registered_key1']['label'] );
 	}
 
 	public function test_get_registered_meta_keys_description_arg() {
@@ -337,11 +356,13 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				$subtype => array(
 					'flight_number' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => null,
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'revisions_enabled' => false,
 					),
 				),
 			),
@@ -390,11 +411,13 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				$subtype => array(
 					'flight_number' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => null,
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'revisions_enabled' => false,
 					),
 				),
 			),
@@ -546,7 +569,6 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		update_metadata( $object_type, $object_id, $meta_key, $meta_value );
 		$value = get_metadata( $object_type, $object_id, $meta_key, true );
 		$this->assertSame( $value, $meta_value );
-
 	}
 
 	/**
@@ -1081,5 +1103,36 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 			array( 'comment', 'comment' ),
 			array( 'user', 'user' ),
 		);
+	}
+
+	/**
+	 * Test that attempting to register meta with revisions_enabled set to true on a
+	 * post type that does not have revisions enabled fails and throws a `doing_it_wrong` notice.
+	 *
+	 * @ticket 20564
+	 */
+	public function test_register_meta_with_revisions_enabled_on_post_type_without_revisions() {
+		$this->setExpectedIncorrectUsage( 'register_meta' );
+
+		// Set up a custom post type with revisions disabled.
+		register_post_type(
+			'test_post_type',
+			array(
+				'supports' => array( 'title', 'editor' ),
+			)
+		);
+
+		$meta_key = 'registered_key1';
+		$args     = array(
+			'revisions_enabled' => true,
+		);
+
+		$register = register_meta(
+			'test_post_type',
+			$meta_key,
+			$args
+		);
+
+		$this->assertFalse( $register );
 	}
 }

@@ -36,6 +36,7 @@ body {
 
 	@include media(tablet) {
 
+		&.block-editor-iframe__body,
 		&.block-editor-writing-flow,
 		.block-editor-writing-flow {
 			max-width: 80%;
@@ -118,20 +119,24 @@ h6 {
 
 h1 {
 	font-size: $font__size-xl;
-	@include post-section-dash;
 
 	@include media(tablet) {
 		font-size: $font__size-xxl;
 	}
 }
 
+.wp-block-post-title,
 h2 {
 	font-size: $font__size-lg;
-	@include post-section-dash;
 
 	@include media(tablet) {
 		font-size: $font__size-xl;
 	}
+}
+
+h1,
+h2 {
+	@include post-section-dash;
 }
 
 h3 {
@@ -376,15 +381,28 @@ figcaption,
 	}
 }
 
+/** === Audio === */
+
+.wp-block-audio {
+
+	audio {
+		display: block;
+	}
+}
+
 /** === Button === */
+
+.wp-block-buttons {
+	line-height: $font__line-height-heading;
+}
 
 .wp-block-button {
 
 	.wp-block-button__link {
-		line-height: 1.8;
 		@include font-family( $font__heading );
 		font-size: $font__size-sm;
 		font-weight: bold;
+		padding: ($font__size_base * .76) $font__size_base;
 
 		&:not(.has-text-color) {
 			color: #fff;
@@ -415,6 +433,36 @@ figcaption,
 		}
 	}
 }
+
+.wp-block-buttons,
+.wp-block-button {
+
+	&[style*="font-weight"] .wp-block-button__link {
+		font-weight: inherit;
+	}
+
+	&[style*="text-decoration"] .wp-block-button__link {
+		text-decoration: inherit;
+	}
+}
+
+.wp-block-search {
+	.wp-block-search__button {
+		@include font-family( $font__heading );
+		font-size: $font__size-sm;
+		font-weight: bold;
+		border-radius: 5px;
+
+		&:not(.has-text-color) {
+			color: #fff;
+		}
+
+		&:not(.has-background-color) {
+			background: $color__background-button;
+		}
+	}
+}
+
 
 /** === Blockquote === */
 
@@ -729,6 +777,11 @@ ul.wp-block-archives,
 
 }
 
+.wp-block[data-align="center"] > .wp-block-archives,
+.wp-block[data-align="center"] > .wp-block-categories {
+	text-align: center;
+}
+
 /** === Latest Posts === */
 .wp-block-latest-posts {
 
@@ -819,14 +872,13 @@ ul.wp-block-archives,
  		padding: ( $size__spacing-unit * .5 );
  		text-align: left;
 		text-align: center;
-		-webkit-margin-start: 0px;
-		margin-inline-start: 0px;
+		-webkit-margin-start: 0;
+		margin-inline-start: 0;
 	}
 }
 
 .wp-block-freeform {
 
-	/* Add style for galleries in classic-editor block */
 	blockquote {
 		border-left: 2px solid $color__link;
 
@@ -843,8 +895,8 @@ ul.wp-block-archives,
 /** === Group Block === */
 
 // This matches the 22px value for 1rem that used on the front end.
-// It must be specified in pixels for the editor, since the root font 
-// size is different here. 
+// It must be specified in pixels for the editor, since the root font
+// size is different here.
 $group-block-background__padding: $font__size_base;
 
 .wp-block-group {
@@ -894,7 +946,7 @@ $group-block-background__padding: $font__size_base;
 
 	// Group block with background color
 	&.has-background {
-		
+
 		// Child blocks: Default alignments
 		> .wp-block-group__inner-container > .wp-block:not([data-align="wide"]):not([data-align="full"]):not(.alignwide):not(.alignfull) {
 			@include media(tablet) {
@@ -911,19 +963,19 @@ $group-block-background__padding: $font__size_base;
 // Full alignment
 .wp-block[data-align="full"] > .wp-block-group {
 
-		// Margins & padding are added to this container to mimic 
-		// the style + spacing of the .editor-writing-flow global 
-		// container. This way, child items sync up with the placement 
-		// and size of other top-level blocks. 
+		// Margins & padding are added to this container to mimic
+		// the style + spacing of the .editor-writing-flow global
+		// container. This way, child items sync up with the placement
+		// and size of other top-level blocks.
 		> .wp-block-group__inner-container {
 
 			// 2px of extra padding are added to each side here
-			// To better match up with the spacing of the whole 
-			// document. 
+			// To better match up with the spacing of the whole
+			// document.
 			@include media(tablet) {
 				width: 80%;
 				margin-left: 10%;
-				margin-right: 10%; 
+				margin-right: 10%;
 				padding-left: 10px;
 				padding-right: 10px;
 			}
@@ -1019,4 +1071,11 @@ $group-block-background__padding: $font__size_base;
 		padding-right: 0;
 		width: 100%;
 	}
+}
+
+/** === Post Author Block === */
+
+.avatar,
+.wp-block-post-author__avatar img {
+	border-radius: 100%;
 }
