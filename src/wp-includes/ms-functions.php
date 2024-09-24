@@ -922,7 +922,16 @@ function wpmu_signup_user( $user, $user_email, $meta = array() ) {
  * @param array  $meta       Optional. Signup meta data. By default, contains the requested privacy setting and lang_id.
  * @return bool
  */
-function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $user_email, $key, $meta = array() ) {
+function wpmu_signup_blog_notification(
+	$domain,
+	$path,
+	$title,
+	$user_login,
+	$user_email,
+	#[\SensitiveParameter]
+	$key,
+	$meta = array()
+) {
 	/**
 	 * Filters whether to bypass the new site email notification.
 	 *
@@ -1057,7 +1066,13 @@ function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $us
  * @param array  $meta       Optional. Signup meta data. Default empty array.
  * @return bool
  */
-function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = array() ) {
+function wpmu_signup_user_notification(
+	$user_login,
+	$user_email,
+	#[\SensitiveParameter]
+	$key,
+	$meta = array()
+) {
 	/**
 	 * Filters whether to bypass the email notification for new user sign-up.
 	 *
@@ -1159,7 +1174,10 @@ function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = 
  * @param string $key The activation key provided to the user.
  * @return array|WP_Error An array containing information about the activated user and/or blog.
  */
-function wpmu_activate_signup( $key ) {
+function wpmu_activate_signup(
+	#[\SensitiveParameter]
+	$key
+) {
 	global $wpdb;
 
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE activation_key = %s", $key ) );

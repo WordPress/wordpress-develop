@@ -4936,7 +4936,11 @@ function wp_generate_user_request_key( $request_id ) {
  * @param string $key        Provided key to validate.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
-function wp_validate_user_request_key( $request_id, $key ) {
+function wp_validate_user_request_key(
+	$request_id,
+	#[\SensitiveParameter]
+	$key
+) {
 	global $wp_hasher;
 
 	$request_id       = absint( $request_id );
