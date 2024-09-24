@@ -2383,8 +2383,13 @@ class WP_Site_Health {
 	 * @return array The test result.
 	 */
 	public function get_test_page_cache() {
+		$caching_url  = apply_filters( 'site_status_persistent_page_cache_url', 'homepage' );
 		$description  = '<p>' . __( 'Page cache enhances the speed and performance of your site by saving and serving static pages instead of calling for a page every time a user visits.' ) . '</p>';
-		$description .= '<p>' . __( 'Page cache is detected by looking for an active page cache plugin as well as making three requests to the homepage and looking for one or more of the following HTTP client caching response headers:' ) . '</p>';
+		$description .= '<p>' . sprintf(
+			/* translators: %1$s is the URL or homepage being checked for caching status. */
+			__( 'Page cache is detected by looking for an active page cache plugin as well as making three requests to the %1$s and looking for one or more of the following HTTP client caching response headers:' ),
+			$caching_url
+		) . '</p>';
 		$description .= '<code>' . implode( '</code>, <code>', array_keys( $this->get_page_cache_headers() ) ) . '.</code>';
 
 		$result = array(
@@ -3382,6 +3387,16 @@ class WP_Site_Health {
 			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
 		}
 
+		/**
+		 * Filters the URL used for checking page caching status in the Site Health tool.
+		 *
+		 * This filter allows customization of the URL used for determining if persistent
+		 * page caching is enabled.
+		 *
+		 * @since 6.6.3
+		 *
+		 * @param string $url The URL used for the caching check. Default is the home URL.
+		 */
 		$caching_url                   = apply_filters( 'site_status_persistent_page_cache_url', home_url( '/' ) );
 		$caching_headers               = $this->get_page_cache_headers();
 		$page_caching_response_headers = array();

@@ -202,8 +202,10 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 					return $expected_url;
 				}
 			);
+			$expected_description_url = $expected_url;
 		} else {
-			$expected_url = home_url( '/' );
+			$expected_url             = home_url( '/' );
+			$expected_description_url = 'homepage';
 		}
 
 		add_filter(
@@ -253,6 +255,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$actual = $this->instance->get_test_page_cache();
 		$this->assertArrayHasKey( 'description', $actual );
 		$this->assertArrayHasKey( 'actions', $actual );
+
+		$this->assertStringContainsString( $expected_description_url, $actual['description'] );
 
 		if ( $is_unauthorized ) {
 			$this->assertStringContainsString( 'Unauthorized', $actual['description'] );
