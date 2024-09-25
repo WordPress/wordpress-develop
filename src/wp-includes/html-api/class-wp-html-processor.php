@@ -408,8 +408,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				if ( $adjusted_current_node ) {
 					$this->change_parsing_namespace( $adjusted_current_node->integration_node_type ? 'html' : $adjusted_current_node->namespace );
+				} else {
+					$this->change_parsing_namespace( 'html' );
 				}
-				$this->change_parsing_namespace( 'html' );
 			}
 		);
 
