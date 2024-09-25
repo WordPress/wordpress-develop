@@ -43,20 +43,41 @@ class WP_Block_Metadata_Registry {
 	 * This method allows registering a collection of block metadata from a single
 	 * manifest file, improving performance for large sets of blocks.
 	 *
+	 * The manifest file should be a PHP file that returns an associative array, where
+	 * the keys are the block identifiers and the values are the corresponding block
+	 * metadata arrays. The block identifiers are determined by the default identifier
+	 * callback, which uses the parent directory name for 'block.json' files and the
+	 * directory name itself for directories.
+	 *
+	 * Example manifest file structure:
+	 * ```
+	 * return array(
+	 *     'example-block' => array(
+	 *         'title' => 'Example Block',
+	 *         'category' => 'widgets',
+	 *         'icon' => 'smiley',
+	 *         // ... other block metadata
+	 *     ),
+	 *     'another-block' => array(
+	 *         'title' => 'Another Block',
+	 *         'category' => 'formatting',
+	 *         'icon' => 'star-filled',
+	 *         // ... other block metadata
+	 *     ),
+	 *     // ... more block metadata entries
+	 * );
+	 * ```
+	 *
+	 * For more information on how the block identifiers are determined, see the
+	 * `default_identifier_callback()` method.
+	 *
 	 * @since 6.X.0
 	 *
-	 * @param string   $path                The absolute base path for the collection ( e.g., WP_PLUGIN_DIR . '/my-plugin/blocks/' ).
-	 * @param string   $manifest            The absolute path to the manifest file containing the metadata collection.
-	 * @param callable $identifier_callback Optional. Callback to determine the block identifier from a path.
-	 *                                      The callback should accept a string (file or folder path) and return a string (block identifier).
-	 *                                      This allows custom mapping between file paths and block names in the manifest.
-	 *                                      If null, the default identifier callback is used, which extracts the parent
-	 *                                      directory name. For example, when calling get_metadata() with a path like
-	 *                                      'WP_PLUGIN_DIR/my-plugin/blocks/example/block.json', it would look for
-	 *                                      a key named "example" in the manifest.
-	 * @return bool                         True if the collection was registered successfully, false otherwise.
+	 * @param string $path     The absolute base path for the collection ( e.g., WP_PLUGIN_DIR . '/my-plugin/blocks/' ).
+	 * @param string $manifest The absolute path to the manifest file containing the metadata collection.
+	 * @return bool            True if the collection was registered successfully, false otherwise.
 	 */
-	public static function register_collection( $path, $manifest, $identifier_callback = null ) {
+	public static function register_collection( $path, $manifest ) {
 		$path = wp_normalize_path( rtrim( $path, '/' ) );
 
 		// Check if the path is valid:
@@ -97,7 +118,6 @@ class WP_Block_Metadata_Registry {
 		self::$collections[ $path ] = array(
 			'manifest' => $manifest,
 			'metadata' => null,
-			'identifier_callback' => $identifier_callback,
 		);
 
 		return true;
@@ -127,13 +147,8 @@ class WP_Block_Metadata_Registry {
 			$collection['metadata'] = require $collection['manifest'];
 		}
 
-		// Use the identifier callback to get the block name, or the default callback if not set.
-		$identifier_callback = self::$collections[ $path ]['identifier_callback'];
-		if ( is_null( $identifier_callback ) ) {
-			$block_name = self::default_identifier_callback( $file_or_folder );
-		} else {
-			$block_name = call_user_func( $identifier_callback, $file_or_folder );
-		}
+		// Get the block name from the path.
+		$block_name = self::default_identifier_callback( $file_or_folder );
 
 		return isset( $collection['metadata'][ $block_name ] ) ? $collection['metadata'][ $block_name ] : null;
 	}
@@ -180,10 +195,9 @@ class WP_Block_Metadata_Registry {
 	}
 
 	/**
-	 * Default callback function to determine the block identifier from a given path.
+	 * Default identifier function to determine the block identifier from a given path.
 	 *
-	 * This function is used when no custom identifier callback is provided during
-	 * collection registration. It extracts the block identifier from the path:
+	 * This function extracts the block identifier from the path:
 	 * - For 'block.json' files, it uses the parent directory name.
 	 * - For directories, it uses the directory name itself.
 	 *
