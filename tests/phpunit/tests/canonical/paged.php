@@ -28,15 +28,14 @@ class Tests_Canonical_Paged extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
-	* Test if it redirects to the front page for non-existing pagination canonical.
-	*
-	* @ticket 50163
-	*/
+	 * Ensures canonical redirects are performed for sites with a static front page.
+	 *
+	 * @ticket 50163
+	 */
 	public function test_redirect_missing_front_page_pagination_canonical() {
-
 		update_option( 'show_on_front', 'page' );
 
-		$post_id = self::factory()->post->create(
+		$page_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'front-page-1',
 				'post_type'    => 'page',
@@ -44,11 +43,16 @@ class Tests_Canonical_Paged extends WP_Canonical_UnitTestCase {
 			)
 		);
 
-		update_option( 'page_on_front', $post_id );
+		update_option( 'page_on_front', $page_id );
 
-		$link = parse_url( get_permalink( $post_id ), PHP_URL_PATH );
+		$link = parse_url( get_permalink( $page_id ), PHP_URL_PATH );
 
-		// Non-existing front page canonical should redirect to the front page.
-		$this->assertCanonical( $link . '/page/3/', $link );
+		// Valid page numbers should not redirect.
+		$this->assertCanonical( $link, $link, 'The home page is not expected to redirect.' );
+		$this->assertCanonical( $link . 'page/2/', $link . 'page/2/', 'Page 2 exists and is not expected to redirect.' );
+
+		// Invalid page numbers should redirect to the front page.
+		$this->assertCanonical( $link . 'page/3/', $link, 'Page 3 does not exist and is expected to redirect to the home page.' );
+
 	}
 }
