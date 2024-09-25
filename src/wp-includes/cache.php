@@ -90,11 +90,14 @@ function wp_cache_replace( $key, $data, $group = '', $expire = 0 ) {
 /**
  * Replace multiple cache values only if they already exist.
  *
- * @param array  $data  Associative array of cache keys and their new values.
- * @param string $group Optional. The cache group. Defaults to 'default'.
+ * @param array  $data   Associative array of cache keys and their new values.
+ * @param string $group  Optional. The cache group. Defaults to 'default'.
+ * @param int    $expire Optional. When to expire the cache contents, in seconds.
+ *                       Default 0 (no expiration).
+ *
  * @return array List of keys that were successfully replaced.
  */
-function wp_cache_replace_multiple( $key_value_pairs, $group = 'default' ) {
+function wp_cache_replace_multiple( $key_value_pairs, $group = 'default', $expire = 0 ) {
 	global $wp_object_cache;
 
 	if ( empty( $group ) ) {
@@ -133,7 +136,7 @@ function wp_cache_replace_multiple( $key_value_pairs, $group = 'default' ) {
 
 	// Set new values in the cache and track successfully replaced keys.
 	if ( ! empty( $values_to_set ) ) {
-		$results = $wp_object_cache->set_multiple( $values_to_set, $group );
+		$results = $wp_object_cache->set_multiple( $values_to_set, $group, (int) $expire );
 
 		// Track successfully replaced keys using array_keys.
 		$successfully_replaced = array_keys( array_filter( $results ) );
