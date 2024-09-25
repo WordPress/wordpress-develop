@@ -25,7 +25,8 @@
 	"config": {
 		"allow-plugins": {
 			"dealerdirect/phpcodesniffer-composer-installer": true
-		}
+		},
+		"lock": false
 	},
 	"scripts": {
 		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
