@@ -119,7 +119,7 @@ class WP_Plugin_Dependencies {
 	 * @since 6.5.0
 	 */
 	public static function initialize() {
-		if ( false === self::$initialized ) {
+		if ( false === self::$initialized && ( defined( 'WP_ENVIRONMENT_TYPE' ) && 'production' === WP_ENVIRONMENT_TYPE ) ) {
 			self::read_dependencies_from_plugin_headers();
 			self::get_dependency_api_data();
 			self::$initialized = true;
