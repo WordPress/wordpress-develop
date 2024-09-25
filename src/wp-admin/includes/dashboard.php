@@ -1373,10 +1373,22 @@ function wp_print_community_events_markup() {
 			<p>
 				<span id="community-events-location-message"></span>
 
-				<button class="button-link community-events-toggle-location" aria-expanded="false">
-					<span class="dashicons dashicons-location" aria-hidden="true"></span>
-					<span class="community-events-location-edit"><?php _e( 'Select location' ); ?></span>
-				</button>
+				<span id="community-events-change-location" aria-hidden="true">
+					<button class="button-link community-events-toggle-location" aria-expanded="false">
+						<span class="dashicons dashicons-location" aria-hidden="true"></span>
+						<span class="community-events-location-edit"><?php _e( 'Select a location' ); ?></span>
+					</button>
+
+					<span class="community-events-reset-location" aria-hidden="true">
+						<?php _e( 'or' ); ?>
+
+						<button class="button-link community-events-location-clear">
+							<span><?php _e( 'reset to your location.' ); ?></span>
+						</button>
+					</span>
+
+					<span class="spinner community-events-reset-spinner"></span>
+				</span>
 			</p>
 
 			<form class="community-events-form" aria-hidden="true" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" method="post">

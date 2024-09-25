@@ -360,6 +360,17 @@ function wp_ajax_autocomplete_user() {
 	wp_die( wp_json_encode( $return ) );
 }
 
+
+/**
+ * Handles Ajax requests for clearing community events
+ */
+function wp_ajax_clear_community_events() {
+	check_ajax_referer( 'community_events' );
+	$user_id        = get_current_user_id();
+	delete_user_option( $user_id, 'community-events-location', true );
+	wp_send_json_success();
+}
+
 /**
  * Handles Ajax requests for community events
  *

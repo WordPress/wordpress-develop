@@ -60,6 +60,7 @@ $core_actions_post = array(
 	'oembed-cache',
 	'image-editor',
 	'delete-comment',
+	'clear-community-events',
 	'delete-tag',
 	'delete-link',
 	'delete-meta',
