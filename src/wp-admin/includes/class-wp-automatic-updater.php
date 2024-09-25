@@ -1777,7 +1777,7 @@ Thanks! -- The WordPress Team"
 		$response     = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 
 		delete_transient( $transient );
-		
+
 		if ( is_wp_error( $response ) ) {
 			if ( $is_debug ) {
 				error_log( 'Loopback request failed: ' . $response->get_error_message() );
@@ -1796,7 +1796,7 @@ Thanks! -- The WordPress Team"
 				error_log( 'wp_scraping_result is not found, error detection is not possible' );
 			}
 			return false;
-		} else  {
+		} else {
 			$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
 			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
 			$result       = json_decode( trim( $error_output ), true );
