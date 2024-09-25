@@ -103,6 +103,7 @@ const MODULES = [
 	'@wordpress/interactivity-router',
 ];
 const SCRIPT_AND_MODULE_DUAL_PACKAGES = [
+	'@wordpress/a11y',
 	'@wordpress/block-library',
 ];
 const WORDPRESS_NAMESPACE = '@wordpress/';
