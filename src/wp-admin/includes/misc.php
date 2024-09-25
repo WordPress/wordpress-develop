@@ -402,7 +402,7 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 	if ( is_array( $tree ) ) {
 		$index = 0;
 		$size  = count( $tree );
-
+		ksort($tree);
 		foreach ( $tree as $label => $theme_file ) :
 			++$index;
 
@@ -475,7 +475,7 @@ function wp_make_plugin_file_tree( $plugin_editable_files ) {
 	foreach ( $plugin_editable_files as $plugin_file ) {
 		$list     = explode( '/', preg_replace( '#^.+?/#', '', $plugin_file ) );
 		$last_dir = &$tree_list;
-
+		
 		foreach ( $list as $dir ) {
 			$last_dir =& $last_dir[ $dir ];
 		}
@@ -504,7 +504,7 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 	if ( is_array( $tree ) ) {
 		$index = 0;
 		$size  = count( $tree );
-
+		ksort($tree);
 		foreach ( $tree as $label => $plugin_file ) :
 			++$index;
 
