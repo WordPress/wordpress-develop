@@ -1567,7 +1567,7 @@ function get_uploaded_header_images() {
 function invalidate_header_images_cache( $meta_id, $post_id, $meta_key, $meta_value ) {
 	if ( '_wp_attachment_is_custom_header' === $meta_key ) {
 		$stylesheet    = $meta_value ? $meta_value : get_option( 'stylesheet' );
-		$transient_key = 'uploaded_header_images' . $stylesheet;
+		$transient_key = "uploaded_header_images_{$stylesheet}";
 		delete_transient( $transient_key );
 	}
 }
