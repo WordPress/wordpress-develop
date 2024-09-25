@@ -423,20 +423,17 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
 
-	$maybe_metadata_from_registry = WP_Block_Metadata_Registry::get_metadata( $file_or_folder );
+	$registry_metadata = WP_Block_Metadata_Registry::get_metadata( $file_or_folder );
 	// If the block is not registered in the metadata registry, the metadata file must exist.
-	$metadata_file_exists = $maybe_metadata_from_registry || file_exists( $metadata_file );
+	$metadata_file_exists = $registry_metadata || file_exists( $metadata_file );
 	if ( ! $metadata_file_exists && empty( $args['name'] ) ) {
 		return false;
 	}
 
-	// Try to get metadata from the static cache for core blocks.
-	$metadata = array();
-	if ( $maybe_metadata_from_registry ) {
-		$metadata = $maybe_metadata_from_registry;
-	}
+	// Try to get metadata from the metadata registry.
+	$metadata = $registry_metadata ?? array();
 
-	// If metadata is not found in the static cache, read it from the file.
+	// If metadata is not found in the metadata registry, read it from the file.
 	if ( $metadata_file_exists && empty( $metadata ) ) {
 		$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 	}
