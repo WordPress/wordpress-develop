@@ -2489,8 +2489,6 @@ function build_query_vars_from_query_block( $block, $page ) {
 						$query['tax_query'],
 						$formats_query,
 					);
-				} else {
-					$query['tax_query'] = $formats_query;
 				}
 			}
 		}
