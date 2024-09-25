@@ -97,14 +97,14 @@ function wp_cache_replace( $key, $data, $group = '', $expire = 0 ) {
  *
  * @return array List of keys that were successfully replaced.
  */
-function wp_cache_replace_multiple( $key_value_pairs, $group = 'default', $expire = 0 ) {
+function wp_cache_replace_multiple( $data, $group = 'default', $expire = 0 ) {
 	global $wp_object_cache;
 
 	if ( empty( $group ) ) {
 		$group = 'default';
 	}
 
-	$keys                  = array_keys( $key_value_pairs );
+	$keys                  = array_keys( $data );
 	$existing_keys         = array();
 	$missing_keys          = array();
 	$successfully_replaced = array();
@@ -130,7 +130,7 @@ function wp_cache_replace_multiple( $key_value_pairs, $group = 'default', $expir
 	foreach ( $merged_keys as $key ) {
 		if ( isset( $existing_values[ $key ] ) || in_array( $key, $existing_keys, true ) ) {
 			// Only replace if it exists.
-			$values_to_set[ $key ] = $key_value_pairs[ $key ];
+			$values_to_set[ $key ] = $data[ $key ];
 		}
 	}
 
