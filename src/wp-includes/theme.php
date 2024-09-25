@@ -1499,7 +1499,7 @@ function header_image() {
  */
 function get_uploaded_header_images() {
 	$stylesheet    = get_option( 'stylesheet' );
-	$transient_key = 'uploaded_header_images' . $stylesheet;
+	$transient_key = "uploaded_header_images_{$stylesheet}";
 	$header_images = get_transient( $transient_key );
 
 	if ( false !== $header_images ) {
