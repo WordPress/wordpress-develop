@@ -1571,6 +1571,7 @@ function invalidate_header_images_cache( $meta_id, $post_id, $meta_key, $meta_va
 		delete_transient( $transient_key );
 	}
 }
+add_action( 'added_post_meta', 'invalidate_header_images_cache', 10, 4 );
 add_action( 'updated_post_meta', 'invalidate_header_images_cache', 10, 4 );
 add_action( 'deleted_post_meta', 'invalidate_header_images_cache', 10, 4 );
 
