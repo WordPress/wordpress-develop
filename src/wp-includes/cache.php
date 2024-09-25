@@ -97,6 +97,10 @@ function wp_cache_replace( $key, $data, $group = '', $expire = 0 ) {
 function wp_cache_replace_multiple( $key_value_pairs, $group = 'default' ) {
 	global $wp_object_cache;
 
+	if ( empty( $group ) ) {
+		$group = 'default';
+	}
+
 	$keys                  = array_keys( $key_value_pairs );
 	$existing_keys         = array();
 	$missing_keys          = array();
