@@ -384,7 +384,7 @@ function get_block_metadata_i18n_schema() {
  *
  * @since 6.X.0
  *
- * @param string $path     The base path for the collection.
+ * @param string $path     The base path in which block files for the collection reside.
  * @param string $manifest The path to the manifest file for the collection.
  */
 function wp_register_block_metadata_collection( $path, $manifest ) {
