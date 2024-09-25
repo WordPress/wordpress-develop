@@ -193,11 +193,4 @@ class WP_Block_Metadata_Registry {
 			return basename( $path );
 		}
 	}
-
-	/**
-	 * Private constructor to prevent instantiation.
-	 */
-	private function __construct() {
-		// Prevent instantiation
-	}
 }
