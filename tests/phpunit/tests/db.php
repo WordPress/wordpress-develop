@@ -1685,7 +1685,7 @@ class Tests_DB extends WP_UnitTestCase {
 			),
 
 			/*
-			 * @ticket 56933.
+			 * @ticket 56933
 			 * When preparing a '%%%s%%', test that the inserted value
 			 * is not wrapped in single quotes between the 2 "%".
 			 */
@@ -1838,7 +1838,7 @@ class Tests_DB extends WP_UnitTestCase {
 			),
 
 			/*
-			 * @ticket 52506.
+			 * @ticket 52506
 			 * Adding an escape method for Identifiers (e.g. table/field names).
 			 */
 			array(
@@ -2454,5 +2454,16 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 
 		$this->assertTrue( $wpdb->use_mysqli );
+	}
+
+	/**
+	 * Verify "pinging" the database works cross-version PHP.
+	 *
+	 * @ticket 62061
+	 */
+	public function test_check_connection_returns_true_when_there_is_a_connection() {
+		global $wpdb;
+
+		$this->assertTrue( $wpdb->check_connection( false ) );
 	}
 }

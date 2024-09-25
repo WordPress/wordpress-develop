@@ -53,7 +53,19 @@ function get_block_theme_folders( $theme_stylesheet = null ) {
  *
  * @since 5.9.0
  *
- * @return array[] The supported template part area values.
+ * @return array[] {
+ *     The allowed template part area values.
+ *
+ *     @type array ...$0 {
+ *         Data for the allowed template part area.
+ *
+ *         @type string $area        Template part area name.
+ *         @type string $label       Template part area label.
+ *         @type string $description Template part area description.
+ *         @type string $icon        Template part area icon.
+ *         @type string $area_tag    Template part area tag.
+ *     }
+ * }
  */
 function get_allowed_block_template_part_areas() {
 	$default_area_definitions = array(
@@ -91,7 +103,19 @@ function get_allowed_block_template_part_areas() {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array[] $default_area_definitions An array of supported area objects.
+	 * @param array[] $default_area_definitions {
+	 *     The allowed template part area values.
+	 *
+	 *     @type array ...$0 {
+	 *         Data for the template part area.
+	 *
+	 *         @type string $area        Template part area name.
+	 *         @type string $label       Template part area label.
+	 *         @type string $description Template part area description.
+	 *         @type string $icon        Template part area icon.
+	 *         @type string $area_tag    Template part area tag.
+	 *     }
+	 * }
 	 */
 	return apply_filters( 'default_wp_template_part_areas', $default_area_definitions );
 }
@@ -103,7 +127,16 @@ function get_allowed_block_template_part_areas() {
  *
  * @since 5.9.0
  *
- * @return array[] The default template types.
+ * @return array[] {
+ *     The default template types.
+ *
+ *     @type array ...$0 {
+ *         Data for the template type.
+ *
+ *         @type string $title       Template type title.
+ *         @type string $description Template type description.
+ *    }
+ * }
  */
 function get_default_block_template_types() {
 	$default_template_types = array(
@@ -178,7 +211,16 @@ function get_default_block_template_types() {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array[] $default_template_types An array of template types, formatted as [ slug => [ title, description ] ].
+	 * @param array[] $default_template_types {
+	 *     The default template types.
+	 *
+	 *     @type array ...$0 {
+	 *         Data for the template type.
+	 *
+	 *         @type string $title       Template type title.
+	 *         @type string $description Template type description.
+	 *    }
+	 * }
 	 */
 	return apply_filters( 'default_template_types', $default_template_types );
 }
@@ -210,7 +252,7 @@ function _filter_block_template_part_area( $type ) {
 		$type,
 		WP_TEMPLATE_PART_AREA_UNCATEGORIZED
 	);
-	trigger_error( $warning_message, E_USER_NOTICE );
+	wp_trigger_error( __FUNCTION__, $warning_message );
 	return WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
 }
 
@@ -249,16 +291,16 @@ function _get_block_templates_paths( $base_directory ) {
  * @param string $template_type Template type. Either 'wp_template' or 'wp_template_part'.
  * @param string $slug          Template slug.
  * @return array|null {
- *    Array with template metadata if $template_type is one of 'wp_template' or 'wp_template_part',
- *    null otherwise.
+ *     Array with template metadata if $template_type is one of 'wp_template' or 'wp_template_part',
+ *     null otherwise.
  *
- *    @type string   $slug      Template slug.
- *    @type string   $path      Template file path.
- *    @type string   $theme     Theme slug.
- *    @type string   $type      Template type.
- *    @type string   $area      Template area. Only for 'wp_template_part'.
- *    @type string   $title     Optional. Template title.
- *    @type string[] $postTypes Optional. List of post types that the template supports. Only for 'wp_template'.
+ *     @type string   $slug      Template slug.
+ *     @type string   $path      Template file path.
+ *     @type string   $theme     Theme slug.
+ *     @type string   $type      Template type.
+ *     @type string   $area      Template area. Only for 'wp_template_part'.
+ *     @type string   $title     Optional. Template title.
+ *     @type string[] $postTypes Optional. List of post types that the template supports. Only for 'wp_template'.
  * }
  */
 function _get_block_template_file( $template_type, $slug ) {
@@ -313,11 +355,16 @@ function _get_block_template_file( $template_type, $slug ) {
  *     @type string   $post_type    Post type to get the templates for.
  * }
  *
- * @return array Template
+ * @return array|null Template files on success, null if `$template_type` is not matched.
  */
 function _get_block_templates_files( $template_type, $query = array() ) {
 	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
 		return null;
+	}
+
+	$default_template_types = array();
+	if ( 'wp_template' === $template_type ) {
+		$default_template_types = get_default_block_template_types();
 	}
 
 	// Prepare metadata from $query.
@@ -383,10 +430,17 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 
 			if ( 'wp_template' === $template_type ) {
 				$candidate = _add_block_template_info( $new_template_item );
+				$is_custom = ! isset( $default_template_types[ $candidate['slug'] ] );
+
 				if (
 					! $post_type ||
 					( $post_type && isset( $candidate['postTypes'] ) && in_array( $post_type, $candidate['postTypes'], true ) )
 				) {
+					$template_files[ $template_slug ] = $candidate;
+				}
+
+				// The custom templates with no associated post types are available for all post types.
+				if ( $post_type && ! isset( $candidate['postTypes'] ) && $is_custom ) {
 					$template_files[ $template_slug ] = $candidate;
 				}
 			}
@@ -538,6 +592,15 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	$template->is_custom      = true;
 	$template->modified       = null;
 
+	if ( 'wp_template' === $template_type ) {
+		$registered_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $template_file['slug'] );
+		if ( $registered_template ) {
+			$template->plugin      = $registered_template->plugin;
+			$template->title       = empty( $template->title ) || $template->title === $template->slug ? $registered_template->title : $template->title;
+			$template->description = empty( $template->description ) ? $registered_template->description : $template->description;
+		}
+	}
+
 	if ( 'wp_template' === $template_type && isset( $default_template_types[ $template_file['slug'] ] ) ) {
 		$template->description = $default_template_types[ $template_file['slug'] ]['description'];
 		$template->title       = $default_template_types[ $template_file['slug'] ]['title'];
@@ -552,15 +615,35 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$template->area = $template_file['area'];
 	}
 
+	$hooked_blocks        = get_hooked_blocks();
+	$has_hooked_blocks    = ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' );
 	$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
 	$after_block_visitor  = null;
-	$hooked_blocks        = get_hooked_blocks();
-	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
-		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
+
+	if ( $has_hooked_blocks ) {
+		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
+		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
 	}
-	$blocks            = parse_blocks( $template->content );
-	$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+
+	if ( 'wp_template_part' === $template->type && $has_hooked_blocks ) {
+		/*
+		 * In order for hooked blocks to be inserted at positions first_child and last_child in a template part,
+		 * we need to wrap its content a mock template part block and traverse it.
+		 */
+		$content           = get_comment_delimited_block_content(
+			'core/template-part',
+			array(),
+			$template->content
+		);
+		$content           = traverse_and_serialize_blocks( parse_blocks( $content ), $before_block_visitor, $after_block_visitor );
+		$template->content = remove_serialized_parent_block( $content );
+	} else {
+		$template->content = traverse_and_serialize_blocks(
+			parse_blocks( $template->content ),
+			$before_block_visitor,
+			$after_block_visitor
+		);
+	}
 
 	return $template;
 }
@@ -729,7 +812,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  * It is self-sufficient in that it only uses information passed as arguments; it does not
  * query the database for additional information.
  *
- * @since 6.5.1
+ * @since 6.5.3
  * @access private
  *
  * @param WP_Post $post  Template post.
@@ -940,12 +1023,45 @@ function _build_block_template_result_from_post( $post ) {
 		}
 	}
 
+	if ( 'wp_template' === $post->post_type ) {
+		$registered_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $template->slug );
+		if ( $registered_template ) {
+			$template->plugin      = $registered_template->plugin;
+			$template->origin      =
+				'theme' !== $template->origin && 'theme' !== $template->source ?
+				'plugin' :
+				$template->origin;
+			$template->title       = empty( $template->title ) || $template->title === $template->slug ? $registered_template->title : $template->title;
+			$template->description = empty( $template->description ) ? $registered_template->description : $template->description;
+		}
+	}
+
 	$hooked_blocks = get_hooked_blocks();
 	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
-		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
-		$blocks               = parse_blocks( $template->content );
-		$template->content    = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
+		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
+		if ( 'wp_template_part' === $template->type ) {
+			$existing_ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
+			$attributes                     = ! empty( $existing_ignored_hooked_blocks ) ? array( 'metadata' => array( 'ignoredHookedBlocks' => json_decode( $existing_ignored_hooked_blocks, true ) ) ) : array();
+
+			/*
+			 * In order for hooked blocks to be inserted at positions first_child and last_child in a template part,
+			 * we need to wrap its content a mock template part block and traverse it.
+			 */
+			$content           = get_comment_delimited_block_content(
+				'core/template-part',
+				$attributes,
+				$template->content
+			);
+			$content           = traverse_and_serialize_blocks( parse_blocks( $content ), $before_block_visitor, $after_block_visitor );
+			$template->content = remove_serialized_parent_block( $content );
+		} else {
+			$template->content = traverse_and_serialize_blocks(
+				parse_blocks( $template->content ),
+				$before_block_visitor,
+				$after_block_visitor
+			);
+		}
 	}
 
 	return $template;
@@ -1055,13 +1171,30 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 
 	if ( ! isset( $query['wp_id'] ) ) {
 		/*
-		 * If the query has found some use templates, those have priority
+		 * If the query has found some user templates, those have priority
 		 * over the theme-provided ones, so we skip querying and building them.
 		 */
 		$query['slug__not_in'] = wp_list_pluck( $query_result, 'slug' );
 		$template_files        = _get_block_templates_files( $template_type, $query );
 		foreach ( $template_files as $template_file ) {
 			$query_result[] = _build_block_template_result_from_file( $template_file, $template_type );
+		}
+
+		if ( 'wp_template' === $template_type ) {
+			// Add templates registered in the template registry. Filtering out the ones which have a theme file.
+			$registered_templates          = WP_Block_Templates_Registry::get_instance()->get_by_query( $query );
+			$matching_registered_templates = array_filter(
+				$registered_templates,
+				function ( $registered_template ) use ( $template_files ) {
+					foreach ( $template_files as $template_file ) {
+						if ( $template_file['slug'] === $registered_template->slug ) {
+							return false;
+						}
+					}
+					return true;
+				}
+			);
+			$query_result                  = array_merge( $query_result, $matching_registered_templates );
 		}
 	}
 
@@ -1193,18 +1326,17 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
 	}
 	list( $theme, $slug ) = $parts;
 
-	if ( get_stylesheet() !== $theme ) {
-		/** This filter is documented in wp-includes/block-template-utils.php */
-		return apply_filters( 'get_block_file_template', null, $id, $template_type );
+	if ( get_stylesheet() === $theme ) {
+		$template_file = _get_block_template_file( $template_type, $slug );
+		if ( null !== $template_file ) {
+			$block_template = _build_block_template_result_from_file( $template_file, $template_type );
+
+			/** This filter is documented in wp-includes/block-template-utils.php */
+			return apply_filters( 'get_block_file_template', $block_template, $id, $template_type );
+		}
 	}
 
-	$template_file = _get_block_template_file( $template_type, $slug );
-	if ( null === $template_file ) {
-		/** This filter is documented in wp-includes/block-template-utils.php */
-		return apply_filters( 'get_block_file_template', null, $id, $template_type );
-	}
-
-	$block_template = _build_block_template_result_from_file( $template_file, $template_type );
+	$block_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $slug );
 
 	/**
 	 * Filters the block template object after it has been (potentially) fetched from the theme file.
@@ -1223,7 +1355,7 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
  *
  * @since 5.9.0
  *
- * @param string $part The block template part to print. Either 'header' or 'footer'.
+ * @param string $part The block template part to print, for example 'header' or 'footer'.
  */
 function block_template_part( $part ) {
 	$template_part = get_block_template( get_stylesheet() . '//' . $part, 'wp_template_part' );
@@ -1505,7 +1637,11 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  */
 function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated = null ) {
 	if ( null !== $deprecated ) {
-		_deprecated_argument( __FUNCTION__, '6.5.1' );
+		_deprecated_argument( __FUNCTION__, '6.5.3' );
+	}
+
+	if ( ! isset( $changes->post_content ) ) {
+		return $changes;
 	}
 
 	$hooked_blocks = get_hooked_blocks();
@@ -1557,11 +1693,36 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 		return $template;
 	}
 
-	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
-	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
+	if ( 'wp_template_part' === $post->post_type ) {
+		$attributes                     = array();
+		$existing_ignored_hooked_blocks = isset( $post->ID ) ? get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true ) : '';
 
-	$blocks                = parse_blocks( $changes->post_content );
-	$changes->post_content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+		if ( ! empty( $existing_ignored_hooked_blocks ) ) {
+			$attributes['metadata'] = array(
+				'ignoredHookedBlocks' => json_decode( $existing_ignored_hooked_blocks, true ),
+			);
+		}
+
+		$content               = get_comment_delimited_block_content(
+			'core/template-part',
+			$attributes,
+			$changes->post_content
+		);
+		$content               = apply_block_hooks_to_content( $content, $template, 'set_ignored_hooked_blocks_metadata' );
+		$changes->post_content = remove_serialized_parent_block( $content );
+
+		$wrapper_block_markup  = extract_serialized_parent_block( $content );
+		$wrapper_block         = parse_blocks( $wrapper_block_markup )[0];
+		$ignored_hooked_blocks = $wrapper_block['attrs']['metadata']['ignoredHookedBlocks'] ?? array();
+		if ( ! empty( $ignored_hooked_blocks ) ) {
+			if ( ! isset( $changes->meta_input ) ) {
+				$changes->meta_input = array();
+			}
+			$changes->meta_input['_wp_ignored_hooked_blocks'] = wp_json_encode( $ignored_hooked_blocks );
+		}
+	} else {
+		$changes->post_content = apply_block_hooks_to_content( $changes->post_content, $template, 'set_ignored_hooked_blocks_metadata' );
+	}
 
 	return $changes;
 }

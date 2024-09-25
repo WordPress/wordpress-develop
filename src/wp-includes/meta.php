@@ -568,7 +568,8 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  *               The value of the meta field if `$single` is true.
  *               False for an invalid `$object_id` (non-numeric, zero, or negative value),
  *               or if `$meta_type` is not specified.
- *               An empty string if a valid but non-existing object ID is passed.
+ *               An empty array if a valid but non-existing object ID is passed and `$single` is false.
+ *               An empty string if a valid but non-existing object ID is passed and `$single` is true.
  */
 function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false ) {
 	$value = get_metadata_raw( $meta_type, $object_id, $meta_key, $single );
@@ -1368,6 +1369,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  * @since 5.3.0 Valid meta types expanded to include "array" and "object".
  * @since 5.5.0 The `$default` argument was added to the arguments array.
  * @since 6.4.0 The `$revisions_enabled` argument was added to the arguments array.
+ * @since 6.7.0 The `label` argument was added to the arguments array.
  *
  * @param string       $object_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
  *                                  or any other object type with an associated meta table.
@@ -1379,6 +1381,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *                                         the meta key will be registered on the entire object type. Default empty.
  *     @type string     $type              The type of data associated with this meta key.
  *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
+ *     @type string     $label             A human-readable label of the data attached to this meta key.
  *     @type string     $description       A description of the data attached to this meta key.
  *     @type bool       $single            Whether the meta key has one value per object, or an array of values per object.
  *     @type mixed      $default           The default value returned from get_metadata() if no value has been set yet.
@@ -1411,6 +1414,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	$defaults = array(
 		'object_subtype'    => '',
 		'type'              => 'string',
+		'label'             => '',
 		'description'       => '',
 		'default'           => '',
 		'single'            => false,
