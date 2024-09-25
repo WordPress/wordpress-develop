@@ -2346,6 +2346,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 		'order'        => 'DESC',
 		'orderby'      => 'date',
 		'post__not_in' => array(),
+		'tax_query'    => array(),
 	);
 
 	if ( isset( $block->context['query'] ) ) {
@@ -2395,34 +2396,35 @@ function build_query_vars_from_query_block( $block, $page ) {
 		}
 		// Migrate `categoryIds` and `tagIds` to `tax_query` for backwards compatibility.
 		if ( ! empty( $block->context['query']['categoryIds'] ) || ! empty( $block->context['query']['tagIds'] ) ) {
-			$tax_query = array();
+			$tax_query_back_compat = array();
 			if ( ! empty( $block->context['query']['categoryIds'] ) ) {
-				$tax_query[] = array(
+				$tax_query_back_compat[] = array(
 					'taxonomy'         => 'category',
 					'terms'            => array_filter( array_map( 'intval', $block->context['query']['categoryIds'] ) ),
 					'include_children' => false,
 				);
 			}
 			if ( ! empty( $block->context['query']['tagIds'] ) ) {
-				$tax_query[] = array(
+				$tax_query_back_compat[] = array(
 					'taxonomy'         => 'post_tag',
 					'terms'            => array_filter( array_map( 'intval', $block->context['query']['tagIds'] ) ),
 					'include_children' => false,
 				);
 			}
-			$query['tax_query'] = $tax_query;
+			$query['tax_query'] = array_merge( $query['tax_query'], $tax_query_back_compat );
 		}
 		if ( ! empty( $block->context['query']['taxQuery'] ) ) {
-			$query['tax_query'] = array();
+			$tax_query = array();
 			foreach ( $block->context['query']['taxQuery'] as $taxonomy => $terms ) {
 				if ( is_taxonomy_viewable( $taxonomy ) && ! empty( $terms ) ) {
-					$query['tax_query'][] = array(
+					$tax_query[] = array(
 						'taxonomy'         => $taxonomy,
 						'terms'            => array_filter( array_map( 'intval', $terms ) ),
 						'include_children' => false,
 					);
 				}
 			}
+			$query['tax_query'] = array_merge( $query['tax_query'], $tax_query );
 		}
 		if ( ! empty( $block->context['query']['format'] ) && is_array( $block->context['query']['format'] ) ) {
 			$formats = $block->context['query']['format'];
@@ -2479,9 +2481,12 @@ function build_query_vars_from_query_block( $block, $page ) {
 			 */
 			if ( count( $formats_query ) > 1 ) {
 				// Enable filtering by both post formats and other taxonomies by combining them with `AND`.
-				if ( isset( $query['tax_query'] ) ) {
-					$query['tax_query'][] = array(
+				if ( empty( $query['tax_query'] ) ) {
+					$query['tax_query'] = $formats_query;
+				} else {
+					$query['tax_query'] = array(
 						'relation' => 'AND',
+						$query['tax_query'],
 						$formats_query,
 					);
 				} else {
