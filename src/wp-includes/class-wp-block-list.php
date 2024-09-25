@@ -92,7 +92,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	public function offsetGet( $offset ) {
 		$block = $this->blocks[ $offset ];
 
-		if ( isset( $block ) && is_array( $block ) ) {
+		if ( isset( $block ) && ( is_array( $block ) || $block instanceof WP_Parsed_Block ) ) {
 			$block = new WP_Block( $block, $this->available_context, $this->registry );
 
 			$this->blocks[ $offset ] = $block;
