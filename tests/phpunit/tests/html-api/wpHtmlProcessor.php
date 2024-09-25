@@ -747,11 +747,12 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that the processor correctly adjusts namespace for different integration points.
+	 * Ensures that the processor correctly adjusts the namespace
+	 * for elements inside HTML integration points.
 	 *
 	 * @ticket 61576
 	 */
-	public function test_namespace_parser_adjustment() {
+	public function test_adjusts_for_html_integration_points_in_svg() {
 		$processor = WP_HTML_Processor::create_full_parser(
 			'<svg><foreignobject><image /><svg /><image />'
 		);
@@ -777,5 +778,33 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		 */
 		$this->assertTrue( $processor->next_tag( 'IMG' ) );
 		$this->assertSame( 'html', $processor->get_namespace() );
+	}
+
+	/**
+	 * Ensures that the processor correctly adjusts the namespace
+	 * for elements inside MathML integration points.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_adjusts_for_mathml_integration_points() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<mo><image /></mo><math><image /><mo><image /></mo></math>'
+		);
+
+		$this->assertTrue( $processor->next_token() );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( 'html', $processor->get_namespace() );
+		$this->assertSame( 'IMG', $processor->get_token_name() );
+
+		$this->assertTrue( $processor->next_token() );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( 'math', $processor->get_namespace() );
+		$this->assertSame( 'IMAGE', $processor->get_token_name() );
+
+		$this->assertTrue( $processor->next_token() );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( 'html', $processor->get_namespace() );
+		$this->assertSame( 'IMG', $processor->get_token_name() );
 	}
 }
