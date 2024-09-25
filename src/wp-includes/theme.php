@@ -1555,7 +1555,7 @@ function get_uploaded_header_images() {
 /**
  * Invalidates the cache for header images when a custom header image is changed or deleted.
  *
- * @since 6.7
+ * @since 6.7.0
  *
  * @param int $meta_id The meta ID of the attachment meta data.
  * @param int $post_id The post ID of the attachment.
