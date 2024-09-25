@@ -287,25 +287,25 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 45109
+	 * @ticket 62114
 	 */
 	public function test_dynamic_block_with_default_attributes() {
 		$settings = array(
 			'attributes'      => array(
-				'content' => array(
+				'content'         => array(
 					'type'    => 'string',
 					'default' => 'Default content.',
 				),
-				'align' => array(
-					'type'   => 'string',
+				'align'           => array(
+					'type'    => 'string',
 					'default' => 'full',
 				),
 				'backgroundColor' => array(
-					'type' => 'string',
+					'type'    => 'string',
 					'default' => 'blueberry-1',
 				),
-				'textColor' => array(
-					'type' => 'string',
+				'textColor'       => array(
+					'type'    => 'string',
 					'default' => 'white',
 				),
 			),
@@ -313,12 +313,12 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 				'align' => array( 'wide', 'full' ),
 				'color' => array(
 					'background' => true,
-					'text' => true,
+					'text'       => true,
 				),
 			),
-			'render_callback' => function( $attributes ) {
-				return '<p ' . get_block_wrapper_attributes() . '>'  . $attributes['content'] . '</p>';
-			}
+			'render_callback' => function ( $attributes ) {
+				return '<p ' . get_block_wrapper_attributes() . '>' . $attributes['content'] . '</p>';
+			},
 		);
 		register_block_type( 'core/dynamic', $settings );
 
