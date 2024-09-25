@@ -1432,7 +1432,7 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  * @since 5.3.1
  *
  * @param array $block {
- *     A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ *     An associative array of a single parsed block object. See WP_Block_Parser_Block.
  *
  *     @type string   $blockName    Name of block.
  *     @type array    $attrs        Attributes from block comment delimiters.
@@ -1473,7 +1473,7 @@ function serialize_block( $block ) {
  *     Array of block structures.
  *
  *     @type array ...$0 {
- *         A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ *         An associative array of a single parsed block object. See WP_Block_Parser_Block.
  *
  *         @type string   $blockName    Name of block.
  *         @type array    $attrs        Attributes from block comment delimiters.
@@ -1515,7 +1515,7 @@ function serialize_blocks( $blocks ) {
  *
  * @see serialize_block()
  *
- * @param array    $block         A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param array    $block         An associative array of a single parsed block object. See WP_Block_Parser_Block.
  * @param callable $pre_callback  Callback to run on each block in the tree before it is traversed and serialized.
  *                                It is called with the following arguments: &$block, $parent_block, $previous_block.
  *                                Its string return value will be prepended to the serialized block markup.
@@ -1690,8 +1690,11 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 	$result       = '';
 	$parent_block = null; // At the top level, there is no parent block to pass to the callbacks; yet the callbacks expect a reference.
 
+	$pre_callback_is_callable  = is_callable( $pre_callback );
+	$post_callback_is_callable = is_callable( $post_callback );
+
 	foreach ( $blocks as $index => $block ) {
-		if ( is_callable( $pre_callback ) ) {
+		if ( $pre_callback_is_callable ) {
 			$prev = 0 === $index
 				? null
 				: $blocks[ $index - 1 ];
@@ -1702,7 +1705,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 			);
 		}
 
-		if ( is_callable( $post_callback ) ) {
+		if ( $post_callback_is_callable ) {
 			$next = count( $blocks ) - 1 === $index
 				? null
 				: $blocks[ $index + 1 ];
@@ -1997,7 +2000,7 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
  * @global WP_Post $post The post to edit.
  *
  * @param array $parsed_block {
- *     A representative array of the block being rendered. See WP_Block_Parser_Block.
+ *     An associative array of the block being rendered. See WP_Block_Parser_Block.
  *
  *     @type string   $blockName    Name of block.
  *     @type array    $attrs        Attributes from block comment delimiters.
@@ -2021,7 +2024,7 @@ function render_block( $parsed_block ) {
 	 *
 	 * @param string|null   $pre_render   The pre-rendered content. Default null.
 	 * @param array         $parsed_block {
-	 *     A representative array of the block being rendered. See WP_Block_Parser_Block.
+	 *     An associative array of the block being rendered. See WP_Block_Parser_Block.
 	 *
 	 *     @type string   $blockName    Name of block.
 	 *     @type array    $attrs        Attributes from block comment delimiters.
@@ -2047,7 +2050,7 @@ function render_block( $parsed_block ) {
 	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
 	 * @param array         $parsed_block {
-	 *     A representative array of the block being rendered. See WP_Block_Parser_Block.
+	 *     An associative array of the block being rendered. See WP_Block_Parser_Block.
 	 *
 	 *     @type string   $blockName    Name of block.
 	 *     @type array    $attrs        Attributes from block comment delimiters.
@@ -2095,7 +2098,7 @@ function render_block( $parsed_block ) {
 	 *
 	 * @param array         $context      Default context.
 	 * @param array         $parsed_block {
-	 *     A representative array of the block being rendered. See WP_Block_Parser_Block.
+	 *     An associative array of the block being rendered. See WP_Block_Parser_Block.
 	 *
 	 *     @type string   $blockName    Name of block.
 	 *     @type array    $attrs        Attributes from block comment delimiters.
@@ -2124,7 +2127,7 @@ function render_block( $parsed_block ) {
  *     Array of block structures.
  *
  *     @type array ...$0 {
- *         A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ *         An associative array of a single parsed block object. See WP_Block_Parser_Block.
  *
  *         @type string   $blockName    Name of block.
  *         @type array    $attrs        Attributes from block comment delimiters.
@@ -2563,11 +2566,6 @@ function build_comment_query_vars_from_block( $block ) {
 				if ( 0 !== $max_num_pages ) {
 					$comment_args['paged'] = $max_num_pages;
 				}
-			}
-			// Set the `cpage` query var to ensure the previous and next pagination links are correct
-			// when inheriting the Discussion Settings.
-			if ( 0 === $page && isset( $comment_args['paged'] ) && $comment_args['paged'] > 0 ) {
-				set_query_var( 'cpage', $comment_args['paged'] );
 			}
 		}
 	}

@@ -123,6 +123,14 @@ wp_add_inline_script(
 	'before'
 );
 
+// Set Heartbeat interval to 10 seconds, used to refresh post locks.
+wp_add_inline_script(
+	'heartbeat',
+	'if ( window.wp && window.wp.heartbeat ) {
+		window.wp.heartbeat.interval( 10 );
+	}'
+);
+
 /*
  * Get all available templates for the post/page attributes meta-box.
  * The "Default template" array element should only be added if the array is
@@ -152,9 +160,12 @@ if ( $user_id ) {
 	if ( $locked ) {
 		$user         = get_userdata( $user_id );
 		$user_details = array(
-			'avatar' => get_avatar_url( $user_id, array( 'size' => 128 ) ),
-			'name'   => $user->display_name,
+			'name' => $user->display_name,
 		);
+
+		if ( get_option( 'show_avatars' ) ) {
+			$user_details['avatar'] = get_avatar_url( $user_id, array( 'size' => 128 ) );
+		}
 	}
 
 	$lock_details = array(

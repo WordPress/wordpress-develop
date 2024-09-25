@@ -158,6 +158,68 @@ HTML;
 	}
 
 	/**
+	 * Tests that blocks can only access the context from the specific source.
+	 *
+	 * @ticket 61642
+	 *
+	 * @covers ::register_block_bindings_source
+	 */
+	public function test_blocks_can_just_access_the_specific_uses_context() {
+		register_block_bindings_source(
+			'test/source-one',
+			array(
+				'label'              => 'Test Source One',
+				'get_value_callback' => function () {
+					return;
+				},
+				'uses_context'       => array( 'contextOne' ),
+			)
+		);
+
+		register_block_bindings_source(
+			'test/source-two',
+			array(
+				'label'              => 'Test Source Two',
+				'get_value_callback' => function ( $source_args, $block_instance, $attribute_name ) {
+					$value = $block_instance->context['contextTwo'];
+					// Try to use the context from source one, which shouldn't be available.
+					if ( ! empty( $block_instance->context['contextOne'] ) ) {
+						$value = $block_instance->context['contextOne'];
+					}
+					return "Value: $value";
+				},
+				'uses_context'       => array( 'contextTwo' ),
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source-two", "args": {"key": "test"}}}}} -->
+<p>Default content</p>
+<!-- /wp:paragraph -->
+HTML;
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block(
+			$parsed_blocks[0],
+			array(
+				'contextOne' => 'source one context value',
+				'contextTwo' => 'source two context value',
+			)
+		);
+		$result        = $block->render();
+
+		$this->assertSame(
+			'Value: source two context value',
+			$block->attributes['content'],
+			"The 'content' should be updated with the value of the second source context value."
+		);
+		$this->assertSame(
+			'<p>Value: source two context value</p>',
+			trim( $result ),
+			'The block content should be updated with the value of the source context.'
+		);
+	}
+
+	/**
 	 * Tests if the block content is updated with the value returned by the source
 	 * for the Image block in the placeholder state.
 	 *
