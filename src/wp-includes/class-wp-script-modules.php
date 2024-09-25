@@ -31,7 +31,7 @@ class WP_Script_Modules {
 	private $enqueued_before_registered = array();
 
 	/**
-	 * Tracks wehther the @wordpress/a11y script module is available.
+	 * Tracks whether the @wordpress/a11y script module is available.
 	 *
 	 * Some additional HTML is required on the page for the module to work. Track
 	 * whether it's available to print at the appropriate time.
