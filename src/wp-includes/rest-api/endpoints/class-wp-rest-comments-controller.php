@@ -427,6 +427,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $comment;
 		}
 
+		if ( $request->is_method( 'head' ) ) {
+			// Don't prepare response body for HEAD requests.
+			return new WP_REST_Response( null );
+		}
+
 		$data     = $this->prepare_item_for_response( $comment, $request );
 		$response = rest_ensure_response( $data );
 
