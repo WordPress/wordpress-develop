@@ -442,15 +442,6 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
-			// Check for revision post type.
-			if ( 'revision' === $post->post_type ) {
-				$post = get_post( $post->post_parent );
-				if ( ! $post ) {
-					$caps[] = 'do_not_allow';
-					break;
-				}
-			}
-
 			// Retrieve the object subtype (not strictly necessary for 'post').
 			$object_subtype = get_object_subtype( $object_type, $object_id );
 
