@@ -69,11 +69,28 @@ class WP_Block_Metadata_Registry {
 			$plugin_name   = strtok( $relative_path, '/' );
 
 			if ( empty( $plugin_name ) || $plugin_name === $relative_path ) {
-				// Invalid plugin path.
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Block metadata collections can only be registered for a specific plugin. The provided path must be within a plugin directory.' ),
+					'6.X.0'
+				);
 				return false;
 			}
 		} else {
-			// Path is neither core nor a valid plugin path.
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Block metadata collections can only be registered for a specific plugin. The provided path is neither a core path nor a valid plugin path.' ),
+				'6.X.0'
+			);
+			return false;
+		}
+
+		if ( ! file_exists( $manifest ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The specified manifest file does not exist.' ),
+				'6.X.0'
+			);
 			return false;
 		}
 
