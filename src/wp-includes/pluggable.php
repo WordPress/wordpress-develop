@@ -2564,7 +2564,7 @@ if ( ! function_exists( 'wp_hash' ) ) :
 		if ( ! in_array( $algo, hash_hmac_algos(), true ) ) {
 			throw new InvalidArgumentException(
 				sprintf(
-					'Unsupported hashing algorithm: %s. Supported algorithms are: %s',
+					'Unsupported hashing algorithm: %1$s. Supported algorithms are: %2$s',
 					$algo,
 					implode( ', ', hash_hmac_algos() )
 				)
