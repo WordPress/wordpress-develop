@@ -4,6 +4,7 @@
 remove_action( 'init', 'register_block_core_archives' );
 remove_action( 'init', 'register_block_core_avatar' );
 remove_action( 'init', 'register_block_core_block' );
+remove_action( 'init', 'register_block_core_button' );
 remove_action( 'init', 'register_block_core_calendar' );
 remove_action( 'init', 'register_block_core_categories' );
 remove_action( 'init', 'register_block_core_comment_author_name' );

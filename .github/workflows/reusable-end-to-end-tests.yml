@@ -14,6 +14,11 @@ on:
         required: false
         type: 'boolean'
         default: false
+      php-version:
+        description: 'The PHP version to use.'
+        required: false
+        type: 'string'
+        default: 'latest'
       install-gutenberg:
         description: 'Whether to install the Gutenberg plugin.'
         required: false
@@ -22,6 +27,7 @@ on:
 
 env:
   LOCAL_DIR: build
+  LOCAL_PHP: ${{ inputs.php-version }}${{ 'latest' != inputs.php-version && '-fpm' || '' }}
 
 jobs:
   # Runs the end-to-end test suite.
@@ -39,6 +45,7 @@ jobs:
   # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container).
   # - Install WordPress within the Docker container.
   # - Install Gutenberg.
+  # - Install additional languages.
   # - Run the E2E tests.
   # - Uploads screenshots and HTML snapshots as an artifact.
   # - Ensures version-controlled files are not modified or deleted.
@@ -61,7 +68,7 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -108,11 +115,17 @@ jobs:
         if: ${{ inputs.install-gutenberg }}
         run: npm run env:cli -- plugin install gutenberg --path=/var/www/${{ env.LOCAL_DIR }}
 
+      - name: Install additional languages
+        run: |
+          npm run env:cli -- language core install de_DE --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- language plugin install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- language theme install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
+
       - name: Run E2E tests
         run: npm run test:e2e
 
       - name: Archive debug artifacts (screenshots, HTML snapshots)
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
         if: always()
         with:
           name: failures-artifacts${{ inputs.LOCAL_SCRIPT_DEBUG && '-SCRIPT_DEBUG' || '' }}-${{ github.run_id }}

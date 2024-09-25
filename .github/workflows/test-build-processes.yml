@@ -40,9 +40,18 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         directory: [ 'src', 'build' ]
+        include:
+          # Only prepare artifacts for Playground once.
+          - os: ubuntu-latest
+            directory: 'build'
+            save-build: true
+            prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
+
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      save-build: ${{ matrix.save-build && matrix.save-build || false }}
+      prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
 
   # Tests the WordPress Core build process on MacOS.
   #
@@ -105,29 +114,6 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
-
-  # Uploads the PR number as an artifact for the Pull Request Commenting workflow to download and then
-  # leave a comment detailing how to test the PR within WordPress Playground.
-  playground-comment:
-    name: Leave WordPress Playground details
-    runs-on: ubuntu-latest
-    permissions:
-      actions: write
-    continue-on-error: true
-    needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos ]
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
-
-    steps:
-      - name: Save PR number
-        run: |
-          mkdir -p ./pr-number
-          echo ${{ github.event.number }} > ./pr-number/NR
-
-      - name: Upload PR number as artifact
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
-        with:
-          name: pr-number
-          path: pr-number/
 
   slack-notifications:
     name: Slack Notifications

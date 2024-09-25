@@ -41,15 +41,6 @@ const getBaseConfig = ( env ) => {
 		watch: env.watch,
 		plugins: [
 			new DefinePlugin( {
-				/*
-				 * These variables are part of https://github.com/WordPress/gutenberg/pull/61486
-				 * They're expected to be released in an upcoming version of Gutenberg.
-				 *
-				 * Defining this before the packages are released is harmless.
-				 *
-				 * @todo Remove the non-globalThis defines here when packages have been upgraded to the globalThis versions.
-				 */
-
 				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
 				'globalThis.IS_GUTENBERG_PLUGIN': JSON.stringify( false ),
 				// Inject the `IS_WORDPRESS_CORE` global, used for feature flagging.
@@ -58,13 +49,6 @@ const getBaseConfig = ( env ) => {
 				'globalThis.SCRIPT_DEBUG': JSON.stringify(
 					mode === 'development'
 				),
-
-				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
-				'process.env.IS_GUTENBERG_PLUGIN': JSON.stringify( false ),
-				// Inject the `IS_WORDPRESS_CORE` global, used for feature flagging.
-				'process.env.IS_WORDPRESS_CORE': JSON.stringify( true ),
-				// Inject the `SCRIPT_DEBUG` global, used for dev versions of JavaScript.
-				SCRIPT_DEBUG: JSON.stringify( mode === 'development' ),
 			} ),
 		],
 	};
@@ -118,6 +102,9 @@ const MODULES = [
 	'@wordpress/interactivity',
 	'@wordpress/interactivity-router',
 ];
+const SCRIPT_AND_MODULE_DUAL_PACKAGES = [
+	'@wordpress/block-library',
+];
 const WORDPRESS_NAMESPACE = '@wordpress/';
 
 module.exports = {
@@ -127,5 +114,6 @@ module.exports = {
 	stylesTransform,
 	BUNDLED_PACKAGES,
 	MODULES,
+	SCRIPT_AND_MODULE_DUAL_PACKAGES,
 	WORDPRESS_NAMESPACE,
 };

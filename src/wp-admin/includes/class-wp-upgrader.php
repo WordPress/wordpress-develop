@@ -524,6 +524,7 @@ class WP_Upgrader {
 		$destination       = $args['destination'];
 		$clear_destination = $args['clear_destination'];
 
+		// Give the upgrade an additional 300 seconds(5 minutes) to ensure the install doesn't prematurely timeout having used up the maximum script execution time upacking and downloading in WP_Upgrader->run.
 		if ( function_exists( 'set_time_limit' ) ) {
 			set_time_limit( 300 );
 		}
@@ -828,7 +829,7 @@ class WP_Upgrader {
 		 * Download the package. Note: If the package is the full path
 		 * to an existing local file, it will be returned untouched.
 		 */
-		$download = $this->download_package( $options['package'], true, $options['hook_extra'] );
+		$download = $this->download_package( $options['package'], false, $options['hook_extra'] );
 
 		/*
 		 * Allow for signature soft-fail.
@@ -1053,7 +1054,7 @@ class WP_Upgrader {
 		}
 
 		// Update the lock, as by this point we've definitely got a lock, just need to fire the actions.
-		update_option( $lock_option, time() );
+		update_option( $lock_option, time(), false );
 
 		return true;
 	}

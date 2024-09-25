@@ -9,11 +9,44 @@
  */
 class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	/**
+	 * The current WordPress version.
+	 *
+	 * @var string
+	 */
+	private static $wp_version;
+
+	/**
+	 * Sets the test WordPress version property and global before any tests run.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+		self::$wp_version                = wp_get_wp_version();
+		$GLOBALS['_wp_tests_wp_version'] = self::$wp_version;
+	}
+
+	/**
+	 * Resets the test WordPress version global after each test runs.
+	 */
+	public function tear_down() {
+		$GLOBALS['_wp_tests_wp_version'] = self::$wp_version;
+		parent::tear_down();
+	}
+
+	/**
+	 * Unsets the test WordPress version global after all tests run.
+	 */
+	public static function tear_down_after_class() {
+		unset( $GLOBALS['_wp_tests_wp_version'] );
+		parent::tear_down_after_class();
+	}
+
+	/**
 	 * Tests is_wp_version_compatible().
 	 *
 	 * @dataProvider data_is_wp_version_compatible
 	 *
 	 * @ticket 54257
+	 * @ticket 61781
 	 *
 	 * @param mixed $required The minimum required WordPress version.
 	 * @param bool  $expected The expected result.
@@ -28,8 +61,7 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 * @return array[]
 	 */
 	public function data_is_wp_version_compatible() {
-		global $wp_version;
-
+		$wp_version     = wp_get_wp_version();
 		$version_parts  = explode( '.', $wp_version );
 		$lower_version  = $version_parts;
 		$higher_version = $version_parts;
@@ -104,22 +136,15 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 * @dataProvider data_is_wp_version_compatible_should_gracefully_handle_trailing_point_zero_version_numbers
 	 *
 	 * @ticket 59448
+	 * @ticket 61781
 	 *
 	 * @param mixed  $required The minimum required WordPress version.
 	 * @param string $wp       The value for the $wp_version global variable.
 	 * @param bool   $expected The expected result.
 	 */
 	public function test_is_wp_version_compatible_should_gracefully_handle_trailing_point_zero_version_numbers( $required, $wp, $expected ) {
-		global $wp_version;
-		$original_version = $wp_version;
-		$wp_version       = $wp;
-
-		$actual = is_wp_version_compatible( $required );
-
-		// Reset the version before the assertion in case of failure.
-		$wp_version = $original_version;
-
-		$this->assertSame( $expected, $actual, 'The expected result was not returned.' );
+		$GLOBALS['_wp_tests_wp_version'] = $wp;
+		$this->assertSame( $expected, is_wp_version_compatible( $required ), 'The expected result was not returned.' );
 	}
 
 	/**
@@ -183,22 +208,15 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 * @dataProvider data_is_wp_version_compatible_with_development_versions
 	 *
 	 * @ticket 54257
+	 * @ticket 61781
 	 *
 	 * @param string $required  The minimum required WordPress version.
 	 * @param string $wp        The value for the $wp_version global variable.
 	 * @param bool   $expected  The expected result.
 	 */
 	public function test_is_wp_version_compatible_with_development_versions( $required, $wp, $expected ) {
-		global $wp_version;
-
-		$original_version = $wp_version;
-		$wp_version       = $wp;
-		$actual           = is_wp_version_compatible( $required );
-
-		// Reset the version before the assertion in case of failure.
-		$wp_version = $original_version;
-
-		$this->assertSame( $expected, $actual );
+		$GLOBALS['_wp_tests_wp_version'] = $wp;
+		$this->assertSame( $expected, is_wp_version_compatible( $required ) );
 	}
 
 	/**
@@ -207,10 +225,8 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 * @return array[]
 	 */
 	public function data_is_wp_version_compatible_with_development_versions() {
-		global $wp_version;
-
 		// For consistent results, remove possible suffixes.
-		list( $version ) = explode( '-', $wp_version );
+		list( $version ) = explode( '-', wp_get_wp_version() );
 
 		$version_parts  = explode( '.', $version );
 		$lower_version  = $version_parts;

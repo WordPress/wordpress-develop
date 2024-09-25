@@ -16,6 +16,11 @@ on:
         required: false
         type: 'string'
         default: '6.1.1'
+      php-version:
+        description: 'The PHP version to use.'
+        required: false
+        type: 'string'
+        default: 'latest'
       memcached:
         description: 'Whether to enable memcached.'
         required: false
@@ -43,11 +48,13 @@ env:
   TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
 
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
+  LOCAL_PHP: ${{ inputs.php-version }}${{ 'latest' != inputs.php-version && '-fpm' || '' }}
 
 jobs:
   # Performs the following steps:
   # - Configure environment variables.
   # - Checkout repository.
+  # - Determine the target SHA value (on `workflow_dispatch` only).
   # - Set up Node.js.
   # - Log debug information.
   # - Install npm dependencies.
@@ -103,9 +110,15 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          fetch-depth: ${{ github.event_name == 'workflow_dispatch' && '2' || '1' }}
+
+      # The `workflow_dispatch` event is the only one missing the needed SHA to target.
+      - name: Retrieve previous commit SHA (if necessary)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: echo "TARGET_SHA=$(git rev-parse HEAD^1)" >> $GITHUB_ENV
 
       - name: Set up Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -268,7 +281,7 @@ jobs:
         run: npm run test:performance
 
       - name: Archive artifacts
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
         if: always()
         with:
           name: performance-artifacts${{ inputs.memcached && '-memcached' || '' }}-${{ github.run_id }}

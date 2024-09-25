@@ -575,7 +575,7 @@ class WP_Admin_Bar {
 			$menuclass = ' class="' . esc_attr( trim( $menuclass ) ) . '"';
 		}
 
-		echo "<li id='" . esc_attr( 'wp-admin-bar-' . $node->id ) . "'$menuclass>";
+		echo "<li role='group' id='" . esc_attr( 'wp-admin-bar-' . $node->id ) . "'$menuclass>";
 
 		if ( $has_link ) {
 			$attributes = array( 'onclick', 'target', 'title', 'rel', 'lang', 'dir' );
@@ -648,9 +648,9 @@ class WP_Admin_Bar {
 	public function add_menus() {
 		// User-related, aligned right.
 		add_action( 'admin_bar_menu', 'wp_admin_bar_my_account_menu', 0 );
-		add_action( 'admin_bar_menu', 'wp_admin_bar_search_menu', 4 );
-		add_action( 'admin_bar_menu', 'wp_admin_bar_my_account_item', 7 );
-		add_action( 'admin_bar_menu', 'wp_admin_bar_recovery_mode_menu', 8 );
+		add_action( 'admin_bar_menu', 'wp_admin_bar_my_account_item', 9991 );
+		add_action( 'admin_bar_menu', 'wp_admin_bar_recovery_mode_menu', 9992 );
+		add_action( 'admin_bar_menu', 'wp_admin_bar_search_menu', 9999 );
 
 		// Site-related.
 		add_action( 'admin_bar_menu', 'wp_admin_bar_sidebar_toggle', 0 );
