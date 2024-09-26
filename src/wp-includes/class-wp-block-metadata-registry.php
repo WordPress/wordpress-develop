@@ -44,9 +44,9 @@ class WP_Block_Metadata_Registry {
 	 * manifest file, improving performance for large sets of blocks.
 	 *
 	 * The manifest file should be a PHP file that returns an associative array, where
-	 * the keys are the block identifiers and the values are the corresponding block
-	 * metadata arrays. The block identifiers must match the parent directory name for
-	 * the respective `block.json` file.
+	 * the keys are the block identifiers (without their namespace) and the values are
+	 * the corresponding block metadata arrays. The block identifiers must match the
+	 * parent directory name for the respective `block.json` file.
 	 *
 	 * Example manifest file structure:
 	 * ```
