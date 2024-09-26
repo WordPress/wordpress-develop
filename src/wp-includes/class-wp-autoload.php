@@ -49,6 +49,7 @@ final class WP_Autoload {
 		'wp_block_styles_registry'                    => 'wp-includes/class-wp-block-styles-registry.php',
 		'wp_block_supports'                           => 'wp-includes/class-wp-block-supports.php',
 		'wp_block_template'                           => 'wp-includes/class-wp-block-template.php',
+		'wp_block_templates_registry'                 => 'wp-includes/class-wp-block-templates-registry.php',
 		'wp_block_type_registry'                      => 'wp-includes/class-wp-block-type-registry.php',
 		'wp_block_type'                               => 'wp-includes/class-wp-block-type.php',
 		'wp_block'                                    => 'wp-includes/class-wp-block.php',
