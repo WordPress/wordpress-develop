@@ -420,6 +420,16 @@ function wp_is_maintenance_mode() {
 		return false;
 	}
 
+	// Don't enable maintenance mode while scraping for fatal errors.
+	if ( is_int( $upgrading ) && isset( $_REQUEST['wp_scrape_key'], $_REQUEST['wp_scrape_nonce'] ) ) {
+		$key   = stripslashes( $_REQUEST['wp_scrape_key'] );
+		$nonce = stripslashes( $_REQUEST['wp_scrape_nonce'] );
+
+		if ( md5( $upgrading ) === $key && (int) $nonce === $upgrading ) {
+			return false;
+		}
+	}
+
 	/**
 	 * Filters whether to enable maintenance mode.
 	 *
@@ -442,8 +452,6 @@ function wp_is_maintenance_mode() {
 
 /**
  * Gets the time elapsed so far during this PHP script.
- *
- * Uses REQUEST_TIME_FLOAT that appeared in PHP 5.4.0.
  *
  * @since 5.8.0
  *
@@ -875,6 +883,8 @@ function wp_start_object_cache() {
 				'site-options',
 				'site-queries',
 				'site-transient',
+				'theme_files',
+				'translation_files',
 				'rss',
 				'users',
 				'user-queries',
@@ -1013,6 +1023,8 @@ function wp_get_active_and_valid_plugins() {
  *
  * @since 5.2.0
  *
+ * @global WP_Paused_Extensions_Storage $_paused_plugins
+ *
  * @param string[] $plugins Array of absolute plugin main file paths.
  * @return string[] Filtered array of plugins, without any paused plugins.
  */
@@ -1045,12 +1057,14 @@ function wp_skip_paused_plugins( array $plugins ) {
  * @since 5.1.0
  * @access private
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string $pagenow            The filename of the current screen.
+ * @global string $wp_stylesheet_path Path to current theme's stylesheet directory.
+ * @global string $wp_template_path   Path to current theme's template directory.
  *
  * @return string[] Array of absolute paths to theme directories.
  */
 function wp_get_active_and_valid_themes() {
-	global $pagenow;
+	global $pagenow, $wp_stylesheet_path, $wp_template_path;
 
 	$themes = array();
 
@@ -1058,14 +1072,11 @@ function wp_get_active_and_valid_themes() {
 		return $themes;
 	}
 
-	$stylesheet_path = get_stylesheet_directory();
-	$template_path   = get_template_directory();
-
-	if ( $template_path !== $stylesheet_path ) {
-		$themes[] = $stylesheet_path;
+	if ( is_child_theme() ) {
+		$themes[] = $wp_stylesheet_path;
 	}
 
-	$themes[] = $template_path;
+	$themes[] = $wp_template_path;
 
 	/*
 	 * Remove themes from the list of active themes when we're on an endpoint
@@ -1087,6 +1098,8 @@ function wp_get_active_and_valid_themes() {
  * Filters a given list of themes, removing any paused themes from it.
  *
  * @since 5.2.0
+ *
+ * @global WP_Paused_Extensions_Storage $_paused_themes
  *
  * @param string[] $themes Array of absolute theme directory paths.
  * @return string[] Filtered array of absolute paths to themes, without any paused themes.
@@ -1190,6 +1203,7 @@ function is_protected_ajax_action() {
 		'search-install-plugins', // Searching for a plugin in the plugin install screen.
 		'update-plugin',          // Update an existing plugin.
 		'update-theme',           // Update an existing theme.
+		'activate-plugin',        // Activating an existing plugin.
 	);
 
 	/**
@@ -1665,9 +1679,8 @@ function wp_is_ini_value_changeable( $setting ) {
 		}
 	}
 
-	// Bit operator to workaround https://bugs.php.net/bug.php?id=44936 which changes access level to 63 in PHP 5.2.6 - 5.2.17.
 	if ( isset( $ini_all[ $setting ]['access'] )
-		&& ( INI_ALL === ( $ini_all[ $setting ]['access'] & 7 ) || INI_USER === ( $ini_all[ $setting ]['access'] & 7 ) )
+		&& ( INI_ALL === $ini_all[ $setting ]['access'] || INI_USER === $ini_all[ $setting ]['access'] )
 	) {
 		return true;
 	}

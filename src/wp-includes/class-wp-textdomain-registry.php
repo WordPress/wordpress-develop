@@ -88,14 +88,21 @@ class WP_Textdomain_Registry {
 	 * @param string $domain Text domain.
 	 * @param string $locale Locale.
 	 *
-	 * @return string|false MO file path or false if there is none available.
+	 * @return string|false Languages directory path or false if there is none available.
 	 */
 	public function get( $domain, $locale ) {
-		if ( isset( $this->all[ $domain ][ $locale ] ) ) {
-			return $this->all[ $domain ][ $locale ];
-		}
+		$path = $this->all[ $domain ][ $locale ] ?? $this->get_path_from_lang_dir( $domain, $locale );
 
-		return $this->get_path_from_lang_dir( $domain, $locale );
+		/**
+		 * Filters the determined languages directory path for a specific domain and locale.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param string|false $path   Languages directory path for the given domain and locale.
+		 * @param string       $domain Text domain.
+		 * @param string       $locale Locale.
+		 */
+		return apply_filters( 'lang_dir_for_domain', $path, $domain, $locale );
 	}
 
 	/**
@@ -175,16 +182,16 @@ class WP_Textdomain_Registry {
 		 * @since 6.5.0
 		 *
 		 * @param null|array $files List of translation files. Default null.
-		 * @param string $path The path from which translation files are being fetched.
-		 **/
+		 * @param string     $path  The path from which translation files are being fetched.
+		 */
 		$files = apply_filters( 'pre_get_language_files_from_path', null, $path );
 
 		if ( null !== $files ) {
 			return $files;
 		}
 
-		$cache_key = 'cached_mo_files_' . md5( $path );
-		$files     = wp_cache_get( $cache_key, 'translations' );
+		$cache_key = md5( $path );
+		$files     = wp_cache_get( $cache_key, 'translation_files' );
 
 		if ( false === $files ) {
 			$files = glob( $path . '*.mo' );
@@ -197,7 +204,7 @@ class WP_Textdomain_Registry {
 				$files = array_merge( $files, $php_files );
 			}
 
-			wp_cache_set( $cache_key, $files, 'translations' );
+			wp_cache_set( $cache_key, $files, 'translation_files', HOUR_IN_SECONDS );
 		}
 
 		return $files;
@@ -246,13 +253,13 @@ class WP_Textdomain_Registry {
 		foreach ( $translation_types as $type ) {
 			switch ( $type ) {
 				case 'plugin':
-					wp_cache_delete( 'cached_mo_files_' . md5( WP_LANG_DIR . '/plugins/' ), 'translations' );
+					wp_cache_delete( md5( WP_LANG_DIR . '/plugins/' ), 'translation_files' );
 					break;
 				case 'theme':
-					wp_cache_delete( 'cached_mo_files_' . md5( WP_LANG_DIR . '/themes/' ), 'translations' );
+					wp_cache_delete( md5( WP_LANG_DIR . '/themes/' ), 'translation_files' );
 					break;
 				default:
-					wp_cache_delete( 'cached_mo_files_' . md5( WP_LANG_DIR . '/' ), 'translations' );
+					wp_cache_delete( md5( WP_LANG_DIR . '/' ), 'translation_files' );
 					break;
 			}
 		}
@@ -314,6 +321,7 @@ class WP_Textdomain_Registry {
 
 				if ( $file_path === $mo_path || $file_path === $php_path ) {
 					$found_location = rtrim( $location, '/' ) . '/';
+					break 2;
 				}
 			}
 		}

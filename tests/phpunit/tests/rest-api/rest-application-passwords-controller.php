@@ -848,7 +848,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	}
 
 	/**
-	 * Checks the password response matches the exepcted format.
+	 * Checks the password response matches the expected format.
 	 *
 	 * @since 5.6.0
 	 *

@@ -91,7 +91,7 @@ function wp_get_themes( $args = array() ) {
 
 	if ( null !== $args['errors'] ) {
 		foreach ( $themes as $theme => $wp_theme ) {
-			if ( $wp_theme->errors() != $args['errors'] ) {
+			if ( (bool) $wp_theme->errors() !== $args['errors'] ) {
 				unset( $themes[ $theme ] );
 			}
 		}
@@ -153,11 +153,17 @@ function wp_clean_themes_cache( $clear_update_cache = true ) {
  * Whether a child theme is in use.
  *
  * @since 3.0.0
+ * @since 6.5.0 Makes use of global template variables.
+ *
+ * @global string $wp_stylesheet_path Path to current theme's stylesheet directory.
+ * @global string $wp_template_path   Path to current theme's template directory.
  *
  * @return bool True if a child theme is in use, false otherwise.
  */
 function is_child_theme() {
-	return get_template_directory() !== get_stylesheet_directory();
+	global $wp_stylesheet_path, $wp_template_path;
+
+	return $wp_stylesheet_path !== $wp_template_path;
 }
 
 /**
@@ -508,7 +514,7 @@ function search_theme_directories( $force = false ) {
 		// Start with directories in the root of the active theme directory.
 		$dirs = @ scandir( $theme_root );
 		if ( ! $dirs ) {
-			trigger_error( "$theme_root is not readable", E_USER_NOTICE );
+			wp_trigger_error( __FUNCTION__, "$theme_root is not readable" );
 			continue;
 		}
 		foreach ( $dirs as $dir ) {
@@ -532,7 +538,7 @@ function search_theme_directories( $force = false ) {
 				 */
 				$sub_dirs = @ scandir( $theme_root . '/' . $dir );
 				if ( ! $sub_dirs ) {
-					trigger_error( "$theme_root/$dir is not readable", E_USER_NOTICE );
+					wp_trigger_error( __FUNCTION__, "$theme_root/$dir is not readable" );
 					continue;
 				}
 				foreach ( $sub_dirs as $sub_dir ) {
@@ -571,7 +577,7 @@ function search_theme_directories( $force = false ) {
 		$theme_roots[ $theme_dir ] = $relative_theme_roots[ $theme_data['theme_root'] ]; // Convert absolute to relative.
 	}
 
-	if ( get_site_transient( 'theme_roots' ) != $theme_roots ) {
+	if ( get_site_transient( 'theme_roots' ) !== $theme_roots ) {
 		set_site_transient( 'theme_roots', $theme_roots, $cache_expiration );
 	}
 
@@ -699,9 +705,9 @@ function get_raw_theme_root( $stylesheet_or_template, $skip_cache = false ) {
 
 	// If requesting the root for the active theme, consult options to avoid calling get_theme_roots().
 	if ( ! $skip_cache ) {
-		if ( get_option( 'stylesheet' ) == $stylesheet_or_template ) {
+		if ( get_option( 'stylesheet' ) === $stylesheet_or_template ) {
 			$theme_root = get_option( 'stylesheet_root' );
-		} elseif ( get_option( 'template' ) == $stylesheet_or_template ) {
+		} elseif ( get_option( 'template' ) === $stylesheet_or_template ) {
 			$theme_root = get_option( 'template_root' );
 		}
 	}
@@ -780,7 +786,7 @@ function switch_theme( $stylesheet ) {
 	}
 
 	$nav_menu_locations = get_theme_mod( 'nav_menu_locations' );
-	update_option( 'theme_switch_menu_locations', $nav_menu_locations );
+	update_option( 'theme_switch_menu_locations', $nav_menu_locations, true );
 
 	if ( func_num_args() > 1 ) {
 		$stylesheet = func_get_arg( 1 );
@@ -836,9 +842,19 @@ function switch_theme( $stylesheet ) {
 
 	update_option( 'theme_switched', $old_theme->get_stylesheet() );
 
+	/*
+	 * Reset template globals when switching themes outside of a switched blog
+	 * context to ensure templates will be loaded from the new theme.
+	 */
+	if ( ! is_multisite() || ! ms_is_switched() ) {
+		wp_set_template_globals();
+	}
+
 	// Clear pattern caches.
-	$new_theme->delete_pattern_cache();
-	$old_theme->delete_pattern_cache();
+	if ( ! is_multisite() ) {
+		$new_theme->delete_pattern_cache();
+		$old_theme->delete_pattern_cache();
+	}
 
 	// Set autoload=no for the old theme, autoload=yes for the switched theme.
 	$theme_mods_options = array(
@@ -926,7 +942,7 @@ function validate_current_theme() {
 	 * if it turns out there is no default theme installed. (That's `false`.)
 	 */
 	$default = WP_Theme::get_core_default_theme();
-	if ( false === $default || get_stylesheet() == $default->get_stylesheet() ) {
+	if ( false === $default || get_stylesheet() === $default->get_stylesheet() ) {
 		return true;
 	}
 
@@ -1551,7 +1567,7 @@ function get_custom_header() {
 			if ( ! empty( $_wp_default_headers ) ) {
 				foreach ( (array) $_wp_default_headers as $default_header ) {
 					$url = vsprintf( $default_header['url'], $directory_args );
-					if ( $data['url'] == $url ) {
+					if ( $data['url'] === $url ) {
 						$data                  = $default_header;
 						$data['url']           = $url;
 						$data['thumbnail_url'] = vsprintf( $data['thumbnail_url'], $directory_args );
@@ -2612,13 +2628,21 @@ function get_theme_starter_content() {
  * @since 5.3.0 The `html5` feature now also accepts 'script' and 'style'.
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
+ * @since 5.4.0 The `disable-custom-gradients` feature limits to default gradients or gradients added
+ *              through `editor-gradient-presets` theme support.
  * @since 5.5.0 The `core-block-patterns` feature was added and is enabled by default.
  * @since 5.5.0 The `custom-logo` feature now also accepts 'unlink-homepage-logo'.
  * @since 5.6.0 The `post-formats` feature warns if no array is passed as the second parameter.
  * @since 5.8.0 The `widgets-block-editor` feature enables the Widgets block editor.
+ * @since 5.8.0 The `block-templates` feature indicates whether a theme uses block-based templates.
  * @since 6.0.0 The `html5` feature warns if no array is passed as the second parameter.
+ * @since 6.1.0 The `block-template-parts` feature allows to edit any reusable template part from site editor.
+ * @since 6.1.0 The `disable-layout-styles` feature disables the default layout styles.
+ * @since 6.3.0 The `link-color` feature allows to enable the link color setting.
+ * @since 6.3.0 The `border` feature allows themes without theme.json to add border styles to blocks.
  * @since 6.5.0 The `appearance-tools` feature enables a few design tools for blocks,
  *              see `WP_Theme_JSON::APPEARANCE_TOOLS_OPT_INS` for a complete list.
+ * @since 6.6.0 The `editor-spacing-sizes` feature was added.
  *
  * @global array $_wp_theme_features
  *
@@ -2627,6 +2651,9 @@ function get_theme_starter_content() {
  *                          - 'align-wide'
  *                          - 'appearance-tools'
  *                          - 'automatic-feed-links'
+ *                          - 'block-templates'
+ *                          - 'block-template-parts'
+ *                          - 'border'
  *                          - 'core-block-patterns'
  *                          - 'custom-background'
  *                          - 'custom-header'
@@ -2638,21 +2665,25 @@ function get_theme_starter_content() {
  *                          - 'dark-editor-style'
  *                          - 'disable-custom-colors'
  *                          - 'disable-custom-font-sizes'
+ *                          - 'disable-custom-gradients'
+ *                          - 'disable-layout-styles'
  *                          - 'editor-color-palette'
  *                          - 'editor-gradient-presets'
  *                          - 'editor-font-sizes'
+ *                          - 'editor-spacing-sizes'
  *                          - 'editor-styles'
  *                          - 'featured-content'
  *                          - 'html5'
+ *                          - 'link-color'
  *                          - 'menus'
  *                          - 'post-formats'
  *                          - 'post-thumbnails'
  *                          - 'responsive-embeds'
  *                          - 'starter-content'
  *                          - 'title-tag'
- *                          - 'wp-block-styles'
  *                          - 'widgets'
  *                          - 'widgets-block-editor'
+ *                          - 'wp-block-styles'
  * @param mixed  ...$args Optional extra arguments to pass along with certain features.
  * @return void|false Void on success, false on failure.
  */
@@ -2789,7 +2820,7 @@ function add_theme_support( $feature, ...$args ) {
 			 * the constant is always accurate (and is not defined later,  overriding our value).
 			 * As stated above, the first value wins.
 			 * Once we get to wp_loaded (just-in-time), define any constants we haven't already.
-			 * Constants are lame. Don't reference them. This is just for backward compatibility.
+			 * Constants should be avoided. Don't reference them. This is just for backward compatibility.
 			 */
 
 			if ( defined( 'NO_HEADER_TEXT' ) ) {
@@ -3405,6 +3436,7 @@ function get_registered_theme_feature( $feature ) {
  * @since 3.0.0
  * @since 4.3.0 Also removes `header_image_data`.
  * @since 4.5.0 Also removes custom logo theme mods.
+ * @since 6.6.0 Also removes `site_logo` option set by the site logo block.
  *
  * @param int $id The attachment ID.
  */
@@ -3412,19 +3444,24 @@ function _delete_attachment_theme_mod( $id ) {
 	$attachment_image = wp_get_attachment_url( $id );
 	$header_image     = get_header_image();
 	$background_image = get_background_image();
-	$custom_logo_id   = get_theme_mod( 'custom_logo' );
+	$custom_logo_id   = (int) get_theme_mod( 'custom_logo' );
+	$site_logo_id     = (int) get_option( 'site_logo' );
 
-	if ( $custom_logo_id && $custom_logo_id == $id ) {
+	if ( $custom_logo_id && $custom_logo_id === $id ) {
 		remove_theme_mod( 'custom_logo' );
 		remove_theme_mod( 'header_text' );
 	}
 
-	if ( $header_image && $header_image == $attachment_image ) {
+	if ( $site_logo_id && $site_logo_id === $id ) {
+		delete_option( 'site_logo' );
+	}
+
+	if ( $header_image && $header_image === $attachment_image ) {
 		remove_theme_mod( 'header_image' );
 		remove_theme_mod( 'header_image_data' );
 	}
 
-	if ( $background_image && $background_image == $attachment_image ) {
+	if ( $background_image && $background_image === $attachment_image ) {
 		remove_theme_mod( 'background_image' );
 	}
 }
@@ -3533,7 +3570,7 @@ function _wp_customize_include() {
 	$changeset_uuid = false;
 
 	/*
-	 * Set initially fo false since defaults to true for back-compat;
+	 * Set initially to false since defaults to true for back-compat;
 	 * can be overridden via the customize_changeset_branching filter.
 	 */
 	$branching = false;
@@ -4183,6 +4220,31 @@ function create_initial_theme_features() {
 								'type' => 'string',
 							),
 							'slug'     => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			),
+		)
+	);
+	register_theme_feature(
+		'editor-spacing-sizes',
+		array(
+			'type'         => 'array',
+			'description'  => __( 'Custom spacing sizes if defined by the theme.' ),
+			'show_in_rest' => array(
+				'schema' => array(
+					'items' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'name' => array(
+								'type' => 'string',
+							),
+							'size' => array(
+								'type' => 'string',
+							),
+							'slug' => array(
 								'type' => 'string',
 							),
 						),

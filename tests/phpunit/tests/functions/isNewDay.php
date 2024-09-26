@@ -27,6 +27,11 @@ class Tests_Functions_IsNewDate extends WP_UnitTestCase {
 		$this->assertSame( $expected, is_new_day() );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_is_new_date() {
 		return array(
 			array( '21.05.19', '21.05.19', 0 ),

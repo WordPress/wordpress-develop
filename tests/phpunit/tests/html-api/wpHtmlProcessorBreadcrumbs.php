@@ -25,7 +25,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function test_navigates_into_normative_html_for_supported_elements( $html, $tag_name ) {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 
-		$this->assertTrue( $processor->step(), "Failed to step into supported {$tag_name} element." );
+		$this->assertTrue( $processor->next_token(), "Failed to step into supported {$tag_name} element." );
 		$this->assertSame( $tag_name, $processor->get_tag(), "Misread {$tag_name} as a {$processor->get_tag()} element." );
 	}
 
@@ -40,13 +40,16 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'ABBR',
 			'ACRONYM', // Neutralized.
 			'ADDRESS',
+			'APPLET', // Deprecated.
 			'AREA',
 			'ARTICLE',
 			'ASIDE',
 			'AUDIO',
 			'B',
+			'BASE',
 			'BDI',
 			'BDO',
+			'BGSOUND', // Deprectated.
 			'BIG',
 			'BLINK', // Deprecated.
 			'BR',
@@ -72,6 +75,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'FIGCAPTION',
 			'FIGURE',
 			'FONT',
+			'FORM',
 			'FOOTER',
 			'H1',
 			'H2',
@@ -86,28 +90,42 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'IMG',
 			'INS',
 			'LI',
+			'LINK',
 			'ISINDEX', // Deprecated.
 			'KBD',
 			'KEYGEN', // Deprecated.
 			'LABEL',
 			'LEGEND',
+			'LINK',
 			'LISTING', // Deprecated.
 			'MAIN',
 			'MAP',
 			'MARK',
+			'MARQUEE', // Deprecated.
 			'MENU',
+			'META',
 			'METER',
 			'MULTICOL', // Deprecated.
 			'NAV',
 			'NEXTID', // Deprecated.
+			'NOBR', // Neutralized.
+			'NOEMBED', // Neutralized.
+			'NOFRAMES', // Neutralized.
+			'NOSCRIPT',
+			'OBJECT',
 			'OL',
 			'OUTPUT',
 			'P',
 			'PICTURE',
 			'PROGRESS',
 			'Q',
+			'RB', // Neutralized.
+			'RP',
+			'RT',
+			'RTC', // Neutralized.
 			'RUBY',
 			'SAMP',
+			'SCRIPT',
 			'SEARCH',
 			'SECTION',
 			'SLOT',
@@ -116,107 +134,32 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'SPAN',
 			'STRIKE',
 			'STRONG',
+			'STYLE',
 			'SUB',
 			'SUMMARY',
 			'SUP',
+			'TABLE',
+			'TEXTAREA',
 			'TIME',
+			'TITLE',
 			'TT',
 			'U',
 			'UL',
 			'VAR',
 			'VIDEO',
-		);
-
-		$data = array();
-		foreach ( $supported_elements as $tag_name ) {
-			$data[ $tag_name ] = array( "<{$tag_name}>", $tag_name );
-		}
-
-		$data['IMAGE (treated as an IMG)'] = array( '<image>', 'IMG' );
-
-		return $data;
-	}
-
-	/**
-	 * Ensures that no new HTML elements are accidentally partially-supported.
-	 *
-	 * When introducing support for new HTML elements, there are multiple places
-	 * in the HTML Processor that need to be updated, until the time that the class
-	 * has full HTML5 support. Because of this, these tests lock down the interface
-	 * to ensure that support isn't accidentally updated in one place for a new
-	 * element while overlooked in another.
-	 *
-	 * @ticket 58517
-	 *
-	 * @covers WP_HTML_Processor::step
-	 *
-	 * @dataProvider data_unsupported_elements
-	 *
-	 * @param string $html HTML string containing unsupported elements.
-	 */
-	public function test_fails_when_encountering_unsupported_tag( $html ) {
-		$processor = WP_HTML_Processor::create_fragment( $html );
-
-		$this->assertFalse( $processor->step(), "Should not have stepped into unsupported {$processor->get_tag()} element." );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_unsupported_elements() {
-		$unsupported_elements = array(
-			'APPLET', // Deprecated.
-			'BASE',
-			'BGSOUND', // Deprecated; self-closing if self-closing flag provided, otherwise normal.
-			'BODY',
-			'CAPTION',
-			'COL',
-			'COLGROUP',
-			'FORM',
-			'FRAME',
-			'FRAMESET',
-			'HEAD',
-			'HTML',
-			'IFRAME',
-			'LINK',
-			'MARQUEE', // Deprecated.
-			'MATH',
-			'META',
-			'NOBR', // Neutralized.
-			'NOEMBED', // Neutralized.
-			'NOFRAMES', // Neutralized.
-			'NOSCRIPT',
-			'OBJECT',
-			'OPTGROUP',
-			'OPTION',
-			'PLAINTEXT', // Neutralized.
-			'RB', // Neutralized.
-			'RP',
-			'RT',
-			'RTC', // Neutralized.
-			'SCRIPT',
-			'SELECT',
-			'STYLE',
-			'SVG',
-			'TABLE',
-			'TBODY',
-			'TD',
-			'TEMPLATE',
-			'TEXTAREA',
-			'TFOOT',
-			'TH',
-			'THEAD',
-			'TITLE',
-			'TR',
 			'XMP', // Deprecated, use PRE instead.
 		);
 
 		$data = array();
-		foreach ( $unsupported_elements as $tag_name ) {
-			$data[ $tag_name ] = array( "<{$tag_name}>" );
+		foreach ( $supported_elements as $tag_name ) {
+			$closer = in_array( $tag_name, array( 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true )
+				? "</{$tag_name}>"
+				: '';
+
+			$data[ $tag_name ] = array( "<{$tag_name}>{$closer}", $tag_name );
 		}
+
+		$data['IMAGE (treated as an IMG)'] = array( '<image>', 'IMG' );
 
 		return $data;
 	}
@@ -231,12 +174,18 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function test_fails_when_encountering_unsupported_markup( $html, $description ) {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 
-		while ( $processor->step() && null === $processor->get_attribute( 'supported' ) ) {
+		while ( $processor->next_token() && null === $processor->get_attribute( 'supported' ) ) {
 			continue;
 		}
 
+		$this->assertNull(
+			$processor->get_last_error(),
+			'Bailed on unsupported input before finding supported checkpoint: check test code.'
+		);
+
 		$this->assertTrue( $processor->get_attribute( 'supported' ), 'Did not find required supported element.' );
-		$this->assertFalse( $processor->step(), "Didn't properly reject unsupported markup: {$description}" );
+		$processor->next_token();
+		$this->assertNotNull( $processor->get_last_error(), "Didn't properly reject unsupported markup: {$description}" );
 	}
 
 	/**
@@ -247,7 +196,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public static function data_unsupported_markup() {
 		return array(
 			'A with formatting following unclosed A' => array(
-				'<a><strong>Click <a supported><big unsupported>Here</big></a></strong></a>',
+				'<a><strong>Click <span supported><a unsupported><big>Here</big></a></strong></a>',
 				'Unclosed formatting requires complicated reconstruction.',
 			),
 
@@ -325,7 +274,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'IMG after invalid DIV closer'          => array( '</div><img target>', array( 'HTML', 'BODY', 'IMG' ), 1 ),
 			'EM inside DIV'                         => array( '<div>The weather is <em target>beautiful</em>.</div>', array( 'HTML', 'BODY', 'DIV', 'EM' ), 1 ),
 			'EM after closed EM'                    => array( '<em></em><em target></em>', array( 'HTML', 'BODY', 'EM' ), 2 ),
-			'EM after closed EMs'                   => array( '<em></em><em><em></em></em><em></em><em></em><em target></em>', array( 'HTML', 'BODY', 'EM' ), 6 ),
+			'EM after closed EMs'                   => array( '<em></em><em><em></em></em><em></em><em></em><em target></em>', array( 'HTML', 'BODY', 'EM' ), 5 ),
 			'EM after unclosed EM'                  => array( '<em><em target></em>', array( 'HTML', 'BODY', 'EM', 'EM' ), 1 ),
 			'EM after unclosed EM after DIV'        => array( '<em><div><em target>', array( 'HTML', 'BODY', 'EM', 'DIV', 'EM' ), 1 ),
 			// This should work for all formatting elements, but if two work, the others probably do too.
@@ -544,5 +493,91 @@ HTML
 		// Seek forwards. If the current token isn't also updated this could appear like a backwards seek.
 		$processor->seek( 'second' );
 		$this->assertTrue( $processor->get_attribute( 'two' ) );
+	}
+
+	/**
+	 * Ensures that breadcrumbs are properly reported after seeking backward to a location
+	 * inside an element which has been fully closed before the seek.
+	 *
+	 * @ticket 60687
+	 */
+	public function test_retains_proper_bookmarks_after_seeking_back_to_closed_element() {
+		$processor = WP_HTML_Processor::create_fragment( '<div><img></div><div><hr></div>' );
+
+		$processor->next_tag( 'IMG' );
+		$processor->set_bookmark( 'first' );
+
+		$processor->next_tag( 'HR' );
+
+		$processor->seek( 'first' );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'IMG' ),
+			$processor->get_breadcrumbs(),
+			'Should have retained breadcrumbs from bookmarked location after seeking backwards to it.'
+		);
+	}
+
+	/**
+	 * Ensures that breadcrumbs are properly reported on virtual nodes.
+	 *
+	 * @ticket 61348
+	 *
+	 * @dataProvider data_virtual_nodes_breadcrumbs
+	 *
+	 * @covers WP_HTML_Processor::get_breadcrumbs
+	 */
+	public function test_breadcrumbs_on_virtual_nodes( string $html, int $token_position, string $expected_tag_name, string $expect_open_close, array $expected_breadcrumbs ) {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		for ( $i = 0; $i < $token_position; $i++ ) {
+			$processor->next_token();
+		}
+
+		$this->assertSame( $expected_tag_name, $processor->get_tag(), "Found incorrect tag name {$processor->get_token_name()}." );
+		if ( 'open' === $expect_open_close ) {
+			$this->assertFalse( $processor->is_tag_closer(), "Found closer when opener expected at {$processor->get_token_name()}." );
+		} else {
+			$this->assertTrue( $processor->is_tag_closer(), "Found opener when closer expected at {$processor->get_token_name()}." );
+		}
+
+		$this->assertSame( $expected_breadcrumbs, $processor->get_breadcrumbs(), "Found incorrect breadcrumbs in {$html}." );
+	}
+
+	/**
+	 * Ensures that get_current_depth reports the correct depth on virtual nodes.
+	 *
+	 * @ticket 61348
+	 *
+	 * @dataProvider data_virtual_nodes_breadcrumbs
+	 *
+	 * @covers WP_HTML_Processor::get_current_depth
+	 */
+	public function test_depth_on_virtual_nodes( string $html, int $token_position, string $expected_tag_name, string $expect_open_close, array $expected_breadcrumbs ) {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		for ( $i = 0; $i < $token_position; $i++ ) {
+			$processor->next_token();
+		}
+
+		$this->assertSame( count( $expected_breadcrumbs ), $processor->get_current_depth(), "Found incorrect depth in {$html}." );
+	}
+
+	/**
+	 * Data provider for virtual nodes breadcrumbs with the following shape of arrays:
+	 *     0: string        Input html.
+	 *     1: int           Token index to seek.
+	 *     2: string        Expected tag name.
+	 *     3: string        'open' or 'close' indicating an opener or closer is expected.
+	 *     4: array<string> Expected breadcrumbs.
+	 *
+	 * @return array[]
+	 */
+	public static function data_virtual_nodes_breadcrumbs() {
+		return array(
+			'Implied P tag opener on unmatched closer'    => array( '</p>', 1, 'P', 'open', array( 'HTML', 'BODY', 'P' ) ),
+			'Implied heading tag closer on heading child' => array( '<h1><h2>', 2, 'H1', 'close', array( 'HTML', 'BODY' ) ),
+			'Implied A tag closer on A tag child'         => array( '<a><a>', 2, 'A', 'close', array( 'HTML', 'BODY' ) ),
+			'Implied A tag closer on A tag descendent'    => array( '<a><span><a>', 4, 'A', 'close', array( 'HTML', 'BODY' ) ),
+		);
 	}
 }

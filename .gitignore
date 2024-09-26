@@ -1,6 +1,7 @@
 # gitignore file for WordPress Core
 
 # Configuration files with possibly sensitive information
+.env
 wp-config.php
 wp-tests-config.php
 .htaccess
@@ -30,6 +31,7 @@ wp-tests-config.php
 /src/wp-admin/js
 /src/wp-includes/assets/*
 !/src/wp-includes/assets/script-loader-packages.min.php
+!/src/wp-includes/assets/script-modules-packages.min.php
 /src/wp-includes/js
 /src/wp-includes/css/dist
 /src/wp-includes/css/*.min.css
@@ -43,6 +45,7 @@ wp-tests-config.php
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
+/src/wp-content/fonts
 /src/wp-content/languages
 /src/wp-content/mu-plugins
 /src/wp-content/plugins

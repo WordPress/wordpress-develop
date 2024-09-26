@@ -263,7 +263,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		// Test slashes in names.
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\fg.png' ), 'Slash not removed' );
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\fg.png' ), 'Double slashed not removed' );
-		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Tripple slashed not removed' );
+		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Triple slashed not removed' );
 	}
 
 	/**
@@ -724,41 +724,6 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( 'foobarbaz', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', $orig_blog_charset );
-	}
-
-	/**
-	 * @dataProvider data_wp_parse_id_list
-	 */
-	public function test_wp_parse_id_list( $expected, $actual ) {
-		$this->assertSame( $expected, array_values( wp_parse_id_list( $actual ) ) );
-	}
-
-	public function data_wp_parse_id_list() {
-		return array(
-			array( array( 1, 2, 3, 4 ), '1,2,3,4' ),
-			array( array( 1, 2, 3, 4 ), '1, 2,,3,4' ),
-			array( array( 1, 2, 3, 4 ), '1,2,2,3,4' ),
-			array( array( 1, 2, 3, 4 ), array( '1', '2', '3', '4', '3' ) ),
-			array( array( 1, 2, 3, 4 ), array( 1, '2', 3, '4' ) ),
-			array( array( 1, 2, 3, 4 ), '-1,2,-3,4' ),
-			array( array( 1, 2, 3, 4 ), array( -1, 2, '-3', '4' ) ),
-		);
-	}
-
-	/**
-	 * @dataProvider data_wp_parse_slug_list
-	 */
-	public function test_wp_parse_slug_list( $expected, $actual ) {
-		$this->assertSame( $expected, array_values( wp_parse_slug_list( $actual ) ) );
-	}
-
-	public function data_wp_parse_slug_list() {
-		return array(
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple,banana,carrot,dog' ),
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple, banana,,carrot,dog' ),
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple banana carrot dog' ),
-			array( array( 'apple', 'banana-carrot', 'd-o-g' ), array( 'apple ', 'banana carrot', 'd o g' ) ),
-		);
 	}
 
 	/**
@@ -1390,6 +1355,11 @@ class Tests_Functions extends WP_UnitTestCase {
 				DIR_TESTDATA . '/images/avif-transparent.avif',
 				'image/avif',
 			),
+			// HEIC.
+			array(
+				DIR_TESTDATA . '/images/test-image.heic',
+				'image/heic',
+			),
 		);
 
 		return $data;
@@ -1419,7 +1389,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data profider for test_wp_getimagesize().
+	 * Data provider for test_wp_getimagesize().
 	 */
 	public function data_wp_getimagesize() {
 		$data = array(
@@ -1560,10 +1530,50 @@ class Tests_Functions extends WP_UnitTestCase {
 					'mime' => 'image/avif',
 				),
 			),
+			// Grid AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-alpha-grid2x1.avif',
+				array(
+					199,
+					200,
+					IMAGETYPE_AVIF,
+					'width="199" height="200"',
+					'mime' => 'image/avif',
+				),
+			),
 		);
 
 		return $data;
 	}
+
+	/**
+	 * Tests that wp_getimagesize() correctly handles HEIC image files.
+	 *
+	 * @ticket 53645
+	 */
+	public function test_wp_getimagesize_heic() {
+		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
+			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
+		}
+
+		$file = DIR_TESTDATA . '/images/test-image.heic';
+
+		$editor = wp_get_image_editor( $file );
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/heic' ) ) {
+			$this->markTestSkipped( 'No HEIC support in the editor engine on this system.' );
+		}
+
+		$expected = array(
+			50,
+			50,
+			IMAGETYPE_HEIC,
+			'width="50" height="50"',
+			'mime' => 'image/heic',
+		);
+		$result   = wp_getimagesize( $file );
+		$this->assertSame( $expected, $result );
+	}
+
 
 	/**
 	 * @ticket 39550
@@ -1817,6 +1827,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Test file path validation
 	 *
 	 * @ticket 42016
+	 * @ticket 61488
 	 * @dataProvider data_validate_file
 	 *
 	 * @param string $file          File path.
@@ -1935,6 +1946,13 @@ class Tests_Functions extends WP_UnitTestCase {
 				'C:/WINDOWS/system32',
 				array( 'C:/WINDOWS/system32' ),
 				2,
+			),
+
+			// Windows Path with allowed file
+			array(
+				'Apache24\htdocs\wordpress/wp-content/themes/twentyten/style.css',
+				array( 'Apache24\htdocs\wordpress/wp-content/themes/twentyten/style.css' ),
+				0,
 			),
 
 			// Disallowed files:

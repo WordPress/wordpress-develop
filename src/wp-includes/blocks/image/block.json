@@ -4,16 +4,15 @@
 	"name": "core/image",
 	"title": "Image",
 	"category": "media",
-	"usesContext": [
-		"allowResize",
-		"imageCrop",
-		"fixedHeight",
-		"pattern/overrides"
-	],
+	"usesContext": [ "allowResize", "imageCrop", "fixedHeight" ],
 	"description": "Insert an image to make a visual statement.",
 	"keywords": [ "img", "photo", "picture" ],
 	"textdomain": "default",
 	"attributes": {
+		"blob": {
+			"type": "string",
+			"__experimentalRole": "local"
+		},
 		"url": {
 			"type": "string",
 			"source": "attribute",
@@ -107,6 +106,9 @@
 		"filter": {
 			"duotone": true
 		},
+		"spacing": {
+			"margin": true
+		},
 		"__experimentalBorder": {
 			"color": true,
 			"radius": true,
@@ -117,10 +119,14 @@
 				"radius": true,
 				"width": true
 			}
+		},
+		"shadow": {
+			"__experimentalSkipSerialization": true
 		}
 	},
 	"selectors": {
 		"border": ".wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder",
+		"shadow": ".wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder",
 		"filter": {
 			"duotone": ".wp-block-image img, .wp-block-image .components-placeholder"
 		}

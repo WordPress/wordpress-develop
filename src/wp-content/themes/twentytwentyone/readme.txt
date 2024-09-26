@@ -1,9 +1,9 @@
 === Twenty Twenty-One ===
 Contributors: wordpressdotorg
 Requires at least: 5.3
-Tested up to: 6.4
+Tested up to: 6.6
 Requires PHP: 5.6
-Stable tag: 2.1
+Stable tag: 2.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -29,6 +29,16 @@ LocalStorage is necessary for the setting to work and is only used when a user c
 No data is saved in the database or transferred.
 
 == Changelog ==
+
+= 2.3 =
+* Released: July 16, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_2.3
+
+= 2.2 =
+* Released: April 2, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_2.2
 
 = 2.1 =
 * Released: January 16, 2024
@@ -92,7 +102,7 @@ https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version
 
 == Copyright ==
 
-Twenty Twenty-One WordPress Theme, 2020-2024 WordPress.org
+Twenty Twenty-One WordPress Theme, 2020-2024 WordPress.org and contributors.
 Twenty Twenty-One is distributed under the terms of the GNU GPL.
 
 This program is free software: you can redistribute it and/or modify

@@ -31,7 +31,7 @@ jobs:
   # Tests the WordPress Core build process on multiple operating systems.
   test-core-build-process:
     name: Core running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@trunk
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -40,9 +40,18 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         directory: [ 'src', 'build' ]
+        include:
+          # Only prepare artifacts for Playground once.
+          - os: ubuntu-latest
+            directory: 'build'
+            save-build: true
+            prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
+
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      save-build: ${{ matrix.save-build && matrix.save-build || false }}
+      prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
 
   # Tests the WordPress Core build process on MacOS.
   #
@@ -54,7 +63,7 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-core-build-process-macos:
     name: Core running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@trunk
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-core-build-process.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -70,7 +79,7 @@ jobs:
   # Tests the Gutenberg plugin build process on multiple operating systems when run within a wordpress-develop checkout.
   test-gutenberg-build-process:
     name: Gutenberg running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/callable-test-gutenberg-build-process.yml@trunk
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-gutenberg-build-process.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -93,7 +102,7 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-gutenberg-build-process-macos:
     name: Gutenberg running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/callable-test-gutenberg-build-process.yml@trunk
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-gutenberg-build-process.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -105,29 +114,6 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
-
-  # Uploads the PR number as an artifact for the Pull Request Commenting workflow to download and then
-  # leave a comment detailing how to test the PR within WordPress Playground.
-  playground-comment:
-    name: Leave WordPress Playground details
-    runs-on: ubuntu-latest
-    permissions:
-      actions: write
-    continue-on-error: true
-    needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos ]
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
-
-    steps:
-      - name: Save PR number
-        run: |
-          mkdir -p ./pr-number
-          echo ${{ github.event.number }} > ./pr-number/NR
-
-      - name: Upload PR number as artifact
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
-        with:
-          name: pr-number
-          path: pr-number/
 
   slack-notifications:
     name: Slack Notifications

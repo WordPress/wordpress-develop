@@ -343,9 +343,9 @@ jQuery( function($) {
 		}
 	}).filter(':visible').find('.wp-tab-first').trigger( 'focus' );
 
-	// Set the heartbeat interval to 15 seconds if post lock dialogs are enabled.
+	// Set the heartbeat interval to 10 seconds if post lock dialogs are enabled.
 	if ( wp.heartbeat && $('#post-lock-dialog').length ) {
-		wp.heartbeat.interval( 15 );
+		wp.heartbeat.interval( 10 );
 	}
 
 	// The form is being submitted by the user.
@@ -889,7 +889,7 @@ jQuery( function($) {
 		});
 
 		// Set the selected visibility as current.
-		$postVisibilitySelect.find('.save-post-visibility').on( 'click', function( event ) { // Crazyhorse - multiple OK cancels.
+		$postVisibilitySelect.find('.save-post-visibility').on( 'click', function( event ) { // Crazyhorse branch - multiple OK cancels.
 			var visibilityLabel = '', selectedVisibility = $postVisibilitySelect.find('input:radio:checked').val();
 
 			$postVisibilitySelect.slideUp('fast');
@@ -945,7 +945,7 @@ jQuery( function($) {
 		});
 
 		// Save the changed timestamp.
-		$timestampdiv.find('.save-timestamp').on( 'click', function( event ) { // Crazyhorse - multiple OK cancels.
+		$timestampdiv.find('.save-timestamp').on( 'click', function( event ) { // Crazyhorse branch - multiple OK cancels.
 			if ( updateText() ) {
 				$timestampdiv.slideUp('fast');
 				$timestampdiv.siblings('a.edit-timestamp').show().trigger( 'focus' );

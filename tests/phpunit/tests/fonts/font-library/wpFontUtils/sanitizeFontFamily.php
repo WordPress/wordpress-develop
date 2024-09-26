@@ -35,16 +35,12 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 	public function data_should_sanitize_font_family() {
 		return array(
 			'data_families_with_spaces_and_numbers' => array(
-				'font_family' => 'Rock 3D , Open Sans,serif',
-				'expected'    => '"Rock 3D", "Open Sans", serif',
+				'font_family' => 'Arial, Rock 3D , Open Sans,serif',
+				'expected'    => 'Arial, "Rock 3D", "Open Sans", serif',
 			),
 			'data_single_font_family'               => array(
 				'font_family' => 'Rock 3D',
 				'expected'    => '"Rock 3D"',
-			),
-			'data_no_spaces'                        => array(
-				'font_family' => 'Rock3D',
-				'expected'    => 'Rock3D',
 			),
 			'data_many_spaces_and_existing_quotes'  => array(
 				'font_family' => 'Rock 3D serif, serif,sans-serif, "Open Sans"',
@@ -57,6 +53,10 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 			'data_font_family_with_whitespace_tags_new_lines' => array(
 				'font_family' => "   Rock      3D</style><script>alert('XSS');</script>\n    ",
 				'expected'    => '"Rock 3D"',
+			),
+			'data_font_family_with_generic_names'   => array(
+				'font_family' => 'generic(kai), generic(font[name]), generic(fangsong), Rock 3D',
+				'expected'    => 'generic(kai), "generic(font[name])", generic(fangsong), "Rock 3D"',
 			),
 		);
 	}

@@ -7,6 +7,8 @@ on:
       - trunk
     paths:
       - '.github/workflows/test-old-branches.yml'
+      - '.github/workflows/reusable-phpunit-tests-v1.yml'
+      - '.github/workflows/reusable-phpunit-tests-v2.yml'
   # Run twice a month on the 1st and 15th at 00:00 UTC.
   schedule:
     - cron: '0 0 1 * *'
@@ -17,7 +19,7 @@ on:
 permissions: {}
 
 env:
-  CURRENTLY_SUPPORTED_BRANCH: '6.4'
+  CURRENTLY_SUPPORTED_BRANCH: '6.6'
 
 jobs:
   dispatch-workflows-for-old-branches:
@@ -34,15 +36,19 @@ jobs:
             'coding-standards.yml',
             'javascript-tests.yml',
             'phpunit-tests.yml',
-            'test-npm.yml'
+            'test-build-processes.yml'
         ]
         branch: [
-            '6.4', '6.3', '6.2', '6.1','6.0',
+            '6.6', '6.5', '6.4', '6.3', '6.2', '6.1','6.0',
             '5.9', '5.8', '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
             '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1'
         ]
         include:
           # PHP Compatibility testing was introduced in 5.5.
+          - branch: '6.6'
+            workflow: 'php-compatibility.yml'
+          - branch: '6.5'
+            workflow: 'php-compatibility.yml'
           - branch: '6.4'
             workflow: 'php-compatibility.yml'
           - branch: '6.3'
@@ -67,6 +73,10 @@ jobs:
           # End-to-end testing was introduced in 5.3 but was later removed as there were no meaningful assertions.
           # Starting in 5.8 with #52905, some additional tests with real assertions were introduced.
           # Branches 5.8 and newer should be tested to confirm no regressions are introduced.
+          - branch: '6.6'
+            workflow: 'end-to-end-tests.yml'
+          - branch: '6.5'
+            workflow: 'end-to-end-tests.yml'
           - branch: '6.4'
             workflow: 'end-to-end-tests.yml'
           - branch: '6.3'
@@ -82,12 +92,14 @@ jobs:
           - branch: '5.8'
             workflow: 'end-to-end-tests.yml'
 
-          # Performance testing was introduced in 6.2.
+          # Performance testing was introduced in 6.2 using Puppeteer but was overhauled to use Playwright instead in 6.4.
+          # Since the workflow frequently failed for 6.2 and 6.3 due to the flaky nature of the Puppeteer tests,
+          # the workflow was removed from those two branches.
+          - branch: '6.6'
+            workflow: 'performance.yml'
+          - branch: '6.5'
+            workflow: 'performance.yml'
           - branch: '6.4'
-            workflow: 'performance.yml'
-          - branch: '6.3'
-            workflow: 'performance.yml'
-          - branch: '6.2'
             workflow: 'performance.yml'
 
     # Run all branches monthly, but only the currently supported one twice per month.

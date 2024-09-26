@@ -705,7 +705,7 @@ function dropdown_cats($optionall = 1, $all = 'All', $orderby = 'ID', $order = '
 
 	$show_option_none = '';
 	if ( $optionnone )
-		$show_option_none = __('None');
+	$show_option_none = _x( 'None', 'Categories dropdown (show_option_none parameter)' );
 
 	$vars = compact('show_option_all', 'show_option_none', 'orderby', 'order',
 					'show_last_update', 'show_count', 'hide_empty', 'selected', 'exclude');
@@ -996,11 +996,11 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 
 		$output .= '<a href="' . $the_link . '"' . $rel . $title . $target. '>';
 
-		if ( $row->link_image != null && $show_images ) {
+		if ( '' != $row->link_image && $show_images ) {
 			if ( str_contains( $row->link_image, 'http' ) )
-				$output .= "<img src=\"$row->link_image\" $alt $title />";
+				$output .= '<img src="' . $row->link_image . '"' . $alt . $title . ' />';
 			else // If it's a relative path.
-				$output .= "<img src=\"" . get_option('siteurl') . "$row->link_image\" $alt $title />";
+				$output .= '<img src="' . get_option('siteurl') . $row->link_image . '"' . $alt . $title . ' />';
 		} else {
 			$output .= $name;
 		}
@@ -1910,7 +1910,7 @@ function get_attachment_icon_src( $id = 0, $fullsize = false ) {
 
 		$src = wp_get_attachment_url( $post->ID );
 		$src_file = & $file;
-	} elseif ( $src = wp_mime_type_icon( $post->ID ) ) {
+	} elseif ( $src = wp_mime_type_icon( $post->ID, '.svg' ) ) {
 		// No thumb, no image. We'll look for a mime-related icon instead.
 
 		/** This filter is documented in wp-includes/post.php */
@@ -2634,7 +2634,7 @@ function get_user_metavalues($ids) {
 /**
  * Sanitize every user field.
  *
- * If the context is 'raw', then the user object or array will get minimal santization of the int fields.
+ * If the context is 'raw', then the user object or array will get minimal sanitization of the int fields.
  *
  * @since 2.3.0
  * @deprecated 3.3.0
@@ -3673,6 +3673,7 @@ function post_permalink( $post = 0 ) {
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
 
+	// Adds an additional 60 seconds to the script timeout to ensure the remote request has enough time.
 	if ( function_exists( 'set_time_limit' ) ) {
 		@set_time_limit( 60 );
 	}
@@ -6002,7 +6003,7 @@ function wp_update_https_detection_errors() {
 	 */
 	$support_errors = apply_filters( 'pre_wp_update_https_detection_errors', null );
 	if ( is_wp_error( $support_errors ) ) {
-		update_option( 'https_detection_errors', $support_errors->errors );
+		update_option( 'https_detection_errors', $support_errors->errors, false );
 		return;
 	}
 
@@ -6249,18 +6250,9 @@ function the_block_template_skip_link() {
  *
  * @since 6.4.0
  * @deprecated 6.5.0
- *
- * @global WP_Scripts $wp_scripts
  */
 function block_core_query_ensure_interactivity_dependency() {
 	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
-	global $wp_scripts;
-	if (
-		isset( $wp_scripts->registered['wp-block-query-view'] ) &&
-		! in_array( 'wp-interactivity', $wp_scripts->registered['wp-block-query-view']->deps, true )
-	) {
-		$wp_scripts->registered['wp-block-query-view']->deps[] = 'wp-interactivity';
-	}
 }
 
 /**
@@ -6268,18 +6260,9 @@ function block_core_query_ensure_interactivity_dependency() {
  *
  * @since 6.4.0
  * @deprecated 6.5.0
- *
- * @global WP_Scripts $wp_scripts
  */
 function block_core_file_ensure_interactivity_dependency() {
 	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
-	global $wp_scripts;
-	if (
-		isset( $wp_scripts->registered['wp-block-file-view'] ) &&
-		! in_array( 'wp-interactivity', $wp_scripts->registered['wp-block-file-view']->deps, true )
-	) {
-		$wp_scripts->registered['wp-block-file-view']->deps[] = 'wp-interactivity';
-	}
 }
 
 /**
@@ -6287,16 +6270,139 @@ function block_core_file_ensure_interactivity_dependency() {
  *
  * @since 6.4.0
  * @deprecated 6.5.0
- *
- * @global WP_Scripts $wp_scripts
  */
 function block_core_image_ensure_interactivity_dependency() {
 	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
-	global $wp_scripts;
-	if (
-		isset( $wp_scripts->registered['wp-block-image-view'] ) &&
-		! in_array( 'wp-interactivity', $wp_scripts->registered['wp-block-image-view']->deps, true )
-	) {
-		$wp_scripts->registered['wp-block-image-view']->deps[] = 'wp-interactivity';
+}
+
+/**
+ * Updates the block content with elements class names.
+ *
+ * @deprecated 6.6.0 Generation of element class name is handled via `render_block_data` filter.
+ *
+ * @since 5.8.0
+ * @since 6.4.0 Added support for button and heading element styling.
+ * @access private
+ *
+ * @param string $block_content Rendered block content.
+ * @param array  $block         Block object.
+ * @return string Filtered block content.
+ */
+function wp_render_elements_support( $block_content, $block ) {
+	_deprecated_function( __FUNCTION__, '6.6.0', 'wp_render_elements_class_name' );
+	return $block_content;
+}
+
+/**
+ * Processes the directives on the rendered HTML of the interactive blocks.
+ *
+ * This processes only one root interactive block at a time because the
+ * rendered HTML of that block contains the rendered HTML of all its inner
+ * blocks, including any interactive block. It does so by ignoring all the
+ * interactive inner blocks until the root interactive block is processed.
+ *
+ * @since 6.5.0
+ * @deprecated 6.6.0
+ *
+ * @param array $parsed_block The parsed block.
+ * @return array The same parsed block.
+ */
+function wp_interactivity_process_directives_of_interactive_blocks( array $parsed_block ): array {
+	_deprecated_function( __FUNCTION__, '6.6.0' );
+	return $parsed_block;
+}
+
+/**
+ * Gets the global styles custom CSS from theme.json.
+ *
+ * @since 6.2.0
+ * @deprecated 6.7.0 Use {@see 'wp_get_global_stylesheet'} instead.
+ *
+ * @return string The global styles custom CSS.
+ */
+function wp_get_global_styles_custom_css() {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_get_global_stylesheet' );
+	if ( ! wp_theme_has_theme_json() ) {
+		return '';
 	}
+	/*
+	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
+	 * developer's workflow.
+	 */
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+
+	/*
+	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
+	 * @see `wp_cache_add_non_persistent_groups()`.
+	 *
+	 * The rationale for this is to make sure derived data from theme.json
+	 * is always fresh from the potential modifications done via hooks
+	 * that can use dynamic data (modify the stylesheet depending on some option,
+	 * settings depending on user permissions, etc.).
+	 * See some of the existing hooks to modify theme.json behavior:
+	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+	 *
+	 * A different alternative considered was to invalidate the cache upon certain
+	 * events such as options add/update/delete, user meta, etc.
+	 * It was judged not enough, hence this approach.
+	 * @see https://github.com/WordPress/gutenberg/pull/45372
+	 */
+	$cache_key   = 'wp_get_global_styles_custom_css';
+	$cache_group = 'theme_json';
+	if ( $can_use_cached ) {
+		$cached = wp_cache_get( $cache_key, $cache_group );
+		if ( $cached ) {
+			return $cached;
+		}
+	}
+
+	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
+	$stylesheet = $tree->get_custom_css();
+
+	if ( $can_use_cached ) {
+		wp_cache_set( $cache_key, $stylesheet, $cache_group );
+	}
+
+	return $stylesheet;
+}
+
+/**
+ * Enqueues the global styles custom css defined via theme.json.
+ *
+ * @since 6.2.0
+ * @deprecated 6.7.0 Use {@see 'wp_enqueue_global_styles'} instead.
+ */
+function wp_enqueue_global_styles_custom_css() {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_enqueue_global_styles' );
+	if ( ! wp_is_block_theme() ) {
+		return;
+	}
+
+	// Don't enqueue Customizer's custom CSS separately.
+	remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
+
+	$custom_css  = wp_get_custom_css();
+	$custom_css .= wp_get_global_styles_custom_css();
+
+	if ( ! empty( $custom_css ) ) {
+		wp_add_inline_style( 'global-styles', $custom_css );
+	}
+}
+
+/**
+ * Generate block style variation instance name.
+ *
+ * @since 6.6.0
+ * @deprecated 6.7.0 Use `wp_unique_id( $variation . '--' )` instead.
+ *
+ * @access private
+ *
+ * @param array  $block     Block object.
+ * @param string $variation Slug for the block style variation.
+ *
+ * @return string The unique variation name.
+ */
+function wp_create_block_style_variation_instance_name( $block, $variation ) {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_unique_id' );
+	return $variation . '--' . md5( serialize( $block ) );
 }

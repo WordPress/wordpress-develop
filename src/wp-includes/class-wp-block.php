@@ -113,7 +113,16 @@ class WP_Block {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param array                  $block             Array of parsed block properties.
+	 * @param array                  $block             {
+	 *     An associative array of a single parsed block object. See WP_Block_Parser_Block.
+	 *
+	 *     @type string   $blockName    Name of block.
+	 *     @type array    $attrs        Attributes from block comment delimiters.
+	 *     @type array    $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                  have the same structure as this one.
+	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array    $innerContent List of string fragments and null markers where inner blocks were found.
+	 * }
 	 * @param array                  $available_context Optional array of ancestry context values.
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
 	 */
@@ -192,15 +201,15 @@ class WP_Block {
 	}
 
 	/**
-	 * Processes the block bindings in block's attributes.
+	 * Processes the block bindings and updates the block attributes with the values from the sources.
 	 *
 	 * A block might contain bindings in its attributes. Bindings are mappings
 	 * between an attribute of the block and a source. A "source" is a function
 	 * registered with `register_block_bindings_source()` that defines how to
 	 * retrieve a value from outside the block, e.g. from post meta.
 	 *
-	 * This function will process those bindings and replace the HTML with the value of the binding.
-	 * The value is retrieved from the source of the binding.
+	 * This function will process those bindings and update the block's attributes
+	 * with the values coming from the bindings.
 	 *
 	 * ### Example
 	 *
@@ -227,37 +236,59 @@ class WP_Block {
 	 * block with the values of the `text_custom_field` and `url_custom_field` post meta.
 	 *
 	 * @since 6.5.0
+	 * @since 6.6.0 Handle the `__default` attribute for pattern overrides.
 	 *
-	 * @param string $block_content Block content.
-	 * @param array  $block         The full block, including name and attributes.
-	 * @return string The modified block content.
+	 * @return array The computed block attributes for the provided block bindings.
 	 */
-	private function process_block_bindings( $block_content ) {
-		$parsed_block = $this->parsed_block;
-
-		// Allowed blocks that support block bindings.
-		// TODO: Look for a mechanism to opt-in for this. Maybe adding a property to block attributes?
-		$allowed_blocks = array(
+	private function process_block_bindings() {
+		$parsed_block               = $this->parsed_block;
+		$computed_attributes        = array();
+		$supported_block_attributes = array(
 			'core/paragraph' => array( 'content' ),
 			'core/heading'   => array( 'content' ),
-			'core/image'     => array( 'url', 'title', 'alt' ),
-			'core/button'    => array( 'url', 'text' ),
+			'core/image'     => array( 'id', 'url', 'title', 'alt' ),
+			'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
 		);
 
-		// If the block doesn't have the bindings property, isn't one of the allowed
+		// If the block doesn't have the bindings property, isn't one of the supported
 		// block types, or the bindings property is not an array, return the block content.
 		if (
-			! isset( $allowed_blocks[ $this->name ] ) ||
+			! isset( $supported_block_attributes[ $this->name ] ) ||
 			empty( $parsed_block['attrs']['metadata']['bindings'] ) ||
 			! is_array( $parsed_block['attrs']['metadata']['bindings'] )
 		) {
-			return $block_content;
+			return $computed_attributes;
 		}
 
-		$modified_block_content = $block_content;
-		foreach ( $parsed_block['attrs']['metadata']['bindings'] as $attribute_name => $block_binding ) {
-			// If the attribute is not in the allowed list, process next attribute.
-			if ( ! in_array( $attribute_name, $allowed_blocks[ $this->name ], true ) ) {
+		$bindings = $parsed_block['attrs']['metadata']['bindings'];
+
+		/*
+		 * If the default binding is set for pattern overrides, replace it
+		 * with a pattern override binding for all supported attributes.
+		 */
+		if (
+			isset( $bindings['__default']['source'] ) &&
+			'core/pattern-overrides' === $bindings['__default']['source']
+		) {
+			$updated_bindings = array();
+
+			/*
+			 * Build a binding array of all supported attributes.
+			 * Note that this also omits the `__default` attribute from the
+			 * resulting array.
+			 */
+			foreach ( $supported_block_attributes[ $parsed_block['blockName'] ] as $attribute_name ) {
+				// Retain any non-pattern override bindings that might be present.
+				$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
+					? $bindings[ $attribute_name ]
+					: array( 'source' => 'core/pattern-overrides' );
+			}
+			$bindings = $updated_bindings;
+		}
+
+		foreach ( $bindings as $attribute_name => $block_binding ) {
+			// If the attribute is not in the supported list, process next attribute.
+			if ( ! in_array( $attribute_name, $supported_block_attributes[ $this->name ], true ) ) {
 				continue;
 			}
 			// If no source is provided, or that source is not registered, process next attribute.
@@ -270,17 +301,25 @@ class WP_Block {
 				continue;
 			}
 
-			$source_callback = $block_binding_source['get_value_callback'];
-			$source_args     = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
-			$source_value    = call_user_func_array( $source_callback, array( $source_args, $this, $attribute_name ) );
+			// Adds the necessary context defined by the source.
+			if ( ! empty( $block_binding_source->uses_context ) ) {
+				foreach ( $block_binding_source->uses_context as $context_name ) {
+					if ( array_key_exists( $context_name, $this->available_context ) ) {
+						$this->context[ $context_name ] = $this->available_context[ $context_name ];
+					}
+				}
+			}
+
+			$source_args  = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
+			$source_value = $block_binding_source->get_value( $source_args, $this, $attribute_name );
 
 			// If the value is not null, process the HTML based on the block and the attribute.
 			if ( ! is_null( $source_value ) ) {
-				$modified_block_content = $this->replace_html( $modified_block_content, $attribute_name, $source_value );
+				$computed_attributes[ $attribute_name ] = $source_value;
 			}
 		}
 
-		return $modified_block_content;
+		return $computed_attributes;
 	}
 
 	/**
@@ -295,7 +334,7 @@ class WP_Block {
 	 */
 	private function replace_html( string $block_content, string $attribute_name, $source_value ) {
 		$block_type = $this->block_type;
-		if ( ! isset( $block_type->attributes[ $attribute_name ] ) ) {
+		if ( ! isset( $block_type->attributes[ $attribute_name ]['source'] ) ) {
 			return $block_content;
 		}
 
@@ -376,15 +415,12 @@ class WP_Block {
 				) ) {
 					return $block_content;
 				}
-				$amended_content->set_attribute( $block_type->attributes[ $attribute_name ]['attribute'], esc_attr( $source_value ) );
+				$amended_content->set_attribute( $block_type->attributes[ $attribute_name ]['attribute'], $source_value );
 				return $amended_content->get_updated_html();
-				break;
 
 			default:
 				return $block_content;
-				break;
 		}
-		return;
 	}
 
 
@@ -392,6 +428,7 @@ class WP_Block {
 	 * Generates the render output for the block.
 	 *
 	 * @since 5.5.0
+	 * @since 6.5.0 Added block bindings processing.
 	 *
 	 * @global WP_Post $post Global post object.
 	 *
@@ -404,12 +441,42 @@ class WP_Block {
 	 */
 	public function render( $options = array() ) {
 		global $post;
+
+		/*
+		 * There can be only one root interactive block at a time because the rendered HTML of that block contains
+		 * the rendered HTML of all its inner blocks, including any interactive block.
+		 */
+		static $root_interactive_block = null;
+		/**
+		 * Filters whether Interactivity API should process directives.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param bool $enabled Whether the directives processing is enabled.
+		 */
+		$interactivity_process_directives_enabled = apply_filters( 'interactivity_process_directives', true );
+		if (
+			$interactivity_process_directives_enabled && null === $root_interactive_block && (
+				( isset( $this->block_type->supports['interactivity'] ) && true === $this->block_type->supports['interactivity'] ) ||
+				! empty( $this->block_type->supports['interactivity']['interactive'] )
+			)
+		) {
+			$root_interactive_block = $this;
+		}
+
 		$options = wp_parse_args(
 			$options,
 			array(
 				'dynamic' => true,
 			)
 		);
+
+		// Process the block bindings and get attributes updated with the values from the sources.
+		$computed_attributes = $this->process_block_bindings();
+		if ( ! empty( $computed_attributes ) ) {
+			// Merge the computed attributes with the original attributes.
+			$this->attributes = array_merge( $this->attributes, $computed_attributes );
+		}
 
 		$is_dynamic    = $options['dynamic'] && $this->name && null !== $this->block_type && $this->block_type->is_dynamic();
 		$block_content = '';
@@ -446,6 +513,12 @@ class WP_Block {
 			}
 		}
 
+		if ( ! empty( $computed_attributes ) && ! empty( $block_content ) ) {
+			foreach ( $computed_attributes as $attribute_name => $source_value ) {
+				$block_content = $this->replace_html( $block_content, $attribute_name, $source_value );
+			}
+		}
+
 		if ( $is_dynamic ) {
 			$global_post = $post;
 			$parent      = WP_Block_Supports::$block_to_render;
@@ -471,6 +544,12 @@ class WP_Block {
 			}
 		}
 
+		if ( ! empty( $this->block_type->view_script_module_ids ) ) {
+			foreach ( $this->block_type->view_script_module_ids as $view_script_module_id ) {
+				wp_enqueue_script_module( $view_script_module_id );
+			}
+		}
+
 		if ( ( ! empty( $this->block_type->style_handles ) ) ) {
 			foreach ( $this->block_type->style_handles as $style_handle ) {
 				wp_enqueue_style( $style_handle );
@@ -482,10 +561,6 @@ class WP_Block {
 				wp_enqueue_style( $view_style_handle );
 			}
 		}
-
-		// Process the block bindings for this block, if any are registered. This
-		// will replace the block content with the value from a registered binding source.
-		$block_content = $this->process_block_bindings( $block_content );
 
 		/**
 		 * Filters the content of a single block.
@@ -513,6 +588,12 @@ class WP_Block {
 		 * @param WP_Block $instance      The block instance.
 		 */
 		$block_content = apply_filters( "render_block_{$this->name}", $block_content, $this->parsed_block, $this );
+
+		if ( $root_interactive_block === $this ) {
+			// The root interactive block has finished rendering. Time to process directives.
+			$block_content          = wp_interactivity_process_directives( $block_content );
+			$root_interactive_block = null;
+		}
 
 		return $block_content;
 	}

@@ -328,6 +328,7 @@ function create_initial_post_types() {
 			'map_meta_cap'          => true,
 			'supports'              => array(
 				'title',
+				'excerpt',
 				'editor',
 				'revisions',
 				'custom-fields',
@@ -365,6 +366,7 @@ function create_initial_post_types() {
 				'filter_items_list'     => __( 'Filter templates list' ),
 				'items_list_navigation' => __( 'Templates list navigation' ),
 				'items_list'            => __( 'Templates list' ),
+				'item_updated'          => __( 'Template updated.' ),
 			),
 			'description'                     => __( 'Templates to include in your theme.' ),
 			'public'                          => false,
@@ -429,6 +431,7 @@ function create_initial_post_types() {
 				'filter_items_list'     => __( 'Filter template parts list' ),
 				'items_list_navigation' => __( 'Template parts list navigation' ),
 				'items_list'            => __( 'Template parts list' ),
+				'item_updated'          => __( 'Template part updated.' ),
 			),
 			'description'                     => __( 'Template parts to include in your templates.' ),
 			'public'                          => false,
@@ -473,16 +476,20 @@ function create_initial_post_types() {
 	register_post_type(
 		'wp_global_styles',
 		array(
-			'label'        => _x( 'Global Styles', 'post type general name' ),
-			'description'  => __( 'Global styles to include in themes.' ),
-			'public'       => false,
-			'_builtin'     => true, /* internal use only. don't use this when registering your own post type. */
-			'_edit_link'   => '/site-editor.php?canvas=edit', /* internal use only. don't use this when registering your own post type. */
-			'show_ui'      => false,
-			'show_in_rest' => false,
-			'rewrite'      => false,
-			'capabilities' => array(
-				'read'                   => 'edit_theme_options',
+			'label'                           => _x( 'Global Styles', 'post type general name' ),
+			'description'                     => __( 'Global styles to include in themes.' ),
+			'public'                          => false,
+			'_builtin'                        => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'                      => '/site-editor.php?canvas=edit', /* internal use only. don't use this when registering your own post type. */
+			'show_ui'                         => false,
+			'show_in_rest'                    => true,
+			'rewrite'                         => false,
+			'rest_base'                       => 'global-styles',
+			'rest_controller_class'           => 'WP_REST_Global_Styles_Controller',
+			'revisions_rest_controller_class' => 'WP_REST_Global_Styles_Revisions_Controller',
+			'late_route_registration'         => true,
+			'capabilities'                    => array(
+				'read'                   => 'edit_posts',
 				'create_posts'           => 'edit_theme_options',
 				'edit_posts'             => 'edit_theme_options',
 				'edit_published_posts'   => 'edit_theme_options',
@@ -490,14 +497,16 @@ function create_initial_post_types() {
 				'edit_others_posts'      => 'edit_theme_options',
 				'delete_others_posts'    => 'edit_theme_options',
 			),
-			'map_meta_cap' => true,
-			'supports'     => array(
+			'map_meta_cap'                    => true,
+			'supports'                        => array(
 				'title',
 				'editor',
 				'revisions',
 			),
 		)
 	);
+	// Disable autosave endpoints for global styles.
+	remove_post_type_support( 'wp_global_styles', 'autosave' );
 
 	$navigation_post_edit_link = 'site-editor.php?' . build_query(
 		array(
@@ -567,14 +576,14 @@ function create_initial_post_types() {
 	register_post_type(
 		'wp_font_family',
 		array(
-			'labels'       => array(
+			'labels'                => array(
 				'name'          => __( 'Font Families' ),
 				'singular_name' => __( 'Font Family' ),
 			),
-			'public'       => false,
-			'_builtin'     => true, /* internal use only. don't use this when registering your own post type. */
-			'hierarchical' => false,
-			'capabilities' => array(
+			'public'                => false,
+			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'          => false,
+			'capabilities'          => array(
 				'read'                   => 'edit_theme_options',
 				'read_private_posts'     => 'edit_theme_options',
 				'create_posts'           => 'edit_theme_options',
@@ -586,24 +595,27 @@ function create_initial_post_types() {
 				'delete_others_posts'    => 'edit_theme_options',
 				'delete_published_posts' => 'edit_theme_options',
 			),
-			'map_meta_cap' => true,
-			'query_var'    => false,
-			'show_in_rest' => false,
-			'rewrite'      => false,
+			'map_meta_cap'          => true,
+			'query_var'             => false,
+			'rewrite'               => false,
+			'show_in_rest'          => true,
+			'rest_base'             => 'font-families',
+			'rest_controller_class' => 'WP_REST_Font_Families_Controller',
+			'supports'              => array( 'title' ),
 		)
 	);
 
 	register_post_type(
 		'wp_font_face',
 		array(
-			'labels'       => array(
+			'labels'                => array(
 				'name'          => __( 'Font Faces' ),
 				'singular_name' => __( 'Font Face' ),
 			),
-			'public'       => false,
-			'_builtin'     => true, /* internal use only. don't use this when registering your own post type. */
-			'hierarchical' => false,
-			'capabilities' => array(
+			'public'                => false,
+			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'          => false,
+			'capabilities'          => array(
 				'read'                   => 'edit_theme_options',
 				'read_private_posts'     => 'edit_theme_options',
 				'create_posts'           => 'edit_theme_options',
@@ -615,10 +627,13 @@ function create_initial_post_types() {
 				'delete_others_posts'    => 'edit_theme_options',
 				'delete_published_posts' => 'edit_theme_options',
 			),
-			'map_meta_cap' => true,
-			'query_var'    => false,
-			'show_in_rest' => false,
-			'rewrite'      => false,
+			'map_meta_cap'          => true,
+			'query_var'             => false,
+			'rewrite'               => false,
+			'show_in_rest'          => true,
+			'rest_base'             => 'font-families/(?P<font_family_id>[\d]+)/font-faces',
+			'rest_controller_class' => 'WP_REST_Font_Faces_Controller',
+			'supports'              => array( 'title' ),
 		)
 	);
 
@@ -1209,7 +1224,10 @@ function get_post_mime_type( $post = null ) {
  * @return string|false Post status on success, false on failure.
  */
 function get_post_status( $post = null ) {
-	$post = get_post( $post );
+	// Normalize the post object if necessary, skip normalization if called from get_sample_permalink().
+	if ( ! $post instanceof WP_Post || ! isset( $post->filter ) || 'sample' !== $post->filter ) {
+		$post = get_post( $post );
+	}
 
 	if ( ! is_object( $post ) ) {
 		return false;
@@ -1592,7 +1610,7 @@ function get_post_type_object( $post_type ) {
  *
  * @param array|string $args     Optional. An array of key => value arguments to match against
  *                               the post type objects. Default empty array.
- * @param string       $output   Optional. The type of output to return. Accepts post type 'names'
+ * @param string       $output   Optional. The type of output to return. Either 'names'
  *                               or 'objects'. Default 'names'.
  * @param string       $operator Optional. The logical operation to perform. 'or' means only one
  *                               element from the array needs to match; 'and' means all elements
@@ -1705,8 +1723,10 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         'editor', 'comments', 'revisions', 'trackbacks', 'author', 'excerpt',
  *                                                         'page-attributes', 'thumbnail', 'custom-fields', and 'post-formats'.
  *                                                         Additionally, the 'revisions' feature dictates whether the post type
- *                                                         will store revisions, and the 'comments' feature dictates whether the
- *                                                         comments count will show on the edit screen. A feature can also be
+ *                                                         will store revisions, the 'autosave' feature dictates whether the post type
+ *                                                         will be autosaved, and the 'comments' feature dictates whether the
+ *                                                         comments count will show on the edit screen. For backward compatibility reasons,
+ *                                                         adding 'editor' support implies 'autosave' support too. A feature can also be
  *                                                         specified as an array of arguments to provide additional information
  *                                                         about supporting that feature.
  *                                                         Example: `array( 'my_feature', array( 'field' => 'value' ) )`.
@@ -2063,6 +2083,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @since 6.3.0 Added the `item_trashed` label.
  * @since 6.4.0 Changed default values for the `add_new` label to include the type of content.
  *              This matches `add_new_item` and provides more context for better accessibility.
+ * @since 6.6.0 Added the `template_name` label.
  *
  * @access private
  *
@@ -2075,6 +2096,11 @@ function get_post_type_labels( $post_type_object ) {
 	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
 	$labels = _get_custom_object_labels( $post_type_object, $nohier_vs_hier_defaults );
+
+	if ( ! isset( $post_type_object->labels->template_name ) && isset( $post_type_object->labels->singular_name ) ) {
+			/* translators: %s: Post type name. */
+			$labels->template_name = sprintf( __( 'Single item: %s' ), $post_type_object->labels->singular_name );
+	}
 
 	$post_type = $post_type_object->name;
 
@@ -2184,7 +2210,8 @@ function _add_post_type_submenus() {
  * 'thumbnail', 'custom-fields', and 'post-formats'.
  *
  * Additionally, the 'revisions' feature dictates whether the post type will
- * store revisions, and the 'comments' feature dictates whether the comments
+ * store revisions, the 'autosave' feature dictates whether the post type
+ * will be autosaved, and the 'comments' feature dictates whether the comments
  * count will show on the edit screen.
  *
  * A third, optional parameter can also be passed along with a feature to provide
@@ -2580,7 +2607,8 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  * @return mixed An array of values if `$single` is false.
  *               The value of the meta field if `$single` is true.
  *               False for an invalid `$post_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing post ID is passed.
+ *               An empty array if a valid but non-existing post ID is passed and `$single` is false.
+ *               An empty string if a valid but non-existing post ID is passed and `$single` is true.
  */
 function get_post_meta( $post_id, $key = '', $single = false ) {
 	return get_metadata( 'post', $post_id, $key, $single );
@@ -2868,7 +2896,23 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			 * Filters the value of a specific post field to edit.
 			 *
 			 * The dynamic portion of the hook name, `$field`, refers to the post
-			 * field name.
+			 * field name. Possible filter names include:
+			 *
+			 *  - `edit_post_author`
+			 *  - `edit_post_date`
+			 *  - `edit_post_date_gmt`
+			 *  - `edit_post_content`
+			 *  - `edit_post_title`
+			 *  - `edit_post_excerpt`
+			 *  - `edit_post_status`
+			 *  - `edit_post_password`
+			 *  - `edit_post_name`
+			 *  - `edit_post_modified`
+			 *  - `edit_post_modified_gmt`
+			 *  - `edit_post_content_filtered`
+			 *  - `edit_post_parent`
+			 *  - `edit_post_type`
+			 *  - `edit_post_mime_type`
 			 *
 			 * @since 2.3.0
 			 *
@@ -2880,8 +2924,26 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			/**
 			 * Filters the value of a specific post field to edit.
 			 *
-			 * The dynamic portion of the hook name, `$field_no_prefix`, refers to
-			 * the post field name.
+			 * Only applied to post fields with a name which is prefixed with `post_`.
+			 *
+			 * The dynamic portion of the hook name, `$field_no_prefix`, refers to the
+			 * post field name minus the `post_` prefix. Possible filter names include:
+			 *
+			 *  - `author_edit_pre`
+			 *  - `date_edit_pre`
+			 *  - `date_gmt_edit_pre`
+			 *  - `content_edit_pre`
+			 *  - `title_edit_pre`
+			 *  - `excerpt_edit_pre`
+			 *  - `status_edit_pre`
+			 *  - `password_edit_pre`
+			 *  - `name_edit_pre`
+			 *  - `modified_edit_pre`
+			 *  - `modified_gmt_edit_pre`
+			 *  - `content_filtered_edit_pre`
+			 *  - `parent_edit_pre`
+			 *  - `type_edit_pre`
+			 *  - `mime_type_edit_pre`
 			 *
 			 * @since 2.3.0
 			 *
@@ -2890,6 +2952,28 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			 */
 			$value = apply_filters( "{$field_no_prefix}_edit_pre", $value, $post_id );
 		} else {
+			/**
+			 * Filters the value of a specific post field to edit.
+			 *
+			 * Only applied to post fields not prefixed with `post_`.
+			 *
+			 * The dynamic portion of the hook name, `$field`, refers to the
+			 * post field name. Possible filter names include:
+			 *
+			 *  - `edit_post_ID`
+			 *  - `edit_post_ping_status`
+			 *  - `edit_post_pinged`
+			 *  - `edit_post_to_ping`
+			 *  - `edit_post_comment_count`
+			 *  - `edit_post_comment_status`
+			 *  - `edit_post_guid`
+			 *  - `edit_post_menu_order`
+			 *
+			 * @since 2.3.0
+			 *
+			 * @param mixed $value   Value of the post field.
+			 * @param int   $post_id Post ID.
+			 */
 			$value = apply_filters( "edit_post_{$field}", $value, $post_id );
 		}
 
@@ -2908,8 +2992,26 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			/**
 			 * Filters the value of a specific post field before saving.
 			 *
+			 * Only applied to post fields with a name which is prefixed with `post_`.
+			 *
 			 * The dynamic portion of the hook name, `$field`, refers to the post
-			 * field name.
+			 * field name. Possible filter names include:
+			 *
+			 *  - `pre_post_author`
+			 *  - `pre_post_date`
+			 *  - `pre_post_date_gmt`
+			 *  - `pre_post_content`
+			 *  - `pre_post_title`
+			 *  - `pre_post_excerpt`
+			 *  - `pre_post_status`
+			 *  - `pre_post_password`
+			 *  - `pre_post_name`
+			 *  - `pre_post_modified`
+			 *  - `pre_post_modified_gmt`
+			 *  - `pre_post_content_filtered`
+			 *  - `pre_post_parent`
+			 *  - `pre_post_type`
+			 *  - `pre_post_mime_type`
 			 *
 			 * @since 2.3.0
 			 *
@@ -2920,8 +3022,26 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			/**
 			 * Filters the value of a specific field before saving.
 			 *
-			 * The dynamic portion of the hook name, `$field_no_prefix`, refers
-			 * to the post field name.
+			 * Only applied to post fields with a name which is prefixed with `post_`.
+			 *
+			 * The dynamic portion of the hook name, `$field_no_prefix`, refers to the
+			 * post field name minus the `post_` prefix. Possible filter names include:
+			 *
+			 *  - `author_save_pre`
+			 *  - `date_save_pre`
+			 *  - `date_gmt_save_pre`
+			 *  - `content_save_pre`
+			 *  - `title_save_pre`
+			 *  - `excerpt_save_pre`
+			 *  - `status_save_pre`
+			 *  - `password_save_pre`
+			 *  - `name_save_pre`
+			 *  - `modified_save_pre`
+			 *  - `modified_gmt_save_pre`
+			 *  - `content_filtered_save_pre`
+			 *  - `parent_save_pre`
+			 *  - `type_save_pre`
+			 *  - `mime_type_save_pre`
 			 *
 			 * @since 2.3.0
 			 *
@@ -2929,13 +3049,45 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			 */
 			$value = apply_filters( "{$field_no_prefix}_save_pre", $value );
 		} else {
+			/**
+			 * Filters the value of a specific field before saving.
+			 *
+			 * Only applied to post fields with a name which is prefixed with `post_`.
+			 *
+			 * The dynamic portion of the hook name, `$field_no_prefix`, refers to the
+			 * post field name minus the `post_` prefix. Possible filter names include:
+			 *
+			 *  - `pre_post_ID`
+			 *  - `pre_post_comment_status`
+			 *  - `pre_post_ping_status`
+			 *  - `pre_post_to_ping`
+			 *  - `pre_post_pinged`
+			 *  - `pre_post_guid`
+			 *  - `pre_post_menu_order`
+			 *  - `pre_post_comment_count`
+			 *
+			 * @since 2.3.0
+			 *
+			 * @param mixed $value Value of the post field.
+			 */
 			$value = apply_filters( "pre_post_{$field}", $value );
 
 			/**
 			 * Filters the value of a specific post field before saving.
 			 *
+			 * Only applied to post fields with a name which is *not* prefixed with `post_`.
+			 *
 			 * The dynamic portion of the hook name, `$field`, refers to the post
-			 * field name.
+			 * field name. Possible filter names include:
+			 *
+			 *  - `ID_pre`
+			 *  - `comment_status_pre`
+			 *  - `ping_status_pre`
+			 *  - `to_ping_pre`
+			 *  - `pinged_pre`
+			 *  - `guid_pre`
+			 *  - `menu_order_pre`
+			 *  - `comment_count_pre`
 			 *
 			 * @since 2.3.0
 			 *
@@ -2951,8 +3103,26 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			/**
 			 * Filters the value of a specific post field for display.
 			 *
+			 * Only applied to post fields with a name which is prefixed with `post_`.
+			 *
 			 * The dynamic portion of the hook name, `$field`, refers to the post
-			 * field name.
+			 * field name. Possible filter names include:
+			 *
+			 *  - `post_author`
+			 *  - `post_date`
+			 *  - `post_date_gmt`
+			 *  - `post_content`
+			 *  - `post_title`
+			 *  - `post_excerpt`
+			 *  - `post_status`
+			 *  - `post_password`
+			 *  - `post_name`
+			 *  - `post_modified`
+			 *  - `post_modified_gmt`
+			 *  - `post_content_filtered`
+			 *  - `post_parent`
+			 *  - `post_type`
+			 *  - `post_mime_type`
 			 *
 			 * @since 2.3.0
 			 *
@@ -2964,6 +3134,31 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			 */
 			$value = apply_filters( "{$field}", $value, $post_id, $context );
 		} else {
+			/**
+			 * Filters the value of a specific post field for display.
+			 *
+			 * Only applied to post fields name which is *not* prefixed with `post_`.
+			 *
+			 * The dynamic portion of the hook name, `$field`, refers to the post
+			 * field name. Possible filter names include:
+			 *
+			 *  - `post_ID`
+			 *  - `post_comment_status`
+			 *  - `post_ping_status`
+			 *  - `post_to_ping`
+			 *  - `post_pinged`
+			 *  - `post_guid`
+			 *  - `post_menu_order`
+			 *  - `post_comment_count`
+			 *
+			 * @since 2.3.0
+			 *
+			 * @param mixed  $value   Value of the unprefixed post field.
+			 * @param int    $post_id Post ID
+			 * @param string $context Context for how to sanitize the field.
+			 *                        Accepts 'raw', 'edit', 'db', 'display',
+			 *                        'attribute', or 'js'. Default 'display'.
+			 */
 			$value = apply_filters( "post_{$field}", $value, $post_id, $context );
 		}
 
@@ -2978,7 +3173,6 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 	if ( in_array( $field, $int_fields, true ) ) {
 		$value = (int) $value;
 	}
-
 	return $value;
 }
 
@@ -3395,7 +3589,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 		$post_mime_types = array_map( 'trim', explode( ',', $post_mime_types ) );
 	}
 
-	$wheres = array();
+	$where_clauses = array();
 
 	foreach ( (array) $post_mime_types as $mime_type ) {
 		$mime_type = preg_replace( '/\s/', '', $mime_type );
@@ -3423,14 +3617,14 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 		}
 
 		if ( str_contains( $mime_pattern, '%' ) ) {
-			$wheres[] = empty( $table_alias ) ? "post_mime_type LIKE '$mime_pattern'" : "$table_alias.post_mime_type LIKE '$mime_pattern'";
+			$where_clauses[] = empty( $table_alias ) ? "post_mime_type LIKE '$mime_pattern'" : "$table_alias.post_mime_type LIKE '$mime_pattern'";
 		} else {
-			$wheres[] = empty( $table_alias ) ? "post_mime_type = '$mime_pattern'" : "$table_alias.post_mime_type = '$mime_pattern'";
+			$where_clauses[] = empty( $table_alias ) ? "post_mime_type = '$mime_pattern'" : "$table_alias.post_mime_type = '$mime_pattern'";
 		}
 	}
 
-	if ( ! empty( $wheres ) ) {
-		$where = ' AND (' . implode( ' OR ', $wheres ) . ') ';
+	if ( ! empty( $where_clauses ) ) {
+		$where = ' AND (' . implode( ' OR ', $where_clauses ) . ') ';
 	}
 
 	return $where;
@@ -3452,15 +3646,15 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
  * @see wp_delete_attachment()
  * @see wp_trash_post()
  *
- * @param int  $postid       Optional. Post ID. Default 0.
+ * @param int  $post_id      Optional. Post ID. Default 0.
  * @param bool $force_delete Optional. Whether to bypass Trash and force deletion.
  *                           Default false.
  * @return WP_Post|false|null Post data on success, false or null on failure.
  */
-function wp_delete_post( $postid = 0, $force_delete = false ) {
+function wp_delete_post( $post_id = 0, $force_delete = false ) {
 	global $wpdb;
 
-	$post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d", $postid ) );
+	$post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d", $post_id ) );
 
 	if ( ! $post ) {
 		return $post;
@@ -3468,12 +3662,15 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 
 	$post = get_post( $post );
 
-	if ( ! $force_delete && ( 'post' === $post->post_type || 'page' === $post->post_type ) && 'trash' !== get_post_status( $postid ) && EMPTY_TRASH_DAYS ) {
-		return wp_trash_post( $postid );
+	if ( ! $force_delete
+		&& ( 'post' === $post->post_type || 'page' === $post->post_type )
+		&& 'trash' !== get_post_status( $post_id ) && EMPTY_TRASH_DAYS
+	) {
+		return wp_trash_post( $post_id );
 	}
 
 	if ( 'attachment' === $post->post_type ) {
-		return wp_delete_attachment( $postid, $force_delete );
+		return wp_delete_attachment( $post_id, $force_delete );
 	}
 
 	/**
@@ -3498,30 +3695,39 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	 *
 	 * @see wp_delete_post()
 	 *
-	 * @param int     $postid Post ID.
-	 * @param WP_Post $post   Post object.
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
 	 */
-	do_action( 'before_delete_post', $postid, $post );
+	do_action( 'before_delete_post', $post_id, $post );
 
-	delete_post_meta( $postid, '_wp_trash_meta_status' );
-	delete_post_meta( $postid, '_wp_trash_meta_time' );
+	delete_post_meta( $post_id, '_wp_trash_meta_status' );
+	delete_post_meta( $post_id, '_wp_trash_meta_time' );
 
-	wp_delete_object_term_relationships( $postid, get_object_taxonomies( $post->post_type ) );
+	wp_delete_object_term_relationships( $post_id, get_object_taxonomies( $post->post_type ) );
 
 	$parent_data  = array( 'post_parent' => $post->post_parent );
-	$parent_where = array( 'post_parent' => $postid );
+	$parent_where = array( 'post_parent' => $post_id );
 
 	if ( is_post_type_hierarchical( $post->post_type ) ) {
 		// Point children of this page to its parent, also clean the cache of affected children.
-		$children_query = $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE post_parent = %d AND post_type = %s", $postid, $post->post_type );
-		$children       = $wpdb->get_results( $children_query );
+		$children_query = $wpdb->prepare(
+			"SELECT * FROM $wpdb->posts WHERE post_parent = %d AND post_type = %s",
+			$post_id,
+			$post->post_type
+		);
+
+		$children = $wpdb->get_results( $children_query );
+
 		if ( $children ) {
 			$wpdb->update( $wpdb->posts, $parent_data, $parent_where + array( 'post_type' => $post->post_type ) );
 		}
 	}
 
 	// Do raw query. wp_get_post_revisions() is filtered.
-	$revision_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND post_type = 'revision'", $postid ) );
+	$revision_ids = $wpdb->get_col(
+		$wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND post_type = 'revision'", $post_id )
+	);
+
 	// Use wp_delete_post (via wp_delete_post_revision) again. Ensures any meta/misplaced data gets cleaned up.
 	foreach ( $revision_ids as $revision_id ) {
 		wp_delete_post_revision( $revision_id );
@@ -3532,14 +3738,20 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 
 	wp_defer_comment_counting( true );
 
-	$comment_ids = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d ORDER BY comment_ID DESC", $postid ) );
+	$comment_ids = $wpdb->get_col(
+		$wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d ORDER BY comment_ID DESC", $post_id )
+	);
+
 	foreach ( $comment_ids as $comment_id ) {
 		wp_delete_comment( $comment_id, true );
 	}
 
 	wp_defer_comment_counting( false );
 
-	$post_meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d ", $postid ) );
+	$post_meta_ids = $wpdb->get_col(
+		$wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d ", $post_id )
+	);
+
 	foreach ( $post_meta_ids as $mid ) {
 		delete_metadata_by_mid( 'post', $mid );
 	}
@@ -3547,15 +3759,28 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	/**
 	 * Fires immediately before a post is deleted from the database.
 	 *
+	 * The dynamic portion of the hook name, `$post->post_type`, refers to
+	 * the post type slug.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
+	 */
+	do_action( "delete_post_{$post->post_type}", $post_id, $post );
+
+	/**
+	 * Fires immediately before a post is deleted from the database.
+	 *
 	 * @since 1.2.0
 	 * @since 5.5.0 Added the `$post` parameter.
 	 *
-	 * @param int     $postid Post ID.
-	 * @param WP_Post $post   Post object.
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
 	 */
-	do_action( 'delete_post', $postid, $post );
+	do_action( 'delete_post', $post_id, $post );
 
-	$result = $wpdb->delete( $wpdb->posts, array( 'ID' => $postid ) );
+	$result = $wpdb->delete( $wpdb->posts, array( 'ID' => $post_id ) );
 	if ( ! $result ) {
 		return false;
 	}
@@ -3563,13 +3788,26 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	/**
 	 * Fires immediately after a post is deleted from the database.
 	 *
+	 * The dynamic portion of the hook name, `$post->post_type`, refers to
+	 * the post type slug.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
+	 */
+	do_action( "deleted_post_{$post->post_type}", $post_id, $post );
+
+	/**
+	 * Fires immediately after a post is deleted from the database.
+	 *
 	 * @since 2.2.0
 	 * @since 5.5.0 Added the `$post` parameter.
 	 *
-	 * @param int     $postid Post ID.
-	 * @param WP_Post $post   Post object.
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
 	 */
-	do_action( 'deleted_post', $postid, $post );
+	do_action( 'deleted_post', $post_id, $post );
 
 	clean_post_cache( $post );
 
@@ -3579,7 +3817,7 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 		}
 	}
 
-	wp_clear_scheduled_hook( 'publish_future_post', array( $postid ) );
+	wp_clear_scheduled_hook( 'publish_future_post', array( $post_id ) );
 
 	/**
 	 * Fires after a post is deleted, at the conclusion of wp_delete_post().
@@ -3589,10 +3827,10 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	 *
 	 * @see wp_delete_post()
 	 *
-	 * @param int     $postid Post ID.
-	 * @param WP_Post $post   Post object.
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
 	 */
-	do_action( 'after_delete_post', $postid, $post );
+	do_action( 'after_delete_post', $post_id, $post );
 
 	return $post;
 }
@@ -6758,7 +6996,7 @@ function wp_attachment_is( $type, $post = null ) {
 
 	switch ( $type ) {
 		case 'image':
-			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp', 'avif' );
+			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp', 'avif', 'heic' );
 			return in_array( $ext, $image_exts, true );
 
 		case 'audio':
@@ -6794,13 +7032,20 @@ function wp_attachment_is_image( $post = null ) {
  * Retrieves the icon for a MIME type or attachment.
  *
  * @since 2.1.0
+ * @since 6.5.0 Added the `$preferred_ext` parameter.
  *
- * @param string|int $mime MIME type or attachment ID.
+ * @param string|int $mime          MIME type or attachment ID.
+ * @param string     $preferred_ext File format to prefer in return. Default '.png'.
  * @return string|false Icon, false otherwise.
  */
-function wp_mime_type_icon( $mime = 0 ) {
+function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 	if ( ! is_numeric( $mime ) ) {
 		$icon = wp_cache_get( "mime_type_icon_$mime" );
+	}
+
+	// Check if preferred file format variable is present and is a validly formatted file extension.
+	if ( ! empty( $preferred_ext ) && is_string( $preferred_ext ) && ! str_starts_with( $preferred_ext, '.' ) ) {
+		$preferred_ext = '.' . strtolower( $preferred_ext );
 	}
 
 	$post_id = 0;
@@ -6858,6 +7103,7 @@ function wp_mime_type_icon( $mime = 0 ) {
 			 */
 			$dirs       = apply_filters( 'icon_dirs', array( $icon_dir => $icon_dir_uri ) );
 			$icon_files = array();
+			$all_icons  = array();
 			while ( $dirs ) {
 				$keys = array_keys( $dirs );
 				$dir  = array_shift( $keys );
@@ -6871,16 +7117,23 @@ function wp_mime_type_icon( $mime = 0 ) {
 						}
 
 						$ext = strtolower( substr( $file, -4 ) );
-						if ( ! in_array( $ext, array( '.png', '.gif', '.jpg' ), true ) ) {
+						if ( ! in_array( $ext, array( '.svg', '.png', '.gif', '.jpg' ), true ) ) {
 							if ( is_dir( "$dir/$file" ) ) {
 								$dirs[ "$dir/$file" ] = "$uri/$file";
 							}
 							continue;
 						}
-						$icon_files[ "$dir/$file" ] = "$uri/$file";
+						$all_icons[ "$dir/$file" ] = "$uri/$file";
+						if ( $ext === $preferred_ext ) {
+							$icon_files[ "$dir/$file" ] = "$uri/$file";
+						}
 					}
 					closedir( $dh );
 				}
+			}
+			// If directory only contained icons of a non-preferred format, return those.
+			if ( empty( $icon_files ) ) {
+				$icon_files = $all_icons;
 			}
 			wp_cache_add( 'icon_files', $icon_files, 'default', 600 );
 		}
@@ -7707,7 +7960,10 @@ function wp_check_post_hierarchy_for_loops( $post_parent, $post_id ) {
  *
  * @param int|WP_Post $post         Post ID or post object where thumbnail should be attached.
  * @param int         $thumbnail_id Thumbnail to attach.
- * @return int|bool True on success, false on failure.
+ * @return int|bool Post meta ID if the key didn't exist (ie. this is the first time that
+ *                  a thumbnail has been saved for the post), true on successful update,
+ *                  false on failure or if the value passed is the same as the one that
+ *                  is already in the database.
  */
 function set_post_thumbnail( $post, $thumbnail_id ) {
 	$post         = get_post( $post );
@@ -7868,9 +8124,9 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 /**
  * Prime the cache containing the parent ID of various post objects.
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @since 6.4.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int[] $ids ID list.
  */
@@ -8008,10 +8264,11 @@ function get_available_post_mime_types( $type = 'attachment' ) {
 	$mime_types = apply_filters( 'pre_get_available_post_mime_types', null, $type );
 
 	if ( ! is_array( $mime_types ) ) {
-		$mime_types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
+		$mime_types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s AND post_mime_type != ''", $type ) );
 	}
 
-	return $mime_types;
+	// Remove nulls from returned $mime_types.
+	return array_values( array_filter( $mime_types ) );
 }
 
 /**

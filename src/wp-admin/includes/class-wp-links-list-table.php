@@ -50,7 +50,10 @@ class WP_Links_List_Table extends WP_List_Table {
 	public function prepare_items() {
 		global $cat_id, $s, $orderby, $order;
 
-		wp_reset_vars( array( 'action', 'cat_id', 'link_id', 'orderby', 'order', 's' ) );
+		$cat_id  = ! empty( $_REQUEST['cat_id'] ) ? absint( $_REQUEST['cat_id'] ) : 0;
+		$orderby = ! empty( $_REQUEST['orderby'] ) ? sanitize_text_field( $_REQUEST['orderby'] ) : '';
+		$order   = ! empty( $_REQUEST['order'] ) ? sanitize_text_field( $_REQUEST['order'] ) : '';
+		$s       = ! empty( $_REQUEST['s'] ) ? sanitize_text_field( $_REQUEST['s'] ) : '';
 
 		$args = array(
 			'hide_invisible' => 0,
@@ -304,6 +307,11 @@ class WP_Links_List_Table extends WP_List_Table {
 		do_action( 'manage_link_custom_column', $column_name, $link->link_id );
 	}
 
+	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 */
 	public function display_rows() {
 		foreach ( $this->items as $link ) {
 			$link                = sanitize_bookmark( $link );

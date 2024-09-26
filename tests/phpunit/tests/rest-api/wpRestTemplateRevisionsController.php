@@ -449,7 +449,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 
-		$this->assertCount( 18, $properties );
+		$this->assertCount( 19, $properties );
 		$this->assertArrayHasKey( 'id', $properties, 'ID key should exist in properties.' );
 		$this->assertArrayHasKey( 'slug', $properties, 'Slug key should exist in properties.' );
 		$this->assertArrayHasKey( 'theme', $properties, 'Theme key should exist in properties.' );
@@ -465,8 +465,9 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertArrayHasKey( 'modified', $properties, 'modified key should exist in properties.' );
 		$this->assertArrayHasKey( 'is_custom', $properties, 'is_custom key should exist in properties.' );
 		$this->assertArrayHasKey( 'parent', $properties, 'Parent key should exist in properties.' );
-		$this->assertArrayHasKey( 'author_text', $properties, 'Parent key should exist in properties.' );
-		$this->assertArrayHasKey( 'original_source', $properties, 'Parent key should exist in properties.' );
+		$this->assertArrayHasKey( 'author_text', $properties, 'author_text key should exist in properties.' );
+		$this->assertArrayHasKey( 'original_source', $properties, 'original_source key should exist in properties.' );
+		$this->assertArrayHasKey( 'plugin', $properties, 'plugin key should exist in properties.' );
 	}
 
 	/**

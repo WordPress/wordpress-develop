@@ -30,7 +30,7 @@ if ( ! function_exists( 'wp_set_current_user' ) ) :
 		// If `$id` matches the current user, there is nothing to do.
 		if ( isset( $current_user )
 		&& ( $current_user instanceof WP_User )
-		&& ( $id == $current_user->ID )
+		&& ( $id === $current_user->ID )
 		&& ( null !== $id )
 		) {
 			return $current_user;
@@ -617,7 +617,7 @@ if ( ! function_exists( 'wp_authenticate' ) ) :
 		 */
 		$user = apply_filters( 'authenticate', null, $username, $password );
 
-		if ( null == $user ) {
+		if ( null === $user || false === $user ) {
 			/*
 			 * TODO: What should the error message be? (Or would these even happen?)
 			 * Only needed if all authentication handlers fail to return anything.
@@ -1093,7 +1093,7 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		setcookie( $auth_cookie_name, $auth_cookie, $expire, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN, $secure, true );
 		setcookie( $auth_cookie_name, $auth_cookie, $expire, ADMIN_COOKIE_PATH, COOKIE_DOMAIN, $secure, true );
 		setcookie( LOGGED_IN_COOKIE, $logged_in_cookie, $expire, COOKIEPATH, COOKIE_DOMAIN, $secure_logged_in_cookie, true );
-		if ( COOKIEPATH != SITECOOKIEPATH ) {
+		if ( COOKIEPATH !== SITECOOKIEPATH ) {
 			setcookie( LOGGED_IN_COOKIE, $logged_in_cookie, $expire, SITECOOKIEPATH, COOKIE_DOMAIN, $secure_logged_in_cookie, true );
 		}
 	}
@@ -1315,7 +1315,7 @@ if ( ! function_exists( 'check_ajax_referer' ) ) :
 	 *                   False if the nonce is invalid.
 	 */
 	function check_ajax_referer( $action = -1, $query_arg = false, $stop = true ) {
-		if ( -1 == $action ) {
+		if ( -1 === $action ) {
 			_doing_it_wrong( __FUNCTION__, __( 'You should specify an action to be verified by using the first parameter.' ), '4.7.0' );
 		}
 
@@ -1377,9 +1377,9 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 	 *
 	 * @global bool $is_IIS
 	 *
-	 * @param string $location      The path or URL to redirect to.
-	 * @param int    $status        Optional. HTTP response status code to use. Default '302' (Moved Temporarily).
-	 * @param string $x_redirect_by Optional. The application doing the redirect. Default 'WordPress'.
+	 * @param string       $location      The path or URL to redirect to.
+	 * @param int          $status        Optional. HTTP response status code to use. Default '302' (Moved Temporarily).
+	 * @param string|false $x_redirect_by Optional. The application doing the redirect or false to omit. Default 'WordPress'.
 	 * @return bool False if the redirect was canceled, true otherwise.
 	 */
 	function wp_redirect( $location, $status = 302, $x_redirect_by = 'WordPress' ) {
@@ -1426,9 +1426,9 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 		 *
 		 * @since 5.1.0
 		 *
-		 * @param string $x_redirect_by The application doing the redirect.
-		 * @param int    $status        Status code to use.
-		 * @param string $location      The path to redirect to.
+		 * @param string|false $x_redirect_by The application doing the redirect or false to omit the header.
+		 * @param int          $status        Status code to use.
+		 * @param string       $location      The path to redirect to.
 		 */
 		$x_redirect_by = apply_filters( 'x_redirect_by', $x_redirect_by, $status, $location );
 		if ( is_string( $x_redirect_by ) ) {
@@ -1520,9 +1520,9 @@ if ( ! function_exists( 'wp_safe_redirect' ) ) :
 	 * @since 2.3.0
 	 * @since 5.1.0 The return value from wp_redirect() is now passed on, and the `$x_redirect_by` parameter was added.
 	 *
-	 * @param string $location      The path or URL to redirect to.
-	 * @param int    $status        Optional. HTTP response status code to use. Default '302' (Moved Temporarily).
-	 * @param string $x_redirect_by Optional. The application doing the redirect. Default 'WordPress'.
+	 * @param string       $location      The path or URL to redirect to.
+	 * @param int          $status        Optional. HTTP response status code to use. Default '302' (Moved Temporarily).
+	 * @param string|false $x_redirect_by Optional. The application doing the redirect or false to omit. Default 'WordPress'.
 	 * @return bool False if the redirect was canceled, true otherwise.
 	 */
 	function wp_safe_redirect( $location, $status = 302, $x_redirect_by = 'WordPress' ) {
@@ -1698,12 +1698,12 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		$notify_author = apply_filters( 'comment_notification_notify_author', false, $comment->comment_ID );
 
 		// The comment was left by the author.
-		if ( $author && ! $notify_author && $comment->user_id == $post->post_author ) {
+		if ( $author && ! $notify_author && (int) $comment->user_id === (int) $post->post_author ) {
 			unset( $emails[ $author->user_email ] );
 		}
 
 		// The author moderated a comment on their own post.
-		if ( $author && ! $notify_author && get_current_user_id() == $post->post_author ) {
+		if ( $author && ! $notify_author && get_current_user_id() === (int) $post->post_author ) {
 			unset( $emails[ $author->user_email ] );
 		}
 
@@ -2224,7 +2224,15 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		/* translators: %s: User login. */
 		$message  = sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
 		$message .= __( 'To set your password, visit the following address:' ) . "\r\n\r\n";
-		$message .= network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user->user_login ), 'login' ) . "\r\n\r\n";
+
+		/*
+		 * Since some user login names end in a period, this could produce ambiguous URLs that
+		 * end in a period. To avoid the ambiguity, ensure that the login is not the last query
+		 * arg in the URL. If moving it to the end, a trailing period will need to be escaped.
+		 *
+		 * @see https://core.trac.wordpress.org/tickets/42957
+		 */
+		$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user->user_login ) . "&key=$key&action=rp", 'login' ) . "\r\n\r\n";
 
 		$message .= wp_login_url() . "\r\n";
 
@@ -2460,6 +2468,41 @@ if ( ! function_exists( 'wp_salt' ) ) :
 			}
 		}
 
+		/*
+		 * Determine which options to prime.
+		 *
+		 * If the salt keys are undefined, use a duplicate value or the
+		 * default `put your unique phrase here` value the salt will be
+		 * generated via `wp_generate_password()` and stored as a site
+		 * option. These options will be primed to avoid repeated
+		 * database requests for undefined salts.
+		 */
+		$options_to_prime = array();
+		foreach ( array( 'auth', 'secure_auth', 'logged_in', 'nonce' ) as $key ) {
+			foreach ( array( 'key', 'salt' ) as $second ) {
+				$const = strtoupper( "{$key}_{$second}" );
+				if ( ! defined( $const ) || true === $duplicated_keys[ constant( $const ) ] ) {
+					$options_to_prime[] = "{$key}_{$second}";
+				}
+			}
+		}
+
+		if ( ! empty( $options_to_prime ) ) {
+			/*
+			 * Also prime `secret_key` used for undefined salting schemes.
+			 *
+			 * If the scheme is unknown, the default value for `secret_key` will be
+			 * used too for the salt. This should rarely happen, so the option is only
+			 * primed if other salts are undefined.
+			 *
+			 * At this point of execution it is known that a database call will be made
+			 * to prime salts, so the `secret_key` option can be primed regardless of the
+			 * constants status.
+			 */
+			$options_to_prime[] = 'secret_key';
+			wp_prime_site_option_caches( $options_to_prime );
+		}
+
 		$values = array(
 			'key'  => '',
 			'salt' => '',
@@ -2521,10 +2564,10 @@ endif;
 
 if ( ! function_exists( 'wp_hash_password' ) ) :
 	/**
-	 * Creates a hash (encrypt) of a plain text password.
+	 * Creates a hash of a plain text password.
 	 *
 	 * For integration with other applications, this function can be overwritten to
-	 * instead use the other package password checking algorithm.
+	 * instead use the other package password hashing algorithm.
 	 *
 	 * @since 2.5.0
 	 *
@@ -2548,7 +2591,7 @@ endif;
 
 if ( ! function_exists( 'wp_check_password' ) ) :
 	/**
-	 * Checks the plaintext password against the encrypted Password.
+	 * Checks a plaintext password against a hashed password.
 	 *
 	 * Maintains compatibility between old version and the new cookie authentication
 	 * protocol using PHPass library. The $hash parameter is the encrypted password
@@ -2556,7 +2599,7 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	 * against the already encrypted password to see if they match.
 	 *
 	 * For integration with other applications, this function can be overwritten to
-	 * instead use the other package password checking algorithm.
+	 * instead use the other package password hashing algorithm.
 	 *
 	 * @since 2.5.0
 	 *
@@ -2749,7 +2792,7 @@ endif;
 
 if ( ! function_exists( 'wp_set_password' ) ) :
 	/**
-	 * Updates the user's password with a new encrypted one.
+	 * Updates the user's password with a new hashed one.
 	 *
 	 * For integration with other applications, this function can be overwritten to
 	 * instead use the other package password checking algorithm.
@@ -2768,6 +2811,8 @@ if ( ! function_exists( 'wp_set_password' ) ) :
 	function wp_set_password( $password, $user_id ) {
 		global $wpdb;
 
+		$old_user_data = get_userdata( $user_id );
+
 		$hash = wp_hash_password( $password );
 		$wpdb->update(
 			$wpdb->users,
@@ -2784,11 +2829,13 @@ if ( ! function_exists( 'wp_set_password' ) ) :
 		 * Fires after the user password is set.
 		 *
 		 * @since 6.2.0
+		 * @since 6.7.0 The `$old_user_data` parameter was added.
 		 *
-		 * @param string $password The plaintext password just set.
-		 * @param int    $user_id  The ID of the user whose password was just set.
+		 * @param string  $password      The plaintext password just set.
+		 * @param int     $user_id       The ID of the user whose password was just set.
+		 * @param WP_User $old_user_data Object containing user's data prior to update.
 		 */
-		do_action( 'wp_set_password', $password, $user_id );
+		do_action( 'wp_set_password', $password, $user_id, $old_user_data );
 	}
 endif;
 

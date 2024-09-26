@@ -6,7 +6,7 @@
  *
  * @covers ::wp_cache_set_last_changed
  */
-class Tests_functions_wpCacheSetLastChanged extends WP_UnitTestCase {
+class Tests_Functions_wpCacheSetLastChanged extends WP_UnitTestCase {
 
 	/**
 	 * Check the cache key last_changed is set for the specified group.

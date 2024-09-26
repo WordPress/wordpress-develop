@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * A simple manually-instrumented profiler for WordPress.
  *
  * This records basic execution time, and a summary of the actions and SQL queries run within each block.
@@ -15,7 +15,6 @@
  *
  * Multiple profile blocks are permitted, and they may be nested.
  */
-
 class WPProfiler {
 	public $stack;
 	public $profile;

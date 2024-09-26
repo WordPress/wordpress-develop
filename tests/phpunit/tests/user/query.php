@@ -2378,4 +2378,17 @@ class Tests_User_Query extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 56841
+	 */
+	public function test_query_does_not_have_leading_whitespace() {
+		$q = new WP_User_Query(
+			array(
+				'number' => 2,
+			)
+		);
+
+		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
+	}
 }

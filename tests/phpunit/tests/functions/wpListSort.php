@@ -20,6 +20,11 @@ class Tests_Functions_wpListSort extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_list_sort( $input_list, $orderby, $order ) );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_wp_list_sort() {
 		return array(
 			'single orderby ascending'        => array(
@@ -345,6 +350,11 @@ class Tests_Functions_wpListSort extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_list_sort( $input_list, $orderby, $order, true ) );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_wp_list_sort_preserve_keys() {
 		return array(
 			'single orderby ascending'        => array(

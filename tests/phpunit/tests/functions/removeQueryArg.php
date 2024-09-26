@@ -17,6 +17,11 @@ class Tests_Functions_RemoveQueryArg extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_remove_query_arg() {
 		return array(
 			array( 'foo', 'edit.php?foo=test1&baz=test1', 'edit.php?baz=test1' ),

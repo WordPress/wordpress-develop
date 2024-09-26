@@ -29,6 +29,7 @@ const testConfig = readFileSync( 'wp-tests-config-sample.php', 'utf8' )
 	.replace( 'yourusernamehere', 'root' )
 	.replace( 'yourpasswordhere', 'password' )
 	.replace( 'localhost', 'mysql' )
+	.replace( "'WP_TESTS_DOMAIN', 'example.org'", `'WP_TESTS_DOMAIN', '${process.env.LOCAL_WP_TESTS_DOMAIN}'` )
 	.concat( "\ndefine( 'FS_METHOD', 'direct' );\n" );
 
 writeFileSync( 'wp-tests-config.php', testConfig );
@@ -37,7 +38,8 @@ writeFileSync( 'wp-tests-config.php', testConfig );
 wait_on( { resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`] } )
 	.then( () => {
 		wp_cli( 'db reset --yes' );
-		wp_cli( `core install --title="WordPress Develop" --admin_user=admin --admin_password=password --admin_email=test@test.com --skip-email --url=http://localhost:${process.env.LOCAL_PORT}` );
+		const installCommand = process.env.LOCAL_MULTISITE === 'true'  ? 'multisite-install' : 'install';
+		wp_cli( `core ${ installCommand } --title="WordPress Develop" --admin_user=admin --admin_password=password --admin_email=test@test.com --skip-email --url=http://localhost:${process.env.LOCAL_PORT}` );
 	} );
 
 /**
@@ -46,7 +48,7 @@ wait_on( { resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`] } )
  * @param {string} cmd The WP-CLI command to run.
  */
 function wp_cli( cmd ) {
-	execSync( `docker-compose run --rm cli ${cmd}`, { stdio: 'inherit' } );
+	execSync( `docker compose run --rm cli ${cmd}`, { stdio: 'inherit' } );
 }
 
 /**
@@ -55,6 +57,6 @@ function wp_cli( cmd ) {
 function install_wp_importer() {
 	const testPluginDirectory = 'tests/phpunit/data/plugins/wordpress-importer';
 
-	execSync( `docker-compose exec -T php rm -rf ${testPluginDirectory}`, { stdio: 'inherit' } );
-	execSync( `docker-compose exec -T php git clone https://github.com/WordPress/wordpress-importer.git ${testPluginDirectory} --depth=1`, { stdio: 'inherit' } );
+	execSync( `docker compose exec -T php rm -rf ${testPluginDirectory}`, { stdio: 'inherit' } );
+	execSync( `docker compose exec -T php git clone https://github.com/WordPress/wordpress-importer.git ${testPluginDirectory} --depth=1`, { stdio: 'inherit' } );
 }

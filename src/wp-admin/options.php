@@ -23,7 +23,8 @@ $title       = __( 'Settings' );
 $this_file   = 'options.php';
 $parent_file = 'options-general.php';
 
-wp_reset_vars( array( 'action', 'option_page' ) );
+$action      = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
+$option_page = ! empty( $_REQUEST['option_page'] ) ? sanitize_text_field( $_REQUEST['option_page'] ) : '';
 
 $capability = 'manage_options';
 
@@ -90,6 +91,7 @@ $allowed_options            = array(
 	'general'    => array(
 		'blogname',
 		'blogdescription',
+		'site_icon',
 		'gmt_offset',
 		'date_format',
 		'time_format',
@@ -156,9 +158,21 @@ $allowed_options['misc']    = array();
 $allowed_options['options'] = array();
 $allowed_options['privacy'] = array();
 
-$mail_options = array( 'mailserver_url', 'mailserver_port', 'mailserver_login', 'mailserver_pass' );
+/**
+ * Filters whether the post-by-email functionality is enabled.
+ *
+ * @since 3.0.0
+ *
+ * @param bool $enabled Whether post-by-email configuration is enabled. Default true.
+ */
+if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
+	$allowed_options['writing'][] = 'mailserver_url';
+	$allowed_options['writing'][] = 'mailserver_port';
+	$allowed_options['writing'][] = 'mailserver_login';
+	$allowed_options['writing'][] = 'mailserver_pass';
+}
 
-if ( ! in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
+if ( ! is_utf8_charset() ) {
 	$allowed_options['reading'][] = 'blog_charset';
 }
 
@@ -178,8 +192,9 @@ if ( ! is_multisite() ) {
 	$allowed_options['general'][] = 'users_can_register';
 	$allowed_options['general'][] = 'default_role';
 
-	$allowed_options['writing']   = array_merge( $allowed_options['writing'], $mail_options );
-	$allowed_options['writing'][] = 'ping_sites';
+	if ( '1' === get_option( 'blog_public' ) ) {
+		$allowed_options['writing'][] = 'ping_sites';
+	}
 
 	$allowed_options['media'][] = 'uploads_use_yearmonth_folders';
 
@@ -193,17 +208,6 @@ if ( ! is_multisite() ) {
 	) {
 		$allowed_options['media'][] = 'upload_path';
 		$allowed_options['media'][] = 'upload_url_path';
-	}
-} else {
-	/**
-	 * Filters whether the post-by-email functionality is enabled.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param bool $enabled Whether post-by-email configuration is enabled. Default true.
-	 */
-	if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
-		$allowed_options['writing'] = array_merge( $allowed_options['writing'], $mail_options );
 	}
 }
 
@@ -320,9 +324,10 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 					'options.php',
 					'2.7.0',
 					sprintf(
-						/* translators: %s: The option/setting. */
-						__( 'The %s setting is unregistered. Unregistered settings are deprecated. See https://developer.wordpress.org/plugins/settings/settings-api/' ),
-						'<code>' . esc_html( $option ) . '</code>'
+						/* translators: 1: The option/setting, 2: Documentation URL. */
+						__( 'The %1$s setting is unregistered. Unregistered settings are deprecated. See <a href="%2$s">documentation on the Settings API</a>.' ),
+						'<code>' . esc_html( $option ) . '</code>',
+						__( 'https://developer.wordpress.org/plugins/settings/settings-api/' )
 					)
 				);
 			}
