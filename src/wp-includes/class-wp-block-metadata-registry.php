@@ -88,7 +88,7 @@ class WP_Block_Metadata_Registry {
 			if ( empty( $plugin_name ) || $plugin_name === $relative_path ) {
 				_doing_it_wrong(
 					__METHOD__,
-					__( 'Block metadata collections can only be registered for a specific plugin. The provided path must be within a plugin directory.' ),
+					__( 'Block metadata collections can only be registered for a specific plugin. The provided path is neither a core path nor a valid plugin path.' ),
 					'6.7.0'
 				);
 				return false;
