@@ -19,19 +19,19 @@ class Tests_Blocks_RegisterBlockTypeFromMetadataWithRegistry extends WP_UnitTest
 	}
 
 	public function test_register_block_type_from_metadata_with_registry() {
-		$plugin_path = WP_PLUGIN_DIR . '/test-plugin';
+		$plugin_path     = WP_PLUGIN_DIR . '/test-plugin';
 		$block_json_path = $plugin_path . '/blocks/test-block/block.json';
 
 		// Create a manifest file with metadata for our test block
 		$manifest_data = array(
 			'test-block' => array(
-				'name' => 'test-suite/test-block',
-				'title' => 'Custom Test Block',
-				'category' => 'widgets',
-				'icon' => 'smiley',
+				'name'        => 'test-suite/test-block',
+				'title'       => 'Custom Test Block',
+				'category'    => 'widgets',
+				'icon'        => 'smiley',
 				'description' => 'A test block registered via WP_Block_Metadata_Registry',
-				'supports' => array( 'html' => false ),
-				'textdomain' => 'test-plugin',
+				'supports'    => array( 'html' => false ),
+				'textdomain'  => 'test-plugin',
 			),
 		);
 		file_put_contents( $this->temp_manifest_file, '<?php return ' . var_export( $manifest_data, true ) . ';' );
@@ -53,18 +53,18 @@ class Tests_Blocks_RegisterBlockTypeFromMetadataWithRegistry extends WP_UnitTest
 	}
 
 	public function test_register_block_type_from_metadata_with_registry_and_override() {
-		$plugin_path = WP_PLUGIN_DIR . '/test-plugin-2';
+		$plugin_path     = WP_PLUGIN_DIR . '/test-plugin-2';
 		$block_json_path = $plugin_path . '/blocks/test-block/block.json';
 
 		// Create a manifest file with metadata for our test block
 		$manifest_data = array(
 			'test-block' => array(
-				'name' => 'test-suite/test-block',
-				'title' => 'Custom Test Block',
-				'category' => 'widgets',
-				'icon' => 'smiley',
+				'name'        => 'test-suite/test-block',
+				'title'       => 'Custom Test Block',
+				'category'    => 'widgets',
+				'icon'        => 'smiley',
 				'description' => 'A test block registered via WP_Block_Metadata_Registry',
-				'supports' => array( 'html' => false ),
+				'supports'    => array( 'html' => false ),
 			),
 		);
 		file_put_contents( $this->temp_manifest_file, '<?php return ' . var_export( $manifest_data, true ) . ';' );
@@ -76,7 +76,7 @@ class Tests_Blocks_RegisterBlockTypeFromMetadataWithRegistry extends WP_UnitTest
 		$registered_block = register_block_type_from_metadata(
 			$block_json_path,
 			array(
-				'title' => 'Overridden Title',
+				'title'    => 'Overridden Title',
 				'supports' => array( 'html' => true ),
 			)
 		);
@@ -92,7 +92,7 @@ class Tests_Blocks_RegisterBlockTypeFromMetadataWithRegistry extends WP_UnitTest
 	}
 
 	private function unregister_test_blocks() {
-		$registry = WP_Block_Type_Registry::get_instance();
+		$registry   = WP_Block_Type_Registry::get_instance();
 		$block_name = 'test-suite/test-block';
 
 		if ( $registry->is_registered( $block_name ) ) {
