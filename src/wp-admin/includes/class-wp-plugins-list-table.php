@@ -1161,8 +1161,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				case 'description':
 					$classes = 'column-description desc';
 
-					echo "<td class='$classes{$extra_classes}'>
-						<div class='plugin-description'>$description</div>
+					echo "<td class='$classes{$extra_classes}'>";
+					if ( WP_Plugin_Dependencies::has_dependencies( $plugin_file ) ) {
+						$this->add_dependencies_warning( $plugin_file );
+					}
+					echo "<div class='plugin-description'>$description</div>
 						<div class='$class second plugin-version-author-uri'>";
 
 					$plugin_meta = array();
@@ -1554,6 +1557,50 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Add the warning message when dependencies are not met.
+	 *
+	 * @param string $dependent The dependent plugin's filepath, relative to the plugins directory.
+	 *
+	 * @return void
+	 */
+	protected function add_dependencies_warning( $dependent ) {
+		$dependency_names = WP_Plugin_Dependencies::get_dependency_names( $dependent );
+
+		if ( array() === $dependency_names ) {
+			return;
+		}
+
+		$links = array();
+		foreach ( $dependency_names as $slug => $name ) {
+			$links[] = $this->get_dependency_view_details_link( $name, $slug );
+		}
+
+		$is_active = is_multisite() ? is_plugin_active_for_network( $dependent ) : is_plugin_active( $dependent );
+
+		if ( ! WP_Plugin_Dependencies::has_unmet_dependencies( $dependent ) ) {
+			return;
+		}
+
+		if ( $is_active ) {
+			$error_message = __( 'This plugin is active but may not function correctly because required plugins are missing or inactive.' );
+		} else {
+			$error_message = __( 'This plugin cannot be activated because required plugins are missing or inactive.' );
+		}
+		$notice = wp_get_admin_notice(
+			$error_message,
+			array(
+				'type'               => 'error',
+				'additional_classes' => array( 'inline', 'notice-alt' ),
+			)
+		);
+
+		printf(
+			'<div class="requires">%1$s</div>',
+			$notice
+		);
+	}
+
+	/**
 	 * Prints a list of other plugins that the plugin depends on.
 	 *
 	 * @since 6.5.0
@@ -1580,27 +1627,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			implode( $comma, $links )
 		);
 
-		$notice        = '';
-		$error_message = '';
-		if ( WP_Plugin_Dependencies::has_unmet_dependencies( $dependent ) ) {
-			if ( $is_active ) {
-				$error_message = __( 'This plugin is active but may not function correctly because required plugins are missing or inactive.' );
-			} else {
-				$error_message = __( 'This plugin cannot be activated because required plugins are missing or inactive.' );
-			}
-			$notice = wp_get_admin_notice(
-				$error_message,
-				array(
-					'type'               => 'error',
-					'additional_classes' => array( 'inline', 'notice-alt' ),
-				)
-			);
-		}
-
 		printf(
-			'<div class="requires"><p>%1$s</p>%2$s</div>',
-			$requires,
-			$notice
+			'<div class="requires"><p>%1$s</p></div>',
+			$requires
 		);
 	}
 
