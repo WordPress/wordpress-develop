@@ -802,13 +802,16 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			$caps = map_meta_cap( 'edit_user', $user_id, $args[0] );
 			break;
 		case 'edit_block_binding':
+			$block_editor_context = $args[0];
+			if ( isset( $block_editor_context ) && isset( $block_editor_context->post ) ) {
+				$object_id = $block_editor_context->post->ID;
+			}
 			/*
 			 * If the post ID is null, check if the context is the site editor.
 			 * Fall back to the edit_theme_options in that case.
 			 */
-			if ( ! isset( $args[0] ) ) {
-				$screen = get_current_screen();
-				if ( ! isset( $screen->id ) || 'site-editor' !== $screen->id ) {
+			if ( ! isset( $object_id ) ) {
+				if ( ! isset( $block_editor_context->name ) || 'core/edit-site' !== $block_editor_context->name ) {
 					$caps[] = 'do_not_allow';
 					break;
 				}
@@ -816,8 +819,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
-			$object_id      = (int) $args[0];
-			$object_subtype = get_object_subtype( 'post', $object_id );
+			$object_subtype = get_object_subtype( 'post', (int) $object_id );
 			if ( empty( $object_subtype ) ) {
 				$caps[] = 'do_not_allow';
 				break;
