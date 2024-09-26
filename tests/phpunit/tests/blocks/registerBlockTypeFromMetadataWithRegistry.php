@@ -32,7 +32,7 @@ class Tests_Blocks_RegisterBlockTypeFromMetadataWithRegistry extends WP_UnitTest
 				'description' => 'A test block registered via WP_Block_Metadata_Registry',
 				'supports' => array( 'html' => false ),
 				'textdomain' => 'test-plugin',
-			)
+			),
 		);
 		file_put_contents( $this->temp_manifest_file, '<?php return ' . var_export( $manifest_data, true ) . ';' );
 
@@ -65,7 +65,7 @@ class Tests_Blocks_RegisterBlockTypeFromMetadataWithRegistry extends WP_UnitTest
 				'icon' => 'smiley',
 				'description' => 'A test block registered via WP_Block_Metadata_Registry',
 				'supports' => array( 'html' => false ),
-			)
+			),
 		);
 		file_put_contents( $this->temp_manifest_file, '<?php return ' . var_export( $manifest_data, true ) . ';' );
 
