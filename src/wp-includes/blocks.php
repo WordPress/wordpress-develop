@@ -380,9 +380,9 @@ function get_block_metadata_i18n_schema() {
  *
  * This function allows core and third-party plugins to register their block metadata
  * collections in a centralized location. Registering collections can improve performance
- * by avoiding multiple reads from the filesystem.
+ * by avoiding multiple reads from the filesystem and parsing JSON.
  *
- * @since 6.X.0
+ * @since 6.7.0
  *
  * @param string $path     The base path in which block files for the collection reside.
  * @param string $manifest The path to the manifest file for the collection.

@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 6.X.0
+ * @since 6.7.0
  */
 
 /**
@@ -15,7 +15,7 @@
  * reduces the need to read and decode multiple `block.json` files, enhancing
  * performance through opcode caching.
  *
- * @since 6.X.0
+ * @since 6.7.0
  */
 class WP_Block_Metadata_Registry {
 
@@ -24,7 +24,7 @@ class WP_Block_Metadata_Registry {
 	 *
 	 * Each entry maps a base path to its corresponding metadata and callback.
 	 *
-	 * @since 6.X.0
+	 * @since 6.7.0
 	 * @var array<string, array<string, mixed>>
 	 */
 	private static $collections = array();
@@ -32,7 +32,7 @@ class WP_Block_Metadata_Registry {
 	/**
 	 * Caches the last matched collection path for performance optimization.
 	 *
-	 * @since 6.X.0
+	 * @since 6.7.0
 	 * @var string|null
 	 */
 	private static $last_matched_collection = null;
@@ -45,9 +45,8 @@ class WP_Block_Metadata_Registry {
 	 *
 	 * The manifest file should be a PHP file that returns an associative array, where
 	 * the keys are the block identifiers and the values are the corresponding block
-	 * metadata arrays. The block identifiers are determined by the default identifier
-	 * callback, which uses the parent directory name for 'block.json' files and the
-	 * directory name itself for directories.
+	 * metadata arrays. The block identifiers must match the parent directory name for
+	 * the respective `block.json` file.
 	 *
 	 * Example manifest file structure:
 	 * ```
@@ -68,14 +67,11 @@ class WP_Block_Metadata_Registry {
 	 * );
 	 * ```
 	 *
-	 * For more information on how the block identifiers are determined, see the
-	 * `default_identifier_callback()` method.
-	 *
-	 * @since 6.X.0
+	 * @since 6.7.0
 	 *
 	 * @param string $path     The absolute base path for the collection ( e.g., WP_PLUGIN_DIR . '/my-plugin/blocks/' ).
 	 * @param string $manifest The absolute path to the manifest file containing the metadata collection.
-	 * @return bool            True if the collection was registered successfully, false otherwise.
+	 * @return bool True if the collection was registered successfully, false otherwise.
 	 */
 	public static function register_collection( $path, $manifest ) {
 		$path = wp_normalize_path( rtrim( $path, '/' ) );
@@ -93,7 +89,7 @@ class WP_Block_Metadata_Registry {
 				_doing_it_wrong(
 					__METHOD__,
 					__( 'Block metadata collections can only be registered for a specific plugin. The provided path must be within a plugin directory.' ),
-					'6.X.0'
+					'6.7.0'
 				);
 				return false;
 			}
@@ -101,7 +97,7 @@ class WP_Block_Metadata_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Block metadata collections can only be registered for a specific plugin. The provided path is neither a core path nor a valid plugin path.' ),
-				'6.X.0'
+				'6.7.0'
 			);
 			return false;
 		}
@@ -110,7 +106,7 @@ class WP_Block_Metadata_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'The specified manifest file does not exist.' ),
-				'6.X.0'
+				'6.7.0'
 			);
 			return false;
 		}
@@ -129,10 +125,10 @@ class WP_Block_Metadata_Registry {
 	 * This method uses the registered collections to efficiently lookup
 	 * block metadata without reading individual `block.json` files.
 	 *
-	 * @since 6.X.0
+	 * @since 6.7.0
 	 *
 	 * @param string $file_or_folder The path to the file or folder containing the block.
-	 * @return array|null            The block metadata for the block, or null if not found.
+	 * @return array|null The block metadata for the block, or null if not found.
 	 */
 	public static function get_metadata( $file_or_folder ) {
 		$path = self::find_collection_path( $file_or_folder );
@@ -156,7 +152,7 @@ class WP_Block_Metadata_Registry {
 	/**
 	 * Finds the collection path for a given file or folder.
 	 *
-	 * @since 6.X.0
+	 * @since 6.7.0
 	 *
 	 * @param string $file_or_folder The path to the file or folder.
 	 * @return string|null The collection path if found, or null if not found.
@@ -185,10 +181,10 @@ class WP_Block_Metadata_Registry {
 	/**
 	 * Checks if metadata exists for a given block name in a specific collection.
 	 *
-	 * @since 6.X.0
+	 * @since 6.7.0
 	 *
 	 * @param string $file_or_folder The path to the file or folder containing the block metadata.
-	 * @return bool                  True if metadata exists for the block, false otherwise.
+	 * @return bool True if metadata exists for the block, false otherwise.
 	 */
 	public static function has_metadata( $file_or_folder ) {
 		return null !== self::get_metadata( $file_or_folder );
@@ -210,7 +206,7 @@ class WP_Block_Metadata_Registry {
 	 * This default behavior matches the standard WordPress block structure.
 	 * Custom callbacks can be provided for non-standard structures.
 	 *
-	 * @since 6.X.0
+	 * @since 6.7.0
 	 *
 	 * @param string $path The file or folder path to determine the block identifier from.
 	 * @return string The block identifier.
