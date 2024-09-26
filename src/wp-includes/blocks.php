@@ -430,10 +430,10 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	if ( $registry_metadata ) {
 		$metadata             = $registry_metadata;
 		$metadata_file_exists = file_exists( $metadata_file );
-	} else if ( file_exists( $metadata_file ) ) {
+	} elseif ( file_exists( $metadata_file ) ) {
 		$metadata             = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 		$metadata_file_exists = true;
-	} else if ( ! empty( $args['name'] ) ) {
+	} elseif ( ! empty( $args['name'] ) ) {
 		$metadata = array();
 	} else {
 		return false;
