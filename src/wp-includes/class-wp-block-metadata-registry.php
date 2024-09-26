@@ -211,7 +211,7 @@ class WP_Block_Metadata_Registry {
 	 * @param string $path The file or folder path to determine the block identifier from.
 	 * @return string The block identifier.
 	 */
-	public static function default_identifier_callback( $path ) {
+	private static function default_identifier_callback( $path ) {
 		if ( substr( $path, -10 ) === 'block.json' ) {
 			// If it's block.json, use the parent directory name.
 			return basename( dirname( $path ) );
