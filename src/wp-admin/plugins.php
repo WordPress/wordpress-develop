@@ -610,7 +610,7 @@ if ( current_user_can( 'install_plugins' ) ) {
 			'content' =>
 				'<p>' . __( 'Plugin Dependencies aims to make the process of installing and activating addons (dependents) and the plugins they rely on (dependencies) consistent and easy.' ) . '</p>' .
 				'<p>' . __( 'If a required plugin is deleted, a notice will be displayed on the Plugin administration screen informing the user that there is a missing dependency(s) to install and/or activate. Additionally, each plugin whose dependencies are not met will have an error notice on their plugin row.' ) . '</p>' .
-				'<p>' . __( 'If a dependent plugin is missing some dependencies, its activation button is disabled until the related dependencies are activated.' ) . '</p>',
+				'<p>' . __( 'If a parent plugin is missing a dependency(s), its activation button will be disabled until the required dependency(s) are activated.' ) . '</p>',
 		)
 	);
 }
