@@ -196,6 +196,7 @@ class WP_Block_Metadata_Registry {
 	 * This function extracts the block identifier from the path:
 	 * - For 'block.json' files, it uses the parent directory name.
 	 * - For directories, it uses the directory name itself.
+	 * - For empty paths, it returns an empty string.
 	 *
 	 * For example:
 	 * - Path: '/wp-content/plugins/my-plugin/blocks/example/block.json'
@@ -204,20 +205,24 @@ class WP_Block_Metadata_Registry {
 	 *   Identifier: 'another-block'
 	 *
 	 * This default behavior matches the standard WordPress block structure.
-	 * Custom callbacks can be provided for non-standard structures.
 	 *
 	 * @since 6.7.0
 	 *
 	 * @param string $path The file or folder path to determine the block identifier from.
-	 * @return string The block identifier.
+	 * @return string The block identifier, or an empty string if the path is empty.
 	 */
 	private static function default_identifier_callback( $path ) {
-		if ( substr( $path, -10 ) === 'block.json' ) {
-			// If it's block.json, use the parent directory name.
-			return basename( dirname( $path ) );
-		} else {
-			// Otherwise, assume it's a directory and use its name.
-			return basename( $path );
+		// Ensure $path is not empty to prevent unexpected behavior.
+		if ( empty( $path ) ) {
+			return '';
 		}
+
+		if ( str_ends_with( $path, 'block.json' ) ) {
+			// Return the parent directory name if it's a block.json file.
+			return basename( dirname( $path ) );
+		}
+
+		// Otherwise, assume it's a directory and return its name.
+		return basename( $path );
 	}
 }
