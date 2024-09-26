@@ -13,7 +13,7 @@
  * @since 2.8.0
  */
 #[AllowDynamicProperties]
-class WP_Feed_Cache_Transient {
+class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 
 	/**
 	 * Holds the transient name.
