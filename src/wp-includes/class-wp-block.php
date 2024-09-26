@@ -237,6 +237,7 @@ class WP_Block {
 	 *
 	 * @since 6.5.0
 	 * @since 6.6.0 Handle the `__default` attribute for pattern overrides.
+	 * @since 6.7.0 Add filter for supported block attributes for block bindings.
 	 *
 	 * @return array The computed block attributes for the provided block bindings.
 	 */
@@ -248,6 +249,20 @@ class WP_Block {
 			'core/heading'   => array( 'content' ),
 			'core/image'     => array( 'id', 'url', 'title', 'alt' ),
 			'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
+		);
+
+		/**
+		 * Filters the supported block attributes for block bindings.
+		 *
+		 * @since 6.7.0
+		 *
+		 * @param array $supported_block_attributes The default supported block attributes.
+		 *
+		 * @return array The updated supported block attributes.
+		 */
+		$supported_block_attributes = apply_filters(
+			'block_bindings_supported_block_attributes',
+			$supported_block_attributes
 		);
 
 		// If the block doesn't have the bindings property, isn't one of the supported
