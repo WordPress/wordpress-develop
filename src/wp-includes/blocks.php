@@ -423,19 +423,18 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
 
-	$metadata             = null;
-	$metadata_file_exists = false;
+	$metadata_file_exists = file_exists( $metadata_file );
 	$registry_metadata    = WP_Block_Metadata_Registry::get_metadata( $file_or_folder );
 
 	if ( $registry_metadata ) {
-		$metadata             = $registry_metadata;
-		$metadata_file_exists = file_exists( $metadata_file );
-	} elseif ( file_exists( $metadata_file ) ) {
-		$metadata             = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
-		$metadata_file_exists = true;
-	} elseif ( ! empty( $args['name'] ) ) {
-		$metadata = array();
+		$metadata = $registry_metadata;
+	} elseif ( $metadata_file_exists ) {
+		$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 	} else {
+		$metadata = array();
+	}
+
+	if ( ! is_array( $metadata ) || ( empty( $metadata['name'] ) && empty( $args['name'] ) ) ) {
 		return false;
 	}
 
