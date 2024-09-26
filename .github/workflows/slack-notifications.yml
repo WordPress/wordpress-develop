@@ -26,6 +26,10 @@ on:
         description: 'The Slack webhook URL for a failed build.'
         required: true
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 env:
   CURRENT_BRANCH: ${{ github.ref_name }}
 
@@ -44,6 +48,9 @@ jobs:
   prepare:
     name: Prepare notifications
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
     timeout-minutes: 5
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
     outputs:
@@ -53,7 +60,7 @@ jobs:
     steps:
       - name: Determine the status of the previous attempt
         id: previous-attempt-result
-        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           retries: 2
           retry-exempt-status-codes: 418
@@ -64,8 +71,14 @@ jobs:
               run_id: ${{ github.run_id }},
             });
 
-            // When a workflow has been restarted to fix a failure, check the previous run attempt.
-            if ( workflow_run.data.run_attempt > 1 ) {
+            if ( '${{ inputs.calling_status }}' == 'failure' && workflow_run.data.run_attempt == 1 ) {
+              return 'first-failure';
+            }
+
+            // When a workflow has been restarted, check the previous run attempt. Because workflows are automatically
+            // restarted once and a failure on the first run is not reported, failures on the second run should not be
+            // considered.
+            if ( workflow_run.data.run_attempt > 2 ) {
               const previous_run = await github.rest.actions.getWorkflowRunAttempt({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -118,7 +131,7 @@ jobs:
 
       - name: Get the commit message
         id: current-commit-message
-        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
         with:
           retries: 2
@@ -150,11 +163,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [ prepare ]
-    if: ${{ inputs.calling_status == 'failure' || failure() }}
+    if: ${{ needs.prepare.outputs.previous_conclusion != 'first-failure' && inputs.calling_status == 'failure' || failure() }}
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
+        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -170,7 +183,7 @@ jobs:
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
+        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -186,7 +199,7 @@ jobs:
 
     steps:
       - name: Post success notifications to Slack
-        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
+        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -202,7 +215,7 @@ jobs:
 
     steps:
       - name: Post cancelled notifications to Slack
-        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
+        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:

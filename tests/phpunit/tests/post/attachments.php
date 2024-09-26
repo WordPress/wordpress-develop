@@ -519,4 +519,15 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'images/media/video.png', $icon );
 	}
+
+	/**
+	 * @ticket 60610
+	 */
+	public function test_wp_mime_type_icon_video_with_preferred_ext() {
+		$icon1 = wp_mime_type_icon( 'video/mp4', '.png' ); // Added `$preferred_ext` parameter.
+		$icon2 = wp_mime_type_icon( 'video/mp4', 'png' ); // Added `$preferred_ext` parameter without period.
+
+		$this->assertStringContainsString( 'images/media/video.png', $icon1, 'Mime type icon should be correctly returned with ".png" argument.' );
+		$this->assertStringContainsString( 'images/media/video.png', $icon2, 'Mime type icon should be correctly returned with "png" argument.' );
+	}
 }

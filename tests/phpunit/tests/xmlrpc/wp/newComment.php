@@ -270,7 +270,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @param string $post_key      Post identifier from the self::$posts array.
 	 * @param string $username      Username leaving comment.
-	 * @param bool   $expected      Expected result. True: successfull comment. False: Refused comment.
+	 * @param bool   $expected      Expected result. True: successful comment. False: Refused comment.
 	 * @param string $anon_callback Optional. Allow anonymous comment callback. Default __return_false.
 	 */
 	public function test_comments_observe_post_permissions( $post_key, $username, $expected, $anon_callback = '__return_false' ) {
@@ -304,7 +304,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 	 * @return array[] {
 	 *     @type string Post identifier from the self::$posts array.
 	 *     @type string Username leaving comment.
-	 *     @type bool   Expected result. True: successfull comment. False: Refused comment.
+	 *     @type bool   Expected result. True: successful comment. False: Refused comment.
 	 *     @type string Optional. Allow anonymous comment callback. Default __return_false.
 	 * }
 	 */

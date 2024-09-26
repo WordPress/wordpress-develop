@@ -111,6 +111,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'webp-lossless.webp',
 			'webp-lossy.webp',
 			'webp-transparent.webp',
+			'avif-animated.avif',
+			'avif-lossless.avif',
+			'avif-lossy.avif',
+			'avif-transparent.avif',
 		);
 
 		return $this->text_array_to_dataprovider( $files );
@@ -186,6 +190,17 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$files[] = 'webp-transparent.webp';
 		}
 
+		// Add AVIF images if the image editor supports them.
+		$file   = DIR_TESTDATA . '/images/avif-lossless.avif';
+		$editor = wp_get_image_editor( $file );
+
+		if ( ! is_wp_error( $editor ) && $editor->supports_mime_type( 'image/avif' ) ) {
+			$files[] = 'avif-animated.avif';
+			$files[] = 'avif-lossless.avif';
+			$files[] = 'avif-lossy.avif';
+			$files[] = 'avif-transparent.avif';
+		}
+
 		return $this->text_array_to_dataprovider( $files );
 	}
 
@@ -222,6 +237,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.jp2',
 			'test-image.psd',
 			'test-image-zip.tiff',
+			'test-image.heic',
 		);
 
 		return $this->text_array_to_dataprovider( $files );
@@ -348,6 +364,91 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		unlink( $file );
 
 		$this->assertTrue( $ret, 'Image failed to save.' );
+	}
+
+	/**
+	 * Tests that `wp_image_editor()` applies 'image_edit_thumbnails_separately' filters.
+	 *
+	 * @ticket 53161
+	 *
+	 * @covers ::wp_image_editor
+	 */
+	public function test_wp_image_editor_should_apply_image_edit_thumbnails_separately_filters() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$filename = DIR_TESTDATA . '/images/canola.jpg';
+		$contents = file_get_contents( $filename );
+		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
+		$id       = $this->_make_attachment( $upload );
+
+		$filter = new MockAction();
+		add_filter( 'image_edit_thumbnails_separately', array( &$filter, 'filter' ) );
+
+		ob_start();
+		wp_image_editor( $id );
+		ob_end_clean();
+
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * Tests that `wp_image_editor()` conditionally outputs markup for editing thumbnails separately
+	 * based on the result of applying 'image_edit_thumbnails_separately' filters.
+	 *
+	 * @ticket 53161
+	 *
+	 * @covers ::wp_image_editor
+	 *
+	 * @dataProvider data_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters
+	 *
+	 * @param string $callback The name of the callback for the 'image_edit_thumbnails_separately' hook.
+	 * @param bool   $expected Whether the markup should be output.
+	 */
+	public function test_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters( $callback, $expected ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$filename = DIR_TESTDATA . '/images/canola.jpg';
+		$contents = file_get_contents( $filename );
+		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
+		$id       = $this->_make_attachment( $upload );
+
+		add_filter( 'image_edit_thumbnails_separately', $callback );
+
+		ob_start();
+		wp_image_editor( $id );
+		$actual = ob_get_clean();
+
+		if ( $expected ) {
+			$this->assertStringContainsString(
+				'imgedit-applyto',
+				$actual,
+				'The markup should have been output.'
+			);
+		} else {
+			$this->assertStringNotContainsString(
+				'imgedit-applyto',
+				$actual,
+				'The markup should not have been output.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters() {
+		return array(
+			'true'  => array(
+				'callback' => '__return_true',
+				'expected' => true,
+			),
+			'false' => array(
+				'callback' => '__return_false',
+				'expected' => false,
+			),
+		);
 	}
 
 	/**
@@ -538,7 +639,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_crop_image_with_url() {
 		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
+			'https://s.w.org/screenshots/3.9/dashboard.png',
 			0,
 			0,
 			100,
@@ -546,7 +647,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100,
 			false,
-			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.jpg'
+			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
 		);
 
 		if ( is_wp_error( $file ) && $file->get_error_code() === 'invalid_image' ) {
@@ -587,7 +688,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_crop_image_should_fail_with_wp_error_object_if_url_does_not_exist() {
 		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
+			'https://wordpress.org/screenshots/3.9/canoladoesnotexist.jpg',
 			0,
 			0,
 			100,
@@ -607,7 +708,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_image_editors',
-			static function( $editors ) {
+			static function ( $editors ) {
 				return array( 'WP_Image_Editor_Mock' );
 			}
 		);
@@ -633,7 +734,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_wp_crop_image_should_return_correct_file_extension_if_output_format_was_modified() {
 		add_filter(
 			'image_editor_output_format',
-			static function() {
+			static function () {
 				return array_fill_keys( array( 'image/jpg', 'image/jpeg', 'image/png' ), 'image/webp' );
 			}
 		);

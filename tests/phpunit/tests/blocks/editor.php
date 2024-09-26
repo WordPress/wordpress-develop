@@ -18,6 +18,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 		parent::set_up();
 
+		remove_action( 'wp_print_styles', 'print_emoji_styles' );
+
 		$args = array(
 			'post_title' => 'Example',
 		);
@@ -27,12 +29,17 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
+
+		global $post_ID;
+		$post_ID = 1;
 	}
 
 	public function tear_down() {
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
+		global $post_ID;
+		$post_ID = null;
 		parent::tear_down();
 	}
 
@@ -60,7 +67,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	public function filter_set_block_editor_settings_post( $editor_settings, $post ) {
 		if ( empty( $post ) ) {
-			return $allowed_block_types;
+			return $editor_settings;
 		}
 
 		return array(
@@ -234,7 +241,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 				),
 				array(
 					'slug'  => 'reusable',
-					'title' => 'Reusable Blocks',
+					'title' => 'Patterns',
 					'icon'  => null,
 				),
 			),
@@ -302,7 +309,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		// Force the return value of wp_max_upload_size() to be 500.
 		add_filter(
 			'upload_size_limit',
-			function() {
+			static function () {
 				return 500;
 			}
 		);
@@ -397,6 +404,65 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58534
+	 */
+	public function test_wp_get_first_block() {
+		$block_name               = 'core/paragraph';
+		$blocks                   = array(
+			array(
+				'blockName' => 'core/image',
+			),
+			array(
+				'blockName' => $block_name,
+				'attrs'     => array(
+					'content' => 'Hello World!',
+				),
+			),
+			array(
+				'blockName' => 'core/heading',
+			),
+			array(
+				'blockName' => $block_name,
+			),
+		);
+		$blocks_with_no_paragraph = array(
+			array(
+				'blockName' => 'core/image',
+			),
+			array(
+				'blockName' => 'core/heading',
+			),
+		);
+
+		$this->assertSame( $blocks[1], wp_get_first_block( $blocks, $block_name ) );
+
+		$this->assertSame( array(), wp_get_first_block( $blocks_with_no_paragraph, $block_name ) );
+	}
+
+	/**
+	 * @ticket 58534
+	 */
+	public function test_wp_get_post_content_block_attributes() {
+		$attributes_with_layout = array(
+			'layout' => array(
+				'type' => 'constrained',
+			),
+		);
+		// With no block theme, expect null.
+		$this->assertNull( wp_get_post_content_block_attributes() );
+
+		switch_theme( 'block-theme' );
+
+		$this->assertSame( $attributes_with_layout, wp_get_post_content_block_attributes() );
+	}
+
+	public function test_wp_get_post_content_block_attributes_no_layout() {
+		switch_theme( 'block-theme-post-content-default' );
+
+		$this->assertSame( array(), wp_get_post_content_block_attributes() );
+	}
+
+	/**
 	 * @ticket 53458
 	 */
 	public function test_get_block_editor_settings_theme_json_settings() {
@@ -456,8 +522,29 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertSameSets( array( 'rem' ), $settings['enableCustomUnits'] );
 		// settings.spacing.customPadding
 		$this->assertTrue( $settings['enableCustomSpacing'] );
+		// settings.postContentAttributes
+		$this->assertSameSets(
+			array(
+				'layout' => array(
+					'type' => 'constrained',
+				),
+			),
+			$settings['postContentAttributes']
+		);
 
 		switch_theme( WP_DEFAULT_THEME );
+	}
+
+	/**
+	 * @ticket 59358
+	 */
+	public function test_get_block_editor_settings_without_post_content_block() {
+
+		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
+
+		$settings = get_block_editor_settings( array(), $post_editor_context );
+
+		$this->assertArrayNotHasKey( 'postContentAttributes', $settings );
 	}
 
 	/**
@@ -632,5 +719,39 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 				'expected'      => '\/?context=edit',
 			),
 		);
+	}
+
+	/**
+	 * @ticket 61641
+	 */
+	public function test_get_block_editor_settings_block_bindings_sources() {
+		$block_editor_context = new WP_Block_Editor_Context();
+		register_block_bindings_source(
+			'test/source-one',
+			array(
+				'label'              => 'Source One',
+				'get_value_callback' => function () {},
+				'uses_context'       => array( 'postId' ),
+			)
+		);
+		register_block_bindings_source(
+			'test/source-two',
+			array(
+				'label'              => 'Source Two',
+				'get_value_callback' => function () {},
+			)
+		);
+		$settings        = get_block_editor_settings( array(), $block_editor_context );
+		$exposed_sources = $settings['blockBindingsSources'];
+		unregister_block_bindings_source( 'test/source-one' );
+		unregister_block_bindings_source( 'test/source-two' );
+		// It is expected to have 4 sources: the 2 registered sources in the test, and the 2 core sources.
+		$this->assertCount( 4, $exposed_sources );
+		$source_one = $exposed_sources['test/source-one'];
+		$this->assertSame( 'Source One', $source_one['label'] );
+		$this->assertSameSets( array( 'postId' ), $source_one['usesContext'] );
+		$source_two = $exposed_sources['test/source-two'];
+		$this->assertSame( 'Source Two', $source_two['label'] );
+		$this->assertArrayNotHasKey( 'usesContext', $source_two );
 	}
 }

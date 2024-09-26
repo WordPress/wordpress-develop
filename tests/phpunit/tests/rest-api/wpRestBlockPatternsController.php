@@ -65,7 +65,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		self::$registry_instance_property = new ReflectionProperty( 'WP_Block_Patterns_Registry', 'instance' );
 		self::$registry_instance_property->setAccessible( true );
 		$test_registry = new WP_Block_Pattern_Categories_Registry();
-		self::$registry_instance_property->setValue( $test_registry );
+		self::$registry_instance_property->setValue( null, $test_registry );
 
 		// Register some patterns in the test registry.
 		$test_registry->register(
@@ -76,6 +76,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 				'viewportWidth' => 1440,
 				'categories'    => array( 'test' ),
 				'templateTypes' => array( 'page' ),
+				'source'        => 'theme',
 			)
 		);
 
@@ -86,6 +87,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 				'content'       => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
 				'categories'    => array( 'test' ),
 				'templateTypes' => array( 'single' ),
+				'source'        => 'core',
 			)
 		);
 
@@ -95,6 +97,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 				'title'      => 'Pattern Three',
 				'content'    => '<!-- wp:paragraph --><p>Three</p><!-- /wp:paragraph -->',
 				'categories' => array( 'test', 'buttons', 'query' ),
+				'source'     => 'pattern-directory/featured',
 			)
 		);
 	}
@@ -103,7 +106,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		self::delete_user( self::$admin_id );
 
 		// Restore the original registry instance.
-		self::$registry_instance_property->setValue( self::$orig_registry );
+		self::$registry_instance_property->setValue( null, self::$orig_registry );
 		self::$registry_instance_property->setAccessible( false );
 		self::$registry_instance_property = null;
 		self::$orig_registry              = null;
@@ -124,7 +127,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		wp_set_current_user( self::$admin_id );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
-		$request['_fields'] = 'name,content,template_types';
+		$request['_fields'] = 'name,content,source,template_types';
 		$response           = rest_get_server()->dispatch( $request );
 		$data               = $response->get_data();
 
@@ -135,6 +138,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 				'name'           => 'test/one',
 				'content'        => '<!-- wp:heading {"level":1} --><h1>One</h1><!-- /wp:heading -->',
 				'template_types' => array( 'page' ),
+				'source'         => 'theme',
 			),
 			$data[0],
 			'WP_REST_Block_Patterns_Controller::get_items() should return test/one'
@@ -144,6 +148,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 				'name'           => 'test/two',
 				'content'        => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
 				'template_types' => array( 'single' ),
+				'source'         => 'core',
 			),
 			$data[1],
 			'WP_REST_Block_Patterns_Controller::get_items() should return test/two'

@@ -44,7 +44,7 @@ class WP_Widget_Text extends WP_Widget {
 	}
 
 	/**
-	 * Add hooks for enqueueing assets when registering all widget instances of this widget class.
+	 * Adds hooks for enqueueing assets when registering all widget instances of this widget class.
 	 *
 	 * @param int $number Optional. The unique order number of this widget instance
 	 *                    compared to other instances of the same class. Default -1.
@@ -60,12 +60,16 @@ class WP_Widget_Text extends WP_Widget {
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_preview_scripts' ) );
 		}
 
-		// Note that the widgets component in the customizer will also do
-		// the 'admin_print_scripts-widgets.php' action in WP_Customize_Widgets::print_scripts().
+		/*
+		 * Note that the widgets component in the customizer will also do
+		 * the 'admin_print_scripts-widgets.php' action in WP_Customize_Widgets::print_scripts().
+		 */
 		add_action( 'admin_print_scripts-widgets.php', array( $this, 'enqueue_admin_scripts' ) );
 
-		// Note that the widgets component in the customizer will also do
-		// the 'admin_footer-widgets.php' action in WP_Customize_Widgets::print_footer_scripts().
+		/*
+		 * Note that the widgets component in the customizer will also do
+		 * the 'admin_footer-widgets.php' action in WP_Customize_Widgets::print_footer_scripts().
+		 */
 		add_action( 'admin_footer-widgets.php', array( 'WP_Widget_Text', 'render_control_template_scripts' ) );
 	}
 
@@ -101,7 +105,7 @@ class WP_Widget_Text extends WP_Widget {
 		}
 
 		$wpautop         = ! empty( $instance['filter'] );
-		$has_line_breaks = ( false !== strpos( trim( $instance['text'] ), "\n" ) );
+		$has_line_breaks = ( str_contains( trim( $instance['text'] ), "\n" ) );
 
 		// If auto-paragraphs are not enabled and there are line breaks, then ensure legacy mode.
 		if ( ! $wpautop && $has_line_breaks ) {
@@ -109,7 +113,7 @@ class WP_Widget_Text extends WP_Widget {
 		}
 
 		// If an HTML comment is present, assume legacy mode.
-		if ( false !== strpos( $instance['text'], '<!--' ) ) {
+		if ( str_contains( $instance['text'], '<!--' ) ) {
 			return true;
 		}
 
@@ -340,7 +344,7 @@ class WP_Widget_Text extends WP_Widget {
 	}
 
 	/**
-	 * Inject max-width and remove height for videos too constrained to fit inside sidebars on frontend.
+	 * Injects max-width and removes height for videos too constrained to fit inside sidebars on frontend.
 	 *
 	 * @since 4.9.0
 	 *
@@ -410,7 +414,7 @@ class WP_Widget_Text extends WP_Widget {
 	}
 
 	/**
-	 * Enqueue preview scripts.
+	 * Enqueues preview scripts.
 	 *
 	 * These scripts normally are enqueued just-in-time when a playlist shortcode is used.
 	 * However, in the customizer, a playlist shortcode may be used in a text widget and
@@ -491,13 +495,21 @@ class WP_Widget_Text extends WP_Widget {
 				<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
 				<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
 			</p>
-			<div class="notice inline notice-info notice-alt">
-				<?php if ( ! isset( $instance['visual'] ) ) : ?>
-					<p><?php _e( 'This widget may contain code that may work better in the &#8220;Custom HTML&#8221; widget. How about trying that widget instead?' ); ?></p>
-				<?php else : ?>
-					<p><?php _e( 'This widget may have contained code that may work better in the &#8220;Custom HTML&#8221; widget. If you have not yet, how about trying that widget instead?' ); ?></p>
-				<?php endif; ?>
-			</div>
+			<?php
+			if ( ! isset( $instance['visual'] ) ) {
+				$widget_info_message = __( 'This widget may contain code that may work better in the &#8220;Custom HTML&#8221; widget. How about trying that widget instead?' );
+			} else {
+				$widget_info_message = __( 'This widget may have contained code that may work better in the &#8220;Custom HTML&#8221; widget. If you have not yet, how about trying that widget instead?' );
+			}
+
+			wp_admin_notice(
+				$widget_info_message,
+				array(
+					'type'               => 'info',
+					'additional_classes' => array( 'notice-alt', 'inline' ),
+				)
+			);
+			?>
 			<p>
 				<label for="<?php echo $this->get_field_id( 'text' ); ?>"><?php _e( 'Content:' ); ?></label>
 				<textarea class="widefat" rows="16" cols="20" id="<?php echo $this->get_field_id( 'text' ); ?>" name="<?php echo $this->get_field_name( 'text' ); ?>"><?php echo esc_textarea( $instance['text'] ); ?></textarea>
@@ -510,7 +522,7 @@ class WP_Widget_Text extends WP_Widget {
 	}
 
 	/**
-	 * Render form template scripts.
+	 * Renders form template scripts.
 	 *
 	 * @since 4.8.0
 	 * @since 4.9.0 The method is now static.

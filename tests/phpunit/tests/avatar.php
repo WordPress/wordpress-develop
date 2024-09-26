@@ -11,7 +11,7 @@ class Tests_Avatar extends WP_UnitTestCase {
 	 */
 	public function test_get_avatar_url_gravatar_url() {
 		$url = get_avatar_url( 1 );
-		$this->assertSame( preg_match( '|^http?://[0-9]+.gravatar.com/avatar/[0-9a-f]{32}\?|', $url ), 1 );
+		$this->assertSame( preg_match( '|^https?://secure.gravatar.com/avatar/[0-9a-f]{32}\?|', $url ), 1 );
 	}
 
 	/**
@@ -56,19 +56,29 @@ class Tests_Avatar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures the get_avatar_url always returns an HTTPS scheme for gravatars.
+	 *
 	 * @ticket 21195
+	 * @ticket 37454
+	 *
+	 * @covers ::get_avatar_url
 	 */
 	public function test_get_avatar_url_scheme() {
 		$url = get_avatar_url( 1 );
-		$this->assertSame( preg_match( '|^http://|', $url ), 1 );
+		$this->assertSame( preg_match( '|^https://|', $url ), 1, 'Avatars should default to the HTTPS scheme' );
 
 		$args = array( 'scheme' => 'https' );
 		$url  = get_avatar_url( 1, $args );
-		$this->assertSame( preg_match( '|^https://|', $url ), 1 );
+		$this->assertSame( preg_match( '|^https://|', $url ), 1, 'Requesting the HTTPS scheme should be respected' );
+
+		$args = array( 'scheme' => 'http' );
+		$url  = get_avatar_url( 1, $args );
+		$this->assertSame( preg_match( '|^https://|', $url ), 1, 'Requesting the HTTP scheme should return an HTTPS URL to avoid redirects' );
 
 		$args = array( 'scheme' => 'lolcat' );
 		$url  = get_avatar_url( 1, $args );
-		$this->assertSame( preg_match( '|^lolcat://|', $url ), 0 );
+		$this->assertSame( preg_match( '|^lolcat://|', $url ), 0, 'Unrecognized schemes should be ignored' );
+		$this->assertSame( preg_match( '|^https://|', $url ), 1, 'Unrecognized schemes should return an HTTPS URL' );
 	}
 
 	/**
@@ -257,7 +267,7 @@ class Tests_Avatar extends WP_UnitTestCase {
 		$actual_data = get_avatar_data( $comment );
 
 		$this->assertTrue( is_avatar_comment_type( $comment_type ) );
-		$this->assertMatchesRegularExpression( '|^http?://[0-9]+.gravatar.com/avatar/[0-9a-f]{32}\?|', $actual_data['url'] );
+		$this->assertMatchesRegularExpression( '|^https?://secure.gravatar.com/avatar/[0-9a-f]{32}\?|', $actual_data['url'] );
 	}
 
 	/**
@@ -279,5 +289,4 @@ class Tests_Avatar extends WP_UnitTestCase {
 		$this->assertFalse( is_avatar_comment_type( $comment_type ) );
 		$this->assertFalse( $actual_data['url'] );
 	}
-
 }

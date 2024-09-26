@@ -179,7 +179,7 @@ class Featured_Content {
 	}
 
 	/**
-	 * Return an array with IDs of posts maked as sticky.
+	 * Return an array with IDs of posts marked as sticky.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
@@ -434,7 +434,7 @@ class Featured_Content {
 	 * @since Twenty Fourteen 1.0
 	 */
 	public static function enqueue_scripts() {
-		wp_enqueue_script( 'featured-content-suggest', get_template_directory_uri() . '/js/featured-content-admin.js', array( 'jquery', 'suggest' ), '20211130', true );
+		wp_enqueue_script( 'featured-content-suggest', get_template_directory_uri() . '/js/featured-content-admin.js', array( 'jquery', 'suggest' ), '20211130', array( 'in_footer' => true ) );
 	}
 
 	/**
