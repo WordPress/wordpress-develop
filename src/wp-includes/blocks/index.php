@@ -168,7 +168,7 @@ add_action( 'init', 'register_core_block_types_from_metadata' );
  * ensuring that the core block metadata is registered before the regular
  * block initialization that happens at priority 10.
  *
- * @since 6.X.0
+ * @since 6.7.0
  */
 function wp_register_core_block_metadata_collection() {
 	wp_register_block_metadata_collection(
