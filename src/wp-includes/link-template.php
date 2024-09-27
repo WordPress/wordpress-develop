@@ -2949,6 +2949,8 @@ function get_the_posts_pagination( $args = array() ) {
 			$args['aria_label'] = $args['screen_reader_text'];
 		}
 
+		$post_type_name = get_queried_object()->labels->name;
+
 		$args = wp_parse_args(
 			$args,
 			array(
@@ -2956,7 +2958,7 @@ function get_the_posts_pagination( $args = array() ) {
 				'prev_text'          => _x( 'Previous', 'previous set of posts' ),
 				'next_text'          => _x( 'Next', 'next set of posts' ),
 				'screen_reader_text' => __( 'Posts navigation' ),
-				'aria_label'         => __( 'Posts' ),
+				'aria_label'         => __( $post_type_name . ' pagination' ),
 				'class'              => 'pagination',
 			)
 		);
