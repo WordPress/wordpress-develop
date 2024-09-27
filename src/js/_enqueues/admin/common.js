@@ -1344,7 +1344,7 @@ $( function() {
 			id: 'no-items-selected',
 			type: 'error',
 			message: errorMessage,
-			dismissible: false,
+			dismissible: true,
 		} );
 
 		wp.a11y.speak( errorMessage );
