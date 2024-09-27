@@ -3391,7 +3391,7 @@ function get_the_comments_pagination( $args = array() ) {
 		$args,
 		array(
 			'screen_reader_text' => __( 'Comments navigation' ),
-			'aria_label'         => __( 'Comments' ),
+			'aria_label'         => __( 'Comments pagination' ),
 			'class'              => 'comments-pagination',
 		)
 	);
