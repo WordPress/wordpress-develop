@@ -1061,20 +1061,20 @@ function apply_block_hooks_to_content( $content, $context, $callback = 'insert_h
 	 * Remove hooked blocks from `$hooked_block_types` if they have `multiple` set to false and
 	 * are already present in `$content`.
 	 */
-	foreach ( $hooked_blocks as &$relative_positions ) {
-		foreach ( $relative_positions as &$hooked_block_types ) {
-			foreach ( $hooked_block_types as &$hooked_block_type ) {
+	foreach ( $hooked_blocks as $anchor_block_type => $relative_positions ) {
+		foreach ( $relative_positions as $relative_position => $hooked_block_types ) {
+			foreach ( $hooked_block_types as $index => $hooked_block_type ) {
 				$hooked_block_type_definition =
 					WP_Block_Type_Registry::get_instance()->get_registered( $hooked_block_type );
 				if ( block_has_support( $hooked_block_type_definition, 'multiple', true ) ) {
 					$block_allows_multiple_instances[ $hooked_block_type ] = true;
 				} elseif ( has_block( $hooked_block_type, $content ) ) {
-					unset( $hooked_block_type );
-					if ( empty( $hooked_block_types ) ) {
-						unset( $hooked_block_types );
+					unset( $hooked_blocks[ $anchor_block_type ][ $relative_position ][ $index ] );
+					if ( empty( $hooked_blocks[ $anchor_block_type ][ $relative_position ] ) ) {
+						unset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] );
 					}
-					if ( empty( $relative_positions ) ) {
-						unset( $relative_positions );
+					if ( empty( $hooked_blocks[ $anchor_block_type ] ) ) {
+						unset( $hooked_blocks[ $anchor_block_type ] );
 					}
 				}
 			}
