@@ -843,7 +843,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			'html',
+			'math',
 			$processor->get_namespace(),
 			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
 		);
