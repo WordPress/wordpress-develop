@@ -40,23 +40,6 @@ test.describe( 'Manage applications passwords', () => {
 		);
 	} );
 
-	test('should not allow to create two applications passwords with the same name', async ( {
-		page,
-		applicationPasswords
-	} ) => {
-		await applicationPasswords.create();
-		await applicationPasswords.create();
-
-		const errorMessage = page.getByRole( 'alert' );
-
-		await expect( errorMessage ).toHaveClass( /notice-error/ );
-		await expect(
-			errorMessage
-		).toContainText(
-			'Each application name should be unique.'
-		);
-	});
-
 	test( 'should correctly revoke a single application password', async ( {
 		page,
 		applicationPasswords

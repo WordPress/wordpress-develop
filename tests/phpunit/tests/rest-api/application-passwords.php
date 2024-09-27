@@ -77,14 +77,6 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 				),
 				'args'     => array( 'name' => '<script>console.log("Hello")</script>' ),
 			),
-			'application_password_duplicate_name when name exists' => array(
-				'expected' => array(
-					'error_code'    => 'application_password_duplicate_name',
-					'error_message' => 'Each application name should be unique.',
-				),
-				'args'     => array( 'name' => 'test2' ),
-				'names'    => array( 'test1', 'test2' ),
-			),
 		);
 	}
 
@@ -195,5 +187,15 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 				'existing' => array( 'name' => 'Test' ),
 			),
 		);
+	}
+
+	/**
+	 * @ticket 51941
+	 */
+	public function test_can_create_duplicate_app_password_names() {
+		$created = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'My App' ) );
+		$this->assertNotWPError( $created, 'First attempt to create an application password should not return an error' );
+		$created = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'My App' ) );
+		$this->assertNotWPError( $created, 'Second attempt to create an application password should not return an error' );
 	}
 }
