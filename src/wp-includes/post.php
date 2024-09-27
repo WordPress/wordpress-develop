@@ -6829,6 +6829,16 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 
 	$attachment_id = (int) $attachment_id;
 
+	if ( ! $attachment_id ) {
+		$post = get_post();
+
+		if ( ! $post ) {
+			return false;
+		}
+
+		$attachment_id = $post->ID;
+	}
+
 	$post = get_post( $attachment_id );
 
 	if ( ! $post ) {
@@ -6900,7 +6910,18 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
  */
 function wp_get_attachment_caption( $post_id = 0 ) {
 	$post_id = (int) $post_id;
-	$post    = get_post( $post_id );
+
+	if ( ! $post_id ) {
+		$post = get_post();
+
+		if ( ! $post ) {
+			return false;
+		}
+
+		$post_id = $post->ID;
+	}
+
+	$post = get_post( $post_id );
 
 	if ( ! $post ) {
 		return false;
@@ -6934,6 +6955,16 @@ function wp_get_attachment_caption( $post_id = 0 ) {
  */
 function wp_get_attachment_thumb_url( $post_id = 0 ) {
 	$post_id = (int) $post_id;
+
+	if ( ! $post_id ) {
+		$post = get_post();
+
+		if ( ! $post ) {
+			return false;
+		}
+
+		$post_id = $post->ID;
+	}
 
 	/*
 	 * This uses image_downsize() which also looks for the (very) old format $image_meta['thumb']
