@@ -184,273 +184,181 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes the private `print_client_interactivity` method of
-	 * WP_Interactivity_API class.
-	 *
-	 * @return array|null The content of the JSON object printed on the client-side or null if nothings was printed.
-	 */
-	private function print_client_interactivity_data() {
-		$interactivity_data_markup = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
-		preg_match( '/<script type="application\/json" id="wp-interactivity-data">.*?(\{.*\}).*?<\/script>/s', $interactivity_data_markup, $interactivity_data_string );
-		return isset( $interactivity_data_string[1] ) ? json_decode( $interactivity_data_string[1], true ) : null;
-	}
-
-	/**
-	 * Tests that the initial state and config are correctly printed on the
-	 * client-side.
-	 *
-	 * @ticket 60356
-	 *
-	 * @covers ::state
-	 * @covers ::config
-	 * @covers ::print_client_interactivity_data
-	 */
-	public function test_state_and_config_is_correctly_printed() {
-		$this->interactivity->state( 'myPlugin', array( 'a' => 1 ) );
-		$this->interactivity->state( 'otherPlugin', array( 'b' => 2 ) );
-		$this->interactivity->config( 'myPlugin', array( 'a' => 1 ) );
-		$this->interactivity->config( 'otherPlugin', array( 'b' => 2 ) );
-
-		$result = $this->print_client_interactivity_data();
-
-		$data = array(
-			'myPlugin'    => array( 'a' => 1 ),
-			'otherPlugin' => array( 'b' => 2 ),
-		);
-
-		$this->assertSame(
-			array(
-				'config' => $data,
-				'state'  => $data,
-			),
-			$result
-		);
-	}
-
-	/**
 	 * Tests that the wp-interactivity-data script is not printed if both state
 	 * and config are empty.
 	 *
 	 * @ticket 60356
-	 *
-	 * @covers ::print_client_interactivity_data
+	 * @ticket 61512
 	 */
 	public function test_state_and_config_dont_print_when_empty() {
-		$result = $this->print_client_interactivity_data();
-		$this->assertNull( $result );
+		$filter = $this->get_script_data_filter_result();
+
+		$this->assertSame( array(), $filter->get_args()[0][0] );
 	}
 
 	/**
-	 * Tests that the config is not printed if it's empty.
+	 * Test that the print_client_interactivity_data is deprecated and produces no output.
 	 *
 	 * @ticket 60356
+	 * @ticket 61512
 	 *
-	 * @covers ::state
 	 * @covers ::print_client_interactivity_data
+	 *
+	 * @expectedDeprecated WP_Interactivity_API::print_client_interactivity_data
 	 */
 	public function test_config_not_printed_when_empty() {
-		$this->interactivity->state( 'myPlugin', array( 'a' => 1 ) );
-		$result = $this->print_client_interactivity_data();
-		$this->assertSame( array( 'state' => array( 'myPlugin' => array( 'a' => 1 ) ) ), $result );
+		$this->interactivity->print_client_interactivity_data();
+		$this->expectOutputString( '' );
 	}
 
 	/**
-	 * Tests that the state is not printed if it's empty.
+	 * Test that the deprecated register_script_modules method is deprecated but does not throw.
+	 *
+	 * @ticket 60647
+	 *
+	 * @expectedDeprecated WP_Interactivity_API::register_script_modules
+	 */
+	public function test_register_script_modules_deprecated() {
+		$this->interactivity->register_script_modules();
+	}
+
+	/**
+	 * Sets up an activity, runs an optional callback, and returns a MockAction for inspection.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param  ?Closure $callback Optional. Callback to run to set up interactivity state and config.
+	 * @return MockAction
+	 */
+	private function get_script_data_filter_result( ?Closure $callback = null ): MockAction {
+		$this->interactivity->add_hooks();
+		wp_enqueue_script_module( '@wordpress/interactivity' );
+		$filter = new MockAction();
+		add_filter( 'script_module_data_@wordpress/interactivity', array( $filter, 'filter' ) );
+
+		if ( $callback ) {
+			$callback();
+		}
+
+		ob_start();
+		wp_script_modules()->print_script_module_data();
+		ob_end_clean();
+
+		return $filter;
+	}
+
+	/**
+	 * Tests that the state is not included in client data if it's empty.
 	 *
 	 * @ticket 60356
-	 *
-	 * @covers ::config
-	 * @covers ::print_client_interactivity_data
+	 * @ticket 61512
 	 */
 	public function test_state_not_printed_when_empty() {
-		$this->interactivity->config( 'myPlugin', array( 'a' => 1 ) );
-		$result = $this->print_client_interactivity_data();
-		$this->assertSame( array( 'config' => array( 'myPlugin' => array( 'a' => 1 ) ) ), $result );
+		$filter = $this->get_script_data_filter_result(
+			function () {
+				$this->interactivity->config( 'myPlugin', array( 'a' => 1 ) );
+			}
+		);
+
+		$this->assertSame( array( 'config' => array( 'myPlugin' => array( 'a' => 1 ) ) ), $filter->get_args()[0][0] );
 	}
 
 	/**
 	 * Tests that empty state objects are pruned from printed data.
 	 *
 	 * @ticket 60761
-	 *
-	 * @covers ::print_client_interactivity_data
+	 * @ticket 61512
 	 */
 	public function test_state_not_printed_when_empty_array() {
-		$this->interactivity->state( 'pluginWithEmptyState_prune', array() );
-		$this->interactivity->state( 'pluginWithState_include', array( 'value' => 'excellent' ) );
-		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
-		$expected       = <<<'SCRIPT_TAG'
-<script type="application/json" id="wp-interactivity-data">
-{"state":{"pluginWithState_include":{"value":"excellent"}}}
-</script>
+		$filter = $this->get_script_data_filter_result(
+			function () {
+				$this->interactivity->state( 'pluginWithEmptyState_prune', array() );
+				$this->interactivity->state( 'pluginWithState_include', array( 'value' => 'excellent' ) );
+			}
+		);
 
-SCRIPT_TAG;
-
-		$this->assertSameIgnoreEOL( $expected, $printed_script );
+		$this->assertSame( array( 'state' => array( 'pluginWithState_include' => array( 'value' => 'excellent' ) ) ), $filter->get_args()[0][0] );
 	}
 
 	/**
 	 * Tests that data consisting of only empty state objects is not printed.
 	 *
 	 * @ticket 60761
-	 *
-	 * @covers ::print_client_interactivity_data
+	 * @ticket 61512
 	 */
 	public function test_state_not_printed_when_only_empty_arrays() {
-		$this->interactivity->state( 'pluginWithEmptyState_prune', array() );
-		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
-		$this->assertSame( '', $printed_script );
+		$filter = $this->get_script_data_filter_result(
+			function () {
+				$this->interactivity->state( 'pluginWithEmptyState_prune', array() );
+			}
+		);
+
+		$this->assertSame( array(), $filter->get_args()[0][0] );
 	}
 
 	/**
 	 * Tests that nested empty state objects are printed correctly.
 	 *
 	 * @ticket 60761
-	 *
-	 * @covers ::print_client_interactivity_data
+	 * @ticket 61512
 	 */
 	public function test_state_printed_correctly_with_nested_empty_array() {
-		$this->interactivity->state( 'myPlugin', array( 'emptyArray' => array() ) );
-		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
-		$expected       = <<<'SCRIPT_TAG'
-<script type="application/json" id="wp-interactivity-data">
-{"state":{"myPlugin":{"emptyArray":[]}}}
-</script>
+		$filter = $this->get_script_data_filter_result(
+			function () {
+				$this->interactivity->state( 'myPlugin', array( 'emptyArray' => array() ) );
+			}
+		);
 
-SCRIPT_TAG;
-
-		$this->assertSameIgnoreEOL( $expected, $printed_script );
+		$this->assertSame( array( 'state' => array( 'myPlugin' => array( 'emptyArray' => array() ) ) ), $filter->get_args()[0][0] );
 	}
 
 	/**
 	 * Tests that empty config objects are pruned from printed data.
 	 *
 	 * @ticket 60761
-	 *
-	 * @covers ::print_client_interactivity_data
+	 * @ticket 61512
 	 */
 	public function test_config_not_printed_when_empty_array() {
-		$this->interactivity->config( 'pluginWithEmptyConfig_prune', array() );
-		$this->interactivity->config( 'pluginWithConfig_include', array( 'value' => 'excellent' ) );
-		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
-		$expected       = <<<'SCRIPT_TAG'
-<script type="application/json" id="wp-interactivity-data">
-{"config":{"pluginWithConfig_include":{"value":"excellent"}}}
-</script>
+		$filter = $this->get_script_data_filter_result(
+			function () {
+				$this->interactivity->config( 'pluginWithEmptyConfig_prune', array() );
+				$this->interactivity->config( 'pluginWithConfig_include', array( 'value' => 'excellent' ) );
+			}
+		);
 
-SCRIPT_TAG;
-
-		$this->assertSameIgnoreEOL( $expected, $printed_script );
+		$this->assertSame( array( 'config' => array( 'pluginWithConfig_include' => array( 'value' => 'excellent' ) ) ), $filter->get_args()[0][0] );
 	}
 
 	/**
 	 * Tests that data consisting of only empty config objects is not printed.
 	 *
 	 * @ticket 60761
-	 *
-	 * @covers ::print_client_interactivity_data
+	 * @ticket 61512
 	 */
 	public function test_config_not_printed_when_only_empty_arrays() {
-		$this->interactivity->config( 'pluginWithEmptyConfig_prune', array() );
-		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
-		$this->assertSame( '', $printed_script );
+		$filter = $this->get_script_data_filter_result(
+			function () {
+				$this->interactivity->config( 'pluginWithEmptyConfig_prune', array() );
+			}
+		);
+
+		$this->assertSame( array(), $filter->get_args()[0][0] );
 	}
 
 	/**
 	 * Tests that nested empty config objects are printed correctly.
 	 *
 	 * @ticket 60761
-	 *
-	 * @covers ::print_client_interactivity_data
+	 * @ticket 61512
 	 */
 	public function test_config_printed_correctly_with_nested_empty_array() {
-		$this->interactivity->config( 'myPlugin', array( 'emptyArray' => array() ) );
-		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
-		$expected       = <<<'SCRIPT_TAG'
-<script type="application/json" id="wp-interactivity-data">
-{"config":{"myPlugin":{"emptyArray":[]}}}
-</script>
-
-SCRIPT_TAG;
-
-		$this->assertSameIgnoreEOL( $expected, $printed_script );
-	}
-
-	/**
-	 * Tests that special characters in the initial state and configuration are
-	 * properly escaped.
-	 *
-	 * @ticket 60356
-	 * @ticket 61170
-	 *
-	 * @covers ::state
-	 * @covers ::config
-	 * @covers ::print_client_interactivity_data
-	 */
-	public function test_state_and_config_escape_special_characters() {
-		$this->interactivity->state(
-			'myPlugin',
-			array(
-				'ampersand'                              => '&',
-				'less-than sign'                         => '<',
-				'greater-than sign'                      => '>',
-				'solidus'                                => '/',
-				'line separator'                         => "\u{2028}",
-				'paragraph separator'                    => "\u{2029}",
-				'flag of england'                        => "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}",
-				'malicious script closer'                => '</script>',
-				'entity-encoded malicious script closer' => '&lt;/script&gt;',
-			)
+		$filter = $this->get_script_data_filter_result(
+			function () {
+				$this->interactivity->config( 'myPlugin', array( 'emptyArray' => array() ) );
+			}
 		);
-		$this->interactivity->config( 'myPlugin', array( 'chars' => '&<>/' ) );
 
-		$interactivity_data_markup = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
-		preg_match( '~<script type="application/json" id="wp-interactivity-data">\s*(\{.*\})\s*</script>~s', $interactivity_data_markup, $interactivity_data_string );
-
-		$expected = <<<"JSON"
-{"config":{"myPlugin":{"chars":"&\\u003C\\u003E/"}},"state":{"myPlugin":{"ampersand":"&","less-than sign":"\\u003C","greater-than sign":"\\u003E","solidus":"/","line separator":"\u{2028}","paragraph separator":"\u{2029}","flag of england":"\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}","malicious script closer":"\\u003C/script\\u003E","entity-encoded malicious script closer":"&lt;/script&gt;"}}}
-JSON;
-		$this->assertSame( $expected, $interactivity_data_string[1] );
-	}
-
-	/**
-	 * Tests that special characters in the initial state and configuration are
-	 * properly escaped when the blog_charset is not UTF-8 (unicode compatible).
-	 *
-	 * This this test, unicode and line terminators should be escaped to their
-	 * JSON unicode sequences.
-	 *
-	 * @ticket 61170
-	 *
-	 * @covers ::state
-	 * @covers ::config
-	 * @covers ::print_client_interactivity_data
-	 */
-	public function test_state_and_config_escape_special_characters_non_utf8() {
-		add_filter( 'pre_option_blog_charset', array( $this, 'charset_iso_8859_1' ) );
-		$this->interactivity->state(
-			'myPlugin',
-			array(
-				'ampersand'                              => '&',
-				'less-than sign'                         => '<',
-				'greater-than sign'                      => '>',
-				'solidus'                                => '/',
-				'line separator'                         => "\u{2028}",
-				'paragraph separator'                    => "\u{2029}",
-				'flag of england'                        => "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}",
-				'malicious script closer'                => '</script>',
-				'entity-encoded malicious script closer' => '&lt;/script&gt;',
-			)
-		);
-		$this->interactivity->config( 'myPlugin', array( 'chars' => '&<>/' ) );
-
-		$interactivity_data_markup = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
-		preg_match( '~<script type="application/json" id="wp-interactivity-data">\s*(\{.*\})\s*</script>~s', $interactivity_data_markup, $interactivity_data_string );
-
-		$expected = <<<"JSON"
-{"config":{"myPlugin":{"chars":"&\\u003C\\u003E/"}},"state":{"myPlugin":{"ampersand":"&","less-than sign":"\\u003C","greater-than sign":"\\u003E","solidus":"/","line separator":"\\u2028","paragraph separator":"\\u2029","flag of england":"\\ud83c\\udff4\\udb40\\udc67\\udb40\\udc62\\udb40\\udc65\\udb40\\udc6e\\udb40\\udc67\\udb40\\udc7f","malicious script closer":"\\u003C/script\\u003E","entity-encoded malicious script closer":"&lt;/script&gt;"}}}
-JSON;
-		$this->assertSame( $expected, $interactivity_data_string[1] );
+		$this->assertSame( array( 'config' => array( 'myPlugin' => array( 'emptyArray' => array() ) ) ), $filter->get_args()[0][0] );
 	}
 
 	/**
@@ -1399,7 +1307,6 @@ JSON;
 		$this->assertSame( "Derived state: otherPlugin-state\nDerived context: otherPlugin-context", $result );
 	}
 
-
 	/**
 	 * Tests the `evaluate` method for derived state functions that throw.
 	 *
@@ -1422,6 +1329,29 @@ JSON;
 
 		$result = $this->evaluate( 'state.derivedThatThrows' );
 		$this->assertNull( $result );
+	}
+
+	/**
+	 * Tests the `evaluate` method for derived state intermediate values.
+	 *
+	 * @ticket 61741
+	 *
+	 * @covers ::evaluate
+	 */
+	public function test_evaluate_derived_state_intermediate() {
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'derivedState' => function () {
+					return array( 'property' => 'value' );
+				},
+			)
+		);
+		$this->set_internal_context_stack();
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
+		$result = $this->evaluate( 'state.derivedState.property' );
+		$this->assertSame( 'value', $result );
 	}
 
 	/**

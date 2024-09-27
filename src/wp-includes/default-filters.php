@@ -3,6 +3,12 @@
  * Sets up the default filters and actions for most
  * of the WordPress hooks.
  *
+ * This file is loaded very early in the bootstrap which
+ * means many functions are not yet available and site
+ * information such as if this is multisite is unknown.
+ * Before using functions besides `add_filter` and
+ * `add_action`, verify things will work as expected.
+ *
  * If you need to remove a default hook, this file will
  * give you the priority to use for removing the hook.
  *
@@ -564,6 +570,7 @@ add_action( 'set_current_user', 'kses_init' );
 // Script Loader.
 add_action( 'wp_default_scripts', 'wp_default_scripts' );
 add_action( 'wp_default_scripts', 'wp_default_packages' );
+add_action( 'wp_default_scripts', 'wp_default_script_modules' );
 
 add_action( 'wp_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'wp_enqueue_scripts', 'wp_common_block_scripts_and_styles' );

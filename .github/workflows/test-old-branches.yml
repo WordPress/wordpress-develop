@@ -92,16 +92,14 @@ jobs:
           - branch: '5.8'
             workflow: 'end-to-end-tests.yml'
 
-          # Performance testing was introduced in 6.2.
+          # Performance testing was introduced in 6.2 using Puppeteer but was overhauled to use Playwright instead in 6.4.
+          # Since the workflow frequently failed for 6.2 and 6.3 due to the flaky nature of the Puppeteer tests,
+          # the workflow was removed from those two branches.
           - branch: '6.6'
             workflow: 'performance.yml'
           - branch: '6.5'
             workflow: 'performance.yml'
           - branch: '6.4'
-            workflow: 'performance.yml'
-          - branch: '6.3'
-            workflow: 'performance.yml'
-          - branch: '6.2'
             workflow: 'performance.yml'
 
     # Run all branches monthly, but only the currently supported one twice per month.

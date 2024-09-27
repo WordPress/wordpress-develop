@@ -2468,6 +2468,41 @@ if ( ! function_exists( 'wp_salt' ) ) :
 			}
 		}
 
+		/*
+		 * Determine which options to prime.
+		 *
+		 * If the salt keys are undefined, use a duplicate value or the
+		 * default `put your unique phrase here` value the salt will be
+		 * generated via `wp_generate_password()` and stored as a site
+		 * option. These options will be primed to avoid repeated
+		 * database requests for undefined salts.
+		 */
+		$options_to_prime = array();
+		foreach ( array( 'auth', 'secure_auth', 'logged_in', 'nonce' ) as $key ) {
+			foreach ( array( 'key', 'salt' ) as $second ) {
+				$const = strtoupper( "{$key}_{$second}" );
+				if ( ! defined( $const ) || true === $duplicated_keys[ constant( $const ) ] ) {
+					$options_to_prime[] = "{$key}_{$second}";
+				}
+			}
+		}
+
+		if ( ! empty( $options_to_prime ) ) {
+			/*
+			 * Also prime `secret_key` used for undefined salting schemes.
+			 *
+			 * If the scheme is unknown, the default value for `secret_key` will be
+			 * used too for the salt. This should rarely happen, so the option is only
+			 * primed if other salts are undefined.
+			 *
+			 * At this point of execution it is known that a database call will be made
+			 * to prime salts, so the `secret_key` option can be primed regardless of the
+			 * constants status.
+			 */
+			$options_to_prime[] = 'secret_key';
+			wp_prime_site_option_caches( $options_to_prime );
+		}
+
 		$values = array(
 			'key'  => '',
 			'salt' => '',
@@ -2529,10 +2564,10 @@ endif;
 
 if ( ! function_exists( 'wp_hash_password' ) ) :
 	/**
-	 * Creates a hash (encrypt) of a plain text password.
+	 * Creates a hash of a plain text password.
 	 *
 	 * For integration with other applications, this function can be overwritten to
-	 * instead use the other package password checking algorithm.
+	 * instead use the other package password hashing algorithm.
 	 *
 	 * @since 2.5.0
 	 *
@@ -2556,7 +2591,7 @@ endif;
 
 if ( ! function_exists( 'wp_check_password' ) ) :
 	/**
-	 * Checks the plaintext password against the encrypted Password.
+	 * Checks a plaintext password against a hashed password.
 	 *
 	 * Maintains compatibility between old version and the new cookie authentication
 	 * protocol using PHPass library. The $hash parameter is the encrypted password
@@ -2564,7 +2599,7 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	 * against the already encrypted password to see if they match.
 	 *
 	 * For integration with other applications, this function can be overwritten to
-	 * instead use the other package password checking algorithm.
+	 * instead use the other package password hashing algorithm.
 	 *
 	 * @since 2.5.0
 	 *
@@ -2757,7 +2792,7 @@ endif;
 
 if ( ! function_exists( 'wp_set_password' ) ) :
 	/**
-	 * Updates the user's password with a new encrypted one.
+	 * Updates the user's password with a new hashed one.
 	 *
 	 * For integration with other applications, this function can be overwritten to
 	 * instead use the other package password checking algorithm.
