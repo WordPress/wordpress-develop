@@ -15,8 +15,6 @@ if ( ! defined( 'IFRAME_REQUEST' )
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
-require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-
 wp_enqueue_script( 'wp-a11y' );
 
 if ( isset( $_GET['action'] ) ) {
@@ -261,8 +259,6 @@ if ( isset( $_GET['action'] ) ) {
 		if ( ! current_user_can( 'install_themes' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ) );
 		}
-
-		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php'; // For themes_api().
 
 		check_admin_referer( 'install-theme_' . $theme );
 		$api = themes_api(

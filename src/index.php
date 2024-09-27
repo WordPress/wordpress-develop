@@ -11,16 +11,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 
-/*
- * Load the actual index.php file if the assets were already built.
- * Note: WPINC is not defined yet, it is defined later in wp-settings.php.
- */
-if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
+if ( ! defined( 'WPINC' ) ) {
+	define( 'WPINC', 'wp-includes' );
+}
+
+require_once ABSPATH . WPINC . '/class-wp-autoload.php';
+
+// Load the actual index.php file if the assets were already built.
+if ( file_exists( ABSPATH . WPINC . '/js/dist/edit-post.js' ) ) {
 	require_once ABSPATH . '_index.php';
 	return;
 }
 
-define( 'WPINC', 'wp-includes' );
 require_once ABSPATH . WPINC . '/version.php';
 require_once ABSPATH . WPINC . '/compat.php';
 require_once ABSPATH . WPINC . '/load.php';

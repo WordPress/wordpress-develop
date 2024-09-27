@@ -19,8 +19,6 @@ class Tests_Category_Walker_Category extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		/** Walker_Category class */
-		require_once ABSPATH . 'wp-includes/class-walker-category.php';
 		$this->walker = new Walker_Category();
 	}
 

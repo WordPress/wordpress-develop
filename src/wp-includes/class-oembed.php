@@ -10,6 +10,3 @@
  */
 
 _deprecated_file( basename( __FILE__ ), '5.3.0', WPINC . '/class-wp-oembed.php' );
-
-/** WP_oEmbed class */
-require_once ABSPATH . WPINC . '/class-wp-oembed.php';

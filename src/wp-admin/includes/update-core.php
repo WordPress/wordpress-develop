@@ -978,6 +978,9 @@ function update_core( $from, $to ) {
 	$_old_files = array_merge( $_old_files, array_values( $_old_requests_files ) );
 	_preload_old_requests_classes_and_interfaces( $to );
 
+	 // Preload Core classes and interfaces to ensure the code is in memory if needed.
+	_preload_core_classes_and_interfaces();
+
 	/**
 	 * Filters feedback messages displayed during the core update process.
 	 *
@@ -1576,6 +1579,54 @@ function _preload_old_requests_classes_and_interfaces( $to ) {
 		}
 
 		require_once $to . $file;
+	}
+}
+
+/**
+ * Preloads old classes and interfaces required for updating Core.
+ *
+ * This function preloads the old code into memory before the
+ * upgrade process deletes the files. These files are loaded into
+ * memory via an autoloader, meaning when a class or interface is needed
+ * WordPress Core could attempt to access code. If the file is not there,
+ * a fatal error could occur. If the file was replaced, the new code is not
+ * compatible with the old, resulting in a fatal error.
+ * Preloading ensures the code is in memory before the code is updated.
+ *
+ * @since 6.6.0
+ */
+function _preload_core_classes_and_interfaces() {
+	/*
+	 * The classes to be preloaded.
+	 * These are lowercased to match the format used in the autoloader.
+	 */
+	$preload_classes = array(
+		'core_upgrader',
+		'automatic_upgrader_skin',
+		'wp_upgrader_skin',
+		'wp_upgrader',
+		'wp_error',
+		'wp_filesystem_base',
+		'wp_filesystem_direct',
+		'wp_filesystem_ftpext',
+		'wp_filesystem_ftpsockets',
+		'wp_filesystem_ssh2',
+		'wpdb',
+		'ftp',
+		'ftp_base',
+		'ftp_pure',
+		'ftp_sockets',
+	);
+	foreach ( $preload_classes as $class_name ) {
+		/*
+		 * Skip if it's already loaded.
+		 * This should trigger the autoloader to load the file.
+		 */
+		if ( class_exists( $class_name, true ) ) {
+			continue;
+		}
+		// Load the file.
+		require_once ABSPATH . WP_Autoload::CLASSES_PATHS[ $class_name ];
 	}
 }
 

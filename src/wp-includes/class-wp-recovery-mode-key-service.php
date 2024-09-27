@@ -50,7 +50,6 @@ final class WP_Recovery_Mode_Key_Service {
 		$key = wp_generate_password( 22, false );
 
 		if ( empty( $wp_hasher ) ) {
-			require_once ABSPATH . WPINC . '/class-phpass.php';
 			$wp_hasher = new PasswordHash( 8, true );
 		}
 
@@ -110,7 +109,6 @@ final class WP_Recovery_Mode_Key_Service {
 		}
 
 		if ( empty( $wp_hasher ) ) {
-			require_once ABSPATH . WPINC . '/class-phpass.php';
 			$wp_hasher = new PasswordHash( 8, true );
 		}
 

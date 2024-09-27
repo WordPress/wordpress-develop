@@ -62,8 +62,6 @@ if ( isset( $_GET['rsd'] ) ) { // https://cyber.harvard.edu/blogs/gems/tech/rsd.
 }
 
 require_once ABSPATH . 'wp-admin/includes/admin.php';
-require_once ABSPATH . WPINC . '/class-IXR.php';
-require_once ABSPATH . WPINC . '/class-wp-xmlrpc-server.php';
 
 /**
  * Posts submitted via the XML-RPC interface get that title

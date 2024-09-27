@@ -406,7 +406,6 @@ class Tests_Theme extends WP_UnitTestCase {
 			),
 		);
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager();
 		do_action( 'customize_register', $wp_customize );
 

@@ -8,9 +8,6 @@
  * @subpackage Cache
  */
 
-/** WP_Object_Cache class */
-require_once ABSPATH . WPINC . '/class-wp-object-cache.php';
-
 /**
  * Sets up Object Cache Global and assigns it.
  *

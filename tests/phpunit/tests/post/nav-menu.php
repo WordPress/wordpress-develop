@@ -930,7 +930,6 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				)
 			)
 		);
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager();
 		do_action( 'customize_register', $wp_customize );
 		$wp_customize->save_changeset_post(
