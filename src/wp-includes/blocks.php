@@ -1057,8 +1057,10 @@ function apply_block_hooks_to_content( $content, $context, $callback = 'insert_h
 	}
 
 	$block_allows_multiple_instances = array();
-	// Remove hooked blocks from the list if they have `multiple` set to false and are already
-	// present in `$content`.
+	/*
+	 * Remove hooked blocks from the list if they have `multiple` set to false and are already
+	 * present in `$content`.
+	 */
 	foreach ( $hooked_blocks as &$relative_positions ) {
 		foreach ( $relative_positions as &$hooked_block_types ) {
 			foreach ( $hooked_block_types as &$hooked_block_type ) {
