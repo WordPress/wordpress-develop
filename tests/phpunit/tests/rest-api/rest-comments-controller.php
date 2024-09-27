@@ -432,19 +432,43 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertCount( 2, $comments );
 	}
 
-	public function test_get_items_no_permission_for_no_post() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_no_permission_for_no_post( $method ) {
 		wp_set_current_user( 0 );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request = new WP_REST_Request( $method, '/wp/v2/comments' );
 		$request->set_param( 'post', 0 );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
 	}
 
-	public function test_get_items_edit_context() {
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_edit_context( $method ) {
 		wp_set_current_user( self::$admin_id );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request = new WP_REST_Request( $method, '/wp/v2/comments' );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
@@ -593,12 +617,18 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
-	public function test_get_items_private_post_no_permissions() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_private_post_no_permissions( $method ) {
 		wp_set_current_user( 0 );
 
 		$post_id = self::factory()->post->create( array( 'post_status' => 'private' ) );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request = new WP_REST_Request( $method, '/wp/v2/comments' );
 		$request->set_param( 'post', $post_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read_post', $response, 401 );
@@ -801,14 +831,20 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( $id, $data[0]['id'] );
 	}
 
-	public function test_get_comments_pagination_headers() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_comments_pagination_headers( $method ) {
 		$total_comments = self::$total_comments;
 		$total_pages    = (int) ceil( $total_comments / 10 );
 
 		wp_set_current_user( self::$admin_id );
 
 		// Start of the index.
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/comments' );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertSame( $total_comments, $headers['X-WP-Total'] );
@@ -884,8 +920,14 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 	}
 
-	public function test_get_comments_invalid_date() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_comments_invalid_date( $method ) {
+		$request = new WP_REST_Request( $method, '/wp/v2/comments' );
 		$request->set_param( 'after', 'foo' );
 		$request->set_param( 'before', 'bar' );
 		$response = rest_get_server()->dispatch( $request );
@@ -997,23 +1039,41 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( substr( get_avatar_url( $comment->comment_author_email ), 9 ), substr( $data['author_avatar_urls'][96], 9 ) );
 	}
 
-	public function test_get_comment_invalid_id() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_comment_invalid_id( $method ) {
+		$request = new WP_REST_Request( $method, '/wp/v2/comments/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_invalid_id', $response, 404 );
 	}
 
-	public function test_get_comment_invalid_context() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_comment_invalid_context( $method ) {
 		wp_set_current_user( 0 );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', self::$approved_id ) );
+		$request = new WP_REST_Request( $method, sprintf( '/wp/v2/comments/%s', self::$approved_id ) );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
-	public function test_get_comment_invalid_post_id() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_comment_invalid_post_id( $method ) {
 		wp_set_current_user( 0 );
 
 		$comment_id = self::factory()->comment->create(
@@ -1023,12 +1083,18 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			)
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $comment_id );
+		$request  = new WP_REST_Request( $method, '/wp/v2/comments/' . $comment_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
-	public function test_get_comment_invalid_post_id_as_admin() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_comment_invalid_post_id_as_admin( $method ) {
 		wp_set_current_user( self::$admin_id );
 
 		$comment_id = self::factory()->comment->create(
@@ -1038,23 +1104,35 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			)
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $comment_id );
+		$request  = new WP_REST_Request( $method, '/wp/v2/comments/' . $comment_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
-	public function test_get_comment_not_approved() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_comment_not_approved( $method ) {
 		wp_set_current_user( 0 );
 
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', self::$hold_id ) );
+		$request  = new WP_REST_Request( $method, sprintf( '/wp/v2/comments/%d', self::$hold_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
 	}
 
-	public function test_get_comment_not_approved_same_user() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_comment_not_approved_same_user( $method ) {
 		wp_set_current_user( self::$admin_id );
 
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', self::$hold_id ) );
+		$request  = new WP_REST_Request( $method, sprintf( '/wp/v2/comments/%d', self::$hold_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 	}
@@ -1098,7 +1176,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertArrayNotHasKey( 'children', $response->get_links() );
 	}
 
-	public function test_get_comment_with_password_without_edit_post_permission() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_comment_with_password_without_edit_post_permission( $method ) {
 		wp_set_current_user( self::$subscriber_id );
 
 		$args = array(
@@ -1108,15 +1192,19 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$password_comment = self::factory()->comment->create( $args );
 
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $password_comment ) );
+		$request  = new WP_REST_Request( $method, sprintf( '/wp/v2/comments/%s', $password_comment ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 38692
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_comment_with_password_with_valid_password() {
+	public function test_get_comment_with_password_with_valid_password( $method ) {
 		wp_set_current_user( self::$subscriber_id );
 
 		$args = array(
@@ -1126,7 +1214,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$password_comment = self::factory()->comment->create( $args );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $password_comment ) );
+		$request = new WP_REST_Request( $method, sprintf( '/wp/v2/comments/%s', $password_comment ) );
 		$request->set_param( 'password', 'toomanysecrets' );
 
 		$response = rest_get_server()->dispatch( $request );
@@ -3365,9 +3453,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 42238
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_check_read_post_permission_with_invalid_post_type() {
+	public function test_check_read_post_permission_with_invalid_post_type( $method ) {
 		register_post_type(
 			'bug-post',
 			array(
@@ -3386,7 +3478,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->setExpectedIncorrectUsage( 'map_meta_cap' );
 
 		wp_set_current_user( self::$admin_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $comment_id );
+		$request  = new WP_REST_Request( $method, '/wp/v2/comments/' . $comment_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 403, $response->get_status() );
 	}
@@ -3435,18 +3527,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		// Assert that the SQL query only fetches the ID column.
 		$this->assertMatchesRegularExpression( $pattern, $query->request, 'The SQL query does not match the expected string.' );
-	}
-
-	/**
-	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
-	 *
-	 * @return array
-	 */
-	public function data_readable_http_methods() {
-		return array(
-			'GET request'  => array( 'GET' ),
-			'HEAD request' => array( 'HEAD' ),
-		);
 	}
 
 	/**
