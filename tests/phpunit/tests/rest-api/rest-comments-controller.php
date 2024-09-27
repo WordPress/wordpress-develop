@@ -3418,7 +3418,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertTrue( isset( $args[0][1] ), 'Query parameters were not captured.' );
 		$this->assertInstanceOf( WP_Comment_Query::class, $args[0][1], 'Query parameters were not captured.' );
 
-		/** @var WP_Query $query */
+		/** @var WP_Comment_Query $query */
 		$query = $args[0][1];
 
 		if ( $is_head_request ) {
