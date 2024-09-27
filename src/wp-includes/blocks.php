@@ -1081,8 +1081,10 @@ function apply_block_hooks_to_content( $content, $context, $callback = 'insert_h
 		}
 	}
 
-	// We also need to cover the case where there the hooked block is not present in
-	// `$content` at first and we're allowed to insert it once -- but not again.
+	/*
+	 * We also need to cover the case where there the hooked block is not present in
+	 * `$content` at first and we're allowed to insert it once -- but not again.
+	 */
 	$suppress_single_instance_blocks = static function ( $hooked_block_types, $relative_position, $anchor_block_name ) use ( &$block_allows_multiple_instances, $content ) {
 		foreach ( $hooked_block_types as $index => $hooked_block_type ) {
 			if ( ! isset( $block_allows_multiple_instances[ $hooked_block_type ] ) ) {
