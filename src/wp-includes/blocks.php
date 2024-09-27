@@ -409,7 +409,7 @@ function wp_register_block_metadata_collection( $path, $manifest ) {
  * @param array  $args           Optional. Array of block type arguments. Accepts any public property
  *                               of `WP_Block_Type`. See WP_Block_Type::__construct() for information
  *                               on accepted arguments. Default empty array.
- * @return WP_Block_Type|false The registered block type on success, or false on failure.
+ * @return WP_Block_Type|false The registered block type on success, or false on failure .
  */
 function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	/*
