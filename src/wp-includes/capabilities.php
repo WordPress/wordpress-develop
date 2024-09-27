@@ -803,7 +803,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			break;
 		case 'edit_block_binding':
 			$block_editor_context = $args[0];
-			if ( isset( $block_editor_context ) && isset( $block_editor_context->post ) ) {
+			if ( isset( $block_editor_context->post ) ) {
 				$object_id = $block_editor_context->post->ID;
 			}
 			/*
