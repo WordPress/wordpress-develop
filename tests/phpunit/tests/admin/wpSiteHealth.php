@@ -163,6 +163,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56041
+	 * @ticket 62101
 	 * @dataProvider data_get_page_cache
 	 * @covers ::get_test_page_cache()
 	 * @covers ::get_page_cache_detail()
