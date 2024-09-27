@@ -2949,7 +2949,11 @@ function get_the_posts_pagination( $args = array() ) {
 			$args['aria_label'] = $args['screen_reader_text'];
 		}
 
-		$post_type_name = get_queried_object()->labels->name;
+		if( ! empty( get_queried_object()->labels->name ) ) {
+			$post_type_name = get_queried_object()->labels->name;
+		} else {
+			$post_type_name = 'Posts';
+		}
 
 		$args = wp_parse_args(
 			$args,
@@ -2957,7 +2961,7 @@ function get_the_posts_pagination( $args = array() ) {
 				'mid_size'           => 1,
 				'prev_text'          => _x( 'Previous', 'previous set of posts' ),
 				'next_text'          => _x( 'Next', 'next set of posts' ),
-				'screen_reader_text' => __( 'Posts navigation' ),
+				'screen_reader_text' => __( $post_type_name . ' navigation' ),
 				'aria_label'         => __( $post_type_name . ' pagination' ),
 				'class'              => 'pagination',
 			)
