@@ -758,8 +758,16 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		);
 
 		// At the foreignObject, the processor is in the SVG namespace.
-		$this->assertTrue( $processor->next_tag( 'foreignObject' ) );
-		$this->assertSame( 'svg', $processor->get_namespace() );
+		$this->assertTrue(
+			$processor->next_tag( 'foreignObject' ),
+			'Failed to find "foreignObject" under test: check test setup.'
+		);
+
+		$this->assertSame(
+			'svg',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the "foreignObject" element.'
+		);
 
 		/*
 		 * The IMAGE tag should be handled according to HTML processing rules
@@ -767,8 +775,16 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		 * integration point. At this point, the processor is entering the HTML
 		 * integration point.
 		 */
-		$this->assertTrue( $processor->next_tag( 'IMG' ) );
-		$this->assertSame( 'html', $processor->get_namespace() );
+		$this->assertTrue(
+			$processor->next_tag( 'IMG' ),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
 
 		/*
 		 * Again, the IMAGE tag should be handled according to HTML processing
@@ -776,8 +792,16 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		 * HTML integration point. At this point, the processor is has entered
 		 * SVG and is returning to an HTML integration point.
 		 */
-		$this->assertTrue( $processor->next_tag( 'IMG' ) );
-		$this->assertSame( 'html', $processor->get_namespace() );
+		$this->assertTrue(
+			$processor->next_tag( 'IMG' ),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
 	}
 
 	/**
@@ -791,20 +815,52 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'<mo><image /></mo><math><image /><mo><image /></mo></math>'
 		);
 
-		$this->assertTrue( $processor->next_token() );
-		$this->assertTrue( $processor->next_token() );
-		$this->assertSame( 'html', $processor->get_namespace() );
-		$this->assertSame( 'IMG', $processor->get_token_name() );
+		// Advance token-by-token to ensure matching the right raw "<image />" token.
+		$processor->next_token(); // Advance past the +MO.
+		$processor->next_token(); // Advance into the +IMG.
 
-		$this->assertTrue( $processor->next_token() );
-		$this->assertTrue( $processor->next_token() );
-		$this->assertTrue( $processor->next_token() );
-		$this->assertSame( 'math', $processor->get_namespace() );
-		$this->assertSame( 'IMAGE', $processor->get_token_name() );
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
 
-		$this->assertTrue( $processor->next_token() );
-		$this->assertTrue( $processor->next_token() );
-		$this->assertSame( 'html', $processor->get_namespace() );
-		$this->assertSame( 'IMG', $processor->get_token_name() );
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		// Advance token-by-token to ensure matching the right raw "<image />" token.
+		$processor->next_token(); // Advance past the -MO.
+		$processor->next_token(); // Advance past the +MATH.
+		$processor->next_token(); // Advance into the +IMAGE.
+
+		$this->assertSame(
+			'IMAGE',
+			$processor->get_tag(),
+			'Failed to find the un-transformed "<image />" tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		$processor->next_token(); // Advance past the +MO.
+		$processor->next_token(); // Advance into the +IMG.
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
 	}
 }
