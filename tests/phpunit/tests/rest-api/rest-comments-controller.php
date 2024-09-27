@@ -3416,30 +3416,36 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$args = $filter->get_args();
 		$this->assertTrue( isset( $args[0][1] ), 'Query parameters were not captured.' );
-		$this->assertInstanceOf( WP_Query::class, $args[0][1], 'Query parameters were not captured.' );
+		$this->assertInstanceOf( WP_Comment_Query::class, $args[0][1], 'Query parameters were not captured.' );
 
 		/** @var WP_Query $query */
 		$query = $args[0][1];
 
 		if ( $is_head_request ) {
-			$this->assertArrayHasKey( 'fields', $query->query, 'The fields parameter is not set in the query vars.' );
-			$this->assertSame( 'ids', $query->query['fields'], 'The query must fetch only post IDs.' );
 			$this->assertArrayHasKey( 'fields', $query->query_vars, 'The fields parameter is not set in the query vars.' );
 			$this->assertSame( 'ids', $query->query_vars['fields'], 'The query must fetch only post IDs.' );
 		} else {
-			$this->assertTrue( ! array_key_exists( 'fields', $query->query ) || 'ids' !== $query->query['fields'], 'The fields parameter should not be forced to "ids" for non-HEAD requests.' );
 			$this->assertTrue( ! array_key_exists( 'fields', $query->query_vars ) || 'ids' !== $query->query_vars['fields'], 'The fields parameter should not be forced to "ids" for non-HEAD requests.' );
-		}
-
-		if ( ! $is_head_request ) {
 			return;
 		}
 
 		global $wpdb;
-		$posts_table = preg_quote( $wpdb->posts, '/' );
-		$pattern     = '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $posts_table . '\.ID\s+FROM\s+' . $posts_table . '\s+WHERE/i';
+		$comments_table = preg_quote( $wpdb->comments, '/' );
+		$pattern        = '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $comments_table . '\.comment_ID\s+FROM\s+' . $comments_table . '\s+WHERE/i';
 
 		// Assert that the SQL query only fetches the ID column.
 		$this->assertMatchesRegularExpression( $pattern, $query->request, 'The SQL query does not match the expected string.' );
+	}
+
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
 	}
 }
