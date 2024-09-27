@@ -1102,14 +1102,14 @@ function apply_block_hooks_to_content( $content, $context, $callback = 'insert_h
 		return $hooked_block_types;
 	};
 	add_filter( 'hooked_block_types', $suppress_single_instance_blocks, PHP_INT_MAX, 3 );
-
-	$blocks = parse_blocks( $content );
-
-	$updated_content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
-
+	$content = traverse_and_serialize_blocks(
+		parse_blocks( $content ),
+		$before_block_visitor,
+		$after_block_visitor
+	);
 	remove_filter( 'hooked_block_types', $suppress_single_instance_blocks, PHP_INT_MAX );
 
-	return $updated_content;
+	return $content;
 }
 
 /**
