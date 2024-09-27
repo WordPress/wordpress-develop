@@ -994,6 +994,16 @@ CSS;
 	}
 
 	/**
+	 * Deprecated.
+	 *
+	 * @since 6.5.0
+	 * @deprecated 6.7.0 Use {@see WP_Interactivity_API::print_router_markup} instead.
+	 */
+	public function print_router_loading_and_screen_reader_markup() {
+		_deprecated_function( __METHOD__, '6.7.0', 'WP_Interactivity_API::print_router_markup' );
+	}
+
+	/**
 	 * Outputs markup for the @wordpress/interactivity-router script module.
 	 *
 	 * This method prints a div element representing a loading bar visible during
