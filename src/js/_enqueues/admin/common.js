@@ -1318,7 +1318,7 @@ $( function() {
 		var bulkFieldRelations = {
 			'bulk_action' : 'action',
 			'changeit' : 'new_role'
-		}
+		};
 		if ( ! Object.keys( bulkFieldRelations ).includes( submitterName ) ) {
 			return;
 		}
