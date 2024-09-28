@@ -74,14 +74,23 @@ class WP_Block_Metadata_Registry {
 	 * @return bool True if the collection was registered successfully, false otherwise.
 	 */
 	public static function register_collection( $path, $manifest ) {
+		static $wpinc_path = '';
+		static $plugin_dir = '';
+
 		$path = wp_normalize_path( rtrim( $path, '/' ) );
 
+		if ( ! $wpinc_path ) {
+			$wpinc_path = wp_normalize_path( ABSPATH . WPINC );
+		}
+		if ( ! $plugin_dir ) {
+			$plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
+		}
+
 		// Check if the path is valid:
-		if ( str_starts_with( $path, wp_normalize_path( ABSPATH . WPINC ) ) ) {
+		if ( str_starts_with( $path, $wpinc_path ) ) {
 			// Core path is valid.
-		} elseif ( str_starts_with( $path, wp_normalize_path( WP_PLUGIN_DIR ) ) ) {
+		} elseif ( str_starts_with( $path, $plugin_dir ) ) {
 			// For plugins, ensure the path is within a specific plugin directory and not the base plugin directory.
-			$plugin_dir    = wp_normalize_path( WP_PLUGIN_DIR );
 			$relative_path = substr( $path, strlen( $plugin_dir ) + 1 );
 			$plugin_name   = strtok( $relative_path, '/' );
 
