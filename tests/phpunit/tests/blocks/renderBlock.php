@@ -235,7 +235,8 @@ class Tests_Blocks_RenderBlock extends WP_UnitTestCase {
 		);
 
 		// Test inner block context when the provider block is a top-level block.
-		do_blocks( <<<HTML
+		do_blocks(
+			<<<HTML
 <!-- wp:tests/context-provider -->
 <!-- wp:tests/context-consumer /-->
 <!-- /wp:tests/context-provider -->
@@ -245,7 +246,8 @@ HTML
 		$this->assertSame( 'ok', $provided_context['example'], 'Test block is top-level block: "example" in context should be "ok"' );
 
 		// Test inner block context when the provider block is an inner block.
-		do_blocks( <<<HTML
+		do_blocks(
+			<<<HTML
 <!-- wp:group {"layout":{"type":"constrained"}} -->
 <!-- wp:tests/context-provider -->
 <!-- wp:tests/context-consumer /-->
@@ -291,18 +293,20 @@ HTML
 			2
 		);
 
-		do_blocks( <<<HTML
+		do_blocks(
+			<<<HTML
 <!-- wp:tests/context-consumer /-->
 HTML
 		);
-		$this->assertFalse( isset( $provided_context['invalid'] ), 'Test block is top-level block: Context should include not include unsupported properties"' );
+		$this->assertFalse( isset( $provided_context['invalid'] ), 'Test block is top-level block: Context should not include unsupported properties"' );
 
-		do_blocks( <<<HTML
+		do_blocks(
+			<<<HTML
 <!-- wp:group {"layout":{"type":"constrained"}} -->
 <!-- wp:tests/context-consumer /-->
 <!-- /wp:group -->
 HTML
 		);
-		$this->assertFalse( isset( $provided_context['invalid'] ), 'Test block is inner block: Context should include not include unsupported properties' );
+		$this->assertFalse( isset( $provided_context['invalid'] ), 'Test block is inner block: Context should not include unsupported properties' );
 	}
 }
