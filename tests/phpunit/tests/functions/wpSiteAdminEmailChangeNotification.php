@@ -40,7 +40,7 @@ class Tests_functions_wpSiteAdminEmailChangeNotification extends WP_UnitTestCase
 
 		add_filter( 'send_site_admin_email_change_email', '__return_false' );
 
-		wp_site_admin_email_change_notification( 'you@example.com', '', '' );
+		wp_site_admin_email_change_notification( 'address@tld.com', 'address@new.com', '' );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertEmpty( $mailer->get_sent() );
