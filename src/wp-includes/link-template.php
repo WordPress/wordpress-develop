@@ -2931,8 +2931,8 @@ function the_posts_navigation( $args = array() ) {
  *     Optional. Default pagination arguments, see paginate_links().
  *
  *     @type string $screen_reader_text Screen reader text for navigation element.
- *                                      Default 'Posts navigation'.
- *     @type string $aria_label         ARIA label text for the nav element. Default 'Posts'.
+ *                                      Default 'Posts pagination'.
+ *     @type string $aria_label         ARIA label text for the nav element. Default 'Posts pagination'.
  *     @type string $class              Custom class for the nav element. Default 'pagination'.
  * }
  * @return string Markup for pagination links.
@@ -3375,8 +3375,8 @@ function the_comments_navigation( $args = array() ) {
  * @param array $args {
  *     Optional. Default pagination arguments.
  *
- *     @type string $screen_reader_text Screen reader text for the nav element. Default 'Comments navigation'.
- *     @type string $aria_label         ARIA label text for the nav element. Default 'Comments'.
+ *     @type string $screen_reader_text Screen reader text for the nav element. Default 'Comments pagination'.
+ *     @type string $aria_label         ARIA label text for the nav element. Default 'Comments pagination'.
  *     @type string $class              Custom class for the nav element. Default 'comments-pagination'.
  * }
  * @return string Markup for pagination links.
@@ -3392,7 +3392,7 @@ function get_the_comments_pagination( $args = array() ) {
 	$args         = wp_parse_args(
 		$args,
 		array(
-			'screen_reader_text' => __( 'Comments navigation' ),
+			'screen_reader_text' => __( 'Comments pagination' ),
 			'aria_label'         => __( 'Comments pagination' ),
 			'class'              => 'comments-pagination',
 		)
