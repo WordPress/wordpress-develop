@@ -2952,7 +2952,7 @@ function get_the_posts_pagination( $args = array() ) {
 		if ( ! empty( get_queried_object()->labels->name ) ) {
 			$post_type_name = get_queried_object()->labels->name;
 		} else {
-			$post_type_name = 'Posts';
+			$post_type_name = __( 'Posts' );
 		}
 
 		$args = wp_parse_args(
