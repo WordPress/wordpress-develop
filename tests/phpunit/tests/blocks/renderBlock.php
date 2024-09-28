@@ -235,8 +235,7 @@ class Tests_Blocks_RenderBlock extends WP_UnitTestCase {
 		);
 
 		// Test inner block context when the provider block is a top-level block.
-		do_blocks(
-			<<<HTML
+		do_blocks( <<<HTML
 <!-- wp:tests/context-provider -->
 <!-- wp:tests/context-consumer /-->
 <!-- /wp:tests/context-provider -->
@@ -246,8 +245,7 @@ HTML
 		$this->assertSame( 'ok', $provided_context['example'], 'Test block is top-level block: "example" in context should be "ok"' );
 
 		// Test inner block context when the provider block is an inner block.
-		do_blocks(
-			<<<HTML
+		do_blocks( <<<HTML
 <!-- wp:group {"layout":{"type":"constrained"}} -->
 <!-- wp:tests/context-provider -->
 <!-- wp:tests/context-consumer /-->
@@ -257,5 +255,54 @@ HTML
 		);
 		$this->assertTrue( isset( $provided_context['example'] ), 'Test block is inner block: Block context should include "example"' );
 		$this->assertSame( 'ok', $provided_context['example'], 'Test block is inner block: "example" in context should be "ok"' );
+	}
+
+	/**
+	 * Tests that the 'render_block_context' filter provides available context, not actual context.
+	 *
+	 * @ticket 62046
+	 */
+	public function test_render_block_context_allowed_context() {
+		$provided_context = array();
+
+		register_block_type(
+			'tests/context-consumer',
+			array(
+				'uses_context'     => array( 'example' ),
+				'render_callback'  => static function ( $attributes, $content, $block ) use ( &$provided_context ) {
+					$provided_context = $block->context;
+
+					return '';
+				},
+			),
+		);
+
+		// Filter the context provided to the test block.
+		add_filter(
+			'render_block_context',
+			function ( $context, $parsed_block ) {
+				if ( isset( $parsed_block['blockName'] ) && 'tests/context-consumer' === $parsed_block['blockName'] ) {
+					$context['invalid'] = 'ok';
+				}
+
+				return $context;
+			},
+			10,
+			2
+		);
+
+		do_blocks( <<<HTML
+<!-- wp:tests/context-consumer /-->
+HTML
+		);
+		$this->assertFalse( isset( $provided_context['invalid'] ), 'Test block is top-level block: Context should include not include unsupported properties"' );
+
+		do_blocks( <<<HTML
+<!-- wp:group {"layout":{"type":"constrained"}} -->
+<!-- wp:tests/context-consumer /-->
+<!-- /wp:group -->
+HTML
+		);
+		$this->assertFalse( isset( $provided_context['invalid'] ), 'Test block is inner block: Context should include not include unsupported properties' );
 	}
 }
