@@ -276,7 +276,7 @@ HTML
 
 					return '';
 				},
-			),
+			)
 		);
 
 		// Filter the context provided to the test block.
