@@ -199,7 +199,7 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	?>
 	</head>
 	<body class="login no-js <?php echo esc_attr( implode( ' ', $classes ) ); ?>">
-	<main>
+	<header>
 	<?php
 	wp_print_inline_script_tag( "document.body.className = document.body.className.replace('no-js','js');" );
 	?>
@@ -213,8 +213,10 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	do_action( 'login_header' );
 
 	?>
+	</header>
+	<main>
 	<div id="login">
-		<h1 role="presentation" class="logo"><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
+		<h1 role="presentation" class="wp-login-logo"><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
 	<?php
 	/**
 	 * Filters the message to display above the login form.
@@ -421,6 +423,7 @@ function login_footer( $input_id = '' ) {
 				</div>
 		<?php } ?>
 	<?php } ?>
+	</main>
 	<?php
 
 	if ( ! empty( $input_id ) ) {
@@ -442,7 +445,6 @@ function login_footer( $input_id = '' ) {
 	do_action( 'login_footer' );
 
 	?>
-	</main>
 	</body>
 	</html>
 	<?php
@@ -829,6 +831,9 @@ switch ( $action ) {
 
 	case 'lostpassword':
 	case 'retrievepassword':
+		?>
+		<h1 class="screen-reader-text"><?php _e( 'Lost Password' ); ?></h1>
+		<?php
 		if ( $http_post ) {
 			$errors = retrieve_password();
 
@@ -889,7 +894,6 @@ switch ( $action ) {
 		?>
 
 		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
-			<h1 class="screen-reader-text"><?php _e( 'Lost Password' ); ?></h1>
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
 				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
@@ -932,6 +936,9 @@ switch ( $action ) {
 
 	case 'resetpass':
 	case 'rp':
+		?>
+		<h1 class="screen-reader-text"><?php _e( 'Reset Password' ); ?></h1>
+		<?php
 		list( $rp_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
 		$rp_cookie       = 'wp-resetpass-' . COOKIEHASH;
 
@@ -1028,7 +1035,6 @@ switch ( $action ) {
 		?>
 		<form name="resetpassform" id="resetpassform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=resetpass', 'login_post' ) ); ?>" method="post" autocomplete="off">
 			<input type="hidden" id="user_login" value="<?php echo esc_attr( $rp_login ); ?>" autocomplete="off" />
-			<h1 class="screen-reader-text"><?php _e( 'Reset Password' ); ?></h1>
 
 			<div class="user-pass1-wrap">
 				<p>
@@ -1096,6 +1102,9 @@ switch ( $action ) {
 		break;
 
 	case 'register':
+		?>
+		<h1 class="screen-reader-text"><?php _e( 'Register' ); ?></h1>
+		<?php
 		if ( is_multisite() ) {
 			/**
 			 * Filters the Multisite sign up URL.
@@ -1162,7 +1171,6 @@ switch ( $action ) {
 
 		?>
 		<form name="registerform" id="registerform" action="<?php echo esc_url( site_url( 'wp-login.php?action=register', 'login_post' ) ); ?>" method="post" novalidate="novalidate">
-			<h1 class="screen-reader-text"><?php _e( 'Register' ); ?></h1>
 			<p>
 				<label for="user_login"><?php _e( 'Username' ); ?></label>
 				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
@@ -1281,6 +1289,9 @@ switch ( $action ) {
 
 	case 'login':
 	default:
+		?>
+		<h1 class="screen-reader-text"><?php _e( 'Log in' ); ?></h1>
+		<?php
 		$secure_cookie   = '';
 		$customize_login = isset( $_REQUEST['customize-login'] );
 
@@ -1507,7 +1518,6 @@ switch ( $action ) {
 		?>
 
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
-			<h1 class="screen-reader-text"><?php _e( 'Log in' ); ?></h1>
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
 				<input type="text" name="log" id="user_login"<?php echo $aria_describedby; ?> class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />

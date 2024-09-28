@@ -149,10 +149,6 @@ p {
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.login form h1 {
-	margin-bottom: 10px;
-}
-
 .login form.shake {
 	animation: shake 0.2s cubic-bezier(.19,.49,.38,.79) both;
 	animation-iteration-count: 3;
@@ -273,12 +269,7 @@ p {
 	vertical-align: baseline;
 }
 
-#loginform h1 {
-	text-align: left;
-	font-size: 20px;
-}
-
-.login .logo a {
+.login .wp-login-logo a {
 	background-image: url(../images/w-logo-blue.png?ver=20131202);
 	background-image: none, url(../images/wordpress-logo.svg?ver=20131107);
 	background-size: 84px;
@@ -328,13 +319,13 @@ p {
 
 .login #nav a:hover,
 .login #backtoblog a:hover,
-.login .logo a:hover {
+.login .wp-login-logo a:hover {
 	color: #135e96;
 }
 
 .login #nav a:focus,
 .login #backtoblog a:focus,
-.login .logo a:focus {
+.login .wp-login-logo a:focus {
 	color: #043959;
 }
 
@@ -395,7 +386,7 @@ body.interim-login {
 	margin: 5px auto 20px;
 }
 
-.interim-login.login .logo a {
+.interim-login.login .wp-login-logo a {
 	width: auto;
 }
 
