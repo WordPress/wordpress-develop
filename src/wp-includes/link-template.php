@@ -2949,22 +2949,14 @@ function get_the_posts_pagination( $args = array() ) {
 			$args['aria_label'] = $args['screen_reader_text'];
 		}
 
-		if ( ! empty( get_queried_object()->labels->name ) ) {
-			$post_type_name = get_queried_object()->labels->name;
-		} else {
-			$post_type_name = __( 'Posts' );
-		}
-
 		$args = wp_parse_args(
 			$args,
 			array(
 				'mid_size'           => 1,
 				'prev_text'          => _x( 'Previous', 'previous set of posts' ),
 				'next_text'          => _x( 'Next', 'next set of posts' ),
-				/* translators: %s: Post type name. */
-				'screen_reader_text' => sprintf( __( '%s pagination' ), $post_type_name ),
-				/* translators: %s: Post type name. */
-				'aria_label'         => sprintf( __( '%s pagination' ), $post_type_name ),
+				'screen_reader_text' => __( 'Posts pagination' ),
+				'aria_label'         => __( 'Posts pagination' ),
 				'class'              => 'pagination',
 			)
 		);
