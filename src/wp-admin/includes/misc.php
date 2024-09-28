@@ -1457,6 +1457,17 @@ function wp_page_reload_on_back_button_js() {
 }
 
 /**
+ * Retrieve the old admin email address before sending an email of the change of site admin email address.
+ *
+ * @param string $option The name of the option.
+ * @param mixed $new_email The proposed new site email address.
+ * @return void
+ */
+function add_option_new_admin_email( $option, $new_email ) {
+	update_option_new_admin_email( get_option( 'admin_email' ), $new_email );
+}
+
+/**
  * Sends a confirmation request email when a change of site admin email address is attempted.
  *
  * The new site admin address will not become active until confirmed.
