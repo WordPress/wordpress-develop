@@ -1807,7 +1807,7 @@ function wp_start_scraping_edited_file_errors() {
 	$key   = substr( sanitize_key( wp_unslash( $_REQUEST['wp_scrape_key'] ) ), 0, 32 );
 	$nonce = wp_unslash( $_REQUEST['wp_scrape_nonce'] );
 
-	if ( empty( $_REQUEST['wp_scrape_key'] ) || empty( $_REQUEST['wp_scrape_nonce'] ) ) {
+	if ( empty( $key ) || empty( $nonce ) ) {
 		return;
 	}
 
