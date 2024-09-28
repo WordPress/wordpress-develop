@@ -2961,7 +2961,9 @@ function get_the_posts_pagination( $args = array() ) {
 				'mid_size'           => 1,
 				'prev_text'          => _x( 'Previous', 'previous set of posts' ),
 				'next_text'          => _x( 'Next', 'next set of posts' ),
+				/* translators: %s: Post type name. */
 				'screen_reader_text' => sprintf( __( '%s navigation' ), $post_type_name ),
+				/* translators: %s: Post type name. */
 				'aria_label'         => sprintf( __( '%s pagination' ), $post_type_name ),
 				'class'              => 'pagination',
 			)
