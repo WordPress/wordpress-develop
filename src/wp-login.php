@@ -211,8 +211,8 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	 * @since 4.6.0
 	 */
 	do_action( 'login_header' );
-
 	?>
+		<h1 class="screen-reader-text"><?php echo $title; ?></h1>
 	</header>
 	<main>
 	<div id="login">
@@ -831,9 +831,6 @@ switch ( $action ) {
 
 	case 'lostpassword':
 	case 'retrievepassword':
-		?>
-		<h1 class="screen-reader-text"><?php _e( 'Lost Password' ); ?></h1>
-		<?php
 		if ( $http_post ) {
 			$errors = retrieve_password();
 
@@ -936,9 +933,6 @@ switch ( $action ) {
 
 	case 'resetpass':
 	case 'rp':
-		?>
-		<h1 class="screen-reader-text"><?php _e( 'Reset Password' ); ?></h1>
-		<?php
 		list( $rp_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
 		$rp_cookie       = 'wp-resetpass-' . COOKIEHASH;
 
@@ -1102,9 +1096,6 @@ switch ( $action ) {
 		break;
 
 	case 'register':
-		?>
-		<h1 class="screen-reader-text"><?php _e( 'Register' ); ?></h1>
-		<?php
 		if ( is_multisite() ) {
 			/**
 			 * Filters the Multisite sign up URL.
@@ -1289,9 +1280,6 @@ switch ( $action ) {
 
 	case 'login':
 	default:
-		?>
-		<h1 class="screen-reader-text"><?php _e( 'Log in' ); ?></h1>
-		<?php
 		$secure_cookie   = '';
 		$customize_login = isset( $_REQUEST['customize-login'] );
 
