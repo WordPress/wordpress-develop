@@ -871,8 +871,7 @@ function shortcode_unautop( $text ) {
 /**
  * Checks to see if a string is utf8 encoded.
  *
- * NOTE: This function checks for 5-Byte sequences, UTF8
- *       has Bytes Sequences with a maximum length of 4.
+ *
  *
  * @author bmorel at ssi dot fr (modified)
  * @since 1.2.1
@@ -912,14 +911,14 @@ function seems_utf8( $str ) {
 			}
 		}
 
-		// Prevent invalid overlong sequences for U+0000
+		// Prevent invalid overlong sequences for U+0000.
 		if ( $n > 0 && 0x00 === $c ) {
-			return false; // Invalid overlong sequence for U+0000
+			return false; // Invalid overlong sequence for U+0000.
 		}
 
 		// Check for invalid code points (U+D800 to U+DFFF)
 		if ( 3 === $n && $c >= 0xED ) {
-			if ( ( 0xED === $c && ord($str[ $i - 2 ] ) >= 0xA0 ) || ( $c > 0xED && $c < 0xF0 ) ) {
+			if ( ( 0xED === $c && ord( $str[ $i - 2 ] ) >= 0xA0 ) || ( $c > 0xED && $c < 0xF0 ) ) {
 				return false; // Invalid: surrogate pair range.
 			}
 		}
