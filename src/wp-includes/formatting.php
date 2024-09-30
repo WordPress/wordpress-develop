@@ -3294,13 +3294,13 @@ function wp_rel_ugc( $text ) {
  *
  * @since 5.1.0
  * @since 5.6.0 Removed 'noreferrer' relationship.
- * @deprecated 5.7.0
+ * @deprecated 6.7.0
  *
  * @param string $text Content that may contain HTML A elements.
  * @return string Converted content.
  */
 function wp_targeted_link_rel( $text ) {
-	_deprecated_function( __FUNCTION__, '5.7.0' );
+	_deprecated_function( __FUNCTION__, '6.7.0' );
 
 	// Don't run (more expensive) regex if no links with targets.
 	if ( stripos( $text, 'target' ) === false || stripos( $text, '<a ' ) === false || is_serialized( $text ) ) {
@@ -3335,13 +3335,13 @@ function wp_targeted_link_rel( $text ) {
  *
  * @since 5.1.0
  * @since 5.6.0 Removed 'noreferrer' relationship.
- * @deprecated 5.7.0
+ * @deprecated 6.7.0
  *
  * @param array $matches Single match.
  * @return string HTML A Element with `rel="noopener"` in addition to any existing values.
  */
 function wp_targeted_link_rel_callback( $matches ) {
-	_deprecated_function( __FUNCTION__, '5.7.0' );
+	_deprecated_function( __FUNCTION__, '6.7.0' );
 
 	$link_html          = $matches[1];
 	$original_link_html = $link_html;
