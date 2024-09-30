@@ -626,6 +626,27 @@ mockedApiResponse.Schema = {
                             "description": "Limit result set to items that are sticky.",
                             "type": "boolean",
                             "required": false
+                        },
+                        "format": {
+                            "description": "Limit result set to items assigned one or more given formats.",
+                            "type": "array",
+                            "uniqueItems": true,
+                            "items": {
+                                "enum": [
+                                    "standard",
+                                    "aside",
+                                    "chat",
+                                    "gallery",
+                                    "link",
+                                    "image",
+                                    "quote",
+                                    "status",
+                                    "video",
+                                    "audio"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
                         }
                     }
                 },
