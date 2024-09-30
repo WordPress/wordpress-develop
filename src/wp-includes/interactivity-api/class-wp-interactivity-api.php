@@ -1001,6 +1001,9 @@ CSS;
 	 */
 	public function print_router_loading_and_screen_reader_markup() {
 		_deprecated_function( __METHOD__, '6.7.0', 'WP_Interactivity_API::print_router_markup' );
+
+		// Call the new method.
+		$this->print_router_markup();
 	}
 
 	/**
