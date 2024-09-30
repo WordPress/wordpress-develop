@@ -38,6 +38,22 @@ class WP_Block_Metadata_Registry {
 	private static $last_matched_collection = null;
 
 	/**
+	 * Stores the WordPress include path.
+	 *
+	 * @since 6.7.0
+	 * @var string
+	 */
+	private static $wpinc_path = '';
+
+	/**
+	 * Stores the normalized WordPress plugin directory path.
+	 *
+	 * @since 6.7.0
+	 * @var string
+	 */
+	private static $plugin_dir = '';
+
+	/**
 	 * Registers a block metadata collection.
 	 *
 	 * This method allows registering a collection of block metadata from a single
@@ -74,17 +90,10 @@ class WP_Block_Metadata_Registry {
 	 * @return bool True if the collection was registered successfully, false otherwise.
 	 */
 	public static function register_collection( $path, $manifest ) {
-		static $wpinc_path = '';
-		static $plugin_dir = '';
-
 		$path = wp_normalize_path( rtrim( $path, '/' ) );
 
-		if ( ! $wpinc_path ) {
-			$wpinc_path = wp_normalize_path( ABSPATH . WPINC );
-		}
-		if ( ! $plugin_dir ) {
-			$plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
-		}
+		$wpinc_path = self::get_include_path();
+		$plugin_dir = self::get_plugin_dir();
 
 		// Check if the path is valid:
 		if ( str_starts_with( $path, $wpinc_path ) ) {
@@ -233,5 +242,33 @@ class WP_Block_Metadata_Registry {
 
 		// Otherwise, assume it's a directory and return its name.
 		return basename( $path );
+	}
+
+	/**
+	 * Gets the WordPress include path.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string The WordPress include path.
+	 */
+	private static function get_include_path() {
+		if ( empty( self::$wpinc_path ) ) {
+			self::$wpinc_path = wp_normalize_path( ABSPATH . WPINC );
+		}
+		return self::$wpinc_path;
+	}
+
+	/**
+	 * Gets the normalized WordPress plugin directory path.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string The normalized WordPress plugin directory path.
+	 */
+	private static function get_plugin_dir() {
+		if ( empty( self::$plugin_dir ) ) {
+			self::$plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
+		}
+		return self::$plugin_dir;
 	}
 }
