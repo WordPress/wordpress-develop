@@ -1070,14 +1070,14 @@ function apply_block_hooks_to_content( $content, $context, $callback = 'insert_h
 					$block_allows_multiple_instances[ $hooked_block_type ] = true;
 				} elseif ( has_block( $hooked_block_type, $content ) ) {
 					unset( $hooked_blocks[ $anchor_block_type ][ $relative_position ][ $index ] );
-					if ( empty( $hooked_blocks[ $anchor_block_type ][ $relative_position ] ) ) {
-						unset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] );
-					}
-					if ( empty( $hooked_blocks[ $anchor_block_type ] ) ) {
-						unset( $hooked_blocks[ $anchor_block_type ] );
-					}
 				}
 			}
+			if ( empty( $hooked_blocks[ $anchor_block_type ][ $relative_position ] ) ) {
+				unset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] );
+			}
+		}
+		if ( empty( $hooked_blocks[ $anchor_block_type ] ) ) {
+			unset( $hooked_blocks[ $anchor_block_type ] );
 		}
 	}
 
