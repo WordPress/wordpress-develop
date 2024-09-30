@@ -104,8 +104,6 @@ final class WP_Interactivity_API {
 	 * @var array<mixed>|null
 	 */
 	private $current_element = null;
-
-
 	/**
 	 * Gets and/or sets the initial state of an Interactivity API store for a
 	 * given namespace.
