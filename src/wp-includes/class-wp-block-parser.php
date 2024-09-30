@@ -88,47 +88,52 @@ class WP_Block_Parser {
 	 * @return bool
 	 */
 	public function proceed() {
-		$next_token = $this->next_token();
-		list( $token_type, $block_name, $attrs, $start_offset, $token_length ) = $next_token;
+		$delimiter   = WP_Parsed_Block_Delimiter_Info::next_delimiter( $this->document, $this->offset, $delimiter_at, $delimiter_length );
 		$stack_depth = count( $this->stack );
 
-		// we may have some HTML soup before the next block.
-		$leading_html_start = $start_offset > $this->offset ? $this->offset : null;
-
-		switch ( $token_type ) {
-			case 'no-more-tokens':
-				// if not in a block then flush output.
-				if ( 0 === $stack_depth ) {
-					$this->add_freeform();
-					return false;
-				}
-
-				/*
-				 * Otherwise we have a problem
-				 * This is an error
-				 *
-				 * we have options
-				 * - treat it all as freeform text
-				 * - assume an implicit closer (easiest when not nesting)
-				 */
-
-				// for the easy case we'll assume an implicit closer.
-				if ( 1 === $stack_depth ) {
-					$this->add_block_from_stack();
-					return false;
-				}
-
-				/*
-				 * for the nested case where it's more difficult we'll
-				 * have to assume that multiple closers are missing
-				 * and so we'll collapse the whole stack piecewise
-				 */
-				while ( 0 < count( $this->stack ) ) {
-					$this->add_block_from_stack();
-				}
+		if ( ! isset( $delimiter ) ) {
+			// if not in a block then flush output.
+			if ( 0 === $stack_depth ) {
+				$this->add_freeform();
 				return false;
+			}
 
-			case 'void-block':
+			/*
+			 * Otherwise we have a problem
+			 * This is an error
+			 *
+			 * we have options
+			 * - treat it all as freeform text
+			 * - assume an implicit closer (easiest when not nesting)
+			 */
+
+			// for the easy case we'll assume an implicit closer.
+			if ( 1 === $stack_depth ) {
+				$this->add_block_from_stack();
+				return false;
+			}
+
+			/*
+			 * For the nested case where it's more difficult we'll
+			 * have to assume that multiple closers are missing
+			 * and so we'll collapse the whole stack piecewise
+			 *
+			 * The count of the stack changes during each iteration of the loop.
+			 */
+			while ( 0 < count( $this->stack ) ) { // phpcs:ignore
+				$this->add_block_from_stack();
+			}
+			return false;
+		}
+
+		// we may have some HTML soup before the next block.
+		$leading_html_start = $delimiter_at > $this->offset ? $this->offset : null;
+
+		switch ( $delimiter->get_delimiter_type() ) {
+			case WP_Parsed_Block_Delimiter_Info::VOID:
+				$block_name = $delimiter->allocate_and_return_block_type();
+				$attrs      = $delimiter->allocate_and_return_parsed_attributes() ?? array();
+
 				/*
 				 * easy case is if we stumbled upon a void block
 				 * in the top-level of the document
@@ -139,41 +144,44 @@ class WP_Block_Parser {
 							substr(
 								$this->document,
 								$leading_html_start,
-								$start_offset - $leading_html_start
+								$delimiter_at - $leading_html_start
 							)
 						);
 					}
 
 					$this->output[] = (array) new WP_Block_Parser_Block( $block_name, $attrs, array(), '', array() );
-					$this->offset   = $start_offset + $token_length;
+					$this->offset   = $delimiter_at + $delimiter_length;
 					return true;
 				}
 
 				// otherwise we found an inner block.
 				$this->add_inner_block(
 					new WP_Block_Parser_Block( $block_name, $attrs, array(), '', array() ),
-					$start_offset,
-					$token_length
+					$delimiter_at,
+					$delimiter_length
 				);
-				$this->offset = $start_offset + $token_length;
+				$this->offset = $delimiter_at + $delimiter_length;
 				return true;
 
-			case 'block-opener':
+			case WP_Parsed_Block_Delimiter_Info::OPENER:
+				$block_name = $delimiter->allocate_and_return_block_type();
+				$attrs      = $delimiter->allocate_and_return_parsed_attributes() ?? array();
+
 				// track all newly-opened blocks on the stack.
 				array_push(
 					$this->stack,
 					new WP_Block_Parser_Frame(
 						new WP_Block_Parser_Block( $block_name, $attrs, array(), '', array() ),
-						$start_offset,
-						$token_length,
-						$start_offset + $token_length,
+						$delimiter_at,
+						$delimiter_length,
+						$delimiter_at + $delimiter_length,
 						$leading_html_start
 					)
 				);
-				$this->offset = $start_offset + $token_length;
+				$this->offset = $delimiter_at + $delimiter_length;
 				return true;
 
-			case 'block-closer':
+			case WP_Parsed_Block_Delimiter_Info::CLOSER:
 				/*
 				 * if we're missing an opener we're in trouble
 				 * This is an error
@@ -191,8 +199,8 @@ class WP_Block_Parser {
 
 				// if we're not nesting then this is easy - close the block.
 				if ( 1 === $stack_depth ) {
-					$this->add_block_from_stack( $start_offset );
-					$this->offset = $start_offset + $token_length;
+					$this->add_block_from_stack( $delimiter_at );
+					$this->offset = $delimiter_at + $delimiter_length;
 					return true;
 				}
 
@@ -201,18 +209,18 @@ class WP_Block_Parser {
 				 * block and add it as a new innerBlock to the parent
 				 */
 				$stack_top                        = array_pop( $this->stack );
-				$html                             = substr( $this->document, $stack_top->prev_offset, $start_offset - $stack_top->prev_offset );
+				$html                             = substr( $this->document, $stack_top->prev_offset, $delimiter_at - $stack_top->prev_offset );
 				$stack_top->block->innerHTML     .= $html;
 				$stack_top->block->innerContent[] = $html;
-				$stack_top->prev_offset           = $start_offset + $token_length;
+				$stack_top->prev_offset           = $delimiter_at + $delimiter_length;
 
 				$this->add_inner_block(
 					$stack_top->block,
 					$stack_top->token_start,
 					$stack_top->token_length,
-					$start_offset + $token_length
+					$delimiter_at + $delimiter_length
 				);
-				$this->offset = $start_offset + $token_length;
+				$this->offset = $delimiter_at + $delimiter_length;
 				return true;
 
 			default:
@@ -228,75 +236,34 @@ class WP_Block_Parser {
 	 *
 	 * Returns the type of the find: kind of find, block information, attributes
 	 *
+	 * @deprecated {WP_VERSION} Replaced by WP_Parsed_Block_Delimiter_Info.
+	 *
 	 * @internal
 	 * @since 5.0.0
 	 * @since 4.6.1 fixed a bug in attribute parsing which caused catastrophic backtracking on invalid block comments
+	 * @since {WP_VERSION} Relies on the WP_Parsed_Block_Delimiter_Info class for parsing.
+	 *
 	 * @return array
 	 */
 	public function next_token() {
-		$matches = null;
-
-		/*
-		 * aye the magic
-		 * we're using a single RegExp to tokenize the block comment delimiters
-		 * we're also using a trick here because the only difference between a
-		 * block opener and a block closer is the leading `/` before `wp:` (and
-		 * a closer has no attributes). we can trap them both and process the
-		 * match back in PHP to see which one it was.
-		 */
-		$has_match = preg_match(
-			'/<!--\s+(?P<closer>\/)?wp:(?P<namespace>[a-z][a-z0-9_-]*\/)?(?P<name>[a-z][a-z0-9_-]*)\s+(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}\s+\/?-->).)*+)?}\s+)?(?P<void>\/)?-->/s',
-			$this->document,
-			$matches,
-			PREG_OFFSET_CAPTURE,
-			$this->offset
-		);
-
-		// if we get here we probably have catastrophic backtracking or out-of-memory in the PCRE.
-		if ( false === $has_match ) {
+		$delimiter = WP_Parsed_Block_Delimiter_Info::next_delimiter( $this->document, $this->offset, $delimiter_at, $delimiter_length );
+		if ( ! isset( $delimiter ) ) {
 			return array( 'no-more-tokens', null, null, null, null );
 		}
 
-		// we have no more tokens.
-		if ( 0 === $has_match ) {
-			return array( 'no-more-tokens', null, null, null, null );
+		$name  = $delimiter->allocate_and_return_block_type();
+		$attrs = $delimiter->allocate_and_return_parsed_attributes() ?? array();
+
+		switch ( $delimiter->get_delimiter_type() ) {
+			case WP_Parsed_Block_Delimiter_Info::VOID:
+				return array( 'void-block', $name, $attrs, $delimiter_at, $delimiter_length );
+
+			case WP_Parsed_Block_Delimiter_Info::CLOSER:
+				return array( 'block-closer', $name, null, $delimiter_at, $delimiter_length );
+
+			case WP_Parsed_Block_Delimiter_Info::OPENER:
+				return array( 'block-opener', $name, $attrs, $delimiter_at, $delimiter_length );
 		}
-
-		list( $match, $started_at ) = $matches[0];
-
-		$length    = strlen( $match );
-		$is_closer = isset( $matches['closer'] ) && -1 !== $matches['closer'][1];
-		$is_void   = isset( $matches['void'] ) && -1 !== $matches['void'][1];
-		$namespace = $matches['namespace'];
-		$namespace = ( isset( $namespace ) && -1 !== $namespace[1] ) ? $namespace[0] : 'core/';
-		$name      = $namespace . $matches['name'][0];
-		$has_attrs = isset( $matches['attrs'] ) && -1 !== $matches['attrs'][1];
-
-		/*
-		 * Fun fact! It's not trivial in PHP to create "an empty associative array" since all arrays
-		 * are associative arrays. If we use `array()` we get a JSON `[]`
-		 */
-		$attrs = $has_attrs
-			? json_decode( $matches['attrs'][0], /* as-associative */ true )
-			: array();
-
-		/*
-		 * This state isn't allowed
-		 * This is an error
-		 */
-		if ( $is_closer && ( $is_void || $has_attrs ) ) {
-			// we can ignore them since they don't hurt anything.
-		}
-
-		if ( $is_void ) {
-			return array( 'void-block', $name, $attrs, $started_at, $length );
-		}
-
-		if ( $is_closer ) {
-			return array( 'block-closer', $name, null, $started_at, $length );
-		}
-
-		return array( 'block-opener', $name, $attrs, $started_at, $length );
 	}
 
 	/**

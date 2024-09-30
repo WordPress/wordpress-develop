@@ -1412,6 +1412,123 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
 }
 
 /**
+ * Returns a regular expression which can be used to find
+ * block comment delimiters in a given HTML document.
+ *
+ * Returned matches contain named capture groups:
+ *  - 'closer' is '/' if the delimiter is a block closer.
+ *  - 'namespace' is non-empty if a block namespace was provided,
+ *    otherwise the block name is assumed to be in the "core/" namespace.
+ *  - 'name' is the block name, always non-empty.
+ *  - 'attrs' contains the content which may be JSON, if non-empty.
+ *  - 'void' is '/' if the delimiter indicates a void block.
+ *
+ * Example:
+ *
+ *     if ( 1 === preg_match( get_block_delimiter_regex(), $block_content, $delimiter_match ) ) {
+ *         $is_closer  = '/' === $delimiter_match['closer'];
+ *         $is_void    = '/' === $delimiter_match['void'];
+ *         $block_name = ( $delimiter_match['namespace'] ?? 'core/' ) . $delimiter_match['name'];
+ *         $attrs      = array();
+ *         if ( ! $is_closer ) {
+ *             $json = json_decode( $delimiter_match['attrs'] );
+ *             if ( JSON_ERROR_NONE === json_last_error() ) {
+ *                 $attrs = $json;
+ *             }
+ *         }
+ *     }
+ *
+ * @since {WP_VERSION}
+ *
+ * @return string PCRE pattern which can be used to find and parse block delimiter HTML comments.
+ */
+function get_block_delimiter_regex(): string {
+	return <<<'REGEXP'
+~
+<!--
+	\s+
+	(?P<closer>/)?                                                 # This pattern also detects closing block delimiters.
+	wp:(?P<namespace>[a-z][a-z0-9_-]*/)?(?P<name>[a-z][a-z0-9_-]*) # e.g. "core/paragraph", "paragraph", or "math-blocks/formula".
+	\s+
+	(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}\s+/?-->).)*+)?}\s+)?       # It's required to parse the JSON separately, if it exists.
+	(?P<void>/)?                                                   # Void blocks have no content and no closer.
+-->
+~sx
+REGEXP;
+}
+
+/**
+ * Returns a regular expression which can be used to find block comment
+ * delimiters for a given block type in a given HTML document.
+ *
+ * Returned matches contain named capture groups:
+ *  - 'closer' is '/' if the delimiter is a block closer.
+ *  - 'namespace' is non-empty if a block namespace was provided,
+ *    otherwise the block name is assumed to be in the "core/" namespace.
+ *  - 'name' is the block name, always non-empty.
+ *  - 'attrs' contains the content which may be JSON, if non-empty.
+ *  - 'void' is '/' if the delimiter indicates a void block.
+ *
+ * Example:
+ *
+ *     if ( 1 === preg_match( get_named_block_delimiter_regex( 'core/image' ), $block_content, $delimiter_match ) ) {
+ *         $is_closer  = '/' === $delimiter_match['closer'];
+ *         $is_void    = '/' === $delimiter_match['void'];
+ *         $block_name = ( $delimiter_match['namespace'] ?? 'core/' ) . $delimiter_match['name'];
+ *         $attrs      = array();
+ *         if ( ! $is_closer ) {
+ *             $json = json_decode( $delimiter_match['attrs'] );
+ *             if ( JSON_ERROR_NONE === json_last_error() ) {
+ *                 $attrs = $json;
+ *             }
+ *         }
+ *     }
+ *
+ * @since {WP_VERSION}
+ *
+ * @param string $block_name Namespace and name of block, e.g. "math-blocks/formula".
+ *                           Defaults to "core" namespace if none is provided.
+ * @return string PCRE pattern which can be used to find and parse block delimiter HTML comments.
+ */
+function get_named_block_delimiter_regex( string $block_name ): string {
+	$slash_at  = strpos( $block_name, '/' );
+	$namespace = false === $slash_at ? 'core' : substr( $block_name, 0, $slash_at );
+	$name      = false === $slash_at ? substr( $block_name, $slash_at + 1 ) : $block_name;
+	$is_core   = 'core' === $namespace;
+
+	$namespace = preg_quote( $namespace, '~' );
+	$name      = preg_quote( $name, '~' );
+
+	if ( $is_core ) {
+		return <<<REGEXP
+~
+<!--
+	\s+
+	(?P<closer>/)?                                           # This pattern also detects closing block delimiters.
+	wp:(?P<namespace>core/)?(?P<name>{$name})                # e.g. "core/paragraph", "paragraph".
+	\s+
+	(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}\s+/?-->).)*+)?}\s+)? # It's required to parse the JSON separately, if it exists.
+	(?P<void>/)?                                             # Void blocks have no content and no closer.
+-->
+~sx
+REGEXP;
+	}
+
+	return <<<REGEXP
+~
+<!--
+	\s+
+	(?P<closer>/)?                                           # This pattern also detects closing block delimiters.
+	wp:(?P<namespace>{$namespace}/)(?P<name>{$name})         # e.g. "math-blocks/formula".
+	\s+
+	(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}\s+/?-->).)*+)?}\s+)? # It's required to parse the JSON separately, if it exists.
+	(?P<void>/)?                                             # Void blocks have no content and no closer.
+-->
+~sx
+REGEXP;
+}
+
+/**
  * Given an array of attributes, returns a string in the serialized attributes
  * format prepared for post content.
  *
