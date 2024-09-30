@@ -2268,19 +2268,18 @@ class Tests_User extends WP_UnitTestCase {
 		$_POST = array(
 			'nickname' => 'nickname_test',
 			'email'    => 'email_test_1@example.com',
-			'use_ssl'  => 0,
+			'use_ssl'  => 1,
 		);
 
 		$user_id = edit_user( $user_id );
 
 		$this->assertIsInt( $user_id );
 		$this->assertEquals( 1, $set_db_counts );
-		$_POST['email']    = 'email_test_2@example.com';
-		
-		$user_id = edit_user( $user_id );
-		// No update to the use_ssl meta.
-		$this->assertEquals( 1, $set_db_counts );
+		$_POST['email'] = 'email_test_2@example.com';
+		$user_id        = edit_user( $user_id );
 
+		// Verify there are no updates to the use_ssl meta.
+		$this->assertEquals( 1, $set_db_counts );
 	}
 
 	/**
