@@ -295,7 +295,7 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.7.0
 	 */
-	public function get_element(): array|null {
+	public function get_element(): ?array {
 		if ( null === $this->current_element ) {
 			_doing_it_wrong(
 				__METHOD__,
