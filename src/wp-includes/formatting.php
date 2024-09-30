@@ -3052,87 +3052,168 @@ function _make_clickable_rel_attr( $url ) {
 /**
  * Converts plaintext URI to HTML links.
  *
- * Converts URI, www and ftp, and email addresses. Finishes by fixing links
- * within links.
+ * Converts URI, www and ftp, and email addresses.
  *
  * @since 0.71
+ * @since 6.7.0 Internal logic replaced with the HTML API.
  *
  * @param string $text Content to convert URIs.
  * @return string Content with converted URIs.
  */
 function make_clickable( $text ) {
-	$r               = '';
-	$textarr         = preg_split( '/(<[^<>]+>)/', $text, -1, PREG_SPLIT_DELIM_CAPTURE ); // Split out HTML tags.
-	$nested_code_pre = 0; // Keep track of how many levels link is nested inside <pre> or <code>.
-	foreach ( $textarr as $piece ) {
+	$replacements = array();
+	$processor    = WP_HTML_Processor::create_fragment( $text );
 
-		if ( preg_match( '|^<code[\s>]|i', $piece )
-			|| preg_match( '|^<pre[\s>]|i', $piece )
-			|| preg_match( '|^<script[\s>]|i', $piece )
-			|| preg_match( '|^<style[\s>]|i', $piece )
-		) {
-			++$nested_code_pre;
-		} elseif ( $nested_code_pre
-			&& ( '</code>' === strtolower( $piece )
-				|| '</pre>' === strtolower( $piece )
-				|| '</script>' === strtolower( $piece )
-				|| '</style>' === strtolower( $piece )
-			)
-		) {
-			--$nested_code_pre;
-		}
+	/**
+	 * Whether the currently-matched tag is inside an open `A` element.
+	 *
+	 * Since `A` elements cannot nest, there's no need to track a stack
+	 * of elements and determine if `A` is inside them, or track nesting
+	 * levels. The HTML Processor ensures proper parsing.
+	 */
+	$in_link = false;
 
-		if ( $nested_code_pre
-			|| empty( $piece )
-			|| ( '<' === $piece[0] && ! preg_match( '|^<\s*[\w]{1,20}+://|', $piece ) )
-		) {
-			$r .= $piece;
-			continue;
-		}
+	$linkify = static function ( $ret ) use ( $replacements ) {
+		$at     = 0;
+		$end    = strlen( $ret );
+		$was_at = $at;
 
-		// Long strings might contain expensive edge cases...
-		if ( 10000 < strlen( $piece ) ) {
-			// ...break it up.
-			foreach ( _split_str_by_whitespace( $piece, 2100 ) as $chunk ) { // 2100: Extra room for scheme and leading and trailing parentheses.
-				if ( 2101 < strlen( $chunk ) ) {
-					$r .= $chunk; // Too big, no whitespace: bail.
-				} else {
-					$r .= make_clickable( $chunk );
+		while ( $at < $end ) {
+			$separator_at = $at + strcspn( $ret, ':@.', $at );
+
+			/*
+			 * Detect proper URLs.
+			 *
+			 * @see https://url.spec.whatwg.org/#scheme-start-state
+			 */
+			if ( 0 === substr_compare( $ret, '://', $separator_at, 3 ) ) {
+				// Find the schema.
+				$start_of_schema = $was_at;
+				$schema_length   = 0;
+
+				while ( ( $start_of_schema + $schema_length ) < $separator_at ) {
+					$schema_length = strspn(
+						$ret,
+						'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-.',
+						$start_of_schema,
+						$separator_at - $start_of_schema
+					);
+
+					if ( 0 === $schema_length ) {
+						++$start_of_schema;
+						continue;
+					}
+
+					$unwanted_prefix  = strspn( $ret, '0123456789+-.', $start_of_schema );
+					$start_of_schema += $unwanted_prefix;
+					$schema_length   -= $unwanted_prefix;
+
+					if ( ( $start_of_schema + $schema_length ) < $separator_at ) {
+						$start_of_schema += $schema_length;
+						$schema_length    = 0;
+					}
+				}
+
+				$schema     = strtolower( substr( $ret, $start_of_schema, $schema_length ) );
+				$is_special = in_array( $schema, array( 'ftp', 'file', 'http', 'https', 'ws', 'wss' ), true );
+
+				// Find the host, ignore if authority is included.
+				$host_at     = $separator_at + 2;
+				$host_length = strcspn( $ret, '/?#\\', $host_at, $end - $host_at );
+
+				if ( 0 === $host_length || strcspn( $ret, '@', $host_at, $host_length ) !== $host_length ) {
+					// @todo: Might need to parse this fully and then reject to avoid matching next on its fragment.
+					$at = $separator_at + 1;
+					continue;
+				}
+
+				if ( strcspn( $ret, "\x00\t\f\n #/:<>?@[\\]^|", $host_at, $host_length ) !== $host_length ) {
+					// @todo: Might need to parse this fully and then reject to avoid matching next on its fragment.
+					$at = $separator_at + 1;
+					continue;
+				}
+
+				// @todo Path parsing.
+				$path_at   = $host_at + $host_length;
+				$end_match = null;
+				if ( 0 === preg_match(
+						'~(?>![[a-zA-Z0-9!$&\'()*+,-./:;=?@_~\x{00A0}-\x{10FFFD}]).~u',
+						$ret,
+						$end_match,
+						PREG_OFFSET_CAPTURE,
+						$host_at
+					) ) {
+					return $replacements;
 				}
 			}
-		} else {
-			$ret = " $piece "; // Pad with whitespace to simplify the regexes.
 
-			$url_clickable = '~
-				([\\s(<.,;:!?])                                # 1: Leading whitespace, or punctuation.
-				(                                              # 2: URL.
-					[\\w]{1,20}+://                                # Scheme and hier-part prefix.
-					(?=\S{1,2000}\s)                               # Limit to URLs less than about 2000 characters long.
-					[\\w\\x80-\\xff#%\\~/@\\[\\]*(+=&$-]*+         # Non-punctuation URL character.
-					(?:                                            # Unroll the Loop: Only allow punctuation URL character if followed by a non-punctuation URL character.
-						[\'.,;:!?)]                                    # Punctuation URL character.
-						[\\w\\x80-\\xff#%\\~/@\\[\\]*(+=&$-]++         # Non-punctuation URL character.
-					)*
-				)
-				(\)?)                                          # 3: Trailing closing parenthesis (for parenthesis balancing post processing).
-			~xS';
-			/*
-			 * The regex is a non-anchored pattern and does not have a single fixed starting character.
-			 * Tell PCRE to spend more time optimizing since, when used on a page load, it will probably be used several times.
-			 */
+			$was_at = $separator_at;
+			$at     = $separator_at + 1;
+		}
 
-			$ret = preg_replace_callback( $url_clickable, '_make_url_clickable_cb', $ret );
+		$url_clickable = '~
+			([\s(<.,;:!?])                               # 1: Leading whitespace, or punctuation.
+			(                                            # 2: URL.
+				\w{1,20}+://                             # Scheme and hier-part prefix.
+				(?=\S{1,2000}\s)                         # Limit to URLs less than about 2000 characters long.
+				[\w\x80-\xff#%\~/@\[\]*(+=&$-]*+         # Non-punctuation URL character.
+				(?:                                      # Unroll the Loop: Only allow punctuation URL character if followed by a non-punctuation URL character.
+					[\'.,;:!?)]                          # Punctuation URL character.
+					[\w\x80-\xff#%\~/@\[\]*(+=&$-]++     # Non-punctuation URL character.
+				)*
+			)
+			(\)?)                                        # 3: Trailing closing parenthesis (for parenthesis balancing post processing).
+		~xS';
 
-			$ret = preg_replace_callback( '#([\s>])((www|ftp)\.[\w\\x80-\\xff\#$%&~/.\-;:=,?@\[\]+]+)#is', '_make_web_ftp_clickable_cb', $ret );
-			$ret = preg_replace_callback( '#([\s>])([.0-9a-z_+-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})#i', '_make_email_clickable_cb', $ret );
+		/*
+		 * The regex is a non-anchored pattern and does not have a single fixed starting character.
+		 * Tell PCRE to spend more time optimizing since, when used on a page load, it will probably be used several times.
+		 */
 
-			$ret = substr( $ret, 1, -1 ); // Remove our whitespace padding.
-			$r  .= $ret;
+		$ret = preg_replace_callback($url_clickable, '_make_url_clickable_cb', $ret);
+		$ret = preg_replace_callback('#([\s>])((www|ftp)\.[\w\x80-\xff\#$%&~/.\-;:=,?@\[\]+]+)#is', '_make_web_ftp_clickable_cb', $ret);
+		$ret = preg_replace_callback( '#([\s>])([.0-9a-z_+-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})#i', '_make_email_clickable_cb', $ret );
+
+//		$ret = substr( $ret, 1, -1 ); // Remove our whitespace padding.
+
+		return $ret;
+	};
+
+	while ( $processor->next_token() ) {
+		switch ( $processor->get_token_name() ) {
+			// Skip link generation when inside existing `A` elements.
+			case 'A':
+				$in_link = ! $processor->is_tag_closer();
+				break;
+
+			// Skip link generation within these tags.
+			case 'CODE':
+			case 'PRE':
+				$depth = $processor->get_current_depth();
+				while ( $processor->get_current_depth() >= $depth && $processor->next_token() ) {
+					continue;
+				}
+				break;
+
+			case '#text':
+				if ( $in_link ) {
+					break;
+				}
+
+				// Generate new links.
+				$chunk  = $processor->get_modifiable_text();
+				$linked = $linkify( $chunk );
+				if ( $chunk !== $linked ) {
+					echo "\e[90mReplaced:\e[m\n";
+					echo implode( '', array_map( fn ( $line ) => "\e[0;31m- \e[3;34m{$line}\e[m\n", explode( "\n", $chunk ) ) );
+					echo implode( '', array_map( fn ( $line ) => "\e[0;32m+ \e[3;34m{$line}\e[m\n", explode( "\n", $linked ) ) );
+				}
+				break;
 		}
 	}
 
 	// Cleanup of accidental links within links.
-	return preg_replace( '#(<a([ \r\n\t]+[^>]+?>|>))<a [^>]+?>([^>]+?)</a></a>#i', '$1$3</a>', $r );
+	return $text;
 }
 
 /**
