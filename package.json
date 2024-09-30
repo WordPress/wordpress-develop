@@ -62,7 +62,7 @@
 		"ink-docstrap": "1.3.2",
 		"install-changed": "1.1.0",
 		"matchdep": "~2.0.0",
-		"postcss": "8.4.38",
+		"postcss": "8.4.47",
 		"prettier": "npm:wp-prettier@2.6.2",
 		"qunit": "~2.21.0",
 		"react-refresh": "0.14.0",
