@@ -3386,6 +3386,26 @@ function wp_targeted_link_rel_callback( $matches ) {
 }
 
 /**
+ * Adds all filters modifying the rel attribute of targeted links.
+ *
+ * @since 5.1.0
+ * @deprecated 6.7.0
+ */
+function wp_init_targeted_link_rel_filters() {
+	_deprecated_function( __FUNCTION__, '6.7.0' );
+}
+
+/**
+ * Removes all filters modifying the rel attribute of targeted links.
+ *
+ * @since 5.1.0
+ * @deprecated 6.7.0
+ */
+function wp_remove_targeted_link_rel_filters() {
+	_deprecated_function( __FUNCTION__, '6.7.0' );
+}
+
+/**
  * Converts one smiley code to the icon graphic file equivalent.
  *
  * Callback handler for convert_smilies().
