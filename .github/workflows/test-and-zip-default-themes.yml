@@ -68,6 +68,7 @@ jobs:
       fail-fast: false
       matrix:
         theme: [
+          'twentytwentyfive',
           'twentytwentyfour',
           'twentytwentythree',
           'twentytwentytwo',
