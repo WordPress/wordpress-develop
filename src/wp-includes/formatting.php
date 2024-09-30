@@ -3119,7 +3119,7 @@ function make_clickable( $text ) {
 					)*
 				)
 				(\)?)                                          # 3: Trailing closing parenthesis (for parenthesis balancing post processing).
-				(\\.\\w{2,6})?               # Allowing file extensions (e.g., .jpg, .png).
+				(\\.\\w{2,6})?                                 # 4: Allowing file extensions (e.g., .jpg, .png).
 			~xS';
 			/*
 			 * The regex is a non-anchored pattern and does not have a single fixed starting character.
