@@ -393,7 +393,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$provenance            = ( ! $same_node || $is_virtual ) ? 'virtual' : 'real';
 				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::PUSH, $provenance );
 
-				$this->change_parsing_namespace( $token->namespace );
+				$this->change_parsing_namespace( $token->integration_node_type ? 'html' : $token->namespace );
 			}
 		);
 
@@ -403,12 +403,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$same_node             = isset( $this->state->current_token ) && $token->node_name === $this->state->current_token->node_name;
 				$provenance            = ( ! $same_node || $is_virtual ) ? 'virtual' : 'real';
 				$this->element_queue[] = new WP_HTML_Stack_Event( $token, WP_HTML_Stack_Event::POP, $provenance );
+
 				$adjusted_current_node = $this->get_adjusted_current_node();
-				$this->change_parsing_namespace(
-					$adjusted_current_node
-						? $adjusted_current_node->namespace
-						: 'html'
-				);
+
+				if ( $adjusted_current_node ) {
+					$this->change_parsing_namespace( $adjusted_current_node->integration_node_type ? 'html' : $adjusted_current_node->namespace );
+				} else {
+					$this->change_parsing_namespace( 'html' );
+				}
 			}
 		);
 
@@ -782,7 +784,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool|null Whether to expect a closer for the currently-matched node,
 	 *                   or `null` if not matched on any token.
 	 */
-	public function expects_closer( WP_HTML_Token $node = null ): ?bool {
+	public function expects_closer( ?WP_HTML_Token $node = null ): ?bool {
 		$token_name = $node->node_name ?? $this->get_token_name();
 
 		if ( ! isset( $token_name ) ) {
@@ -843,10 +845,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
 			parent::next_token();
-			if (
-				WP_HTML_Tag_Processor::STATE_TEXT_NODE === $this->parser_state ||
-				WP_HTML_Tag_Processor::STATE_CDATA_NODE === $this->parser_state
-			) {
+			if ( WP_HTML_Tag_Processor::STATE_TEXT_NODE === $this->parser_state ) {
 				parent::subdivide_text_appropriately();
 			}
 		}
@@ -1033,6 +1032,216 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Normalizes an HTML fragment by serializing it.
+	 *
+	 * This method assumes that the given HTML snippet is found in BODY context.
+	 * For normalizing full documents or fragments found in other contexts, create
+	 * a new processor using {@see WP_HTML_Processor::create_fragment} or
+	 * {@see WP_HTML_Processor::create_full_parser} and call {@see WP_HTML_Processor::serialize}
+	 * on the created instances.
+	 *
+	 * Many aspects of an input HTML fragment may be changed during normalization.
+	 *
+	 *  - Attribute values will be double-quoted.
+	 *  - Duplicate attributes will be removed.
+	 *  - Omitted tags will be added.
+	 *  - Tag and attribute name casing will be lower-cased,
+	 *    except for specific SVG and MathML tags or attributes.
+	 *  - Text will be re-encoded, null bytes handled,
+	 *    and invalid UTF-8 replaced with U+FFFD.
+	 *  - Any incomplete syntax trailing at the end will be omitted,
+	 *    for example, an unclosed comment opener will be removed.
+	 *
+	 * Example:
+	 *
+	 *     echo WP_HTML_Processor::normalize( '<a href=#anchor v=5 href="/" enabled>One</a another v=5><!--' );
+	 *     // <a href="#anchor" v="5" enabled>One</a>
+	 *
+	 *     echo WP_HTML_Processor::normalize( '<div></p>fun<table><td>cell</div>' );
+	 *     // <div><p></p>fun<table><tbody><tr><td>cell</td></tr></tbody></table></div>
+	 *
+	 *     echo WP_HTML_Processor::normalize( '<![CDATA[invalid comment]]> syntax < <> "oddities"' );
+	 *     // <!--[CDATA[invalid comment]]--> syntax &lt; &lt;&gt; &quot;oddities&quot;
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $html Input HTML to normalize.
+	 *
+	 * @return string|null Normalized output, or `null` if unable to normalize.
+	 */
+	public static function normalize( string $html ): ?string {
+		return static::create_fragment( $html )->serialize();
+	}
+
+	/**
+	 * Returns normalized HTML for a fragment by serializing it.
+	 *
+	 * This differs from {@see WP_HTML_Processor::normalize} in that it starts with
+	 * a specific HTML Processor, which _must_ not have already started scanning;
+	 * it must be in the initial ready state and will be in the completed state once
+	 * serialization is complete.
+	 *
+	 * Many aspects of an input HTML fragment may be changed during normalization.
+	 *
+	 *  - Attribute values will be double-quoted.
+	 *  - Duplicate attributes will be removed.
+	 *  - Omitted tags will be added.
+	 *  - Tag and attribute name casing will be lower-cased,
+	 *    except for specific SVG and MathML tags or attributes.
+	 *  - Text will be re-encoded, null bytes handled,
+	 *    and invalid UTF-8 replaced with U+FFFD.
+	 *  - Any incomplete syntax trailing at the end will be omitted,
+	 *    for example, an unclosed comment opener will be removed.
+	 *
+	 * Example:
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment( '<a href=#anchor v=5 href="/" enabled>One</a another v=5><!--' );
+	 *     echo $processor->serialize();
+	 *     // <a href="#anchor" v="5" enabled>One</a>
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment( '<div></p>fun<table><td>cell</div>' );
+	 *     echo $processor->serialize();
+	 *     // <div><p></p>fun<table><tbody><tr><td>cell</td></tr></tbody></table></div>
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment( '<![CDATA[invalid comment]]> syntax < <> "oddities"' );
+	 *     echo $processor->serialize();
+	 *     // <!--[CDATA[invalid comment]]--> syntax &lt; &lt;&gt; &quot;oddities&quot;
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string|null Normalized HTML markup represented by processor,
+	 *                     or `null` if unable to generate serialization.
+	 */
+	public function serialize(): ?string {
+		if ( WP_HTML_Tag_Processor::STATE_READY !== $this->parser_state ) {
+			wp_trigger_error(
+				__METHOD__,
+				"An HTML Processor which has already started processing cannot serialize it's contents. Serialize immediately after creating the instance.",
+				E_USER_WARNING
+			);
+			return null;
+		}
+
+		$html = '';
+		while ( $this->next_token() ) {
+			$html .= $this->serialize_token();
+		}
+
+		if ( null !== $this->get_last_error() ) {
+			wp_trigger_error(
+				__METHOD__,
+				"Cannot serialize HTML Processor with parsing error: {$this->get_last_error()}.",
+				E_USER_WARNING
+			);
+			return null;
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Serializes the currently-matched token.
+	 *
+	 * This method produces a fully-normative HTML string for the currently-matched token,
+	 * if able. If not matched at any token or if the token doesn't correspond to any HTML
+	 * it will return an empty string (for example, presumptuous end tags are ignored).
+	 *
+	 * @see static::serialize()
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string Serialization of token, or empty string if no serialization exists.
+	 */
+	protected function serialize_token(): string {
+		$html       = '';
+		$token_type = $this->get_token_type();
+
+		switch ( $token_type ) {
+			case '#text':
+				$html .= htmlspecialchars( $this->get_modifiable_text(), ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+				break;
+
+			// Unlike the `<>` which is interpreted as plaintext, this is ignored entirely.
+			case '#presumptuous-tag':
+				break;
+
+			case '#funky-comment':
+			case '#comment':
+				$html .= "<!--{$this->get_full_comment_text()}-->";
+				break;
+
+			case '#cdata-section':
+				$html .= "<![CDATA[{$this->get_modifiable_text()}]]>";
+				break;
+
+			case 'html':
+				$html .= '<!DOCTYPE html>';
+				break;
+		}
+
+		if ( '#tag' !== $token_type ) {
+			return $html;
+		}
+
+		$tag_name       = str_replace( "\x00", "\u{FFFD}", $this->get_tag() );
+		$in_html        = 'html' === $this->get_namespace();
+		$qualified_name = $in_html ? strtolower( $tag_name ) : $this->get_qualified_tag_name();
+
+		if ( $this->is_tag_closer() ) {
+			$html .= "</{$qualified_name}>";
+			return $html;
+		}
+
+		$attribute_names = $this->get_attribute_names_with_prefix( '' );
+		if ( ! isset( $attribute_names ) ) {
+			$html .= "<{$qualified_name}>";
+			return $html;
+		}
+
+		$html .= "<{$qualified_name}";
+		foreach ( $attribute_names as $attribute_name ) {
+			$html .= " {$this->get_qualified_attribute_name( $attribute_name )}";
+			$value = $this->get_attribute( $attribute_name );
+
+			if ( is_string( $value ) ) {
+				$html .= '="' . htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5 ) . '"';
+			}
+
+			$html = str_replace( "\x00", "\u{FFFD}", $html );
+		}
+
+		if ( ! $in_html && $this->has_self_closing_flag() ) {
+			$html .= ' /';
+		}
+
+		$html .= '>';
+
+		// Flush out self-contained elements.
+		if ( $in_html && in_array( $tag_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) {
+			$text = $this->get_modifiable_text();
+
+			switch ( $tag_name ) {
+				case 'IFRAME':
+				case 'NOEMBED':
+				case 'NOFRAMES':
+					$text = '';
+					break;
+
+				case 'SCRIPT':
+				case 'STYLE':
+					break;
+
+				default:
+					$text = htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+			}
+
+			$html .= "{$text}</{$qualified_name}>";
+		}
+
+		return $html;
+	}
+
+	/**
 	 * Parses next element in the 'initial' insertion mode.
 	 *
 	 * This internal function performs the 'initial' insertion mode
@@ -1083,7 +1292,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'html':
 				$doctype = $this->get_doctype_info();
 				if ( null !== $doctype && 'quirks' === $doctype->indicated_compatability_mode ) {
-					$this->state->document_mode = WP_HTML_Processor_State::QUIRKS_MODE;
+					$this->compat_mode = WP_HTML_Tag_Processor::QUIRKS_MODE;
 				}
 
 				/*
@@ -1098,7 +1307,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Anything else
 		 */
 		initial_anything_else:
-		$this->state->document_mode  = WP_HTML_Processor_State::QUIRKS_MODE;
+		$this->compat_mode           = WP_HTML_Tag_Processor::QUIRKS_MODE;
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -2451,7 +2660,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > has a p element in button scope, then close a p element.
 				 */
 				if (
-					WP_HTML_Processor_State::QUIRKS_MODE !== $this->state->document_mode &&
+					WP_HTML_Tag_Processor::QUIRKS_MODE !== $this->compat_mode &&
 					$this->state->stack_of_open_elements->has_p_in_button_scope()
 				) {
 					$this->close_a_p_element();
@@ -2773,6 +2982,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 		}
+
+		$this->bail( 'Should not have been able to reach end of IN BODY processing. Check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
+		return false;
 	}
 
 	/**
@@ -4375,7 +4588,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		switch ( $op ) {
-			case '#cdata-section':
 			case '#text':
 				/*
 				 * > A character token that is U+0000 NULL
@@ -4389,6 +4601,24 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * contain character references which decode only to whitespace.
 				 */
 				if ( parent::TEXT_IS_GENERIC === $this->text_node_classification ) {
+					$this->state->frameset_ok = false;
+				}
+
+				$this->insert_foreign_element( $this->state->current_token, false );
+				return true;
+
+			/*
+			 * CDATA sections are alternate wrappers for text content and therefore
+			 * ought to follow the same rules as text nodes.
+			 */
+			case '#cdata-section':
+				/*
+				 * NULL bytes and whitespace do not change the frameset-ok flag.
+				 */
+				$current_token        = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+				$cdata_content_start  = $current_token->start + 9;
+				$cdata_content_length = $current_token->length - 12;
+				if ( strspn( $this->html, "\0 \t\n\f\r", $cdata_content_start, $cdata_content_length ) !== $cdata_content_length ) {
 					$this->state->frameset_ok = false;
 				}
 
@@ -4483,7 +4713,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					$this->state->stack_of_open_elements->pop();
 				}
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				goto in_foreign_content_process_in_current_insertion_mode;
 		}
 
 		/*
@@ -4559,6 +4789,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				goto in_foreign_content_end_tag_loop;
 			}
 
+			in_foreign_content_process_in_current_insertion_mode:
 			switch ( $this->state->insertion_mode ) {
 				case WP_HTML_Processor_State::INSERTION_MODE_INITIAL:
 					return $this->step_initial();
@@ -4631,6 +4862,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
 			}
 		}
+
+		$this->bail( 'Should not have been able to reach end of IN FOREIGN CONTENT processing. Check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
+		return false;
 	}
 
 	/*
@@ -4705,17 +4940,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		$tag_name = parent::get_tag();
 
-		switch ( $tag_name ) {
-			case 'IMAGE':
-				/*
-				 * > A start tag whose tag name is "image"
-				 * > Change the token's tag name to "img" and reprocess it. (Don't ask.)
-				 */
-				return 'IMG';
-
-			default:
-				return $tag_name;
-		}
+		/*
+		 * > A start tag whose tag name is "image"
+		 * > Change the token's tag name to "img" and reprocess it. (Don't ask.)
+		 */
+		return ( 'IMAGE' === $tag_name && 'html' === $this->get_namespace() )
+			? 'IMG'
+			: $tag_name;
 	}
 
 	/**
@@ -4923,6 +5154,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Returns if a matched tag contains the given ASCII case-insensitive class name.
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 *
+	 * @todo When reconstructing active formatting elements with attributes, find a way
+	 *       to indicate if the virtually-reconstructed formatting elements contain the
+	 *       wanted class name.
 	 *
 	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
@@ -5410,6 +5645,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 
+			// All of the following rules are for matching HTML elements.
+			if ( 'html' !== $node->namespace ) {
+				continue;
+			}
+
 			switch ( $node->node_name ) {
 				/*
 				 * > 4. If node is a `select` element, run these substeps:
@@ -5425,6 +5665,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case 'SELECT':
 					if ( ! $last ) {
 						foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $ancestor ) {
+							if ( 'html' !== $ancestor->namespace ) {
+								continue;
+							}
+
 							switch ( $ancestor->node_name ) {
 								/*
 								 * > 5. If _ancestor_ is a `template` node, jump to the step below
@@ -5851,6 +6095,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				)
 			);
 		}
+
+		$this->bail( 'Should not have reached end of HTML Integration Point detection: check HTML API code.' );
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
+		return false;
 	}
 
 	/**

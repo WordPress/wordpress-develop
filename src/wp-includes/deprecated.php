@@ -3673,6 +3673,7 @@ function post_permalink( $post = 0 ) {
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
 
+	// Adds an additional 60 seconds to the script timeout to ensure the remote request has enough time.
 	if ( function_exists( 'set_time_limit' ) ) {
 		@set_time_limit( 60 );
 	}
@@ -6002,7 +6003,7 @@ function wp_update_https_detection_errors() {
 	 */
 	$support_errors = apply_filters( 'pre_wp_update_https_detection_errors', null );
 	if ( is_wp_error( $support_errors ) ) {
-		update_option( 'https_detection_errors', $support_errors->errors );
+		update_option( 'https_detection_errors', $support_errors->errors, false );
 		return;
 	}
 

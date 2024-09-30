@@ -212,6 +212,17 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that the deprecated register_script_modules method is deprecated but does not throw.
+	 *
+	 * @ticket 60647
+	 *
+	 * @expectedDeprecated WP_Interactivity_API::register_script_modules
+	 */
+	public function test_register_script_modules_deprecated() {
+		$this->interactivity->register_script_modules();
+	}
+
+	/**
 	 * Sets up an activity, runs an optional callback, and returns a MockAction for inspection.
 	 *
 	 * @since 6.7.0
@@ -221,7 +232,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 */
 	private function get_script_data_filter_result( ?Closure $callback = null ): MockAction {
 		$this->interactivity->add_hooks();
-		$this->interactivity->register_script_modules();
 		wp_enqueue_script_module( '@wordpress/interactivity' );
 		$filter = new MockAction();
 		add_filter( 'script_module_data_@wordpress/interactivity', array( $filter, 'filter' ) );
