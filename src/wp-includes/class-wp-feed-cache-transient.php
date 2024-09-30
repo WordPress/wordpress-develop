@@ -72,11 +72,11 @@ class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param SimplePie $data Data to save.
+	 * @param SimplePie\SimplePie $data Data to save.
 	 * @return true Always true.
 	 */
 	public function save( $data ) {
-		if ( $data instanceof SimplePie ) {
+		if ( $data instanceof SimplePie\SimplePie ) {
 			$data = $data->data;
 		}
 
