@@ -44,10 +44,13 @@ jobs:
           # Only prepare artifacts for Playground once.
           - os: ubuntu-latest
             directory: 'build'
-            prepare-playground: true
+            save-build: true
+            prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
+
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      save-build: ${{ matrix.save-build && matrix.save-build || false }}
       prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
 
   # Tests the WordPress Core build process on MacOS.

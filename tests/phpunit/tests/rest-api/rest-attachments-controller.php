@@ -229,6 +229,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'per_page',
 				'search',
 				'search_columns',
+				'search_semantics',
 				'slug',
 				'status',
 			),
@@ -239,10 +240,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'video',
 			'image',
 			'audio',
+			'text',
 		);
-		if ( ! is_multisite() ) {
-			$media_types[] = 'text';
-		}
 		$this->assertSameSets( $media_types, $data['endpoints'][0]['args']['media_type']['enum'] );
 	}
 
@@ -1444,12 +1443,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 						'rendered' => '<a href="#">link</a>',
 					),
 					'description' => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
+						'raw'      => '<a href="#" target="_blank">link</a>',
+						'rendered' => '<p><a href="#" target="_blank">link</a></p>',
 					),
 					'caption'     => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
+						'raw'      => '<a href="#" target="_blank">link</a>',
+						'rendered' => '<p><a href="#" target="_blank">link</a></p>',
 					),
 				),
 			),
@@ -1646,7 +1645,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 28, $properties );
+		$this->assertCount( 29, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
@@ -1681,6 +1680,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'type', $properties );
 		$this->assertArrayHasKey( 'missing_image_sizes', $properties );
 		$this->assertArrayHasKey( 'featured_media', $properties );
+		$this->assertArrayHasKey( 'class_list', $properties );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -2016,6 +2016,60 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that the naming behavior of REST media uploads matches core media uploads.
+	 *
+	 * In particular, filenames with spaces should maintain the spaces rather than
+	 * replacing them with hyphens.
+	 *
+	 * @ticket 57957
+	 *
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @dataProvider rest_upload_filename_spaces
+	 */
+	public function test_rest_upload_filename_spaces( $filename, $expected ) {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'file'     => file_get_contents( self::$test_file2 ),
+					'name'     => $filename,
+					'size'     => filesize( self::$test_file2 ),
+					'tmp_name' => self::$test_file2,
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( 201, $response->get_status(), 'The file was not uploaded.' );
+		$this->assertSame( $expected, $data['title']['raw'], 'An incorrect filename was returned.' );
+	}
+
+	/**
+	 * Data provider for text_rest_upload_filename_spaces.
+	 *
+	 * @return array
+	 */
+	public function rest_upload_filename_spaces() {
+		return array(
+			'filename with spaces'  => array(
+				'Filename With Spaces.jpg',
+				'Filename With Spaces',
+			),
+			'filename.with.periods' => array(
+				'Filename.With.Periods.jpg',
+				'Filename.With.Periods',
+			),
+			'filename-with-dashes'  => array(
+				'Filename-With-Dashes.jpg',
+				'Filename-With-Dashes',
+			),
+		);
+	}
+
+	/**
 	 * Ensure the `rest_after_insert_attachment` and `rest_insert_attachment` hooks only fire
 	 * once when attachments are updated.
 	 *
@@ -2323,7 +2377,44 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['crop'] );
 		$this->assertSame(
-			array( 320.0, 48.0, 64.0, 24.0 ),
+			array( 320, 48, 64, 24 ),
+			WP_Image_Editor_Mock::$spy['crop'][0]
+		);
+	}
+
+	/**
+	 * @ticket 61514
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_crop_one_axis() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->setup_mock_editor();
+		WP_Image_Editor_Mock::$size_return = array(
+			'width'  => 640,
+			'height' => 480,
+		);
+
+		WP_Image_Editor_Mock::$edit_return['crop'] = new WP_Error();
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params(
+			array(
+				'x'      => 50,
+				'y'      => 0,
+				'width'  => 10,
+				'height' => 100,
+				'src'    => wp_get_attachment_image_url( $attachment, 'full' ),
+
+			)
+		);
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_image_crop_failed', $response, 500 );
+
+		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['crop'] );
+		$this->assertSame(
+			array( 320, 0, 64, 480 ),
 			WP_Image_Editor_Mock::$spy['crop'][0]
 		);
 	}

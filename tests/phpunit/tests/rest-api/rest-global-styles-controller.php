@@ -19,7 +19,17 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	/**
 	 * @var int
 	 */
+	protected static $editor_id;
+
+	/**
+	 * @var int
+	 */
 	protected static $subscriber_id;
+
+	/**
+	 * @var int
+	 */
+	protected static $theme_manager_id;
 
 	/**
 	 * @var int
@@ -54,11 +64,29 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 			)
 		);
 
+		self::$editor_id = $factory->user->create(
+			array(
+				'role' => 'editor',
+			)
+		);
+
 		self::$subscriber_id = $factory->user->create(
 			array(
 				'role' => 'subscriber',
 			)
 		);
+
+		self::$theme_manager_id = $factory->user->create(
+			array(
+				'role' => 'subscriber',
+			)
+		);
+
+		// Add the 'edit_theme_options' capability to the theme manager (subscriber).
+		$theme_manager_id = get_user_by( 'id', self::$theme_manager_id );
+		if ( $theme_manager_id instanceof WP_User ) {
+			$theme_manager_id->add_cap( 'edit_theme_options' );
+		}
 
 		// This creates the global styles for the current theme.
 		self::$global_styles_id = $factory->post->create(
@@ -78,11 +106,13 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 *
+	 * Clean up after our tests run.
 	 */
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$admin_id );
+		self::delete_user( self::$editor_id );
 		self::delete_user( self::$subscriber_id );
+		self::delete_user( self::$theme_manager_id );
 	}
 
 	/*
@@ -150,7 +180,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$data     = $response->get_data();
 		$expected = array(
 			array(
-				'version'  => 2,
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
 					'blocks' => array(
 						'core/paragraph' => array(
@@ -171,7 +201,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 				'title'    => 'variation-a',
 			),
 			array(
-				'version'  => 2,
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
 					'blocks' => array(
 						'core/post-title' => array(
@@ -216,7 +246,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 				),
 			),
 			array(
-				'version'  => 2,
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'title'    => 'Block theme variation',
 				'settings' => array(
 					'color' => array(
@@ -264,18 +294,52 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		wp_set_current_user( 0 );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/tt1-blocks' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_global_styles', $response, 401 );
+		$this->assertErrorResponse( 'rest_cannot_read_global_styles', $response, 401 );
 	}
 
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
 	 * @ticket 54516
+	 * @ticket 62042
 	 */
-	public function test_get_theme_item_permission_check() {
+	public function test_get_theme_item_subscriber_permission_check() {
 		wp_set_current_user( self::$subscriber_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/tt1-blocks' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_global_styles', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read_global_styles', $response, 403 );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
+	 * @ticket 62042
+	 */
+	public function test_get_theme_item_editor_permission_check() {
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/tt1-blocks' );
+		$response = rest_get_server()->dispatch( $request );
+		// Checks that the response has the expected keys.
+		$data  = $response->get_data();
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'settings', $data, 'Data does not have "settings" key' );
+		$this->assertArrayHasKey( 'styles', $data, 'Data does not have "styles" key' );
+		$this->assertArrayHasKey( 'self', $links, 'Links do not have a "self" key' );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller_Gutenberg::get_theme_item
+	 * @ticket 62042
+	 */
+	public function test_get_theme_item_theme_options_manager_permission_check() {
+		wp_set_current_user( self::$theme_manager_id );
+		switch_theme( 'emptytheme' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/emptytheme' );
+		$response = rest_get_server()->dispatch( $request );
+		// Checks that the response has the expected keys.
+		$data  = $response->get_data();
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'settings', $data, 'Data does not have "settings" key' );
+		$this->assertArrayHasKey( 'styles', $data, 'Data does not have "styles" key' );
+		$this->assertArrayHasKey( 'self', $links, 'Links do not have a "self" key' );
 	}
 
 	/**
@@ -600,6 +664,68 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_custom_css_illegal_markup', $response, 400 );
+	}
+
+	/**
+	 * Tests the submission of a custom block style variation that was defined
+	 * within a theme style variation and wouldn't be registered at the time
+	 * of saving via the API.
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::update_item
+	 * @ticket 61312
+	 * @ticket 61451
+	 */
+	public function test_update_item_with_custom_block_style_variations() {
+		wp_set_current_user( self::$admin_id );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+
+		/*
+		 * For variations to be resolved they have to have been registered
+		 * via either a theme.json partial or through the WP_Block_Styles_Registry.
+		 */
+		register_block_style(
+			'core/group',
+			array(
+				'name'  => 'fromThemeStyleVariation',
+				'label' => 'From Theme Style Variation',
+			)
+		);
+
+		$group_variations = array(
+			'fromThemeStyleVariation' => array(
+				'color' => array(
+					'background' => '#ffffff',
+					'text'       => '#000000',
+				),
+			),
+		);
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_body_params(
+			array(
+				'styles' => array(
+					'variations' => array(
+						'fromThemeStyleVariation' => array(
+							'blockTypes' => array( 'core/group', 'core/columns' ),
+							'color'      => array(
+								'background' => '#000000',
+								'text'       => '#ffffff',
+							),
+						),
+					),
+					'blocks'     => array(
+						'core/group' => array(
+							'variations' => $group_variations,
+						),
+					),
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( $group_variations, $data['styles']['blocks']['core/group']['variations'] );
 	}
 
 	/**

@@ -3243,7 +3243,7 @@ function edit_form_image_editor( $post ) {
 			__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
 			/* translators: Localized tutorial, if one exists. W3C Web Accessibility Initiative link has list of existing translations. */
 			esc_url( __( 'https://www.w3.org/WAI/tutorials/images/decision-tree/' ) ),
-			'target="_blank" rel="noopener"',
+			'target="_blank"',
 			sprintf(
 				'<span class="screen-reader-text"> %s</span>',
 				/* translators: Hidden accessibility text. */
@@ -3267,7 +3267,14 @@ function edit_form_image_editor( $post ) {
 		'textarea_name' => 'content',
 		'textarea_rows' => 5,
 		'media_buttons' => false,
-		'tinymce'       => false,
+		/**
+		 * Filters the TinyMCE argument for the media description field on the attachment details screen.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param bool $tinymce Whether to activate TinyMCE in media description field. Default false.
+		 */
+		'tinymce'       => apply_filters( 'activate_tinymce_for_media_description', false ),
 		'quicktags'     => $quicktags_settings,
 	);
 

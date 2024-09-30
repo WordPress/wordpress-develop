@@ -25,6 +25,7 @@
  * @since 2.5.0
  *
  * @global string $auth_secure_cookie
+ * @global wpdb   $wpdb               WordPress database abstraction object.
  *
  * @param array       $credentials {
  *     Optional. User info in order to sign on.
@@ -38,6 +39,8 @@
  * @return WP_User|WP_Error WP_User on success, WP_Error on failure.
  */
 function wp_signon( $credentials = array(), $secure_cookie = '' ) {
+	global $auth_secure_cookie, $wpdb;
+
 	if ( empty( $credentials ) ) {
 		$credentials = array(
 			'user_login'    => '',
@@ -98,7 +101,7 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	 */
 	$secure_cookie = apply_filters( 'secure_signon_cookie', $secure_cookie, $credentials );
 
-	global $auth_secure_cookie; // XXX ugly hack to pass this to wp_authenticate_cookie().
+	// XXX ugly hack to pass this to wp_authenticate_cookie().
 	$auth_secure_cookie = $secure_cookie;
 
 	add_filter( 'authenticate', 'wp_authenticate_cookie', 30, 3 );
@@ -110,6 +113,20 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	}
 
 	wp_set_auth_cookie( $user->ID, $credentials['remember'], $secure_cookie );
+
+	// Clear `user_activation_key` after a successful login.
+	if ( ! empty( $user->user_activation_key ) ) {
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_activation_key' => '',
+			),
+			array( 'ID' => $user->ID )
+		);
+
+		$user->user_activation_key = '';
+	}
+
 	/**
 	 * Fires after the user has successfully logged in.
 	 *
@@ -119,6 +136,7 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	 * @param WP_User $user       WP_User object of the logged-in user.
 	 */
 	do_action( 'wp_login', $user->user_login, $user );
+
 	return $user;
 }
 
@@ -284,6 +302,8 @@ function wp_authenticate_email_password( $user, $email, $password ) {
  * @return WP_User|WP_Error WP_User on success, WP_Error on failure.
  */
 function wp_authenticate_cookie( $user, $username, $password ) {
+	global $auth_secure_cookie;
+
 	if ( $user instanceof WP_User ) {
 		return $user;
 	}
@@ -293,8 +313,6 @@ function wp_authenticate_cookie( $user, $username, $password ) {
 		if ( $user_id ) {
 			return new WP_User( $user_id );
 		}
-
-		global $auth_secure_cookie;
 
 		if ( $auth_secure_cookie ) {
 			$auth_cookie = SECURE_AUTH_COOKIE;
@@ -758,6 +776,19 @@ function delete_user_option( $user_id, $option_name, $is_global = false ) {
 }
 
 /**
+ * Retrieves user info by user ID.
+ *
+ * @since 6.7.0
+ *
+ * @param int $user_id User ID.
+ *
+ * @return WP_User|false WP_User object on success, false on failure.
+ */
+function get_user( $user_id ) {
+	return get_user_by( 'id', $user_id );
+}
+
+/**
  * Retrieves list of users matching criteria.
  *
  * @since 3.1.0
@@ -1167,7 +1198,8 @@ function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
  * @return mixed An array of values if `$single` is false.
  *               The value of meta data field if `$single` is true.
  *               False for an invalid `$user_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing user ID is passed.
+ *               An empty array if a valid but non-existing user ID is passed and `$single` is false.
+ *               An empty string if a valid but non-existing user ID is passed and `$single` is true.
  */
 function get_user_meta( $user_id, $key = '', $single = false ) {
 	return get_metadata( 'user', $user_id, $key, $single );
@@ -1531,12 +1563,10 @@ function setup_userdata( $for_user_id = 0 ) {
 /**
  * Creates dropdown HTML content of users.
  *
- * The content can either be displayed, which it is by default or retrieved by
- * setting the 'echo' argument. The 'include' and 'exclude' arguments do not
- * need to be used; all users will be displayed in that case. Only one can be
- * used, either 'include' or 'exclude', but not both.
- *
- * The available arguments are as follows:
+ * The content can either be displayed, which it is by default, or retrieved by
+ * setting the 'echo' argument to false. The 'include' and 'exclude' arguments
+ * are optional; if they are not specified, all users will be displayed. Only one
+ * can be used in a single call, either 'include' or 'exclude', but not both.
  *
  * @since 2.3.0
  * @since 4.5.0 Added the 'display_name_with_login' value for 'show'.
@@ -2368,7 +2398,7 @@ function wp_insert_user( $userdata ) {
 	 *     @type string $user_pass       The user's password.
 	 *     @type string $user_email      The user's email.
 	 *     @type string $user_url        The user's url.
-	 *     @type string $user_nicename   The user's nice name. Defaults to a URL-safe version of user's login
+	 *     @type string $user_nicename   The user's nice name. Defaults to a URL-safe version of user's login.
 	 *     @type string $display_name    The user's display name.
 	 *     @type string $user_registered MySQL timestamp describing the moment when the user registered. Defaults to
 	 *                                   the current UTC timestamp.
@@ -3201,7 +3231,15 @@ function retrieve_password( $user_login = null ) {
 	$message .= sprintf( __( 'Username: %s' ), $user_login ) . "\r\n\r\n";
 	$message .= __( 'If this was a mistake, ignore this email and nothing will happen.' ) . "\r\n\r\n";
 	$message .= __( 'To reset your password, visit the following address:' ) . "\r\n\r\n";
-	$message .= network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user_login ), 'login' ) . '&wp_lang=' . $locale . "\r\n\r\n";
+
+	/*
+	 * Since some user login names end in a period, this could produce ambiguous URLs that
+	 * end in a period. To avoid the ambiguity, ensure that the login is not the last query
+	 * arg in the URL. If moving it to the end, a trailing period will need to be escaped.
+	 *
+	 * @see https://core.trac.wordpress.org/tickets/42957
+	 */
+	$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user_login ) . "&key=$key&action=rp", 'login' ) . '&wp_lang=' . $locale . "\r\n\r\n";
 
 	if ( ! is_user_logged_in() ) {
 		$requester_ip = $_SERVER['REMOTE_ADDR'];
@@ -4130,7 +4168,7 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 	 *     Data relating to the account action email.
 	 *
 	 *     @type WP_User_Request $request     User request object.
-	 *     @type string          $user_email  The email address confirming a request
+	 *     @type string          $user_email  The email address confirming a request.
 	 *     @type string          $description Description of the action being performed so the user knows what the email is for.
 	 *     @type string          $manage_url  The link to click manage privacy requests of this type.
 	 *     @type string          $sitename    The site name sending the mail.
@@ -4181,7 +4219,7 @@ All at ###SITENAME###
 	 *     Data relating to the account action email.
 	 *
 	 *     @type WP_User_Request $request     User request object.
-	 *     @type string          $user_email  The email address confirming a request
+	 *     @type string          $user_email  The email address confirming a request.
 	 *     @type string          $description Description of the action being performed
 	 *                                        so the user knows what the email is for.
 	 *     @type string          $manage_url  The link to click manage privacy requests of this type.
@@ -4221,7 +4259,7 @@ All at ###SITENAME###
 	 *     Data relating to the account action email.
 	 *
 	 *     @type WP_User_Request $request     User request object.
-	 *     @type string          $user_email  The email address confirming a request
+	 *     @type string          $user_email  The email address confirming a request.
 	 *     @type string          $description Description of the action being performed so the user knows what the email is for.
 	 *     @type string          $manage_url  The link to click manage privacy requests of this type.
 	 *     @type string          $sitename    The site name sending the mail.
@@ -4252,7 +4290,7 @@ All at ###SITENAME###
 	 *     Data relating to the account action email.
 	 *
 	 *     @type WP_User_Request $request     User request object.
-	 *     @type string          $user_email  The email address confirming a request
+	 *     @type string          $user_email  The email address confirming a request.
 	 *     @type string          $description Description of the action being performed so the user knows what the email is for.
 	 *     @type string          $manage_url  The link to click manage privacy requests of this type.
 	 *     @type string          $sitename    The site name sending the mail.
