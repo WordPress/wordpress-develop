@@ -294,6 +294,8 @@ final class WP_Interactivity_API {
 	 * The returned array contains a copy of the element attributes.
 	 *
 	 * @since 6.7.0
+	 *
+	 * @return array|null Current element.
 	 */
 	public function get_element(): ?array {
 		if ( null === $this->current_element ) {
