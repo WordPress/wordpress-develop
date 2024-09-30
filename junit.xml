@@ -1,0 +1,1 @@
+        <testcase name="test_0x400_crop" class="Tests_Image_Dimensions" classname="Tests_Image_Dimensions" file="/var/www/tests/phpunit/tests/image/dimensions.php" line="107" assertions="2" time="0.001388"/>
