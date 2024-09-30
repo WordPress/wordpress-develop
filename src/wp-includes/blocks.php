@@ -1112,7 +1112,7 @@ function apply_block_hooks_to_content( $content, $context, $callback = 'insert_h
 			) {
 				unset( $hooked_block_types[ $index ] );
 			} else {
-				// Remember not to insert this block again.
+				// We can insert the block once, but need to remember not to insert it again.
 				$single_instance_blocks_present_in_content[] = $hooked_block_type;
 			}
 		}
