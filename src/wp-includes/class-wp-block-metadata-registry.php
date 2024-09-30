@@ -121,18 +121,7 @@ class WP_Block_Metadata_Registry {
 				return false;
 			}
 		} elseif ( str_starts_with( $path, $theme_dir ) ) {
-			// For themes, ensure the path is within a specific theme directory and not the base theme directory.
-			$relative_path = substr( $path, strlen( $theme_dir ) + 1 );
-			$theme_name    = strtok( $relative_path, '/' );
-
-			if ( empty( $theme_name ) || $theme_name === $relative_path ) {
-				_doing_it_wrong(
-					__METHOD__,
-					__( 'Block metadata collections can only be registered for a specific plugin or theme. The provided path is neither a core path, a valid plugin path, nor a valid theme path.' ),
-					'6.7.0'
-				);
-				return false;
-			}
+			// Theme path is valid.
 		} else {
 			_doing_it_wrong(
 				__METHOD__,
