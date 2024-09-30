@@ -912,13 +912,21 @@ function seems_utf8( $str ) {
 			}
 		}
 
-		// Prevent invalid code points (U+D800 to U+DFFF)
-		if ( 0 === $n && 0x00 === $c ) {
+		// Prevent invalid overlong sequences for U+0000
+		if ( $n > 0 && 0x00 === $c ) {
 			return false; // Invalid overlong sequence for U+0000
 		}
 
-		if ( 3 === $n && $c >= 0xED && ord( $str[ $i - 2 ] ) > 0x9F ) {
-			return false; // Invalid: surrogate pair range.
+		// Check for invalid code points (U+D800 to U+DFFF)
+		if ( 3 === $n && $c >= 0xED ) {
+			if ( ( 0xED === $c && ord($str[ $i - 2 ] ) >= 0xA0 ) || ( $c > 0xED && $c < 0xF0 ) ) {
+				return false; // Invalid: surrogate pair range.
+			}
+		}
+
+		// Additional check for invalid code points
+		if ( $c >= 0xD800 && $c <= 0xDFFF ) {
+			return false; // Explicitly prevent any invalid code points in the surrogate range.
 		}
 	}
 
