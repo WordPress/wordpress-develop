@@ -501,7 +501,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$this->assertInstanceOf( WP_Translation_File::class, $destination );
 		$this->assertNull( $destination->error() );
 
-		$this->assertTrue( filesize( $destination_file ) > 0 );
+		$this->assertGreaterThan( 0, filesize( $destination_file ) );
 
 		$destination_read = WP_Translation_File::create( $destination_file, $destination_format );
 

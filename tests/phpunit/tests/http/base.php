@@ -219,6 +219,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		);
 
 		$this->skipTestOnTimeout( $res );
+		$this->assertNotWPError( $res );
 		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
 		$this->assertNotEmpty( $res['headers']['location'] );
 	}
@@ -356,6 +357,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$res = wp_remote_post( add_query_arg( 'response_code', $response_code, $url ), array( 'timeout' => 30 ) );
 
 		$this->skipTestOnTimeout( $res );
+		$this->assertNotWPError( $res );
 		$this->assertSame( $method, wp_remote_retrieve_body( $res ) );
 	}
 
@@ -406,6 +408,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$res = wp_remote_get( $url, $args );
 
 		$this->skipTestOnTimeout( $res );
+		$this->assertNotWPError( $res );
 		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
 	}
 
@@ -447,6 +450,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$res = wp_remote_get( $url );
 
 		$this->skipTestOnTimeout( $res );
+		$this->assertNotWPError( $res );
 		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
 	}
 

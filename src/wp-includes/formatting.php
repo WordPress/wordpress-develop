@@ -762,8 +762,8 @@ function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
 	// Optimize when searching for one item.
 	if ( 1 === count( $replace_pairs ) ) {
 		// Extract $needle and $replace.
-		foreach ( $replace_pairs as $needle => $replace ) {
-		}
+		$needle  = array_key_first( $replace_pairs );
+		$replace = $replace_pairs[ $needle ];
 
 		// Loop through delimiters (elements) only.
 		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) {
@@ -960,19 +960,7 @@ function _wp_specialchars( $text, $quote_style = ENT_NOQUOTES, $charset = false,
 		$quote_style = ENT_QUOTES;
 	}
 
-	// Store the site charset as a static to avoid multiple calls to wp_load_alloptions().
-	if ( ! $charset ) {
-		static $_charset = null;
-		if ( ! isset( $_charset ) ) {
-			$alloptions = wp_load_alloptions();
-			$_charset   = isset( $alloptions['blog_charset'] ) ? $alloptions['blog_charset'] : '';
-		}
-		$charset = $_charset;
-	}
-
-	if ( in_array( $charset, array( 'utf8', 'utf-8', 'UTF8' ), true ) ) {
-		$charset = 'UTF-8';
-	}
+	$charset = _canonical_charset( $charset ? $charset : get_option( 'blog_charset' ) );
 
 	$_quote_style = $quote_style;
 
@@ -1114,7 +1102,7 @@ function wp_check_invalid_utf8( $text, $strip = false ) {
 	// Store the site charset as a static to avoid multiple calls to get_option().
 	static $is_utf8 = null;
 	if ( ! isset( $is_utf8 ) ) {
-		$is_utf8 = in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true );
+		$is_utf8 = is_utf8_charset();
 	}
 	if ( ! $is_utf8 ) {
 		return $text;
@@ -3306,11 +3294,14 @@ function wp_rel_ugc( $text ) {
  *
  * @since 5.1.0
  * @since 5.6.0 Removed 'noreferrer' relationship.
+ * @deprecated 6.7.0
  *
  * @param string $text Content that may contain HTML A elements.
  * @return string Converted content.
  */
 function wp_targeted_link_rel( $text ) {
+	_deprecated_function( __FUNCTION__, '6.7.0' );
+
 	// Don't run (more expensive) regex if no links with targets.
 	if ( stripos( $text, 'target' ) === false || stripos( $text, '<a ' ) === false || is_serialized( $text ) ) {
 		return $text;
@@ -3344,11 +3335,14 @@ function wp_targeted_link_rel( $text ) {
  *
  * @since 5.1.0
  * @since 5.6.0 Removed 'noreferrer' relationship.
+ * @deprecated 6.7.0
  *
  * @param array $matches Single match.
  * @return string HTML A Element with `rel="noopener"` in addition to any existing values.
  */
 function wp_targeted_link_rel_callback( $matches ) {
+	_deprecated_function( __FUNCTION__, '6.7.0' );
+
 	$link_html          = $matches[1];
 	$original_link_html = $link_html;
 
@@ -3395,46 +3389,20 @@ function wp_targeted_link_rel_callback( $matches ) {
  * Adds all filters modifying the rel attribute of targeted links.
  *
  * @since 5.1.0
+ * @deprecated 6.7.0
  */
 function wp_init_targeted_link_rel_filters() {
-	$filters = array(
-		'title_save_pre',
-		'content_save_pre',
-		'excerpt_save_pre',
-		'content_filtered_save_pre',
-		'pre_comment_content',
-		'pre_term_description',
-		'pre_link_description',
-		'pre_link_notes',
-		'pre_user_description',
-	);
-
-	foreach ( $filters as $filter ) {
-		add_filter( $filter, 'wp_targeted_link_rel' );
-	}
+	_deprecated_function( __FUNCTION__, '6.7.0' );
 }
 
 /**
  * Removes all filters modifying the rel attribute of targeted links.
  *
  * @since 5.1.0
+ * @deprecated 6.7.0
  */
 function wp_remove_targeted_link_rel_filters() {
-	$filters = array(
-		'title_save_pre',
-		'content_save_pre',
-		'excerpt_save_pre',
-		'content_filtered_save_pre',
-		'pre_comment_content',
-		'pre_term_description',
-		'pre_link_description',
-		'pre_link_notes',
-		'pre_user_description',
-	);
-
-	foreach ( $filters as $filter ) {
-		remove_filter( $filter, 'wp_targeted_link_rel' );
-	}
+	_deprecated_function( __FUNCTION__, '6.7.0' );
 }
 
 /**
@@ -3868,7 +3836,7 @@ function sanitize_email( $email ) {
  * Determines the difference between two timestamps.
  *
  * The difference is returned in a human-readable format such as "1 hour",
- * "5 mins", "2 days".
+ * "5 minutes", "2 days".
  *
  * @since 1.5.0
  * @since 5.3.0 Added support for showing a difference in seconds.
@@ -3896,8 +3864,8 @@ function human_time_diff( $from, $to = 0 ) {
 		if ( $mins <= 1 ) {
 			$mins = 1;
 		}
-		/* translators: Time difference between two dates, in minutes (min=minute). %s: Number of minutes. */
-		$since = sprintf( _n( '%s min', '%s mins', $mins ), $mins );
+		/* translators: Time difference between two dates, in minutes. %s: Number of minutes. */
+		$since = sprintf( _n( '%s minute', '%s minutes', $mins ), $mins );
 	} elseif ( $diff < DAY_IN_SECONDS && $diff >= HOUR_IN_SECONDS ) {
 		$hours = round( $diff / HOUR_IN_SECONDS );
 		if ( $hours <= 1 ) {
@@ -4802,12 +4770,13 @@ EOF;
  * Escapes an HTML tag name.
  *
  * @since 2.5.0
+ * @since 6.5.5 Allow hyphens in tag names (i.e. custom elements).
  *
  * @param string $tag_name
  * @return string
  */
 function tag_escape( $tag_name ) {
-	$safe_tag = strtolower( preg_replace( '/[^a-zA-Z0-9_:]/', '', $tag_name ) );
+	$safe_tag = strtolower( preg_replace( '/[^a-zA-Z0-9-_:]/', '', $tag_name ) );
 	/**
 	 * Filters a string cleaned and escaped for output as an HTML tag.
 	 *
@@ -5510,11 +5479,11 @@ function normalize_whitespace( $str ) {
 }
 
 /**
- * Properly strips all HTML tags including script and style
+ * Properly strips all HTML tags including 'script' and 'style'.
  *
  * This differs from strip_tags() because it removes the contents of
  * the `<script>` and `<style>` tags. E.g. `strip_tags( '<script>something</script>' )`
- * will return 'something'. wp_strip_all_tags will return ''
+ * will return 'something'. wp_strip_all_tags() will return an empty string.
  *
  * @since 2.9.0
  *
@@ -5530,10 +5499,11 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 	if ( ! is_scalar( $text ) ) {
 		/*
 		 * To maintain consistency with pre-PHP 8 error levels,
-		 * trigger_error() is used to trigger an E_USER_WARNING,
+		 * wp_trigger_error() is used to trigger an E_USER_WARNING,
 		 * rather than _doing_it_wrong(), which triggers an E_USER_NOTICE.
 		 */
-		trigger_error(
+		wp_trigger_error(
+			'',
 			sprintf(
 				/* translators: 1: The function name, 2: The argument number, 3: The argument name, 4: The expected type, 5: The provided type. */
 				__( 'Warning: %1$s expects parameter %2$s (%3$s) to be a %4$s, %5$s given.' ),

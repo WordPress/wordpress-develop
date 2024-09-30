@@ -382,6 +382,11 @@
 	margin: 0 0 10px;
 }
 
+.attachment-details h2 {
+	display: grid;
+	grid-template-columns: auto 5em;
+}
+
 .media-sidebar .collection-settings .setting {
 	margin: 1px 0;
 }
@@ -704,6 +709,7 @@
 	color: #043959;
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
+	z-index: 1;
 }
 
 .media-router .active,
@@ -1209,6 +1215,7 @@
 	display: flex;
 	align-items: center;
 	column-gap: .5rem;
+	margin: 11px 0;
 }
 
 .mode-grid .attachments-browser .media-toolbar-mode-select .media-toolbar-primary {
@@ -1313,47 +1320,6 @@
 
 .attachment.new-media {
 	outline: 2px dotted #c3c4c7;
-}
-
-.load-more-wrapper {
-	clear: both;
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: center;
-	padding: 1em 0;
-}
-
-.load-more-wrapper .load-more-count {
-	min-width: 100%;
-	margin: 0 0 1em;
-	text-align: center;
-}
-
-.load-more-wrapper .load-more {
-	margin: 0;
-}
-
-/* Needs high specificity. */
-.media-frame .load-more-wrapper .load-more + .spinner {
-	float: none;
-	margin: 0 -30px 0 10px;
-}
-
-/* Reset spinner margin when the button is hidden to avoid horizontal scrollbar. */
-.media-frame .load-more-wrapper .load-more.hidden + .spinner {
-	margin: 0;
-}
-
-/* Force a new row within the flex container. */
-.load-more-wrapper::after {
-	content: "";
-	min-width: 100%;
-	order: 1;
-}
-
-.load-more-wrapper .load-more-jump {
-	margin: 0 0 0 12px;
 }
 
 /**
@@ -1763,6 +1729,12 @@
 	vertical-align: middle;
 }
 
+.media-frame .media-sidebar .settings-save-status .spinner {
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
 .media-frame.mode-grid .spinner {
 	margin: 0;
 	float: none;
@@ -1792,7 +1764,7 @@
 }
 
 .attachment-details .settings-save-status {
-	float: right;
+	text-align: right;
 	text-transform: none;
 	font-weight: 400;
 }
@@ -2517,7 +2489,6 @@
 	/* Visually hide the menu heading keeping it available to assistive technologies. */
 	.media-frame-menu-heading {
 		clip: rect(1px, 1px, 1px, 1px);
-		-webkit-clip-path: inset(50%);
 		clip-path: inset(50%);
 		height: 1px;
 		overflow: hidden;
@@ -2561,7 +2532,8 @@
 		width: 230px;
 	}
 
-	.options-general-php .crop-content.site-icon {
+	.options-general-php .crop-content.site-icon,
+	.wp-customizer:not(.mobile) .media-frame-content .crop-content.site-icon {
 		margin-right: 262px;
 	}
 
@@ -2802,7 +2774,8 @@
 	}
 
 	.mode-grid .attachments-browser .media-toolbar-primary {
-		display: flex;
+		display: grid;
+		grid-template-columns: auto 1fr;
 	}
 
 	.mode-grid .attachments-browser .media-toolbar-primary input[type="search"] {
@@ -2860,7 +2833,8 @@
 		position: fixed;
 	}
 
-	.options-general-php .crop-content.site-icon {
+	.options-general-php .crop-content.site-icon,
+	.wp-customizer:not(.mobile) .media-frame-content .crop-content.site-icon {
 		margin-right: 0;
 	}
 

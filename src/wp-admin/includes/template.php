@@ -850,19 +850,19 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 	$day = '<label><span class="screen-reader-text">' .
 		/* translators: Hidden accessibility text. */
 		__( 'Day' ) .
-	'</span><input type="text" ' . ( $multi ? '' : 'id="jj" ' ) . 'name="jj" value="' . $jj . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	'</span><input type="text" ' . ( $multi ? '' : 'id="jj" ' ) . 'name="jj" value="' . $jj . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" inputmode="numeric" /></label>';
 	$year = '<label><span class="screen-reader-text">' .
 		/* translators: Hidden accessibility text. */
 		__( 'Year' ) .
-	'</span><input type="text" ' . ( $multi ? '' : 'id="aa" ' ) . 'name="aa" value="' . $aa . '" size="4" maxlength="4"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	'</span><input type="text" ' . ( $multi ? '' : 'id="aa" ' ) . 'name="aa" value="' . $aa . '" size="4" maxlength="4"' . $tab_index_attribute . ' autocomplete="off" class="form-required" inputmode="numeric" /></label>';
 	$hour = '<label><span class="screen-reader-text">' .
 		/* translators: Hidden accessibility text. */
 		__( 'Hour' ) .
-	'</span><input type="text" ' . ( $multi ? '' : 'id="hh" ' ) . 'name="hh" value="' . $hh . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	'</span><input type="text" ' . ( $multi ? '' : 'id="hh" ' ) . 'name="hh" value="' . $hh . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" inputmode="numeric" /></label>';
 	$minute = '<label><span class="screen-reader-text">' .
 		/* translators: Hidden accessibility text. */
 		__( 'Minute' ) .
-	'</span><input type="text" ' . ( $multi ? '' : 'id="mn" ' ) . 'name="mn" value="' . $mn . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	'</span><input type="text" ' . ( $multi ? '' : 'id="mn" ' ) . 'name="mn" value="' . $mn . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" inputmode="numeric" /></label>';
 
 	echo '<div class="timestamp-wrap">';
 	/* translators: 1: Month, 2: Day, 3: Year, 4: Hour, 5: Minute. */
@@ -1050,7 +1050,7 @@ function wp_import_upload_form( $action ) {
  * @since 2.5.0
  * @since 4.4.0 The `$screen` parameter now accepts an array of screen IDs.
  *
- * @global array $wp_meta_boxes
+ * @global array $wp_meta_boxes Global meta box state.
  *
  * @param string                 $id            Meta box ID (used in the 'id' attribute for the meta box).
  * @param string                 $title         Title of the meta box.
@@ -1287,7 +1287,7 @@ function _get_plugin_from_callback( $callback ) {
  *
  * @since 2.5.0
  *
- * @global array $wp_meta_boxes
+ * @global array $wp_meta_boxes Global meta box state.
  *
  * @param string|WP_Screen $screen      The screen identifier. If you have used add_menu_page() or
  *                                      add_submenu_page() to create a new screen (and hence screen_id)
@@ -1472,7 +1472,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
  * @since 2.6.0
  * @since 4.4.0 The `$screen` parameter now accepts an array of screen IDs.
  *
- * @global array $wp_meta_boxes
+ * @global array $wp_meta_boxes Global meta box state.
  *
  * @param string                 $id      Meta box ID (used in the 'id' attribute for the meta box).
  * @param string|array|WP_Screen $screen  The screen or screens on which the meta box is shown (such as a

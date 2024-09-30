@@ -833,11 +833,13 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		 * the file path could be for an MO or PHP file.
 		 *
 		 * @since 6.5.0
+		 * @since 6.6.0 Added the `$locale` parameter.
 		 *
 		 * @param string $file   Path to the translation file to load.
 		 * @param string $domain The text domain.
+		 * @param string $locale The locale.
 		 */
-		$file = (string) apply_filters( 'load_translation_file', $file, $domain );
+		$file = (string) apply_filters( 'load_translation_file', $file, $domain, $locale );
 
 		$success = $i18n_controller->load_file( $file, $domain, $locale );
 
@@ -997,6 +999,19 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 		return false;
 	}
 
+	if ( ! doing_action( 'after_setup_theme' ) && ! did_action( 'after_setup_theme' ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: The text domain. 2: 'after_setup_theme'. */
+				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user is already set up.' ),
+				'<code>' . $domain . '</code>',
+				'<code>after_setup_theme</code>'
+			),
+			'6.7.0'
+		);
+	}
+
 	/**
 	 * Filters a plugin's locale.
 	 *
@@ -1049,6 +1064,19 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 		return false;
 	}
 
+	if ( ! doing_action( 'after_setup_theme' ) && ! did_action( 'after_setup_theme' ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: The text domain. 2: 'after_setup_theme'. */
+				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user is already set up.' ),
+				'<code>' . $domain . '</code>',
+				'<code>after_setup_theme</code>'
+			),
+			'6.7.0'
+		);
+	}
+
 	/** This filter is documented in wp-includes/l10n.php */
 	$locale = apply_filters( 'plugin_locale', determine_locale(), $domain );
 
@@ -1090,6 +1118,19 @@ function load_theme_textdomain( $domain, $path = false ) {
 
 	if ( ! is_string( $domain ) ) {
 		return false;
+	}
+
+	if ( ! doing_action( 'after_setup_theme' ) && ! did_action( 'after_setup_theme' ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: The text domain. 2: 'after_setup_theme'. */
+				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user is already set up.' ),
+				'<code>' . $domain . '</code>',
+				'<code>after_setup_theme</code>'
+			),
+			'6.7.0'
+		);
 	}
 
 	/**
@@ -1205,7 +1246,15 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 		$relative = trim( $relative, '/' );
 		$relative = explode( '/', $relative );
 
-		$languages_path = WP_LANG_DIR . '/plugins';
+		/*
+		 * Ensure correct languages path when using a custom `WP_PLUGIN_DIR` / `WP_PLUGIN_URL` configuration.
+		 * See https://core.trac.wordpress.org/ticket/60891 and https://core.trac.wordpress.org/ticket/62016.
+		 */
+		$plugins_dir = array_slice( explode( '/', $plugins_url['path'] ), 2 );
+		$plugins_dir = trim( $plugins_dir[0], '/' );
+		$dirname     = $plugins_dir === $relative[0] ? 'plugins' : 'themes';
+
+		$languages_path = WP_LANG_DIR . '/' . $dirname;
 
 		$relative = array_slice( $relative, 2 ); // Remove plugins/<plugin name> or themes/<theme name>.
 		$relative = implode( '/', $relative );
@@ -1371,6 +1420,19 @@ function _load_textdomain_just_in_time( $domain ) {
 	if ( ! $path ) {
 		return false;
 	}
+
+	if ( ! doing_action( 'after_setup_theme' ) && ! did_action( 'after_setup_theme' ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: The text domain. */
+				__( 'Translation loading for the %s domain was triggered too early. This is usually an indicator for some code in the plugin or theme running too early.' ),
+				'<code>' . $domain . '</code>'
+			),
+			'6.7.0'
+		);
+	}
+
 	// Themes with their language directory outside of WP_LANG_DIR have a different file name.
 	$template_directory   = trailingslashit( get_template_directory() );
 	$stylesheet_directory = trailingslashit( get_stylesheet_directory() );
@@ -1505,25 +1567,25 @@ function get_available_languages( $dir = null ) {
  *
  * @since 3.7.0
  *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ *
  * @param string $type What to search for. Accepts 'plugins', 'themes', 'core'.
  * @return array Array of language data.
  */
 function wp_get_installed_translations( $type ) {
+	global $wp_textdomain_registry;
+
 	if ( 'themes' !== $type && 'plugins' !== $type && 'core' !== $type ) {
 		return array();
 	}
 
-	$dir = 'core' === $type ? '' : "/$type";
+	$dir = 'core' === $type ? WP_LANG_DIR : WP_LANG_DIR . "/$type";
 
-	if ( ! is_dir( WP_LANG_DIR ) ) {
+	if ( ! is_dir( $dir ) ) {
 		return array();
 	}
 
-	if ( $dir && ! is_dir( WP_LANG_DIR . $dir ) ) {
-		return array();
-	}
-
-	$files = scandir( WP_LANG_DIR . $dir );
+	$files = $wp_textdomain_registry->get_language_files_from_path( $dir );
 	if ( ! $files ) {
 		return array();
 	}
@@ -1531,16 +1593,7 @@ function wp_get_installed_translations( $type ) {
 	$language_data = array();
 
 	foreach ( $files as $file ) {
-		if ( '.' === $file[0] || is_dir( WP_LANG_DIR . "$dir/$file" ) ) {
-			continue;
-		}
-		if ( ! str_ends_with( $file, '.po' ) ) {
-			continue;
-		}
-		if ( ! preg_match( '/(?:(.+)-)?([a-z]{2,3}(?:_[A-Z]{2})?(?:_[a-z0-9]+)?).po/', $file, $match ) ) {
-			continue;
-		}
-		if ( ! in_array( substr( $file, 0, -3 ) . '.mo', $files, true ) ) {
+		if ( ! preg_match( '/(?:(.+)-)?([a-z]{2,3}(?:_[A-Z]{2})?(?:_[a-z0-9]+)?)\.(?:mo|l10n\.php)/', basename( $file ), $match ) ) {
 			continue;
 		}
 
@@ -1548,7 +1601,25 @@ function wp_get_installed_translations( $type ) {
 		if ( '' === $textdomain ) {
 			$textdomain = 'default';
 		}
-		$language_data[ $textdomain ][ $language ] = wp_get_pomo_file_data( WP_LANG_DIR . "$dir/$file" );
+
+		if ( str_ends_with( $file, '.mo' ) ) {
+			$pofile = substr_replace( $file, '.po', - strlen( '.mo' ) );
+
+			if ( ! file_exists( $pofile ) ) {
+				continue;
+			}
+
+			$language_data[ $textdomain ][ $language ] = wp_get_pomo_file_data( $pofile );
+		} else {
+			$pofile = substr_replace( $file, '.po', - strlen( '.l10n.php' ) );
+
+			// If both a PO and a PHP file exist, prefer the PO file.
+			if ( file_exists( $pofile ) ) {
+				continue;
+			}
+
+			$language_data[ $textdomain ][ $language ] = wp_get_l10n_php_file_data( $file );
+		}
 	}
 	return $language_data;
 }
@@ -1576,6 +1647,41 @@ function wp_get_pomo_file_data( $po_file ) {
 		$headers[ $header ] = preg_replace( '~(\\\n)?"$~', '', $value );
 	}
 	return $headers;
+}
+
+/**
+ * Extracts headers from a PHP translation file.
+ *
+ * @since 6.6.0
+ *
+ * @param string $php_file Path to a `.l10n.php` file.
+ * @return string[] Array of file header values keyed by header name.
+ */
+function wp_get_l10n_php_file_data( $php_file ) {
+	$data = (array) include $php_file;
+
+	unset( $data['messages'] );
+	$headers = array(
+		'POT-Creation-Date'  => 'pot-creation-date',
+		'PO-Revision-Date'   => 'po-revision-date',
+		'Project-Id-Version' => 'project-id-version',
+		'X-Generator'        => 'x-generator',
+	);
+
+	$result = array(
+		'POT-Creation-Date'  => '',
+		'PO-Revision-Date'   => '',
+		'Project-Id-Version' => '',
+		'X-Generator'        => '',
+	);
+
+	foreach ( $headers as $po_header => $php_header ) {
+		if ( isset( $data[ $php_header ] ) ) {
+			$result[ $po_header ] = $data[ $php_header ];
+		}
+	}
+
+	return $result;
 }
 
 /**
@@ -1941,4 +2047,18 @@ function wp_get_word_count_type() {
 	}
 
 	return $wp_locale->get_word_count_type();
+}
+
+/**
+ * Returns a boolean to indicate whether a translation exists for a given string with optional text domain and locale.
+ *
+ * @since 6.7.0
+ *
+ * @param string  $singular   Singular translation to check.
+ * @param string  $textdomain Optional. Text domain. Default 'default'.
+ * @param ?string $locale     Optional. Locale. Default current locale.
+ * @return bool  True if the translation exists, false otherwise.
+ */
+function has_translation( string $singular, string $textdomain = 'default', ?string $locale = null ): bool {
+	return WP_Translation_Controller::get_instance()->has_translation( $singular, $textdomain, $locale );
 }

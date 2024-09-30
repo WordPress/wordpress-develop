@@ -240,10 +240,10 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		$request = array(
 			'post_type'      => 'post',
-			'post_author'    => -1,
-			'ping_status'    => -1,
-			'comment_status' => -1,
-			'_status'        => -1,
+			'post_author'    => '-1',
+			'ping_status'    => '-1',
+			'comment_status' => '-1',
+			'_status'        => '-1',
 			'post'           => array( $post1, $post2 ),
 		);
 
@@ -273,8 +273,8 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		set_post_format( $post_ids[1], 'aside' );
 
 		$request = array(
-			'post_format' => -1, // Don't change the post format.
-			'_status'     => -1,
+			'post_format' => '-1', // Don't change the post format.
+			'_status'     => '-1',
 			'post'        => $post_ids,
 		);
 
@@ -367,7 +367,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		$request = array(
 			'post_format' => 'aside',
-			'_status'     => -1,
+			'_status'     => '-1',
 			'post'        => array( self::$post_id ),
 		);
 
@@ -930,6 +930,28 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		get_sample_permalink( $post );
 		$this->assertEquals( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
+	}
+
+	/**
+	 * @ticket 59283
+	 */
+	public function test_get_sample_permalink_should_return_pretty_permalink_for_posts_with_post_status_auto_draft() {
+		$permalink_structure = '%postname%';
+		$this->set_permalink_structure( "/$permalink_structure/" );
+
+		$future_date = gmdate( 'Y-m-d H:i:s', time() + 100 );
+		$p           = self::factory()->post->create(
+			array(
+				'post_status' => 'auto-draft',
+				'post_name'   => 'foo',
+				'post_date'   => $future_date,
+			)
+		);
+
+		$found    = get_sample_permalink( $p );
+		$expected = trailingslashit( home_url( $permalink_structure ) );
+
+		$this->assertSame( $expected, $found[0] );
 	}
 
 	public function test_post_exists_should_match_title() {
