@@ -1375,4 +1375,130 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertSame( 'myItem', $method->invoke( $this->interactivity, 'my-item-' ) );
 		$this->assertSame( 'myItem', $method->invoke( $this->interactivity, '-my-item-' ) );
 	}
+
+	/**
+	 * Tests that `wp_interactivity_get_element` returns an array with the
+	 * current element's attributes.
+	 *
+	 * @covers wp_interactivity_get_element
+	 * @covers ::process_directives
+	 */
+	public function test_get_element_returns_current_element_representation() {
+		/*
+		 * The global WP_Interactivity_API instance is momentarily replaced to
+		 * make the global function `wp_interactivity_get_element` work as expected.
+		 */
+		global $wp_interactivity;
+		$wp_interactivity_prev = $wp_interactivity;
+		$wp_interactivity      = $this->interactivity;
+
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'dataTest' => function () {
+					$element = wp_interactivity_get_element();
+					return $element['attributes']['data-test'];
+				},
+			)
+		);
+
+		$html           = '
+			<section data-wp-interactive="myPlugin">
+				<div class="buttons">
+					<button
+						class="button"
+						data-test="button 1"
+						data-wp-bind--data-test-value="state.dataTest"
+					></button>
+					<button
+						class="button"
+						data-test="button 2"
+						data-wp-bind--data-test-value="state.dataTest"
+					></button>
+				</div>
+			</section>
+		';
+		$processed_html = $this->interactivity->process_directives( $html );
+		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag( 'button' );
+		$this->assertSame( 'button 1', $p->get_attribute( 'data-test-value' ) );
+		$p->next_tag( 'button' );
+		$this->assertSame( 'button 2', $p->get_attribute( 'data-test-value' ) );
+
+		// Restore the original WP_Interactivity_API instance.
+		$wp_interactivity = $wp_interactivity_prev;
+	}
+
+	/**
+	 * Tests that the attributes returned by `wp_interactivity_get_element` are
+	 * those originally present before directives are processed.
+	 *
+	 * @covers wp_interactivity_get_element
+	 * @covers ::process_directives
+	 */
+	public function test_process_directives_generates_element_only_original_attributes() {
+		/*
+		 * The global WP_Interactivity_API instance is momentarily replaced to
+		 * make the global function `wp_interactivity_get_element` work as expected.
+		 */
+		global $wp_interactivity;
+		$wp_interactivity_prev = $wp_interactivity;
+		$wp_interactivity      = $this->interactivity;
+
+		$attributes = null;
+
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'processAttributes' => function () use ( &$attributes ) {
+					$element = wp_interactivity_get_element();
+					$attributes = $element['attributes'];
+					return 'processed';
+				},
+			)
+		);
+
+		$html           = '
+			<section data-wp-interactive="myPlugin">
+				<div class="buttons">
+					<button
+						disabled
+						class="original"
+						data-attr="original"
+						data-wp-bind--data-attr="state.processAttributes"
+					></button>
+				</div>
+			</section>
+		';
+		$processed_html = $this->interactivity->process_directives( $html );
+
+		$this->assertSame(
+			array(
+				'disabled'                => true,
+				'class'                   => 'original',
+				'data-attr'               => 'original',
+				'data-wp-bind--data-attr' => 'state.processAttributes',
+			),
+			$attributes
+		);
+
+		$p = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag( 'button' );
+		$this->assertSame( 'processed', $p->get_attribute( 'data-attr' ) );
+
+		// Restore the original WP_Interactivity_API instance.
+		$wp_interactivity = $wp_interactivity_prev;
+	}
+
+	/**
+	 * Tests that `wp_interactivity_get_element` should not be called outside of
+	 * `process_directives` execution.
+	 *
+	 * @covers wp_interactivity_get_element
+	 * @expectedIncorrectUsage WP_Interactivity_API::get_element
+	 */
+	public function test_get_element_outside_of_directive_processing() {
+		$element = $this->interactivity->get_element();
+		$this->assertNull( $element );
+	}
 }
