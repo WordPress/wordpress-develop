@@ -1207,7 +1207,15 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 		$relative = trim( $relative, '/' );
 		$relative = explode( '/', $relative );
 
-		$languages_path = WP_LANG_DIR . '/plugins';
+		/*
+		 * Ensure correct languages path when using a custom `WP_PLUGIN_DIR` / `WP_PLUGIN_URL` configuration.
+		 * See https://core.trac.wordpress.org/ticket/60891 and https://core.trac.wordpress.org/ticket/62016.
+		 */
+		$plugins_dir = array_slice( explode( '/', $plugins_url['path'] ), 2 );
+		$plugins_dir = trim( $plugins_dir[0], '/' );
+		$dirname     = $plugins_dir === $relative[0] ? 'plugins' : 'themes';
+
+		$languages_path = WP_LANG_DIR . '/' . $dirname;
 
 		$relative = array_slice( $relative, 2 ); // Remove plugins/<plugin name> or themes/<theme name>.
 		$relative = implode( '/', $relative );
@@ -1987,4 +1995,18 @@ function wp_get_word_count_type() {
 	}
 
 	return $wp_locale->get_word_count_type();
+}
+
+/**
+ * Returns a boolean to indicate whether a translation exists for a given string with optional text domain and locale.
+ *
+ * @since 6.7.0
+ *
+ * @param string  $singular   Singular translation to check.
+ * @param string  $textdomain Optional. Text domain. Default 'default'.
+ * @param ?string $locale     Optional. Locale. Default current locale.
+ * @return bool  True if the translation exists, false otherwise.
+ */
+function has_translation( string $singular, string $textdomain = 'default', ?string $locale = null ): bool {
+	return WP_Translation_Controller::get_instance()->has_translation( $singular, $textdomain, $locale );
 }
