@@ -287,6 +287,56 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 62114
+	 */
+	public function test_dynamic_block_with_default_attributes() {
+		$settings = array(
+			'attributes'      => array(
+				'content'         => array(
+					'type'    => 'string',
+					'default' => 'Default content.',
+				),
+				'align'           => array(
+					'type'    => 'string',
+					'default' => 'full',
+				),
+				'backgroundColor' => array(
+					'type'    => 'string',
+					'default' => 'blueberry-1',
+				),
+				'textColor'       => array(
+					'type'    => 'string',
+					'default' => 'white',
+				),
+			),
+			'supports'        => array(
+				'align' => array( 'wide', 'full' ),
+				'color' => array(
+					'background' => true,
+					'text'       => true,
+				),
+			),
+			'render_callback' => function ( $attributes ) {
+				return '<p ' . get_block_wrapper_attributes() . '>' . $attributes['content'] . '</p>';
+			},
+		);
+		register_block_type( 'core/dynamic', $settings );
+
+		$post_content =
+			'before' .
+			'<!-- wp:core/dynamic --><!-- /wp:core/dynamic -->' .
+			'after';
+
+		$updated_post_content = do_blocks( $post_content );
+		$this->assertSame(
+			$updated_post_content,
+			'before' .
+			'<p class="alignfull wp-block-dynamic has-text-color has-white-color has-background has-blueberry-1-background-color">Default content.</p>' .
+			'after'
+		);
+	}
+
+	/**
 	 * @ticket 45109
 	 */
 	public function test_global_post_persistence() {
