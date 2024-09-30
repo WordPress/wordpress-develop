@@ -1806,20 +1806,18 @@ function wp_start_scraping_edited_file_errors() {
 
 	$key   = substr( sanitize_key( wp_unslash( $_REQUEST['wp_scrape_key'] ) ), 0, 32 );
 	$nonce = wp_unslash( $_REQUEST['wp_scrape_nonce'] );
-
 	if ( empty( $key ) || empty( $nonce ) ) {
 		return;
 	}
 
 	$transient = get_transient( 'scrape_key_' . $key );
-
 	if ( false === $transient ) {
 		return;
 	}
 
 	if ( $transient !== $nonce ) {
-		if (!headers_sent()) {
-			header('X-Robots-Tag: noindex');
+		if ( !headers_sent() ) {
+			header( 'X-Robots-Tag: noindex' );
 		}
 		echo "###### wp_scraping_result_start:$key ######";
 		echo wp_json_encode(
