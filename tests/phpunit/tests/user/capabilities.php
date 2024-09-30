@@ -1653,6 +1653,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSame( 2, $add_user_role->get_call_count() );
 	}
 
+	/**
+	 * @group can_for_blog
+	 */
 	public function test_current_user_can_for_blog() {
 		global $wpdb;
 
@@ -1662,8 +1665,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$this->assertTrue( current_user_can_for_blog( get_current_blog_id(), 'edit_posts' ) );
 		$this->assertFalse( current_user_can_for_blog( get_current_blog_id(), 'foo_the_bar' ) );
+
 		if ( ! is_multisite() ) {
 			$this->assertTrue( current_user_can_for_blog( 12345, 'edit_posts' ) );
+			$this->assertFalse( current_user_can_for_blog( 12345, 'foo_the_bar' ) );
 			return;
 		}
 
@@ -1672,10 +1677,63 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$wpdb->suppress_errors( $suppress );
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
+
+		$this->assertNotWPError( $blog_id );
 		$this->assertTrue( current_user_can_for_blog( $blog_id, 'edit_posts' ) );
 		$this->assertFalse( current_user_can_for_blog( $blog_id, 'foo_the_bar' ) );
 
+		$another_blog_id = self::factory()->blog->create( array( 'user_id' => self::$users['author']->ID ) );
+
+		$this->assertNotWPError( $another_blog_id );
+
+		// Verify the user doesn't have a capability
+		$this->assertFalse( current_user_can_for_blog( $another_blog_id, 'edit_posts' ) );
+
+		// Add the current user to the site
+		add_user_to_blog( $another_blog_id, $user->ID, 'author' );
+
+		// Verify they now have the capability
+		$this->assertTrue( current_user_can_for_blog( $another_blog_id, 'edit_posts' ) );
+
 		wp_set_current_user( $old_uid );
+	}
+
+	/**
+	 * @group can_for_blog
+	 */
+	public function test_user_can_for_blog() {
+		$user = self::$users['editor'];
+
+		$this->assertTrue( user_can_for_blog( $user->ID, get_current_blog_id(), 'edit_posts' ) );
+		$this->assertFalse( user_can_for_blog( $user->ID, get_current_blog_id(), 'foo_the_bar' ) );
+
+		if ( ! is_multisite() ) {
+			$this->assertTrue( user_can_for_blog( $user->ID, 12345, 'edit_posts' ) );
+			$this->assertFalse( user_can_for_blog( $user->ID, 12345, 'foo_the_bar' ) );
+			return;
+		}
+
+		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
+
+		$this->assertNotWPError( $blog_id );
+		$this->assertTrue( user_can_for_blog( $user->ID, $blog_id, 'edit_posts' ) );
+		$this->assertFalse( user_can_for_blog( $user->ID, $blog_id, 'foo_the_bar' ) );
+
+		$author = self::$users['author'];
+
+		// Verify another user doesn't have a capability
+		$this->assertFalse( is_user_member_of_blog( $author->ID, $blog_id ) );
+		$this->assertFalse( user_can_for_blog( $author->ID, $blog_id, 'edit_posts' ) );
+
+		// Add the author to the site
+		add_user_to_blog( $blog_id, $author->ID, 'author' );
+
+		// Verify they now have the capability
+		$this->assertTrue( is_user_member_of_blog( $author->ID, $blog_id ) );
+		$this->assertTrue( user_can_for_blog( $author->ID, $blog_id, 'edit_posts' ) );
+
+		// Verify the user doesn't have a capability for a non-existent site
+		$this->assertFalse( user_can_for_blog( $user->ID, -1, 'edit_posts' ) );
 	}
 
 	/**
