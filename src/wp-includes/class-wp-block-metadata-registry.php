@@ -41,17 +41,17 @@ class WP_Block_Metadata_Registry {
 	 * Stores the WordPress 'wp-includes' directory path.
 	 *
 	 * @since 6.7.0
-	 * @var string
+	 * @var string|null
 	 */
-	private static $wpinc_dir = '';
+	private static $wpinc_dir = null;
 
 	/**
 	 * Stores the normalized WordPress plugin directory path.
 	 *
 	 * @since 6.7.0
-	 * @var string
+	 * @var string|null
 	 */
-	private static $plugin_dir = '';
+	private static $plugin_dir = null;
 
 	/**
 	 * Registers a block metadata collection.
@@ -252,7 +252,7 @@ class WP_Block_Metadata_Registry {
 	 * @return string The WordPress 'wp-includes' directory path.
 	 */
 	private static function get_wpinc_dir() {
-		if ( empty( self::$wpinc_dir ) ) {
+		if ( ! isset( self::$wpinc_dir ) ) {
 			self::$wpinc_dir = wp_normalize_path( ABSPATH . WPINC );
 		}
 		return self::$wpinc_dir;
@@ -266,7 +266,7 @@ class WP_Block_Metadata_Registry {
 	 * @return string The normalized WordPress plugin directory path.
 	 */
 	private static function get_plugin_dir() {
-		if ( empty( self::$plugin_dir ) ) {
+		if ( ! isset( self::$plugin_dir ) ) {
 			self::$plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
 		}
 		return self::$plugin_dir;
