@@ -4285,12 +4285,12 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 						'rendered' => '<a href="#">link</a>',
 					),
 					'content' => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
+						'raw'      => '<a href="#" target="_blank">link</a>',
+						'rendered' => '<p><a href="#" target="_blank">link</a></p>',
 					),
 					'excerpt' => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
+						'raw'      => '<a href="#" target="_blank">link</a>',
+						'rendered' => '<p><a href="#" target="_blank">link</a></p>',
 					),
 				),
 			),
