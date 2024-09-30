@@ -574,7 +574,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	/**
 	 * Sets Image Compression quality on a 1-100% scale. Handles WebP lossless images.
 	 *
-	 * @since 6.6.0
+	 * @since 6.7.0
 	 *
 	 * @param int $quality Compression Quality. Range: [1,100]
 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
