@@ -72,7 +72,7 @@
 		"source-map-loader": "5.0.0",
 		"terser-webpack-plugin": "5.3.10",
 		"uglify-js": "^3.17.4",
-		"uuid": "9.0.1",
+		"uuid": "10.0.0",
 		"wait-on": "8.0.1",
 		"webpack": "5.90.2",
 		"webpack-livereload-plugin": "3.0.2"
