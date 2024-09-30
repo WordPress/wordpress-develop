@@ -584,6 +584,25 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$count
 					);
 					break;
+				default:
+					/**
+					 * Filter the status text of default switch case in the Plugins list table.
+					 *
+					 * @since 6.6.0
+					 *
+					 * @param string $text   Plugins list status text. Default empty string.
+					 * @param int    $count  Count the Number of plugins.
+					 * @param string $status Status slug of plugins list.
+					 */
+					$text = apply_filters( 'plugins_list_status_text', '', $count, $status );
+					if ( empty( $text ) ) {
+						$text = $status;
+					}
+					$text .= ' ' . sprintf(
+						'<span class="count">(%s)</span>',
+						$count
+					);
+					break;
 			}
 
 			if ( 'search' !== $type ) {
