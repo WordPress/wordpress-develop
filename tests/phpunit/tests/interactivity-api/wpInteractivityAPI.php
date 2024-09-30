@@ -1404,7 +1404,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 			)
 		);
 
-		$html           = '
+		$html = <<<HTML
 			<section data-wp-interactive="myPlugin">
 				<div class="buttons">
 					<button
@@ -1419,7 +1419,8 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 					></button>
 				</div>
 			</section>
-		';
+HTML;
+
 		$processed_html = $this->interactivity->process_directives( $html );
 		$p              = new WP_HTML_Tag_Processor( $processed_html );
 		$p->next_tag( 'button' );
@@ -1462,7 +1463,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 			)
 		);
 
-		$html           = '
+		$html = <<<HTML
 			<section data-wp-interactive="myPlugin">
 				<div class="buttons">
 					<button
@@ -1473,7 +1474,8 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 					></button>
 				</div>
 			</section>
-		';
+HTML;
+
 		$processed_html = $this->interactivity->process_directives( $html );
 
 		$this->assertSame(
