@@ -1440,7 +1440,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @covers wp_interactivity_get_element
 	 * @covers ::process_directives
 	 */
-	public function test_process_directives_generates_element_only_original_attributes() {
+	public function test_get_element_returns_original_attributes_only() {
 		/*
 		 * The global WP_Interactivity_API instance is momentarily replaced to
 		 * make the global function `wp_interactivity_get_element` work as expected.
