@@ -100,7 +100,7 @@ class WP_Block_Metadata_Registry {
 	public static function register_collection( $path, $manifest ) {
 		$path = wp_normalize_path( rtrim( $path, '/' ) );
 
-		$wpinc_path = self::get_include_path();
+		$wpinc_path = self::get_wpinc_dir();
 		$plugin_dir = self::get_plugin_dir();
 		$theme_dir  = self::get_theme_dir();
 
@@ -273,7 +273,7 @@ class WP_Block_Metadata_Registry {
 	 *
 	 * @return string The WordPress include path.
 	 */
-	private static function get_include_path() {
+	private static function get_wpinc_dir() {
 		if ( empty( self::$wpinc_path ) ) {
 			self::$wpinc_path = wp_normalize_path( ABSPATH . WPINC );
 		}
