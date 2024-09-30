@@ -88,9 +88,9 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 		$html     = '<div>Nothing here</div>';
 		$new_html = $this->interactivity->process_directives( $html );
 		$footer   = $this->render_wp_footer();
-		$this->assertEquals( $html, $new_html );
-		$this->assertEquals( '', $footer );
-		$this->assertEquals( '', get_echo( 'wp_print_styles' ) );
+		$this->assertSame( $html, $new_html );
+		$this->assertSame( '', $footer );
+		$this->assertSame( '', get_echo( 'wp_print_styles' ) );
 	}
 
 	/**
@@ -108,14 +108,14 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 			<div data-wp-router-region="region B">Another interactive region</div>
 		';
 		$new_html = $this->interactivity->process_directives( $html );
-		$this->assertEquals( $html, $new_html );
+		$this->assertSame( $html, $new_html );
 
 		// Check that the style is loaded, but only once.
 		$styles = get_echo( 'wp_print_styles' );
 		$query  = array( 'tag_name' => 'style' );
 		$p      = new WP_HTML_Tag_Processor( $styles );
 		$this->assertTrue( $p->next_tag( $query ) );
-		$this->assertEquals( 'wp-interactivity-router-animations-inline-css', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'wp-interactivity-router-animations-inline-css', $p->get_attribute( 'id' ) );
 		$this->assertStringContainsString( '.wp-interactivity-router-loading-bar', $styles );
 		$this->assertFalse( $p->next_tag( $query ) );
 

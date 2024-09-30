@@ -262,6 +262,7 @@
 	     in the parsing, and distance the code from its standard. -->
 	<rule ref="Generic.PHP.DiscourageGoto.Found">
 		<exclude-pattern>/wp-includes/html-api/class-wp-html-processor\.php</exclude-pattern>
+		<exclude-pattern>/wp-includes/html-api/class-wp-html-doctype-info\.php</exclude-pattern>
 	</rule>
 
 	<!-- Exclude sample config from modernization to prevent breaking CI workflows based on WP-CLI scaffold.

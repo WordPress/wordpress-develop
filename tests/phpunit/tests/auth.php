@@ -115,16 +115,22 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * Tests hooking into wp_set_password().
 	 *
 	 * @ticket 57436
+	 * @ticket 61541
 	 *
 	 * @covers ::wp_set_password
 	 */
 	public function test_wp_set_password_action() {
 		$action = new MockAction();
 
-		add_action( 'wp_set_password', array( $action, 'action' ) );
-		wp_set_password( 'A simple password', self::$user_id );
+		$previous_user_pass = get_user_by( 'id', $this->user->ID )->user_pass;
+
+		add_action( 'wp_set_password', array( $action, 'action' ), 10, 3 );
+		wp_set_password( 'A simple password', $this->user->ID );
 
 		$this->assertSame( 1, $action->get_call_count() );
+
+		// Check that the old data passed through the hook is correct.
+		$this->assertSame( $previous_user_pass, $action->get_args()[0][2]->user_pass );
 	}
 
 	/**

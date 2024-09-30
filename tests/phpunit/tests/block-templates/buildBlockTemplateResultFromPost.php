@@ -114,6 +114,50 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 	/**
 	 * @ticket 59646
 	 * @ticket 60506
+	 * @ticket 60854
+	 */
+	public function test_should_injected_hooked_block_into_template_part_first_child() {
+		register_block_type(
+			'tests/my-block',
+			array(
+				'block_hooks' => array(
+					'core/template-part' => 'first_child',
+				),
+			)
+		);
+
+		$template_part = _build_block_template_result_from_post(
+			self::$template_part_post,
+			'wp_template_part'
+		);
+		$this->assertStringStartsWith( '<!-- wp:tests/my-block /-->', $template_part->content );
+	}
+
+	/**
+	 * @ticket 59646
+	 * @ticket 60506
+	 * @ticket 60854
+	 */
+	public function test_should_injected_hooked_block_into_template_part_last_child() {
+		register_block_type(
+			'tests/my-block',
+			array(
+				'block_hooks' => array(
+					'core/template-part' => 'last_child',
+				),
+			)
+		);
+
+		$template_part = _build_block_template_result_from_post(
+			self::$template_part_post,
+			'wp_template_part'
+		);
+		$this->assertStringEndsWith( '<!-- wp:tests/my-block /-->', $template_part->content );
+	}
+
+	/**
+	 * @ticket 59646
+	 * @ticket 60506
 	 */
 	public function test_should_not_inject_ignored_hooked_block_into_template() {
 		register_block_type(

@@ -153,7 +153,7 @@ if ( current_user_can( 'install_themes' ) ) {
 	} else {
 		$help_install = '<p>' . sprintf(
 			/* translators: %s: https://wordpress.org/themes/ */
-			__( 'If you would like to see more themes to choose from, click on the &#8220;Add New Theme&#8221; button and you will be able to browse or search for additional themes from the <a href="%s">WordPress Theme Directory</a>. Themes in the WordPress Theme Directory are designed and developed by third parties, and are compatible with the license WordPress uses. Oh, and they&#8217;re free!' ),
+			__( 'If you would like to see more themes to choose from, click on the &#8220;Add New Theme&#8221; button and you will be able to browse or search for additional themes from the <a href="%s">WordPress Theme Directory</a>. Themes in the WordPress Theme Directory are designed and developed by third parties, and are compatible with the license WordPress uses. Oh, and they are free!' ),
 			__( 'https://wordpress.org/themes/' )
 		) . '</p>';
 	}
@@ -231,11 +231,11 @@ wp_localize_script(
 			'adminUrl'      => parse_url( admin_url(), PHP_URL_PATH ),
 		),
 		'l10n'     => array(
-			'addNew'            => __( 'Add New Theme' ),
-			'search'            => __( 'Search installed themes' ),
+			'addNew'        => __( 'Add New Theme' ),
+			'search'        => __( 'Search installed themes' ),
 			/* translators: %d: Number of themes. */
-			'themesFound'       => __( 'Number of Themes found: %d' ),
-			'noThemesFound'     => __( 'No themes found. Try a different search.' ),
+			'themesFound'   => __( 'Number of Themes found: %d' ),
+			'noThemesFound' => __( 'No themes found. Try a different search.' ),
 		),
 	)
 );

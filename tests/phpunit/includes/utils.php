@@ -295,7 +295,6 @@ class TestXMLParser {
 	 */
 	public function __construct( $in ) {
 		$this->xml = xml_parser_create();
-		xml_set_object( $this->xml, $this );
 		xml_parser_set_option( $this->xml, XML_OPTION_CASE_FOLDING, 0 );
 		xml_set_element_handler( $this->xml, array( $this, 'start_handler' ), array( $this, 'end_handler' ) );
 		xml_set_character_data_handler( $this->xml, array( $this, 'data_handler' ) );
@@ -305,13 +304,12 @@ class TestXMLParser {
 	public function parse( $in ) {
 		$parse = xml_parse( $this->xml, $in, true );
 		if ( ! $parse ) {
-			trigger_error(
+			throw new Exception(
 				sprintf(
 					'XML error: %s at line %d',
 					xml_error_string( xml_get_error_code( $this->xml ) ),
 					xml_get_current_line_number( $this->xml )
-				),
-				E_USER_ERROR
+				)
 			);
 			xml_parser_free( $this->xml );
 		}
