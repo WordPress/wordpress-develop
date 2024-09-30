@@ -54,6 +54,14 @@ class WP_Block_Metadata_Registry {
 	private static $plugin_dir = '';
 
 	/**
+	 * Stores the normalized WordPress theme directory path.
+	 *
+	 * @since 6.7.0
+	 * @var string
+	 */
+	private static $theme_dir = '';
+
+	/**
 	 * Registers a block metadata collection.
 	 *
 	 * This method allows registering a collection of block metadata from a single
@@ -94,6 +102,7 @@ class WP_Block_Metadata_Registry {
 
 		$wpinc_path = self::get_include_path();
 		$plugin_dir = self::get_plugin_dir();
+		$theme_dir  = self::get_theme_dir();
 
 		// Check if the path is valid:
 		if ( str_starts_with( $path, $wpinc_path ) ) {
@@ -106,15 +115,17 @@ class WP_Block_Metadata_Registry {
 			if ( empty( $plugin_name ) || $plugin_name === $relative_path ) {
 				_doing_it_wrong(
 					__METHOD__,
-					__( 'Block metadata collections can only be registered for a specific plugin. The provided path is neither a core path nor a valid plugin path.' ),
+					__( 'Block metadata collections can only be registered for a specific plugin or theme. The provided path is neither a core path, a valid plugin path, nor a valid theme path.' ),
 					'6.7.0'
 				);
 				return false;
 			}
+		} elseif ( str_starts_with( $path, $theme_dir ) ) {
+			// Theme path is valid.
 		} else {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Block metadata collections can only be registered for a specific plugin. The provided path is neither a core path nor a valid plugin path.' ),
+				__( 'Block metadata collections can only be registered for a specific plugin or theme. The provided path is neither a core path, a valid plugin path, nor a valid theme path.' ),
 				'6.7.0'
 			);
 			return false;
@@ -270,5 +281,19 @@ class WP_Block_Metadata_Registry {
 			self::$plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
 		}
 		return self::$plugin_dir;
+	}
+
+	/**
+	 * Gets the normalized WordPress theme directory path.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string The normalized WordPress theme directory path.
+	 */
+	private static function get_theme_dir() {
+		if ( empty( self::$theme_dir ) ) {
+			self::$theme_dir = wp_normalize_path( get_theme_root() );
+		}
+		return self::$theme_dir;
 	}
 }
