@@ -1066,9 +1066,14 @@ function apply_block_hooks_to_content( $content, $context, $callback = 'insert_h
 			foreach ( $hooked_block_types as $index => $hooked_block_type ) {
 				$hooked_block_type_definition =
 					WP_Block_Type_Registry::get_instance()->get_registered( $hooked_block_type );
-				if ( block_has_support( $hooked_block_type_definition, 'multiple', true ) ) {
-					$block_allows_multiple_instances[ $hooked_block_type ] = true;
-				} elseif ( has_block( $hooked_block_type, $content ) ) {
+
+				$block_allows_multiple_instances[ $hooked_block_type ] =
+					block_has_support( $hooked_block_type_definition, 'multiple', true );
+
+				if (
+					! $block_allows_multiple_instances[ $hooked_block_type ] &&
+					has_block( $hooked_block_type, $content )
+				) {
 					unset( $hooked_blocks[ $anchor_block_type ][ $relative_position ][ $index ] );
 				}
 			}
@@ -1081,11 +1086,12 @@ function apply_block_hooks_to_content( $content, $context, $callback = 'insert_h
 		}
 	}
 
+	$single_instance_blocks_present_in_content = array();
 	/*
 	 * We also need to cover the case where there the hooked block is not present in
 	 * `$content` at first and we're allowed to insert it once -- but not again.
 	 */
-	$suppress_single_instance_blocks = static function ( $hooked_block_types, $relative_position, $anchor_block_name ) use ( &$block_allows_multiple_instances, $content ) {
+	$suppress_single_instance_blocks = static function ( $hooked_block_types, $relative_position, $anchor_block_name ) use ( &$block_allows_multiple_instances, &$single_instance_blocks_present_in_content, $content ) {
 		foreach ( $hooked_block_types as $index => $hooked_block_type ) {
 			if ( ! isset( $block_allows_multiple_instances[ $hooked_block_type ] ) ) {
 				$hooked_block_type_definition =
@@ -1093,16 +1099,23 @@ function apply_block_hooks_to_content( $content, $context, $callback = 'insert_h
 
 				$block_allows_multiple_instances[ $hooked_block_type ] =
 					block_has_support( $hooked_block_type_definition, 'multiple', true );
+			}
 
-				if ( ! $block_allows_multiple_instances[ $hooked_block_type ] && has_block( $hooked_block_type, $content ) ) {
-					unset( $hooked_block_types[ $index ] );
-				}
-			} elseif ( ! $block_allows_multiple_instances[ $hooked_block_type ] ) {
-				// An instance of the hooked block was previously encountered, and its `multiple` support is false.
+			if ( $block_allows_multiple_instances[ $hooked_block_type ] ) {
+				continue;
+			}
+
+			// The block doesn't allow multiple instances, so we need to check if it's already present.
+			if (
+				in_array( $hooked_block_type, $single_instance_blocks_present_in_content, true ) ||
+				has_block( $hooked_block_type, $content )
+			) {
 				unset( $hooked_block_types[ $index ] );
+			} else {
+				// Remember not to insert this block again.
+				$single_instance_blocks_present_in_content[] = $hooked_block_type;
 			}
 		}
-
 		return $hooked_block_types;
 	};
 	add_filter( 'hooked_block_types', $suppress_single_instance_blocks, PHP_INT_MAX, 3 );
