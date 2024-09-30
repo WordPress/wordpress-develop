@@ -440,7 +440,6 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$query         = build_query_vars_from_query_block( $block, 1 );
 
 		$this->assertSame(
-			$query,
 			array(
 				'post_type'       => 'page',
 				'order'           => 'DESC',
@@ -459,7 +458,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 					),
 				),
 				'post_parent__in' => array( 1, 2 ),
-			)
+			),
+			$query
 		);
 	}
 
@@ -603,14 +603,14 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$query            = build_query_vars_from_query_block( $block_no_context, 1 );
 
 		$this->assertSame(
-			$query,
 			array(
 				'post_type'    => 'post',
 				'order'        => 'DESC',
 				'orderby'      => 'date',
 				'post__not_in' => array(),
 				'tax_query'    => array(),
-			)
+			),
+			$query
 		);
 	}
 
@@ -635,7 +635,6 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$query         = build_query_vars_from_query_block( $block, 1 );
 
 		$this->assertSame(
-			$query,
 			array(
 				'post_type'      => 'post',
 				'order'          => 'DESC',
@@ -644,7 +643,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'tax_query'      => array(),
 				'offset'         => 0,
 				'posts_per_page' => 2,
-			)
+			),
+			$query
 		);
 	}
 
@@ -668,7 +668,6 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 		$query         = build_query_vars_from_query_block( $block, 3 );
 		$this->assertSame(
-			$query,
 			array(
 				'post_type'      => 'post',
 				'order'          => 'DESC',
@@ -677,7 +676,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'tax_query'      => array(),
 				'offset'         => 10,
 				'posts_per_page' => 5,
-			)
+			),
+			$query
 		);
 	}
 
@@ -701,7 +701,6 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 		$query         = build_query_vars_from_query_block( $block, 3 );
 		$this->assertSame(
-			$query,
 			array(
 				'post_type'      => 'post',
 				'order'          => 'DESC',
@@ -710,7 +709,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'tax_query'      => array(),
 				'offset'         => 12,
 				'posts_per_page' => 5,
-			)
+			),
+			$query
 		);
 	}
 
@@ -745,14 +745,14 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$query = build_query_vars_from_query_block( $block, 1 );
 		$this->assertSame(
-			$query,
 			array(
 				'post_type'    => 'book',
 				'order'        => 'DESC',
 				'orderby'      => 'title',
 				'post__not_in' => array(),
 				'tax_query'    => array(),
-			)
+			),
+			$query
 		);
 	}
 
