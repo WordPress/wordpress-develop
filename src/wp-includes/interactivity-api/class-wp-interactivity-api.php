@@ -96,6 +96,15 @@ final class WP_Interactivity_API {
 	private $context_stack = null;
 
 	/**
+	 * Representation in array format of the element currently being processed.
+	 *
+	 * This is only available during directive processing, otherwise it is `null`.
+	 *
+	 * @since 6.7.0
+	 * @var array<mixed>|null
+	 */
+	private $current_element = null;
+	/**
 	 * Gets and/or sets the initial state of an Interactivity API store for a
 	 * given namespace.
 	 *
@@ -192,13 +201,48 @@ final class WP_Interactivity_API {
 	 * configuration will be available using a `getConfig` utility.
 	 *
 	 * @since 6.5.0
+	 *
+	 * @deprecated 6.7.0 Client data passing is handled by the {@see "script_module_data_{$module_id}"} filter.
 	 */
 	public function print_client_interactivity_data() {
-		if ( empty( $this->state_data ) && empty( $this->config_data ) ) {
-			return;
-		}
+		_deprecated_function( __METHOD__, '6.7.0' );
+	}
 
-		$interactivity_data = array();
+	/**
+	 * Set client-side interactivity-router data.
+	 *
+	 * Once in the browser, the state will be parsed and used to hydrate the client-side
+	 * interactivity stores and the configuration will be available using a `getConfig` utility.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param array $data Data to filter.
+	 * @return array Data for the Interactivity Router script module.
+	 */
+	public function filter_script_module_interactivity_router_data( array $data ): array {
+		if ( ! isset( $data['i18n'] ) ) {
+			$data['i18n'] = array();
+		}
+		$data['i18n']['loading'] = __( 'Loading page, please wait.' );
+		$data['i18n']['loaded']  = __( 'Page Loaded.' );
+		return $data;
+	}
+
+	/**
+	 * Set client-side interactivity data.
+	 *
+	 * Once in the browser, the state will be parsed and used to hydrate the client-side
+	 * interactivity stores and the configuration will be available using a `getConfig` utility.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param array $data Data to filter.
+	 * @return array Data for the Interactivity API script module.
+	 */
+	public function filter_script_module_interactivity_data( array $data ): array {
+		if ( empty( $this->state_data ) && empty( $this->config_data ) ) {
+			return $data;
+		}
 
 		$config = array();
 		foreach ( $this->config_data as $key => $value ) {
@@ -207,7 +251,7 @@ final class WP_Interactivity_API {
 			}
 		}
 		if ( ! empty( $config ) ) {
-			$interactivity_data['config'] = $config;
+			$data['config'] = $config;
 		}
 
 		$state = array();
@@ -217,52 +261,10 @@ final class WP_Interactivity_API {
 			}
 		}
 		if ( ! empty( $state ) ) {
-			$interactivity_data['state'] = $state;
+			$data['state'] = $state;
 		}
 
-		if ( ! empty( $interactivity_data ) ) {
-			/*
-			 * This data will be printed as JSON inside a script tag like this:
-			 *   <script type="application/json"></script>
-			 *
-			 * A script tag must be closed by a sequence beginning with `</`. It's impossible to
-			 * close a script tag without using `<`. We ensure that `<` is escaped and `/` can
-			 * remain unescaped, so `</script>` will be printed as `\u003C/script\u00E3`.
-			 *
-			 *   - JSON_HEX_TAG: All < and > are converted to \u003C and \u003E.
-			 *   - JSON_UNESCAPED_SLASHES: Don't escape /.
-			 *
-			 * If the page will use UTF-8 encoding, it's safe to print unescaped unicode:
-			 *
-			 *   - JSON_UNESCAPED_UNICODE: Encode multibyte Unicode characters literally (instead of as `\uXXXX`).
-			 *   - JSON_UNESCAPED_LINE_TERMINATORS: The line terminators are kept unescaped when
-			 *     JSON_UNESCAPED_UNICODE is supplied. It uses the same behaviour as it was
-			 *     before PHP 7.1 without this constant. Available as of PHP 7.1.0.
-			 *
-			 * The JSON specification requires encoding in UTF-8, so if the generated HTML page
-			 * is not encoded in UTF-8 then it's not safe to include those literals. They must
-			 * be escaped to avoid encoding issues.
-			 *
-			 * @see https://www.rfc-editor.org/rfc/rfc8259.html for details on encoding requirements.
-			 * @see https://www.php.net/manual/en/json.constants.php for details on these constants.
-			 * @see https://html.spec.whatwg.org/#script-data-state for details on script tag parsing.
-			 */
-			$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS;
-			if ( ! is_utf8_charset() ) {
-				$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES;
-			}
-
-			wp_print_inline_script_tag(
-				wp_json_encode(
-					$interactivity_data,
-					$json_encode_flags
-				),
-				array(
-					'type' => 'application/json',
-					'id'   => 'wp-interactivity-data',
-				)
-			);
-		}
+		return $data;
 	}
 
 	/**
@@ -304,25 +306,36 @@ final class WP_Interactivity_API {
 			? $context[ $store_namespace ]
 			: array();
 	}
+	/**
+	 * Returns an array representation of the current element being processed.
+	 *
+	 * The returned array contains a copy of the element attributes.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array|null Current element.
+	 */
+	public function get_element(): ?array {
+		if ( null === $this->current_element ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The element can only be read during directive processing.' ),
+				'6.7.0'
+			);
+		}
+
+		return $this->current_element;
+	}
 
 	/**
 	 * Registers the `@wordpress/interactivity` script modules.
 	 *
+	 * @deprecated 6.7.0 Script Modules registration is handled by {@see wp_default_script_modules()}.
+	 *
 	 * @since 6.5.0
 	 */
 	public function register_script_modules() {
-		$suffix = wp_scripts_get_suffix();
-
-		wp_register_script_module(
-			'@wordpress/interactivity',
-			includes_url( "js/dist/interactivity$suffix.js" )
-		);
-
-		wp_register_script_module(
-			'@wordpress/interactivity-router',
-			includes_url( "js/dist/interactivity-router$suffix.js" ),
-			array( '@wordpress/interactivity' )
-		);
+		_deprecated_function( __METHOD__, '6.7.0', 'wp_default_script_modules' );
 	}
 
 	/**
@@ -331,11 +344,8 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 */
 	public function add_hooks() {
-		add_action( 'wp_enqueue_scripts', array( $this, 'register_script_modules' ) );
-		add_action( 'wp_footer', array( $this, 'print_client_interactivity_data' ) );
-
-		add_action( 'admin_enqueue_scripts', array( $this, 'register_script_modules' ) );
-		add_action( 'admin_print_footer_scripts', array( $this, 'print_client_interactivity_data' ) );
+		add_filter( 'script_module_data_@wordpress/interactivity', array( $this, 'filter_script_module_interactivity_data' ) );
+		add_filter( 'script_module_data_@wordpress/interactivity-router', array( $this, 'filter_script_module_interactivity_router_data' ) );
 	}
 
 	/**
@@ -468,6 +478,19 @@ final class WP_Interactivity_API {
 				'exit'  => $p->is_tag_closer() || ! $p->has_and_visits_its_closer_tag(),
 			);
 
+			// Get the element attributes to include them in the element representation.
+			$element_attrs = array();
+			$attr_names    = $p->get_attribute_names_with_prefix( '' ) ?? array();
+
+			foreach ( $attr_names as $name ) {
+				$element_attrs[ $name ] = $p->get_attribute( $name );
+			}
+
+			// Assign the current element right before running its directive processors.
+			$this->current_element = array(
+				'attributes' => $element_attrs,
+			);
+
 			foreach ( $modes as $mode => $should_run ) {
 				if ( ! $should_run ) {
 					continue;
@@ -489,6 +512,9 @@ final class WP_Interactivity_API {
 					call_user_func_array( $func, array( $p, $mode, &$tag_stack ) );
 				}
 			}
+
+			// Clear the current element.
+			$this->current_element = null;
 		}
 
 		if ( $unbalanced ) {
@@ -521,6 +547,7 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 * @since 6.6.0 The function now adds a warning when the namespace is null, falsy, or the directive value is empty.
 	 * @since 6.6.0 Removed `default_namespace` and `context` arguments.
+	 * @since 6.6.0 Add support for derived state.
 	 *
 	 * @param string|true $directive_value The directive attribute value string or `true` when it's a boolean attribute.
 	 * @return mixed|null The result of the evaluation. Null if the reference path doesn't exist or the namespace is falsy.
@@ -557,32 +584,32 @@ final class WP_Interactivity_API {
 			} else {
 				return null;
 			}
-		}
 
-		if ( $current instanceof Closure ) {
-			/*
-			 * This state getter's namespace is added to the stack so that
-			 * `state()` or `get_config()` read that namespace when called
-			 * without specifying one.
-			 */
-			array_push( $this->namespace_stack, $ns );
-			try {
-				$current = $current();
-			} catch ( Throwable $e ) {
-				_doing_it_wrong(
-					__METHOD__,
-					sprintf(
-						/* translators: 1: Path pointing to an Interactivity API state property, 2: Namespace for an Interactivity API store. */
-						__( 'Uncaught error executing a derived state callback with path "%1$s" and namespace "%2$s".' ),
-						$path,
-						$ns
-					),
-					'6.6.0'
-				);
-				return null;
-			} finally {
-				// Remove the property's namespace from the stack.
-				array_pop( $this->namespace_stack );
+			if ( $current instanceof Closure ) {
+				/*
+				 * This state getter's namespace is added to the stack so that
+				 * `state()` or `get_config()` read that namespace when called
+				 * without specifying one.
+				 */
+				array_push( $this->namespace_stack, $ns );
+				try {
+					$current = $current();
+				} catch ( Throwable $e ) {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: 1: Path pointing to an Interactivity API state property, 2: Namespace for an Interactivity API store. */
+							__( 'Uncaught error executing a derived state callback with path "%1$s" and namespace "%2$s".' ),
+							$path,
+							$ns
+						),
+						'6.6.0'
+					);
+					return null;
+				} finally {
+					// Remove the property's namespace from the stack.
+					array_pop( $this->namespace_stack );
+				}
 			}
 		}
 
@@ -1012,28 +1039,33 @@ CSS;
 	}
 
 	/**
-	 * Outputs the markup for the top loading indicator and the screen reader
-	 * notifications during client-side navigations.
-	 *
-	 * This method prints a div element representing a loading bar visible during
-	 * navigation, as well as an aria-live region that can be read by screen
-	 * readers to announce navigation status.
+	 * Deprecated.
 	 *
 	 * @since 6.5.0
+	 * @deprecated 6.7.0 Use {@see WP_Interactivity_API::print_router_markup} instead.
 	 */
 	public function print_router_loading_and_screen_reader_markup() {
+		_deprecated_function( __METHOD__, '6.7.0', 'WP_Interactivity_API::print_router_markup' );
+
+		// Call the new method.
+		$this->print_router_markup();
+	}
+
+	/**
+	 * Outputs markup for the @wordpress/interactivity-router script module.
+	 *
+	 * This method prints a div element representing a loading bar visible during
+	 * navigation.
+	 *
+	 * @since 6.7.0
+	 */
+	public function print_router_markup() {
 		echo <<<HTML
 			<div
 				class="wp-interactivity-router-loading-bar"
 				data-wp-interactive="core/router"
 				data-wp-class--start-animation="state.navigation.hasStarted"
 				data-wp-class--finish-animation="state.navigation.hasFinished"
-			></div>
-			<div
-				class="screen-reader-text"
-				aria-live="polite"
-				data-wp-interactive="core/router"
-				data-wp-text="state.navigation.message"
 			></div>
 HTML;
 	}
@@ -1055,16 +1087,16 @@ HTML;
 		if ( 'enter' === $mode && ! $this->has_processed_router_region ) {
 			$this->has_processed_router_region = true;
 
-			// Initialize the `core/router` store.
+			/*
+			 * Initialize the `core/router` store.
+			 * If the store is not initialized like this with minimal
+			 * navigation object, the interactivity-router script module
+			 * errors.
+			 */
 			$this->state(
 				'core/router',
 				array(
-					'navigation' => array(
-						'texts' => array(
-							'loading' => __( 'Loading page, please wait.' ),
-							'loaded'  => __( 'Page Loaded.' ),
-						),
-					),
+					'navigation' => new stdClass(),
 				)
 			);
 
@@ -1074,7 +1106,7 @@ HTML;
 			wp_enqueue_style( 'wp-interactivity-router-animations' );
 
 			// Adds the necessary markup to the footer.
-			add_action( 'wp_footer', array( $this, 'print_router_loading_and_screen_reader_markup' ) );
+			add_action( 'wp_footer', array( $this, 'print_router_markup' ) );
 		}
 	}
 

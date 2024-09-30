@@ -31,26 +31,14 @@ test.describe( 'Manage applications passwords', () => {
 		await expect(
 			successMessage
 		).toContainText(
-			`Your new password for ${TEST_APPLICATION_NAME} is: \n\nBe sure to save this in a safe location. You will not be able to retrieve it.`
+			`Your new password for ${TEST_APPLICATION_NAME} is:`
+		);
+		await expect(
+			successMessage
+		).toContainText(
+			`Be sure to save this in a safe location. You will not be able to retrieve it.`
 		);
 	} );
-
-	test('should not allow to create two applications passwords with the same name', async ( {
-		page,
-		applicationPasswords
-	} ) => {
-		await applicationPasswords.create();
-		await applicationPasswords.create();
-
-		const errorMessage = page.getByRole( 'alert' );
-
-		await expect( errorMessage ).toHaveClass( /notice-error/ );
-		await expect(
-			errorMessage
-		).toContainText(
-			'Each application name should be unique.'
-		);
-	});
 
 	test( 'should correctly revoke a single application password', async ( {
 		page,

@@ -1,9 +1,9 @@
 === Twenty Fifteen ===
 Contributors: wordpressdotorg
 Requires at least: 4.1
-Tested up to: 6.5
+Tested up to: 6.6
 Requires PHP: 5.2.4
-Version: 3.7
+Version: 3.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, two-columns, left-sidebar, accessibility-ready, custom-background, custom-colors, custom-header, custom-logo, custom-menu, editor-style, featured-images, microformats, post-formats, rtl-language-support, sticky-post, threaded-comments, translation-ready, block-patterns
@@ -31,7 +31,7 @@ For more information about Twenty Fifteen please go to https://wordpress.org/doc
 
 == Copyright ==
 
-Twenty Fifteen WordPress Theme, Copyright 2014-2024 WordPress.org & Automattic.com
+Twenty Fifteen WordPress Theme, Copyright 2014-2024 WordPress.org, Automattic Inc., and contributors.
 Twenty Fifteen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -50,7 +50,7 @@ HTML5 Shiv v3.7.0, Copyright 2014 Alexander Farkas
 Licenses: MIT/GPL2
 Source: https://github.com/aFarkas/html5shiv
 
-Genericons icon font, Copyright 2013-2017 Automattic.com
+Genericons icon font, Copyright 2013-2017 Automattic Inc.
 License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
 
@@ -76,6 +76,11 @@ Source: https://stocksnap.io/photo/purple-yellow-ACF0693B9C
         https://stocksnap.io/photo/sunset-pier-77F43EA43C
 
 == Changelog ==
+
+= 3.8 =
+* Released: July 16, 2024
+
+https://wordpress.org/documentation/article/twenty-fifteen-changelog/#Version_3.8
 
 = 3.7 =
 * Released: April 2, 2024

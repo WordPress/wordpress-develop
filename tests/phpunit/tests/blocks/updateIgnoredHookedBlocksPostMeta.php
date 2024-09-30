@@ -75,7 +75,7 @@ class Tests_Blocks_UpdateIgnoredHookedBlocksPostMeta extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			array( 'tests/my-block' ),
-			json_decode( get_post_meta( self::$navigation_post->ID, '_wp_ignored_hooked_blocks', true ), true ),
+			json_decode( $post->meta_input['_wp_ignored_hooked_blocks'], true ),
 			'Block was not added to ignored hooked blocks metadata.'
 		);
 	}
