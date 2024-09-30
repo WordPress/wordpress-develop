@@ -212,7 +212,7 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	do_action( 'login_header' );
 	?>
 	<?php
-	if ( 'confirm_admin_email' !== $action ) :
+	if ( 'confirm_admin_email' !== $action && ! empty( $title ) ) :
 		?>
 		<h1 class="screen-reader-text"><?php echo $title; ?></h1>
 		<?php
