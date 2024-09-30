@@ -96,9 +96,7 @@ class WP_Block_Metadata_Registry {
 		$plugin_dir = self::get_plugin_dir();
 
 		// Check if the path is valid:
-		if ( str_starts_with( $path, $wpinc_dir ) ) {
-			// Core path is valid.
-		} elseif ( str_starts_with( $path, $plugin_dir ) ) {
+		if ( str_starts_with( $path, $plugin_dir ) ) {
 			// For plugins, ensure the path is within a specific plugin directory and not the base plugin directory.
 			$relative_path = substr( $path, strlen( $plugin_dir ) + 1 );
 			$plugin_name   = strtok( $relative_path, '/' );
@@ -111,7 +109,8 @@ class WP_Block_Metadata_Registry {
 				);
 				return false;
 			}
-		} else {
+		} elseif ( ! str_starts_with( $path, $wpinc_dir ) ) {
+			// If it's neither a plugin directory path nor within 'wp-includes', the path is invalid.
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Block metadata collections can only be registered for a specific plugin. The provided path is neither a core path nor a valid plugin path.' ),
