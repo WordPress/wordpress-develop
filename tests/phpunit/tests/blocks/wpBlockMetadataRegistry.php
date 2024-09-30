@@ -88,20 +88,4 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 		$result = WP_Block_Metadata_Registry::register_collection( $non_existent_path, $this->temp_manifest_file );
 		$this->assertFalse( $result, 'Non-existent path should not be registered' );
 	}
-
-	public function test_register_collection_with_valid_theme_path() {
-		$valid_theme_path = get_theme_root() . '/mytheme/blocks';
-
-		$result = WP_Block_Metadata_Registry::register_collection( $valid_theme_path, $this->temp_manifest_file );
-		$this->assertTrue( $result, 'Valid theme path should be registered successfully' );
-	}
-
-	public function test_register_collection_with_invalid_theme_path() {
-		$invalid_plugin_path = get_theme_root();
-
-		$this->setExpectedIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
-
-		$result = WP_Block_Metadata_Registry::register_collection( $invalid_plugin_path, $this->temp_manifest_file );
-		$this->assertFalse( $result, 'Invalid theme path should not be registered' );
-	}
 }

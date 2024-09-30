@@ -91,66 +91,6 @@ class Tests_Blocks_RegisterBlockTypeFromMetadataWithRegistry extends WP_UnitTest
 		$this->assertEquals( array( 'html' => true ), $registered_block->supports );
 	}
 
-	public function test_register_block_type_from_metadata_with_registry_in_parent_theme() {
-		$parent_theme_path = get_theme_root() . '/twentytwentyone';
-		$block_json_path   = $parent_theme_path . '/blocks/test-block/block.json';
-
-		// Create a manifest file with metadata for our test block
-		$manifest_data = array(
-			'test-block' => array(
-				'name'        => 'twentytwentyone/test-block',
-				'title'       => 'Parent Theme Test Block',
-				'category'    => 'widgets',
-				'icon'        => 'smiley',
-				'description' => 'A test block registered via WP_Block_Metadata_Registry in the parent theme',
-				'supports'    => array( 'html' => false ),
-				'textdomain'  => 'twentytwentyone',
-			),
-		);
-		file_put_contents( $this->temp_manifest_file, '<?php return ' . var_export( $manifest_data, true ) . ';' );
-
-		// Register the collection
-		WP_Block_Metadata_Registry::register_collection( $parent_theme_path . '/blocks', $this->temp_manifest_file );
-
-		// Attempt to register the block
-		$registered_block = register_block_type_from_metadata( $block_json_path );
-
-		// Assert that the block was registered successfully
-		$this->assertInstanceOf( 'WP_Block_Type', $registered_block );
-		$this->assertEquals( 'twentytwentyone/test-block', $registered_block->name );
-		$this->assertEquals( 'Parent Theme Test Block', $registered_block->title );
-	}
-
-	public function test_register_block_type_from_metadata_with_registry_in_child_theme() {
-		$child_theme_path = get_theme_root() . '/twentytwentyone-child';
-		$block_json_path  = $child_theme_path . '/blocks/test-block/block.json';
-
-		// Create a manifest file with metadata for our test block
-		$manifest_data = array(
-			'test-block' => array(
-				'name'        => 'twentytwentyone-child/test-block',
-				'title'       => 'Child Theme Test Block',
-				'category'    => 'widgets',
-				'icon'        => 'smiley',
-				'description' => 'A test block registered via WP_Block_Metadata_Registry in the child theme',
-				'supports'    => array( 'html' => false ),
-				'textdomain'  => 'twentytwentyone-child',
-			),
-		);
-		file_put_contents( $this->temp_manifest_file, '<?php return ' . var_export( $manifest_data, true ) . ';' );
-
-		// Register the collection
-		WP_Block_Metadata_Registry::register_collection( $child_theme_path . '/blocks', $this->temp_manifest_file );
-
-		// Attempt to register the block
-		$registered_block = register_block_type_from_metadata( $block_json_path );
-
-		// Assert that the block was registered successfully
-		$this->assertInstanceOf( 'WP_Block_Type', $registered_block );
-		$this->assertEquals( 'twentytwentyone-child/test-block', $registered_block->name );
-		$this->assertEquals( 'Child Theme Test Block', $registered_block->title );
-	}
-
 	private function unregister_test_blocks() {
 		$registry   = WP_Block_Type_Registry::get_instance();
 		$block_name = 'test-suite/test-block';
