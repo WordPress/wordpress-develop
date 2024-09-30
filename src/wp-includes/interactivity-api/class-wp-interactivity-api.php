@@ -295,14 +295,13 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.7.0
 	 */
-	public function get_element(): array {
+	public function get_element(): array|null {
 		if ( null === $this->current_element ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'The element can only be read during directive processing.' ),
 				'6.7.0'
 			);
-			return array();
 		}
 
 		return $this->current_element;
