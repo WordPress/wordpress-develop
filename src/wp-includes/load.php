@@ -1816,7 +1816,7 @@ function wp_start_scraping_edited_file_errors() {
 	}
 
 	if ( $transient !== $nonce ) {
-		if ( !headers_sent() ) {
+		if ( ! headers_sent() ) {
 			header( 'X-Robots-Tag: noindex' );
 		}
 		echo "###### wp_scraping_result_start:$key ######";
