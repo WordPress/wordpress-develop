@@ -1380,6 +1380,8 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * Tests that `wp_interactivity_get_element` returns an array with the
 	 * current element's attributes.
 	 *
+	 * @ticket 62136
+	 *
 	 * @covers wp_interactivity_get_element
 	 * @covers ::process_directives
 	 */
@@ -1432,6 +1434,8 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	/**
 	 * Tests that the attributes returned by `wp_interactivity_get_element` are
 	 * those originally present before directives are processed.
+	 *
+	 * @ticket 62136
 	 *
 	 * @covers wp_interactivity_get_element
 	 * @covers ::process_directives
@@ -1493,6 +1497,8 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	/**
 	 * Tests that `wp_interactivity_get_element` should not be called outside of
 	 * `process_directives` execution.
+	 *
+	 * @ticket 62136
 	 *
 	 * @covers wp_interactivity_get_element
 	 * @expectedIncorrectUsage WP_Interactivity_API::get_element
