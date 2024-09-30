@@ -464,6 +464,134 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 62014
+	 */
+	public function test_build_query_vars_from_query_block_standard_post_formats() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'postType' => 'post',
+				'format'   => array( 'standard' ),
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			array(
+				'post_type'    => 'post',
+				'order'        => 'DESC',
+				'orderby'      => 'date',
+				'post__not_in' => array(),
+				'tax_query'    => array(
+					'relation' => 'OR',
+					array(
+						'taxonomy' => 'post_format',
+						'field'    => 'slug',
+						'operator' => 'NOT EXISTS',
+					),
+				),
+			),
+			$query
+		);
+	}
+
+	/**
+	 * @ticket 62014
+	 */
+	public function test_build_query_vars_from_query_block_post_format() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'postType' => 'post',
+				'format'   => array( 'aside' ),
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			array(
+				'post_type'    => 'post',
+				'order'        => 'DESC',
+				'orderby'      => 'date',
+				'post__not_in' => array(),
+				'tax_query'    => array(
+					'relation' => 'OR',
+					array(
+						'taxonomy' => 'post_format',
+						'field'    => 'slug',
+						'terms'    => array( 'post-format-aside' ),
+						'operator' => 'IN',
+					),
+				),
+			),
+			$query
+		);
+	}
+	/**
+	 * @ticket 62014
+	 */
+	public function test_build_query_vars_from_query_block_post_formats_with_category() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'postType'    => 'post',
+				'format'      => array( 'standard' ),
+				'categoryIds' => array( 56 ),
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			array(
+				'post_type'    => 'post',
+				'order'        => 'DESC',
+				'orderby'      => 'date',
+				'post__not_in' => array(),
+				'tax_query'    => array(
+					'relation' => 'AND',
+					array(
+						array(
+							'taxonomy'         => 'category',
+							'terms'            => array( 56 ),
+							'include_children' => false,
+						),
+					),
+					array(
+						'relation' => 'OR',
+						array(
+							'taxonomy' => 'post_format',
+							'field'    => 'slug',
+							'operator' => 'NOT EXISTS',
+						),
+					),
+				),
+			),
+			$query
+		);
+	}
+
+	/**
 	 * @ticket 52991
 	 */
 	public function test_build_query_vars_from_query_block_no_context() {
