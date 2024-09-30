@@ -199,7 +199,6 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	?>
 	</head>
 	<body class="login no-js <?php echo esc_attr( implode( ' ', $classes ) ); ?>">
-	<header>
 	<?php
 	wp_print_inline_script_tag( "document.body.className = document.body.className.replace('no-js','js');" );
 	?>
@@ -212,9 +211,13 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	 */
 	do_action( 'login_header' );
 	?>
+	<?php
+	if ( 'confirm_admin_email' !== $action ) :
+		?>
 		<h1 class="screen-reader-text"><?php echo $title; ?></h1>
-	</header>
-	<main>
+		<?php
+	endif;
+	?>
 	<div id="login">
 		<h1 role="presentation" class="wp-login-logo"><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
 	<?php
@@ -423,7 +426,7 @@ function login_footer( $input_id = '' ) {
 				</div>
 		<?php } ?>
 	<?php } ?>
-	</main>
+
 	<?php
 
 	if ( ! empty( $input_id ) ) {
