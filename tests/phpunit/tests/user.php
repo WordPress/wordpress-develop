@@ -2257,14 +2257,18 @@ class Tests_User extends WP_UnitTestCase {
 		$set_db_counts = 0;
 
 		// Track db updates with calls to do_action( "update_user_meta", ...
-		add_action( 'update_user_meta', function( $meta_id, $object_id, $meta_key ) use ( &$set_db_counts ) {
-			if ( 'use_ssl' !== $meta_key ) {
-				return;
-			}
-			$set_db_counts++;
-		}, 10, 3 );
+		add_action(
+			'update_user_meta',
+			function ( $meta_id, $object_id, $meta_key ) use ( &$set_db_counts ) {
+				if ( 'use_ssl' !== $meta_key ) {
+					return;
+				}
+				$set_db_counts++;
+			},
+			10,
+			3
+		);
 
-		
 		$_POST = array(
 			'nickname' => 'nickname_test',
 			'email'    => 'email_test_1@example.com',
