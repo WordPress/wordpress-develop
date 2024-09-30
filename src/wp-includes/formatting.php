@@ -896,10 +896,12 @@ function seems_utf8( $str ) {
 			$n = 2; // 1110bbbb
 		} elseif ( ( $c & 0xF8 ) === 0xF0 ) {
 			$n = 3; // 11110bbb
-		} elseif ( ( $c & 0xFC ) === 0xF8 ) {
-			$n = 4; // 111110bb
-		} elseif ( ( $c & 0xFE ) === 0xFC ) {
-			$n = 5; // 1111110b
+
+			if ( $c > 0xF4 ) {
+				return false; // Invalid: U+10FFFF is the highest valid code point.
+			}
+		} elseif ( ( $c & 0xFC ) === 0xF8 || ( $c & 0xFE ) === 0xFC ) {
+			return false; // Invalid: overlong sequences.
 		} else {
 			return false; // Does not match any model.
 		}
@@ -908,6 +910,15 @@ function seems_utf8( $str ) {
 			if ( ( ++$i === $length ) || ( ( ord( $str[ $i ] ) & 0xC0 ) !== 0x80 ) ) {
 				return false;
 			}
+		}
+
+		// Prevent invalid code points (U+D800 to U+DFFF)
+		if ( 0 === $n && 0x00 === $c ) {
+			return false; // Invalid overlong sequence for U+0000
+		}
+
+		if ( 3 === $n && $c >= 0xED && ord( $str[ $i - 2 ] ) > 0x9F ) {
+			return false; // Invalid: surrogate pair range.
 		}
 	}
 
