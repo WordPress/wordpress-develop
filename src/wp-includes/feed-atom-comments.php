@@ -31,13 +31,13 @@ do_action( 'rss_tag_pre', 'atom-comments' );
 	<?php
 	if ( is_singular() ) {
 		/* translators: Comments feed title. %s: Post title. */
-		printf( ent2ncr( __( 'Comments on %s' ) ), get_the_title_rss() );
+		printf( html_entity_decode( ent2ncr( __( 'Comments on %s' ) ) ), get_the_title_rss() );
 	} elseif ( is_search() ) {
 		/* translators: Comments feed title. 1: Site title, 2: Search query. */
-		printf( ent2ncr( __( 'Comments for %1$s searching on %2$s' ) ), get_bloginfo_rss( 'name' ), get_search_query() );
+		printf( html_entity_decode( ent2ncr( __( 'Comments for %1$s searching on %2$s' ) ) ), get_bloginfo_rss( 'name' ), get_search_query() );
 	} else {
 		/* translators: Comments feed title. %s: Site title. */
-		printf( ent2ncr( __( 'Comments for %s' ) ), get_wp_title_rss() );
+		printf( html_entity_decode( ent2ncr( __( 'Comments for %s' ) ) ), get_wp_title_rss() );
 	}
 	?>
 	</title>
@@ -83,10 +83,10 @@ while ( have_comments() ) :
 			/** This filter is documented in wp-includes/feed.php */
 			$title = apply_filters( 'the_title_rss', $title );
 			/* translators: Individual comment title. 1: Post title, 2: Comment author name. */
-			printf( ent2ncr( __( 'Comment on %1$s by %2$s' ) ), $title, get_comment_author_rss() );
+			printf( html_entity_decode( ent2ncr( __( 'Comment on %1$s by %2$s' ) ) ), $title, get_comment_author_rss() );
 		} else {
 			/* translators: Comment author title. %s: Comment author name. */
-			printf( ent2ncr( __( 'By: %s' ) ), get_comment_author_rss() );
+			printf( html_entity_decode( ent2ncr( __( 'By: %s' ) ) ), get_comment_author_rss() );
 		}
 		?>
 		</title>

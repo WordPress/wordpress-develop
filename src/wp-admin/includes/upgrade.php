@@ -570,9 +570,10 @@ if ( ! function_exists( 'wp_new_blog_notification' ) ) :
 		$login_url = wp_login_url();
 
 		$message = sprintf(
-			/* translators: New site notification email. 1: New site URL, 2: User login, 3: User password or password reset link, 4: Login URL. */
-			__(
-				'Your new WordPress site has been successfully set up at:
+			html_entity_decode(
+				/* translators: New site notification email. 1: New site URL, 2: User login, 3: User password or password reset link, 4: Login URL. */
+				__(
+					'Your new WordPress site has been successfully set up at:
 
 %1$s
 
@@ -587,6 +588,7 @@ We hope you enjoy your new site. Thanks!
 --The WordPress Team
 https://wordpress.org/
 '
+				)
 			),
 			$blog_url,
 			$name,
@@ -596,7 +598,7 @@ https://wordpress.org/
 
 		$installed_email = array(
 			'to'      => $email,
-			'subject' => __( 'New WordPress Site' ),
+			'subject' => html_entity_decode( __( 'New WordPress Site' ) ),
 			'message' => $message,
 			'headers' => '',
 		);

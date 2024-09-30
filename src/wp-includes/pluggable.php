@@ -622,7 +622,7 @@ if ( ! function_exists( 'wp_authenticate' ) ) :
 			 * TODO: What should the error message be? (Or would these even happen?)
 			 * Only needed if all authentication handlers fail to return anything.
 			 */
-			$user = new WP_Error( 'authentication_failed', __( '<strong>Error:</strong> Invalid username, email address or incorrect password.' ) );
+			$user = new WP_Error( 'authentication_failed', html_entity_decode( __( '<strong>Error:</strong> Invalid username, email address or incorrect password.' ) ) );
 		}
 
 		$ignore_codes = array( 'empty_username', 'empty_password' );
@@ -1271,7 +1271,7 @@ if ( ! function_exists( 'check_admin_referer' ) ) :
 	 */
 	function check_admin_referer( $action = -1, $query_arg = '_wpnonce' ) {
 		if ( -1 === $action ) {
-			_doing_it_wrong( __FUNCTION__, __( 'You should specify an action to be verified by using the first parameter.' ), '3.2.0' );
+			_doing_it_wrong( __FUNCTION__, html_entity_decode( __( 'You should specify an action to be verified by using the first parameter.' ) ), '3.2.0' );
 		}
 
 		$adminurl = strtolower( admin_url() );
@@ -1316,7 +1316,7 @@ if ( ! function_exists( 'check_ajax_referer' ) ) :
 	 */
 	function check_ajax_referer( $action = -1, $query_arg = false, $stop = true ) {
 		if ( -1 === $action ) {
-			_doing_it_wrong( __FUNCTION__, __( 'You should specify an action to be verified by using the first parameter.' ), '4.7.0' );
+			_doing_it_wrong( __FUNCTION__, html_entity_decode( __( 'You should specify an action to be verified by using the first parameter.' ) ), '4.7.0' );
 		}
 
 		$nonce = '';
@@ -1410,7 +1410,7 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 		}
 
 		if ( $status < 300 || 399 < $status ) {
-			wp_die( __( 'HTTP redirect status code must be a redirection code, 3xx.' ) );
+			wp_die( html_entity_decode( __( 'HTTP redirect status code must be a redirection code, 3xx.' ) ) );
 		}
 
 		$location = wp_sanitize_redirect( $location );
@@ -1736,69 +1736,69 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		switch ( $comment->comment_type ) {
 			case 'trackback':
 				/* translators: %s: Post title. */
-				$notify_message = sprintf( __( 'New trackback on your post "%s"' ), $post->post_title ) . "\r\n";
+				$notify_message = sprintf( html_entity_decode( __( 'New trackback on your post "%s"' ) ), $post->post_title ) . "\r\n";
 				/* translators: 1: Trackback/pingback website name, 2: Website IP address, 3: Website hostname. */
-				$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Website: %1$s (IP address: %2$s, %3$s)' ) ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 				/* translators: %s: Trackback/pingback/comment author URL. */
-				$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'URL: %s' ) ), $comment->comment_author_url ) . "\r\n";
 				/* translators: %s: Comment text. */
-				$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
-				$notify_message .= __( 'You can see all trackbacks on this post here:' ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Comment: %s' ) ), "\r\n" . $comment_content ) . "\r\n\r\n";
+				$notify_message .= html_entity_decode( __( 'You can see all trackbacks on this post here:' ) ) . "\r\n";
 				/* translators: Trackback notification email subject. 1: Site title, 2: Post title. */
-				$subject = sprintf( __( '[%1$s] Trackback: "%2$s"' ), $blogname, $post->post_title );
+				$subject = sprintf( html_entity_decode( __( '[%1$s] Trackback: "%2$s"' ) ), $blogname, $post->post_title );
 				break;
 
 			case 'pingback':
 				/* translators: %s: Post title. */
-				$notify_message = sprintf( __( 'New pingback on your post "%s"' ), $post->post_title ) . "\r\n";
+				$notify_message = sprintf( html_entity_decode( __( 'New pingback on your post "%s"' ) ), $post->post_title ) . "\r\n";
 				/* translators: 1: Trackback/pingback website name, 2: Website IP address, 3: Website hostname. */
-				$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Website: %1$s (IP address: %2$s, %3$s)' ) ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 				/* translators: %s: Trackback/pingback/comment author URL. */
-				$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'URL: %s' ) ), $comment->comment_author_url ) . "\r\n";
 				/* translators: %s: Comment text. */
-				$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
-				$notify_message .= __( 'You can see all pingbacks on this post here:' ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Comment: %s' ) ), "\r\n" . $comment_content ) . "\r\n\r\n";
+				$notify_message .= html_entity_decode( __( 'You can see all pingbacks on this post here:' ) ) . "\r\n";
 				/* translators: Pingback notification email subject. 1: Site title, 2: Post title. */
-				$subject = sprintf( __( '[%1$s] Pingback: "%2$s"' ), $blogname, $post->post_title );
+				$subject = sprintf( html_entity_decode( __( '[%1$s] Pingback: "%2$s"' ) ), $blogname, $post->post_title );
 				break;
 
 			default: // Comments.
 				/* translators: %s: Post title. */
-				$notify_message = sprintf( __( 'New comment on your post "%s"' ), $post->post_title ) . "\r\n";
+				$notify_message = sprintf( html_entity_decode( __( 'New comment on your post "%s"' ) ), $post->post_title ) . "\r\n";
 				/* translators: 1: Comment author's name, 2: Comment author's IP address, 3: Comment author's hostname. */
-				$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Author: %1$s (IP address: %2$s, %3$s)' ) ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 				/* translators: %s: Comment author email. */
-				$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Email: %s' ) ), $comment->comment_author_email ) . "\r\n";
 				/* translators: %s: Trackback/pingback/comment author URL. */
-				$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'URL: %s' ) ), $comment->comment_author_url ) . "\r\n";
 
 				if ( $comment->comment_parent && user_can( $post->post_author, 'edit_comment', $comment->comment_parent ) ) {
 					/* translators: Comment moderation. %s: Parent comment edit URL. */
-					$notify_message .= sprintf( __( 'In reply to: %s' ), admin_url( "comment.php?action=editcomment&c={$comment->comment_parent}#wpbody-content" ) ) . "\r\n";
+					$notify_message .= sprintf( html_entity_decode( __( 'In reply to: %s' ) ), admin_url( "comment.php?action=editcomment&c={$comment->comment_parent}#wpbody-content" ) ) . "\r\n";
 				}
 
 				/* translators: %s: Comment text. */
-				$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
-				$notify_message .= __( 'You can see all comments on this post here:' ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Comment: %s' ) ), "\r\n" . $comment_content ) . "\r\n\r\n";
+				$notify_message .= html_entity_decode( __( 'You can see all comments on this post here:' ) ) . "\r\n";
 				/* translators: Comment notification email subject. 1: Site title, 2: Post title. */
-				$subject = sprintf( __( '[%1$s] Comment: "%2$s"' ), $blogname, $post->post_title );
+				$subject = sprintf( html_entity_decode( __( '[%1$s] Comment: "%2$s"' ) ), $blogname, $post->post_title );
 				break;
 		}
 
 		$notify_message .= get_permalink( $comment->comment_post_ID ) . "#comments\r\n\r\n";
 		/* translators: %s: Comment URL. */
-		$notify_message .= sprintf( __( 'Permalink: %s' ), get_comment_link( $comment ) ) . "\r\n";
+		$notify_message .= sprintf( html_entity_decode( __( 'Permalink: %s' ) ), get_comment_link( $comment ) ) . "\r\n";
 
 		if ( user_can( $post->post_author, 'edit_comment', $comment->comment_ID ) ) {
 			if ( EMPTY_TRASH_DAYS ) {
 				/* translators: Comment moderation. %s: Comment action URL. */
-				$notify_message .= sprintf( __( 'Trash it: %s' ), admin_url( "comment.php?action=trash&c={$comment->comment_ID}#wpbody-content" ) ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Trash it: %s' ) ), admin_url( "comment.php?action=trash&c={$comment->comment_ID}#wpbody-content" ) ) . "\r\n";
 			} else {
 				/* translators: Comment moderation. %s: Comment action URL. */
-				$notify_message .= sprintf( __( 'Delete it: %s' ), admin_url( "comment.php?action=delete&c={$comment->comment_ID}#wpbody-content" ) ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Delete it: %s' ) ), admin_url( "comment.php?action=delete&c={$comment->comment_ID}#wpbody-content" ) ) . "\r\n";
 			}
 			/* translators: Comment moderation. %s: Comment action URL. */
-			$notify_message .= sprintf( __( 'Spam it: %s' ), admin_url( "comment.php?action=spam&c={$comment->comment_ID}#wpbody-content" ) ) . "\r\n";
+			$notify_message .= sprintf( html_entity_decode( __( 'Spam it: %s' ) ), admin_url( "comment.php?action=spam&c={$comment->comment_ID}#wpbody-content" ) ) . "\r\n";
 		}
 
 		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', wp_parse_url( network_home_url(), PHP_URL_HOST ) );
@@ -1927,60 +1927,60 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		switch ( $comment->comment_type ) {
 			case 'trackback':
 				/* translators: %s: Post title. */
-				$notify_message  = sprintf( __( 'A new trackback on the post "%s" is waiting for your approval' ), $post->post_title ) . "\r\n";
+				$notify_message  = sprintf( html_entity_decode( __( 'A new trackback on the post "%s" is waiting for your approval' ) ), $post->post_title ) . "\r\n";
 				$notify_message .= get_permalink( $comment->comment_post_ID ) . "\r\n\r\n";
 				/* translators: 1: Trackback/pingback website name, 2: Website IP address, 3: Website hostname. */
-				$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Website: %1$s (IP address: %2$s, %3$s)' ) ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 				/* translators: %s: Trackback/pingback/comment author URL. */
-				$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
-				$notify_message .= __( 'Trackback excerpt: ' ) . "\r\n" . $comment_content . "\r\n\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'URL: %s' ) ), $comment->comment_author_url ) . "\r\n";
+				$notify_message .= html_entity_decode( __( 'Trackback excerpt: ' ) ) . "\r\n" . $comment_content . "\r\n\r\n";
 				break;
 
 			case 'pingback':
 				/* translators: %s: Post title. */
-				$notify_message  = sprintf( __( 'A new pingback on the post "%s" is waiting for your approval' ), $post->post_title ) . "\r\n";
+				$notify_message  = sprintf( html_entity_decode( __( 'A new pingback on the post "%s" is waiting for your approval' ) ), $post->post_title ) . "\r\n";
 				$notify_message .= get_permalink( $comment->comment_post_ID ) . "\r\n\r\n";
 				/* translators: 1: Trackback/pingback website name, 2: Website IP address, 3: Website hostname. */
-				$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Website: %1$s (IP address: %2$s, %3$s)' ) ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 				/* translators: %s: Trackback/pingback/comment author URL. */
-				$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
-				$notify_message .= __( 'Pingback excerpt: ' ) . "\r\n" . $comment_content . "\r\n\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'URL: %s' ) ), $comment->comment_author_url ) . "\r\n";
+				$notify_message .= html_entity_decode( __( 'Pingback excerpt: ' ) ) . "\r\n" . $comment_content . "\r\n\r\n";
 				break;
 
 			default: // Comments.
 				/* translators: %s: Post title. */
-				$notify_message  = sprintf( __( 'A new comment on the post "%s" is waiting for your approval' ), $post->post_title ) . "\r\n";
+				$notify_message  = sprintf( html_entity_decode( __( 'A new comment on the post "%s" is waiting for your approval' ) ), $post->post_title ) . "\r\n";
 				$notify_message .= get_permalink( $comment->comment_post_ID ) . "\r\n\r\n";
 				/* translators: 1: Comment author's name, 2: Comment author's IP address, 3: Comment author's hostname. */
-				$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Author: %1$s (IP address: %2$s, %3$s)' ) ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 				/* translators: %s: Comment author email. */
-				$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Email: %s' ) ), $comment->comment_author_email ) . "\r\n";
 				/* translators: %s: Trackback/pingback/comment author URL. */
-				$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'URL: %s' ) ), $comment->comment_author_url ) . "\r\n";
 
 				if ( $comment->comment_parent ) {
 					/* translators: Comment moderation. %s: Parent comment edit URL. */
-					$notify_message .= sprintf( __( 'In reply to: %s' ), admin_url( "comment.php?action=editcomment&c={$comment->comment_parent}#wpbody-content" ) ) . "\r\n";
+					$notify_message .= sprintf( html_entity_decode( __( 'In reply to: %s' ) ), admin_url( "comment.php?action=editcomment&c={$comment->comment_parent}#wpbody-content" ) ) . "\r\n";
 				}
 
 				/* translators: %s: Comment text. */
-				$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
+				$notify_message .= sprintf( html_entity_decode( __( 'Comment: %s' ) ), "\r\n" . $comment_content ) . "\r\n\r\n";
 				break;
 		}
 
 		/* translators: Comment moderation. %s: Comment action URL. */
-		$notify_message .= sprintf( __( 'Approve it: %s' ), admin_url( "comment.php?action=approve&c={$comment_id}#wpbody-content" ) ) . "\r\n";
+		$notify_message .= sprintf( html_entity_decode( __( 'Approve it: %s' ) ), admin_url( "comment.php?action=approve&c={$comment_id}#wpbody-content" ) ) . "\r\n";
 
 		if ( EMPTY_TRASH_DAYS ) {
 			/* translators: Comment moderation. %s: Comment action URL. */
-			$notify_message .= sprintf( __( 'Trash it: %s' ), admin_url( "comment.php?action=trash&c={$comment_id}#wpbody-content" ) ) . "\r\n";
+			$notify_message .= sprintf( html_entity_decode( __( 'Trash it: %s' ) ), admin_url( "comment.php?action=trash&c={$comment_id}#wpbody-content" ) ) . "\r\n";
 		} else {
 			/* translators: Comment moderation. %s: Comment action URL. */
-			$notify_message .= sprintf( __( 'Delete it: %s' ), admin_url( "comment.php?action=delete&c={$comment_id}#wpbody-content" ) ) . "\r\n";
+			$notify_message .= sprintf( html_entity_decode( __( 'Delete it: %s' ) ), admin_url( "comment.php?action=delete&c={$comment_id}#wpbody-content" ) ) . "\r\n";
 		}
 
 		/* translators: Comment moderation. %s: Comment action URL. */
-		$notify_message .= sprintf( __( 'Spam it: %s' ), admin_url( "comment.php?action=spam&c={$comment_id}#wpbody-content" ) ) . "\r\n";
+		$notify_message .= sprintf( html_entity_decode( __( 'Spam it: %s' ) ), admin_url( "comment.php?action=spam&c={$comment_id}#wpbody-content" ) ) . "\r\n";
 
 		$notify_message .= sprintf(
 			/* translators: Comment moderation. %s: Number of comments awaiting approval. */
@@ -1994,7 +1994,7 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		$notify_message .= admin_url( 'edit-comments.php?comment_status=moderated#wpbody-content' ) . "\r\n";
 
 		/* translators: Comment moderation notification email subject. 1: Site title, 2: Post title. */
-		$subject         = sprintf( __( '[%1$s] Please moderate: "%2$s"' ), $blogname, $post->post_title );
+		$subject         = sprintf( html_entity_decode( __( '[%1$s] Please moderate: "%2$s"' ) ), $blogname, $post->post_title );
 		$message_headers = '';
 
 		/**
@@ -2064,7 +2064,7 @@ if ( ! function_exists( 'wp_password_change_notification' ) ) :
 		 */
 		if ( 0 !== strcasecmp( $user->user_email, get_option( 'admin_email' ) ) ) {
 			/* translators: %s: User name. */
-			$message = sprintf( __( 'Password changed for user: %s' ), $user->user_login ) . "\r\n";
+			$message = sprintf( html_entity_decode( __( 'Password changed for user: %s' ) ), $user->user_login ) . "\r\n";
 			/*
 			 * The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
 			 * We want to reverse this for the plain text arena of emails.
@@ -2074,7 +2074,7 @@ if ( ! function_exists( 'wp_password_change_notification' ) ) :
 			$wp_password_change_notification_email = array(
 				'to'      => get_option( 'admin_email' ),
 				/* translators: Password change notification email subject. %s: Site title. */
-				'subject' => __( '[%s] Password Changed' ),
+				'subject' => html_entity_decode( __( '[%s] Password Changed' ) ),
 				'message' => $message,
 				'headers' => '',
 			);
@@ -2155,16 +2155,16 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			$switched_locale = switch_to_locale( get_locale() );
 
 			/* translators: %s: Site title. */
-			$message = sprintf( __( 'New user registration on your site %s:' ), $blogname ) . "\r\n\r\n";
+			$message = sprintf( html_entity_decode( __( 'New user registration on your site %s:' ) ), $blogname ) . "\r\n\r\n";
 			/* translators: %s: User login. */
-			$message .= sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
+			$message .= sprintf( html_entity_decode( __( 'Username: %s' ) ), $user->user_login ) . "\r\n\r\n";
 			/* translators: %s: User email address. */
-			$message .= sprintf( __( 'Email: %s' ), $user->user_email ) . "\r\n";
+			$message .= sprintf( html_entity_decode( __( 'Email: %s' ) ), $user->user_email ) . "\r\n";
 
 			$wp_new_user_notification_email_admin = array(
 				'to'      => get_option( 'admin_email' ),
 				/* translators: New user registration notification email subject. %s: Site title. */
-				'subject' => __( '[%s] New User Registration' ),
+				'subject' => html_entity_decode( __( '[%s] New User Registration' ) ),
 				'message' => $message,
 				'headers' => '',
 			);
@@ -2222,8 +2222,8 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		$switched_locale = switch_to_user_locale( $user_id );
 
 		/* translators: %s: User login. */
-		$message  = sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
-		$message .= __( 'To set your password, visit the following address:' ) . "\r\n\r\n";
+		$message  = sprintf( html_entity_decode( __( 'Username: %s' ) ), $user->user_login ) . "\r\n\r\n";
+		$message .= html_entity_decode( __( 'To set your password, visit the following address:' ) ) . "\r\n\r\n";
 
 		/*
 		 * Since some user login names end in a period, this could produce ambiguous URLs that
@@ -2239,7 +2239,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		$wp_new_user_notification_email = array(
 			'to'      => $user->user_email,
 			/* translators: Login details notification email subject. %s: Site title. */
-			'subject' => __( '[%s] Login Details' ),
+			'subject' => html_entity_decode( __( '[%s] Login Details' ) ),
 			'message' => $message,
 			'headers' => '',
 		);
@@ -2455,7 +2455,7 @@ if ( ! function_exists( 'wp_salt' ) ) :
 			 * You can check the localized release package or
 			 * https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
 			 */
-			$duplicated_keys[ __( 'put your unique phrase here' ) ] = true;
+			$duplicated_keys[ html_entity_decode( __( 'put your unique phrase here' ) ) ] = true;
 
 			foreach ( array( 'AUTH', 'SECURE_AUTH', 'LOGGED_IN', 'NONCE', 'SECRET' ) as $first ) {
 				foreach ( array( 'KEY', 'SALT' ) as $second ) {

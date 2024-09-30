@@ -36,13 +36,13 @@ do_action( 'rss_tag_pre', 'rss2-comments' );
 	<?php
 	if ( is_singular() ) {
 		/* translators: Comments feed title. %s: Post title. */
-		printf( ent2ncr( __( 'Comments on: %s' ) ), get_the_title_rss() );
+		printf( html_entity_decode( ent2ncr( __( 'Comments on: %s' ) ) ), get_the_title_rss() );
 	} elseif ( is_search() ) {
 		/* translators: Comments feed title. 1: Site title, 2: Search query. */
-		printf( ent2ncr( __( 'Comments for %1$s searching on %2$s' ) ), get_bloginfo_rss( 'name' ), get_search_query() );
+		printf( html_entity_decode( ent2ncr( __( 'Comments for %1$s searching on %2$s' ) ) ), get_bloginfo_rss( 'name' ), get_search_query() );
 	} else {
 		/* translators: Comments feed title. %s: Site title. */
-		printf( ent2ncr( __( 'Comments for %s' ) ), get_wp_title_rss() );
+		printf( html_entity_decode( ent2ncr( __( 'Comments for %s' ) ) ), get_wp_title_rss() );
 	}
 	?>
 	</title>
@@ -86,10 +86,10 @@ do_action( 'rss_tag_pre', 'rss2-comments' );
 			/** This filter is documented in wp-includes/feed.php */
 			$title = apply_filters( 'the_title_rss', $title );
 			/* translators: Individual comment title. 1: Post title, 2: Comment author name. */
-			printf( ent2ncr( __( 'Comment on %1$s by %2$s' ) ), $title, get_comment_author_rss() );
+			printf( html_entity_decode( ent2ncr( __( 'Comment on %1$s by %2$s' ) ) ), $title, get_comment_author_rss() );
 		} else {
 			/* translators: Comment author title. %s: Comment author name. */
-			printf( ent2ncr( __( 'By: %s' ) ), get_comment_author_rss() );
+			printf( html_entity_decode( ent2ncr( __( 'By: %s' ) ) ), get_comment_author_rss() );
 		}
 		?>
 		</title>
@@ -100,7 +100,7 @@ do_action( 'rss_tag_pre', 'rss2-comments' );
 		<guid isPermaLink="false"><?php comment_guid(); ?></guid>
 
 		<?php if ( post_password_required( $comment_post ) ) : ?>
-			<description><?php echo ent2ncr( __( 'Protected Comments: Please enter your password to view comments.' ) ); ?></description>
+			<description><?php echo html_entity_decode( ent2ncr( __( 'Protected Comments: Please enter your password to view comments.' ) ) ); ?></description>
 			<content:encoded><![CDATA[<?php echo get_the_password_form(); ?>]]></content:encoded>
 		<?php else : ?>
 			<description><![CDATA[<?php comment_text_rss(); ?>]]></description>
