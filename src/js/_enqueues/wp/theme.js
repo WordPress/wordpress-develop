@@ -1082,10 +1082,10 @@ themes.view.Themes = wp.Backbone.View.extend({
 		// Update theme count to full result set when available.
 		this.listenTo( self.collection, 'query:success', function( count ) {
 			if ( _.isNumber( count ) ) {
-				this.renderThemeCount( count );
+				self.renderThemeCount( count );
 				self.announceSearchResults( count );
 			} else {
-				this.renderThemeCount( count );
+				self.renderThemeCount( self.collection.length );
 				self.announceSearchResults( self.collection.length );
 			}
 		});
