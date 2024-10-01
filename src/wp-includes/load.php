@@ -1818,8 +1818,7 @@ function wp_start_scraping_edited_file_errors() {
 	if ( $transient !== $nonce ) {
 		if ( ! headers_sent() ) {
 			header( 'X-Robots-Tag: noindex' );
-			header( 'cache-control: no-cache, must-revalidate, max-age=0, no-store, private' );
-			header( 'expires: Wed, 11 Jan 1984 05:00:00 GMT' );
+			nocache_headers();
 		}
 		echo "###### wp_scraping_result_start:$key ######";
 		echo wp_json_encode(
