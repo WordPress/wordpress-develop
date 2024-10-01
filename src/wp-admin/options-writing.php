@@ -116,7 +116,7 @@ unset( $post_formats['standard'] );
 <tr>
 <th scope="row"><label for="default_revision_limit"><?php _e( 'Default Revision Limit' ); ?></label></th>
 <td>
-	<input name="default_revision_limit" type="number" min="3" max="300" value="10" id="default_revision_limit" value="<?php get_option( 'default_revision_limit' ); ?>" class="small-text" />
+	<input name="default_revision_limit" type="number" min="0" max="300" id="default_revision_limit" value="<?php echo get_option( 'default_revision_limit' ); ?>" class="small-text" />
 </td>
 </tr>
 <?php
