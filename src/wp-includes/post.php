@@ -2478,7 +2478,7 @@ function is_post_publicly_viewable( $post = null ) {
 	 * function returning false, which maintains backwards compatibility and
 	 * guards against potential type errors in PHP 8.1+.
 	 *
-	 * @since 6.7
+	 * @since 6.7.0
 	 *
 	 * @param bool       $is_viewable Whether the post is publicly viewable (strict type).
 	 * @param WP_Post    $post       Post object being checked for visibility.
