@@ -1134,7 +1134,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 	renderThemeCount: function( count ) {
 		this.liveThemeCount = count;
-		var currentLocale = document.documentElement.lang;
+		const currentLocale = document.documentElement.lang;
 		this.count.text( this.liveThemeCount.toLocaleString( currentLocale ) );
 	},
 
