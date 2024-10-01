@@ -86,11 +86,10 @@ if ( ! get_option( 'users_can_register' ) && is_multisite() ) {
 ?>
 </label>
 <br />
-<input name="close_comments_for_old_posts" type="checkbox" id="close_comments_for_old_posts" value="1" <?php checked( '1', get_option( 'close_comments_for_old_posts' ) ); ?> /> <label for="close_comments_for_old_posts"><?php _e( 'Automatically close comments for old posts' ); ?></label>
-<br />
+<input name="close_comments_for_old_posts" type="checkbox" id="close_comments_for_old_posts" value="1" <?php checked( '1', get_option( 'close_comments_for_old_posts' ) ); ?> /> <label for="close_comments_for_old_posts"><?php _e( 'Automatically close comments on old posts' ); ?></label>
 <ul>
 	<li>
-		<label for="close_comments_days_old"><?php _e( 'Number of days to keep old comments' ); ?></label>
+		<label for="close_comments_days_old"><?php _e( 'Close comments when post is how many days old' ); ?></label>
 		<input name="close_comments_days_old" type="number" step="1" min="0" id="close_comments_days_old" value="<?php echo esc_attr( get_option( 'close_comments_days_old' ) ); ?>" class="small-text"/>
 	</li>
 </ul>
@@ -162,7 +161,6 @@ $thread_comments_depth .= '</select>';
 </ul>
 </fieldset></td>
 </tr>
-
 <tr>
 <th scope="row"><?php _e( 'Email me whenever' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
@@ -175,7 +173,6 @@ $thread_comments_depth .= '</select>';
 <input name="comments_notify" type="checkbox" id="comments_notify" value="1" <?php checked( '1', get_option( 'comments_notify' ) ); ?> />
 <?php _e( 'Anyone posts a comment' ); ?> </label>
 <br />
-
 <label for="moderation_notify">
 <input name="moderation_notify" type="checkbox" id="moderation_notify" value="1" <?php checked( '1', get_option( 'moderation_notify' ) ); ?> />
 <?php _e( 'A comment is held for moderation' ); ?> </label>
@@ -193,7 +190,6 @@ $thread_comments_depth .= '</select>';
 <input name="comment_moderation" type="checkbox" id="comment_moderation" value="1" <?php checked( '1', get_option( 'comment_moderation' ) ); ?> />
 <?php _e( 'Comment must be manually approved' ); ?> </label>
 <br />
-
 <label for="comment_previously_approved"><input type="checkbox" name="comment_previously_approved" id="comment_previously_approved" value="1" <?php checked( '1', get_option( 'comment_previously_approved' ) ); ?> /> <?php _e( 'Comment author must have a previously approved comment' ); ?></label>
 </fieldset></td>
 </tr>
