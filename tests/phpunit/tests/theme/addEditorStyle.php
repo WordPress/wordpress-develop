@@ -19,8 +19,6 @@ class Tests_Theme_addEditorStyle extends WP_UnitTestCase {
 	 * Tests the default editor styles in RTL mode.
 	 *
 	 * @ticket 52294
-	 *
-	 * @return void
 	 */
 	public function test_add_editor_style_default() {
 		global $editor_styles;
