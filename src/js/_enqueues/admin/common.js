@@ -865,6 +865,15 @@ $( function() {
 		$(e.target).parent().siblings('a').get(0).click();
 	});
 
+	/*
+	 * Disables popup menus on the admin toolbar and admin menu while dragging.
+	 */
+	var draggables = '.widget, .widgets-sortables, .meta-box-sortables, .menu';
+	var popups     = '#wpadminbar .menupop .ab-submenu, #adminmenu .wp-not-current-submenu .wp-submenu, .folded #adminmenu .wp-has-current-submenu .wp-submenu';
+	$( draggables ).on( 'sortstart dragstart sortstop dragstop', function() {
+		$( popups ).toggleClass( 'hidden' );
+	});
+
 	/**
 	 * Collapses the admin menu.
 	 *

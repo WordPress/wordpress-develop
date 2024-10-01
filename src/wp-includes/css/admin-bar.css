@@ -349,6 +349,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 	box-shadow: none;
 }
 
+#wpadminbar .quicklinks .menupop ul.ab-sub-secondary.hidden {
+	display: none;
+}
+
 #wpadminbar .quicklinks .menupop ul.ab-sub-secondary,
 #wpadminbar .quicklinks .menupop ul.ab-sub-secondary .ab-submenu {
 	background: #3c434a;
