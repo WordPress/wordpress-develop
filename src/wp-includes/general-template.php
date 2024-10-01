@@ -4536,6 +4536,16 @@ function paginate_links( $args = '' ) {
 
 	$args = wp_parse_args( $args, $defaults );
 
+	/**
+	 * Filters the paginate links arguments.
+	 *
+	 * @since @todo
+	 *
+	 * @param array $args An array of arguments. See paginate_links()
+	 *                    for information on accepted arguments.
+	 */
+	$args = apply_filters( 'paginate_links_args', $args );
+
 	if ( ! is_array( $args['add_args'] ) ) {
 		$args['add_args'] = array();
 	}
