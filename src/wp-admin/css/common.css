@@ -1094,6 +1094,7 @@ th.action-links {
 
 .wp-filter .search-form {
 	float: right;
+	margin: 10px 0px;
 	display: flex;
 	align-items: center;
 	column-gap: .5rem;
