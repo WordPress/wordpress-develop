@@ -14,7 +14,7 @@ const results = {
 	lcpMinusTtfb: [],
 };
 
-const themes = [ 'twentytwentyone', 'twentytwentythree', 'twentytwentyfour', 'twentytwentyfive' ];
+const themes = [ 'twentytwentyone', 'twentytwentythree', 'twentytwentyfour' ];
 
 const locales = [ 'en_US', 'de_DE' ];
 
