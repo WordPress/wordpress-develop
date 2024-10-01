@@ -2342,6 +2342,17 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53973
+	 */
+	public function test_wp_roles_init_xss_check() {
+
+        $xss_string = __( 'Hacker<script>alert(`Visse`);</script>' );
+
+        $this->assertEquals( null, add_role( 'hacker', $xss_string ) );
+        $this->assertEquals( null, add_role( $xss_string, 'hacker' ) );
+    }
+
+	/**
 	 * @ticket 38645
 	 */
 	public function test_roles_get_site_id_default() {
