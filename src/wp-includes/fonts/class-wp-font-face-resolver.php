@@ -55,12 +55,17 @@ class WP_Font_Face_Resolver {
 					continue;
 				}
 
+				// Get the "fontFamily" from variation setup array(s).
+				$font_family_name = array_column( $definition['fontFace'], 'fontFamily' );
+				$font_family_name = array_filter( $font_family_name );
+				$font_family_name = reset( $font_family_name );
+
 				// Skip if "fontFamily" is not defined.
-				if ( empty( $definition['fontFamily'] ) ) {
+				if ( empty( $font_family_name ) ) {
 					continue;
 				}
 
-				$font_family_name = static::maybe_parse_name_from_comma_separated_list( $definition['fontFamily'] );
+				$font_family_name = static::maybe_parse_name_from_comma_separated_list( $font_family_name );
 
 				// Skip if no font family is defined.
 				if ( empty( $font_family_name ) ) {
