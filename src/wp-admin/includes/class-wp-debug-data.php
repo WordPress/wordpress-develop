@@ -673,7 +673,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array
 	 */
-	public static function get_wp_core(): array {
+	private static function get_wp_core(): array {
 		// Save few function calls.
 		$permalink_structure    = get_option( 'permalink_structure' );
 		$is_ssl                 = is_ssl();
