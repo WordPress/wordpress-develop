@@ -983,6 +983,7 @@ function load_default_textdomain( $locale = null ) {
  *
  * @since 1.5.0
  * @since 4.6.0 The function now tries to load the .mo file from the languages directory first.
+ * @since 6.7.0 Translations are no longer immediately loaded, but handed off to the just-in-time loading mechanism.
  *
  * @param string       $domain          Unique identifier for retrieving translated strings
  * @param string|false $deprecated      Optional. Deprecated. Use the $plugin_rel_path parameter instead.
@@ -999,19 +1000,6 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 		return false;
 	}
 
-	if ( ! doing_action( 'after_setup_theme' ) && ! did_action( 'after_setup_theme' ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			sprintf(
-				/* translators: 1: The text domain. 2: 'after_setup_theme'. */
-				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user is already set up.' ),
-				'<code>' . $domain . '</code>',
-				'<code>after_setup_theme</code>'
-			),
-			'6.7.0'
-		);
-	}
-
 	/**
 	 * Filters a plugin's locale.
 	 *
@@ -1024,11 +1012,6 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 
 	$mofile = $domain . '-' . $locale . '.mo';
 
-	// Try to load from the languages directory first.
-	if ( load_textdomain( $domain, WP_LANG_DIR . '/plugins/' . $mofile, $locale ) ) {
-		return true;
-	}
-
 	if ( false !== $plugin_rel_path ) {
 		$path = WP_PLUGIN_DIR . '/' . trim( $plugin_rel_path, '/' );
 	} elseif ( false !== $deprecated ) {
@@ -1040,7 +1023,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 
 	$wp_textdomain_registry->set_custom_path( $domain, $path );
 
-	return load_textdomain( $domain, $path . '/' . $mofile, $locale );
+	return true;
 }
 
 /**
@@ -1048,6 +1031,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
  *
  * @since 3.0.0
  * @since 4.6.0 The function now tries to load the .mo file from the languages directory first.
+ * @since 6.7.0 Translations are no longer immediately loaded, but handed off to the just-in-time loading mechanism.
  *
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
@@ -1064,34 +1048,16 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 		return false;
 	}
 
-	if ( ! doing_action( 'after_setup_theme' ) && ! did_action( 'after_setup_theme' ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			sprintf(
-				/* translators: 1: The text domain. 2: 'after_setup_theme'. */
-				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user is already set up.' ),
-				'<code>' . $domain . '</code>',
-				'<code>after_setup_theme</code>'
-			),
-			'6.7.0'
-		);
-	}
-
 	/** This filter is documented in wp-includes/l10n.php */
 	$locale = apply_filters( 'plugin_locale', determine_locale(), $domain );
 
 	$mofile = $domain . '-' . $locale . '.mo';
 
-	// Try to load from the languages directory first.
-	if ( load_textdomain( $domain, WP_LANG_DIR . '/plugins/' . $mofile, $locale ) ) {
-		return true;
-	}
-
 	$path = WPMU_PLUGIN_DIR . '/' . ltrim( $mu_plugin_rel_path, '/' );
 
 	$wp_textdomain_registry->set_custom_path( $domain, $path );
 
-	return load_textdomain( $domain, $path . '/' . $mofile, $locale );
+	return true;
 }
 
 /**
@@ -1104,6 +1070,7 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
  *
  * @since 1.5.0
  * @since 4.6.0 The function now tries to load the .mo file from the languages directory first.
+ * @since 6.7.0 Translations are no longer immediately loaded, but handed off to the just-in-time loading mechanism.
  *
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
@@ -1120,19 +1087,6 @@ function load_theme_textdomain( $domain, $path = false ) {
 		return false;
 	}
 
-	if ( ! doing_action( 'after_setup_theme' ) && ! did_action( 'after_setup_theme' ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			sprintf(
-				/* translators: 1: The text domain. 2: 'after_setup_theme'. */
-				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user is already set up.' ),
-				'<code>' . $domain . '</code>',
-				'<code>after_setup_theme</code>'
-			),
-			'6.7.0'
-		);
-	}
-
 	/**
 	 * Filters a theme's locale.
 	 *
@@ -1143,20 +1097,13 @@ function load_theme_textdomain( $domain, $path = false ) {
 	 */
 	$locale = apply_filters( 'theme_locale', determine_locale(), $domain );
 
-	$mofile = $domain . '-' . $locale . '.mo';
-
-	// Try to load from the languages directory first.
-	if ( load_textdomain( $domain, WP_LANG_DIR . '/themes/' . $mofile, $locale ) ) {
-		return true;
-	}
-
 	if ( ! $path ) {
 		$path = get_template_directory();
 	}
 
 	$wp_textdomain_registry->set_custom_path( $domain, $path );
 
-	return load_textdomain( $domain, $path . '/' . $locale . '.mo', $locale );
+	return true;
 }
 
 /**
