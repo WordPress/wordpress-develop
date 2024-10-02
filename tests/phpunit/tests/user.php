@@ -2245,4 +2245,23 @@ class Tests_User extends WP_UnitTestCase {
 
 		return $additional_profile_data;
 	}
+
+	/**
+	 * Test that an error is returned when the password is empty.
+	 *
+	 * @ticket 49639
+	 */
+	public function test_wp_insert_user_empty_password() {
+		$user_data = array(
+			'user_login' => 'test_user_empty',
+			'user_email' => 'test_user_empty@example.com',
+			'user_pass'  => '', // Empty password
+		);
+
+		$create_user = wp_insert_user( $user_data );
+
+		$this->assertWPError( $create_user );
+		$this->assertSame( 'empty_pre_hash_password', $create_user->get_error_code() );
+		$this->assertSame( 'Cannot create a user with an empty password.', $create_user->get_error_message() );
+	}
 }

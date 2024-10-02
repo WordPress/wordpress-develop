@@ -2149,8 +2149,22 @@ function wp_insert_user( $userdata ) {
 		$user_pass = ! empty( $userdata['user_pass'] ) ? $userdata['user_pass'] : $old_user_data->user_pass;
 	} else {
 		$update = false;
+
+		/**
+		 * Filters a password before hashing it.
+		 *
+		 * @since 6.7.0
+		 *
+		 * @param string $userdata['user_pass'] The user's password.
+		 */
+		$pre_hash_password = apply_filters( 'pre_hash_password', $userdata['user_pass'] );
+
+		if ( empty( $pre_hash_password ) ) {
+			return new WP_Error( 'empty_pre_hash_password', __( 'Cannot create a user with an empty password.' ) );
+		}
+
 		// Hash the password.
-		$user_pass = wp_hash_password( $userdata['user_pass'] );
+		$user_pass = wp_hash_password( $pre_hash_password );
 	}
 
 	$sanitized_user_login = sanitize_user( $userdata['user_login'], true );
@@ -2604,9 +2618,21 @@ function wp_update_user( $userdata ) {
 	$user = add_magic_quotes( $user );
 
 	if ( ! empty( $userdata['user_pass'] ) && $userdata['user_pass'] !== $user_obj->user_pass ) {
+
+		/** This filter is documented in wp-includes/user.php */
+		$pre_hash_password = apply_filters( 'pre_hash_password', $userdata['user_pass'] );
+
+		if ( empty( $pre_hash_password ) ) {
+			return new WP_Error( 'empty_pre_hash_password', __( 'Empty password.' ) );
+		}
+
+		if ( false !== strpos( $pre_hash_password, '\\' ) ) {
+			return new WP_Error( 'illegal_pre_hash_password', __( 'Passwords may not contain the character "\\".' ) );
+		}
+
 		// If password is changing, hash it now.
-		$plaintext_pass        = $userdata['user_pass'];
-		$userdata['user_pass'] = wp_hash_password( $userdata['user_pass'] );
+		$plaintext_pass        = $pre_hash_password;
+		$userdata['user_pass'] = wp_hash_password( $pre_hash_password );
 
 		/**
 		 * Filters whether to send the password change email.
