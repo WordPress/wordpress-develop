@@ -717,6 +717,42 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Tests if the revision is on/off.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array The revision results.
+	 */
+	public function get_test_revisions_status() {
+		// Check if revisions are disabled.
+		$revisions_disabled = defined( 'WP_POST_REVISIONS' ) && WP_POST_REVISIONS === false;
+
+		// Prepare the result array for Site Health.
+		$result = array(
+			'label'       => __( 'Post Revisions' ),
+			'status'      => $revisions_disabled ? 'recommended' : 'good',
+			'badge'       => array(
+				'label' => __( 'Content Management' ),
+				'color' => $revisions_disabled ? 'red' : 'green',
+			),
+			'description' => $revisions_disabled
+				? __( 'Post revisions are currently disabled on your site. It is recommended to enable them to track changes and recover previous versions of your content.' )
+				: __( 'Post revisions are enabled on your site. This helps with version control and content management.' ),
+			'actions'     => $revisions_disabled
+				? sprintf(
+					'<p><a href="%s" target="_blank">%s</a></p>',
+					esc_url( 'https://wordpress.org/support/article/revisions/' ),
+					__( 'Learn more about enabling post revisions in WordPress.' )
+				)
+				: '',
+			'test'        => 'revisions_status',
+		);
+
+		return $result;
+	}
+
+
+	/**
 	 * Tests if the supplied PHP version is supported.
 	 *
 	 * @since 5.2.0
@@ -2713,6 +2749,10 @@ class WP_Site_Health {
 				'theme_version'                => array(
 					'label' => __( 'Theme Versions' ),
 					'test'  => 'theme_version',
+				),
+				'revisions_status'                  => array(
+					'label' => __( 'Post Revisions Status' ),
+					'test'  => 'revisions_status',
 				),
 				'php_version'                  => array(
 					'label' => __( 'PHP Version' ),
