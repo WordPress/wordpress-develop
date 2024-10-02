@@ -1587,14 +1587,14 @@ function _preload_old_requests_classes_and_interfaces( $to ) {
  *
  * @since 3.3.0
  *
- * @global string $wp_version The WordPress version string.
- * @global string $pagenow    The filename of the current screen.
+ * @global string $pagenow The filename of the current screen.
  * @global string $action
  *
  * @param string $new_version
  */
 function _redirect_to_about_wordpress( $new_version ) {
-	global $wp_version, $pagenow, $action;
+	global $pagenow, $action;
+	$wp_version = wp_get_wp_version();
 
 	if ( version_compare( $wp_version, '3.4-RC1', '>=' ) ) {
 		return;
