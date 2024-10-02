@@ -990,6 +990,11 @@ figcaption,
   line-height: 1.6;
 }
 
+/** === Audio === */
+.wp-block-audio audio {
+  display: block;
+}
+
 /** === Button === */
 .wp-block-buttons {
   line-height: 1.2;
@@ -1025,6 +1030,16 @@ figcaption,
 
 .wp-block-button.is-style-outline .wp-block-button__link:not(.has-text-color), .wp-block-button.is-style-outline:hover .wp-block-button__link:not(.has-text-color), .wp-block-button.is-style-outline:focus .wp-block-button__link:not(.has-text-color), .wp-block-button.is-style-outline:active .wp-block-button__link:not(.has-text-color) {
   color: #0073aa;
+}
+
+.wp-block-buttons[style*="font-weight"] .wp-block-button__link,
+.wp-block-button[style*="font-weight"] .wp-block-button__link {
+  font-weight: inherit;
+}
+
+.wp-block-buttons[style*="text-decoration"] .wp-block-button__link,
+.wp-block-button[style*="text-decoration"] .wp-block-button__link {
+  text-decoration: inherit;
 }
 
 .wp-block-search .wp-block-search__button {
@@ -1364,6 +1379,11 @@ ul.wp-block-archives li ul,
   list-style: none;
   padding-left: 0;
   margin-bottom: -0.75rem;
+}
+
+.wp-block[data-align="center"] > .wp-block-archives,
+.wp-block[data-align="center"] > .wp-block-categories {
+  text-align: center;
 }
 
 /** === Latest Posts === */
