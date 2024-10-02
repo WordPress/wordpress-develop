@@ -9054,6 +9054,8 @@ function wp_admin_notice( $message, $args = array() ) {
  * particularly useful for compatibility checks where only major and minor
  * versions are relevant.
  *
+ * @since 6.7.0
+ *
  * @param string $version1     First version to compare.
  * @param string $version2     Second version to compare.
  * @param string $operator     The comparison operator (like '>', '<=', etc.).
