@@ -1364,6 +1364,11 @@ EOF;
 				'css'      => 'background: url("/sites/2/2023/10/image.jpg?width=1024&height=600")',
 				'expected' => 'background: url("/sites/2/2023/10/image.jpg?width=1024&height=600")',
 			),
+			// Background-image with valid entities.
+			array(
+				'css'      => 'background-image:url("/sites/2/2023/10/some%20%21%40-_+-&image.jpg?foo=some%20%21%40-_+thing&width=1024&height=600")',
+				'expected' => 'background-image:url("/sites/2/2023/10/some%20%21%40-_+-&image.jpg?foo=some%20%21%40-_+thing&width=1024&height=600")',
+			),
 		);
 	}
 
