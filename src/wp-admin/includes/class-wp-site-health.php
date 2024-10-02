@@ -264,7 +264,7 @@ class WP_Site_Health {
 			'test'        => 'wordpress_version',
 		);
 
-		$core_current_version = get_bloginfo( 'version' );
+		$core_current_version = wp_get_wp_version();
 		$core_updates         = get_core_updates();
 
 		if ( ! is_array( $core_updates ) ) {
@@ -289,7 +289,7 @@ class WP_Site_Health {
 		} else {
 			foreach ( $core_updates as $core => $update ) {
 				if ( 'upgrade' === $update->response ) {
-					$current_version = explode( '.', wp_get_wp_version() );
+					$current_version = explode( '.', $core_current_version );
 					$new_version     = explode( '.', $update->version );
 
 					$current_major = $current_version[0] . '.' . $current_version[1];
