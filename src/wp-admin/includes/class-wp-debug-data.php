@@ -1177,7 +1177,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array
 	 */
-	public static function get_wp_plugins_active(): array {
+	private static function get_wp_plugins_active(): array {
 		return array(
 			'label'      => __( 'Active Plugins' ),
 			'show_count' => true,
@@ -1192,7 +1192,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array
 	 */
-	public static function get_wp_plugins_inactive(): array {
+	private static function get_wp_plugins_inactive(): array {
 		return array(
 			'label'      => __( 'Inactive Plugins' ),
 			'show_count' => true,
