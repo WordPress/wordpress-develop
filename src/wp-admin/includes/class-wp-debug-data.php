@@ -1227,7 +1227,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array
 	 */
-	public static function get_wp_paths_sizes(): array {
+	private static function get_wp_paths_sizes(): array {
 		$loading    = __( 'Loading&hellip;' );
 
 		$fields = array(
