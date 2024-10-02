@@ -1354,6 +1354,11 @@ EOF;
 				'css'      => 'background-repeat: no-repeat',
 				'expected' => 'background-repeat: no-repeat',
 			),
+			// `opacity` introduced in 6.7.
+			array(
+				'css'      => 'opacity: 10',
+				'expected' => 'opacity: 10',
+			),
 			// Convert "&amp;" to "&".
 			array(
 				'css'      => 'background: url("/sites/2/2023/10/image.jpg?width=1024&amp;height=600")',

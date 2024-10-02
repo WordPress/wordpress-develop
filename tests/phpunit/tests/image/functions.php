@@ -237,6 +237,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.jp2',
 			'test-image.psd',
 			'test-image-zip.tiff',
+			'test-image.heic',
 		);
 
 		return $this->text_array_to_dataprovider( $files );

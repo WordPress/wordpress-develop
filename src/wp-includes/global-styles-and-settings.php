@@ -244,61 +244,10 @@ function wp_get_global_stylesheet( $types = array() ) {
 }
 
 /**
- * Gets the global styles custom CSS from theme.json.
- *
- * @since 6.2.0
- *
- * @return string The global styles custom CSS.
- */
-function wp_get_global_styles_custom_css() {
-	if ( ! wp_theme_has_theme_json() ) {
-		return '';
-	}
-	/*
-	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
-	 * developer's workflow.
-	 */
-	$can_use_cached = ! wp_is_development_mode( 'theme' );
-
-	/*
-	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
-	 * @see `wp_cache_add_non_persistent_groups()`.
-	 *
-	 * The rationale for this is to make sure derived data from theme.json
-	 * is always fresh from the potential modifications done via hooks
-	 * that can use dynamic data (modify the stylesheet depending on some option,
-	 * settings depending on user permissions, etc.).
-	 * See some of the existing hooks to modify theme.json behavior:
-	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
-	 *
-	 * A different alternative considered was to invalidate the cache upon certain
-	 * events such as options add/update/delete, user meta, etc.
-	 * It was judged not enough, hence this approach.
-	 * @see https://github.com/WordPress/gutenberg/pull/45372
-	 */
-	$cache_key   = 'wp_get_global_styles_custom_css';
-	$cache_group = 'theme_json';
-	if ( $can_use_cached ) {
-		$cached = wp_cache_get( $cache_key, $cache_group );
-		if ( $cached ) {
-			return $cached;
-		}
-	}
-
-	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
-	$stylesheet = $tree->get_custom_css();
-
-	if ( $can_use_cached ) {
-		wp_cache_set( $cache_key, $stylesheet, $cache_group );
-	}
-
-	return $stylesheet;
-}
-
-/**
  * Adds global style rules to the inline style for each block.
  *
  * @since 6.1.0
+ * @since 6.7.0 Resolve relative paths in block styles.
  *
  * @global WP_Styles $wp_styles
  */
@@ -306,45 +255,10 @@ function wp_add_global_styles_for_blocks() {
 	global $wp_styles;
 
 	$tree        = WP_Theme_JSON_Resolver::get_merged_data();
+	$tree        = WP_Theme_JSON_Resolver::resolve_theme_file_uris( $tree );
 	$block_nodes = $tree->get_styles_block_nodes();
-
-	$can_use_cached = ! wp_is_development_mode( 'theme' );
-	if ( $can_use_cached ) {
-		// Hash global settings and block nodes together to optimize performance of key generation.
-		$hash = md5(
-			wp_json_encode(
-				array(
-					'global_setting' => wp_get_global_settings(),
-					'block_nodes'    => $block_nodes,
-				)
-			)
-		);
-
-		$cache_key = "wp_styles_for_blocks:$hash";
-		$cached    = get_site_transient( $cache_key );
-		if ( ! is_array( $cached ) ) {
-			$cached = array();
-		}
-	}
-
-	$update_cache = false;
-
 	foreach ( $block_nodes as $metadata ) {
-
-		if ( $can_use_cached ) {
-			// Use the block name as the key for cached CSS data. Otherwise, use a hash of the metadata.
-			$cache_node_key = isset( $metadata['name'] ) ? $metadata['name'] : md5( wp_json_encode( $metadata ) );
-
-			if ( isset( $cached[ $cache_node_key ] ) ) {
-				$block_css = $cached[ $cache_node_key ];
-			} else {
-				$block_css                 = $tree->get_styles_for_block( $metadata );
-				$cached[ $cache_node_key ] = $block_css;
-				$update_cache              = true;
-			}
-		} else {
-			$block_css = $tree->get_styles_for_block( $metadata );
-		}
+		$block_css = $tree->get_styles_for_block( $metadata );
 
 		if ( ! wp_should_load_separate_core_block_assets() ) {
 			wp_add_inline_style( 'global-styles', $block_css );
@@ -389,10 +303,6 @@ function wp_add_global_styles_for_blocks() {
 				}
 			}
 		}
-	}
-
-	if ( $update_cache ) {
-		set_site_transient( $cache_key, $cached, HOUR_IN_SECONDS );
 	}
 }
 

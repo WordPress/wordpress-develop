@@ -3,6 +3,12 @@
  * Sets up the default filters and actions for most
  * of the WordPress hooks.
  *
+ * This file is loaded very early in the bootstrap which
+ * means many functions are not yet available and site
+ * information such as if this is multisite is unknown.
+ * Before using functions besides `add_filter` and
+ * `add_action`, verify things will work as expected.
+ *
  * If you need to remove a default hook, this file will
  * give you the priority to use for removing the hook.
  *
@@ -146,9 +152,6 @@ foreach ( array( 'content_save_pre', 'excerpt_save_pre', 'comment_save_pre', 'pr
 	add_filter( $filter, 'convert_invalid_entities' );
 	add_filter( $filter, 'balanceTags', 50 );
 }
-
-// Add proper rel values for links with target.
-add_action( 'init', 'wp_init_targeted_link_rel_filters' );
 
 // Format strings for display.
 foreach ( array( 'comment_author', 'term_name', 'link_name', 'link_description', 'link_notes', 'bloginfo', 'wp_title', 'document_title', 'widget_title' ) as $filter ) {
@@ -564,6 +567,7 @@ add_action( 'set_current_user', 'kses_init' );
 // Script Loader.
 add_action( 'wp_default_scripts', 'wp_default_scripts' );
 add_action( 'wp_default_scripts', 'wp_default_packages' );
+add_action( 'wp_default_scripts', 'wp_default_script_modules' );
 
 add_action( 'wp_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'wp_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
@@ -599,9 +603,6 @@ add_filter( 'block_editor_settings_all', 'wp_add_editor_classic_theme_styles' );
 // Global styles can be enqueued in both the header and the footer. See https://core.trac.wordpress.org/ticket/53494.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
 add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
-
-// Global styles custom CSS.
-add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles_custom_css' );
 
 // Block supports, and other styles parsed and stored in the Style Engine.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_stored_styles' );
