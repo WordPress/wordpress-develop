@@ -31,6 +31,17 @@ class WP_Script_Modules {
 	private $enqueued_before_registered = array();
 
 	/**
+	 * Tracks whether the @wordpress/a11y script module is available.
+	 *
+	 * Some additional HTML is required on the page for the module to work. Track
+	 * whether it's available to print at the appropriate time.
+	 *
+	 * @since 6.7.0
+	 * @var bool
+	 */
+	private $a11y_available = false;
+
+	/**
 	 * Registers the script module if no script module with that script module
 	 * identifier has already been registered.
 	 *
@@ -185,6 +196,8 @@ class WP_Script_Modules {
 
 		add_action( 'wp_footer', array( $this, 'print_script_module_data' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_data' ) );
+		add_action( 'wp_footer', array( $this, 'print_a11y_script_module_html' ), 20 );
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_a11y_script_module_html' ), 20 );
 	}
 
 	/**
@@ -230,26 +243,10 @@ class WP_Script_Modules {
 	 * Prints the import map using a script tag with a type="importmap" attribute.
 	 *
 	 * @since 6.5.0
-	 *
-	 * @global WP_Scripts $wp_scripts The WP_Scripts object for printing the polyfill.
 	 */
 	public function print_import_map() {
 		$import_map = $this->get_import_map();
 		if ( ! empty( $import_map['imports'] ) ) {
-			global $wp_scripts;
-			if ( isset( $wp_scripts ) ) {
-				wp_print_inline_script_tag(
-					wp_get_script_polyfill(
-						$wp_scripts,
-						array(
-							'HTMLScriptElement.supports && HTMLScriptElement.supports("importmap")' => 'wp-polyfill-importmap',
-						)
-					),
-					array(
-						'id' => 'wp-load-polyfill-importmap',
-					)
-				);
-			}
 			wp_print_inline_script_tag(
 				wp_json_encode( $import_map, JSON_HEX_TAG | JSON_HEX_AMP ),
 				array(
@@ -383,9 +380,15 @@ class WP_Script_Modules {
 	public function print_script_module_data(): void {
 		$modules = array();
 		foreach ( array_keys( $this->get_marked_for_enqueue() ) as $id ) {
+			if ( '@wordpress/a11y' === $id ) {
+				$this->a11y_available = true;
+			}
 			$modules[ $id ] = true;
 		}
 		foreach ( array_keys( $this->get_import_map()['imports'] ) as $id ) {
+			if ( '@wordpress/a11y' === $id ) {
+				$this->a11y_available = true;
+			}
 			$modules[ $id ] = true;
 		}
 
@@ -480,5 +483,21 @@ class WP_Script_Modules {
 				);
 			}
 		}
+	}
+
+	/**
+	 * @access private This is only intended to be called by the registered actions.
+	 *
+	 * @since 6.7.0
+	 */
+	public function print_a11y_script_module_html() {
+		if ( ! $this->a11y_available ) {
+			return;
+		}
+		echo '<div style="position:absolute;margin:-1px;padding:0;height:1px;width:1px;overflow:hidden;clip-path:inset(50%);border:0;word-wrap:normal !important;">'
+			. '<p id="a11y-speak-intro-text" class="a11y-speak-intro-text" hidden>' . esc_html__( 'Notifications' ) . '</p>'
+			. '<div id="a11y-speak-assertive" class="a11y-speak-region" aria-live="assertive" aria-relevant="additions text" aria-atomic="true"></div>'
+			. '<div id="a11y-speak-polite" class="a11y-speak-region" aria-live="polite" aria-relevant="additions text" aria-atomic="true"></div>'
+			. '</div>';
 	}
 }
