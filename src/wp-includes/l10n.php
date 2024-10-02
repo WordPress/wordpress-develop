@@ -1345,9 +1345,10 @@ function _load_textdomain_just_in_time( $domain ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				/* translators: %s: The text domain. */
-				__( 'Translation loading for the %s domain was triggered too early. This is usually an indicator for some code in the plugin or theme running too early.' ),
-				'<code>' . $domain . '</code>'
+				/* translators: 1: The text domain. 2: 'init'. */
+				__( 'Translation loading for the %1$s domain was triggered too early. This is usually an indicator for some code in the plugin or theme running too early. Translations should be loaded at the %2$s action or later.' ),
+				'<code>' . $domain . '</code>',
+				'<code>init</code>'
 			),
 			'6.7.0'
 		);
