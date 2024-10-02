@@ -1000,18 +1000,6 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 		return false;
 	}
 
-	/**
-	 * Filters a plugin's locale.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param string $locale The plugin's current locale.
-	 * @param string $domain Text domain. Unique identifier for retrieving translated strings.
-	 */
-	$locale = apply_filters( 'plugin_locale', determine_locale(), $domain );
-
-	$mofile = $domain . '-' . $locale . '.mo';
-
 	if ( false !== $plugin_rel_path ) {
 		$path = WP_PLUGIN_DIR . '/' . trim( $plugin_rel_path, '/' );
 	} elseif ( false !== $deprecated ) {
@@ -1048,11 +1036,6 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 		return false;
 	}
 
-	/** This filter is documented in wp-includes/l10n.php */
-	$locale = apply_filters( 'plugin_locale', determine_locale(), $domain );
-
-	$mofile = $domain . '-' . $locale . '.mo';
-
 	$path = WPMU_PLUGIN_DIR . '/' . ltrim( $mu_plugin_rel_path, '/' );
 
 	$wp_textdomain_registry->set_custom_path( $domain, $path );
@@ -1086,16 +1069,6 @@ function load_theme_textdomain( $domain, $path = false ) {
 	if ( ! is_string( $domain ) ) {
 		return false;
 	}
-
-	/**
-	 * Filters a theme's locale.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param string $locale The theme's current locale.
-	 * @param string $domain Text domain. Unique identifier for retrieving translated strings.
-	 */
-	$locale = apply_filters( 'theme_locale', determine_locale(), $domain );
 
 	if ( ! $path ) {
 		$path = get_template_directory();
