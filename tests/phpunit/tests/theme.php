@@ -212,6 +212,25 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertContains( $latest_default_theme->get_stylesheet(), $this->default_themes );
 	}
 
+	/**
+	 * Make sure we the latest default theme matches the WP_DEFAULT_THEME constant.
+	 */
+	public function test_default_theme_matches_constant() {
+		$latest_default_theme = WP_Theme::get_core_default_theme();
+
+		/*
+		 * The test suite sets the constant to `default` while this is intended to
+		 * test the value defined in default-constants.php.
+		 *
+		 * Therefore this reads the file in via file_get_contents and extract the value.
+		 */
+		$default_constants = file_get_contents( ABSPATH . WPINC . '/default-constants.php' );
+		preg_match( '/define\( \'WP_DEFAULT_THEME\', \'(.*)\' \);/', $default_constants, $matches );
+		$wp_default_theme_constant = $matches[1];
+
+		$this->assertSame( $wp_default_theme_constant, $latest_default_theme->get_stylesheet(), 'WP_DEFAULT_THEME should match the latest default theme.' );
+	}
+
 	public function test_default_themes_have_textdomain() {
 		foreach ( $this->default_themes as $theme ) {
 			if ( wp_get_theme( $theme )->exists() ) {
