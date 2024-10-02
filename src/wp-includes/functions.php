@@ -73,7 +73,7 @@ function mysql2date( $format, $date, $translate = true ) {
 function current_time( $type, $gmt = 0 ) {
 	// Don't use non-GMT timestamp, unless you know the difference and really need to.
 	if ( 'timestamp' === $type || 'U' === $type ) {
-		return $gmt ? time() : time() + (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
+		return $gmt ? time() : time() + (int) ( (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 	}
 
 	if ( 'mysql' === $type ) {
@@ -2706,8 +2706,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 		 * when regenerated. If yes, ensure the new file name will be unique and will produce unique sub-sizes.
 		 */
 		if ( $is_image ) {
-			/** This filter is documented in wp-includes/class-wp-image-editor.php */
-			$output_formats = apply_filters( 'image_editor_output_format', array(), $_dir . $filename, $mime_type );
+			$output_formats = wp_get_image_editor_output_format( $_dir . $filename, $mime_type );
 			$alt_types      = array();
 
 			if ( ! empty( $output_formats[ $mime_type ] ) ) {
@@ -3120,6 +3119,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 					'image/tiff' => 'tif',
 					'image/webp' => 'webp',
 					'image/avif' => 'avif',
+					'image/heic' => 'heic',
 				)
 			);
 
@@ -3299,6 +3299,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
  * @since 4.7.1
  * @since 5.8.0 Added support for WebP images.
  * @since 6.5.0 Added support for AVIF images.
+ * @since 6.7.0 Added support for HEIC images.
  *
  * @param string $file Full path to the file.
  * @return string|false The actual mime type or false if the type cannot be determined.
@@ -3371,6 +3372,15 @@ function wp_get_image_mime( $file ) {
 			( 'avif' === hex2bin( $magic[2] ) || 'avis' === hex2bin( $magic[2] ) )
 		) {
 			$mime = 'image/avif';
+		}
+
+		if (
+			isset( $magic[1] ) &&
+			isset( $magic[2] ) &&
+			'ftyp' === hex2bin( $magic[1] ) &&
+			( 'heic' === hex2bin( $magic[2] ) || 'heif' === hex2bin( $magic[2] ) )
+		) {
+			$mime = 'image/heic';
 		}
 	} catch ( Exception $e ) {
 		$mime = false;
@@ -3858,7 +3868,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 <html <?php echo $dir_attr; ?>>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=<?php echo $parsed_args['charset']; ?>" />
-	<meta name="viewport" content="width=device-width">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<?php
 		if ( function_exists( 'wp_robots' ) && function_exists( 'wp_robots_no_robots' ) && function_exists( 'add_filter' ) ) {
 			add_filter( 'wp_robots', 'wp_robots_no_robots' );
@@ -4695,7 +4705,7 @@ function _config_wp_siteurl( $url = '' ) {
  * @access private
  */
 function _delete_option_fresh_site() {
-	update_option( 'fresh_site', '0' );
+	update_option( 'fresh_site', '0', false );
 }
 
 /**
@@ -6081,6 +6091,10 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
 		),
 		array( 'http', 'https' )
 	);
+
+	if ( E_USER_ERROR === $error_level ) {
+		throw new WP_Exception( $message );
+	}
 
 	trigger_error( $message, $error_level );
 }
@@ -8503,7 +8517,7 @@ function wp_direct_php_update_button() {
 
 	echo '<p class="button-container">';
 	printf(
-		'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+		'<a class="button button-primary" href="%1$s" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 		esc_url( $direct_update_url ),
 		__( 'Update PHP' ),
 		/* translators: Hidden accessibility text. */
@@ -8819,11 +8833,7 @@ function clean_dirsize_cache( $path ) {
  * @return string The current WordPress version.
  */
 function wp_get_wp_version() {
-	static $wp_version;
-
-	if ( ! isset( $wp_version ) ) {
-		require ABSPATH . WPINC . '/version.php';
-	}
+	require ABSPATH . WPINC . '/version.php';
 
 	return $wp_version;
 }
@@ -8833,13 +8843,21 @@ function wp_get_wp_version() {
  *
  * @since 5.2.0
  *
- * @global string $wp_version The WordPress version string.
+ * @global string $_wp_tests_wp_version The WordPress version string. Used only in Core tests.
  *
  * @param string $required Minimum required WordPress version.
  * @return bool True if required version is compatible or empty, false if not.
  */
 function is_wp_version_compatible( $required ) {
-	global $wp_version;
+	if (
+		defined( 'WP_RUN_CORE_TESTS' )
+		&& WP_RUN_CORE_TESTS
+		&& isset( $GLOBALS['_wp_tests_wp_version'] )
+	) {
+		$wp_version = $GLOBALS['_wp_tests_wp_version'];
+	} else {
+		$wp_version = wp_get_wp_version();
+	}
 
 	// Strip off any -alpha, -RC, -beta, -src suffixes.
 	list( $version ) = explode( '-', $wp_version );

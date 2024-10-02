@@ -79,6 +79,7 @@ final class WP_Theme implements ArrayAccess {
 		'twentytwentytwo'   => 'Twenty Twenty-Two',
 		'twentytwentythree' => 'Twenty Twenty-Three',
 		'twentytwentyfour'  => 'Twenty Twenty-Four',
+		'twentytwentyfive'  => 'Twenty Twenty-Five',
 	);
 
 	/**
@@ -1757,11 +1758,11 @@ final class WP_Theme implements ArrayAccess {
 			// Set the option so we never have to go through this pain again.
 			if ( is_admin() && $allowed_themes[ $blog_id ] ) {
 				if ( $current ) {
-					update_option( 'allowedthemes', $allowed_themes[ $blog_id ] );
+					update_option( 'allowedthemes', $allowed_themes[ $blog_id ], false );
 					delete_option( 'allowed_themes' );
 				} else {
 					switch_to_blog( $blog_id );
-					update_option( 'allowedthemes', $allowed_themes[ $blog_id ] );
+					update_option( 'allowedthemes', $allowed_themes[ $blog_id ], false );
 					delete_option( 'allowed_themes' );
 					restore_current_blog();
 				}

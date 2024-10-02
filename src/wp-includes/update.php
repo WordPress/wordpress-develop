@@ -115,24 +115,28 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		// Filter to supported values.
 		$gd_info = array_filter( $gd_info );
 
-		// Add data for GD WebP and AVIF support.
+		// Add data for GD WebP, AVIF, HEIC and JPEG XL support.
 		$query['image_support']['gd'] = array_keys(
 			array_filter(
 				array(
 					'webp' => isset( $gd_info['WebP Support'] ),
 					'avif' => isset( $gd_info['AVIF Support'] ),
+					'heic' => isset( $gd_info['HEIC Support'] ),
+					'jxl'  => isset( $gd_info['JXL Support'] ),
 				)
 			)
 		);
 	}
 
 	if ( class_exists( 'Imagick' ) ) {
-		// Add data for Imagick WebP and AVIF support.
+		// Add data for Imagick WebP, AVIF, HEIC and JPEG XL support.
 		$query['image_support']['imagick'] = array_keys(
 			array_filter(
 				array(
 					'webp' => ! empty( Imagick::queryFormats( 'WEBP' ) ),
 					'avif' => ! empty( Imagick::queryFormats( 'AVIF' ) ),
+					'heic' => ! empty( Imagick::queryFormats( 'HEIC' ) ),
+					'jxl'  => ! empty( Imagick::queryFormats( 'JXL' ) ),
 				)
 			)
 		);
@@ -1099,8 +1103,6 @@ function wp_delete_all_temp_backups() {
  * @access private
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
- *
- * @return void|WP_Error Void on success, or a WP_Error object on failure.
  */
 function _wp_delete_all_temp_backups() {
 	global $wp_filesystem;
@@ -1114,15 +1116,17 @@ function _wp_delete_all_temp_backups() {
 	ob_end_clean();
 
 	if ( false === $credentials || ! WP_Filesystem( $credentials ) ) {
-		return new WP_Error( 'fs_unavailable', __( 'Could not access filesystem.' ) );
+		wp_trigger_error( __FUNCTION__, __( 'Could not access filesystem.' ) );
+		return;
 	}
 
 	if ( ! $wp_filesystem->wp_content_dir() ) {
-		return new WP_Error(
-			'fs_no_content_dir',
+		wp_trigger_error(
+			__FUNCTION__,
 			/* translators: %s: Directory name. */
 			sprintf( __( 'Unable to locate WordPress content directory (%s).' ), 'wp-content' )
 		);
+		return;
 	}
 
 	$temp_backup_dir = $wp_filesystem->wp_content_dir() . 'upgrade-temp-backup/';
