@@ -208,7 +208,11 @@ get_header(); ?>
 					if ( $recent->have_posts() ) :
 						$recent->the_post();
 
-						// Set $more to 0 in order to only get the first part of the post.
+						/*
+						 * Set $more to 0 in order to only get the first part of the post.
+						 *
+						 * @global int $more
+						 */
 						global $more;
 						$more = 0;
 

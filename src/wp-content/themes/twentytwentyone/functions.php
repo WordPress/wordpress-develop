@@ -9,7 +9,11 @@
  * @since Twenty Twenty-One 1.0
  */
 
-// This theme requires WordPress 5.3 or later.
+/**
+ * This theme requires WordPress 5.3 or later.
+ *
+ * @global string $wp_version The WordPress version string.
+ */
 if ( version_compare( $GLOBALS['wp_version'], '5.3', '<' ) ) {
 	require get_template_directory() . '/inc/back-compat.php';
 }
@@ -23,6 +27,8 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 	 * as indicating support for post thumbnails.
 	 *
 	 * @since Twenty Twenty-One 1.0
+	 *
+	 * @global bool $is_IE
 	 *
 	 * @return void
 	 */
@@ -126,7 +132,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 		$editor_stylesheet_path = './assets/css/style-editor.css';
 
 		// Note, the is_IE global variable is defined by WordPress and is used
-		// to detect if the current browser is internet explorer.
+		// to detect if the current browser is Internet Explorer.
 		global $is_IE;
 		if ( $is_IE ) {
 			$editor_stylesheet_path = './assets/css/ie-editor.css';
