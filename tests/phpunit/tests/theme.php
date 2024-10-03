@@ -868,6 +868,8 @@ class Tests_Theme extends WP_UnitTestCase {
 	public function test_block_theme_should_load_separate_core_block_assets_by_default() {
 		$this->helper_requires_block_theme();
 
+		$this->expectDeprecated();
+
 		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 
 		$this->assertFalse(

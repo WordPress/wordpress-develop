@@ -492,6 +492,7 @@ CSS;
 	 * @covers ::wp_default_styles
 	 */
 	public function test_block_styles_for_viewing_without_split_styles() {
+		$this->expectDeprecated();
 		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 		wp_default_styles( $GLOBALS['wp_styles'] );
 
@@ -509,6 +510,7 @@ CSS;
 	 * @covers ::wp_default_styles
 	 */
 	public function test_block_styles_for_viewing_with_split_styles() {
+		$this->expectDeprecated();
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 		wp_default_styles( $GLOBALS['wp_styles'] );
 
