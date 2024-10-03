@@ -37,7 +37,6 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 	 * @param string $expected_message The expected error message.
 	 */
 	public function test_should_trigger_warning( $function_name, $message, $expected_message ) {
-		$this->expectWarning();
 		$this->expectWarningMessage( $expected_message );
 
 		wp_trigger_error( $function_name, $message, E_USER_WARNING );
