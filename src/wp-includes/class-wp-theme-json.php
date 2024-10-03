@@ -3236,17 +3236,19 @@ class WP_Theme_JSON {
 		 * some values provide exceptions, namely style values that are
 		 * objects and represent unique definitions for the style.
 		 */
-		$style_nodes = static::get_styles_block_nodes();
-		foreach ( $style_nodes as $style_node ) {
-			$path = $style_node['path'];
-			/*
-			 * Background image styles should be replaced, not merged,
-			 * as they themselves are specific object definitions for the style.
-			 */
-			$background_image_path = array_merge( $path, static::PROPERTIES_METADATA['background-image'] );
-			$content               = _wp_array_get( $incoming_data, $background_image_path, null );
-			if ( isset( $content ) ) {
-				_wp_array_set( $this->theme_json, $background_image_path, $content );
+		if ( isset( $incoming_data['styles']['blocks'] ) && is_array( $incoming_data['styles']['blocks'] ) ) {
+			foreach ( $incoming_data['styles']['blocks'] as $block_name => $block_styles ) {
+				/*
+				 * Background image styles should be replaced, not merged,
+				 * as they themselves are specific object definitions for the style.
+				 */
+				if ( isset( $block_styles['background']['backgroundImage'] ) ) {
+					$background_image_path = array_merge( array( 'styles', 'blocks', $block_name ), static::PROPERTIES_METADATA['background-image'] );
+					$content               = _wp_array_get( $incoming_data, $background_image_path, null );
+					if ( isset( $content ) ) {
+						_wp_array_set( $this->theme_json, $background_image_path, $content );
+					}
+				}
 			}
 		}
 	}
