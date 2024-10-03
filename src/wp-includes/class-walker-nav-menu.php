@@ -217,7 +217,7 @@ class Walker_Nav_Menu extends Walker {
 		$title = apply_filters( 'the_title', $menu_item->title, $menu_item->ID );
 
 		// Save filtered value before filtering again.
-		$title_filtered = $title;
+		$the_title_filtered = $title;
 
 		/**
 		 * Filters a menu item's title.
@@ -254,7 +254,7 @@ class Walker_Nav_Menu extends Walker {
 		// Add title attribute only if it does not match the link text (before or after filtering).
 		if ( ! empty( $menu_item->attr_title )
 			&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $menu_item->title ) )
-			&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $title_filtered ) )
+			&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $the_title_filtered ) )
 			&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $title ) )
 		) {
 			$atts['title'] = $menu_item->attr_title;
