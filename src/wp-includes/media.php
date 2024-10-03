@@ -608,7 +608,7 @@ function image_resize_dimensions( $orig_w, $orig_h, $dest_w, $dest_h, $crop = fa
 		$crop_w = round( $new_w / $size_ratio );
 		$crop_h = round( $new_h / $size_ratio );
 
-		if ( ! is_array( $crop ) || count( $crop ) !== 2 ) {
+		if ( ! is_array( $crop ) || 2 !== count( $crop ) ) {
 			$crop = array( 'center', 'center' );
 		}
 
