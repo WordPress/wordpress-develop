@@ -80,7 +80,7 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 	 *
 	 * @param string $name   The block name.
 	 * @param array  $schema The block's schema.
-	 * 
+	 *
 	 * @expectedDeprecated should_load_separate_core_block_assets
 	 */
 	public function test_wp_should_load_separate_core_block_assets_true( $name, $schema ) {
