@@ -80,6 +80,8 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 	 *
 	 * @param string $name   The block name.
 	 * @param array  $schema The block's schema.
+	 * 
+	 * @expectedDeprecated should_load_separate_core_block_assets
 	 */
 	public function test_wp_should_load_separate_core_block_assets_true( $name, $schema ) {
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
@@ -111,6 +113,8 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 	 * @dataProvider data_block_data
 	 *
 	 * @param string $name The block name.
+	 *
+	 * @expectedDeprecated should_load_separate_core_block_assets
 	 */
 	public function test_wp_should_load_separate_core_block_assets_current_theme_supports( $name ) {
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
@@ -138,6 +142,8 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 	 * @dataProvider data_block_data
 	 *
 	 * @param string $name The block name.
+	 *
+	 * @expectedDeprecated should_load_separate_core_block_assets
 	 */
 	public function test_register_core_block_style_handles_should_load_rtl_stylesheets_for_rtl_text_direction( $name ) {
 		global $wp_locale;

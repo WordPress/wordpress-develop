@@ -571,6 +571,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @param string      $block_json_path Path to the `block.json` file, relative to ABSPATH.
 	 * @param string      $style_field     Either 'style' or 'editorStyle'.
 	 * @param string|bool $expected_path   Expected path of registered stylesheet, relative to ABSPATH.
+	 * 
+	 * @expectedDeprecated should_load_separate_core_block_assets
 	 */
 	public function test_register_block_style_handle_uses_correct_core_stylesheet( $block_json_path, $style_field, $expected_path ) {
 		$metadata_file = ABSPATH . $block_json_path;
