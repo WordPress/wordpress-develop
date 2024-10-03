@@ -6406,3 +6406,46 @@ function wp_create_block_style_variation_instance_name( $block, $variation ) {
 	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_unique_id' );
 	return $variation . '--' . md5( serialize( $block ) );
 }
+
+/**
+ * Checks whether separate styles should be loaded for core blocks on-render.
+ *
+ * When this function returns true, other functions ensure that core blocks
+ * only load their assets on-render, and each block loads its own, individual
+ * assets. Third-party blocks only load their assets when rendered.
+ *
+ * When this function returns false, all core block assets are loaded regardless
+ * of whether they are rendered in a page or not, because they are all part of
+ * the `block-library/style.css` file. Assets for third-party blocks are always
+ * enqueued regardless of whether they are rendered or not.
+ *
+ * This only affects front end and not the block editor screens.
+ *
+ * @see wp_enqueue_registered_block_scripts_and_styles()
+ * @see register_block_style_handle()
+ *
+ * @since 5.8.0
+ * @deprecated 6.8.0 Use {@see 'wp_should_load_block_assets_on_demand'} instead.
+ *
+ * @return bool Whether separate assets will be loaded.
+ */
+function wp_should_load_separate_core_block_assets() {
+	_deprecated_function( __FUNCTION__, '6.8.0', 'wp_should_load_block_assets_on_demand()' );
+
+	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether block styles should be loaded separately.
+	 *
+	 * Returning false loads all core block assets, regardless of whether they are rendered
+	 * in a page or not. Returning true loads core block assets only when they are rendered.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param bool $load_separate_assets Whether separate assets will be loaded.
+	 *                                   Default false (all block assets are loaded, even when not used).
+	 */
+	return apply_filters( 'should_load_separate_core_block_assets', false );
+}
