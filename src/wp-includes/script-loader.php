@@ -2569,15 +2569,15 @@ function wp_should_load_block_editor_scripts_and_styles() {
  * Determines whether block assets should be loaded on demand.
  *
  * This function checks if the current request context allows for conditional
- * loading of block assets. When enabled, only the block assets for blocks 
- * that are actually rendered on the page will be loaded. This approach 
- * improves performance by avoiding the loading of unnecessary stylesheets 
- * and scripts, particularly in cases where blocks are not present in the 
+ * loading of block assets. When enabled, only the block assets for blocks
+ * that are actually rendered on the page will be loaded. This approach
+ * improves performance by avoiding the loading of unnecessary stylesheets
+ * and scripts, particularly in cases where blocks are not present in the
  * content being rendered.
  *
- * When the function returns true, individual stylesheets for core blocks 
+ * When the function returns true, individual stylesheets for core blocks
  * will be used instead of loading the full wp-block-library stylesheet.
- * This behavior is a side effect of the primary purpose of loading block 
+ * This behavior is a side effect of the primary purpose of loading block
  * assets on demand, which also includes third-party blocks.
  *
  * The function will return false under the following conditions:
@@ -2585,16 +2585,16 @@ function wp_should_load_block_editor_scripts_and_styles() {
  * - If the current request is for an RSS feed
  * - If the current request is a REST API endpoint
  *
- * This function is a key component of the block asset management system 
- * introduced in WordPress 5.8. It is recommended to use the associated 
- * filter, 'wp_should_load_block_assets_on_demand', to modify the loading 
+ * This function is a key component of the block asset management system
+ * introduced in WordPress 5.8. It is recommended to use the associated
+ * filter, 'wp_should_load_block_assets_on_demand', to modify the loading
  * behavior in custom implementations.
  *
  * Formerly wp_should_load_separate_core_block_assets(), introduced in 5.8.0.
  *
  * @since 6.8.0
  *
- * @return bool False if all block assets should be loaded, true if block 
+ * @return bool False if all block assets should be loaded, true if block
  *               assets should be loaded only when needed (i.e., on demand).
  */
 function wp_should_load_block_assets_on_demand() {
@@ -2605,16 +2605,16 @@ function wp_should_load_block_assets_on_demand() {
 	/**
 	 * Filters whether block assets should be loaded on demand.
 	 *
-	 * This filter customizes the loading behavior of block styles and scripts. 
-	 * When set to true, only the assets for blocks actually rendered on the 
-	 * page will be loaded, improving performance by preventing unnecessary 
-	 * asset loading. Individual stylesheets for core blocks will be used 
+	 * This filter customizes the loading behavior of block styles and scripts.
+	 * When set to true, only the assets for blocks actually rendered on the
+	 * page will be loaded, improving performance by preventing unnecessary
+	 * asset loading. Individual stylesheets for core blocks will be used
 	 * instead of the full wp-block-library stylesheet in this case.
 	 *
 	 * @since 6.8.0
 	 *
 	 * @param bool $load_separate_assets Whether separate assets will be loaded.
-	 *                                    Default false (all block assets are loaded, 
+	 *                                    Default false (all block assets are loaded,
 	 *                                    even when not used).
 	 */
 	return apply_filters( 'wp_should_load_block_assets_on_demand', false );
