@@ -287,9 +287,6 @@ jobs:
           name: performance-artifacts${{ inputs.memcached && '-memcached' || '' }}-${{ github.run_id }}
           path: artifacts
           if-no-files-found: ignore
-        env:
-          CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
-          HAS_CODEVITALS_PROJECT_TOKEN: ${{ !! secrets.CODEVITALS_PROJECT_TOKEN && secrets.CODEVITALS_PROJECT_TOKEN != '' }}
 
       - name: Compare results
         run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
