@@ -6430,7 +6430,7 @@ function wp_create_block_style_variation_instance_name( $block, $variation ) {
  * @return bool Whether separate assets will be loaded.
  */
 function wp_should_load_separate_core_block_assets() {
-	_deprecated_function( __FUNCTION__, '6.8.0', 'wp_should_load_block_assets_on_demand()' );
+	_deprecated_function( __FUNCTION__, '6.8.0', 'wp_should_load_block_assets_on_demand' );
 
 	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
 		return false;
