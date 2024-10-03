@@ -490,10 +490,9 @@ CSS;
 	 * @ticket 50263
 	 *
 	 * @covers ::wp_default_styles
-	 *
-	 * @expectedDeprecated should_load_separate_core_block_assets
 	 */
 	public function test_block_styles_for_viewing_without_split_styles() {
+		$this->expectWarning();
 		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 		wp_default_styles( $GLOBALS['wp_styles'] );
 
@@ -509,10 +508,9 @@ CSS;
 	 * @ticket 50263
 	 *
 	 * @covers ::wp_default_styles
-	 *
-	 * @expectedDeprecated should_load_separate_core_block_assets
 	 */
 	public function test_block_styles_for_viewing_with_split_styles() {
+		$this->expectWarning();
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 		wp_default_styles( $GLOBALS['wp_styles'] );
 
