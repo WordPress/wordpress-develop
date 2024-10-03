@@ -1288,7 +1288,20 @@ $( function() {
 		dismissible = ( data.dismissible && data.dismissible === true ) ? ' is-dismissible' : '';
 		type        = ( data.type ) ? data.type : 'info';
 
-		$adminNotice = '<div id="' + data.id + '" class="notice notice-' + data.type + dismissible + '"><p>' + data.message + '</p></div>';
+		// Support for multiple message formats
+		var message = data.message;
+		if (data.successes || data.errors) {
+			message = 'Success: ' + data.successes + ' operations completed. Errors: ' + data.errors;
+			if (data.errorMessages) {
+				message += '<ul>';
+				data.errorMessages.forEach(function (errorMsg) {
+					message += '<li>' + errorMsg + '</li>';
+				});
+				message += '</ul>';
+			}
+		}
+
+		$adminNotice = '<div id="' + data.id + '" class="notice notice-' + type + dismissible + '"><p>' + message + '</p></div>';
 
 		// Check if this admin notice already exists.
 		if ( ! $notice.length ) {
@@ -1307,7 +1320,7 @@ $( function() {
 			}
 		}
 
-		$document.trigger( 'wp-notice-added' );
+		$(document).trigger( 'wp-notice-added' );
 	};
 
 	$( '.bulkactions' ).parents( 'form' ).on( 'submit', function( event ) {
