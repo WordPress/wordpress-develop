@@ -587,6 +587,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
 		}
 
+		$this->expectWarning();
 		// Ensure block assets are separately registered.
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 
