@@ -2602,18 +2602,6 @@ function wp_should_load_block_assets_on_demand() {
 		return false;
 	}
 
-	/** 
-	 * Backward compatibility for the deprecated `should_load_separate_core_block_assets` filter.
-	 *
-	 * This filter is documented in wp-includes/deprecated.php 
-	 */
-	$should_load = apply_filters_deprecated(
-		'should_load_separate_core_block_assets',
-		array( false ),
-		'6.8.0',
-		'wp_should_load_block_assets_on_demand'
-	);
-
 	/**
 	 * Filters whether block assets should be loaded on demand.
 	 *
@@ -2629,7 +2617,7 @@ function wp_should_load_block_assets_on_demand() {
 	 *                                    Default false (all block assets are loaded,
 	 *                                    even when not used).
 	 */
-	return apply_filters( 'wp_should_load_block_assets_on_demand', $should_load );
+	return apply_filters( 'wp_should_load_block_assets_on_demand', false );
 }
 
 /**
