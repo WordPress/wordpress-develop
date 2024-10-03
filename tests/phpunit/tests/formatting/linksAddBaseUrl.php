@@ -22,6 +22,11 @@ class Tests_formatting_linksAddBaseUrl extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Data provider for test_links_add_base_url().
+	 *
+	 * @return array[]
+	 */
 	public function data_links_add_base_url() {
 		return array(
 			'https'           => array(
