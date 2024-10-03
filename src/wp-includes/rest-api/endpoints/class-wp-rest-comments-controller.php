@@ -574,21 +574,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Do not allow comments to be created with a non-default type.
-		if ( ! empty( $request['type'] ) && 'comment' !== $request['type'] ) {
-			return new WP_Error(
-				'rest_invalid_comment_type',
-				__( 'Cannot create a comment with that type.' ),
-				array( 'status' => 400 )
-			);
-		}
-
 		$prepared_comment = $this->prepare_item_for_database( $request );
 		if ( is_wp_error( $prepared_comment ) ) {
 			return $prepared_comment;
 		}
 
-		$prepared_comment['comment_type'] = 'comment';
+		$prepared_comment['comment_type'] = isset( $request['type'] ) ? $request['type'] : 'comment';
 
 		if ( ! isset( $prepared_comment['comment_content'] ) ) {
 			$prepared_comment['comment_content'] = '';
@@ -657,7 +648,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment, true );
-
+		$prepared_comment['comment_approved'] = isset( $request['comment_approved'] ) ? $request['comment_approved'] : $prepared_comment['comment_approved'];
+		
 		if ( is_wp_error( $prepared_comment['comment_approved'] ) ) {
 			$error_code    = $prepared_comment['comment_approved']->get_error_code();
 			$error_message = $prepared_comment['comment_approved']->get_error_message();
