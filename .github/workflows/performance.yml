@@ -43,8 +43,7 @@ jobs:
         memcached: [ true, false ]
     with:
       memcached: ${{ matrix.memcached }}
-    secrets:
-      CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
+    secrets: inherit
 
   slack-notifications:
     name: Slack Notifications
