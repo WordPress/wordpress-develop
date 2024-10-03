@@ -216,6 +216,9 @@ class Walker_Nav_Menu extends Walker {
 		/** This filter is documented in wp-includes/post-template.php */
 		$title = apply_filters( 'the_title', $menu_item->title, $menu_item->ID );
 
+		// Save filtered value before filtering again.
+		$title_filtered = $title;
+
 		/**
 		 * Filters a menu item's title.
 		 *
@@ -248,7 +251,10 @@ class Walker_Nav_Menu extends Walker {
 
 		$atts['aria-current'] = $menu_item->current ? 'page' : '';
 
+		// Add title attribute only if it does not match the link text (before or after filtering).
 		if ( ! empty( $menu_item->attr_title )
+			&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $menu_item->title ) )
+			&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $title_filtered ) )
 			&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $title ) )
 		) {
 			$atts['title'] = $menu_item->attr_title;
