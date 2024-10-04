@@ -483,9 +483,9 @@ class WP_REST_Request implements ArrayAccess {
 		}
 
 		// Exclude rest_route if pretty permalinks are not enabled
-        if ( ! get_option( 'permalink_structure' ) ) {
-            unset( $params['rest_route'] );
-        }
+		if ( ! get_option( 'permalink_structure' ) ) {
+			unset( $params['rest_route'] );
+		}
 
 		return $params;
 	}
