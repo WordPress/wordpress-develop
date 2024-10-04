@@ -256,7 +256,7 @@ class Tests_Avatar extends WP_UnitTestCase {
 	 * @ticket 44033
 	 */
 	public function test_get_avatar_data_should_return_gravatar_url_when_input_avatar_comment_type() {
-		$comment_type = 'comment';
+		$comment_type = '';
 		$comment      = self::factory()->comment->create_and_get(
 			array(
 				'comment_author_email' => 'commenter@example.com',
