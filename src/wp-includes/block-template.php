@@ -23,7 +23,7 @@ function _add_template_loader_filters() {
  * @since x.x
  *
  * @param WP_Block_Template $block_template The block template object.
- * @return string           The warning screen HTML.
+ * @return string The warning screen HTML.
  */
 function wp_render_empty_block_template_warning( $block_template ) {
 	wp_enqueue_style( 'empty-template-alert' );
