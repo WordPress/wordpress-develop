@@ -1377,7 +1377,7 @@ EOF;
 			// Background image with multiple properties grouped together.
 			array(
 				'css'      => 'background: url("https://example.com/uploads/sites/2/2023/10/image.jpg?width=1024&amp;height=600")',
-				'expected' => 'background: url("https://example.com/uploads/sites/2/2023/10/image.jpg?width=1024&amp;height=600")',
+				'expected' => 'background: url("https://example.com/uploads/sites/2/2023/10/image.jpg?width=1024&height=600")',
 			),
 			// Background-image with valid entities.
 			array(
