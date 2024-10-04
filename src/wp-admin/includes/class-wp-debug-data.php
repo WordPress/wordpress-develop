@@ -46,7 +46,7 @@ class WP_Debug_Data {
 		$blog_public            = get_option( 'blog_public' );
 		$default_comment_status = get_option( 'default_comment_status' );
 		$environment_type       = wp_get_environment_type();
-		$core_version           = get_bloginfo( 'version' );
+		$core_version           = wp_get_wp_version();
 		$core_updates           = get_core_updates();
 		$core_update_needed     = '';
 
@@ -704,7 +704,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array
 	 */
-	public static function get_wp_dropins(): array {
+	private static function get_wp_dropins(): array {
 		// Get a list of all drop-in replacements.
 		$dropins = get_dropins();
 
@@ -739,7 +739,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array
 	 */
-	public static function get_wp_server(): array {
+	private static function get_wp_server(): array {
 		// Populate the server debug fields.
 		if ( function_exists( 'php_uname' ) ) {
 			$server_architecture = sprintf( '%s %s %s', php_uname( 's' ), php_uname( 'r' ), php_uname( 'm' ) );
@@ -932,7 +932,7 @@ class WP_Debug_Data {
 	 * @throws ImagickException
 	 * @return array
 	 */
-	public static function get_wp_media(): array {
+	private static function get_wp_media(): array {
 		// Spare few function calls.
 		$not_available = __( 'Not available' );
 
@@ -1126,7 +1126,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array
 	 */
-	public static function get_wp_mu_plugins(): array {
+	private static function get_wp_mu_plugins(): array {
 		// List must use plugins if there are any.
 		$mu_plugins = get_mu_plugins();
 		$fields = array();
@@ -1328,7 +1328,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array
 	 */
-	public static function get_wp_constants(): array {
+	private static function get_wp_constants(): array {
 		// Check if WP_DEBUG_LOG is set.
 		$wp_debug_log_value = __( 'Disabled' );
 		if ( is_string( WP_DEBUG_LOG ) ) {
@@ -1365,10 +1365,21 @@ class WP_Debug_Data {
 		}
 
 		// Check WP_ENVIRONMENT_TYPE.
-		if ( defined( 'WP_ENVIRONMENT_TYPE' ) && WP_ENVIRONMENT_TYPE ) {
-			$wp_environment_type = WP_ENVIRONMENT_TYPE;
+		if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+			$wp_environment_type       = WP_ENVIRONMENT_TYPE ? WP_ENVIRONMENT_TYPE : __( 'Empty value' );
+			$wp_environment_type_debug = WP_ENVIRONMENT_TYPE;
 		} else {
-			$wp_environment_type = __( 'Undefined' );
+			$wp_environment_type       = __( 'Undefined' );
+			$wp_environment_type_debug = 'undefined';
+		}
+
+		// Check DB_COLLATE.
+		if ( defined( 'DB_COLLATE' ) ) {
+			$db_collate       = DB_COLLATE ? DB_COLLATE : __( 'Empty value' );
+			$db_collate_debug = DB_COLLATE;
+		} else {
+			$db_collate       = __( 'Undefined' );
+			$db_collate_debug = 'undefined';
 		}
 
 		$fields = array(
@@ -1446,7 +1457,7 @@ class WP_Debug_Data {
 			'WP_ENVIRONMENT_TYPE' => array(
 				'label' => 'WP_ENVIRONMENT_TYPE',
 				'value' => $wp_environment_type,
-				'debug' => $wp_environment_type,
+				'debug' => $wp_environment_type_debug,
 			),
 			'WP_DEVELOPMENT_MODE' => array(
 				'label' => 'WP_DEVELOPMENT_MODE',
@@ -1460,8 +1471,8 @@ class WP_Debug_Data {
 			),
 			'DB_COLLATE'          => array(
 				'label' => 'DB_COLLATE',
-				'value' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : __( 'Undefined' ) ),
-				'debug' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : 'undefined' ),
+				'value' => $db_collate,
+				'debug' => $db_collate_debug,
 			),
 		);
 
@@ -1481,7 +1492,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array
 	 */
-	public static function get_wp_database(): array {
+	private static function get_wp_database(): array {
 		global $wpdb;
 
 		// Populate the database debug fields.

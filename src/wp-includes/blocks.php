@@ -376,6 +376,22 @@ function get_block_metadata_i18n_schema() {
 }
 
 /**
+ * Registers a block metadata collection.
+ *
+ * This function allows core and third-party plugins to register their block metadata
+ * collections in a centralized location. Registering collections can improve performance
+ * by avoiding multiple reads from the filesystem and parsing JSON.
+ *
+ * @since 6.7.0
+ *
+ * @param string $path     The base path in which block files for the collection reside.
+ * @param string $manifest The path to the manifest file for the collection.
+ */
+function wp_register_block_metadata_collection( $path, $manifest ) {
+	WP_Block_Metadata_Registry::register_collection( $path, $manifest );
+}
+
+/**
  * Registers a block type from the metadata stored in the `block.json` file.
  *
  * @since 5.5.0
@@ -402,34 +418,21 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 * instead of reading a JSON file per-block, and then decoding from JSON to PHP.
 	 * Using a static variable ensures that the metadata is only read once per request.
 	 */
-	static $core_blocks_meta;
-	if ( ! $core_blocks_meta ) {
-		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
-	}
 
 	$metadata_file = ( ! str_ends_with( $file_or_folder, 'block.json' ) ) ?
 		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
 
-	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
-	// If the block is not a core block, the metadata file must exist.
+	$is_core_block        = str_starts_with( $file_or_folder, ABSPATH . WPINC );
 	$metadata_file_exists = $is_core_block || file_exists( $metadata_file );
-	if ( ! $metadata_file_exists && empty( $args['name'] ) ) {
-		return false;
-	}
+	$registry_metadata    = WP_Block_Metadata_Registry::get_metadata( $file_or_folder );
 
-	// Try to get metadata from the static cache for core blocks.
-	$metadata = array();
-	if ( $is_core_block ) {
-		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
-		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
-			$metadata = $core_blocks_meta[ $core_block_name ];
-		}
-	}
-
-	// If metadata is not found in the static cache, read it from the file.
-	if ( $metadata_file_exists && empty( $metadata ) ) {
+	if ( $registry_metadata ) {
+		$metadata = $registry_metadata;
+	} elseif ( $metadata_file_exists ) {
 		$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
+	} else {
+		$metadata = array();
 	}
 
 	if ( ! is_array( $metadata ) || ( empty( $metadata['name'] ) && empty( $args['name'] ) ) ) {
@@ -1056,9 +1059,77 @@ function apply_block_hooks_to_content( $content, $context, $callback = 'insert_h
 		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $context, $callback );
 	}
 
-	$blocks = parse_blocks( $content );
+	$block_allows_multiple_instances = array();
+	/*
+	 * Remove hooked blocks from `$hooked_block_types` if they have `multiple` set to false and
+	 * are already present in `$content`.
+	 */
+	foreach ( $hooked_blocks as $anchor_block_type => $relative_positions ) {
+		foreach ( $relative_positions as $relative_position => $hooked_block_types ) {
+			foreach ( $hooked_block_types as $index => $hooked_block_type ) {
+				$hooked_block_type_definition =
+					WP_Block_Type_Registry::get_instance()->get_registered( $hooked_block_type );
 
-	return traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+				$block_allows_multiple_instances[ $hooked_block_type ] =
+					block_has_support( $hooked_block_type_definition, 'multiple', true );
+
+				if (
+					! $block_allows_multiple_instances[ $hooked_block_type ] &&
+					has_block( $hooked_block_type, $content )
+				) {
+					unset( $hooked_blocks[ $anchor_block_type ][ $relative_position ][ $index ] );
+				}
+			}
+			if ( empty( $hooked_blocks[ $anchor_block_type ][ $relative_position ] ) ) {
+				unset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] );
+			}
+		}
+		if ( empty( $hooked_blocks[ $anchor_block_type ] ) ) {
+			unset( $hooked_blocks[ $anchor_block_type ] );
+		}
+	}
+
+	/*
+	 * We also need to cover the case where the hooked block is not present in
+	 * `$content` at first and we're allowed to insert it once -- but not again.
+	 */
+	$suppress_single_instance_blocks = static function ( $hooked_block_types ) use ( &$block_allows_multiple_instances, $content ) {
+		static $single_instance_blocks_present_in_content = array();
+		foreach ( $hooked_block_types as $index => $hooked_block_type ) {
+			if ( ! isset( $block_allows_multiple_instances[ $hooked_block_type ] ) ) {
+				$hooked_block_type_definition =
+					WP_Block_Type_Registry::get_instance()->get_registered( $hooked_block_type );
+
+				$block_allows_multiple_instances[ $hooked_block_type ] =
+					block_has_support( $hooked_block_type_definition, 'multiple', true );
+			}
+
+			if ( $block_allows_multiple_instances[ $hooked_block_type ] ) {
+				continue;
+			}
+
+			// The block doesn't allow multiple instances, so we need to check if it's already present.
+			if (
+				in_array( $hooked_block_type, $single_instance_blocks_present_in_content, true ) ||
+				has_block( $hooked_block_type, $content )
+			) {
+				unset( $hooked_block_types[ $index ] );
+			} else {
+				// We can insert the block once, but need to remember not to insert it again.
+				$single_instance_blocks_present_in_content[] = $hooked_block_type;
+			}
+		}
+		return $hooked_block_types;
+	};
+	add_filter( 'hooked_block_types', $suppress_single_instance_blocks, PHP_INT_MAX );
+	$content = traverse_and_serialize_blocks(
+		parse_blocks( $content ),
+		$before_block_visitor,
+		$after_block_visitor
+	);
+	remove_filter( 'hooked_block_types', $suppress_single_instance_blocks, PHP_INT_MAX );
+
+	return $content;
 }
 
 /**
