@@ -1299,12 +1299,9 @@ class WP_Query {
 		}
 
 		// If query string 'tag' is array, implode it.
-		if ( ! is_array( $q['tag'] ) ) {
-			$q['tag'] = explode( ',', $q['tag'] );
-			$q['tag'] = array_map( 'trim', $q['tag'] );
+		if ( is_array( $q['tag'] ) ) {
+			$q['tag'] = implode( ',', $q['tag'] );
 		}
-		sort( $q['tag'] );
-		$q['tag'] = implode( ',', $q['tag'] );
 
 		// Tag stuff.
 
