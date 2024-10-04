@@ -350,6 +350,32 @@ hr.wp-block-separator {
 	display: list-item;
 }
 
+/* Navigation */
+
+.wp-block-navigation-item .wp-block-navigation-submenu {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.wp-block-navigation .wp-block-navigation-submenu__toggle,
+.wp-block-navigation .wp-block-navigation__responsive-container-open,
+.wp-block-navigation .wp-block-navigation__responsive-container-close {
+	background: transparent;
+	border-radius: 0;
+	letter-spacing: normal;
+	outline-offset: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+.entry-content :where(.wp-block-navigation .open-on-click .wp-block-navigation-submenu__toggle:not(:hover):not(:focus)) {
+	box-shadow: 0 1px 0 0 currentColor;
+}
+
+.wp-block-navigation__responsive-container.is-menu-open {
+	padding: 0 1rem;
+}
+
 /*--------------------------------------------------------------
 5.0 Blocks - Widget Blocks
 --------------------------------------------------------------*/
