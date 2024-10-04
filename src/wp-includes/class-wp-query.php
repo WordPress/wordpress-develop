@@ -1212,12 +1212,9 @@ class WP_Query {
 		}
 
 		// If query string 'cat' is an array, implode it.
-		if ( ! is_array( $q['cat'] ) ) {
-			$q['cat'] = explode( ',', $q['cat'] );
-			$q['cat'] = array_map( 'trim', $q['cat'] );
+		if ( is_array( $q['cat'] ) ) {
+			$q['cat'] = implode( ',', $q['cat'] );
 		}
-		sort( $q['cat'] );
-		$q['cat'] = implode( ',', $q['cat'] );
 
 		// Category stuff.
 
@@ -1227,7 +1224,8 @@ class WP_Query {
 
 			$cat_array = preg_split( '/[,\s]+/', urldecode( $q['cat'] ) );
 			$cat_array = array_map( 'intval', $cat_array );
-			$q['cat']  = implode( ',', $cat_array );
+			sort( $cat_array );
+			$q['cat'] = implode( ',', $cat_array );
 
 			foreach ( $cat_array as $cat ) {
 				if ( $cat > 0 ) {

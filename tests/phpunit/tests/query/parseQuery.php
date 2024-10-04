@@ -151,7 +151,7 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( '1,-1', $q->query_vars['cat'] );
+		$this->assertSame( '-1,1', $q->query_vars['cat'] );
 	}
 
 	/**
