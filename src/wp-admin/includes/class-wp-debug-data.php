@@ -76,7 +76,7 @@ class WP_Debug_Data {
 		 */
 		$info = array(
 			'wp-core'             => array(),
-			'wp-paths-sizes'      => array(),
+			'wp-paths-sizes'      => self::get_wp_paths_sizes(),
 			'wp-dropins'          => self::get_wp_dropins(),
 			'wp-active-theme'     => array(),
 			'wp-parent-theme'     => array(),
@@ -91,13 +91,12 @@ class WP_Debug_Data {
 			'wp-filesystem'       => self::get_wp_filesystem(),
 		);
 
-		// Remove debug data which is only relevant on single-site installs.
-		if ( is_multisite() ) {
-			// Remove accordion for Directories and Sizes if in Multisite.
-			unset( $info['wp-paths-sizes'] );
-		} else {
-			$info['wp-paths-sizes'] = self::get_wp_paths_sizes();
-		}
+		/*
+		 * Remove "empty()" elements from the array. The individual methods
+		 * are allowed to return `null`, which communicates that the category
+		 * of debug data isn't relevant and shouldn't be passed through.
+		 */
+		$info = array_filter( $info );
 
 		$info['wp-core'] = array(
 			'label'  => __( 'WordPress' ),
@@ -1225,10 +1224,15 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @return array
+	 * @return array|null Paths and sizes debug data for single sites,
+	 *                    otherwise `null` for multi-site installs.
 	 */
-	private static function get_wp_paths_sizes(): array {
-		$loading    = __( 'Loading&hellip;' );
+	private static function get_wp_paths_sizes(): ?array {
+		if ( is_multisite() ) {
+			return null;
+		}
+
+		$loading = __( 'Loading&hellip;' );
 
 		$fields = array(
 			'wordpress_path' => array(
