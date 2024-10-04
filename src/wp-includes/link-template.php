@@ -4341,9 +4341,9 @@ function is_avatar_comment_type( $comment_type ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param array $types An array of content types. Default only contains 'comment'.
+	 * @param array $types An array of content types.
 	 */
-	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment' ) );
+	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( '' ) );
 
 	return in_array( $comment_type, (array) $allowed_comment_types, true );
 }
