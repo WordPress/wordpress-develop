@@ -1490,14 +1490,15 @@ function get_transient( $transient ) {
  *
  * @since 2.8.0
  *
- * @param string $transient  Transient name. Expected to not be SQL-escaped.
- *                           Must be 172 characters or fewer in length.
- * @param mixed  $value      Transient value. Must be serializable if non-scalar.
- *                           Expected to not be SQL-escaped.
- * @param int    $expiration Optional. Time until expiration in seconds. Default 0 (no expiration).
+ * @param string $transient       Transient name. Expected to not be SQL-escaped.
+ *                                Must be 172 characters or fewer in length.
+ * @param mixed  $value           Transient value. Must be serializable if non-scalar.
+ *                                Expected to not be SQL-escaped.
+ * @param int    $expiration      Optional. Time until expiration in seconds. Default 0 (no expiration).
+ * @param bool   $autoload Optional. Whether the transient should be autoloaded. Default true.
  * @return bool True if the value was set, false otherwise.
  */
-function set_transient( $transient, $value, $expiration = 0 ) {
+function set_transient( $transient, $value, $expiration = 0, $autoload = true ) {
 
 	$expiration = (int) $expiration;
 
@@ -1529,6 +1530,20 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 	 */
 	$expiration = apply_filters( "expiration_of_transient_{$transient}", $expiration, $value, $transient );
 
+	$autoload = is_bool( $autoload ) ? $autoload : false;
+
+	/**
+     * Filters the autoload parameter before it's applied.
+     *
+     * @since 6.8.0
+     *
+     * @param bool   $autoload   Whether to autoload the transient.
+     * @param mixed  $value      The value being set.
+     * @param int    $expiration The expiration time.
+     * @param string $transient  Transient name.
+     */
+    $autoload = apply_filters( "autoload_transient_{$transient}", $autoload, $value, $expiration, $transient );
+
 	if ( wp_using_ext_object_cache() || wp_installing() ) {
 		$result = wp_cache_set( $transient, $value, 'transient', $expiration );
 	} else {
@@ -1537,9 +1552,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 		wp_prime_option_caches( array( $transient_option, $transient_timeout ) );
 
 		if ( false === get_option( $transient_option ) ) {
-			$autoload = true;
 			if ( $expiration ) {
-				$autoload = false;
 				add_option( $transient_timeout, time() + $expiration, '', false );
 			}
 			$result = add_option( $transient_option, $value, '', $autoload );
@@ -1554,7 +1567,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 				if ( false === get_option( $transient_timeout ) ) {
 					delete_option( $transient_option );
 					add_option( $transient_timeout, time() + $expiration, '', false );
-					$result = add_option( $transient_option, $value, '', false );
+					$result = add_option( $transient_option, $value, '', $autoload );
 					$update = false;
 				} else {
 					update_option( $transient_timeout, time() + $expiration );
@@ -1562,7 +1575,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 			}
 
 			if ( $update ) {
-				$result = update_option( $transient_option, $value );
+				$result = update_option( $transient_option, $value, $autoload );
 			}
 		}
 	}
