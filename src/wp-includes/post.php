@@ -4028,12 +4028,18 @@ function wp_untrash_post( $post_id = 0 ) {
 	delete_post_meta( $post_id, '_wp_trash_meta_status' );
 	delete_post_meta( $post_id, '_wp_trash_meta_time' );
 
-	$post_updated = wp_update_post(
-		array(
-			'ID'          => $post_id,
-			'post_status' => $post_status,
-		)
+	$args = array(
+		'ID'          => $post_id,
+		'post_status' => $post_status,
 	);
+
+	$post_author_id = get_post_field( 'post_author', $post_id );
+
+	if ( !( (bool) get_user_by( 'id', $post_author_id ) ) ) {
+		$args['post_author'] = get_current_user_id();
+	}
+
+	$post_updated = wp_update_post( $args );
 
 	if ( ! $post_updated ) {
 		return false;
