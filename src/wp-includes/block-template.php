@@ -103,7 +103,7 @@ function locate_block_template( $template, $type, array $templates ) {
 		$_wp_current_template_id = $block_template->id;
 
 		if ( empty( $block_template->content ) && is_user_logged_in() ) {
-			$_wp_current_template_content = render_empty_block_template_warning( $block_template );
+			$_wp_current_template_content = wp_render_empty_block_template_warning( $block_template );
 		} elseif ( ! empty( $block_template->content ) ) {
 			$_wp_current_template_content = $block_template->content;
 		}
