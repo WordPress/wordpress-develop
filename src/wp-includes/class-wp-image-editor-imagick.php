@@ -107,30 +107,15 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		 * Here, we just say no if you are missing it and aren't loading a jpeg.
 		 */
 		if ( ! method_exists( 'Imagick', 'setIteratorIndex' ) && 'image/jpeg' !== $mime_type ) {
-			return false;
-		}
-
-		// Imagick::queryFormats is not performant, so cache the results.
-		$supports = wp_cache_get( 'imagick_supports' );
-
-		if ( ! $supports ) {
-			$supports = array();
-		}
-
-		if ( isset( $supports[ $imagick_extension ] ) ) {
-			return $supports[ $imagick_extension ];
+				return false;
 		}
 
 		try {
 			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-			$supports[ $imagick_extension ] = ( (bool) @Imagick::queryFormats( $imagick_extension ) );
+			return ( (bool) @Imagick::queryFormats( $imagick_extension ) );
 		} catch ( Exception $e ) {
-			$supports[ $imagick_extension ] = false;
+			return false;
 		}
-
-		wp_cache_set( 'imagick_supports', $supports );
-
-		return $supports[ $imagick_extension ];
 	}
 
 	/**
