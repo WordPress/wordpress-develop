@@ -2,6 +2,7 @@
 /**
  * Simple dark about page
  */
+
 return array(
 	'title'      => __( 'Simple dark about page', 'twentytwentytwo' ),
 	'categories' => array( 'twentytwentytwo_pages' ),

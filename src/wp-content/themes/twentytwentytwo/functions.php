@@ -9,7 +9,6 @@
  * @since Twenty Twenty-Two 1.0
  */
 
-
 if ( ! function_exists( 'twentytwentytwo_support' ) ) :
 
 	/**

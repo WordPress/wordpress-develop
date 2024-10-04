@@ -2,6 +2,7 @@
 /**
  * Grid of posts with left sidebar block pattern
  */
+
 return array(
 	'title'      => __( 'Grid of posts with left sidebar', 'twentytwentytwo' ),
 	'categories' => array( 'twentytwentytwo_pages' ),

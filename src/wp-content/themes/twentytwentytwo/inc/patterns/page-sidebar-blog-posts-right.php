@@ -2,6 +2,7 @@
 /**
  * Blog posts with right sidebar block pattern
  */
+
 return array(
 	'title'      => __( 'Blog posts with right sidebar', 'twentytwentytwo' ),
 	'categories' => array( 'twentytwentytwo_pages' ),

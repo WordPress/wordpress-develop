@@ -4,6 +4,7 @@
  * Slug: twentytwentyfour/hidden-portfolio-hero
  * Inserter: no
  */
+
 ?>
 
 <!-- wp:spacer {"height":"var:preset|spacing|50","style":{"layout":{}}} -->

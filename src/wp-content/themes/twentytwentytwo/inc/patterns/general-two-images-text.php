@@ -2,6 +2,7 @@
 /**
  * Two images with text block pattern
  */
+
 return array(
 	'title'      => __( 'Two images with text', 'twentytwentytwo' ),
 	'categories' => array( 'featured', 'columns', 'gallery' ),

@@ -6,6 +6,7 @@
  * Block Types: core/template-part/footer
  * Description: Footer with site title and powered by WordPress.
  */
+
 ?>
 <!-- wp:group {"layout":{"type":"constrained"}} -->
 <div class="wp-block-group">

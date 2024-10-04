@@ -2,6 +2,7 @@
 /**
  * Image with caption block pattern
  */
+
 return array(
 	'title'      => __( 'Image with caption', 'twentytwentytwo' ),
 	'categories' => array( 'featured', 'columns', 'gallery' ),

@@ -4,6 +4,7 @@
  * Slug: twentytwentyfour/hidden-post-meta
  * Inserter: no
  */
+
 ?>
 
 <!-- wp:group {"layout":{"type":"constrained"}} -->

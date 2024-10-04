@@ -6,6 +6,7 @@
  * Viewport width: 1400
  * Description: A hero section with a title, a paragraph, a CTA button, and an image.
  */
+
 ?>
 
 <!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}}},"layout":{"type":"constrained","contentSize":"","wideSize":""}} -->

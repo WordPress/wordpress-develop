@@ -2,6 +2,7 @@
 /**
  * Centered header with navigation, social links, and salmon background block pattern
  */
+
 return array(
 	'title'      => __( 'Centered header with navigation, social links, and background', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),

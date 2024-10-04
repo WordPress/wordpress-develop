@@ -2,6 +2,7 @@
 /**
  * Video trailer block pattern
  */
+
 return array(
 	'title'      => __( 'Video trailer', 'twentytwentytwo' ),
 	'categories' => array( 'featured', 'columns' ),

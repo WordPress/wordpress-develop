@@ -2,6 +2,7 @@
 /**
  * Text-only header with green background block pattern
  */
+
 return array(
 	'title'      => __( 'Text-only header with background', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),

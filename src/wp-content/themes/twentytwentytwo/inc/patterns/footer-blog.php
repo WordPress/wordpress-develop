@@ -2,6 +2,7 @@
 /**
  * Blog footer
  */
+
 return array(
 	'title'      => __( 'Blog footer', 'twentytwentytwo' ),
 	'categories' => array( 'footer' ),

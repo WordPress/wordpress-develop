@@ -6,6 +6,7 @@
  * and to reference a dynamic image URL. It does
  * not appear in the inserter.
  */
+
 return array(
 	'title'    => __( 'Heading and bird image', 'twentytwentytwo' ),
 	'inserter' => false,

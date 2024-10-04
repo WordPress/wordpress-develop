@@ -2,6 +2,7 @@
 /**
  * Header with image background block pattern
  */
+
 return array(
 	'title'      => __( 'Header with image background', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),

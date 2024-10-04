@@ -6,6 +6,7 @@
  * Viewport width: 1400
  * Description: A feature grid of 2 rows and 3 columns with headings and text.
  */
+
 ?>
 
 <!-- wp:group {"align":"full","style":{"spacing":{"margin":{"top":"0","bottom":"0"},"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}}},"backgroundColor":"base-2","layout":{"type":"constrained"}} -->

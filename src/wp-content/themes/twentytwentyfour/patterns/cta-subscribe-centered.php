@@ -6,6 +6,7 @@
  * Keywords: newsletter, subscribe, button
  * Description: Subscribers CTA section with a title, a paragraph and a CTA button.
  */
+
 ?>
 
 <!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50","left":"var:preset|spacing|50","right":"var:preset|spacing|50"},"margin":{"top":"0","bottom":"0"}}},"layout":{"type":"constrained"}} -->

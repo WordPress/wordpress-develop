@@ -5,6 +5,7 @@
  * Categories: posts
  * Description: A list of posts with featured images only, 4 columns.
  */
+
 ?>
 
 <!-- wp:group {"align":"full","style":{"spacing":{"padding":{"right":"var:preset|spacing|50","left":"var:preset|spacing|50","top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} -->

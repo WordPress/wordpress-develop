@@ -2,6 +2,7 @@
 /**
  * 404 content.
  */
+
 return array(
 	'title'    => __( '404 content', 'twentytwentytwo' ),
 	'inserter' => false,

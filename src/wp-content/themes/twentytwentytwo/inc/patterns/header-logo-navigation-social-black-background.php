@@ -2,6 +2,7 @@
 /**
  * Logo, navigation, and social links header with black background block pattern
  */
+
 return array(
 	'title'      => __( 'Logo, navigation, and social links header with background', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),
