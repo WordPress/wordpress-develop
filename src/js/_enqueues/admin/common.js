@@ -512,7 +512,7 @@ $( function() { columns.init(); } );
 window.validateForm = function( form ) {
 	return !$( form )
 		.find( '.form-required' )
-		.filter( function() { return $( ':input:visible', this ).val() === ''; } )
+		.filter( function() { return $( ':input:visible', this ).val().trim() === ''; } )
 		.addClass( 'form-invalid' )
 		.find( ':input:visible' )
 		.on( 'change', function() { $( this ).closest( '.form-invalid' ).removeClass( 'form-invalid' ); } )
