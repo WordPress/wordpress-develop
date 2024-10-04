@@ -26,9 +26,9 @@ function _add_template_loader_filters() {
  * @return string The warning screen HTML.
  */
 function wp_render_empty_block_template_warning( $block_template ) {
-	wp_enqueue_style( 'empty-template-alert' );
+	wp_enqueue_style( 'wp-empty-template-alert' );
 	return sprintf(
-		'<div id="empty-template-alert">
+		'<div id="wp-empty-template-alert">
 			<div class="icon">
 				<span class="dashicons dashicons-warning"></span>
 			</div>
