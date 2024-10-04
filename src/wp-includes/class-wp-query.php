@@ -1269,7 +1269,8 @@ class WP_Query {
 
 		if ( ! empty( $q['category__in'] ) ) {
 			$q['category__in'] = array_map( 'absint', array_unique( (array) $q['category__in'] ) );
-			$tax_query[]       = array(
+			sort( $q['category__in'] );
+			$tax_query[] = array(
 				'taxonomy'         => 'category',
 				'terms'            => $q['category__in'],
 				'field'            => 'term_id',
@@ -1279,6 +1280,7 @@ class WP_Query {
 
 		if ( ! empty( $q['category__not_in'] ) ) {
 			$q['category__not_in'] = array_map( 'absint', array_unique( (array) $q['category__not_in'] ) );
+			sort( $q['category__not_in'] );
 			$tax_query[]           = array(
 				'taxonomy'         => 'category',
 				'terms'            => $q['category__not_in'],
@@ -1314,6 +1316,7 @@ class WP_Query {
 				foreach ( (array) $tags as $tag ) {
 					$tag                 = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
 					$q['tag_slug__in'][] = $tag;
+					sort( $q['tag_slug__in'] );
 				}
 			} elseif ( preg_match( '/[+\r\n\t ]+/', $q['tag'] ) || ! empty( $q['cat'] ) ) {
 				$tags = preg_split( '/[+\r\n\t ]+/', $q['tag'] );
@@ -1324,6 +1327,7 @@ class WP_Query {
 			} else {
 				$q['tag']            = sanitize_term_field( 'slug', $q['tag'], 0, 'post_tag', 'db' );
 				$q['tag_slug__in'][] = $q['tag'];
+				sort( $q['tag_slug__in'] );
 			}
 		}
 
@@ -1337,6 +1341,7 @@ class WP_Query {
 
 		if ( ! empty( $q['tag__in'] ) ) {
 			$q['tag__in'] = array_map( 'absint', array_unique( (array) $q['tag__in'] ) );
+			sort( $q['tag__in'] );
 			$tax_query[]  = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag__in'],
@@ -1345,6 +1350,7 @@ class WP_Query {
 
 		if ( ! empty( $q['tag__not_in'] ) ) {
 			$q['tag__not_in'] = array_map( 'absint', array_unique( (array) $q['tag__not_in'] ) );
+			sort( $q['tag__not_in'] );
 			$tax_query[]      = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag__not_in'],
@@ -1363,7 +1369,8 @@ class WP_Query {
 
 		if ( ! empty( $q['tag_slug__in'] ) ) {
 			$q['tag_slug__in'] = array_map( 'sanitize_title_for_query', array_unique( (array) $q['tag_slug__in'] ) );
-			$tax_query[]       = array(
+			sort( $q['tag_slug__in'] );
+			$tax_query[] = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag_slug__in'],
 				'field'    => 'slug',
@@ -2210,9 +2217,11 @@ class WP_Query {
 		if ( $q['p'] ) {
 			$where .= " AND {$wpdb->posts}.ID = " . $q['p'];
 		} elseif ( $q['post__in'] ) {
+			sort( $q['post__in'] );
 			$post__in = implode( ',', array_map( 'absint', $q['post__in'] ) );
 			$where   .= " AND {$wpdb->posts}.ID IN ($post__in)";
 		} elseif ( $q['post__not_in'] ) {
+			sort( $q['post__not_in'] );
 			$post__not_in = implode( ',', array_map( 'absint', $q['post__not_in'] ) );
 			$where       .= " AND {$wpdb->posts}.ID NOT IN ($post__not_in)";
 		}
@@ -2220,9 +2229,11 @@ class WP_Query {
 		if ( is_numeric( $q['post_parent'] ) ) {
 			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_parent = %d ", $q['post_parent'] );
 		} elseif ( $q['post_parent__in'] ) {
+			sort( $q['post_parent__in'] );
 			$post_parent__in = implode( ',', array_map( 'absint', $q['post_parent__in'] ) );
 			$where          .= " AND {$wpdb->posts}.post_parent IN ($post_parent__in)";
 		} elseif ( $q['post_parent__not_in'] ) {
+			sort( $q['post_parent__not_in'] );
 			$post_parent__not_in = implode( ',', array_map( 'absint', $q['post_parent__not_in'] ) );
 			$where              .= " AND {$wpdb->posts}.post_parent NOT IN ($post_parent__not_in)";
 		}
@@ -2360,9 +2371,15 @@ class WP_Query {
 		}
 
 		if ( ! empty( $q['author__not_in'] ) ) {
+			if ( is_array( $q['author__not_in'] ) ) {
+				sort( $q['author__not_in'] );
+			}
 			$author__not_in = implode( ',', array_map( 'absint', array_unique( (array) $q['author__not_in'] ) ) );
 			$where         .= " AND {$wpdb->posts}.post_author NOT IN ($author__not_in) ";
 		} elseif ( ! empty( $q['author__in'] ) ) {
+			if ( is_array( $q['author__in'] ) ) {
+				sort( $q['author__in'] );
+			}
 			$author__in = implode( ',', array_map( 'absint', array_unique( (array) $q['author__in'] ) ) );
 			$where     .= " AND {$wpdb->posts}.post_author IN ($author__in) ";
 		}
