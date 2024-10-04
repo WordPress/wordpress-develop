@@ -92,11 +92,16 @@ class WP_Debug_Data {
 		);
 
 		/*
-		 * Remove "empty()" elements from the array. The individual methods
-		 * are allowed to return `null`, which communicates that the category
+		 * Remove null elements from the array. The individual methods are
+		 * allowed to return `null`, which communicates that the category
 		 * of debug data isn't relevant and shouldn't be passed through.
 		 */
-		$info = array_filter( $info );
+		$info = array_filter(
+			$info,
+			static function ( $section ) {
+				return isset( $section );
+			}
+		);
 
 		$info['wp-core'] = array(
 			'label'  => __( 'WordPress' ),
