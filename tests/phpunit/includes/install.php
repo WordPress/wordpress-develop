@@ -4,7 +4,7 @@
  *
  * @todo Reuse the init/load code in init.php
  */
-error_reporting( E_ALL & ~E_DEPRECATED );
+error_reporting( E_ALL & ~E_DEPRECATED & ~E_STRICT );
 
 $config_file_path = $argv[1];
 $multisite        = in_array( 'run_ms_tests', $argv, true );

@@ -132,14 +132,6 @@ class WP_Block_Template {
 	public $author;
 
 	/**
-	 * Plugin.
-	 *
-	 * @since 6.7.0
-	 * @var string|null
-	 */
-	public $plugin;
-
-	/**
 	 * Post types.
 	 *
 	 * @since 5.9.0

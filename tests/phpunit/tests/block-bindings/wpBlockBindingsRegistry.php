@@ -344,4 +344,51 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 		$result = $this->registry->is_registered( self::$test_source_name );
 		$this->assertTrue( $result );
 	}
+
+	/**
+	 * Tests merging `uses_context` from multiple sources.
+	 *
+	 * @ticket 60525
+	 *
+	 * @covers ::register_block_bindings_source
+	 * @covers WP_Block_Type::get_uses_context
+	 */
+	public function test_merging_uses_context_from_multiple_sources() {
+		$get_value_callback = function () {
+			return 'Anything';
+		};
+
+		$block_registry        = WP_Block_Type_Registry::get_instance();
+		$original_uses_context = $block_registry->get_registered( 'core/paragraph' )->uses_context;
+
+		register_block_bindings_source(
+			'test/source-one',
+			array(
+				'label'              => 'Test Source One',
+				'get_value_callback' => $get_value_callback,
+				'uses_context'       => array( 'commonContext', 'sourceOneContext' ),
+			)
+		);
+
+		register_block_bindings_source(
+			'test/source-two',
+			array(
+				'label'              => 'Test Source Two',
+				'get_value_callback' => $get_value_callback,
+				'uses_context'       => array( 'commonContext', 'sourceTwoContext' ),
+			)
+		);
+
+		$new_uses_context = $block_registry->get_registered( 'core/paragraph' )->uses_context;
+		unregister_block_bindings_source( 'test/source-one' );
+		unregister_block_bindings_source( 'test/source-two' );
+		// Checks that the resulting `uses_context` contains the values from both sources.
+		$this->assertContains( 'commonContext', $new_uses_context );
+		$this->assertContains( 'sourceOneContext', $new_uses_context );
+		$this->assertContains( 'sourceTwoContext', $new_uses_context );
+		// Checks that the resulting `uses_context` added 3 unique items.
+		$this->assertSame( count( $original_uses_context ) + 3, count( $new_uses_context ) );
+		// Checks that the array isn't sparse to prevent issues in the editor.
+		$this->assertSame( array_key_last( $new_uses_context ), count( $new_uses_context ) - 1 );
+	}
 }

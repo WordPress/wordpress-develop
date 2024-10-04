@@ -21,23 +21,24 @@
  * @group html-api-html5lib-tests
  */
 class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
-	const TREE_INDENT = '  ';
-
 	/**
 	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
-		'noscript01/line0014' => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0022'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests14/line0055'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0488'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line0500'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests19/line1079'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0207'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0686'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0697'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'tests2/line0709'     => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
-		'webkit01/line0231'   => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'comments01/line0155'    => 'Unimplemented: Need to access raw comment text on non-normative comments.',
+		'comments01/line0169'    => 'Unimplemented: Need to access raw comment text on non-normative comments.',
+		'html5test-com/line0129' => 'Unimplemented: Need to access raw comment text on non-normative comments.',
+		'noscript01/line0014'    => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0022'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests14/line0055'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0488'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line0500'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests19/line1079'       => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0207'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0686'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0697'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'tests2/line0709'        => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
+		'webkit01/line0231'      => 'Unimplemented: This parser does not add missing attributes to existing HTML or BODY tags.',
 	);
 
 	/**
@@ -48,9 +49,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_external_html5lib_tests
 	 *
-	 * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
-	 * @param string      $html             Given test HTML.
-	 * @param string      $expected_tree    Tree structure of parsed HTML.
+	 * @param string $fragment_context Context element in which to parse HTML, such as BODY or SVG.
+	 * @param string $html             Given test HTML.
+	 * @param string $expected_tree    Tree structure of parsed HTML.
 	 */
 	public function test_parse( ?string $fragment_context, string $html, string $expected_tree ) {
 		try {
@@ -169,8 +170,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		 * and requires adjustment to initial parameters.
 		 * The full parser will not.
 		 */
-		$output       = '';
-		$indent_level = 0;
+		$output       = $fragment_context ? "<html>\n  <head>\n  <body>\n" : '';
+		$indent_level = $fragment_context ? 2 : 0;
+		$indent       = '  ';
 		$was_text     = null;
 		$text_node    = '';
 
@@ -223,7 +225,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 						++$indent_level;
 					}
 
-					$output .= str_repeat( self::TREE_INDENT, $tag_indent ) . "<{$tag_name}>\n";
+					$output .= str_repeat( $indent, $tag_indent ) . "<{$tag_name}>\n";
 
 					$attribute_names = $processor->get_attribute_names_with_prefix( '' );
 					if ( $attribute_names ) {
@@ -276,18 +278,18 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 							if ( true === $val ) {
 								$val = '';
 							}
-							$output .= str_repeat( self::TREE_INDENT, $tag_indent + 1 ) . "{$display_name}=\"{$val}\"\n";
+							$output .= str_repeat( $indent, $tag_indent + 1 ) . "{$display_name}=\"{$val}\"\n";
 						}
 					}
 
 					// Self-contained tags contain their inner contents as modifiable text.
 					$modifiable_text = $processor->get_modifiable_text();
 					if ( '' !== $modifiable_text ) {
-						$output .= str_repeat( self::TREE_INDENT, $tag_indent + 1 ) . "\"{$modifiable_text}\"\n";
+						$output .= str_repeat( $indent, $tag_indent + 1 ) . "\"{$modifiable_text}\"\n";
 					}
 
 					if ( 'html' === $namespace && 'TEMPLATE' === $token_name ) {
-						$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "content\n";
+						$output .= str_repeat( $indent, $indent_level ) . "content\n";
 						++$indent_level;
 					}
 
@@ -301,19 +303,37 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					}
 					$was_text = true;
 					if ( '' === $text_node ) {
-						$text_node .= str_repeat( self::TREE_INDENT, $indent_level ) . '"';
+						$text_node .= str_repeat( $indent, $indent_level ) . '"';
 					}
 					$text_node .= $text_content;
 					break;
 
 				case '#funky-comment':
 					// Comments must be "<" then "!-- " then the data then " -->".
-					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";
+					$output .= str_repeat( $indent, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";
 					break;
 
 				case '#comment':
+					switch ( $processor->get_comment_type() ) {
+						case WP_HTML_Processor::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT:
+						case WP_HTML_Processor::COMMENT_AS_HTML_COMMENT:
+						case WP_HTML_Processor::COMMENT_AS_INVALID_HTML:
+							$comment_text_content = $processor->get_modifiable_text();
+							break;
+
+						case WP_HTML_Processor::COMMENT_AS_CDATA_LOOKALIKE:
+							$comment_text_content = "[CDATA[{$processor->get_modifiable_text()}]]";
+							break;
+
+						case WP_HTML_Processor::COMMENT_AS_PI_NODE_LOOKALIKE:
+							$comment_text_content = "?{$processor->get_tag()}{$processor->get_modifiable_text()}?";
+							break;
+
+						default:
+							throw new Error( "Unhandled comment type for tree construction: {$processor->get_comment_type()}" );
+					}
 					// Comments must be "<" then "!-- " then the data then " -->".
-					$output .= str_repeat( self::TREE_INDENT, $indent_level ) . "<!-- {$processor->get_full_comment_text()} -->\n";
+					$output .= str_repeat( $indent, $indent_level ) . "<!-- {$comment_text_content} -->\n";
 					break;
 
 				default:
@@ -429,7 +449,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				 * context element as context.
 				 */
 				case 'document-fragment':
-					$test_context_element = trim( $line );
+					$test_context_element = explode( ' ', $line )[0];
 					break;
 
 				/*

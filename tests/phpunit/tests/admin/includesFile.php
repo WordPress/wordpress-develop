@@ -15,7 +15,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		$home    = get_option( 'home' );
 		$siteurl = get_option( 'siteurl' );
 		$sfn     = $_SERVER['SCRIPT_FILENAME'];
-		$this->assertSamePathIgnoringDirectorySeparators( ABSPATH, get_home_path() );
+		$this->assertSame( str_replace( '\\', '/', ABSPATH ), get_home_path() );
 
 		update_option( 'home', 'http://localhost' );
 		update_option( 'siteurl', 'http://localhost/wp' );

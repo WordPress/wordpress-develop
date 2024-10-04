@@ -23,9 +23,6 @@
 		"level": {
 			"type": "number",
 			"default": 2
-		},
-		"levelOptions": {
-			"type": "array"
 		}
 	},
 	"supports": {

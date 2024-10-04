@@ -1984,9 +1984,6 @@ class WP_HTML_Tag_Processor {
 				 *                     [#x10000-#xEFFFF]
 				 * > NameChar      ::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
 				 *
-				 * @todo Processing instruction nodes in SGML may contain any kind of markup. XML defines a
-				 *       special case with `<?xml ... ?>` syntax, but the `?` is part of the bogus comment.
-				 *
 				 * @see https://www.w3.org/TR/2006/REC-xml11-20060816/#NT-PITarget
 				 */
 				if ( $this->token_length >= 5 && '?' === $html[ $closer_at - 1 ] ) {
@@ -3386,58 +3383,6 @@ class WP_HTML_Tag_Processor {
 		}
 
 		return $this->comment_type;
-	}
-
-	/**
-	 * Returns the text of a matched comment or null if not on a comment type node.
-	 *
-	 * This method returns the entire text content of a comment node as it
-	 * would appear in the browser.
-	 *
-	 * This differs from {@see ::get_modifiable_text()} in that certain comment
-	 * types in the HTML API cannot allow their entire comment text content to
-	 * be modified. Namely, "bogus comments" of the form `<?not allowed in html>`
-	 * will create a comment whose text content starts with `?`. Note that if
-	 * that character were modified, it would be possible to change the node
-	 * type.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @return string|null The comment text as it would appear in the browser or null
-	 *                     if not on a comment type node.
-	 */
-	public function get_full_comment_text(): ?string {
-		if ( self::STATE_FUNKY_COMMENT === $this->parser_state ) {
-			return $this->get_modifiable_text();
-		}
-
-		if ( self::STATE_COMMENT !== $this->parser_state ) {
-			return null;
-		}
-
-		switch ( $this->get_comment_type() ) {
-			case self::COMMENT_AS_HTML_COMMENT:
-			case self::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT:
-				return $this->get_modifiable_text();
-
-			case self::COMMENT_AS_CDATA_LOOKALIKE:
-				return "[CDATA[{$this->get_modifiable_text()}]]";
-
-			case self::COMMENT_AS_PI_NODE_LOOKALIKE:
-				return "?{$this->get_tag()}{$this->get_modifiable_text()}?";
-
-			/*
-			 * This represents "bogus comments state" from HTML tokenization.
-			 * This can be entered by `<?` or `<!`, where `?` is included in
-			 * the comment text but `!` is not.
-			 */
-			case self::COMMENT_AS_INVALID_HTML:
-				$preceding_character = $this->html[ $this->text_starts_at - 1 ];
-				$comment_start       = '?' === $preceding_character ? '?' : '';
-				return "{$comment_start}{$this->get_modifiable_text()}";
-		}
-
-		return null;
 	}
 
 	/**

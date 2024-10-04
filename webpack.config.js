@@ -2,7 +2,7 @@ const blocksConfig = require( './tools/webpack/blocks' );
 const developmentConfig = require( './tools/webpack/development' );
 const mediaConfig = require( './tools/webpack/media' );
 const packagesConfig = require( './tools/webpack/packages' );
-const scriptModulesConfig = require( './tools/webpack/script-modules' );
+const modulesConfig = require( './tools/webpack/modules' );
 const vendorsConfig = require( './tools/webpack/vendors' );
 
 module.exports = function( env = { environment: "production", watch: false, buildTarget: false } ) {
@@ -19,7 +19,7 @@ module.exports = function( env = { environment: "production", watch: false, buil
 		...developmentConfig( env ),
 		mediaConfig( env ),
 		packagesConfig( env ),
-		scriptModulesConfig( env ),
+		modulesConfig( env ),
 		...vendorsConfig( env ),
 	];
 

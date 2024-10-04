@@ -9,10 +9,6 @@
 	"keywords": [ "img", "photo", "picture" ],
 	"textdomain": "default",
 	"attributes": {
-		"blob": {
-			"type": "string",
-			"__experimentalRole": "local"
-		},
 		"url": {
 			"type": "string",
 			"source": "attribute",
@@ -105,9 +101,6 @@
 		},
 		"filter": {
 			"duotone": true
-		},
-		"spacing": {
-			"margin": true
 		},
 		"__experimentalBorder": {
 			"color": true,

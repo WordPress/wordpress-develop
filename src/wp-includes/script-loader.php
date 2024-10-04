@@ -610,7 +610,7 @@ function wp_tinymce_inline_scripts() {
 	}
 
 	if ( ! empty( $editor_settings['tinymce'] ) && is_array( $editor_settings['tinymce'] ) ) {
-		$tinymce_settings = array_merge( $tinymce_settings, $editor_settings['tinymce'] );
+		array_merge( $tinymce_settings, $editor_settings['tinymce'] );
 	}
 
 	/** This filter is documented in wp-includes/class-wp-editor.php */
@@ -1217,7 +1217,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'auth-app', "/wp-admin/js/auth-app$suffix.js", array( 'jquery', 'wp-api-request', 'wp-i18n', 'wp-hooks' ), false, 1 );
 	$scripts->set_translations( 'auth-app' );
 
-	$scripts->add( 'user-profile', "/wp-admin/js/user-profile$suffix.js", array( 'clipboard', 'jquery', 'password-strength-meter', 'wp-util', 'wp-a11y' ), false, 1 );
+	$scripts->add( 'user-profile', "/wp-admin/js/user-profile$suffix.js", array( 'jquery', 'password-strength-meter', 'wp-util' ), false, 1 );
 	$scripts->set_translations( 'user-profile' );
 	$user_id = isset( $_GET['user_id'] ) ? (int) $_GET['user_id'] : 0;
 	did_action( 'init' ) && $scripts->localize(

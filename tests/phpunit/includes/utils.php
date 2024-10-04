@@ -295,6 +295,7 @@ class TestXMLParser {
 	 */
 	public function __construct( $in ) {
 		$this->xml = xml_parser_create();
+		xml_set_object( $this->xml, $this );
 		xml_parser_set_option( $this->xml, XML_OPTION_CASE_FOLDING, 0 );
 		xml_set_element_handler( $this->xml, array( $this, 'start_handler' ), array( $this, 'end_handler' ) );
 		xml_set_character_data_handler( $this->xml, array( $this, 'data_handler' ) );

@@ -229,7 +229,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'per_page',
 				'search',
 				'search_columns',
-				'search_semantics',
 				'slug',
 				'status',
 			),

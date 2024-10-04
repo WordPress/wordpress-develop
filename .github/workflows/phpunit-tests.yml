@@ -85,8 +85,9 @@ jobs:
             memcached: false
           # Report test results to the Host Test Results.
           - os: ubuntu-latest
+            php: '7.4'
             db-type: 'mysql'
-            db-version: '8.0'
+            db-version: '5.7'
             tests-domain: 'example.org'
             multisite: false
             memcached: false

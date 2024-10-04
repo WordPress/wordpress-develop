@@ -276,7 +276,7 @@ class Text_Diff {
 
         $prevtype = null;
         foreach ($this->_edits as $edit) {
-            if ($prevtype !== null && $edit instanceof $prevtype) {
+            if ($edit instanceof $prevtype) {
                 trigger_error("Edit sequence is non-optimal", E_USER_ERROR);
             }
             $prevtype = get_class($edit);

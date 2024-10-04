@@ -126,10 +126,9 @@ wp_add_inline_script(
 // Set Heartbeat interval to 10 seconds, used to refresh post locks.
 wp_add_inline_script(
 	'heartbeat',
-	'jQuery( function() {
-		wp.heartbeat.interval( 10 );
-	} );',
-	'after'
+	'if ( window.wp && window.wp.heartbeat ) {
+		window.wp.heartbeat.interval( 10 );
+	}'
 );
 
 /*
@@ -161,12 +160,9 @@ if ( $user_id ) {
 	if ( $locked ) {
 		$user         = get_userdata( $user_id );
 		$user_details = array(
-			'name' => $user->display_name,
+			'avatar' => get_avatar_url( $user_id, array( 'size' => 128 ) ),
+			'name'   => $user->display_name,
 		);
-
-		if ( get_option( 'show_avatars' ) ) {
-			$user_details['avatar'] = get_avatar_url( $user_id, array( 'size' => 128 ) );
-		}
 	}
 
 	$lock_details = array(

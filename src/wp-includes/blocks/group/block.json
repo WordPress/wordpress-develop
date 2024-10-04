@@ -45,7 +45,6 @@
 				"text": true
 			}
 		},
-		"shadow": true,
 		"spacing": {
 			"margin": [ "top", "bottom" ],
 			"padding": true,

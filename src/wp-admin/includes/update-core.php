@@ -737,14 +737,10 @@ $_old_files = array(
 	'wp-includes/blocks/query-title/editor.min.css',
 	'wp-includes/blocks/query-title/editor-rtl.css',
 	'wp-includes/blocks/query-title/editor-rtl.min.css',
-	/*
-	 * Restored in WordPress 6.7
-	 *
-	 * 'wp-includes/blocks/tag-cloud/editor.css',
-	 * 'wp-includes/blocks/tag-cloud/editor.min.css',
-	 * 'wp-includes/blocks/tag-cloud/editor-rtl.css',
-	 * 'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
-	 */
+	'wp-includes/blocks/tag-cloud/editor.css',
+	'wp-includes/blocks/tag-cloud/editor.min.css',
+	'wp-includes/blocks/tag-cloud/editor-rtl.css',
+	'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
 	// 6.1
 	'wp-includes/blocks/post-comments.php',
 	'wp-includes/blocks/post-comments',
@@ -966,7 +962,6 @@ function update_core( $from, $to ) {
 	global $wp_filesystem, $_old_files, $_old_requests_files, $_new_bundled_files, $wpdb;
 
 	if ( function_exists( 'set_time_limit' ) ) {
-		// Gives core update script time an additional 300 seconds(5 minutes) to finish updating large files or run on slower servers.
 		set_time_limit( 300 );
 	}
 

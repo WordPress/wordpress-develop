@@ -26,13 +26,6 @@
 	"supports": {
 		"anchor": true,
 		"align": [ "left", "right", "wide", "full" ],
-		"background": {
-			"backgroundImage": true,
-			"backgroundSize": true,
-			"__experimentalDefaultControls": {
-				"backgroundImage": true
-			}
-		},
 		"color": {
 			"gradients": true,
 			"background": true,
@@ -40,12 +33,6 @@
 			"__experimentalDefaultControls": {
 				"background": true,
 				"text": true
-			}
-		},
-		"dimensions": {
-			"minHeight": true,
-			"__experimentalDefaultControls": {
-				"minHeight": false
 			}
 		},
 		"spacing": {
