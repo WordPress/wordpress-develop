@@ -1593,7 +1593,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertFalse( is_wp_error( $response ) );
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 	}
 
 	public function test_create_comment_invalid_email() {
