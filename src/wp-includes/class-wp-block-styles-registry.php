@@ -32,6 +32,7 @@ final class WP_Block_Styles_Registry {
 	 */
 	private static $instance = null;
 
+	private $update_counter = 0;
 	/**
 	 * Registers a block style for the given block type.
 	 *
@@ -100,6 +101,7 @@ final class WP_Block_Styles_Registry {
 			$this->registered_block_styles[ $name ][ $block_style_name ] = $style_properties;
 		}
 
+		$this->update_counter++;
 		return true;
 	}
 
@@ -125,6 +127,7 @@ final class WP_Block_Styles_Registry {
 
 		unset( $this->registered_block_styles[ $block_name ][ $block_style_name ] );
 
+		$this->update_counter++;
 		return true;
 	}
 
@@ -199,5 +202,9 @@ final class WP_Block_Styles_Registry {
 		}
 
 		return self::$instance;
+	}
+
+	public function get_update_counter() {
+		return $this->update_counter;
 	}
 }

@@ -38,6 +38,8 @@ class WP_Theme_JSON {
 	 */
 	protected static $blocks_metadata = array();
 
+	protected static $last_style_check_counter = 0;
+
 	/**
 	 * The CSS selector for the top-level preset settings.
 	 *
@@ -1153,23 +1155,27 @@ class WP_Theme_JSON {
 		// Is there metadata for all currently registered blocks?
 		$blocks = array_diff_key( $blocks, static::$blocks_metadata );
 		if ( empty( $blocks ) ) {
-			/*
-			 * New block styles may have been registered within WP_Block_Styles_Registry.
-			 * Update block metadata for any new block style variations.
-			 */
-			$registered_styles = $style_registry->get_all_registered();
-			foreach ( static::$blocks_metadata as $block_name => $block_metadata ) {
-				if ( ! empty( $registered_styles[ $block_name ] ) ) {
-					$style_selectors = $block_metadata['styleVariations'] ?? array();
+			$current_update_counter = $style_registry->get_update_counter();
+			if ( $current_update_counter > static::$last_style_check_counter ) {
+				/*
+				* New block styles may have been registered within WP_Block_Styles_Registry.
+				* Update block metadata for any new block style variations.
+				*/
+				$registered_styles = $style_registry->get_all_registered();
+				foreach ( static::$blocks_metadata as $block_name => $block_metadata ) {
+					if ( ! empty( $registered_styles[ $block_name ] ) ) {
+						$style_selectors = $block_metadata['styleVariations'] ?? array();
 
-					foreach ( $registered_styles[ $block_name ] as $block_style ) {
-						if ( ! isset( $style_selectors[ $block_style['name'] ] ) ) {
-							$style_selectors[ $block_style['name'] ] = static::get_block_style_variation_selector( $block_style['name'], $block_metadata['selector'] );
+						foreach ( $registered_styles[ $block_name ] as $block_style ) {
+							if ( ! isset( $style_selectors[ $block_style['name'] ] ) ) {
+								$style_selectors[ $block_style['name'] ] = static::get_block_style_variation_selector( $block_style['name'], $block_metadata['selector'] );
+							}
 						}
-					}
 
-					static::$blocks_metadata[ $block_name ]['styleVariations'] = $style_selectors;
+						static::$blocks_metadata[ $block_name ]['styleVariations'] = $style_selectors;
+					}
 				}
+				static::$last_style_check_counter = $current_update_counter;
 			}
 			return static::$blocks_metadata;
 		}
