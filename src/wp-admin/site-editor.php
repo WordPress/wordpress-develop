@@ -19,11 +19,11 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
 	);
 }
 
-$post_type_param         = sanitize_key( $_GET['postType'] );
-$is_template_part        = isset( $_GET['postType'] ) && 'wp_template_part' === $post_type_param;
+$post_type_param         = isset( $_GET['postType'] ) ? sanitize_key( wp_unslash( $_GET['postType'] ) ) : '';
+$is_template_part        = $post_type_param && 'wp_template_part' === $post_type_param;
 $is_template_part_path   = isset( $_GET['path'] ) && 'wp_template_partall' === sanitize_key( $_GET['path'] );
 $is_template_part_editor = $is_template_part || $is_template_part_path;
-$is_patterns             = isset( $_GET['postType'] ) && 'wp_block' === $post_type_param;
+$is_patterns             = $post_type_param && 'wp_block' === $post_type_param;
 $is_patterns_path        = isset( $_GET['path'] ) && 'patterns' === sanitize_key( $_GET['path'] );
 $is_patterns_editor      = $is_patterns || $is_patterns_path;
 
@@ -36,7 +36,7 @@ if ( ! wp_is_block_theme() ) {
 }
 
 // Validate postId and postType.
-if ( isset( $_GET['postId'] ) && isset( $_GET['postType'] ) ) {
+if ( isset( $_GET['postId'] ) && $post_type_param ) {
 	switch ( $post_type_param ) {
 		case 'page':
 			$post = get_post( (int) $_GET['postId'] );
