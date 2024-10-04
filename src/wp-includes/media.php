@@ -4096,21 +4096,7 @@ function wp_get_image_editor( $path, $args = array() ) {
  * @return bool True if an eligible editor is found; false otherwise.
  */
 function wp_image_editor_supports( $args = array() ) {
-	$supports = wp_cache_get( 'wp_image_editor_supports', 'image_editor' );
-
-	if ( false === $supports ) {
-		$supports = array();
-	}
-
-	$cache_key = md5( serialize( $args ) );
-
-	if ( ! isset( $supports[ $cache_key ] ) ) {
-		$supports[ $cache_key ] = (bool) _wp_image_editor_choose( $args );
-
-		wp_cache_set( 'wp_image_editor_supports', $supports, 'image_editor', DAY_IN_SECONDS );
-	}
-
-	return $supports[ $cache_key ];
+	return (bool) _wp_image_editor_choose( $args );
 }
 
 /**
