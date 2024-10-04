@@ -1533,16 +1533,16 @@ function set_transient( $transient, $value, $expiration = 0, $autoload = null ) 
 	$autoload = is_bool( $autoload ) ? $autoload : false;
 
 	/**
-     * Filters the autoload parameter before it's applied.
-     *
-     * @since 6.8.0
-     *
-     * @param bool   $autoload   Whether to autoload the transient.
-     * @param mixed  $value      The value being set.
-     * @param int    $expiration The expiration time.
-     * @param string $transient  Transient name.
-     */
-    $autoload = apply_filters( "autoload_transient_{$transient}", $autoload, $value, $expiration, $transient );
+	 * Filters the autoload parameter before it's applied.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param bool   $autoload   Whether to autoload the transient.
+	 * @param mixed  $value      The value being set.
+	 * @param int    $expiration The expiration time.
+	 * @param string $transient  Transient name.
+	 */
+	$autoload = apply_filters( "autoload_transient_{$transient}", $autoload, $value, $expiration, $transient );
 
 	if ( wp_using_ext_object_cache() || wp_installing() ) {
 		$result = wp_cache_set( $transient, $value, 'transient', $expiration );
