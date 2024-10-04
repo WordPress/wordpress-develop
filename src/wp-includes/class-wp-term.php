@@ -100,6 +100,16 @@ final class WP_Term {
 	public $filter = 'raw';
 
 	/**
+	 * Whether this taxonomy should appear in the REST API.
+	 *
+	 * Default false.
+	 *
+	 * @var bool
+	 */
+
+	public $show_in_rest = false;
+
+	/**
 	 * Retrieve WP_Term instance.
 	 *
 	 * @since 4.4.0

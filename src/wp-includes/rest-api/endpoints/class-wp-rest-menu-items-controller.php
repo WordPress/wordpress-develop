@@ -42,6 +42,12 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
+		if ( isset( $request['menu'] ) ) {
+			$check = $this->check_permission_menu( $request['menu'] );
+			if ( $check ) {
+				return $check;
+			}
+		}
 		$has_permission = parent::get_items_permissions_check( $request );
 
 		if ( true !== $has_permission ) {
@@ -67,6 +73,21 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $this->check_has_read_only_access( $request );
+	}
+
+	/**
+	 * Checks if a request is shown in the REST API endpoint.
+	 *
+	 * @param  int  $menu_id ID of the menu.
+	 * @return bool True if the menu_id belongs to a menu that is accessible through REST, otherwise false.
+	 */
+	public function check_permission_menu( $menu_id ) {
+		$nav_term = wp_get_nav_menu_object( $menu_id );
+		if ( $nav_term && isset( $nav_term->show_in_rest ) && $nav_term->show_in_rest ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
