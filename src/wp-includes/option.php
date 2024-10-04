@@ -1495,10 +1495,10 @@ function get_transient( $transient ) {
  * @param mixed  $value           Transient value. Must be serializable if non-scalar.
  *                                Expected to not be SQL-escaped.
  * @param int    $expiration      Optional. Time until expiration in seconds. Default 0 (no expiration).
- * @param bool   $autoload Optional. Whether the transient should be autoloaded. Default true.
+ * @param bool   $autoload Optional. Whether the transient should be autoloaded. Default null.
  * @return bool True if the value was set, false otherwise.
  */
-function set_transient( $transient, $value, $expiration = 0, $autoload = true ) {
+function set_transient( $transient, $value, $expiration = 0, $autoload = null ) {
 
 	$expiration = (int) $expiration;
 
