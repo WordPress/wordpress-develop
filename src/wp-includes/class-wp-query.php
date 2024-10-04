@@ -2203,8 +2203,10 @@ class WP_Query {
 			$where          .= " AND {$wpdb->posts}.post_name = '" . $q['attachment'] . "'";
 		} elseif ( is_array( $q['post_name__in'] ) && ! empty( $q['post_name__in'] ) ) {
 			$q['post_name__in'] = array_map( 'sanitize_title_for_query', $q['post_name__in'] );
-			sort( $q['post_name__in'] );
-			$post_name__in = "'" . implode( "','", $q['post_name__in'] ) . "'";
+			// Duplicate array before sorting to allow for the orderby clause.
+			$post_name__in_for_where = $q['post_name__in'];
+			sort( $post_name__in_for_where );
+			$post_name__in = "'" . implode( "','", $post_name__in_for_where ) . "'";
 			$where        .= " AND {$wpdb->posts}.post_name IN ($post_name__in)";
 		}
 
@@ -2217,8 +2219,10 @@ class WP_Query {
 		if ( $q['p'] ) {
 			$where .= " AND {$wpdb->posts}.ID = " . $q['p'];
 		} elseif ( $q['post__in'] ) {
-			sort( $q['post__in'] );
-			$post__in = implode( ',', array_map( 'absint', $q['post__in'] ) );
+			$post__in_for_where = $q['post__in'];
+			// Duplicate array before sorting to allow for the orderby clause.
+			sort( $post__in_for_where );
+			$post__in = implode( ',', array_map( 'absint', $post__in_for_where ) );
 			$where   .= " AND {$wpdb->posts}.ID IN ($post__in)";
 		} elseif ( $q['post__not_in'] ) {
 			sort( $q['post__not_in'] );
@@ -2229,8 +2233,10 @@ class WP_Query {
 		if ( is_numeric( $q['post_parent'] ) ) {
 			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_parent = %d ", $q['post_parent'] );
 		} elseif ( $q['post_parent__in'] ) {
-			sort( $q['post_parent__in'] );
-			$post_parent__in = implode( ',', array_map( 'absint', $q['post_parent__in'] ) );
+			// Duplicate array before sorting to allow for the orderby clause.
+			$post_parent__in_for_where = $q['post_parent__in'];
+			sort( $post_parent__in_for_where );
+			$post_parent__in = implode( ',', array_map( 'absint', $post_parent__in_for_where ) );
 			$where          .= " AND {$wpdb->posts}.post_parent IN ($post_parent__in)";
 		} elseif ( $q['post_parent__not_in'] ) {
 			sort( $q['post_parent__not_in'] );
