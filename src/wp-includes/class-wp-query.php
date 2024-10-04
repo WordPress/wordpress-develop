@@ -1101,6 +1101,7 @@ class WP_Query {
 		if ( ! empty( $qv['post_type'] ) ) {
 			if ( is_array( $qv['post_type'] ) ) {
 				$qv['post_type'] = array_map( 'sanitize_key', $qv['post_type'] );
+				sort( $qv['post_type'] );
 			} else {
 				$qv['post_type'] = sanitize_key( $qv['post_type'] );
 			}
@@ -1109,6 +1110,7 @@ class WP_Query {
 		if ( ! empty( $qv['post_status'] ) ) {
 			if ( is_array( $qv['post_status'] ) ) {
 				$qv['post_status'] = array_map( 'sanitize_key', $qv['post_status'] );
+				sort( $qv['post_status'] );
 			} else {
 				$qv['post_status'] = preg_replace( '|[^a-z0-9_,-]|', '', $qv['post_status'] );
 			}
@@ -1181,9 +1183,12 @@ class WP_Query {
 
 				$term = $q[ $t->query_var ];
 
-				if ( is_array( $term ) ) {
-					$term = implode( ',', $term );
+				if ( ! is_array( $term ) ) {
+					$term = explode( ',', $term );
+					$term = array_map( 'trim', $term );
 				}
+				sort( $term );
+				$term = implode( ',', $term );
 
 				if ( str_contains( $term, '+' ) ) {
 					$terms = preg_split( '/[+]+/', $term );
@@ -1207,9 +1212,12 @@ class WP_Query {
 		}
 
 		// If query string 'cat' is an array, implode it.
-		if ( is_array( $q['cat'] ) ) {
-			$q['cat'] = implode( ',', $q['cat'] );
+		if ( ! is_array( $q['cat'] ) ) {
+			$q['cat'] = explode( ',', $q['cat'] );
+			$q['cat'] = array_map( 'trim', $q['cat'] );
 		}
+		sort( $q['cat'] );
+		$q['cat'] = implode( ',', $q['cat'] );
 
 		// Category stuff.
 
@@ -1291,9 +1299,12 @@ class WP_Query {
 		}
 
 		// If query string 'tag' is array, implode it.
-		if ( is_array( $q['tag'] ) ) {
-			$q['tag'] = implode( ',', $q['tag'] );
+		if ( ! is_array( $q['tag'] ) ) {
+			$q['tag'] = explode( ',', $q['tag'] );
+			$q['tag'] = array_map( 'trim', $q['tag'] );
 		}
+		sort( $q['tag'] );
+		$q['tag'] = implode( ',', $q['tag'] );
 
 		// Tag stuff.
 
@@ -2185,8 +2196,9 @@ class WP_Query {
 			$where          .= " AND {$wpdb->posts}.post_name = '" . $q['attachment'] . "'";
 		} elseif ( is_array( $q['post_name__in'] ) && ! empty( $q['post_name__in'] ) ) {
 			$q['post_name__in'] = array_map( 'sanitize_title_for_query', $q['post_name__in'] );
-			$post_name__in      = "'" . implode( "','", $q['post_name__in'] ) . "'";
-			$where             .= " AND {$wpdb->posts}.post_name IN ($post_name__in)";
+			sort( $q['post_name__in'] );
+			$post_name__in = "'" . implode( "','", $q['post_name__in'] ) . "'";
+			$where        .= " AND {$wpdb->posts}.post_name IN ($post_name__in)";
 		}
 
 		// If an attachment is requested by number, let it supersede any post number.
@@ -2587,6 +2599,7 @@ class WP_Query {
 			if ( ! is_array( $q_status ) ) {
 				$q_status = explode( ',', $q_status );
 			}
+			sort( $q_status );
 			$r_status = array();
 			$p_status = array();
 			$e_status = array();
