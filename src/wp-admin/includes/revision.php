@@ -400,7 +400,7 @@ function wp_print_revision_templates() {
 
 	<script id="tmpl-revisions-meta" type="text/html">
 		<# if ( ! _.isUndefined( data.attributes ) ) { #>
-			<div class="diff-title">
+			<div class="diff-title" id="diff-title-{{ data.type }}">
 				<# if ( 'from' === data.type ) { #>
 					<strong><?php _ex( 'From:', 'Followed by post revision info' ); ?></strong>
 				<# } else if ( 'to' === data.type ) { #>
@@ -469,7 +469,7 @@ function wp_print_revision_templates() {
 		<div class="diff-error"><?php _e( 'Sorry, something went wrong. The requested comparison could not be loaded.' ); ?></div>
 		<div class="diff">
 		<# _.each( data.fields, function( field ) { #>
-			<h3>{{ field.name }}</h3>
+			<h2>{{ field.name }}</h2>
 			{{{ field.diff }}}
 		<# }); #>
 		</div>
