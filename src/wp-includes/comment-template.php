@@ -2286,7 +2286,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 			}
 
 			$current_per_page = get_query_var( 'comments_per_page' );
-			if ( $parsed_args['page'] != $current_cpage || $parsed_args['per_page'] != $current_per_page ) {
+			if ( $parsed_args['page'] !== $current_cpage || $parsed_args['per_page'] !== $current_per_page ) {
 				$comment_args = array(
 					'post_id' => get_the_ID(),
 					'orderby' => 'comment_date_gmt',
