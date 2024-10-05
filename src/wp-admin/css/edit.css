@@ -75,6 +75,14 @@
 	pointer-events: none;
 }
 
+#titlewrap .skiplink:focus {
+	clip: inherit;
+	clip-path: inherit;
+	right: 4px;
+	top: 4px;
+	width: auto;
+}
+
 input#link_description,
 input#link_url {
 	width: 100%;
