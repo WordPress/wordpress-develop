@@ -595,13 +595,13 @@ window.wp = window.wp || {};
 		initialize: function() {
 			_.bindAll( this, 'setWidth' );
 
-			// Add the button view.
-			this.views.add( new revisions.view.Buttons({
+			// Add the checkbox view.
+			this.views.add( new revisions.view.Checkbox({
 				model: this.model
 			}) );
 
-			// Add the checkbox view.
-			this.views.add( new revisions.view.Checkbox({
+			// Add the button view.
+			this.views.add( new revisions.view.Buttons({
 				model: this.model
 			}) );
 
