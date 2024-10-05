@@ -952,7 +952,6 @@ window.wp = window.wp || {};
 		ready: function() {
 			this.$el.css('width', ( this.model.revisions.length * 50 ) + 'px');
 			this.$el.slider( _.extend( this.model.toJSON(), {
-				create: accessibilityHelper(),
 				start: this.start,
 				slide: this.slide,
 				stop:  this.stop
@@ -1023,6 +1022,7 @@ window.wp = window.wp || {};
 				this.accessibilityHelper();
 			} else {
 				handles.removeClass('from-handle to-handle');
+				this.accessibilityHelper();
 			}
 
 		},
