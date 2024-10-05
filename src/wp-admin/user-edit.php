@@ -702,7 +702,7 @@ switch ( $action ) {
 								</td>
 							</tr>
 							<tr class="pw-weak">
-								<th><?php _e( 'Confirm Password' ); ?></th>
+								<th><?php _e( 'Confirm Password' ); ?> <span class="description"><?php _e( '(required)' ); ?></span></th>
 								<td>
 									<label>
 										<input type="checkbox" name="pw_weak" class="pw-checkbox" />
