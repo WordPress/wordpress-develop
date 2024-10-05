@@ -952,19 +952,7 @@ window.wp = window.wp || {};
 		ready: function() {
 			this.$el.css('width', ( this.model.revisions.length * 50 ) + 'px');
 			this.$el.slider( _.extend( this.model.toJSON(), {
-				create: function() {
-					var handles = $( '.ui-slider-handle' );
-					handles.first().attr( {
-							role: 'button',
-							'aria-labelledby': 'diff-title-from',
-							'aria-describedby': 'revisions-slider-hidden-help',
-					} );
-					handles.last().attr( {
-							role: 'button',
-							'aria-labelledby': 'diff-title-to',
-							'aria-describedby': 'revisions-slider-hidden-help',
-					} );
-				},
+				create: accessibilityHelper(),
 				start: this.start,
 				slide: this.slide,
 				stop:  this.stop
@@ -977,6 +965,20 @@ window.wp = window.wp || {};
 			});
 
 			this.applySliderSettings();
+		},
+
+		accessibilityHelper: function() {
+			var handles = $( '.ui-slider-handle' );
+			handles.first().attr( {
+					role: 'button',
+					'aria-labelledby': 'diff-title-from',
+					'aria-describedby': 'revisions-slider-hidden-help',
+			} );
+			handles.last().attr( {
+					role: 'button',
+					'aria-labelledby': 'diff-title-to',
+					'aria-describedby': 'revisions-slider-hidden-help',
+			} );
 		},
 
 		mouseMove: function( e ) {
@@ -1018,9 +1020,11 @@ window.wp = window.wp || {};
 				handles.last()
 					.toggleClass( 'from-handle', !! isRtl )
 					.toggleClass( 'to-handle', ! isRtl );
+				this.accessibilityHelper();
 			} else {
 				handles.removeClass('from-handle to-handle');
 			}
+
 		},
 
 		start: function( event, ui ) {
