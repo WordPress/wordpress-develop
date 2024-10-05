@@ -703,12 +703,19 @@ var permalinkStructureFocused = false,
     $permalinkStructure       = $( '#permalink_structure' ),
     $permalinkStructureInputs = $( '.permalink-structure input:radio' ),
     $permalinkCustomSelection = $( '#custom_selection' ),
+    $permalinkCustomSelectionCheckbox = $( '#custom_selection_checkbox' ),
     $availableStructureTags   = $( '.form-table.permalink-structure .available-structure-tags button' );
 
 // Change permalink structure input when selecting one of the common structures.
 $permalinkStructureInputs.on( 'change', function() {
 	if ( 'custom' === this.value ) {
 		return;
+	}
+
+	$permalinkCustomSelectionCheckbox.prop( 'checked', false );
+	$permalinkStructure.attr('readonly', true);
+	for (let i = 0; i < $availableStructureTags.length; i++) {
+		$availableStructureTags[i].disabled = true;
 	}
 
 	$permalinkStructure.val( this.value );
@@ -727,6 +734,24 @@ $permalinkStructure.on( 'click input', function() {
 $permalinkStructure.on( 'focus', function( event ) {
 	permalinkStructureFocused = true;
 	$( this ).off( event );
+} );
+
+// Check if the custom permalink checkbox has selected
+$permalinkCustomSelectionCheckbox.on( 'change', function() {
+	if(this.checked){
+		$permalinkStructureInputs.prop( 'checked', false );
+		$permalinkStructure.attr('readonly', false);
+		$permalinkStructure.attr('tabindex', 0);
+		for (let i = 0; i < $availableStructureTags.length; i++) {
+			$availableStructureTags[i].disabled = false;
+		}
+	} else {
+		$permalinkStructure.attr('readonly', true);
+		$permalinkStructure.attr('tabindex', -1);
+		for (let i = 0; i < $availableStructureTags.length; i++) {
+			$availableStructureTags[i].disabled = true;
+		}
+	}
 } );
 
 /**
