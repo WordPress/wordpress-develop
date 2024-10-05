@@ -3,7 +3,6 @@
  * Twenty Twenty-Two: Block Patterns
  *
  * @since Twenty Twenty-Two 1.0
- *
  */
 
 /**
