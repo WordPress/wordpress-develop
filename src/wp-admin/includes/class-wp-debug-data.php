@@ -82,8 +82,8 @@ class WP_Debug_Data {
 			'wp-parent-theme'     => array(),
 			'wp-themes-inactive'  => array(),
 			'wp-mu-plugins'       => self::get_wp_mu_plugins(),
-			'wp-plugins-active'   => array(),
-			'wp-plugins-inactive' => array(),
+			'wp-plugins-active'   => self::get_wp_plugins_active(),
+			'wp-plugins-inactive' => self::get_wp_plugins_inactive(),
 			'wp-media'            => self::get_wp_media(),
 			'wp-server'           => self::get_wp_server(),
 			'wp-database'         => self::get_wp_database(),
@@ -184,18 +184,6 @@ class WP_Debug_Data {
 
 		$info['wp-themes-inactive'] = array(
 			'label'      => __( 'Inactive Themes' ),
-			'show_count' => true,
-			'fields'     => array(),
-		);
-
-		$info['wp-plugins-active'] = array(
-			'label'      => __( 'Active Plugins' ),
-			'show_count' => true,
-			'fields'     => array(),
-		);
-
-		$info['wp-plugins-inactive'] = array(
-			'label'      => __( 'Inactive Plugins' ),
 			'show_count' => true,
 			'fields'     => array(),
 		);
@@ -322,112 +310,6 @@ class WP_Debug_Data {
 					'value' => $loading,
 					'debug' => 'loading...',
 				),
-			);
-		}
-
-		// List all available plugins.
-		$plugins        = get_plugins();
-		$plugin_updates = get_plugin_updates();
-		$transient      = get_site_transient( 'update_plugins' );
-
-		$auto_updates = array();
-
-		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'plugin' );
-
-		if ( $auto_updates_enabled ) {
-			$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
-		}
-
-		foreach ( $plugins as $plugin_path => $plugin ) {
-			$plugin_part = ( is_plugin_active( $plugin_path ) ) ? 'wp-plugins-active' : 'wp-plugins-inactive';
-
-			$plugin_version = $plugin['Version'];
-			$plugin_author  = $plugin['Author'];
-
-			$plugin_version_string       = __( 'No version or author information is available.' );
-			$plugin_version_string_debug = 'author: (undefined), version: (undefined)';
-
-			if ( ! empty( $plugin_version ) && ! empty( $plugin_author ) ) {
-				/* translators: 1: Plugin version number. 2: Plugin author name. */
-				$plugin_version_string       = sprintf( __( 'Version %1$s by %2$s' ), $plugin_version, $plugin_author );
-				$plugin_version_string_debug = sprintf( 'version: %s, author: %s', $plugin_version, $plugin_author );
-			} else {
-				if ( ! empty( $plugin_author ) ) {
-					/* translators: %s: Plugin author name. */
-					$plugin_version_string       = sprintf( __( 'By %s' ), $plugin_author );
-					$plugin_version_string_debug = sprintf( 'author: %s, version: (undefined)', $plugin_author );
-				}
-
-				if ( ! empty( $plugin_version ) ) {
-					/* translators: %s: Plugin version number. */
-					$plugin_version_string       = sprintf( __( 'Version %s' ), $plugin_version );
-					$plugin_version_string_debug = sprintf( 'author: (undefined), version: %s', $plugin_version );
-				}
-			}
-
-			if ( array_key_exists( $plugin_path, $plugin_updates ) ) {
-				/* translators: %s: Latest plugin version number. */
-				$plugin_version_string       .= ' ' . sprintf( __( '(Latest version: %s)' ), $plugin_updates[ $plugin_path ]->update->new_version );
-				$plugin_version_string_debug .= sprintf( ' (latest version: %s)', $plugin_updates[ $plugin_path ]->update->new_version );
-			}
-
-			if ( $auto_updates_enabled ) {
-				if ( isset( $transient->response[ $plugin_path ] ) ) {
-					$item = $transient->response[ $plugin_path ];
-				} elseif ( isset( $transient->no_update[ $plugin_path ] ) ) {
-					$item = $transient->no_update[ $plugin_path ];
-				} else {
-					$item = array(
-						'id'            => $plugin_path,
-						'slug'          => '',
-						'plugin'        => $plugin_path,
-						'new_version'   => '',
-						'url'           => '',
-						'package'       => '',
-						'icons'         => array(),
-						'banners'       => array(),
-						'banners_rtl'   => array(),
-						'tested'        => '',
-						'requires_php'  => '',
-						'compatibility' => new stdClass(),
-					);
-					$item = wp_parse_args( $plugin, $item );
-				}
-
-				$auto_update_forced = wp_is_auto_update_forced_for_item( 'plugin', null, (object) $item );
-
-				if ( ! is_null( $auto_update_forced ) ) {
-					$enabled = $auto_update_forced;
-				} else {
-					$enabled = in_array( $plugin_path, $auto_updates, true );
-				}
-
-				if ( $enabled ) {
-					$auto_updates_string = __( 'Auto-updates enabled' );
-				} else {
-					$auto_updates_string = __( 'Auto-updates disabled' );
-				}
-
-				/**
-				 * Filters the text string of the auto-updates setting for each plugin in the Site Health debug data.
-				 *
-				 * @since 5.5.0
-				 *
-				 * @param string $auto_updates_string The string output for the auto-updates column.
-				 * @param string $plugin_path         The path to the plugin file.
-				 * @param array  $plugin              An array of plugin data.
-				 * @param bool   $enabled             Whether auto-updates are enabled for this item.
-				 */
-				$auto_updates_string = apply_filters( 'plugin_auto_update_debug_string', $auto_updates_string, $plugin_path, $plugin, $enabled );
-
-				$plugin_version_string       .= ' | ' . $auto_updates_string;
-				$plugin_version_string_debug .= ', ' . $auto_updates_string;
-			}
-
-			$info[ $plugin_part ]['fields'][ sanitize_text_field( $plugin['Name'] ) ] = array(
-				'label' => $plugin['Name'],
-				'value' => $plugin_version_string,
-				'debug' => $plugin_version_string_debug,
 			);
 		}
 
@@ -822,7 +704,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array
 	 */
-	public static function get_wp_dropins(): array {
+	private static function get_wp_dropins(): array {
 		// Get a list of all drop-in replacements.
 		$dropins = get_dropins();
 
@@ -857,7 +739,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array
 	 */
-	public static function get_wp_server(): array {
+	private static function get_wp_server(): array {
 		// Populate the server debug fields.
 		if ( function_exists( 'php_uname' ) ) {
 			$server_architecture = sprintf( '%s %s %s', php_uname( 's' ), php_uname( 'r' ), php_uname( 'm' ) );
@@ -1050,7 +932,7 @@ class WP_Debug_Data {
 	 * @throws ImagickException
 	 * @return array
 	 */
-	public static function get_wp_media(): array {
+	private static function get_wp_media(): array {
 		// Spare few function calls.
 		$not_available = __( 'Not available' );
 
@@ -1244,10 +1126,10 @@ class WP_Debug_Data {
 	 *
 	 * @return array
 	 */
-	public static function get_wp_mu_plugins(): array {
+	private static function get_wp_mu_plugins(): array {
 		// List must use plugins if there are any.
 		$mu_plugins = get_mu_plugins();
-		$fields = array();
+		$fields     = array();
 
 		foreach ( $mu_plugins as $plugin_path => $plugin ) {
 			$plugin_version = $plugin['Version'];
@@ -1289,13 +1171,164 @@ class WP_Debug_Data {
 	}
 
 	/**
+	 * Gets the WordPress active plugins section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_plugins_active(): array {
+		return array(
+			'label'      => __( 'Active Plugins' ),
+			'show_count' => true,
+			'fields'     => self::get_wp_plugins_raw_data()['wp-plugins-active'],
+		);
+	}
+
+	/**
+	 * Gets the WordPress inactive plugins section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_plugins_inactive(): array {
+		return array(
+			'label'      => __( 'Inactive Plugins' ),
+			'show_count' => true,
+			'fields'     => self::get_wp_plugins_raw_data()['wp-plugins-inactive'],
+		);
+	}
+
+	/**
+	 * Gets the raw plugin data for the WordPress active and inactive sections of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_plugins_raw_data(): array {
+		// List all available plugins.
+		$plugins        = get_plugins();
+		$plugin_updates = get_plugin_updates();
+		$transient      = get_site_transient( 'update_plugins' );
+
+		$auto_updates = array();
+		$fields       = array(
+			'wp-plugins-active'   => array(),
+			'wp-plugins-inactive' => array(),
+		);
+
+		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'plugin' );
+
+		if ( $auto_updates_enabled ) {
+			$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
+		}
+
+		foreach ( $plugins as $plugin_path => $plugin ) {
+			$plugin_part = ( is_plugin_active( $plugin_path ) ) ? 'wp-plugins-active' : 'wp-plugins-inactive';
+
+			$plugin_version = $plugin['Version'];
+			$plugin_author  = $plugin['Author'];
+
+			$plugin_version_string       = __( 'No version or author information is available.' );
+			$plugin_version_string_debug = 'author: (undefined), version: (undefined)';
+
+			if ( ! empty( $plugin_version ) && ! empty( $plugin_author ) ) {
+				/* translators: 1: Plugin version number. 2: Plugin author name. */
+				$plugin_version_string       = sprintf( __( 'Version %1$s by %2$s' ), $plugin_version, $plugin_author );
+				$plugin_version_string_debug = sprintf( 'version: %s, author: %s', $plugin_version, $plugin_author );
+			} else {
+				if ( ! empty( $plugin_author ) ) {
+					/* translators: %s: Plugin author name. */
+					$plugin_version_string       = sprintf( __( 'By %s' ), $plugin_author );
+					$plugin_version_string_debug = sprintf( 'author: %s, version: (undefined)', $plugin_author );
+				}
+
+				if ( ! empty( $plugin_version ) ) {
+					/* translators: %s: Plugin version number. */
+					$plugin_version_string       = sprintf( __( 'Version %s' ), $plugin_version );
+					$plugin_version_string_debug = sprintf( 'author: (undefined), version: %s', $plugin_version );
+				}
+			}
+
+			if ( array_key_exists( $plugin_path, $plugin_updates ) ) {
+				/* translators: %s: Latest plugin version number. */
+				$plugin_version_string       .= ' ' . sprintf( __( '(Latest version: %s)' ), $plugin_updates[ $plugin_path ]->update->new_version );
+				$plugin_version_string_debug .= sprintf( ' (latest version: %s)', $plugin_updates[ $plugin_path ]->update->new_version );
+			}
+
+			if ( $auto_updates_enabled ) {
+				if ( isset( $transient->response[ $plugin_path ] ) ) {
+					$item = $transient->response[ $plugin_path ];
+				} elseif ( isset( $transient->no_update[ $plugin_path ] ) ) {
+					$item = $transient->no_update[ $plugin_path ];
+				} else {
+					$item = array(
+						'id'            => $plugin_path,
+						'slug'          => '',
+						'plugin'        => $plugin_path,
+						'new_version'   => '',
+						'url'           => '',
+						'package'       => '',
+						'icons'         => array(),
+						'banners'       => array(),
+						'banners_rtl'   => array(),
+						'tested'        => '',
+						'requires_php'  => '',
+						'compatibility' => new stdClass(),
+					);
+					$item = wp_parse_args( $plugin, $item );
+				}
+
+				$auto_update_forced = wp_is_auto_update_forced_for_item( 'plugin', null, (object) $item );
+
+				if ( ! is_null( $auto_update_forced ) ) {
+					$enabled = $auto_update_forced;
+				} else {
+					$enabled = in_array( $plugin_path, $auto_updates, true );
+				}
+
+				if ( $enabled ) {
+					$auto_updates_string = __( 'Auto-updates enabled' );
+				} else {
+					$auto_updates_string = __( 'Auto-updates disabled' );
+				}
+
+				/**
+				 * Filters the text string of the auto-updates setting for each plugin in the Site Health debug data.
+				 *
+				 * @since 5.5.0
+				 *
+				 * @param string $auto_updates_string The string output for the auto-updates column.
+				 * @param string $plugin_path         The path to the plugin file.
+				 * @param array  $plugin              An array of plugin data.
+				 * @param bool   $enabled             Whether auto-updates are enabled for this item.
+				 */
+				$auto_updates_string = apply_filters( 'plugin_auto_update_debug_string', $auto_updates_string, $plugin_path, $plugin, $enabled );
+
+				$plugin_version_string       .= ' | ' . $auto_updates_string;
+				$plugin_version_string_debug .= ', ' . $auto_updates_string;
+			}
+
+			$fields[ $plugin_part ][ sanitize_text_field( $plugin['Name'] ) ] = array(
+				'label' => $plugin['Name'],
+				'value' => $plugin_version_string,
+				'debug' => $plugin_version_string_debug,
+			);
+		}
+
+		return $fields;
+	}
+
+	/**
 	 * Gets the WordPress constants section of the debug data.
 	 *
 	 * @since 6.7.0
 	 *
 	 * @return array
 	 */
-	public static function get_wp_constants(): array {
+	private static function get_wp_constants(): array {
 		// Check if WP_DEBUG_LOG is set.
 		$wp_debug_log_value = __( 'Disabled' );
 		if ( is_string( WP_DEBUG_LOG ) ) {
@@ -1459,7 +1492,7 @@ class WP_Debug_Data {
 	 *
 	 * @return array
 	 */
-	public static function get_wp_database(): array {
+	private static function get_wp_database(): array {
 		global $wpdb;
 
 		// Populate the database debug fields.
