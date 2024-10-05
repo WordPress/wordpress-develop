@@ -1172,95 +1172,91 @@ class WP_Debug_Data {
 
 		$active_theme = wp_get_theme();
 		$parent_theme = $active_theme->parent();
+		$fields       = array();
 
-		if ( ! $parent_theme ) {
-			return array(
-				'label'  => __( 'Parent Theme' ),
-				'fields' => array(),
-			);
-		}
+		if ( $parent_theme ) {
+			$parent_theme_version       = $parent_theme->version;
+			$parent_theme_version_debug = $parent_theme_version;
 
-		$parent_theme_version       = $parent_theme->version;
-		$parent_theme_version_debug = $parent_theme_version;
+			if ( array_key_exists( $parent_theme->stylesheet, $theme_updates ) ) {
+				$parent_theme_update_new_version = $theme_updates[ $parent_theme->stylesheet ]->update['new_version'];
 
-		if ( array_key_exists( $parent_theme->stylesheet, $theme_updates ) ) {
-			$parent_theme_update_new_version = $theme_updates[ $parent_theme->stylesheet ]->update['new_version'];
+				/* translators: %s: Latest theme version number. */
+				$parent_theme_version       .= ' ' . sprintf( __( '(Latest version: %s)' ), $parent_theme_update_new_version );
+				$parent_theme_version_debug .= sprintf( ' (latest version: %s)', $parent_theme_update_new_version );
+			}
 
-			/* translators: %s: Latest theme version number. */
-			$parent_theme_version       .= ' ' . sprintf( __( '(Latest version: %s)' ), $parent_theme_update_new_version );
-			$parent_theme_version_debug .= sprintf( ' (latest version: %s)', $parent_theme_update_new_version );
-		}
+			$parent_theme_author_uri = $parent_theme->display( 'AuthorURI' );
 
-		$parent_theme_author_uri = $parent_theme->display( 'AuthorURI' );
-
-		$fields = array(
-			'name'           => array(
-				'label' => __( 'Name' ),
-				'value' => sprintf(
-					/* translators: 1: Theme name. 2: Theme slug. */
-					__( '%1$s (%2$s)' ),
-					$parent_theme->name,
-					$parent_theme->stylesheet
+			$fields = array(
+				'name'           => array(
+					'label' => __( 'Name' ),
+					'value' => sprintf(
+						/* translators: 1: Theme name. 2: Theme slug. */
+						__( '%1$s (%2$s)' ),
+						$parent_theme->name,
+						$parent_theme->stylesheet
+					),
 				),
-			),
-			'version'        => array(
-				'label' => __( 'Version' ),
-				'value' => $parent_theme_version,
-				'debug' => $parent_theme_version_debug,
-			),
-			'author'         => array(
-				'label' => __( 'Author' ),
-				'value' => wp_kses( $parent_theme->author, array() ),
-			),
-			'author_website' => array(
-				'label' => __( 'Author website' ),
-				'value' => ( $parent_theme_author_uri ? $parent_theme_author_uri : __( 'Undefined' ) ),
-				'debug' => ( $parent_theme_author_uri ? $parent_theme_author_uri : '(undefined)' ),
-			),
-			'theme_path'     => array(
-				'label' => __( 'Theme directory location' ),
-				'value' => get_template_directory(),
-			),
-		);
+				'version'        => array(
+					'label' => __( 'Version' ),
+					'value' => $parent_theme_version,
+					'debug' => $parent_theme_version_debug,
+				),
+				'author'         => array(
+					'label' => __( 'Author' ),
+					'value' => wp_kses( $parent_theme->author, array() ),
+				),
+				'author_website' => array(
+					'label' => __( 'Author website' ),
+					'value' => ( $parent_theme_author_uri ? $parent_theme_author_uri : __( 'Undefined' ) ),
+					'debug' => ( $parent_theme_author_uri ? $parent_theme_author_uri : '(undefined)' ),
+				),
+				'theme_path'     => array(
+					'label' => __( 'Theme directory location' ),
+					'value' => get_template_directory(),
+				),
+			);
 
-		if ( $auto_updates_enabled ) {
-			if ( isset( $transient->response[ $parent_theme->stylesheet ] ) ) {
-				$item = $transient->response[ $parent_theme->stylesheet ];
-			} elseif ( isset( $transient->no_update[ $parent_theme->stylesheet ] ) ) {
-				$item = $transient->no_update[ $parent_theme->stylesheet ];
-			} else {
-				$item = array(
-					'theme'        => $parent_theme->stylesheet,
-					'new_version'  => $parent_theme->version,
-					'url'          => '',
-					'package'      => '',
-					'requires'     => '',
-					'requires_php' => '',
+			if ( $auto_updates_enabled ) {
+				if ( isset( $transient->response[ $parent_theme->stylesheet ] ) ) {
+					$item = $transient->response[ $parent_theme->stylesheet ];
+				} elseif ( isset( $transient->no_update[ $parent_theme->stylesheet ] ) ) {
+					$item = $transient->no_update[ $parent_theme->stylesheet ];
+				} else {
+					$item = array(
+						'theme'        => $parent_theme->stylesheet,
+						'new_version'  => $parent_theme->version,
+						'url'          => '',
+						'package'      => '',
+						'requires'     => '',
+						'requires_php' => '',
+					);
+				}
+
+				$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
+
+				if ( ! is_null( $auto_update_forced ) ) {
+					$enabled = $auto_update_forced;
+				} else {
+					$enabled = in_array( $parent_theme->stylesheet, $auto_updates, true );
+				}
+
+				if ( $enabled ) {
+					$parent_theme_auto_update_string = __( 'Enabled' );
+				} else {
+					$parent_theme_auto_update_string = __( 'Disabled' );
+				}
+
+				/** This filter is documented in wp-admin/includes/class-wp-debug-data.php */
+				$parent_theme_auto_update_string = apply_filters( 'theme_auto_update_debug_string', $parent_theme_auto_update_string, $parent_theme, $enabled );
+
+				$fields['auto_update'] = array(
+					'label' => __( 'Auto-update' ),
+					'value' => $parent_theme_auto_update_string,
+					'debug' => $parent_theme_auto_update_string,
 				);
 			}
-
-			$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
-
-			if ( ! is_null( $auto_update_forced ) ) {
-				$enabled = $auto_update_forced;
-			} else {
-				$enabled = in_array( $parent_theme->stylesheet, $auto_updates, true );
-			}
-
-			if ( $enabled ) {
-				$parent_theme_auto_update_string = __( 'Enabled' );
-			} else {
-				$parent_theme_auto_update_string = __( 'Disabled' );
-			}
-
-			/** This filter is documented in wp-admin/includes/class-wp-debug-data.php */
-			$parent_theme_auto_update_string = apply_filters( 'theme_auto_update_debug_string', $parent_theme_auto_update_string, $parent_theme, $enabled );
-
-			$fields['auto_update'] = array(
-				'label' => __( 'Auto-update' ),
-				'value' => $parent_theme_auto_update_string,
-				'debug' => $parent_theme_auto_update_string,
-			);
 		}
 
 		return array(
