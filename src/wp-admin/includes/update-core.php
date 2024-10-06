@@ -2,6 +2,10 @@
 /**
  * WordPress core upgrade functionality.
  *
+ * Note: Newly introduced functions and methods cannot be used here.
+ * All functions must be present in the previous version being upgraded from
+ * as this file is used there too.
+ *
  * @package WordPress
  * @subpackage Administration
  * @since 2.7.0
@@ -1539,12 +1543,12 @@ function update_core( $from, $to ) {
  *
  * @global array              $_old_requests_files Requests files to be preloaded.
  * @global WP_Filesystem_Base $wp_filesystem       WordPress filesystem subclass.
+ * @global string             $wp_version          The WordPress version string.
  *
  * @param string $to Path to old WordPress installation.
  */
 function _preload_old_requests_classes_and_interfaces( $to ) {
-	global $_old_requests_files, $wp_filesystem;
-	$wp_version = wp_get_wp_version();
+	global $_old_requests_files, $wp_filesystem, $wp_version;
 
 	/*
 	 * Requests was introduced in WordPress 4.6.
@@ -1587,14 +1591,14 @@ function _preload_old_requests_classes_and_interfaces( $to ) {
  *
  * @since 3.3.0
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string $wp_version The WordPress version string.
+ * @global string $pagenow    The filename of the current screen.
  * @global string $action
  *
  * @param string $new_version
  */
 function _redirect_to_about_wordpress( $new_version ) {
-	global $pagenow, $action;
-	$wp_version = wp_get_wp_version();
+	global $wp_version, $pagenow, $action;
 
 	if ( version_compare( $wp_version, '3.4-RC1', '>=' ) ) {
 		return;
