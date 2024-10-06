@@ -55,6 +55,57 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that the proper tag-name remapping happens for the `IMAGE` tag.
+	 *
+	 * An HTML parser should treat an IMAGE tag as if it were an IMG tag, but
+	 * only when found in the HTML namespace. As part of this rule, IMAGE tags
+	 * in the HTML namespace are also void elements, while those in foreign
+	 * content are not, making the self-closing flag significant.
+	 *
+	 * Example:
+	 *
+	 *     // This input...
+	 *     <image/><svg><image/></svg>
+	 *
+	 *     // ...is equivalent to this normative HTML.
+	 *     <img><svg><image/></svg>
+	 *
+	 * @ticket 61576
+	 *
+	 * @covers WP_HTML_Processor::get_tag
+	 */
+	public function test_get_tag_replaces_image_with_namespace_awareness() {
+		$processor = WP_HTML_Processor::create_fragment( '<image/><svg><image/></svg>' );
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find initial "<image/>" tag: check test setup.'
+		);
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'HTML tags with the name "IMAGE" should be remapped to "IMG"'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find "<svg>" tag: check test setup.'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find SVG "<image/>" tag: check test setup.'
+		);
+
+		$this->assertSame(
+			'IMAGE',
+			$processor->get_tag(),
+			'Should not remap "IMAGE" to "IMG" for foreign elements.'
+		);
+	}
+
+	/**
 	 * Ensures that the HTML Processor maintains its internal state through seek calls.
 	 *
 	 * Because the HTML Processor must track a stack of open elements and active formatting
@@ -692,6 +743,124 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$this->assertSame(
 			array( 'a', 'b', 'É', "e\u{301}", 'é' ),
 			$class_list
+		);
+	}
+
+	/**
+	 * Ensures that the processor correctly adjusts the namespace
+	 * for elements inside HTML integration points.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_adjusts_for_html_integration_points_in_svg() {
+		$processor = WP_HTML_Processor::create_full_parser(
+			'<svg><foreignobject><image /><svg /><image />'
+		);
+
+		// At the foreignObject, the processor is in the SVG namespace.
+		$this->assertTrue(
+			$processor->next_tag( 'foreignObject' ),
+			'Failed to find "foreignObject" under test: check test setup.'
+		);
+
+		$this->assertSame(
+			'svg',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the "foreignObject" element.'
+		);
+
+		/*
+		 * The IMAGE tag should be handled according to HTML processing rules
+		 * and transformted to an IMG tag because `foreignObject` is an HTML
+		 * integration point. At this point, the processor is entering the HTML
+		 * integration point.
+		 */
+		$this->assertTrue(
+			$processor->next_tag( 'IMG' ),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		/*
+		 * Again, the IMAGE tag should be handled according to HTML processing
+		 * rules and transformted to an IMG tag because `foreignObject` is an
+		 * HTML integration point. At this point, the processor is has entered
+		 * SVG and is returning to an HTML integration point.
+		 */
+		$this->assertTrue(
+			$processor->next_tag( 'IMG' ),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+	}
+
+	/**
+	 * Ensures that the processor correctly adjusts the namespace
+	 * for elements inside MathML integration points.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_adjusts_for_mathml_integration_points() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<mo><image /></mo><math><image /><mo><image /></mo></math>'
+		);
+
+		// Advance token-by-token to ensure matching the right raw "<image />" token.
+		$processor->next_token(); // Advance past the +MO.
+		$processor->next_token(); // Advance into the +IMG.
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		// Advance token-by-token to ensure matching the right raw "<image />" token.
+		$processor->next_token(); // Advance past the -MO.
+		$processor->next_token(); // Advance past the +MATH.
+		$processor->next_token(); // Advance into the +IMAGE.
+
+		$this->assertSame(
+			'IMAGE',
+			$processor->get_tag(),
+			'Failed to find the un-transformed "<image />" tag.'
+		);
+
+		$this->assertSame(
+			'math',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		$processor->next_token(); // Advance past the +MO.
+		$processor->next_token(); // Advance into the +IMG.
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
 		);
 	}
 }

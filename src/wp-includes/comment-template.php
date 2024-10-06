@@ -816,7 +816,7 @@ function get_comment_link( $comment = null, $args = array() ) {
 
 		if ( '' === $cpage ) {
 			if ( ! empty( $in_comment_loop ) ) {
-				$cpage = get_query_var( 'cpage' );
+				$cpage = (int) get_query_var( 'cpage' );
 			} else {
 				// Requires a database hit, so we only do it when we can't figure out from context.
 				$cpage = get_page_of_comment( $comment->comment_ID, $args );
@@ -1733,19 +1733,23 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
  * @param array          $args {
  *     Optional. Override default arguments.
  *
- *     @type string $add_below  The first part of the selector used to identify the comment to respond below.
- *                              The resulting value is passed as the first parameter to addComment.moveForm(),
- *                              concatenated as $add_below-$comment->comment_ID. Default 'comment'.
- *     @type string $respond_id The selector identifying the responding comment. Passed as the third parameter
- *                              to addComment.moveForm(), and appended to the link URL as a hash value.
- *                              Default 'respond'.
- *     @type string $reply_text The text of the Reply link. Default 'Reply'.
- *     @type string $login_text The text of the link to reply if logged out. Default 'Log in to Reply'.
- *     @type int    $max_depth  The max depth of the comment tree. Default 0.
- *     @type int    $depth      The depth of the new comment. Must be greater than 0 and less than the value
- *                              of the 'thread_comments_depth' option set in Settings > Discussion. Default 0.
- *     @type string $before     The text or HTML to add before the reply link. Default empty.
- *     @type string $after      The text or HTML to add after the reply link. Default empty.
+ *     @type string $add_below          The first part of the selector used to identify the comment to respond below.
+ *                                      The resulting value is passed as the first parameter to addComment.moveForm(),
+ *                                      concatenated as $add_below-$comment->comment_ID. Default 'comment'.
+ *     @type string $respond_id         The selector identifying the responding comment. Passed as the third parameter
+ *                                      to addComment.moveForm(), and appended to the link URL as a hash value.
+ *                                      Default 'respond'.
+ *     @type string $reply_text         The visible text of the Reply link. Default 'Reply'.
+ *     @type string $reply_to_text      The accessible name of the Reply link, using `%s` as a placeholder
+ *                                      for the comment author's name. Default 'Reply to %s'.
+ *                                      Should start with the visible `reply_text` value.
+ *     @type bool   $show_reply_to_text Whether to use `reply_to_text` as visible link text. Default false.
+ *     @type string $login_text         The text of the link to reply if logged out. Default 'Log in to Reply'.
+ *     @type int    $max_depth          The max depth of the comment tree. Default 0.
+ *     @type int    $depth              The depth of the new comment. Must be greater than 0 and less than the value
+ *                                      of the 'thread_comments_depth' option set in Settings > Discussion. Default 0.
+ *     @type string $before             The text or HTML to add before the reply link. Default empty.
+ *     @type string $after              The text or HTML to add after the reply link. Default empty.
  * }
  * @param int|WP_Comment $comment Optional. Comment being replied to. Default current comment.
  * @param int|WP_Post    $post    Optional. Post ID or WP_Post object the comment is going to be displayed on.
@@ -1754,16 +1758,17 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
  */
 function get_comment_reply_link( $args = array(), $comment = null, $post = null ) {
 	$defaults = array(
-		'add_below'     => 'comment',
-		'respond_id'    => 'respond',
-		'reply_text'    => __( 'Reply' ),
+		'add_below'          => 'comment',
+		'respond_id'         => 'respond',
+		'reply_text'         => __( 'Reply' ),
 		/* translators: Comment reply button text. %s: Comment author name. */
-		'reply_to_text' => __( 'Reply to %s' ),
-		'login_text'    => __( 'Log in to Reply' ),
-		'max_depth'     => 0,
-		'depth'         => 0,
-		'before'        => '',
-		'after'         => '',
+		'reply_to_text'      => __( 'Reply to %s' ),
+		'login_text'         => __( 'Log in to Reply' ),
+		'max_depth'          => 0,
+		'depth'              => 0,
+		'before'             => '',
+		'after'              => '',
+		'show_reply_to_text' => false,
 	);
 
 	$args = wp_parse_args( $args, $defaults );
@@ -1829,8 +1834,14 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 
 		$data_attribute_string = trim( $data_attribute_string );
 
+		$reply_text = $args['show_reply_to_text']
+			? sprintf( $args['reply_to_text'], get_comment_author( $comment ) )
+			: $args['reply_text'];
+
+		$aria_label = $args['show_reply_to_text'] ? '' : sprintf( $args['reply_to_text'], get_comment_author( $comment ) );
+
 		$link = sprintf(
-			"<a rel='nofollow' class='comment-reply-link' href='%s' %s aria-label='%s'>%s</a>",
+			'<a rel="nofollow" class="comment-reply-link" href="%s" %s%s>%s</a>',
 			esc_url(
 				add_query_arg(
 					array(
@@ -1842,8 +1853,8 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 				)
 			) . '#' . $args['respond_id'],
 			$data_attribute_string,
-			esc_attr( sprintf( $args['reply_to_text'], get_comment_author( $comment ) ) ),
-			$args['reply_text']
+			$aria_label ? ' aria-label="' . esc_attr( $aria_label ) . '"' : '',
+			$reply_text
 		);
 	}
 
@@ -2089,15 +2100,15 @@ function comment_id_fields( $post = null ) {
  *
  * @global WP_Comment $comment Global comment object.
  *
- * @param string|false      $no_reply_text  Optional. Text to display when not replying to a comment.
- *                                          Default false.
- * @param string|false      $reply_text     Optional. Text to display when replying to a comment.
- *                                          Default false. Accepts "%s" for the author of the comment
- *                                          being replied to.
- * @param bool              $link_to_parent Optional. Boolean to control making the author's name a link
- *                                          to their comment. Default true.
- * @param int|WP_Post|null  $post           Optional. The post that the comment form is being displayed for.
- *                                          Defaults to the current global post.
+ * @param string|false     $no_reply_text  Optional. Text to display when not replying to a comment.
+ *                                         Default false.
+ * @param string|false     $reply_text     Optional. Text to display when replying to a comment.
+ *                                         Default false. Accepts "%s" for the author of the comment
+ *                                         being replied to.
+ * @param bool             $link_to_parent Optional. Boolean to control making the author's name a link
+ *                                         to their comment. Default true.
+ * @param int|WP_Post|null $post           Optional. The post that the comment form is being displayed for.
+ *                                         Defaults to the current global post.
  */
 function comment_form_title( $no_reply_text = false, $reply_text = false, $link_to_parent = true, $post = null ) {
 	global $comment;
@@ -2280,15 +2291,13 @@ function wp_list_comments( $args = array(), $comments = null ) {
 		 * perform a separate comment query and allow Walker_Comment to paginate.
 		 */
 		if ( $parsed_args['page'] || $parsed_args['per_page'] ) {
-			$current_cpage = get_query_var( 'cpage' );
+			$current_cpage = (int) get_query_var( 'cpage' );
 			if ( ! $current_cpage ) {
 				$current_cpage = 'newest' === get_option( 'default_comments_page' ) ? 1 : $wp_query->max_num_comment_pages;
 			}
 
-			$current_per_page = get_query_var( 'comments_per_page' );
-			if ( (int) $parsed_args['page'] !== (int) $current_cpage
-				|| (int) $parsed_args['per_page'] !== (int) $current_per_page
-			) {
+			$current_per_page = (int) get_query_var( 'comments_per_page' );
+			if ( (int) $parsed_args['page'] !== $current_cpage || (int) $parsed_args['per_page'] !== $current_per_page ) {
 				$comment_args = array(
 					'post_id' => get_the_ID(),
 					'orderby' => 'comment_date_gmt',
@@ -2335,19 +2344,19 @@ function wp_list_comments( $args = array(), $comments = null ) {
 				$_comments = $wp_query->comments_by_type[ $parsed_args['type'] ];
 			} else {
 				$_comments = $wp_query->comments;
-			}
+      }
 
 			if ( $wp_query->max_num_comment_pages ) {
 				$default_comments_page = get_option( 'default_comments_page' );
-				$cpage                 = get_query_var( 'cpage' );
+				$cpage                 = (int) get_query_var( 'cpage' );
+
 				if ( 'newest' === $default_comments_page ) {
 					$parsed_args['cpage'] = $cpage;
-
-					/*
-					* When first page shows oldest comments, post permalink is the same as
-					* the comment permalink.
-					*/
 				} elseif ( 1 === (int) $cpage ) {
+          /*
+					 * When the first page shows the oldest comments,
+					 * post permalink is the same as the comment permalink.
+					 */
 					$parsed_args['cpage'] = '';
 				} else {
 					$parsed_args['cpage'] = $cpage;
