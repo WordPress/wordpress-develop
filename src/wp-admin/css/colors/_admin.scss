@@ -115,7 +115,7 @@ textarea:focus {
 	.button:hover,
 	.button.focus,
 	.button:focus {
-		border-color: color.adjust(#7e8993, $lightness: 5%);
+		border-color: color.adjust(#7e8993, $lightness: -5%);
 		color: color.adjust(#32373c, $lightness: -5%);
 	}
 
