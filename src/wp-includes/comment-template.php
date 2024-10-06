@@ -2344,7 +2344,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 				$_comments = $wp_query->comments_by_type[ $parsed_args['type'] ];
 			} else {
 				$_comments = $wp_query->comments;
-      }
+			}
 
 			if ( $wp_query->max_num_comment_pages ) {
 				$default_comments_page = get_option( 'default_comments_page' );
@@ -2353,7 +2353,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 				if ( 'newest' === $default_comments_page ) {
 					$parsed_args['cpage'] = $cpage;
 				} elseif ( 1 === (int) $cpage ) {
-          /*
+					/*
 					 * When the first page shows the oldest comments,
 					 * post permalink is the same as the comment permalink.
 					 */
