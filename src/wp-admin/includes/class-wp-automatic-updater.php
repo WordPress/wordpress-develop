@@ -1779,11 +1779,11 @@ Thanks! -- The WordPress Team"
 				error_log( 'Loopback request, http return code: ' . $response_code );
 			}
 		}
-		
+
 		$body                   = wp_remote_retrieve_body( $response );
 		$scrape_result_position = strpos( $body, $needle_start );
 		$result                 = null;
-		
+
 		if ( false === $scrape_result_position ) {
 			// Error detection is not possible when wp_scraping_result is not found,
 			if ( $is_debug ) {
@@ -1794,7 +1794,7 @@ Thanks! -- The WordPress Team"
 			// most likely not due to buggy plugin, so no rollback
 			return false;
 		}
-		
+
 		$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
 		$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
 		$result       = json_decode( trim( $error_output ), true );
