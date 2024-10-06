@@ -39,6 +39,9 @@ class WP_Debug_Data {
 		 *
 		 * When iterating through the debug data, the ordering of the sections
 		 * occurs in insertion-order of the assignments into this array.
+		 *
+		 * This is the single assignment of the sections before filtering. Null-entries will
+		 * be automatically be removed.
 		 */
 		$info = array(
 			'wp-core'             => self::get_wp_core(),
