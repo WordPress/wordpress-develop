@@ -1735,7 +1735,7 @@ Thanks! -- The WordPress Team"
 		set_transient( $transient, $scrape_nonce, 30 );
 
 		// no user cookies
-		$cookies       = array( 'wp-automatic-update-loopback-nonce' => $scrape_nonce ) ;
+		$cookies       = array( 'wp-automatic-update-loopback-nonce' => $scrape_nonce );
 
 		$scrape_params = array(
 			'wp_scrape_key'   => $scrape_key,
@@ -1774,7 +1774,7 @@ Thanks! -- The WordPress Team"
 			return true;
 		}
 		$response_code = wp_remote_retrieve_response_code( $response );
-		if ( $response_code !== 200 ) {
+		if ( 200 !== $response_code ) {
 			if ( $is_debug ) {
 				error_log( 'Loopback request, http return code: ' . $response_code );
 			}
@@ -1787,8 +1787,8 @@ Thanks! -- The WordPress Team"
 		if ( false === $scrape_result_position ) {
 			// Error detection is not possible when wp_scraping_result is not found,
 			if ( $is_debug ) {
-				$log_txt  = 'wp_scraping_result is not found, error detection is not possible,' . PHP_EOL ;
-				$log_txt .= 'first bytes of html body: ' . PHP_EOL . substr( preg_replace( '/\s+/', '', $body ), 0, 500 ) . PHP_EOL ;
+				$log_txt  = 'wp_scraping_result is not found, error detection is not possible,' . PHP_EOL;
+				$log_txt .= 'first bytes of html body: ' . PHP_EOL . substr( preg_replace( '/\s+/', '', $body ), 0, 500 ) . PHP_EOL;
 				error_log( $log_txt );
 			}
 			// most likely not due to buggy plugin, so no rollback
@@ -1805,7 +1805,7 @@ Thanks! -- The WordPress Team"
 				error_log( 'Found Error in scraping result: ' . var_export( $result, true ) );
 			}
 			return true;
-		}		
+		}
 		return false;
 	}
 }
