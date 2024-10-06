@@ -134,7 +134,7 @@ final class WP_Comment {
 	 * @since 4.4.0
 	 * @var string
 	 */
-	public $comment_parent = 0;
+	public $comment_parent = '0';
 
 	/**
 	 * Comment author ID.
@@ -144,7 +144,7 @@ final class WP_Comment {
 	 * @since 4.4.0
 	 * @var string
 	 */
-	public $user_id = 0;
+	public $user_id = '0';
 
 	/**
 	 * Comment children.

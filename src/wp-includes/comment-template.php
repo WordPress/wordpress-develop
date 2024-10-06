@@ -996,7 +996,7 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 
 			$comments_number_text = str_replace( '%', number_format_i18n( $comments_number ), $more );
 		}
-	} elseif ( 0 == $comments_number ) {
+	} elseif ( 0 === (int) $comments_number ) {
 		$comments_number_text = ( false === $zero ) ? __( 'No Comments' ) : $zero;
 	} else { // Must be one.
 		$comments_number_text = ( false === $one ) ? __( '1 Comment' ) : $one;
@@ -1675,7 +1675,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
 		$none = sprintf( __( 'Comments Off<span class="screen-reader-text"> on %s</span>' ), $post_title );
 	}
 
-	if ( 0 == $comments_number && ! comments_open() && ! pings_open() ) {
+	if ( 0 === (int) $comments_number && ! comments_open() && ! pings_open() ) {
 		printf(
 			'<span%1$s>%2$s</span>',
 			! empty( $css_class ) ? ' class="' . esc_attr( $css_class ) . '"' : '',
@@ -1689,7 +1689,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
 		return;
 	}
 
-	if ( 0 == $comments_number ) {
+	if ( 0 === (int) $comments_number ) {
 		$respond_link = get_permalink() . '#respond';
 		/**
 		 * Filters the respond link when a post has no comments.
@@ -1773,7 +1773,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 
 	$args = wp_parse_args( $args, $defaults );
 
-	if ( 0 == $args['depth'] || $args['max_depth'] <= $args['depth'] ) {
+	if ( 0 === (int) $args['depth'] || $args['max_depth'] <= $args['depth'] ) {
 		return;
 	}
 
@@ -2352,7 +2352,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 
 				if ( 'newest' === $default_comments_page ) {
 					$parsed_args['cpage'] = $cpage;
-				} elseif ( 1 === $cpage ) {
+				} elseif ( 1 === (int) $cpage ) {
 					/*
 					 * When the first page shows the oldest comments,
 					 * post permalink is the same as the comment permalink.
