@@ -721,7 +721,6 @@ class WP_Debug_Data {
 		);
 	}
 
-
 	/**
 	 * Gets the WordPress MU plugins section of the debug data.
 	 *
