@@ -83,6 +83,7 @@ if ( $wp_customize->changeset_post_id() ) {
 		);
 	}
 }
+
 $url       = ! empty( $_REQUEST['url'] ) ? esc_url_raw( wp_unslash( $_REQUEST['url'] ) ) : '';
 $return    = ! empty( $_REQUEST['return'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['return'] ) ) : '';
 $autofocus = ! empty( $_REQUEST['autofocus'] ) && is_array( $_REQUEST['autofocus'] )
