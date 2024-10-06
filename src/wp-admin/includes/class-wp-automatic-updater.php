@@ -561,7 +561,7 @@ class WP_Automatic_Updater {
 				 * plugin's fatal error checking to be inaccurate, and may also affect
 				 * subsequent plugin checks.
 				 */
-				sleep( 2 );
+				//sleep( 2 );
 
 				if ( $this->has_fatal_error() ) {
 					$upgrade_result = new WP_Error();
@@ -1729,24 +1729,14 @@ Thanks! -- The WordPress Team"
 	 * @return bool Whether a fatal error was detected.
 	 */
 	protected function has_fatal_error() {
-		global $upgrading;
-
-		$maintenance_file = ABSPATH . '.maintenance';
-		if ( ! file_exists( $maintenance_file ) ) {
-			return false;
-		}
-
-		require $maintenance_file;
-		if ( ! is_int( $upgrading ) ) {
-			return false;
-		}
-
-		$scrape_key   = md5( $upgrading );
-		$scrape_nonce = (string) $upgrading;
+		$scrape_nonce = (string) time();
+		$scrape_key   = md5( $scrape_nonce );
 		$transient    = 'scrape_key_' . $scrape_key;
 		set_transient( $transient, $scrape_nonce, 30 );
 
-		$cookies       = wp_unslash( $_COOKIE );
+		// no user cookies
+		$cookies       = array( 'wp-automatic-update-loopback-nonce' => $scrape_nonce ) ;
+
 		$scrape_params = array(
 			'wp_scrape_key'   => $scrape_key,
 			'wp_scrape_nonce' => $scrape_nonce,
@@ -1775,6 +1765,7 @@ Thanks! -- The WordPress Team"
 		$needle_end   = "###### wp_scraping_result_end:$scrape_key ######";
 		$url          = add_query_arg( $scrape_params, home_url( '/' ) );
 		$response     = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
+		delete_transient( $transient );
 
 		if ( is_wp_error( $response ) ) {
 			if ( $is_debug ) {
@@ -1782,25 +1773,39 @@ Thanks! -- The WordPress Team"
 			}
 			return true;
 		}
-
-		// If this outputs `true` in the log, it means there were no fatal errors detected.
-		if ( $is_debug ) {
-			error_log( var_export( substr( $response['body'], strpos( $response['body'], '###### wp_scraping_result_start:' ) ), true ) );
+		$response_code = wp_remote_retrieve_response_code( $response );
+		if ( $response_code !== 200 ) {
+			if ( $is_debug ) {
+				error_log( 'Loopback request, http return code: ' . $response_code );
+			}
 		}
-
+		
 		$body                   = wp_remote_retrieve_body( $response );
 		$scrape_result_position = strpos( $body, $needle_start );
 		$result                 = null;
-
-		if ( false !== $scrape_result_position ) {
-			$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
-			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
-			$result       = json_decode( trim( $error_output ), true );
+		
+		if ( false === $scrape_result_position ) {
+			// Error detection is not possible when wp_scraping_result is not found,
+			if ( $is_debug ) {
+				$log_txt  = 'wp_scraping_result is not found, error detection is not possible,' . PHP_EOL ;
+				$log_txt .= 'first bytes of html body: ' . PHP_EOL . substr( preg_replace( '/\s+/', '', $body ), 0, 500 ) . PHP_EOL ;
+				error_log( $log_txt );
+			}
+			// most likely not due to buggy plugin, so no rollback
+			return false;
 		}
-
-		delete_transient( $transient );
+		
+		$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
+		$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
+		$result       = json_decode( trim( $error_output ), true );
 
 		// Only fatal errors will result in a 'type' key.
-		return isset( $result['type'] );
+		if ( isset( $result['type'] ) ) {
+			if ( $is_debug ) {
+				error_log( 'Found Error in scraping result: ' . var_export( $result, true ) );
+			}
+			return true;
+		}		
+		return false;
 	}
 }
