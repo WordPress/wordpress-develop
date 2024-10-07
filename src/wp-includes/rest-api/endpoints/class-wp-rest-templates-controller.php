@@ -1163,6 +1163,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 						'user',
 					),
 				),
+				'post_types' => array(
+					'description' => __( 'Post types associated with the template.' ),
+					'type'        => 'array',
+					'readonly'    => true,
+					'context'     => array( 'embed', 'view', 'edit' ),
+				),
 			),
 		);
 
