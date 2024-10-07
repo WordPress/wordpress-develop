@@ -1032,6 +1032,246 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Converts an HTML fragment to the XML syntax (XHTML).
+	 *
+	 * Warning! HTML cannot be fully expressed in the XML syntax and _**no**_ XML/XHTML
+	 * should be served with the `Content-type: text/html` head - THIS IS DANGEROUS!!!
+	 *
+	 * Only call this function when directly embedding an HTML document into an XML
+	 * document, such as when generating unescaped RSS feeds and WXR exports. Even
+	 * still, the conversion may fail BECAUSE XML CANNOT REPRESENT ALL HTML DOCUMENTS.
+	 *
+	 * You probably want {@see static::serialize()} instead! HTML is _not_ XML - they
+	 * are separate languages and represent different content models.
+	 *
+	 * > Using the XML syntax is not recommended
+	 *
+	 * @see https://html.spec.whatwg.org/#the-xhtml-syntax
+	 *
+	 * Many aspects of an input HTML fragment may be changed during normalization.
+	 *
+	 *  - Attribute values will be double-quoted.
+	 *  - Duplicate attributes will be removed.
+	 *  - Omitted tags will be added.
+	 *  - Tag and attribute name casing will be lower-cased,
+	 *    except for specific SVG and MathML tags or attributes.
+	 *  - Text will be re-encoded, null bytes handled,
+	 *     and invalid UTF-8 replaced with U+FFFD.
+	 *  - Any incomplete syntax trailing at the end will be omitted,
+	 *    for example, an unclosed comment opener will be removed.
+	 *
+	 * Example:
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment( '<a href=#anchor v=5 href="/" enabled>One</a another v=5><!--' );
+	 *     echo $processor->serialize_to_xml();
+	 *     // <a href="#anchor" v="5" enabled>One</a>
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment( '<div></p>fun<table><td>cell</div>' );
+	 *     echo $processor->serialize_to_xml();
+	 *     // <div><p></p>fun<table><tbody><tr><td>cell</td></tr></tbody></table></div>
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment( '<![CDATA[invalid comment]]> syntax < <> "oddities"' );
+	 *     echo $processor->serialize_to_xml();
+	 *     // <!--[CDATA[invalid comment]]--> syntax &lt; &lt;&gt; &quot;oddities&quot;
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string|null Normalized XML markup represented by processor,
+	 *                     or `null` if unable to generate serialization.
+	 */
+	public function serialize_to_xml(): ?string {
+		if ( WP_HTML_Tag_Processor::STATE_READY !== $this->parser_state ) {
+			wp_trigger_error(
+				__METHOD__,
+				"An HTML Processor which has already started processing cannot serialize it's contents. Serialize immediately after creating the instance.",
+				E_USER_WARNING
+			);
+			return null;
+		}
+
+		$html = isset( $this->context_node ) ? '' : "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
+		while ( $this->next_token() ) {
+			$token_type = $this->get_token_type();
+
+			// @todo Bail when content contains unallowed XML characters.
+			switch ( $token_type ) {
+				case '#text':
+					$html .= htmlspecialchars( $this->get_modifiable_text(), ENT_QUOTES | ENT_SUBSTITUTE | ENT_XML1, 'UTF-8' );
+					break;
+
+				// Unlike the `<>` which is interpreted as plaintext, this is ignored entirely.
+				case '#presumptuous-tag':
+					break;
+
+				case '#funky-comment':
+					$text = $this->get_modifiable_text();
+					if ( str_contains( $text, '--' ) ) {
+						wp_trigger_error(
+							__METHOD__,
+							"XML cannot encode a comment with a double dash '--' inside of it.",
+							E_USER_WARNING
+						);
+						return null;
+					}
+					$html .= "<!--{$text}-->";
+					break;
+
+				case '#comment':
+					$text = $this->get_modifiable_text();
+					if ( str_contains( $text, '--' ) ) {
+						wp_trigger_error(
+							__METHOD__,
+							"XML cannot encode a comment with a double dash '--' inside of it.",
+							E_USER_WARNING
+						);
+						return null;
+					}
+
+					switch ( $this->get_comment_type() ) {
+						case WP_HTML_Tag_Processor::COMMENT_AS_CDATA_LOOKALIKE:
+							$html .= "<!--[CDATA[{$text}]]-->";
+							break;
+
+						case WP_HTML_Tag_Processor::COMMENT_AS_PI_NODE_LOOKALIKE:
+							$html .= "<!--?{$this->get_tag()}{$text}?-->";
+							break;
+
+						default:
+							$html .= "<!--{$text}-->";
+					}
+					break;
+
+				case '#cdata-section':
+					$html .= "<![CDATA[{$this->get_modifiable_text()}]]>";
+					break;
+			}
+
+			if ( '#tag' !== $token_type ) {
+				continue;
+			}
+
+			$tag_name       = $this->get_tag();
+			$in_html        = 'html' === $this->get_namespace();
+			$is_void        = $in_html && static::is_void( $tag_name );
+			$qualified_name = $in_html ? strtolower( $tag_name ) : $this->get_qualified_tag_name();
+
+			if ( str_contains( $tag_name, ':' ) ) {
+				wp_trigger_error(
+					__METHOD__,
+					"The element '{$tag_name}' cannot be expressed in the XML syntax because colon ':' conflates with the XML namespace separator.",
+					E_USER_WARNING
+				);
+				return null;
+			}
+
+			// @todo Check Name production in XML and abort if name doesn't match.
+
+			if ( $this->is_tag_closer() ) {
+				$html .= "</{$qualified_name}>";
+				continue;
+			}
+
+			switch ( $tag_name ) {
+				case 'MATH':
+					if ( 'math' === $this->get_namespace() ) {
+						$this->set_attribute( 'xmlns', 'http://www.w3.org/1998/Math/MathML' );
+						$this->get_updated_html();
+					}
+					break;
+
+				case 'SVG':
+					if ( 'svg' === $this->get_namespace() ) {
+						$this->set_attribute( 'xmlns', 'http://www.w3.org/2000/svg' );
+						$this->get_updated_html();
+					}
+					break;
+			}
+
+			if ( $this->is_html_integration_point() ) {
+				$this->set_attribute( 'xmlns', 'http://www.w3.org/1999/xhtml' );
+				$this->get_updated_html();
+			}
+
+			$attribute_names = $this->get_attribute_names_with_prefix( '' );
+			if ( ! isset( $attribute_names ) && ! ( $in_html && 'HTML' === $tag_name ) ) {
+				$html .= $is_void ? "<${qualified_name} />" : "<{$qualified_name}>";
+				continue;
+			}
+
+			$html .= "<{$qualified_name}";
+			foreach ( $attribute_names ?? array() as $attribute_name ) {
+				if ( 'xmlns' === $attribute_name && $in_html && ! in_array( $tag_name, array( 'HTML', 'SVG', 'MATH' ), true ) ) {
+					wp_trigger_error(
+						__METHOD__,
+						"The attribute 'xmlns' cannot be expressed in the XML syntax.",
+						E_USER_WARNING
+					);
+					return null;
+				}
+
+				/*
+				 * @todo Check all of the other adjusted foreign attributes, e.g. xlink:actuate or xml:lang.
+				 *
+				 * For example, if a tag contains `xlink:actuate` and also `actuate` then it must fail
+				 * the conversion since it's ambiguous which one is valid. The same is true for the
+				 * `xml:lang` and `lang` attributes.
+				 *
+				 * @see https://html.spec.whatwg.org/#adjust-foreign-attributes
+				 */
+
+				$html .= ' ' . str_replace( ' ', ':', $this->get_qualified_attribute_name( $attribute_name ) );
+				$value = $this->get_attribute( $attribute_name );
+
+				if ( is_string( $value ) ) {
+					$html .= '="' . htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_XML1 ) . '"';
+				} else {
+					$html .= "=\"{$attribute_name}\"";
+				}
+			}
+
+			// The HTML node is often virtual, so it's not possible to `set_attribute()` on it.
+			if ( $in_html && 'HTML' === $tag_name && ! is_string( $this->get_attribute( 'xmlns' ) ) ) {
+				$html .= ' xmlns="http://www.w3.org/1999/xhtml"';
+			}
+
+			if ( $is_void || ( ! $in_html && $this->has_self_closing_flag() ) ) {
+				$html .= ' /';
+			}
+
+			$html .= '>';
+
+			// Flush out self-contained elements.
+			if ( $in_html && in_array( $tag_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) {
+				$text = $this->get_modifiable_text();
+
+				switch ( $tag_name ) {
+					case 'IFRAME':
+					case 'NOEMBED':
+					case 'NOFRAMES':
+						$text = '';
+						break;
+
+					default:
+						$text = htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_XML1, 'UTF-8' );
+				}
+
+				$html .= "{$text}</{$qualified_name}>";
+			}
+		}
+
+		if ( null !== $this->get_last_error() ) {
+			wp_trigger_error(
+				__METHOD__,
+				"Cannot serialize HTML Processor with parsing error: {$this->get_last_error()}.",
+				E_USER_WARNING
+			);
+			return null;
+		}
+
+		return $html;
+	}
+
+	/**
 	 * Normalizes an HTML fragment by serializing it.
 	 *
 	 * This method assumes that the given HTML snippet is found in BODY context.
