@@ -223,7 +223,7 @@ switch ( $wp_list_table->current_action() ) {
 			array(
 				'delete_count' => $delete_count,
 				'update'       => $update,
-				'role'		   => $role
+				'role'         => $role
 			),
 			$redirect
 		);
