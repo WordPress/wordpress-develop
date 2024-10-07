@@ -2,6 +2,10 @@
 /**
  * WordPress core upgrade functionality.
  *
+ * Note: Newly introduced functions and methods cannot be used here.
+ * All functions must be present in the previous version being upgraded from
+ * as this file is used there too.
+ *
  * @package WordPress
  * @subpackage Administration
  * @since 2.7.0
@@ -905,6 +909,7 @@ $_new_bundled_files = array(
 	'themes/twentytwentytwo/'   => '5.9',
 	'themes/twentytwentythree/' => '6.1',
 	'themes/twentytwentyfour/'  => '6.4',
+	'themes/twentytwentyfive/'  => '6.7',
 );
 
 /**
