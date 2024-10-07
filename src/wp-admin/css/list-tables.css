@@ -304,7 +304,8 @@ table.fixed {
 	width: 10%;
 }
 
-.fixed .column-date {
+.fixed .column-date,
+.fixed .column-post_modified {
 	width: 14%;
 }
 
