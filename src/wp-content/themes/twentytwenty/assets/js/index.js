@@ -475,7 +475,7 @@ twentytwenty.primaryMenu = {
 				}
 			});
 			
-			// Set focus to current a element's parent li.
+			// Set focus on current a element's parent li.
 			self.parentElement.classList.add('focus');
 
 			// If current element is inside sub-menu find main parent li and add focus.
