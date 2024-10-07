@@ -3984,6 +3984,10 @@ table.wp-calendar-table caption {
 	margin-bottom: calc(3 * var(--global--spacing-vertical));
 }
 
+.search-term {
+	word-break: break-word;
+}
+
 .page-links {
 	clear: both;
 }
