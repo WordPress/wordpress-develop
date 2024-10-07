@@ -260,7 +260,7 @@ HTML
 	}
 
 	/**
-	 * Tests that the 'render_block_context' filter provides available context, not actual context.
+	 * Tests that the 'render_block_context' filter arbitrary context.
 	 *
 	 * @ticket 62046
 	 */
@@ -284,7 +284,7 @@ HTML
 			'render_block_context',
 			function ( $context, $parsed_block ) {
 				if ( isset( $parsed_block['blockName'] ) && 'tests/context-consumer' === $parsed_block['blockName'] ) {
-					$context['invalid'] = 'ok';
+					$context['arbitrary'] = 'ok';
 				}
 
 				return $context;
@@ -298,7 +298,8 @@ HTML
 <!-- wp:tests/context-consumer /-->
 HTML
 		);
-		$this->assertFalse( isset( $provided_context['invalid'] ), 'Test block is top-level block: Context should not include unsupported properties"' );
+		$this->assertTrue( isset( $provided_context['arbitrary'] ), 'Test block is top-level block: Block context should include "arbitrary"' );
+		$this->assertSame( 'ok', $provided_context['arbitrary'], 'Test block is top-level block: "arbitrary" in context should be "ok"' );
 
 		do_blocks(
 			<<<HTML
@@ -307,6 +308,7 @@ HTML
 <!-- /wp:group -->
 HTML
 		);
-		$this->assertFalse( isset( $provided_context['invalid'] ), 'Test block is inner block: Context should not include unsupported properties' );
+		$this->assertTrue( isset( $provided_context['arbitrary'] ), 'Test block is inner block: Block context should include "arbitrary"' );
+		$this->assertSame( 'ok', $provided_context['arbitrary'], 'Test block is inner block: "arbitrary" in context should be "ok"' );
 	}
 }
