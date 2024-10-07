@@ -1270,7 +1270,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	public function column_post_modified( $post ) {
 		global $mode;
 
-		if ( '0000-00-00 00:00:00' === $post->post_date ) {
+		if ( '0000-00-00 00:00:00' === $post->post_modified ) {
 			$t_time    = __( 'Unpublished' );
 		} else {
 			$t_time = sprintf(
@@ -1286,17 +1286,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 		/**
 		 * Filters the published, scheduled, or unpublished time of the post.
 		 *
-		 * @since 2.5.1
-		 * @since 5.5.0 Removed the difference between 'excerpt' and 'list' modes.
-		 *              The published time and date are both displayed now,
-		 *              which is equivalent to the previous 'excerpt' mode.
-		 *
+		 * @since 6.7.0
 		 * @param string  $t_time      The published time.
 		 * @param WP_Post $post        Post object.
 		 * @param string  $column_name The column name.
 		 * @param string  $mode        The list display mode ('excerpt' or 'list').
 		 */
-		echo apply_filters( 'post_date_column_time', $t_time, $post, 'date', $mode );
+		echo apply_filters( 'post_date_modified_column_time', $t_time, $post, 'post_modified', $mode );
 	}
 
 	/**
