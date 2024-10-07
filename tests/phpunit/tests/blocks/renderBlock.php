@@ -270,13 +270,13 @@ HTML
 		register_block_type(
 			'tests/context-consumer',
 			array(
-				'uses_context'     => array( 'example' ),
-				'render_callback'  => static function ( $attributes, $content, $block ) use ( &$provided_context ) {
+				'uses_context'    => array( 'example' ),
+				'render_callback' => static function ( $attributes, $content, $block ) use ( &$provided_context ) {
 					$provided_context = $block->context;
 
 					return '';
 				},
-			)
+			),
 		);
 
 		// Filter the context provided to the test block.
