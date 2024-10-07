@@ -21,9 +21,14 @@ define( 'WXR_VERSION', '1.2' );
  * Default behavior is to export all content, however, note that post content will only
  * be exported for post types with the `can_export` argument enabled. Any posts with the
  * 'auto-draft' status will be skipped.
+ * 
+ * If an invalid custom post type is supplied, an error will be returned instead of exporting any content.
+ * If a valid custom post type is supplied but its `can_export` property is false, no posts from that type will be exported.
  *
  * @since 2.1.0
  * @since 5.7.0 Added the `post_modified` and `post_modified_gmt` fields to the export file.
+ * @since 6.8.0 Updated error handling to return `WP_Error` for invalid or non-exportable post types.
+ *
  *
  * @global wpdb    $wpdb WordPress database abstraction object.
  * @global WP_Post $post Global post object.
@@ -33,10 +38,10 @@ define( 'WXR_VERSION', '1.2' );
  *
  *     @type string $content    Type of content to export. If set, only the post content of this post type
  *                              will be exported. Accepts 'all', 'post', 'page', 'attachment', or a defined
- *                              custom post. If an invalid custom post type is supplied, every post type for
- *                              which `can_export` is enabled will be exported instead. If a valid custom post
- *                              type is supplied but `can_export` is disabled, then 'posts' will be exported
- *                              instead. When 'all' is supplied, only post types with `can_export` enabled will
+ *                              custom post. If an invalid custom post type is supplied, an error will be returned
+ *                              If a valid custom post type is supplied but `can_export` is disabled, no posts 
+ * 								from that type will be exported and an error will be returned instead. When 'all'
+ *                              is supplied, only post types with `can_export` enabled will
  *                              be exported. Default 'all'.
  *     @type string $author     Author to export content for. Only used when `$content` is 'post', 'page', or
  *                              'attachment'. Accepts false (all) or a specific author ID. Default false (all).
@@ -99,12 +104,24 @@ function export_wp( $args = array() ) {
 
 	if ( 'all' !== $args['content'] && post_type_exists( $args['content'] ) ) {
 		$ptype = get_post_type_object( $args['content'] );
+
+		// Check if the post type is valid and can be exported
+		if ( ! $ptype ) {
+			// Invalid post type supplied
+			return new WP_Error( 'invalid_post_type', __( 'Invalid post type supplied.' ) );
+		}
+
 		if ( ! $ptype->can_export ) {
-			$args['content'] = 'post';
+			return new WP_Error( 'cannot_export', __( 'This post type cannot be exported.' ) );
 		}
 
 		$where = $wpdb->prepare( "{$wpdb->posts}.post_type = %s", $args['content'] );
 	} else {
+		// If 'all' or invalid type, stop execution
+		if ( ! $args['content'] || ! in_array( $args['content'], get_post_types(), true ) ) {
+			return new WP_Error( 'invalid_post_type', __( 'Invalid or no post type specified.' ) );
+		}
+
 		$post_types = get_post_types( array( 'can_export' => true ) );
 		$esses      = array_fill( 0, count( $post_types ), '%s' );
 
