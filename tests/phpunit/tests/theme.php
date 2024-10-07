@@ -241,7 +241,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		 * The test suite sets the constant to `default` while this is intended to
 		 * test the value defined in default-constants.php.
 		 *
-		 * Therefore this reads the file in via file_get_contents and extract the value.
+		 * Therefore this reads the file in via file_get_contents to extract the value.
 		 */
 		$default_constants = file_get_contents( ABSPATH . WPINC . '/default-constants.php' );
 		preg_match( '/define\( \'WP_DEFAULT_THEME\', \'(.*)\' \);/', $default_constants, $matches );
