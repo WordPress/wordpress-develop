@@ -37,7 +37,6 @@ class WP_Customize_Themes_Panel extends WP_Customize_Panel {
 		?>
 		<li id="accordion-section-{{ data.id }}" class="accordion-section control-panel-themes">
 			<h3 class="accordion-section-title">
-				<button type="button" class="accordion-trigger">
 				<?php
 				if ( $this->manager->is_theme_active() ) {
 					echo '<span class="customize-action">' . __( 'Active theme' ) . '</span> {{ data.title }}';
@@ -45,7 +44,6 @@ class WP_Customize_Themes_Panel extends WP_Customize_Panel {
 					echo '<span class="customize-action">' . __( 'Previewing theme' ) . '</span> {{ data.title }}';
 				}
 				?>
-				</button>
 				<?php if ( current_user_can( 'switch_themes' ) ) : ?>
 					<button type="button" class="button change-theme" aria-label="<?php esc_attr_e( 'Change theme' ); ?>"><?php _ex( 'Change', 'theme' ); ?></button>
 				<?php endif; ?>
