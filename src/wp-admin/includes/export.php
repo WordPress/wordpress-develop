@@ -105,9 +105,9 @@ function export_wp( $args = array() ) {
 	if ( 'all' !== $args['content'] && post_type_exists( $args['content'] ) ) {
 		$ptype = get_post_type_object( $args['content'] );
 
-		// Check if the post type is valid and can be exported
+		// Check if the post type is valid and can be exported.
 		if ( ! $ptype ) {
-			// Invalid post type supplied
+			// Invalid post type supplied.
 			return new WP_Error( 'invalid_post_type', __( 'Invalid post type supplied.' ) );
 		}
 
@@ -116,11 +116,10 @@ function export_wp( $args = array() ) {
 		}
 
 		$where = $wpdb->prepare( "{$wpdb->posts}.post_type = %s", $args['content'] );
+	} elseif ( 'all' !== $args['content'] && ( ! $args['content'] || ! post_type_exists( $args['content'] ) ) ) {
+		// If invalid post_type, stop execution.
+		return new WP_Error( 'invalid_post_type', __( 'Invalid or no post type specified.' ) );
 	} else {
-		// If 'all' or invalid type, stop execution
-		if ( ! $args['content'] || ! in_array( $args['content'], get_post_types(), true ) ) {
-			return new WP_Error( 'invalid_post_type', __( 'Invalid or no post type specified.' ) );
-		}
 
 		$post_types = get_post_types( array( 'can_export' => true ) );
 		$esses      = array_fill( 0, count( $post_types ), '%s' );
