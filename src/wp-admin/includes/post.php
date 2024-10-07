@@ -1804,18 +1804,21 @@ function _admin_notice_post_locked() {
 		$locked = false;
 	}
 
-	$sendback = wp_get_referer();
-	if ( $locked && $sendback && ! str_contains( $sendback, 'post.php' ) && ! str_contains( $sendback, 'post-new.php' ) ) {
+	$sendback      = wp_get_referer();
+	$sendback_text = __( 'Go back' );
 
-		$sendback_text = __( 'Go back' );
-	} else {
+	if ( ! $locked || ! $sendback || str_contains( $sendback, 'post.php' ) || str_contains( $sendback, 'post-new.php' ) ) {
 		$sendback = admin_url( 'edit.php' );
 
 		if ( 'post' !== $post->post_type ) {
 			$sendback = add_query_arg( 'post_type', $post->post_type, $sendback );
 		}
 
-		$sendback_text = get_post_type_object( $post->post_type )->labels->all_items;
+		$post_type_object = get_post_type_object( $post->post_type );
+
+		if ( $post_type_object ) {
+			$sendback_text = $post_type_object->labels->all_items;
+		}
 	}
 
 	$hidden = $locked ? '' : ' hidden';
@@ -2005,7 +2008,7 @@ function wp_create_post_autosave( $post_data ) {
 }
 
 /**
- * Autosave the revisioned meta fields.
+ * Autosaves the revisioned meta fields.
  *
  * Iterates through the revisioned meta fields and checks each to see if they are set,
  * and have a changed value. If so, the meta value is saved and attached to the autosave.
@@ -2027,15 +2030,14 @@ function wp_autosave_post_revisioned_meta_fields( $new_autosave ) {
 	$post_type = get_post_type( $new_autosave['post_parent'] );
 
 	/*
-	 * Go thru the revisioned meta keys and save them as part of the autosave, if
-	 * the meta key is part of the posted data, the meta value is not blank and
-	 * the the meta value has changes from the last autosaved value.
+	 * Go through the revisioned meta keys and save them as part of the autosave,
+	 * if the meta key is part of the posted data, the meta value is not blank,
+	 * and the meta value has changes from the last autosaved value.
 	 */
 	foreach ( wp_post_revision_meta_keys( $post_type ) as $meta_key ) {
 
-		if (
-		isset( $posted_data[ $meta_key ] ) &&
-		get_post_meta( $new_autosave['ID'], $meta_key, true ) !== wp_unslash( $posted_data[ $meta_key ] )
+		if ( isset( $posted_data[ $meta_key ] )
+			&& get_post_meta( $new_autosave['ID'], $meta_key, true ) !== wp_unslash( $posted_data[ $meta_key ] )
 		) {
 			/*
 			 * Use the underlying delete_metadata() and add_metadata() functions
@@ -2044,13 +2046,9 @@ function wp_autosave_post_revisioned_meta_fields( $new_autosave ) {
 			 */
 			delete_metadata( 'post', $new_autosave['ID'], $meta_key );
 
-			/*
-			 * One last check to ensure meta value not empty().
-			 */
+			// One last check to ensure meta value is not empty.
 			if ( ! empty( $posted_data[ $meta_key ] ) ) {
-				/*
-				 * Add the revisions meta data to the autosave.
-				 */
+				// Add the revisions meta data to the autosave.
 				add_metadata( 'post', $new_autosave['ID'], $meta_key, $posted_data[ $meta_key ] );
 			}
 		}
