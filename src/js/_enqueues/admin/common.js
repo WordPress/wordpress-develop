@@ -1288,19 +1288,7 @@ $( function() {
 		dismissible = ( data.dismissible && data.dismissible === true ) ? ' is-dismissible' : '';
 		type        = ( data.type ) ? data.type : 'info';
 
-		// Support for multiple message formats
 		var message = data.message;
-		if (data.successes || data.errors) {
-			message = 'Success: ' + data.successes + ' operations completed. Errors: ' + data.errors;
-			if (data.errorMessages) {
-				message += '<ul>';
-				data.errorMessages.forEach(function (errorMsg) {
-					message += '<li>' + errorMsg + '</li>';
-				});
-				message += '</ul>';
-			}
-		}
-
 		$adminNotice = '<div id="' + data.id + '" class="notice notice-' + type + dismissible + '"><p>' + message + '</p></div>';
 
 		// Check if this admin notice already exists.
