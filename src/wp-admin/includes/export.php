@@ -21,7 +21,7 @@ define( 'WXR_VERSION', '1.2' );
  * Default behavior is to export all content, however, note that post content will only
  * be exported for post types with the `can_export` argument enabled. Any posts with the
  * 'auto-draft' status will be skipped.
- * 
+ *
  * If an invalid custom post type is supplied, an error will be returned instead of exporting any content.
  * If a valid custom post type is supplied but its `can_export` property is false, no posts from that type will be exported.
  *
@@ -39,8 +39,8 @@ define( 'WXR_VERSION', '1.2' );
  *     @type string $content    Type of content to export. If set, only the post content of this post type
  *                              will be exported. Accepts 'all', 'post', 'page', 'attachment', or a defined
  *                              custom post. If an invalid custom post type is supplied, an error will be returned
- *                              If a valid custom post type is supplied but `can_export` is disabled, no posts 
- * 								from that type will be exported and an error will be returned instead. When 'all'
+ *                              If a valid custom post type is supplied but `can_export` is disabled, no posts
+ *                              from that type will be exported and an error will be returned instead. When 'all'
  *                              is supplied, only post types with `can_export` enabled will
  *                              be exported. Default 'all'.
  *     @type string $author     Author to export content for. Only used when `$content` is 'post', 'page', or
