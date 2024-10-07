@@ -1259,7 +1259,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Handles the post date column output.
+	 * Handles the post last modified date column output.
 	 *
 	 * @since 6.7.0
 	 *
