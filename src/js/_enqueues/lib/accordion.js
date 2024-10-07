@@ -7,17 +7,17 @@
  *
  * <div class="accordion-container">
  *	<div class="accordion-section open">
- *		<h3 class="accordion-section-title"></h3>
+ *		<h3 class="accordion-section-title"><button type="button" aria-expanded="true"></button></h3>
  *		<div class="accordion-section-content">
  *		</div>
  *	</div>
  *	<div class="accordion-section">
- *		<h3 class="accordion-section-title"></h3>
+ *		<h3 class="accordion-section-title"><button type="button" aria-expanded="false"></button></h3>
  *		<div class="accordion-section-content">
  *		</div>
  *	</div>
  *	<div class="accordion-section">
- *		<h3 class="accordion-section-title"></h3>
+ *		<h3 class="accordion-section-title"><button type="button" aria-expanded="false"></button></h3>
  *		<div class="accordion-section-content">
  *		</div>
  *	</div>
@@ -48,7 +48,6 @@
 	 */
 	function accordionSwitch ( el ) {
 		var section = el.closest( '.accordion-section' ),
-			sectionToggleControl = section.find( '[aria-expanded]' ).first(),
 			container = section.closest( '.accordion-container' ),
 			siblings = container.find( '.open' ),
 			siblingsToggleControl = siblings.find( '[aria-expanded]' ).first(),
@@ -80,8 +79,8 @@
 		}, 150);
 
 		// If there's an element with an aria-expanded attribute, assume it's a toggle control and toggle the aria-expanded value.
-		if ( sectionToggleControl ) {
-			sectionToggleControl.attr( 'aria-expanded', String( sectionToggleControl.attr( 'aria-expanded' ) === 'false' ) );
+		if ( el ) {
+			el.attr( 'aria-expanded', String( el.attr( 'aria-expanded' ) === 'false' ) );
 		}
 	}
 
