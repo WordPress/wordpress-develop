@@ -1698,7 +1698,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			'tags'          => true,
 			'comments'      => true,
 			'author'        => true,
-			'post_modified' => true
+			'post_modified' => true,
 		);
 		?>
 
