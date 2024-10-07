@@ -3102,6 +3102,53 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * An internal method to get the block nodes from a theme.json file.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param array $theme_json The theme.json converted to an array.
+	 * @return array The block nodes in theme.json.
+	 */
+	private static function get_block_node_paths( $theme_json ) {
+		$nodes     = array();
+		if ( ! isset( $theme_json['styles'] ) ) {
+			return $nodes;
+		}
+
+		// Blocks.
+		if ( ! isset( $theme_json['styles']['blocks'] ) ) {
+			return $nodes;
+		}
+
+		foreach ( $theme_json['styles']['blocks'] as $name => $node ) {
+			$nodes[] = array(
+				'path'       => array( 'styles', 'blocks', $name ),
+			);
+
+			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
+				foreach ( $theme_json['styles']['blocks'][ $name ]['elements'] as $element => $node ) {
+					$nodes[] = array(
+						'path'     => array( 'styles', 'blocks', $name, 'elements', $element ),
+					);
+
+					// Handle any pseudo selectors for the element.
+					if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
+						foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
+							if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] ) ) {
+								$nodes[] = array(
+									'path'     => array( 'styles', 'blocks', $name, 'elements', $element ),
+								);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return $nodes;
+	}
+
+	/**
 	 * Merges new incoming data.
 	 *
 	 * @since 5.8.0
@@ -3236,19 +3283,17 @@ class WP_Theme_JSON {
 		 * some values provide exceptions, namely style values that are
 		 * objects and represent unique definitions for the style.
 		 */
-		if ( isset( $incoming_data['styles']['blocks'] ) && is_array( $incoming_data['styles']['blocks'] ) ) {
-			foreach ( $incoming_data['styles']['blocks'] as $block_name => $block_styles ) {
-				/*
-				 * Background image styles should be replaced, not merged,
-				 * as they themselves are specific object definitions for the style.
-				 */
-				if ( isset( $block_styles['background']['backgroundImage'] ) ) {
-					$background_image_path = array_merge( array( 'styles', 'blocks', $block_name ), static::PROPERTIES_METADATA['background-image'] );
-					$content               = _wp_array_get( $incoming_data, $background_image_path, null );
-					if ( isset( $content ) ) {
-						_wp_array_set( $this->theme_json, $background_image_path, $content );
-					}
-				}
+		$style_nodes = static::get_block_node_paths( $this->theme_json );
+		foreach ( $style_nodes as $style_node ) {
+			$path = $style_node['path'];
+			/*
+			 * Background image styles should be replaced, not merged,
+			 * as they themselves are specific object definitions for the style.
+			 */
+			$background_image_path = array_merge( $path, static::PROPERTIES_METADATA['background-image'] );
+			$content               = _wp_array_get( $incoming_data, $background_image_path, null );
+			if ( isset( $content ) ) {
+				_wp_array_set( $this->theme_json, $background_image_path, $content );
 			}
 		}
 	}
