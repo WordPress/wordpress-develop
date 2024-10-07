@@ -139,6 +139,23 @@ class WP_Block {
 		$this->block_type = $registry->get_registered( $this->name );
 
 		$this->available_context = $available_context;
+		$this->update_available_context( $block, $available_context );
+
+		if ( ! empty( $block['innerHTML'] ) ) {
+			$this->inner_html = $block['innerHTML'];
+		}
+
+		if ( ! empty( $block['innerContent'] ) ) {
+			$this->inner_content = $block['innerContent'];
+		}
+	}
+
+	public function update_available_context( $block, $available_context ) {
+		if ( null === $this->available_context ) {
+			$this->available_context = $available_context;
+		} else {
+			$this->available_context = array_merge( $this->available_context, $available_context );
+		}
 
 		if ( ! empty( $this->block_type->uses_context ) ) {
 			foreach ( $this->block_type->uses_context as $context_name ) {
@@ -159,15 +176,7 @@ class WP_Block {
 				}
 			}
 
-			$this->inner_blocks = new WP_Block_List( $block['innerBlocks'], $child_context, $registry );
-		}
-
-		if ( ! empty( $block['innerHTML'] ) ) {
-			$this->inner_html = $block['innerHTML'];
-		}
-
-		if ( ! empty( $block['innerContent'] ) ) {
-			$this->inner_content = $block['innerContent'];
+			$this->inner_blocks = new WP_Block_List( $block['innerBlocks'], $child_context, $this->registry );
 		}
 	}
 
@@ -513,6 +522,8 @@ class WP_Block {
 
 						/** This filter is documented in wp-includes/blocks.php */
 						$inner_block->context = apply_filters( 'render_block_context', $inner_block->context, $inner_block->parsed_block, $parent_block );
+
+						$inner_block->update_available_context( $inner_block->parsed_block, $inner_block->context );
 
 						$block_content .= $inner_block->render();
 					}
