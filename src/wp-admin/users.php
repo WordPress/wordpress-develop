@@ -181,6 +181,7 @@ switch ( $wp_list_table->current_action() ) {
 		}
 
 		$user_ids = array_map( 'intval', (array) $_REQUEST['users'] );
+		$role = isset($_REQUEST['role']) ? $_REQUEST['role'] : null;
 
 		if ( empty( $_REQUEST['delete_option'] ) ) {
 			$url = self_admin_url( 'users.php?action=delete&users[]=' . implode( '&users[]=', $user_ids ) . '&error=true' );
@@ -222,6 +223,7 @@ switch ( $wp_list_table->current_action() ) {
 			array(
 				'delete_count' => $delete_count,
 				'update'       => $update,
+				'role'		   => $role
 			),
 			$redirect
 		);
