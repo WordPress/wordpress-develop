@@ -237,7 +237,8 @@
 			// Hide success visual feedback after 3 seconds since last success and unfocus the trigger.
 			copyAttachmentURLSuccessTimeout = setTimeout( function() {
 				successElement.addClass( 'hidden' );
-				previousSuccessElement = null; // setting previousSuccessElement to null.
+				// No need to store the previous success element further.
+				previousSuccessElement = null;
 			}, 3000 );
 
 			previousSuccessElement = successElement;
