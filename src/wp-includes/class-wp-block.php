@@ -151,6 +151,7 @@ class WP_Block {
 	}
 
 	public function update_available_context( $block, $available_context ) {
+		$this->context = array();
 		if ( null === $this->available_context ) {
 			$this->available_context = $available_context;
 		} else {
