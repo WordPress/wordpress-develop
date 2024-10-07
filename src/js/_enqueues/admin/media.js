@@ -226,7 +226,7 @@
 			event.clearSelection();
 
 			// Checking if the previousSuccessElement is present, adding the hidden class to it.
-			if ( previousSuccessElement && ! previousSuccessElement.hasClass( 'hidden' ) ) {
+			if ( previousSuccessElement ) {
 				previousSuccessElement.addClass( 'hidden' );
 			}
 
