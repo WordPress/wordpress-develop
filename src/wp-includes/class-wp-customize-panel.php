@@ -347,7 +347,7 @@ class WP_Customize_Panel {
 		?>
 		<li id="accordion-panel-{{ data.id }}" class="accordion-section control-section control-panel control-panel-{{ data.type }}">
 			<h3 class="accordion-section-title">
-				<button type="button" aria-expanded="false">
+				<button type="button" class="accordion-trigger" aria-expanded="false">
 					{{ data.title }}
 				</button>
 			</h3>

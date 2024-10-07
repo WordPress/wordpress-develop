@@ -1223,7 +1223,7 @@ final class WP_Customize_Nav_Menus {
 		?>
 		<div id="<?php echo esc_attr( $id ); ?>" class="accordion-section">
 			<h4 class="accordion-section-title" role="presentation">
-				<button type="button" aria-expanded="false">
+				<button type="button" class="accordion-trigger" aria-expanded="false">
 					<?php echo esc_html( $available_item_type['title'] ); ?>
 					<span class="spinner"></span>
 					<span class="no-items"><?php _e( 'No items' ); ?></span>
@@ -1258,7 +1258,7 @@ final class WP_Customize_Nav_Menus {
 		?>
 		<div id="new-custom-menu-item" class="accordion-section">
 			<h4 class="accordion-section-title" role="presentation">
-				<button type="button" aria-expanded="false">
+				<button type="button" class="accordion-trigger" aria-expanded="false">
 					<?php _e( 'Custom Links' ); ?>
 					<span class="toggle-indicator" aria-hidden="true"></span>
 				</button>
