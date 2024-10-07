@@ -2447,6 +2447,10 @@ h1.nav-tab-wrapper, /* Back-compat for pre-4.4 */
     line-height: 1.5;
 	cursor: pointer;
 }
+.nav-menus-php .metabox-holder .accordion-section-title button.accordion-trigger:focus {
+	box-shadow: 0 0 0 2px #2271b1;
+	outline: 2px solid transparent;
+}
 .nav-menus-php .metabox-holder .accordion-section-title span.dashicons.dashicons-arrow-down {
     position: absolute;
     right: 10px;
