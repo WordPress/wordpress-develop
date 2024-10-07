@@ -640,7 +640,7 @@
 				menuEdge = api.menuList.offset().left,
 				body = $('body'), maxChildDepth,
 				menuMaxDepth = initialMenuMaxDepth(),
-				isMobile = $(document.body).hasClass('mobile');
+				isMobile = $( document.body ).hasClass( 'mobile' );
 
 			if( 0 !== $( '#menu-to-edit li' ).length )
 				$( '.drag-instructions' ).show();
@@ -652,7 +652,7 @@
 				handle: '.menu-item-handle',
 				placeholder: 'sortable-placeholder',
 				items: api.options.sortableItems,
-				delay: (isMobile ? 200 : 0),
+				delay: ( isMobile ? 200 :  0),
 				start: function(e, ui) {
 					var height, width, parent, children, tempHolder;
 
