@@ -1530,7 +1530,7 @@
 			}
 
 			// Expand/Collapse accordion sections on click.
-			section.container.find( '.accordion-section-title, .customize-section-back' ).on( 'click keydown', function( event ) {
+			section.container.find( '.accordion-section-title button, .customize-section-back' ).on( 'click keydown', function( event ) {
 				if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
 					return;
 				}
@@ -2843,7 +2843,7 @@
 			var meta, panel = this;
 
 			// Expand/Collapse accordion sections on click.
-			panel.headContainer.find( '.accordion-section-title' ).on( 'click keydown', function( event ) {
+			panel.headContainer.find( '.accordion-section-title button' ).on( 'click keydown', function( event ) {
 				if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
 					return;
 				}

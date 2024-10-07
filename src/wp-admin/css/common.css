@@ -2431,8 +2431,46 @@ h1.nav-tab-wrapper, /* Back-compat for pre-4.4 */
 
 /* Back-compat for nav-menus screen */
 .nav-menus-php .metabox-holder h3 {
-	padding: 10px 10px 11px 14px;
-	line-height: 1.5;
+	padding: 0; /*10px 10px 11px 14px*/
+	line-height: 0; /*1.5*/
+}
+.nav-menus-php .metabox-holder .accordion-section-title button.accordion-trigger {
+    background: inherit;
+    color: #1d2327;
+    display: block;
+    position: relative;
+    text-align: left;
+    width: 100%;
+    outline: none;
+    border: 0;
+    padding: 10px 10px 11px 14px;
+    line-height: 1.5;
+	cursor: pointer;
+}
+.nav-menus-php .metabox-holder .accordion-section-title span.dashicons.dashicons-arrow-down {
+    position: absolute;
+    right: 10px;
+    left: auto;
+	color: #787c82;
+	border-radius: 50px;
+}
+.nav-menus-php .metabox-holder .accordion-section-title:hover span.dashicons.dashicons-arrow-down {
+	color: #1d2327;
+}
+.nav-menus-php .metabox-holder .accordion-section-title span.dashicons.dashicons-arrow-down::before {
+	position: relative;
+    left: -1px
+}
+.nav-menus-php .metabox-holder .accordion-section-title:focus span.dashicons.dashicons-arrow-down {
+	box-shadow: 0 0 0 2px #2271b1;
+	outline: 2px solid transparent;
+	color: #1d2327;
+}
+.nav-menus-php .metabox-holder .accordion-section-title::after {
+	display: none;
+}
+.nav-menus-php .metabox-holder .accordion-section.open .accordion-section-title span.dashicons.dashicons-arrow-down {
+	transform: rotate(180deg);
 }
 
 #templateside ul li a {
@@ -3967,6 +4005,10 @@ img {
 	.metabox-holder .postbox > h3, /* Back-compat for pre-4.4 */
 	.metabox-holder h2 {
 		padding: 12px;
+	}
+
+	.nav-menus-php .metabox-holder h3 {
+		padding: 0;
 	}
 
 	.postbox .handlediv {
