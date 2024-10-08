@@ -29,7 +29,7 @@ require BLOCKS_PATH . 'require-dynamic-blocks.php';
 function register_core_block_style_handles() {
 	$wp_version = wp_get_wp_version();
 
-	if ( ! wp_should_load_separate_core_block_assets() ) {
+	if ( ! wp_should_load_block_assets_on_demand() ) {
 		return;
 	}
 

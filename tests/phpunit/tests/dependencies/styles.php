@@ -490,6 +490,8 @@ CSS;
 	 * @ticket 50263
 	 *
 	 * @covers ::wp_default_styles
+	 *
+	 * @expectedDeprecated should_load_separate_core_block_assets
 	 */
 	public function test_block_styles_for_viewing_without_split_styles() {
 		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
@@ -507,6 +509,8 @@ CSS;
 	 * @ticket 50263
 	 *
 	 * @covers ::wp_default_styles
+	 *
+	 * @expectedDeprecated should_load_separate_core_block_assets
 	 */
 	public function test_block_styles_for_viewing_with_split_styles() {
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );

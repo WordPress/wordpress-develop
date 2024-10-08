@@ -304,7 +304,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 
 	$is_core_block = isset( $metadata['file'] ) && str_starts_with( $metadata['file'], $wpinc_path_norm );
 	// Skip registering individual styles for each core block when a bundled version provided.
-	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
+	if ( $is_core_block && ! wp_should_load_block_assets_on_demand() ) {
 		return false;
 	}
 
@@ -457,7 +457,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		if ( ! isset( $metadata['style'] ) ) {
 			$metadata['style'] = "wp-block-$block_name";
 		}
-		if ( current_theme_supports( 'wp-block-styles' ) && wp_should_load_separate_core_block_assets() ) {
+		if ( current_theme_supports( 'wp-block-styles' ) && wp_should_load_block_assets_on_demand() ) {
 			$metadata['style']   = (array) $metadata['style'];
 			$metadata['style'][] = "wp-block-{$block_name}-theme";
 		}
