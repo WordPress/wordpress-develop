@@ -1,5 +1,4 @@
 <?php
-require_once ABSPATH . 'wp-admin/includes/update-core.php';
 
 /**
  * test wp-includes/theme.php
@@ -253,8 +252,12 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	/**
 	 * Ensure that the default themes are included in the new bundled files.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_default_themes_are_included_in_new_files() {
+		require_once ABSPATH . 'wp-admin/includes/update-core.php';
 		global $_new_bundled_files;
 		// Limit new bundled files to the default themes.
 		$new_theme_files = array_keys( $_new_bundled_files );
