@@ -196,7 +196,7 @@ class Tests_Blocks_RenderBlock extends WP_UnitTestCase {
 	/**
 	 * Tests the behavior of the 'render_block_context' filter based on the location of the filtered block.
 	 *
-	 * @ticket 620426
+	 * @ticket 62046
 	 */
 	public function test_render_block_context_inner_blocks() {
 		$provided_context = array();
