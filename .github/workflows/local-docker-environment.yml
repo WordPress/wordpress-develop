@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-    needs: [ phpcs, jshint, slack-notifications ]
+    needs: [ docker-environment-tests, slack-notifications ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
