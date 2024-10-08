@@ -120,7 +120,7 @@ class ftp_base {
 	var $_eol_code;
 	var $AutoAsciiExt;
 
-	public $features;
+	var $features;
 
 	/* Constructor */
 	function __construct($port_mode=FALSE, $verb=FALSE, $le=FALSE) {
