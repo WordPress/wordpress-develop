@@ -8467,3 +8467,77 @@ function wp_create_initial_post_meta() {
 		)
 	);
 }
+
+/**
+ * Creates a single attachment.
+ *
+ * @param string|array          $args     Required. Arguments for inserting a post of type attachment.
+ * @param array                 $data     Required. An array of data for a single file
+ *                                        Like the one supplied by wp_handle_upload() or wp_handle_sideload()
+ * @param string                $context  Optional. Provide context for hooks (eg. AJAX, REST)
+ * @param bool                  $wp_error Optional. Whether to return a WP_Error on failure. Default false.
+ *
+ * @since 6.6.0
+ *
+ * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
+ */
+function wp_process_attachment( $args, $data = false, $context = '', $wp_error = false ) {
+	/**
+	 * Filters $data
+	 *
+	 * Allow modifications to the file
+	 * First filter because post args may depend on file data
+	 */
+	$data = apply_filters( 'wp_process_attachment_file', $data, $args, $context );
+
+	/**
+	 * Filters $args
+	 *
+	 * Allow modifications to the post args
+	 */
+	$args = apply_filters( 'wp_process_attachment_args', $args, $data, $context );
+
+	/**
+	 * Filters whether to short-circuit the process
+	 * At last to evaluate values after filters has been applied
+	 *
+	 * If a non-null value is passed to the filter, all the process will be cancel
+	 *
+	 * @param mixed  $process  If null (default) continue process
+	 *                                                                                                                      If is_wp_error() && $wp_error the error will be returned
+	 */
+	$process = apply_filters( 'wp_process_attachment', null, $args, $data, $context );
+
+	if ( null !== $process ) {
+		if ( $wp_error && is_wp_error( $process ) ) {
+			return $process;
+		}
+		return false;
+	}
+
+	do_action( 'before_process_attachment', $args, $data, $context );
+
+	if ( empty( $args['post_title'] ) ) {
+		$args['post_title'] = preg_replace( '/\.[^.]+$/', '', wp_basename( $data['file'] ) );
+	}
+
+	if ( empty( $args['post_mime_type'] ) ) {
+		$args['post_mime_type'] = $data['type'];
+	}
+
+	if ( empty( $args['post_status'] ) ) {
+		$args['post_status'] = 'inherit';
+	}
+
+	$attachment_id = wp_insert_attachment( $args, $data['file'] );
+
+	/** Include image functions to get access to wp_generate_attachment_metadata(). */
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+
+	$metadata = wp_generate_attachment_metadata( $attachment_id, $data['file'] );
+	wp_update_attachment_metadata( $attachment_id, $metadata );
+
+	do_action( 'after_process_attachment', $attachment_id );
+
+	return $attachment_id;
+}
