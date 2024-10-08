@@ -449,7 +449,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey( $template_name, $templates );
 
-		wp_unregister_block_template( $template_name );
+		unregister_block_template( $template_name );
 	}
 
 	/**
@@ -471,7 +471,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 		$this->assertSame( 'Test Template', $template->title );
 
-		wp_unregister_block_template( $template_name );
+		unregister_block_template( $template_name );
 	}
 
 	/**

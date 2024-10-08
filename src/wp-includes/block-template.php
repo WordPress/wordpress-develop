@@ -390,6 +390,6 @@ function register_block_template( $template_name, $args = array() ) {
  * @return WP_Block_Template|WP_Error The unregistered template object on success, WP_Error object on failure or if the
  *                                    template doesn't exist.
  */
-function wp_unregister_block_template( $template_name ) {
+function unregister_block_template( $template_name ) {
 	return WP_Block_Templates_Registry::get_instance()->unregister( $template_name );
 }
