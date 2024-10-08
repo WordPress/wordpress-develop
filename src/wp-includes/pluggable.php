@@ -2584,7 +2584,6 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 			return $wp_hasher->HashPassword( trim( $password ) );
 		}
 
-		// @TODO this can return false, null, or throw an exception
 		return password_hash( trim( $password ), PASSWORD_BCRYPT );
 	}
 endif;
@@ -2594,8 +2593,8 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	 * Checks a plaintext password against a hashed password.
 	 *
 	 * Note that this function is used for checking more than just user passwords, for
-	 * example it's used for checking password reset keys, application passwords, post
-	 * passwords, recovery mode keys, and more. There is not always a user ID associated
+	 * example it's used for checking application passwords, post passwords, recovery mode
+	 * keys, user password reset keys, and more. There is not always a user ID associated
 	 * with the password.
 	 *
 	 * For integration with other applications, this function can be overwritten to
