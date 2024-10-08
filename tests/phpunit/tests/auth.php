@@ -1529,7 +1529,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$saved = update_user_meta(
 			$user_id,
 			WP_Application_Passwords::USERMETA_KEY_APPLICATION_PASSWORDS,
-			array( $item ),
+			array( $item )
 		);
 
 		if ( ! $saved ) {
