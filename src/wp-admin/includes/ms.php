@@ -863,7 +863,7 @@ function confirm_delete_users( $users ) {
 		return false;
 	}
 	?>
-	<h1><?php esc_html_e( 'Users' ); ?></h1>
+	<h1><?php esc_html_e( 'Delete Users' ); ?></h1>
 
 	<?php if ( 1 === count( $users ) ) : ?>
 		<p><?php _e( 'You have chosen to delete the user from all networks and sites.' ); ?></p>
@@ -961,7 +961,7 @@ function confirm_delete_users( $users ) {
 								printf( __( 'Site: %s' ), $user_site );
 								?>
 							</li>
-							<li><label><input type="radio" id="delete_option0" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" checked="checked" />
+							<li><label><input type="radio" id="delete_option0" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" />
 							<?php _e( 'Delete all content.' ); ?></label></li>
 							<li><label><input type="radio" id="delete_option1" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" />
 							<?php _e( 'Attribute all content to:' ); ?></label>
