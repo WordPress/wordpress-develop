@@ -1546,9 +1546,9 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	private static function get_default_bcrypt_cost() {
-		$hash    = password_hash( 'password', PASSWORD_BCRYPT );
-		$matches = array();
-		preg_match( '/^\$2y\$(\d+)\$/', $hash, $matches );
-		return (int) $matches[1];
+		$hash = password_hash( 'password', PASSWORD_BCRYPT );
+		$info = password_get_info( $hash );
+
+		return $info['options']['cost'];
 	}
 }
