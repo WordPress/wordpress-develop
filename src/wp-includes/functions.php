@@ -9049,3 +9049,138 @@ function wp_admin_notice( $message, $args = array() ) {
 
 	echo wp_kses_post( wp_get_admin_notice( $message, $args ) );
 }
+
+/**
+ * Creates an array of link markup.
+ *
+ * @since 6.2.0
+ *
+ * @param array $link_data  {
+ *     The data for the links. The key for each link will be preserved.
+ *
+ *     @type string $url         Optional. The link's URL. Default: '#'
+ *     @type string $label       Optional. The link's label. Can include markup.
+ *                               Default: 'Link $key' if numeric, otherwise '$key'.
+ *     @type bool   $current     Optional. Whether the URL is the current URL.
+ *                               If true, will apply:
+ *                               `aria-current='page'` and `class="current"`
+ *     @type array  $attributes  Optional. An associative array of additional attributes
+ *                               in 'attribute' => 'value' format.
+ * }
+ *
+ * @return array An array containing markup for each link.
+ */
+function wp_create_links( array $link_data ) {
+	$links = array();
+
+	foreach ( $link_data as $key => $link ) {
+		$is_anchor = ! empty( $link['attributes']['name'] );
+
+		if ( ! $is_anchor ) {
+			// Default to #.
+			if ( empty( $link['url'] ) || ! is_string( $link['url'] ) || '' === trim( $link['url'] ) ) {
+				$link['url'] = '#';
+			}
+
+			// When no label exists, use the key.
+			if ( empty( $link['label'] ) || ! is_string( $link['label'] ) || '' === trim( $link['label'] ) ) {
+				/* translators: The link key. */
+				$link['label'] = ! is_numeric( $key ) ? $key : sprintf( __( 'Link %s' ), $key );
+			}
+		}
+
+		if ( ! empty( $link['current'] ) ) {
+			if ( empty( $link['attributes']['aria-current'] ) ) {
+				$link['attributes']['aria-current'] = 'page';
+			}
+
+			/**
+			 * Filters the class for the current link.
+			 *
+			 * @since 6.2.0
+			 *
+			 * @param string $key  The link's key.
+			 * @param string $link The link's data.
+			 */
+			$current_class = apply_filters( 'wp_create_links_current_class', 'current', $key, $link );
+
+			// Apply or append the current class.
+			if ( is_string( $current_class ) && '' !== trim( $current_class ) ) {
+				if ( empty( $link['attributes']['class'] ) ) {
+					$link['attributes']['class'] = $current_class;
+				} elseif ( is_string( $link['attributes']['class'] ) ) {
+					$link['attributes']['class'] .= ' ' . $current_class;
+				} else {
+					// Fall back to only the current class otherwise.
+					$link['attributes']['class'] = $current_class;
+				}
+			} else {
+				// Fall back to default class.
+				$link['attributes']['class'] = 'current';
+			}
+		}
+
+		$attributes = array();
+
+		if ( ! empty( $link['attributes'] ) ) {
+			foreach ( $link['attributes'] as $attribute => $value ) {
+				// Skip invalid attributes.
+				if ( ! is_string( $attribute ) || '' === trim( $attribute ) ) {
+					continue;
+				}
+
+				// Skip a duplicate 'href' attribute.
+				if ( 'href' === $attribute ) {
+					continue;
+				}
+
+				// Skip non-scalar or INF values.
+				if ( ! is_scalar( $value ) || INF === $value ) {
+					continue;
+				}
+
+				// Boolean attribute set to `true`.
+				if ( true === $value ) {
+					$attributes[ $attribute ] = esc_attr( $attribute );
+					continue;
+				}
+
+				// Skip boolean attributes set to `false` or `null`.
+				if ( false === $value || null === $value ) {
+					continue;
+				}
+
+				// Convert raw numbers to strings.
+				if ( is_int( $value ) || is_float( $value ) ) {
+					$value = (string) $value;
+				}
+
+				$attributes[ $attribute ] = sprintf(
+					'%s="%s"',
+					esc_attr( $attribute ),
+					esc_attr( $value )
+				);
+			}
+		}
+
+		// Collapse attributes to a string.
+		if ( ! empty( $attributes ) ) {
+			sort( $attributes );
+
+			$attributes = implode( ' ', $attributes );
+
+			if ( ! $is_anchor ) {
+				$attributes = ' ' . $attributes;
+			}
+		} else {
+			$attributes = '';
+		}
+
+		$url   = $is_anchor ? '' : 'href="' . esc_url( $link['url'] ) . '"';
+		$label = empty( $link['label'] ) ? '' : $link['label'];
+
+		$links[ $key ] = sprintf( '<a %s%s>%s</a>', $url, $attributes, $label );
+	}
+
+	return $links;
+}
