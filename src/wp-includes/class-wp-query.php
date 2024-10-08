@@ -3358,14 +3358,12 @@ class WP_Query {
 
 				if ( $post_ids ) {
 					$this->posts = $post_ids;
-					$this->set_found_posts( $q, $limits );
 					_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 				} else {
 					$this->posts = array();
 				}
 			} else {
 				$this->posts = $wpdb->get_results( $this->request );
-				$this->set_found_posts( $q, $limits );
 			}
 		}
 
@@ -3399,6 +3397,10 @@ class WP_Query {
 			 * @param WP_Query  $query The WP_Query instance (passed by reference).
 			 */
 			$this->posts = apply_filters_ref_array( 'posts_results', array( $this->posts, &$this ) );
+		}
+
+		if ( ! empty( $this->posts ) ) {
+			$this->set_found_posts( $q, $limits );
 		}
 
 		if ( ! empty( $this->posts ) && $this->is_comment_feed && $this->is_singular ) {
@@ -3609,35 +3611,25 @@ class WP_Query {
 	private function set_found_posts( $q, $limits ) {
 		global $wpdb;
 
-		/*
-		 * Bail if posts is an empty array. Continue if posts is an empty string,
-		 * null, or false to accommodate caching plugins that fill posts later.
-		 */
-		if ( $q['no_found_rows'] || ( is_array( $this->posts ) && ! $this->posts ) ) {
-			return;
-		}
-
-		if ( ! empty( $limits ) ) {
-			/**
-			 * Filters the query to run for retrieving the found posts.
-			 *
-			 * @since 2.1.0
-			 *
-			 * @param string   $found_posts_query The query to run to find the found posts.
-			 * @param WP_Query $query             The WP_Query instance (passed by reference).
-			 */
-			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) );
-
-			$this->found_posts = (int) $wpdb->get_var( $found_posts_query );
-		} else {
-			if ( is_array( $this->posts ) ) {
+		if ( is_array( $this->posts ) ) {
+			if ( empty( $limits ) ) {
 				$this->found_posts = count( $this->posts );
+			} elseif ( ! $q['no_found_rows'] ) {
+				/**
+				 * Filter the query to run for retrieving the found posts.
+				 *
+				 * @param string $found_posts The query to run to find the found posts.
+				 * @param WP_Query &$this       The WP_Query instance (passed by reference).
+				 * @since 2.1.0
+				 *
+				 */
+				$this->found_posts = (int) $wpdb->get_var( apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) ) );
+			}
+		} else {
+			if ( null === $this->posts ) {
+				$this->found_posts = 0;
 			} else {
-				if ( null === $this->posts ) {
-					$this->found_posts = 0;
-				} else {
-					$this->found_posts = 1;
-				}
+				$this->found_posts = 1;
 			}
 		}
 
