@@ -2696,7 +2696,9 @@ class WP_Theme_JSON {
 	 * @param array $options {
 	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
 	 *
-	 *     @type bool   $include_block_style_variations  Includes nodes for block style variations. Default false.
+	 *     @type bool $include_block_style_variations Includes nodes for block style variations. Default false.
+	 *     @type bool $include_node_paths_only        Includes node path for block nodes. Default false.
+	 *     @type bool $include_block_elements         Includes block elements for block nodes. Default true.
 	 * }
 	 * @return array The block nodes in theme.json.
 	 */
@@ -2713,58 +2715,78 @@ class WP_Theme_JSON {
 		}
 
 		foreach ( $theme_json['styles']['blocks'] as $name => $node ) {
-			$selector = null;
-			if ( isset( $selectors[ $name ]['selector'] ) ) {
-				$selector = $selectors[ $name ]['selector'];
-			}
 
-			$duotone_selector = null;
-			if ( isset( $selectors[ $name ]['duotone'] ) ) {
-				$duotone_selector = $selectors[ $name ]['duotone'];
-			}
-
-			$feature_selectors = null;
-			if ( isset( $selectors[ $name ]['selectors'] ) ) {
-				$feature_selectors = $selectors[ $name ]['selectors'];
-			}
-
-			$variation_selectors = array();
-			$include_variations  = $options['include_block_style_variations'] ?? false;
-			if ( $include_variations && isset( $node['variations'] ) ) {
-				foreach ( $node['variations'] as $variation => $node ) {
-					$variation_selectors[] = array(
-						'path'     => array( 'styles', 'blocks', $name, 'variations', $variation ),
-						'selector' => $selectors[ $name ]['styleVariations'][ $variation ],
-					);
+			$include_node_paths_only = $options['include_node_paths_only'] ?? false;
+			
+			$node_path = array( 'styles', 'blocks', $name );
+			if ( $include_node_paths_only ) {
+				$nodes[] = $node_path;
+			} else {
+				$selector = null;
+				if ( isset( $selectors[ $name ]['selector'] ) ) {
+					$selector = $selectors[ $name ]['selector'];
 				}
+
+				$duotone_selector = null;
+				if ( isset( $selectors[ $name ]['duotone'] ) ) {
+					$duotone_selector = $selectors[ $name ]['duotone'];
+				}
+
+				$feature_selectors = null;
+				if ( isset( $selectors[ $name ]['selectors'] ) ) {
+					$feature_selectors = $selectors[ $name ]['selectors'];
+				}
+
+				$variation_selectors = array();
+				$include_variations  = $options['include_block_style_variations'] ?? false;
+				if ( $include_variations && isset( $node['variations'] ) ) {
+					foreach ( $node['variations'] as $variation => $node ) {
+						$variation_selectors[] = array(
+							'path'     => array( 'styles', 'blocks', $name, 'variations', $variation ),
+							'selector' => $selectors[ $name ]['styleVariations'][ $variation ],
+						);
+					}
+				}
+
+				$nodes[] = array(
+					'name'       => $name,
+					'path'       => $node_path,
+					'selector'   => $selector,
+					'selectors'  => $feature_selectors,
+					'duotone'    => $duotone_selector,
+					'features'   => $feature_selectors,
+					'variations' => $variation_selectors,
+					'css'        => $selector,
+				);
 			}
 
-			$nodes[] = array(
-				'name'       => $name,
-				'path'       => array( 'styles', 'blocks', $name ),
-				'selector'   => $selector,
-				'selectors'  => $feature_selectors,
-				'duotone'    => $duotone_selector,
-				'features'   => $feature_selectors,
-				'variations' => $variation_selectors,
-				'css'        => $selector,
-			);
+			$include_block_elements = $options['include_block_elements'] ?? true;
 
-			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
+			if ( $include_block_elements && isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
 				foreach ( $theme_json['styles']['blocks'][ $name ]['elements'] as $element => $node ) {
-					$nodes[] = array(
-						'path'     => array( 'styles', 'blocks', $name, 'elements', $element ),
-						'selector' => $selectors[ $name ]['elements'][ $element ],
-					);
+					$node_path = array( 'styles', 'blocks', $name, 'elements', $element );
+					if ( $include_node_paths_only ) {
+						$nodes[] = $node_path;
+					} else {
+						$nodes[] = array(
+							'path'     => $node_path,
+							'selector' => $selectors[ $name ]['elements'][ $element ],
+						);
+					}
 
 					// Handle any pseudo selectors for the element.
 					if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
 						foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
 							if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] ) ) {
-								$nodes[] = array(
-									'path'     => array( 'styles', 'blocks', $name, 'elements', $element ),
-									'selector' => static::append_to_selector( $selectors[ $name ]['elements'][ $element ], $pseudo_selector ),
-								);
+								$node_path = array( 'styles', 'blocks', $name, 'elements', $element );
+								if ( $include_node_paths_only ) {
+									$nodes[] = $node_path;
+								} else {
+									$nodes[] = array(
+										'path'     => $node_path,
+										'selector' => static::append_to_selector( $selectors[ $name ]['elements'][ $element ], $pseudo_selector ),
+									);
+								}
 							}
 						}
 					}
@@ -3102,53 +3124,6 @@ class WP_Theme_JSON {
 	}
 
 	/**
-	 * An internal method to get the block nodes from a theme.json file.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @param array $theme_json The theme.json converted to an array.
-	 * @return array The block nodes in theme.json.
-	 */
-	private static function get_block_node_paths( $theme_json ) {
-		$nodes     = array();
-		if ( ! isset( $theme_json['styles'] ) ) {
-			return $nodes;
-		}
-
-		// Blocks.
-		if ( ! isset( $theme_json['styles']['blocks'] ) ) {
-			return $nodes;
-		}
-
-		foreach ( $theme_json['styles']['blocks'] as $name => $node ) {
-			$nodes[] = array(
-				'path'       => array( 'styles', 'blocks', $name ),
-			);
-
-			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
-				foreach ( $theme_json['styles']['blocks'][ $name ]['elements'] as $element => $node ) {
-					$nodes[] = array(
-						'path'     => array( 'styles', 'blocks', $name, 'elements', $element ),
-					);
-
-					// Handle any pseudo selectors for the element.
-					if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
-						foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
-							if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] ) ) {
-								$nodes[] = array(
-									'path'     => array( 'styles', 'blocks', $name, 'elements', $element ),
-								);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return $nodes;
-	}
-
-	/**
 	 * Merges new incoming data.
 	 *
 	 * @since 5.8.0
@@ -3283,14 +3258,14 @@ class WP_Theme_JSON {
 		 * some values provide exceptions, namely style values that are
 		 * objects and represent unique definitions for the style.
 		 */
-		$style_nodes = static::get_block_node_paths( $this->theme_json );
+		$style_options = array( 'include_node_paths_only' => true );
+		$style_nodes   = static::get_block_nodes( $this->theme_json, array(), $style_options );
 		foreach ( $style_nodes as $style_node ) {
-			$path = $style_node['path'];
 			/*
 			 * Background image styles should be replaced, not merged,
 			 * as they themselves are specific object definitions for the style.
 			 */
-			$background_image_path = array_merge( $path, static::PROPERTIES_METADATA['background-image'] );
+			$background_image_path = array_merge( $style_node, static::PROPERTIES_METADATA['background-image'] );
 			$content               = _wp_array_get( $incoming_data, $background_image_path, null );
 			if ( isset( $content ) ) {
 				_wp_array_set( $this->theme_json, $background_image_path, $content );
