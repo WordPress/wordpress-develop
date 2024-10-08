@@ -4561,7 +4561,18 @@ class WP_Theme_JSON {
 		$block_sources = array();
 
 		if ( isset( $input['styles']['blocks'] ) && is_array( $input['styles']['blocks'] ) ) {
-			$block_sources[] = array_keys( $input['styles']['blocks'] );
+			$style_blocks = array_keys( $input['styles']['blocks'] );
+			$block_sources[] = $style_blocks;
+
+			foreach ( $style_blocks as $block ) {
+				if ( isset( $input['styles']['blocks'][ $block ]['variations'] ) && is_array( $input['styles']['blocks'][ $block ]['variations'] ) ) {
+					foreach ( $input['styles']['blocks'][ $block ]['variations'] as $variation ) {
+						if ( isset( $variation['blocks'] ) && is_array( $variation['blocks'] ) ) {
+							$block_sources[] = array_keys( $variation['blocks'] );
+						}
+					}
+				}
+			}
 		}
 
 		if ( isset( $input['settings']['blocks'] ) && is_array( $input['settings']['blocks'] ) ) {
