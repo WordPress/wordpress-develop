@@ -274,7 +274,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			$tested_themes
 		);
 
-		$this->assertSameSets( $new_theme_files, $tested_themes, 'New bundled files should include the default themes.' );
+		$this->assertSameSets( $tested_themes, $new_theme_files, 'New bundled files should include the default themes.' );
 	}
 
 	public function test_default_themes_have_textdomain() {
