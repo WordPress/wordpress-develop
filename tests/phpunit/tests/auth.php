@@ -865,12 +865,13 @@ class Tests_Auth extends WP_UnitTestCase {
 		add_filter( 'application_password_is_api_request', '__return_true' );
 		add_filter( 'wp_is_application_passwords_available', '__return_true' );
 
-		$password = 'password';
+		$password  = 'password';
+		$user_pass = get_userdata( self::$user_id )->user_pass;
 
 		// Set an application password with the old phpass algorithm.
 		$uuid = self::set_application_password_with_phpass( $password, self::$user_id );
 
-		// Verify that the password is hashed with phpass.
+		// Verify that the application password is hashed with phpass.
 		$hash = WP_Application_Passwords::get_user_application_password( self::$user_id, $uuid )['password'];
 		$this->assertStringStartsWith( '$P$', $hash );
 		$this->assertTrue( wp_password_needs_rehash( $hash ) );
@@ -879,21 +880,24 @@ class Tests_Auth extends WP_UnitTestCase {
 		// Authenticate.
 		$user = wp_authenticate_application_password( null, self::USER_LOGIN, $password );
 
-		// Verify that the phpass password hash was valid.
+		// Verify that the phpass hash for the application password was valid.
 		$this->assertNotWPError( $user );
 		$this->assertInstanceOf( 'WP_User', $user );
 		$this->assertSame( self::$user_id, $user->ID );
 
-		// Verify that the password has been rehashed with bcrypt.
+		// Verify that the application password has been rehashed with bcrypt.
 		$hash = WP_Application_Passwords::get_user_application_password( self::$user_id, $uuid )['password'];
 		$this->assertStringStartsWith( '$2y$', $hash );
 		$this->assertFalse( wp_password_needs_rehash( $hash ) );
 		$this->assertTrue( WP_Application_Passwords::is_in_use() );
 
+		// Verify that the user's password has not been touched.
+		$this->assertSame( $user_pass, get_userdata( self::$user_id )->user_pass );
+
 		// Authenticate a second time to ensure the new hash is valid.
 		$user = wp_authenticate_application_password( null, self::USER_LOGIN, $password );
 
-		// Verify that the bcrypt password hash is valid.
+		// Verify that the bcrypt hashed application password is valid.
 		$this->assertNotWPError( $user );
 		$this->assertInstanceOf( 'WP_User', $user );
 		$this->assertSame( self::$user_id, $user->ID );
