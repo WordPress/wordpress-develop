@@ -3270,7 +3270,7 @@ function unstick_post( $post_id ) {
  * @return string The cache key.
  */
 function _count_posts_cache_key( $type = 'post', $perm = '' ) {
-	$cache_key = 'posts-' . $type;
+	$cache_key = wp_cache_get_last_changed( 'posts' ) . ':posts-' . $type;
 
 	if ( 'readable' === $perm && is_user_logged_in() ) {
 		$post_type_object = get_post_type_object( $type );
@@ -3312,7 +3312,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 
 	$cache_key = _count_posts_cache_key( $type, $perm );
 
-	$counts = wp_cache_get( $cache_key, 'counts' );
+	$counts = wp_cache_get( $cache_key, 'persistent-counts' );
 	if ( false !== $counts ) {
 		// We may have cached this before every status was registered.
 		foreach ( get_post_stati() as $status ) {
@@ -3347,7 +3347,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	}
 
 	$counts = (object) $counts;
-	wp_cache_set( $cache_key, $counts, 'counts' );
+	wp_cache_set( $cache_key, $counts, 'persistent-counts' );
 
 	/**
 	 * Filters the post counts by status for the current post type.
@@ -3383,11 +3383,12 @@ function wp_count_attachments( $mime_type = '' ) {
 	global $wpdb;
 
 	$cache_key = sprintf(
-		'attachments%s',
+		'%s:attachments%s',
+		wp_cache_get_last_changed( 'posts' ),
 		! empty( $mime_type ) ? ':' . str_replace( '/', '_', implode( '-', (array) $mime_type ) ) : ''
 	);
 
-	$counts = wp_cache_get( $cache_key, 'counts' );
+	$counts = wp_cache_get( $cache_key, 'persistent-counts' );
 	if ( false == $counts ) {
 		$and   = wp_post_mime_type_where( $mime_type );
 		$count = $wpdb->get_results( "SELECT post_mime_type, COUNT( * ) AS num_posts FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status != 'trash' $and GROUP BY post_mime_type", ARRAY_A );
@@ -3398,7 +3399,7 @@ function wp_count_attachments( $mime_type = '' ) {
 		}
 		$counts['trash'] = $wpdb->get_var( "SELECT COUNT( * ) FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status = 'trash' $and" );
 
-		wp_cache_set( $cache_key, (object) $counts, 'counts' );
+		wp_cache_set( $cache_key, (object) $counts, 'persistent-counts' );
 	}
 
 	/**
@@ -7811,11 +7812,6 @@ function _transition_post_status( $new_status, $old_status, $post ) {
 			wp_cache_delete( "lastpostdate:$timezone", 'timeinfo' );
 			wp_cache_delete( "lastpostdate:$timezone:{$post->post_type}", 'timeinfo' );
 		}
-	}
-
-	if ( $new_status !== $old_status ) {
-		wp_cache_delete( _count_posts_cache_key( $post->post_type ), 'counts' );
-		wp_cache_delete( _count_posts_cache_key( $post->post_type, 'readable' ), 'counts' );
 	}
 
 	// Always clears the hook in case the post status bounced from future to draft.
