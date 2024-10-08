@@ -44,7 +44,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 	 * Test when a multiple data items are passed.
 	 *
 	 * @ticket 44044
-	 * @ticket 46895 Updated to remove </h2> from test to avoid Count introducing failure.
+	 * @ticket 46895
 	 */
 	public function test_group_html_generation_multiple_data_items() {
 		$data = array(
@@ -75,6 +75,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 
 		$actual = wp_privacy_generate_personal_data_export_group_html( $data, 'test-data-group', 2 );
 
+		// Updated to remove </h2> from test to avoid Count introducing failure (ticket #46895).
 		$this->assertStringContainsString( '<h2 id="test-data-group-test-data-group">Test Data Group', $actual );
 		$this->assertStringContainsString( '<td>Field 1 Value', $actual );
 		$this->assertStringContainsString( '<td>Another Field 1 Value', $actual );

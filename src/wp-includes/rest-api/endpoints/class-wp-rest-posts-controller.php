@@ -97,6 +97,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$get_item_args = array(
 			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
 		);
+		if ( isset( $schema['properties']['excerpt'] ) ) {
+			$get_item_args['excerpt_length'] = array(
+				'description' => __( 'Override the default excerpt length.' ),
+				'type'        => 'integer',
+			);
+		}
 		if ( isset( $schema['properties']['password'] ) ) {
 			$get_item_args['password'] = array(
 				'description' => __( 'The password for the post if it is password protected.' ),
@@ -177,7 +183,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @param bool    $required Whether the post requires a password check.
 	 * @param WP_Post $post     The post been password checked.
-	 * @return bool Result of password check taking in to account REST API considerations.
+	 * @return bool Result of password check taking into account REST API considerations.
 	 */
 	public function check_password_required( $required, $post ) {
 		if ( ! $required ) {
@@ -331,7 +337,67 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
+		if (
+			isset( $registered['search_semantics'], $request['search_semantics'] )
+			&& 'exact' === $request['search_semantics']
+		) {
+			$args['exact'] = true;
+		}
+
 		$args = $this->prepare_tax_query( $args, $request );
+
+		if ( ! empty( $request['format'] ) ) {
+			$formats = $request['format'];
+			/*
+			 * The relation needs to be set to `OR` since the request can contain
+			 * two separate conditions. The user may be querying for items that have
+			 * either the `standard` format or a specific format.
+			 */
+			$formats_query = array( 'relation' => 'OR' );
+
+			/*
+			 * The default post format, `standard`, is not stored in the database.
+			 * If `standard` is part of the request, the query needs to exclude all post items that
+			 * have a format assigned.
+			 */
+			if ( in_array( 'standard', $formats, true ) ) {
+				$formats_query[] = array(
+					'taxonomy' => 'post_format',
+					'field'    => 'slug',
+					'operator' => 'NOT EXISTS',
+				);
+				// Remove the `standard` format, since it cannot be queried.
+				unset( $formats[ array_search( 'standard', $formats, true ) ] );
+			}
+
+			// Add any remaining formats to the formats query.
+			if ( ! empty( $formats ) ) {
+				// Add the `post-format-` prefix.
+				$terms = array_map(
+					static function ( $format ) {
+						return "post-format-$format";
+					},
+					$formats
+				);
+
+				$formats_query[] = array(
+					'taxonomy' => 'post_format',
+					'field'    => 'slug',
+					'terms'    => $terms,
+					'operator' => 'IN',
+				);
+			}
+
+			// Enable filtering by both post formats and other taxonomies by combining them with `AND`.
+			if ( isset( $args['tax_query'] ) ) {
+				$args['tax_query'][] = array(
+					'relation' => 'AND',
+					$formats_query,
+				);
+			} else {
+				$args['tax_query'] = $formats_query;
+			}
+		}
 
 		// Force the post_type argument, since it's not a user input variable.
 		$args['post_type'] = $this->post_type;
@@ -491,9 +557,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( $post && ! empty( $request['password'] ) ) {
+		if ( $post && ! empty( $request->get_query_params()['password'] ) ) {
 			// Check post password, and return error if invalid.
-			if ( ! hash_equals( $post->post_password, $request['password'] ) ) {
+			if ( ! hash_equals( $post->post_password, $request->get_query_params()['password'] ) ) {
 				return new WP_Error(
 					'rest_post_incorrect_password',
 					__( 'Incorrect post password.' ),
@@ -1803,7 +1869,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 * with the site's timezone offset applied.
 			 */
 			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-				$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
+				$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - (int) ( (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
 			} else {
 				$post_modified_gmt = $post->post_modified_gmt;
 			}
@@ -1838,10 +1904,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 
 			$data['title']['rendered'] = get_the_title( $post->ID );
 
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 		}
 
 		$has_password_filter = false;
@@ -1872,6 +1940,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'excerpt', $fields ) ) {
+			if ( isset( $request['excerpt_length'] ) ) {
+				$excerpt_length          = $request['excerpt_length'];
+				$override_excerpt_length = static function () use ( $excerpt_length ) {
+					return $excerpt_length;
+				};
+
+				add_filter(
+					'excerpt_length',
+					$override_excerpt_length,
+					20
+				);
+			}
+
 			/** This filter is documented in wp-includes/post-template.php */
 			$excerpt = apply_filters( 'get_the_excerpt', $post->post_excerpt, $post );
 
@@ -1883,6 +1964,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'rendered'  => post_password_required( $post ) ? '' : $excerpt,
 				'protected' => (bool) $post->post_password,
 			);
+
+			if ( isset( $override_excerpt_length ) ) {
+				remove_filter(
+					'excerpt_length',
+					$override_excerpt_length,
+					20
+				);
+			}
 		}
 
 		if ( $has_password_filter ) {
@@ -1971,6 +2060,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					$data['generated_slug'] = $sample_permalink[1];
 				}
 			}
+
+			if ( rest_is_field_included( 'class_list', $fields ) ) {
+				$data['class_list'] = get_post_class( array(), $post->ID );
+			}
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -2016,15 +2109,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Overwrites the default protected title format.
+	 * Overwrites the default protected and private title format.
 	 *
-	 * By default, WordPress will show password protected posts with a title of
-	 * "Protected: %s", as the REST API communicates the protected status of a post
-	 * in a machine readable format, we remove the "Protected: " prefix.
+	 * By default, WordPress will show password protected or private posts with a title of
+	 * "Protected: %s" or "Private: %s", as the REST API communicates the status of a post
+	 * in a machine-readable format, we remove the prefix.
 	 *
 	 * @since 4.7.0
 	 *
-	 * @return string Protected title format.
+	 * @return string Title format.
 	 */
 	public function protected_title_format() {
 		return '%s';
@@ -2325,6 +2418,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'        => 'string',
 				'context'     => array( 'edit' ),
 				'readonly'    => true,
+			);
+
+			$schema['properties']['class_list'] = array(
+				'description' => __( 'An array of the class names for the post container element.' ),
+				'type'        => 'array',
+				'context'     => array( 'view', 'edit' ),
+				'readonly'    => true,
+				'items'       => array(
+					'type' => 'string',
+				),
 			);
 		}
 
@@ -2843,6 +2946,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
+		$query_params['search_semantics'] = array(
+			'description' => __( 'How to interpret the search input.' ),
+			'type'        => 'string',
+			'enum'        => array( 'exact' ),
+		);
+
 		$query_params['offset'] = array(
 			'description' => __( 'Offset the result set by a specific number of items.' ),
 			'type'        => 'integer',
@@ -2933,6 +3042,18 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$query_params['sticky'] = array(
 				'description' => __( 'Limit result set to items that are sticky.' ),
 				'type'        => 'boolean',
+			);
+		}
+
+		if ( post_type_supports( $this->post_type, 'post-formats' ) ) {
+			$query_params['format'] = array(
+				'description' => __( 'Limit result set to items assigned one or more given formats.' ),
+				'type'        => 'array',
+				'uniqueItems' => true,
+				'items'       => array(
+					'enum' => array_values( get_post_format_slugs() ),
+					'type' => 'string',
+				),
 			);
 		}
 

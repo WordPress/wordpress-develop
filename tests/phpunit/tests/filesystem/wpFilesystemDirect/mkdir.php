@@ -159,16 +159,15 @@ class Tests_Filesystem_WpFilesystemDirect_Mkdir extends WP_Filesystem_Direct_Uni
 
 		rmdir( $path );
 
-		$expected_group = $this->is_windows() ? $original_owner : $original_owner + 1;
-		$created        = self::$filesystem->mkdir( $path, 0755, $expected_group );
-		$owner          = fileowner( $path );
+		$created = self::$filesystem->mkdir( $path, 0755, $original_owner );
+		$owner   = fileowner( $path );
 
 		if ( $path !== self::$file_structure['test_dir']['path'] && is_dir( $path ) ) {
 			rmdir( $path );
 		}
 
 		$this->assertTrue( $created, 'The directory was not created.' );
-		$this->assertSame( $expected_group, $owner, 'The owner is incorrect.' );
+		$this->assertSame( $original_owner, $owner, 'The owner is incorrect.' );
 	}
 
 	/**
@@ -197,15 +196,14 @@ class Tests_Filesystem_WpFilesystemDirect_Mkdir extends WP_Filesystem_Direct_Uni
 
 		rmdir( $path );
 
-		$expected_group = $this->is_windows() ? $original_group : $original_group + 1;
-		$created        = self::$filesystem->mkdir( $path, 0755, false, $expected_group );
-		$group          = filegroup( $path );
+		$created = self::$filesystem->mkdir( $path, 0755, false, $original_group );
+		$group   = filegroup( $path );
 
 		if ( $path !== self::$file_structure['test_dir']['path'] && is_dir( $path ) ) {
 			rmdir( $path );
 		}
 
 		$this->assertTrue( $created, 'The directory was not created.' );
-		$this->assertSame( $expected_group, $group, 'The group is incorrect.' );
+		$this->assertSame( $original_group, $group, 'The group is incorrect.' );
 	}
 }

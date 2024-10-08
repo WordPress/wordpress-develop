@@ -7,9 +7,9 @@ Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Twenty Twenty-One is a blank canvas for your ideas and it makes the block editor your best brush. With new block patterns, which allow you to create a beautiful layout in a matter of seconds, this theme’s soft colors and eye-catching — yet timeless — design will let your work shine. Take it for a spin! See how Twenty Twenty-One elevates your portfolio, business website, or personal blog.
 Requires at least: 5.3
-Tested up to: 6.4
+Tested up to: 6.6
 Requires PHP: 5.6
-Version: 2.1
+Version: 2.3
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentytwentyone
@@ -1042,11 +1042,6 @@ template,
  * .entry-content children specific controls
  * - Adds special margin overrides for alignment utility classes
  */
-.entry-content > * {
-
-	/* Reset alignleft and alignright margins after alignfull */
-}
-
 .entry-content > *.alignleft,
 .entry-content > *.alignright,
 .entry-content > *.alignleft:first-child + *,
@@ -1215,8 +1210,6 @@ blockquote strong {
 
 blockquote:before {
 	content: "“";
-	font-size: 1.25rem;
-	line-height: 1.7;
 	position: absolute;
 	left: -12px;
 }
@@ -1225,10 +1218,9 @@ blockquote .wp-block-quote__citation,
 blockquote cite,
 blockquote footer {
 	color: #28303d;
-	font-size: 1rem;
 	font-style: normal;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	blockquote {
 		padding-left: 13px;
@@ -1667,6 +1659,10 @@ i {
 pre {
 	white-space: pre;
 	overflow-x: auto;
+}
+
+.entry-content > code {
+	display: block;
 }
 
 /*
@@ -2243,16 +2239,7 @@ input[type=reset]:disabled,
 }
 
 .wp-block-group {
-	display: block;
-	clear: both;
 	display: flow-root;
-}
-
-.wp-block-group:before,
-.wp-block-group:after {
-	content: "";
-	display: block;
-	clear: both;
 }
 
 .wp-block-group .wp-block-group__inner-container {
@@ -2490,7 +2477,7 @@ h6,
 		max-width: 50%;
 	}
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.entry-content > .wp-block-image > .alignleft,
 	.entry-content > .wp-block-image > .alignright {
@@ -2503,8 +2490,11 @@ h6,
 	padding-left: 0;
 }
 
-.wp-block-latest-comments .wp-block-latest-comments__comment {
+.wp-block-latest-comments:where(:not([class*=-font-size]):not([style*=font-size])) .wp-block-latest-comments__comment {
 	font-size: 1.125rem;
+}
+
+.wp-block-latest-comments .wp-block-latest-comments__comment {
 	line-height: 1.7;
 
 	/* Vertical margins logic */
@@ -2525,12 +2515,12 @@ h6,
 }
 
 .wp-block-latest-comments .wp-block-latest-comments__comment-date {
-	color: #28303d;
-	font-size: 1.125rem;
+	color: inherit;
+	font-size: inherit;
 }
 
 .wp-block-latest-comments .wp-block-latest-comments__comment-excerpt p {
-	font-size: 1.125rem;
+	font-size: inherit;
 	line-height: 1.7;
 	margin: 0;
 }
@@ -2820,13 +2810,6 @@ dd {
 	padding-left: 50px;
 }
 
-.wp-block-media-text {
-
-	/**
-   * Block Options
-   */
-}
-
 .wp-block-media-text.alignfull {
 	margin-top: 0;
 	margin-bottom: 0;
@@ -2924,7 +2907,7 @@ dd {
 	left: 25px;
 	border-style: solid;
 	border-color: #28303d transparent;
-	border-width: 0 7px 10px 7px;
+	border-width: 0 7px 10px;
 }
 
 .wp-block-navigation > .wp-block-navigation__container > .has-child > .wp-block-navigation__container:after {
@@ -3140,17 +3123,39 @@ pre.wp-block-preformatted {
 
 .wp-block-quote {
 	border-left: none;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 1.25rem;
+	font-style: normal;
+	font-weight: 700;
+	line-height: 1.7;
 
 	/**
    * Block Options
    */
 }
 
+.wp-block-quote p {
+	font-family: inherit;
+	font-size: inherit;
+	font-style: inherit;
+	font-weight: inherit;
+	line-height: inherit;
+	letter-spacing: inherit;
+}
+
 .wp-block-quote:before {
 	content: "“";
-	font-size: 1.25rem;
-	line-height: 1.7;
 	left: 8px;
+}
+
+.wp-block-quote .wp-block-quote__citation,
+.wp-block-quote cite,
+.wp-block-quote footer {
+	font-family: inherit;
+	font-style: inherit;
+	font-weight: inherit;
+	line-height: inherit;
+	letter-spacing: inherit;
 }
 
 .has-background .wp-block-quote .wp-block-quote__citation,
@@ -3168,6 +3173,24 @@ pre.wp-block-preformatted {
 	color: currentColor;
 }
 
+.wp-block-quote:where(:not([style*=font-style])) .wp-block-quote__citation {
+	font-style: normal;
+}
+
+.wp-block-quote:where(:not([style*=font-style])) cite {
+	font-style: normal;
+}
+
+.wp-block-quote:where(:not([style*=font-style])) footer {
+	font-style: normal;
+}
+
+.wp-block-quote:where(:not([style*=font-weight])) .wp-block-quote__citation,
+.wp-block-quote:where(:not([style*=font-weight])) cite,
+.wp-block-quote:where(:not([style*=font-weight])) footer {
+	font-weight: normal;
+}
+
 .wp-block-quote.has-text-align-right {
 	margin: 30px 25px 30px auto;
 	padding-right: 0;
@@ -3180,9 +3203,6 @@ pre.wp-block-preformatted {
 
 .wp-block-quote.has-text-align-right p:before {
 	content: "”";
-	font-size: 1.25rem;
-	font-weight: normal;
-	line-height: 1.7;
 	margin-right: 5px;
 }
 
@@ -3294,7 +3314,7 @@ pre.wp-block-preformatted {
 	color: #28303d;
 	font-size: 1.125rem;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.wp-block-quote.is-large,
 	.wp-block-quote.is-style-large {
@@ -3476,6 +3496,7 @@ pre.wp-block-preformatted {
 	line-height: 1.7;
 	max-width: inherit;
 	margin-right: -3px;
+	margin-left: 0;
 	padding: 10px;
 }
 
@@ -4142,7 +4163,7 @@ table.wp-calendar-table caption {
 
 	.site-branding {
 		margin-right: initial;
-		margin-top: 4px;
+		margin-top: calc(13px - 0em);
 	}
 }
 
@@ -4219,7 +4240,7 @@ table.wp-calendar-table caption {
 	}
 }
 
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.site-header.has-logo:not(.has-title-and-tagline).has-menu .site-logo {
 		position: absolute;
@@ -4291,7 +4312,7 @@ table.wp-calendar-table caption {
 .no-widgets .site-footer {
 	margin-top: 180px;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.no-widgets .site-footer {
 		margin-top: 90px;
@@ -4522,7 +4543,7 @@ body:not(.single) .site-main > article:last-of-type .entry-footer {
 .single .site-main > article > .entry-footer .tags-links {
 	display: block;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.single .site-main > article > .entry-footer,
 	.single .site-main > article > .entry-footer .full-size-link {
@@ -4830,7 +4851,7 @@ h1.page-title {
 .comment-meta .comment-metadata {
 	color: #28303d;
 	font-size: 1rem;
-	padding: 8px 0 9px 0;
+	padding: 8px 0 9px;
 }
 
 .comment-meta .comment-metadata .edit-link {
@@ -4941,7 +4962,7 @@ h1.page-title {
 	flex-basis: 0;
 	flex-grow: 1;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.comment-form .comment-form-author,
 	.comment-form .comment-form-email {
@@ -5002,7 +5023,7 @@ h1.page-title {
 	padding-top: 15px;
 	padding-bottom: 8px;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.menu-button-container {
 		display: flex;
@@ -5090,7 +5111,7 @@ h1.page-title {
 		transition: all 0.15s ease-in-out;
 	}
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.primary-navigation > .primary-menu-container {
 		height: 100vh;
@@ -5137,12 +5158,12 @@ h1.page-title {
 }
 
 .primary-navigation-open .primary-navigation > .primary-menu-container {
-	position: absolute;
+	position: relative;
 	visibility: visible;
 	opacity: 1;
 	transform: translateY(0);
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.primary-navigation-open .has-logo.has-title-and-tagline .primary-navigation > .primary-menu-container {
 		transform: translateX(0) translateY(0);
@@ -5186,7 +5207,7 @@ h1.page-title {
 	padding-left: 0;
 	position: relative;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.primary-navigation > div > .menu-wrapper {
 		padding-bottom: 100px;
@@ -5229,7 +5250,7 @@ h1.page-title {
 .primary-navigation > div > .menu-wrapper .sub-menu-toggle:focus {
 	outline: 2px solid #28303d;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.primary-navigation > div > .menu-wrapper .sub-menu-toggle {
 		display: none;
@@ -5291,7 +5312,7 @@ h1.page-title {
 		left: 25px;
 		border-style: solid;
 		border-color: #28303d transparent;
-		border-width: 0 7px 10px 7px;
+		border-width: 0 7px 10px;
 	}
 
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu:after {
@@ -5451,7 +5472,7 @@ h1.page-title {
 		padding: 0;
 	}
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.primary-navigation .sub-menu .menu-item:last-child {
 		margin-bottom: 0;
@@ -5499,7 +5520,7 @@ h1.page-title {
 	display: inline-block;
 }
 
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.lock-scrolling .site {
 		position: fixed;
@@ -5796,7 +5817,7 @@ h1.page-title {
 .comments-pagination .nav-links > *.prev {
 	margin-right: auto;
 }
-@media only screen and (max-width: 821px) {
+@media only screen and (max-width: 821.98px) {
 
 	.pagination .nav-links,
 	.comments-pagination .nav-links {
@@ -5817,7 +5838,7 @@ h1.page-title {
 		flex: 0 1 auto;
 	}
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.pagination .nav-short,
 	.comments-pagination .nav-short {
@@ -5832,7 +5853,7 @@ h1.page-title {
 @media only screen and (min-width: 822px) {
 
 	.comments-pagination {
-		margin: 90px auto 120px auto;
+		margin: 90px auto 120px;
 	}
 }
 
@@ -5861,7 +5882,7 @@ h1.page-title {
 		grid-template-columns: repeat(3, 1fr);
 	}
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.widget-area {
 		margin-top: 90px;
@@ -6259,7 +6280,7 @@ footer {
 .is-IE.is-dark-theme .primary-navigation > div > .menu-wrapper > li > .sub-menu li {
 	background: #000;
 }
-@media only screen and (max-width: 481px) {
+@media only screen and (max-width: 481.98px) {
 
 	.is-IE.is-dark-theme.primary-navigation-open .primary-navigation > .primary-menu-container,
 	.is-IE.is-dark-theme.primary-navigation-open .menu-button-container {
@@ -6277,4 +6298,11 @@ footer {
 
 .is-IE .post-thumbnail .wp-post-image {
 	min-width: auto;
+}
+
+.is-IE .wp-block-group:before,
+.is-IE .wp-block-group:after {
+	content: "";
+	display: block;
+	clear: both;
 }

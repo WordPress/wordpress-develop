@@ -62,9 +62,8 @@ function _wp_admin_bar_init() {
  * the function is also called late on {@see 'wp_footer'}.
  *
  * It includes the {@see 'admin_bar_menu'} action which should be used to hook in and
- * add new menus to the admin bar. That way you can be sure that you are adding at most
- * optimal point, right before the admin bar is rendered. This also gives you access to
- * the `$post` global, among others.
+ * add new menus to the admin bar. This also gives you access to the `$post` global,
+ * among others.
  *
  * @since 3.1.0
  * @since 5.4.0 Called on 'wp_body_open' action first, with 'wp_footer' as a fallback.
@@ -86,7 +85,10 @@ function wp_admin_bar_render() {
 	/**
 	 * Loads all necessary admin bar items.
 	 *
-	 * This is the hook used to add, remove, or manipulate admin bar items.
+	 * This hook can add, remove, or manipulate admin bar items. The priority
+	 * determines the placement for new items, and changes to existing items
+	 * would require a high priority. To remove or manipulate existing nodes
+	 * without a specific priority, use `wp_before_admin_bar_render`.
 	 *
 	 * @since 3.1.0
 	 *
@@ -417,7 +419,7 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 				array(
 					'parent' => 'site-name',
 					'id'     => 'edit-site',
-					'title'  => __( 'Edit Site' ),
+					'title'  => __( 'Manage Site' ),
 					'href'   => network_admin_url( 'site-info.php?id=' . get_current_blog_id() ),
 				)
 			);
@@ -455,6 +457,7 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
  *
  * @since 5.9.0
  * @since 6.3.0 Added `$_wp_current_template_id` global for editing of current template directly from the admin bar.
+ * @since 6.6.0 Added the `canvas` query arg to the Site Editor link.
  *
  * @global string $_wp_current_template_id
  *
@@ -481,6 +484,7 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
 				array(
 					'postType' => 'wp_template',
 					'postId'   => $_wp_current_template_id,
+					'canvas'   => 'edit',
 				),
 				admin_url( 'site-editor.php' )
 			),

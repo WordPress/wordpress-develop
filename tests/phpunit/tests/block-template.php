@@ -395,10 +395,11 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * @covers ::_get_block_templates_paths
 	 */
 	public function test_get_block_templates_paths_dir_exists() {
-		$theme_dir = get_template_directory();
+		$theme_dir = $this->normalizeDirectorySeparatorsInPath( get_template_directory() );
 		// Templates in the current theme.
 		$templates = array(
 			'parts/small-header.html',
+			'templates/custom-hero-template.html',
 			'templates/custom-single-post-template.html',
 			'templates/index.html',
 			'templates/page-home.html',
@@ -414,6 +415,8 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		);
 
 		$template_paths = _get_block_templates_paths( $theme_dir );
+		$template_paths = array_map( array( $this, 'normalizeDirectorySeparatorsInPath' ), _get_block_templates_paths( $theme_dir ) );
+
 		$this->assertSameSets( $expected_template_paths, $template_paths );
 	}
 
@@ -428,6 +431,47 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		// Should return empty array for invalid path.
 		$template_paths = _get_block_templates_paths( '/tmp/random-invalid-theme-path' );
 		$this->assertSame( array(), $template_paths );
+	}
+
+	/**
+	 * Tests that get_block_templates() returns plugin-registered templates.
+	 *
+	 * @ticket 61804
+	 *
+	 * @covers ::get_block_templates
+	 */
+	public function test_get_block_templates_from_registry() {
+		$template_name = 'test-plugin//test-template';
+
+		wp_register_block_template( $template_name );
+
+		$templates = get_block_templates();
+
+		$this->assertArrayHasKey( $template_name, $templates );
+
+		wp_unregister_block_template( $template_name );
+	}
+
+	/**
+	 * Tests that get_block_template() returns plugin-registered templates.
+	 *
+	 * @ticket 61804
+	 *
+	 * @covers ::get_block_template
+	 */
+	public function test_get_block_template_from_registry() {
+		$template_name = 'test-plugin//test-template';
+		$args          = array(
+			'title' => 'Test Template',
+		);
+
+		wp_register_block_template( $template_name, $args );
+
+		$template = get_block_template( 'block-theme//test-template' );
+
+		$this->assertSame( 'Test Template', $template->title );
+
+		wp_unregister_block_template( $template_name );
 	}
 
 	/**

@@ -2,6 +2,10 @@
 /**
  * WordPress core upgrade functionality.
  *
+ * Note: Newly introduced functions and methods cannot be used here.
+ * All functions must be present in the previous version being upgraded from
+ * as this file is used there too.
+ *
  * @package WordPress
  * @subpackage Administration
  * @since 2.7.0
@@ -737,10 +741,14 @@ $_old_files = array(
 	'wp-includes/blocks/query-title/editor.min.css',
 	'wp-includes/blocks/query-title/editor-rtl.css',
 	'wp-includes/blocks/query-title/editor-rtl.min.css',
-	'wp-includes/blocks/tag-cloud/editor.css',
-	'wp-includes/blocks/tag-cloud/editor.min.css',
-	'wp-includes/blocks/tag-cloud/editor-rtl.css',
-	'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
+	/*
+	 * Restored in WordPress 6.7
+	 *
+	 * 'wp-includes/blocks/tag-cloud/editor.css',
+	 * 'wp-includes/blocks/tag-cloud/editor.min.css',
+	 * 'wp-includes/blocks/tag-cloud/editor-rtl.css',
+	 * 'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
+	 */
 	// 6.1
 	'wp-includes/blocks/post-comments.php',
 	'wp-includes/blocks/post-comments',
@@ -753,6 +761,23 @@ $_old_files = array(
 	'wp-includes/navigation-fallback.php',
 	'wp-includes/blocks/navigation/view-modal.min.js',
 	'wp-includes/blocks/navigation/view-modal.js',
+	// 6.5
+	'wp-includes/ID3/license.commercial.txt',
+	'wp-includes/blocks/query/style-rtl.min.css',
+	'wp-includes/blocks/query/style.min.css',
+	'wp-includes/blocks/query/style-rtl.css',
+	'wp-includes/blocks/query/style.css',
+	'wp-admin/images/about-header-privacy.svg',
+	'wp-admin/images/about-header-about.svg',
+	'wp-admin/images/about-header-credits.svg',
+	'wp-admin/images/about-header-freedoms.svg',
+	'wp-admin/images/about-header-contribute.svg',
+	'wp-admin/images/about-header-background.svg',
+	// 6.6
+	'wp-includes/blocks/block/editor.css',
+	'wp-includes/blocks/block/editor.min.css',
+	'wp-includes/blocks/block/editor-rtl.css',
+	'wp-includes/blocks/block/editor-rtl.min.css',
 );
 
 /**
@@ -884,6 +909,7 @@ $_new_bundled_files = array(
 	'themes/twentytwentytwo/'   => '5.9',
 	'themes/twentytwentythree/' => '6.1',
 	'themes/twentytwentyfour/'  => '6.4',
+	'themes/twentytwentyfive/'  => '6.7',
 );
 
 /**
@@ -945,6 +971,7 @@ function update_core( $from, $to ) {
 	global $wp_filesystem, $_old_files, $_old_requests_files, $_new_bundled_files, $wpdb;
 
 	if ( function_exists( 'set_time_limit' ) ) {
+		// Gives core update script time an additional 300 seconds(5 minutes) to finish updating large files or run on slower servers.
 		set_time_limit( 300 );
 	}
 
@@ -1746,7 +1773,7 @@ function _upgrade_core_deactivate_incompatible_plugins() {
 		} else {
 			$deactivated_plugins = get_option( 'wp_force_deactivated_plugins', array() );
 			$deactivated_plugins = array_merge( $deactivated_plugins, $deactivated_gutenberg );
-			update_option( 'wp_force_deactivated_plugins', $deactivated_plugins );
+			update_option( 'wp_force_deactivated_plugins', $deactivated_plugins, false );
 		}
 		deactivate_plugins( array( 'gutenberg/gutenberg.php' ), true );
 	}

@@ -8,6 +8,8 @@
  *
  * @since 6.5.0
  *
+ * @coversDefaultClass WP_Interactivity_API
+ *
  * @group interactivity-api
  */
 class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
@@ -54,7 +56,7 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -76,7 +78,7 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -97,9 +99,9 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id-1', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-1', $p->get_attribute( 'id' ) );
 		$p->next_tag( array( 'class_name' => 'test' ) );
-		$this->assertEquals( 'some-id-2', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-2', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -119,7 +121,7 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id-2', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-2', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -140,9 +142,9 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id-2', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-2', $p->get_attribute( 'id' ) );
 		$p->next_tag( array( 'class_name' => 'test' ) );
-		$this->assertEquals( 'some-id-1', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-1', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -163,9 +165,9 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id-1', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-1', $p->get_attribute( 'id' ) );
 		$p->next_tag( array( 'class_name' => 'test' ) );
-		$this->assertEquals( 'some-id-2', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-2', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -204,9 +206,9 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id-1', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-1', $p->get_attribute( 'id' ) );
 		$p->next_tag( array( 'class_name' => 'test' ) );
-		$this->assertEquals( 'some-id-1', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-1', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -245,9 +247,9 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id-1', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-1', $p->get_attribute( 'id' ) );
 		$p->next_tag( array( 'class_name' => 'test' ) );
-		$this->assertEquals( 'some-id-1', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-1', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -286,9 +288,9 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id-1', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-1', $p->get_attribute( 'id' ) );
 		$p->next_tag( array( 'class_name' => 'test' ) );
-		$this->assertEquals( 'some-id-1', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-1', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -305,7 +307,7 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -315,6 +317,7 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_wp_context_directive_doesnt_work_without_any_namespace() {
 		$html    = '
@@ -343,7 +346,7 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -365,7 +368,7 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -386,7 +389,7 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -413,11 +416,11 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'other-id', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'other-id', $p->get_attribute( 'id' ) );
 		$p->next_tag( array( 'class_name' => 'test' ) );
-		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
 		$p->next_tag( array( 'class_name' => 'test' ) );
-		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
 		$p->next_tag( array( 'class_name' => 'test' ) );
 		$this->assertNull( $p->get_attribute( 'id' ) );
 	}
@@ -442,7 +445,7 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -466,9 +469,9 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id-1', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-1', $p->get_attribute( 'id' ) );
 		$p->next_tag( array( 'class_name' => 'test' ) );
-		$this->assertEquals( 'some-id-2', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-2', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -491,7 +494,7 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id-2', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-2', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -515,8 +518,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-id-2', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-2', $p->get_attribute( 'id' ) );
 		$p->next_tag( array( 'class_name' => 'test' ) );
-		$this->assertEquals( 'some-id-1', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'some-id-1', $p->get_attribute( 'id' ) );
 	}
 }

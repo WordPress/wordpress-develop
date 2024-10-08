@@ -1439,6 +1439,66 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that the notification email is sent in the correct locale.
+	 *
+	 * @ticket 61518
+	 */
+	public function test_wp_new_user_notification_switches_locale_to_matching_user() {
+		reset_phpmailer_instance();
+
+		$admin_user = get_user_by( 'email', get_option( 'admin_email' ) );
+
+		update_option( 'WPLANG', 'en_GB' );
+		update_user_meta( $admin_user->ID, 'locale', 'de_DE' );
+		update_user_meta( self::$contrib_id, 'locale', 'es_ES' );
+
+		$admin_email_locale = null;
+		$user_email_locale  = null;
+
+		add_filter(
+			'wp_new_user_notification_email_admin',
+			static function ( $email ) use ( &$admin_email_locale ) {
+				$admin_email_locale = get_locale();
+				return $email;
+			}
+		);
+		add_filter(
+			'wp_new_user_notification_email',
+			static function ( $email ) use ( &$user_email_locale ) {
+				$user_email_locale = get_locale();
+				return $email;
+			}
+		);
+
+		wp_new_user_notification( self::$contrib_id, null, 'both' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$was_admin_email_sent = false;
+		$was_user_email_sent  = false;
+
+		/*
+		 * Check to see if a notification email was sent to the
+		 * post author `blackburn@battlefield3.com` and and site admin `admin@example.org`.
+		 */
+		$first_recipient = $mailer->get_recipient( 'to' );
+		if ( $first_recipient ) {
+			$was_admin_email_sent = WP_TESTS_EMAIL === $first_recipient->address;
+			$was_user_email_sent  = 'blackburn@battlefield3.com' === $first_recipient->address;
+		}
+
+		$second_recipient = $mailer->get_recipient( 'to', 1 );
+		if ( $second_recipient ) {
+			$was_user_email_sent = 'blackburn@battlefield3.com' === $second_recipient->address;
+		}
+
+		$this->assertTrue( $was_admin_email_sent, 'Admin email was not sent as expected' );
+		$this->assertTrue( $was_user_email_sent, 'User email was not sent as expected' );
+		$this->assertSame( 'de_DE', $admin_email_locale, 'Admin email was not sent in the expected locale' );
+		$this->assertSame( 'es_ES', $user_email_locale, 'User email was not sent in the expected locale' );
+	}
+
+	/**
 	 * Callback that returns 0.0.
 	 *
 	 * @return float 0.0.
@@ -1491,7 +1551,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Assert recipient is correct.
 		$this->assertSame( $new_email, $recipient->address, 'Admin email change notification recipient not as expected' );
 
-		// Assert that HTML entites have been decode in body and subject.
+		// Assert that HTML entities have been decode in body and subject.
 		$this->assertStringContainsString( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
 		$this->assertStringNotContainsString( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, $email->subject, 'Email subject does contains HTML entities' );
 	}
@@ -1794,7 +1854,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Assert recipient is correct.
 		$this->assertSame( 'new-email@test.dev', $recipient->address, 'User email change confirmation recipient not as expected' );
 
-		// Assert that HTML entites have been decoded in body and subject.
+		// Assert that HTML entities have been decoded in body and subject.
 		$this->assertStringContainsString( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
 		$this->assertStringNotContainsString( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, 'Email subject does contains HTML entities' );
 	}

@@ -340,7 +340,8 @@
 }
 
 @media screen and (max-width: 480px) {
-	.about__section.is-feature .column {
+	.about__section.is-feature .column,
+	.about__section .is-section-header {
 		padding: 0;
 	}
 
@@ -378,7 +379,7 @@
 .about__container h2,
 .about__container h3.is-larger-heading {
 	margin-top: 0;
-	margin-bottom: 0.5em;
+	margin-bottom: calc(0.5 * var(--gap));
 	font-size: 2rem;
 	font-weight: 700;
 	line-height: 1.16;
@@ -388,6 +389,7 @@
 .about__container h1.is-smaller-heading,
 .about__container h2.is-smaller-heading {
 	margin-top: 0;
+	margin-bottom: calc(0.5 * var(--gap));
 	font-size: 1.625rem;
 	font-weight: 700;
 	line-height: 1.4;
@@ -405,8 +407,12 @@
 .about__container h2,
 .about__container h3,
 .about__container h4 {
-	text-wrap: balance;
+	text-wrap: pretty;
 	color: inherit;
+}
+
+.about__container :is(h1, h2, h3, h4):lang(en) {
+	text-wrap: balance;
 }
 
 .about__container p {
@@ -445,6 +451,10 @@
 .wp-credits-list a:active,
 .wp-credits-list a:focus {
 	text-decoration: underline;
+}
+
+.about__section a.button.button-hero {
+	font-size: 1.5rem;
 }
 
 .about__container ul {
@@ -488,7 +498,7 @@
 }
 
 .about__container .about__image + h3 {
-	margin-top: 1.5em;
+	margin-top: calc(0.75 * var(--gap));
 }
 
 .about__container hr {
@@ -507,10 +517,18 @@
 	margin: var(--gap) auto;
 }
 
+.about__container hr.is-invisible {
+	border: none;
+}
+
 .about__container div.updated,
 .about__container div.error,
 .about__container .notice {
 	display: none !important;
+}
+
+.about__container code {
+	font-size: inherit;
 }
 
 .about__section {
@@ -581,7 +599,7 @@
 .privacy-php .about__header-title h1,
 .contribute-php .about__header-title h1 {
 	/* Fluid font size scales on browser size 960px - 1200px. */
-	font-size: clamp(2rem, 10vw - 3rem, 4rem);
+	font-size: clamp(2rem, 20vw - 9rem, 4rem);
 }
 
 .about__header-text {
@@ -651,7 +669,7 @@
 	.privacy-php .about__header-title h1,
 	.contribute-php .about__header-title h1 {
 		/* Fluid font size scales on browser size 600px - 960px. */
-		font-size: clamp(3rem, 6.67vw - 0.5rem, 4.5rem);
+		font-size: clamp(2rem, 20vw - 9rem, 4rem);
 	}
 
 	.about__header-navigation .nav-tab {
@@ -1274,24 +1292,6 @@
 .freedoms-php .about-wrap ol p {
 	font-weight: 400;
 	margin: 0.6em 0;
-}
-
-.freedoms-php .column .freedoms-image {
-	background-image: url('../images/freedoms.png');
-	background-size: 100%;
-	padding-top: 100%;
-}
-
-.freedoms-php .column:nth-of-type(2) .freedoms-image {
-	background-position: 0 34%;
-}
-
-.freedoms-php .column:nth-of-type(3) .freedoms-image {
-	background-position: 0 66%;
-}
-
-.freedoms-php .column:nth-of-type(4) .freedoms-image {
-	background-position: 0 100%;
 }
 
 /*------------------------------------------------------------------------------

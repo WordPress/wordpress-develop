@@ -122,8 +122,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 1, $enqueued_script_modules );
-		$this->assertFalse( isset( $enqueued_script_modules['foo'] ) );
-		$this->assertTrue( isset( $enqueued_script_modules['bar'] ) );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
+		$this->assertArrayHasKey( 'bar', $enqueued_script_modules );
 	}
 
 
@@ -149,8 +149,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 1, $enqueued_script_modules );
-		$this->assertFalse( isset( $enqueued_script_modules['foo'] ) );
-		$this->assertTrue( isset( $enqueued_script_modules['bar'] ) );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
+		$this->assertArrayHasKey( 'bar', $enqueued_script_modules );
 	}
 
 	/**
@@ -168,7 +168,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 0, $enqueued_script_modules );
-		$this->assertFalse( isset( $enqueued_script_modules['unexistent'] ) );
+		$this->assertArrayNotHasKey( 'unexistent', $enqueued_script_modules );
 	}
 
 	/**
@@ -190,13 +190,13 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 0, $enqueued_script_modules );
-		$this->assertFalse( isset( $enqueued_script_modules['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
 
 		$this->script_modules->deregister( 'foo' ); // Dequeued.
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 0, $enqueued_script_modules );
-		$this->assertFalse( isset( $enqueued_script_modules['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
 	}
 
 	/**
@@ -218,7 +218,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $enqueued_script_modules );
 		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo'] );
-		$this->assertFalse( isset( $enqueued_script_modules['bar'] ) );
+		$this->assertArrayNotHasKey( 'bar', $enqueued_script_modules );
 	}
 
 	/**
@@ -242,8 +242,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 1, $enqueued_script_modules );
-		$this->assertFalse( isset( $enqueued_script_modules['foo'] ) );
-		$this->assertTrue( isset( $enqueued_script_modules['bar'] ) );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
+		$this->assertArrayHasKey( 'bar', $enqueued_script_modules );
 	}
 
 	/**
@@ -266,7 +266,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $import_map );
 		$this->assertStringStartsWith( '/dep.js', $import_map['dep'] );
-		$this->assertFalse( isset( $import_map['no-dep'] ) );
+		$this->assertArrayNotHasKey( 'no-dep', $import_map );
 	}
 
 	/**
@@ -340,7 +340,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$this->assertStringStartsWith( '/dynamic-dep.js', $import_map['dynamic-dep'] );
 		$this->assertStringStartsWith( '/nested-static-dep.js', $import_map['nested-static-dep'] );
 		$this->assertStringStartsWith( '/nested-dynamic-dep.js', $import_map['nested-dynamic-dep'] );
-		$this->assertFalse( isset( $import_map['no-dep'] ) );
+		$this->assertArrayNotHasKey( 'no-dep', $import_map );
 	}
 
 	/**
@@ -409,13 +409,13 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$this->assertCount( 2, $preloaded_script_modules );
 		$this->assertStringStartsWith( '/static-dep.js', $preloaded_script_modules['static-dep'] );
 		$this->assertStringStartsWith( '/nested-static-dep.js', $preloaded_script_modules['nested-static-dep'] );
-		$this->assertFalse( isset( $preloaded_script_modules['no-dep'] ) );
-		$this->assertFalse( isset( $preloaded_script_modules['dynamic-dep'] ) );
-		$this->assertFalse( isset( $preloaded_script_modules['nested-dynamic-dep'] ) );
+		$this->assertArrayNotHasKey( 'dynamic-dep', $preloaded_script_modules );
+		$this->assertArrayNotHasKey( 'nested-dynamic-dep', $preloaded_script_modules );
+		$this->assertArrayNotHasKey( 'no-dep', $preloaded_script_modules );
 	}
 
 	/**
-	 * Tests that static dependencies of dynamic depenendencies are not preloaded.
+	 * Tests that static dependencies of dynamic dependencies are not preloaded.
 	 *
 	 * @ticket 56313
 	 *
@@ -445,9 +445,9 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $preloaded_script_modules );
 		$this->assertStringStartsWith( '/static-dep.js', $preloaded_script_modules['static-dep'] );
-		$this->assertFalse( isset( $preloaded_script_modules['dynamic-dep'] ) );
-		$this->assertFalse( isset( $preloaded_script_modules['nested-static-dep'] ) );
-		$this->assertFalse( isset( $preloaded_script_modules['no-dep'] ) );
+		$this->assertArrayNotHasKey( 'dynamic-dep', $preloaded_script_modules );
+		$this->assertArrayNotHasKey( 'nested-dynamic-dep', $preloaded_script_modules );
+		$this->assertArrayNotHasKey( 'no-dep', $preloaded_script_modules );
 	}
 
 	/**
@@ -476,8 +476,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$preloaded_script_modules = $this->get_preloaded_script_modules();
 
 		$this->assertCount( 1, $preloaded_script_modules );
-		$this->assertTrue( isset( $preloaded_script_modules['dep'] ) );
-		$this->assertFalse( isset( $preloaded_script_modules['enqueued-dep'] ) );
+		$this->assertArrayHasKey( 'dep', $preloaded_script_modules );
+		$this->assertArrayNotHasKey( 'enqueued-dep', $preloaded_script_modules );
 	}
 
 	/**
@@ -507,53 +507,77 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$import_map = $this->get_import_map();
 
 		$this->assertCount( 2, $import_map );
-		$this->assertTrue( isset( $import_map['dep'] ) );
-		$this->assertTrue( isset( $import_map['enqueued-dep'] ) );
+		$this->assertArrayHasKey( 'dep', $import_map );
+		$this->assertArrayHasKey( 'enqueued-dep', $import_map );
 	}
 
 	/**
-	 * Tests the functionality of the `get_versioned_src` method to ensure
+	 * Tests the functionality of the `get_src` method to ensure
 	 * proper URLs with version strings are returned.
 	 *
 	 * @ticket 56313
 	 *
-	 * @covers ::get_versioned_src()
+	 * @covers ::get_src()
 	 */
-	public function test_get_versioned_src() {
-		$get_versioned_src = new ReflectionMethod( $this->script_modules, 'get_versioned_src' );
-		$get_versioned_src->setAccessible( true );
+	public function test_get_src() {
+		$get_src = new ReflectionMethod( $this->script_modules, 'get_src' );
+		$get_src->setAccessible( true );
 
-		$module_with_version = array(
-			'src'     => 'http://example.com/module.js',
-			'version' => '1.0',
+		$this->script_modules->register(
+			'module_with_version',
+			'http://example.com/module.js',
+			array(),
+			'1.0'
 		);
 
-		$result = $get_versioned_src->invoke( $this->script_modules, $module_with_version );
-		$this->assertEquals( 'http://example.com/module.js?ver=1.0', $result );
+		$result = $get_src->invoke( $this->script_modules, 'module_with_version' );
+		$this->assertSame( 'http://example.com/module.js?ver=1.0', $result );
 
-		$module_without_version = array(
-			'src'     => 'http://example.com/module.js',
-			'version' => null,
+		$this->script_modules->register(
+			'module_without_version',
+			'http://example.com/module.js',
+			array(),
+			null
 		);
 
-		$result = $get_versioned_src->invoke( $this->script_modules, $module_without_version );
-		$this->assertEquals( 'http://example.com/module.js', $result );
+		$result = $get_src->invoke( $this->script_modules, 'module_without_version' );
+		$this->assertSame( 'http://example.com/module.js', $result );
 
-		$module_with_wp_version = array(
-			'src'     => 'http://example.com/module.js',
-			'version' => false,
+		$this->script_modules->register(
+			'module_with_wp_version',
+			'http://example.com/module.js',
+			array(),
+			false
 		);
 
-		$result = $get_versioned_src->invoke( $this->script_modules, $module_with_wp_version );
-		$this->assertEquals( 'http://example.com/module.js?ver=' . get_bloginfo( 'version' ), $result );
+		$result = $get_src->invoke( $this->script_modules, 'module_with_wp_version' );
+		$this->assertSame( 'http://example.com/module.js?ver=' . get_bloginfo( 'version' ), $result );
 
-		$module_with_existing_query_string = array(
-			'src'     => 'http://example.com/module.js?foo=bar',
-			'version' => '1.0',
+		$this->script_modules->register(
+			'module_with_existing_query_string',
+			'http://example.com/module.js?foo=bar',
+			array(),
+			'1.0'
 		);
 
-		$result = $get_versioned_src->invoke( $this->script_modules, $module_with_existing_query_string );
-		$this->assertEquals( 'http://example.com/module.js?foo=bar&ver=1.0', $result );
+		$result = $get_src->invoke( $this->script_modules, 'module_with_existing_query_string' );
+		$this->assertSame( 'http://example.com/module.js?foo=bar&ver=1.0', $result );
+
+		// Filter the version to include the ID in the final URL, to test the filter, this should affect the tests below.
+		add_filter(
+			'script_module_loader_src',
+			function ( $src, $id ) {
+				return add_query_arg( 'script_module_id', urlencode( $id ), $src );
+			},
+			10,
+			2
+		);
+
+		$result = $get_src->invoke( $this->script_modules, 'module_without_version' );
+		$this->assertSame( 'http://example.com/module.js?script_module_id=module_without_version', $result );
+
+		$result = $get_src->invoke( $this->script_modules, 'module_with_existing_query_string' );
+		$this->assertSame( 'http://example.com/module.js?foo=bar&ver=1.0&script_module_id=module_with_existing_query_string', $result );
 	}
 
 	/**
@@ -582,13 +606,13 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$this->script_modules->enqueue( 'foo' );
 
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
-		$this->assertEquals( '/foo.js?ver=1.0', $enqueued_script_modules['foo'] );
+		$this->assertSame( '/foo.js?ver=1.0', $enqueued_script_modules['foo'] );
 
 		$import_map = $this->get_import_map();
-		$this->assertEquals( '/dep.js?ver=2.0', $import_map['dep'] );
+		$this->assertSame( '/dep.js?ver=2.0', $import_map['dep'] );
 
 		$preloaded_script_modules = $this->get_preloaded_script_modules();
-		$this->assertEquals( '/dep.js?ver=2.0', $preloaded_script_modules['dep'] );
+		$this->assertSame( '/dep.js?ver=2.0', $preloaded_script_modules['dep'] );
 	}
 
 	/**
@@ -606,7 +630,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 0, $enqueued_script_modules );
-		$this->assertFalse( isset( $enqueued_script_modules['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
 	}
 
 	/**
@@ -642,7 +666,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 0, $enqueued_script_modules );
-		$this->assertFalse( isset( $enqueued_script_modules['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
 
 		$this->script_modules->enqueue( 'foo', '/foo.js' ); // Valid src.
 
@@ -671,41 +695,215 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$import_map              = $this->get_import_map();
 
 		$this->assertCount( 1, $enqueued_script_modules );
-		$this->assertEquals( '/foo.js?ver=1.0', $enqueued_script_modules['foo'] );
+		$this->assertSame( '/foo.js?ver=1.0', $enqueued_script_modules['foo'] );
 		$this->assertCount( 1, $import_map );
 		$this->assertStringStartsWith( '/dep.js', $import_map['dep'] );
 	}
 
 	/**
-	 * @ticket 60348
-	 *
-	 * @covers ::print_import_map_polyfill()
+	 * @ticket 61510
 	 */
-	public function test_wp_print_import_map_has_no_polyfill_when_no_modules_registered() {
-		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map' ) );
+	public function test_print_script_module_data_prints_enqueued_module_data() {
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/module',
+			function ( $data ) {
+				$data['foo'] = 'bar';
+				return $data;
+			}
+		);
 
-		$this->assertEquals( '', $import_map_polyfill );
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$expected = <<<HTML
+<script type="application/json" id="wp-script-module-data-@test/module">
+{"foo":"bar"}
+</script>
+
+HTML;
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
-	 * @ticket 60348
-	 *
-	 * @covers ::print_import_map_polyfill()
+	 * @ticket 61510
 	 */
-	public function test_wp_print_import_map_has_polyfill_when_modules_registered() {
-		$script_name = 'wp-polyfill-importmap';
-		wp_register_script( $script_name, '/wp-polyfill-importmap.js' );
+	public function test_print_script_module_data_prints_dependency_module_data() {
+		$this->script_modules->register( '@test/dependency', '/dependency.js' );
+		$this->script_modules->enqueue( '@test/module', '/example.js', array( '@test/dependency' ) );
+		add_action(
+			'script_module_data_@test/dependency',
+			function ( $data ) {
+				$data['foo'] = 'bar';
+				return $data;
+			}
+		);
 
-		$this->script_modules->enqueue( 'foo', '/foo.js', array( 'dep' ), '1.0' );
-		$this->script_modules->register( 'dep', '/dep.js' );
-		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map' ) );
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
 
-		wp_deregister_script( $script_name );
+		$expected = <<<HTML
+<script type="application/json" id="wp-script-module-data-@test/dependency">
+{"foo":"bar"}
+</script>
 
-		$p = new WP_HTML_Tag_Processor( $import_map_polyfill );
-		$p->next_tag( array( 'tag' => 'SCRIPT' ) );
-		$id = $p->get_attribute( 'id' );
+HTML;
+		$this->assertSame( $expected, $actual );
+	}
 
-		$this->assertEquals( 'wp-load-polyfill-importmap', $id );
+	/**
+	 * @ticket 61510
+	 */
+	public function test_print_script_module_data_does_not_print_nondependency_module_data() {
+		$this->script_modules->register( '@test/other', '/dependency.js' );
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/other',
+			function ( $data ) {
+				$data['foo'] = 'bar';
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * @ticket 61510
+	 */
+	public function test_print_script_module_data_does_not_print_empty_data() {
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/module',
+			function ( $data ) {
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * @ticket 61510
+	 *
+	 * @dataProvider data_special_chars_script_encoding
+	 * @param string $input    Raw input string.
+	 * @param string $expected Expected output string.
+	 * @param string $charset  Blog charset option.
+	 */
+	public function test_print_script_module_data_encoding( $input, $expected, $charset ) {
+		add_filter(
+			'pre_option_blog_charset',
+			function () use ( $charset ) {
+				return $charset;
+			}
+		);
+
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/module',
+			function ( $data ) use ( $input ) {
+				$data[''] = $input;
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$expected = <<<HTML
+<script type="application/json" id="wp-script-module-data-@test/module">
+{"":"{$expected}"}
+</script>
+
+HTML;
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_special_chars_script_encoding(): array {
+		return array(
+			// UTF-8
+			'Solidus'                                => array( '/', '/', 'UTF-8' ),
+			'Double quote'                           => array( '"', '\\"', 'UTF-8' ),
+			'Single quote'                           => array( '\'', '\'', 'UTF-8' ),
+			'Less than'                              => array( '<', '\u003C', 'UTF-8' ),
+			'Greater than'                           => array( '>', '\u003E', 'UTF-8' ),
+			'Ampersand'                              => array( '&', '&', 'UTF-8' ),
+			'Newline'                                => array( "\n", "\\n", 'UTF-8' ),
+			'Tab'                                    => array( "\t", "\\t", 'UTF-8' ),
+			'Form feed'                              => array( "\f", "\\f", 'UTF-8' ),
+			'Carriage return'                        => array( "\r", "\\r", 'UTF-8' ),
+			'Line separator'                         => array( "\u{2028}", "\u{2028}", 'UTF-8' ),
+			'Paragraph separator'                    => array( "\u{2029}", "\u{2029}", 'UTF-8' ),
+
+			/*
+			 * The following is the Flag of England emoji
+			 * PHP: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}"
+			 */
+			'Flag of england'                        => array( '🏴󠁧󠁢󠁥󠁮󠁧󠁿', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'UTF-8' ),
+			'Malicious script closer'                => array( '</script>', '\u003C/script\u003E', 'UTF-8' ),
+			'Entity-encoded malicious script closer' => array( '&lt;/script&gt;', '&lt;/script&gt;', 'UTF-8' ),
+
+			// Non UTF-8
+			'Solidus'                                => array( '/', '/', 'iso-8859-1' ),
+			'Less than'                              => array( '<', '\u003C', 'iso-8859-1' ),
+			'Greater than'                           => array( '>', '\u003E', 'iso-8859-1' ),
+			'Ampersand'                              => array( '&', '&', 'iso-8859-1' ),
+			'Newline'                                => array( "\n", "\\n", 'iso-8859-1' ),
+			'Tab'                                    => array( "\t", "\\t", 'iso-8859-1' ),
+			'Form feed'                              => array( "\f", "\\f", 'iso-8859-1' ),
+			'Carriage return'                        => array( "\r", "\\r", 'iso-8859-1' ),
+			'Line separator'                         => array( "\u{2028}", "\u2028", 'iso-8859-1' ),
+			'Paragraph separator'                    => array( "\u{2029}", "\u2029", 'iso-8859-1' ),
+			/*
+			 * The following is the Flag of England emoji
+			 * PHP: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}"
+			 */
+			'Flag of england'                        => array( '🏴󠁧󠁢󠁥󠁮󠁧󠁿', "\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f", 'iso-8859-1' ),
+			'Malicious script closer'                => array( '</script>', '\u003C/script\u003E', 'iso-8859-1' ),
+			'Entity-encoded malicious script closer' => array( '&lt;/script&gt;', '&lt;/script&gt;', 'iso-8859-1' ),
+
+		);
+	}
+
+	/**
+	 * @ticket 61510
+	 *
+	 * @dataProvider data_invalid_script_module_data
+	 * @param mixed $data Data to return in filter.
+	 */
+	public function test_print_script_module_data_does_not_print_invalid_data( $data ) {
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/module',
+			function ( $_ ) use ( $data ) {
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_invalid_script_module_data(): array {
+		return array(
+			'null'     => array( null ),
+			'stdClass' => array( new stdClass() ),
+			'number 1' => array( 1 ),
+			'string'   => array( 'string' ),
+		);
 	}
 }

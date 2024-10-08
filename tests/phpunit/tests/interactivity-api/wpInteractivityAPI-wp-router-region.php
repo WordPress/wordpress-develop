@@ -6,6 +6,8 @@
  * @package WordPress
  * @subpackage Interactivity API
  *
+ * @coversDefaultClass WP_Interactivity_API
+ *
  * @group interactivity-api
  */
 class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
@@ -86,9 +88,9 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 		$html     = '<div>Nothing here</div>';
 		$new_html = $this->interactivity->process_directives( $html );
 		$footer   = $this->render_wp_footer();
-		$this->assertEquals( $html, $new_html );
-		$this->assertEquals( '', $footer );
-		$this->assertEquals( '', get_echo( 'wp_print_styles' ) );
+		$this->assertSame( $html, $new_html );
+		$this->assertSame( '', $footer );
+		$this->assertSame( '', get_echo( 'wp_print_styles' ) );
 	}
 
 	/**
@@ -100,20 +102,20 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 */
-	public function test_wp_router_region_adds_loading_bar_aria_live_region_only_once() {
+	public function test_wp_router_region_adds_loading_bar_region_only_once() {
 		$html     = '
 			<div data-wp-router-region="region A">Interactive region</div>
 			<div data-wp-router-region="region B">Another interactive region</div>
 		';
 		$new_html = $this->interactivity->process_directives( $html );
-		$this->assertEquals( $html, $new_html );
+		$this->assertSame( $html, $new_html );
 
 		// Check that the style is loaded, but only once.
 		$styles = get_echo( 'wp_print_styles' );
 		$query  = array( 'tag_name' => 'style' );
 		$p      = new WP_HTML_Tag_Processor( $styles );
 		$this->assertTrue( $p->next_tag( $query ) );
-		$this->assertEquals( 'wp-interactivity-router-animations-inline-css', $p->get_attribute( 'id' ) );
+		$this->assertSame( 'wp-interactivity-router-animations-inline-css', $p->get_attribute( 'id' ) );
 		$this->assertStringContainsString( '.wp-interactivity-router-loading-bar', $styles );
 		$this->assertFalse( $p->next_tag( $query ) );
 
@@ -121,10 +123,6 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 		$footer = $this->render_wp_footer();
 		$query  = array( 'class_name' => 'wp-interactivity-router-loading-bar' );
 		$p      = new WP_HTML_Tag_Processor( $footer );
-		$this->assertTrue( $p->next_tag( $query ) );
-		$this->assertFalse( $p->next_tag( $query ) );
-		$query = array( 'class_name' => 'screen-reader-text' );
-		$p     = new WP_HTML_Tag_Processor( $footer );
 		$this->assertTrue( $p->next_tag( $query ) );
 		$this->assertFalse( $p->next_tag( $query ) );
 	}

@@ -111,7 +111,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 				'&#x1f642;',
 			),
 			array(
-				// Bird, ZWJ, black large squre, emoji selector.
+				// Bird, ZWJ, black large square, emoji selector.
 				'🐦‍⬛',
 				'&#x1f426;&#x200d;&#x2b1b;',
 			),

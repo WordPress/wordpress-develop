@@ -2,6 +2,11 @@
 /**
  * WordPress implementation for PHP functions either missing from older PHP versions or not included by default.
  *
+ * This file is loaded extremely early and the functions can be relied upon by drop-ins.
+ * Ergo, please ensure you do not rely on external functions when writing code for this file.
+ * Only use functions built into PHP or are defined in this file and have adequate testing
+ * and error suppression to ensure the file will run correctly and not break websites.
+ *
  * @package PHP
  * @access private
  */
@@ -38,6 +43,43 @@ function _wp_can_use_pcre_u( $set = null ) {
 	}
 
 	return $utf8_pcre;
+}
+
+/**
+ * Indicates if a given slug for a character set represents the UTF-8 text encoding.
+ *
+ * A charset is considered to represent UTF-8 if it is a case-insensitive match
+ * of "UTF-8" with or without the hyphen.
+ *
+ * Example:
+ *
+ *     true  === _is_utf8_charset( 'UTF-8' );
+ *     true  === _is_utf8_charset( 'utf8' );
+ *     false === _is_utf8_charset( 'latin1' );
+ *     false === _is_utf8_charset( 'UTF 8' );
+ *
+ *     // Only strings match.
+ *     false === _is_utf8_charset( [ 'charset' => 'utf-8' ] );
+ *
+ * `is_utf8_charset` should be used outside of this file.
+ *
+ * @ignore
+ * @since 6.6.1
+ *
+ * @param string $charset_slug Slug representing a text character encoding, or "charset".
+ *                             E.g. "UTF-8", "Windows-1252", "ISO-8859-1", "SJIS".
+ *
+ * @return bool Whether the slug represents the UTF-8 encoding.
+ */
+function _is_utf8_charset( $charset_slug ) {
+	if ( ! is_string( $charset_slug ) ) {
+		return false;
+	}
+
+	return (
+		0 === strcasecmp( 'UTF-8', $charset_slug ) ||
+		0 === strcasecmp( 'UTF8', $charset_slug )
+	);
 }
 
 if ( ! function_exists( 'mb_substr' ) ) :
@@ -91,7 +133,7 @@ function _mb_substr( $str, $start, $length = null, $encoding = null ) {
 	 * The solution below works only for UTF-8, so in case of a different
 	 * charset just use built-in substr().
 	 */
-	if ( ! in_array( $encoding, array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
+	if ( ! _is_utf8_charset( $encoding ) ) {
 		return is_null( $length ) ? substr( $str, $start ) : substr( $str, $start, $length );
 	}
 
@@ -176,7 +218,7 @@ function _mb_strlen( $str, $encoding = null ) {
 	 * The solution below works only for UTF-8, so in case of a different charset
 	 * just use built-in strlen().
 	 */
-	if ( ! in_array( $encoding, array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
+	if ( ! _is_utf8_charset( $encoding ) ) {
 		return strlen( $str );
 	}
 
@@ -359,23 +401,6 @@ if ( ! function_exists( 'is_countable' ) ) {
 	}
 }
 
-if ( ! function_exists( 'is_iterable' ) ) {
-	/**
-	 * Polyfill for is_iterable() function added in PHP 7.1.
-	 *
-	 * Verify that the content of a variable is an array or an object
-	 * implementing the Traversable interface.
-	 *
-	 * @since 4.9.6
-	 *
-	 * @param mixed $value The value to check.
-	 * @return bool True if `$value` is iterable, false otherwise.
-	 */
-	function is_iterable( $value ) {
-		return ( is_array( $value ) || $value instanceof Traversable );
-	}
-}
-
 if ( ! function_exists( 'array_key_first' ) ) {
 	/**
 	 * Polyfill for array_key_first() function added in PHP 7.3.
@@ -520,16 +545,6 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 	}
 }
 
-// IMAGETYPE_WEBP constant is only defined in PHP 7.1 or later.
-if ( ! defined( 'IMAGETYPE_WEBP' ) ) {
-	define( 'IMAGETYPE_WEBP', 18 );
-}
-
-// IMG_WEBP constant is only defined in PHP 7.0.10 or later.
-if ( ! defined( 'IMG_WEBP' ) ) {
-	define( 'IMG_WEBP', IMAGETYPE_WEBP );
-}
-
 // IMAGETYPE_AVIF constant is only defined in PHP 8.x or later.
 if ( ! defined( 'IMAGETYPE_AVIF' ) ) {
 	define( 'IMAGETYPE_AVIF', 19 );
@@ -538,4 +553,9 @@ if ( ! defined( 'IMAGETYPE_AVIF' ) ) {
 // IMG_AVIF constant is only defined in PHP 8.x or later.
 if ( ! defined( 'IMG_AVIF' ) ) {
 	define( 'IMG_AVIF', IMAGETYPE_AVIF );
+}
+
+// IMAGETYPE_HEIC constant is not yet defined in PHP as of PHP 8.3.
+if ( ! defined( 'IMAGETYPE_HEIC' ) ) {
+	define( 'IMAGETYPE_HEIC', 99 );
 }

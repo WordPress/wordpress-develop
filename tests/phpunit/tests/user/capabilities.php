@@ -454,7 +454,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Test the tests. The administrator role has all primitive capabilities, therefore the
-	 * primitive capabilitity tests can be tested by checking that the list of tested
+	 * primitive capability tests can be tested by checking that the list of tested
 	 * capabilities matches those of the administrator role.
 	 *
 	 * @group capTestTests
@@ -570,7 +570,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$expected['read_app_password'],
 			$expected['edit_app_password'],
 			$expected['delete_app_passwords'],
-			$expected['delete_app_password']
+			$expected['delete_app_password'],
+			$expected['edit_block_binding']
 		);
 
 		$expected = array_keys( $expected );
@@ -992,7 +993,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Change the capabilites associated with a role and make sure the change
+	 * Change the capabilities associated with a role and make sure the change
 	 * is reflected in has_cap().
 	 */
 	public function test_role_add_cap() {
@@ -1033,7 +1034,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Change the capabilites associated with a role and make sure the change
+	 * Change the capabilities associated with a role and make sure the change
 	 * is reflected in has_cap().
 	 */
 	public function test_role_remove_cap() {
@@ -1652,6 +1653,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSame( 2, $add_user_role->get_call_count() );
 	}
 
+	/**
+	 * @group can_for_blog
+	 */
 	public function test_current_user_can_for_blog() {
 		global $wpdb;
 
@@ -1661,8 +1665,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$this->assertTrue( current_user_can_for_blog( get_current_blog_id(), 'edit_posts' ) );
 		$this->assertFalse( current_user_can_for_blog( get_current_blog_id(), 'foo_the_bar' ) );
+
 		if ( ! is_multisite() ) {
 			$this->assertTrue( current_user_can_for_blog( 12345, 'edit_posts' ) );
+			$this->assertFalse( current_user_can_for_blog( 12345, 'foo_the_bar' ) );
 			return;
 		}
 
@@ -1671,10 +1677,63 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$wpdb->suppress_errors( $suppress );
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
+
+		$this->assertNotWPError( $blog_id );
 		$this->assertTrue( current_user_can_for_blog( $blog_id, 'edit_posts' ) );
 		$this->assertFalse( current_user_can_for_blog( $blog_id, 'foo_the_bar' ) );
 
+		$another_blog_id = self::factory()->blog->create( array( 'user_id' => self::$users['author']->ID ) );
+
+		$this->assertNotWPError( $another_blog_id );
+
+		// Verify the user doesn't have a capability
+		$this->assertFalse( current_user_can_for_blog( $another_blog_id, 'edit_posts' ) );
+
+		// Add the current user to the site
+		add_user_to_blog( $another_blog_id, $user->ID, 'author' );
+
+		// Verify they now have the capability
+		$this->assertTrue( current_user_can_for_blog( $another_blog_id, 'edit_posts' ) );
+
 		wp_set_current_user( $old_uid );
+	}
+
+	/**
+	 * @group can_for_blog
+	 */
+	public function test_user_can_for_blog() {
+		$user = self::$users['editor'];
+
+		$this->assertTrue( user_can_for_blog( $user->ID, get_current_blog_id(), 'edit_posts' ) );
+		$this->assertFalse( user_can_for_blog( $user->ID, get_current_blog_id(), 'foo_the_bar' ) );
+
+		if ( ! is_multisite() ) {
+			$this->assertTrue( user_can_for_blog( $user->ID, 12345, 'edit_posts' ) );
+			$this->assertFalse( user_can_for_blog( $user->ID, 12345, 'foo_the_bar' ) );
+			return;
+		}
+
+		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
+
+		$this->assertNotWPError( $blog_id );
+		$this->assertTrue( user_can_for_blog( $user->ID, $blog_id, 'edit_posts' ) );
+		$this->assertFalse( user_can_for_blog( $user->ID, $blog_id, 'foo_the_bar' ) );
+
+		$author = self::$users['author'];
+
+		// Verify another user doesn't have a capability
+		$this->assertFalse( is_user_member_of_blog( $author->ID, $blog_id ) );
+		$this->assertFalse( user_can_for_blog( $author->ID, $blog_id, 'edit_posts' ) );
+
+		// Add the author to the site
+		add_user_to_blog( $blog_id, $author->ID, 'author' );
+
+		// Verify they now have the capability
+		$this->assertTrue( is_user_member_of_blog( $author->ID, $blog_id ) );
+		$this->assertTrue( user_can_for_blog( $author->ID, $blog_id, 'edit_posts' ) );
+
+		// Verify the user doesn't have a capability for a non-existent site
+		$this->assertFalse( user_can_for_blog( $user->ID, -1, 'edit_posts' ) );
 	}
 
 	/**
@@ -2375,5 +2434,53 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Test `edit_block_binding` meta capability is properly mapped.
+	 *
+	 * @ticket 61945
+	 */
+	public function test_edit_block_binding_caps_are_mapped_correctly() {
+		$author = self::$users['administrator'];
+		$post   = self::factory()->post->create_and_get(
+			array(
+				'post_author' => $author->ID,
+				'post_type'   => 'post',
+			)
+		);
+
+		foreach ( self::$users as $role => $user ) {
+			// It should map to `edit_{post_type}` if editing a post.
+			$this->assertSame(
+				user_can( $user->ID, 'edit_post', $post->ID ),
+				user_can(
+					$user->ID,
+					'edit_block_binding',
+					new WP_Block_Editor_Context(
+						array(
+							'post' => $post,
+							'name' => 'core/edit-post',
+						)
+					)
+				),
+				"Role: {$role} in post editing"
+			);
+			// It should map to `edit_theme_options` if editing a template.
+			$this->assertSame(
+				user_can( $user->ID, 'edit_theme_options' ),
+				user_can(
+					$user->ID,
+					'edit_block_binding',
+					new WP_Block_Editor_Context(
+						array(
+							'post' => null,
+							'name' => 'core/edit-site',
+						)
+					)
+				),
+				"Role: {$role} in template editing"
+			);
+		}
 	}
 }

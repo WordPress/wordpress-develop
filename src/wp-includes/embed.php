@@ -14,7 +14,7 @@
  *
  * @since 2.9.0
  *
- * @global WP_Embed $wp_embed
+ * @global WP_Embed $wp_embed WordPress Embed object.
  *
  * @param string   $id       An internal ID/name for the handler. Needs to be unique.
  * @param string   $regex    The regex that will be used to see if this handler should be used for a URL.
@@ -32,7 +32,7 @@ function wp_embed_register_handler( $id, $regex, $callback, $priority = 10 ) {
  *
  * @since 2.9.0
  *
- * @global WP_Embed $wp_embed
+ * @global WP_Embed $wp_embed WordPress Embed object.
  *
  * @param string $id       The handler ID that should be removed.
  * @param int    $priority Optional. The priority of the handler to be removed. Default 10.
@@ -230,7 +230,7 @@ function wp_maybe_load_embeds() {
  *
  * @since 4.0.0
  *
- * @global WP_Embed $wp_embed
+ * @global WP_Embed $wp_embed WordPress Embed object.
  *
  * @param array  $matches The RegEx matches from the provided regex when calling
  *                        wp_embed_register_handler().
@@ -244,7 +244,7 @@ function wp_embed_handler_youtube( $matches, $attr, $url, $rawattr ) {
 	$embed = $wp_embed->autoembed( sprintf( 'https://youtube.com/watch?v=%s', urlencode( $matches[2] ) ) );
 
 	/**
-	 * Filters the YoutTube embed output.
+	 * Filters the YouTube embed output.
 	 *
 	 * @since 4.0.0
 	 *
@@ -336,10 +336,10 @@ function wp_oembed_add_discovery_links() {
 	$output = '';
 
 	if ( is_singular() ) {
-		$output .= '<link rel="alternate" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
+		$output .= '<link rel="alternate" title="' . _x( 'oEmbed (JSON)', 'oEmbed resource link name' ) . '" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
 
 		if ( class_exists( 'SimpleXMLElement' ) ) {
-			$output .= '<link rel="alternate" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+			$output .= '<link rel="alternate" title="' . _x( 'oEmbed (XML)', 'oEmbed resource link name' ) . '" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
 		}
 	}
 
@@ -627,12 +627,13 @@ function get_oembed_response_data_for_url( $url, $args ) {
 			wp_parse_url( $url ),
 			array(
 				'host' => '',
+				'port' => null,
 				'path' => '/',
 			)
 		);
 
 		$qv = array(
-			'domain'                 => $url_parts['host'],
+			'domain'                 => $url_parts['host'] . ( $url_parts['port'] ? ':' . $url_parts['port'] : '' ),
 			'path'                   => '/',
 			'update_site_meta_cache' => false,
 		);
@@ -965,7 +966,7 @@ function wp_filter_oembed_result( $result, $data, $url ) {
 
 	if ( ! empty( $content[1] ) ) {
 		// We have a blockquote to fall back on. Hide the iframe by default.
-		$html = str_replace( '<iframe', '<iframe style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"', $html );
+		$html = str_replace( '<iframe', '<iframe style="position: absolute; visibility: hidden;"', $html );
 		$html = str_replace( '<blockquote', '<blockquote class="wp-embedded-content"', $html );
 	}
 
@@ -1098,7 +1099,13 @@ function print_embed_scripts() {
  * @return string The filtered content.
  */
 function _oembed_filter_feed_content( $content ) {
-	return str_replace( '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"', '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"', $content );
+	$p = new WP_HTML_Tag_Processor( $content );
+	while ( $p->next_tag( array( 'tag_name' => 'iframe' ) ) ) {
+		if ( $p->has_class( 'wp-embedded-content' ) ) {
+			$p->remove_attribute( 'style' );
+		}
+	}
+	return $p->get_updated_html();
 }
 
 /**

@@ -37,7 +37,7 @@ function list_core_update( $update ) {
 	global $wp_local_package, $wpdb;
 	static $first_pass = true;
 
-	$wp_version     = get_bloginfo( 'version' );
+	$wp_version     = wp_get_wp_version();
 	$version_string = sprintf( '%s&ndash;%s', $update->current, get_locale() );
 
 	if ( 'en_US' === $update->locale && 'en_US' === get_locale() ) {
@@ -258,7 +258,7 @@ function core_upgrade_preamble() {
 		$message = sprintf(
 			/* translators: 1: Documentation on WordPress backups, 2: Documentation on updating WordPress. */
 			__( '<strong>Important:</strong> Before updating, please <a href="%1$s">back up your database and files</a>. For help with updates, visit the <a href="%2$s">Updating WordPress</a> documentation page.' ),
-			__( 'https://wordpress.org/documentation/article/wordpress-backups/' ),
+			__( 'https://developer.wordpress.org/advanced-administration/security/backup/' ),
 			__( 'https://wordpress.org/documentation/article/updating-wordpress/' )
 		);
 		wp_admin_notice(
@@ -393,7 +393,7 @@ function core_auto_updates_settings() {
 	);
 
 	if ( $upgrade_major ) {
-		$wp_version = get_bloginfo( 'version' );
+		$wp_version = wp_get_wp_version();
 		$updates    = get_core_updates();
 
 		if ( isset( $updates[0]->version ) && version_compare( $updates[0]->version, $wp_version, '>' ) ) {
@@ -460,7 +460,7 @@ function core_auto_updates_settings() {
  * @since 2.9.0
  */
 function list_plugin_updates() {
-	$wp_version     = get_bloginfo( 'version' );
+	$wp_version     = wp_get_wp_version();
 	$cur_wp_version = preg_replace( '/-.*$/', '', $wp_version );
 
 	require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
@@ -1045,7 +1045,7 @@ if ( current_user_can( 'update_themes' ) || current_user_can( 'update_plugins' )
 		)
 	);
 
-	$help_sidebar_rollback = '<p>' . __( '<a href="https://wordpress.org/documentation/article/common-wordpress-errors/">Common Errors</a>' ) . '</p>';
+	$help_sidebar_rollback = '<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/wordpress/common-errors/">Common Errors</a>' ) . '</p>';
 }
 
 get_current_screen()->set_help_sidebar(
@@ -1096,12 +1096,12 @@ if ( 'upgrade-core' === $action ) {
 	$current           = get_site_transient( 'update_core' );
 
 	if ( $current && isset( $current->last_checked ) ) {
-		$last_update_check = $current->last_checked + get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
+		$last_update_check = $current->last_checked + (int) ( (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 	}
 
 	echo '<h2 class="wp-current-version">';
 	/* translators: Current version of WordPress. */
-	printf( __( 'Current version: %s' ), get_bloginfo( 'version' ) );
+	printf( __( 'Current version: %s' ), esc_html( wp_get_wp_version() ) );
 	echo '</h2>';
 
 	echo '<p class="update-last-checked">';

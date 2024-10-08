@@ -60,6 +60,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 5.9.0 Added the Twenty Twenty-Two theme.
 	 * @since 6.1.0 Added the Twenty Twenty-Three theme.
 	 * @since 6.4.0 Added the Twenty Twenty-Four theme.
+	 * @since 6.7.0 Added the Twenty Twenty-Five theme.
 	 * @var string[]
 	 */
 	private static $default_themes = array(
@@ -79,6 +80,7 @@ final class WP_Theme implements ArrayAccess {
 		'twentytwentytwo'   => 'Twenty Twenty-Two',
 		'twentytwentythree' => 'Twenty Twenty-Three',
 		'twentytwentyfour'  => 'Twenty Twenty-Four',
+		'twentytwentyfive'  => 'Twenty Twenty-Five',
 	);
 
 	/**
@@ -352,7 +354,7 @@ final class WP_Theme implements ArrayAccess {
 			 */
 			$default_theme_slug = array_search( $this->headers['Name'], self::$default_themes, true );
 			if ( $default_theme_slug ) {
-				if ( basename( $this->stylesheet ) != $default_theme_slug ) {
+				if ( basename( $this->stylesheet ) !== $default_theme_slug ) {
 					$this->headers['Name'] .= '/' . $this->stylesheet;
 				}
 			}
@@ -417,7 +419,10 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		// If we got our data from cache, we can assume that 'template' is pointing to the right place.
-		if ( ! is_array( $cache ) && $this->template != $this->stylesheet && ! file_exists( $this->theme_root . '/' . $this->template . '/index.php' ) ) {
+		if ( ! is_array( $cache )
+			&& $this->template !== $this->stylesheet
+			&& ! file_exists( $this->theme_root . '/' . $this->template . '/index.php' )
+		) {
 			/*
 			 * If we're in a directory of themes inside /themes, look for the parent nearby.
 			 * wp-content/themes/directory-of-themes/*
@@ -425,7 +430,9 @@ final class WP_Theme implements ArrayAccess {
 			$parent_dir  = dirname( $this->stylesheet );
 			$directories = search_theme_directories();
 
-			if ( '.' !== $parent_dir && file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/index.php' ) ) {
+			if ( '.' !== $parent_dir
+				&& file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/index.php' )
+			) {
 				$this->template = $parent_dir . '/' . $this->template;
 			} elseif ( $directories && isset( $directories[ $this->template ] ) ) {
 				/*
@@ -460,9 +467,9 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		// Set the parent, if we're a child theme.
-		if ( $this->template != $this->stylesheet ) {
+		if ( $this->template !== $this->stylesheet ) {
 			// If we are a parent, then there is a problem. Only two generations allowed! Cancel things out.
-			if ( $_child instanceof WP_Theme && $_child->template == $this->stylesheet ) {
+			if ( $_child instanceof WP_Theme && $_child->template === $this->stylesheet ) {
 				$_child->parent = null;
 				$_child->errors = new WP_Error(
 					'theme_parent_invalid',
@@ -484,7 +491,7 @@ final class WP_Theme implements ArrayAccess {
 					)
 				);
 				// The two themes actually reference each other with the Template header.
-				if ( $_child->stylesheet == $this->template ) {
+				if ( $_child->stylesheet === $this->template ) {
 					$this->errors = new WP_Error(
 						'theme_parent_invalid',
 						sprintf(
@@ -1714,7 +1721,7 @@ final class WP_Theme implements ArrayAccess {
 			return (array) apply_filters( 'site_allowed_themes', $allowed_themes[ $blog_id ], $blog_id );
 		}
 
-		$current = get_current_blog_id() == $blog_id;
+		$current = get_current_blog_id() === $blog_id;
 
 		if ( $current ) {
 			$allowed_themes[ $blog_id ] = get_option( 'allowedthemes' );
@@ -1752,11 +1759,11 @@ final class WP_Theme implements ArrayAccess {
 			// Set the option so we never have to go through this pain again.
 			if ( is_admin() && $allowed_themes[ $blog_id ] ) {
 				if ( $current ) {
-					update_option( 'allowedthemes', $allowed_themes[ $blog_id ] );
+					update_option( 'allowedthemes', $allowed_themes[ $blog_id ], false );
 					delete_option( 'allowed_themes' );
 				} else {
 					switch_to_blog( $blog_id );
-					update_option( 'allowedthemes', $allowed_themes[ $blog_id ] );
+					update_option( 'allowedthemes', $allowed_themes[ $blog_id ], false );
 					delete_option( 'allowed_themes' );
 					restore_current_blog();
 				}
@@ -1967,6 +1974,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Gets block pattern cache.
 	 *
 	 * @since 6.4.0
+	 * @since 6.6.0 Uses transients to cache regardless of site environment.
 	 *
 	 * @return array|false Returns an array of patterns if cache is found, otherwise false.
 	 */
@@ -1974,7 +1982,9 @@ final class WP_Theme implements ArrayAccess {
 		if ( ! $this->exists() ) {
 			return false;
 		}
-		$pattern_data = wp_cache_get( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
+
+		$pattern_data = get_site_transient( 'wp_theme_files_patterns-' . $this->cache_hash );
+
 		if ( is_array( $pattern_data ) && $pattern_data['version'] === $this->get( 'Version' ) ) {
 			return $pattern_data['patterns'];
 		}
@@ -1985,6 +1995,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Sets block pattern cache.
 	 *
 	 * @since 6.4.0
+	 * @since 6.6.0 Uses transients to cache regardless of site environment.
 	 *
 	 * @param array $patterns Block patterns data to set in cache.
 	 */
@@ -1993,16 +2004,43 @@ final class WP_Theme implements ArrayAccess {
 			'version'  => $this->get( 'Version' ),
 			'patterns' => $patterns,
 		);
-		wp_cache_set( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data, 'theme_files' );
+
+		/**
+		 * Filters the cache expiration time for theme files.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param int    $cache_expiration Cache expiration time in seconds.
+		 * @param string $cache_type       Type of cache being set.
+		 */
+		$cache_expiration = (int) apply_filters( 'wp_theme_files_cache_ttl', self::$cache_expiration, 'theme_block_patterns' );
+
+		// We don't want to cache patterns infinitely.
+		if ( $cache_expiration <= 0 ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %1$s: The filter name.*/
+					__( 'The %1$s filter must return an integer value greater than 0.' ),
+					'<code>wp_theme_files_cache_ttl</code>'
+				),
+				'6.6.0'
+			);
+
+			$cache_expiration = self::$cache_expiration;
+		}
+
+		set_site_transient( 'wp_theme_files_patterns-' . $this->cache_hash, $pattern_data, $cache_expiration );
 	}
 
 	/**
 	 * Clears block pattern cache.
 	 *
 	 * @since 6.4.0
+	 * @since 6.6.0 Uses transients to cache regardless of site environment.
 	 */
 	public function delete_pattern_cache() {
-		wp_cache_delete( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
+		delete_site_transient( 'wp_theme_files_patterns-' . $this->cache_hash );
 	}
 
 	/**

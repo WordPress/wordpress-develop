@@ -118,11 +118,13 @@ themes.view.Appearance = wp.Backbone.View.extend({
 		// Render and append after screen title.
 		view.render();
 		this.searchContainer
-			.append( $.parseHTML( '<label class="screen-reader-text" for="wp-filter-search-input">' + l10n.search + '</label>' ) )
-			.append( view.el )
-			.on( 'submit', function( event ) {
-				event.preventDefault();
-			});
+			.find( '.search-box' )
+			.append( $.parseHTML( '<label for="wp-filter-search-input">' + l10n.search + '</label>' ) )
+			.append( view.el );
+
+		this.searchContainer.on( 'submit', function( event ) {
+			event.preventDefault();
+		});
 	},
 
 	// Checks when the user gets close to the bottom
@@ -926,7 +928,7 @@ themes.view.Preview = themes.view.Details.extend({
 
 		currentPreviewDevice = this.$el.data( 'current-preview-device' );
 		if ( currentPreviewDevice ) {
-			self.tooglePreviewDeviceButtons( currentPreviewDevice );
+			self.togglePreviewDeviceButtons( currentPreviewDevice );
 		}
 
 		themes.router.navigate( themes.router.baseUrl( themes.router.themePath + this.model.get( 'id' ) ), { replace: false } );
@@ -988,10 +990,10 @@ themes.view.Preview = themes.view.Details.extend({
 			.addClass( 'preview-' + device )
 			.data( 'current-preview-device', device );
 
-		this.tooglePreviewDeviceButtons( device );
+		this.togglePreviewDeviceButtons( device );
 	},
 
-	tooglePreviewDeviceButtons: function( newDevice ) {
+	togglePreviewDeviceButtons: function( newDevice ) {
 		var $devices = $( '.wp-full-overlay-footer .devices' );
 
 		$devices.find( 'button' )
@@ -1359,7 +1361,6 @@ themes.view.Search = wp.Backbone.View.extend({
 	searching: false,
 
 	attributes: {
-		placeholder: l10n.searchPlaceholder,
 		type: 'search',
 		'aria-describedby': 'live-search-desc'
 	},

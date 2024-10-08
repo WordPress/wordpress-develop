@@ -153,7 +153,7 @@ if ( current_user_can( 'install_themes' ) ) {
 	} else {
 		$help_install = '<p>' . sprintf(
 			/* translators: %s: https://wordpress.org/themes/ */
-			__( 'If you would like to see more themes to choose from, click on the &#8220;Add New Theme&#8221; button and you will be able to browse or search for additional themes from the <a href="%s">WordPress Theme Directory</a>. Themes in the WordPress Theme Directory are designed and developed by third parties, and are compatible with the license WordPress uses. Oh, and they&#8217;re free!' ),
+			__( 'If you would like to see more themes to choose from, click on the &#8220;Add New Theme&#8221; button and you will be able to browse or search for additional themes from the <a href="%s">WordPress Theme Directory</a>. Themes in the WordPress Theme Directory are designed and developed by third parties, and are compatible with the license WordPress uses. Oh, and they are free!' ),
 			__( 'https://wordpress.org/themes/' )
 		) . '</p>';
 	}
@@ -215,7 +215,9 @@ if ( current_user_can( 'switch_themes' ) ) {
 } else {
 	$themes = wp_prepare_themes_for_js( array( wp_get_theme() ) );
 }
-wp_reset_vars( array( 'theme', 'search' ) );
+
+$theme  = ! empty( $_REQUEST['theme'] ) ? sanitize_text_field( $_REQUEST['theme'] ) : '';
+$search = ! empty( $_REQUEST['search'] ) ? sanitize_text_field( $_REQUEST['search'] ) : '';
 
 wp_localize_script(
 	'theme',
@@ -229,12 +231,11 @@ wp_localize_script(
 			'adminUrl'      => parse_url( admin_url(), PHP_URL_PATH ),
 		),
 		'l10n'     => array(
-			'addNew'            => __( 'Add New Theme' ),
-			'search'            => __( 'Search Installed Themes' ),
-			'searchPlaceholder' => __( 'Search installed themes...' ), // Placeholder (no ellipsis).
+			'addNew'        => __( 'Add New Theme' ),
+			'search'        => __( 'Search installed themes' ),
 			/* translators: %d: Number of themes. */
-			'themesFound'       => __( 'Number of Themes found: %d' ),
-			'noThemesFound'     => __( 'No themes found. Try a different search.' ),
+			'themesFound'   => __( 'Number of Themes found: %d' ),
+			'noThemesFound' => __( 'No themes found. Try a different search.' ),
 		),
 	)
 );
@@ -250,14 +251,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<h1 class="wp-heading-inline"><?php esc_html_e( 'Themes' ); ?>
 		<span class="title-count theme-count"><?php echo ! empty( $_GET['search'] ) ? __( '&hellip;' ) : count( $themes ); ?></span>
 	</h1>
-
 	<?php if ( ! is_multisite() && current_user_can( 'install_themes' ) ) : ?>
 		<a href="<?php echo esc_url( admin_url( 'theme-install.php' ) ); ?>" class="hide-if-no-js page-title-action"><?php echo esc_html__( 'Add New Theme' ); ?></a>
 	<?php endif; ?>
-
-	<form class="search-form"></form>
-
 	<hr class="wp-header-end">
+	<form class="search-form search-themes"><p class="search-box"></p></form>
+
 <?php
 if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 	wp_admin_notice(

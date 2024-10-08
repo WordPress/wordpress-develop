@@ -477,6 +477,109 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that bookmarks start and length correctly describe a given token in HTML.
+	 *
+	 * @ticket 61301
+	 *
+	 * @dataProvider data_html_nth_token_substring
+	 *
+	 * @param string $html            Input HTML.
+	 * @param int    $match_nth_token Which token to inspect from input HTML.
+	 * @param string $expected_match  Expected full raw token bookmark should capture.
+	 */
+	public function test_token_bookmark_span( string $html, int $match_nth_token, string $expected_match ) {
+		$processor = new class( $html ) extends WP_HTML_Tag_Processor {
+			/**
+			 * Returns the raw span of HTML for the currently-matched
+			 * token, or null if not paused on any token.
+			 *
+			 * @return string|null Raw HTML content of currently-matched token,
+			 *                     otherwise `null` if not matched.
+			 */
+			public function get_raw_token() {
+				if (
+					WP_HTML_Tag_Processor::STATE_READY === $this->parser_state ||
+					WP_HTML_Tag_Processor::STATE_INCOMPLETE_INPUT === $this->parser_state ||
+					WP_HTML_Tag_Processor::STATE_COMPLETE === $this->parser_state
+				) {
+					return null;
+				}
+
+				$this->set_bookmark( 'mark' );
+				$mark = $this->bookmarks['mark'];
+
+				return substr( $this->html, $mark->start, $mark->length );
+			}
+		};
+
+		for ( $i = 0; $i < $match_nth_token; $i++ ) {
+			$processor->next_token();
+		}
+
+		$raw_token = $processor->get_raw_token();
+		$this->assertIsString(
+			$raw_token,
+			"Failed to find raw token at position {$match_nth_token}: check test data provider."
+		);
+
+		$this->assertSame(
+			$expected_match,
+			$raw_token,
+			'Bookmarked wrong span of text for full matched token.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_html_nth_token_substring() {
+		return array(
+			// Tags.
+			'DIV start tag'                 => array( '<div>', 1, '<div>' ),
+			'DIV start tag with attributes' => array( '<div class="x" disabled>', 1, '<div class="x" disabled>' ),
+			'DIV end tag'                   => array( '</div>', 1, '</div>' ),
+			'DIV end tag with attributes'   => array( '</div class="x" disabled>', 1, '</div class="x" disabled>' ),
+			'Nested DIV'                    => array( '<div><div b>', 2, '<div b>' ),
+			'Sibling DIV'                   => array( '<div></div><div b>', 3, '<div b>' ),
+			'DIV after text'                => array( 'text <div>', 2, '<div>' ),
+			'DIV before text'               => array( '<div> text', 1, '<div>' ),
+			'DIV after comment'             => array( '<!-- comment --><div>', 2, '<div>' ),
+			'DIV before comment'            => array( '<div><!-- c --> ', 1, '<div>' ),
+			'Start "self-closing" tag'      => array( '<div />', 1, '<div />' ),
+			'Void tag'                      => array( '<img src="img.png">', 1, '<img src="img.png">' ),
+			'Void tag w/self-closing flag'  => array( '<img src="img.png" />', 1, '<img src="img.png" />' ),
+			'Void tag inside DIV'           => array( '<div><img src="img.png"></div>', 2, '<img src="img.png">' ),
+
+			// Special atomic tags.
+			'SCRIPT tag'                    => array( '<script>inside text</script>', 1, '<script>inside text</script>' ),
+			'SCRIPT double-escape'          => array( '<script><!-- <script> echo "</script>"; </script><div>', 1, '<script><!-- <script> echo "</script>"; </script>' ),
+
+			// Text.
+			'Text'                          => array( 'Just text', 1, 'Just text' ),
+			'Text in DIV'                   => array( '<div>Text<div>', 2, 'Text' ),
+			'Text before DIV'               => array( 'Text<div>', 1, 'Text' ),
+			'Text after DIV'                => array( '<div></div>Text', 3, 'Text' ),
+			'Text after comment'            => array( '<!-- comment -->Text', 2, 'Text' ),
+			'Text before comment'           => array( 'Text<!-- c --> ', 1, 'Text' ),
+
+			// Comments.
+			'Comment'                       => array( '<!-- comment -->', 1, '<!-- comment -->' ),
+			'Comment in DIV'                => array( '<div><!-- comment --><div>', 2, '<!-- comment -->' ),
+			'Comment before DIV'            => array( '<!-- comment --><div>', 1, '<!-- comment -->' ),
+			'Comment after DIV'             => array( '<div></div><!-- comment -->', 3, '<!-- comment -->' ),
+			'Comment after comment'         => array( '<!-- comment --><!-- comment -->', 2, '<!-- comment -->' ),
+			'Comment before comment'        => array( '<!-- comment --><!-- c --> ', 1, '<!-- comment -->' ),
+			'Abruptly closed comment'       => array( '<!-->', 1, '<!-->' ),
+			'Empty comment'                 => array( '<!---->', 1, '<!---->' ),
+			'Funky comment'                 => array( '</_ funk >', 1, '</_ funk >' ),
+			'PI lookalike comment'          => array( '<?processing instruction?>', 1, '<?processing instruction?>' ),
+			'CDATA lookalike comment'       => array( '<![CDATA[ see? data ]]>', 1, '<![CDATA[ see? data ]]>' ),
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
@@ -496,6 +599,31 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
 
 		$this->assertFalse( $processor->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
+	}
+
+	/**
+	 * @ticket 61545
+	 */
+	public function test_next_tag_should_not_match_on_substrings_of_a_requested_tag() {
+		$processor = new WP_HTML_Tag_Processor( '<p><pic><picture>' );
+
+		$this->assertTrue(
+			$processor->next_tag( 'PICTURE' ),
+			'Failed to find a tag when requested: check test setup.'
+		);
+
+		$this->assertSame(
+			'PICTURE',
+			$processor->get_tag(),
+			'Should have skipped past substring tag matches, directly finding the PICTURE element.'
+		);
+
+		$processor = new WP_HTML_Tag_Processor( '<p><pic>' );
+
+		$this->assertFalse(
+			$processor->next_tag( 'PICTURE' ),
+			"Should not have found any PICTURE element, but found '{$processor->get_token_name()}' instead."
+		);
 	}
 
 	/**
@@ -1273,12 +1401,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->remove_class( 'main' );
 
 		$this->assertSame(
-			'<div class=" with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
+			'<div class="with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
 			'Updated HTML does not reflect class name removed from existing class attribute via remove_class()'
 		);
 		$this->assertSame(
-			' with-border',
+			'with-border',
 			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect class name removed from existing class attribute via remove_class()"
 		);
@@ -1363,12 +1491,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->add_class( 'foo-class' );
 
 		$this->assertSame(
-			'<div class="   main   with-border foo-class" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
+			'<div class="main   with-border foo-class" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
 			'Updated HTML does not reflect existing excessive whitespace after adding class name via add_class()'
 		);
 		$this->assertSame(
-			'   main   with-border foo-class',
+			'main   with-border foo-class',
 			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect existing excessive whitespace after adding class name via add_class()"
 		);
@@ -1387,12 +1515,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->remove_class( 'with-border' );
 
 		$this->assertSame(
-			'<div class="   main" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
+			'<div class="main" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
 			'Updated HTML does not reflect existing excessive whitespace after removing class name via remove_class()'
 		);
 		$this->assertSame(
-			'   main',
+			'main',
 			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect existing excessive whitespace after removing class name via removing_class()"
 		);
@@ -1593,8 +1721,8 @@ HTML;
 		$expected_output = <<<HTML
 <div data-details="{ &quot;key&quot;: &quot;value&quot; }" selected class="merge-message is-processed" checked>
 	<div class="select-menu d-inline-block">
-		<div checked class=" MixedCaseHTML position-relative button-group Another-Mixed-Case" />
-		<div checked class=" MixedCaseHTML position-relative button-group Another-Mixed-Case">
+		<div checked class="MixedCaseHTML position-relative button-group Another-Mixed-Case" />
+		<div checked class="MixedCaseHTML position-relative button-group Another-Mixed-Case">
 			<button type="button" class="merge-box-button btn-group-merge rounded-left-2 btn  BtnGroup-item js-details-target hx_create-pr-button" aria-expanded="false" data-details-container=".js-merge-pr" disabled="">
 			  Merge pull request
 			</button>
@@ -2106,6 +2234,35 @@ HTML;
 		}
 
 		$this->assertSame( array( 'one' ), $found_classes, 'Visited multiple copies of the same class name when it should have skipped the duplicates.' );
+	}
+
+	/**
+	 * Ensures that null bytes are replaced with the replacement character (U+FFFD) in class_list.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_null_bytes_replaced() {
+		$processor = new WP_HTML_Tag_Processor( "<div class='a \0 b\0 \0c\0'>" );
+		$processor->next_tag();
+
+		$found_classes = iterator_to_array( $processor->class_list() );
+
+		$this->assertSame( array( 'a', "\u{FFFD}", "b\u{FFFD}", "\u{FFFD}c\u{FFFD}" ), $found_classes );
+	}
+
+	/**
+	 * Ensures that the tag processor matches class names with null bytes correctly.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_class
+	 */
+	public function test_has_class_null_byte_class_name() {
+		$processor = new WP_HTML_Tag_Processor( "<div class='null-byte-\0-there'>" );
+		$processor->next_tag();
+		$this->assertTrue( $processor->has_class( 'null-byte-�-there' ) );
 	}
 
 	/**
@@ -2726,5 +2883,105 @@ HTML
 		$processor->next_token();
 		$this->assertSame( '#text', $processor->get_token_type(), 'Did not find text node.' );
 		$this->assertSame( 'test< /A>', $processor->get_modifiable_text(), 'Did not find complete text node.' );
+	}
+
+	/**
+	 * Ensures that updates which are enqueued in front of the cursor
+	 * are applied before moving forward in the document.
+	 *
+	 * @ticket 60697
+	 */
+	public function test_applies_updates_before_proceeding() {
+		$html = '<div><img></div><div><img></div>';
+
+		$subclass = new class( $html ) extends WP_HTML_Tag_Processor {
+			/**
+			 * Inserts raw text after the current token.
+			 *
+			 * @param string $new_html Raw text to insert.
+			 */
+			public function insert_after( $new_html ) {
+				$this->set_bookmark( 'here' );
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$this->bookmarks['here']->start + $this->bookmarks['here']->length,
+					0,
+					$new_html
+				);
+			}
+		};
+
+		$subclass->next_tag( 'img' );
+		$subclass->insert_after( '<p>snow-capped</p>' );
+
+		$subclass->next_tag();
+		$this->assertSame(
+			'P',
+			$subclass->get_tag(),
+			'Should have matched inserted HTML as next tag.'
+		);
+
+		$subclass->next_tag( 'img' );
+		$subclass->set_attribute( 'alt', 'mountain' );
+
+		$this->assertSame(
+			'<div><img><p>snow-capped</p></div><div><img alt="mountain"></div>',
+			$subclass->get_updated_html(),
+			'Should have properly applied the update from in front of the cursor.'
+		);
+	}
+
+	/**
+	 * Test an infinite loop bugfix in incomplete script tag parsing.
+	 *
+	 * @small
+	 *
+	 * @ticket 61810
+	 */
+	public function test_script_tag_processing_no_infinite_loop_final_dash() {
+		$processor = new WP_HTML_Tag_Processor( '<script>-' );
+
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
+
+	/**
+	 * Test an infinite loop bugfix in incomplete script tag parsing.
+	 *
+	 * @small
+	 *
+	 * @ticket 61810
+	 */
+	public function test_script_tag_processing_no_infinite_loop_final_left_angle_bracket() {
+		$processor = new WP_HTML_Tag_Processor( '<script><' );
+
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
+
+	/**
+	 * Test a bugfix where the input ends abruptly with a funky comment started.
+	 *
+	 * @ticket 61831
+	 */
+	public function test_unclosed_funky_comment_input_too_short() {
+		$processor = new WP_HTML_Tag_Processor( '</#' );
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
+
+	/**
+	 * Test basic DOCTYPE handling.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_doctype_doc_name() {
+		$processor = new WP_HTML_Tag_Processor( '<!DOCTYPE html>' );
+		$this->assertTrue( $processor->next_token() );
+		$doctype = $processor->get_doctype_info();
+		$this->assertNotNull( $doctype );
+		$this->assertSame( 'html', $doctype->name );
+		$this->assertSame( 'no-quirks', $doctype->indicated_compatability_mode );
+		$this->assertNull( $doctype->public_identifier );
+		$this->assertNull( $doctype->system_identifier );
 	}
 }

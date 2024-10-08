@@ -52,6 +52,7 @@
 	<exclude-pattern>/src/wp-admin/includes/ms-deprecated\.php</exclude-pattern>
 
 	<exclude-pattern>/src/wp-includes/atomlib\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-avif-info\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-IXR\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-json\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-phpass\.php</exclude-pattern>
@@ -59,7 +60,6 @@
 	<exclude-pattern>/src/wp-includes/class-requests\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-simplepie\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-snoopy\.php</exclude-pattern>
-	<exclude-pattern>/src/wp-includes/class-avif-info\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ms-deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/pluggable-deprecated\.php</exclude-pattern>
@@ -105,6 +105,9 @@
 
 	<!-- Themes except the twenty* themes. -->
 	<exclude-pattern>/src/wp-content/themes/(?!twenty)*</exclude-pattern>
+
+	<!-- Translation files. -->
+	<exclude-pattern>/src/wp-content/languages/*</exclude-pattern>
 
 
 	<!--
@@ -216,6 +219,7 @@
 				<element value="gzuncompress"/>
 				<element value="gzdecode"/>
 				<element value="imagecreatefromwebp"/>
+				<element value="imagecreatefromavif"/>
 			</property>
 		</properties>
 	</rule>
@@ -258,6 +262,7 @@
 	     in the parsing, and distance the code from its standard. -->
 	<rule ref="Generic.PHP.DiscourageGoto.Found">
 		<exclude-pattern>/wp-includes/html-api/class-wp-html-processor\.php</exclude-pattern>
+		<exclude-pattern>/wp-includes/html-api/class-wp-html-doctype-info\.php</exclude-pattern>
 	</rule>
 
 	<!-- Exclude sample config from modernization to prevent breaking CI workflows based on WP-CLI scaffold.

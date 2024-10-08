@@ -23,6 +23,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentytwentytwo',
 		'twentytwentythree',
 		'twentytwentyfour',
+		'twentytwentyfive',
 	);
 
 	/**
@@ -211,6 +212,44 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertContains( $latest_default_theme->get_stylesheet(), $this->default_themes );
 	}
 
+	/**
+	 * Tests the default themes list in the test suite matches the runtime default themes.
+	 */
+	public function test_default_default_theme_list_match_in_test_suite_and_at_runtime() {
+		// Use a reflection to make WP_THEME::$default_themes accessible.
+		$reflection = new ReflectionClass( 'WP_Theme' );
+		$property   = $reflection->getProperty( 'default_themes' );
+		$property->setAccessible( true );
+
+		/*
+		 * `default` and `classic` are included in `WP_Theme::$default_themes` but not included
+		 * in the test suite default themes list. These are excluded from the comparison.
+		 */
+		$default_themes = array_keys( $property->getValue() );
+		$default_themes = array_diff( $default_themes, array( 'default', 'classic' ) );
+
+		$this->assertSameSets( $default_themes, $this->default_themes, 'Test suite default themes should match the runtime default themes.' );
+	}
+
+	/**
+	 * Test the default theme in WP_Theme matches the WP_DEFAULT_THEME constant.
+	 */
+	public function test_default_theme_matches_constant() {
+		$latest_default_theme = WP_Theme::get_core_default_theme();
+
+		/*
+		 * The test suite sets the constant to `default` while this is intended to
+		 * test the value defined in default-constants.php.
+		 *
+		 * Therefore this reads the file in via file_get_contents to extract the value.
+		 */
+		$default_constants = file_get_contents( ABSPATH . WPINC . '/default-constants.php' );
+		preg_match( '/define\( \'WP_DEFAULT_THEME\', \'(.*)\' \);/', $default_constants, $matches );
+		$wp_default_theme_constant = $matches[1];
+
+		$this->assertSame( $wp_default_theme_constant, $latest_default_theme->get_stylesheet(), 'WP_DEFAULT_THEME should match the latest default theme.' );
+	}
+
 	public function test_default_themes_have_textdomain() {
 		foreach ( $this->default_themes as $theme ) {
 			if ( wp_get_theme( $theme )->exists() ) {
@@ -322,7 +361,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				}
 
 				// Template file that doesn't exist.
-				$this->assertSame( '', get_query_template( 'nonexistant' ) );
+				$this->assertSame( '', get_query_template( 'nonexistent' ) );
 
 				// Template files that do exist.
 				foreach ( $theme['Template Files'] as $path ) {
@@ -925,7 +964,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function test_get_stylesheet_directory() {
 		switch_theme( 'block-theme-child' );
-		$this->assertSame( realpath( DIR_TESTDATA ) . '/themedir1/block-theme-child', get_stylesheet_directory() );
+		$this->assertSamePathIgnoringDirectorySeparators( realpath( DIR_TESTDATA ) . '/themedir1/block-theme-child', get_stylesheet_directory() );
 	}
 
 	/**
@@ -937,7 +976,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function test_get_template_directory() {
 		switch_theme( 'block-theme-child' );
-		$this->assertSame( realpath( DIR_TESTDATA ) . '/themedir1/block-theme', get_template_directory() );
+		$this->assertSamePathIgnoringDirectorySeparators( realpath( DIR_TESTDATA ) . '/themedir1/block-theme', get_template_directory() );
 	}
 
 	/**
@@ -976,7 +1015,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				'block-theme',
 				'stylesheet_directory',
 				static function ( $dir ) {
-					return str_replace( realpath( DIR_TESTDATA ) . '/themedir1', '/fantasy-dir', $dir );
+					return str_replace( realpath( DIR_TESTDATA ) . DIRECTORY_SEPARATOR . 'themedir1', '/fantasy-dir', $dir );
 				},
 				'/fantasy-dir/block-theme',
 			),
@@ -1036,7 +1075,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				'block-theme',
 				'template_directory',
 				static function ( $dir ) {
-					return str_replace( realpath( DIR_TESTDATA ) . '/themedir1', '/fantasy-dir', $dir );
+					return str_replace( realpath( DIR_TESTDATA ) . DIRECTORY_SEPARATOR . 'themedir1', '/fantasy-dir', $dir );
 				},
 				'/fantasy-dir/block-theme',
 			),
