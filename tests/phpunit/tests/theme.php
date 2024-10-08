@@ -1,4 +1,5 @@
 <?php
+require_once ABSPATH . 'wp-admin/includes/update-core.php';
 
 /**
  * test wp-includes/theme.php
@@ -248,6 +249,32 @@ class Tests_Theme extends WP_UnitTestCase {
 		$wp_default_theme_constant = $matches[1];
 
 		$this->assertSame( $wp_default_theme_constant, $latest_default_theme->get_stylesheet(), 'WP_DEFAULT_THEME should match the latest default theme.' );
+	}
+
+	/**
+	 * Ensure that the default themes are included in the new bundled files.
+	 */
+	public function test_default_themes_are_included_in_new_files() {
+		global $_new_bundled_files;
+		// Limit new bundled files to the default themes.
+		$new_theme_files = array_keys( $_new_bundled_files );
+		$new_theme_files = array_filter(
+			$new_theme_files,
+			function ( $file ) {
+				return str_starts_with( $file, 'themes/' );
+			}
+		);
+
+		$tested_themes = $this->default_themes;
+		// Convert the tested themes to directory names.
+		$tested_themes = array_map(
+			function ( $theme ) {
+				return "themes/{$theme}/";
+			},
+			$tested_themes
+		);
+
+		$this->assertSameSets( $new_theme_files, $tested_themes, 'New bundled files should include the default themes.' );
 	}
 
 	public function test_default_themes_have_textdomain() {
