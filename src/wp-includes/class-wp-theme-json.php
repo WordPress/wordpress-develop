@@ -38,7 +38,18 @@ class WP_Theme_JSON {
 	 */
 	protected static $blocks_metadata = array();
 
-	protected static $last_style_check_counter = 0;
+	/**
+	 * The counter value of the last style update check.
+	 *
+	 * This variable stores the value of the style update counter at the last time
+	 * the block metadata was checked for updates. It is used to determine if
+	 * new style updates have occurred since the last check.
+	 *
+	 * @since X.X.X
+	 *
+	 * @var int $last_style_update_count The last recorded value of the style update counter.
+	 */
+	protected static $last_style_update_count = 0;
 
 	/**
 	 * The CSS selector for the top-level preset settings.
@@ -1155,8 +1166,8 @@ class WP_Theme_JSON {
 		// Is there metadata for all currently registered blocks?
 		$blocks = array_diff_key( $blocks, static::$blocks_metadata );
 		if ( empty( $blocks ) ) {
-			$current_update_counter = $style_registry->get_update_counter();
-			if ( $current_update_counter > static::$last_style_check_counter ) {
+			$current_style_update_count = $style_registry->get_style_update_count();
+			if ( $current_style_update_count > static::$last_style_update_count ) {
 				/*
 				* New block styles may have been registered within WP_Block_Styles_Registry.
 				* Update block metadata for any new block style variations.
@@ -1175,7 +1186,7 @@ class WP_Theme_JSON {
 						static::$blocks_metadata[ $block_name ]['styleVariations'] = $style_selectors;
 					}
 				}
-				static::$last_style_check_counter = $current_update_counter;
+				static::$last_style_update_count = $current_style_update_count;
 			}
 			return static::$blocks_metadata;
 		}

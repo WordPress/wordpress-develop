@@ -32,7 +32,18 @@ final class WP_Block_Styles_Registry {
 	 */
 	private static $instance = null;
 
-	private $update_counter = 0;
+	/**
+	 * Counter for tracking updates to the registered block styles.
+	 *
+	 * This variable increments each time a block style is registered or unregistered,
+	 * allowing for tracking changes and potential cache invalidation or UI updates.
+	 *
+	 * @since X.X.X
+	 *
+	 * @var int $style_update_count Number of updates made to the block styles registry.
+	 */
+	private $style_update_count = 0;
+
 	/**
 	 * Registers a block style for the given block type.
 	 *
@@ -101,7 +112,7 @@ final class WP_Block_Styles_Registry {
 			$this->registered_block_styles[ $name ][ $block_style_name ] = $style_properties;
 		}
 
-		$this->update_counter++;
+		$this->style_update_count++;
 		return true;
 	}
 
@@ -127,7 +138,7 @@ final class WP_Block_Styles_Registry {
 
 		unset( $this->registered_block_styles[ $block_name ][ $block_style_name ] );
 
-		$this->update_counter++;
+		$this->style_update_count++;
 		return true;
 	}
 
@@ -204,7 +215,17 @@ final class WP_Block_Styles_Registry {
 		return self::$instance;
 	}
 
-	public function get_update_counter() {
-		return $this->update_counter;
+	/**
+	 * Retrieves the current style update count.
+	 *
+	 * This method returns the number of times the block styles registry has been updated,
+	 * either through registration or unregistration of block styles.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @return int The current value of the style update count.
+	 */
+	public function get_style_update_count() {
+		return $this->style_update_count;
 	}
 }
