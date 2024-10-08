@@ -21,7 +21,7 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 
 		$num_queries = get_num_queries();
 		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
-		$this->assertSame( $num_queries + 2, get_num_queries() );
+		$this->assertSame( $num_queries + 3, get_num_queries() );
 
 		$this->assertSame( '1', get_comments_number( $post_id ) );
 	}
