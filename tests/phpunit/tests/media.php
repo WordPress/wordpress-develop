@@ -1273,6 +1273,75 @@ VIDEO;
 		remove_filter( 'upload_dir', array( $this, 'upload_dir' ) );
 	}
 
+	/**
+	 * Test short-circuiting the attachment_url_to_postid filter.
+	 *
+	 * @ticket 61383
+	 */
+	public function test_attachment_url_to_postid_short_circuit_filter_prevents_db_queries() {
+		$image_path    = '2014/11/' . self::IMG_NAME;
+		$attachment_id = self::factory()->attachment->create_object(
+			$image_path,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+		$image_url     = wp_get_attachment_url( $attachment_id );
+
+		add_filter(
+			'pre_attachment_url_to_postid',
+			function () use ( $attachment_id ) {
+				return $attachment_id;
+			}
+		);
+
+		$queries_before = get_num_queries();
+		$this->assertSame( $attachment_id, attachment_url_to_postid( $image_url ), 'The filter should short-circuit the function' );
+		$queries_after = get_num_queries();
+		$this->assertSame( 0, $queries_after - $queries_before, 'No database queries should be made by a short-circuited function' );
+	}
+
+	/**
+	 * Test short-circuiting the attachment_url_to_postid filter with a not found result.
+	 *
+	 * @ticket 61383
+	 */
+	public function test_attachment_url_to_postid_short_circuit_filter_when_attachment_does_not_exist() {
+		add_filter( 'pre_attachment_url_to_postid', '__return_zero' );
+
+		$queries_before = get_num_queries();
+		$this->assertSame( 0, attachment_url_to_postid( 'http://example.org/wp-content/uploads/2014/11/image.jpg' ), 'The filter should short-circuit the function' );
+		$queries_after = get_num_queries();
+		$this->assertSame( 0, $queries_after - $queries_before, 'No database queries should be made by a short-circuited function' );
+	}
+
+	/**
+	 * Test short-circuiting the attachment_url_to_postid filter with a proceed result.
+	 *
+	 * @ticket 61383
+	 */
+	public function test_attachment_url_to_postid_short_circuit_filter_should_proceed_if_filter_returns_null() {
+		$image_path    = '2014/11/' . self::IMG_NAME;
+		$attachment_id = self::factory()->attachment->create_object(
+			$image_path,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+		$image_url     = wp_get_attachment_url( $attachment_id );
+
+		add_filter( 'pre_attachment_url_to_postid', '__return_null' );
+
+		$queries_before = get_num_queries();
+		$this->assertSame( $attachment_id, attachment_url_to_postid( $image_url ), 'The filter should return the attachment ID' );
+		$queries_after = get_num_queries();
+		$this->assertGreaterThan( 0, $queries_after - $queries_before, 'Database queries are expected when the filter returns null' );
+	}
+
 	public function upload_dir( $dir ) {
 		$dir['baseurl'] = 'http://192.168.1.20.com/wp-content/uploads';
 		return $dir;
@@ -6032,6 +6101,34 @@ EOF;
 			wp_get_loading_optimization_attributes( 'img', $attr, 'the_content' ),
 			'After the filter it will not return the fetchpriority attribute.'
 		);
+	}
+
+
+	/**
+	 * Test WebP lossless quality is handled correctly.
+	 *
+	 * @ticket 60291
+	 */
+	public function test_set_quality_webp_lossless() {
+		// Get a new editor to test that lossless WebP images are handled correctly.
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/webp-lossless.webp' );
+
+		// If no editor is available, skip the test.
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( 'No editor available for lossless WebP images.' );
+		}
+
+		// Only test on GD when WebP lossless is supported.
+		if ( 'WP_Image_Editor_GD' === get_class( $editor ) && ! defined( 'IMG_WEBP_LOSSLESS' ) ) {
+			$this->markTestSkipped( 'No GD support available for lossless WebP images.' );
+		}
+
+		// Verify lossless quality is set correctly: IMG_WEBP_LOSSLESS for GD and 100 for Imagick.
+		if ( 'WP_Image_Editor_GD' === get_class( $editor ) ) {
+			$this->assertSame( IMG_WEBP_LOSSLESS, $editor->get_quality() );
+		} else {
+			$this->assertSame( 100, $editor->get_quality() );
+		}
 	}
 
 	/**

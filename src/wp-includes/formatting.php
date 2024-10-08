@@ -2943,6 +2943,10 @@ function _make_url_clickable_cb( $matches ) {
 		$suffix = $matches[3];
 	}
 
+	if ( isset( $matches[4] ) && ! empty( $matches[4] ) ) {
+		$url .= $matches[4];
+	}
+
 	// Include parentheses in the URL only if paired.
 	while ( substr_count( $url, '(' ) < substr_count( $url, ')' ) ) {
 		$suffix = strrchr( $url, ')' ) . $suffix;
@@ -3115,6 +3119,7 @@ function make_clickable( $text ) {
 					)*
 				)
 				(\)?)                                          # 3: Trailing closing parenthesis (for parenthesis balancing post processing).
+				(\\.\\w{2,6})?                                 # 4: Allowing file extensions (e.g., .jpg, .png).
 			~xS';
 			/*
 			 * The regex is a non-anchored pattern and does not have a single fixed starting character.
@@ -3294,11 +3299,14 @@ function wp_rel_ugc( $text ) {
  *
  * @since 5.1.0
  * @since 5.6.0 Removed 'noreferrer' relationship.
+ * @deprecated 6.7.0
  *
  * @param string $text Content that may contain HTML A elements.
  * @return string Converted content.
  */
 function wp_targeted_link_rel( $text ) {
+	_deprecated_function( __FUNCTION__, '6.7.0' );
+
 	// Don't run (more expensive) regex if no links with targets.
 	if ( stripos( $text, 'target' ) === false || stripos( $text, '<a ' ) === false || is_serialized( $text ) ) {
 		return $text;
@@ -3332,11 +3340,14 @@ function wp_targeted_link_rel( $text ) {
  *
  * @since 5.1.0
  * @since 5.6.0 Removed 'noreferrer' relationship.
+ * @deprecated 6.7.0
  *
  * @param array $matches Single match.
  * @return string HTML A Element with `rel="noopener"` in addition to any existing values.
  */
 function wp_targeted_link_rel_callback( $matches ) {
+	_deprecated_function( __FUNCTION__, '6.7.0' );
+
 	$link_html          = $matches[1];
 	$original_link_html = $link_html;
 
@@ -3383,46 +3394,20 @@ function wp_targeted_link_rel_callback( $matches ) {
  * Adds all filters modifying the rel attribute of targeted links.
  *
  * @since 5.1.0
+ * @deprecated 6.7.0
  */
 function wp_init_targeted_link_rel_filters() {
-	$filters = array(
-		'title_save_pre',
-		'content_save_pre',
-		'excerpt_save_pre',
-		'content_filtered_save_pre',
-		'pre_comment_content',
-		'pre_term_description',
-		'pre_link_description',
-		'pre_link_notes',
-		'pre_user_description',
-	);
-
-	foreach ( $filters as $filter ) {
-		add_filter( $filter, 'wp_targeted_link_rel' );
-	}
+	_deprecated_function( __FUNCTION__, '6.7.0' );
 }
 
 /**
  * Removes all filters modifying the rel attribute of targeted links.
  *
  * @since 5.1.0
+ * @deprecated 6.7.0
  */
 function wp_remove_targeted_link_rel_filters() {
-	$filters = array(
-		'title_save_pre',
-		'content_save_pre',
-		'excerpt_save_pre',
-		'content_filtered_save_pre',
-		'pre_comment_content',
-		'pre_term_description',
-		'pre_link_description',
-		'pre_link_notes',
-		'pre_user_description',
-	);
-
-	foreach ( $filters as $filter ) {
-		remove_filter( $filter, 'wp_targeted_link_rel' );
-	}
+	_deprecated_function( __FUNCTION__, '6.7.0' );
 }
 
 /**
@@ -5407,9 +5392,9 @@ function wp_html_excerpt( $str, $count, $more = null ) {
  *
  * @global string $_links_add_base
  *
- * @param string $content String to search for links in.
- * @param string $base    The base URL to prefix to links.
- * @param array  $attrs   The attributes which should be processed.
+ * @param string   $content String to search for links in.
+ * @param string   $base    The base URL to prefix to links.
+ * @param string[] $attrs   The attributes which should be processed.
  * @return string The processed content.
  */
 function links_add_base_url( $content, $base, $attrs = array( 'src', 'href' ) ) {
