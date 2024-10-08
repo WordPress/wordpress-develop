@@ -263,7 +263,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$new_theme_files = array_keys( $_new_bundled_files );
 		$new_theme_files = array_filter(
 			$new_theme_files,
-			function ( $file ) {
+			static function ( $file ) {
 				return str_starts_with( $file, 'themes/' );
 			}
 		);
@@ -271,7 +271,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$tested_themes = $this->default_themes;
 		// Convert the tested themes to directory names.
 		$tested_themes = array_map(
-			function ( $theme ) {
+			static function ( $theme ) {
 				return "themes/{$theme}/";
 			},
 			$tested_themes
