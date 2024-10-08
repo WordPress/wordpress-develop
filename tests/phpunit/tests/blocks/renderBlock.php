@@ -279,6 +279,19 @@ HTML
 			)
 		);
 
+		add_filter(
+			'get_block_type_uses_context',
+			function ( $uses_context, $block_type ) {
+				if ( 'tests/context-consumer' === $block_type->name ) {
+					// Use array_values to reset the array keys.
+					return array_values( array_unique( array_merge( $uses_context, array( 'arbitrary' ) ) ) );
+				}
+				return $uses_context;
+			},
+			10,
+			2
+		);
+
 		// Filter the context provided to the test block.
 		add_filter(
 			'render_block_context',
