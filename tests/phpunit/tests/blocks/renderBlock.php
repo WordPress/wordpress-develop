@@ -273,6 +273,7 @@ HTML
 				'uses_context'    => array( 'example' ),
 				'render_callback' => static function ( $attributes, $content, $block ) use ( &$provided_context ) {
 					$provided_context = $block->context;
+
 					return '';
 				},
 			),
