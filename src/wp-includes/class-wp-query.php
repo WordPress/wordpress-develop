@@ -2135,7 +2135,7 @@ class WP_Query {
 		}
 
 		// Parameters related to 'post_name'.
-		if ( '' !== $q['name'] ) {
+		if ( '' !== sanitize_title_for_query( $q['name'] ) ) {
 			$q['name'] = sanitize_title_for_query( $q['name'] );
 			$where    .= " AND {$wpdb->posts}.post_name = '" . $q['name'] . "'";
 		} elseif ( '' !== $q['pagename'] ) {
