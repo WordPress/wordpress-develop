@@ -38,7 +38,7 @@ permissions: {}
 jobs:
   # Tests the local Docker environment.
   docker-environment-tests:
-    name: Run Docker environment tests
+    name: ${{ contains( matrix.os, 'macos-' ) && 'MacOS' || contains( matrix.os, 'windows-' ) && 'Windows' || 'Linux' }}
     uses: ./.github/workflows/reusable-test-local-docker-environment-v1.yml
     permissions:
       contents: read

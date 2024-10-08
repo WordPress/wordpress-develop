@@ -40,7 +40,7 @@ on:
         default: 'example.org'
 
 env:
-  LOCAL_PHP: ${{ inputs.php == 'latest' || inputs.php && '-fpm' }}
+  LOCAL_PHP: ${{ inputs.php == 'latest' && 'latest' || inputs.php && '-fpm' }}
   LOCAL_DB_TYPE: ${{ inputs.db-type }}
   LOCAL_DB_VERSION: ${{ inputs.db-version }}
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
@@ -68,7 +68,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   local-docker-environment-tests:
-    name: ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
+    name: ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }} / ${{ inputs.memcached && 'Memcached enabled' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
 
