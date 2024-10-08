@@ -3783,6 +3783,15 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 		 * @param callable $callback Callback function name.
 		 */
 		$callback = apply_filters( 'wp_die_xml_handler', '_xml_wp_die_handler' );
+	} elseif ( 'cli' === php_sapi_name() ) {
+		/**
+		 * Filters the callback for killing WordPress execution for CLI requests.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param callable $callback Callback function name.
+		 */
+		$callback = apply_filters( 'wp_die_cli_handler', '_scalar_wp_die_handler' );
 	} else {
 		/**
 		 * Filters the callback for killing WordPress execution for all non-Ajax, non-JSON, non-XML requests.
