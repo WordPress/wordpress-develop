@@ -39,7 +39,7 @@ jobs:
   # Tests the local Docker environment.
   phpcs:
     name: Run Docker environment tests
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-docker-environment-v1.yml@trunk
+    uses: ./.github/workflows/reusable-test-docker-environment-v1.yml
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
