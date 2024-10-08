@@ -2717,7 +2717,6 @@ class WP_Theme_JSON {
 		foreach ( $theme_json['styles']['blocks'] as $name => $node ) {
 
 			$include_node_paths_only = $options['include_node_paths_only'] ?? false;
-			
 			$node_path = array( 'styles', 'blocks', $name );
 			if ( $include_node_paths_only ) {
 				$nodes[] = $node_path;
