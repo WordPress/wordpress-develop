@@ -2871,6 +2871,9 @@ function _wp_check_existing_file_names( $filename, $files ) {
  * @param null|string $deprecated Never used. Set to null.
  * @param string      $bits       File content
  * @param string|null $time       Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param string[]    $upload_dir Optional. Array of the uploads directory data as returned by
+ *                                wp_upload_dir() or wp_font_dir(). If not set
+ *                                the function will use wp_upload_dir().
  * @return array {
  *     Information about the newly-uploaded file.
  *
@@ -2880,7 +2883,7 @@ function _wp_check_existing_file_names( $filename, $files ) {
  *     @type string|false $error Error message, if there has been an error.
  * }
  */
-function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
+function wp_upload_bits( $name, $deprecated, $bits, $time = null, $upload_dir = array() ) {
 	if ( ! empty( $deprecated ) ) {
 		_deprecated_argument( __FUNCTION__, '2.0.0' );
 	}
@@ -2894,10 +2897,12 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 		return array( 'error' => __( 'Sorry, you are not allowed to upload this file type.' ) );
 	}
 
-	$upload = wp_upload_dir( $time );
+	if ( empty( $upload_dir ) ) {
+		$upload_dir = wp_upload_dir( $time );
+	}
 
-	if ( false !== $upload['error'] ) {
-		return $upload;
+	if ( false !== $upload_dir['error'] ) {
+		return $upload_dir;
 	}
 
 	/**
@@ -2919,18 +2924,18 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 		)
 	);
 	if ( ! is_array( $upload_bits_error ) ) {
-		$upload['error'] = $upload_bits_error;
-		return $upload;
+		$upload_dir['error'] = $upload_bits_error;
+		return $upload_dir;
 	}
 
-	$filename = wp_unique_filename( $upload['path'], $name );
+	$filename = wp_unique_filename( $upload_dir['path'], $name );
 
-	$new_file = $upload['path'] . "/$filename";
+	$new_file = $upload_dir['path'] . "/$filename";
 	if ( ! wp_mkdir_p( dirname( $new_file ) ) ) {
-		if ( str_starts_with( $upload['basedir'], ABSPATH ) ) {
-			$error_path = str_replace( ABSPATH, '', $upload['basedir'] ) . $upload['subdir'];
+		if ( str_starts_with( $upload_dir['basedir'], ABSPATH ) ) {
+			$error_path = str_replace( ABSPATH, '', $upload_dir['basedir'] ) . $upload_dir['subdir'];
 		} else {
-			$error_path = wp_basename( $upload['basedir'] ) . $upload['subdir'];
+			$error_path = wp_basename( $upload_dir['basedir'] ) . $upload_dir['subdir'];
 		}
 
 		$message = sprintf(
@@ -2961,7 +2966,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 	clearstatcache();
 
 	// Compute the URL.
-	$url = $upload['url'] . "/$filename";
+	$url = $upload_dir['url'] . "/$filename";
 
 	if ( is_multisite() ) {
 		clean_dirsize_cache( $new_file );

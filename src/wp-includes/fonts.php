@@ -128,43 +128,16 @@ function wp_get_font_dir() {
  * }
  */
 function wp_font_dir( $create_dir = true ) {
-	/*
-	 * Allow extenders to manipulate the font directory consistently.
-	 *
-	 * Ensures the upload_dir filter is fired both when calling this function
-	 * directly and when the upload directory is filtered in the Font Face
-	 * REST API endpoint.
-	 */
-	add_filter( 'upload_dir', '_wp_filter_font_directory' );
-	$font_dir = wp_upload_dir( null, $create_dir, false );
-	remove_filter( 'upload_dir', '_wp_filter_font_directory' );
-	return $font_dir;
-}
+	// Get base uploads directory.
+	$upload_dir = wp_upload_dir( null, false, false );
 
-/**
- * A callback function for use in the {@see 'upload_dir'} filter.
- *
- * This function is intended for internal use only and should not be used by plugins and themes.
- * Use wp_get_font_dir() instead.
- *
- * @since 6.5.0
- * @access private
- *
- * @param string $font_dir The font directory.
- * @return string The modified font directory.
- */
-function _wp_filter_font_directory( $font_dir ) {
-	if ( doing_filter( 'font_dir' ) ) {
-		// Avoid an infinite loop.
-		return $font_dir;
-	}
-
+	// Default fonts directory settings.
 	$font_dir = array(
-		'path'    => untrailingslashit( $font_dir['basedir'] ) . '/fonts',
-		'url'     => untrailingslashit( $font_dir['baseurl'] ) . '/fonts',
+		'path'    => untrailingslashit( $upload_dir['basedir'] ) . '/fonts',
+		'url'     => untrailingslashit( $upload_dir['baseurl'] ) . '/fonts',
 		'subdir'  => '',
-		'basedir' => untrailingslashit( $font_dir['basedir'] ) . '/fonts',
-		'baseurl' => untrailingslashit( $font_dir['baseurl'] ) . '/fonts',
+		'basedir' => untrailingslashit( $upload_dir['basedir'] ) . '/fonts',
+		'baseurl' => untrailingslashit( $upload_dir['baseurl'] ) . '/fonts',
 		'error'   => false,
 	);
 
@@ -185,8 +158,28 @@ function _wp_filter_font_directory( $font_dir ) {
 	 *     @type string       $baseurl URL path without subdir.
 	 *     @type string|false $error   False or error message.
 	 * }
+	 * @param array $upload_dir The uploads directory data as returned by {@see wp_upload_dir()}.
 	 */
-	return apply_filters( 'font_dir', $font_dir );
+	$font_dir = apply_filters( 'font_dir', $font_dir, $upload_dir );
+
+	// Do not attempt to create the /fonts directory if an error was set while running the 'font_dir' filter.
+	if ( ! empty( $font_dir['error'] ) ) {
+		return $font_dir;
+	}
+
+	if ( $create_dir ) {
+		$created = wp_mkdir_p( $font_dir['path'] );
+
+		if ( false === $created ) {
+			$font_dir['error'] = sprintf(
+				/* translators: %s: Directory path. */
+				__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
+				esc_html( $font_dir['path'] )
+			);
+		}
+	}
+
+	return $font_dir;
 }
 
 /**

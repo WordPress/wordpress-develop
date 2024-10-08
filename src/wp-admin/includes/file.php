@@ -786,6 +786,10 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *     @type bool     $test_size                Whether to test that the file size is greater than zero bytes.
  *     @type bool     $test_type                Whether to test that the mime type of the file is as expected.
  *     @type string[] $mimes                    Array of allowed mime types keyed by their file extension regex.
+ *     @type string[] $upload_dir               Array of the uploads directory data as returned by
+ *                                              wp_upload_dir() or wp_font_dir(). Defaults to wp_upload_dir().
+ *                                              If using custom data array the uploads directory must exist.
+ *                                              See additional comments below.
  * }
  * @param string      $time      Time formatted in 'yyyy/mm'.
  * @param string      $action    Expected value for `$_POST['action']`.
@@ -972,11 +976,36 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 		$type = '';
 	}
 
+	if ( isset( $overrides['upload_dir'] ) ) {
+		/*
+		 * As mentioned in the description $overrides['upload_dir'] is expected to be an array
+		 * of the uploads directory data as returned by wp_uploads_dir() and wp_fonts_dir().
+		 *
+		 * It is possible to use custom data, however ensure the format matches exactly the array
+		 * returned by the above fiunctions. In addition the uploads directory should exist and
+		 * be accerssible before attempting to use it. For example that can be achieved
+		 * by usig wp_mkdir_p(). This data can also be cached, however ensure any caching
+		 * is reset after creating the directry.
+		 */
+		$uploads = $overrides['upload_dir'];
+
+		if ( ! is_array( $uploads ) || empty( $uploads['path'] ) || ! is_string( $uploads['path'] ) ) {
+			$uploads['error'] = __( 'The path to the uploads directory is incorrect.' );
+		} elseif ( ! is_dir( $uploads['path'] ) ) {
+			$uploads['error'] = __( 'The uploads directory does not exist.' );
+		}
+
+		if ( ! empty( $uploads['error'] ) ) {
+			return call_user_func_array( $upload_error_handler, array( &$file, $uploads['error'] ) );
+		}
+	} else {
+		$uploads = wp_upload_dir( $time );
+	}
+
 	/*
 	 * A writable uploads dir will pass this test. Again, there's no point
 	 * overriding this one.
 	 */
-	$uploads = wp_upload_dir( $time );
 	if ( ! ( $uploads && false === $uploads['error'] ) ) {
 		return call_user_func_array( $upload_error_handler, array( &$file, $uploads['error'] ) );
 	}

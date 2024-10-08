@@ -6406,3 +6406,20 @@ function wp_create_block_style_variation_instance_name( $block, $variation ) {
 	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_unique_id' );
 	return $variation . '--' . md5( serialize( $block ) );
 }
+
+/**
+ * A callback function for use in the {@see 'upload_dir'} filter.
+ *
+ * This function is intended for internal use only and should not be used by plugins and themes.
+ *
+ * @since 6.5.0
+ * @deprecated 6.6.0
+ * @access private
+ *
+ * @param string $font_dir The font directory path.
+ * @return string The font directory path.
+ */
+function _wp_filter_font_directory( $font_dir ) {
+	_deprecated_function( __FUNCTION__, '6.7.0' );
+	return $font_dir;
+}
