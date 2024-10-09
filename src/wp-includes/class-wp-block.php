@@ -145,10 +145,6 @@ class WP_Block {
 	/**
 	 * Updates the available context for the current block and its inner blocks.
 	 *
-	 * @since 6.7.0
-	 *
-	 * Updates the available context for the current block and its inner blocks.
-	 *
 	 * This method updates the context of the current block instance by merging the provided
 	 * `available_context` with the existing context values. It also processes the block's
 	 * inner blocks by passing the updated context to them.
@@ -157,6 +153,8 @@ class WP_Block {
 	 * down from ancestor blocks in the hierarchy. The block instance's context is only updated
 	 * with the values that it consumes as defined in its registered block type (`uses_context`).
 	 * Additionally, any context provided by the block instance itself is passed to its inner blocks.
+	 *
+  	 * @since 6.7.0
 	 *
 	 * @param array $block             The associative array of the current parsed block.
 	 *                                 Contains attributes like `blockName`, `attrs`, `innerBlocks`, `innerHTML`, and `innerContent`.
