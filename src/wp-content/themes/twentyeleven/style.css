@@ -1129,7 +1129,7 @@ article.format-status .entry-content {
 /* Singular content styles for Posts and Pages */
 .singular .hentry {
 	border-bottom: none;
-	padding: 4.875em 0 0;
+	padding: 1.875em 0 0;
 	position: relative;
 }
 .singular.page .hentry {
@@ -1144,11 +1144,6 @@ article.format-status .entry-content {
 .singular .entry-title,
 .singular .entry-header .entry-meta {
 	padding-right: 0;
-}
-.singular .entry-header .entry-meta {
-	position: absolute;
-	top: 0;
-	left: 0;
 }
 blockquote.pull {
 	font-size: 21px;
@@ -1795,10 +1790,7 @@ video {
 
 /* Singular navigation */
 #nav-single {
-	float: right;
 	position: relative;
-	top: -0.3em;
-	text-align: right;
 	z-index: 1;
 }
 #nav-single .nav-previous,
@@ -2576,14 +2568,6 @@ p.comment-form-comment {
 		float: none;
 		margin-left: 0;
 		margin-right: 0;
-	}
-	/* Make sure the post-post navigation doesn't collide with anything */
-	#nav-single {
-		display: block;
-		position: static;
-	}
-	.singular .hentry {
-		padding: 1.625em 0 0;
 	}
 	.singular.page .hentry {
 		padding: 1.625em 0 0;
