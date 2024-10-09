@@ -2718,7 +2718,9 @@ class WP_Theme_JSON {
 			$include_node_paths_only = $options['include_node_paths_only'] ?? false;
 			$node_path = array( 'styles', 'blocks', $name );
 			if ( $include_node_paths_only ) {
-				$nodes[] = $node_path;
+				$nodes[] = array(
+					'path' => $node_path,
+				);
 			} else {
 				$selector = null;
 				if ( isset( $selectors[ $name ]['selector'] ) ) {
@@ -2762,13 +2764,16 @@ class WP_Theme_JSON {
 				foreach ( $theme_json['styles']['blocks'][ $name ]['elements'] as $element => $node ) {
 					$node_path = array( 'styles', 'blocks', $name, 'elements', $element );
 					if ( $include_node_paths_only ) {
-						$nodes[] = $node_path;
-					} else {
 						$nodes[] = array(
-							'path'     => $node_path,
-							'selector' => $selectors[ $name ]['elements'][ $element ],
+							'path' => $node_path,
 						);
+						continue;
 					}
+
+					$nodes[] = array(
+						'path'     => $node_path,
+						'selector' => $selectors[ $name ]['elements'][ $element ],
+					);
 
 					// Handle any pseudo selectors for the element.
 					if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
@@ -2776,13 +2781,16 @@ class WP_Theme_JSON {
 							if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] ) ) {
 								$node_path = array( 'styles', 'blocks', $name, 'elements', $element );
 								if ( $include_node_paths_only ) {
-									$nodes[] = $node_path;
-								} else {
 									$nodes[] = array(
-										'path'     => $node_path,
-										'selector' => static::append_to_selector( $selectors[ $name ]['elements'][ $element ], $pseudo_selector ),
+										'path' => $node_path,
 									);
+									continue;
 								}
+
+								$nodes[] = array(
+									'path'     => $node_path,
+									'selector' => static::append_to_selector( $selectors[ $name ]['elements'][ $element ], $pseudo_selector ),
+								);
 							}
 						}
 					}
@@ -3257,11 +3265,12 @@ class WP_Theme_JSON {
 		$style_options = array( 'include_node_paths_only' => true );
 		$style_nodes   = static::get_block_nodes( $this->theme_json, array(), $style_options );
 		foreach ( $style_nodes as $style_node ) {
+			$path = $style_node['path'];
 			/*
 			 * Background image styles should be replaced, not merged,
 			 * as they themselves are specific object definitions for the style.
 			 */
-			$background_image_path = array_merge( $style_node, static::PROPERTIES_METADATA['background-image'] );
+			$background_image_path = array_merge( $path, static::PROPERTIES_METADATA['background-image'] );
 			$content               = _wp_array_get( $incoming_data, $background_image_path, null );
 			if ( isset( $content ) ) {
 				_wp_array_set( $this->theme_json, $background_image_path, $content );
