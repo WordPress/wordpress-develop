@@ -1281,21 +1281,42 @@ $( function() {
 			$headerEnd = $( '.wp-header-end' ),
 			type,
 			dismissible,
+			additionalClasses = '',
+			attributes = '',
+			paragraphWrap = ( data.paragraph_wrap !== undefined ) ? data.paragraph_wrap : true,
 			$adminNotice;
 
-		delete data.selector;
-
+		// Defaults for the arguments.
+		type = data.type ? data.type : 'info';
 		dismissible = ( data.dismissible && data.dismissible === true ) ? ' is-dismissible' : '';
-		type        = ( data.type ) ? data.type : 'info';
+		var message = data.message ? data.message : '';
 
-		var message = data.message;
-		$adminNotice = '<div id="' + data.id + '" class="notice notice-' + type + dismissible + '"><p>' + message + '</p></div>';
+		// Handle additional classes if any are provided.
+		if ( data.additional_classes && Array.isArray( data.additional_classes ) ) {
+			additionalClasses = ' ' + data.additional_classes.join( ' ' );
+		}
+
+		// Handle additional attributes if any are provided.
+		if ( data.attributes && typeof data.attributes === 'object' ) {
+			Object.keys( data.attributes ).forEach(function( key ) {
+				attributes += ' ' + key + '="' + data.attributes[key] + '"';
+			});
+		}
+
+		// Wrap message in <p> if paragraph_wrap is true.
+		if ( paragraphWrap ) {
+			message = '<p>' + message + '</p>';
+		}
+
+		// Build the admin notice element.
+		$adminNotice = '<div id="' + data.id + '" class="notice notice-' + type + dismissible + additionalClasses + '"' + attributes + '>' + message + '</div>';
 
 		// Check if this admin notice already exists.
 		if ( ! $notice.length ) {
 			$notice = $( '#' + data.id );
 		}
 
+		// Either replace an existing notice or insert a new one.
 		if ( $notice.length ) {
 			$notice.replaceWith( $adminNotice );
 		} else if ( $headerEnd.length ) {
@@ -1308,6 +1329,7 @@ $( function() {
 			}
 		}
 
+		// Trigger a global event after adding the notice.
 		$(document).trigger( 'wp-notice-added' );
 	};
 
