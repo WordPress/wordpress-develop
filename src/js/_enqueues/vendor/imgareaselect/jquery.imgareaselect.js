@@ -596,6 +596,14 @@ $.imgAreaSelect = function (img, options) {
      * aspect ratio
      */
     function doResize() {
+        /**
+         * Make sure x1, x2, y1, y2 are initialized to avoid the following calculation
+         * getting incorrect results.
+         */
+        if ( x1 == null || x2 == null || y1 == null || y2 == null ) {
+            updateSelectionRelativeToParentElement();
+        }
+
         /*
          * Make sure x1, x2, y1, y2 are initialized to avoid the following calculation
          * getting incorrect results.
