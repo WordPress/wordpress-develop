@@ -837,10 +837,17 @@ function wp_restore_image( $post_id ) {
 		$restored_file = path_join( $parts['dirname'], $data['file'] );
 		$restored      = update_attached_file( $post_id, $restored_file );
 
-		$meta['file']     = _wp_relative_upload_path( $restored_file );
-		$meta['width']    = $data['width'];
-		$meta['height']   = $data['height'];
-		$meta['filesize'] = $data['filesize'];
+		$meta['file']   = _wp_relative_upload_path( $restored_file );
+		$meta['width']  = $data['width'];
+		$meta['height'] = $data['height'];
+		if ( isset( $data['filesize'] ) ) {
+			/*
+			 * Restore the original filesize if it was backed up.
+			 *
+			 * See https://core.trac.wordpress.org/ticket/59684.
+			 */
+			$meta['filesize'] = $data['filesize'];
+		}
 	}
 
 	foreach ( $default_sizes as $default_size ) {
