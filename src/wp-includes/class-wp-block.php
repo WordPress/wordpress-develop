@@ -140,16 +140,29 @@ class WP_Block {
 
 		$this->available_context = $available_context;
 		$this->update_available_context( $block, $available_context );
-
-		if ( ! empty( $block['innerHTML'] ) ) {
-			$this->inner_html = $block['innerHTML'];
-		}
-
-		if ( ! empty( $block['innerContent'] ) ) {
-			$this->inner_content = $block['innerContent'];
-		}
 	}
 
+	/**
+	 * Updates the available context for the current block and its inner blocks.
+	 *
+	 * @since 6.7.0
+	 *
+	 * Updates the available context for the current block and its inner blocks.
+	 *
+	 * This method updates the context of the current block instance by merging the provided
+	 * `available_context` with the existing context values. It also processes the block's
+	 * inner blocks by passing the updated context to them.
+	 *
+	 * The available context is an array of key-value pairs that represent the context passed
+	 * down from ancestor blocks in the hierarchy. The block instance's context is only updated
+	 * with the values that it consumes as defined in its registered block type (`uses_context`).
+	 * Additionally, any context provided by the block instance itself is passed to its inner blocks.
+	 *
+	 * @param array $block             The associative array of the current parsed block. 
+	 *                                 Contains attributes like `blockName`, `attrs`, `innerBlocks`, `innerHTML`, and `innerContent`.
+	 * @param array $available_context Optional. An array of context values inherited from ancestor blocks.
+	 *                                 Default is an empty array.
+	 */
 	public function update_available_context( $block, $available_context ) {
 		$this->context = array();
 
@@ -175,6 +188,14 @@ class WP_Block {
 			}
 
 			$this->inner_blocks = new WP_Block_List( $block['innerBlocks'], $child_context, $this->registry );
+		}
+
+		if ( ! empty( $block['innerHTML'] ) ) {
+			$this->inner_html = $block['innerHTML'];
+		}
+
+		if ( ! empty( $block['innerContent'] ) ) {
+			$this->inner_content = $block['innerContent'];
 		}
 	}
 
