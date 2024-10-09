@@ -7721,7 +7721,8 @@ function update_post_parent_caches( $posts ) {
 	$parent_ids = array_unique( array_filter( $parent_ids ) );
 
 	if ( ! empty( $parent_ids ) ) {
-		_prime_post_caches( $parent_ids, false );
+		_prime_post_caches( $parent_ids, false, false );
+		wp_lazyload_post_meta( $parent_ids );
 	}
 }
 
@@ -8128,7 +8129,7 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 	}
 
 	if ( $update_meta_cache ) {
-		wp_lazyload_post_meta( $ids );
+		update_postmeta_cache( $ids );
 	}
 
 	if ( $update_term_cache ) {

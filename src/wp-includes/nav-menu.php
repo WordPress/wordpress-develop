@@ -807,7 +807,8 @@ function update_menu_item_cache( $menu_items ) {
 	}
 
 	if ( ! empty( $post_ids ) ) {
-		_prime_post_caches( $post_ids, false );
+		_prime_post_caches( $post_ids, false, false );
+		wp_lazyload_post_meta( $post_ids );
 	}
 
 	if ( ! empty( $term_ids ) ) {
