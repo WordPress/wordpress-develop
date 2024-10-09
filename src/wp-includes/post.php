@@ -7680,7 +7680,7 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
 	}
 
 	if ( $update_meta_cache ) {
-		wp_lazyload_post_meta( $post_ids );
+		update_postmeta_cache( $post_ids );
 	}
 }
 
