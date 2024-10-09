@@ -123,6 +123,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-transform: none;
 }
 
+.wp-block-quote.has-text-color cite,
+.wp-block-quote.has-background cite {
+	color: inherit;
+}
+
 .wp-block-quote em,
 .wp-block-quote i {
 	font-style: normal;
@@ -315,11 +320,12 @@ p.has-drop-cap:not(:focus)::first-letter {
 /* Pullquote */
 
 .wp-block-pullquote {
-	border: 0;
+	border: 0 solid;
 }
 
 .wp-block-pullquote blockquote {
 	border: 0;
+	color: inherit;
 	margin-left: 0;
 	margin-right: 0;
 	padding-left: 0;
@@ -327,7 +333,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 }
 
 .wp-block-pullquote cite {
-	color: #333;
+	color: inherit;
 	font-family: "Noto Sans", sans-serif;
 	font-size: 15px;
 	font-style: normal;

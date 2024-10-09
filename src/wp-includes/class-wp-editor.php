@@ -188,10 +188,12 @@ final class _WP_Editors {
 				if ( 'html' !== $default_editor ) {
 					$default_editor = 'tinymce';
 				}
+				$tmce_active = ( 'html' === $default_editor ) ? ' aria-pressed="true"' : '';
+				$html_active = ( 'html' === $default_editor ) ? '' : ' aria-pressed="true"';
 
-				$buttons .= '<button type="button" id="' . $editor_id_attr . '-tmce" class="wp-switch-editor switch-tmce"' .
+				$buttons .= '<button type="button" id="' . $editor_id_attr . '-tmce"' . $html_active . ' class="wp-switch-editor switch-tmce"' .
 					' data-wp-editor-id="' . $editor_id_attr . '">' . _x( 'Visual', 'Name for the Visual editor tab' ) . "</button>\n";
-				$buttons .= '<button type="button" id="' . $editor_id_attr . '-html" class="wp-switch-editor switch-html"' .
+				$buttons .= '<button type="button" id="' . $editor_id_attr . '-html"' . $tmce_active . ' class="wp-switch-editor switch-html"' .
 					' data-wp-editor-id="' . $editor_id_attr . '">' . _x( 'Text', 'Name for the Text editor tab (formerly HTML)' ) . "</button>\n";
 			} else {
 				$default_editor = 'tinymce';
@@ -1113,7 +1115,6 @@ final class _WP_Editors {
 			'end_container_on_empty_block' => true,
 			'wpeditimage_html5_captions'   => true,
 			'wp_lang_attr'                 => get_bloginfo( 'language' ),
-			'wp_keep_scroll_position'      => false,
 			'wp_shortcut_labels'           => wp_json_encode( $shortcut_labels ),
 		);
 
@@ -1875,7 +1876,7 @@ final class _WP_Editors {
 		// `display: none` is required here, see #WP27605.
 		?>
 		<div id="wp-link-backdrop" style="display: none"></div>
-		<div id="wp-link-wrap" class="wp-core-ui" style="display: none" role="dialog" aria-labelledby="link-modal-title">
+		<div id="wp-link-wrap" class="wp-core-ui" style="display: none" role="dialog" aria-modal="true" aria-labelledby="link-modal-title">
 		<form id="wp-link" tabindex="-1">
 		<?php wp_nonce_field( 'internal-linking', '_ajax_linking_nonce', false ); ?>
 		<h1 id="link-modal-title"><?php _e( 'Insert/edit link' ); ?></h1>

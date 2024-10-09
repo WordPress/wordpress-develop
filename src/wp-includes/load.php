@@ -420,6 +420,16 @@ function wp_is_maintenance_mode() {
 		return false;
 	}
 
+	// Don't enable maintenance mode while scraping for fatal errors.
+	if ( is_int( $upgrading ) && isset( $_REQUEST['wp_scrape_key'], $_REQUEST['wp_scrape_nonce'] ) ) {
+		$key   = stripslashes( $_REQUEST['wp_scrape_key'] );
+		$nonce = stripslashes( $_REQUEST['wp_scrape_nonce'] );
+
+		if ( md5( $upgrading ) === $key && (int) $nonce === $upgrading ) {
+			return false;
+		}
+	}
+
 	/**
 	 * Filters whether to enable maintenance mode.
 	 *
@@ -442,8 +452,6 @@ function wp_is_maintenance_mode() {
 
 /**
  * Gets the time elapsed so far during this PHP script.
- *
- * Uses REQUEST_TIME_FLOAT that appeared in PHP 5.4.0.
  *
  * @since 5.8.0
  *
@@ -868,6 +876,7 @@ function wp_start_object_cache() {
 				'blog-lookup',
 				'blog_meta',
 				'global-posts',
+				'image_editor',
 				'networks',
 				'network-queries',
 				'sites',
@@ -1671,9 +1680,8 @@ function wp_is_ini_value_changeable( $setting ) {
 		}
 	}
 
-	// Bit operator to workaround https://bugs.php.net/bug.php?id=44936 which changes access level to 63 in PHP 5.2.6 - 5.2.17.
 	if ( isset( $ini_all[ $setting ]['access'] )
-		&& ( INI_ALL === ( $ini_all[ $setting ]['access'] & 7 ) || INI_USER === ( $ini_all[ $setting ]['access'] & 7 ) )
+		&& ( INI_ALL === $ini_all[ $setting ]['access'] || INI_USER === $ini_all[ $setting ]['access'] )
 	) {
 		return true;
 	}
@@ -1799,8 +1807,20 @@ function wp_start_scraping_edited_file_errors() {
 
 	$key   = substr( sanitize_key( wp_unslash( $_REQUEST['wp_scrape_key'] ) ), 0, 32 );
 	$nonce = wp_unslash( $_REQUEST['wp_scrape_nonce'] );
+	if ( empty( $key ) || empty( $nonce ) ) {
+		return;
+	}
 
-	if ( get_transient( 'scrape_key_' . $key ) !== $nonce ) {
+	$transient = get_transient( 'scrape_key_' . $key );
+	if ( false === $transient ) {
+		return;
+	}
+
+	if ( $transient !== $nonce ) {
+		if ( ! headers_sent() ) {
+			header( 'X-Robots-Tag: noindex' );
+			nocache_headers();
+		}
 		echo "###### wp_scraping_result_start:$key ######";
 		echo wp_json_encode(
 			array(

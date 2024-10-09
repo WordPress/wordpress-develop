@@ -12,7 +12,7 @@
 /**
  * Core class used for interacting with block bindings sources.
  *
- *  @since 6.5.0
+ * @since 6.5.0
  */
 final class WP_Block_Bindings_Registry {
 
@@ -36,7 +36,7 @@ final class WP_Block_Bindings_Registry {
 	 * Supported source properties that can be passed to the registered source.
 	 *
 	 * @since 6.5.0
-	 * @var array
+	 * @var string[]
 	 */
 	private $allowed_source_properties = array(
 		'label',
@@ -48,7 +48,7 @@ final class WP_Block_Bindings_Registry {
 	 * Supported blocks that can use the block bindings API.
 	 *
 	 * @since 6.5.0
-	 * @var array
+	 * @var string[]
 	 */
 	private $supported_blocks = array(
 		'core/paragraph',
@@ -72,25 +72,25 @@ final class WP_Block_Bindings_Registry {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string   $source_name       The name of the source. It must be a string containing a namespace prefix, i.e.
-	 *                                    `my-plugin/my-custom-source`. It must only contain lowercase alphanumeric
-	 *                                    characters, the forward slash `/` and dashes.
-	 * @param array    $source_properties {
+	 * @param string $source_name       The name of the source. It must be a string containing a namespace prefix, i.e.
+	 *                                  `my-plugin/my-custom-source`. It must only contain lowercase alphanumeric
+	 *                                  characters, the forward slash `/` and dashes.
+	 * @param array  $source_properties {
 	 *     The array of arguments that are used to register a source.
 	 *
-	 *     @type string   $label                   The label of the source.
-	 *     @type callback $get_value_callback      A callback executed when the source is processed during block rendering.
-	 *                                             The callback should have the following signature:
+	 *     @type string   $label              The label of the source.
+	 *     @type callable $get_value_callback A callback executed when the source is processed during block rendering.
+	 *                                        The callback should have the following signature:
 	 *
-	 *                                             `function ($source_args, $block_instance,$attribute_name): mixed`
-	 *                                                 - @param array    $source_args    Array containing source arguments
-	 *                                                                                   used to look up the override value,
-	 *                                                                                   i.e. {"key": "foo"}.
-	 *                                                 - @param WP_Block $block_instance The block instance.
-	 *                                                 - @param string   $attribute_name The name of the target attribute.
-	 *                                             The callback has a mixed return type; it may return a string to override
-	 *                                             the block's original value, null, false to remove an attribute, etc.
-	 *     @type array    $uses_context (optional) Array of values to add to block `uses_context` needed by the source.
+	 *                                        `function( $source_args, $block_instance, $attribute_name ): mixed`
+	 *                                            - @param array    $source_args    Array containing source arguments
+	 *                                                                              used to look up the override value,
+	 *                                                                              i.e. {"key": "foo"}.
+	 *                                            - @param WP_Block $block_instance The block instance.
+	 *                                            - @param string   $attribute_name The name of the target attribute.
+	 *                                        The callback has a mixed return type; it may return a string to override
+	 *                                        the block's original value, null, false to remove an attribute, etc.
+	 *     @type string[] $uses_context       Optional. Array of values to add to block `uses_context` needed by the source.
 	 * }
 	 * @return WP_Block_Bindings_Source|false Source when the registration was successful, or `false` on failure.
 	 */
@@ -188,20 +188,6 @@ final class WP_Block_Bindings_Registry {
 		);
 
 		$this->sources[ $source_name ] = $source;
-
-		// Adds `uses_context` defined by block bindings sources.
-		add_filter(
-			'get_block_type_uses_context',
-			function ( $uses_context, $block_type ) use ( $source ) {
-				if ( ! in_array( $block_type->name, $this->supported_blocks, true ) || empty( $source->uses_context ) ) {
-					return $uses_context;
-				}
-				// Use array_values to reset the array keys.
-				return array_values( array_unique( array_merge( $uses_context, $source->uses_context ) ) );
-			},
-			10,
-			2
-		);
 
 		return $source;
 	}

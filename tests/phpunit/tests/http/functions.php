@@ -15,14 +15,14 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$response = wp_remote_head( $url );
 
 		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$headers = wp_remote_retrieve_headers( $response );
 
 		$this->assertIsArray( $response );
-
+		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 		$this->assertSame( 'image/png', $headers['Content-Type'] );
 		$this->assertSame( '153204', $headers['Content-Length'] );
-		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
 	/**
@@ -34,6 +34,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$response = wp_remote_head( $url );
 
 		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 		$this->assertSame( 301, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -45,6 +46,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$response = wp_remote_head( $url );
 
 		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 		$this->assertSame( 404, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -59,15 +61,14 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$response = wp_remote_get( $url );
 
 		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$headers = wp_remote_retrieve_headers( $response );
 
-		$this->assertIsArray( $response );
-
 		// Should return the same headers as a HEAD request.
+		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 		$this->assertSame( 'image/png', $headers['Content-Type'] );
 		$this->assertSame( '153204', $headers['Content-Length'] );
-		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
 	/**
@@ -82,13 +83,14 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$response = wp_remote_get( $url );
 
 		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$headers = wp_remote_retrieve_headers( $response );
 
 		// Should return the same headers as a HEAD request.
+		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 		$this->assertSame( 'image/png', $headers['Content-Type'] );
 		$this->assertSame( '153204', $headers['Content-Length'] );
-		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
 	/**
@@ -119,6 +121,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$response = wp_remote_head( $url );
 
 		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$cookies = wp_remote_retrieve_cookies( $response );
 
@@ -164,6 +167,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		);
 
 		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$cookies = wp_remote_retrieve_cookies( $response );
 
@@ -195,6 +199,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		);
 
 		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$cookies = wp_remote_retrieve_cookies( $response );
 

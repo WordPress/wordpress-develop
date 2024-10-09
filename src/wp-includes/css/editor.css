@@ -1140,12 +1140,6 @@ i.mce-i-wp_code:before {
 	color: #1d2327;
 }
 
-.wp-switch-editor:active,
-.html-active .switch-html:focus,
-.tmce-active .switch-tmce:focus {
-	box-shadow: none;
-}
-
 .wp-switch-editor:active {
 	background-color: #f6f7f7;
 	box-shadow: none;
@@ -1737,10 +1731,20 @@ div.wp-link-preview a.wplink-url-error {
 	color: #d63638;
 }
 
+.mce-inline-toolbar-grp div.mce-flow-layout-item > div {
+	display: flex;
+	align-items: flex-end;
+}
+
 div.wp-link-input {
 	float: left;
 	margin: 2px;
 	max-width: 694px;
+}
+
+div.wp-link-input label {
+	margin-bottom: 4px;
+	display: block;
 }
 
 div.wp-link-input input {

@@ -93,11 +93,10 @@ module.exports = function (
 		'wp-polyfill-object-fit.js':
 			'objectFitPolyfill/src/objectFitPolyfill.js',
 		'wp-polyfill-inert.js': 'wicg-inert/dist/inert.js',
-		'wp-polyfill-importmap.js': 'es-module-shims/dist/es-module-shims.wasm.js',
 		'moment.js': 'moment/moment.js',
+		'regenerator-runtime.js': 'regenerator-runtime/runtime.js',
 		'react.js': 'react/umd/react.development.js',
 		'react-dom.js': 'react-dom/umd/react-dom.development.js',
-		'regenerator-runtime.js': 'regenerator-runtime/runtime.js',
 	};
 
 	const minifiedVendors = {
@@ -122,7 +121,6 @@ module.exports = function (
 			'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-dom-rect.min.js':
 			'polyfill-library/polyfills/__dist/DOMRect/raw.js',
-		'wp-polyfill-importmap.min.js': 'es-module-shims/dist/es-module-shims.wasm.js',
 	};
 
 	const phpFiles = {
@@ -198,7 +196,7 @@ module.exports = function (
 		plugins: [
 			...baseConfig.plugins,
 			new DependencyExtractionPlugin( {
-				injectPolyfill: true,
+				injectPolyfill: false,
 				combineAssets: true,
 				combinedOutputFile: `../../assets/script-loader-packages${ suffix }.php`,
 			} ),
