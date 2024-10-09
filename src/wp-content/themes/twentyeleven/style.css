@@ -1182,7 +1182,7 @@ blockquote.pull.alignright {
 	left: 50px;
 	position: absolute;
 	right: auto;
-	top: 80px;
+	top: 40px;
 }
 
 
@@ -2479,7 +2479,7 @@ p.comment-form-comment {
 	.singular .entry-meta .edit-link a {
 		left: 0;
 		position: absolute;
-		top: 40px;
+		top: 20px;
 	}
 	.singular #author-info {
 		margin: 2.2em -8.8% 0;
