@@ -509,6 +509,9 @@ section.recent-posts .other-recent-posts .comments-link > span {
 		left: auto;
 		right: 0;
 	}
+	.singular #author-info {
+		margin: 2.2em -8.8% 0;
+	}
 	/* Make sure we have room for our comment avatars */
 	.commentlist > li.comment,
 	.commentlist .pingback {
