@@ -11,6 +11,11 @@ on:
         required: false
         type: 'string'
         default: 'latest'
+      old-branch:
+        description: 'Whether this is an old branch that runs phpcbf instead of phpcs'
+        required: false
+        type: 'boolean'
+        default: false
 
 jobs:
   # Runs the PHP coding standards checks.
@@ -42,7 +47,7 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # v2.30.0
+        uses: shivammathur/setup-php@c541c155eee45413f5b09a52248675b1a2575231 # v2.31.1
         with:
           php-version: ${{ inputs.php-version }}
           coverage: none
@@ -55,7 +60,7 @@ jobs:
         run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> $GITHUB_OUTPUT
 
       - name: Cache PHPCS scan cache
-        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: |
             .cache/phpcs-src.json
@@ -74,6 +79,7 @@ jobs:
 
       - name: Run PHPCS on all Core files
         id: phpcs-core
+        if: ${{ ! inputs.old-branch }}
         run: phpcs -n --report-full --cache=./.cache/phpcs-src.json --report-checkstyle=./.cache/phpcs-report.xml
 
       - name: Show PHPCS results in PR
@@ -82,11 +88,16 @@ jobs:
 
       - name: Check test suite files for warnings
         id: phpcs-tests
+        if: ${{ ! inputs.old-branch }}
         run: phpcs tests --report-full --cache=./.cache/phpcs-tests.json --report-checkstyle=./.cache/phpcs-tests-report.xml
 
       - name: Show test suite scan results in PR
         if: ${{ always() && steps.phpcs-tests.outcome == 'failure' }}
         run: cs2pr ./.cache/phpcs-tests-report.xml
+
+      - name: Run PHPCBF on all Core files (old branches)
+        if: ${{ inputs.old-branch }}
+        run: phpcbf
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code

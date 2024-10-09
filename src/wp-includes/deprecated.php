@@ -3673,6 +3673,7 @@ function post_permalink( $post = 0 ) {
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
 
+	// Adds an additional 60 seconds to the script timeout to ensure the remote request has enough time.
 	if ( function_exists( 'set_time_limit' ) ) {
 		@set_time_limit( 60 );
 	}
@@ -6002,7 +6003,7 @@ function wp_update_https_detection_errors() {
 	 */
 	$support_errors = apply_filters( 'pre_wp_update_https_detection_errors', null );
 	if ( is_wp_error( $support_errors ) ) {
-		update_option( 'https_detection_errors', $support_errors->errors );
+		update_option( 'https_detection_errors', $support_errors->errors, false );
 		return;
 	}
 
@@ -6309,4 +6310,117 @@ function wp_render_elements_support( $block_content, $block ) {
 function wp_interactivity_process_directives_of_interactive_blocks( array $parsed_block ): array {
 	_deprecated_function( __FUNCTION__, '6.6.0' );
 	return $parsed_block;
+}
+
+/**
+ * Gets the global styles custom CSS from theme.json.
+ *
+ * @since 6.2.0
+ * @deprecated 6.7.0 Use {@see 'wp_get_global_stylesheet'} instead.
+ *
+ * @return string The global styles custom CSS.
+ */
+function wp_get_global_styles_custom_css() {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_get_global_stylesheet' );
+	if ( ! wp_theme_has_theme_json() ) {
+		return '';
+	}
+	/*
+	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
+	 * developer's workflow.
+	 */
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+
+	/*
+	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
+	 * @see `wp_cache_add_non_persistent_groups()`.
+	 *
+	 * The rationale for this is to make sure derived data from theme.json
+	 * is always fresh from the potential modifications done via hooks
+	 * that can use dynamic data (modify the stylesheet depending on some option,
+	 * settings depending on user permissions, etc.).
+	 * See some of the existing hooks to modify theme.json behavior:
+	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+	 *
+	 * A different alternative considered was to invalidate the cache upon certain
+	 * events such as options add/update/delete, user meta, etc.
+	 * It was judged not enough, hence this approach.
+	 * @see https://github.com/WordPress/gutenberg/pull/45372
+	 */
+	$cache_key   = 'wp_get_global_styles_custom_css';
+	$cache_group = 'theme_json';
+	if ( $can_use_cached ) {
+		$cached = wp_cache_get( $cache_key, $cache_group );
+		if ( $cached ) {
+			return $cached;
+		}
+	}
+
+	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
+	$stylesheet = $tree->get_custom_css();
+
+	if ( $can_use_cached ) {
+		wp_cache_set( $cache_key, $stylesheet, $cache_group );
+	}
+
+	return $stylesheet;
+}
+
+/**
+ * Enqueues the global styles custom css defined via theme.json.
+ *
+ * @since 6.2.0
+ * @deprecated 6.7.0 Use {@see 'wp_enqueue_global_styles'} instead.
+ */
+function wp_enqueue_global_styles_custom_css() {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_enqueue_global_styles' );
+	if ( ! wp_is_block_theme() ) {
+		return;
+	}
+
+	// Don't enqueue Customizer's custom CSS separately.
+	remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
+
+	$custom_css  = wp_get_custom_css();
+	$custom_css .= wp_get_global_styles_custom_css();
+
+	if ( ! empty( $custom_css ) ) {
+		wp_add_inline_style( 'global-styles', $custom_css );
+	}
+}
+
+/**
+ * Generate block style variation instance name.
+ *
+ * @since 6.6.0
+ * @deprecated 6.7.0 Use `wp_unique_id( $variation . '--' )` instead.
+ *
+ * @access private
+ *
+ * @param array  $block     Block object.
+ * @param string $variation Slug for the block style variation.
+ *
+ * @return string The unique variation name.
+ */
+function wp_create_block_style_variation_instance_name( $block, $variation ) {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_unique_id' );
+	return $variation . '--' . md5( serialize( $block ) );
+}
+
+/**
+ * Returns whether the current user has the specified capability for a given site.
+ *
+ * @since 3.0.0
+ * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
+ *              by adding it to the function signature.
+ * @since 5.8.0 Wraps current_user_can() after switching to blog.
+ * @deprecated 6.7.0 Use current_user_can_for_site() instead.
+ *
+ * @param int    $blog_id    Site ID.
+ * @param string $capability Capability name.
+ * @param mixed  ...$args    Optional further parameters, typically starting with an object ID.
+ * @return bool Whether the user has the given capability.
+ */
+function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
+	return current_user_can_for_site( $blog_id, $capability, ...$args );
 }

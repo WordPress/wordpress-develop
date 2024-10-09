@@ -226,6 +226,7 @@ class WP_Theme_JSON {
 	 * @since 6.4.0 Added `writing-mode` property.
 	 * @since 6.5.0 Added `aspect-ratio` property.
 	 * @since 6.6.0 Added `background-[image|position|repeat|size]` properties.
+	 * @since 6.7.0 Added `background-attachment` property.
 	 *
 	 * @var array
 	 */
@@ -237,6 +238,7 @@ class WP_Theme_JSON {
 		'background-position'               => array( 'background', 'backgroundPosition' ),
 		'background-repeat'                 => array( 'background', 'backgroundRepeat' ),
 		'background-size'                   => array( 'background', 'backgroundSize' ),
+		'background-attachment'             => array( 'background', 'backgroundAttachment' ),
 		'border-radius'                     => array( 'border', 'radius' ),
 		'border-top-left-radius'            => array( 'border', 'radius', 'topLeft' ),
 		'border-top-right-radius'           => array( 'border', 'radius', 'topRight' ),
@@ -358,6 +360,7 @@ class WP_Theme_JSON {
 		'description',
 		'patterns',
 		'settings',
+		'slug',
 		'styles',
 		'templateParts',
 		'title',
@@ -519,10 +522,11 @@ class WP_Theme_JSON {
 	 */
 	const VALID_STYLES = array(
 		'background' => array(
-			'backgroundImage'    => 'top',
-			'backgroundPosition' => 'top',
-			'backgroundRepeat'   => 'top',
-			'backgroundSize'     => 'top',
+			'backgroundImage'      => null,
+			'backgroundPosition'   => null,
+			'backgroundRepeat'     => null,
+			'backgroundSize'       => null,
+			'backgroundAttachment' => null,
 		),
 		'border'     => array(
 			'color'  => null,
@@ -742,14 +746,14 @@ class WP_Theme_JSON {
 	 * Constructor.
 	 *
 	 * @since 5.8.0
-	 * @since 6.6.0 Key spacingScale by origin, and Pre-generate the
-	 *              spacingSizes from spacingScale.
+	 * @since 6.6.0 Key spacingScale by origin, and Pre-generate the spacingSizes from spacingScale.
+	 *              Added unwrapping of shared block style variations into block type variations if registered.
 	 *
 	 * @param array  $theme_json A structure that follows the theme.json schema.
 	 * @param string $origin     Optional. What source of data this object represents.
 	 *                           One of 'blocks', 'default', 'theme', or 'custom'. Default 'theme'.
 	 */
-	public function __construct( $theme_json = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA ), $origin = 'theme' ) {
+	public function __construct( $theme_json = array( 'version' => self::LATEST_SCHEMA ), $origin = 'theme' ) {
 		if ( ! in_array( $origin, static::VALID_ORIGINS, true ) ) {
 			$origin = 'theme';
 		}
@@ -758,6 +762,7 @@ class WP_Theme_JSON {
 		$valid_block_names   = array_keys( static::get_blocks_metadata() );
 		$valid_element_names = array_keys( static::ELEMENTS );
 		$valid_variations    = static::get_valid_block_style_variations();
+		$this->theme_json    = static::unwrap_shared_block_style_variations( $this->theme_json, $valid_variations );
 		$this->theme_json    = static::sanitize( $this->theme_json, $valid_block_names, $valid_element_names, $valid_variations );
 		$this->theme_json    = static::maybe_opt_in_into_settings( $this->theme_json );
 
@@ -799,6 +804,73 @@ class WP_Theme_JSON {
 			$merged_spacing_sizes = static::merge_spacing_sizes( $spacing_scale_sizes, $spacing_sizes );
 			_wp_array_set( $this->theme_json, $sizes_path, $merged_spacing_sizes );
 		}
+	}
+
+	/**
+	 * Unwraps shared block style variations.
+	 *
+	 * It takes the shared variations (styles.variations.variationName) and
+	 * applies them to all the blocks that have the given variation registered
+	 * (styles.blocks.blockType.variations.variationName).
+	 *
+	 * For example, given the `core/paragraph` and `core/group` blocks have
+	 * registered the `section-a` style variation, and given the following input:
+	 *
+	 * {
+	 *   "styles": {
+	 *     "variations": {
+	 *       "section-a": { "color": { "background": "backgroundColor" } }
+	 *     }
+	 *   }
+	 * }
+	 *
+	 * It returns the following output:
+	 *
+	 * {
+	 *   "styles": {
+	 *     "blocks": {
+	 *       "core/paragraph": {
+	 *         "variations": {
+	 *             "section-a": { "color": { "background": "backgroundColor" } }
+	 *         },
+	 *       },
+	 *       "core/group": {
+	 *         "variations": {
+	 *           "section-a": { "color": { "background": "backgroundColor" } }
+	 *         }
+	 *       }
+	 *     }
+	 *   }
+	 * }
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param array $theme_json       A structure that follows the theme.json schema.
+	 * @param array $valid_variations Valid block style variations.
+	 * @return array Theme json data with shared variation definitions unwrapped under appropriate block types.
+	 */
+	private static function unwrap_shared_block_style_variations( $theme_json, $valid_variations ) {
+		if ( empty( $theme_json['styles']['variations'] ) || empty( $valid_variations ) ) {
+			return $theme_json;
+		}
+
+		$new_theme_json = $theme_json;
+		$variations     = $new_theme_json['styles']['variations'];
+
+		foreach ( $valid_variations as $block_type => $registered_variations ) {
+			foreach ( $registered_variations as $variation_name ) {
+				$block_level_data = $new_theme_json['styles']['blocks'][ $block_type ]['variations'][ $variation_name ] ?? array();
+				$top_level_data   = $variations[ $variation_name ] ?? array();
+				$merged_data      = array_replace_recursive( $top_level_data, $block_level_data );
+				if ( ! empty( $merged_data ) ) {
+					_wp_array_set( $new_theme_json, array( 'styles', 'blocks', $block_type, 'variations', $variation_name ), $merged_data );
+				}
+			}
+		}
+
+		unset( $new_theme_json['styles']['variations'] );
+
+		return $new_theme_json;
 	}
 
 	/**
@@ -965,12 +1037,6 @@ class WP_Theme_JSON {
 		$schema['settings']                               = static::VALID_SETTINGS;
 		$schema['settings']['blocks']                     = $schema_settings_blocks;
 		$schema['settings']['typography']['fontFamilies'] = static::schema_in_root_and_per_origin( static::FONT_FAMILY_SCHEMA );
-
-		/*
-		 * Shared block style variations can be registered from the theme.json data so we can't
-		 * validate them against pre-registered block style variations.
-		 */
-		$schema['styles']['blocks']['variations'] = null;
 
 		// Remove anything that's not present in the schema.
 		foreach ( array( 'styles', 'settings' ) as $subtree ) {
@@ -1246,7 +1312,8 @@ class WP_Theme_JSON {
 	 * @since 5.8.0
 	 * @since 5.9.0 Removed the `$type` parameter, added the `$types` and `$origins` parameters.
 	 * @since 6.3.0 Add fallback layout styles for Post Template when block gap support isn't available.
-	 * @since 6.6.0 Added `skip_root_layout_styles` option to omit layout styles if desired.
+	 * @since 6.6.0 Added boolean `skip_root_layout_styles` and `include_block_style_variations` options
+	 *              to control styles output as desired.
 	 *
 	 * @param string[] $types   Types of styles to load. Will load all by default. It accepts:
 	 *                          - `variables`: only the CSS Custom Properties for presets & custom ones.
@@ -1256,9 +1323,10 @@ class WP_Theme_JSON {
 	 * @param array    $options {
 	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
 	 *
-	 *     @type string $scope                   Makes sure all style are scoped to a given selector
-	 *     @type string $root_selector           Overwrites and forces a given selector to be used on the root node
-	 *     @type bool   $skip_root_layout_styles Omits root layout styles from the generated stylesheet. Default false.
+	 *     @type string $scope                           Makes sure all style are scoped to a given selector
+	 *     @type string $root_selector                   Overwrites and forces a given selector to be used on the root node
+	 *     @type bool   $skip_root_layout_styles         Omits root layout styles from the generated stylesheet. Default false.
+	 *     @type bool   $include_block_style_variations  Includes styles for block style variations in the generated stylesheet. Default false.
 	 * }
 	 * @return string The resulting stylesheet.
 	 */
@@ -1280,7 +1348,7 @@ class WP_Theme_JSON {
 		}
 
 		$blocks_metadata = static::get_blocks_metadata();
-		$style_nodes     = static::get_style_nodes( $this->theme_json, $blocks_metadata );
+		$style_nodes     = static::get_style_nodes( $this->theme_json, $blocks_metadata, $options );
 		$setting_nodes   = static::get_setting_nodes( $this->theme_json, $blocks_metadata );
 
 		$root_style_key    = array_search( static::ROOT_BLOCK_SELECTOR, array_column( $style_nodes, 'selector' ), true );
@@ -1358,6 +1426,12 @@ class WP_Theme_JSON {
 			$stylesheet .= $this->get_preset_classes( $setting_nodes, $origins );
 		}
 
+		// Load the custom CSS last so it has the highest specificity.
+		if ( in_array( 'custom-css', $types, true ) ) {
+			// Add the global styles root CSS.
+			$stylesheet .= _wp_array_get( $this->theme_json, array( 'styles', 'css' ) );
+		}
+
 		return $stylesheet;
 	}
 
@@ -1374,9 +1448,16 @@ class WP_Theme_JSON {
 	protected function process_blocks_custom_css( $css, $selector ) {
 		$processed_css = '';
 
+		if ( empty( $css ) ) {
+			return $processed_css;
+		}
+
 		// Split CSS nested rules.
 		$parts = explode( '&', $css );
 		foreach ( $parts as $part ) {
+			if ( empty( $part ) ) {
+				continue;
+			}
 			$is_root_css = ( ! str_contains( $part, '{' ) );
 			if ( $is_root_css ) {
 				// If the part doesn't contain braces, it applies to the root level.
@@ -1389,11 +1470,25 @@ class WP_Theme_JSON {
 				}
 				$nested_selector = $part[0];
 				$css_value       = $part[1];
-				$part_selector   = str_starts_with( $nested_selector, ' ' )
+
+				/*
+				 * Handle pseudo elements such as ::before, ::after etc. Regex will also
+				 * capture any leading combinator such as >, +, or ~, as well as spaces.
+				 * This allows pseudo elements as descendants e.g. `.parent ::before`.
+				 */
+				$matches            = array();
+				$has_pseudo_element = preg_match( '/([>+~\s]*::[a-zA-Z-]+)/', $nested_selector, $matches );
+				$pseudo_part        = $has_pseudo_element ? $matches[1] : '';
+				$nested_selector    = $has_pseudo_element ? str_replace( $pseudo_part, '', $nested_selector ) : $nested_selector;
+
+				// Finalize selector and re-append pseudo element if required.
+				$part_selector  = str_starts_with( $nested_selector, ' ' )
 					? static::scope_selector( $selector, $nested_selector )
 					: static::append_to_selector( $selector, $nested_selector );
-				$final_selector  = ":root :where($part_selector)";
-				$processed_css  .= $final_selector . '{' . trim( $css_value ) . '}';}
+				$final_selector = ":root :where($part_selector)$pseudo_part";
+
+				$processed_css .= $final_selector . '{' . trim( $css_value ) . '}';
+			}
 		}
 		return $processed_css;
 	}
@@ -1402,10 +1497,12 @@ class WP_Theme_JSON {
 	 * Returns the global styles custom CSS.
 	 *
 	 * @since 6.2.0
+	 * @deprecated 6.7.0 Use {@see 'get_stylesheet'} instead.
 	 *
 	 * @return string The global styles custom CSS.
 	 */
 	public function get_custom_css() {
+		_deprecated_function( __METHOD__, '6.7.0', 'get_stylesheet' );
 		// Add the global styles root CSS.
 		$stylesheet = isset( $this->theme_json['styles']['css'] ) ? $this->theme_json['styles']['css'] : '';
 
@@ -1616,7 +1713,7 @@ class WP_Theme_JSON {
 										$spacing_rule['selector']
 									);
 								} else {
-									$format          = static::ROOT_BLOCK_SELECTOR === $selector ? '.%2$s %3$s' : '%1$s-%2$s %3$s';
+									$format          = static::ROOT_BLOCK_SELECTOR === $selector ? ':root :where(.%2$s)%3$s' : ':root :where(%1$s-%2$s)%3$s';
 									$layout_selector = sprintf(
 										$format,
 										$selector,
@@ -2198,7 +2295,7 @@ class WP_Theme_JSON {
 	 *
 	 *     array(
 	 *       'name'  => 'property_name',
-	 *       'value' => 'property_value,
+	 *       'value' => 'property_value',
 	 *     )
 	 *
 	 * @since 5.8.0
@@ -2206,6 +2303,7 @@ class WP_Theme_JSON {
 	 * @since 6.1.0 Added `$theme_json`, `$selector`, and `$use_root_padding` parameters.
 	 * @since 6.5.0 Output a `min-height: unset` rule when `aspect-ratio` is set.
 	 * @since 6.6.0 Pass current theme JSON settings to wp_get_typography_font_size_value(), and process background properties.
+	 * @since 6.7.0 `ref` resolution of background properties, and assigning custom default values.
 	 *
 	 * @param array   $styles Styles to process.
 	 * @param array   $settings Theme settings.
@@ -2259,10 +2357,27 @@ class WP_Theme_JSON {
 				}
 			}
 
-			// Processes background styles.
-			if ( 'background' === $value_path[0] && isset( $styles['background'] ) ) {
-				$background_styles = wp_style_engine_get_styles( array( 'background' => $styles['background'] ) );
-				$value             = isset( $background_styles['declarations'][ $css_property ] ) ? $background_styles['declarations'][ $css_property ] : $value;
+			/*
+			 * Processes background image styles.
+			 * If the value is a URL, it will be converted to a CSS `url()` value.
+			 * For uploaded image (images with a database ID), apply size and position defaults,
+			 * equal to those applied in block supports in lib/background.php.
+			 */
+			if ( 'background-image' === $css_property && ! empty( $value ) ) {
+				$background_styles = wp_style_engine_get_styles(
+					array( 'background' => array( 'backgroundImage' => $value ) )
+				);
+				$value             = $background_styles['declarations'][ $css_property ];
+			}
+			if ( empty( $value ) && static::ROOT_BLOCK_SELECTOR !== $selector && ! empty( $styles['background']['backgroundImage']['id'] ) ) {
+				if ( 'background-size' === $css_property ) {
+					$value = 'cover';
+				}
+				// If the background size is set to `contain` and no position is set, set the position to `center`.
+				if ( 'background-position' === $css_property ) {
+					$background_size = $styles['background']['backgroundSize'] ?? null;
+					$value           = 'contain' === $background_size ? '50% 50%' : null;
+				}
 			}
 
 			// Skip if empty and not "0" or value represents array of longhand values.
@@ -2324,6 +2439,7 @@ class WP_Theme_JSON {
 	 *              to the standard form "--wp--preset--color--secondary".
 	 *              This is already done by the sanitize method,
 	 *              so every property will be in the standard form.
+	 * @since 6.7.0 Added support for background image refs.
 	 *
 	 * @param array $styles Styles subtree.
 	 * @param array $path   Which property to process.
@@ -2340,14 +2456,18 @@ class WP_Theme_JSON {
 
 		/*
 		 * This converts references to a path to the value at that path
-		 * where the values is an array with a "ref" key, pointing to a path.
+		 * where the value is an array with a "ref" key, pointing to a path.
 		 * For example: { "ref": "style.color.background" } => "#fff".
+		 * In the case of backgroundImage, if both a ref and a URL are present in the value,
+		 * the URL takes precedence and the ref is ignored.
 		 */
 		if ( is_array( $value ) && isset( $value['ref'] ) ) {
 			$value_path = explode( '.', $value['ref'] );
 			$ref_value  = _wp_array_get( $theme_json, $value_path );
+			// Background Image refs can refer to a string or an array containing a URL string.
+			$ref_value_url = $ref_value['url'] ?? null;
 			// Only use the ref value if we find anything.
-			if ( ! empty( $ref_value ) && is_string( $ref_value ) ) {
+			if ( ! empty( $ref_value ) && ( is_string( $ref_value ) || is_string( $ref_value_url ) ) ) {
 				$value = $ref_value;
 			}
 
@@ -2445,12 +2565,18 @@ class WP_Theme_JSON {
 	 *     ]
 	 *
 	 * @since 5.8.0
+	 * @since 6.6.0 Added options array for modifying generated nodes.
 	 *
 	 * @param array $theme_json The tree to extract style nodes from.
 	 * @param array $selectors  List of selectors per block.
+	 * @param array $options {
+	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
+	 *
+	 *     @type bool $include_block_style_variations Includes style nodes for block style variations. Default false.
+	 * }
 	 * @return array An array of style nodes metadata.
 	 */
-	protected static function get_style_nodes( $theme_json, $selectors = array() ) {
+	protected static function get_style_nodes( $theme_json, $selectors = array(), $options = array() ) {
 		$nodes = array();
 		if ( ! isset( $theme_json['styles'] ) ) {
 			return $nodes;
@@ -2492,7 +2618,7 @@ class WP_Theme_JSON {
 			return $nodes;
 		}
 
-		$block_nodes = static::get_block_nodes( $theme_json );
+		$block_nodes = static::get_block_nodes( $theme_json, $selectors, $options );
 		foreach ( $block_nodes as $block_node ) {
 			$nodes[] = $block_node;
 		}
@@ -2563,12 +2689,19 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.1.0
 	 * @since 6.3.0 Refactored and stabilized selectors API.
+	 * @since 6.6.0 Added optional selectors and options for generating block nodes.
 	 *
 	 * @param array $theme_json The theme.json converted to an array.
+	 * @param array $selectors  Optional list of selectors per block.
+	 * @param array $options {
+	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
+	 *
+	 *     @type bool   $include_block_style_variations  Includes nodes for block style variations. Default false.
+	 * }
 	 * @return array The block nodes in theme.json.
 	 */
-	private static function get_block_nodes( $theme_json ) {
-		$selectors = static::get_blocks_metadata();
+	private static function get_block_nodes( $theme_json, $selectors = array(), $options = array() ) {
+		$selectors = empty( $selectors ) ? static::get_blocks_metadata() : $selectors;
 		$nodes     = array();
 		if ( ! isset( $theme_json['styles'] ) ) {
 			return $nodes;
@@ -2596,7 +2729,8 @@ class WP_Theme_JSON {
 			}
 
 			$variation_selectors = array();
-			if ( isset( $node['variations'] ) ) {
+			$include_variations  = $options['include_block_style_variations'] ?? false;
+			if ( $include_variations && isset( $node['variations'] ) ) {
 				foreach ( $node['variations'] as $variation => $node ) {
 					$variation_selectors[] = array(
 						'path'     => array( 'styles', 'blocks', $name, 'variations', $variation ),
@@ -2613,6 +2747,7 @@ class WP_Theme_JSON {
 				'duotone'    => $duotone_selector,
 				'features'   => $feature_selectors,
 				'variations' => $variation_selectors,
+				'css'        => $selector,
 			);
 
 			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
@@ -2646,6 +2781,7 @@ class WP_Theme_JSON {
 	 * @since 6.1.0
 	 * @since 6.6.0 Setting a min-height of HTML when root styles have a background gradient or image.
 	 *              Updated general global styles specificity to 0-1-0.
+	 *              Fixed custom CSS output in block style variations.
 	 *
 	 * @param array $block_metadata Metadata about the block to get styles for.
 	 *
@@ -2661,6 +2797,7 @@ class WP_Theme_JSON {
 
 		// If there are style variations, generate the declarations for them, including any feature selectors the block may have.
 		$style_variation_declarations = array();
+		$style_variation_custom_css   = array();
 		if ( ! empty( $block_metadata['variations'] ) ) {
 			foreach ( $block_metadata['variations'] as $style_variation ) {
 				$style_variation_node           = _wp_array_get( $this->theme_json, $style_variation['path'], array() );
@@ -2690,6 +2827,10 @@ class WP_Theme_JSON {
 
 				// Compute declarations for remaining styles not covered by feature level selectors.
 				$style_variation_declarations[ $style_variation['selector'] ] = static::compute_style_properties( $style_variation_node, $settings, null, $this->theme_json );
+				// Store custom CSS for the style variation.
+				if ( isset( $style_variation_node['css'] ) ) {
+					$style_variation_custom_css[ $style_variation['selector'] ] = $this->process_blocks_custom_css( $style_variation_node['css'], $style_variation['selector'] );
+				}
 			}
 		}
 		/*
@@ -2794,8 +2935,28 @@ class WP_Theme_JSON {
 			$declarations = static::update_separator_declarations( $declarations );
 		}
 
+		/*
+		 * Root selector (body) styles should not be wrapped in `:root where()` to keep
+		 * specificity at (0,0,1) and maintain backwards compatibility.
+		 *
+		 * Top-level element styles using element-only specificity selectors should
+		 * not get wrapped in `:root :where()` to maintain backwards compatibility.
+		 *
+		 * Pseudo classes, e.g. :hover, :focus etc., are a class-level selector so
+		 * still need to be wrapped in `:root :where` to cap specificity for nested
+		 * variations etc. Pseudo selectors won't match the ELEMENTS selector exactly.
+		 */
+		$element_only_selector = $is_root_selector || (
+			$current_element &&
+			isset( static::ELEMENTS[ $current_element ] ) &&
+			// buttons, captions etc. still need `:root :where()` as they are class based selectors.
+			! isset( static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES[ $current_element ] ) &&
+			static::ELEMENTS[ $current_element ] === $selector
+		);
+
 		// 2. Generate and append the rules that use the general selector.
-		$block_rules .= static::to_ruleset( ":root :where($selector)", $declarations );
+		$general_selector = $element_only_selector ? $selector : ":root :where($selector)";
+		$block_rules     .= static::to_ruleset( $general_selector, $declarations );
 
 		// 3. Generate and append the rules that use the duotone selector.
 		if ( isset( $block_metadata['duotone'] ) && ! empty( $declarations_duotone ) ) {
@@ -2818,6 +2979,14 @@ class WP_Theme_JSON {
 		// 6. Generate and append the style variation rulesets.
 		foreach ( $style_variation_declarations as $style_variation_selector => $individual_style_variation_declarations ) {
 			$block_rules .= static::to_ruleset( ":root :where($style_variation_selector)", $individual_style_variation_declarations );
+			if ( isset( $style_variation_custom_css[ $style_variation_selector ] ) ) {
+				$block_rules .= $style_variation_custom_css[ $style_variation_selector ];
+			}
+		}
+
+		// 7. Generate and append any custom CSS rules.
+		if ( isset( $node['css'] ) && ! $is_root_selector ) {
+			$block_rules .= $this->process_blocks_custom_css( $node['css'], $selector );
 		}
 
 		return $block_rules;
@@ -2869,10 +3038,10 @@ class WP_Theme_JSON {
 			$css .= '.has-global-padding { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }';
 			// Alignfull children of the container with left and right padding have negative margins so they can still be full width.
 			$css .= '.has-global-padding > .alignfull { margin-right: calc(var(--wp--style--root--padding-right) * -1); margin-left: calc(var(--wp--style--root--padding-left) * -1); }';
-			// Nested children of the container with left and right padding that are not wide or full aligned do not get padding.
-			$css .= '.has-global-padding :where(.has-global-padding:not(.wp-block-block, .alignfull, .alignwide)) { padding-right: 0; padding-left: 0; }';
-			// Nested children of the container with left and right padding that are not wide or full aligned do not get negative margin applied.
-			$css .= '.has-global-padding :where(.has-global-padding:not(.wp-block-block, .alignfull, .alignwide)) > .alignfull { margin-left: 0; margin-right: 0; }';
+			// Nested children of the container with left and right padding that are not full aligned do not get padding, unless they are direct children of an alignfull flow container.
+			$css .= '.has-global-padding :where(:not(.alignfull.is-layout-flow) > .has-global-padding:not(.wp-block-block, .alignfull)) { padding-right: 0; padding-left: 0; }';
+			// Alignfull direct children of the containers that are targeted by the rule above do not need negative margins.
+			$css .= '.has-global-padding :where(:not(.alignfull.is-layout-flow) > .has-global-padding:not(.wp-block-block, .alignfull)) > .alignfull { margin-left: 0; margin-right: 0; }';
 		}
 
 		$css .= '.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }';
@@ -2937,6 +3106,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Duotone preset also has origins.
+	 * @since 6.7.0 Replace background image objects during merge.
 	 *
 	 * @param WP_Theme_JSON $incoming Data to merge.
 	 */
@@ -3058,6 +3228,25 @@ class WP_Theme_JSON {
 
 					_wp_array_set( $this->theme_json, $path, $content );
 				}
+			}
+		}
+
+		/*
+		 * Style values are merged at the leaf level, however
+		 * some values provide exceptions, namely style values that are
+		 * objects and represent unique definitions for the style.
+		 */
+		$style_nodes = static::get_styles_block_nodes();
+		foreach ( $style_nodes as $style_node ) {
+			$path = $style_node['path'];
+			/*
+			 * Background image styles should be replaced, not merged,
+			 * as they themselves are specific object definitions for the style.
+			 */
+			$background_image_path = array_merge( $path, static::PROPERTIES_METADATA['background-image'] );
+			$content               = _wp_array_get( $incoming_data, $background_image_path, null );
+			if ( isset( $content ) ) {
+				_wp_array_set( $this->theme_json, $background_image_path, $content );
 			}
 		}
 	}
@@ -3244,7 +3433,7 @@ class WP_Theme_JSON {
 	 * @since 6.3.2 Preserves global styles block variations when securing styles.
 	 * @since 6.6.0 Updated to allow variation element styles and $origin parameter.
 	 *
-	 * @param array $theme_json Structure to sanitize.
+	 * @param array  $theme_json Structure to sanitize.
 	 * @param string $origin    Optional. What source of data this object represents.
 	 *                          One of 'blocks', 'default', 'theme', or 'custom'. Default 'theme'.
 	 * @return array Sanitized structure.
@@ -3265,7 +3454,8 @@ class WP_Theme_JSON {
 		$theme_json = static::sanitize( $theme_json, $valid_block_names, $valid_element_names, $valid_variations );
 
 		$blocks_metadata = static::get_blocks_metadata();
-		$style_nodes     = static::get_style_nodes( $theme_json, $blocks_metadata );
+		$style_options   = array( 'include_block_style_variations' => true ); // Allow variations data.
+		$style_nodes     = static::get_style_nodes( $theme_json, $blocks_metadata, $style_options );
 
 		foreach ( $style_nodes as $metadata ) {
 			$input = _wp_array_get( $theme_json, $metadata['path'], array() );
@@ -3775,7 +3965,8 @@ class WP_Theme_JSON {
 			|| ! is_numeric( $spacing_scale['mediumStep'] )
 			|| ( '+' !== $spacing_scale['operator'] && '*' !== $spacing_scale['operator'] ) ) {
 			if ( ! empty( $spacing_scale ) ) {
-				trigger_error(
+				wp_trigger_error(
+					__METHOD__,
 					sprintf(
 						/* translators: 1: theme.json, 2: settings.spacing.spacingScale */
 						__( 'Some of the %1$s %2$s values are invalid' ),

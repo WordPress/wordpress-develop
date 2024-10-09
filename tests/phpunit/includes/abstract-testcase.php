@@ -1072,6 +1072,40 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
+	 * Assert that two text strings representing file paths are the same, while ignoring
+	 * OS-specific differences in the directory separators.
+	 *
+	 * This allows for tests to be compatible for running on both *nix based as well as Windows OS.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $path_a File or directory path.
+	 * @param string $path_b File or directory path.
+	 */
+	public function assertSamePathIgnoringDirectorySeparators( $path_a, $path_b ) {
+		$path_a = $this->normalizeDirectorySeparatorsInPath( $path_a );
+		$path_b = $this->normalizeDirectorySeparatorsInPath( $path_b );
+
+		$this->assertSame( $path_a, $path_b );
+	}
+
+	/**
+	 * Normalize directory separators in a file path to be a forward slash.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $path File or directory path.
+	 * @return string The normalized file or directory path.
+	 */
+	public function normalizeDirectorySeparatorsInPath( $path ) {
+		if ( ! is_string( $path ) || PHP_OS_FAMILY !== 'Windows' ) {
+			return $path;
+		}
+
+		return strtr( $path, '\\', '/' );
+	}
+
+	/**
 	 * Checks each of the WP_Query is_* functions/properties against expected boolean value.
 	 *
 	 * Any properties that are listed by name as parameters will be expected to be true; all others are

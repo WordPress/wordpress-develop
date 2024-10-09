@@ -602,6 +602,31 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 61545
+	 */
+	public function test_next_tag_should_not_match_on_substrings_of_a_requested_tag() {
+		$processor = new WP_HTML_Tag_Processor( '<p><pic><picture>' );
+
+		$this->assertTrue(
+			$processor->next_tag( 'PICTURE' ),
+			'Failed to find a tag when requested: check test setup.'
+		);
+
+		$this->assertSame(
+			'PICTURE',
+			$processor->get_tag(),
+			'Should have skipped past substring tag matches, directly finding the PICTURE element.'
+		);
+
+		$processor = new WP_HTML_Tag_Processor( '<p><pic>' );
+
+		$this->assertFalse(
+			$processor->next_tag( 'PICTURE' ),
+			"Should not have found any PICTURE element, but found '{$processor->get_token_name()}' instead."
+		);
+	}
+
+	/**
 	 * @ticket 59209
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
@@ -1376,12 +1401,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->remove_class( 'main' );
 
 		$this->assertSame(
-			'<div class=" with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
+			'<div class="with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
 			'Updated HTML does not reflect class name removed from existing class attribute via remove_class()'
 		);
 		$this->assertSame(
-			' with-border',
+			'with-border',
 			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect class name removed from existing class attribute via remove_class()"
 		);
@@ -1466,12 +1491,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->add_class( 'foo-class' );
 
 		$this->assertSame(
-			'<div class="   main   with-border foo-class" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
+			'<div class="main   with-border foo-class" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
 			'Updated HTML does not reflect existing excessive whitespace after adding class name via add_class()'
 		);
 		$this->assertSame(
-			'   main   with-border foo-class',
+			'main   with-border foo-class',
 			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect existing excessive whitespace after adding class name via add_class()"
 		);
@@ -1490,12 +1515,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->remove_class( 'with-border' );
 
 		$this->assertSame(
-			'<div class="   main" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
+			'<div class="main" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
 			'Updated HTML does not reflect existing excessive whitespace after removing class name via remove_class()'
 		);
 		$this->assertSame(
-			'   main',
+			'main',
 			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect existing excessive whitespace after removing class name via removing_class()"
 		);
@@ -1696,8 +1721,8 @@ HTML;
 		$expected_output = <<<HTML
 <div data-details="{ &quot;key&quot;: &quot;value&quot; }" selected class="merge-message is-processed" checked>
 	<div class="select-menu d-inline-block">
-		<div checked class=" MixedCaseHTML position-relative button-group Another-Mixed-Case" />
-		<div checked class=" MixedCaseHTML position-relative button-group Another-Mixed-Case">
+		<div checked class="MixedCaseHTML position-relative button-group Another-Mixed-Case" />
+		<div checked class="MixedCaseHTML position-relative button-group Another-Mixed-Case">
 			<button type="button" class="merge-box-button btn-group-merge rounded-left-2 btn  BtnGroup-item js-details-target hx_create-pr-button" aria-expanded="false" data-details-container=".js-merge-pr" disabled="">
 			  Merge pull request
 			</button>
@@ -2209,6 +2234,35 @@ HTML;
 		}
 
 		$this->assertSame( array( 'one' ), $found_classes, 'Visited multiple copies of the same class name when it should have skipped the duplicates.' );
+	}
+
+	/**
+	 * Ensures that null bytes are replaced with the replacement character (U+FFFD) in class_list.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_null_bytes_replaced() {
+		$processor = new WP_HTML_Tag_Processor( "<div class='a \0 b\0 \0c\0'>" );
+		$processor->next_tag();
+
+		$found_classes = iterator_to_array( $processor->class_list() );
+
+		$this->assertSame( array( 'a', "\u{FFFD}", "b\u{FFFD}", "\u{FFFD}c\u{FFFD}" ), $found_classes );
+	}
+
+	/**
+	 * Ensures that the tag processor matches class names with null bytes correctly.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_class
+	 */
+	public function test_has_class_null_byte_class_name() {
+		$processor = new WP_HTML_Tag_Processor( "<div class='null-byte-\0-there'>" );
+		$processor->next_tag();
+		$this->assertTrue( $processor->has_class( 'null-byte-�-there' ) );
 	}
 
 	/**
@@ -2874,5 +2928,60 @@ HTML
 			$subclass->get_updated_html(),
 			'Should have properly applied the update from in front of the cursor.'
 		);
+	}
+
+	/**
+	 * Test an infinite loop bugfix in incomplete script tag parsing.
+	 *
+	 * @small
+	 *
+	 * @ticket 61810
+	 */
+	public function test_script_tag_processing_no_infinite_loop_final_dash() {
+		$processor = new WP_HTML_Tag_Processor( '<script>-' );
+
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
+
+	/**
+	 * Test an infinite loop bugfix in incomplete script tag parsing.
+	 *
+	 * @small
+	 *
+	 * @ticket 61810
+	 */
+	public function test_script_tag_processing_no_infinite_loop_final_left_angle_bracket() {
+		$processor = new WP_HTML_Tag_Processor( '<script><' );
+
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
+
+	/**
+	 * Test a bugfix where the input ends abruptly with a funky comment started.
+	 *
+	 * @ticket 61831
+	 */
+	public function test_unclosed_funky_comment_input_too_short() {
+		$processor = new WP_HTML_Tag_Processor( '</#' );
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
+
+	/**
+	 * Test basic DOCTYPE handling.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_doctype_doc_name() {
+		$processor = new WP_HTML_Tag_Processor( '<!DOCTYPE html>' );
+		$this->assertTrue( $processor->next_token() );
+		$doctype = $processor->get_doctype_info();
+		$this->assertNotNull( $doctype );
+		$this->assertSame( 'html', $doctype->name );
+		$this->assertSame( 'no-quirks', $doctype->indicated_compatability_mode );
+		$this->assertNull( $doctype->public_identifier );
+		$this->assertNull( $doctype->system_identifier );
 	}
 }

@@ -231,7 +231,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.9.0
 	 * @since 6.2.0 Added validation of styles.css property.
-	 * @since 6.6.0 Added registration of newly created style variations provided by the user.
+	 * @since 6.6.0 Added registration of block style variations from theme.json sources (theme.json, user theme.json, partials).
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return stdClass|WP_Error Prepared item on success. WP_Error on when the custom CSS is not valid.
@@ -265,23 +265,9 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 				$config['styles'] = $existing_config['styles'];
 			}
 
-			/*
-			 * If the incoming request is going to create a new variation
-			 * that is not yet registered, we register it here.
-			 * This is because the variations are registered on init,
-			 * but we want this endpoint to return the new variation immediately:
-			 * if we don't register it, it'll be stripped out of the response
-			 * just in this request (subsequent ones will be ok).
-			 * Take the variations defined in styles.blocks.variations from the incoming request
-			 * that are not part of the $exsting_config.
-			 */
-			if ( isset( $request['styles']['blocks']['variations'] ) ) {
-				$existing_variations = isset( $existing_config['styles']['blocks']['variations'] ) ? $existing_config['styles']['blocks']['variations'] : array();
-				$new_variations      = array_diff_key( $request['styles']['blocks']['variations'], $existing_variations );
-				if ( ! empty( $new_variations ) ) {
-					wp_register_block_style_variations_from_theme_json_data( $new_variations );
-				}
-			}
+			// Register theme-defined variations e.g. from block style variation partials under `/styles`.
+			$variations = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
+			wp_register_block_style_variations_from_theme_json_partials( $variations );
 
 			if ( isset( $request['settings'] ) ) {
 				$config['settings'] = $request['settings'];
@@ -341,10 +327,12 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		}
 		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 
 			$data['title']['rendered'] = get_the_title( $post->ID );
 
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 		}
 
 		if ( rest_is_field_included( 'settings', $fields ) ) {
@@ -521,26 +509,40 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * Checks if a given request has access to read a single theme global styles config.
 	 *
 	 * @since 5.9.0
+	 * @since 6.7.0 Allow users with edit post capabilities to view theme global styles.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_theme_item_permissions_check( $request ) {
 		/*
-		 * Verify if the current user has edit_theme_options capability.
-		 * This capability is required to edit/view/delete templates.
+		 * Verify if the current user has edit_posts capability.
+		 * This capability is required to view global styles.
 		 */
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new WP_Error(
-				'rest_cannot_manage_global_styles',
-				__( 'Sorry, you are not allowed to access the global styles on this site.' ),
-				array(
-					'status' => rest_authorization_required_code(),
-				)
-			);
+		if ( current_user_can( 'edit_posts' ) ) {
+			return true;
 		}
 
-		return true;
+		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+			if ( current_user_can( $post_type->cap->edit_posts ) ) {
+				return true;
+			}
+		}
+
+		/*
+		 * Verify if the current user has edit_theme_options capability.
+		 */
+		if ( current_user_can( 'edit_theme_options' ) ) {
+			return true;
+		}
+
+		return new WP_Error(
+			'rest_cannot_read_global_styles',
+			__( 'Sorry, you are not allowed to access the global styles on this site.' ),
+			array(
+				'status' => rest_authorization_required_code(),
+			)
+		);
 	}
 
 	/**
@@ -601,26 +603,13 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * Checks if a given request has access to read a single theme global styles config.
 	 *
 	 * @since 6.0.0
+	 * @since 6.7.0 Allow users with edit post capabilities to view theme global styles.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_theme_items_permissions_check( $request ) {
-		/*
-		 * Verify if the current user has edit_theme_options capability.
-		 * This capability is required to edit/view/delete templates.
-		 */
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new WP_Error(
-				'rest_cannot_manage_global_styles',
-				__( 'Sorry, you are not allowed to access the global styles on this site.' ),
-				array(
-					'status' => rest_authorization_required_code(),
-				)
-			);
-		}
-
-		return true;
+		return $this->get_theme_item_permissions_check( $request );
 	}
 
 	/**
@@ -644,9 +633,13 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$response   = array();
-		$variations = WP_Theme_JSON_Resolver::get_style_variations();
+		$response = array();
 
+		// Register theme-defined variations e.g. from block style variation partials under `/styles`.
+		$partials = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
+		wp_register_block_style_variations_from_theme_json_partials( $partials );
+
+		$variations = WP_Theme_JSON_Resolver::get_style_variations();
 		foreach ( $variations as $variation ) {
 			$variation_theme_json = new WP_Theme_JSON( $variation );
 			$resolved_theme_uris  = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $variation_theme_json );
