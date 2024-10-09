@@ -2698,7 +2698,6 @@ class WP_Theme_JSON {
 	 *
 	 *     @type bool $include_block_style_variations Includes nodes for block style variations. Default false.
 	 *     @type bool $include_node_paths_only        Includes node path for block nodes. Default false.
-	 *     @type bool $include_block_elements         Includes block elements for block nodes. Default true.
 	 * }
 	 * @return array The block nodes in theme.json.
 	 */
@@ -2759,9 +2758,7 @@ class WP_Theme_JSON {
 				);
 			}
 
-			$include_block_elements = $options['include_block_elements'] ?? true;
-
-			if ( $include_block_elements && isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
+			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
 				foreach ( $theme_json['styles']['blocks'][ $name ]['elements'] as $element => $node ) {
 					$node_path = array( 'styles', 'blocks', $name, 'elements', $element );
 					if ( $include_node_paths_only ) {
