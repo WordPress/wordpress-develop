@@ -25,16 +25,16 @@ function wp_register_typography_support( $block_type ) {
 		return;
 	}
 
-	$has_font_family_support     = isset( $typography_supports['__experimentalFontFamily'] ) ? $typography_supports['__experimentalFontFamily'] : false;
+	$has_font_family_support     = isset( $typography_supports['fontFamily'] ) ? $typography_supports['fontFamily'] : false;
 	$has_font_size_support       = isset( $typography_supports['fontSize'] ) ? $typography_supports['fontSize'] : false;
-	$has_font_style_support      = isset( $typography_supports['__experimentalFontStyle'] ) ? $typography_supports['__experimentalFontStyle'] : false;
-	$has_font_weight_support     = isset( $typography_supports['__experimentalFontWeight'] ) ? $typography_supports['__experimentalFontWeight'] : false;
-	$has_letter_spacing_support  = isset( $typography_supports['__experimentalLetterSpacing'] ) ? $typography_supports['__experimentalLetterSpacing'] : false;
+	$has_font_style_support      = isset( $typography_supports['fontStyle'] ) ? $typography_supports['fontStyle'] : false;
+	$has_font_weight_support     = isset( $typography_supports['fontWeight'] ) ? $typography_supports['fontWeight'] : false;
+	$has_letter_spacing_support  = isset( $typography_supports['letterSpacing'] ) ? $typography_supports['letterSpacing'] : false;
 	$has_line_height_support     = isset( $typography_supports['lineHeight'] ) ? $typography_supports['lineHeight'] : false;
 	$has_text_align_support      = isset( $typography_supports['textAlign'] ) ? $typography_supports['textAlign'] : false;
 	$has_text_columns_support    = isset( $typography_supports['textColumns'] ) ? $typography_supports['textColumns'] : false;
-	$has_text_decoration_support = isset( $typography_supports['__experimentalTextDecoration'] ) ? $typography_supports['__experimentalTextDecoration'] : false;
-	$has_text_transform_support  = isset( $typography_supports['__experimentalTextTransform'] ) ? $typography_supports['__experimentalTextTransform'] : false;
+	$has_text_decoration_support = isset( $typography_supports['textDecoration'] ) ? $typography_supports['textDecoration'] : false;
+	$has_text_transform_support  = isset( $typography_supports['textTransform'] ) ? $typography_supports['textTransform'] : false;
 	$has_writing_mode_support    = isset( $typography_supports['__experimentalWritingMode'] ) ? $typography_supports['__experimentalWritingMode'] : false;
 
 	$has_typography_support = $has_font_family_support
@@ -102,16 +102,16 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		return array();
 	}
 
-	$has_font_family_support     = isset( $typography_supports['__experimentalFontFamily'] ) ? $typography_supports['__experimentalFontFamily'] : false;
+	$has_font_family_support     = isset( $typography_supports['fontFamily'] ) ? $typography_supports['fontFamily'] : false;
 	$has_font_size_support       = isset( $typography_supports['fontSize'] ) ? $typography_supports['fontSize'] : false;
-	$has_font_style_support      = isset( $typography_supports['__experimentalFontStyle'] ) ? $typography_supports['__experimentalFontStyle'] : false;
-	$has_font_weight_support     = isset( $typography_supports['__experimentalFontWeight'] ) ? $typography_supports['__experimentalFontWeight'] : false;
-	$has_letter_spacing_support  = isset( $typography_supports['__experimentalLetterSpacing'] ) ? $typography_supports['__experimentalLetterSpacing'] : false;
+	$has_font_style_support      = isset( $typography_supports['fontStyle'] ) ? $typography_supports['fontStyle'] : false;
+	$has_font_weight_support     = isset( $typography_supports['fontWeight'] ) ? $typography_supports['fontWeight'] : false;
+	$has_letter_spacing_support  = isset( $typography_supports['letterSpacing'] ) ? $typography_supports['letterSpacing'] : false;
 	$has_line_height_support     = isset( $typography_supports['lineHeight'] ) ? $typography_supports['lineHeight'] : false;
 	$has_text_align_support      = isset( $typography_supports['textAlign'] ) ? $typography_supports['textAlign'] : false;
 	$has_text_columns_support    = isset( $typography_supports['textColumns'] ) ? $typography_supports['textColumns'] : false;
-	$has_text_decoration_support = isset( $typography_supports['__experimentalTextDecoration'] ) ? $typography_supports['__experimentalTextDecoration'] : false;
-	$has_text_transform_support  = isset( $typography_supports['__experimentalTextTransform'] ) ? $typography_supports['__experimentalTextTransform'] : false;
+	$has_text_decoration_support = isset( $typography_supports['textDecoration'] ) ? $typography_supports['textDecoration'] : false;
+	$has_text_transform_support  = isset( $typography_supports['textTransform'] ) ? $typography_supports['textTransform'] : false;
 	$has_writing_mode_support    = isset( $typography_supports['__experimentalWritingMode'] ) ? $typography_supports['__experimentalWritingMode'] : false;
 
 	// Whether to skip individual block support features.

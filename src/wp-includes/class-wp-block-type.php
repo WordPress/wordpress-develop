@@ -273,6 +273,23 @@ class WP_Block_Type {
 	);
 
 	/**
+	 * Stabilized block supports.
+	 *
+	 * @since 6.7.0
+	 * @var array
+	 */
+	private $stabilized_supports = array(
+		'typography' => array(
+			'__experimentalFontFamily'     => 'fontFamily',
+			'__experimentalFontStyle'      => 'fontStyle',
+			'__experimentalFontWeight'     => 'fontWeight',
+			'__experimentalLetterSpacing'  => 'letterSpacing',
+			'__experimentalTextDecoration' => 'textDecoration',
+			'__experimentalTextTransform'  => 'textTransform',
+		),
+	);
+
+	/**
 	 * Attributes supported by every block.
 	 *
 	 * @since 6.0.0 Added `lock`.
@@ -572,6 +589,11 @@ class WP_Block_Type {
 		 */
 		$args = apply_filters( 'register_block_type_args', $args, $this->name );
 
+		// Stabilize experimental block supports.
+		if ( isset( $args['supports'] ) && is_array( $args['supports'] ) ) {
+			$args['supports'] = $this->stabilize_supports( $args['supports'] );
+		}
+
 		foreach ( $args as $property_name => $property_value ) {
 			$this->$property_name = $property_value;
 		}
@@ -633,5 +655,39 @@ class WP_Block_Type {
 		 * @param WP_Block_Type $block_type   The full block type object.
 		 */
 		return apply_filters( 'get_block_type_uses_context', $this->uses_context, $this );
+	}
+
+	/**
+	 * Stabilize experimental block supports. This method transforms experimental
+	 * block supports into their stable counterparts, by renaming the keys to the
+	 * stable versions.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param array $supports The block supports array from within the block type arguments.
+	 * @return array The stabilized block supports array.
+	 */
+	private function stabilize_supports( $supports ) {
+		foreach ( $this->stabilized_supports as $feature => $mapping ) {
+			if ( isset( $supports[ $feature ] ) ) {
+				if ( is_array( $mapping ) ) {
+					foreach ( $mapping as $old => $new ) {
+						if (
+							isset( $supports[ $feature ][ $old ] ) &&
+							! isset( $supports[ $feature ][ $new ] )
+						) {
+							$supports[ $feature ][ $new ] = $supports[ $feature ][ $old ];
+						}
+					}
+				} elseif (
+					is_string( $mapping ) &&
+					! isset( $supports[ $mapping ] )
+				) {
+					$supports[ $mapping ] = $supports[ $feature ];
+				}
+			}
+		}
+
+		return $supports;
 	}
 }
