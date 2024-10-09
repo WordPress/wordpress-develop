@@ -158,7 +158,7 @@ class WP_Block {
 	 * with the values that it consumes as defined in its registered block type (`uses_context`).
 	 * Additionally, any context provided by the block instance itself is passed to its inner blocks.
 	 *
-	 * @param array $block             The associative array of the current parsed block. 
+	 * @param array $block             The associative array of the current parsed block.
 	 *                                 Contains attributes like `blockName`, `attrs`, `innerBlocks`, `innerHTML`, and `innerContent`.
 	 * @param array $available_context Optional. An array of context values inherited from ancestor blocks.
 	 *                                 Default is an empty array.
