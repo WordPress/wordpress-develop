@@ -513,7 +513,8 @@ class WP_Block {
 					if ( ! is_null( $pre_render ) ) {
 						$block_content .= $pre_render;
 					} else {
-						$source_block = $inner_block->parsed_block;
+						$source_block        = $inner_block->parsed_block;
+						$inner_block_context = $inner_block->context;
 
 						/** This filter is documented in wp-includes/blocks.php */
 						$inner_block->parsed_block = apply_filters( 'render_block_data', $inner_block->parsed_block, $source_block, $parent_block );
@@ -521,7 +522,9 @@ class WP_Block {
 						/** This filter is documented in wp-includes/blocks.php */
 						$inner_block->context = apply_filters( 'render_block_context', $inner_block->context, $inner_block->parsed_block, $parent_block );
 
-						$inner_block->update_available_context( $inner_block->parsed_block, $inner_block->context );
+						if ( $inner_block->context !== $inner_block_context ) {
+							$inner_block->update_available_context( $inner_block->parsed_block, $inner_block->context );
+						}
 
 						$block_content .= $inner_block->render();
 					}
