@@ -270,26 +270,13 @@ HTML
 		register_block_type(
 			'tests/context-consumer',
 			array(
-				'uses_context'    => array( 'example' ),
+				'uses_context'    => array( 'arbitrary' ),
 				'render_callback' => static function ( $attributes, $content, $block ) use ( &$provided_context ) {
 					$provided_context = $block->context;
 
 					return '';
 				},
 			)
-		);
-
-		add_filter(
-			'get_block_type_uses_context',
-			function ( $uses_context, $block_type ) {
-				if ( 'tests/context-consumer' === $block_type->name ) {
-					// Use array_values to reset the array keys.
-					return array_values( array_unique( array_merge( $uses_context, array( 'arbitrary' ) ) ) );
-				}
-				return $uses_context;
-			},
-			10,
-			2
 		);
 
 		// Filter the context provided to the test block.
