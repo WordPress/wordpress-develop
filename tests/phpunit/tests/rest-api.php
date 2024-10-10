@@ -986,7 +986,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_rest_preload_api_request_removes_trailing_slashes() {
+	public static function data_rest_preload_api_request_removes_trailing_slashes() {
 		return array(
 			'no query part'                     => array( '/wp/v2/types//', '/wp/v2/types' ),
 			'no query part, more slashes'       => array( '/wp/v2/media///', '/wp/v2/media' ),
