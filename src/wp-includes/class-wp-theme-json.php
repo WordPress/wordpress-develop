@@ -2714,9 +2714,10 @@ class WP_Theme_JSON {
 			return $nodes;
 		}
 
-		foreach ( $theme_json['styles']['blocks'] as $name => $node ) {
+		$include_variations      = $options['include_block_style_variations'] ?? false;
+		$include_node_paths_only = $options['include_node_paths_only'] ?? false;
 
-			$include_node_paths_only = $options['include_node_paths_only'] ?? false;
+		foreach ( $theme_json['styles']['blocks'] as $name => $node ) {
 			$node_path = array( 'styles', 'blocks', $name );
 			if ( $include_node_paths_only ) {
 				$nodes[] = array(
@@ -2739,7 +2740,6 @@ class WP_Theme_JSON {
 				}
 
 				$variation_selectors = array();
-				$include_variations  = $options['include_block_style_variations'] ?? false;
 				if ( $include_variations && isset( $node['variations'] ) ) {
 					foreach ( $node['variations'] as $variation => $node ) {
 						$variation_selectors[] = array(
