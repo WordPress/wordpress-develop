@@ -112,19 +112,24 @@ function update_post_thumbnail_cache( $wp_query = null ) {
 
 	$thumb_ids = array();
 
+	/*
+	 * $wp_query may contain an array of post objects or post IDs.
+	 *
+	 * This ensures the cache is primed for all post objects to avoid
+	 * repeated `get_post()` calls in `get_the_post_thumbnail()`.
+	 */
+	$post_ids = array();
 	foreach ( $wp_query->posts as $post ) {
-
-		/*
-		 * Check $post is valid post object of WP_Post or not,
-		 * while some cases it can be an array of $posts IDs.
-		 *
-		 * See https://core.trac.wordpress.org/ticket/59521.
-		 */
-		if ( ! $post instanceof WP_Post ) {
-			$post = get_post( $post );
+		if ( $post instanceof WP_Post ) {
+			$post_ids[] = $post->ID;
+		} elseif ( is_int( $post ) ) {
+			$post_ids[] = $post;
 		}
+	}
+	_prime_post_caches( $post_ids, false, true );
 
-		$id = get_post_thumbnail_id( $post->ID );
+	foreach ( $wp_query->posts as $post ) {
+		$id = get_post_thumbnail_id( $post );
 		if ( $id ) {
 			$thumb_ids[] = $id;
 		}
