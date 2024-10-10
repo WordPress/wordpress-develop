@@ -3871,6 +3871,7 @@ class WP_Query {
 	 * query variable. After it is set up, it will be returned.
 	 *
 	 * @since 1.5.0
+	 * @since 6.8.0 Return the queried taxonomy object for taxonomy queries if no term is specified.
 	 *
 	 * @return WP_Term|WP_Post_Type|WP_Post|WP_User|null The queried object.
 	 */
@@ -3925,6 +3926,9 @@ class WP_Query {
 				if ( $this->is_category && 'category' === $this->queried_object->taxonomy ) {
 					_make_cat_compat( $this->queried_object );
 				}
+			} else {
+				// If no term is specified, return the queried taxonomy object instead.
+				return get_taxonomy( $matched_taxonomy );
 			}
 		} elseif ( $this->is_post_type_archive ) {
 			$post_type = $this->get( 'post_type' );
