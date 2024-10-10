@@ -333,7 +333,7 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 			}
 
 			$option = trim( $option );
-			$value  = null;
+			$value  = '';
 			if ( isset( $_POST[ $option ] ) ) {
 				$value = $_POST[ $option ];
 				if ( ! is_array( $value ) ) {
