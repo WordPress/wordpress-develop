@@ -48,6 +48,7 @@ jobs:
         LOCAL_SCRIPT_DEBUG: [ true, false ]
     with:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
+      install-gutenberg: false
 
   slack-notifications:
     name: Slack Notifications
