@@ -767,7 +767,7 @@ class WP_Site_Health {
 		// PHP is up to date.
 		if ( version_compare( PHP_VERSION, $response['recommended_version'], '>=' ) ) {
 			$result['label'] = sprintf(
-			/* translators: %s: The recommended PHP version. */
+				/* translators: %s: The recommended PHP version. */
 				__( 'Your site is running a recommended version of PHP (%s)' ),
 				PHP_VERSION
 			);
