@@ -257,6 +257,9 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 		$result = add_metadata( $meta_type, $object_id, $raw_meta_key, $passed_value );
 		// The return value of add_metadata() should also be checked, as it may indicate a failure.
 		$is_failure = false === $result;
+		if ( $is_failure ) {
+			return new WP_Error( 'db_error', __( 'Could not update metadata in the database.' ) );
+		}
 
 		return $result;
 	}
@@ -317,6 +320,9 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 	$result = $wpdb->update( $table, $data, $where );
 
 	$is_failure = false === $result;
+	if ( $is_failure ) {
+		return new WP_Error( 'db_error', __( 'Could not update metadata in the database.' ) );
+	}
 	if ( ! $result ) {
 		return false;
 	}
