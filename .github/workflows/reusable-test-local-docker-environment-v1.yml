@@ -124,7 +124,10 @@ jobs:
       - name: Docker debug information
         run: |
           docker -v
-
+      - name: Switch to the Linux Docker engine
+        if: contains( inputs.os, 'windows-' )
+        run: |
+          powershell.exe -Command "& \"$Env:ProgramFiles\Docker\Docker\DockerCli.exe\" -SwitchLinuxEngine"
       - name: Start Docker environment
         run: |
           npm run env:start
