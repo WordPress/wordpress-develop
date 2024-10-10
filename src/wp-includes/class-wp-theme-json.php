@@ -2690,13 +2690,14 @@ class WP_Theme_JSON {
 	 * @since 6.1.0
 	 * @since 6.3.0 Refactored and stabilized selectors API.
 	 * @since 6.6.0 Added optional selectors and options for generating block nodes.
+	 * @since 6.7.0 Added $include_node_paths_only option.
 	 *
 	 * @param array $theme_json The theme.json converted to an array.
 	 * @param array $selectors  Optional list of selectors per block.
 	 * @param array $options {
 	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
 	 *
-	 *     @type bool $include_block_style_variations Includes nodes for block style variations. Default false.
+	 *     @type bool $include_block_style_variations Include nodes for block style variations. Default false.
 	 *     @type bool $include_node_paths_only        Return only block nodes node paths. Default false.
 	 * }
 	 * @return array The block nodes in theme.json.
