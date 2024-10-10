@@ -61,8 +61,9 @@ if ( is_multisite() ) :
 		public function data_validate_blogname() {
 			$data = array(
 				array( '', 'Site names must not be empty.' ),
-				array( 'foo-hello', 'Site names must not contain hyphens.' ),
 				array( 'foo_hello', 'Site names must not contain underscores.' ),
+				array( '-foo-hello', 'Site names must not begin with a hyphen.' ),
+				array( 'foo-hello-', 'Site names must not end with a hyphen.' ),
 				array( 'foo hello', 'Site names must not contain spaces.' ),
 				array( 'FooHello', 'Site names must not contain uppercase letters.' ),
 				array( '12345678', 'Site names must not consist of numbers only.' ),

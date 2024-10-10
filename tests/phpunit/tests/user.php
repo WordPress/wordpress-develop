@@ -739,7 +739,8 @@ class Tests_User extends WP_UnitTestCase {
 
 		$response = register_new_user( $user_login, $user_email );
 		$this->assertInstanceOf( 'WP_Error', $response );
-		$this->assertSame( 'invalid_username', $response->get_error_code() );
+		$expected = is_multisite() ? 'user_name' : 'invalid_username';
+		$this->assertSame( $expected, $response->get_error_code() );
 
 		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
@@ -2244,5 +2245,174 @@ class Tests_User extends WP_UnitTestCase {
 		);
 
 		return $additional_profile_data;
+	}
+
+	/**
+	 * @ticket 17904
+	 * @group ms-required
+	 */
+	public function test_is_username_reserved_no_signup() {
+		$this->assertEquals( false, is_username_reserved( 'testsuser' ) );
+	}
+
+	/**
+	 * @ticket 17904
+	 * @group ms-required
+	 */
+	public function test_is_username_reserved_existing_signup() {
+		global $wpdb;
+
+		$wpdb->insert(
+			$wpdb->signups,
+			array(
+				'user_login' => 'testsuser1',
+				'registered' => gmdate( 'Y-m-d H:i:s', strtotime( 'now' ) ),
+			),
+			array(
+				'%s',
+				'%s',
+			)
+		);
+		$this->assertEquals(
+			true,
+			is_username_reserved( 'testsuser1' ),
+			'assert username in signups for less than two days to not be available.'
+		);
+		$this->assertEquals(
+			1,
+			$wpdb->get_var( $wpdb->prepare( "SELECT count(signup_id) FROM $wpdb->signups WHERE user_login = %s", 'testsuser1' ) ),
+			"assert username in signups for less than two days to haven't be deleted."
+		);
+	}
+
+	/**
+	 * @ticket 17904
+	 * @group ms-required
+	 */
+	public function test_is_username_reserved_expired_signup() {
+		global $wpdb;
+
+		$wpdb->insert(
+			$wpdb->signups,
+			array(
+				'user_login' => 'testsuser2',
+				'registered' => gmdate( 'Y-m-d H:i:s', strtotime( '3 days ago' ) ),
+			),
+			array(
+				'%s',
+				'%s',
+			)
+		);
+		$this->assertEquals(
+			false,
+			is_username_reserved( 'testsuser2' ),
+			'assert username in signups for more than two days to be available.'
+		);
+		$this->assertEquals(
+			0,
+			$wpdb->get_var( $wpdb->prepare( "SELECT count(signup_id) FROM $wpdb->signups WHERE user_login = %s", 'testsuser2' ) ),
+			'assert username in signups for more than two days to have been deleted.'
+		);
+	}
+
+	/**
+	 * @ticket 17904
+	 * @group ms-excluded
+	 */
+	public function test_is_username_reserved_single_site() {
+		add_filter(
+			'is_username_reserved',
+			function ( $is_reserved, $username ) {
+				return 'testsuser1' === $username;
+			},
+			10,
+			2
+		);
+
+		$this->assertEquals(
+			false,
+			is_username_reserved( 'testsuser' ),
+			'assert usernames are not reserved on single site installation.'
+		);
+
+		$this->assertEquals(
+			true,
+			is_username_reserved( 'testsuser1' ),
+			'assert is_username_reserved filter allow to mark usernames as reserved.'
+		);
+	}
+
+	/**
+	 * @ticket 17904
+	 */
+	public function test_wp_validate_user_login() {
+		$this->assertTrue( wp_validate_user_login( 'testsuser' ) );
+	}
+
+	/**
+	 * @ticket 17904
+	 */
+	public function test_wp_validate_user_login_invalid_username() {
+		add_filter( 'validate_username', '__return_false' );
+
+		$validation_errors = wp_validate_user_login( 'testsuser' );
+		$this->assertWPError(
+			$validation_errors,
+			'assert wp_validate_user_login return a WP_Error when username is invalid.'
+		);
+	}
+
+	/**
+	 * @ticket 17904
+	 */
+	public function test_wp_validate_user_login_username_exists() {
+		add_filter( 'username_exists', '__return_true' );
+
+		$validation_errors = wp_validate_user_login( 'testsuser' );
+		$this->assertWPError(
+			$validation_errors,
+			'assert wp_validate_user_login return a WP_Error when username already exist.'
+		);
+	}
+
+	/**
+	 * @ticket 17904
+	 * @group ms-required
+	 */
+	public function test_wp_validate_user_login_username_is_reserved() {
+		global $wpdb;
+
+		$wpdb->insert(
+			$wpdb->signups,
+			array(
+				'user_login' => 'testsuser',
+				'registered' => gmdate( 'Y-m-d H:i:s', strtotime( 'now' ) ),
+			),
+			array(
+				'%s',
+				'%s',
+			)
+		);
+
+		$validation_errors = wp_validate_user_login( 'testsuser' );
+		$this->assertWPError(
+			$validation_errors,
+			'assert wp_validate_user_login return a WP_Error when username is_reserved.'
+		);
+	}
+
+	/**
+	 * @ticket 17904
+	 */
+	public function test_wp_validate_user_login_existing_wp_error() {
+		add_filter( 'validate_username', '__return_false' );
+
+		$errors            = new WP_Error( 'initial-error', 'Initial error' );
+		$validation_errors = wp_validate_user_login( 'testsuser', $errors );
+		$this->assertCount(
+			2,
+			$validation_errors->get_error_codes(),
+			'assert wp_validate_user_login will use existing WP_Error if provided.'
+		);
 	}
 }
