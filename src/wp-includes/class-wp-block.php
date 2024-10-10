@@ -56,7 +56,7 @@ class WP_Block {
 	 * @var array
 	 * @access protected
 	 */
-	protected $available_context;
+	protected $available_context = array();
 
 	/**
 	 * Block type registry.
@@ -138,7 +138,6 @@ class WP_Block {
 
 		$this->block_type = $registry->get_registered( $this->name );
 
-		$this->available_context = $available_context;
 		$this->update_available_context( $block, $available_context );
 	}
 
