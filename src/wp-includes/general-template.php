@@ -1299,7 +1299,6 @@ function wp_get_document_title() {
 /**
  * Displays title tag with content.
  *
- * @ignore
  * @since 4.1.0
  * @since 4.4.0 Improved title output replaced `wp_title()`.
  * @access private
@@ -3121,6 +3120,15 @@ function feed_links( $args = array() ) {
 	$args = wp_parse_args( $args, $defaults );
 
 	/**
+	 * Filters the feed links arguments.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param array $args An array of feed links arguments.
+	 */
+	$args = apply_filters( 'feed_links_args', $args );
+
+	/**
 	 * Filters whether to display the posts feed link.
 	 *
 	 * @since 4.4.0
@@ -3181,6 +3189,15 @@ function feed_links_extra( $args = array() ) {
 	);
 
 	$args = wp_parse_args( $args, $defaults );
+
+	/**
+	 * Filters the extra feed links arguments.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param array $args An array of extra feed links arguments.
+	 */
+	$args = apply_filters( 'feed_links_extra_args', $args );
 
 	if ( is_singular() ) {
 		$id   = 0;
