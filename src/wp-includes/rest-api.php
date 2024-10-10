@@ -2953,7 +2953,7 @@ function rest_preload_api_request( $memo, $path ) {
 		// Remove trailing slashes from the "path" part of the REST API path.
 		$path_parts['path'] = untrailingslashit( $path_parts['path'] );
 		$path               = str_contains( $path, '?' ) ?
-			$path_parts['path'] . '?' . $path_parts['query'] ?? '' :
+			$path_parts['path'] . '?' . ( $path_parts['query'] ?? '' ) :
 			$path_parts['path'];
 	}
 
