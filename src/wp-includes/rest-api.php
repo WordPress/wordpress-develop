@@ -2918,14 +2918,11 @@ function rest_preload_api_request( $memo, $path ) {
 	}
 
 	if ( isset( $path_parts['path'] ) && '/' !== $path_parts['path'] ) {
-		$original_path = $path_parts['path'];
 		// Remove trailing slashes from the "path" part of the REST API path.
 		$path_parts['path'] = untrailingslashit( $path_parts['path'] );
-
-		if ( str_starts_with( $path, $original_path ) ) {
-			// Replace the original path with the trimmed path.
-			$path = $path_parts['path'] . substr( $path, strlen( $original_path ) );
-		}
+		$path               = ! isset( $path_parts['query'] ) ?
+			$path_parts['path'] :
+			$path_parts['path'] . '?' . $path_parts['query'];
 	}
 
 	$request = new WP_REST_Request( $method, $path_parts['path'] );
