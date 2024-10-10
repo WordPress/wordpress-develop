@@ -847,7 +847,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	 *
 	 * @return array
 	 */
-	public function data_invalid_post_id() {
+	public static function data_invalid_post_id() {
 		return array(
 			'impossibly high post ID' => array( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ),
 			'negative post ID'        => array( -1 ),
