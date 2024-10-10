@@ -57,7 +57,6 @@ if ( is_admin() ) {
 foreach ( array( 'pre_comment_author_email', 'pre_user_email' ) as $filter ) {
 	add_filter( $filter, 'trim' );
 	add_filter( $filter, 'sanitize_email' );
-	add_filter( $filter, 'wp_filter_kses' );
 }
 
 // Email admin display.
