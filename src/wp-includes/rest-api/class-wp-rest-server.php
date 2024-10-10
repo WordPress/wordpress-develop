@@ -924,6 +924,19 @@ class WP_REST_Server {
 
 		$route_args['namespace'] = $route_namespace;
 
+		/**
+		 * Filters the arguments for registering a rest api route.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param array  $route_args Route arguments.
+		 *                           See the register_rest_route() function for accepted arguments.
+		 * @param string $namespace  Namespace.
+		 * @param string $route      The REST route.
+		 * @param bool   $override   Whether the route is going to be overridden even if it already exists.
+		 */
+		$route_args = apply_filters( 'register_route_args', $route_args, $namespace, $route, $override );
+
 		if ( $override || empty( $this->endpoints[ $route ] ) ) {
 			$this->endpoints[ $route ] = $route_args;
 		} else {
