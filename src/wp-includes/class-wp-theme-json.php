@@ -3262,8 +3262,11 @@ class WP_Theme_JSON {
 		 * some values provide exceptions, namely style values that are
 		 * objects and represent unique definitions for the style.
 		 */
-		$style_options = array( 'include_node_paths_only' => true );
-		$style_nodes   = static::get_block_nodes( $this->theme_json, array(), $style_options );
+		$style_nodes = static::get_block_nodes(
+			$this->theme_json,
+			array(),
+			array( 'include_node_paths_only' => true )
+		);
 		foreach ( $style_nodes as $style_node ) {
 			$path = $style_node['path'];
 			/*
