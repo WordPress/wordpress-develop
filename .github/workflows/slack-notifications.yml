@@ -161,6 +161,7 @@ jobs:
   failure:
     name: Failure notifications
     runs-on: ubuntu-latest
+    continue-on-error: true
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ needs.prepare.outputs.previous_conclusion != 'first-failure' && inputs.calling_status == 'failure' || failure() }}
@@ -177,6 +178,7 @@ jobs:
   fixed:
     name: Fixed notifications
     runs-on: ubuntu-latest
+    continue-on-error: true
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ contains( fromJson( '["failure", "cancelled", "none"]' ), needs.prepare.outputs.previous_conclusion ) && inputs.calling_status == 'success' && success() }}
@@ -193,6 +195,7 @@ jobs:
   success:
     name: Success notifications
     runs-on: ubuntu-latest
+    continue-on-error: true
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'success' && success() }}
@@ -209,6 +212,7 @@ jobs:
   cancelled:
     name: Cancelled notifications
     runs-on: ubuntu-latest
+    continue-on-error: true
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'cancelled' || cancelled() }}
