@@ -2697,7 +2697,7 @@ class WP_Theme_JSON {
 	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
 	 *
 	 *     @type bool $include_block_style_variations Includes nodes for block style variations. Default false.
-	 *     @type bool $include_node_paths_only        Includes node path for block nodes. Default false.
+	 *     @type bool $include_node_paths_only        Return only block nodes node paths. Default false.
 	 * }
 	 * @return array The block nodes in theme.json.
 	 */
