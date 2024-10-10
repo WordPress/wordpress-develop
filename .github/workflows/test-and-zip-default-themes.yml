@@ -191,9 +191,10 @@ jobs:
       - name: Upload theme ZIP as an artifact
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
-          if-no-files-found: error
           name: ${{ matrix.theme }}
           path: src/wp-content/themes/${{ matrix.theme }}
+          if-no-files-found: error
+          include-hidden-files: true
 
   slack-notifications:
     name: Slack Notifications

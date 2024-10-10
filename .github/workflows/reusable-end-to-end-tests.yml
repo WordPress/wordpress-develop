@@ -131,6 +131,7 @@ jobs:
           name: failures-artifacts${{ inputs.LOCAL_SCRIPT_DEBUG && '-SCRIPT_DEBUG' || '' }}-${{ github.run_id }}
           path: artifacts
           if-no-files-found: ignore
+          include-hidden-files: true
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code

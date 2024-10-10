@@ -291,6 +291,7 @@ jobs:
           name: performance-artifacts${{ inputs.memcached && '-memcached' || '' }}-${{ github.run_id }}
           path: artifacts
           if-no-files-found: ignore
+          include-hidden-files: true
 
       - name: Compare results
         run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
