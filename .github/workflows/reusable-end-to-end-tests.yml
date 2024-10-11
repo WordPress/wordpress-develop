@@ -24,6 +24,10 @@ on:
         required: false
         type: 'boolean'
         default: true
+      gutenberg-version:
+        description: 'A specific version of Gutenberg to install.'
+        required: false
+        type: 'string'
 
 env:
   LOCAL_DIR: build
@@ -113,7 +117,7 @@ jobs:
 
       - name: Install Gutenberg
         if: ${{ inputs.install-gutenberg }}
-        run: npm run env:cli -- plugin install gutenberg --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- plugin install gutenberg${{ inputs.gutenberg-version && ' --version=' && inputs.gutenberg-version || '' }} --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Install additional languages
         run: |
