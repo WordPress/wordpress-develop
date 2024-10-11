@@ -6103,6 +6103,34 @@ EOF;
 		);
 	}
 
+
+	/**
+	 * Test WebP lossless quality is handled correctly.
+	 *
+	 * @ticket 60291
+	 */
+	public function test_set_quality_webp_lossless() {
+		// Get a new editor to test that lossless WebP images are handled correctly.
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/webp-lossless.webp' );
+
+		// If no editor is available, skip the test.
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( 'No editor available for lossless WebP images.' );
+		}
+
+		// Only test on GD when WebP lossless is supported.
+		if ( 'WP_Image_Editor_GD' === get_class( $editor ) && ! defined( 'IMG_WEBP_LOSSLESS' ) ) {
+			$this->markTestSkipped( 'No GD support available for lossless WebP images.' );
+		}
+
+		// Verify lossless quality is set correctly: IMG_WEBP_LOSSLESS for GD and 100 for Imagick.
+		if ( 'WP_Image_Editor_GD' === get_class( $editor ) ) {
+			$this->assertSame( IMG_WEBP_LOSSLESS, $editor->get_quality() );
+		} else {
+			$this->assertSame( 100, $editor->get_quality() );
+		}
+	}
+
 	/**
 	 * Test generated markup for an image with lazy loading gets auto-sizes.
 	 *

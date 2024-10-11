@@ -2943,6 +2943,10 @@ function _make_url_clickable_cb( $matches ) {
 		$suffix = $matches[3];
 	}
 
+	if ( isset( $matches[4] ) && ! empty( $matches[4] ) ) {
+		$url .= $matches[4];
+	}
+
 	// Include parentheses in the URL only if paired.
 	while ( substr_count( $url, '(' ) < substr_count( $url, ')' ) ) {
 		$suffix = strrchr( $url, ')' ) . $suffix;
@@ -3115,6 +3119,7 @@ function make_clickable( $text ) {
 					)*
 				)
 				(\)?)                                          # 3: Trailing closing parenthesis (for parenthesis balancing post processing).
+				(\\.\\w{2,6})?                                 # 4: Allowing file extensions (e.g., .jpg, .png).
 			~xS';
 			/*
 			 * The regex is a non-anchored pattern and does not have a single fixed starting character.
@@ -5387,9 +5392,9 @@ function wp_html_excerpt( $str, $count, $more = null ) {
  *
  * @global string $_links_add_base
  *
- * @param string $content String to search for links in.
- * @param string $base    The base URL to prefix to links.
- * @param array  $attrs   The attributes which should be processed.
+ * @param string   $content String to search for links in.
+ * @param string   $base    The base URL to prefix to links.
+ * @param string[] $attrs   The attributes which should be processed.
  * @return string The processed content.
  */
 function links_add_base_url( $content, $base, $attrs = array( 'src', 'href' ) ) {

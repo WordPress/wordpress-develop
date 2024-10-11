@@ -75,6 +75,14 @@
 	pointer-events: none;
 }
 
+#titlewrap .skiplink:focus {
+	clip: inherit;
+	clip-path: inherit;
+	right: 4px;
+	top: 4px;
+	width: auto;
+}
+
 input#link_description,
 input#link_url {
 	width: 100%;
@@ -1038,6 +1046,14 @@ form#tags-filter {
 		white-space: normal;
 		line-height: 1.8;
 	}
+
+	#edit-slug-box {
+		padding: 0;
+	}
+
+	#titlewrap .skiplink:focus {
+		top: 5px;
+	}
 }
 
 @media only screen and (max-width: 1004px) {
@@ -1297,7 +1313,7 @@ div.tabs-panel-active:focus {
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
-
+.options-discussion-php .indent-children ul,
 #front-page-warning,
 #front-static-pages ul,
 ul.export-filters,
