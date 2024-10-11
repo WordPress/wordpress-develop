@@ -877,7 +877,7 @@ final class WP_Customize_Widgets {
 						'usesContext' => $source->uses_context,
 					);
 				}
-				$script .= sprintf( 'for ( const source of %s ) { wp.blocks.registerBlockBindingsSource( source ); }', wp_json_encode( $filtered_sources ) );
+				$script = sprintf( 'for ( const source of %s ) { wp.blocks.registerBlockBindingsSource( source ); }', wp_json_encode( $filtered_sources ) );
 				wp_add_inline_script(
 					'wp-blocks',
 					$script
