@@ -1155,15 +1155,23 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that PHP actually supports AVIF and not just pretend to.
+	 * Test that PHP actually supports AVIF.
+	 *
+	 * Tests for a false positive reported by GD.
 	 *
 	 * @link https://github.com/php/php-src/issues/12019
 	 *
 	 * @ticket 60628
 	 */
 	public function test_php_avif_support() {
+		$file   = DIR_TESTDATA . '/images/avif-lossless.avif';
+		$editor = wp_get_image_editor( $file );
+
+		if ( is_wp_error( $editor ) || 'WP_Image_Editor_GD' !== get_class( $editor ) || ! $editor->supports_mime_type( 'image/avif' ) ) {
+			$this->markTestSkipped( 'AVIF is not supported on this system.' );
+		}
+
 		if ( imagetypes() & IMG_AVIF ) {
-			$file   = DIR_TESTDATA . '/images/avif-lossless.avif';
 			$result = @imageavif( imagecreatetruecolor( 16, 16 ), $file );
 
 			$this->assertTrue(
