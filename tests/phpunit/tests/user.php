@@ -2247,7 +2247,7 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test if the use_ssl doesn't write to DB unnecessarily.
+	 * Test that update_user_meta for 'use_ssl' doesn't write to DB unnecessarily.
 	 *
 	 * @ticket 60299
 	 */
@@ -2279,10 +2279,12 @@ class Tests_User extends WP_UnitTestCase {
 
 		$this->assertIsInt( $user_id );
 		$this->assertEquals( 1, $set_db_counts );
+
+		// Update the user without changing the 'use_ssl' meta.
 		$_POST['email'] = 'email_test_2@example.com';
 		$user_id        = edit_user( $user_id );
 
-		// Verify there are no updates to the use_ssl meta.
+		// Verify there are no updates to use_ssl user meta.
 		$this->assertEquals( 1, $set_db_counts );
 	}
 }
