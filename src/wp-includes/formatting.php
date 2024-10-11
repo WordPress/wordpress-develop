@@ -869,49 +869,17 @@ function shortcode_unautop( $text ) {
 }
 
 /**
- * Checks to see if a string is utf8 encoded.
- *
- * NOTE: This function checks for 5-Byte sequences, UTF8
- *       has Bytes Sequences with a maximum length of 4.
+ * Indicates if a given string represents valid UTF-8 bytes.
  *
  * @author bmorel at ssi dot fr (modified)
  * @since 1.2.1
+ * @since {WP_VERSION} Relies on custom decoder and no longer accepts invalid 5-byte UTF-8 sequences.
  *
- * @param string $str The string to be checked
- * @return bool True if $str fits a UTF-8 model, false otherwise.
+ * @param string $text Might represent valid UTF-8 bytes.
+ * @return bool Whether the text represents a valid UTF-8 byte stream.
  */
-function seems_utf8( $str ) {
-	mbstring_binary_safe_encoding();
-	$length = strlen( $str );
-	reset_mbstring_encoding();
-
-	for ( $i = 0; $i < $length; $i++ ) {
-		$c = ord( $str[ $i ] );
-
-		if ( $c < 0x80 ) {
-			$n = 0; // 0bbbbbbb
-		} elseif ( ( $c & 0xE0 ) === 0xC0 ) {
-			$n = 1; // 110bbbbb
-		} elseif ( ( $c & 0xF0 ) === 0xE0 ) {
-			$n = 2; // 1110bbbb
-		} elseif ( ( $c & 0xF8 ) === 0xF0 ) {
-			$n = 3; // 11110bbb
-		} elseif ( ( $c & 0xFC ) === 0xF8 ) {
-			$n = 4; // 111110bb
-		} elseif ( ( $c & 0xFE ) === 0xFC ) {
-			$n = 5; // 1111110b
-		} else {
-			return false; // Does not match any model.
-		}
-
-		for ( $j = 0; $j < $n; $j++ ) { // n bytes matching 10bbbbbb follow ?
-			if ( ( ++$i === $length ) || ( ( ord( $str[ $i ] ) & 0xC0 ) !== 0x80 ) ) {
-				return false;
-			}
-		}
-	}
-
-	return true;
+function seems_utf8( $text ) {
+	return utf8_is_valid_byte_stream( $text );
 }
 
 /**
@@ -1084,12 +1052,39 @@ function wp_specialchars_decode( $text, $quote_style = ENT_NOQUOTES ) {
 }
 
 /**
- * Checks for invalid UTF8 in a string.
+ * Returns a UTF-8 validated string, taking into account the blog charset.
+ *
+ * This function only processes its input text if the blog charset is set to UTF-8.
+ * When the blog charset is anything else, it will always short-circuit and return
+ * the unmodified input text.
+ *
+ * For UTF-8 blogs, this will always return the input text if it validates. But if
+ * it doesn't validate, the behavior depends on the value of `$strip`.
+ *
+ *  - If instructed not to strip invalid bytes, then an empty string will be returned.
+ *  - If instructed to strip invalid bytes, the portions of the string which are valid
+ *    will be returned and the invalid portions will be removed.
+ *
+ * Example:
+ *
+ *     'Hello, World! 🌎' === wp_check_invalid_utf8( 'Hello, World! 🌎' );
+ *
+ *     ''                         === wp_check_invalid_utf8( "Latin1 is n\xF6t valid UTF-8." );
+ *     'Latin1 is nt valid UTF-8' === wp_check_invalid_utf8( "Latin1 is n\xF6t valid UTF-8.", true );
+ *
+ *     '' === wp_check_invalid_utf8( "Surrogate halves like '\xDE\xA0\x80' are not permitted." );
+ *     $stripped = wp_check_invalid_utf8( "Surrogate halves like '\xDE\xFF\x80' are not permitted.", true );
+ *     $stripped === 'Surrogate halves like '' are not permitted.';
+ *
+ *     '' === wp_check_invalid_utf8( "Broken stream: \xC2\xC2" );
+ *     'Broken stream: ' === wp_check_invalid_utf8( "Broken stream: \xC2\xC2", true );
  *
  * @since 2.8.0
+ * @since {WP_VERSION} Relies on custom UTF-8 decoder to normalize behavior across environments.
  *
  * @param string $text   The text which is to be checked.
  * @param bool   $strip  Optional. Whether to attempt to strip out invalid UTF8. Default false.
+ *
  * @return string The checked text.
  */
 function wp_check_invalid_utf8( $text, $strip = false ) {
@@ -1108,94 +1103,178 @@ function wp_check_invalid_utf8( $text, $strip = false ) {
 		return $text;
 	}
 
-	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
-	static $utf8_pcre = null;
-	if ( ! isset( $utf8_pcre ) ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
+	if ( false === $strip ) {
+		return utf8_is_valid_byte_stream( $text ) ? $text : '';
 	}
-	// We can't demand utf8 in the PCRE installation, so just return the string in those cases.
-	if ( ! $utf8_pcre ) {
+
+	// If the entire string is valid don't bother setting up the error-removal loop below.
+	if ( utf8_is_valid_byte_stream( $text, 0, $error_byte_at ) ) {
 		return $text;
 	}
 
-	// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- preg_match fails when it encounters invalid UTF8 in $text.
-	if ( 1 === @preg_match( '/^./us', $text ) ) {
-		return $text;
+	$buffer = '';
+	$at     = 0;
+	$end    = strlen( $text );
+
+	while ( $at < $end ) {
+		/*
+		 * If there are errors in the byte stream, they need to be skipped.
+		 * Append the next chunk from the text into the buffer, then jump to
+		 * the next character that could potentially start a new code point.
+		 */
+		$buffer .= substr( $text, $at, $error_byte_at - $at );
+		$at      = $error_byte_at + 1;
+		while ( $at < $end ) {
+			if ( $text[ $at ] < "\x80" ) {
+				break;
+			}
+			++$at;
+		}
+
+		if ( utf8_is_valid_byte_stream( $text, $at, $error_byte_at ) ) {
+			$buffer .= substr( $text, $at );
+			break;
+		}
 	}
 
-	// Attempt to strip the bad chars if requested (not recommended).
-	if ( $strip && function_exists( 'iconv' ) ) {
-		return iconv( 'utf-8', 'utf-8', $text );
-	}
-
-	return '';
+	return $buffer;
 }
 
 /**
  * Encodes the Unicode values to be used in the URI.
  *
+ * Note that invalid UTF-8 data will be transparently passed to the encoded URL!
+ *
  * @since 1.5.0
  * @since 5.8.3 Added the `encode_ascii_characters` parameter.
+ * @since {WP_VERSION} Optimized to minimize string allocations and concatenations.
  *
- * @param string $utf8_string             String to encode.
- * @param int    $length                  Max length of the string
- * @param bool   $encode_ascii_characters Whether to encode ascii characters such as < " '
- * @return string String with Unicode encoded for URI.
+ * @param string $utf8_string             Valid UTF-8 byte string to encode.
+ * @param int    $max_byte_length         Max byte length of the returned string.
+ * @param bool   $encode_ascii_characters Whether to apply RFC 3986 encoding to ASCII bytes.
+ * @return string Encoded URI string.
  */
-function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = false ) {
-	$unicode        = '';
-	$values         = array();
-	$num_octets     = 1;
-	$unicode_length = 0;
+function utf8_uri_encode( $utf8_string, $max_byte_length = 0, $encode_ascii_characters = false ) {
+	if ( '' === $utf8_string ) {
+		return $utf8_string;
+	}
 
 	mbstring_binary_safe_encoding();
-	$string_length = strlen( $utf8_string );
-	reset_mbstring_encoding();
 
-	for ( $i = 0; $i < $string_length; $i++ ) {
+	$end        = strlen( $utf8_string );
+	$buffer     = '';
+	$max_length = 0 === $max_byte_length ? PHP_INT_MAX : $max_byte_length;
 
-		$value = ord( $utf8_string[ $i ] );
-
-		if ( $value < 128 ) {
-			$char                = chr( $value );
-			$encoded_char        = $encode_ascii_characters ? rawurlencode( $char ) : $char;
-			$encoded_char_length = strlen( $encoded_char );
-			if ( $length && ( $unicode_length + $encoded_char_length ) > $length ) {
+	if ( true ) {
+		/*
+		 * If not escaping the ASCII characters, alternate between flushing out
+		 * pure ASCII (and non-percent-sign) characters with escaping the range
+		 * of bytes that will all be escaped.
+		 *
+		 * This will eliminate as many string allocations and concatenations as
+		 * is possible while stopping as soon as the limit has been reached.
+		 */
+		$at = 0;
+		while ( $at < $end ) {
+			if ( strlen( $buffer ) >= $max_length ) {
 				break;
 			}
-			$unicode        .= $encoded_char;
-			$unicode_length += $encoded_char_length;
-		} else {
-			if ( count( $values ) === 0 ) {
-				if ( $value < 224 ) {
-					$num_octets = 2;
-				} elseif ( $value < 240 ) {
-					$num_octets = 3;
-				} else {
-					$num_octets = 4;
+
+			// Flush ASCII byte ranges.
+			$was_at = $at;
+			$max_at = min( $end, $at + $max_length - strlen( $buffer ) );
+			while ( $at < $max_at && $utf8_string[ $at ] < "\x80" && '%' !== $utf8_string[ $at ] ) {
+				++$at;
+			}
+
+			if ( $at > $was_at ) {
+				$chunk   = substr( $utf8_string, $was_at, $at - $was_at );
+				$buffer .= $encode_ascii_characters ? rawurlencode( $chunk ) : $chunk;
+			}
+
+			if ( $at + 2 < $max_at && '%' === $utf8_string[ $at ] ) {
+				$high = $utf8_string[ $at + 1 ];
+				$low  = $utf8_string[ $at + 2 ];
+
+				if ( ctype_xdigit( $high ) && ctype_xdigit( $low ) ) {
+					$buffer .= substr( $utf8_string, $at, 3 );
+					$at     += 3;
+					continue;
 				}
 			}
 
-			$values[] = $value;
-
-			if ( $length && ( $unicode_length + ( $num_octets * 3 ) ) > $length ) {
-				break;
+			// Escape the next chunk.
+			$was_at = $at;
+			$max_at = min( $end, $at + $max_length - strlen( $buffer ) );
+			while ( $at < $max_at && ( $utf8_string[ $at ] >= "\x80" || '%' === $utf8_string[ $at ] ) ) {
+				++$at;
 			}
-			if ( count( $values ) === $num_octets ) {
-				for ( $j = 0; $j < $num_octets; $j++ ) {
-					$unicode .= '%' . dechex( $values[ $j ] );
-				}
 
-				$unicode_length += $num_octets * 3;
-
-				$values     = array();
-				$num_octets = 1;
-			}
+			$buffer .= rawurlencode( substr( $utf8_string, $was_at, $at - $was_at ) );
 		}
 	}
 
-	return $unicode;
+	// If it fits then nothing else needs to be done.
+	if ( strlen( $buffer ) <= $max_length ) {
+		reset_mbstring_encoding();
+
+		return $buffer;
+	}
+
+	/*
+	 * If the buffer is too long, it will be necessary to truncate
+	 * at the nearest boundary before the limit.
+	 *
+	 * If there's no escaped byte within distance of the max length
+	 * then it's safe to truncate the buffer at the max length.
+	 *
+	 * If there is an escaped byte, however, it's important to not
+	 * only back up to before the escaped byte, but also to the start
+	 * of the UTF-8 code point that the escaped byte is a part of.
+	 */
+
+	if (
+		'%' !== $buffer[ max( 0, $max_length - 1 ) ] &&
+		'%' !== $buffer[ max( 0, $max_length - 2 ) ] &&
+		'%' !== $buffer[ max( 0, $max_length - 3 ) ]
+	) {
+		reset_mbstring_encoding();
+
+		return substr( $buffer, 0, $max_length );
+	}
+
+	// Find the first boundary which could represent an initial UTF-8 byte.
+	$at = $max_length;
+	while ( $at >= 0 ) {
+		// `strrpos()` needs a negative offset to perform right-to-left searching.
+		$at = strrpos( $buffer, '%', $at - strlen( $buffer ) );
+
+		// For some invalid UTF-8 byte sequences, this could happen - there is no boundary.
+		if ( false === $at ) {
+			return '';
+		}
+
+		$high_bits = intval( $buffer[ $at + 1 ], 16 );
+
+		// Start bytes are either ASCII (0xxx xxxx) or (110x xxxx) or (1110 xxxx) or (1111 0xxx).
+		if (
+			$high_bits < 0x8 ||
+			( 0xC === ( $high_bits & 0xE ) ) ||
+			( 0xE === ( $high_bits & 0xF ) ) ||
+			( 0xF === $high_bits && 0x8 > intval( $buffer[ $at + 2 ], 16 ) )
+		) {
+			reset_mbstring_encoding();
+
+			return substr( $buffer, 0, $at );
+		}
+
+		--$at;
+	}
+
+	// This should not be reachable.
+	reset_mbstring_encoding();
+
+	return $buffer;
 }
 
 /**
@@ -2011,6 +2090,7 @@ function remove_accents( $text, $locale = '' ) {
  * filename that is allowed to be uploaded.
  *
  * @since 2.1.0
+ * @since {WP_VERSION} Relies on custom UTF-8 decoder to remove dependency on PCRE.
  *
  * @param string $filename The filename to be sanitized.
  * @return string The sanitized filename.
@@ -2021,22 +2101,14 @@ function sanitize_file_name( $filename ) {
 
 	$special_chars = array( '?', '[', ']', '/', '\\', '=', '<', '>', ':', ';', ',', "'", '"', '&', '$', '#', '*', '(', ')', '|', '~', '`', '!', '{', '}', '%', '+', '’', '«', '»', '”', '“', chr( 0 ) );
 
-	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
-	static $utf8_pcre = null;
-	if ( ! isset( $utf8_pcre ) ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
-	}
-
 	if ( ! seems_utf8( $filename ) ) {
 		$_ext     = pathinfo( $filename, PATHINFO_EXTENSION );
 		$_name    = pathinfo( $filename, PATHINFO_FILENAME );
 		$filename = sanitize_title_with_dashes( $_name ) . '.' . $_ext;
 	}
 
-	if ( $utf8_pcre ) {
-		$filename = preg_replace( "#\x{00a0}#siu", ' ', $filename );
-	}
+	// Replace non-breaking space with a normal space (U+A0 === 0xC2 0xA2 in UTF-8).
+	$filename = str_replace( "\xC2\xA0", ' ', $filename );
 
 	/**
 	 * Filters the list of characters to remove from a filename.
@@ -2120,6 +2192,7 @@ function sanitize_file_name( $filename ) {
  * for the {@see 'sanitize_user'} filter.
  *
  * @since 2.0.0
+ * @since {WP_VERSION} Relies on HTML API for decoding character references.
  *
  * @param string $username The username to be sanitized.
  * @param bool   $strict   Optional. If set to true, limits $username to specific characters.
@@ -2761,14 +2834,17 @@ function format_to_edit( $content, $rich_text = false ) {
  * and the size of the number. If the number is large enough, then no zeros will
  * be appended.
  *
+ * @deprecated {WP_VERSION} Use str_pad() instead.
+ *
  * @since 0.71
+ * @since {WP_VERISON} Replaced sprintf() with str_pad().
  *
  * @param int $number     Number to append zeros to if not greater than threshold.
  * @param int $threshold  Digit places number needs to be to not have zeros added.
  * @return string Adds leading zeros to number if needed.
  */
 function zeroise( $number, $threshold ) {
-	return sprintf( '%0' . $threshold . 's', $number );
+	return str_pad( (string) $number, $threshold, '0', STR_PAD_LEFT );
 }
 
 /**
@@ -4033,26 +4109,158 @@ function wp_trim_words( $text, $num_words = 55, $more = null ) {
 		$more = __( '&hellip;' );
 	}
 
-	$original_text = $text;
-	$text          = wp_strip_all_tags( $text );
-	$num_words     = (int) $num_words;
+	if ( str_starts_with( wp_get_word_count_type(), 'characters' ) && is_utf8_charset() ) {
+		$at        = 0;
+		$output    = '';
+		$buffer    = '';
+		$length    = 0;
+		$processor = new WP_HTML_Tag_Processor( $text );
+		while ( $processor->next_token() && $length <= $num_words ) {
+			switch ( $processor->get_token_name() ) {
+				case 'BR':
+					$buffer .= "\n";
+					continue 2;
 
-	if ( str_starts_with( wp_get_word_count_type(), 'characters' ) && preg_match( '/^utf\-?8$/i', get_option( 'blog_charset' ) ) ) {
-		$text = trim( preg_replace( "/[\n\r\t ]+/", ' ', $text ), ' ' );
-		preg_match_all( '/./u', $text, $words_array );
-		$words_array = array_slice( $words_array[0], 0, $num_words + 1 );
-		$sep         = '';
-	} else {
-		$words_array = preg_split( "/[\n\r\t ]+/", $text, $num_words + 1, PREG_SPLIT_NO_EMPTY );
-		$sep         = ' ';
+				case '#text':
+					break;
+
+				default:
+					continue 2;
+			}
+
+			$buffer .= $processor->get_modifiable_text();
+			$end     = strlen( $buffer );
+
+			while ( $at < $end && $length <= $num_words ) {
+				// Skip whitespace.
+				$at += strspn( $buffer, " \t\f\r\n", $at );
+				if ( $at >= $end ) {
+					$at     = 0;
+					$buffer = '';
+					continue 2;
+				}
+
+				$text_span = strcspn( $buffer, " \t\f\r\n", $at );
+				if ( 0 === $text_span ) {
+					continue 2;
+				}
+
+				// Start decoding code points.
+				$state = UTF8_DECODER_ACCEPT;
+				$i_end = $at + $text_span;
+				for ( $i = $at; $i < $i_end; $i++ ) {
+					$state = utf8_decoder_apply_byte( $buffer[ $i ], $state );
+
+					// Replace sequence of invalid bytes as U+FFFD `�`.
+					if ( UTF8_DECODER_REJECT === $state ) {
+						$output .= "\u{FFFD}";
+
+						// Skip to the start of the next code point.
+						while ( UTF8_DECODER_REJECT === $state && $i < $i_end ) {
+							$state = utf8_decoder_apply_byte( $text[ ++$i ], UTF8_DECODER_ACCEPT );
+						}
+
+						$at = --$i;
+						continue;
+					}
+
+					if ( UTF8_DECODER_ACCEPT !== $state ) {
+						continue;
+					}
+
+					++$length;
+
+					if ( $length === $num_words ) {
+						$output .= substr( $buffer, $at, $i - $at  + 1 );
+						continue;
+					}
+
+					if ( $length > $num_words ) {
+						$output .= $more;
+						break 3;
+					}
+				}
+			}
+		}
+
+		/**
+		 * Filters the text content after words have been trimmed.
+		 *
+		 * @since 3.3.0
+		 *
+		 * @param string $text          The trimmed text.
+		 * @param int    $num_words     The number of words to trim the text to. Default 55.
+		 * @param string $more          An optional string to append to the end of the trimmed text, e.g. &hellip;.
+		 * @param string $original_text The text before it was trimmed.
+		 */
+		return apply_filters( 'wp_trim_words', $output, $num_words, $more, $text );
 	}
 
-	if ( count( $words_array ) > $num_words ) {
-		array_pop( $words_array );
-		$text = implode( $sep, $words_array );
-		$text = $text . $more;
-	} else {
-		$text = implode( $sep, $words_array );
+	$at         = 0;
+	$output     = '';
+	$buffer     = '';
+	$word_count = 0;
+	$processor  = new WP_HTML_Tag_Processor( $text );
+	while ( $processor->next_token() && $word_count < $num_words ) {
+		switch ( $processor->get_token_name() ) {
+			case 'BR':
+				$buffer .= "\n";
+				continue 2;
+
+			case '#text':
+				break;
+
+			default:
+				continue 2;
+		}
+
+		$buffer .= $processor->get_modifiable_text();
+		$end     = strlen( $buffer );
+
+		while ( $at < $end && $word_count < $num_words ) {
+			// Skip whitespace.
+			$at += strspn( $buffer, " \t\f\r\n", $at );
+			if ( $at >= $end ) {
+				$at     = 0;
+				$buffer = '';
+				continue 2;
+			}
+
+			$word_length = strcspn( $buffer, " \t\f\r\n", $at );
+			if ( 0 === $word_length ) {
+				continue 2;
+			}
+
+			if ( $at + $word_length >= $end ) {
+				$buffer = substr( $buffer, $at );
+				$at     = 0;
+				continue 2;
+			}
+
+			++$word_count;
+			if ( $word_count > 1 ) {
+				$output .= ' ';
+			}
+			$output .= substr( $buffer, $at, $word_length );
+			$at     += $word_length;
+		}
+	}
+
+	// A final word may have crossed the last token boundary.
+	if ( $at < strlen( $buffer ) && $word_count < $num_words ) {
+		$at         += strspn( $buffer, " \t\f\r\n", $at );
+		$word_length = strcspn( $buffer, " \t\f\r\n", $at );
+		if ( $word_length > 0 ) {
+			++$word_count;
+			if ( $word_count > 1 ) {
+				$output .= ' ';
+			}
+			$output .= substr( $buffer, $at, $word_length );
+		}
+	}
+
+	if ( $word_count >= $num_words ) {
+		$output .= $more;
 	}
 
 	/**
@@ -4065,7 +4273,7 @@ function wp_trim_words( $text, $num_words = 55, $more = null ) {
 	 * @param string $more          An optional string to append to the end of the trimmed text, e.g. &hellip;.
 	 * @param string $original_text The text before it was trimmed.
 	 */
-	return apply_filters( 'wp_trim_words', $text, $num_words, $more, $original_text );
+	return apply_filters( 'wp_trim_words', $output, $num_words, $more, $text );
 }
 
 /**
