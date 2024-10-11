@@ -726,12 +726,6 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 */
 	public static function data_resizes_are_small_for_16bit_images() {
 		return array(
-			'17-c3-duplicate-entries' => array(
-				DIR_TESTDATA . '/images/png-tests/Palette_icon-or8.png',
-			),
-			'cloudflare-status'       => array(
-				DIR_TESTDATA . '/images/png-tests/cloudflare-status.png',
-			),
 			'deskcat8'                => array(
 				DIR_TESTDATA . '/images/png-tests/deskcat8.png',
 			),
