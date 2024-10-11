@@ -38,7 +38,7 @@ jobs:
   # Runs the end-to-end test suite.
   e2e-tests:
     name: Test with SCRIPT_DEBUG ${{ matrix.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-end-to-end-tests.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-end-to-end-tests.yml@add/gutenberg-version-to-e2e
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -48,7 +48,7 @@ jobs:
         LOCAL_SCRIPT_DEBUG: [ true, false ]
     with:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
-      install-gutenberg: false
+      gutenberg-version: '19.1.0'
 
   slack-notifications:
     name: Slack Notifications
