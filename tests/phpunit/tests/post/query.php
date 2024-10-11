@@ -429,7 +429,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	public function test_orderby() {
 		// 'rand' is a valid value.
 		$q = new WP_Query( array( 'orderby' => 'rand' ) );
-		$this->assertStringContainsString( 'ORDER BY RAND()', $q->request );
+		$this->assertStringContainsString( 'AND ( rand()', $q->request );
 		$this->assertStringNotContainsString( 'ASC', $q->request );
 		$this->assertStringNotContainsString( 'DESC', $q->request );
 
@@ -825,5 +825,31 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		remove_filter( 'split_the_query', '__return_true' );
 
 		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
+	}
+
+	/**
+	 *
+	 */
+	public function test_wp_query_orderby_rand() {
+		$number_of_posts = 3;
+		self::factory()->post->create_many($number_of_posts);
+
+		$args = array( 'orderby' => 'rand', 'fields' => 'ids' );
+		$q = new WP_Query( $args );
+		$this->assertSame( $number_of_posts, $q->found_posts );
+
+		$q2 = new WP_Query( $args );
+		$this->assertSame( $number_of_posts, $q2->found_posts );
+
+		for ( $i = 0; $i < 10; $i ++ ) {
+			foreach ($q->posts as  $key => $value ){
+
+				if( $value !== $q2->posts[ $key ] ){
+					$this->assertTrue( true );
+					break(2);
+				}
+			}
+			$q2 = new WP_Query( $args );
+		}
 	}
 }
