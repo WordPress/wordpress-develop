@@ -29,7 +29,7 @@ on:
     secrets:
       CODEVITALS_PROJECT_TOKEN:
         description: 'The authorization token for https://www.codevitals.run/project/wordpress.'
-        required: true
+        required: false
 
 env:
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
@@ -329,7 +329,12 @@ jobs:
           COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}
           CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
           HOST_NAME: "www.codevitals.run"
-        run: node ./tests/performance/log-results.js $CODEVITALS_PROJECT_TOKEN trunk $GITHUB_SHA $BASE_SHA $COMMITTED_AT $HOST_NAME
+        run: |
+          if [ -z "$CODEVITALS_PROJECT_TOKEN" ]; then
+            echo "Performance results could not be published. 'CODEVITALS_PROJECT_TOKEN' is not set" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          node ./tests/performance/log-results.js $CODEVITALS_PROJECT_TOKEN trunk $GITHUB_SHA $BASE_SHA $COMMITTED_AT $HOST_NAME
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
