@@ -28,7 +28,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @access protected
 	 * @var bool
 	 */
-	protected $indexed_color_encoded = false;
+	public $indexed_color_encoded = false;
 
 	/**
 	 * Stores the information whether the image is indexed-color encoded.
@@ -37,7 +37,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @access protected
 	 * @var int
 	 */
-	protected $indexed_pixel_depth = false;
+	public $indexed_pixel_depth = false;
 
 	public function __destruct() {
 		if ( $this->image instanceof Imagick ) {
@@ -351,7 +351,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @since 6.6.0
 	 */
-	protected function get_png_color_depth() {
+	public function get_png_color_depth() {
+
 		if ( 'image/png' !== $this->mime_type ) {
 			return;
 		}
@@ -370,8 +371,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		if ( ! $file_handle ) {
 			return;
 		}
-
 		$png_header = fread( $file_handle, 4 );
+
 		if ( chr( 0x89 ) . 'PNG' !== $png_header ) {
 			return;
 		}
@@ -386,13 +387,13 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		// Skip past the dimensions.
-		$dimensions = fread( $file_handle, 8 );
+		fread( $file_handle, 8 );
 
 		// Bit depth: 1 byte
 		// Bit depth is a single-byte integer giving the number of bits per sample or
 		// per palette index (not per pixel).
 		//
-		// Valid values are 1, 2, 4, 8, and 16, although not all values are allowed for all color types.
+		// Valid values are 1, 2, 4, 8, 16 and 32, although not all values are allowed for all color types.
 		$this->indexed_pixel_depth = ord( (string) fread( $file_handle, 1 ) );
 
 		// Color type is a single-byte integer that describes the interpretation of the image data.
@@ -601,11 +602,11 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				if ( ! empty( $max_colors ) ) {
 					$max_colors = min( $max_colors, $current_colors );
 					$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
-                	/**
-                	 * ImageMagick likes to convert gray indexed images to grayscale.
-                	 * So, if the colorspace has changed to 'gray', use the png8 format
-                	 * to ensure it stays indexed.
-                	 */
+					/**
+					 * ImageMagick likes to convert gray indexed images to grayscale.
+					 * So, if the colorspace has changed to 'gray', use the png8 format
+					 * to ensure it stays indexed.
+					 */
 					if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
 						$this->image->setOption( 'png:format', 'png8' );
 					}
