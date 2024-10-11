@@ -2245,4 +2245,48 @@ class Tests_User extends WP_UnitTestCase {
 
 		return $additional_profile_data;
 	}
+
+	/**
+	 * Test if the use_ssl doesn't write to DB unneccesarily.
+	 *
+	 * @ticket 60299
+	 */
+	public function test_unnecessary_assignment_of_use_ssl_in_meta() {
+		$user_id = self::$contrib_id;
+		// Add in DB to be able to use in another method.
+		add_option( 'test_user_id_meta_ssl_type', $user_id );
+
+		// Data type of the use_ssl saved in the DB.
+		$type_in_db = gettype( get_user_meta( $user_id, 'use_ssl', true ) );
+
+		add_filter( 'insert_user_meta', array( $this, 'save_use_ssl_meta_data_type' ), 10, 3 );
+
+		$_POST             = array();
+		$_POST['nickname'] = 'nickname_test_1';
+		$_POST['email']    = 'email_test_1@example.com';
+		$_POST['use_ssl']  = 0; // Set Use SSL to false.
+
+		$user_id = edit_user( $user_id );
+
+		$this->assertIsInt( $user_id );
+
+		// Data type of the use_ssl saved in the Meta array while eidting the user.
+		$type_in_meta = get_option( 'test_user_meta_ssl_data_type' );
+
+		$this->assertSame( $type_in_db, $type_in_meta );
+	}
+
+	/**
+	 * Hook a filter to get the $meta when editing an user.
+	 * This hook is used in `test_unnecessary_assignment_of_use_ssl_in_meta()`.
+	 */
+	public function save_use_ssl_meta_data_type( $meta, $user, $update ) {
+		$user_id = get_option( 'test_user_id_meta_ssl_type' );
+
+		if ( $user->ID === $user_id ) {
+			add_option( 'test_user_meta_ssl_data_type', gettype( $meta['use_ssl'] ) );
+		}
+
+		return $meta;
+	}
 }
