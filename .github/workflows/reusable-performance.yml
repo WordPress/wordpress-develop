@@ -30,7 +30,6 @@ on:
       CODEVITALS_PROJECT_TOKEN:
         description: 'The authorization token for https://www.codevitals.run/project/wordpress.'
         required: false
-        default: ''
 
 env:
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
