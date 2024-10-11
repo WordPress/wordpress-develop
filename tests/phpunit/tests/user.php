@@ -2285,18 +2285,4 @@ class Tests_User extends WP_UnitTestCase {
 		// Verify there are no updates to the use_ssl meta.
 		$this->assertEquals( 1, $set_db_counts );
 	}
-
-	/**
-	 * Hook a filter to get the $meta when editing an user.
-	 * This hook is used in `test_unnecessary_assignment_of_use_ssl_in_meta()`.
-	 */
-	public function save_use_ssl_meta_data_type( $meta, $user, $update ) {
-		$user_id = get_option( 'test_user_id_meta_ssl_type' );
-
-		if ( $user->ID === $user_id ) {
-			add_option( 'test_user_meta_ssl_data_type', gettype( $meta['use_ssl'] ) );
-		}
-
-		return $meta;
-	}
 }
