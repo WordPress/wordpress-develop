@@ -240,11 +240,14 @@ abstract class WP_Image_Editor {
 	 * Sets Image Compression quality on a 1-100% scale.
 	 *
 	 * @since 3.5.0
+	 * @since 6.8.0 The `$dims` parameter was added.
 	 *
-	 * @param int $quality Compression Quality. Range: [1,100]
+	 * @param int   $quality Compression Quality. Range: [1,100]
+	 * @param array $dims    Optional. Image dimensions.
 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
+
 	 */
-	public function set_quality( $quality = null ) {
+	public function set_quality( $quality = null, $dims = array() ) {
 		// Use the output mime type if present. If not, fall back to the input/initial mime type.
 		$mime_type = ! empty( $this->output_mime_type ) ? $this->output_mime_type : $this->mime_type;
 		// Get the default quality setting for the mime type.
@@ -271,7 +274,7 @@ abstract class WP_Image_Editor {
 			 *     @type int $height The image height.
 			 * }
 			 */
-			$quality = apply_filters( 'wp_editor_set_quality', $default_quality, $mime_type, $this->size );
+			$quality = apply_filters( 'wp_editor_set_quality', $default_quality, $mime_type, $dims ? $dims : $this->size );
 
 			if ( 'image/jpeg' === $mime_type ) {
 				/**
