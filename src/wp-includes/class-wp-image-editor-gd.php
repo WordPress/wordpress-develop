@@ -85,7 +85,6 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				}
 				return false;
 
-
 		}
 
 		return false;
