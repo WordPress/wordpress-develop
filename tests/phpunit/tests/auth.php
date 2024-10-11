@@ -950,8 +950,39 @@ class Tests_Auth extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 21022
+	 * @ticket 50027
+	 */
+	public function test_password_hashing_options_can_be_filtered() {
+		$password = 'password';
+
+		add_filter(
+			'wp_hash_password_options',
+			static function ( $options ) {
+				$options['cost'] = 5;
+				return $options;
+			}
+		);
+
+		$filter_count_before = did_filter( 'wp_hash_password_options' );
+
+		$wp_hash      = wp_hash_password( $password );
+		$valid        = wp_check_password( $password, $wp_hash );
+		$needs_rehash = wp_password_needs_rehash( $wp_hash );
+		$info         = password_get_info( $wp_hash );
+		$cost         = $info['options']['cost'];
+
+		$this->assertTrue( $valid );
+		$this->assertFalse( $needs_rehash );
+		$this->assertSame( $filter_count_before + 2, did_filter( 'wp_hash_password_options' ) );
+		$this->assertSame( 5, $cost );
+	}
+
 	public function test_password_checks_support_wp_hasher_fallback() {
 		global $wp_hasher;
+
+		$filter_count_before = did_filter( 'wp_hash_password_options' );
 
 		$password = 'password';
 
@@ -970,6 +1001,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertTrue( $valid );
 		$this->assertFalse( $needs_rehash );
 		$this->assertSame( 1, did_filter( 'check_password' ) );
+		$this->assertSame( $filter_count_before, did_filter( 'wp_hash_password_options' ) );
 	}
 
 	/**

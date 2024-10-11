@@ -2617,7 +2617,18 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 			return $wp_hasher->HashPassword( trim( $password ) );
 		}
 
-		return password_hash( trim( $password ), PASSWORD_BCRYPT );
+		/**
+		 * Filters the options passed to the password_hash() and password_needs_rehash() functions.
+		 *
+		 * @since x.y.z
+		 *
+		 * @param array $options Array of options to pass to the password hashing functions.
+		 *                       By default this is an empty array which means the default
+		 *                       options will be used.
+		 */
+		$options = apply_filters( 'wp_hash_password_options', array() );
+
+		return password_hash( trim( $password ), PASSWORD_BCRYPT, $options );
 	}
 endif;
 
@@ -2708,7 +2719,10 @@ if ( ! function_exists( 'wp_password_needs_rehash' ) ) :
 			return false;
 		}
 
-		return password_needs_rehash( $hash, PASSWORD_BCRYPT );
+		/** This filter is documented in wp-includes/pluggable.php */
+		$options = apply_filters( 'wp_hash_password_options', array() );
+
+		return password_needs_rehash( $hash, PASSWORD_BCRYPT, $options );
 	}
 endif;
 
