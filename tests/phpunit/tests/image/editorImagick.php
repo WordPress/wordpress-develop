@@ -708,7 +708,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$org_filesize = filesize( $file );
 
-		$imagick_image_editor->resize( $size['width'] - $size['width'] / 10, $size['height'] - $size['height'] / 10 );
+		$imagick_image_editor->resize( $size['width'] - $size['width'] / 25, $size['height'] - $size['height'] / 25 );
 
 		$saved = $imagick_image_editor->save( $temp_file );
 
