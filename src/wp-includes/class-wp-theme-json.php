@@ -1150,6 +1150,14 @@ class WP_Theme_JSON {
 		$blocks         = $registry->get_all_registered();
 		$style_registry = WP_Block_Styles_Registry::get_instance();
 
+		// Unset old blocks from static variable.
+		$blocks_to_unset = array_diff_key( static::$blocks_metadata, $blocks );
+		if ( ! empty( $blocks_to_unset ) ) {
+			foreach ( $blocks_to_unset as $block_name => $block_meta ) {
+				unset( static::$blocks_metadata[ $block_name ] );
+			}
+		}
+
 		// Is there metadata for all currently registered blocks?
 		$blocks = array_diff_key( $blocks, static::$blocks_metadata );
 		if ( empty( $blocks ) ) {
