@@ -2702,8 +2702,8 @@ if ( ! function_exists( 'wp_password_needs_rehash' ) ) :
 	 *
 	 * Passwords are hashed with bcrypt using the default cost. A password hashed in a prior version
 	 * of WordPress may still be hashed with phpass and will need to be rehashed. If the default cost
-	 * gets updated in PHP or the algorithm is changed in WordPress then a password hashed in a
-	 * previous version of PHP or WordPress will need to be rehashed.
+	 * or algorithm is changed in PHP or WordPress then a password hashed in a previous version will
+	 * need to be rehashed.
 	 *
 	 * @since x.y.z
 	 *

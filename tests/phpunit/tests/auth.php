@@ -417,12 +417,6 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * @ticket 21022
 	 * @ticket 50027
-	 *
-	 * @TODO bcrypt has a password length limit of 72, need to decide what our approach is.
-	 * @TODO See the discussion comments on https://core.trac.wordpress.org/ticket/21022
-	 * @TODO See the discussion comments on https://core.trac.wordpress.org/ticket 50027
-	 * @TODO Reminder: https://blog.ircmaxell.com/2015/03/security-issue-combining-bcrypt-with.html
-	 * @TODO split up this test
 	 */
 	public function test_invalid_password_at_bcrypt_length_limit_is_rejected() {
 		$limit = str_repeat( 'a', self::$bcrypt_length_limit );
@@ -436,6 +430,10 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 	}
 
+	/**
+	 * @ticket 21022
+	 * @ticket 50027
+	 */
 	public function test_invalid_password_beyond_bcrypt_length_limit_is_rejected() {
 		$limit = str_repeat( 'a', self::$bcrypt_length_limit + 1 );
 
@@ -448,6 +446,10 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 	}
 
+	/**
+	 * @ticket 21022
+	 * @ticket 50027
+	 */
 	public function test_valid_password_at_bcrypt_length_limit_is_accepted() {
 		$limit = str_repeat( 'a', self::$bcrypt_length_limit );
 
@@ -463,6 +465,10 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertSame( self::$user_id, $user->ID );
 	}
 
+	/**
+	 * @ticket 21022
+	 * @ticket 50027
+	 */
 	public function test_valid_password_beyond_bcrypt_length_limit_is_accepted() {
 		$limit = str_repeat( 'a', self::$bcrypt_length_limit + 1 );
 
@@ -979,6 +985,10 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertSame( 5, $cost );
 	}
 
+	/**
+	 * @ticket 21022
+	 * @ticket 50027
+	 */
 	public function test_password_checks_support_wp_hasher_fallback() {
 		global $wp_hasher;
 
