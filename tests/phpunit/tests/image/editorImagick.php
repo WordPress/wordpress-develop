@@ -726,13 +726,13 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 */
 	public static function data_resizes_are_small_for_16bit_images() {
 		return array(
-			'deskcat8'                => array(
+			'deskcat8'             => array(
 				DIR_TESTDATA . '/images/png-tests/deskcat8.png',
 			),
-			'rabbit-time-paletted'    => array(
+			'rabbit-time-paletted' => array(
 				DIR_TESTDATA . '/images/png-tests/rabbit-time-paletted-or8.png',
 			),
-			'test8'                   => array(
+			'test8'                => array(
 				DIR_TESTDATA . '/images/png-tests/test8.png',
 			),
 		);
