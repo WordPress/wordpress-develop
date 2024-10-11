@@ -2256,7 +2256,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Keep track of db writing calls.
 		$set_db_counts = 0;
 
-		// Track db updates with calls to do_action( "update_user_meta", ...
+		// Track db updates with calls to do_action( "update_user_meta", ... with 'use_ssl' meta key.
 		add_action(
 			'update_user_meta',
 			function ( $meta_id, $object_id, $meta_key ) use ( &$set_db_counts ) {
