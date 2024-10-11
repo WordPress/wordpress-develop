@@ -471,7 +471,7 @@ class Tests_Meta extends WP_UnitTestCase {
 		$result = update_metadata( 'user', $this->author->ID, 'foo_meta_key', 'bar_meta_value', '', $is_failure );
 		remove_filter( 'query', array( $this, 'error_query' ) );
 
-		$this->assertWPError( $result, 'Expected the result to be false when the query fails.' );
+		$this->assertFalse( $result, 'Expected the result to be false when the query fails.' );
 		$this->assertTrue( $is_failure, 'Expected the is_failure flag to be true on a database error.' );
 
 		// Attempt to add new metadata; the operation should succeed.
@@ -485,7 +485,7 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->error_query_regexp = '/^UPDATE.*new_meta_value/i';
 		add_filter( 'query', array( $this, 'error_query' ) );
 		$result = update_metadata( 'user', $this->author->ID, 'foo_meta_key', 'new_meta_value', '', $is_failure );
-		$this->assertWPError( $result, 'Expected the result to be false when the update query fails.' );
+		$this->assertFalse( $result, 'Expected the result to be false when the update query fails.' );
 		$this->assertTrue( $is_failure, 'Expected the is_failure flag to be true on update failure.' );
 		remove_filter( 'query', array( $this, 'error_query' ) );
 
