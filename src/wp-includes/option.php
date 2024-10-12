@@ -853,7 +853,7 @@ function update_option( $option, $value, $autoload = null ) {
 			// Delete the individual cache, then set in alloptions cache.
 			wp_cache_delete( $option, 'options' );
 
-			$alloptions = wp_load_alloptions( true );
+			$alloptions            = wp_load_alloptions( true );
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
 		} else {
