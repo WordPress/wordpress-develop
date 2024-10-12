@@ -847,7 +847,7 @@ class WP_Theme_JSON_Resolver {
 		 * @since 6.7.0
 		 *
 		 * @param array  $variations An array of style variations.
-		 * @param string $scope 		 The scope or type of style variation to retrieve e.g. theme, block etc.
+		 * @param string $scope      The scope or type of style variation to retrieve e.g. theme, block etc.
 		 */
 		return apply_filters( 'wp_theme_json_style_variations', $variations, $scope );
 	}
