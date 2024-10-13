@@ -970,12 +970,12 @@ window.wp = window.wp || {};
 			var handles = $( '.ui-slider-handle' );
 			handles.first().attr( {
 					role: 'button',
-					'aria-labelledby': 'diff-title-from',
+					'aria-labelledby': 'diff-title-from diff-title-author',
 					'aria-describedby': 'revisions-slider-hidden-help',
 			} );
 			handles.last().attr( {
 					role: 'button',
-					'aria-labelledby': 'diff-title-to',
+					'aria-labelledby': 'diff-title-to diff-title-author',
 					'aria-describedby': 'revisions-slider-hidden-help',
 			} );
 		},

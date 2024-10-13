@@ -400,15 +400,15 @@ function wp_print_revision_templates() {
 
 	<script id="tmpl-revisions-meta" type="text/html">
 		<# if ( ! _.isUndefined( data.attributes ) ) { #>
-			<div class="diff-title" id="diff-title-{{ data.type }}">
+			<div class="diff-title">
 				<# if ( 'from' === data.type ) { #>
-					<strong><?php _ex( 'From:', 'Followed by post revision info' ); ?></strong>
+					<strong id="diff-title-from"><?php _ex( 'From:', 'Followed by post revision info' ); ?></strong>
 				<# } else if ( 'to' === data.type ) { #>
-					<strong><?php _ex( 'To:', 'Followed by post revision info' ); ?></strong>
+					<strong id="diff-title-to"><?php _ex( 'To:', 'Followed by post revision info' ); ?></strong>
 				<# } #>
 				<div class="author-card<# if ( data.attributes.autosave ) { #> autosave<# } #>">
 					{{{ data.attributes.author.avatar }}}
-					<div class="author-info">
+					<div class="author-info" id="diff-title-author">
 					<# if ( data.attributes.autosave ) { #>
 						<span class="byline">
 						<?php
