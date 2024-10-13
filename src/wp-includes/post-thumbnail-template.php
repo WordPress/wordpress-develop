@@ -116,17 +116,18 @@ function update_post_thumbnail_cache( $wp_query = null ) {
 	 * $wp_query may contain an array of post objects or post IDs.
 	 *
 	 * This ensures the cache is primed for all post objects to avoid
-	 * repeated `get_post()` calls in `get_the_post_thumbnail()`.
+	 * `get_post()` calls in `get_the_post_thumbnail()` triggering an
+	 * additional database call for each post.
 	 */
-	$post_ids = array();
+	$parent_post_ids = array();
 	foreach ( $wp_query->posts as $post ) {
 		if ( $post instanceof WP_Post ) {
-			$post_ids[] = $post->ID;
+			$parent_post_ids[] = $post->ID;
 		} elseif ( is_int( $post ) ) {
-			$post_ids[] = $post;
+			$parent_post_ids[] = $post;
 		}
 	}
-	_prime_post_caches( $post_ids, false, true );
+	_prime_post_caches( $parent_post_ids, false, true );
 
 	foreach ( $wp_query->posts as $post ) {
 		$id = get_post_thumbnail_id( $post );
