@@ -214,6 +214,8 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	/**
 	 * Tests the default themes list in the test suite matches the runtime default themes.
+	 *
+	 * @ticket 62103
 	 */
 	public function test_default_default_theme_list_match_in_test_suite_and_at_runtime() {
 		// Use a reflection to make WP_THEME::$default_themes accessible.
@@ -233,6 +235,8 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	/**
 	 * Test the default theme in WP_Theme matches the WP_DEFAULT_THEME constant.
+	 *
+	 * @ticket 62103
 	 */
 	public function test_default_theme_matches_constant() {
 		$latest_default_theme = WP_Theme::get_core_default_theme();
@@ -252,6 +256,8 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	/**
 	 * Ensure that the default themes are included in the new bundled files.
+	 *
+	 * @ticket 62103
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
