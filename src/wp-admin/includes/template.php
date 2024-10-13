@@ -1576,14 +1576,14 @@ function do_accordion_sections( $screen, $context, $data_object ) {
 					?>
 					<li class="control-section accordion-section <?php echo $hidden_class; ?> <?php echo $open_class; ?> <?php echo esc_attr( $box['id'] ); ?>" id="<?php echo esc_attr( $box['id'] ); ?>">
 						<h3 class="accordion-section-title hndle">
-							<button type="button" class="accordion-trigger" aria-expanded="<?php echo $aria_expanded; ?>">
+							<button type="button" class="accordion-trigger" aria-expanded="<?php echo $aria_expanded; ?>" aria-controls="<?php echo esc_attr( $box['id'] ); ?>-content">
 								<span class="accordion-title">
 									<?php echo esc_html( $box['title'] ); ?>
 									<span class="dashicons dashicons-arrow-down" aria-hidden="true"></span>
 								</span>
 							</button>
 						</h3>
-						<div class="accordion-section-content <?php postbox_classes( $box['id'], $page ); ?>">
+						<div class="accordion-section-content <?php postbox_classes( $box['id'], $page ); ?>" id="<?php echo esc_attr( $box['id'] ); ?>-content">
 							<div class="inside">
 								<?php call_user_func( $box['callback'], $data_object, $box ); ?>
 							</div><!-- .inside -->

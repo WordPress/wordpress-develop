@@ -7,18 +7,18 @@
  *
  * <div class="accordion-container">
  *	<div class="accordion-section open">
- *		<h3 class="accordion-section-title"><button type="button" aria-expanded="true"></button></h3>
- *		<div class="accordion-section-content">
+ *		<h3 class="accordion-section-title"><button type="button" aria-expanded="true" aria-controls="target-1"></button></h3>
+ *		<div class="accordion-section-content" id="target">
  *		</div>
  *	</div>
  *	<div class="accordion-section">
- *		<h3 class="accordion-section-title"><button type="button" aria-expanded="false"></button></h3>
- *		<div class="accordion-section-content">
+ *		<h3 class="accordion-section-title"><button type="button" aria-expanded="false" aria-controls="target-2"></button></h3>
+ *		<div class="accordion-section-content" id="target-2">
  *		</div>
  *	</div>
  *	<div class="accordion-section">
- *		<h3 class="accordion-section-title"><button type="button" aria-expanded="false"></button></h3>
- *		<div class="accordion-section-content">
+ *		<h3 class="accordion-section-title"><button type="button" aria-expanded="false" aria-controls="target-3"></button></h3>
+ *		<div class="accordion-section-content" id="target-3">
  *		</div>
  *	</div>
  * </div>
