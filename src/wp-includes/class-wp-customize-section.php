@@ -356,11 +356,11 @@ class WP_Customize_Section {
 		?>
 		<li id="accordion-section-{{ data.id }}" class="accordion-section control-section control-section-{{ data.type }}">
 			<h3 class="accordion-section-title">
-				<button type="button" class="accordion-trigger" aria-expanded="false">
+				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="{{ data.id }}-content">
 					{{ data.title }}
 				</button>
 			</h3>
-			<ul class="accordion-section-content">
+			<ul class="accordion-section-content" id="{{ data.id }}-content">
 				<li class="customize-section-description-container section-meta <# if ( data.description_hidden ) { #>customize-info<# } #>">
 					<div class="customize-section-title">
 						<button class="customize-section-back" tabindex="-1">

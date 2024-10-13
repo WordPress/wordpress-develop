@@ -347,11 +347,11 @@ class WP_Customize_Panel {
 		?>
 		<li id="accordion-panel-{{ data.id }}" class="accordion-section control-section control-panel control-panel-{{ data.type }}">
 			<h3 class="accordion-section-title">
-				<button type="button" class="accordion-trigger" aria-expanded="false">
+				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="{{ data.id }}-content">
 					{{ data.title }}
 				</button>
 			</h3>
-			<ul class="accordion-sub-container control-panel-content"></ul>
+			<ul class="accordion-sub-container control-panel-content" id="{{ data.id }}-content"></ul>
 		</li>
 		<?php
 	}
