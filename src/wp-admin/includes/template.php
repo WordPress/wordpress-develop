@@ -1579,12 +1579,6 @@ function do_accordion_sections( $screen, $context, $data_object ) {
 							<button type="button" class="accordion-trigger" aria-expanded="<?php echo $aria_expanded; ?>">
 								<span class="accordion-title">
 									<?php echo esc_html( $box['title'] ); ?>
-									<span class="screen-reader-text" aria-hidden="true">
-										<?php
-										/* translators: Hidden accessibility text. */
-										_e( 'Press return or enter to open this section' );
-										?>
-									</span>
 									<span class="dashicons dashicons-arrow-down" aria-hidden="true"></span>
 								</span>
 							</button>
