@@ -272,12 +272,12 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 
 		// Global styles.
 		$config = ( new WP_Theme_JSON( json_decode( $revision_expected_item->post_content, true ), 'custom' ) )->get_raw_data();
-		$this->assertEquals(
+		$this->assertSame(
 			$config['settings'],
 			$response_revision_item['settings'],
 			'Check that the revision settings exist in the response.'
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			$config['styles'],
 			$response_revision_item['styles'],
 			'Check that the revision styles match the updated styles.'
@@ -371,7 +371,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$data     = $response->get_data();
 
 		$this->assertCount( $this->total_revisions + 1, $data, 'Check that extra revision exist' );
-		$this->assertEquals( self::$second_admin_id, $data[0]['author'], 'Check that second author id returns expected value.' );
+		$this->assertSame( self::$second_admin_id, $data[0]['author'], 'Check that second author id returns expected value.' );
 	}
 
 	/**
@@ -420,6 +420,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 
 	/**
 	 * @ticket 58524
+	 * @ticket 60131
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_item_permissions_check
 	 */
@@ -428,7 +429,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_cannot_view', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
 	/**
@@ -829,7 +830,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 * @doesNotPerformAssertions
 	 */
 	public function test_context_param() {
-		// Controller does not implement test_context_param().
+		// Controller does not implement get_context_param().
 	}
 
 	/**

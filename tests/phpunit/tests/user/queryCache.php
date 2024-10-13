@@ -388,7 +388,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$this->assertSameSets( $expected, $found, 'Find author in returned values' );
 
-		wp_delete_user( $user_id );
+		self::delete_user( $user_id );
 
 		$q2 = new WP_User_Query(
 			array(

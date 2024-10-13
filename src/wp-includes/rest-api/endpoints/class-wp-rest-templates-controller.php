@@ -236,12 +236,28 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Checks if a given request has access to read templates.
 	 *
 	 * @since 5.8.0
+	 * @since 6.6.0 Allow users with edit_posts capability to read templates.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		return $this->permissions_check( $request );
+		if ( current_user_can( 'edit_posts' ) ) {
+			return true;
+		}
+		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+			if ( current_user_can( $post_type->cap->edit_posts ) ) {
+				return true;
+			}
+		}
+
+		return new WP_Error(
+			'rest_cannot_manage_templates',
+			__( 'Sorry, you are not allowed to access the templates on this site.' ),
+			array(
+				'status' => rest_authorization_required_code(),
+			)
+		);
 	}
 
 	/**
@@ -277,12 +293,28 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Checks if a given request has access to read a single template.
 	 *
 	 * @since 5.8.0
+	 * @since 6.6.0 Allow users with edit_posts capability to read individual templates.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		return $this->permissions_check( $request );
+		if ( current_user_can( 'edit_posts' ) ) {
+			return true;
+		}
+		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+			if ( current_user_can( $post_type->cap->edit_posts ) ) {
+				return true;
+			}
+		}
+
+		return new WP_Error(
+			'rest_cannot_manage_templates',
+			__( 'Sorry, you are not allowed to access the templates on this site.' ),
+			array(
+				'status' => rest_authorization_required_code(),
+			)
+		);
 	}
 
 	/**
@@ -294,7 +326,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_item( $request ) {
-		if ( isset( $request['source'] ) && 'theme' === $request['source'] ) {
+		if ( isset( $request['source'] ) && ( 'theme' === $request['source'] || 'plugin' === $request['source'] ) ) {
 			$template = get_block_file_template( $request['id'], $this->post_type );
 		} else {
 			$template = get_block_template( $request['id'], $this->post_type );
@@ -636,6 +668,14 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
+		/*
+		 * Resolve pattern blocks so they don't need to be resolved client-side
+		 * in the editor, improving performance.
+		 */
+		$blocks        = parse_blocks( $item->content );
+		$blocks        = resolve_pattern_blocks( $blocks );
+		$item->content = serialize_blocks( $blocks );
+
 		// Restores the more descriptive, specific name for use within this method.
 		$template = $item;
 
@@ -736,6 +776,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$data['original_source'] = self::get_wp_templates_original_source_field( $template );
 		}
 
+		if ( rest_is_field_included( 'plugin', $fields ) ) {
+			$registered_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $template->slug );
+			if ( $registered_template ) {
+				$data['plugin'] = $registered_template->plugin;
+			}
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data    = $this->add_additional_fields_to_object( $data, $request );
 		$data    = $this->filter_response_by_context( $data, $context );
@@ -768,11 +815,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 */
 	private static function get_wp_templates_original_source_field( $template_object ) {
 		if ( 'wp_template' === $template_object->type || 'wp_template_part' === $template_object->type ) {
-			// Added by theme.
-			// Template originally provided by a theme, but customized by a user.
-			// Templates originally didn't have the 'origin' field so identify
-			// older customized templates by checking for no origin and a 'theme'
-			// or 'custom' source.
+			/*
+			 * Added by theme.
+			 * Template originally provided by a theme, but customized by a user.
+			 * Templates originally didn't have the 'origin' field so identify
+			 * older customized templates by checking for no origin and a 'theme'
+			 * or 'custom' source.
+			 */
 			if ( $template_object->has_theme_file &&
 			( 'theme' === $template_object->origin || (
 				empty( $template_object->origin ) && in_array(
@@ -789,14 +838,16 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			}
 
 			// Added by plugin.
-			if ( $template_object->has_theme_file && 'plugin' === $template_object->origin ) {
+			if ( 'plugin' === $template_object->origin ) {
 				return 'plugin';
 			}
 
-			// Added by site.
-			// Template was created from scratch, but has no author. Author support
-			// was only added to templates in WordPress 5.9. Fallback to showing the
-			// site logo and title.
+			/*
+			 * Added by site.
+			 * Template was created from scratch, but has no author. Author support
+			 * was only added to templates in WordPress 5.9. Fallback to showing the
+			 * site logo and title.
+			 */
 			if ( empty( $template_object->has_theme_file ) && 'custom' === $template_object->source && empty( $template_object->author ) ) {
 				return 'site';
 			}
@@ -821,9 +872,41 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				$theme_name = wp_get_theme( $template_object->theme )->get( 'Name' );
 				return empty( $theme_name ) ? $template_object->theme : $theme_name;
 			case 'plugin':
-				$plugins = get_plugins();
-				$plugin  = $plugins[ plugin_basename( sanitize_text_field( $template_object->theme . '.php' ) ) ];
-				return empty( $plugin['Name'] ) ? $template_object->theme : $plugin['Name'];
+				if ( ! function_exists( 'get_plugins' ) || ! function_exists( 'get_plugin_data' ) ) {
+					require_once ABSPATH . 'wp-admin/includes/plugin.php';
+				}
+				if ( isset( $template_object->plugin ) ) {
+					$plugins = wp_get_active_and_valid_plugins();
+
+					foreach ( $plugins as $plugin_file ) {
+						$plugin_basename = plugin_basename( $plugin_file );
+						// Split basename by '/' to get the plugin slug.
+						list( $plugin_slug, ) = explode( '/', $plugin_basename );
+
+						if ( $plugin_slug === $template_object->plugin ) {
+							$plugin_data = get_plugin_data( $plugin_file );
+
+							if ( ! empty( $plugin_data['Name'] ) ) {
+								return $plugin_data['Name'];
+							}
+
+							break;
+						}
+					}
+				}
+
+				/*
+				 * Fall back to the theme name if the plugin is not defined. That's needed to keep backwards
+				 * compatibility with templates that were registered before the plugin attribute was added.
+				 */
+				$plugins         = get_plugins();
+				$plugin_basename = plugin_basename( sanitize_text_field( $template_object->theme . '.php' ) );
+				if ( isset( $plugins[ $plugin_basename ] ) && isset( $plugins[ $plugin_basename ]['Name'] ) ) {
+					return $plugins[ $plugin_basename ]['Name'];
+				}
+				return isset( $template_object->plugin ) ?
+					$template_object->plugin :
+					$template_object->theme;
 			case 'site':
 				return get_bloginfo( 'name' );
 			case 'user':
@@ -833,6 +916,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				}
 				return $author->get( 'display_name' );
 		}
+
+		// Fail-safe to return a string should the original source ever fall through.
+		return '';
 	}
 
 
@@ -1086,6 +1172,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				'type'        => 'bool',
 				'context'     => array( 'embed', 'view', 'edit' ),
 				'readonly'    => true,
+			);
+			$schema['properties']['plugin']    = array(
+				'type'        => 'string',
+				'description' => __( 'Plugin that registered the template.' ),
+				'readonly'    => true,
+				'context'     => array( 'view', 'edit', 'embed' ),
 			);
 		}
 

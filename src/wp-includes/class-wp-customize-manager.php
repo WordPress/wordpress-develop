@@ -100,7 +100,7 @@ final class WP_Customize_Manager {
 	 * @since 4.5.0
 	 * @var array
 	 */
-	protected $components = array( 'widgets', 'nav_menus' );
+	protected $components = array( 'nav_menus' );
 
 	/**
 	 * Registered instances of WP_Customize_Section.
@@ -284,6 +284,11 @@ final class WP_Customize_Manager {
 		}
 		if ( ! isset( $args['messenger_channel'] ) && isset( $_REQUEST['customize_messenger_channel'] ) ) {
 			$args['messenger_channel'] = sanitize_key( wp_unslash( $_REQUEST['customize_messenger_channel'] ) );
+		}
+
+		// Do not load 'widgets' component if a block theme is activated.
+		if ( ! wp_is_block_theme() ) {
+			$this->components[] = 'widgets';
 		}
 
 		$this->original_stylesheet = get_stylesheet();
@@ -3329,11 +3334,16 @@ final class WP_Customize_Manager {
 			return null;
 		}
 
-		return array(
-			'id'     => $lock_user->ID,
-			'name'   => $lock_user->display_name,
-			'avatar' => get_avatar_url( $lock_user->ID, array( 'size' => 128 ) ),
+		$user_details = array(
+			'id'   => $lock_user->ID,
+			'name' => $lock_user->display_name,
 		);
+
+		if ( get_option( 'show_avatars' ) ) {
+			$user_details['avatar'] = get_avatar_url( $lock_user->ID, array( 'size' => 128 ) );
+		}
+
+		return $user_details;
 	}
 
 	/**
@@ -4302,8 +4312,10 @@ final class WP_Customize_Manager {
 
 		<script type="text/html" id="tmpl-customize-changeset-locked-notification">
 			<li class="notice notice-{{ data.type || 'info' }} {{ data.containerClasses || '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
-				<div class="notification-message customize-changeset-locked-message">
-					<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}" />
+				<div class="notification-message customize-changeset-locked-message {{ data.lockUser.avatar ? 'has-avatar' : '' }}">
+					<# if ( data.lockUser.avatar ) { #>
+						<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}" />
+					<# } #>
 					<p class="currently-editing">
 						<# if ( data.message ) { #>
 							{{{ data.message }}}
@@ -5198,9 +5210,10 @@ final class WP_Customize_Manager {
 				array(
 					'label'       => __( 'Site Icon' ),
 					'description' => sprintf(
-						/* translators: %s: Site Icon size in pixels. */
-						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least %s pixels.' ) . '</p>',
-						'<code>512 &times; 512</code>'
+						/* translators: 1: pixel value for icon size. 2: pixel value for icon size. */
+						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <code>%1$s by %2$s</code> pixels.' ) . '</p>',
+						512,
+						512
 					),
 					'section'     => 'title_tagline',
 					'priority'    => 60,
@@ -6136,8 +6149,7 @@ final class WP_Customize_Manager {
 	 * This method exists because the partial object and context data are passed
 	 * into a partial's render_callback so we cannot use get_custom_logo() as
 	 * the render_callback directly since it expects a blog ID as the first
-	 * argument. When WP no longer supports PHP 5.3, this method can be removed
-	 * in favor of an anonymous function.
+	 * argument.
 	 *
 	 * @see WP_Customize_Manager::register_controls()
 	 *

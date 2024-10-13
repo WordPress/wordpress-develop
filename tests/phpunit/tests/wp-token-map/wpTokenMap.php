@@ -317,7 +317,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 		$map      = self::get_html5_token_map();
 
 		$skip_bytes = 0;
-		$this->assertFalse(
+		$this->assertNull(
 			$map->read_token( $document, 0, $skip_bytes ),
 			"Shouldn't have found token at start of document."
 		);

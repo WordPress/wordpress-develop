@@ -1213,7 +1213,7 @@ if ( is_multisite() ) :
 				if ( isset( $expected_data[ $key ] ) ) {
 					$this->assertEquals( $expected_data[ $key ], $value );
 				} elseif ( 'last_updated' === $key ) {
-					$this->assertTrue( $old_site->last_updated <= $value );
+					$this->assertLessThanOrEqual( $value, $old_site->last_updated );
 				} else {
 					$this->assertSame( $old_site->$key, $value );
 				}

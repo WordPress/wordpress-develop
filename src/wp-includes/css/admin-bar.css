@@ -97,6 +97,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 	min-width: 600px; /* match the min-width of the body in wp-admin/css/common.css */
 	z-index: 99999;
 	background: #1d2327;
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
 #wpadminbar .ab-sub-wrapper,
@@ -126,10 +128,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 
 #wpadminbar .ab-empty-item {
 	outline: none;
-}
-
-#wpadminbar .quicklinks .ab-top-secondary > li {
-	float: right;
 }
 
 #wpadminbar .quicklinks a,
@@ -199,6 +197,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar.nojs li:hover > .ab-sub-wrapper,
 #wpadminbar li.hover > .ab-sub-wrapper {
 	display: block;
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
 #wpadminbar .menupop li:hover > .ab-sub-wrapper,
@@ -705,7 +705,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar .screen-reader-text span {
 	border: 0;
 	clip: rect(1px, 1px, 1px, 1px);
-	-webkit-clip-path: inset(50%);
 	clip-path: inset(50%);
 	height: 1px;
 	margin: -1px;
@@ -799,7 +798,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar .ab-label {
 		border: 0;
 		clip: rect(1px, 1px, 1px, 1px);
-		-webkit-clip-path: inset(50%);
 		clip-path: inset(50%);
 		height: 1px;
 		margin: -1px;
@@ -912,7 +910,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	/* New Content */
 	#wpadminbar #wp-admin-bar-new-content .ab-icon:before {
 		top: 0;
-		line-height: 1.33333333;
+		line-height: 1.26;
 		height: 46px !important;
 		text-align: center;
 		width: 52px;
@@ -1016,7 +1014,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 	/* Override default min-width so dropdown lists aren't stretched
 		to 100% viewport width at responsive sizes. */
 	#wpadminbar .ab-top-menu > .menupop > .ab-sub-wrapper {
-		min-width: -moz-fit-content;
 		min-width: fit-content;
 	}
 
@@ -1036,10 +1033,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 	#wpadminbar #wp-admin-bar-edit,
 	#wpadminbar #wp-admin-bar-my-account {
 		position: static;
-	}
-
-	#wpadminbar #wp-admin-bar-my-account {
-		float: right;
 	}
 
 	.network-admin #wpadminbar ul#wp-admin-bar-top-secondary > li#wp-admin-bar-my-account {

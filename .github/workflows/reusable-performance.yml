@@ -16,11 +16,20 @@ on:
         required: false
         type: 'string'
         default: '6.1.1'
+      php-version:
+        description: 'The PHP version to use.'
+        required: false
+        type: 'string'
+        default: 'latest'
       memcached:
         description: 'Whether to enable memcached.'
         required: false
         type: 'boolean'
         default: false
+    secrets:
+      CODEVITALS_PROJECT_TOKEN:
+        description: 'The authorization token for https://www.codevitals.run/project/wordpress.'
+        required: false
 
 env:
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
@@ -43,11 +52,13 @@ env:
   TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
 
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
+  LOCAL_PHP: ${{ inputs.php-version }}${{ 'latest' != inputs.php-version && '-fpm' || '' }}
 
 jobs:
   # Performs the following steps:
   # - Configure environment variables.
   # - Checkout repository.
+  # - Determine the target SHA value (on `workflow_dispatch` only).
   # - Set up Node.js.
   # - Log debug information.
   # - Install npm dependencies.
@@ -103,9 +114,15 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          fetch-depth: ${{ github.event_name == 'workflow_dispatch' && '2' || '1' }}
+
+      # The `workflow_dispatch` event is the only one missing the needed SHA to target.
+      - name: Retrieve previous commit SHA (if necessary)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: echo "TARGET_SHA=$(git rev-parse HEAD^1)" >> $GITHUB_ENV
 
       - name: Set up Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -268,12 +285,13 @@ jobs:
         run: npm run test:performance
 
       - name: Archive artifacts
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         if: always()
         with:
           name: performance-artifacts${{ inputs.memcached && '-memcached' || '' }}-${{ github.run_id }}
           path: artifacts
           if-no-files-found: ignore
+          include-hidden-files: true
 
       - name: Compare results
         run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
@@ -311,7 +329,12 @@ jobs:
           COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}
           CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
           HOST_NAME: "www.codevitals.run"
-        run: node ./tests/performance/log-results.js $CODEVITALS_PROJECT_TOKEN trunk $GITHUB_SHA $BASE_SHA $COMMITTED_AT $HOST_NAME
+        run: |
+          if [ -z "$CODEVITALS_PROJECT_TOKEN" ]; then
+            echo "Performance results could not be published. 'CODEVITALS_PROJECT_TOKEN' is not set" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          node ./tests/performance/log-results.js $CODEVITALS_PROJECT_TOKEN trunk $GITHUB_SHA $BASE_SHA $COMMITTED_AT $HOST_NAME
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code

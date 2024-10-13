@@ -142,6 +142,15 @@
 	wp.updates.searchTerm = '';
 
 	/**
+	 * Minimum number of characters before an ajax search is fired.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @type {number}
+	 */
+	wp.updates.searchMinCharacters = 2;
+
+	/**
 	 * Whether filesystem credentials need to be requested from the user.
 	 *
 	 * @since 4.2.0
@@ -875,7 +884,7 @@
 
 		$card
 			.addClass( 'plugin-card-update-failed' )
-			.append( '<div class="notice notice-error notice-alt is-dismissible"><p>' + errorMessage + '</p></div>' );
+			.append( '<div class="notice notice-error notice-alt is-dismissible" role="alert"><p>' + errorMessage + '</p></div>' );
 
 		$card.on( 'click', '.notice.is-dismissible .notice-dismiss', function() {
 
@@ -1105,33 +1114,21 @@
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param {Object} response            Response from the server.
-	 * @param {string} response.slug       Slug of the activated plugin.
-	 * @param {string} response.pluginName Name of the activated plugin.
-	 * @param {string} response.plugin     The plugin file, relative to the plugins directory.
+	 * @param {Object} response             Response from the server.
+	 * @param {string} response.slug        Slug of the activated plugin.
+	 * @param {string} response.pluginName  Name of the activated plugin.
+	 * @param {string} response.plugin      The plugin file, relative to the plugins directory.
 	 */
 	wp.updates.activatePluginSuccess = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' ),
-			isInModal = 'plugin-information-footer' === $message.parent().attr( 'id' ),
 			buttonText = _x( 'Activated!', 'plugin' ),
 			ariaLabel = sprintf(
 				/* translators: %s: The plugin name. */
 				'%s activated successfully.',
 				response.pluginName
-			),
-			noticeData = {
-				id: 'plugin-activated-successfully',
-				className: 'notice-success',
-				message: sprintf(
-					/* translators: %s: The refresh link's attributes. */
-					__( 'Plugin activated. Some changes may not occur until you refresh the page. <a %s>Refresh Now</a>' ),
-					'href="#" class="button button-secondary refresh-page"'
-				),
-				slug: response.slug
-			},
-			noticeTarget;
+			);
 
-		wp.a11y.speak( __( 'Activation completed successfully. Some changes may not occur until you refresh the page.' ) );
+		wp.a11y.speak( __( 'Activation completed successfully.' ) );
 		$document.trigger( 'wp-plugin-activate-success', response );
 
 		$message
@@ -1140,7 +1137,7 @@
 			.attr( 'aria-label', ariaLabel )
 			.text( buttonText );
 
-		if ( isInModal ) {
+		if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
 			wp.updates.setCardButtonStatus(
 				{
 					status: 'activated-plugin',
@@ -1151,26 +1148,13 @@
 					ariaLabel: ariaLabel
 				}
 			);
-
-			// Add a notice to the modal's footer.
-			$message.replaceWith( wp.updates.adminNotice( noticeData ) );
-
-			// Send notice information back to the parent screen.
-			noticeTarget = window.parent === window ? null : window.parent;
-			$.support.postMessage = !! window.postMessage;
-			if ( false !== $.support.postMessage && null !== noticeTarget && -1 === window.parent.location.pathname.indexOf( 'index.php' ) ) {
-				noticeTarget.postMessage(
-					JSON.stringify( noticeData ),
-					window.location.origin
-				);
-			}
-		} else {
-			// Add a notice to the top of the screen.
-			wp.updates.addAdminNotice( noticeData );
 		}
 
 		setTimeout( function() {
-			if ( isInModal ) {
+			$message.removeClass( 'activated-message' )
+			.text( _x( 'Active', 'plugin' ) );
+
+			if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
 				wp.updates.setCardButtonStatus(
 					{
 						status: 'plugin-active',
@@ -1184,8 +1168,6 @@
 						)
 					}
 				);
-			} else {
-				$message.removeClass( 'activated-message' ).text( _x( 'Active', 'plugin' ) );
 			}
 		}, 1000 );
 	};
@@ -2287,7 +2269,7 @@
 
 		// Remove any existing error.
 		$filesystemForm.find( '.notice' ).remove();
-		$filesystemForm.find( '#request-filesystem-credentials-title' ).after( '<div class="notice notice-alt notice-error"><p>' + message + '</p></div>' );
+		$filesystemForm.find( '#request-filesystem-credentials-title' ).after( '<div class="notice notice-alt notice-error" role="alert"><p>' + message + '</p></div>' );
 	};
 
 	/**
@@ -2664,41 +2646,16 @@
 		} );
 
 		/**
-		 * Click handler for plugin activations in plugin activation view.
+		 * Click handler for plugin activations in plugin activation modal view.
 		 *
 		 * @since 6.5.0
+		 * @since 6.5.4 Redirect the parent window to the activation URL.
 		 *
 		 * @param {Event} event Event interface.
 		 */
-		$pluginFilter.on( 'click', '.activate-now', function( event ) {
-			var $activateButton = $( event.target );
-
+		$document.on( 'click', '#plugin-information-footer .activate-now', function( event ) {
 			event.preventDefault();
-
-			if ( $activateButton.hasClass( 'activating-message' ) || $activateButton.hasClass( 'button-disabled' ) ) {
-				return;
-			}
-
-			$activateButton
-				.removeClass( 'activate-now button-primary' )
-				.addClass( 'activating-message' )
-				.attr(
-					'aria-label',
-					sprintf(
-						/* translators: %s: Plugin name. */
-						_x( 'Activating %s', 'plugin' ),
-						$activateButton.data( 'name' )
-					)
-				)
-				.text( __( 'Activating...' ) );
-
-			wp.updates.activatePlugin(
-				{
-					name: $activateButton.data( 'name' ),
-					slug: $activateButton.data( 'slug' ),
-					plugin: $activateButton.data( 'plugin' )
-				}
-			);
+			window.parent.location.href = $( event.target ).attr( 'href' );
 		});
 
 		/**
@@ -2875,14 +2832,7 @@
 
 			// Bail if there were no items selected.
 			if ( ! itemsSelected.length ) {
-				event.preventDefault();
-				$( 'html, body' ).animate( { scrollTop: 0 } );
-
-				return wp.updates.addAdminNotice( {
-					id:        'no-items-selected',
-					className: 'notice-error is-dismissible',
-					message:   __( 'Please select at least one item to perform this action on.' )
-				} );
+				bulkAction = false;
 			}
 
 			// Determine the type of request we're dealing with.
@@ -3029,6 +2979,15 @@
 			$pluginInstallSearch.attr( 'aria-describedby', 'live-search-desc' );
 		}
 
+		// Track the previous search string length.
+		var previousSearchStringLength = 0;
+		wp.updates.shouldSearch = function( searchStringLength ) {
+			var shouldSearch = searchStringLength >= wp.updates.searchMinCharacters ||
+				previousSearchStringLength > wp.updates.searchMinCharacters;
+			previousSearchStringLength = searchStringLength;
+			return shouldSearch;
+		};
+
 		/**
 		 * Handles changes to the plugin search box on the new-plugin page,
 		 * searching the repository dynamically.
@@ -3036,7 +2995,8 @@
 		 * @since 4.6.0
 		 */
 		$pluginInstallSearch.on( 'keyup input', _.debounce( function( event, eventtype ) {
-			var $searchTab = $( '.plugin-install-search' ), data, searchLocation;
+			var $searchTab = $( '.plugin-install-search' ), data, searchLocation,
+				searchStringLength = $pluginInstallSearch.val().length;
 
 			data = {
 				_ajax_nonce: wp.updates.ajaxNonce,
@@ -3046,6 +3006,14 @@
 				pagenow:     pagenow
 			};
 			searchLocation = location.href.split( '?' )[ 0 ] + '?' + $.param( _.omit( data, [ '_ajax_nonce', 'pagenow' ] ) );
+
+			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
+			if ( wp.updates.shouldSearch( searchStringLength ) ) {
+				$pluginInstallSearch.attr( 'autocomplete', 'off' );
+			} else {
+				$pluginInstallSearch.attr( 'autocomplete', 'on' );
+				return;
+			}
 
 			// Clear on escape.
 			if ( 'keyup' === event.type && 27 === event.which ) {
@@ -3106,6 +3074,7 @@
 
 		if ( $pluginSearch.length ) {
 			$pluginSearch.attr( 'aria-describedby', 'live-search-desc' );
+
 		}
 
 		/**
@@ -3121,7 +3090,16 @@
 				pagenow:       pagenow,
 				plugin_status: 'all'
 			},
-			queryArgs;
+			queryArgs,
+			searchStringLength = $pluginSearch.val().length;
+
+			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
+			if ( wp.updates.shouldSearch( searchStringLength ) ) {
+				$pluginSearch.attr( 'autocomplete', 'off' );
+			} else {
+				$pluginSearch.attr( 'autocomplete', 'on' );
+				return;
+			}
 
 			// Clear on escape.
 			if ( 'keyup' === event.type && 27 === event.which ) {
@@ -3278,11 +3256,6 @@
 			}
 
 			if ( ! message ) {
-				return;
-			}
-
-			if ( 'undefined' !== typeof message.id && 'plugin-activated-successfully' === message.id ) {
-				wp.updates.addAdminNotice( message );
 				return;
 			}
 
@@ -3518,22 +3491,5 @@
 				} );
 			}
 		);
-
-		/**
-		 * Click handler for page refresh link.
-		 *
-		 * @since 6.5.3
-		 *
-		 * @param {Event} event Event interface.
-		 */
-		$document.on( 'click', '.refresh-page', function( event ) {
-			event.preventDefault();
-
-			if ( window.parent === window ) {
-				window.location.reload();
-			} else {
-				window.parent.location.reload();
-			}
-		} );
 	} );
 })( jQuery, window.wp, window._wpUpdatesSettings );

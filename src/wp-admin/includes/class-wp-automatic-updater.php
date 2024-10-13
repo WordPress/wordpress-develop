@@ -233,7 +233,7 @@ class WP_Automatic_Updater {
 
 		// If the `disable_autoupdate` flag is set, override any user-choice, but allow filters.
 		if ( ! empty( $item->disable_autoupdate ) ) {
-			$update = $item->disable_autoupdate;
+			$update = false;
 		}
 
 		/**
@@ -470,7 +470,9 @@ class WP_Automatic_Updater {
 		 * update could contain an error or warning, which could cause
 		 * the scrape to miss a fatal error in the plugin update.
 		 */
-		$upgrader->maintenance_mode( true );
+		if ( 'translation' !== $type ) {
+			$upgrader->maintenance_mode( true );
+		}
 
 		// Boom, this site's about to get a whole new splash of paint!
 		$upgrade_result = $upgrader->upgrade(
@@ -495,7 +497,9 @@ class WP_Automatic_Updater {
 		 * This avoids errors if the site is visited while fatal errors exist
 		 * or while files are still being moved.
 		 */
-		$upgrader->maintenance_mode( true );
+		if ( 'translation' !== $type ) {
+			$upgrader->maintenance_mode( true );
+		}
 
 		// If the filesystem is unavailable, false is returned.
 		if ( false === $upgrade_result ) {
@@ -507,6 +511,9 @@ class WP_Automatic_Updater {
 				&& ( 'up_to_date' === $upgrade_result->get_error_code()
 					|| 'locked' === $upgrade_result->get_error_code() )
 			) {
+				// Allow visitors to browse the site again.
+				$upgrader->maintenance_mode( false );
+
 				/*
 				 * These aren't actual errors, treat it as a skipped-update instead
 				 * to avoid triggering the post-core update failure routines.
@@ -613,7 +620,9 @@ class WP_Automatic_Updater {
 		}
 
 		// All processes are complete. Allow visitors to browse the site again.
-		$upgrader->maintenance_mode( false );
+		if ( 'translation' !== $type ) {
+			$upgrader->maintenance_mode( false );
+		}
 
 		$this->update_results[ $type ][] = (object) array(
 			'item'     => $item,
@@ -643,7 +652,7 @@ class WP_Automatic_Updater {
 			return;
 		}
 
-		$is_debug = WP_DEBUG && WP_DEBUG_DISPLAY;
+		$is_debug = WP_DEBUG && WP_DEBUG_LOG;
 
 		if ( $is_debug ) {
 			error_log( 'Automatic updates starting...' );
@@ -743,7 +752,7 @@ class WP_Automatic_Updater {
 
 		// Send debugging email to admin for all development installations.
 		if ( ! empty( $this->update_results ) ) {
-			$development_version = str_contains( get_bloginfo( 'version' ), '-' );
+			$development_version = str_contains( wp_get_wp_version(), '-' );
 
 			/**
 			 * Filters whether to send a debugging email for each automatic background update.
@@ -786,7 +795,7 @@ class WP_Automatic_Updater {
 	 * @param object $update_result The result of the core update. Includes the update offer and result.
 	 */
 	protected function after_core_update( $update_result ) {
-		$wp_version = get_bloginfo( 'version' );
+		$wp_version = wp_get_wp_version();
 
 		$core_update = $update_result->item;
 		$result      = $update_result->result;
@@ -1757,7 +1766,7 @@ Thanks! -- The WordPress Team"
 		// Time to wait for loopback request to finish.
 		$timeout = 50; // 50 seconds.
 
-		$is_debug = WP_DEBUG && WP_DEBUG_DISPLAY;
+		$is_debug = WP_DEBUG && WP_DEBUG_LOG;
 		if ( $is_debug ) {
 			error_log( '    Scraping home page...' );
 		}
