@@ -2,9 +2,9 @@
 Contributors: wordpressdotorg
 Tags: one-column, accessibility-ready, custom-colors, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, rtl-language-support, sticky-post, threaded-comments, translation-ready, block-patterns
 Requires at least: 4.7
-Tested up to: 6.6
+Tested up to: 6.7
 Requires PHP: 5.2.4
-Stable tag: 2.9
+Stable tag: 3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
