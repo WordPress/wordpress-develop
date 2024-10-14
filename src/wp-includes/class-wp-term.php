@@ -100,6 +100,86 @@ final class WP_Term {
 	public $filter = 'raw';
 
 	/**
+	 * Stores the object ID.
+	 *
+	 * @since 6.6.0
+	 * @var int|null
+	 */
+	public $object_id;
+
+	/**
+	 * Stores the category ID.
+	 *
+	 * @since 6.6.0
+	 * @var int|null
+	 */
+	public $cat_ID;
+
+	/**
+	 * Stores the category count.
+	 *
+	 * @since 6.6.0
+	 * @var int|null
+	 */
+	public $category_count;
+
+	/**
+	 * Stores the description of the category.
+	 *
+	 * @since 6.6.0
+	 * @var string|null
+	 */
+	public $category_description;
+
+	/**
+	 * Stores the name of the category.
+	 *
+	 * @since 6.6.0
+	 * @var string|null
+	 */
+	public $cat_name;
+
+	/**
+	 * Stores the 'nice' name of the category (used in URLs).
+	 *
+	 * @since 6.6.0
+	 * @var string|null
+	 */
+	public $category_nicename;
+
+	/**
+	 * Stores the ID of the parent category.
+	 *
+	 * @since 6.6.0
+	 * @var int|null
+	 */
+	public $category_parent;
+
+	/**
+	 * Stores the link associated with the term.
+	 *
+	 * @since 6.6.0
+	 * @var string|null
+	 */
+	public $link;
+
+	/**
+	 * Stores the term ID.
+	 *
+	 * @since 6.6.0
+	 * @var int|null
+	 */
+	public $id;
+
+	/**
+	 * Indicates whether the menu should automatically add new top-level pages.
+	 *
+	 * @since 6.6.0
+	 * @var bool|null
+	 */
+	public $auto_add;
+
+	/**
 	 * Retrieve WP_Term instance.
 	 *
 	 * @since 4.4.0
@@ -226,20 +306,148 @@ final class WP_Term {
 	 * Getter.
 	 *
 	 * @since 4.4.0
+	 * @since 6.6.0 Getting dynamic class properties is deprecated.
 	 *
 	 * @param string $key Property to get.
-	 * @return mixed Property value.
+	 * @return object|null Property value.
 	 */
 	public function __get( $key ) {
-		switch ( $key ) {
-			case 'data':
-				$data    = new stdClass();
-				$columns = array( 'term_id', 'name', 'slug', 'term_group', 'term_taxonomy_id', 'taxonomy', 'description', 'parent', 'count' );
-				foreach ( $columns as $column ) {
-					$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
-				}
-
-				return sanitize_term( $data, $data->taxonomy, 'raw' );
+		if ( 'data' !== $key ) {
+			// Public class properties are not dynamic.
+			//if ( ! static::check_if_public_class_property( $key ) ) {
+				wp_trigger_error(
+					__METHOD__,
+					sprintf( 'Getting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
+					E_USER_DEPRECATED
+				);
+			//}
+			//return null;
 		}
+
+		$data    = new stdClass();
+		$columns = array(
+			'term_id',
+			'name',
+			'slug',
+			'term_group',
+			'term_taxonomy_id',
+			'taxonomy',
+			'description',
+			'parent',
+			'count',
+		);
+		foreach ( $columns as $column ) {
+			$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
+		}
+
+		return sanitize_term( $data, $data->taxonomy, 'raw' );
+	}
+
+	/**
+	 * This method specifically returns true for the "data" property because it is read-only and
+	 * is always defined. It returns false for any other properties to reflect that dynamic class
+	 * properties are deprecated and not supported.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $name Property to check.
+	 * @return bool True if the property exists, false otherwise.
+	 */
+	public function __isset( $name ) {
+		// Only the "data" dynamic property is supported.
+		return 'data' === $name;
+	}
+
+	/**
+	 * Sets the "data" class property.
+	 * Triggers an error when attempting to set a dynamic class property since dynamic class
+	 * properties are deprecated.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $name  The name of the property to set.
+	 * @param mixed  $value The value to set.
+	 */
+	public function __set( $name, $value ) {
+		if ( 'data' === $name ) {
+			// Since "data" is a read-only property, setting it should have no effect.
+			return;
+		}
+
+		// Setting a public property should not generate errors.
+//		if ( static::check_if_public_class_property( $name ) ) {
+//			$this->$name = $value;
+//			return;
+//		}
+
+		wp_trigger_error(
+			__METHOD__,
+			sprintf( 'Setting the dynamic property "%s" on %s is deprecated.', $name, __CLASS__ ),
+			E_USER_DEPRECATED
+		);
+	}
+
+	/**
+	 * Unsets the "data" class property.
+	 * Triggers an error when attempting to unset a dynamic class property since dynamic class
+	 * properties are deprecated.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $name The name of the property to unset.
+	 */
+	public function __unset( $name ) {
+		if ( 'data' === $name ) {
+			// Since "data" is a read-only property, unsetting it should have no effect.
+			return;
+		}
+
+		// Unsetting a public property should not generate errors.
+//		if ( static::check_if_public_class_property( $name ) ) {
+//			return;
+//		}
+
+		wp_trigger_error(
+			__METHOD__,
+			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated.', $name, __CLASS__ ),
+			E_USER_DEPRECATED
+		);
+	}
+
+	/**
+	 * Checks whether a property is declared as public.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $name The name of the property to check.
+	 * @return bool True if the property is public, false otherwise.
+	 */
+	private static function check_if_public_class_property( $name ) {
+		// The Reflection API is not used here for performance reasons.
+		// As the list is hardcoded, all newly declared public properties should be added to the list manually.
+		$public_class_properties = array(
+			'term_id',
+			'name',
+			'slug',
+			'term_group',
+			'term_taxonomy_id',
+			'taxonomy',
+			'description',
+			'parent',
+			'count',
+			'filter',
+			'object_id',
+			'cat_ID',
+			'category_count',
+			'category_description',
+			'cat_name',
+			'category_nicename',
+			'category_parent',
+			'link',
+			'id',
+			'auto_add',
+		);
+
+		return in_array( $name, $public_class_properties, true );
 	}
 }
