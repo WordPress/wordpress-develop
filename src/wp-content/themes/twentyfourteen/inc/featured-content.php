@@ -365,7 +365,14 @@ class Featured_Content {
 	 * @since Twenty Fourteen 1.0
 	 */
 	public static function register_setting() {
-		register_setting( 'featured-content', 'featured-content', array( __CLASS__, 'validate_settings' ) );
+		register_setting(
+			'featured-content',
+			'featured-content',
+			array(
+				'callable'  => array( __CLASS__, 'validate_settings' ),
+				 'autoload' => true,
+			)
+		);
 	}
 
 	/**
