@@ -7,22 +7,16 @@ if ( ! class_exists( '_WP_Editors', false ) ) {
 /**
  * @group editor
  *
- * @coversDefaultClass _WP_Editors
+ * @covers _WP_Editors::wp_link_query
  */
 class Tests_Editor_wpEditors extends WP_UnitTestCase {
 
-	/**
-	 * @covers ::wp_link_query
-	 */
 	public function test_wp_link_query_returns_false_when_nothing_found() {
 		$actual = _WP_Editors::wp_link_query( array( 's' => 'foobarbaz' ) );
 
 		$this->assertFalse( $actual );
 	}
 
-	/**
-	 * @covers ::wp_link_query
-	 */
 	public function test_wp_link_query_returns_search_results() {
 		$post   = self::factory()->post->create_and_get( array( 'post_status' => 'publish' ) );
 		$actual = _WP_Editors::wp_link_query( array( 's' => $post->post_title ) );
@@ -42,8 +36,6 @@ class Tests_Editor_wpEditors extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 41825
-	 *
-	 * @covers ::wp_link_query
 	 */
 	public function test_wp_link_query_returns_filtered_result_when_nothing_found() {
 		add_filter( 'wp_link_query', array( $this, 'wp_link_query_callback' ) );
@@ -63,9 +55,6 @@ class Tests_Editor_wpEditors extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * @covers ::wp_link_query
-	 */
 	public function test_wp_link_query_returns_filtered_search_results() {
 		$post = self::factory()->post->create_and_get( array( 'post_status' => 'publish' ) );
 
