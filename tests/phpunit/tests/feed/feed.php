@@ -6,24 +6,6 @@
  * @group feed
  */
 class Tests_rssEnclosure extends WP_UnitTestCase {
-	protected static $enclosure_data = array(
-		'url'    => 'http://example.com/sound2.mp3',
-		'length' => 12345,
-		'type'   => 'audio/mpeg',
-	);
-
-	/**
-	 * Get a multiline enclosure string.
-	 *
-	 * This function generates a multiline string like
-	 * wp_xmlrpc_server::add_enclosure_if_new function.
-	 *
-	 * @return string
-	 */
-	protected function get_multiline_enclosure_string() {
-		return self::$enclosure_data['url'] . "\n" . self::$enclosure_data['length'] . "\n" . self::$enclosure_data['type'] . "\n";
-	}
-
 	/**
 	 * @ticket 58798
 	 *
@@ -33,7 +15,9 @@ class Tests_rssEnclosure extends WP_UnitTestCase {
 		$post_id         = self::factory()->post->create();
 		$GLOBALS['post'] = $post_id;
 
-		update_post_meta( $post_id, 'enclosure', $this->get_multiline_enclosure_string() );
+		$valid_enclosure_string = "http://example.com/sound2.mp3\n12345\naudio/mpeg\n";
+
+		update_post_meta( $post_id, 'enclosure', $valid_enclosure_string );
 
 		add_filter(
 			'rss_enclosure',
