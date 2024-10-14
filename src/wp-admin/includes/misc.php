@@ -403,6 +403,18 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 		$index = 0;
 		$size  = count( $tree );
 
+		uksort( $tree, 'strnatcasecmp' );
+
+		if ( isset( $tree['functions.php'] ) ) {
+			$tree = array( 'functions.php' => $tree['functions.php'] ) + $tree;
+		}
+		if ( isset( $tree['style.css'] ) ) {
+			$tree = array( 'style.css' => $tree['style.css'] ) + $tree;
+		}
+		if ( isset( $tree['theme.json'] ) ) {
+			$tree = array( 'theme.json' => $tree['theme.json'] ) + $tree;
+		}
+
 		foreach ( $tree as $label => $theme_file ) :
 			++$index;
 
@@ -504,6 +516,7 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 	if ( is_array( $tree ) ) {
 		$index = 0;
 		$size  = count( $tree );
+		uksort( $tree, 'strnatcasecmp' );
 
 		foreach ( $tree as $label => $plugin_file ) :
 			++$index;
