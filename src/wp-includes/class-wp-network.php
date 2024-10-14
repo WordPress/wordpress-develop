@@ -105,8 +105,10 @@ class WP_Network {
 		if ( false === $_network ) {
 			$_network = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->site} WHERE id = %d LIMIT 1", $network_id ) );
 
-			if ( empty( $_network ) || is_wp_error( $_network ) ) {
+			if ( null === $_network ) {
 				$_network = -1;
+			} elseif ( empty( $_network ) || is_wp_error( $_network ) ) {
+				return false;
 			}
 
 			wp_cache_add( $network_id, $_network, 'networks' );
