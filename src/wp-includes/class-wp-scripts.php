@@ -836,6 +836,43 @@ JS;
 	}
 
 	/**
+	 * This overrides the add method from WP_Dependencies.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string           $handle Name of the item. Should be unique.
+	 * @param string|false     $src    Full URL of the item, or path of the item relative
+	 *                                 to the WordPress root directory. If source is set to false,
+	 *                                 the item is an alias of other items it depends on.
+	 * @param string[]         $deps   Optional. An array of registered item handles this item depends on.
+	 *                                 Default empty array.
+	 * @param string|bool|null $ver    Optional. String specifying item version number, if it has one,
+	 *                                 which is added to the URL as a query string for cache busting purposes.
+	 *                                 If version is set to false, a version number is automatically added
+	 *                                 equal to current installed WordPress version.
+	 *                                 If set to null, no version is added.
+	 * @param mixed            $args   Optional. Custom property of the item. NOT the class property $args.
+	 *                                 Examples: $media, $in_footer.
+	 * @return bool Whether the item has been registered. True on success, false on failure.
+	 */
+	public function add( $handle, $src, $deps = array(), $ver = false, $args = null ) {
+		if ( isset( $this->registered[ $handle ] ) ) {
+			return false;
+		}
+		if ( ! empty( $deps ) ) {
+			foreach ( $deps as $dep ) {
+				if ( isset( $this->dependents_map[ $dep ] ) ) {
+					array_push( $this->dependents_map[ $dep ], $handle );
+				} else {
+					$this->dependents_map[ $dep ] = array( $handle );
+				}
+			}
+		}
+
+		return parent::add_data( $handle, $src, $deps, $ver, $args );
+	}
+
+	/**
 	 * Gets all dependents of a script.
 	 *
 	 * @since 6.3.0
@@ -844,24 +881,7 @@ JS;
 	 * @return string[] Script handles.
 	 */
 	private function get_dependents( $handle ) {
-		// Check if dependents map for the handle in question is present. If so, use it.
-		if ( isset( $this->dependents_map[ $handle ] ) ) {
-			return $this->dependents_map[ $handle ];
-		}
-
-		$dependents = array();
-
-		// Iterate over all registered scripts, finding dependents of the script passed to this method.
-		foreach ( $this->registered as $registered_handle => $args ) {
-			if ( in_array( $handle, $args->deps, true ) ) {
-				$dependents[] = $registered_handle;
-			}
-		}
-
-		// Add the handles dependents to the map to ease future lookups.
-		$this->dependents_map[ $handle ] = $dependents;
-
-		return $dependents;
+		return $this->dependents_map[ $handle ];
 	}
 
 	/**
