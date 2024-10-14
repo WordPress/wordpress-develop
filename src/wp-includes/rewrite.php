@@ -654,6 +654,10 @@ function url_to_postid( $url ) {
 			if ( ! empty( $query->posts ) && $query->is_singular ) {
 				return $query->post->ID;
 			} else {
+				if ( $query->get_queried_object() instanceof WP_POST ) {
+					return $query->queried_object_id;
+				}
+
 				return 0;
 			}
 		}
