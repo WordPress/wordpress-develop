@@ -603,7 +603,6 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
  * @since MU (3.0.0)
  *
  * @global wpdb   $wpdb   WordPress database abstraction object.
- * @global string $domain
  *
  * @param string         $blogname   The site name provided by the user. Must be unique.
  * @param string         $blog_title The site title provided by the user.
@@ -621,10 +620,11 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
  * }
  */
 function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
-	global $wpdb, $domain;
+	global $wpdb;
 
 	$current_network = get_network();
 	$base            = $current_network->path;
+	$domain          = $current_network->domain;
 
 	$blog_title = strip_tags( $blog_title );
 
