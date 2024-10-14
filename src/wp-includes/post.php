@@ -3540,13 +3540,18 @@ function wp_match_mime_types( $wildcard_mime_types, $real_mime_types ) {
 		$real_mime_types = array_map( 'trim', explode( ',', $real_mime_types ) );
 	}
 
+	if ( empty( $wildcard_mime_types ) || empty( $real_mime_types ) ) {
+
+		return $matches;
+	}
+
 	$patternses = array();
 	$wild       = '[-._a-z0-9]*';
 
 	foreach ( (array) $wildcard_mime_types as $type ) {
 		$mimes = array_map( 'trim', explode( ',', $type ) );
 		foreach ( $mimes as $mime ) {
-			$regex = str_replace( '__wildcard__', $wild, preg_quote( str_replace( '*', '__wildcard__', $mime ) ) );
+			$regex = str_replace( '__wildcard__', $wild, preg_quote( str_replace( '*', '__wildcard__', $mime ), null ) );
 
 			$patternses[][ $type ] = "^$regex$";
 
