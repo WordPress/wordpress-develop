@@ -2247,23 +2247,25 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that update_user_meta for 'use_ssl' doesn't write to DB unnecessarily.
+	 * Tests that wp_insert_user() does not unnecessarily update the 'use_ssl' meta.
 	 *
 	 * @ticket 60299
+	 *
+	 * @covers ::wp_insert_user
 	 */
-	public function test_unnecessary_assignment_of_use_ssl_in_meta() {
+	public function test_wp_insert_user_should_not_unnecessary_update_use_ssl_meta() {
 		$user_id = self::$contrib_id;
-		// Keep track of db writing calls.
-		$set_db_counts = 0;
+		// Keep track of database writing calls.
+		$db_update_count = 0;
 
-		// Track db updates with calls to do_action( "update_user_meta", ... with 'use_ssl' meta key.
+		// Track database updates via update_user_meta() with 'use_ssl' meta key.
 		add_action(
 			'update_user_meta',
-			function ( $meta_id, $object_id, $meta_key ) use ( &$set_db_counts ) {
+			function ( $meta_id, $object_id, $meta_key ) use ( &$db_update_count ) {
 				if ( 'use_ssl' !== $meta_key ) {
 					return;
 				}
-				$set_db_counts++;
+				$db_update_count++;
 			},
 			10,
 			3
@@ -2278,13 +2280,13 @@ class Tests_User extends WP_UnitTestCase {
 		$user_id = edit_user( $user_id );
 
 		$this->assertIsInt( $user_id );
-		$this->assertEquals( 1, $set_db_counts );
+		$this->assertSame( 1, $db_update_count );
 
 		// Update the user without changing the 'use_ssl' meta.
 		$_POST['email'] = 'email_test_2@example.com';
 		$user_id        = edit_user( $user_id );
 
-		// Verify there are no updates to use_ssl user meta.
-		$this->assertEquals( 1, $set_db_counts );
+		// Verify there are no updates to 'use_ssl' user meta.
+		$this->assertSame( 1, $db_update_count );
 	}
 }
