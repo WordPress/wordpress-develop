@@ -143,6 +143,12 @@ class WP_REST_Term_Search_Handler extends WP_REST_Search_Handler {
 			$data[ WP_REST_Search_Controller::PROP_TYPE ] = $term->taxonomy;
 		}
 
+		if ( in_array( WP_REST_Search_Controller::PROP_LABEL, $fields, true ) ) {
+			$taxonomy                                      = get_taxonomy( $term->taxonomy );
+			$label                                         = $taxonomy ? $taxonomy->labels->singular_name : $term->taxonomy;
+			$data[ WP_REST_Search_Controller::PROP_LABEL ] = $label;
+		}
+
 		return $data;
 	}
 

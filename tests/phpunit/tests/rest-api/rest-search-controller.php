@@ -31,6 +31,13 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	private static $my_content_post_ids = array();
 
 	/**
+	 * Attachments
+	 *
+	 * @var array
+	 */
+	private static $my_attachment_ids;
+
+	/**
 	 * Categories.
 	 *
 	 * @var int
@@ -88,6 +95,13 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			array(
 				'taxonomy' => 'post_tag',
 				'name'     => 'Test Tag',
+			)
+		);
+
+		self::$my_attachment_ids = $factory->attachment->create_many(
+			4,
+			array(
+				'post_title' => 'my-footitle',
 			)
 		);
 	}
@@ -413,6 +427,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 				'url',
 				'type',
 				'subtype',
+				'label',
 				'_links',
 			),
 			array_keys( $data[0] )
@@ -458,6 +473,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'url', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
 		$this->assertArrayHasKey( 'subtype', $properties );
+		$this->assertArrayHasKey( 'label', $properties );
 	}
 
 	/**
@@ -523,6 +539,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 				'url',
 				'type',
 				'subtype',
+				'label',
 			),
 			array_keys( $data )
 		);
@@ -901,5 +918,70 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Search through attachments.
+	 *
+	 * @ticket 61254
+	 */
+	public function test_get_items_search_type_media() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'type'     => 'media',
+			)
+		);
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			self::$my_attachment_ids,
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * @ticket 61254
+	 */
+	public function test_label_field_contain_the_post_type_singular_name() {
+		$response = $this->do_request_with_params(
+			array(
+				'subtype'  => 'page',
+				'per_page' => 1,
+			)
+		);
+
+		$response_data = $response->get_data();
+		$this->assertSame( 'Page', $response_data[0]['label'] );
+	}
+
+	/**
+	 * @ticket 61254
+	 */
+	public function test_label_field_contain_the_taxonomy_name() {
+		$response = $this->do_request_with_params(
+			array(
+				'type'     => 'term',
+				'subtype'  => 'category',
+				'per_page' => 1,
+			)
+		);
+
+		$response_data = $response->get_data();
+		$this->assertSame( 'Category', $response_data[0]['label'] );
+	}
+
+	/**
+	 * @ticket 61254
+	 */
+	public function test_label_field_contain_the_post_format_name() {
+		$response = $this->do_request_with_params(
+			array(
+				'type'     => 'post-format',
+				'per_page' => 1,
+			)
+		);
+
+		$response_data = $response->get_data();
+		$this->assertSame( 'Aside', $response_data[0]['label'] );
 	}
 }

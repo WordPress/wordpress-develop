@@ -121,6 +121,10 @@ class WP_REST_Post_Format_Search_Handler extends WP_REST_Search_Handler {
 			$data[ WP_REST_Search_Controller::PROP_TYPE ] = $this->type;
 		}
 
+		if ( in_array( WP_REST_Search_Controller::PROP_LABEL, $fields, true ) ) {
+			$data[ WP_REST_Search_Controller::PROP_LABEL ] = get_post_format_string( $id );
+		}
+
 		return $data;
 	}
 
