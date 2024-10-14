@@ -2981,7 +2981,11 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 
 		if ( in_array( $field, $format_to_edit, true ) ) {
 			if ( 'post_content' === $field ) {
-				$value = format_to_edit( $value, user_can_richedit() );
+				if ( get_post_type( $post_id ) === 'attachment' ) {
+					$value = format_to_edit( $value, true );
+				} else {
+					$value = format_to_edit( $value, user_can_richedit() );
+				}
 			} else {
 				$value = format_to_edit( $value );
 			}
