@@ -175,6 +175,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		return $data;
 	}
 
+	/**
+	 * @covers ::wp_oembed_ensure_format
+	 */
 	public function test_wp_oembed_ensure_format() {
 		$this->assertSame( 'json', wp_oembed_ensure_format( 'json' ) );
 		$this->assertSame( 'xml', wp_oembed_ensure_format( 'xml' ) );
@@ -183,6 +186,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( 'json', wp_oembed_ensure_format( array() ) );
 	}
 
+	/**
+	 * @covers ::_oembed_create_xml
+	 */
 	public function test_oembed_create_xml() {
 		$actual = _oembed_create_xml(
 			array(
@@ -240,6 +246,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertStringEndsWith( $expected, trim( $actual ) );
 	}
 
+	/**
+	 * @covers WP_REST_Server::get_routes
+	 */
 	public function test_route_availability() {
 		// Check the route was registered correctly.
 		$filtered_routes = rest_get_server()->get_routes();
@@ -260,6 +269,10 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'args', $proxy_route[0] );
 	}
 
+	/**
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
+	 */
 	public function test_request_with_wrong_method() {
 		$request = new WP_REST_Request( 'POST', '/oembed/1.0/embed' );
 
@@ -269,6 +282,10 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( 'rest_no_route', $data['code'] );
 	}
 
+	/**
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
+	 */
 	public function test_request_without_url_param() {
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/embed' );
 
@@ -279,6 +296,10 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( 'url', $data['data']['params'][0] );
 	}
 
+	/**
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
+	 */
 	public function test_request_with_bad_url() {
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/embed' );
 		$request->set_param( 'url', 'http://google.com/' );
@@ -289,6 +310,10 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( 'oembed_invalid_url', $data['code'] );
 	}
 
+	/**
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
+	 */
 	public function test_request_invalid_format() {
 		$post_id = self::factory()->post->create();
 
@@ -303,6 +328,10 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertNotEmpty( $data );
 	}
 
+	/**
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
+	 */
 	public function test_request_json() {
 		$user = self::factory()->user->create_and_get(
 			array(
@@ -347,6 +376,8 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34971
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
 	 */
 	public function test_request_static_front_page() {
 		$post = self::factory()->post->create_and_get(
@@ -390,6 +421,10 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		update_option( 'show_on_front', 'posts' );
 	}
 
+	/**
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
+	 */
 	public function test_request_xml() {
 		$user = self::factory()->user->create_and_get(
 			array(
@@ -436,6 +471,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	/**
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
 	 */
 	public function test_request_ms_child_in_root_blog() {
 		$child = self::factory()->blog->create();
@@ -460,6 +498,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		restore_current_blog();
 	}
 
+	/**
+	 * @covers ::_oembed_rest_pre_serve_request
+	 */
 	public function test_rest_pre_serve_request() {
 		$user = self::factory()->user->create_and_get(
 			array(
@@ -484,6 +525,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'SimpleXMLElement', $xml );
 	}
 
+	/**
+	 * @covers ::_oembed_rest_pre_serve_request
+	 */
 	public function test_rest_pre_serve_request_wrong_format() {
 		$post = self::factory()->post->create_and_get();
 
@@ -496,6 +540,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertTrue( _oembed_rest_pre_serve_request( true, $response, $request, rest_get_server() ) );
 	}
 
+	/**
+	 * @covers ::_oembed_rest_pre_serve_request
+	 */
 	public function test_rest_pre_serve_request_wrong_method() {
 		$post = self::factory()->post->create_and_get();
 
@@ -508,6 +555,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertTrue( _oembed_rest_pre_serve_request( true, $response, $request, rest_get_server() ) );
 	}
 
+	/**
+	 * @covers ::get_oembed_endpoint_url
+	 */
 	public function test_get_oembed_endpoint_url() {
 		$this->assertSame( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url() );
 		$this->assertSame( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'json' ) );
@@ -521,6 +571,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( home_url() . '/index.php?rest_route=%2Foembed%2F1.0%2Fembed&url=' . $url_encoded . '&format=xml', get_oembed_endpoint_url( $url, 'xml' ) );
 	}
 
+	/**
+	 * @covers ::get_oembed_endpoint_url
+	 */
 	public function test_get_oembed_endpoint_url_pretty_permalinks() {
 		update_option( 'permalink_structure', '/%postname%' );
 
@@ -537,6 +590,10 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		update_option( 'permalink_structure', '' );
 	}
 
+	/**
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
+	 */
 	public function test_proxy_without_permission() {
 		// Test without a login.
 		$request  = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
@@ -555,6 +612,10 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( $data['code'], 'rest_forbidden' );
 	}
 
+	/**
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
+	 */
 	public function test_proxy_with_invalid_oembed_provider() {
 		wp_set_current_user( self::$editor );
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
@@ -565,6 +626,10 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( 'oembed_invalid_url', $data['code'] );
 	}
 
+	/**
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_status
+	 */
 	public function test_proxy_with_invalid_type() {
 		wp_set_current_user( self::$editor );
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
@@ -574,6 +639,11 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( 400, $response->get_status() );
 	}
 
+	/**
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_status
+	 * @covers WP_HTTP_Requests_Response::get_data
+	 */
 	public function test_proxy_with_valid_oembed_provider() {
 		wp_set_current_user( self::$editor );
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
@@ -614,6 +684,10 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	 * @ticket 45447
 	 *
 	 * @see wp_maybe_load_embeds()
+	 *
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_status
+	 * @covers WP_HTTP_Requests_Response::get_data
 	 */
 	public function test_proxy_with_classic_embed_provider() {
 		wp_set_current_user( self::$editor );
@@ -635,6 +709,10 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertIsArray( $data->scripts );
 	}
 
+	/**
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_status
+	 */
 	public function test_proxy_with_invalid_oembed_provider_no_discovery() {
 		wp_set_current_user( self::$editor );
 
@@ -647,6 +725,10 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( 0, $this->request_count );
 	}
 
+	/**
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_status
+	 */
 	public function test_proxy_with_invalid_oembed_provider_with_default_discover_param() {
 		wp_set_current_user( self::$editor );
 
@@ -658,6 +740,11 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( 1, $this->request_count );
 	}
 
+	/**
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_status
+	 * @covers WP_HTTP_Requests_Response::get_data
+	 */
 	public function test_proxy_with_invalid_discover_param() {
 		wp_set_current_user( self::$editor );
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
@@ -673,6 +760,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45142
+	 *
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
 	 */
 	public function test_proxy_with_internal_url() {
 		wp_set_current_user( self::$editor );
@@ -721,6 +811,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45142
+	 *
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
 	 */
 	public function test_proxy_with_static_front_page_url() {
 		wp_set_current_user( self::$editor );
@@ -772,6 +865,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45142
+	 *
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
 	 */
 	public function test_proxy_filters_result_of_untrusted_oembed_provider() {
 		wp_set_current_user( self::$editor );
@@ -795,6 +891,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45142
+	 *
+	 * @covers WP_REST_Server::dispatch
+	 * @covers WP_HTTP_Requests_Response::get_data
 	 */
 	public function test_proxy_does_not_filter_result_of_trusted_oembed_provider() {
 		wp_set_current_user( self::$editor );
