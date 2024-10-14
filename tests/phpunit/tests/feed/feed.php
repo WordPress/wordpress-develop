@@ -5,7 +5,7 @@
  *
  * @group feed
  */
-class Tests_Feed extends WP_UnitTestCase {
+class Tests_rssEnclosure extends WP_UnitTestCase {
 	protected static $enclosure_data = array(
 		'url'    => 'http://example.com/sound2.mp3',
 		'length' => 12345,
