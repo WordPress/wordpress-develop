@@ -7369,9 +7369,11 @@ function wp_auth_check_load() {
 	}
 
 	$screen = get_current_screen();
+	if ( null === $screen ) {
+		return;
+	}
 	$hidden = array( 'update', 'update-network', 'update-core', 'update-core-network', 'upgrade', 'upgrade-network', 'network' );
 	$show   = ! in_array( $screen->id, $hidden, true );
-
 	/**
 	 * Filters whether to load the authentication check.
 	 *
