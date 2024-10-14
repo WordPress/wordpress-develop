@@ -626,7 +626,7 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 			'post_type'      => 'post',
 			'post_status'    => 'draft',
 			'author'         => get_current_user_id(),
-			'posts_per_page' => 4,
+			'posts_per_page' => 3,
 			'orderby'        => 'modified',
 			'order'          => 'DESC',
 		);
@@ -662,7 +662,6 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 	/* translators: Maximum number of words used in a preview of a draft on the dashboard. */
 	$draft_length = (int) _x( '10', 'draft_length' );
 
-	$drafts = array_slice( $drafts, 0, 3 );
 	foreach ( $drafts as $draft ) {
 		$url   = get_edit_post_link( $draft->ID );
 		$title = _draft_or_post_title( $draft->ID );
