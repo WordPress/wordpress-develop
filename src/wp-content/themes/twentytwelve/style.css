@@ -861,6 +861,61 @@ article.sticky .featured-post {
 .comment-content ol {
 	list-style: decimal outside;
 }
+
+/* Lower Alpha */
+.entry-content ol[type='a']{
+	list-style: lower-alpha;
+	list-style-type: lower-alpha; /* Fallback for older browsers */
+}
+.entry-content ol[type='a']::-moz-list-plain {
+	list-style: lower-alpha; /* Firefox */
+}
+.entry-content ol[type='a']::-webkit-list-plain {
+	list-style: lower-alpha; /* Chrome, Safari, Opera */
+}
+
+/* Upper Alpha */
+.entry-content ol[type='aa'],
+.entry-content ol[type='ua']{
+	list-style: upper-alpha;
+	list-style-type: upper-alpha; /* Fallback for older browsers */
+}
+.entry-content ol[type='aa']::-moz-list-plain,
+.entry-content ol[type='ua']::-moz-list-plain {
+	list-style: upper-alpha; /* Firefox */
+}
+.entry-content ol[type='aa']::-webkit-list-plain,
+.entry-content ol[type='ua']::-webkit-list-plain {
+	list-style: upper-alpha; /* Chrome, Safari, Opera */
+}
+
+/* Lower roman */
+.entry-content ol[type='r']{
+	list-style: lower-roman;
+	list-style-type: lower-roman; /* Fallback for older browsers */
+}
+.entry-content ol[type='r']::-moz-list-plain {
+	list-style: lower-roman; /* Firefox */
+}
+.entry-content ol[type='r']::-webkit-list-plain {
+	list-style: lower-roman; /* Chrome, Safari, Opera */
+}
+
+/* Upper roman */
+.entry-content ol[type='rr'],
+.entry-content ol[type='ur']{
+	list-style: upper-roman;
+	list-style-type: upper-roman; /* Fallback for older browsers */
+}
+.entry-content ol[type='rr']::-moz-list-plain,
+.entry-content ol[type='ur']::-moz-list-plain {
+	list-style: upper-roman; /* Firefox */
+}
+.entry-content ol[type='rr']::-webkit-list-plain,
+.entry-content ol[type='ur']::-webkit-list-plain {
+	list-style: upper-roman; /* Chrome, Safari, Opera */
+}
+
 .entry-content li,
 .comment-content li,
 .mu_register li {
