@@ -2881,23 +2881,23 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 	// Create a tablename index for an array ($cqueries) of recognized query types.
 	foreach ( $queries as $qry ) {
-		if ( preg_match( '|CREATE TABLE ([^ ]*)|', $qry, $matches ) ) {
+		if ( preg_match( '|CREATE TABLE ([^ ]*)|i', $qry, $matches ) ) {
 			$cqueries[ trim( $matches[1], '`' ) ] = $qry;
 			$for_update[ $matches[1] ]            = 'Created table ' . $matches[1];
 			continue;
 		}
 
-		if ( preg_match( '|CREATE DATABASE ([^ ]*)|', $qry, $matches ) ) {
+		if ( preg_match( '|CREATE DATABASE ([^ ]*)|i', $qry, $matches ) ) {
 			array_unshift( $cqueries, $qry );
 			continue;
 		}
 
-		if ( preg_match( '|INSERT INTO ([^ ]*)|', $qry, $matches ) ) {
+		if ( preg_match( '|INSERT INTO ([^ ]*)|i', $qry, $matches ) ) {
 			$iqueries[] = $qry;
 			continue;
 		}
 
-		if ( preg_match( '|UPDATE ([^ ]*)|', $qry, $matches ) ) {
+		if ( preg_match( '|UPDATE ([^ ]*)|i', $qry, $matches ) ) {
 			$iqueries[] = $qry;
 			continue;
 		}
