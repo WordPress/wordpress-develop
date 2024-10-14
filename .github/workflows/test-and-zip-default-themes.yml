@@ -105,8 +105,8 @@ jobs:
   # - Runs the theme build script.
   # - Ensures version-controlled files are not modified or deleted.
   test-build-scripts:
-    name: Test ${{ matrix.theme }} build script
-    runs-on: ubuntu-latest
+    name: Test ${{ matrix.theme }} build script on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
     timeout-minutes: 10
@@ -119,12 +119,21 @@ jobs:
             'twentytwenty',
             'twentynineteen',
         ]
+        os: [
+          'ubuntu-latest',
+          'windows-latest',
+          'macos-latest',
+        ]
 
     defaults:
       run:
         working-directory: src/wp-content/themes/${{ matrix.theme }}
 
     steps:
+      - name: Configure Git
+        if: ${{ 'windows-latest' == matrix.os }}
+        run: git config --global core.autocrlf false
+
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
