@@ -825,6 +825,44 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57599
+	 * @covers WP_Theme_JSON_Resolver::get_core_data
+	 */
+	public function test_get_theme_json_data_default_filter_applies_correctly() {
+
+		// expect that $core_settings['spacing']['padding'] is false
+		$core_settings = WP_Theme_JSON_Resolver::get_core_data()->get_settings();
+		$this->assertFalse( $core_settings['spacing']['padding'], 'initial value of the spacing padding support in the core layer should be false' );
+
+		// expect that $merged_settings['spacing']['padding'] is false
+		$merged_settings = WP_Theme_JSON_Resolver::get_merged_data()->get_settings();
+		$this->assertFalse( $merged_settings['spacing']['padding'], 'initial value of the spacing padding support in the final merged theme.json should be false' );
+
+		// apply filter to change $core_settings['spacing']['padding'] to true
+		add_filter(
+			'wp_theme_json_data_default',
+			function( $theme_json ) {
+				$new_data = array(
+					'version' => 2,
+					'settings' => array(
+						'spacing' => array(
+							'padding' => true,
+						),
+					),
+				);
+				return $theme_json->update_with( $new_data );
+			}
+		);
+
+		// expect that $core_settings['spacing']['padding'] is true
+		$core_settings = WP_Theme_JSON_Resolver::get_core_data()->get_settings();
+		$this->assertTrue( $core_settings['spacing']['padding'] );
+		// expect that $merged_settings['spacing']['padding'] is true
+		$merged_settings = WP_Theme_JSON_Resolver::get_merged_data()->get_settings();
+		$this->assertTrue( $merged_settings['spacing']['padding'] );
+	}
+
+	/**
 	 * @ticket 56945
 	 * @covers WP_Theme_JSON_Resolver::get_theme_data
 	 */
