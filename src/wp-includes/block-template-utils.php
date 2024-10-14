@@ -308,10 +308,16 @@ function _get_block_template_file( $template_type, $slug ) {
 		return null;
 	}
 
-	$themes = array(
-		get_stylesheet() => get_stylesheet_directory(),
-		get_template()   => get_template_directory(),
+	$stylesheet = get_stylesheet();
+	$themes     = array(
+		$stylesheet => get_stylesheet_directory(),
+
 	);
+	$template = get_template();
+	if ( $stylesheet !== $template ) {
+		$themes[ $template ] = get_template_directory();
+	}
+
 	foreach ( $themes as $theme_slug => $theme_dir ) {
 		$template_base_paths = get_block_theme_folders( $theme_slug );
 		$file_path           = $theme_dir . '/' . $template_base_paths[ $template_type ] . '/' . $slug . '.html';
