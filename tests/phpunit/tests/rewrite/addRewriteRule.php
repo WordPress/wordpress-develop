@@ -2,6 +2,8 @@
 
 /**
  * @group rewrite
+ *
+ * @covers ::add_rewrite_rule
  */
 class Tests_Rewrite_AddRewriteRule extends WP_UnitTestCase {
 

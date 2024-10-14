@@ -25,6 +25,8 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 	 *
 	 * @param string $tag   Rewrite tag.
 	 * @param string $regex Regex.
+	 *
+	 * @covers ::add_rewrite_tag
 	 */
 	public function test_add_rewrite_tag_invalid( $tag, $regex ) {
 		global $wp_rewrite;
@@ -46,6 +48,9 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::add_rewrite_tag
+	 */
 	public function test_add_rewrite_tag_empty_query() {
 		global $wp_rewrite;
 
@@ -58,6 +63,9 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$this->assertSameSets( array_merge( $this->queryreplace, array( 'foo=' ) ), $wp_rewrite->queryreplace );
 	}
 
+	/**
+	 * @covers ::add_rewrite_tag
+	 */
 	public function test_add_rewrite_tag_custom_query() {
 		global $wp_rewrite;
 
@@ -70,6 +78,9 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$this->assertSameSets( array_merge( $this->queryreplace, array( 'baz=' ) ), $wp_rewrite->queryreplace );
 	}
 
+	/**
+	 * @covers ::add_rewrite_tag
+	 */
 	public function test_add_rewrite_tag_updates_existing() {
 		global $wp_rewrite;
 
@@ -81,6 +92,9 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$this->assertNotContains( 'pagename=', $wp_rewrite->queryreplace );
 	}
 
+	/**
+	 * @covers ::remove_rewrite_tag
+	 */
 	public function test_remove_rewrite_tag() {
 		global $wp_rewrite;
 
@@ -97,6 +111,9 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$this->assertSameSets( $this->queryreplace, $wp_rewrite->queryreplace );
 	}
 
+	/**
+	 * @covers ::remove_rewrite_tag
+	 */
 	public function test_remove_rewrite_tag_internal_tag() {
 		global $wp_rewrite;
 
@@ -111,6 +128,9 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$this->assertNotContains( 'p=', $wp_rewrite->queryreplace );
 	}
 
+	/**
+	 * @covers ::remove_rewrite_tag
+	 */
 	public function test_remove_rewrite_tag_only_removes_one_array_value() {
 		global $wp_rewrite;
 

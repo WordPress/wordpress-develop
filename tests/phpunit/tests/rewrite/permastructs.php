@@ -11,6 +11,9 @@ class Tests_Rewrite_Permastructs extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%postname%/' );
 	}
 
+	/**
+	 * @covers ::add_permastruct
+	 */
 	public function test_add_permastruct() {
 		global $wp_rewrite;
 
@@ -30,6 +33,9 @@ class Tests_Rewrite_Permastructs extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::remove_permastruct
+	 */
 	public function test_remove_permastruct() {
 		global $wp_rewrite;
 
