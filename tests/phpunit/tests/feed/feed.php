@@ -59,7 +59,7 @@ class Tests_Feed extends WP_UnitTestCase {
 	/**
 	 * @ticket 58798
 	 *
-	 * @covers rss_enclosure
+	 * @covers ::rss_enclosure
 	 */
 	public function test_rss_enclosure() {
 		$this->assertEmpty( $this->get_rss_enclosure(), 'It should return empty when the global post is not set.' );
