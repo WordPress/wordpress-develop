@@ -3783,6 +3783,19 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 		 * @param callable $callback Callback function name.
 		 */
 		$callback = apply_filters( 'wp_die_xml_handler', '_xml_wp_die_handler' );
+	} elseif ( is_admin() &&
+			   substr( get_admin_url(), strlen( get_bloginfo( 'url' ) ) ) . 'admin-post.php' === wp_parse_url( '//' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],  PHP_URL_PATH )
+	) {
+
+		/**
+		 * Filters the callback for killing WordPress execution for admin-post.php requests.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param callable $callback Callback function name.
+		 */
+		$callback = apply_filters( 'wp_die_admin_post_handler', '_default_wp_die_handler' );
+
 	} else {
 		/**
 		 * Filters the callback for killing WordPress execution for all non-Ajax, non-JSON, non-XML requests.
