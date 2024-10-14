@@ -2,6 +2,8 @@
 /**
  * @group query
  * @group search
+ *
+ * @covers WP_Query::query
  */
 class Tests_Query_Search extends WP_UnitTestCase {
 	protected $q;
