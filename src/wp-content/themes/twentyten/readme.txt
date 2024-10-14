@@ -1,9 +1,9 @@
 === Twenty Ten ===
 Contributors: wordpressdotorg
 Requires at least: 3.0
-Tested up to: 6.6
+Tested up to: 6.7
 Requires PHP: 5.2.4
-Stable tag: 4.2
+Stable tag: 4.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, two-columns, custom-header, custom-background, threaded-comments, sticky-post, translation-ready, microformats, rtl-language-support, editor-style, custom-menu, flexible-header, featured-images, footer-widgets, featured-image-header, block-patterns
