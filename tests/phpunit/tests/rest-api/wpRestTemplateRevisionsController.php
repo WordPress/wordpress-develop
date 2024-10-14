@@ -790,15 +790,16 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @param string $rest_base             Base part of the REST API endpoint to test.
 	 * @param string $template_id           Template ID to use in the test.
+	 * @param int    $properties_count      Number of properties to check for in the schema.
 	 * @param array  $additional_properties Additional properties to check for in the schema.
 	 */
-	public function test_get_item_schema_with_data_provider( $rest_base, $template_id, $additional_properties = array() ) {
+	public function test_get_item_schema_with_data_provider( $rest_base, $template_id, $properties_count, $additional_properties = array() ) {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions' );
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 
-		$this->assertCount( 19, $properties );
+		$this->assertCount( $properties_count, $properties );
 		$this->assertArrayHasKey( 'id', $properties, 'ID key should exist in properties.' );
 		$this->assertArrayHasKey( 'slug', $properties, 'Slug key should exist in properties.' );
 		$this->assertArrayHasKey( 'theme', $properties, 'Theme key should exist in properties.' );
@@ -815,7 +816,6 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertArrayHasKey( 'parent', $properties, 'Parent key should exist in properties.' );
 		$this->assertArrayHasKey( 'author_text', $properties, 'author_text key should exist in properties.' );
 		$this->assertArrayHasKey( 'original_source', $properties, 'original_source key should exist in properties.' );
-		$this->assertArrayHasKey( 'plugin', $properties, 'plugin key should exist in properties.' );
 
 		foreach ( $additional_properties as $additional_property ) {
 			$this->assertArrayHasKey( $additional_property, $properties, $additional_property . ' key should exist in properties.' );
@@ -832,11 +832,13 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 			'templates'      => array(
 				'templates',
 				self::TEST_THEME . '//' . self::TEMPLATE_NAME,
-				array( 'is_custom' ),
+				19,
+				array( 'is_custom', 'plugin' ),
 			),
 			'template parts' => array(
 				'template-parts',
 				self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME,
+				18,
 				array( 'area' ),
 			),
 		);
