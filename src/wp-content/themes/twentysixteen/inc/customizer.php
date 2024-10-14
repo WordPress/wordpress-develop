@@ -791,13 +791,11 @@ function twentysixteen_get_color_scheme_css( $colors ) {
 	.comment-reply-link,
 	.no-comments,
 	.widecolumn .mu_register .mu_alert {
-		border-color: {$colors['main_text_color']}; /* Fallback for IE7 and IE8 */
 		border-color: {$colors['border_color']};
 	}
 
 	hr,
 	code {
-		background-color: {$colors['main_text_color']}; /* Fallback for IE7 and IE8 */
 		background-color: {$colors['border_color']};
 	}
 
@@ -1159,13 +1157,11 @@ function twentysixteen_main_text_color_css() {
 		.comment-reply-link,
 		.no-comments,
 		.widecolumn .mu_register .mu_alert {
-			border-color: %1$s; /* Fallback for IE7 and IE8 */
 			border-color: %2$s;
 		}
 
 		hr,
 		code {
-			background-color: %1$s; /* Fallback for IE7 and IE8 */
 			background-color: %2$s;
 		}
 
