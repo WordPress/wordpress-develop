@@ -369,19 +369,6 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 	$new_sizes = wp_get_registered_image_subsizes();
 
-	/**
-	 * Filters the image sizes automatically generated when uploading an image.
-	 *
-	 * @since 2.9.0
-	 * @since 4.4.0 Added the `$image_meta` argument.
-	 * @since 5.3.0 Added the `$attachment_id` argument.
-	 *
-	 * @param array $new_sizes     Associative array of image sizes to be created.
-	 * @param array $image_meta    The image meta data: width, height, file, sizes, etc.
-	 * @param int   $attachment_id The attachment post ID for the image.
-	 */
-	$new_sizes = apply_filters( 'intermediate_image_sizes_advanced', $new_sizes, $image_meta, $attachment_id );
-
 	return _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id );
 }
 
@@ -401,6 +388,20 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
  * @return array The attachment meta data with updated `sizes` array. Includes an array of errors encountered while resizing.
  */
 function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
+
+	/**
+	 * Filters the image sizes automatically generated when uploading an image.
+	 *
+	 * @since 2.9.0
+	 * @since 4.4.0 Added the `$image_meta` argument.
+	 * @since 5.3.0 Added the `$attachment_id` argument.
+	 *
+	 * @param array $new_sizes     Associative array of image sizes to be created.
+	 * @param array $image_meta    The image meta data: width, height, file, sizes, etc.
+	 * @param int   $attachment_id The attachment post ID for the image.
+	 */
+	$new_sizes = apply_filters( 'intermediate_image_sizes_advanced', $new_sizes, $image_meta, $attachment_id );
+
 	if ( empty( $image_meta ) || ! is_array( $image_meta ) ) {
 		// Not an image attachment.
 		return array();
