@@ -196,10 +196,6 @@ class WP_Object_Cache {
 	 * @return bool True on success, false if cache key and group already exist.
 	 */
 	public function add( $key, $data, $group = 'default', $expire = 0 ) {
-		if ( wp_suspend_cache_addition() ) {
-			return false;
-		}
-
 		if ( ! $this->is_valid_key( $key ) ) {
 			return false;
 		}
@@ -299,6 +295,10 @@ class WP_Object_Cache {
 	 * @return bool True if contents were set, false if key is invalid.
 	 */
 	public function set( $key, $data, $group = 'default', $expire = 0 ) {
+		if ( wp_suspend_cache_addition() ) {
+			return false;
+		}
+
 		if ( ! $this->is_valid_key( $key ) ) {
 			return false;
 		}
@@ -474,6 +474,10 @@ class WP_Object_Cache {
 	 * @return int|false The item's new value on success, false on failure.
 	 */
 	public function incr( $key, $offset = 1, $group = 'default' ) {
+		if ( wp_suspend_cache_addition() ) {
+			return false;
+		}
+
 		if ( ! $this->is_valid_key( $key ) ) {
 			return false;
 		}
@@ -517,6 +521,10 @@ class WP_Object_Cache {
 	 * @return int|false The item's new value on success, false on failure.
 	 */
 	public function decr( $key, $offset = 1, $group = 'default' ) {
+		if ( wp_suspend_cache_addition() ) {
+			return false;
+		}
+
 		if ( ! $this->is_valid_key( $key ) ) {
 			return false;
 		}
