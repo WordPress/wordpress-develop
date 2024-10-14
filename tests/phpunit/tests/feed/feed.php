@@ -38,7 +38,7 @@ class Tests_Feed extends WP_UnitTestCase {
 	/**
 	 * @ticket 58798
 	 *
-	 * @covers rss_enclosure
+	 * @covers ::rss_enclosure
 	 */
 	public function test_rss_enclosure_filter() {
 		$post_id         = self::factory()->post->create();
