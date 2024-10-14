@@ -246,12 +246,12 @@ if ( ! class_exists( 'PO', false ) ) :
 			}
 			$po[] = 'msgid ' . PO::poify( $entry->singular );
 			if ( ! $entry->is_plural ) {
-				$translation = empty( $entry->translations ) ? '' : $entry->translations[0];
+				$translation = empty( $entry->translations ) ? null : $entry->translations[0];
 				$translation = PO::match_begin_and_end_newlines( $translation, $entry->singular );
 				$po[]        = 'msgstr ' . PO::poify( $translation );
 			} else {
 				$po[]         = 'msgid_plural ' . PO::poify( $entry->plural );
-				$translations = empty( $entry->translations ) ? array( '', '' ) : $entry->translations;
+				$translations = empty( $entry->translations ) ? array( null, null ) : $entry->translations;
 				foreach ( $translations as $i => $translation ) {
 					$translation = PO::match_begin_and_end_newlines( $translation, $entry->plural );
 					$po[]        = "msgstr[$i] " . PO::poify( $translation );
@@ -260,9 +260,16 @@ if ( ! class_exists( 'PO', false ) ) :
 			return implode( "\n", $po );
 		}
 
+		/**
+		 * Match the beginning and ending new lines between original and translation.
+		 *
+		 * @param string|null $translation Translation text, null if don't exist.
+		 * @param string      $original    Original text.
+		 * @return string Translation matching new lines in the beginning or ending from the original.
+		 */
 		public static function match_begin_and_end_newlines( $translation, $original ) {
-			if ( '' === $translation ) {
-				return $translation;
+			if ( null === $translation ) {
+				return '';
 			}
 
 			$original_begin    = "\n" === substr( $original, 0, 1 );
