@@ -1708,7 +1708,9 @@ function do_robots() {
 	 */
 	do_action( 'do_robotstxt' );
 
-	$output = "User-agent: *\n";
+	$output = "# Prevent crawling of WP internals\n";
+	$output .= "# --------------------------------\n";
+	$output .= "User-agent: *\n";
 	$public = get_option( 'blog_public' );
 
 	$site_url = parse_url( site_url() );
