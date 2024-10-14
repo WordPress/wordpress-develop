@@ -6359,7 +6359,7 @@ function wp_suspend_cache_invalidation( $suspend = true ) {
 	global $_wp_suspend_cache_invalidation;
 
 	$current_suspend                = $_wp_suspend_cache_invalidation;
-	$_wp_suspend_cache_invalidation = $suspend;
+	$_wp_suspend_cache_invalidation = (bool) $suspend;
 	return $current_suspend;
 }
 
