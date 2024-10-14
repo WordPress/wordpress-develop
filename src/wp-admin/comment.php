@@ -185,18 +185,26 @@ switch ( $action ) {
 	<th scope="row"><?php _e( 'Author' ); ?></th>
 	<td><?php comment_author( $comment ); ?></td>
 </tr>
-		<?php if ( get_comment_author_email( $comment ) ) { ?>
+		<?php
+			if ( get_comment_author_email( $comment ) ) {
+			?>
 <tr>
 	<th scope="row"><?php _e( 'Email' ); ?></th>
 	<td><?php comment_author_email( $comment ); ?></td>
 </tr>
-<?php } ?>
-		<?php if ( get_comment_author_url( $comment ) ) { ?>
+			<?php 
+			}
+			?>
+			<?php
+				if ( get_comment_author_url( $comment ) ) {
+				?>
 <tr>
 	<th scope="row"><?php _e( 'URL' ); ?></th>
 	<td><a href="<?php comment_author_url( $comment ); ?>"><?php comment_author_url( $comment ); ?></a></td>
 </tr>
-<?php } ?>
+			<?php
+			}
+			?>
 <tr>
 	<th scope="row"><?php /* translators: Column name or table row header. */ _e( 'In response to' ); ?></th>
 	<td>
