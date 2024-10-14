@@ -4352,7 +4352,7 @@ function ent2ncr( $text ) {
 		'&diams;'    => '&#9830;',
 	);
 
-	return str_replace( array_keys( $to_ncr ), array_values( $to_ncr ), $text );
+	return str_replace( array_keys( $to_ncr ), array_values( $to_ncr ), $text ?? '' );
 }
 
 /**
