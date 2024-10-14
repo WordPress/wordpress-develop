@@ -15,6 +15,18 @@ $title = _x( 'About', 'page title' );
 
 list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
 
+$release_notes_url = sprintf(
+	/* translators: %s: WordPress version number. */
+	__( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ),
+	'6-7'
+);
+
+$field_guide_url = sprintf(
+	/* translators: %s: WordPress version number. */
+	__( 'https://make.wordpress.org/core/wordpress-%s-field-guide/' ),
+	'6-7'
+);
+
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 	<div class="wrap about__container">
@@ -197,15 +209,26 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<path fill="#1e1e1e" stroke="#fff" stroke-width=".5" d="M26.5 24.25h13.75v11.5h-14v8h-3.5v-8H12.604L8.09 31.237a1.75 1.75 0 0 1 0-2.474l4.513-4.513H22.75v-4.5h-14V8.25h14v-4h3.5v4h10.146l4.513 4.513a1.75 1.75 0 0 1 0 2.474l-4.513 4.513H26.25v4.5h.25ZM12.25 16v.25h22.704l.073-.073 1.293-1.293a1.25 1.25 0 0 0 0-1.768l-1.293-1.293-.073-.073H12.25V16Zm1.723 16.177.073.073H36.75v-4.5H14.046l-.073.073-1.293 1.293a1.25 1.25 0 0 0 0 1.768l1.293 1.293Z"/>
+						<path fill="#1e1e1e" d="M32 15.5H16v3h16v-3ZM16 22h16v3H16v-3ZM28 28.5H16v3h12v-3Z"/>
+						<path fill="#1e1e1e" fill-rule="evenodd" d="M34 8H14a4 4 0 0 0-4 4v24a4 4 0 0 0 4 4h20a4 4 0 0 0 4-4V12a4 4 0 0 0-4-4Zm-20 3h20a1 1 0 0 1 1 1v24a1 1 0 0 1-1 1H14a1 1 0 0 1-1-1V12a1 1 0 0 1 1-1Z" clip-rule="evenodd"/>
 					</svg>
 				</div>
-				<p style="margin-top:calc(var(--gap) / 2);">
+				<h4 style="margin-top: calc(var(--gap) / 2); margin-bottom: calc(var(--gap) / 2);">
+					<a href="<?php echo esc_url( $release_notes_url ); ?>">
+						<?php
+						printf(
+							/* translators: %s: WordPress version number. */
+							__( 'WordPress %s Release Notes' ),
+							'6.7'
+						);
+						?>
+					</a>
+				</h4>
+				<p>
 					<?php
 					printf(
-						/* translators: 1: WordPress Field Guide link, 2: WordPress version number. */
-						__( 'Explore the <a href="%1$s">WordPress %2$s Field Guide</a>. Learn about the changes in this release with detailed developer notes to help you build with WordPress.' ),
-						esc_url( __( 'https://make.wordpress.org/core/wordpress-6-7-field-guide/' ) ),
+						/* translators: %s: WordPress version number. */
+						__( 'Read the WordPress %s Release Notes for information on installation, enhancements, fixed issues, release contributors, learning resources, and the list of file changes.' ),
 						'6.7'
 					);
 					?>
@@ -214,20 +237,25 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<path fill="#1e1e1e" d="M32 15.5H16v3h16v-3ZM16 22h16v3H16v-3ZM28 28.5H16v3h12v-3Z"/>
-						<path fill="#1e1e1e" fill-rule="evenodd" d="M34 8H14a4 4 0 0 0-4 4v24a4 4 0 0 0 4 4h20a4 4 0 0 0 4-4V12a4 4 0 0 0-4-4Zm-20 3h20a1 1 0 0 1 1 1v24a1 1 0 0 1-1 1H14a1 1 0 0 1-1-1V12a1 1 0 0 1 1-1Z" clip-rule="evenodd"/>
+						<path fill="#1e1e1e" stroke="#fff" stroke-width=".5" d="M26.5 24.25h13.75v11.5h-14v8h-3.5v-8H12.604L8.09 31.237a1.75 1.75 0 0 1 0-2.474l4.513-4.513H22.75v-4.5h-14V8.25h14v-4h3.5v4h10.146l4.513 4.513a1.75 1.75 0 0 1 0 2.474l-4.513 4.513H26.25v4.5h.25ZM12.25 16v.25h22.704l.073-.073 1.293-1.293a1.25 1.25 0 0 0 0-1.768l-1.293-1.293-.073-.073H12.25V16Zm1.723 16.177.073.073H36.75v-4.5H14.046l-.073.073-1.293 1.293a1.25 1.25 0 0 0 0 1.768l1.293 1.293Z"/>
 					</svg>
 				</div>
-				<p style="margin-top:calc(var(--gap) / 2);">
+				<h4 style="margin-top: calc(var(--gap) / 2); margin-bottom: calc(var(--gap) / 2);">
+					<a href="<?php echo esc_url( $field_guide_url ); ?>">
+						<?php
+						printf(
+							/* translators: %s: WordPress version number. */
+							__( 'WordPress %s Field Guide' ),
+							'6.7'
+						);
+						?>
+					</a>
+				</h4>
+				<p>
 					<?php
 					printf(
-						/* translators: 1: WordPress Release Notes link, 2: WordPress version number. */
-						__( '<a href="%1$s">Read the WordPress %2$s Release Notes</a> for information on installation, enhancements, fixed issues, release contributors, learning resources, and the list of file changes.' ),
-						sprintf(
-							/* translators: %s: WordPress version number. */
-							esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
-							'6-7'
-						),
+						/* translators: %s: WordPress version number. */
+						__( 'Explore the WordPress %s Field Guide. Learn about the changes in this release with detailed developer notes to help you build with WordPress.' ),
 						'6.7'
 					);
 					?>
