@@ -270,7 +270,7 @@ HTML
 		register_block_type(
 			'tests/context-consumer',
 			array(
-				'uses_context'    => array( 'arbitrary' ),
+				'uses_context'    => array( 'example' ),
 				'render_callback' => static function ( $attributes, $content, $block ) use ( &$provided_context ) {
 					$provided_context = $block->context;
 
