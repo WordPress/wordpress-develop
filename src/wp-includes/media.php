@@ -2648,9 +2648,10 @@ function gallery_shortcode( $attr ) {
 	 *
 	 * @see gallery_shortcode()
 	 *
-	 * @param string $output   The gallery output. Default empty.
-	 * @param array  $attr     Attributes of the gallery shortcode.
-	 * @param int    $instance Unique numeric ID of this gallery shortcode instance.
+	 * @param string $output      The gallery output. Default empty.
+	 * @param array  $attr        Attributes of the gallery shortcode.
+	 * @param int    $instance    Unique numeric ID of this gallery shortcode instance.
+	 * @param int    $total_count Sets a maxiumum list of attachments to display.
 	 */
 	$output = apply_filters( 'post_gallery', '', $attr, $instance );
 
@@ -2669,6 +2670,7 @@ function gallery_shortcode( $attr ) {
 			'captiontag' => $html5 ? 'figcaption' : 'dd',
 			'columns'    => 3,
 			'size'       => 'thumbnail',
+			'limit'      => -1,
 			'include'    => '',
 			'exclude'    => '',
 			'link'       => '',
@@ -2679,6 +2681,16 @@ function gallery_shortcode( $attr ) {
 
 	$id = (int) $atts['id'];
 
+	$total_count = (int) $atts['limit'];
+
+	// Check total_count less than 0. If so set it to -1.
+	if ( -1 > $total_count ) {
+		$total_count = abs( $total_count );
+	} elseif ( empty( $total_count ) ) {
+		$total_count = -1;
+	}
+
+	// Check atts is not empty.
 	if ( ! empty( $atts['include'] ) ) {
 		$_attachments = get_posts(
 			array(
@@ -2695,6 +2707,11 @@ function gallery_shortcode( $attr ) {
 		foreach ( $_attachments as $key => $val ) {
 			$attachments[ $val->ID ] = $_attachments[ $key ];
 		}
+		// Necessary because in get_posts(), when specifying include="",
+		// the numberposts parameter is ignored (it's set to match the number of items in include="")
+		if ( 0 < $total_count ) {
+			$attachments = array_slice( $attachments, 0, $total_count, true );
+		}
 	} elseif ( ! empty( $atts['exclude'] ) ) {
 		$post_parent_id = $id;
 		$attachments    = get_children(
@@ -2706,6 +2723,7 @@ function gallery_shortcode( $attr ) {
 				'post_mime_type' => 'image',
 				'order'          => $atts['order'],
 				'orderby'        => $atts['orderby'],
+				'numberposts'    => $total_count,
 			)
 		);
 	} else {
@@ -2718,6 +2736,7 @@ function gallery_shortcode( $attr ) {
 				'post_mime_type' => 'image',
 				'order'          => $atts['order'],
 				'orderby'        => $atts['orderby'],
+				'numberposts'    => $total_count,
 			)
 		);
 	}
