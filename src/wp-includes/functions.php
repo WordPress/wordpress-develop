@@ -7682,7 +7682,12 @@ function wp_delete_file( $file ) {
  */
 function wp_delete_file_from_directory( $file, $directory ) {
 	if ( wp_is_stream( $file ) ) {
-		$real_file      = $file;
+		if ( ! str_starts_with( strtolower( $file ), 'file:' ) ) {
+
+			return false;
+		}
+
+		$real_file = $file;
 		$real_directory = $directory;
 	} else {
 		$real_file      = realpath( wp_normalize_path( $file ) );
