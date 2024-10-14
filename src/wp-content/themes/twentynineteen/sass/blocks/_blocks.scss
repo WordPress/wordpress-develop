@@ -523,7 +523,7 @@
 			line-height: 1.8;
 		}
 
-		cite {
+		&:not([class*="-font-size"]):not([style*="font-size"]) cite {
 			/*
 			 * This requires a rem-based font size calculation instead of our normal em-based one,
 			 * because the cite tag sometimes gets wrapped in a p tag. This is equivalent to $font-size_xs.
