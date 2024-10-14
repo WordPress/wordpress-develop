@@ -6998,6 +6998,34 @@ function __return_empty_string() { // phpcs:ignore WordPress.NamingConventions.V
 }
 
 /**
+ * Returns an empty datetime value.
+ *
+ * @since x.x
+ *
+ * @return string
+ */
+function __return_empty_datetime() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
+	return '0000-00-00 00:00:00';
+}
+
+/**
+ * Checks if the provided string is an empty datetime
+ *
+ * @since x.x
+ *
+ * @param string $datetime String in datetime format
+ *
+ * @return bool
+ */
+function is_empty_datetime( $datetime = '' ) {
+	if ( empty( $datetime ) ) {
+		return true;
+	}
+
+	return '0000-00-00 00:00:00' === $datetime;
+}
+
+/**
  * Sends a HTTP header to disable content type sniffing in browsers which support it.
  *
  * @since 3.0.0
