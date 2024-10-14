@@ -482,7 +482,7 @@ function rss_enclosure() {
 			foreach ( (array) $val as $enc ) {
 				$enclosure = explode( "\n", $enc );
 
-				if ( 3 > count( $enclosure ) ) {
+				if ( count( $enclosure ) < 3 ) {
 					continue;
 				}
 
