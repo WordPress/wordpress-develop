@@ -1247,10 +1247,12 @@ function _wp_get_attachment_relative_path( $file ) {
  */
 function _wp_get_image_size_from_meta( $size_name, $image_meta ) {
 	if ( 'full' === $size_name ) {
-		return array(
-			absint( $image_meta['width'] ),
-			absint( $image_meta['height'] ),
-		);
+		if ( ! empty( $image_meta['width'] ) || ! empty( $image_meta['height'] ) ) {
+			return array(
+				absint( $image_meta['width'] ),
+				absint( $image_meta['height'] ),
+			);
+		}
 	} elseif ( ! empty( $image_meta['sizes'][ $size_name ] ) ) {
 		return array(
 			absint( $image_meta['sizes'][ $size_name ]['width'] ),
