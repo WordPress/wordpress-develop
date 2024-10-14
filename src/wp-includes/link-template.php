@@ -3527,9 +3527,15 @@ function get_site_url( $blog_id = null, $path = '', $scheme = null ) {
 	if ( empty( $blog_id ) || ! is_multisite() ) {
 		$url = get_option( 'siteurl' );
 	} else {
-		switch_to_blog( $blog_id );
-		$url = get_option( 'siteurl' );
-		restore_current_blog();
+		// Use WP_Site_Query to get the site URL.
+		$site = get_site( $blog_id );
+
+		$url = $site->domain . $site->path;
+
+		// If the network has a custom domain, use that instead.
+		if ( get_network()->domain !== $site->domain ) {
+			$url = get_network()->domain . $site->path;
+		}
 	}
 
 	$url = set_url_scheme( $url, $scheme );
