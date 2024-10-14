@@ -2525,7 +2525,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 
 	if ( $name_match ) {
 		$slug_match = get_term_by( 'slug', $slug, $taxonomy );
-		if ( ! $slug_provided || $name_match->slug === $slug || $slug_match ) {
+		if ( $name_match->slug === $slug || $slug_match ) {
 			if ( is_taxonomy_hierarchical( $taxonomy ) ) {
 				$siblings = get_terms(
 					array(
