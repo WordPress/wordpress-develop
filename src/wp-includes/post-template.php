@@ -765,7 +765,7 @@ function get_body_class( $css_class = '' ) {
 			if ( isset( $tag->term_id ) ) {
 				$tag_class = sanitize_html_class( $tag->slug, $tag->term_id );
 				if ( is_numeric( $tag_class ) || ! trim( $tag_class, '-' ) ) {
-					$tag_class = $tag->term_id;
+					$tag_class = $tag->slug;
 				}
 
 				$classes[] = 'tag-' . $tag_class;
