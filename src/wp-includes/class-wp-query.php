@@ -3763,7 +3763,8 @@ class WP_Query {
 	public function rewind_posts() {
 		$this->current_post = -1;
 		if ( $this->post_count > 0 ) {
-			$this->post = $this->posts[0];
+			reset( $this->posts );
+			$this->post = $this->posts[ key( $this->posts ) ];
 		}
 	}
 
