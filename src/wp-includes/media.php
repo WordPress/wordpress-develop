@@ -5861,7 +5861,8 @@ function wp_get_webp_info( $filename ) {
  *
  * @since 6.3.0
  *
- * @global WP_Query $wp_query WordPress Query object.
+ * @global WP_Query  $wp_query                        WordPress Query object.
+ * @global bool|null $_wp_encountered_processed_image
  *
  * @param string $tag_name The tag name.
  * @param array  $attr     Array of the attributes for the tag.
@@ -5869,7 +5870,7 @@ function wp_get_webp_info( $filename ) {
  * @return array Loading optimization attributes.
  */
 function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
-	global $wp_query;
+	global $wp_query, $_wp_encountered_processed_image;
 
 	/**
 	 * Filters whether to short-circuit loading optimization attributes.
@@ -5892,19 +5893,35 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 
 	$loading_attrs = array();
 
-	/*
-	 * Skip lazy-loading for the overall block template, as it is handled more granularly.
-	 * The skip is also applicable for `fetchpriority`.
-	 */
-	if ( 'template' === $context ) {
-		/** This filter is documented in wp-includes/media.php */
-		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
-	}
-
 	// For now this function only supports images and iframes.
 	if ( 'img' !== $tag_name && 'iframe' !== $tag_name ) {
 		/** This filter is documented in wp-includes/media.php */
 		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
+	}
+
+	/*
+	 * For block themes, the 'template' context is used to parse tags across the entire URL content.
+	 * For any tags which at this point haven't received any of the optimization attributes, it can be assumed that
+	 * they are only part of the overall block template and therefore haven't been processed at all yet.
+	 * Therefore these tags will be processed in this clause, based on a simple heuristic: As long as no previously
+	 * processed tag is encountered yet, the tag is assumed to be potentially in the viewport. As soon as a previously
+	 * processed tag has been encountered, any subsequent tags are assumed to be below the viewport.
+	 */
+	if ( 'template' === $context ) {
+		if ( ! isset( $attr['decoding'] ) && ! isset( $attr['loading'] ) && ! isset( $attr['fetchpriority'] ) ) {
+			// Set $maybe_in_viewport flag for tags that haven't been processed yet.
+			if ( ! $_wp_encountered_processed_image ) {
+				$maybe_in_viewport = true;
+			} else {
+				$maybe_in_viewport = false;
+			}
+		} else {
+			// Otherwise set the flag to indicate that a processed image has been encountered, and then bail.
+			$_wp_encountered_processed_image = true;
+
+			/** This filter is documented in wp-includes/media.php */
+			return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
+		}
 	}
 
 	/*
@@ -5921,7 +5938,6 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 	) {
 		/** This filter is documented in wp-includes/media.php */
 		return apply_filters( 'wp_get_loading_optimization_attributes', $loading_attrs, $tag_name, $attr, $context );
-
 	}
 
 	/*
