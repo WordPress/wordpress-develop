@@ -204,3 +204,35 @@ if ( ! function_exists( 'twentytwentyfour_pattern_categories' ) ) :
 endif;
 
 add_action( 'init', 'twentytwentyfour_pattern_categories' );
+
+/**
+* Show the post-reading time
+*/
+function estimated_reading_time($content = '') {
+    // Average reading speed (words per minute)
+    $words_per_minute = 200;
+
+    // Count the number of words in the post content
+    $word_count = str_word_count(strip_tags($content));
+
+    // Calculate the reading time in minutes
+    $reading_time = ceil($word_count / $words_per_minute);
+
+    return $reading_time;
+}
+
+function display_reading_time() {
+    global $post;
+
+    // Get the content of the post
+    $content = $post->post_content;
+
+    // Get the estimated reading time
+    $reading_time = estimated_reading_time($content);
+
+    // Output the estimated reading time
+    echo '<p>Estimated reading time: ' . $reading_time . ' minute(s)</p>';
+}
+
+// Use the function to display reading time in posts (hook into 'the_content')
+add_filter('the_content', 'display_reading_time');
