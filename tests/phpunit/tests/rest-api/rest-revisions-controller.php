@@ -864,4 +864,31 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( $expected_count, $response->get_data() );
 	}
+
+	/**
+	 * @ticket 43502
+	 */
+	public function test_postdata_reset_by_prepare_item_for_response_revisions() {
+		wp_set_current_user( self::$editor_id );
+
+		$endpoint = new WP_REST_Revisions_Controller( 'post' );
+
+		$revision_id = wp_save_post_revision( self::$post_id );
+		global $revision;
+		$revision = get_post( $revision_id );
+
+		$original_content = $revision->post_content;
+
+		if ( have_posts() ) {
+			while ( have_posts() ) {
+				the_post();
+
+				$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $revision_id );
+				$response = $endpoint->prepare_item_for_response( $revision, $request );
+			}
+		}
+
+		$this->assertSame( get_post( $revision_id ), $revision );
+		$this->assertSame( $original_content, $revision->post_content );
+	}
 }
