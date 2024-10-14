@@ -13,17 +13,6 @@ class Tests_rssEnclosure extends WP_UnitTestCase {
 	);
 
 	/**
-	 * Get the rss_enclosure() output.
-	 *
-	 * @return string
-	 */
-	protected function get_rss_enclosure() {
-		ob_start();
-		rss_enclosure();
-		return ob_get_clean();
-	}
-
-	/**
 	 * Get a multiline enclosure string.
 	 *
 	 * This function generates a multiline string like
@@ -53,7 +42,7 @@ class Tests_rssEnclosure extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertSame( 'filtered_html_link_tag', $this->get_rss_enclosure(), 'The `rss_enclosure` filter could not be applied.' );
+		$this->assertSame( 'filtered_html_link_tag', get_echo( 'rss_enclosure' ), 'The `rss_enclosure` filter could not be applied.' );
 	}
 
 	/**
@@ -62,21 +51,21 @@ class Tests_rssEnclosure extends WP_UnitTestCase {
 	 * @covers ::rss_enclosure
 	 */
 	public function test_rss_enclosure() {
-		$this->assertEmpty( $this->get_rss_enclosure(), 'It should return empty when the global post is not set.' );
+		$this->assertEmpty( get_echo( 'rss_enclosure' ), 'It should return empty when the global post is not set.' );
 
 		$post_id         = self::factory()->post->create();
 		$GLOBALS['post'] = $post_id;
 
-		$this->assertEmpty( $this->get_rss_enclosure(), 'The global post does not have the `enclosure` meta field and should return empty. ' );
+		$this->assertEmpty( get_echo( 'rss_enclosure' ), 'The global post does not have the `enclosure` meta field and should return empty. ' );
 
 		update_post_meta( $post_id, 'enclosure', $this->get_multiline_enclosure_string() );
 
 		$expected = '<enclosure url="' . self::$enclosure_data['url'] . '" length="' . self::$enclosure_data['length'] . '" type="' . self::$enclosure_data['type'] . '" />' . "\n";
 
-		$this->assertSame( $expected, $this->get_rss_enclosure(), 'It should return a valid enclosure tag. ' );
+		$this->assertSame( $expected, get_echo( 'rss_enclosure' ), 'It should return a valid enclosure tag. ' );
 
 		update_post_meta( $post_id, 'enclosure', self::$enclosure_data['url'] );
 
-		$this->assertEmpty( $this->get_rss_enclosure(), 'It should return empty when the `enclosure` meta field is not saved in a multiline string.' );
+		$this->assertEmpty( get_echo( 'rss_enclosure' ), 'It should return empty when the `enclosure` meta field is not saved in a multiline string.' );
 	}
 }
