@@ -18,6 +18,8 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47577
+	 *
+	 * @covers ::wp_is_using_https
 	 */
 	public function test_wp_is_using_https() {
 		update_option( 'home', 'http://example.com/' );
@@ -39,6 +41,8 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47577
+	 *
+	 * @covers ::wp_is_https_supported
 	 */
 	public function test_wp_is_https_supported() {
 		// The function works with cached errors, so only test that here.
@@ -57,6 +61,8 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 	/**
 	 * @ticket 47577
 	 * @ticket 52542
+	 *
+	 * @covers ::wp_is_local_html_output
 	 */
 	public function test_wp_is_local_html_output_via_rsd_link() {
 		// HTML includes RSD link.
@@ -82,6 +88,8 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47577
+	 *
+	 * @covers ::wp_is_local_html_output
 	 */
 	public function test_wp_is_local_html_output_via_rest_link() {
 		remove_action( 'wp_head', 'rsd_link' );
@@ -109,6 +117,8 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47577
+	 *
+	 * @covers ::wp_is_local_html_output
 	 */
 	public function test_wp_is_local_html_output_cannot_determine() {
 		remove_action( 'wp_head', 'rsd_link' );
