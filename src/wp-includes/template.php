@@ -405,13 +405,22 @@ function get_home_template() {
  * and {@see '$type_template'} dynamic hooks, where `$type` is 'frontpage'.
  *
  * @since 3.0.0
+ * @since 6.5.0 Support for granular templates depending on front page content was added.
  *
  * @see get_query_template()
  *
  * @return string Full path to front page template file.
  */
 function get_front_page_template() {
-	$templates = array( 'front-page.php' );
+	if ( is_home() ) {
+		$templates = array( 'front-page-home.php' );
+	} elseif ( is_page() ) {
+		$templates = array( 'front-page-static.php' );
+	} else {
+		$templates = array();
+	}
+
+	$templates[] = 'front-page.php';
 
 	return get_query_template( 'frontpage', $templates );
 }
