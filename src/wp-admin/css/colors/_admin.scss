@@ -362,13 +362,10 @@ ul#adminmenu > li.current > a.current:after {
 }
 
 #adminmenu li.current a .awaiting-mod,
-#adminmenu li a.wp-has-current-submenu .update-plugins,
-#adminmenu li:hover a .awaiting-mod,
-#adminmenu li.menu-top:hover > a .update-plugins {
+#adminmenu li a.wp-has-current-submenu .update-plugins {
 	color: $menu-bubble-current-text;
-	background: $menu-bubble-current-background;
+	background: $menu-bubble-background;
 }
-
 
 /* Admin Menu: collapse button */
 
