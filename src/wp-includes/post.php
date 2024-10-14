@@ -6023,11 +6023,19 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	$cached    = wp_cache_get( $cache_key, 'post-queries' );
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
-		if ( '0' === $cached || 0 === $cached ) {
-			return;
-		} else {
-			return get_post( $cached, $output );
-		}
+		$found_page = ( '0' !== $cached && 0 !== $cached ) ? get_post( $cached, $output ) : null;
+
+		/**
+		 * Filters finded page path.
+		 *
+		 * @since 6.x.x
+		 *
+		 * @param WP_Post|array|null  $found_page The finded page WP_Post (or array), null on failure.
+		 * @param string              $page_path  Page path.
+		 * @param string              $output	  The required return type.
+		 * @param string|array        $post_type  Post type or array of post types.
+		 */
+		return apply_filters( 'get_page_by_path', $found_page, $page_path, $output, $post_type );
 	}
 
 	$page_path     = rawurlencode( urldecode( $page_path ) );
@@ -6089,11 +6097,10 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	// We cache misses as well as hits.
 	wp_cache_set( $cache_key, $foundid, 'post-queries' );
 
-	if ( $foundid ) {
-		return get_post( $foundid, $output );
-	}
+	$found_page = $foundid ? get_post( $foundid, $output ) : null;
 
-	return null;
+	/** This filter is documented in wp-includes/post.php */
+	return apply_filters( 'get_page_by_path', $found_page, $page_path, $output, $post_type );
 }
 
 /**
