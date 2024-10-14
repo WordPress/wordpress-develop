@@ -84,7 +84,7 @@ class TwentyNineteen_SVG_Icons {
     <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"></path>
 </svg>',
 
-		'watch'                    => /* material-design – watch-later */ '
+		'watch'                    => /* material-design – watch_later */ '
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     <defs>
         <path id="a" d="M0 0h24v24H0V0z"></path>
@@ -107,7 +107,7 @@ class TwentyNineteen_SVG_Icons {
 	<path d="M0 0h24v24H0z" fill="none"></path>
 </svg>',
 
-		'comment'                  => /* material-design – comment */ '
+		'comment'                  => /* material-design – comment, without inner lines */ '
 <svg viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"></path>
     <path d="M0 0h24v24H0z" fill="none"></path>
@@ -143,7 +143,7 @@ class TwentyNineteen_SVG_Icons {
     <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
 </svg>',
 
-		'arrow_drop_down_circle'   => /* material-design – arrow_drop_down_circle */ '
+		'arrow_drop_down_circle'   => /* material-design – arrow_circle_down */ '
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 	<path d="M0 0h24v24H0z" fill="none"></path>
 	<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 12l-4-4h8l-4 4z"></path>
@@ -155,13 +155,13 @@ class TwentyNineteen_SVG_Icons {
 	<path fill="none" d="M0 0h24v24H0V0z"></path>
 </svg>',
 
-		'keyboard_arrow_right'     => /* material-design – keyboard_arrow_right */ '
+		'keyboard_arrow_right'     => /* material-design – arrow_right */ '
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 	<path d="M10 17l5-5-5-5v10z"></path>
 	<path fill="none" d="M0 24V0h24v24H0z"></path>
 </svg>',
 
-		'keyboard_arrow_left'      => /* material-design – keyboard_arrow_left */ '
+		'keyboard_arrow_left'      => /* material-design – arrow_left */ '
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 	<path d="M14 7l-5 5 5 5V7z"></path>
 	<path fill="none" d="M24 0v24H0V0h24z"></path>
