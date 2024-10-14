@@ -5653,7 +5653,7 @@ function wp_set_post_categories( $post_id = 0, $post_categories = array(), $appe
 		return true;
 	}
 
-	return wp_set_post_terms( $post_id, $post_categories, 'category', $append );
+	return wp_set_post_terms( $post_id, $post_categories, $post_type, $append );
 }
 
 /**
