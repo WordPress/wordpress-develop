@@ -683,7 +683,7 @@ function create_initial_post_types() {
 	register_post_status(
 		'pending',
 		array(
-			'label'         => _x( 'Pending', 'post status' ),
+			'label'         => _x( 'Pending Review', 'post status' ),
 			'protected'     => true,
 			'_builtin'      => true, /* internal use only. */
 			/* translators: %s: Number of pending posts. */
