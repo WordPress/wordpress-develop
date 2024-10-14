@@ -53,7 +53,7 @@ class Tests_rssEnclosure extends WP_UnitTestCase {
 	/**
 	 * @ticket 58798
 	 *
-	 * @dataProvider data_valid_enclosure_string
+	 * @dataProvider data_rss_enclosure_with_multiline_enclosure_string
 	 * @covers ::rss_enclosure
 	 */
 	public function test_rss_enclosure_with_multiline_enclosure_string( $enclosure_data, $enclosure_string ) {
