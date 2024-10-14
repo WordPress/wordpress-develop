@@ -2245,4 +2245,46 @@ class Tests_User extends WP_UnitTestCase {
 
 		return $additional_profile_data;
 	}
+
+	/**
+	 * Test that update_user_meta for 'use_ssl' doesn't write to DB unnecessarily.
+	 *
+	 * @ticket 60299
+	 */
+	public function test_unnecessary_assignment_of_use_ssl_in_meta() {
+		$user_id = self::$contrib_id;
+		// Keep track of db writing calls.
+		$set_db_counts = 0;
+
+		// Track db updates with calls to do_action( "update_user_meta", ... with 'use_ssl' meta key.
+		add_action(
+			'update_user_meta',
+			function ( $meta_id, $object_id, $meta_key ) use ( &$set_db_counts ) {
+				if ( 'use_ssl' !== $meta_key ) {
+					return;
+				}
+				$set_db_counts++;
+			},
+			10,
+			3
+		);
+
+		$_POST = array(
+			'nickname' => 'nickname_test',
+			'email'    => 'email_test_1@example.com',
+			'use_ssl'  => 1,
+		);
+
+		$user_id = edit_user( $user_id );
+
+		$this->assertIsInt( $user_id );
+		$this->assertEquals( 1, $set_db_counts );
+
+		// Update the user without changing the 'use_ssl' meta.
+		$_POST['email'] = 'email_test_2@example.com';
+		$user_id        = edit_user( $user_id );
+
+		// Verify there are no updates to use_ssl user meta.
+		$this->assertEquals( 1, $set_db_counts );
+	}
 }
