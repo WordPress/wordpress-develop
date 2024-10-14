@@ -1886,6 +1886,62 @@ class WP_Query {
 		// Fill again in case 'pre_get_posts' unset some vars.
 		$q = $this->fill_query_vars( $q );
 
+		if ( ! isset( $q['cache_results'] ) ) {
+			$q['cache_results'] = true;
+		}
+
+		if ( ! isset( $q['cache_early'] ) ) {
+			$q['cache_early'] = false;
+		}
+
+		$q['cache_early'] = $q['cache_results'] && $q['cache_early'];
+		if ( $q['cache_early'] ) {
+			$q               = $this->get_get_posts_filter_pattern( $q );
+			$early_hash      = md5( serialize( $q ) );
+			$last_changed    = wp_cache_get_last_changed( 'posts' );
+			$early_cache_key = "get_posts:$early_hash:$last_changed";
+			$cache_key       = wp_cache_get( $early_cache_key, 'post-cache-keys', true );
+			$cache_found     = false;
+			if ( ! empty( $cache_key ) && null === $this->posts ) {
+				$cached_results = wp_cache_get( $cache_key, 'post-queries', false, $cache_found );
+
+				if ( $cached_results ) {
+					/** @var int[] */
+					$post_ids = array_map( 'intval', $cached_results['posts'] );
+
+					$this->post_count    = count( $post_ids );
+					$this->found_posts   = $cached_results['found_posts'];
+					$this->max_num_pages = $cached_results['max_num_pages'];
+
+					if ( 'ids' === $q['fields'] ) {
+						$this->posts = $post_ids;
+
+						return $this->posts;
+					} elseif ( 'id=>parent' === $q['fields'] ) {
+						_prime_post_parent_id_caches( $post_ids );
+
+						$post_parent_cache_keys = array();
+						foreach ( $post_ids as $post_id ) {
+							$post_parent_cache_keys[] = 'post_parent:' . (string) $post_id;
+						}
+
+						/** @var int[] */
+						$post_parents = wp_cache_get_multiple( $post_parent_cache_keys, 'posts' );
+
+						foreach ( $post_parents as $cache_key => $post_parent ) {
+							$obj              = new stdClass();
+							$obj->ID          = (int) str_replace( 'post_parent:', '', $cache_key );
+							$obj->post_parent = (int) $post_parent;
+
+							$this->posts[] = $obj;
+						}
+
+						return $post_parents;
+					}
+				}
+			}
+		}
+
 		/**
 		 * Filters whether an attachment query should include filenames or not.
 		 *
@@ -3187,6 +3243,9 @@ class WP_Query {
 		if ( $q['cache_results'] && $id_query_is_cacheable ) {
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
 			$cache_key   = $this->generate_cache_key( $q, $new_request );
+			if ( $q['cache_early'] ) {
+				wp_cache_add( $early_cache_key, $cache_key, 'posts-cache-keys' );
+			}
 
 			$cache_found = false;
 			if ( null === $this->posts ) {
@@ -3593,6 +3652,58 @@ class WP_Query {
 		}
 
 		return $this->posts;
+	}
+
+	/**
+	 * Capture signature of filter from get_posts in $args.
+	 *
+	 * @param array $args query args.
+	 * @return array $args
+	 */
+	public function get_get_posts_filter_pattern( $args ) {
+		global $wp_filter;
+		$filters = array(
+			'wp_allow_query_attachment_by_filename',
+			'posts_search',
+			'posts_search_orderby',
+			'posts_where',
+			'posts_join',
+			'comment_feed_join',
+			'comment_feed_where',
+			'comment_feed_groupby',
+			'comment_feed_orderby',
+			'comment_feed_limits',
+			'posts_where_paged',
+			'posts_groupby',
+			'posts_join_paged',
+			'posts_orderby',
+			'posts_distinct',
+			'post_limits',
+			'posts_fields',
+			'posts_clauses',
+			'posts_where_request',
+			'posts_groupby_request',
+			'posts_join_request',
+			'posts_orderby_request',
+			'posts_distinct_request',
+			'posts_fields_request',
+			'post_limits_request',
+			'posts_clauses_request',
+			'posts_request',
+			'posts_pre_query',
+			'split_the_query',
+			'posts_request_ids',
+			'posts_results',
+			'the_preview',
+			'the_posts',
+		);
+
+		foreach ( $filters as $filter ) {
+			if ( has_filter( $filter ) ) {
+				$args['args_filters'][ $filter ] = $wp_filter[ $filter ];
+			}
+		}
+		return $args;
 	}
 
 	/**
