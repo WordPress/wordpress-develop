@@ -884,6 +884,7 @@ function post_exists( $title, $content = '', $date = '', $type = '', $status = '
 	}
 
 	if ( ! empty( $args ) ) {
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		return (int) $wpdb->get_var( $wpdb->prepare( $query, $args ) );
 	}
 

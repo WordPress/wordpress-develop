@@ -487,8 +487,8 @@ function wp_list_authors( $args = '' ) {
 		$post_counts_query = $wpdb->get_results(
 			"SELECT DISTINCT post_author, COUNT(ID) AS count
 			FROM $wpdb->posts
-			WHERE " . get_private_posts_cap_sql( 'post' ) . '
-			GROUP BY post_author'
+			WHERE " . get_private_posts_cap_sql( 'post' ) . // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			'GROUP BY post_author'
 		);
 
 		foreach ( (array) $post_counts_query as $row ) {

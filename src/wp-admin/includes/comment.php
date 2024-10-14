@@ -32,12 +32,14 @@ function comment_exists( $comment_author, $comment_date, $timezone = 'blog' ) {
 	}
 
 	return $wpdb->get_var(
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->prepare(
 			"SELECT comment_post_ID FROM $wpdb->comments
 			WHERE comment_author = %s AND $date_field = %s",
 			stripslashes( $comment_author ),
 			stripslashes( $comment_date )
 		)
+		// phpcs:enable
 	);
 }
 
@@ -154,17 +156,30 @@ function get_pending_comments_num( $post_id ) {
 	} else {
 		$post_id_array = $post_id;
 	}
-	$post_id_array = array_map( 'intval', $post_id_array );
-	$post_id_in    = "'" . implode( "', '", $post_id_array ) . "'";
 
-	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0' GROUP BY comment_post_ID", ARRAY_A );
+	$post_id_array = array_map( 'intval', $post_id_array );
+
+	$pending = $wpdb->get_results(
+		$wpdb->prepare(
+			sprintf(
+				"SELECT comment_post_ID, COUNT(comment_ID) as num_comments
+				FROM $wpdb->comments
+				WHERE comment_post_ID IN ( %s )
+				AND comment_approved = '0'
+				GROUP BY comment_post_ID",
+				implode( ',', array_fill( 0, count( $post_id_array ), '%s' ) )
+			),
+			$post_id_array
+		),
+		ARRAY_A
+	);
 
 	if ( $single ) {
 		if ( empty( $pending ) ) {
 			return 0;
-		} else {
-			return absint( $pending[0]['num_comments'] );
 		}
+
+		return absint( $pending[0]['num_comments'] );
 	}
 
 	$pending_keyed = array();
