@@ -567,7 +567,7 @@ function wp_print_media_templates() {
 					<# if ( data.link ) { #>
 						<span class="links-separator">|</span>
 					<# } #>
-					<a href="{{ data.editLink }}"><?php _e( 'Edit more details' ); ?></a>
+					<a href="{{ data.editLink }}"><?php _e( 'Advanced editing' ); ?></a>
 				<# } #>
 				<# if ( data.can.save && data.link ) { #>
 					<span class="links-separator">|</span>
