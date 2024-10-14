@@ -954,12 +954,13 @@ function wp_link_pages( $args = '' ) {
 		'link_before'      => '',
 		'link_after'       => '',
 		'aria_current'     => 'page',
-		'next_or_number'   => 'number',
+		'next_or_number'   => 'next',
 		'separator'        => ' ',
 		'nextpagelink'     => __( 'Next page' ),
 		'previouspagelink' => __( 'Previous page' ),
 		'pagelink'         => '%',
 		'echo'             => 1,
+		'pagination'       => true,
 	);
 
 	$parsed_args = wp_parse_args( $args, $defaults );
@@ -1011,6 +1012,103 @@ function wp_link_pages( $args = '' ) {
 				/** This filter is documented in wp-includes/post-template.php */
 				$output .= apply_filters( 'wp_link_pages_link', $link, $prev );
 			}
+			if ( $parsed_args['pagination'] ) {
+
+				for ( $i = 1; $i <= 2; $i++ ) {
+					if ( $i == 1 || $i == 2 || $i == $page ) {
+						$link = $i;
+						if ( $i != $page || ! $more && 1 == $page ) {
+							$link = _wp_link_page( $i ) . $link . '</a>';
+						} else {
+							$link = '<span class="post-page-numbers current">' . $i . '</span>';
+						}
+						$link    = apply_filters( 'wp_link_pages_link', $link, $i );
+						$output .= $link;
+					}
+				}
+
+				for ( $i = 3; $i <= 3; $i++ ) {
+					if ( $page != ( $numpages - 1 ) && $page != ( $numpages ) && ( $i == 3 || $i == $page ) && $numpages > 5 ) {
+						$link = $i;
+						if ( $i != $page || ! $more && 1 == $page ) {
+							$link = '<span class="post-page-numbers">...</span>';
+						} else {
+								$link = '<span class="post-page-numbers current">' . $i . '</span>';
+						}
+						$link    = apply_filters( 'wp_link_pages_link', $link, $i );
+						$output .= $link;
+					} elseif ( $page != ( $numpages - 1 ) && $page != ( $numpages ) && ( $i == 3 || $i == $page ) && $numpages == 5 ) {
+						$link = $i;
+						if ( $i != $page || ! $more && 1 == $page ) {
+							$link = _wp_link_page( $i ) . $link . '</a>';
+						} else {
+							$link = '<span class="post-page-numbers current">' . $i . '</span>';
+						}
+						$link    = apply_filters( 'wp_link_pages_link', $link, $i );
+						$output .= $link;
+					}
+				}
+				for ( $i = 4; $i <= ( $numpages - 3 ); $i++ ) {
+					if ( $i == $page && $numpages > 5 ) {
+						$link = $i;
+						if ( $i != $page || ! $more && 1 == $page ) {
+							$link = _wp_link_page( $i ) . $link . '</a>';
+						} else {
+							$link = '<span class="post-page-numbers current">' . $i . '</span>';
+						}
+						if ( $i != $page ) {
+							$link = '<span class="post-page-numbers">...</span>';
+						}
+						$link = apply_filters( 'wp_link_pages_link', $link, $i );
+
+						$output .= $link;
+					} elseif ( $i != $page && $numpages == 5 ) {
+						$link = $i;
+						if ( $i != $page || ! $more && 1 == $page ) {
+							$link = _wp_link_page( $i ) . $link . '</a>';
+						} else {
+							$link = '<span class="post-page-numbers current">' . $i . '</span>';
+						}
+						$link    = apply_filters( 'wp_link_pages_link', $link, $i );
+						$output .= $link;
+					}
+				}
+				for ( $i = ( $numpages - 2 ); $i <= ( $numpages - 2 ); $i++ ) {
+					if ( $page != 1 && $page != 2 && ( $i == ( $numpages - 2 ) || $i == $page ) && $numpages > 5 ) {
+						$link = $i;
+						if ( $i != $page || ! $more && 1 == $page ) {
+							$link = '<span class="post-page-numbers">...</span>';
+						} else {
+								$link = '<span class="post-page-numbers current">' . $i . '</span>';
+						}
+
+						$link    = apply_filters( 'wp_link_pages_link', $link, $i );
+						$output .= $link;
+					} elseif ( $page != 1 && $page != 2 && ( $i == ( $numpages - 2 ) || $i == $page ) && $numpages == 5 && $page != 3 ) {
+						$link = $i;
+						if ( $i != $page || ! $more && 1 == $page ) {
+							$link = _wp_link_page( $i ) . $link . '</a>';
+						} else {
+							$link = '<span class="post-page-numbers current">' . $i . '</span>';
+						}
+						$link    = apply_filters( 'wp_link_pages_link', $link, $i );
+						$output .= $link;
+					}
+				}
+				for ( $i = ( $numpages - 1 ); $i <= $numpages; $i++ ) {
+					if ( $i == $page || $i == ( $numpages - 1 ) || $i == $numpages ) {
+						$link = $i;
+						if ( $i != $page || ! $more && 1 == $page ) {
+							$link = _wp_link_page( $i ) . $link . '</a>';
+						} else {
+							$link = '<span class="post-page-numbers current">' . $i . '</span>';
+						}
+						$link    = apply_filters( 'wp_link_pages_link', $link, $i );
+						$output .= $link;
+					}
+				}
+			}
+
 			$next = $page + 1;
 			if ( $next <= $numpages ) {
 				if ( $prev ) {
