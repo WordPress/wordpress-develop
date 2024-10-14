@@ -129,7 +129,7 @@ class Tests_rssEnclosure extends WP_UnitTestCase {
 	 *
 	 * @return array[].
 	 */
-	public function data_non_valid_enclosure_string() {
+	public function data_rss_enclosure_with_non_valid_enclosure_string() {
 		return array(
 			'empty'          => array( '' ),
 			'no-break-lines' => array( 'http://example.com/sound2.mp3 12345 audio/mpeg' ),
