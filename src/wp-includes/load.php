@@ -1531,6 +1531,18 @@ function wp_load_translations_early() {
 			$locales[] = $wp_local_package;
 		}
 
+		// Try the browser's locale
+		// Developer note: This global variable is not present in commandline such as WP-CLI or php
+		if ( isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
+			// Test for regular presence, ignore wildcard https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language
+			// ISO country is always 2 characters (lowercase)
+			// followed by minus (-) sign
+			// followed by mixed set of as many of minus (-) sign and a-z (uppercase)
+			if ( preg_match( '#[a-z]{2}-[A-Z-]+#', trim( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ), $matches ) ) {
+				$locales[] = str_replace( '-', '_', $matches[0] );
+			}
+		}
+
 		if ( ! $locales ) {
 			break;
 		}
