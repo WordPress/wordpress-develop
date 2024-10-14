@@ -3090,6 +3090,7 @@ function wp_enqueue_global_styles_css_custom_properties() {
  *
  * @since 5.9.1
  * @since 6.1.0 Added the `$priority` parameter.
+ * @deprecated 6.2.0 Use wp_style_engine_get_stylesheet_from_css_rules() instead.
  *
  * For block themes, styles are loaded in the head.
  * For classic ones, styles are loaded in the body because the wp_head action happens before render_block.
@@ -3100,6 +3101,7 @@ function wp_enqueue_global_styles_css_custom_properties() {
  * @param int    $priority To set the priority for the add_action.
  */
 function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
+	_deprecated_function( __FUNCTION__, '6.2.0', 'wp_style_engine_get_stylesheet_from_css_rules()' );
 	$action_hook_name = 'wp_footer';
 	if ( wp_is_block_theme() ) {
 		$action_hook_name = 'wp_head';
