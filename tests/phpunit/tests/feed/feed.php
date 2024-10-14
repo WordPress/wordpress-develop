@@ -72,7 +72,7 @@ class Tests_rssEnclosure extends WP_UnitTestCase {
 	 *
 	 * @return array[].
 	 */
-	public function data_valid_enclosure_string() {
+	public function data_rss_enclosure_with_multiline_enclosure_string() {
 		return array(
 			'two-break-lines'         => array(
 				array(
