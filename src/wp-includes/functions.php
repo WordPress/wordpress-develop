@@ -8065,7 +8065,7 @@ function wp_site_admin_email_change_notification( $old_email, $new_email, $optio
 		return;
 	}
 
-	/* translators: Do not translate OLD_EMAIL, NEW_EMAIL, SITENAME, SITEURL: those are placeholders. */
+	/* translators: Do not translate ###OLD_EMAIL###, ###NEW_EMAIL###, ###SITENAME###, ###SITEURL###: those are placeholders. */
 	$email_change_text = __(
 		'Hi,
 
