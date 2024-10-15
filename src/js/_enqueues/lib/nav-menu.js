@@ -584,9 +584,18 @@
 					menuItemWithChild = menuItem.add( menuItemChildren );
 
 					// Move the entire block.
-					menuItemWithChild.detach().insertAfter( menuItems.eq( menuItemNewPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown().find('.edit-menu-item-parent').focus();
+					menuItemWithChild.detach().insertAfter( menuItems.eq( menuItemNewPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown();
 				} else {
-					menuItem.detach().insertAfter( menuItems.eq( menuItemNewPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown().find('.edit-menu-item-parent').focus();
+					menuItem.detach().insertAfter( menuItems.eq( menuItemNewPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown();
+				}
+			} else {
+				if ( menuItemChildren ) {
+					menuItemWithChild = menuItem.add( menuItemChildren );
+
+					// Move the entire block.
+					menuItemWithChild.updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown();
+				} else {
+					menuItem.updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown();
 				}
 			}
 
