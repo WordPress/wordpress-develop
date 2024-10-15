@@ -369,6 +369,8 @@ function wp_oembed_add_discovery_links() {
  * in `wp_maybe_enqueue_oembed_host_js()` to see if `wp_oembed_add_host_js()` has not been unhooked from running at the
  * `wp_head` action.
  *
+ * Note: _deprecated_function() is not used here, as the function is still hooked to 'wp_head'.
+ *
  * @since 4.4.0
  * @deprecated 5.9.0 Use {@see wp_maybe_enqueue_oembed_host_js()} instead.
  */

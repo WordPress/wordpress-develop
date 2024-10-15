@@ -5996,6 +5996,8 @@ function get_all_page_ids() {
  * @return WP_Post|array|null WP_Post or array on success, null on failure.
  */
 function get_page( $page, $output = OBJECT, $filter = 'raw' ) {
+	_deprecated_function( __FUNCTION__, '3.5.0', 'get_post()' );
+
 	return get_post( $page, $output, $filter );
 }
 

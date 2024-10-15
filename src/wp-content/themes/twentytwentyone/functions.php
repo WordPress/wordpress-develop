@@ -493,6 +493,7 @@ add_action( 'enqueue_block_editor_assets', 'twentytwentyone_block_editor_script'
  * @link https://git.io/vWdr2
  */
 function twenty_twenty_one_skip_link_focus_fix() {
+	_deprecated_function( __FUNCTION__, 'Twenty Twenty-One 1.9' );
 
 	// If SCRIPT_DEBUG is defined and true, print the unminified file.
 	if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {

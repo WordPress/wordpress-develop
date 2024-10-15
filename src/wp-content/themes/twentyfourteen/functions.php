@@ -422,6 +422,8 @@ add_action( 'admin_print_scripts-appearance_page_custom-header', 'twentyfourteen
  * @return array URLs to print for resource hints.
  */
 function twentyfourteen_resource_hints( $urls, $relation_type ) {
+	_deprecated_function( __FUNCTION__, 'Twenty Fourteen 3.6' );
+
 	if ( wp_style_is( 'twentyfourteen-lato', 'queue' ) && 'preconnect' === $relation_type ) {
 		if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '>=' ) ) {
 			$urls[] = array(
