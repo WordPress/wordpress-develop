@@ -2444,6 +2444,60 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * This test covers `get_block_nodes` with the `$include_node_paths_only` option.
+	 * When `true`, `$include_node_paths_only` should return only the paths of the block nodes.
+	 *
+	 * @ticket 61858
+	 */
+	public function test_return_block_node_paths() {
+		$theme_json = new ReflectionClass( 'WP_Theme_JSON' );
+
+		$func = $theme_json->getMethod( 'get_block_nodes' );
+		$func->setAccessible( true );
+
+		$theme_json = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'typography' => array(
+					'fontSize' => '16px',
+				),
+				'blocks'     => array(
+					'core/button' => array(
+						'color' => array(
+							'background' => 'red',
+						),
+					),
+					'core/group'  => array(
+						'elements' => array(
+							'link' => array(
+								'color' => array(
+									'background' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$block_nodes = $func->invoke( null, $theme_json, array(), array( 'include_node_paths_only' => true ) );
+
+		$expected = array(
+			array(
+				'path' => array( 'styles', 'blocks', 'core/button' ),
+			),
+			array(
+				'path' => array( 'styles', 'blocks', 'core/group' ),
+			),
+			array(
+				'path' => array( 'styles', 'blocks', 'core/group', 'elements', 'link' ),
+			),
+		);
+
+		$this->assertEquals( $expected, $block_nodes );
+	}
+
+	/**
 	 * @ticket 54336
 	 */
 	public function test_remove_insecure_properties_removes_unsafe_styles() {
