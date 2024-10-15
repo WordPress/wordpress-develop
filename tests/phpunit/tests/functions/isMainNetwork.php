@@ -10,7 +10,7 @@
 class Tests_Functions_IsMainNetwork extends WP_UnitTestCase {
 
 	/**
-	 * Tests is_main_network() for valid network IDs.
+	 * Tests is_main_network() for single site.
 	 *
 	 * @dataProvider data_should_return_true_for_single_site
 	 *
