@@ -593,6 +593,9 @@
 			api.registerChange();
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
+			$this.focus();
+			wp.a11y.speak( 'Menu parent updated', 'polite' );
+
 		},
 
 		/**
@@ -655,6 +658,8 @@
 			api.registerChange();
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
+			$this.focus();
+			wp.a11y.speak( 'Menu order updated', 'polite' );
 		},
 
 		/**
