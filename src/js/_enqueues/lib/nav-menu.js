@@ -611,7 +611,7 @@
 				depth = menuItem.menuItemDepth(),
 				thisItemChildren = menuItem.childMenuItems(),
 				isPrimaryMenuItem = ( 0 === depth ),
-				currentItmePosition = parseInt( menuItem.index(), 10 ),
+				currentItemPosition = parseInt( menuItem.index(), 10 ),
 				parentItemID = menuItem.find('.menu-item-data-parent-id').val(),
 				parentItem = $('#menu-item-'+ parentItemID),
 				parentPosition = parseInt( parentItem.index(), 10 ),
@@ -623,7 +623,7 @@
 
 				newItemPosition = parseInt( currentItemAtPosition.index(), 10 );
 
-				if(currentItmePosition < newItemPosition) {
+				if(currentItemPosition < newItemPosition) {
 					var noOfChild = parseInt( currentItemAtPosition.childMenuItems().length, 10 );
 					if(noOfChild > 0){
 						newItemPosition = newItemPosition + noOfChild;
@@ -643,7 +643,7 @@
 				}
 			
 			} else {
-				if(currentItmePosition > newItemPosition) newItemPosition = newItemPosition - 1;
+				if(currentItemPosition > newItemPosition) newItemPosition = newItemPosition - 1;
 				if ( thisItemChildren ) {
 					menuItemWithChild = menuItem.add( thisItemChildren );
 					menuItemWithChild.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
