@@ -595,7 +595,6 @@
 			api.refreshAdvancedAccessibility();
 			$this.focus();
 			wp.a11y.speak( 'Menu parent updated', 'polite' );
-
 		},
 
 		/**
@@ -613,29 +612,25 @@
 				menuItem = $this.closest('li.menu-item').first(),
 				depth = menuItem.menuItemDepth(),
 				thisItemChildren = menuItem.childMenuItems(),
+				thisItemNoOfChild = thisItemChildren.length,
 				isPrimaryMenuItem = ( 0 === depth ),
 				currentItemPosition = parseInt( menuItem.index(), 10 ),
 				parentItemID = menuItem.find('.menu-item-data-parent-id').val(),
 				parentItem = $('#menu-item-'+ parentItemID),
 				parentPosition = parseInt( parentItem.index(), 10 ),
-				newItemPosition = parentPosition + newOrderID;
+				newItemPosition = parentPosition + newOrderID,
+				primaryItems = $( '.menu-item-depth-0' ),
+				currentItemAtPosition = $( primaryItems[newOrderID - 1] ),
+				currentItemAtPositionNoOfChild = parseInt( currentItemAtPosition.childMenuItems().length, 10 );
 
 			if ( isPrimaryMenuItem ) {
-				var primaryItems = $( '.menu-item-depth-0' ),
-					currentItemAtPosition = $( primaryItems[newOrderID - 1] );
-
 				newItemPosition = parseInt( currentItemAtPosition.index(), 10 );
-
 				if(currentItemPosition < newItemPosition) {
-					var noOfChild = parseInt( currentItemAtPosition.childMenuItems().length, 10 );
-					if(noOfChild > 0){
-						newItemPosition = newItemPosition + noOfChild;
-						menuItemWithChild = menuItem.add( thisItemChildren );
-						menuItemWithChild.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
-					} else {
-						newItemPosition = newItemPosition + 1;
-						menuItem.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+					if(currentItemAtPositionNoOfChild > 0){
+						newItemPosition = newItemPosition + currentItemAtPositionNoOfChild - thisItemNoOfChild;
 					}
+					menuItemWithChild = menuItem.add( thisItemChildren );
+					menuItemWithChild.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
 				} else {
 					if ( thisItemChildren ) {
 						menuItemWithChild = menuItem.add( thisItemChildren );
@@ -644,14 +639,22 @@
 						menuItem.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();	
 					}
 				}
-			
 			} else {
-				if(currentItemPosition > newItemPosition) newItemPosition = newItemPosition - 1;
-				if ( thisItemChildren ) {
+				if(currentItemPosition < newItemPosition) {
+					if(currentItemAtPositionNoOfChild > 0){
+						newItemPosition = newItemPosition + currentItemAtPositionNoOfChild - thisItemNoOfChild;
+					} else {
+						newItemPosition = newItemPosition + 1;
+					}
 					menuItemWithChild = menuItem.add( thisItemChildren );
 					menuItemWithChild.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
 				} else {
-					menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();	
+					if ( thisItemChildren ) {
+						menuItemWithChild = menuItem.add( thisItemChildren );
+						menuItemWithChild.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+					} else {
+						menuItem.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();	
+					}
 				}
 			}
 
