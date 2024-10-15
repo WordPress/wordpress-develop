@@ -2333,8 +2333,16 @@ function wp_insert_user( $userdata ) {
 		} else {
 			$display_name = $user_login;
 		}
+
+		if ( 250 < strlen( $display_name ) ) {
+			$display_name = substr( $display_name, 0, 250 );
+		}
 	} else {
 		$display_name = $userdata['display_name'];
+
+		if ( 250 < strlen( $display_name ) ) {
+			return new WP_Error( 'display_name_too_long', __( 'Display Name may not be longer than 250 characters.' ) );
+		}
 	}
 
 	/**
