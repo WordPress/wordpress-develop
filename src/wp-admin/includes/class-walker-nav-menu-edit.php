@@ -270,20 +270,23 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 				 */
 				?>
 
-				<fieldset class="field-move-combo description description-wide">
-					<div class="" style="display: flex;">
-						<label style="flex-basis: 100%;" for="edit-menu-item-parent-<?php echo $item_id; ?>">
-							<?php _e( 'Menu Parent' ); ?><br />
-							<select style="width: 100%;" class="edit-menu-item-parent" id="edit-menu-item-parent-<?php echo $item_id; ?>" name="menu-item-parent[<?php echo $item_id; ?>]">
-							</select>
+				
+				<div class="field-move-combo description-wide" style="display: flex;">
+					<p class="description description-wide">
+						<label for="edit-menu-item-parent-<?php echo $item_id; ?>">
+							<?php _e( 'Menu Parent' ); ?>
 						</label>
-						<label style="flex-basis: 100%;" for="edit-menu-item-order-<?php echo $item_id; ?>">
-							<?php _e( 'Menu Order' ); ?><br />
-							<select style="width: 100%;" class="edit-menu-item-order" id="edit-menu-item-order-<?php echo $item_id; ?>" name="menu-item-order[<?php echo $item_id; ?>]">
-							</select>
+						<select class="edit-menu-item-parent widefat" id="edit-menu-item-parent-<?php echo $item_id; ?>" name="menu-item-parent[<?php echo $item_id; ?>]">
+						</select>
+					</p>
+					<p class="description description-wide">
+						<label for="edit-menu-item-order-<?php echo $item_id; ?>">
+							<?php _e( 'Menu Order' ); ?>
 						</label>
-					</div>
-				</fieldset>
+						<select class="edit-menu-item-order widefat" id="edit-menu-item-order-<?php echo $item_id; ?>" name="menu-item-order[<?php echo $item_id; ?>]">
+						</select>
+					</p>
+				</div>
 
 				<div class="menu-item-actions description-wide submitbox">
 					<?php if ( 'custom' !== $menu_item->type && false !== $original_title ) : ?>
