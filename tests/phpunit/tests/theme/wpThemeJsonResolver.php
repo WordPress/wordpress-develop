@@ -1332,6 +1332,42 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'typography' => array(
+						'fontFamilies' => array(
+							array(
+								'fontFace'   => array(
+									array(
+										'fontFamily' => 'Tocco',
+										'fontStyle'  => 'normal',
+										'fontWeight' => '400',
+										'src'        => array(
+											'file:./example/fonts/tocco/tocco-400-normal.woff2',
+										),
+									),
+								),
+								'fontFamily' => 'Tocco, system-ui',
+								'name'       => 'Tocco',
+								'slug'       => 'secondary',
+							),
+							array(
+								'fontFace'   => array(
+									array(
+										'fontFamily' => '"Strozzapreti"',
+										'fontStyle'  => 'normal',
+										'fontWeight' => '400',
+										'src'        => array(
+											'file:./example/fonts/strozzapreti/strozzapreti-400-normal.woff2',
+										),
+									),
+								),
+								'fontFamily' => '"Strozzapreti", cursive',
+								'name'       => 'Strozzapreti',
+								'slug'       => 'primary',
+							),
+						),
+					),
+				),
 				'styles'  => array(
 					'background' => array(
 						'backgroundImage' => array(
@@ -1359,6 +1395,16 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		);
 
 		$expected_data = array(
+			array(
+				'name'   => 'file:./example/fonts/tocco/tocco-400-normal.woff2',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/example/fonts/tocco/tocco-400-normal.woff2',
+				'target' => 'typography.fontFamilies.secondary.fontFace.src',
+			),
+			array(
+				'name'   => 'file:./example/fonts/strozzapreti/strozzapreti-400-normal.woff2',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/example/fonts/strozzapreti/strozzapreti-400-normal.woff2',
+				'target' => 'typography.fontFamilies.primary.fontFace.src',
+			),
 			array(
 				'name'   => 'file:./assets/image.png',
 				'href'   => 'https://example.org/wp-content/themes/example-theme/assets/image.png',
