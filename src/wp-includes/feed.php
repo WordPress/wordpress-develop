@@ -478,9 +478,13 @@ function rss_enclosure() {
 	}
 
 	foreach ( (array) get_post_custom() as $key => $val ) {
-		if ( 'enclosure' === $key ) {
+		if ( 'enclosure' === $key && is_array( $val ) ) {
 			foreach ( (array) $val as $enc ) {
 				$enclosure = explode( "\n", $enc );
+
+				if ( 3 > count( $enclosure ) ) {
+					continue;
+				}
 
 				// Only get the first element, e.g. 'audio/mpeg' from 'audio/mpeg mpga mp2 mp3'.
 				$t    = preg_split( '/[ \t]/', trim( $enclosure[2] ) );
