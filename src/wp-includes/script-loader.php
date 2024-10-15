@@ -2056,7 +2056,7 @@ function wp_style_loader_src( $src, $handle ) {
 		return preg_replace( '#^wp-admin/#', './', $src );
 	}
 
-	if ( 'colors' === $handle ) {
+	if ( 'colors' === $handle && isset( $_wp_admin_css_colors ) && is_array( $_wp_admin_css_colors ) ) {
 		$color = get_user_option( 'admin_color' );
 
 		if ( empty( $color ) || ! isset( $_wp_admin_css_colors[ $color ] ) ) {
