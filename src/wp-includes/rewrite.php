@@ -251,6 +251,12 @@ function remove_permastruct( $name ) {
 function add_feed( $feedname, $callback ) {
 	global $wp_rewrite;
 
+	// Validate feed name to not start with an underscore.
+	if ( '_' === substr( $feedname, 0, 1 ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Feed names should not start with an underscore.' ), '6.2.0' );
+		return false;
+	}
+
 	if ( ! in_array( $feedname, $wp_rewrite->feeds, true ) ) {
 		$wp_rewrite->feeds[] = $feedname;
 	}
