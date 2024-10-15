@@ -3218,7 +3218,7 @@ figure.wp-block-gallery.alignfull {
 /* STYLE: DEFAULT */
 
 .wp-block-pullquote {
-	padding: 0;
+	padding: 15px 10px;
 	position: relative;
 }
 
