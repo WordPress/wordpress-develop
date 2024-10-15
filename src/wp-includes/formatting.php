@@ -1650,6 +1650,7 @@ function remove_accents( $text, $locale = '' ) {
 			'â' => 'a',
 			'ã' => 'a',
 			'ä' => 'a',
+			'å' => 'a',
 			'å' => 'a',
 			'æ' => 'ae',
 			'ç' => 'c',
