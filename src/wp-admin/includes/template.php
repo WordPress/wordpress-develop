@@ -967,28 +967,48 @@ function parent_dropdown( $default_page = 0, $parent_page = 0, $level = 0, $post
 }
 
 /**
- * Prints out option HTML elements for role selectors.
- *
- * @since 2.1.0
- *
- * @param string $selected Slug for the role that should be already selected.
- */
-function wp_dropdown_roles( $selected = '' ) {
-	$r = '';
+* Displays or retrieves the HTML dropdown list of roles.
+*
+* @since 2.1.0
+* @since 6.1.0 Added the `$echo` parameter.
+*
+* @param array|string $args {
+*     Optional. Array or string of arguments to generate a roles drop-down element.
+
+*     @type bool|int $echo     Whether to echo or return the generated markup. Accepts 0, 1, or their
+*                              bool equivalents. Default 1.
+*     @type string   $selected Value of the option that should be selected. Default empty string.
+* }
+* @return string HTML dropdown list of roles.
+*/
+function wp_dropdown_roles( $args = '' ) {
+	$r        = '';
+	$defaults = array(
+		'echo'     => 1,
+		'selected' => '',
+	);
+
+	$defaults['selected'] = ( is_string( $args ) ) ? $args : '';
+
+	$parsed_args = wp_parse_args( $args, $defaults );
 
 	$editable_roles = array_reverse( get_editable_roles() );
 
 	foreach ( $editable_roles as $role => $details ) {
 		$name = translate_user_role( $details['name'] );
 		// Preselect specified role.
-		if ( $selected === $role ) {
+		if ( $parsed_args['selected'] === $role ) {
 			$r .= "\n\t<option selected='selected' value='" . esc_attr( $role ) . "'>$name</option>";
 		} else {
 			$r .= "\n\t<option value='" . esc_attr( $role ) . "'>$name</option>";
 		}
 	}
 
-	echo $r;
+	if ( $parsed_args['echo'] ) {
+		echo $r;
+	}
+
+	return $r;
 }
 
 /**
