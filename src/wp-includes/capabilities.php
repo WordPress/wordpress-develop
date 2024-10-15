@@ -825,8 +825,13 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				$caps[] = 'do_not_allow';
 				break;
 			}
-			$capability_type = get_post_type_object( $object_subtype )->capability_type;
-			$caps            = map_meta_cap( "edit_{$capability_type}", $user_id, $object_id );
+			$post_type_object = get_post_type_object( $object_subtype );
+			// Initialize empty array if it doesn't exist.
+			if ( ! isset( $post_type_object->capabilities ) ) {
+				$post_type_object->capabilities = array();
+			}
+			$post_type_capabilities = get_post_type_capabilities( $post_type_object );
+			$caps                   = map_meta_cap( $post_type_capabilities->edit_post, $user_id, $object_id );
 			break;
 		default:
 			// Handle meta capabilities for custom post types.
