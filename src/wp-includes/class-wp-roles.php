@@ -290,7 +290,7 @@ class WP_Roles {
 		$this->role_names   = array();
 		foreach ( array_keys( $this->roles ) as $role ) {
 			$this->role_objects[ $role ] = new WP_Role( $role, $this->roles[ $role ]['capabilities'] );
-			$this->role_names[ $role ]   = $this->roles[ $role ]['name'];
+			$this->role_names[ $role ]   = ( isset( $this->roles[ $role ]['name'] ) ) ? $this->roles[ $role ]['name'] : 'undefined';
 		}
 
 		/**
