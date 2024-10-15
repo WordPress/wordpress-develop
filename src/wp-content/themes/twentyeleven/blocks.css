@@ -30,7 +30,7 @@ figure[class^="wp-block-"] {
 	font-size: 12px;
 }
 
-[class^="wp-block-"]:not(.wp-block-gallery) figcaption {
+[class^="wp-block-"]:not(.wp-block-gallery) > figcaption {
 	color: #666;
 	margin-bottom: 1.625em;
 	max-width: 96%;
@@ -40,7 +40,7 @@ figure[class^="wp-block-"] {
 	text-align: left;
 }
 
-[class^="wp-block-"]:not(.wp-block-gallery) figcaption:before {
+[class^="wp-block-"]:not(.wp-block-gallery) > figcaption:before {
 	color: #666;
 	content: '\2014';
 	font-size: 14px;
@@ -52,13 +52,13 @@ figure[class^="wp-block-"] {
 	top: 0;
 }
 
-.rtl [class^="wp-block-"]:not(.wp-block-gallery) figcaption {
+.rtl [class^="wp-block-"]:not(.wp-block-gallery) > figcaption {
 	padding-left: 0;
 	padding-right: 40px;
 	text-align: right;
 }
 
-.rtl [class^="wp-block-"]:not(.wp-block-gallery) figcaption:before {
+.rtl [class^="wp-block-"]:not(.wp-block-gallery) > figcaption:before {
 	left: 0;
 	margin-left: 5px;
 	margin-right: 0;
@@ -121,6 +121,18 @@ p.has-drop-cap:not(:focus)::first-letter {
 .wp-block-quote.is-large cite,
 .wp-block-quote.is-style-large cite {
 	font-size: 16px;
+}
+
+.wp-block-quote[style*="font-weight"] blockquote,
+.wp-block-quote[style*="font-weight"] p,
+.wp-block-quote[style*="font-weight"] cite {
+	font-weight: inherit;
+}
+
+.wp-block-quote[style*="font-style"] blockquote,
+.wp-block-quote[style*="font-style"] p,
+.wp-block-quote[style*="font-style"] cite {
+	font-style: inherit;
 }
 
 /* Audio */
@@ -201,6 +213,18 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 .wp-block-pullquote.alignright {
 	margin-left: 1.625em;
+}
+
+.wp-block-pullquote[style*="font-weight"] blockquote,
+.wp-block-pullquote[style*="font-weight"] p,
+.wp-block-pullquote[style*="font-weight"] cite {
+	font-weight: inherit;
+}
+
+.wp-block-pullquote[style*="font-style"] blockquote,
+.wp-block-pullquote[style*="font-style"] p,
+.wp-block-pullquote[style*="font-style"] cite {
+	font-style: inherit;
 }
 
 /* Table */

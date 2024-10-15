@@ -532,7 +532,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		 * entered by users does not break other global styles.
 		 */
 		$global_styles[] = array(
-			'css'            => wp_get_global_styles_custom_css(),
+			'css'            => wp_get_global_stylesheet( array( 'custom-css' ) ),
 			'__unstableType' => 'user',
 			'isGlobalStyles' => true,
 		);
@@ -647,6 +647,8 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	if ( isset( $post_content_block_attributes ) ) {
 		$editor_settings['postContentAttributes'] = $post_content_block_attributes;
 	}
+
+	$editor_settings['canUpdateBlockBindings'] = current_user_can( 'edit_block_binding', $block_editor_context );
 
 	/**
 	 * Filters the settings to pass to the block editor for all editor type.

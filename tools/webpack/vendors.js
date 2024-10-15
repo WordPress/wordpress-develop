@@ -4,8 +4,6 @@
 const { join } = require( 'path' );
 
 const importedVendors = {
-	react: { import: 'react', global: 'React' },
-	'react-dom': { import: 'react-dom', global: 'ReactDOM' },
 	'react-jsx-runtime': {
 		import: 'react/jsx-runtime',
 		global: 'ReactJSXRuntime',
@@ -21,7 +19,7 @@ module.exports = function (
 		: mode === 'production'
 		? 'build'
 		: 'src';
-    buildTarget = buildTarget + '/wp-includes/js/dist/vendor/';
+	buildTarget = buildTarget + '/wp-includes/js/dist/vendor/';
 	return [
 		...Object.entries( importedVendors ).flatMap( ( [ name, config ] ) => {
 			return [ 'production', 'development' ].map( ( currentMode ) => {
@@ -45,12 +43,9 @@ module.exports = function (
 						},
 					},
 
-					externals:
-						name === 'react'
-							? {}
-							: {
-									react: 'React',
-							  },
+					externals: {
+						react: 'React',
+					},
 				};
 			} );
 		} ),
