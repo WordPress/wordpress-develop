@@ -59,7 +59,7 @@ class WP_Widget_Factory {
 		if ( $widget instanceof WP_Widget ) {
 			$this->widgets[ spl_object_hash( $widget ) ] = $widget;
 		} else {
-			$this->widgets[ $widget ] = new $widget();
+			$this->widgets[ $widget ] = new $widget( $widget, $widget );
 		}
 	}
 
