@@ -33,7 +33,7 @@ if ( empty( $current_screen ) ) {
 }
 
 get_admin_page_title();
-$title = strip_tags( $title );
+$title = ! empty( $title ) ? strip_tags( $title ) : $title;
 
 if ( is_network_admin() ) {
 	/* translators: Network admin screen title. %s: Network title. */
