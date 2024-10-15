@@ -1342,7 +1342,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 										'fontStyle'  => 'normal',
 										'fontWeight' => '400',
 										'src'        => array(
-											'file:./example/fonts/tocco/tocco-400-normal.woff2',
+											'file:./assets/tocco-400-normal.woff2',
 										),
 									),
 								),
@@ -1357,7 +1357,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 										'fontStyle'  => 'normal',
 										'fontWeight' => '400',
 										'src'        => array(
-											'file:./example/fonts/strozzapreti/strozzapreti-400-normal.woff2',
+											'file:./assets/strozzapreti-400-normal.woff2',
 										),
 									),
 								),
@@ -1396,13 +1396,13 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 		$expected_data = array(
 			array(
-				'name'   => 'file:./example/fonts/tocco/tocco-400-normal.woff2',
-				'href'   => 'https://example.org/wp-content/themes/example-theme/example/fonts/tocco/tocco-400-normal.woff2',
+				'name'   => 'file:./assets/tocco-400-normal.woff2',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/assets/tocco-400-normal.woff2',
 				'target' => 'typography.fontFamilies.secondary.fontFace.src',
 			),
 			array(
-				'name'   => 'file:./example/fonts/strozzapreti/strozzapreti-400-normal.woff2',
-				'href'   => 'https://example.org/wp-content/themes/example-theme/example/fonts/strozzapreti/strozzapreti-400-normal.woff2',
+				'name'   => 'file:./assets/strozzapreti-400-normal.woff2',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/assets/strozzapreti-400-normal.woff2',
 				'target' => 'typography.fontFamilies.primary.fontFace.src',
 			),
 			array(
