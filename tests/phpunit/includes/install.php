@@ -42,6 +42,15 @@ require_once ABSPATH . 'wp-settings.php';
 require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 require_once ABSPATH . 'wp-includes/class-wpdb.php';
 
+if ( $wpdb->last_error ) {
+	printf(
+		'Error: exiting unit tests because of the following database error: %s.' . PHP_EOL,
+		$wpdb->last_error
+	);
+	echo 'Exiting unit tests because of a database error.' . PHP_EOL,
+	exit( 1 );
+}
+
 // Override the PHPMailer.
 global $phpmailer;
 require_once __DIR__ . '/mock-mailer.php';
