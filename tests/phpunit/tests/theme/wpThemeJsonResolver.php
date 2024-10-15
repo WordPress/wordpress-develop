@@ -1331,7 +1331,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	public function test_get_resolved_theme_uris() {
 		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
 					'typography' => array(
 						'fontFamilies' => array(
@@ -1368,7 +1368,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 						),
 					),
 				),
-				'styles'  => array(
+				'styles'   => array(
 					'background' => array(
 						'backgroundImage' => array(
 							'url' => 'file:./assets/image.png',
