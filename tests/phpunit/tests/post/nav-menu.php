@@ -342,7 +342,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$start_num_queries = get_num_queries();
 		wp_get_nav_menu_items( $this->menu_id, array( 'nopaging' => false ) );
 		$queries_made = get_num_queries() - $start_num_queries;
-		$this->assertSame( 7, $queries_made, 'Only does 7 database queries when running wp_get_nav_menu_items.' );
+		$this->assertSame( 6, $queries_made, 'Only does 7 database queries when running wp_get_nav_menu_items.' );
 
 		$args = $action->get_args();
 		$this->assertSameSets( $menu_nav_ids, $args[0][1], '_prime_post_caches() was not executed.' );

@@ -402,6 +402,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Force the post_type argument, since it's not a user input variable.
 		$args['post_type'] = $this->post_type;
 
+		// Lazy load post meta.
+		$args['update_post_meta_cache'] = false;
+
 		/**
 		 * Filters WP_Query arguments when querying posts via the REST API.
 		 *
@@ -438,6 +441,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		update_post_author_caches( $query_result );
 		update_post_parent_caches( $query_result );
+
+		$post_ids = wp_list_pluck( $query_result, 'ID' );
+		wp_lazyload_post_meta( $post_ids );
 
 		if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
 			update_post_thumbnail_cache( $posts_query );

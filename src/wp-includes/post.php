@@ -2617,6 +2617,21 @@ function get_post_meta( $post_id, $key = '', $single = false ) {
 }
 
 /**
+ * Queue post meta for lazy-loading.
+ *
+ * @since 6.3.0
+ *
+ * @param array $post_ids List of post IDs.
+ */
+function wp_lazyload_post_meta( array $post_ids ) {
+	if ( empty( $post_ids ) ) {
+		return;
+	}
+	$lazyloader = wp_metadata_lazyloader();
+	$lazyloader->queue_objects( 'post', $post_ids );
+}
+
+/**
  * Updates a post meta field based on the given post ID.
  *
  * Use the `$prev_value` parameter to differentiate between meta fields with the
@@ -7706,7 +7721,8 @@ function update_post_parent_caches( $posts ) {
 	$parent_ids = array_unique( array_filter( $parent_ids ) );
 
 	if ( ! empty( $parent_ids ) ) {
-		_prime_post_caches( $parent_ids, false );
+		_prime_post_caches( $parent_ids, false, false );
+		wp_lazyload_post_meta( $parent_ids );
 	}
 }
 
