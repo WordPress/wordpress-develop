@@ -401,8 +401,7 @@ abstract class WP_REST_Meta_Fields {
 			);
 		}
 
-		$result     = update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ), '', true );
-
+		$result = update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ), '', true );
 		// Return a WP_Error object if update_metadata() returns false due to a database error.
 		// However, update_metadata() may return false even without a database error.
 		// Use the $wp_error parameter to avoid returning a WP_Error object when there is no actual error.
