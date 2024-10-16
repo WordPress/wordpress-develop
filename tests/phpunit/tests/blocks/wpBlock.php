@@ -220,7 +220,10 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $block->context );
 		$this->assertSame(
-			array( 'unrequested' => 'not included', 'core/recordId' => 10 ),
+			array(
+				'unrequested'   => 'not included',
+				'core/recordId' => 10
+			),
 			$block->inner_blocks[0]->context
 		);
 	}
