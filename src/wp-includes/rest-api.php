@@ -919,6 +919,45 @@ function rest_filter_response_fields( $response, $server, $request ) {
 
 	$fields = wp_parse_list( $request['_fields'] );
 
+	$embed = isset( $request['_embed'] ) ? rest_parse_embed_param( $request['_embed'] ) : false;
+
+	if ( $embed && ! in_array( '_links', $fields, true ) ) {
+		if ( is_array( $embed ) ) {
+			foreach ( $embed as $embed_item ) {
+				$fields[] = "_links.{$embed_item}";
+			}
+
+			foreach ( $response->get_links() as $rel => $link ) {
+				if ( ! in_array( "_links.{$rel}", $fields, true ) ) {
+					$response->remove_link( $rel );
+				}
+			}
+		} else {
+
+			if ( wp_is_numeric_array( $data ) ) {
+				foreach ( $data as $item ) {
+					foreach ( $item['_links'] as $link_key => $link ) {
+						foreach ( $link as $link_item ) {
+							if ( ! empty( $link_item['embeddable'] ) ) {
+								$fields[] = "_links.{$link_key}";
+								break;
+							}
+						}
+					}
+				}
+			} else {
+				foreach ( $response->get_links() as $rel => $link ) {
+					foreach ( $link as $attributes ) {
+						if ( ! empty( $attributes['attributes']['embeddable'] ) ) {
+							$fields[] = "_links.{$rel}";
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	if ( 0 === count( $fields ) ) {
 		return $response;
 	}
