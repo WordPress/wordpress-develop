@@ -523,10 +523,6 @@ switch ( $action ) {
 									$public_display['display_lastfirst'] = $profile_user->last_name . ' ' . $profile_user->first_name;
 								}
 
-								if ( ! in_array( $profile_user->display_name, $public_display, true ) ) { // Only add this if it isn't duplicated elsewhere.
-									$public_display = array( 'display_displayname' => $profile_user->display_name ) + $public_display;
-								}
-
 								$public_display = array_map( 'trim', $public_display );
 								$public_display = array_unique( $public_display );
 
