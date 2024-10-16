@@ -18,7 +18,6 @@ require __DIR__ . WPROOT . WPINC . '/html-api/class-wp-html-processor-state.php'
 require __DIR__ . WPROOT . WPINC . '/html-api/class-wp-html-processor.php';
 
 define( 'BACKSPACE', chr( 8 ) );
-define( 'SHIFT_TAB', "\033[0;59" );
 
 define( 'ERASE_TO_END_OF_LINE', "\033[0K" );
 define( 'ERASE_FROM_START_OF_LINE', "\033[1K" );
@@ -132,11 +131,6 @@ function print_html( $html ) {
 		 */
 		if ( ord( $keystroke ) === 10 || 'q' === $keystroke ) {
 			exit;
-		}
-
-		if ( $keystroke === SHIFT_TAB || ord( $keystroke ) === SHIFT_TAB || ord( $keystroke ) === 279091 ) {
-			echo 'shift-tab';
-			continue;
 		}
 
 		if ( ' ' === $keystroke ) {
