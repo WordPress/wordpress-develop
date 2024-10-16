@@ -9,11 +9,22 @@ jQuery( function( $ ) {
 	var __ = wp.i18n.__,
 		copiedNoticeTimeout;
 
+	/**
+	 * Set the state of an action element.
+	 *
+	 * @param {object} $action - jQuery object representing the action element.
+	 * @param {string} state - The state to set, which corresponds to a CSS class.
+	 */
 	function setActionState( $action, state ) {
 		$action.children().addClass( 'hidden' );
 		$action.children( '.' + state ).removeClass( 'hidden' );
 	}
 
+	/**
+	 * Clear results after a request row.
+	 *
+	 * @param {object} $requestRow - jQuery object representing the request row.
+	 */
 	function clearResultsAfterRow( $requestRow ) {
 		$requestRow.removeClass( 'has-request-results' );
 
@@ -22,6 +33,14 @@ jQuery( function( $ ) {
 		}
 	}
 
+	/**
+	 * Append results after a request row.
+	 *
+	 * @param {object} $requestRow - jQuery object representing the request row.
+	 * @param {string} classes - CSS classes to add to the results row.
+	 * @param {string} summaryMessage - Summary message to display.
+	 * @param {array} additionalMessages - Additional messages to display.
+	 */
 	function appendResultsAfterRow( $requestRow, classes, summaryMessage, additionalMessages ) {
 		var itemList = '',
 			resultRowClasses = 'request-results';
@@ -76,6 +95,11 @@ jQuery( function( $ ) {
 		clearResultsAfterRow( $requestRow );
 		setExportProgress( 0 );
 
+		/**
+		 * Handle successful data export.
+		 *
+		 * @param {string} zipUrl - URL of the exported data zip file.
+		 */
 		function onExportDoneSuccess( zipUrl ) {
 			var summaryMessage = __( 'This user&#8217;s personal data export link was sent.' );
 
@@ -96,6 +120,11 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
+		/**
+		 * Handle export failure.
+		 *
+		 * @param {string} errorMessage - Error message to display.
+		 */
 		function onExportFailure( errorMessage ) {
 			var summaryMessage = __( 'An error occurred while attempting to export personal data.' );
 
@@ -108,6 +137,11 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
+		/**
+		 * Set the export progress percentage.
+		 *
+		 * @param {number} exporterIndex - The current exporter index.
+		 */
 		function setExportProgress( exporterIndex ) {
 			var progress       = ( exportersCount > 0 ? exporterIndex / exportersCount : 0 ),
 				progressString = Math.round( progress * 100 ).toString() + '%';
@@ -115,6 +149,12 @@ jQuery( function( $ ) {
 			$progress.html( progressString );
 		}
 
+		/**
+		 * Perform the next export step.
+		 *
+		 * @param {number} exporterIndex - The current exporter index.
+		 * @param {number} pageIndex - The current page index.
+		 */
 		function doNextExport( exporterIndex, pageIndex ) {
 			$.ajax(
 				{
@@ -181,6 +221,9 @@ jQuery( function( $ ) {
 		clearResultsAfterRow( $requestRow );
 		setErasureProgress( 0 );
 
+		/**
+		 * Handle successful data erasure.
+		 */
 		function onErasureDoneSuccess() {
 			var summaryMessage = __( 'No personal data was found for this user.' ),
 				classes = 'notice-success';
@@ -207,6 +250,9 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
+		/**
+		 * Handle erasure failure.
+		 */
 		function onErasureFailure() {
 			var summaryMessage = __( 'An error occurred while attempting to find and erase personal data.' );
 
@@ -217,6 +263,11 @@ jQuery( function( $ ) {
 			setTimeout( function() { $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
+		/**
+		 * Set the erasure progress percentage.
+		 *
+		 * @param {number} eraserIndex - The current eraser index.
+		 */
 		function setErasureProgress( eraserIndex ) {
 			var progress       = ( erasersCount > 0 ? eraserIndex / erasersCount : 0 ),
 				progressString = Math.round( progress * 100 ).toString() + '%';
@@ -224,6 +275,12 @@ jQuery( function( $ ) {
 			$progress.html( progressString );
 		}
 
+		/**
+		 * Perform the next erasure step.
+		 *
+		 * @param {number} eraserIndex - The current eraser index.
+		 * @param {number} pageIndex - The current page index.
+		 */
 		function doNextErasure( eraserIndex, pageIndex ) {
 			$.ajax({
 				url: window.ajaxurl,
