@@ -538,8 +538,7 @@ add_action( 'transition_post_status', '_wp_keep_alive_customize_changeset_depend
 add_action( 'plugins_loaded', 'wp_initialize_theme_preview_hooks', 1 );
 
 // Calendar widget cache.
-add_action( 'save_post', 'delete_get_calendar_cache' );
-add_action( 'delete_post', 'delete_get_calendar_cache' );
+add_action( 'clean_post_cache', 'delete_get_calendar_cache' );
 add_action( 'update_option_start_of_week', 'delete_get_calendar_cache' );
 add_action( 'update_option_gmt_offset', 'delete_get_calendar_cache' );
 
