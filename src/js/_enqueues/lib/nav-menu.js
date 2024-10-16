@@ -562,42 +562,37 @@
 				menuItemChildren = menuItem.childMenuItems(),
 				menuItemNoChildren = parseInt( menuItem.childMenuItems().length, 10 ),
 				parentItem = $('#menu-item-'+newParentID),
-				parentItemPosition = parseInt( parentItem.index(), 10 ),
-				parentItemChild = parseInt( parentItem.childMenuItems().length, 10 ),
 				parentItemDepth = parentItem.menuItemDepth(),
 				menuItemNewDepth = parseInt(parentItemDepth) + 1;
 
 			if(newParentID == 0){
 				menuItemNewDepth = 0;
-				menuItemNewPosition = menuItems.length - 1;
-				if(menuItemPosition == menuItemNewPosition - menuItemNoChildren) menuItemNewPosition = menuItemNewPosition - menuItemNoChildren;
-
-			} else {
-				menuItemNewPosition = parentItemPosition + parentItemChild;
 			}
 
 			menuItem.find('.menu-item-data-parent-id').val(newParentID);
 			menuItem.moveHorizontally(menuItemNewDepth, menuItemOldDepth);
 
-			if( menuItemPosition != menuItemNewPosition ) {
-				if ( menuItemChildren ) {
-					menuItemWithChild = menuItem.add( menuItemChildren );
-
-					// Move the entire block.
-					menuItemWithChild.detach().insertAfter( menuItems.eq( menuItemNewPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown();
-				} else {
-					menuItem.detach().insertAfter( menuItems.eq( menuItemNewPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown();
-				}
-			} else {
-				if ( menuItemChildren ) {
-					menuItemWithChild = menuItem.add( menuItemChildren );
-
-					// Move the entire block.
-					menuItemWithChild.updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown();
-				} else {
-					menuItem.updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown();
-				}
+			if ( menuItemNoChildren > 0 ) {
+				menuItem = menuItem.add( menuItemChildren );
 			}
+			menuItem.detach();
+
+			var menuItems = $( '#menu-to-edit li' ),
+				parentItemPosition = parseInt( parentItem.index(), 10 ),
+				parentItemChildern = parentItem.childMenuItems(),
+				parentItemNoChild = parseInt( parentItem.childMenuItems().length, 10 );
+
+			if(parentItemNoChild > 0){
+				menuItemNewPosition = parentItemPosition + parentItemNoChild;
+			} else {
+				menuItemNewPosition = parentItemPosition;
+			}
+
+			if(newParentID == 0){
+				menuItemNewPosition = menuItems.length - 1;
+			}
+
+			menuItem.insertAfter( menuItems.eq( menuItemNewPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown();
 
 			api.registerChange();
 			api.refreshKeyboardAccessibility();
