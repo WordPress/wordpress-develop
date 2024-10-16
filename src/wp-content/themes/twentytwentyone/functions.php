@@ -133,7 +133,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 		}
 
 		// Enqueue editor styles.
-		add_editor_style( $editor_stylesheet_path );
+		add_editor_style( $editor_stylesheet_path, 'replace' );
 
 		// Add custom editor font sizes.
 		add_theme_support(
