@@ -115,13 +115,12 @@ $types   = (array) get_post_types(
 		'show_in_menu' => true,
 	)
 );
+
+$_post_type_pages = array();
+
 $builtin = array( 'post', 'page' );
 foreach ( array_merge( $builtin, $types ) as $ptype ) {
-	$ptype_obj = get_post_type_object( $ptype );
-	// Check if it should be a submenu.
-	if ( true !== $ptype_obj->show_in_menu ) {
-		continue;
-	}
+	$ptype_obj           = get_post_type_object( $ptype );
 	$ptype_menu_position = is_int( $ptype_obj->menu_position ) ? $ptype_obj->menu_position : ++$_wp_last_object_menu; // If we're to use $_wp_last_object_menu, increment it first.
 	$ptype_for_id        = sanitize_html_class( $ptype );
 
@@ -151,6 +150,14 @@ foreach ( array_merge( $builtin, $types ) as $ptype ) {
 		$ptype_file     = "edit.php?post_type=$ptype";
 		$post_new_file  = "post-new.php?post_type=$ptype";
 		$edit_tags_file = "edit-tags.php?taxonomy=%s&amp;post_type=$ptype";
+	}
+
+	$_post_type_pages[ $ptype_file ]    = $ptype_obj->cap->edit_posts;
+	$_post_type_pages[ $post_new_file ] = $ptype_obj->cap->create_posts;
+
+	// Check if it should be a submenu.
+	if ( true !== $ptype_obj->show_in_menu ) {
+		continue;
 	}
 
 	if ( in_array( $ptype, $builtin, true ) ) {
