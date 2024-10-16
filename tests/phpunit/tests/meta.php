@@ -460,39 +460,34 @@ class Tests_Meta extends WP_UnitTestCase {
 	 *
 	 * @covers ::update_metadata
 	 */
-	public function test_update_metadata_should_set_is_failure_flag_to_true_on_database_error() {
+	public function test_update_metadata_should_return_wp_error_on_database_error() {
 		global $wpdb;
 		$wpdb->suppress_errors = true;
-		$is_failure            = false;
 
 		// Attempt to add new metadata, but intentionally cause the query to fail using a filter.
 		$this->error_query_regexp = '/^INSERT.*bar_meta_value/i';
 		add_filter( 'query', array( $this, 'error_query' ) );
-		$result = update_metadata( 'user', $this->author->ID, 'foo_meta_key', 'bar_meta_value', '', $is_failure );
+		$result = update_metadata( 'user', $this->author->ID, 'foo_meta_key', 'bar_meta_value', '', true );
 		remove_filter( 'query', array( $this, 'error_query' ) );
 
-		$this->assertFalse( $result, 'Expected the result to be false when the query fails.' );
-		$this->assertTrue( $is_failure, 'Expected the is_failure flag to be true on a database error.' );
+		$this->assertWPError( $result, 'Expected result to be a WP_Error due to a database error.' );
 
 		// Attempt to add new metadata; the operation should succeed.
-		$result = update_metadata( 'user', $this->author->ID, 'foo_meta_key', 'bar_meta_value', '', $is_failure );
+		$result = update_metadata( 'user', $this->author->ID, 'foo_meta_key', 'bar_meta_value', '', true );
 
-		$this->assertIsInt( $result, 'Expected the result to be an integer on successful metadata addition.' );
-		$this->assertGreaterThan( 0, $result, 'Expected the result to be greater than zero, representing a valid ID.' );
-		$this->assertFalse( $is_failure, 'Expected the is_failure flag to remain false when the operation succeeds.' );
+		$this->assertIsInt( $result, 'Expected result to be an integer after successfully adding metadata.' );
+		$this->assertGreaterThan( 0, $result, 'Expected result to be greater than zero, representing a valid ID.' );
 
 		// Attempt to update existing metadata, but intentionally cause the query to fail using a filter.
 		$this->error_query_regexp = '/^UPDATE.*new_meta_value/i';
 		add_filter( 'query', array( $this, 'error_query' ) );
-		$result = update_metadata( 'user', $this->author->ID, 'foo_meta_key', 'new_meta_value', '', $is_failure );
-		$this->assertFalse( $result, 'Expected the result to be false when the update query fails.' );
-		$this->assertTrue( $is_failure, 'Expected the is_failure flag to be true on update failure.' );
+		$result = update_metadata( 'user', $this->author->ID, 'foo_meta_key', 'new_meta_value', '', true );
+		$this->assertWPError( $result, 'Expected result to be a WP_Error when the update query fails.' );
 		remove_filter( 'query', array( $this, 'error_query' ) );
 
 		// Attempt to update existing metadata; the operation should succeed.
-		$result = update_metadata( 'user', $this->author->ID, 'foo_meta_key', 'new_meta_value', '', $is_failure );
-		$this->assertTrue( $result, 'Expected the result to be true on successful metadata update.' );
-		$this->assertFalse( $is_failure, 'Expected the is_failure flag to remain false when the update succeeds.' );
+		$result = update_metadata( 'user', $this->author->ID, 'foo_meta_key', 'new_meta_value', '', true );
+		$this->assertTrue( $result, 'Expected result to be true after successfully updating metadata.' );
 
 		$wpdb->suppress_errors = false;
 	}
