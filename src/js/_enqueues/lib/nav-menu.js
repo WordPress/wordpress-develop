@@ -597,7 +597,7 @@
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
 			$this.focus();
-			wp.a11y.speak( 'Menu parent updated', 'polite' );
+			wp.a11y.speak( menus.parentUpdated, 'polite' );
 		},
 
 		/**
@@ -665,7 +665,7 @@
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
 			$this.focus();
-			wp.a11y.speak( 'Menu order updated', 'polite' );
+			wp.a11y.speak( menus.orderUpdated, 'polite' );
 		},
 
 		/**
