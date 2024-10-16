@@ -802,7 +802,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			// Void elements.
 			self::is_void( $token_name ) ||
 			// Special atomic elements.
-			( 'html' === $token_namespace && in_array( $token_name, array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) ||
+			parent::is_self_contained_tag() ||
 			// Self-closing elements in foreign content.
 			( 'html' !== $token_namespace && $token_has_self_closing )
 		);

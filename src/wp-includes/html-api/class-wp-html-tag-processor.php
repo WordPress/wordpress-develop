@@ -3247,6 +3247,31 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Indicates if the currently-matched token is a self-contained element,
+	 * i.e. a SCRIPT, STYLE, TEXTAREA, or TITLE element etc…
+	 *
+	 * When the HTML API finds one of these elements it will consume the entire
+	 * content up to and including the closing tag. They act like void tags, even
+	 * though they expect closing tags in input HTML. They are treated this way
+	 * because they cannot contain other HTML tags inside of them; their input is
+	 * always text content only, with or without replacement of character
+	 * references depending on which element it is.
+	 *
+	 * To get the contents of these elements, call {@see static::get_modifiable_text}.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return bool Whether the currently-matched token is a self-contained element.
+	 */
+	public function is_self_contained_tag(): bool {
+		return (
+			self::STATE_MATCHED_TAG === $this->parser_state &&
+			'html' === $this->get_namespace() &&
+			in_array( $this->get_tag(), array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true )
+		);
+	}
+
+	/**
 	 * Indicates if the current tag token is a tag closer.
 	 *
 	 * Example:
