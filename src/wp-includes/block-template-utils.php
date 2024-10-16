@@ -415,7 +415,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 			}
 
 			$new_template_item = array(
-				'slug'  => $template_slug,
+				'slug'  => wp_normalize_path( $template_slug ),
 				'path'  => $template_file,
 				'theme' => $theme_slug,
 				'type'  => $template_type,
