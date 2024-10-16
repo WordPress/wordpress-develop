@@ -108,8 +108,8 @@ class Tests_Blocks_RenderBlock extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array(
-				'tests/contextWithDefault'  => 0,
 				'tests/contextWithAssigned' => 10,
+				'tests/contextWithDefault'  => 0,
 			),
 			$provided_context[0]
 		);
