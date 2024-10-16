@@ -140,25 +140,32 @@ class WP_Block {
 
 		$this->available_context = $available_context;
 
-		$this->update_block_context();
-		$this->update_parsed_block_content();
+		$this->refresh_context_dependents();
+		$this->refresh_parsed_block_dependents();
 	}
 
 	/**
 	 * Updates the context for the current block and its inner blocks.
 	 *
 	 * This method updates the block's `context` property by merging the available context from ancestor blocks
-	 * with the block's own context values. The block only consumes the context keys specified in its registered
-	 * block type (`uses_context`). After updating its own context, the method also updates the context of the inner
-	 * blocks by passing any context values the block provides (`provides_context`).
+	 * with the block's own context values. It removes specific context keys (`postId` and `postType`) that should
+	 * not be carried over. The block only consumes the context keys specified in its registered block type (`uses_context`).
 	 *
-	 * The method recursively processes inner blocks by creating new instances of `WP_Block` for each inner block,
-	 * passing down the updated context.
+	 * After updating its own context, the method also updates the context of inner blocks, if any, by passing down
+	 * any context values the block provides (`provides_context`).
+	 *
+	 * If the block has inner blocks, the method recursively processes them by creating new instances of `WP_Block`
+	 * for each inner block and updating their context based on the block's `provides_context` property.
 	 *
 	 * @since 6.7.0
 	 */
-	public function update_block_context() {
-		$this->context = array_merge( $this->context, $this->available_context );
+	public function refresh_context_dependents() {
+		$this->context = $this->available_context;
+
+		// Remove "postId" and "postType" keys.
+		if ( isset( $this->context['postId'] ) || isset( $this->context['postType'] ) ) {
+			unset( $this->context['postId'], $this->context['postType'] );
+		}
 
 		if ( ! empty( $this->block_type->uses_context ) ) {
 			foreach ( $this->block_type->uses_context as $context_name ) {
@@ -169,30 +176,33 @@ class WP_Block {
 		}
 
 		if ( ! empty( $this->parsed_block['innerBlocks'] ) ) {
-			$child_context = $this->available_context;
-
 			if ( ! empty( $this->block_type->provides_context ) ) {
 				foreach ( $this->block_type->provides_context as $context_name => $attribute_name ) {
 					if ( array_key_exists( $attribute_name, $this->attributes ) ) {
-						$child_context[ $context_name ] = $this->attributes[ $attribute_name ];
+						$this->available_context[ $context_name ] = $this->attributes[ $attribute_name ];
 					}
 				}
 			}
-
-			$this->inner_blocks = new WP_Block_List( $this->parsed_block['innerBlocks'], $child_context, $this->registry );
 		}
 	}
 
 	/**
-	 * Updates the parsed block content for the current block.
+	 * Updates the parsed block content for the current block and its inner blocks.
 	 *
 	 * This method sets the `inner_html` and `inner_content` properties of the block based on the parsed
-	 * block content provided during the block's initialization. It ensures that the block instance reflects
-	 * the most up-to-date content for both the inner HTML and any string fragments around inner blocks.
+	 * block content provided during initialization. It ensures that the block instance reflects the
+	 * most up-to-date content for both the inner HTML and any string fragments around inner blocks.
+	 *
+	 * If the block has inner blocks, this method initializes a new `WP_Block_List` for them, ensuring the
+	 * correct content and context are updated for each nested block.
 	 *
 	 * @since 6.7.0
 	 */
-	public function update_parsed_block_content() {
+	public function refresh_parsed_block_dependents() {
+		if ( ! empty( $this->parsed_block['innerBlocks'] ) ) {
+			$this->inner_blocks = new WP_Block_List( $this->parsed_block['innerBlocks'], $this->available_context, $this->registry );
+		}
+
 		if ( ! empty( $this->parsed_block['innerHTML'] ) ) {
 			$this->inner_html = $this->parsed_block['innerHTML'];
 		}
@@ -548,11 +558,11 @@ class WP_Block {
 
 						if ( $inner_block->context !== $inner_block_context ) {
 							$inner_block->available_context = array_merge( $this->available_context, $inner_block->context );
-							$inner_block->update_block_context();
+							$inner_block->refresh_context_dependents();
 						}
 
 						if ( $inner_block->parsed_block !== $source_block ) {
-							$inner_block->update_parsed_block_content();
+							$inner_block->refresh_parsed_block_dependents();
 						}
 
 						$block_content .= $inner_block->render();
