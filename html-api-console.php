@@ -105,8 +105,8 @@ function highlight_current_token( $p ) {
 }
 
 function print_html( $html ) {
-	static $boomarks = 0;
-	$p               = new WP_HTML_Tag_Processor( $html );
+	static $bookmarks = 0;
+	$p                = new WP_HTML_Tag_Processor( $html );
 
 	/**
 	 * overwrite the readline handler to do nothing
