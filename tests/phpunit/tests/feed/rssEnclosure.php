@@ -1,15 +1,16 @@
 <?php
 
 /**
- * Test the feed.
+ * Tests for the rss_enclosure() function.
  *
  * @group feed
+ *
+ * @covers ::rss_enclosure
  */
-class Tests_rssEnclosure extends WP_UnitTestCase {
+class Tests_Feed_RssEnclosure extends WP_UnitTestCase {
+
 	/**
 	 * @ticket 58798
-	 *
-	 * @covers ::rss_enclosure
 	 */
 	public function test_rss_enclosure_filter() {
 		$post_id         = self::factory()->post->create();
@@ -21,7 +22,7 @@ class Tests_rssEnclosure extends WP_UnitTestCase {
 
 		add_filter(
 			'rss_enclosure',
-			function () {
+			static function () {
 				return 'filtered_html_link_tag';
 			}
 		);
@@ -31,30 +32,25 @@ class Tests_rssEnclosure extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 58798
-	 *
-	 * @covers ::rss_enclosure
 	 */
 	public function test_rss_enclosure_when_global_post_is_empty() {
-		$this->assertEmpty( get_echo( 'rss_enclosure' ), 'It should return empty when the global post is not set.' );
+		$this->assertEmpty( get_echo( 'rss_enclosure' ), 'The output should be empty when the global post is not set.' );
 	}
 
 	/**
 	 * @ticket 58798
-	 *
-	 * @covers ::rss_enclosure
 	 */
 	public function test_rss_enclosure_when_enclosure_meta_field_is_empty() {
 		$post_id         = self::factory()->post->create();
 		$GLOBALS['post'] = $post_id;
 
-		$this->assertEmpty( get_echo( 'rss_enclosure' ), 'The global post does not have the `enclosure` meta field and should return empty. ' );
+		$this->assertEmpty( get_echo( 'rss_enclosure' ), 'The output should be empty when the global post does not have the `enclosure` meta field.' );
 	}
 
 	/**
 	 * @ticket 58798
 	 *
 	 * @dataProvider data_rss_enclosure_with_multiline_enclosure_string
-	 * @covers ::rss_enclosure
 	 */
 	public function test_rss_enclosure_with_multiline_enclosure_string( $enclosure_data, $enclosure_string ) {
 		$post_id         = self::factory()->post->create();
@@ -64,13 +60,13 @@ class Tests_rssEnclosure extends WP_UnitTestCase {
 
 		$expected = '<enclosure url="' . $enclosure_data['url'] . '" length="' . $enclosure_data['length'] . '" type="' . $enclosure_data['type'] . '" />' . "\n";
 
-		$this->assertSame( $expected, get_echo( 'rss_enclosure' ), 'It should return a valid enclosure tag. ' );
+		$this->assertSame( $expected, get_echo( 'rss_enclosure' ), 'The output should be a valid enclosure tag.' );
 	}
 
 	/**
 	 * Data provider for valid enclosure string.
 	 *
-	 * @return array[].
+	 * @return array[]
 	 */
 	public function data_rss_enclosure_with_multiline_enclosure_string() {
 		return array(
@@ -113,7 +109,6 @@ class Tests_rssEnclosure extends WP_UnitTestCase {
 	 * @ticket 58798
 	 *
 	 * @dataProvider data_rss_enclosure_with_non_valid_enclosure_string
-	 * @covers ::rss_enclosure
 	 */
 	public function test_rss_enclosure_with_non_valid_enclosure_string( $enclosure_string ) {
 		$post_id         = self::factory()->post->create();
@@ -121,13 +116,13 @@ class Tests_rssEnclosure extends WP_UnitTestCase {
 
 		update_post_meta( $post_id, 'enclosure', $enclosure_string );
 
-		$this->assertEmpty( get_echo( 'rss_enclosure' ), 'It should return empty when the `enclosure` meta field is not saved in a multiline string.' );
+		$this->assertEmpty( get_echo( 'rss_enclosure' ), 'The output should be empty when the `enclosure` meta field is not saved in a multiline string.' );
 	}
 
 	/**
 	 * Data provider for non-valid enclosure string.
 	 *
-	 * @return array[].
+	 * @return array[]
 	 */
 	public function data_rss_enclosure_with_non_valid_enclosure_string() {
 		return array(
