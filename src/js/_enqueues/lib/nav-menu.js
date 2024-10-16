@@ -552,12 +552,11 @@
 		 * @param {object} ParentDropdown select field
 		 */
 		changeMenuParent : function( ParentDropdown ) {
-			var menuItemWithChild, menuItemNewPosition,
+			var menuItemNewPosition,
 				menuItems = $( '#menu-to-edit li' ),
 				$this = $( ParentDropdown ),
 				newParentID = $this.val(),
 				menuItem = $this.closest('li.menu-item').first(),
-				menuItemPosition = parseInt( menuItem.index(), 10 ),
 				menuItemOldDepth = menuItem.menuItemDepth(),
 				menuItemChildren = menuItem.childMenuItems(),
 				menuItemNoChildren = parseInt( menuItem.childMenuItems().length, 10 ),
@@ -577,9 +576,9 @@
 			}
 			menuItem.detach();
 
-			var menuItems = $( '#menu-to-edit li' ),
-				parentItemPosition = parseInt( parentItem.index(), 10 ),
-				parentItemChildern = parentItem.childMenuItems(),
+			menuItems = $( '#menu-to-edit li' );
+
+			var	parentItemPosition = parseInt( parentItem.index(), 10 ),
 				parentItemNoChild = parseInt( parentItem.childMenuItems().length, 10 );
 
 			if(parentItemNoChild > 0){
