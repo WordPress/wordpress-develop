@@ -26,46 +26,48 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name_admin_bar' => _x( 'Post', 'add new from admin bar' ),
 			),
-			'public'                => true,
-			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
-			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
-			'capability_type'       => 'post',
-			'map_meta_cap'          => true,
-			'menu_position'         => 5,
-			'menu_icon'             => 'dashicons-admin-post',
-			'hierarchical'          => false,
-			'rewrite'               => false,
-			'query_var'             => false,
-			'delete_with_user'      => true,
-			'supports'              => array( 'title', 'editor', 'author', 'thumbnail', 'excerpt', 'trackbacks', 'custom-fields', 'comments', 'revisions', 'post-formats' ),
-			'show_in_rest'          => true,
-			'rest_base'             => 'posts',
-			'rest_controller_class' => 'WP_REST_Posts_Controller',
+			'public'                 => true,
+			'_builtin'               => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'             => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
+			'capability_type'        => 'post',
+			'map_meta_cap'           => true,
+			'menu_position'          => 5,
+			'menu_icon'              => 'dashicons-admin-post',
+			'hierarchical'           => false,
+			'rewrite'                => false,
+			'query_var'              => false,
+			'delete_with_user'       => true,
+			'supports'               => array( 'title', 'editor', 'author', 'thumbnail', 'excerpt', 'trackbacks', 'custom-fields', 'comments', 'revisions', 'post-formats' ),
+			'show_in_rest'           => true,
+			'rest_base'              => 'posts',
+			'rest_controller_class'  => 'WP_REST_Posts_Controller',
+			'default_rendering_mode' => 'post-only',
 		)
 	);
 
 	register_post_type(
 		'page',
 		array(
-			'labels'                => array(
+			'labels'                 => array(
 				'name_admin_bar' => _x( 'Page', 'add new from admin bar' ),
 			),
-			'public'                => true,
-			'publicly_queryable'    => false,
-			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
-			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
-			'capability_type'       => 'page',
-			'map_meta_cap'          => true,
-			'menu_position'         => 20,
-			'menu_icon'             => 'dashicons-admin-page',
-			'hierarchical'          => true,
-			'rewrite'               => false,
-			'query_var'             => false,
-			'delete_with_user'      => true,
-			'supports'              => array( 'title', 'editor', 'author', 'thumbnail', 'page-attributes', 'custom-fields', 'comments', 'revisions' ),
-			'show_in_rest'          => true,
-			'rest_base'             => 'pages',
-			'rest_controller_class' => 'WP_REST_Posts_Controller',
+			'public'                 => true,
+			'publicly_queryable'     => false,
+			'_builtin'               => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'             => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
+			'capability_type'        => 'page',
+			'map_meta_cap'           => true,
+			'menu_position'          => 20,
+			'menu_icon'              => 'dashicons-admin-page',
+			'hierarchical'           => true,
+			'rewrite'                => false,
+			'query_var'              => false,
+			'delete_with_user'       => true,
+			'supports'               => array( 'title', 'editor', 'author', 'thumbnail', 'page-attributes', 'custom-fields', 'comments', 'revisions' ),
+			'show_in_rest'           => true,
+			'rest_base'              => 'pages',
+			'rest_controller_class'  => 'WP_REST_Posts_Controller',
+			'default_rendering_mode' => 'template-lock',
 		)
 	);
 
@@ -2326,6 +2328,25 @@ function get_post_types_by_support( $feature, $operator = 'and' ) {
 	$features = array_fill_keys( (array) $feature, true );
 
 	return array_keys( wp_filter_object_list( $_wp_post_type_features, $features, $operator ) );
+}
+
+/**
+ * Get the available rendering modes for the Block Editor.
+ *
+ * post-only: This mode extracts the post blocks from the template and renders only those.
+ * The idea is to allow the user to edit the post/page in isolation without the wrapping template.
+ *
+ * template-locked: This mode renders both the template and the post blocks
+ * but the template blocks are locked and can't be edited. The post blocks are editable.
+ *
+ * @return array Array of available rendering modes.
+ */
+function get_post_type_rendering_modes() {
+	return array(
+		'post-only',
+		'template-lock',
+		'template-locked',
+	);
 }
 
 /**
