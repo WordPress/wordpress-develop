@@ -11,8 +11,15 @@ services:
       WORDPRESS_DB_USER: exampleuser
       WORDPRESS_DB_PASSWORD: examplepass
       WORDPRESS_DB_NAME: exampledb
+      WORDPRESS_CONFIG_EXTRA: |
+        // Use forwarded host if available.
+        if ( ! empty( $$_SERVER['HTTP_X_FORWARDED_HOST'] ) ) {
+          $$_SERVER['HTTP_HOST'] = $$_SERVER['HTTP_X_FORWARDED_HOST'];
+        }
+
     volumes:
       - ../..:/workspaces:cached
+      - ../src:/var/www/html
 
   db:
     image: mariadb
