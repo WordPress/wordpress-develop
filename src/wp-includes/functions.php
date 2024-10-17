@@ -9037,3 +9037,51 @@ function wp_admin_notice( $message, $args = array() ) {
 
 	echo wp_kses_post( wp_get_admin_notice( $message, $args ) );
 }
+
+/**
+ * Compare two versions with the option to ignore the patch version.
+ *
+ * This function allows for comparing software version strings, providing the
+ * option to ignore the patch version when performing the comparison. This is
+ * particularly useful for compatibility checks where only major and minor
+ * versions are relevant.
+ *
+ * @since 6.7.0
+ *
+ * @param string $version1     First version to compare.
+ * @param string $version2     Second version to compare.
+ * @param string $operator     The comparison operator (like '>', '<=', etc.).
+ * @param bool   $ignore_patch Optional. Whether to ignore the patch version. Default is false.
+ *
+ * @return bool Result of the version comparison. Returns false if invalid parameters are provided.
+ */
+function wp_version_compare( $version1, $version2, $operator, $ignore_patch = false ) {
+	// Validate the comparison operator.
+	$valid_operators = array(
+		'>',
+		'<',
+		'>=',
+		'<=',
+		'==',
+		'!=',
+		'===',
+		'!==',
+	);
+	if ( ! in_array( $operator, $valid_operators, true ) ) {
+		return false;
+	}
+
+	// Validate versions.
+	if ( ! is_string( $version1 ) || ! is_string( $version2 ) ) {
+		return false;
+	}
+
+	// Optionally ignore the patch version if `$ignore_patch` is true.
+	if ( $ignore_patch ) {
+		$version1 = implode( '.', array_slice( explode( '.', $version1 ), 0, 2 ) );
+		$version2 = implode( '.', array_slice( explode( '.', $version2 ), 0, 2 ) );
+	}
+
+	// Use version_compare with the modified or full versions.
+	return version_compare( $version1, $version2, $operator );
+}
