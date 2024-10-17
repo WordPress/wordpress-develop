@@ -204,7 +204,7 @@ if ( ! empty( $messages ) ) {
 }
 ?>
 <p><?php echo wp_required_field_message(); ?></p>
-<form method="post" action="<?php echo esc_url( network_admin_url( 'site-new.php?action=add-site' ) ); ?>" novalidate="novalidate">
+<form method="post" action="<?php echo esc_url( network_admin_url( 'site-new.php?action=add-site' ) ); ?>" novalidate="novalidate"<?php echo apply_filters( 'network_new_site_form_attributes', '' ); ?>>
 <?php wp_nonce_field( 'add-blog', '_wpnonce_add-blog' ); ?>
 	<table class="form-table" role="presentation">
 		<tr class="form-field form-required">
