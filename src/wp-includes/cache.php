@@ -158,6 +158,7 @@ function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
  * Retrieves multiple values from the cache in one call.
  *
  * @since 5.5.0
+ * @since 6.3.0 Added the `$found` parameter.
  *
  * @see WP_Object_Cache::get_multiple()
  * @global WP_Object_Cache $wp_object_cache Object cache global instance.
@@ -166,13 +167,15 @@ function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
  * @param string $group Optional. Where the cache contents are grouped. Default empty.
  * @param bool   $force Optional. Whether to force an update of the local cache
  *                      from the persistent cache. Default false.
+ * @param array  $found Optional. Whether array of keys were found in the cache (passed by reference).
+ *                      Disambiguates a return of false, a storable value. Default empty array.
  * @return array Array of return values, grouped by key. Each value is either
  *               the cache contents on success, or false on failure.
  */
-function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
+function wp_cache_get_multiple( $keys, $group = '', $force = false, &$found = array() ) {
 	global $wp_object_cache;
 
-	return $wp_object_cache->get_multiple( $keys, $group, $force );
+	return $wp_object_cache->get_multiple( $keys, $group, $force, $found );
 }
 
 /**
