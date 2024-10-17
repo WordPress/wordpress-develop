@@ -498,7 +498,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 					$indexed_pixel_depth = $this->image->getImageDepth();
 					$max_colors = 2 ^ $indexed_pixel_depth;
 
-					if ( $indexed_pixel_depth && 0 < $indexed_pixel_depth <= 8 ) {
+					if ( 0 < $indexed_pixel_depth && 8 >= $indexed_pixel_depth ) {
 						if (
 							is_callable( array( $this->image, 'getImageAlphaChannel' ) )
 							&& $this->image->getImageAlphaChannel()
