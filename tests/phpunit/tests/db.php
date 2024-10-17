@@ -495,10 +495,12 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertTrue( $wpdb->has_cap( 'group_concat' ) );
 		$this->assertTrue( $wpdb->has_cap( 'subqueries' ) );
 		$this->assertTrue( $wpdb->has_cap( 'identifier_placeholders' ) );
+		$this->assertTrue( $wpdb->has_cap( 'variadic_placeholders' ) );
 		$this->assertTrue( $wpdb->has_cap( 'COLLATION' ) );
 		$this->assertTrue( $wpdb->has_cap( 'GROUP_CONCAT' ) );
 		$this->assertTrue( $wpdb->has_cap( 'SUBQUERIES' ) );
 		$this->assertTrue( $wpdb->has_cap( 'IDENTIFIER_PLACEHOLDERS' ) );
+		$this->assertTrue( $wpdb->has_cap( 'VARIADIC_PLACEHOLDERS' ) );
 		$this->assertSame(
 			version_compare( $wpdb->db_version(), '5.0.7', '>=' ),
 			$wpdb->has_cap( 'set_charset' )
@@ -1704,7 +1706,7 @@ class Tests_DB extends WP_UnitTestCase {
 			array(
 				'%%%%s',
 				'hello',
-				false,
+				'The query does not contain the correct number of placeholders (0) for the number of arguments passed (1).',
 				"{$placeholder_escape}{$placeholder_escape}s",
 			),
 			array(
@@ -1836,6 +1838,30 @@ class Tests_DB extends WP_UnitTestCase {
 				false,
 				"{$placeholder_escape}{$placeholder_escape}{$placeholder_escape}.4f OR id = 5",
 			),
+			array(
+				'WHERE id IN (%...d) AND lat > %f',
+				array( array( 1, 2, 3 ), 5.678 ),
+				false,
+				'WHERE id IN (1,2,3) AND lat > 5.678000',
+			),
+			array(
+				'WHERE id IN (%...d) AND lat > %%f',
+				array( array( 1, 2, 3 ) ),
+				false,
+				"WHERE id IN (1,2,3) AND lat > {$placeholder_escape}f",
+			),
+			array(
+				'WHERE id IN (%...d) AND lat > %%%f',
+				array( array( 1, 2, 3 ) ),
+				false,
+				"WHERE id IN (1,2,3) AND lat > {$placeholder_escape}{$placeholder_escape}f",
+			),
+			array(
+				'WHERE id IN (%...d) AND lat > %%%1$f',
+				array( array( 1, 2, 3 ) ),
+				false,
+				"WHERE id IN (1,2,3) AND lat > {$placeholder_escape}{$placeholder_escape}1\$f",
+			),
 
 			/*
 			 * @ticket 52506
@@ -1961,6 +1987,114 @@ class Tests_DB extends WP_UnitTestCase {
 				'Arguments cannot be prepared as both an Identifier and Value. Found the following conflicts: %1$i and %1$s and %1$s',
 				null,
 			),
+
+			/*
+			 * @ticket 54042.
+			 * Support IN() operator with `%...d`.
+			 */
+			array(
+				'id IN (%...d)',
+				array( array( 1, 2, 3, 'not-int' ) ),
+				false,
+				'id IN (1,2,3,0)',
+			),
+			array(
+				'id IN (%...f)',
+				array( array( 1.1, 2, 3.3, 'not-float' ) ),
+				false,
+				'id IN (1.100000,2.000000,3.300000,0.000000)',
+			),
+			array(
+				'type IN (%...s)',
+				array( array( 'post', 'page' ) ),
+				false,
+				"type IN ('post','page')",
+			),
+			array(
+				'SELECT %...i FROM %i WHERE id IN (%...d)',
+				array( array( 'field_1', 'field_2', 'field`3' ), 'table', array( 1, 2, 'non-int' ) ),
+				false,
+				'SELECT `field_1`,`field_2`,`field``3` FROM `table` WHERE id IN (1,2,0)',
+			),
+			array(
+				'id IN (%...d) AND type IN (%...s)',
+				array( array( 4, 29, 51 ), array( 'post', 'page' ) ),
+				false,
+				"id IN (4,29,51) AND type IN ('post','page')",
+			),
+			array(
+				'code IN (%...5s)',
+				array( array( 1, 2, 3 ) ),
+				false,
+				"code IN ('    1','    2','    3')",
+			),
+			array(
+				'id = %d AND code IN (%...2$5s)',
+				array( 5, array( 'a', 'b', 'c' ) ),
+				false,
+				"id = 5 AND code IN ('    a','    b','    c')",
+			),
+			array(
+				'id IN (%...d) AND (name = "%3$s" OR name = "%2$s")',
+				array( array( 1, 2, 3 ), 'A', 'B' ),
+				false,
+				'id IN (1,2,3) AND (name = "B" OR name = "A")',
+			),
+			array(
+				'id IN (%%...d)',
+				array(),
+				false,
+				"id IN ({$placeholder_escape}...d)",
+			),
+			array(
+				'id IN (%%%...d)',
+				array( array( 1, 2, 3 ) ),
+				false,
+				"id IN ({$placeholder_escape}1,2,3)",
+			),
+			array(
+				'id IN (%%%%...d)',
+				null,
+				'The query does not contain the correct number of placeholders (0) for the number of arguments passed (1).',
+				"id IN ({$placeholder_escape}{$placeholder_escape}...d)",
+			),
+			array(
+				'id IN (%...d) AND lat > %%%2$F',
+				array( array( 1, 2, 3 ), 5 ),
+				false,
+				"id IN (1,2,3) AND lat > {$placeholder_escape}5.000000",
+			),
+			array(
+				'id IN (%...d) AND lat > %%%2$f', // Note the lower case `f`, from the "force floats to be locale-unaware" RegEx issue (see above).
+				array( array( 1, 2, 3 ) ),
+				false,
+				"id IN (1,2,3) AND lat > {$placeholder_escape}{$placeholder_escape}2\$f",
+			),
+			array(
+				'id IN (%...d) AND lat > %%%1$F',
+				array( array( 1, 2, 3 ) ),
+				'The query does not contain the correct number of placeholders (2) for the number of arguments passed (1).',
+				"id IN (1,2,3) AND lat > {$placeholder_escape}3.000000", // Should this also be considered $dual_use?
+			),
+
+			// TODO: Has a problem with argnum's
+			// array(
+			// 	'a IN (%...2$d) AND b IN (%...d) AND c IN (%...1$d)',
+			// 	array( array( 1, 2, 3 ), array( 4, 5, 6 ), array( 7, 8, 9 ) ),
+			// 	false,
+			// 	'a IN (4,5,6) AND b IN (1,2,3) AND c IN (1,2,3)',
+			// ),
+
+			// TODO: Has a problem with $passed_as_array, and argnum
+			// array(
+			// 	'a IN (%...2$d) AND id = %1$d',
+			// 	array( 5, array( 1, 2, 3 ) ),
+			// 	false,
+			// 	'a IN (1,2,3) AND id = 5',
+			// ),
+
+			// TODO: Mixing of variable types, e.g. "%...d OR name = %1$s", ref $dual_use ?
+
 		);
 	}
 
@@ -2088,12 +2222,45 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 54042
+	 *
+	 * @covers wpdb::prepare
+	 */
+	public function test_allow_unsafe_unquoted_parameters() {
+		global $wpdb;
+
+		$sql    = 'WHERE (%i = %s) OR (%10i = %10s) OR (%5$i = %6$s)';
+		$values = array( 'field_a', 'string_a', 'field_b', 'string_b', 'field_c', 'string_c' );
+
+		$default = $wpdb->allow_unsafe_unquoted_parameters;
+
+		$property = new ReflectionProperty( $wpdb, 'allow_unsafe_unquoted_parameters' );
+		$property->setAccessible( true );
+
+		$property->setValue( $wpdb, true );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$part = $wpdb->prepare( $sql, $values );
+		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` =   string_b) OR (`field_c` = string_c)', $part ); // Unsafe, unquoted parameters.
+
+		$property->setValue( $wpdb, false );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$part = $wpdb->prepare( $sql, $values );
+		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` = \'  string_b\') OR (`field_c` = \'string_c\')', $part );
+
+		$property->setValue( $wpdb, $default );
+		$property->setAccessible( false );
+
+	}
+
+	/**
 	 * @dataProvider data_escape_and_prepare
 	 */
 	public function test_escape_and_prepare( $escape, $sql, $values, $incorrect_usage, $expected ) {
 		global $wpdb;
 
-		if ( $incorrect_usage ) {
+		if ( is_string( $incorrect_usage ) || true === $incorrect_usage ) {
 			$this->setExpectedIncorrectUsage( 'wpdb::prepare' );
 		}
 
@@ -2105,6 +2272,10 @@ class Tests_DB extends WP_UnitTestCase {
 		$actual = $wpdb->prepare( $sql, $values );
 
 		$this->assertSame( $expected, $actual );
+
+		if ( is_string( $incorrect_usage ) && array_key_exists( 'wpdb::prepare', $this->caught_doing_it_wrong ) ) {
+			$this->assertStringContainsString( $incorrect_usage, $this->caught_doing_it_wrong['wpdb::prepare'] );
+		}
 	}
 
 	public function data_escape_and_prepare() {
