@@ -251,32 +251,13 @@
 	 *
 	 */
 	wp.updates.addAdminNotice = function( data ) {
-		var $notice = $( data.selector ),
-			$headerEnd = $( '.wp-header-end' ),
-			$adminNotice;
+		// Simply delegate to the global addAdminNotice function.
 
-		delete data.selector;
-		$adminNotice = wp.updates.adminNotice( data );
+		addAdminNotice( data );
 
-		// Check if this admin notice already exists.
-		if ( ! $notice.length ) {
-			$notice = $( '#' + data.id );
-		}
-
-		if ( $notice.length ) {
-			$notice.replaceWith( $adminNotice );
-		} else if ( $headerEnd.length ) {
-			$headerEnd.after( $adminNotice );
-		} else {
-			if ( 'customize' === pagenow ) {
-				$( '.customize-themes-notifications' ).append( $adminNotice );
-			} else {
-				$( '.wrap' ).find( '> h1' ).after( $adminNotice );
-			}
-		}
-
-		$document.trigger( 'wp-updates-notice-added' );
+		$(document).trigger( 'wp-updates-notice-added' );
 	};
+
 
 	/**
 	 * Handles Ajax requests to WordPress.
