@@ -1432,7 +1432,7 @@ p.description code {
 
 p.popular-tags {
 	border: none;
-	line-height: 2em;
+	line-height: 2em; /* keep the em unit because tag links use multiple font sizes */
 	padding: 8px 12px 12px;
 	text-align: justify;
 }

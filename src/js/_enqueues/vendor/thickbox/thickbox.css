@@ -80,7 +80,7 @@
 	padding: 2px 15px 15px 15px;
 	overflow: auto;
 	text-align: left;
-	line-height: 1.4em;
+	line-height: 1.4;
 }
 
 #TB_ajaxContent.TB_modal {
