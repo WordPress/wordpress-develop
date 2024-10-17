@@ -63,6 +63,15 @@ final class WP_Block_Styles_Registry {
 	 */
 	public function register( $block_name, $style_properties ) {
 
+		if ( ! isset( $style_properties['label'] ) || ! is_string( $style_properties['label'] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Block style label must be a string.' ),
+				'6.7.0'
+			);
+			return false;
+		}
+
 		if ( ! is_string( $block_name ) && ! is_array( $block_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
