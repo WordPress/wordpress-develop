@@ -45,7 +45,7 @@ class WP_Font_Face_Resolver {
 	 */
 	public static function get_fonts_from_style_variations() {
 		$variations = WP_Theme_JSON_Resolver::get_style_variations();
-		$fonts = array();
+		$fonts      = array();
 
 		if ( empty( $variations ) ) {
 			return $fonts;
@@ -56,7 +56,7 @@ class WP_Font_Face_Resolver {
 				$fonts = array_merge( $fonts, $variation['settings']['typography']['fontFamilies']['theme'] );
 			}
 		}
-		
+
 		$settings = array(
 			'typography' => array(
 				'fontFamilies' => array(

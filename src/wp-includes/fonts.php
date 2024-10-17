@@ -58,7 +58,7 @@ function wp_print_font_faces( $fonts = array() ) {
  * Generates and prints font-face styles defined the the theme style variations.
  *
  * @since 6.7.0
- * 
+ *
  */
 function wp_print_font_faces_from_style_variations() {
 	$fonts = WP_Font_Face_Resolver::get_fonts_from_style_variations();
