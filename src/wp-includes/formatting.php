@@ -3563,6 +3563,16 @@ function is_email( $email, $deprecated = false ) {
 	}
 
 	/*
+	 * LOCAL PART
+	 * Test for invalid usage of periods.
+	 * Complies with RFC5322.
+	 */
+	if ( preg_match( '/(^\.|\.\.|\.$)/', $local ) ) {
+		/** This filter is documented in wp-includes/formatting.php */
+		return apply_filters( 'is_email', false, $email, 'local_invalid_chars' );
+	}
+
+	/*
 	 * DOMAIN PART
 	 * Test for sequences of periods.
 	 */
