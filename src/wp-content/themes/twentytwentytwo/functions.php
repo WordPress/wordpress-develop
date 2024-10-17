@@ -63,3 +63,26 @@ add_action( 'wp_enqueue_scripts', 'twentytwentytwo_styles' );
 
 // Add block patterns
 require get_template_directory() . '/inc/block-patterns.php';
+
+/**
+ * Changes Post Comments block heading.
+ *
+ * @param  string $block_content Block content to be rendered.
+ * @param  array  $block         Block attributes.
+ * @return string
+ */
+function twentytwentytwo_post_comments_block_heading( $block_content = '', $block = array() ) {
+	if ( isset( $block['blockName'] ) && 'core/post-comments' === $block['blockName'] ) {
+
+		$html = str_replace(
+			'h3',
+			'h2',
+			$block_content
+		);
+
+		return $html;
+	}
+	return $block_content;
+}
+
+add_filter( 'render_block', 'twentytwentytwo_post_comments_block_heading', 10, 2 );
