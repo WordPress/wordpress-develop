@@ -491,7 +491,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 						}
 
 						// Reduce colors in the images to maximum needed, using the global colorspace.
-						$max_colors = 2 ^ $indexed_pixel_depth;
+						$max_colors = pow( 2, $indexed_pixel_depth );
 						if ( is_callable( array( $this->image, 'getImageColors' ) ) ) {
 							$current_colors = $this->image->getImageColors();
 							$max_colors = min( $max_colors, $current_colors );
@@ -526,7 +526,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 			// Limit the bit depth of resized images to 8 bits per channel.
 			if ( is_callable( array( $this->image, 'getImageDepth' ) ) && is_callable( array( $this->image, 'setImageDepth' ) ) ) {
-				if ( 8 <= $this->image->getImageDepth() ) {
+				if ( 8 < $this->image->getImageDepth() ) {
 					$this->image->setImageDepth( 8 );
 				}
 			}
