@@ -705,7 +705,7 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 	unset( $metadata['image']['data'] );
 
 	// Capture file size for cases where it has not been captured yet, such as PDFs.
-	if ( ! isset( $metadata['filesize'] ) && file_exists( $file ) ) {
+	if ( ! empty( $metadata ) && ! isset( $metadata['filesize'] ) && file_exists( $file ) ) {
 		$metadata['filesize'] = wp_filesize( $file );
 	}
 
