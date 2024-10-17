@@ -4432,7 +4432,7 @@ function _wp_json_sanity_check( $value, $depth ) {
  * @see _wp_json_sanity_check()
  *
  * @param string $input_string The string which is to be converted.
- * @return string The checked string.
+ * @return string The checked string, or an empty string if conversion fails.
  */
 function _wp_json_convert_string( $input_string ) {
 	static $use_mb = null;
@@ -4443,10 +4443,17 @@ function _wp_json_convert_string( $input_string ) {
 	if ( $use_mb ) {
 		$encoding = mb_detect_encoding( $input_string, mb_detect_order(), true );
 		if ( $encoding ) {
-			return mb_convert_encoding( $input_string, 'UTF-8', $encoding );
+			$converted_string = mb_convert_encoding( $input_string, 'UTF-8', $encoding );
 		} else {
-			return mb_convert_encoding( $input_string, 'UTF-8', 'UTF-8' );
+			$converted_string = mb_convert_encoding( $input_string, 'UTF-8', 'UTF-8' );
 		}
+
+		// Check if conversion succeeded.
+		if ( false === $converted_string ) {
+			return ''; // Return an empty string on failure.
+		}
+
+		return $converted_string;
 	} else {
 		return wp_check_invalid_utf8( $input_string, true );
 	}
