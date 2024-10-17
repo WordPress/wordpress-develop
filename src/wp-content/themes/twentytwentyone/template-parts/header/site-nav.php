@@ -10,9 +10,25 @@
 ?>
 
 <?php if ( has_nav_menu( 'primary' ) ) : ?>
-	<nav id="site-navigation" class="primary-navigation" aria-label="<?php esc_attr_e( 'Primary menu', 'twentytwentyone' ); ?>">
+	<nav
+		id="site-navigation"
+		class="primary-navigation"
+		aria-label="<?php esc_attr_e( 'Primary menu', 'twentytwentyone' ); ?>"
+		data-wp-on--click="actions.listenToSpecialClicks"
+		data-wp-on--keydown="actions.trapFocusInModal"
+		data-wp-context='{"firstFocusable": null, "lastFocusable": null, "activeSubmenu": null}'
+		data-wp-watch--focusable="callbacks.determineFocusableElements"
+		data-wp-watch--submenus="callbacks.refreshSubmenus"
+	>
 		<div class="menu-button-container">
-			<button id="primary-mobile-menu" class="button" aria-controls="primary-menu-list" aria-expanded="false">
+			<button
+				id="primary-mobile-menu"
+				class="button"
+				aria-controls="primary-menu-list"
+				aria-expanded="false"
+				data-wp-on--click="actions.togglePrimaryMenu"
+				data-wp-bind--aria-expanded="state.isPrimaryMenuOpen"
+			>
 				<span class="dropdown-icon open"><?php esc_html_e( 'Menu', 'twentytwentyone' ); ?>
 					<?php echo twenty_twenty_one_get_icon_svg( 'ui', 'menu' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 				</span>
