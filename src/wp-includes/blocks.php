@@ -1990,7 +1990,19 @@ function excerpt_remove_blocks( $content ) {
 	$output         = '';
 
 	foreach ( $blocks as $block ) {
-		if ( in_array( $block['blockName'], $allowed_blocks, true ) ) {
+
+		/**
+		 * Filters whether the block can contribute to the excerpt.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param bool   $is_allowed Whether the block is allowed.
+		 * @param array  $block   The block being checked.
+		 * @return bool Modified allowed status.
+		 */
+		$is_allowed = apply_filters( 'excerpt_allowed_block', true, $block );
+
+		if ( in_array( $block['blockName'], $allowed_blocks, true ) && $is_allowed ) {
 			if ( ! empty( $block['innerBlocks'] ) ) {
 				if ( in_array( $block['blockName'], $allowed_wrapper_blocks, true ) ) {
 					$output .= _excerpt_render_inner_blocks( $block, $allowed_blocks );
@@ -2052,6 +2064,20 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
 
 	foreach ( $parsed_block['innerBlocks'] as $inner_block ) {
 		if ( ! in_array( $inner_block['blockName'], $allowed_blocks, true ) ) {
+			continue;
+		}
+
+		/**
+		 * Filters whether the block can contribute to the excerpt.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param bool   $is_allowed Whether the block is allowed.
+		 * @param array  $block   The block being checked.
+		 * @return bool Modified allowed status.
+		 */
+		$is_allowed = apply_filters( 'excerpt_block_attributes_check', true, $inner_block );
+		if ( ! $is_allowed ) {
 			continue;
 		}
 
