@@ -19,16 +19,19 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
 	);
 }
 
-if ( ! ( current_theme_supports( 'block-template-parts' ) || wp_is_block_theme() ) ) {
-	wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
-}
-
 $is_template_part        = isset( $_GET['postType'] ) && 'wp_template_part' === sanitize_key( $_GET['postType'] );
 $is_template_part_path   = isset( $_GET['path'] ) && 'wp_template_partall' === sanitize_key( $_GET['path'] );
 $is_template_part_editor = $is_template_part || $is_template_part_path;
+$is_patterns             = isset( $_GET['postType'] ) && 'wp_block' === sanitize_key( $_GET['postType'] );
+$is_patterns_path        = isset( $_GET['path'] ) && 'patterns' === sanitize_key( $_GET['path'] );
+$is_patterns_editor      = $is_patterns || $is_patterns_path;
 
-if ( ! wp_is_block_theme() && ! $is_template_part_editor ) {
-	wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
+if ( ! wp_is_block_theme() ) {
+	if ( ! current_theme_supports( 'block-template-parts' ) && $is_template_part_editor ) {
+		wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
+	} elseif ( ! $is_patterns_editor && ! $is_template_part_editor ) {
+		wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
+	}
 }
 
 // Used in the HTML title tag.
@@ -85,10 +88,11 @@ $navigation_rest_route = rest_get_route_for_post_type_items(
 );
 
 $preload_paths = array(
-	array( '/wp/v2/media', 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'page' ), 'OPTIONS' ),
 	'/wp/v2/types?context=view',
 	'/wp/v2/types/wp_template?context=edit',
-	'/wp/v2/types/wp_template-part?context=edit',
+	'/wp/v2/types/wp_template_part?context=edit',
 	'/wp/v2/templates?context=edit&per_page=-1',
 	'/wp/v2/template-parts?context=edit&per_page=-1',
 	'/wp/v2/themes?context=edit&status=active',
@@ -130,6 +134,24 @@ wp_add_inline_script(
 	'wp-blocks',
 	'wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( get_block_editor_server_block_settings() ) . ');'
 );
+
+// Preload server-registered block bindings sources.
+$registered_sources = get_all_registered_block_bindings_sources();
+if ( ! empty( $registered_sources ) ) {
+	$filtered_sources = array();
+	foreach ( $registered_sources as $source ) {
+		$filtered_sources[] = array(
+			'name'        => $source->name,
+			'label'       => $source->label,
+			'usesContext' => $source->uses_context,
+		);
+	}
+	$script = sprintf( 'for ( const source of %s ) { wp.blocks.registerBlockBindingsSource( source ); }', wp_json_encode( $filtered_sources ) );
+	wp_add_inline_script(
+		'wp-blocks',
+		$script
+	);
+}
 
 wp_add_inline_script(
 	'wp-blocks',

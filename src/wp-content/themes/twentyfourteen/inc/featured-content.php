@@ -179,7 +179,7 @@ class Featured_Content {
 	}
 
 	/**
-	 * Return an array with IDs of posts maked as sticky.
+	 * Return an array with IDs of posts marked as sticky.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
@@ -280,6 +280,7 @@ class Featured_Content {
 	 *
 	 * @param array $terms      List of term objects. This is the return value of get_terms().
 	 * @param array $taxonomies An array of taxonomy slugs.
+	 * @param array $args       An array of get_terms() arguments.
 	 * @return array A filtered array of terms.
 	 *
 	 * @uses Featured_Content::get_setting()

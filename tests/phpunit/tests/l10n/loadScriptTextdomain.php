@@ -13,6 +13,8 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 	 * @ticket 46336
 	 * @ticket 46387
 	 * @ticket 49145
+	 * @ticket 60891
+	 * @ticket 62016
 	 *
 	 * @dataProvider data_resolve_relative_path
 	 */
@@ -120,6 +122,26 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 						return '/wp';
 					},
 				),
+			),
+			// @ticket 60891
+			array(
+				'/languages/plugins/internationalized-plugin-en_US-2f86cb96a0233e7cb3b6f03ad573be0b.json',
+				'plugin-in-custom-plugin-dir',
+				'/wp-content/mods/my-plugin/js/script.js',
+				'internationalized-plugin',
+				array(
+					'plugins_url',
+					static function () {
+						return 'https://example.com/wp-content/mods';
+					},
+				),
+			),
+			// @ticket 62016
+			array(
+				'/languages/themes/internationalized-theme-en_US-2f86cb96a0233e7cb3b6f03ad573be0b.json',
+				'theme-with-script-translations',
+				'/wp-content/themes/my-theme/js/script.js',
+				'internationalized-theme',
 			),
 		);
 	}

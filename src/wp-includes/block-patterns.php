@@ -26,7 +26,6 @@ function _register_core_block_patterns_and_categories() {
 			'query-grid-posts',
 			'query-large-title-posts',
 			'query-offset-posts',
-			'social-links-shared-background-color',
 		);
 
 		foreach ( $core_block_patterns as $core_block_pattern ) {
@@ -133,6 +132,20 @@ function _register_core_block_patterns_and_categories() {
 		array(
 			'label'       => _x( 'Media', 'Block pattern category' ),
 			'description' => __( 'Different layouts containing video or audio.' ),
+		)
+	);
+	register_block_pattern_category(
+		'videos',
+		array(
+			'label'       => _x( 'Videos', 'Block pattern category' ),
+			'description' => __( 'Different layouts containing videos.' ),
+		)
+	);
+	register_block_pattern_category(
+		'audio',
+		array(
+			'label'       => _x( 'Audio', 'Block pattern category' ),
+			'description' => __( 'Different layouts containing audio.' ),
 		)
 	);
 	register_block_pattern_category(
@@ -324,10 +337,21 @@ function _register_remote_theme_patterns() {
  * @since 6.0.0
  * @since 6.1.0 The `postTypes` property was added.
  * @since 6.2.0 The `templateTypes` property was added.
- * @since 6.4.0 Uses the `_wp_get_block_patterns` function.
+ * @since 6.4.0 Uses the `WP_Theme::get_block_patterns` method.
  * @access private
  */
 function _register_theme_block_patterns() {
+
+	/*
+	 * During the bootstrap process, a check for active and valid themes is run.
+	 * If no themes are returned, the theme's functions.php file will not be loaded,
+	 * which can lead to errors if patterns expect some variables or constants to
+	 * already be set at this point, so bail early if that is the case.
+	 */
+	if ( empty( wp_get_active_and_valid_themes() ) ) {
+		return;
+	}
+
 	/*
 	 * Register patterns for the active theme. If the theme is a child theme,
 	 * let it override any patterns from the parent theme that shares the same slug.
@@ -341,7 +365,7 @@ function _register_theme_block_patterns() {
 	$registry = WP_Block_Patterns_Registry::get_instance();
 
 	foreach ( $themes as $theme ) {
-		$patterns    = _wp_get_block_patterns( $theme );
+		$patterns    = $theme->get_block_patterns();
 		$dirpath     = $theme->get_stylesheet_directory() . '/patterns/';
 		$text_domain = $theme->get( 'TextDomain' );
 
@@ -350,13 +374,23 @@ function _register_theme_block_patterns() {
 				continue;
 			}
 
-			// The actual pattern content is the output of the file.
-			ob_start();
-			include $dirpath . $file;
-			$pattern_data['content'] = ob_get_clean();
-			if ( ! $pattern_data['content'] ) {
+			$file_path = $dirpath . $file;
+
+			if ( ! file_exists( $file_path ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: %s: file name. */
+						__( 'Could not register file "%s" as a block pattern as the file does not exist.' ),
+						$file
+					),
+					'6.4.0'
+				);
+				$theme->delete_pattern_cache();
 				continue;
 			}
+
+			$pattern_data['filePath'] = $file_path;
 
 			// Translate the pattern metadata.
 			// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain,WordPress.WP.I18n.LowLevelTranslationFunction
@@ -371,168 +405,3 @@ function _register_theme_block_patterns() {
 	}
 }
 add_action( 'init', '_register_theme_block_patterns' );
-
-/**
- * Gets block pattern data for a specified theme.
- * Each pattern is defined as a PHP file and defines
- *  its metadata using plugin-style headers. The minimum required definition is:
- *
- *      /**
- *       * Title: My Pattern
- *       * Slug: my-theme/my-pattern
- *       *
- *
- *  The output of the PHP source corresponds to the content of the pattern, e.g.:
- *
- *      <main><p><?php echo "Hello"; ?></p></main>
- *
- *  If applicable, this will collect from both parent and child theme.
- *
- *  Other settable fields include:
- *
- *    - Description
- *    - Viewport Width
- *    - Inserter         (yes/no)
- *    - Categories       (comma-separated values)
- *    - Keywords         (comma-separated values)
- *    - Block Types      (comma-separated values)
- *    - Post Types       (comma-separated values)
- *    - Template Types   (comma-separated values)
- *
- * @since 6.4.0
- * @access private
- *
- * @param WP_Theme $theme Theme object.
- * @return array Block pattern data.
- */
-function _wp_get_block_patterns( WP_Theme $theme ) {
-	$can_use_cached = ! wp_is_development_mode( 'theme' );
-
-	if ( $can_use_cached ) {
-		$pattern_data = $theme->get_pattern_cache();
-		if ( is_array( $pattern_data ) ) {
-			return $pattern_data;
-		}
-	}
-
-	$dirpath      = $theme->get_stylesheet_directory() . '/patterns/';
-	$pattern_data = array();
-
-	if ( ! file_exists( $dirpath ) ) {
-		if ( $can_use_cached ) {
-			$theme->set_pattern_cache( $pattern_data );
-		}
-		return $pattern_data;
-	}
-	$files = glob( $dirpath . '*.php' );
-	if ( ! $files ) {
-		if ( $can_use_cached ) {
-			$theme->set_pattern_cache( $pattern_data );
-		}
-		return $pattern_data;
-	}
-
-	$default_headers = array(
-		'title'         => 'Title',
-		'slug'          => 'Slug',
-		'description'   => 'Description',
-		'viewportWidth' => 'Viewport Width',
-		'inserter'      => 'Inserter',
-		'categories'    => 'Categories',
-		'keywords'      => 'Keywords',
-		'blockTypes'    => 'Block Types',
-		'postTypes'     => 'Post Types',
-		'templateTypes' => 'Template Types',
-	);
-
-	$properties_to_parse = array(
-		'categories',
-		'keywords',
-		'blockTypes',
-		'postTypes',
-		'templateTypes',
-	);
-
-	foreach ( $files as $file ) {
-		$pattern = get_file_data( $file, $default_headers );
-
-		if ( empty( $pattern['slug'] ) ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: 1: file name. */
-					__( 'Could not register file "%s" as a block pattern ("Slug" field missing)' ),
-					$file
-				),
-				'6.0.0'
-			);
-			continue;
-		}
-
-		if ( ! preg_match( '/^[A-z0-9\/_-]+$/', $pattern['slug'] ) ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: 1: file name; 2: slug value found. */
-					__( 'Could not register file "%1$s" as a block pattern (invalid slug "%2$s")' ),
-					$file,
-					$pattern['slug']
-				),
-				'6.0.0'
-			);
-		}
-
-		// Title is a required property.
-		if ( ! $pattern['title'] ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: 1: file name. */
-					__( 'Could not register file "%s" as a block pattern ("Title" field missing)' ),
-					$file
-				),
-				'6.0.0'
-			);
-			continue;
-		}
-
-		// For properties of type array, parse data as comma-separated.
-		foreach ( $properties_to_parse as $property ) {
-			if ( ! empty( $pattern[ $property ] ) ) {
-				$pattern[ $property ] = array_filter( wp_parse_list( (string) $pattern[ $property ] ) );
-			} else {
-				unset( $pattern[ $property ] );
-			}
-		}
-
-		// Parse properties of type int.
-		$property = 'viewportWidth';
-		if ( ! empty( $pattern[ $property ] ) ) {
-			$pattern[ $property ] = (int) $pattern[ $property ];
-		} else {
-			unset( $pattern[ $property ] );
-		}
-
-		// Parse properties of type bool.
-		$property = 'inserter';
-		if ( ! empty( $pattern[ $property ] ) ) {
-			$pattern[ $property ] = in_array(
-				strtolower( $pattern[ $property ] ),
-				array( 'yes', 'true' ),
-				true
-			);
-		} else {
-			unset( $pattern[ $property ] );
-		}
-
-		$key = str_replace( $dirpath, '', $file );
-
-		$pattern_data[ $key ] = $pattern;
-	}
-
-	if ( $can_use_cached ) {
-		$theme->set_pattern_cache( $pattern_data );
-	}
-
-	return $pattern_data;
-}

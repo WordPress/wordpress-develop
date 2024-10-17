@@ -208,14 +208,15 @@ function _block_template_render_title_tag() {
  * @access private
  * @since 5.8.0
  *
+ * @global string   $_wp_current_template_id
  * @global string   $_wp_current_template_content
- * @global WP_Embed $wp_embed
- * @global WP_Query $wp_query
+ * @global WP_Embed $wp_embed                     WordPress Embed object.
+ * @global WP_Query $wp_query                     WordPress Query object.
  *
  * @return string Block template markup.
  */
 function get_the_block_template_html() {
-	global $_wp_current_template_content, $wp_embed, $wp_query;
+	global $_wp_current_template_id, $_wp_current_template_content, $wp_embed, $wp_query;
 
 	if ( ! $_wp_current_template_content ) {
 		if ( is_user_logged_in() ) {
@@ -242,8 +243,18 @@ function get_the_block_template_html() {
 	 * Even if the block template contained a `core/query` and `core/post-template` block referencing the main query
 	 * loop, it would not cause errors since it would use a cloned instance and go through the same loop of a single
 	 * post, within the actual main query loop.
+	 *
+	 * This special logic should be skipped if the current template does not come from the current theme, in which case
+	 * it has been injected by a plugin by hijacking the block template loader mechanism. In that case, entirely custom
+	 * logic may be applied which is unpredictable and therefore safer to omit this special handling on.
 	 */
-	if ( is_singular() && 1 === $wp_query->post_count && have_posts() ) {
+	if (
+		$_wp_current_template_id &&
+		str_starts_with( $_wp_current_template_id, get_stylesheet() . '//' ) &&
+		is_singular() &&
+		1 === $wp_query->post_count &&
+		have_posts()
+	) {
 		while ( have_posts() ) {
 			the_post();
 			$content = do_blocks( $content );
@@ -346,4 +357,39 @@ function _resolve_template_for_new_post( $wp_query ) {
 	) {
 		$wp_query->set( 'post_status', 'auto-draft' );
 	}
+}
+
+/**
+ * Register a block template.
+ *
+ * @since 6.7.0
+ *
+ * @param string       $template_name  Template name in the form of `plugin_uri//template_name`.
+ * @param array|string $args           {
+ *     @type string        $title                 Optional. Title of the template as it will be shown in the Site Editor
+ *                                                and other UI elements.
+ *     @type string        $description           Optional. Description of the template as it will be shown in the Site
+ *                                                Editor.
+ *     @type string        $content               Optional. Default content of the template that will be used when the
+ *                                                template is rendered or edited in the editor.
+ *     @type string[]      $post_types            Optional. Array of post types to which the template should be available.
+ *     @type string        $plugin                Optional. Slug of the plugin that registers the template.
+ * }
+ * @return WP_Block_Template|WP_Error The registered template object on success, WP_Error object on failure.
+ */
+function register_block_template( $template_name, $args = array() ) {
+	return WP_Block_Templates_Registry::get_instance()->register( $template_name, $args );
+}
+
+/**
+ * Unregister a block template.
+ *
+ * @since 6.7.0
+ *
+ * @param string $template_name Template name in the form of `plugin_uri//template_name`.
+ * @return WP_Block_Template|WP_Error The unregistered template object on success, WP_Error object on failure or if the
+ *                                    template doesn't exist.
+ */
+function unregister_block_template( $template_name ) {
+	return WP_Block_Templates_Registry::get_instance()->unregister( $template_name );
 }

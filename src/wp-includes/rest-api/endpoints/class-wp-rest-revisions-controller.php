@@ -308,7 +308,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			}
 
 			if ( $revisions_query->query_vars['posts_per_page'] > 0 ) {
-				$max_pages = ceil( $total_revisions / (int) $revisions_query->query_vars['posts_per_page'] );
+				$max_pages = (int) ceil( $total_revisions / (int) $revisions_query->query_vars['posts_per_page'] );
 			} else {
 				$max_pages = $total_revisions > 0 ? 1 : 0;
 			}
@@ -387,6 +387,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * Retrieves one revision from the collection.
 	 *
 	 * @since 4.7.0
+	 * @since 6.5.0 Added a condition to check that parent id matches revision parent id.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -400,6 +401,15 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$revision = $this->get_revision( $request['id'] );
 		if ( is_wp_error( $revision ) ) {
 			return $revision;
+		}
+
+		if ( (int) $parent->ID !== (int) $revision->post_parent ) {
+			return new WP_Error(
+				'rest_revision_parent_id_mismatch',
+				/* translators: %d: A post id. */
+				sprintf( __( 'The revision does not belong to the specified parent with id of "%d"' ), $parent->ID ),
+				array( 'status' => 404 )
+			);
 		}
 
 		$response = $this->prepare_item_for_response( $revision, $request );
@@ -549,6 +559,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
+	 *
+	 * @global WP_Post $post Global post object.
 	 *
 	 * @param WP_Post         $item    Post revision object.
 	 * @param WP_REST_Request $request Request object.

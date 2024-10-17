@@ -77,6 +77,7 @@ class WP_Http {
 	const UNPROCESSABLE_ENTITY            = 422;
 	const LOCKED                          = 423;
 	const FAILED_DEPENDENCY               = 424;
+	const TOO_EARLY                       = 425;
 	const UPGRADE_REQUIRED                = 426;
 	const PRECONDITION_REQUIRED           = 428;
 	const TOO_MANY_REQUESTS               = 429;
@@ -144,8 +145,21 @@ class WP_Http {
 	 *     @type int          $limit_response_size Size in bytes to limit the response to. Default null.
 	 *
 	 * }
-	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
-	 *                        A WP_Error instance upon error.
+	 * @return array|WP_Error {
+	 *     Array of response data, or a WP_Error instance upon error.
+	 *
+	 *     @type \WpOrg\Requests\Utility\CaseInsensitiveDictionary $headers       Response headers keyed by name.
+	 *     @type string                                            $body          Response body.
+	 *     @type array                                             $response      {
+	 *         Array of HTTP response data.
+	 *
+	 *         @type int|false    $code    HTTP response status code.
+	 *         @type string|false $message HTTP response message.
+	 *     }
+	 *     @type WP_HTTP_Cookie[]                                  $cookies       Array of cookies set by the server.
+	 *     @type string|null                                       $filename      Optional. Filename of the response.
+	 *     @type WP_HTTP_Requests_Response|null                    $http_response Response object.
+	 * }
 	 */
 	public function request( $url, $args = array() ) {
 		$defaults = array(
@@ -467,9 +481,9 @@ class WP_Http {
 						return null !== $attr;
 					}
 				);
-				$cookie_jar[ $value->name ] = new WpOrg\Requests\Cookie( $value->name, $value->value, $attributes, array( 'host-only' => $value->host_only ) );
+				$cookie_jar[ $value->name ] = new WpOrg\Requests\Cookie( (string) $value->name, $value->value, $attributes, array( 'host-only' => $value->host_only ) );
 			} elseif ( is_scalar( $value ) ) {
-				$cookie_jar[ $name ] = new WpOrg\Requests\Cookie( $name, (string) $value );
+				$cookie_jar[ $name ] = new WpOrg\Requests\Cookie( (string) $name, (string) $value );
 			}
 		}
 
@@ -611,7 +625,7 @@ class WP_Http {
 	 * @param string       $url  The request URL.
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
-	 *                        A WP_Error instance upon error.
+	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
 	 */
 	public function post( $url, $args = array() ) {
 		$defaults    = array( 'method' => 'POST' );
@@ -629,7 +643,7 @@ class WP_Http {
 	 * @param string       $url  The request URL.
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
-	 *                        A WP_Error instance upon error.
+	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
 	 */
 	public function get( $url, $args = array() ) {
 		$defaults    = array( 'method' => 'GET' );
@@ -647,7 +661,7 @@ class WP_Http {
 	 * @param string       $url  The request URL.
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
-	 *                        A WP_Error instance upon error.
+	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
 	 */
 	public function head( $url, $args = array() ) {
 		$defaults    = array( 'method' => 'HEAD' );

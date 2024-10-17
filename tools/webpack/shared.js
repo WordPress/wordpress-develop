@@ -20,7 +20,7 @@ const getBaseConfig = ( env ) => {
 				new TerserPlugin( {
 					extractComments: false,
 				} ),
-			]
+			],
 		},
 		module: {
 			rules: [
@@ -32,10 +32,7 @@ const getBaseConfig = ( env ) => {
 			],
 		},
 		resolve: {
-			modules: [
-				baseDir,
-				'node_modules',
-			],
+			modules: [ baseDir, 'node_modules' ],
 			alias: {
 				'lodash-es': 'lodash',
 			},
@@ -45,11 +42,13 @@ const getBaseConfig = ( env ) => {
 		plugins: [
 			new DefinePlugin( {
 				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
-				'process.env.IS_GUTENBERG_PLUGIN': false,
+				'globalThis.IS_GUTENBERG_PLUGIN': JSON.stringify( false ),
 				// Inject the `IS_WORDPRESS_CORE` global, used for feature flagging.
-				'process.env.IS_WORDPRESS_CORE': true,
+				'globalThis.IS_WORDPRESS_CORE': JSON.stringify( true ),
 				// Inject the `SCRIPT_DEBUG` global, used for dev versions of JavaScript.
-				SCRIPT_DEBUG: mode === 'development',
+				'globalThis.SCRIPT_DEBUG': JSON.stringify(
+					mode === 'development'
+				),
 			} ),
 		],
 	};
@@ -70,15 +69,20 @@ const getBaseConfig = ( env ) => {
 const stylesTransform = ( mode ) => ( content ) => {
 	return postcss( [
 		require( 'cssnano' )( {
-			preset: mode === 'production' ? 'default' : [
-				'default',
-				{
-					discardComments: {
-						removeAll: ! content.includes( 'Copyright' ) && ! content.includes( 'License' ),
-					},
-					normalizeWhitespace: false,
-				},
-			],
+			preset:
+				mode === 'production'
+					? 'default'
+					: [
+							'default',
+							{
+								discardComments: {
+									removeAll:
+										! content.includes( 'Copyright' ) &&
+										! content.includes( 'License' ),
+								},
+								normalizeWhitespace: false,
+							},
+					  ],
 		} ),
 	] )
 		.process( content, { from: 'src/app.css', to: 'dest/app.css' } )
@@ -87,10 +91,30 @@ const stylesTransform = ( mode ) => ( content ) => {
 
 const normalizeJoin = ( ...paths ) => join( ...paths ).replace( /\\/g, '/' );
 
+const BUNDLED_PACKAGES = [
+	'@wordpress/dataviews',
+	'@wordpress/icons',
+	'@wordpress/interface',
+	'@wordpress/interactivity',
+	'@wordpress/sync',
+];
+const MODULES = [
+	'@wordpress/interactivity',
+	'@wordpress/interactivity-router',
+];
+const SCRIPT_AND_MODULE_DUAL_PACKAGES = [
+	'@wordpress/a11y',
+	'@wordpress/block-library',
+];
+const WORDPRESS_NAMESPACE = '@wordpress/';
 
 module.exports = {
 	baseDir,
 	getBaseConfig,
 	normalizeJoin,
 	stylesTransform,
+	BUNDLED_PACKAGES,
+	MODULES,
+	SCRIPT_AND_MODULE_DUAL_PACKAGES,
+	WORDPRESS_NAMESPACE,
 };

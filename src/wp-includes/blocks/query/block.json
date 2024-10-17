@@ -25,7 +25,8 @@
 				"sticky": "",
 				"inherit": true,
 				"taxQuery": null,
-				"parents": []
+				"parents": [],
+				"format": []
 			}
 		},
 		"tagName": {
@@ -40,6 +41,7 @@
 			"default": false
 		}
 	},
+	"usesContext": [ "postType" ],
 	"providesContext": {
 		"queryId": "queryId",
 		"query": "query",
@@ -49,9 +51,8 @@
 	"supports": {
 		"align": [ "wide", "full" ],
 		"html": false,
-		"layout": true
+		"layout": true,
+		"interactivity": true
 	},
-	"editorStyle": "wp-block-query-editor",
-	"style": "wp-block-query",
-	"viewScript": "file:./view.min.js"
+	"editorStyle": "wp-block-query-editor"
 }

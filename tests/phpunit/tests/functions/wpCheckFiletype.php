@@ -3,7 +3,7 @@
 /**
  * Tests for wp_check_filetype().
  *
- * @group functions.php
+ * @group functions
  * @group upload
  *
  * @covers ::wp_check_filetype
@@ -28,7 +28,7 @@ class Tests_Functions_WpCheckFiletype extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return[]
+	 * @return array[]
 	 */
 	public function data_wp_check_filetype() {
 		return array(
@@ -105,7 +105,6 @@ class Tests_Functions_WpCheckFiletype extends WP_UnitTestCase {
 					'type' => false,
 				),
 			),
-
 		);
 	}
 }

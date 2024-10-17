@@ -300,7 +300,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_args['orderby'] = 'none';
 
 			$total_comments = $query->query( $prepared_args );
-			$max_pages      = ceil( $total_comments / $request['per_page'] );
+			$max_pages      = (int) ceil( $total_comments / $request['per_page'] );
 		}
 
 		$response = rest_ensure_response( $comments );
@@ -1091,7 +1091,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( in_array( 'content', $fields, true ) ) {
 			$data['content'] = array(
 				/** This filter is documented in wp-includes/comment-template.php */
-				'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ),
+				'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment, array() ),
 				'raw'      => $comment->comment_content,
 			);
 		}

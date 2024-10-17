@@ -88,6 +88,58 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		$this->assertSame( IMAGETYPE_WEBP, $type );
 	}
 
+	/**
+	 * Test resizing AVIF image.
+	 *
+	 * @ticket 51228
+	 */
+	public function test_resize_avif() {
+		$file   = DIR_TESTDATA . '/images/avif-lossy.avif';
+		$editor = wp_get_image_editor( $file );
+
+		// Check if the editor supports the avif mime type.
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/avif' ) ) {
+			$this->markTestSkipped( sprintf( 'No AVIF support in the editor engine %s on this system.', $this->editor_engine ) );
+		}
+
+		$image = $this->resize_helper( $file, 25, 25 );
+
+		list( $w, $h, $type ) = wp_getimagesize( $image );
+
+		unlink( $image );
+
+		$this->assertSame( 'avif-lossy-25x25.avif', wp_basename( $image ) );
+		$this->assertSame( 25, $w );
+		$this->assertSame( 25, $h );
+		$this->assertSame( IMAGETYPE_AVIF, $type );
+	}
+
+	/**
+	 * Test resizing HEIC image.
+	 *
+	 * @ticket 53645
+	 */
+	public function test_resize_heic() {
+		$file   = DIR_TESTDATA . '/images/test-image.heic';
+		$editor = wp_get_image_editor( $file );
+
+		// Check if the editor supports the HEIC mime type.
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/heic' ) ) {
+			$this->markTestSkipped( 'No HEIC support in the editor engine on this system.' );
+		}
+
+		$image = $this->resize_helper( $file, 25, 25 );
+
+		list( $w, $h, $type ) = wp_getimagesize( $image );
+
+		unlink( $image );
+
+		$this->assertSame( 'test-image-25x25.jpg', wp_basename( $image ) );
+		$this->assertSame( 25, $w );
+		$this->assertSame( 25, $h );
+		$this->assertSame( IMAGETYPE_JPEG, $type );
+	}
+
 	public function test_resize_larger() {
 		// image_resize() should refuse to make an image larger.
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.jpg', 100, 100 );
@@ -209,6 +261,6 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 			return $saved;
 		}
 
-		return $dest_file;
+		return $saved['path'];
 	}
 }

@@ -278,7 +278,7 @@ function get_comment_statuses() {
  *
  * @param string $post_type    Optional. Post type. Default 'post'.
  * @param string $comment_type Optional. Comment type. Default 'comment'.
- * @return string Expected return value is 'open' or 'closed'.
+ * @return string Either 'open' or 'closed'.
  */
 function get_default_comment_status( $post_type = 'post', $comment_type = 'comment' ) {
 	switch ( $comment_type ) {
@@ -479,7 +479,8 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  * @return mixed An array of values if `$single` is false.
  *               The value of meta data field if `$single` is true.
  *               False for an invalid `$comment_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing comment ID is passed.
+ *               An empty array if a valid but non-existing comment ID is passed and `$single` is false.
+ *               An empty string if a valid but non-existing comment ID is passed and `$single` is true.
  */
 function get_comment_meta( $comment_id, $key = '', $single = false ) {
 	return get_metadata( 'comment', $comment_id, $key, $single );
@@ -557,10 +558,11 @@ function wp_set_comment_cookies( $comment, $user, $cookies_consent = true ) {
 	 * Filters the lifetime of the comment cookie in seconds.
 	 *
 	 * @since 2.8.0
+	 * @since 6.6.0 The default $seconds value changed from 30000000 to YEAR_IN_SECONDS.
 	 *
-	 * @param int $seconds Comment cookie lifetime. Default 30000000.
+	 * @param int $seconds Comment cookie lifetime. Default YEAR_IN_SECONDS.
 	 */
-	$comment_cookie_lifetime = time() + apply_filters( 'comment_cookie_lifetime', 30000000 );
+	$comment_cookie_lifetime = time() + apply_filters( 'comment_cookie_lifetime', YEAR_IN_SECONDS );
 
 	$secure = ( 'https' === parse_url( home_url(), PHP_URL_SCHEME ) );
 
@@ -1031,7 +1033,7 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
 		$count = ceil( count( $comments ) / $per_page );
 	}
 
-	return $count;
+	return (int) $count;
 }
 
 /**
@@ -1170,7 +1172,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 
 			// Divide comments older than this one by comments per page to get this comment's page number.
 		} else {
-			$page = ceil( ( $older_comment_count + 1 ) / $args['per_page'] );
+			$page = (int) ceil( ( $older_comment_count + 1 ) / $args['per_page'] );
 		}
 	}
 
@@ -3114,6 +3116,7 @@ function pingback( $content, $post ) {
 
 		if ( $pingback_server_url ) {
 			if ( function_exists( 'set_time_limit' ) ) {
+				// Allows an additional 60 seconds for each pingback to complete.
 				set_time_limit( 60 );
 			}
 
@@ -3174,10 +3177,10 @@ function privacy_ping_filter( $sites ) {
  * @param string $trackback_url URL to send trackbacks.
  * @param string $title         Title of post.
  * @param string $excerpt       Excerpt of post.
- * @param int    $ID            Post ID.
+ * @param int    $post_id       Post ID.
  * @return int|false|void Database query from update.
  */
-function trackback( $trackback_url, $title, $excerpt, $ID ) {
+function trackback( $trackback_url, $title, $excerpt, $post_id ) {
 	global $wpdb;
 
 	if ( empty( $trackback_url ) ) {
@@ -3188,7 +3191,7 @@ function trackback( $trackback_url, $title, $excerpt, $ID ) {
 	$options['timeout'] = 10;
 	$options['body']    = array(
 		'title'     => $title,
-		'url'       => get_permalink( $ID ),
+		'url'       => get_permalink( $post_id ),
 		'blog_name' => get_option( 'blogname' ),
 		'excerpt'   => $excerpt,
 	);
@@ -3199,8 +3202,8 @@ function trackback( $trackback_url, $title, $excerpt, $ID ) {
 		return;
 	}
 
-	$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET pinged = CONCAT(pinged, '\n', %s) WHERE ID = %d", $trackback_url, $ID ) );
-	return $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET to_ping = TRIM(REPLACE(to_ping, %s, '')) WHERE ID = %d", $trackback_url, $ID ) );
+	$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET pinged = CONCAT(pinged, '\n', %s) WHERE ID = %d", $trackback_url, $post_id ) );
+	return $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET to_ping = TRIM(REPLACE(to_ping, %s, '')) WHERE ID = %d", $trackback_url, $post_id ) );
 }
 
 /**
@@ -3763,7 +3766,7 @@ function wp_comments_personal_data_exporter( $email_address, $page = 1 ) {
 				case 'comment_link':
 					$value = get_comment_link( $comment->comment_ID );
 					$value = sprintf(
-						'<a href="%s" target="_blank" rel="noopener">%s</a>',
+						'<a href="%s" target="_blank">%s</a>',
 						esc_url( $value ),
 						esc_html( $value )
 					);

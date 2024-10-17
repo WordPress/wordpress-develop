@@ -823,7 +823,7 @@ final class WP_Customize_Widgets {
 		);
 
 		foreach ( $settings['registeredWidgets'] as &$registered_widget ) {
-			unset( $registered_widget['callback'] ); // May not be JSON-serializeable.
+			unset( $registered_widget['callback'] ); // May not be JSON-serializable.
 		}
 
 		$wp_scripts->add_data(
@@ -865,6 +865,24 @@ final class WP_Customize_Widgets {
 				'wp-blocks',
 				'wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( get_block_editor_server_block_settings() ) . ');'
 			);
+
+			// Preload server-registered block bindings sources.
+			$registered_sources = get_all_registered_block_bindings_sources();
+			if ( ! empty( $registered_sources ) ) {
+				$filtered_sources = array();
+				foreach ( $registered_sources as $source ) {
+					$filtered_sources[] = array(
+						'name'        => $source->name,
+						'label'       => $source->label,
+						'usesContext' => $source->uses_context,
+					);
+				}
+				$script = sprintf( 'for ( const source of %s ) { wp.blocks.registerBlockBindingsSource( source ); }', wp_json_encode( $filtered_sources ) );
+				wp_add_inline_script(
+					'wp-blocks',
+					$script
+				);
+			}
 
 			wp_add_inline_script(
 				'wp-blocks',
@@ -909,13 +927,13 @@ final class WP_Customize_Widgets {
 				</h3>
 			</div>
 			<div id="available-widgets-filter">
-				<label class="screen-reader-text" for="widgets-search">
+				<label for="widgets-search">
 					<?php
 					/* translators: Hidden accessibility text. */
 					_e( 'Search Widgets' );
 					?>
 				</label>
-				<input type="text" id="widgets-search" placeholder="<?php esc_attr_e( 'Search widgets&hellip;' ); ?>" aria-describedby="widgets-search-desc" />
+				<input type="text" id="widgets-search" aria-describedby="widgets-search-desc" />
 				<div class="search-icon" aria-hidden="true"></div>
 				<button type="button" class="clear-results"><span class="screen-reader-text">
 					<?php
@@ -1308,7 +1326,7 @@ final class WP_Customize_Widgets {
 		);
 
 		foreach ( $settings['registeredWidgets'] as &$registered_widget ) {
-			unset( $registered_widget['callback'] ); // May not be JSON-serializeable.
+			unset( $registered_widget['callback'] ); // May not be JSON-serializable.
 		}
 		wp_print_inline_script_tag(
 			sprintf( 'var _wpWidgetCustomizerPreviewSettings = %s;', wp_json_encode( $settings ) )

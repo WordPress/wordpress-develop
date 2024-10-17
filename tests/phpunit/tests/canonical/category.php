@@ -2,6 +2,8 @@
 
 /**
  * @group canonical
+ * @group rewrite
+ * @group query
  */
 class Tests_Canonical_Category extends WP_Canonical_UnitTestCase {
 	public $structure = '/%category%/%postname%/';

@@ -75,9 +75,9 @@ function wp_image_editor( $post_id, $msg = false ) {
 			) ) {
 				$note_no_rotate = '';
 				?>
-					<button type="button" class="imgedit-rleft button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.rotate( 90, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Rotate 90&deg; left' ); ?></button>
-					<button type="button" class="imgedit-rright button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.rotate(-90, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Rotate 90&deg; right' ); ?></button>
-					<button type="button" class="imgedit-rfull button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.rotate(180, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Rotate 180&deg;' ); ?></button>
+					<button type="button" class="imgedit-rleft button" onkeydown="imageEdit.browsePopup(event, this)" onclick="imageEdit.rotate( 90, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Rotate 90&deg; left' ); ?></button>
+					<button type="button" class="imgedit-rright button" onkeydown="imageEdit.browsePopup(event, this)" onclick="imageEdit.rotate(-90, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Rotate 90&deg; right' ); ?></button>
+					<button type="button" class="imgedit-rfull button" onkeydown="imageEdit.browsePopup(event, this)" onclick="imageEdit.rotate(180, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Rotate 180&deg;' ); ?></button>
 				<?php
 			} else {
 				$note_no_rotate = '<p class="note-no-rotate"><em>' . __( 'Image rotation is not supported by your web host.' ) . '</em></p>';
@@ -88,8 +88,8 @@ function wp_image_editor( $post_id, $msg = false ) {
 			}
 			?>
 					<hr />
-					<button type="button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.flip(1, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()" class="imgedit-flipv button"><?php esc_html_e( 'Flip vertical' ); ?></button>
-					<button type="button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.flip(2, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()" class="imgedit-fliph button"><?php esc_html_e( 'Flip horizontal' ); ?></button>
+					<button type="button" onkeydown="imageEdit.browsePopup(event, this)" onclick="imageEdit.flip(1, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()" class="imgedit-flipv button"><?php esc_html_e( 'Flip vertical' ); ?></button>
+					<button type="button" onkeydown="imageEdit.browsePopup(event, this)" onclick="imageEdit.flip(2, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()" class="imgedit-fliph button"><?php esc_html_e( 'Flip horizontal' ); ?></button>
 					<?php echo $note_no_rotate; ?>
 				</div>
 			</div>
@@ -159,8 +159,8 @@ function wp_image_editor( $post_id, $msg = false ) {
 							<label for="imgedit-scale-height-<?php echo $post_id; ?>" class="screen-reader-text"><?php _e( 'scale height' ); ?></label>
 							<input type="number" step="1" min="0" max="<?php echo isset( $meta['height'] ) ? $meta['height'] : ''; ?>" aria-describedby="imgedit-scale-warn-<?php echo $post_id; ?>" id="imgedit-scale-height-<?php echo $post_id; ?>" onkeyup="imageEdit.scaleChanged(<?php echo $post_id; ?>, 0, this)" onblur="imageEdit.scaleChanged(<?php echo $post_id; ?>, 0, this)" value="<?php echo isset( $meta['height'] ) ? $meta['height'] : 0; ?>" />
 							<button id="imgedit-scale-button" type="button" onclick="imageEdit.action(<?php echo "$post_id, '$nonce'"; ?>, 'scale')" class="button button-primary"><?php esc_html_e( 'Scale' ); ?></button>
-							<span class="imgedit-scale-warn" id="imgedit-scale-warn-<?php echo $post_id; ?>"><span class="dashicons dashicons-warning" aria-hidden="true"></span><?php esc_html_e( 'Images cannot be scaled to a size larger than the original.' ); ?></span>
 							</div>
+							<span class="imgedit-scale-warn" id="imgedit-scale-warn-<?php echo $post_id; ?>"><span class="dashicons dashicons-warning" aria-hidden="true"></span><?php esc_html_e( 'Images cannot be scaled to a size larger than the original.' ); ?></span>
 						</fieldset>
 						</div>
 					</div>
@@ -390,6 +390,12 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
 					return imagewebp( $image, null, 90 );
 				}
 				return false;
+			case 'image/avif':
+				if ( function_exists( 'imageavif' ) ) {
+					header( 'Content-Type: image/avif' );
+					return imageavif( $image, null, 90 );
+				}
+				return false;
 			default:
 				return false;
 		}
@@ -492,6 +498,11 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 			case 'image/webp':
 				if ( function_exists( 'imagewebp' ) ) {
 					return imagewebp( $image, $filename );
+				}
+				return false;
+			case 'image/avif':
+				if ( function_exists( 'imageavif' ) ) {
+					return imageavif( $image, $filename );
 				}
 				return false;
 			default:
@@ -724,10 +735,10 @@ function image_edit_apply_changes( $image, $changes ) {
 					$w    = $size['width'];
 					$h    = $size['height'];
 
-					$scale = 1 / _image_get_preview_ratio( $w, $h ); // Discard preview scaling.
-					$image->crop( $sel->x * $scale, $sel->y * $scale, $sel->w * $scale, $sel->h * $scale );
+					$scale = isset( $sel->r ) ? $sel->r : 1 / _image_get_preview_ratio( $w, $h ); // Discard preview scaling.
+					$image->crop( (int) ( $sel->x * $scale ), (int) ( $sel->y * $scale ), (int) ( $sel->w * $scale ), (int) ( $sel->h * $scale ) );
 				} else {
-					$scale = 1 / _image_get_preview_ratio( imagesx( $image ), imagesy( $image ) ); // Discard preview scaling.
+					$scale = isset( $sel->r ) ? $sel->r : 1 / _image_get_preview_ratio( imagesx( $image ), imagesy( $image ) ); // Discard preview scaling.
 					$image = _crop_image_resource( $image, $sel->x * $scale, $sel->y * $scale, $sel->w * $scale, $sel->h * $scale );
 				}
 				break;
@@ -815,9 +826,10 @@ function wp_restore_image( $post_id ) {
 				}
 			} elseif ( isset( $meta['width'], $meta['height'] ) ) {
 				$backup_sizes[ "full-$suffix" ] = array(
-					'width'  => $meta['width'],
-					'height' => $meta['height'],
-					'file'   => $parts['basename'],
+					'width'    => $meta['width'],
+					'height'   => $meta['height'],
+					'filesize' => $meta['filesize'],
+					'file'     => $parts['basename'],
 				);
 			}
 		}
@@ -828,6 +840,14 @@ function wp_restore_image( $post_id ) {
 		$meta['file']   = _wp_relative_upload_path( $restored_file );
 		$meta['width']  = $data['width'];
 		$meta['height'] = $data['height'];
+		if ( isset( $data['filesize'] ) ) {
+			/*
+			 * Restore the original filesize if it was backed up.
+			 *
+			 * See https://core.trac.wordpress.org/ticket/59684.
+			 */
+			$meta['filesize'] = $data['filesize'];
+		}
 	}
 
 	foreach ( $default_sizes as $default_size ) {
@@ -986,8 +1006,9 @@ function wp_save_image( $post_id ) {
 		}
 	}
 
+	$saved_image = wp_save_image_file( $new_path, $img, $post->post_mime_type, $post_id );
 	// Save the full-size file, also needed to create sub-sizes.
-	if ( ! wp_save_image_file( $new_path, $img, $post->post_mime_type, $post_id ) ) {
+	if ( ! $saved_image ) {
 		$return->error = esc_js( __( 'Unable to save the image.' ) );
 		return $return;
 	}
@@ -1007,9 +1028,10 @@ function wp_save_image( $post_id ) {
 
 		if ( $tag ) {
 			$backup_sizes[ $tag ] = array(
-				'width'  => $meta['width'],
-				'height' => $meta['height'],
-				'file'   => $basename,
+				'width'    => $meta['width'],
+				'height'   => $meta['height'],
+				'filesize' => $meta['filesize'],
+				'file'     => $basename,
 			);
 		}
 
@@ -1017,9 +1039,10 @@ function wp_save_image( $post_id ) {
 
 		$meta['file'] = _wp_relative_upload_path( $new_path );
 
-		$size           = $img->get_size();
-		$meta['width']  = $size['width'];
-		$meta['height'] = $size['height'];
+		$size             = $img->get_size();
+		$meta['width']    = $size['width'];
+		$meta['height']   = $size['height'];
+		$meta['filesize'] = $saved_image['filesize'];
 
 		if ( $success && ( 'nothumb' === $target || 'all' === $target ) ) {
 			$sizes = get_intermediate_image_sizes();

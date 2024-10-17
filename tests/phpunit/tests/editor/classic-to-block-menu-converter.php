@@ -7,6 +7,8 @@
 
 /**
  * Tests for the WP_Classic_To_Block_Menu_Converter_Test class.
+ *
+ * @group editor
  */
 class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 
@@ -29,9 +31,9 @@ class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 
 		$this->assertTrue( is_wp_error( $result ), 'Should be a WP_Error instance' );
 
-		$this->assertEquals( 'invalid_menu', $result->get_error_code(), 'Error code should indicate invalidity of menu argument.' );
+		$this->assertSame( 'invalid_menu', $result->get_error_code(), 'Error code should indicate invalidity of menu argument.' );
 
-		$this->assertEquals( 'The menu provided is not a valid menu.', $result->get_error_message(), 'Error message should communicate invalidity of menu argument.' );
+		$this->assertSame( 'The menu provided is not a valid menu.', $result->get_error_message(), 'Error message should communicate invalidity of menu argument.' );
 	}
 
 	/**
@@ -102,24 +104,24 @@ class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 		$second_block = $parsed_blocks[1];
 		$nested_block = $parsed_blocks[1]['innerBlocks'][0];
 
-		$this->assertEquals( 'core/navigation-link', $first_block['blockName'], 'First block name should be "core/navigation-link"' );
+		$this->assertSame( 'core/navigation-link', $first_block['blockName'], 'First block name should be "core/navigation-link"' );
 
-		$this->assertEquals( 'Classic Menu Item 1', $first_block['attrs']['label'], 'First block label should match.' );
+		$this->assertSame( 'Classic Menu Item 1', $first_block['attrs']['label'], 'First block label should match.' );
 
-		$this->assertEquals( '/classic-menu-item-1', $first_block['attrs']['url'], 'First block URL should match.' );
+		$this->assertSame( '/classic-menu-item-1', $first_block['attrs']['url'], 'First block URL should match.' );
 
 		// Assert parent of nested menu item is a submenu block.
-		$this->assertEquals( 'core/navigation-submenu', $second_block['blockName'], 'Second block name should be "core/navigation-submenu"' );
+		$this->assertSame( 'core/navigation-submenu', $second_block['blockName'], 'Second block name should be "core/navigation-submenu"' );
 
-		$this->assertEquals( 'Classic Menu Item 2', $second_block['attrs']['label'], 'Second block label should match.' );
+		$this->assertSame( 'Classic Menu Item 2', $second_block['attrs']['label'], 'Second block label should match.' );
 
-		$this->assertEquals( '/classic-menu-item-2', $second_block['attrs']['url'], 'Second block URL should match.' );
+		$this->assertSame( '/classic-menu-item-2', $second_block['attrs']['url'], 'Second block URL should match.' );
 
-		$this->assertEquals( 'core/navigation-link', $nested_block['blockName'], 'Nested block name should be "core/navigation-link"' );
+		$this->assertSame( 'core/navigation-link', $nested_block['blockName'], 'Nested block name should be "core/navigation-link"' );
 
-		$this->assertEquals( 'Nested Menu Item 1', $nested_block['attrs']['label'], 'Nested block label should match.' );
+		$this->assertSame( 'Nested Menu Item 1', $nested_block['attrs']['label'], 'Nested block label should match.' );
 
-		$this->assertEquals( '/nested-menu-item-1', $nested_block['attrs']['url'], 'Nested block URL should match.' );
+		$this->assertSame( '/nested-menu-item-1', $nested_block['attrs']['url'], 'Nested block URL should match.' );
 
 		wp_delete_nav_menu( $menu_id );
 	}
@@ -192,11 +194,11 @@ class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 
 			$this->assertCount( 1, $parsed_blocks, 'Should only be one block in the array.' );
 
-			$this->assertEquals( 'core/navigation-link', $parsed_blocks[0]['blockName'], 'First block name should be "core/navigation-link"' );
+			$this->assertSame( 'core/navigation-link', $parsed_blocks[0]['blockName'], 'First block name should be "core/navigation-link"' );
 
-			$this->assertEquals( 'Classic Menu Item 1', $parsed_blocks[0]['attrs']['label'], 'First block label should match.' );
+			$this->assertSame( 'Classic Menu Item 1', $parsed_blocks[0]['attrs']['label'], 'First block label should match.' );
 
-			$this->assertEquals( '/classic-menu-item-1', $parsed_blocks[0]['attrs']['url'], 'First block URL should match.' );
+			$this->assertSame( '/classic-menu-item-1', $parsed_blocks[0]['attrs']['url'], 'First block URL should match.' );
 
 			wp_delete_nav_menu( $menu_id );
 	}

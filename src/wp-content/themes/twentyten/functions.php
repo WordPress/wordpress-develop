@@ -172,7 +172,7 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 			 */
 			'width'               => apply_filters( 'twentyten_header_image_width', 940 ),
 			/**
-			 * Filters the Twenty Ten defaul header image height.
+			 * Filters the Twenty Ten default header image height.
 			 *
 			 * @since Twenty Ten 1.0
 			 *
@@ -429,6 +429,8 @@ add_filter( 'use_default_gallery_style', '__return_false' );
  * @since Twenty Ten 1.0
  * @deprecated Deprecated in Twenty Ten 1.2 for WordPress 3.1
  *
+ * @param string $css Default CSS styles and opening HTML div container
+ *                    for the gallery shortcode output.
  * @return string The gallery style filter, with the styles themselves removed.
  */
 function twentyten_remove_gallery_css( $css ) {
@@ -779,8 +781,16 @@ function twentyten_block_editor_styles() {
 }
 add_action( 'enqueue_block_editor_assets', 'twentyten_block_editor_styles' );
 
-// Block Patterns.
-require get_template_directory() . '/block-patterns.php';
+/**
+ * Register block patterns and pattern categories.
+ *
+ * @since Twenty Ten 4.3
+ */
+function twentyten_register_block_patterns() {
+	require get_template_directory() . '/block-patterns.php';
+}
+
+add_action( 'init', 'twentyten_register_block_patterns' );
 
 if ( ! function_exists( 'wp_body_open' ) ) :
 	/**

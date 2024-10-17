@@ -24,6 +24,12 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	private $is_downgrading = false;
 
 	/**
+	 * Constructor.
+	 *
+	 * Sets up the theme installer skin.
+	 *
+	 * @since 2.8.0
+	 *
 	 * @param array $args
 	 */
 	public function __construct( $args = array() ) {
@@ -138,7 +144,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			'<a href="%s" class="activatelink">' .
 			'<span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
 			esc_url( $activate_link ),
-			__( 'Activate' ),
+			_x( 'Activate', 'theme' ),
 			/* translators: Hidden accessibility text. %s: Theme name. */
 			sprintf( _x( 'Activate &#8220;%s&#8221;', 'theme' ), $name )
 		);
@@ -313,7 +319,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			$error = sprintf(
 				/* translators: 1: Current WordPress version, 2: Version required by the uploaded theme. */
 				__( 'Your WordPress version is %1$s, however the uploaded theme requires %2$s.' ),
-				get_bloginfo( 'version' ),
+				esc_html( wp_get_wp_version() ),
 				$requires_wp
 			);
 
@@ -328,13 +334,13 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are uploading an older version of the active theme. You can continue to install the older version, but be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://wordpress.org/documentation/article/wordpress-backups/' )
+					__( 'https://developer.wordpress.org/advanced-administration/security/backup/' )
 				);
 			} else {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
 					__( 'You are updating a theme. Be sure to <a href="%s">back up your database and files</a> first.' ),
-					__( 'https://wordpress.org/documentation/article/wordpress-backups/' )
+					__( 'https://developer.wordpress.org/advanced-administration/security/backup/' )
 				);
 			}
 

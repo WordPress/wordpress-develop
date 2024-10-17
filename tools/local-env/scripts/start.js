@@ -2,6 +2,20 @@ const dotenv       = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
 const { execSync } = require( 'child_process' );
 
+try {
+	execSync( 'test -f .env', { stdio: 'inherit' } );
+} catch ( e ) {
+	// test exits with a status code of 1 if the test fails.
+	// Alert the user on any other failure.
+	if ( e.status !== 1 ) {
+		throw e;
+	}
+
+	// The file does not exist, copy over the default example file.
+	execSync( 'cp .env.example .env', { stdio: 'inherit' } );
+}
+
+
 dotenvExpand.expand( dotenv.config() );
 
 // Check if the Docker service is running.
@@ -19,7 +33,7 @@ try {
 const containers = ( process.env.LOCAL_PHP_MEMCACHED === 'true' )
 	? 'wordpress-develop memcached'
 	: 'wordpress-develop';
-execSync( `docker-compose up -d ${containers}`, { stdio: 'inherit' } );
+execSync( `docker compose up -d ${containers}`, { stdio: 'inherit' } );
 
 // If Docker Toolbox is being used, we need to manually forward LOCAL_PORT to the Docker VM.
 if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {

@@ -3,7 +3,8 @@
 /**
  * Tests for is_login().
  *
- * @group load.php
+ * @group load
+ *
  * @covers ::is_login
  */
 class Tests_Load_IsLogin extends WP_UnitTestCase {

@@ -4,8 +4,8 @@ Theme URI: https://wordpress.org/themes/twentyten/
 Description: The 2010 theme for WordPress is stylish, customizable, simple, and readable -- make it yours with a custom menu, header image, and background. Twenty Ten supports six widgetized areas (two in the sidebar, four in the footer) and featured images (thumbnails for gallery posts and custom header images for posts and pages). It includes stylesheets for print and the admin Visual Editor, special styles for posts in the "Asides" and "Gallery" categories, and has an optional one-column page template that removes the sidebar.
 Author: the WordPress team
 Author URI: https://wordpress.org/
-Version: 3.9
-Tested up to: 6.3
+Version: 4.2
+Tested up to: 6.6
 Requires at least: 3.0
 Requires PHP: 5.2.4
 License: GNU General Public License v2 or later
@@ -323,9 +323,9 @@ input[type="number"],
 textarea {
 	background: #f9f9f9;
 	border: 1px solid #ccc;
-	box-shadow: inset 1px 1px 1px rgba(0,0,0,0.1);
-	-moz-box-shadow: inset 1px 1px 1px rgba(0,0,0,0.1);
 	-webkit-box-shadow: inset 1px 1px 1px rgba(0,0,0,0.1);
+	-moz-box-shadow: inset 1px 1px 1px rgba(0,0,0,0.1);
+	box-shadow: inset 1px 1px 1px rgba(0,0,0,0.1);
 	padding: 2px;
 }
 a:link {
@@ -418,9 +418,9 @@ div.menu li {
 	text-decoration: none;
 }
 #access ul ul {
-	box-shadow: 0px 3px 3px rgba(0,0,0,0.2);
-	-moz-box-shadow: 0px 3px 3px rgba(0,0,0,0.2);
-	-webkit-box-shadow: 0px 3px 3px rgba(0,0,0,0.2);
+	-webkit-box-shadow: 0 3px 3px rgba(0,0,0,0.2);
+	-moz-box-shadow: 0 3px 3px rgba(0,0,0,0.2);
+	box-shadow: 0 3px 3px rgba(0,0,0,0.2);
 	display: none;
 	position: absolute;
 	top: 38px;
@@ -999,8 +999,6 @@ h3#comments-title {
 	top: 4px;
 	left: 0;
 }
-.comment-author {
-}
 .comment-author cite {
 	color: #000;
 	font-style: normal;
@@ -1021,10 +1019,6 @@ h3#comments-title {
 .comment-meta a:active,
 .comment-meta a:hover {
 	color: #ff4b33;
-}
-.commentlist .even {
-}
-.commentlist .bypostauthor {
 }
 .reply {
 	font-size: 12px;
@@ -1203,8 +1197,6 @@ h3#reply-title {
 #wp-calendar thead {
 	font-size: 11px;
 }
-#wp-calendar thead th {
-}
 #wp-calendar tbody {
 	color: #aaa;
 }
@@ -1289,15 +1281,6 @@ h3#reply-title {
 
 #main .widget-area ul.wp-block-latest-posts.wp-block-latest-posts__list {
 	list-style: square;
-}
-
-#primary {
-}
-#secondary {
-}
-
-/* Footer widget areas */
-#footer-widget-area {
 }
 
 

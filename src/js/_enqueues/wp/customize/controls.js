@@ -1530,7 +1530,7 @@
 			}
 
 			// Expand/Collapse accordion sections on click.
-			section.container.find( '.accordion-section-title, .customize-section-back' ).on( 'click keydown', function( event ) {
+			section.container.find( '.accordion-section-title button, .customize-section-back' ).on( 'click keydown', function( event ) {
 				if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
 					return;
 				}
@@ -1605,7 +1605,7 @@
 				content = section.contentContainer,
 				overlay = section.headContainer.closest( '.wp-full-overlay' ),
 				backBtn = content.find( '.customize-section-back' ),
-				sectionTitle = section.headContainer.find( '.accordion-section-title' ).first(),
+				sectionTitle = section.headContainer.find( '.accordion-section-title button' ).first(),
 				expand, panel;
 
 			if ( expanded && ! content.hasClass( 'open' ) ) {
@@ -1615,9 +1615,6 @@
 				} else {
 					expand = function() {
 						section._animateChangeExpanded( function() {
-							sectionTitle.attr( 'tabindex', '-1' );
-							backBtn.attr( 'tabindex', '0' );
-
 							backBtn.trigger( 'focus' );
 							content.css( 'top', '' );
 							container.scrollTop( 0 );
@@ -1663,8 +1660,6 @@
 					}
 				}
 				section._animateChangeExpanded( function() {
-					backBtn.attr( 'tabindex', '-1' );
-					sectionTitle.attr( 'tabindex', '0' );
 
 					sectionTitle.trigger( 'focus' );
 					content.css( 'top', '' );
@@ -1799,7 +1794,7 @@
 						section.closeDetails();
 					} else {
 
-						// Escape from the inifinite scroll list.
+						// Escape from the infinite scroll list.
 						section.headerContainer.find( '.customize-themes-section-title' ).focus();
 					}
 					event.stopPropagation(); // Prevent section from being collapsed.
@@ -1917,7 +1912,7 @@
 			section.contentContainer.on( 'click', '.feature-filter-toggle', function( e ) {
 				var $themeContainer = $( '.customize-themes-full-container' ),
 					$filterToggle = $( e.currentTarget );
-				section.filtersHeight = $filterToggle.parent().next( '.filter-drawer' ).height();
+				section.filtersHeight = $filterToggle.parents( '.themes-filter-bar' ).next( '.filter-drawer' ).height();
 
 				if ( 0 < $themeContainer.scrollTop() ) {
 					$themeContainer.animate( { scrollTop: 0 }, 400 );
@@ -1932,7 +1927,7 @@
 					.attr( 'aria-expanded', function( i, attr ) {
 						return 'true' === attr ? 'false' : 'true';
 					})
-					.parent().next( '.filter-drawer' ).slideToggle( 180, 'linear' );
+					.parents( '.themes-filter-bar' ).next( '.filter-drawer' ).slideToggle( 180, 'linear' );
 
 				if ( $filterToggle.hasClass( 'open' ) ) {
 					var marginOffset = 1018 < window.innerWidth ? 50 : 76;
@@ -2699,7 +2694,7 @@
 				container = section.headContainer.closest( '.wp-full-overlay-sidebar-content' ),
 				content = section.contentContainer,
 				backBtn = content.find( '.customize-section-back' ),
-				sectionTitle = section.headContainer.find( '.accordion-section-title' ).first(),
+				sectionTitle = section.headContainer.find( '.accordion-section-title button' ).first(),
 				body = $( document.body ),
 				expand, panel;
 
@@ -2719,9 +2714,6 @@
 				} else {
 					expand = function() {
 						section._animateChangeExpanded( function() {
-							sectionTitle.attr( 'tabindex', '-1' );
-							backBtn.attr( 'tabindex', '0' );
-
 							backBtn.trigger( 'focus' );
 							content.css( 'top', '' );
 							container.scrollTop( 0 );
@@ -2752,8 +2744,6 @@
 					}
 				}
 				section._animateChangeExpanded( function() {
-					backBtn.attr( 'tabindex', '-1' );
-					sectionTitle.attr( 'tabindex', '0' );
 
 					sectionTitle.trigger( 'focus' );
 					content.css( 'top', '' );
@@ -2843,7 +2833,7 @@
 			var meta, panel = this;
 
 			// Expand/Collapse accordion sections on click.
-			panel.headContainer.find( '.accordion-section-title' ).on( 'click keydown', function( event ) {
+			panel.headContainer.find( '.accordion-section-title button' ).on( 'click keydown', function( event ) {
 				if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
 					return;
 				}
@@ -2947,7 +2937,7 @@
 				accordionSection = panel.contentContainer,
 				overlay = accordionSection.closest( '.wp-full-overlay' ),
 				container = accordionSection.closest( '.wp-full-overlay-sidebar-content' ),
-				topPanel = panel.headContainer.find( '.accordion-section-title' ),
+				topPanel = panel.headContainer.find( '.accordion-section-title button' ),
 				backBtn = accordionSection.find( '.customize-panel-back' ),
 				childSections = panel.sections(),
 				skipTransition;
@@ -2974,9 +2964,6 @@
 					} );
 				} else {
 					panel._animateChangeExpanded( function() {
-						topPanel.attr( 'tabindex', '-1' );
-						backBtn.attr( 'tabindex', '0' );
-
 						backBtn.trigger( 'focus' );
 						accordionSection.css( 'top', '' );
 						container.scrollTop( 0 );
@@ -2996,8 +2983,6 @@
 				skipTransition = accordionSection.hasClass( 'skip-transition' );
 				if ( ! skipTransition ) {
 					panel._animateChangeExpanded( function() {
-						topPanel.attr( 'tabindex', '0' );
-						backBtn.attr( 'tabindex', '-1' );
 
 						topPanel.focus();
 						accordionSection.css( 'top', '' );
@@ -3739,7 +3724,7 @@
 		ready: function() {
 			var control = this, newItem;
 			if ( 'dropdown-pages' === control.params.type && control.params.allow_addition ) {
-				newItem = control.container.find( '.new-content-item' );
+				newItem = control.container.find( '.new-content-item-wrapper' );
 				newItem.hide(); // Hide in JS to preserve flex display when showing.
 				control.container.on( 'click', '.add-new-toggle', function( e ) {
 					$( e.currentTarget ).slideUp( 180 );
@@ -3866,7 +3851,7 @@
 			var control = this, container, notifications, hasError = false;
 
 			if ( 'undefined' !== typeof console && console.warn ) {
-				console.warn( '[DEPRECATED] wp.customize.Control.prototype.renderNotifications() is deprecated in favor of instantating a wp.customize.Notifications and calling its render() method.' );
+				console.warn( '[DEPRECATED] wp.customize.Control.prototype.renderNotifications() is deprecated in favor of instantiating a wp.customize.Notifications and calling its render() method.' );
 			}
 
 			container = control.getNotificationsContainerElement();
@@ -4085,7 +4070,7 @@
 			}
 
 			toggle = control.container.find( '.add-new-toggle' );
-			container = control.container.find( '.new-content-item' );
+			container = control.container.find( '.new-content-item-wrapper' );
 			input = control.container.find( '.create-item-input' );
 			title = input.val();
 			select = control.container.find( 'select' );
@@ -4602,26 +4587,29 @@
 		 * @return {Object} Options
 		 */
 		calculateImageSelectOptions: function( attachment, controller ) {
-			var control    = controller.get( 'control' ),
-				flexWidth  = !! parseInt( control.params.flex_width, 10 ),
-				flexHeight = !! parseInt( control.params.flex_height, 10 ),
-				realWidth  = attachment.get( 'width' ),
-				realHeight = attachment.get( 'height' ),
-				xInit = parseInt( control.params.width, 10 ),
-				yInit = parseInt( control.params.height, 10 ),
-				ratio = xInit / yInit,
-				xImg  = xInit,
-				yImg  = yInit,
+			var control       = controller.get( 'control' ),
+				flexWidth     = !! parseInt( control.params.flex_width, 10 ),
+				flexHeight    = !! parseInt( control.params.flex_height, 10 ),
+				realWidth     = attachment.get( 'width' ),
+				realHeight    = attachment.get( 'height' ),
+				xInit         = parseInt( control.params.width, 10 ),
+				yInit         = parseInt( control.params.height, 10 ),
+				requiredRatio = xInit / yInit,
+				realRatio     = realWidth / realHeight,
+				xImg          = xInit,
+				yImg          = yInit,
 				x1, y1, imgSelectOptions;
 
+			controller.set( 'hasRequiredAspectRatio', control.hasRequiredAspectRatio( requiredRatio, realRatio ) );
+			controller.set( 'suggestedCropSize', { width: realWidth, height: realHeight, x1: 0, y1: 0, x2: xInit, y2: yInit } );
 			controller.set( 'canSkipCrop', ! control.mustBeCropped( flexWidth, flexHeight, xInit, yInit, realWidth, realHeight ) );
 
-			if ( realWidth / realHeight > ratio ) {
+			if ( realRatio > requiredRatio ) {
 				yInit = realHeight;
-				xInit = yInit * ratio;
+				xInit = yInit * requiredRatio;
 			} else {
 				xInit = realWidth;
-				yInit = xInit / ratio;
+				yInit = xInit / requiredRatio;
 			}
 
 			x1 = ( realWidth - xInit ) / 2;
@@ -4662,13 +4650,13 @@
 		/**
 		 * Return whether the image must be cropped, based on required dimensions.
 		 *
-		 * @param {boolean} flexW
-		 * @param {boolean} flexH
-		 * @param {number}  dstW
-		 * @param {number}  dstH
-		 * @param {number}  imgW
-		 * @param {number}  imgH
-		 * @return {boolean}
+		 * @param {boolean} flexW Width is flexible.
+		 * @param {boolean} flexH Height is flexible.
+		 * @param {number}  dstW  Required width.
+		 * @param {number}  dstH  Required height.
+		 * @param {number}  imgW  Provided image's width.
+		 * @param {number}  imgH  Provided image's height.
+		 * @return {boolean} Whether cropping is required.
 		 */
 		mustBeCropped: function( flexW, flexH, dstW, dstH, imgW, imgH ) {
 			if ( true === flexW && true === flexH ) {
@@ -4692,6 +4680,25 @@
 			}
 
 			return true;
+		},
+
+		/**
+		 * Check if the image's aspect ratio essentially matches the required aspect ratio.
+		 *
+		 * Floating point precision is low, so this allows a small tolerance. This
+		 * tolerance allows for images over 100,000 px on either side to still trigger
+		 * the cropping flow.
+		 *
+		 * @param {number} requiredRatio Required image ratio.
+		 * @param {number} realRatio     Provided image ratio.
+		 * @return {boolean} Whether the image has the required aspect ratio.
+		 */
+		hasRequiredAspectRatio: function ( requiredRatio, realRatio ) {
+			if ( Math.abs( requiredRatio - realRatio ) < 0.000001 ) {
+				return true;
+			}
+
+			return false;
 		},
 
 		/**
@@ -7199,7 +7206,7 @@
 			} ) );
 
 			/**
-			 * Return whether the pubish settings section should be active.
+			 * Return whether the publish settings section should be active.
 			 *
 			 * @return {boolean} Is section active.
 			 */
@@ -7800,11 +7807,11 @@
 			},
 
 			/**
-			 * Builds the front preview url with the current state of customizer.
+			 * Builds the front preview URL with the current state of customizer.
 			 *
-			 * @since 4.9
+			 * @since 4.9.0
 			 *
-			 * @return {string} Preview url.
+			 * @return {string} Preview URL.
 			 */
 			getFrontendPreviewUrl: function() {
 				var previewer = this, params, urlParser;

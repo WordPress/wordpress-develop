@@ -4,7 +4,7 @@
 		renderHtml: function() {
 			return (
 				'<div id="' + this._id + '" class="wp-link-preview">' +
-					'<a href="' + this.url + '" target="_blank" rel="noopener" tabindex="-1">' + this.url + '</a>' +
+					'<a href="' + this.url + '" target="_blank" tabindex="-1">' + this.url + '</a>' +
 				'</div>'
 			);
 		},
@@ -56,19 +56,19 @@
 		renderHtml: function() {
 			return (
 				'<div id="' + this._id + '" class="wp-link-input">' +
-					'<input type="text" value="" placeholder="' + tinymce.translate( 'Paste URL or type to search' ) + '" />' +
+					'<label for="' + this._id + '_label">' + tinymce.translate( 'Paste URL or type to search' ) + '</label><input id="' + this._id + '_label" type="text" value="" />' +
 					'<input type="text" style="display:none" value="" />' +
 				'</div>'
 			);
 		},
 		setURL: function( url ) {
-			this.getEl().firstChild.value = url;
+			this.getEl().firstChild.nextSibling.value = url;
 		},
 		getURL: function() {
-			return tinymce.trim( this.getEl().firstChild.value );
+			return tinymce.trim( this.getEl().firstChild.nextSibling.value );
 		},
 		getLinkText: function() {
-			var text = this.getEl().firstChild.nextSibling.value;
+			var text = this.getEl().firstChild.nextSibling.nextSibling.value;
 
 			if ( ! tinymce.trim( text ) ) {
 				return '';
@@ -77,7 +77,7 @@
 			return text.replace( /[\r\n\t ]+/g, ' ' );
 		},
 		reset: function() {
-			var urlInput = this.getEl().firstChild;
+			var urlInput = this.getEl().firstChild.nextSibling;
 
 			urlInput.value = '';
 			urlInput.nextSibling.value = '';
@@ -98,6 +98,9 @@
 		var urlRegex2 = /^https?:\/\/[^\/]+\.[^\/]+($|\/)/i;
 		var speak = ( typeof window.wp !== 'undefined' && window.wp.a11y && window.wp.a11y.speak ) ? window.wp.a11y.speak : function() {};
 		var hasLinkError = false;
+		var __ = window.wp.i18n.__;
+		var _n = window.wp.i18n._n;
+		var sprintf = window.wp.i18n.sprintf;
 
 		function getSelectedLink() {
 			var href, html,
@@ -391,7 +394,7 @@
 			type: 'WPLinkInput',
 			onPostRender: function() {
 				var element = this.getEl(),
-					input = element.firstChild,
+					input = element.firstChild.nextSibling,
 					$input, cache, last;
 
 				inputInstance = this;
@@ -435,7 +438,7 @@
 						},
 						select: function( event, ui ) {
 							$input.val( ui.item.permalink );
-							$( element.firstChild.nextSibling ).val( ui.item.title );
+							$( element.firstChild.nextSibling.nextSibling ).val( ui.item.title );
 
 							if ( 9 === event.keyCode && typeof window.wpLinkL10n !== 'undefined' ) {
 								// Audible confirmation message when a link has been selected.
@@ -457,15 +460,17 @@
 							my: 'left top+2'
 						},
 						messages: {
-							noResults: ( typeof window.uiAutocompleteL10n !== 'undefined' ) ? window.uiAutocompleteL10n.noResults : '',
+							noResults: __( 'No results found.' ) ,
 							results: function( number ) {
-								if ( typeof window.uiAutocompleteL10n !== 'undefined' ) {
-									if ( number > 1 ) {
-										return window.uiAutocompleteL10n.manyResults.replace( '%d', number );
-									}
-
-									return window.uiAutocompleteL10n.oneResult;
-								}
+								return sprintf(
+									/* translators: %d: Number of search results found. */
+									_n(
+										'%d result found. Use up and down arrow keys to navigate.',
+										'%d results found. Use up and down arrow keys to navigate.',
+										number
+									),
+									number
+								);
 							}
 						}
 					} ).autocomplete( 'instance' )._renderItem = function( ul, item ) {

@@ -52,7 +52,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 		$ret = wp_save_image( $id );
 
 		$this->assertObjectHasProperty( 'error', $ret );
-		$this->assertEquals( 'Images cannot be scaled to a size larger than the original.', $ret->error );
+		$this->assertSame( 'Images cannot be scaled to a size larger than the original.', $ret->error );
 	}
 
 	/**
@@ -113,5 +113,85 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 			 */
 			$this->assertSame( array(), $files_that_should_not_exist );
 		}
+	}
+
+	/**
+	 * Ensure the filesize is updated after editing an image.
+	 *
+	 * Tests that the image meta data file size is updated after editing an image,
+	 * this includes both the full size image and all the generated sizes.
+	 *
+	 * @ticket 59684
+	 */
+	public function test_filesize_updated_after_editing_an_image() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$filename = DIR_TESTDATA . '/images/canola.jpg';
+		$contents = file_get_contents( $filename );
+
+		$upload              = wp_upload_bits( wp_basename( $filename ), null, $contents );
+		$id                  = $this->_make_attachment( $upload );
+		$original_image_meta = wp_get_attachment_metadata( $id );
+
+		$_REQUEST['action']  = 'image-editor';
+		$_REQUEST['context'] = 'edit-attachment';
+		$_REQUEST['postid']  = $id;
+		$_REQUEST['target']  = 'all';
+		$_REQUEST['do']      = 'save';
+		$_REQUEST['history'] = '[{"c":{"x":5,"y":8,"w":289,"h":322}}]';
+
+		wp_save_image( $id );
+
+		$post_edit_meta = wp_get_attachment_metadata( $id );
+
+		$pre_file_sizes         = array_combine( array_keys( $original_image_meta['sizes'] ), array_column( $original_image_meta['sizes'], 'filesize' ) );
+		$pre_file_sizes['full'] = $original_image_meta['filesize'];
+
+		$post_file_sizes         = array_combine( array_keys( $post_edit_meta['sizes'] ), array_column( $post_edit_meta['sizes'], 'filesize' ) );
+		$post_file_sizes['full'] = $post_edit_meta['filesize'];
+
+		foreach ( $pre_file_sizes as $size => $size_filesize ) {
+			// These are asserted individually as each image size needs to be checked separately.
+			$this->assertNotSame( $size_filesize, $post_file_sizes[ $size ], "Filesize for $size should have changed after editing an image." );
+		}
+	}
+
+	/**
+	 * Ensure the filesize is restored after restoring the original image.
+	 *
+	 * Tests that the image meta data file size is restored after restoring the original image,
+	 * this includes both the full size image and all the generated sizes.
+	 *
+	 * @ticket 59684
+	 */
+	public function test_filesize_restored_after_restoring_original_image() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$filename = DIR_TESTDATA . '/images/canola.jpg';
+		$contents = file_get_contents( $filename );
+
+		$upload              = wp_upload_bits( wp_basename( $filename ), null, $contents );
+		$id                  = $this->_make_attachment( $upload );
+		$original_image_meta = wp_get_attachment_metadata( $id );
+
+		$_REQUEST['action']  = 'image-editor';
+		$_REQUEST['context'] = 'edit-attachment';
+		$_REQUEST['postid']  = $id;
+		$_REQUEST['target']  = 'all';
+		$_REQUEST['do']      = 'save';
+		$_REQUEST['history'] = '[{"c":{"x":5,"y":8,"w":289,"h":322}}]';
+
+		wp_save_image( $id );
+		wp_restore_image( $id );
+
+		$post_restore_meta = wp_get_attachment_metadata( $id );
+
+		$pre_file_sizes         = array_combine( array_keys( $original_image_meta['sizes'] ), array_column( $original_image_meta['sizes'], 'filesize' ) );
+		$pre_file_sizes['full'] = $original_image_meta['filesize'];
+
+		$post_restore_file_sizes         = array_combine( array_keys( $post_restore_meta['sizes'] ), array_column( $post_restore_meta['sizes'], 'filesize' ) );
+		$post_restore_file_sizes['full'] = $post_restore_meta['filesize'];
+
+		$this->assertSameSetsWithIndex( $pre_file_sizes, $post_restore_file_sizes, 'Filesize should have restored after restoring the original image.' );
 	}
 }

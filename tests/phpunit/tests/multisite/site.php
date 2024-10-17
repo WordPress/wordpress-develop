@@ -844,7 +844,7 @@ if ( is_multisite() ) :
 		 * @param string $value          The sanitized option value.
 		 * @param string $option         The option name.
 		 * @param string $original_value The original value passed to the function.
-		 * @return string The orginal value.
+		 * @return string The original value.
 		 */
 		public function filter_allow_unavailable_languages( $value, $option, $original_value ) {
 			return $original_value;
@@ -1140,6 +1140,22 @@ if ( is_multisite() ) :
 						'lang_id'  => 1,
 					),
 				),
+				array(
+					array(
+						'domain' => 'example.com:8888',
+					),
+					array(
+						'domain'     => 'example.com:8888',
+						'path'       => '/',
+						'network_id' => 1,
+						'public'     => 1,
+						'archived'   => 0,
+						'mature'     => 0,
+						'spam'       => 0,
+						'deleted'    => 0,
+						'lang_id'    => 0,
+					),
+				),
 			);
 		}
 
@@ -1197,7 +1213,7 @@ if ( is_multisite() ) :
 				if ( isset( $expected_data[ $key ] ) ) {
 					$this->assertEquals( $expected_data[ $key ], $value );
 				} elseif ( 'last_updated' === $key ) {
-					$this->assertTrue( $old_site->last_updated <= $value );
+					$this->assertLessThanOrEqual( $value, $old_site->last_updated );
 				} else {
 					$this->assertSame( $old_site->$key, $value );
 				}
@@ -1240,6 +1256,16 @@ if ( is_multisite() ) :
 						'spam'     => 1,
 						'deleted'  => 1,
 						'lang_id'  => 1,
+					),
+				),
+				array(
+					array(
+						'domain'     => 'example.com:8888',
+						'network_id' => 2,
+					),
+					array(
+						'domain'  => 'example.com:8888',
+						'site_id' => 2,
 					),
 				),
 			);
@@ -1358,7 +1384,23 @@ if ( is_multisite() ) :
 						'domain' => '<yet>/another-invalid-domain.com',
 					),
 					array(
-						'domain' => 'another-invalid-domain.com',
+						'domain' => 'yetanother-invalid-domain.com',
+					),
+				),
+				array(
+					array(
+						'domain' => 'with-port.com:8888',
+					),
+					array(
+						'domain' => 'with-port.com:8888',
+					),
+				),
+				array(
+					array(
+						'domain' => 'subdomain.with-port.com:8888',
+					),
+					array(
+						'domain' => 'subdomain.with-port.com:8888',
 					),
 				),
 				array(
@@ -2149,7 +2191,7 @@ if ( is_multisite() ) :
 		/**
 		 * Tests whether all expected meta are provided in deprecated `wpmu_new_blog` action.
 		 *
-		 * @dataProvider data_wpmu_new_blog_action_backward_commpatible
+		 * @dataProvider data_wpmu_new_blog_action_backward_compatible
 		 *
 		 * @ticket 46351
 		 */
@@ -2214,7 +2256,7 @@ if ( is_multisite() ) :
 			$this->wp_initialize_site_meta = $meta;
 		}
 
-		public function data_wpmu_new_blog_action_backward_commpatible() {
+		public function data_wpmu_new_blog_action_backward_compatible() {
 			return array(
 				'default values' => array(
 					array(),

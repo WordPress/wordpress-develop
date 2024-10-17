@@ -28,6 +28,7 @@
 			<group>ms-files</group>
 			<group>ms-required</group>
 			<group>external-http</group>
+			<group>html-api-html5lib-tests</group>
 		</exclude>
 	</groups>
 	<logging>

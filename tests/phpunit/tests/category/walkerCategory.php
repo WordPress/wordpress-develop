@@ -1,6 +1,7 @@
 <?php
 /**
  * @group taxonomy
+ * @group category
  * @group walker
  *
  * @covers Walker_Category::start_el

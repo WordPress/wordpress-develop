@@ -69,6 +69,14 @@ class WP_Block_Type {
 	public $ancestor = null;
 
 	/**
+	 * Limits which block types can be inserted as children of this block type.
+	 *
+	 * @since 6.5.0
+	 * @var string[]|null
+	 */
+	public $allowed_blocks = null;
+
+	/**
 	 * Block type icon.
 	 *
 	 * @since 5.5.0
@@ -113,9 +121,18 @@ class WP_Block_Type {
 	 * Block variations.
 	 *
 	 * @since 5.8.0
-	 * @var array[]
+	 * @since 6.5.0 Only accessible through magic getter. null by default.
+	 * @var array[]|null
 	 */
-	public $variations = array();
+	private $variations = null;
+
+	/**
+	 * Block variations callback.
+	 *
+	 * @since 6.5.0
+	 * @var callable|null
+	 */
+	public $variation_callback = null;
 
 	/**
 	 * Custom CSS selectors for theme.json style generation.
@@ -163,7 +180,7 @@ class WP_Block_Type {
 	 * @since 5.5.0
 	 * @var string[]
 	 */
-	public $uses_context = array();
+	private $uses_context = array();
 
 	/**
 	 * Context provided by blocks of this type.
@@ -181,7 +198,7 @@ class WP_Block_Type {
 	 * next to the "anchor" block whenever the latter is encountered.
 	 *
 	 * @since 6.4.0
-	 * @var array[]
+	 * @var string[]
 	 */
 	public $block_hooks = array();
 
@@ -210,6 +227,14 @@ class WP_Block_Type {
 	public $view_script_handles = array();
 
 	/**
+	 * Block type front end only script module IDs.
+	 *
+	 * @since 6.5.0
+	 * @var string[]
+	 */
+	public $view_script_module_ids = array();
+
+	/**
 	 * Block type editor only style handles.
 	 *
 	 * @since 6.1.0
@@ -224,6 +249,14 @@ class WP_Block_Type {
 	 * @var string[]
 	 */
 	public $style_handles = array();
+
+	/**
+	 * Block type front end only style handles.
+	 *
+	 * @since 6.5.0
+	 * @var string[]
+	 */
+	public $view_style_handles = array();
 
 	/**
 	 * Deprecated block type properties for script and style handles.
@@ -242,11 +275,13 @@ class WP_Block_Type {
 	/**
 	 * Attributes supported by every block.
 	 *
-	 * @since 6.0.0
+	 * @since 6.0.0 Added `lock`.
+	 * @since 6.5.0 Added `metadata`.
 	 * @var array
 	 */
 	const GLOBAL_ATTRIBUTES = array(
-		'lock' => array( 'type' => 'object' ),
+		'lock'     => array( 'type' => 'object' ),
+		'metadata' => array( 'type' => 'object' ),
 	);
 
 	/**
@@ -262,11 +297,12 @@ class WP_Block_Type {
 	 * @since 5.8.0 Added the `variations` property.
 	 * @since 5.9.0 Added the `view_script` property.
 	 * @since 6.0.0 Added the `ancestor` property.
-	 * @since 6.1.0 Added the `editor_script_handles`, `script_handles`, `view_script_handles,
+	 * @since 6.1.0 Added the `editor_script_handles`, `script_handles`, `view_script_handles`,
 	 *              `editor_style_handles`, and `style_handles` properties.
 	 *              Deprecated the `editor_script`, `script`, `view_script`, `editor_style`, and `style` properties.
 	 * @since 6.3.0 Added the `selectors` property.
 	 * @since 6.4.0 Added the `block_hooks` property.
+	 * @since 6.5.0 Added the `allowed_blocks`, `variation_callback`, and `view_style_handles` properties.
 	 *
 	 * @see register_block_type()
 	 *
@@ -283,6 +319,7 @@ class WP_Block_Type {
 	 *                                                   available when nested within the specified blocks.
 	 *     @type string[]|null $ancestor                 Setting ancestor makes a block available only inside the specified
 	 *                                                   block types at any position of the ancestor's block subtree.
+	 *     @type string[]|null $allowed_blocks           Limits which block types can be inserted as children of this block type.
 	 *     @type string|null   $icon                     Block type icon.
 	 *     @type string        $description              A detailed block type description.
 	 *     @type string[]      $keywords                 Additional keywords to produce block type as
@@ -294,15 +331,17 @@ class WP_Block_Type {
 	 *     @type array|null    $supports                 Supported features.
 	 *     @type array|null    $example                  Structured data for the block preview.
 	 *     @type callable|null $render_callback          Block type render callback.
+	 *     @type callable|null $variation_callback       Block type variations callback.
 	 *     @type array|null    $attributes               Block type attributes property schemas.
 	 *     @type string[]      $uses_context             Context values inherited by blocks of this type.
 	 *     @type string[]|null $provides_context         Context provided by blocks of this type.
-	 *     @type array[]       $block_hooks              Block hooks.
+	 *     @type string[]      $block_hooks              Block hooks.
 	 *     @type string[]      $editor_script_handles    Block type editor only script handles.
 	 *     @type string[]      $script_handles           Block type front end and editor script handles.
 	 *     @type string[]      $view_script_handles      Block type front end only script handles.
 	 *     @type string[]      $editor_style_handles     Block type editor only style handles.
 	 *     @type string[]      $style_handles            Block type front end and editor style handles.
+	 *     @type string[]      $view_style_handles       Block type front end only style handles.
 	 * }
 	 */
 	public function __construct( $block_type, $args = array() ) {
@@ -323,6 +362,14 @@ class WP_Block_Type {
 	 *                                   null when value not found, or void when unknown property name provided.
 	 */
 	public function __get( $name ) {
+		if ( 'variations' === $name ) {
+			return $this->get_variations();
+		}
+
+		if ( 'uses_context' === $name ) {
+			return $this->get_uses_context();
+		}
+
 		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			return;
 		}
@@ -351,6 +398,10 @@ class WP_Block_Type {
 	 *              or false otherwise.
 	 */
 	public function __isset( $name ) {
+		if ( in_array( $name, array( 'variations', 'uses_context' ), true ) ) {
+			return true;
+		}
+
 		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			return false;
 		}
@@ -537,5 +588,50 @@ class WP_Block_Type {
 		return is_array( $this->attributes ) ?
 			$this->attributes :
 			array();
+	}
+
+	/**
+	 * Get block variations.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return array[]
+	 */
+	public function get_variations() {
+		if ( ! isset( $this->variations ) ) {
+			$this->variations = array();
+			if ( is_callable( $this->variation_callback ) ) {
+				$this->variations = call_user_func( $this->variation_callback );
+			}
+		}
+
+		/**
+		 * Filters the registered variations for a block type.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param array         $variations Array of registered variations for a block type.
+		 * @param WP_Block_Type $block_type The full block type object.
+		 */
+		return apply_filters( 'get_block_type_variations', $this->variations, $this );
+	}
+
+	/**
+	 * Get block uses context.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return string[]
+	 */
+	public function get_uses_context() {
+		/**
+		 * Filters the registered uses context for a block type.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param string[]      $uses_context Array of registered uses context for a block type.
+		 * @param WP_Block_Type $block_type   The full block type object.
+		 */
+		return apply_filters( 'get_block_type_uses_context', $this->uses_context, $this );
 	}
 }

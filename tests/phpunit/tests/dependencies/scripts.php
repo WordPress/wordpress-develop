@@ -495,6 +495,8 @@ JS;
 	 * @return array[]
 	 */
 	public function data_provider_to_test_various_strategy_dependency_chains() {
+		$wp_tests_domain = WP_TESTS_DOMAIN;
+
 		return array(
 			'async-dependent-with-one-blocking-dependency' => array(
 				'set_up'          => function () {
@@ -881,8 +883,8 @@ HTML
 					wp_enqueue_script( 'theme-functions', 'https://example.com/theme-functions.js', array( 'jquery' ), null, array( 'strategy' => 'defer' ) );
 				},
 				'expected_markup' => <<<HTML
-<script type='text/javascript' src='http://example.org/wp-includes/js/jquery/jquery.js' id='jquery-core-js' defer data-wp-strategy='defer'></script>
-<script type='text/javascript' src='http://example.org/wp-includes/js/jquery/jquery-migrate.js' id='jquery-migrate-js' defer data-wp-strategy='defer'></script>
+<script type='text/javascript' src='http://$wp_tests_domain/wp-includes/js/jquery/jquery.js' id='jquery-core-js' defer data-wp-strategy='defer'></script>
+<script type='text/javascript' src='http://$wp_tests_domain/wp-includes/js/jquery/jquery-migrate.js' id='jquery-migrate-js' defer data-wp-strategy='defer'></script>
 <script type='text/javascript' src='https://example.com/theme-functions.js' id='theme-functions-js' defer data-wp-strategy='defer'></script>
 HTML
 				,
@@ -2072,7 +2074,7 @@ HTML
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
-		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-polyfill-inert,regenerator-runtime,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$wp_version}'></script>\n";
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-dom-ready,wp-hooks&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n.min.js' id='wp-i18n-js'></script>\n";
@@ -3064,5 +3066,450 @@ HTML
 	 */
 	protected function add_html5_script_theme_support() {
 		add_theme_support( 'html5', array( 'script' ) );
+	}
+
+	/**
+	 * Test that a script is moved to the footer if it is made non-deferrable, was in the header and
+	 * all scripts that depend on it are in the footer.
+	 *
+	 * @ticket 58599
+	 *
+	 * @dataProvider data_provider_script_move_to_footer
+	 *
+	 * @param callable $set_up             Test setup.
+	 * @param string   $expected_header    Expected output for header.
+	 * @param string   $expected_footer    Expected output for footer.
+	 * @param string[] $expected_in_footer Handles expected to be in the footer.
+	 * @param array    $expected_groups    Expected groups.
+	 */
+	public function test_wp_scripts_move_to_footer( $set_up, $expected_header, $expected_footer, $expected_in_footer, $expected_groups ) {
+		$set_up();
+
+		// Get the header output.
+		ob_start();
+		wp_scripts()->do_head_items();
+		$header = ob_get_clean();
+
+		// Print a script in the body just to make sure it doesn't cause problems.
+		ob_start();
+		wp_print_scripts( array( 'jquery' ) );
+		ob_end_clean();
+
+		// Get the footer output.
+		ob_start();
+		wp_scripts()->do_footer_items();
+		$footer = ob_get_clean();
+
+		$this->assertEqualMarkup( $expected_header, $header, 'Expected header script markup to match.' );
+		$this->assertEqualMarkup( $expected_footer, $footer, 'Expected footer script markup to match.' );
+		$this->assertEqualSets( $expected_in_footer, wp_scripts()->in_footer, 'Expected to have the same handles for in_footer.' );
+		$this->assertEquals( $expected_groups, wp_scripts()->groups, 'Expected groups to match.' );
+	}
+
+	/**
+	 * Test that get_script_polyfill() returns the correct polyfill.
+	 *
+	 * @ticket 60348
+	 *
+	 * @covers ::wp_get_script_polyfill
+	 *
+	 * @global WP_Scripts $wp_scripts WP_Scripts instance.
+	 */
+	public function test_wp_get_script_polyfill() {
+		global $wp_scripts;
+		$script_name = 'tmp-polyfill-foo';
+		$test_script = 'HTMLScriptElement.supports && HTMLScriptElement.supports("foo")';
+		$script_url  = 'https://example.com/polyfill-foo.js';
+		wp_register_script( $script_name, $script_url );
+
+		$polyfill = wp_get_script_polyfill(
+			$wp_scripts,
+			array(
+				$test_script => $script_name,
+			)
+		);
+
+		wp_deregister_script( $script_name );
+
+		$expected = '( ' . $test_script . ' ) || document.write( \'<script src="' . $script_url . '"></scr\' + \'ipt>\' );';
+
+		$this->assertSame( $expected, $polyfill );
+	}
+
+	/**
+	 * Data provider for test_wp_scripts_move_to_footer.
+	 *
+	 * @return array[]
+	 */
+	public function data_provider_script_move_to_footer() {
+		return array(
+			'footer-blocking-dependent-of-defer-head-script' => array(
+				'set_up'             => static function () {
+					wp_enqueue_script( 'script-a', 'https://example.com/script-a.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'script-b', 'https://example.com/script-b.js', array( 'script-a' ), null, array( 'in_footer' => true ) );
+				},
+				'expected_header'    => '',
+				'expected_footer'    => '
+					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="defer"></script>
+					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js"></script>
+				',
+				'expected_in_footer' => array(
+					'script-a',
+					'script-b',
+				),
+				'expected_groups'    => array(
+					'script-a' => 0,
+					'script-b' => 1,
+					'jquery'   => 0,
+				),
+			),
+
+			'footer-blocking-dependent-of-async-head-script' => array(
+				'set_up'             => static function () {
+					wp_enqueue_script( 'script-a', 'https://example.com/script-a.js', array(), null, array( 'strategy' => 'async' ) );
+					wp_enqueue_script( 'script-b', 'https://example.com/script-b.js', array( 'script-a' ), null, array( 'in_footer' => true ) );
+				},
+				'expected_header'    => '',
+				'expected_footer'    => '
+					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="async"></script>
+					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js"></script>
+				',
+				'expected_in_footer' => array(
+					'script-a',
+					'script-b',
+				),
+				'expected_groups'    => array(
+					'script-a' => 0,
+					'script-b' => 1,
+					'jquery'   => 0,
+				),
+			),
+
+			'head-blocking-dependent-of-delayed-head-script' => array(
+				'set_up'             => static function () {
+					wp_enqueue_script( 'script-a', 'https://example.com/script-a.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script( 'script-b', 'https://example.com/script-b.js', array( 'script-a' ), null, array( 'in_footer' => false ) );
+				},
+				'expected_header'    => '
+					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="defer"></script>
+					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js"></script>
+				',
+				'expected_footer'    => '',
+				'expected_in_footer' => array(),
+				'expected_groups'    => array(
+					'script-a' => 0,
+					'script-b' => 0,
+					'jquery'   => 0,
+				),
+			),
+
+			'delayed-footer-dependent-of-delayed-head-script' => array(
+				'set_up'             => static function () {
+					wp_enqueue_script( 'script-a', 'https://example.com/script-a.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script(
+						'script-b',
+						'https://example.com/script-b.js',
+						array( 'script-a' ),
+						null,
+						array(
+							'strategy'  => 'defer',
+							'in_footer' => true,
+						)
+					);
+				},
+				'expected_header'    => '
+					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" defer="defer" data-wp-strategy="defer"></script>
+				',
+				'expected_footer'    => '
+					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js" defer="defer" data-wp-strategy="defer"></script>
+				',
+				'expected_in_footer' => array(
+					'script-b',
+				),
+				'expected_groups'    => array(
+					'script-a' => 0,
+					'script-b' => 1,
+					'jquery'   => 0,
+				),
+			),
+
+			'delayed-dependent-in-header-and-delayed-dependents-in-footer' => array(
+				'set_up'             => static function () {
+					wp_enqueue_script( 'script-a', 'https://example.com/script-a.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script(
+						'script-b',
+						'https://example.com/script-b.js',
+						array( 'script-a' ),
+						null,
+						array(
+							'strategy'  => 'defer',
+							'in_footer' => false,
+						)
+					);
+					wp_enqueue_script(
+						'script-c',
+						'https://example.com/script-c.js',
+						array( 'script-a' ),
+						null,
+						array(
+							'strategy'  => 'defer',
+							'in_footer' => true,
+						)
+					);
+					wp_enqueue_script(
+						'script-d',
+						'https://example.com/script-d.js',
+						array( 'script-a' ),
+						null,
+						array(
+							'strategy'  => 'defer',
+							'in_footer' => true,
+						)
+					);
+				},
+				'expected_header'    => '
+					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" defer="defer" data-wp-strategy="defer"></script>
+					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js" defer="defer" data-wp-strategy="defer"></script>
+				',
+				'expected_footer'    => '
+					<script type="text/javascript" src="https://example.com/script-c.js" id="script-c-js" defer="defer" data-wp-strategy="defer"></script>
+					<script type="text/javascript" src="https://example.com/script-d.js" id="script-d-js" defer="defer" data-wp-strategy="defer"></script>
+				',
+				'expected_in_footer' => array(
+					'script-c',
+					'script-d',
+				),
+				'expected_groups'    => array(
+					'script-a' => 0,
+					'script-b' => 0,
+					'script-c' => 1,
+					'script-d' => 1,
+					'jquery'   => 0,
+				),
+			),
+
+			'all-dependents-in-footer-with-one-blocking' => array(
+				'set_up'             => static function () {
+					wp_enqueue_script( 'script-a', 'https://example.com/script-a.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script(
+						'script-b',
+						'https://example.com/script-b.js',
+						array( 'script-a' ),
+						null,
+						array(
+							'strategy'  => 'defer',
+							'in_footer' => true,
+						)
+					);
+					wp_enqueue_script( 'script-c', 'https://example.com/script-c.js', array( 'script-a' ), null, true );
+					wp_enqueue_script(
+						'script-d',
+						'https://example.com/script-d.js',
+						array( 'script-a' ),
+						null,
+						array(
+							'strategy'  => 'defer',
+							'in_footer' => true,
+						)
+					);
+				},
+				'expected_header'    => '',
+				'expected_footer'    => '
+					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="defer"></script>
+					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js" defer="defer" data-wp-strategy="defer"></script>
+					<script type="text/javascript" src="https://example.com/script-c.js" id="script-c-js"></script>
+					<script type="text/javascript" src="https://example.com/script-d.js" id="script-d-js" defer="defer" data-wp-strategy="defer"></script>
+				',
+				'expected_in_footer' => array(
+					'script-a',
+					'script-b',
+					'script-c',
+					'script-d',
+				),
+				'expected_groups'    => array(
+					'script-a' => 0,
+					'script-b' => 1,
+					'script-c' => 1,
+					'script-d' => 1,
+					'jquery'   => 0,
+
+				),
+			),
+
+			'blocking-dependents-in-head-and-footer'     => array(
+				'set_up'             => static function () {
+					wp_enqueue_script( 'script-a', 'https://example.com/script-a.js', array(), null, array( 'strategy' => 'defer' ) );
+					wp_enqueue_script(
+						'script-b',
+						'https://example.com/script-b.js',
+						array( 'script-a' ),
+						null,
+						array(
+							'strategy'  => 'defer',
+							'in_footer' => false,
+						)
+					);
+					wp_enqueue_script( 'script-c', 'https://example.com/script-c.js', array( 'script-a' ), null, true );
+					wp_enqueue_script(
+						'script-d',
+						'https://example.com/script-d.js',
+						array( 'script-a' ),
+						null,
+						array(
+							'strategy'  => 'defer',
+							'in_footer' => true,
+						)
+					);
+				},
+				'expected_header'    => '
+					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="defer"></script>
+					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js" defer="defer" data-wp-strategy="defer"></script>
+				',
+				'expected_footer'    => '
+					<script type="text/javascript" src="https://example.com/script-c.js" id="script-c-js"></script>
+					<script type="text/javascript" src="https://example.com/script-d.js" id="script-d-js" defer="defer" data-wp-strategy="defer"></script>
+				',
+				'expected_in_footer' => array(
+					'script-c',
+					'script-d',
+				),
+				'expected_groups'    => array(
+					'script-a' => 0,
+					'script-b' => 0,
+					'script-c' => 1,
+					'script-d' => 1,
+					'jquery'   => 0,
+				),
+			),
+
+		);
+	}
+
+	/**
+	 * Tests default scripts are registered with the correct versions.
+	 *
+	 * Ensures that vendor scripts registered in wp_default_scripts() and
+	 * wp_default_packages_vendor() are registered with the correct version
+	 * number from package.json.
+	 *
+	 * @ticket 61855
+	 * @ticket 60048
+	 *
+	 * @covers ::wp_default_scripts
+	 * @covers ::wp_default_packages_vendor
+	 *
+	 * @dataProvider data_vendor_script_versions_registered_manually
+	 *
+	 * @param string $script Script name as defined in package.json.
+	 * @param string $handle Optional. Handle to check for. Defaults to the script name.
+	 */
+	public function test_vendor_script_versions_registered_manually( $script, $handle = null ) {
+		global $wp_scripts;
+		wp_default_packages_vendor( $wp_scripts );
+		wp_default_scripts( $wp_scripts );
+
+		$package_json = $this->_scripts_from_package_json();
+		if ( ! $handle ) {
+			$handle = $script;
+		}
+
+		$script_query = $wp_scripts->query( $handle, 'registered' );
+
+		$this->assertNotFalse( $script_query, "The script '{$handle}' should be registered." );
+		$this->assertArrayHasKey( $script, $package_json, "The dependency '{$script}' should be included in package.json." );
+		$this->assertSame( $package_json[ $script ], $wp_scripts->query( $handle, 'registered' )->ver, "The script '{$handle}' should be registered with version {$package_json[ $script ]}." );
+	}
+
+	/**
+	 * Data provider for test_vendor_script_versions_registered_manually.
+	 *
+	 * @return array[]
+	 */
+	public function data_vendor_script_versions_registered_manually() {
+		return array(
+			'backbone'                         => array( 'backbone' ),
+			'clipboard'                        => array( 'clipboard' ),
+			'core-js-url-browser'              => array( 'core-js-url-browser', 'wp-polyfill-url' ),
+			'element-closest'                  => array( 'element-closest', 'wp-polyfill-element-closest' ),
+			'formdata-polyfill'                => array( 'formdata-polyfill', 'wp-polyfill-formdata' ),
+			'imagesloaded'                     => array( 'imagesloaded' ),
+			'jquery-color'                     => array( 'jquery-color' ),
+			'jquery-core'                      => array( 'jquery', 'jquery-core' ),
+			'jquery-form'                      => array( 'jquery-form' ),
+			'jquery-hoverintent'               => array( 'jquery-hoverintent', 'hoverIntent' ),
+			'lodash'                           => array( 'lodash' ),
+			'masonry'                          => array( 'masonry-layout', 'masonry' ),
+			'moment'                           => array( 'moment' ),
+			'objectFitPolyfill'                => array( 'objectFitPolyfill', 'wp-polyfill-object-fit' ),
+			'polyfill-library (dom rect)'      => array( 'polyfill-library', 'wp-polyfill-dom-rect' ),
+			'polyfill-library (node contains)' => array( 'polyfill-library', 'wp-polyfill-node-contains' ),
+			'react (jsx-runtime)'              => array( 'react', 'react-jsx-runtime' ),
+			'react (React)'                    => array( 'react' ),
+			'react-dom'                        => array( 'react-dom' ),
+			'regenerator-runtime'              => array( 'regenerator-runtime' ),
+			'underscore'                       => array( 'underscore' ),
+			'vanilla-js-hoverintent'           => array( 'hoverintent', 'hoverintent-js' ),
+			'whatwg-fetch'                     => array( 'whatwg-fetch', 'wp-polyfill-fetch' ),
+			'wicg-inert'                       => array( 'wicg-inert', 'wp-polyfill-inert' ),
+		);
+	}
+
+	/**
+	 * Ensures that all the scripts in the package.json are included in the data provider.
+	 *
+	 * This is a test the tests to ensure the data provider includes all the scripts in package.json.
+	 *
+	 * @ticket 61855
+	 */
+	public function test_vendor_script_data_provider_includes_all_packages() {
+		$package_json_dependencies  = array_keys( $this->_scripts_from_package_json() );
+		$data_provider_dependencies = $this->data_vendor_script_versions_registered_manually();
+
+		/*
+		 * Exclude `@wordpress/*` packages from the packages in package.json.
+		 *
+		 * The version numbers for these packages is generated by the build
+		 * process based on a hash of the file contents.
+		 */
+		$package_json_dependencies = array_filter(
+			$package_json_dependencies,
+			static function ( $dependency ) {
+				return 0 !== strpos( $dependency, '@wordpress/' );
+			}
+		);
+
+		// Get the script names from the data provider.
+		$data_provider_dependencies = array_map(
+			static function ( $dependency ) {
+				return $dependency[0];
+			},
+			$data_provider_dependencies
+		);
+
+		// Exclude packages that are not registered in WordPress.
+		$exclude                   = array( 'react-is', 'json2php' );
+		$package_json_dependencies = array_diff( $package_json_dependencies, $exclude );
+
+		/*
+		 * Ensure the arrays are unique.
+		 *
+		 * This is for the react package as it is included in the data provider
+		 * as both `react` and `react-jsx-runtime`.
+		 */
+		$package_json_dependencies  = array_unique( $package_json_dependencies );
+		$data_provider_dependencies = array_unique( $data_provider_dependencies );
+
+		$this->assertSameSets( $package_json_dependencies, $data_provider_dependencies );
+	}
+
+	/**
+	 * Helper to return dependencies from package.json.
+	 */
+	private function _scripts_from_package_json() {
+		$package = file_get_contents( ABSPATH . '../package.json' );
+		$data    = json_decode( $package, true );
+
+		$provider = array();
+		return $data['dependencies'];
 	}
 }

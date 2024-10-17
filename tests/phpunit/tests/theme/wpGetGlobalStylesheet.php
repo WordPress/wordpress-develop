@@ -19,6 +19,13 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 	private $remove_theme_support_at_teardown = false;
 
 	/**
+	 * Flag to indicate whether to remove 'border' theme support at tear_down().
+	 *
+	 * @var bool
+	 */
+	private $remove_border_support_at_teardown = false;
+
+	/**
 	 * Flag to indicate whether to switch back to the default theme at tear down.
 	 *
 	 * @var bool
@@ -26,6 +33,9 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 	private $switch_to_default_theme_at_teardown = false;
 
 	public function tear_down() {
+		// Reset development mode after each test.
+		unset( $GLOBALS['_wp_tests_development_mode'] );
+
 		// Reset the theme support.
 		if ( $this->remove_theme_support_at_teardown ) {
 			$this->remove_theme_support_at_teardown = false;
@@ -35,6 +45,12 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 		if ( $this->switch_to_default_theme_at_teardown ) {
 			$this->switch_to_default_theme_at_teardown = false;
 			switch_theme( WP_DEFAULT_THEME );
+		}
+
+		if ( $this->remove_border_support_at_teardown ) {
+			$this->remove_border_support_at_teardown = false;
+			remove_theme_support( 'border' );
+			remove_theme_support( 'editor-color-palette' );
 		}
 
 		parent::tear_down();
@@ -241,6 +257,64 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 		// When the development mode is set to 'theme', caching should not be used.
 		$_wp_tests_development_mode = 'theme';
 		$this->assertNotSame( $css, wp_get_global_stylesheet(), 'Caching was used despite theme development mode' );
+	}
+
+	/**
+	 * Tests that theme color palette presets are output when appearance tools are enabled via theme support.
+	 *
+	 * @ticket 60134
+	 */
+	public function test_theme_color_palette_presets_output_when_border_support_enabled() {
+
+		$args = array(
+			array(
+				'name'  => 'Black',
+				'slug'  => 'nice-black',
+				'color' => '#000000',
+			),
+			array(
+				'name'  => 'Dark Gray',
+				'slug'  => 'dark-gray',
+				'color' => '#28303D',
+			),
+			array(
+				'name'  => 'Green',
+				'slug'  => 'haunted-green',
+				'color' => '#D1E4DD',
+			),
+			array(
+				'name'  => 'Blue',
+				'slug'  => 'soft-blue',
+				'color' => '#D1DFE4',
+			),
+			array(
+				'name'  => 'Purple',
+				'slug'  => 'cool-purple',
+				'color' => '#D1D1E4',
+			),
+		);
+
+		// Add theme support for appearance tools.
+		add_theme_support( 'border' );
+		add_theme_support( 'editor-color-palette', $args );
+		$this->remove_border_support_at_teardown = true;
+
+		// Check for both the variable declaration and its use as a value.
+		$variables = wp_get_global_stylesheet( array( 'variables' ) );
+
+		$this->assertStringContainsString( '--wp--preset--color--nice-black: #000000', $variables );
+		$this->assertStringContainsString( '--wp--preset--color--dark-gray: #28303D', $variables );
+		$this->assertStringContainsString( '--wp--preset--color--haunted-green: #D1E4DD', $variables );
+		$this->assertStringContainsString( '--wp--preset--color--soft-blue: #D1DFE4', $variables );
+		$this->assertStringContainsString( '--wp--preset--color--cool-purple: #D1D1E4', $variables );
+
+		$presets = wp_get_global_stylesheet( array( 'presets' ) );
+
+		$this->assertStringContainsString( 'var(--wp--preset--color--nice-black)', $presets );
+		$this->assertStringContainsString( 'var(--wp--preset--color--dark-gray)', $presets );
+		$this->assertStringContainsString( 'var(--wp--preset--color--haunted-green)', $presets );
+		$this->assertStringContainsString( 'var(--wp--preset--color--soft-blue)', $presets );
+		$this->assertStringContainsString( 'var(--wp--preset--color--cool-purple)', $presets );
 	}
 
 	/**

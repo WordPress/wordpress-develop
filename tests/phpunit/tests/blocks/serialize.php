@@ -74,6 +74,23 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 59669
+	 *
+	 * @covers ::traverse_and_serialize_blocks
+	 */
+	public function test_traverse_and_serialize_blocks_post_callback_modifies_current_block() {
+		$markup = "<!-- wp:outer --><!-- wp:inner {\"key\":\"value\"} -->Example.<!-- /wp:inner -->\n\nExample.\n\n<!-- wp:void /--><!-- /wp:outer -->";
+		$blocks = parse_blocks( $markup );
+
+		$actual = traverse_and_serialize_blocks( $blocks, null, array( __CLASS__, 'add_attribute_to_inner_block' ) );
+
+		$this->assertSame(
+			"<!-- wp:outer --><!-- wp:inner {\"key\":\"value\",\"myattr\":\"myvalue\"} -->Example.<!-- /wp:inner -->\n\nExample.\n\n<!-- wp:void /--><!-- /wp:outer -->",
+			$actual
+		);
+	}
+
 	public static function add_attribute_to_inner_block( &$block ) {
 		if ( 'core/inner' === $block['blockName'] ) {
 			$block['attrs']['myattr'] = 'myvalue';

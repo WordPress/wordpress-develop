@@ -57,6 +57,8 @@ function get_postdata($postid) {
  *
  * @since 1.0.1
  * @deprecated 1.5.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
  */
 function start_wp() {
 	global $wp_query;
@@ -703,7 +705,7 @@ function dropdown_cats($optionall = 1, $all = 'All', $orderby = 'ID', $order = '
 
 	$show_option_none = '';
 	if ( $optionnone )
-		$show_option_none = __('None');
+	$show_option_none = _x( 'None', 'Categories dropdown (show_option_none parameter)' );
 
 	$vars = compact('show_option_all', 'show_option_none', 'orderby', 'order',
 					'show_last_update', 'show_count', 'hide_empty', 'selected', 'exclude');
@@ -994,11 +996,11 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 
 		$output .= '<a href="' . $the_link . '"' . $rel . $title . $target. '>';
 
-		if ( $row->link_image != null && $show_images ) {
+		if ( '' != $row->link_image && $show_images ) {
 			if ( str_contains( $row->link_image, 'http' ) )
-				$output .= "<img src=\"$row->link_image\" $alt $title />";
+				$output .= '<img src="' . $row->link_image . '"' . $alt . $title . ' />';
 			else // If it's a relative path.
-				$output .= "<img src=\"" . get_option('siteurl') . "$row->link_image\" $alt $title />";
+				$output .= '<img src="' . get_option('siteurl') . $row->link_image . '"' . $alt . $title . ' />';
 		} else {
 			$output .= $name;
 		}
@@ -1908,7 +1910,7 @@ function get_attachment_icon_src( $id = 0, $fullsize = false ) {
 
 		$src = wp_get_attachment_url( $post->ID );
 		$src_file = & $file;
-	} elseif ( $src = wp_mime_type_icon( $post->ID ) ) {
+	} elseif ( $src = wp_mime_type_icon( $post->ID, '.svg' ) ) {
 		// No thumb, no image. We'll look for a mime-related icon instead.
 
 		/** This filter is documented in wp-includes/post.php */
@@ -2217,6 +2219,8 @@ function unregister_widget_control($id) {
  * @deprecated 3.0.0 Use delete_user_meta()
  * @see delete_user_meta()
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param int $user_id User ID.
  * @param string $meta_key Metadata key.
  * @param mixed $meta_value Optional. Metadata value. Default empty.
@@ -2263,6 +2267,8 @@ function delete_usermeta( $user_id, $meta_key, $meta_value = '' ) {
  * @since 2.0.0
  * @deprecated 3.0.0 Use get_user_meta()
  * @see get_user_meta()
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID
  * @param string $meta_key Optional. Metadata key. Default empty.
@@ -2315,6 +2321,8 @@ function get_usermeta( $user_id, $meta_key = '' ) {
  * @since 2.0.0
  * @deprecated 3.0.0 Use update_user_meta()
  * @see update_user_meta()
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID
  * @param string $meta_key Metadata key.
@@ -2626,7 +2634,7 @@ function get_user_metavalues($ids) {
 /**
  * Sanitize every user field.
  *
- * If the context is 'raw', then the user object or array will get minimal santization of the int fields.
+ * If the context is 'raw', then the user object or array will get minimal sanitization of the int fields.
  *
  * @since 2.3.0
  * @deprecated 3.3.0
@@ -2752,6 +2760,8 @@ function index_rel_link() {
  *
  * @since 2.8.0
  * @deprecated 3.3.0
+ *
+ * @global WP_Post $post Global post object.
  *
  * @param string $title Optional. Link title format. Default '%title'.
  * @return string
@@ -3326,7 +3336,9 @@ function gd_edit_image_support($mime_type) {
 				return (imagetypes() & IMG_GIF) != 0;
 			case 'image/webp':
 				return (imagetypes() & IMG_WEBP) != 0;
-		}
+			case 'image/avif':
+				return (imagetypes() & IMG_AVIF) != 0;
+			}
 	} else {
 		switch( $mime_type ) {
 			case 'image/jpeg':
@@ -3337,6 +3349,8 @@ function gd_edit_image_support($mime_type) {
 				return function_exists('imagecreatefromgif');
 			case 'image/webp':
 				return function_exists('imagecreatefromwebp');
+			case 'image/avif':
+				return function_exists('imagecreatefromavif');
 		}
 	}
 	return false;
@@ -3659,6 +3673,7 @@ function post_permalink( $post = 0 ) {
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
 
+	// Adds an additional 60 seconds to the script timeout to ensure the remote request has enough time.
 	if ( function_exists( 'set_time_limit' ) ) {
 		@set_time_limit( 60 );
 	}
@@ -4062,8 +4077,6 @@ function _wp_register_meta_args_whitelist( $args, $default_args ) {
  * @deprecated 5.5.0 Use add_allowed_options() instead.
  *                   Please consider writing more inclusive code.
  *
- * @global array $allowed_options
- *
  * @param array        $new_options
  * @param string|array $options
  * @return array
@@ -4080,8 +4093,6 @@ function add_option_whitelist( $new_options, $options = '' ) {
  * @since 2.7.0
  * @deprecated 5.5.0 Use remove_allowed_options() instead.
  *                   Please consider writing more inclusive code.
- *
- * @global array $allowed_options
  *
  * @param array        $del_options
  * @param string|array $options
@@ -5430,7 +5441,7 @@ function _wp_theme_json_webfonts_handler() {
 		$settings = WP_Theme_JSON_Resolver::get_merged_data()->get_settings();
 
 		// If in the editor, add webfonts defined in variations.
-		if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		if ( is_admin() || wp_is_rest_endpoint() ) {
 			$variations = WP_Theme_JSON_Resolver::get_style_variations();
 			foreach ( $variations as $variation ) {
 				// Skip if fontFamilies are not defined in the variation.
@@ -5992,7 +6003,7 @@ function wp_update_https_detection_errors() {
 	 */
 	$support_errors = apply_filters( 'pre_wp_update_https_detection_errors', null );
 	if ( is_wp_error( $support_errors ) ) {
-		update_option( 'https_detection_errors', $support_errors->errors );
+		update_option( 'https_detection_errors', $support_errors->errors, false );
 		return;
 	}
 
@@ -6123,4 +6134,293 @@ function _remove_theme_attribute_in_block_template_content( $template_content ) 
 	}
 
 	return $new_content;
+}
+
+/**
+ * Prints the skip-link script & styles.
+ *
+ * @since 5.8.0
+ * @access private
+ * @deprecated 6.4.0 Use wp_enqueue_block_template_skip_link() instead.
+ *
+ * @global string $_wp_current_template_content
+ */
+function the_block_template_skip_link() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_block_template_skip_link()' );
+
+	global $_wp_current_template_content;
+
+	// Early exit if not a block theme.
+	if ( ! current_theme_supports( 'block-templates' ) ) {
+		return;
+	}
+
+	// Early exit if not a block template.
+	if ( ! $_wp_current_template_content ) {
+		return;
+	}
+	?>
+
+	<?php
+	/**
+	 * Print the skip-link styles.
+	 */
+	?>
+	<style id="skip-link-styles">
+		.skip-link.screen-reader-text {
+			border: 0;
+			clip: rect(1px,1px,1px,1px);
+			clip-path: inset(50%);
+			height: 1px;
+			margin: -1px;
+			overflow: hidden;
+			padding: 0;
+			position: absolute !important;
+			width: 1px;
+			word-wrap: normal !important;
+		}
+
+		.skip-link.screen-reader-text:focus {
+			background-color: #eee;
+			clip: auto !important;
+			clip-path: none;
+			color: #444;
+			display: block;
+			font-size: 1em;
+			height: auto;
+			left: 5px;
+			line-height: normal;
+			padding: 15px 23px 14px;
+			text-decoration: none;
+			top: 5px;
+			width: auto;
+			z-index: 100000;
+		}
+	</style>
+	<?php
+	/**
+	 * Print the skip-link script.
+	 */
+	?>
+	<script>
+	( function() {
+		var skipLinkTarget = document.querySelector( 'main' ),
+			sibling,
+			skipLinkTargetID,
+			skipLink;
+
+		// Early exit if a skip-link target can't be located.
+		if ( ! skipLinkTarget ) {
+			return;
+		}
+
+		/*
+		 * Get the site wrapper.
+		 * The skip-link will be injected in the beginning of it.
+		 */
+		sibling = document.querySelector( '.wp-site-blocks' );
+
+		// Early exit if the root element was not found.
+		if ( ! sibling ) {
+			return;
+		}
+
+		// Get the skip-link target's ID, and generate one if it doesn't exist.
+		skipLinkTargetID = skipLinkTarget.id;
+		if ( ! skipLinkTargetID ) {
+			skipLinkTargetID = 'wp--skip-link--target';
+			skipLinkTarget.id = skipLinkTargetID;
+		}
+
+		// Create the skip link.
+		skipLink = document.createElement( 'a' );
+		skipLink.classList.add( 'skip-link', 'screen-reader-text' );
+		skipLink.href = '#' + skipLinkTargetID;
+		skipLink.innerHTML = '<?php /* translators: Hidden accessibility text. */ esc_html_e( 'Skip to content' ); ?>';
+
+		// Inject the skip link.
+		sibling.parentElement.insertBefore( skipLink, sibling );
+	}() );
+	</script>
+	<?php
+}
+
+/**
+ * Ensure that the view script has the `wp-interactivity` dependency.
+ *
+ * @since 6.4.0
+ * @deprecated 6.5.0
+ */
+function block_core_query_ensure_interactivity_dependency() {
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
+}
+
+/**
+ * Ensure that the view script has the `wp-interactivity` dependency.
+ *
+ * @since 6.4.0
+ * @deprecated 6.5.0
+ */
+function block_core_file_ensure_interactivity_dependency() {
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
+}
+
+/**
+ * Ensures that the view script has the `wp-interactivity` dependency.
+ *
+ * @since 6.4.0
+ * @deprecated 6.5.0
+ */
+function block_core_image_ensure_interactivity_dependency() {
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
+}
+
+/**
+ * Updates the block content with elements class names.
+ *
+ * @deprecated 6.6.0 Generation of element class name is handled via `render_block_data` filter.
+ *
+ * @since 5.8.0
+ * @since 6.4.0 Added support for button and heading element styling.
+ * @access private
+ *
+ * @param string $block_content Rendered block content.
+ * @param array  $block         Block object.
+ * @return string Filtered block content.
+ */
+function wp_render_elements_support( $block_content, $block ) {
+	_deprecated_function( __FUNCTION__, '6.6.0', 'wp_render_elements_class_name' );
+	return $block_content;
+}
+
+/**
+ * Processes the directives on the rendered HTML of the interactive blocks.
+ *
+ * This processes only one root interactive block at a time because the
+ * rendered HTML of that block contains the rendered HTML of all its inner
+ * blocks, including any interactive block. It does so by ignoring all the
+ * interactive inner blocks until the root interactive block is processed.
+ *
+ * @since 6.5.0
+ * @deprecated 6.6.0
+ *
+ * @param array $parsed_block The parsed block.
+ * @return array The same parsed block.
+ */
+function wp_interactivity_process_directives_of_interactive_blocks( array $parsed_block ): array {
+	_deprecated_function( __FUNCTION__, '6.6.0' );
+	return $parsed_block;
+}
+
+/**
+ * Gets the global styles custom CSS from theme.json.
+ *
+ * @since 6.2.0
+ * @deprecated 6.7.0 Use {@see 'wp_get_global_stylesheet'} instead.
+ *
+ * @return string The global styles custom CSS.
+ */
+function wp_get_global_styles_custom_css() {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_get_global_stylesheet' );
+	if ( ! wp_theme_has_theme_json() ) {
+		return '';
+	}
+	/*
+	 * Ignore cache when the development mode is set to 'theme', so it doesn't interfere with the theme
+	 * developer's workflow.
+	 */
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+
+	/*
+	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
+	 * @see `wp_cache_add_non_persistent_groups()`.
+	 *
+	 * The rationale for this is to make sure derived data from theme.json
+	 * is always fresh from the potential modifications done via hooks
+	 * that can use dynamic data (modify the stylesheet depending on some option,
+	 * settings depending on user permissions, etc.).
+	 * See some of the existing hooks to modify theme.json behavior:
+	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+	 *
+	 * A different alternative considered was to invalidate the cache upon certain
+	 * events such as options add/update/delete, user meta, etc.
+	 * It was judged not enough, hence this approach.
+	 * @see https://github.com/WordPress/gutenberg/pull/45372
+	 */
+	$cache_key   = 'wp_get_global_styles_custom_css';
+	$cache_group = 'theme_json';
+	if ( $can_use_cached ) {
+		$cached = wp_cache_get( $cache_key, $cache_group );
+		if ( $cached ) {
+			return $cached;
+		}
+	}
+
+	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
+	$stylesheet = $tree->get_custom_css();
+
+	if ( $can_use_cached ) {
+		wp_cache_set( $cache_key, $stylesheet, $cache_group );
+	}
+
+	return $stylesheet;
+}
+
+/**
+ * Enqueues the global styles custom css defined via theme.json.
+ *
+ * @since 6.2.0
+ * @deprecated 6.7.0 Use {@see 'wp_enqueue_global_styles'} instead.
+ */
+function wp_enqueue_global_styles_custom_css() {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_enqueue_global_styles' );
+	if ( ! wp_is_block_theme() ) {
+		return;
+	}
+
+	// Don't enqueue Customizer's custom CSS separately.
+	remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
+
+	$custom_css  = wp_get_custom_css();
+	$custom_css .= wp_get_global_styles_custom_css();
+
+	if ( ! empty( $custom_css ) ) {
+		wp_add_inline_style( 'global-styles', $custom_css );
+	}
+}
+
+/**
+ * Generate block style variation instance name.
+ *
+ * @since 6.6.0
+ * @deprecated 6.7.0 Use `wp_unique_id( $variation . '--' )` instead.
+ *
+ * @access private
+ *
+ * @param array  $block     Block object.
+ * @param string $variation Slug for the block style variation.
+ *
+ * @return string The unique variation name.
+ */
+function wp_create_block_style_variation_instance_name( $block, $variation ) {
+	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_unique_id' );
+	return $variation . '--' . md5( serialize( $block ) );
+}
+
+/**
+ * Returns whether the current user has the specified capability for a given site.
+ *
+ * @since 3.0.0
+ * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
+ *              by adding it to the function signature.
+ * @since 5.8.0 Wraps current_user_can() after switching to blog.
+ * @deprecated 6.7.0 Use current_user_can_for_site() instead.
+ *
+ * @param int    $blog_id    Site ID.
+ * @param string $capability Capability name.
+ * @param mixed  ...$args    Optional further parameters, typically starting with an object ID.
+ * @return bool Whether the user has the given capability.
+ */
+function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
+	return current_user_can_for_site( $blog_id, $capability, ...$args );
 }

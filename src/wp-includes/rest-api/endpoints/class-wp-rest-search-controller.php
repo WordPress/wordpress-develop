@@ -152,7 +152,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 		$total     = (int) $result[ WP_REST_Search_Handler::RESULT_TOTAL ];
 		$page      = (int) $request['page'];
 		$per_page  = (int) $request['per_page'];
-		$max_pages = ceil( $total / $per_page );
+		$max_pages = (int) ceil( $total / $per_page );
 
 		if ( $page > $max_pages && $total > 0 ) {
 			return new WP_Error(
@@ -395,7 +395,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	protected function get_search_handler( $request ) {
 		$type = $request->get_param( self::PROP_TYPE );
 
-		if ( ! $type || ! isset( $this->search_handlers[ $type ] ) ) {
+		if ( ! $type || ! is_string( $type ) || ! isset( $this->search_handlers[ $type ] ) ) {
 			return new WP_Error(
 				'rest_search_invalid_type',
 				__( 'Invalid type parameter.' ),

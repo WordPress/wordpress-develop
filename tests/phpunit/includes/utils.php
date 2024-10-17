@@ -6,17 +6,17 @@
  * Returns a string of the required length containing random characters. Note that
  * the maximum possible string length is 32.
  *
- * @param int $len Optional. The required length. Default 32.
+ * @param int $length Optional. The required length. Default 32.
  * @return string The string.
  */
-function rand_str( $len = 32 ) {
-	return substr( md5( uniqid( rand() ) ), 0, $len );
+function rand_str( $length = 32 ) {
+	return substr( md5( uniqid( rand() ) ), 0, $length );
 }
 
 /**
  * Returns a string of the required length containing random characters.
  *
- * @param int $len The required length.
+ * @param int $length The required length.
  * @return string The string.
  */
 function rand_long_str( $length ) {
@@ -49,7 +49,7 @@ function strip_ws( $txt ) {
 	return trim( implode( "\n", $result ) );
 }
 
-/*
+/**
  * Helper class for testing code that involves actions and filters.
  *
  * Typical use:
@@ -295,7 +295,6 @@ class TestXMLParser {
 	 */
 	public function __construct( $in ) {
 		$this->xml = xml_parser_create();
-		xml_set_object( $this->xml, $this );
 		xml_parser_set_option( $this->xml, XML_OPTION_CASE_FOLDING, 0 );
 		xml_set_element_handler( $this->xml, array( $this, 'start_handler' ), array( $this, 'end_handler' ) );
 		xml_set_character_data_handler( $this->xml, array( $this, 'data_handler' ) );
@@ -305,13 +304,12 @@ class TestXMLParser {
 	public function parse( $in ) {
 		$parse = xml_parse( $this->xml, $in, true );
 		if ( ! $parse ) {
-			trigger_error(
+			throw new Exception(
 				sprintf(
 					'XML error: %s at line %d',
 					xml_error_string( xml_get_error_code( $this->xml ) ),
 					xml_get_current_line_number( $this->xml )
-				),
-				E_USER_ERROR
+				)
 			);
 			xml_parser_free( $this->xml );
 		}

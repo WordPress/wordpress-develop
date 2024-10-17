@@ -62,7 +62,7 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 	 * @covers ::get_hooked_blocks
 	 */
 	public function test_get_hooked_blocks_no_match_found() {
-		$result = get_hooked_blocks( 'tests/no-hooked-blocks' );
+		$result = get_hooked_blocks();
 
 		$this->assertSame( array(), $result );
 	}
@@ -98,58 +98,45 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array(
-				'before' => array(
-					'tests/injected-one',
-					'tests/injected-two',
+				'tests/hooked-at-before'           => array(
+					'before' => array(
+						'tests/injected-one',
+						'tests/injected-two',
+					),
+				),
+				'tests/hooked-at-after'            => array(
+					'after' => array(
+						'tests/injected-one',
+						'tests/injected-two',
+					),
+				),
+				'tests/hooked-at-before-and-after' => array(
+					'before' => array(
+						'tests/injected-one',
+					),
+					'after'  => array(
+						'tests/injected-two',
+					),
+				),
+				'tests/hooked-at-first-child'      => array(
+					'first_child' => array(
+						'tests/injected-two',
+					),
+				),
+				'tests/hooked-at-last-child'       => array(
+					'last_child' => array(
+						'tests/injected-two',
+					),
 				),
 			),
-			get_hooked_blocks( 'tests/hooked-at-before' ),
-			'block hooked at the before position'
-		);
-		$this->assertSame(
-			array(
-				'after' => array(
-					'tests/injected-one',
-					'tests/injected-two',
-				),
-			),
-			get_hooked_blocks( 'tests/hooked-at-after' ),
-			'block hooked at the after position'
-		);
-		$this->assertSame(
-			array(
-				'first_child' => array(
-					'tests/injected-two',
-				),
-			),
-			get_hooked_blocks( 'tests/hooked-at-first-child' ),
-			'block hooked at the first child position'
-		);
-		$this->assertSame(
-			array(
-				'last_child' => array(
-					'tests/injected-two',
-				),
-			),
-			get_hooked_blocks( 'tests/hooked-at-last-child' ),
-			'block hooked at the last child position'
-		);
-		$this->assertSame(
-			array(
-				'before' => array(
-					'tests/injected-one',
-				),
-				'after'  => array(
-					'tests/injected-two',
-				),
-			),
-			get_hooked_blocks( 'tests/hooked-at-before-and-after' ),
-			'block hooked before one block and after another'
+			get_hooked_blocks()
 		);
 	}
 
 	/**
 	 * @ticket 59313
+	 * @ticket 60008
+	 * @ticket 60506
 	 *
 	 * @covers ::get_hooked_blocks
 	 * @covers ::get_block_file_template
@@ -164,7 +151,7 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 			$template->content
 		);
 		$this->assertStringContainsString(
-			'<!-- wp:post-content {"layout":{"type":"constrained"}} /-->'
+			'<!-- wp:post-content {"layout":{"type":"constrained"},"metadata":{"ignoredHookedBlocks":["tests/hooked-after"]}} /-->'
 			. '<!-- wp:tests/hooked-after /-->',
 			$template->content
 		);
@@ -180,6 +167,8 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59313
+	 * @ticket 60008
+	 * @ticket 60506
 	 *
 	 * @covers ::get_hooked_blocks
 	 * @covers ::get_block_file_template
@@ -191,7 +180,7 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
 		$this->assertStringContainsString(
 			'<!-- wp:tests/hooked-before /-->'
-			. '<!-- wp:navigation {"layout":{"type":"flex","setCascadingProperties":true,"justifyContent":"right"}} /-->',
+			. '<!-- wp:navigation {"layout":{"type":"flex","setCascadingProperties":true,"justifyContent":"right"},"metadata":{"ignoredHookedBlocks":["tests/hooked-before"]}} /-->',
 			$template->content
 		);
 		$this->assertStringNotContainsString(
@@ -210,6 +199,8 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59313
+	 * @ticket 60008
+	 * @ticket 60506
 	 *
 	 * @covers ::get_hooked_blocks
 	 * @covers WP_Block_Patterns_Registry::get_registered
@@ -230,7 +221,7 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 			$pattern['content']
 		);
 		$this->assertStringContainsString(
-			'<!-- wp:comments -->'
+			'<!-- wp:comments {"metadata":{"ignoredHookedBlocks":["tests/hooked-first-child"]}} -->'
 			. '<div class="wp-block-comments">'
 			. '<!-- wp:tests/hooked-first-child /-->',
 			str_replace( array( "\n", "\t" ), '', $pattern['content'] )
