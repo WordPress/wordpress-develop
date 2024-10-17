@@ -132,7 +132,7 @@ final class WP_oEmbed_Controller {
 		$data = get_oembed_response_data( $post_id, $request['maxwidth'] );
 
 		if ( ! $data ) {
-			return new WP_Error( 'oembed_invalid_url', get_status_header_desc( 404 ), array( 'status' => 404 ) );
+			return new WP_Error( 'oembed_invalid_url', get_status_header_desc( 400 ), array( 'status' => 400 ) );
 		}
 
 		return $data;
@@ -219,7 +219,7 @@ final class WP_oEmbed_Controller {
 				);
 			}
 
-			return new WP_Error( 'oembed_invalid_url', get_status_header_desc( 404 ), array( 'status' => 404 ) );
+			return new WP_Error( 'oembed_invalid_url', get_status_header_desc( 400 ), array( 'status' => 400 ) );
 		}
 
 		/** This filter is documented in wp-includes/class-wp-oembed.php */
