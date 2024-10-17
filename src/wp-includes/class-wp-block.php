@@ -174,16 +174,6 @@ class WP_Block {
 				}
 			}
 		}
-
-		if ( ! empty( $this->parsed_block['innerBlocks'] ) ) {
-			if ( ! empty( $this->block_type->provides_context ) ) {
-				foreach ( $this->block_type->provides_context as $context_name => $attribute_name ) {
-					if ( array_key_exists( $attribute_name, $this->attributes ) ) {
-						$this->available_context[ $context_name ] = $this->attributes[ $attribute_name ];
-					}
-				}
-			}
-		}
 	}
 
 	/**
@@ -200,7 +190,17 @@ class WP_Block {
 	 */
 	public function refresh_parsed_block_dependents() {
 		if ( ! empty( $this->parsed_block['innerBlocks'] ) ) {
-			$this->inner_blocks = new WP_Block_List( $this->parsed_block['innerBlocks'], $this->available_context, $this->registry );
+			$child_context = $this->available_context;
+
+			if ( ! empty( $this->block_type->provides_context ) ) {
+				foreach ( $this->block_type->provides_context as $context_name => $attribute_name ) {
+					if ( array_key_exists( $attribute_name, $this->attributes ) ) {
+						$child_context[ $context_name ] = $this->attributes[ $attribute_name ];
+					}
+				}
+			}
+
+			$this->inner_blocks = new WP_Block_List( $this->parsed_block['innerBlocks'], $child_context, $this->registry );
 		}
 
 		if ( ! empty( $this->parsed_block['innerHTML'] ) ) {
