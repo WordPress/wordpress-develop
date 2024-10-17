@@ -839,6 +839,7 @@ class WP_Theme_JSON_Resolver {
 				$variations[] = $variation;
 			}
 		}
+		$variations = apply_filters('wp_theme_json_data_theme_style_variations',$variations);
 		return $variations;
 	}
 
