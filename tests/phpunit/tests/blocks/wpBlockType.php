@@ -642,6 +642,20 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 60309
+	 */
+	public function test_can_access_original_varations_variable() {
+		$block_type               = new WP_Block_Type(
+			'test/block',
+			array(
+				'title' => 'Test title',
+			)
+		);
+		$block_type->variations[] = array( 'name' => 'var1' );
+		$this->assertSameSets( array( array( 'name' => 'var1' ) ), $block_type->variations );
+	}
+
+	/**
 	 * Mock variation callback.
 	 *
 	 * @return array
