@@ -2253,7 +2253,10 @@ function wp_delete_category( $cat_id ) {
  */
 function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	if ( empty( $object_ids ) || empty( $taxonomies ) ) {
-		return array();
+		if ( ! array_key_exists( 'fields', $args ) || 'count' !== $args['fields'] ) {
+			return array();
+		}
+		return '0';
 	}
 
 	if ( ! is_array( $taxonomies ) ) {
@@ -2314,7 +2317,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 
 	// Taxonomies registered without an 'args' param are handled here.
 	if ( ! empty( $taxonomies ) ) {
-		$terms_from_remaining_taxonomies = get_terms( $args );
+		$terms_from_remaining_taxonomies = (array) get_terms( $args );
 
 		// Array keys should be preserved for values of $fields that use term_id for keys.
 		if ( ! empty( $args['fields'] ) && str_starts_with( $args['fields'], 'id=>' ) ) {
@@ -2322,6 +2325,10 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 		} else {
 			$terms = array_merge( $terms, $terms_from_remaining_taxonomies );
 		}
+	}
+
+	if ( array_key_exists( 'fields', $args ) && 'count' === $args['fields'] ) {
+		$terms = (string) array_sum( $terms );
 	}
 
 	/**
