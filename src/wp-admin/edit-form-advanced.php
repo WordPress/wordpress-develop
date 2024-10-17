@@ -219,6 +219,8 @@ $messages['attachment'] = array_fill( 1, 10, __( 'Media file updated.' ) ); // H
 $messages = apply_filters( 'post_updated_messages', $messages );
 
 $message = false;
+
+// Note: The message query argument is removed from the URL via JavaScript after the message is displayed to avoid repeated notices and to clean up the URL.
 if ( isset( $_GET['message'] ) ) {
 	$_GET['message'] = absint( $_GET['message'] );
 	if ( isset( $messages[ $post_type ][ $_GET['message'] ] ) ) {
