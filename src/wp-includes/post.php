@@ -4892,7 +4892,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 
 	// Set GUID.
 	if ( ! $update && '' === $current_guid ) {
-		$wpdb->update( $wpdb->posts, array( 'guid' => get_permalink( $post_id ) ), $where );
+		$wpdb->update( $wpdb->posts, array( 'guid' => esc_url( get_permalink( $post_id ) ) ), $where );
 	}
 
 	if ( 'attachment' === $postarr['post_type'] ) {
@@ -7790,7 +7790,7 @@ function _transition_post_status( $new_status, $old_status, $post ) {
 	if ( 'publish' !== $old_status && 'publish' === $new_status ) {
 		// Reset GUID if transitioning to publish and it is empty.
 		if ( '' === get_the_guid( $post->ID ) ) {
-			$wpdb->update( $wpdb->posts, array( 'guid' => get_permalink( $post->ID ) ), array( 'ID' => $post->ID ) );
+			$wpdb->update( $wpdb->posts, array( 'guid' => esc_url( get_permalink( $post->ID ) ) ), array( 'ID' => $post->ID ) );
 		}
 
 		/**
