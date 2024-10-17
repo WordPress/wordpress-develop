@@ -403,4 +403,84 @@ CSS
 
 		return $data;
 	}
+
+	public static function get_custom_style_variations( $key = '' ) {
+		static $data = null;
+
+		$uri                    = get_stylesheet_directory_uri() . '/assets/fonts/';
+		$expected_font_families = array(
+			array(
+				array(
+					'src'          => array(
+						'/var/www/tests/phpunit/data/themedir1/fonts-block-theme/assets/fonts/dm-sans/DMSans-Regular.woff2',
+					),
+					'font-family'  => 'DM Sans',
+					'font-stretch' => 'normal',
+					'font-style'   => 'normal',
+					'font-weight'  => '400',
+				),
+				array(
+					'src'          => array(
+						'/var/www/tests/phpunit/data/themedir1/fonts-block-theme/assets/fonts/dm-sans/DMSans-Bold.woff2',
+					),
+					'font-family'  => 'DM Sans',
+					'font-stretch' => 'normal',
+					'font-style'   => 'normal',
+					'font-weight'  => '700',
+				),
+			),
+			array(
+				array(
+					'src'          => array(
+						'/var/www/tests/phpunit/data/themedir1/fonts-block-theme/assets/fonts/open-sans/OpenSans-VariableFont_wdth,wght.ttf',
+					),
+					'font-family'  => 'Open Sans',
+					'font-stretch' => 'normal',
+					'font-style'   => 'normal',
+					'font-weight'  => '400',
+				),
+				array(
+					'src'          => array(
+						'/var/www/tests/phpunit/data/themedir1/fonts-block-theme/assets/fonts/open-sans/OpenSans-Italic-VariableFont_wdth,wght.ttf',
+					),
+					'font-family'  => 'Open Sans',
+					'font-stretch' => 'normal',
+					'font-style'   => 'italic',
+					'font-weight'  => '400',
+				),
+			),
+			array(
+				array(
+					'src'          => array(
+						'/var/www/tests/phpunit/data/themedir1/fonts-block-theme/assets/fonts/dm-sans/DMSans-Medium.woff2',
+					),
+					'font-family'  => 'DM Sans',
+					'font-stretch' => 'normal',
+					'font-style'   => 'normal',
+					'font-weight'  => '500',
+				),
+				array(
+					'src'          => array(
+						'/var/www/tests/phpunit/data/themedir1/fonts-block-theme/assets/fonts/dm-sans/DMSans-Medium-Italic.woff2',
+					),
+					'font-family'  => 'DM Sans',
+					'font-stretch' => 'normal',
+					'font-style'   => 'italic',
+					'font-weight'  => '500',
+				),
+			),
+		);
+
+		if ( null === $data ) {
+			$data = array(
+				'expected' => $expected_font_families,
+			);
+		}
+
+		if ( isset( $data[ $key ] ) ) {
+			return $data[ $key ];
+		}
+
+		return $data;
+	}
 }
