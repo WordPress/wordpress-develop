@@ -128,7 +128,7 @@ class WP_Block {
 	 */
 	public function __construct( $block, $available_context = array(), $registry = null ) {
 		$this->parsed_block = $block;
-		$this->name         = $block['blockName'];
+		$this->name         = get_canonical_block_name( $block['blockName'] );
 
 		if ( is_null( $registry ) ) {
 			$registry = WP_Block_Type_Registry::get_instance();
