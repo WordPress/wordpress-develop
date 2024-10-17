@@ -349,77 +349,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	}
 
 	/**
-	 * Gets the bit depth for PNG images and checks for indexed-color mode.
-	 *
-	 * Access the file directly, as we cannot currently rely on Imagick to identify
-	 * palette images with alpha support.
-	 *
-	 * @since 6.6.0
-	 */
-	public function get_png_color_depth() {
-
-		if ( 'image/png' !== $this->mime_type ) {
-			return;
-		}
-		if ( wp_is_stream( $this->file ) ) {
-			return;
-		}
-		if ( ! is_file( $this->file ) ) {
-			return;
-		}
-		if ( filesize( $this->file ) < 24 ) {
-			return;
-		}
-
-		$file_handle = fopen( $this->file, 'rb' );
-
-		if ( ! $file_handle ) {
-			return;
-		}
-		$png_header = fread( $file_handle, 4 );
-
-		if ( chr( 0x89 ) . 'PNG' !== $png_header ) {
-			return;
-		}
-
-		// Move forward 8 bytes.
-		fread( $file_handle, 8 );
-		$png_ihdr = fread( $file_handle, 4 );
-
-		// Make sure we have an IHDR.
-		if ( 'IHDR' !== $png_ihdr ) {
-			return;
-		}
-
-		// Skip past the dimensions.
-		fread( $file_handle, 8 );
-
-		// Bit depth: 1 byte
-		// Bit depth is a single-byte integer giving the number of bits per sample or
-		// per palette index (not per pixel).
-		//
-		// Valid values are 1, 2, 4, 8, 16 and 32, although not all values are allowed for all color types.
-		$this->indexed_pixel_depth = ord( (string) fread( $file_handle, 1 ) );
-
-		// Color type is a single-byte integer that describes the interpretation of the image data.
-		// Color type codes represent sums of the following values:
-		// 1 (palette used), 2 (color used), and 4 (alpha channel used).
-		// The valid color types are:
-		// 0 => Grayscale
-		// 2 => Truecolor
-		// 3 => Indexed
-		// 4 => Greyscale with alpha
-		// 6 => Truecolour with alpha
-		$color_type = ord( (string) fread( $file_handle, 1 ) );
-
-		if ( 3 === (int) $color_type ) {
-			$this->indexed_color_encoded = true;
-		}
-
-		fclose( $file_handle );
-	}
-
-	/**
 	 * Resizes current image.
 	 *
 	 * At minimum, either a height or width must be provided.
@@ -508,20 +437,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$filter = defined( 'Imagick::FILTER_TRIANGLE' ) ? Imagick::FILTER_TRIANGLE : false;
 		}
 
-		if ( 'image/png' === $this->mime_type ) {
-			// Check to see if a PNG is indexed, and find the pixel depth.
-			$this->get_png_color_depth();
-
-			/**
-			 * If the PNG image is indexed, also check to see how many colors it currently has. For instance,
-			 * an 8-bit image can have up to 256 colors, but it may only have 20, which will make a
-			 * significant difference in the quantization.
-			 */
-			if ( $this->indexed_color_encoded && is_callable( array( $this->image, 'getImageColors' ) ) ) {
-				$current_colors = $this->image->getImageColors();
-			}
-		}
-
 		/**
 		 * Filters whether to strip metadata from images when they're resized.
 		 *
@@ -573,11 +488,19 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'jpeg:fancy-upsampling', 'off' );
 			}
 
+			$indexed_color_encoded = false;
+			$indexed_pixel_depth   = false;
 			if ( 'image/png' === $this->mime_type ) {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
-				if ( $this->indexed_color_encoded
+				// Check to see if a PNG is indexed, and find the pixel depth.
+				$depth = $this->getImageDepth();
+				if ( $depth <= 8 ) {
+					$indexed_pixel_depth   = $depth;
+					$indexed_color_encoded = true;
+				}
+				if ( $indexed_color_encoded
 					&& is_callable( array( $this->image, 'getImageAlphaChannel' ) )
 					&& $this->image->getImageAlphaChannel()
 				) {
@@ -585,35 +508,43 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				} else {
 					$this->image->setOption( 'png:exclude-chunk', 'all' );
 				}
-			}
+				if ( $indexed_color_encoded && $indexed_pixel_depth ) {
+					switch ( $indexed_pixel_depth ) {
+						case 8:
+							$max_colors = 255;
+							break;
+						case 4:
+							$max_colors = 16;
+							break;
+						case 2:
+							$max_colors = 4;
+							break;
+						case 1:
+							$max_colors = 2;
+							break;
+						default:
+							$max_colors = 0;
+					}
 
-			if ( $this->indexed_color_encoded ) {
-				switch ( $this->indexed_pixel_depth ) {
-					case 8:
-						$max_colors = 255;
-						break;
-					case 4:
-						$max_colors = 16;
-						break;
-					case 2:
-						$max_colors = 4;
-						break;
-					case 1:
-						$max_colors = 2;
-						break;
-					default:
-						$max_colors = 0;
-				}
-				if ( ! empty( $max_colors ) ) {
-					$max_colors = min( $max_colors, $current_colors );
-					$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
-					/**
-					 * ImageMagick likes to convert gray indexed images to grayscale.
-					 * So, if the colorspace has changed to 'gray', use the png8 format
-					 * to ensure it stays indexed.
-					 */
-					if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
-						$this->image->setOption( 'png:format', 'png8' );
+					if ( ! empty( $max_colors ) ) {
+						/**
+						 * If the PNG image is indexed, also check to see how many colors it currently has. For instance,
+						 * an 8-bit image can have up to 256 colors, but it may only have 20, which will make a
+						 * significant difference in the quantization.
+						 */
+						if ( $this->indexed_color_encoded && is_callable( array( $this->image, 'getImageColors' ) ) ) {
+							$current_colors = $this->image->getImageColors();
+						}
+						$max_colors = min( $max_colors, $current_colors );
+						$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
+						/**
+						 * ImageMagick likes to convert gray indexed images to grayscale.
+						 * So, if the colorspace has changed to 'gray', use the png8 format
+						 * to ensure it stays indexed.
+						 */
+						if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
+							$this->image->setOption( 'png:format', 'png8' );
+						}
 					}
 				}
 			}
