@@ -683,6 +683,15 @@ class WP_HTML_Tag_Processor {
 	private $is_closing_tag;
 
 	/**
+	 * Stores the position of the last-matched tag, or the start of the document if not matched yet.
+	 *
+	 * @var WP_HTML_Span
+	 */
+	private $last_position = null;
+
+	private $last_token_end = 0;
+
+	/**
 	 * Lazily-built index of attributes found within an HTML tag, keyed by the attribute name.
 	 *
 	 * Example:
@@ -835,6 +844,8 @@ class WP_HTML_Tag_Processor {
 	 */
 	public function __construct( $html ) {
 		$this->html = $html;
+
+		$this->last_position = new WP_HTML_Span( 0, 0 );
 	}
 
 	/**
@@ -877,6 +888,16 @@ class WP_HTML_Tag_Processor {
 	public function next_tag( $query = null ): bool {
 		$this->parse_query( $query );
 		$already_found = 0;
+
+		if ( null !== $this->tag_name_starts_at ) {
+			$rewind_amount = $this->is_closing_tag ? 2 : 1;
+			$before_tag    = $this->tag_name_starts_at - $rewind_amount;
+			$end_of_tag    = $this->tag_ends_at;
+
+			$this->last_position->start = $before_tag;
+			$this->last_position->end   = $end_of_tag;
+			$this->last_token_end       = $this->tag_ends_at + 1;
+		}
 
 		do {
 			if ( false === $this->next_token() ) {
@@ -3783,6 +3804,72 @@ class WP_HTML_Tag_Processor {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns the chunk of text from the end of the preceding tag or token to the
+	 * start of the matched tag or token, with decoded character references.
+	 *
+	 * Example:
+	 *
+	 *     $q = array( 'tag_closers' => 'visit' );
+	 *     $processor = new WP_HTML_Tag_Processor( 'Before<div>Inside</div>After' );
+	 *     $processor->next_tag( $q ); 'Before' === $processor->get_prev_text_chunk();
+	 *     $processor->next_tag( $q ); 'Inside' === $processor->get_prev_text_chunk();
+	 *     $processor->next_tag( $q ); 'After'  === $processor->get_prev_text_chunk();
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return string|null Chunk of text from end of last token to current token, or NULL if not yet matched.
+	 */
+	public function get_previous_text_chunk() {
+		if ( $this->bytes_already_parsed >= strlen( $this->html ) ) {
+			$chunk = substr( $this->html, $this->last_position->end === 0 ? 0 : $this->last_position->end + 1 );
+			return html_entity_decode( $chunk, ENT_HTML5 | ENT_QUOTES | ENT_SUBSTITUTE );
+		}
+
+		if ( ! $this->tag_name_starts_at ) {
+			return null;
+		}
+
+		$chunk_start = $this->last_position->end === 0 ? 0 : $this->last_position->end + 1;
+		$chunk_end   = $this->is_tag_closer() ? $this->tag_name_starts_at - 2 : $this->tag_name_starts_at - 1;
+		$chunk       = substr( $this->html, $chunk_start, $chunk_end - $chunk_start );
+		return html_entity_decode( $chunk, ENT_HTML5 | ENT_QUOTES | ENT_SUBSTITUTE );
+	}
+
+	/**
+	 * Returns the chunk of html from the start of the preceding tag or token to the
+	 * start of the matched tag or token, without decoded character references.
+	 *
+	 * Example:
+	 *
+	 *     $q = array( 'tag_closers' => 'visit' );
+	 *     $processor = new WP_HTML_Tag_Processor( 'Before<div>Inside</div>After' );
+	 *     $processor->next_tag( $q ); 'Before'       === $processor->get_prev_text_chunk();
+	 *     $processor->next_tag( $q ); '<div>Inside'  === $processor->get_prev_text_chunk();
+	 *     $processor->next_tag( $q ); '</div>After'  === $processor->get_prev_text_chunk();
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return array|null Chunk of text from end of last token to current token, or NULL if not yet matched.
+	 */
+	public function get_previous_html_chunk() {
+		if ( $this->bytes_already_parsed >= strlen( $this->html ) ) {
+			$html = substr( $this->html, $this->last_position->start, $this->last_token_end - $this->last_position->start );
+			$text = substr( $this->html, $this->last_token_end );
+
+			return array( $html, $text );
+		}
+
+		if ( ! $this->tag_name_starts_at ) {
+			return null;
+		}
+
+		$html = substr( $this->html, $this->last_position->start, $this->last_token_end - $this->last_position->start );
+		$text = substr( $this->html, $this->last_token_end, ( $this->is_tag_closer() ? $this->tag_name_starts_at - 2 : $this->tag_name_starts_at - 1 ) - $this->last_token_end );
+
+		return array( $html, $text );
 	}
 
 	/**
