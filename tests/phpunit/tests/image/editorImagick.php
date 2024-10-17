@@ -731,16 +731,16 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			'cloudflare-status'       => array(
 				DIR_TESTDATA . '/images/png-tests/cloudflare-status.png',
 			),
-			'deskcat8'             => array(
+			'deskcat8'                => array(
 				DIR_TESTDATA . '/images/png-tests/deskcat8.png',
 			),
 			'17-c3-duplicate-entries' => array(
 				DIR_TESTDATA . '/images/png-tests/Palette_icon-or8.png',
 			),
-			'rabbit-time-paletted' => array(
+			'rabbit-time-paletted'    => array(
 				DIR_TESTDATA . '/images/png-tests/rabbit-time-paletted-or8.png',
 			),
-			'test8'                => array(
+			'test8'                   => array(
 				DIR_TESTDATA . '/images/png-tests/test8.png',
 			),
 		);
