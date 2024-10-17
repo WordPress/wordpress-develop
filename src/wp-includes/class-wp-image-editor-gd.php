@@ -72,7 +72,19 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			case 'image/webp':
 				return ( $image_types & IMG_WEBP ) !== 0;
 			case 'image/avif':
-				return ( $image_types & IMG_AVIF ) !== 0 && function_exists( 'imageavif' );
+				// AVIF support in GD sometimes reports a false positive, see https://github.com/php/php-src/issues/12019.
+				$avif_reported_support = ( $image_types & IMG_AVIF ) !== 0 && function_exists( 'imageavif' );
+				if ( $avif_reported_support ) {
+					// Test if the reported support is a false positive.
+					try {
+						$result = imageavif( imagecreatetruecolor( 16, 16 ), 'test.avif' );
+						return $result;
+					} catch ( Exception $e ) {
+						return false;
+					}
+				}
+				return false;
+
 		}
 
 		return false;
