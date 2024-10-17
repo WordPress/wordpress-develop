@@ -488,54 +488,30 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'jpeg:fancy-upsampling', 'off' );
 			}
 
-			$indexed_color_encoded = false;
 			$indexed_pixel_depth   = false;
 			if ( 'image/png' === $this->mime_type ) {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
 				// Check to see if a PNG is indexed, and find the pixel depth.
-				$depth = $this->getImageDepth();
-				if ( $depth <= 8 ) {
-					$indexed_pixel_depth   = $depth;
-					$indexed_color_encoded = true;
-				}
-				if ( $indexed_color_encoded
-					&& is_callable( array( $this->image, 'getImageAlphaChannel' ) )
-					&& $this->image->getImageAlphaChannel()
-				) {
-					$this->image->setOption( 'png:include-chunk', 'tRNS' );
-				} else {
-					$this->image->setOption( 'png:exclude-chunk', 'all' );
-				}
-				if ( $indexed_color_encoded && $indexed_pixel_depth ) {
-					switch ( $indexed_pixel_depth ) {
-						case 8:
-							$max_colors = 255;
-							break;
-						case 4:
-							$max_colors = 16;
-							break;
-						case 2:
-							$max_colors = 4;
-							break;
-						case 1:
-							$max_colors = 2;
-							break;
-						default:
-							$max_colors = 0;
-					}
+				if ( is_callable( array( $this->image, 'getImageDepth' ) ) ) {
+					$indexed_pixel_depth = $this->image->getImageDepth();
+					$max_colors = 2 ^ $indexed_pixel_depth;
 
-					if ( ! empty( $max_colors ) ) {
-						/**
-						 * If the PNG image is indexed, also check to see how many colors it currently has. For instance,
-						 * an 8-bit image can have up to 256 colors, but it may only have 20, which will make a
-						 * significant difference in the quantization.
-						 */
-						if ( $this->indexed_color_encoded && is_callable( array( $this->image, 'getImageColors' ) ) ) {
-							$current_colors = $this->image->getImageColors();
+					if ( $indexed_pixel_depth && 0 < $indexed_pixel_depth <= 8 ) {
+						if (
+							is_callable( array( $this->image, 'getImageAlphaChannel' ) )
+							&& $this->image->getImageAlphaChannel()
+						) {
+							$this->image->setOption( 'png:include-chunk', 'tRNS' );
+						} else {
+							$this->image->setOption( 'png:exclude-chunk', 'all' );
 						}
-						$max_colors = min( $max_colors, $current_colors );
+
+						if ( is_callable( array( $this->image, 'getImageColors' ) ) ) {
+							$current_colors = $this->image->getImageColors();
+							$max_colors = min( $max_colors, $current_colors );
+						}
 						$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
 						/**
 						 * ImageMagick likes to convert gray indexed images to grayscale.
@@ -546,7 +522,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 							$this->image->setOption( 'png:format', 'png8' );
 						}
 					}
-				}
 			}
 
 			/*
