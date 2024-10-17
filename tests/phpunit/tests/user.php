@@ -1439,6 +1439,66 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that the notification email is sent in the correct locale.
+	 *
+	 * @ticket 61518
+	 */
+	public function test_wp_new_user_notification_switches_locale_to_matching_user() {
+		reset_phpmailer_instance();
+
+		$admin_user = get_user_by( 'email', get_option( 'admin_email' ) );
+
+		update_option( 'WPLANG', 'en_GB' );
+		update_user_meta( $admin_user->ID, 'locale', 'de_DE' );
+		update_user_meta( self::$contrib_id, 'locale', 'es_ES' );
+
+		$admin_email_locale = null;
+		$user_email_locale  = null;
+
+		add_filter(
+			'wp_new_user_notification_email_admin',
+			static function ( $email ) use ( &$admin_email_locale ) {
+				$admin_email_locale = get_locale();
+				return $email;
+			}
+		);
+		add_filter(
+			'wp_new_user_notification_email',
+			static function ( $email ) use ( &$user_email_locale ) {
+				$user_email_locale = get_locale();
+				return $email;
+			}
+		);
+
+		wp_new_user_notification( self::$contrib_id, null, 'both' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$was_admin_email_sent = false;
+		$was_user_email_sent  = false;
+
+		/*
+		 * Check to see if a notification email was sent to the
+		 * post author `blackburn@battlefield3.com` and and site admin `admin@example.org`.
+		 */
+		$first_recipient = $mailer->get_recipient( 'to' );
+		if ( $first_recipient ) {
+			$was_admin_email_sent = WP_TESTS_EMAIL === $first_recipient->address;
+			$was_user_email_sent  = 'blackburn@battlefield3.com' === $first_recipient->address;
+		}
+
+		$second_recipient = $mailer->get_recipient( 'to', 1 );
+		if ( $second_recipient ) {
+			$was_user_email_sent = 'blackburn@battlefield3.com' === $second_recipient->address;
+		}
+
+		$this->assertTrue( $was_admin_email_sent, 'Admin email was not sent as expected' );
+		$this->assertTrue( $was_user_email_sent, 'User email was not sent as expected' );
+		$this->assertSame( 'de_DE', $admin_email_locale, 'Admin email was not sent in the expected locale' );
+		$this->assertSame( 'es_ES', $user_email_locale, 'User email was not sent in the expected locale' );
+	}
+
+	/**
 	 * Callback that returns 0.0.
 	 *
 	 * @return float 0.0.
@@ -2184,5 +2244,49 @@ class Tests_User extends WP_UnitTestCase {
 		);
 
 		return $additional_profile_data;
+	}
+
+	/**
+	 * Tests that wp_insert_user() does not unnecessarily update the 'use_ssl' meta.
+	 *
+	 * @ticket 60299
+	 *
+	 * @covers ::wp_insert_user
+	 */
+	public function test_wp_insert_user_should_not_unnecessary_update_use_ssl_meta() {
+		$user_id = self::$contrib_id;
+		// Keep track of database writing calls.
+		$db_update_count = 0;
+
+		// Track database updates via update_user_meta() with 'use_ssl' meta key.
+		add_action(
+			'update_user_meta',
+			function ( $meta_id, $object_id, $meta_key ) use ( &$db_update_count ) {
+				if ( 'use_ssl' !== $meta_key ) {
+					return;
+				}
+				$db_update_count++;
+			},
+			10,
+			3
+		);
+
+		$_POST = array(
+			'nickname' => 'nickname_test',
+			'email'    => 'email_test_1@example.com',
+			'use_ssl'  => 1,
+		);
+
+		$user_id = edit_user( $user_id );
+
+		$this->assertIsInt( $user_id );
+		$this->assertSame( 1, $db_update_count );
+
+		// Update the user without changing the 'use_ssl' meta.
+		$_POST['email'] = 'email_test_2@example.com';
+		$user_id        = edit_user( $user_id );
+
+		// Verify there are no updates to 'use_ssl' user meta.
+		$this->assertSame( 1, $db_update_count );
 	}
 }
