@@ -76,6 +76,84 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the block cache is set for global styles.
+	 *
+	 * @ticket 61679
+	 */
+	public function test_styles_for_blocks_cache_is_set() {
+		$this->set_up_third_party_block();
+
+		wp_register_style( 'global-styles', false, array(), true, true );
+
+		$cache_key                = 'wp_styles_for_blocks';
+		$styles_for_blocks_before = get_transient( $cache_key );
+		$this->assertFalse( $styles_for_blocks_before, 'No block styles should be cached yet.' );
+
+		wp_add_global_styles_for_blocks();
+
+		$styles_for_blocks_after = get_transient( $cache_key );
+		$this->assertNotEmpty( $styles_for_blocks_after, 'No block styles were cached.' );
+	}
+
+	/**
+	 * Tests that the block cache is skipped when in dev mode for themes.
+	 *
+	 * @ticket 61679
+	 */
+	public function test_styles_for_blocks_skips_cache_in_dev_mode() {
+		global $_wp_tests_development_mode;
+
+		$orig_dev_mode = $_wp_tests_development_mode;
+
+		// Setting development mode to theme should skip the cache.
+		$_wp_tests_development_mode = 'theme';
+
+		wp_register_style( 'global-styles', false, array(), true, true );
+
+		// Initial register of global styles.
+		wp_add_global_styles_for_blocks();
+
+		$styles_for_blocks_initial = get_transient( 'wp_styles_for_blocks' );
+
+		// Cleanup.
+		$_wp_tests_development_mode = $orig_dev_mode;
+
+		$this->assertFalse( $styles_for_blocks_initial );
+	}
+
+	/**
+	 * Tests that the block cache is updated if the block meta has changed.
+	 *
+	 * @ticket 61679
+	 */
+	public function test_styles_for_blocks_cache_is_skipped() {
+		wp_register_style( 'global-styles', false, array(), true, true );
+
+		// Initial register of global styles.
+		wp_add_global_styles_for_blocks();
+
+		$styles_for_blocks_initial = get_transient( 'wp_styles_for_blocks' );
+		$this->assertNotEmpty( $styles_for_blocks_initial, 'Initial cache was not set.' );
+
+		$this->set_up_third_party_block();
+
+		/*
+		 * Call register of global styles again to ensure the cache is updated.
+		 * In normal conditions, this function is only called once per request.
+		 */
+		wp_add_global_styles_for_blocks();
+
+		$styles_for_blocks_updated = get_transient( 'wp_styles_for_blocks' );
+		$this->assertNotEmpty( $styles_for_blocks_updated, 'Updated cache was not set.' );
+
+		$this->assertNotSame(
+			$styles_for_blocks_initial,
+			$styles_for_blocks_updated,
+			'Block style cache was not updated.'
+		);
+	}
+
+	/**
 	 * @ticket 56915
 	 * @ticket 61165
 	 */
