@@ -53,6 +53,6 @@ class Tests_Admin_WPPluginDependencies_HasDependents extends WP_PluginDependenci
 	 */
 	public function test_should_convert_hellophp_to_hello_dolly() {
 		$this->set_property_value( 'dependency_slugs', array( 'hello-dolly' ) );
-		$this->assertTrue( self::$instance::has_dependents( 'hello.php' ) );
+		$this->assertTrue( self::$instance::has_dependents( 'hello-dolly/hello.php' ) );
 	}
 }

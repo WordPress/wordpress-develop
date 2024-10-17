@@ -13,7 +13,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	public function test_get_plugin_data() {
-		$data = get_plugin_data( DIR_TESTDATA . '/plugins/hello.php' );
+		$data = get_plugin_data( DIR_TESTDATA . '/plugins/hello-dolly/hello.php' );
 
 		$default_headers = array(
 			'Name'        => 'Hello Dolly',
@@ -365,38 +365,38 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	public function test_is_plugin_active_true() {
-		activate_plugin( 'hello.php' );
-		$test = is_plugin_active( 'hello.php' );
+		activate_plugin( 'hello-dolly/hello.php' );
+		$test = is_plugin_active( 'hello-dolly/hello.php' );
 		$this->assertTrue( $test );
 
-		deactivate_plugins( 'hello.php' );
+		deactivate_plugins( 'hello-dolly/hello.php' );
 	}
 
 	public function test_is_plugin_active_false() {
-		deactivate_plugins( 'hello.php' );
-		$test = is_plugin_active( 'hello.php' );
+		deactivate_plugins( 'hello-dolly/hello.php' );
+		$test = is_plugin_active( 'hello-dolly/hello.php' );
 		$this->assertFalse( $test );
 	}
 
 	public function test_is_plugin_inactive_true() {
-		deactivate_plugins( 'hello.php' );
-		$test = is_plugin_inactive( 'hello.php' );
+		deactivate_plugins( 'hello-dolly/hello.php' );
+		$test = is_plugin_inactive( 'hello-dolly/hello.php' );
 		$this->assertTrue( $test );
 	}
 
 	public function test_is_plugin_inactive_false() {
-		activate_plugin( 'hello.php' );
-		$test = is_plugin_inactive( 'hello.php' );
+		activate_plugin( 'hello-dolly/hello.php' );
+		$test = is_plugin_inactive( 'hello-dolly/hello.php' );
 		$this->assertFalse( $test );
 
-		deactivate_plugins( 'hello.php' );
+		deactivate_plugins( 'hello-dolly/hello.php' );
 	}
 
 	/**
 	 * @covers ::get_plugin_files
 	 */
 	public function test_get_plugin_files_single() {
-		$name = 'hello.php';
+		$name = 'hello-dolly/hello.php';
 		$this->assertSame( array( $name ), get_plugin_files( $name ) );
 	}
 
@@ -541,7 +541,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * @covers ::is_network_only_plugin
 	 */
 	public function test_is_network_only_plugin_hello() {
-		$this->assertFalse( is_network_only_plugin( 'hello.php' ) );
+		$this->assertFalse( is_network_only_plugin( 'hello-dolly/hello.php' ) );
 	}
 
 	/**
@@ -561,7 +561,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * @covers ::activate_plugins
 	 */
 	public function test_activate_plugins_single_no_array() {
-		$name = 'hello.php';
+		$name = 'hello-dolly/hello.php';
 		activate_plugins( $name );
 		$this->assertTrue( is_plugin_active( $name ) );
 		deactivate_plugins( $name );
@@ -571,7 +571,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * @covers ::activate_plugins
 	 */
 	public function test_activate_plugins_single_array() {
-		$name = 'hello.php';
+		$name = 'hello-dolly/hello.php';
 		activate_plugins( array( $name ) );
 		$this->assertTrue( is_plugin_active( $name ) );
 		deactivate_plugins( $name );
