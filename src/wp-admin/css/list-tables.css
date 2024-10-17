@@ -1877,6 +1877,10 @@ div.action-links,
 		margin-top: 25px;
 	}
 
+	.tablenav.bottom .actions {
+		margin: 4px 0 4px;
+	}
+
 	.tablenav.top .tablenav-pages.one-page {
 		display: none;
 	}
