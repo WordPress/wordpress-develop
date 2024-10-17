@@ -13,7 +13,7 @@ require_once __DIR__ . '/base.php';
  *
  * @covers WP_Plugin_Dependencies::has_unmet_dependencies
  */
-class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDependencies_UnitTestCase {
+class Functions_WPPluginDependencies_HasUnmetDependencies_Test extends WP_PluginDependencies_UnitTestCase {
 
 	/**
 	 * Tests that a plugin with no dependencies will return false.
