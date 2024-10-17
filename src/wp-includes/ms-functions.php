@@ -922,7 +922,16 @@ function wpmu_signup_user( $user, $user_email, $meta = array() ) {
  * @param array  $meta       Optional. Signup meta data. By default, contains the requested privacy setting and lang_id.
  * @return bool
  */
-function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $user_email, $key, $meta = array() ) {
+function wpmu_signup_blog_notification(
+	$domain,
+	$path,
+	$title,
+	$user_login,
+	$user_email,
+	#[\SensitiveParameter]
+	$key,
+	$meta = array()
+) {
 	/**
 	 * Filters whether to bypass the new site email notification.
 	 *
@@ -1057,7 +1066,13 @@ function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $us
  * @param array  $meta       Optional. Signup meta data. Default empty array.
  * @return bool
  */
-function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = array() ) {
+function wpmu_signup_user_notification(
+	$user_login,
+	$user_email,
+	#[\SensitiveParameter]
+	$key,
+	$meta = array()
+) {
 	/**
 	 * Filters whether to bypass the email notification for new user sign-up.
 	 *
@@ -1159,7 +1174,10 @@ function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = 
  * @param string $key The activation key provided to the user.
  * @return array|WP_Error An array containing information about the activated user and/or blog.
  */
-function wpmu_activate_signup( $key ) {
+function wpmu_activate_signup(
+	#[\SensitiveParameter]
+	$key
+) {
 	global $wpdb;
 
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE activation_key = %s", $key ) );
@@ -1311,7 +1329,12 @@ function wp_delete_signup_on_user_delete( $id, $reassign, $user ) {
  * @param string $email     The new user's email address.
  * @return int|false Returns false on failure, or int $user_id on success.
  */
-function wpmu_create_user( $user_name, $password, $email ) {
+function wpmu_create_user(
+	$user_name,
+	#[\SensitiveParameter]
+	$password,
+	$email
+) {
 	$user_name = preg_replace( '/\s+/', '', sanitize_user( $user_name, true ) );
 
 	$user_id = wp_create_user( $user_name, $password, $email );
@@ -1595,7 +1618,14 @@ function domain_exists( $domain, $path, $network_id = 1 ) {
  * @param array  $meta     Optional. Signup meta data. By default, contains the requested privacy setting and lang_id.
  * @return bool Whether the email notification was sent.
  */
-function wpmu_welcome_notification( $blog_id, $user_id, $password, $title, $meta = array() ) {
+function wpmu_welcome_notification(
+	$blog_id,
+	$user_id,
+	#[\SensitiveParameter]
+	$password,
+	$title,
+	$meta = array()
+) {
 	$current_network = get_network();
 
 	/**
@@ -1828,7 +1858,12 @@ Name: %3$s'
  * @param array  $meta     Optional. Signup meta data. Default empty array.
  * @return bool
  */
-function wpmu_welcome_user_notification( $user_id, $password, $meta = array() ) {
+function wpmu_welcome_user_notification(
+	$user_id,
+	#[\SensitiveParameter]
+	$password,
+	$meta = array()
+) {
 	$current_network = get_network();
 
 	/**
@@ -2254,7 +2289,12 @@ function add_existing_user_to_blog( $details = false ) {
  * @param string $password User password. Ignored.
  * @param array  $meta     Signup meta data.
  */
-function add_new_user_to_blog( $user_id, $password, $meta ) {
+function add_new_user_to_blog(
+	$user_id,
+	#[\SensitiveParameter]
+	$password,
+	$meta
+) {
 	if ( ! empty( $meta['add_to_blog'] ) ) {
 		$blog_id = $meta['add_to_blog'];
 		$role    = $meta['new_role'];
