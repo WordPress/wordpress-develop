@@ -415,6 +415,102 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 
 			$caps[] = $post_type->cap->publish_posts;
 			break;
+
+		case 'read_post_meta':
+			// Extract the object type from the capability (expected to be 'post').
+			$object_type = explode( '_', $cap )[1];
+
+			// Check if the first argument (object ID) is provided.
+			if ( ! isset( $args[0] ) ) {
+				/* translators: %s: Capability name. */
+				$message = __( 'When checking for the %s capability, you must always check it against a specific post.' );
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf( $message, '<code>' . $cap . '</code>' ),
+					'6.7.0' // Version number for the function.
+				);
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
+			// Get the object ID and ensure it is an integer.
+			$object_id = (int) $args[0];
+
+			// Retrieve the post object to validate existence.
+			$post = get_post( $object_id );
+			if ( ! $post ) {
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
+			// Retrieve the object subtype (not strictly necessary for 'post').
+			$object_subtype = get_object_subtype( $object_type, $object_id );
+
+			// If the object subtype is empty, deny access.
+			if ( empty( $object_subtype ) ) {
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
+			// Map the read capability for the specific object type.
+			$caps = map_meta_cap( "read_{$object_type}", $user_id, $object_id );
+
+			// Check if a specific meta key is provided.
+			$meta_key = isset( $args[1] ) ? $args[1] : false;
+
+			// If a meta key is provided, perform additional checks.
+			if ( $meta_key ) {
+				// Check if the meta key is protected (i.e., cannot be accessed).
+				$allowed = ! is_protected_meta( $meta_key, $object_type );
+
+				/**
+				 * Filters whether the user is allowed to read a specific meta key of a specific object type.
+				 *
+				 * Return true to allow access to the meta key.
+				 *
+				 * The dynamic portion of the hook name, `$object_type` refers to the object type being filtered.
+				 * The dynamic portion of the hook name, `$meta_key` refers to the meta key being checked.
+				 *
+				 * @since 6.7.0
+				 *
+				 * @param bool     $allowed   Whether the user can read the object meta. Default false.
+				 * @param string   $meta_key  The meta key.
+				 * @param int      $object_id Object ID.
+				 * @param int      $user_id   User ID.
+				 * @param string   $cap       Capability name.
+				 * @param string[] $caps      Array of the user's capabilities.
+				 */
+				$allowed = apply_filters( "auth_{$object_type}_meta_{$meta_key}", $allowed, $meta_key, $object_id, $user_id, $cap, $caps );
+
+				// If there's an object subtype, check for specific subtype filters
+				if ( ! empty( $object_subtype ) ) {
+					/**
+					 * Filters whether the user is allowed to read a specific meta key of a specific object subtype.
+					 *
+					 * Return true to allow access to the meta key for this specific subtype.
+					 *
+					 * The dynamic portion of the hook name, `$object_type` refers to the object type being filtered.
+					 * The dynamic portion of the hook name, `$object_subtype` refers to the subtype being checked.
+					 * The dynamic portion of the hook name, `$meta_key` refers to the meta key being checked.
+					 *
+					 * @since 6.7.0
+					 *
+					 * @param bool     $allowed   Whether the user can read the object meta. Default false.
+					 * @param string   $meta_key  The meta key.
+					 * @param int      $object_id Object ID.
+					 * @param int      $user_id   User ID.
+					 * @param string   $cap       Capability name.
+					 * @param string[] $caps      Array of the user's capabilities.
+					 */
+					$allowed = apply_filters( "auth_{$object_type}_meta_{$meta_key}_for_{$object_subtype}", $allowed, $meta_key, $object_id, $user_id, $cap, $caps );
+				}
+
+				// If access is not allowed for the specific meta key, deny access
+				if ( ! $allowed ) {
+					$caps[] = $cap; // Append the capability to deny access
+				}
+			}
+			break;
 		case 'edit_post_meta':
 		case 'delete_post_meta':
 		case 'add_post_meta':
