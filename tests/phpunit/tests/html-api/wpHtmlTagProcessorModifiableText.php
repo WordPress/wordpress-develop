@@ -190,9 +190,14 @@ class Tests_HtmlApi_WpHtmlTagProcessorModifiableText extends WP_UnitTestCase {
 			'Should have found enqueued updated text.'
 		);
 
-		$processor->get_updated_html();
 		$this->assertSame(
 			'<p>some content</p>' . $after,
+			$processor->get_updated_html(),
+			'Should have found updated text.'
+		);
+
+		$this->assertSame(
+			$after,
 			$processor->get_modifiable_text(),
 			'Should have found updated text.'
 		);
