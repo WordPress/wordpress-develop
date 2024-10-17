@@ -82,7 +82,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorModifiableText extends WP_UnitTestCase {
 	 * Ensures that `get_modifiable_text()` reads enqueued updates when read
 	 * from after writing; guarantees consistency through writes.
 	 *
-	 * @ticket 61617
+	 * @ticket 62241
 	 */
 	public function test_get_modifiable_text_is_consistent_after_writes_when_text_shorter() {
 		$before    = 'just some text';
@@ -121,7 +121,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorModifiableText extends WP_UnitTestCase {
 	 * Ensures that `get_modifiable_text()` reads enqueued updates when read
 	 * from after writing; guarantees consistency through writes.
 	 *
-	 * @ticket 61617
+	 * @ticket 62241
 	 */
 	public function test_get_modifiable_text_is_consistent_after_writes_when_text_longer() {
 		$before    = 'just some text';
@@ -160,7 +160,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorModifiableText extends WP_UnitTestCase {
 	 * Ensures that `get_modifiable_text()` reads enqueued updates when read
 	 * from after writing; guarantees consistency through writes.
 	 *
-	 * @ticket 61617
+	 * @ticket 62241
 	 */
 	public function test_get_modifiable_text_is_consistent_after_writes_when_text_after_closed_tag_element() {
 		$before    = '<p>some content</p>just some text';
