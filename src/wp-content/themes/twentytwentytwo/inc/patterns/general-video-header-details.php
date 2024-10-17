@@ -2,6 +2,7 @@
 /**
  * Video with header and details block pattern
  */
+
 return array(
 	'title'      => __( 'Video with header and details', 'twentytwentytwo' ),
 	'categories' => array( 'featured', 'columns' ),

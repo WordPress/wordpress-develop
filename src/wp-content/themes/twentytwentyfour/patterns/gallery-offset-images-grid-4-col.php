@@ -7,6 +7,7 @@
  * Viewport width: 1400
  * Description: A gallery section with 4 columns and offset images.
  */
+
 ?>
 
 <!-- wp:group {"align":"full","style":{"spacing":{"padding":{"right":"var:preset|spacing|50","left":"var:preset|spacing|50","top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"},"margin":{"top":"0","bottom":"0"}}},"layout":{"type":"constrained"},"metadata":{"name":"Portfolio Images"}} -->

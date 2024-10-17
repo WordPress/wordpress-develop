@@ -2,6 +2,7 @@
 /**
  * Page layout with image, text and video.
  */
+
 return array(
 	'title'      => __( 'Page layout with image, text and video', 'twentytwentytwo' ),
 	'categories' => array( 'twentytwentytwo_pages' ),

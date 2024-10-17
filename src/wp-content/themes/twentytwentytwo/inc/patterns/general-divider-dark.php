@@ -2,6 +2,7 @@
 /**
  * Divider with image and color (dark) block pattern
  */
+
 return array(
 	'title'      => __( 'Divider with image and color (dark)', 'twentytwentytwo' ),
 	'categories' => array( 'featured' ),

@@ -6,6 +6,7 @@
  * @subpackage Twenty_Thirteen
  * @since Twenty Thirteen 1.0
  */
+
 ?>
 
 <div class="author-info">

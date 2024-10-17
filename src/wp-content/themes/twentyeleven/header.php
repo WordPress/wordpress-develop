@@ -8,6 +8,7 @@
  * @subpackage Twenty_Eleven
  * @since Twenty Eleven 1.0
  */
+
 ?><!DOCTYPE html>
 <!--[if IE 6]>
 <html id="ie6" <?php language_attributes(); ?>>

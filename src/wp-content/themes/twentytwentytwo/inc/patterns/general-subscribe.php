@@ -2,6 +2,7 @@
 /**
  * Subscribe callout block pattern
  */
+
 return array(
 	'title'      => __( 'Subscribe callout', 'twentytwentytwo' ),
 	'categories' => array( 'featured', 'buttons' ),

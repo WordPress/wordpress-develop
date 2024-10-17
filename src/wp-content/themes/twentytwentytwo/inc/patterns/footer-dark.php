@@ -2,6 +2,7 @@
 /**
  * Dark footer with title and citation
  */
+
 return array(
 	'title'      => __( 'Dark footer with title and citation', 'twentytwentytwo' ),
 	'categories' => array( 'footer' ),

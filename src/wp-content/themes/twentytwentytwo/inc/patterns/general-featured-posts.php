@@ -2,6 +2,7 @@
 /**
  * Featured posts block pattern
  */
+
 return array(
 	'title'      => __( 'Featured posts', 'twentytwentytwo' ),
 	'categories' => array( 'featured', 'query' ),

@@ -2,6 +2,7 @@
 /**
  * Default footer
  */
+
 return array(
 	'title'      => __( 'Default footer', 'twentytwentytwo' ),
 	'categories' => array( 'footer' ),

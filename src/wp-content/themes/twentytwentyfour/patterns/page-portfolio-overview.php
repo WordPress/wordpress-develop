@@ -9,6 +9,7 @@
  * Viewport width: 1400
  * Description: A full portfolio page with a section for project description, project details, a full screen image, and a gallery section with two images.
  */
+
 ?>
 
 <!-- wp:pattern {"slug":"twentytwentyfour/banner-project-description"} /-->

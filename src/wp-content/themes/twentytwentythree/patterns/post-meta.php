@@ -7,6 +7,7 @@
  * Block Types: core/template-part/post-meta
  * Description: Post meta information with separator on the top.
  */
+
 ?>
 <!-- wp:spacer {"height":"0"} -->
 <div style="height:0" aria-hidden="true" class="wp-block-spacer"></div>

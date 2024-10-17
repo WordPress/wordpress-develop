@@ -2,6 +2,7 @@
 /**
  * Small header with dark background block pattern
  */
+
 return array(
 	'title'      => __( 'Small header with dark background', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),

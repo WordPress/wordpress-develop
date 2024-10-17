@@ -6,6 +6,7 @@
  * Block Types: core/template-part/footer
  * Description: A footer section with a centered logo, navigation, and WordPress credits.
  */
+
 ?>
 
 <!-- wp:group {"style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|50"}}},"layout":{"type":"flex","orientation":"vertical","justifyContent":"center"}} -->

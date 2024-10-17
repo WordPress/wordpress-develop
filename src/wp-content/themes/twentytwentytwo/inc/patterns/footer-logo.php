@@ -2,6 +2,7 @@
 /**
  * Default footer with logo
  */
+
 return array(
 	'title'      => __( 'Footer with logo and citation', 'twentytwentytwo' ),
 	'categories' => array( 'footer' ),

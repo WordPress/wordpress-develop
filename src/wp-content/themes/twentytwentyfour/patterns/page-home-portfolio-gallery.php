@@ -9,6 +9,7 @@
  * Viewport width: 1400
  * Description: A portfolio home page that features a gallery.
  */
+
 ?>
 
 <!-- wp:pattern {"slug":"twentytwentyfour/hidden-portfolio-hero"} /-->

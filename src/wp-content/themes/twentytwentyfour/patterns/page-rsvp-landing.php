@@ -9,6 +9,7 @@
  * Viewport width: 1100
  * Description: A large RSVP heading sideways, a description, and a CTA button.
  */
+
 ?>
 
 <!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'RSVP Landing Page', 'Name of RSVP landing page pattern', 'twentytwentyfour' ); ?>"},"align":"full","style":{"spacing":{"margin":{"top":"0","bottom":"0"},"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}},"dimensions":{"minHeight":"100vh"}},"backgroundColor":"accent-4","layout":{"type":"flex","orientation":"vertical","verticalAlignment":"center","justifyContent":"center","flexWrap":"nowrap"}} -->

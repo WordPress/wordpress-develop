@@ -6,6 +6,7 @@
  * Block Types: core/template-part/footer
  * Description: A footer section with a colophon and 3 columns.
  */
+
 ?>
 
 <!-- wp:group {"align":"wide","layout":{"type":"constrained"}} -->

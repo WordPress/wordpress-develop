@@ -2,6 +2,7 @@
 /**
  * Logo, navigation, and offset tagline Header block pattern
  */
+
 return array(
 	'title'      => __( 'Logo, navigation, and offset tagline Header', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),

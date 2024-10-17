@@ -2,6 +2,7 @@
 /**
  * Footer with title, tagline, and social links on a dark background
  */
+
 return array(
 	'title'      => __( 'Footer with title, tagline, and social links on a dark background', 'twentytwentytwo' ),
 	'categories' => array( 'footer' ),

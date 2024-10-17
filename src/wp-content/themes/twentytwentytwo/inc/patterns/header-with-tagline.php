@@ -2,6 +2,7 @@
 /**
  * Header with tagline block pattern
  */
+
 return array(
 	'title'      => __( 'Header with tagline', 'twentytwentytwo' ),
 	'categories' => array( 'header' ),

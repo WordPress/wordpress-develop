@@ -2,6 +2,7 @@
 /**
  * Footer with query, featured images, title, and citation
  */
+
 return array(
 	'title'      => __( 'Footer with query, featured images, title, and citation', 'twentytwentytwo' ),
 	'categories' => array( 'footer' ),

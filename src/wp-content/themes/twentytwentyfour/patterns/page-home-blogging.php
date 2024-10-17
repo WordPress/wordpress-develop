@@ -8,6 +8,7 @@
  * Viewport width: 1400
  * Description: A blogging home page with a hero section, a text section, a blog section, and a CTA section.
  */
+
 ?>
 
 <!-- wp:pattern {"slug":"twentytwentyfour/text-centered-statement-small"}	/-->

@@ -4,6 +4,7 @@
  * Slug: twentytwentyfour/hidden-404
  * Inserter: no
  */
+
 ?>
 
 <!-- wp:heading {"level":1} -->

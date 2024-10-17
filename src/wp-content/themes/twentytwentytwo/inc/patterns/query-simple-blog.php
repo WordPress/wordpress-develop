@@ -2,6 +2,7 @@
 /**
  * Simple blog posts block pattern
  */
+
 return array(
 	'title'      => __( 'Simple blog posts', 'twentytwentytwo' ),
 	'categories' => array( 'query' ),

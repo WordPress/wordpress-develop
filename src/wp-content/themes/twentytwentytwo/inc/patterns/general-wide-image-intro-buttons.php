@@ -2,6 +2,7 @@
 /**
  * Wide image with introduction and buttons block pattern
  */
+
 return array(
 	'title'      => __( 'Wide image with introduction and buttons', 'twentytwentytwo' ),
 	'categories' => array( 'featured', 'columns' ),
