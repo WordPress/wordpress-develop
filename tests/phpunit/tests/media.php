@@ -215,7 +215,10 @@ CAP;
 			)
 		);
 
-		$this->assertSame( 1, substr_count( $result, self::HTML_CONTENT ) );
+		$this->assertSame(
+			'[width=20]',
+			$result
+		);
 	}
 
 	public function test_new_img_caption_shortcode_new_format() {
