@@ -5626,6 +5626,11 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  * @return array|false Array of image information or false on failure.
  */
 function wp_getimagesize( $filename, ?array &$image_info = null ) {
+	// We can't read what doesn't exist.
+	if ( ! is_readable( $filename ) ) {
+		return false;
+	}
+
 	// Don't silence errors when in debug mode, unless running unit tests.
 	if ( defined( 'WP_DEBUG' ) && WP_DEBUG
 		&& ! defined( 'WP_RUN_CORE_TESTS' )
