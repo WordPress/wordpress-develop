@@ -1466,18 +1466,7 @@ function update_core( $from, $to ) {
 	}
 
 	// Remove old files.
-	foreach ( $_old_files as $old_file ) {
-		$old_file = $to . $old_file;
-
-		if ( ! $wp_filesystem->exists( $old_file ) ) {
-			continue;
-		}
-
-		// If the file isn't deleted, try writing an empty string to the file instead.
-		if ( ! $wp_filesystem->delete( $old_file, true ) && $wp_filesystem->is_file( $old_file ) ) {
-			$wp_filesystem->put_contents( $old_file, '' );
-		}
-	}
+	_cleanup_old_files( $checksums )
 
 	// Remove any Genericons example.html's from the filesystem.
 	_upgrade_422_remove_genericons();
@@ -1581,6 +1570,101 @@ function _preload_old_requests_classes_and_interfaces( $to ) {
 		}
 
 		require_once $to . $file;
+	}
+}
+
+/**
+ * Removes files from the `$_old_files` array after a core update.
+ *
+ * @ignore
+ * @since 6.1.0
+ *
+ * @see update_core()
+ *
+ * @global array $_old_files
+ *
+ * @param array $checksums An array of checksums for the new WordPress version.
+ */
+function _cleanup_old_files( $checksums ) {
+	global $_old_files;
+
+	/*
+	 * Compare the files from the old version and the new version in a case-insensitive manner,
+	 * to prevent files being incorrectly deleted on systems with case-insensitive filesystems
+	 * when core changes the case of filenames.
+	 *
+	 * The main logic for this was taken from the Joomla project and adapted for WP.
+	 * See: https://github.com/joomla/joomla-cms/blob/bb5368c7ef9c20270e6e9fcc4b364cd0849082a5/administrator/components/com_admin/script.php#L8158
+	 */
+
+	$old_filepaths = $_old_files;
+	$new_filepaths = array_keys( $checksums );
+
+	$new_filepaths = array_combine( array_map( 'strtolower', $new_filepaths ), $new_filepaths );
+
+	$old_filepaths_to_check = array_diff( $old_filepaths, $new_filepaths );
+
+	foreach ( $old_filepaths_to_check as $old_filepath_to_check ) {
+		$old_realpath = realpath( ABSPATH . $old_filepath_to_check );
+
+		// On Unix without incorrectly cased file.
+		if ( false === $old_realpath ) {
+			continue;
+		}
+
+		$lowercase_old_filepath_to_check = strtolower( $old_filepath_to_check );
+
+		if ( ! array_key_exists( $lowercase_old_filepath_to_check, $new_filepaths ) ) {
+			$files_to_remove[] = $old_filepath_to_check;
+			continue;
+		}
+
+		// We are now left with only the files that are similar from old to new except for their case.
+
+		$old_basename      = basename( $old_realpath );
+		$new_filepath      = $new_filepaths[ $lowercase_old_filepath_to_check ];
+		$expected_basename = basename( $new_filepath );
+		$new_realpath      = realpath( ABSPATH . $new_filepath );
+		$new_basename      = basename( $new_realpath );
+
+		// On Windows or Unix with only the incorrectly cased file.
+		if ( $new_basename !== $expected_basename ) {
+			rename( ABSPATH . $old_filepath_to_check, ABSPATH . $old_filepath_to_check . '.tmp' );
+			rename( ABSPATH . $old_filepath_to_check . '.tmp', ABSPATH . $new_filepath );
+
+			continue;
+		}
+
+		// There might still be an incorrectly cased file on other OS than Windows.
+		if ( basename( $old_filepath_to_check ) === $old_basename ) {
+			// Check if case-insensitive file system, eg on OSX.
+			if ( fileinode( $old_realpath ) === fileinode( $new_realpath ) ) {
+				// Check deeper because even realpath or glob might not return the actual case.
+				if ( ! in_array( $expected_basename, scandir( dirname( $new_realpath ) ), true ) ) {
+					rename( ABSPATH . $old_filepath_to_check, ABSPATH . $old_filepath_to_check . '.tmp' );
+					rename( ABSPATH . $old_filepath_to_check . '.tmp', ABSPATH . $new_filepath );
+				}
+			} else {
+				// On Unix with both files: Delete the incorrectly cased file.
+				$files_to_remove[] = $old_filepath_to_check;
+			}
+		}
+	}
+
+	if ( ! empty( $files_to_remove ) ) {
+		foreach ( $files_to_remove as $file ) {
+
+			$old_file = ABSPATH . $file;
+
+			if ( ! $wp_filesystem->exists( $old_file ) ) {
+				continue;
+			}
+
+			// If the file isn't deleted, try writing an empty string to the file instead.
+			if ( ! $wp_filesystem->delete( $old_file, true ) && $wp_filesystem->is_file( $old_file ) ) {
+				$wp_filesystem->put_contents( $old_file, '' );
+			}
+		}
 	}
 }
 
