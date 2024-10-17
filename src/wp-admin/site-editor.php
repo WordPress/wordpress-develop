@@ -79,7 +79,60 @@ if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 		wp_die( __( 'Invalid post type.' ) );
 	}
 }
+if ( isset( $_GET['postId'] ) ) {
+    $postId = (int) $_GET['postId'];
+    $postType = sanitize_key( $_GET['postType'] );
 
+    switch ( $postType ) {
+        case 'page':
+            $post = get_post( $postId );
+
+            if ( null === $post ) {
+                wp_die( __( 'Invalid post ID.' ) );
+            }
+
+            // Check the post status
+            switch ( $post->post_status ) {
+                case 'draft':
+                    wp_die( sprintf( __( 'This page is currently a draft. Please <a href="%s">publish it</a> to edit.' ), get_edit_post_link( $postId, 'edit' ) ) );
+                case 'trash':
+                    wp_die( sprintf( __( 'This page is in the trash. Please <a href="%s">restore it</a> before editing.' ), get_edit_post_link( $postId, 'edit' ) ) );
+                case 'publish':
+                    // Continue if the post is published
+                    break;
+                default:
+                    wp_die( __( 'This page has an invalid status.' ) );
+            }
+            break;
+
+        case 'wp_block':
+            $post = get_post( $postId );
+
+            if ( null === $post ) {
+                wp_die( __( 'Invalid pattern ID.' ) );
+            }
+            break;
+
+        case 'wp_template':
+            $block_template = get_block_template( $postId );
+
+            if ( null === $block_template ) {
+                wp_die( __( 'Invalid template ID.' ) );
+            }
+            break;
+
+        case 'wp_template_part':
+            $block_template = get_block_template( $postId, 'wp_template_part' );
+
+            if ( null === $block_template ) {
+                wp_die( __( 'Invalid template part ID.' ) );
+            }
+            break;
+
+        default:
+            wp_die( __( 'Invalid post type.' ) );
+    }
+}
 $active_global_styles_id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
 $active_theme            = get_stylesheet();
 
