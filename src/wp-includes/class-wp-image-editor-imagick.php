@@ -496,9 +496,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				// Check to see if a PNG is indexed, and find the pixel depth.
 				if ( is_callable( array( $this->image, 'getImageDepth' ) ) ) {
 					$indexed_pixel_depth = $this->image->getImageDepth();
-					$max_colors = 2 ^ $indexed_pixel_depth;
 
+					// Indexed PNG files get some additional handling.
 					if ( 0 < $indexed_pixel_depth && 8 >= $indexed_pixel_depth ) {
+						// Check for an alpha channel.
 						if (
 							is_callable( array( $this->image, 'getImageAlphaChannel' ) )
 							&& $this->image->getImageAlphaChannel()
@@ -508,20 +509,22 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 							$this->image->setOption( 'png:exclude-chunk', 'all' );
 						}
 
+						// Reduce colors in the images to maximum needed, using the global colorspace.
+						$max_colors = 2 ^ $indexed_pixel_depth;
 						if ( is_callable( array( $this->image, 'getImageColors' ) ) ) {
 							$current_colors = $this->image->getImageColors();
 							$max_colors = min( $max_colors, $current_colors );
 						}
 						$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
+
 						/**
-						 * ImageMagick likes to convert gray indexed images to grayscale.
-						 * So, if the colorspace has changed to 'gray', use the png8 format
-						 * to ensure it stays indexed.
+						 * If the colorspace is 'gray', use the png8 format to ensure it stays indexed.
 						 */
 						if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
 							$this->image->setOption( 'png:format', 'png8' );
 						}
 					}
+				}
 			}
 
 			/*
