@@ -435,14 +435,47 @@ HTML;
 	public function test_limits_the_number_of_seek_calls() {
 		$processor = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
 		$processor->next_tag( 'li' );
-		$processor->set_bookmark( 'bookmark' );
+		$processor->set_bookmark( 'ping' );
+		$processor->next_tag( 'li' );
+		$processor->set_bookmark( 'pong' );
 
-		for ( $i = 0; $i < WP_HTML_Tag_Processor::MAX_SEEK_OPS; $i++ ) {
-			$this->assertTrue( $processor->seek( 'bookmark' ), 'Could not seek to the "bookmark"' );
+		for ( $i = 0; $i < WP_HTML_Tag_Processor::MAX_SEEK_OPS; $i += 2 ) {
+			$this->assertTrue(
+				$processor->seek( 'ping' ),
+				'Could not seek to the "ping": check test setup.'
+			);
+
+			$this->assertTrue(
+				$processor->seek( 'pong' ),
+				'Could not seek to the "pong": check test setup.'
+			);
 		}
 
 		$this->setExpectedIncorrectUsage( 'WP_HTML_Tag_Processor::seek' );
 		$this->assertFalse( $processor->seek( 'bookmark' ), "$i-th seek() to the bookmark succeeded, even though it should exceed the allowed limit" );
+	}
+
+	/**
+	 * @ticket {TICKET_NUMBER}
+	 *
+	 * @covers WP_HTML_Tag_Processor::seek
+	 */
+	public function test_skips_counting_noop_seek_calls() {
+		$processor = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
+		$processor->next_tag( 'li' );
+		$processor->set_bookmark( 'here' );
+
+		for ( $i = 0; $i < WP_HTML_Tag_Processor::MAX_SEEK_OPS; $i++ ) {
+			$this->assertTrue(
+				$processor->seek( 'here' ),
+				'Could not seek to the "here": check test setup.'
+			);
+		}
+
+		$this->assertTrue(
+			$processor->seek( 'here' ),
+			'Should never fail to seek if the seek is pointing at the current location.'
+		);
 	}
 
 	/**
