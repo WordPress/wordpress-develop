@@ -599,20 +599,20 @@ function wp_print_media_templates() {
 					<div class="media-progress-bar"><div style="width: {{ data.percent }}%"></div></div>
 				<# } else if ( 'image' === data.type && data.size && data.size.url ) { #>
 					<div class="centered">
-						<img src="{{ data.size.url }}" draggable="false" alt="" />
+						<img src="{{ data.size.url }}" draggable="false" alt="{{ data.alt }}" />
 					</div>
 				<# } else { #>
 					<div class="centered">
 						<# if ( data.image && data.image.src && data.image.src !== data.icon ) { #>
-							<img src="{{ data.image.src }}" class="thumbnail" draggable="false" alt="" />
+							<img src="{{ data.image.src }}" class="thumbnail" draggable="false" alt="{{ data.alt }}" />
 						<# } else if ( data.sizes ) { 
 								if ( data.sizes.medium ) { #>
-									<img src="{{ data.sizes.medium.url }}" class="thumbnail" draggable="false" alt="" />
+									<img src="{{ data.sizes.medium.url }}" class="thumbnail" draggable="false" alt="{{ data.alt }}" />
 								<# } else { #>
-									<img src="{{ data.sizes.full.url }}" class="thumbnail" draggable="false" alt="" />
+									<img src="{{ data.sizes.full.url }}" class="thumbnail" draggable="false" alt="{{ data.alt }}" />
 								<# } #>
 						<# } else { #>
-							<img src="{{ data.icon }}" class="icon" draggable="false" alt="" />
+							<img src="{{ data.icon }}" class="icon" draggable="false" alt="{{ data.alt }}" />
 						<# } #>
 					</div>
 					<div class="filename">
