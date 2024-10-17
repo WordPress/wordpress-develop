@@ -135,6 +135,22 @@ class WP_Block_Type {
 	public $variation_callback = null;
 
 	/**
+	 * List of aliases for this block type. Only accessible through magic getter. null by default.
+	 *
+	 * @since 6.6.0
+	 * @var array[]|null
+	 */
+	private $aliases = null;
+
+	/**
+	 * If this is an alias block type, this property will contain the name of the block type it is an alias of.
+	 *
+	 * @since 6.6.0
+	 * @var string
+	 */
+	public $alias_of = null;
+
+	/**
 	 * Custom CSS selectors for theme.json style generation.
 	 *
 	 * @since 6.3.0
@@ -364,6 +380,10 @@ class WP_Block_Type {
 	public function __get( $name ) {
 		if ( 'variations' === $name ) {
 			return $this->get_variations();
+		}
+
+		if ( 'aliases' === $name ) {
+			return $this->get_aliases();
 		}
 
 		if ( 'uses_context' === $name ) {
@@ -601,7 +621,13 @@ class WP_Block_Type {
 		if ( ! isset( $this->variations ) ) {
 			$this->variations = array();
 			if ( is_callable( $this->variation_callback ) ) {
-				$this->variations = call_user_func( $this->variation_callback );
+				$variations = call_user_func( $this->variation_callback );
+				foreach ( $variations as $variation ) {
+					if ( ! empty( $variation['supports']['alias'] ) && true === $variation['supports']['alias'] ) {
+						$this->aliases[ $variation['name'] ] = $variation;
+					}
+				}
+				$this->variations = $variations;
 			}
 		}
 
@@ -613,7 +639,41 @@ class WP_Block_Type {
 		 * @param array         $variations Array of registered variations for a block type.
 		 * @param WP_Block_Type $block_type The full block type object.
 		 */
-		return apply_filters( 'get_block_type_variations', $this->variations, $this );
+		$variations = apply_filters( 'get_block_type_variations', $this->variations, $this );
+
+		foreach ( $variations as $variation ) {
+			if ( ! empty( $variation['supports']['alias'] ) && true === $variation['supports']['alias'] ) {
+				$this->aliases[ $variation['name'] ] = $variation;
+			}
+		}
+		return $variations;
+	}
+
+	/**
+	 * Get block aliases.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return array[]
+	 */
+	public function get_aliases() {
+		if ( ! isset( $this->aliases ) ) {
+			$this->get_variations();
+
+			if ( ! isset( $this->aliases ) ) {
+				$this->aliases = array();
+			}
+		}
+
+		/**
+		 * Filters the registered aliases for a block type.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param array         $aliases    Array of registered aliases for a block type.
+		 * @param WP_Block_Type $block_type The full block type object.
+		 */
+		return apply_filters( 'get_block_type_aliases', $this->aliases, $this );
 	}
 
 	/**
