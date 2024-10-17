@@ -518,7 +518,7 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 */
 	public function test_phpmailer_validator() {
 		$phpmailer = $GLOBALS['phpmailer'];
-		$this->assertTrue( $phpmailer->validateAddress( 'foo@192.168.1.1' ), 'Assert PHPMailer accepts IP address email addresses' );
+		$this->assertTrue( $phpmailer->validateAddress( 'foo@[192.168.1.1]' ), 'Assert PHPMailer accepts IP address email addresses' );
 	}
 
 	/**
