@@ -194,10 +194,6 @@ img.alignleft {
 	width: 13px;
 }
 
-.ie7 .screen-reader-text {
-	clip: rect(1px 1px 1px 1px);
-}
-
 .ie7 .site-header {
 	position: relative;
 	z-index: 1;

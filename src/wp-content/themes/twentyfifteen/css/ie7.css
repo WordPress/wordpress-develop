@@ -3,10 +3,6 @@ Theme Name: Twenty Fifteen
 Description: IE7 specific style.
 */
 
-.screen-reader-text {
-	clip: rect(1px 1px 1px 1px);
-}
-
 .secondary-toggle {
 	color: #333;
 	font-size: 16px;
