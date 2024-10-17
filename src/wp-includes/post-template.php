@@ -865,6 +865,7 @@ function get_body_class( $css_class = '' ) {
  * Determines whether the post requires password and whether a correct password has been provided.
  *
  * @since 2.7.0
+ * @TODO test coverage
  *
  * @param int|WP_Post|null $post An optional post. Global $post used if not provided.
  * @return bool false if a password is not required or the correct password cookie is present, true otherwise.
@@ -882,14 +883,11 @@ function post_password_required( $post = null ) {
 		return apply_filters( 'post_password_required', true, $post );
 	}
 
-	require_once ABSPATH . WPINC . '/class-phpass.php';
-	$hasher = new PasswordHash( 8, true );
-
 	$hash = wp_unslash( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] );
-	if ( ! str_starts_with( $hash, '$P$B' ) ) {
+	if ( ! str_starts_with( $hash, '$' ) ) {
 		$required = true;
 	} else {
-		$required = ! $hasher->CheckPassword( $post->post_password, $hash );
+		$required = ! wp_check_password( $post->post_password, $hash );
 	}
 
 	/**

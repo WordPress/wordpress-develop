@@ -197,9 +197,8 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 
 	public function test_submitting_comment_to_password_protected_post_succeeds() {
 		$password = 'password';
-		$hasher   = new PasswordHash( 8, true );
 
-		$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = $hasher->HashPassword( $password );
+		$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = wp_hash_password( $password );
 
 		$post = self::factory()->post->create_and_get(
 			array(
