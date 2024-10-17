@@ -73,10 +73,28 @@ $custom_settings['__experimentalAdditionalBlockPatternCategories'] = WP_Block_Pa
 
 $editor_settings = get_block_editor_settings( $custom_settings, $block_editor_context );
 
-if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
+if ( isset( $_GET['postType'] ) && isset( $_GET['postId'] ) ) {
 	$post_type = get_post_type_object( $_GET['postType'] );
 	if ( ! $post_type ) {
-		wp_die( __( 'Invalid post type.' ) );
+		wp_die(
+			__( 'Invalid post type.' ),
+			__( '404  Not Found' ),
+			array(
+				'link_url'  => admin_url( 'site-editor.php' ),
+				'link_text' => __( 'Return to site editor' ),
+			)
+		);
+	}
+	$post_object = get_post( $_GET['postId'] );
+	if ( ! $post_object || $post_object->post_type !== $post_type->name ) {
+		wp_die(
+			__( 'Invalid page ID.' ),
+			__( '404  Not Found' ),
+			array(
+				'link_url'  => admin_url( 'site-editor.php' ),
+				'link_text' => __( 'Return to site editor' ),
+			)
+		);
 	}
 }
 
