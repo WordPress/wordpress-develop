@@ -2662,25 +2662,6 @@ function enqueue_block_styles_assets() {
 
 	foreach ( $block_styles as $block_name => $styles ) {
 		foreach ( $styles as $style_properties ) {
-			if ( isset( $style_properties['style_handle'] ) ) {
-
-				// If the site loads separate styles per-block, enqueue the stylesheet on render.
-				if ( wp_should_load_separate_core_block_assets() ) {
-					add_filter(
-						'render_block',
-						static function ( $html, $block ) use ( $block_name, $style_properties ) {
-							if ( $block['blockName'] === $block_name ) {
-								wp_enqueue_style( $style_properties['style_handle'] );
-							}
-							return $html;
-						},
-						10,
-						2
-					);
-				} else {
-					wp_enqueue_style( $style_properties['style_handle'] );
-				}
-			}
 			if ( isset( $style_properties['inline_style'] ) ) {
 
 				// Default to "wp-block-library".
@@ -2698,6 +2679,63 @@ function enqueue_block_styles_assets() {
 				// Add inline styles to the calculated handle.
 				wp_add_inline_style( $handle, $style_properties['inline_style'] );
 			}
+		}
+	}
+}
+
+/**
+ * Function responsible for enqueuing the CSS files required for block styles functionality on the editor and frontend.
+ *
+ * @since 6.6.0
+ *
+ * @global WP_Styles $wp_styles
+ */
+function enqueue_block_styles_handle_assets() {
+	global $wp_styles;
+
+	$block_styles = WP_Block_Styles_Registry::get_instance()->get_all_registered();
+	foreach ( $block_styles as $block_name => $styles ) {
+		foreach ( $styles as $style_properties ) {
+			if ( ! isset( $style_properties['style_handle'] ) || ! isset( $wp_styles->registered[ $style_properties['style_handle'] ] ) ) {
+				continue;
+			}
+
+			/*
+			 * Add the path to the CSS file in the style extra data if missing.
+			 *
+			 * This allow WordPress to inline the CSS instead of loading it like an external  resource if the file
+			 * is bellow the size threshold.
+			 */
+			$style = $wp_styles->registered[ $style_properties['style_handle'] ];
+			if ( $style && ! empty( $style->src ) && empty( $style->extra['path'] ) ) {
+				$style_path = wp_normalize_path( str_replace( WP_CONTENT_URL, WP_CONTENT_DIR, $style->src ) );
+				if ( is_readable( $style_path ) ) {
+					$style->add_data( 'path', $style_path );
+				}
+			}
+
+			$handle           = $style_properties['style_handle'];
+			$enqueue_callback = function () use ( $handle ) {
+				wp_enqueue_style( $handle );
+			};
+
+			if ( wp_should_load_separate_core_block_assets() ) {
+				add_filter(
+					'render_block',
+					static function ( $html, $block ) use ( $block_name, $enqueue_callback ) {
+						if ( $block['blockName'] === $block_name ) {
+							$enqueue_callback();
+						}
+
+						return $html;
+					},
+					10,
+					2
+				);
+				continue;
+			}
+
+			add_action( 'enqueue_block_assets', $enqueue_callback );
 		}
 	}
 }
