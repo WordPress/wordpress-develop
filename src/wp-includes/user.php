@@ -2780,6 +2780,9 @@ All at ###SITENAME###
 	$current_user = wp_get_current_user();
 	if ( $current_user->ID === $user_id ) {
 		if ( isset( $plaintext_pass ) ) {
+			/** This action is documented in wp-includes/pluggable.php */
+			do_action( 'wp_set_password', $plaintext_pass, $user_id, $user_obj );
+
 			wp_clear_auth_cookie();
 
 			/*
