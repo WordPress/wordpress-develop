@@ -420,20 +420,32 @@ function wp_script_is( $handle, $status = 'enqueued' ) {
 }
 
 /**
- * Adds metadata to a script.
+ * Adds metadata to a registered script.
  *
- * Works only if the script has already been registered.
+ * This function is a wrapper for WP_Scripts::add_data() and is used to add specific metadata
+ * to scripts that have already been registered. It does not support adding arbitrary attributes
+ * to the script tag itself. Instead, it allows for the addition of specific keys, primarily
+ * 'conditional' and 'strategy', to dictate loading behavior in specific contexts.
  *
- * Possible values for $key and $value:
- * 'conditional' string Comments for IE 6, lte IE 7, etc.
+ * Possible values for $key:
+ * - `conditional`: Primarily used for IE conditional comments (e.g., IE 6, lte IE 7).
+ * - `strategy`: Defines the loading strategy of the script, but it is limited to supported strategies
+ * by WordPress (e.g., 'defer' and 'async').
+ *
+ * For adding arbitrary attributes to the script tag, you should use the `script_loader_tag`
+ * filter or the `wp_script_attributes` filter instead.
+ *
  *
  * @since 4.2.0
  *
  * @see WP_Dependencies::add_data()
  *
  * @param string $handle Name of the script.
- * @param string $key    Name of data point for which we're storing a value.
- * @param mixed  $value  String containing the data to be added.
+ * @param string $key    Name of the metadata point for which we're storing a value.
+ *                       Possible values include:
+ *                       - 'conditional': string for comments targeting specific IE versions.
+ *                       - 'strategy': string to define loading behavior.
+ * @param string  $value  String containing the data to be added.
  * @return bool True on success, false on failure.
  */
 function wp_script_add_data( $handle, $key, $value ) {
