@@ -200,7 +200,8 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 		return array_map(
 			array( $this, 'pass_parser_fixture_filenames' ),
 			$fixture_filenames
-		);  }
+		);
+	}
 
 	/**
 	 * @dataProvider data_do_block_test_filenames
