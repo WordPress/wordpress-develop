@@ -351,6 +351,11 @@ table.fixed {
 	padding-left: 3px;
 }
 
+td.column-title,
+td.plugin-title {
+	min-width: 200px;
+}
+
 td.column-title strong,
 td.plugin-title strong {
 	display: block;
