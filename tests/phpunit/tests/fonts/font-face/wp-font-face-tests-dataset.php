@@ -471,9 +471,19 @@ CSS
 			),
 		);
 
+		$expected_styles = <<<CSS
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:400;font-display:fallback;src:url('{$uri}dm-sans/DMSans-Regular.woff2') format('woff2');font-stretch:normal;}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:700;font-display:fallback;src:url('{$uri}dm-sans/DMSans-Bold.woff2') format('woff2');font-stretch:normal;}
+@font-face{font-family:"Open Sans";font-style:normal;font-weight:400;font-display:fallback;src:url('{$uri}open-sans/OpenSans-VariableFont_wdth,wght.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:"Open Sans";font-style:italic;font-weight:400;font-display:fallback;src:url('{$uri}open-sans/OpenSans-Italic-VariableFont_wdth,wght.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:500;font-display:fallback;src:url('{$uri}dm-sans/DMSans-Medium.woff2') format('woff2');font-stretch:normal;}
+@font-face{font-family:"DM Sans";font-style:italic;font-weight:500;font-display:fallback;src:url('{$uri}dm-sans/DMSans-Medium-Italic.woff2') format('woff2');font-stretch:normal;}
+CSS;
+
 		if ( null === $data ) {
 			$data = array(
-				'expected' => $expected_font_families,
+				'expected'        => $expected_font_families,
+				'expected_styles' => $expected_styles,
 			);
 		}
 
