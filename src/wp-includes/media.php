@@ -792,13 +792,13 @@ function image_get_intermediate_size( $post_id, $size = 'thumbnail' ) {
 
 		foreach ( $imagedata['sizes'] as $_size => $data ) {
 			// If there's an exact match to an existing image size, short circuit.
-			if ( (int) $data['width'] === (int) $size[0] && (int) $data['height'] === (int) $size[1] ) {
+			if ( isset( $data['width'] ) && isset( $data['height'] ) && (int) $data['width'] === (int) $size[0] && (int) $data['height'] === (int) $size[1] ) {
 				$candidates[ $data['width'] * $data['height'] ] = $data;
 				break;
 			}
 
 			// If it's not an exact match, consider larger sizes with the same aspect ratio.
-			if ( $data['width'] >= $size[0] && $data['height'] >= $size[1] ) {
+			if ( isset( $data['width'] ) && isset( $data['height'] ) && $data['width'] >= $size[0] && $data['height'] >= $size[1] ) {
 				// If '0' is passed to either size, we test ratios against the original file.
 				if ( 0 === $size[0] || 0 === $size[1] ) {
 					$same_ratio = wp_image_matches_ratio( $data['width'], $data['height'], $imagedata['width'], $imagedata['height'] );
