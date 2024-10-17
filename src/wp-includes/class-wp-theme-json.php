@@ -938,6 +938,12 @@ class WP_Theme_JSON {
 	 * @return array The sanitized output.
 	 */
 	protected static function sanitize( $input, $valid_block_names, $valid_element_names, $valid_variations ) {
+		static $input_cache = array();
+
+		$input_cache_key = md5( wp_json_encode( $input ) );
+		if ( isset( $input_cache[ $input_cache_key ] ) ) {
+			return $input_cache[ $input_cache_key ];
+		}
 
 		$output = array();
 
@@ -1058,6 +1064,7 @@ class WP_Theme_JSON {
 			}
 		}
 
+		$input_cache[ $input_cache_key ] = $output;
 		return $output;
 	}
 
