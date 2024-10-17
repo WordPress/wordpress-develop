@@ -991,7 +991,7 @@ function wp_read_image_metadata( $file ) {
 			$meta['created_timestamp'] = wp_exif_date2ts( $exif['DateTimeDigitized'] );
 		}
 		if ( ! empty( $exif['FocalLength'] ) ) {
-			$meta['focal_length'] = (string) $exif['FocalLength'];
+			$meta['focal_length'] = is_array( $exif['FocalLength'] ) ? implode( ',', $exif['FocalLength'] ) : (string) $exif['FocalLength'];
 			if ( is_scalar( $exif['FocalLength'] ) ) {
 				$meta['focal_length'] = (string) wp_exif_frac2dec( $exif['FocalLength'] );
 			}
@@ -1001,7 +1001,7 @@ function wp_read_image_metadata( $file ) {
 			$meta['iso'] = trim( $meta['iso'] );
 		}
 		if ( ! empty( $exif['ExposureTime'] ) ) {
-			$meta['shutter_speed'] = (string) $exif['ExposureTime'];
+			$meta['shutter_speed'] = is_array( $exif['ExposureTime'] ) ? implode( ',', $exif['ExposureTime'] ) : (string) $exif['ExposureTime'];
 			if ( is_scalar( $exif['ExposureTime'] ) ) {
 				$meta['shutter_speed'] = (string) wp_exif_frac2dec( $exif['ExposureTime'] );
 			}
