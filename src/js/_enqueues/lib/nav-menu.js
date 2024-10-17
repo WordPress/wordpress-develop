@@ -216,6 +216,8 @@
 							checkboxes.prop( 'checked', false );
 							t.find( '.button-controls .select-all' ).prop( 'checked', false );
 							t.find( '.button-controls .spinner' ).removeClass( 'is-active' );
+							t.updateParentDropdown();
+							t.updateOrderDropdown();
 						});
 					});
 				},
@@ -288,6 +290,97 @@
 						});
 					});
 					return this;
+				},
+				updateParentDropdown : function() {
+					return this.each(function(){
+						var menuItems = $( '#menu-to-edit li' ),
+							parentDropdowns = $( '.edit-menu-item-parent' );
+
+						$.each( parentDropdowns, function() {
+							var parentDropdown = $(this),
+								$html = '',
+								$selected = '',
+								currentItemID = parentDropdown.closest('li.menu-item').find('.menu-item-data-db-id').val(),
+								currentparentID = parentDropdown.closest('li.menu-item').find('.menu-item-data-parent-id').val(),
+								currentItem = parentDropdown.closest('li.menu-item'),
+								currentMenuItemChild = currentItem.childMenuItems(),
+								excludeMenuItem = [currentItemID];
+
+							if( currentMenuItemChild.length > 0 ){
+								$.each( currentMenuItemChild, function(){
+									var childItem = $(this),
+										childID = childItem.find('.menu-item-data-db-id').val();
+
+									excludeMenuItem.push(childID);
+								});
+							}
+
+							if(currentparentID == 0) $selected = 'selected';
+
+							$html += '<option ' + $selected + ' value="0">No Parent</option>';
+
+							$.each( menuItems, function() {
+								var menuItem = $(this),
+								$selected = '',
+								menuID = menuItem.find('.menu-item-data-db-id').val(),
+								menuTitle = menuItem.find('.edit-menu-item-title').val();
+
+								if(!excludeMenuItem.includes(menuID) ) {
+									if(currentparentID == menuID) $selected = 'selected';
+									$html += '<option ' + $selected + ' value="'+menuID+'">'+menuTitle+'</option>';
+								}
+							});
+
+							parentDropdown.html( $html );
+						});
+						
+					});
+				},
+				updateOrderDropdown : function() {
+					return this.each(function(){
+						var itemPosition,
+							orderDropdowns = $( '.edit-menu-item-order' );
+
+						$.each( orderDropdowns, function() {
+							var orderDropdown = $(this),
+								menuItem = orderDropdown.closest('li.menu-item').first(),
+								depth = menuItem.menuItemDepth(),
+								isPrimaryMenuItem = ( 0 === depth ),
+								$html = '',
+								$selected = '';
+
+							if ( isPrimaryMenuItem ) {
+								var primaryItems = $( '.menu-item-depth-0' ),
+									totalMenuItems = primaryItems.length;
+
+								itemPosition = primaryItems.index( menuItem ) + 1;
+
+								for(let i = 1; i < totalMenuItems + 1; i++){
+									$selected = '';
+									if(i == itemPosition) $selected = 'selected';
+									$html += '<option ' + $selected + ' value="' + i + '">' + i + ' of ' + totalMenuItems + '</option>';
+								}
+
+							} else {
+								var parentItem = menuItem.prevAll( '.menu-item-depth-' + parseInt( depth - 1, 10 ) ).first(),
+									parentItemId = parentItem.find( '.menu-item-data-db-id' ).val(),
+									subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemId + '"]' ),
+									totalSubMenuItems = subItems.length;
+
+								itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
+
+								for(let i = 1; i < totalSubMenuItems + 1; i++){
+									$selected = '';
+									if(i == itemPosition) $selected = 'selected';
+									$html += '<option ' + $selected + ' value="' + i + '">' + i + ' of ' + totalSubMenuItems + '</option>';
+								}
+
+							}
+
+							orderDropdown.html( $html );
+						});
+						
+					});
 				}
 			});
 		},
@@ -400,6 +493,8 @@
 			api.registerChange();
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
+			thisItem.updateParentDropdown();
+			thisItem.updateOrderDropdown();
 
 			if ( a11ySpeech ) {
 				wp.a11y.speak( a11ySpeech );
@@ -431,6 +526,146 @@
 					api.moveMenuItem( $( this ).parents( 'li.menu-item' ).find( 'a.item-edit' ), dir );
 				}
 			});
+
+			//Set Parents data for all menu items.
+			menu.updateParentDropdown();
+
+			//Set Order data for all menu items.
+			menu.updateOrderDropdown();
+
+			//Update Parent on changin values.
+			menu.on( 'change', '.edit-menu-item-parent', function() {
+				api.changeMenuParent( $( this ) );
+			});
+			
+			//Update Parent on changin values.
+			menu.on( 'change', '.edit-menu-item-order', function() {
+				api.changeMenuOrder( $( this ) );
+			});
+		},
+
+		/**
+		 * changeMenuParent( [ParentDropdown] )
+		 * 
+		 * @since 6.6.0
+		 *
+		 * @param {object} ParentDropdown select field
+		 */
+		changeMenuParent : function( ParentDropdown ) {
+			var menuItemNewPosition,
+				menuItems = $( '#menu-to-edit li' ),
+				$this = $( ParentDropdown ),
+				newParentID = $this.val(),
+				menuItem = $this.closest('li.menu-item').first(),
+				menuItemOldDepth = menuItem.menuItemDepth(),
+				menuItemChildren = menuItem.childMenuItems(),
+				menuItemNoChildren = parseInt( menuItem.childMenuItems().length, 10 ),
+				parentItem = $('#menu-item-'+newParentID),
+				parentItemDepth = parentItem.menuItemDepth(),
+				menuItemNewDepth = parseInt(parentItemDepth) + 1;
+
+			if(newParentID == 0){
+				menuItemNewDepth = 0;
+			}
+
+			menuItem.find('.menu-item-data-parent-id').val(newParentID);
+			menuItem.moveHorizontally(menuItemNewDepth, menuItemOldDepth);
+
+			if ( menuItemNoChildren > 0 ) {
+				menuItem = menuItem.add( menuItemChildren );
+			}
+			menuItem.detach();
+
+			menuItems = $( '#menu-to-edit li' );
+
+			var	parentItemPosition = parseInt( parentItem.index(), 10 ),
+				parentItemNoChild = parseInt( parentItem.childMenuItems().length, 10 );
+
+			if(parentItemNoChild > 0){
+				menuItemNewPosition = parentItemPosition + parentItemNoChild;
+			} else {
+				menuItemNewPosition = parentItemPosition;
+			}
+
+			if(newParentID == 0){
+				menuItemNewPosition = menuItems.length - 1;
+			}
+
+			menuItem.insertAfter( menuItems.eq( menuItemNewPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown();
+
+			api.registerChange();
+			api.refreshKeyboardAccessibility();
+			api.refreshAdvancedAccessibility();
+			$this.focus();
+			wp.a11y.speak( menus.parentUpdated, 'polite' );
+		},
+
+		/**
+		 * changeMenuOrder( [OrderDropdown] )
+		 * 
+		 * @since 6.6.0
+		 *
+		 * @param {object} OrderDropdown select field
+		 */
+		changeMenuOrder : function( OrderDropdown ) {
+			var menuItemWithChild,
+				menuItems = $( '#menu-to-edit li' ),
+				$this = $( OrderDropdown ),
+				newOrderID = parseInt( $this.val(), 10),
+				menuItem = $this.closest('li.menu-item').first(),
+				depth = menuItem.menuItemDepth(),
+				thisItemChildren = menuItem.childMenuItems(),
+				thisItemNoOfChild = thisItemChildren.length,
+				isPrimaryMenuItem = ( 0 === depth ),
+				currentItemPosition = parseInt( menuItem.index(), 10 ),
+				parentItemID = menuItem.find('.menu-item-data-parent-id').val(),
+				parentItem = $('#menu-item-'+ parentItemID),
+				parentPosition = parseInt( parentItem.index(), 10 ),
+				newItemPosition = parentPosition + newOrderID,
+				primaryItems = $( '.menu-item-depth-0' ),
+				currentItemAtPosition = $( primaryItems[newOrderID - 1] ),
+				currentItemAtPositionNoOfChild = parseInt( currentItemAtPosition.childMenuItems().length, 10 );
+
+			if ( isPrimaryMenuItem ) {
+				newItemPosition = parseInt( currentItemAtPosition.index(), 10 );
+				if(currentItemPosition < newItemPosition) {
+					if(currentItemAtPositionNoOfChild > 0){
+						newItemPosition = newItemPosition + currentItemAtPositionNoOfChild - thisItemNoOfChild;
+					}
+					menuItemWithChild = menuItem.add( thisItemChildren );
+					menuItemWithChild.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+				} else {
+					if ( thisItemChildren ) {
+						menuItemWithChild = menuItem.add( thisItemChildren );
+						menuItemWithChild.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+					} else {
+						menuItem.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();	
+					}
+				}
+			} else {
+				if(currentItemPosition < newItemPosition) {
+					if(currentItemAtPositionNoOfChild > 0){
+						newItemPosition = newItemPosition + currentItemAtPositionNoOfChild - thisItemNoOfChild;
+					} else {
+						newItemPosition = newItemPosition + 1;
+					}
+					menuItemWithChild = menuItem.add( thisItemChildren );
+					menuItemWithChild.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+				} else {
+					if ( thisItemChildren ) {
+						menuItemWithChild = menuItem.add( thisItemChildren );
+						menuItemWithChild.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+					} else {
+						menuItem.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();	
+					}
+				}
+			}
+
+			api.registerChange();
+			api.refreshKeyboardAccessibility();
+			api.refreshAdvancedAccessibility();
+			$this.focus();
+			wp.a11y.speak( menus.orderUpdated, 'polite' );
 		},
 
 		/**
@@ -737,6 +972,8 @@
 
 					api.refreshKeyboardAccessibility();
 					api.refreshAdvancedAccessibility();
+					ui.item.updateParentDropdown();
+					ui.item.updateOrderDropdown();
 					api.refreshAdvancedAccessibilityOfItem( ui.item.find( 'a.item-edit' ) );
 				},
 				change: function(e, ui) {
@@ -988,6 +1225,8 @@
 					deletionSpeech = menus.itemsDeleted.replace( '%s', itemsPendingDeletion );
 					wp.a11y.speak( deletionSpeech, 'polite' );
 					that.disableBulkSelection();
+					menus.updateParentDropdown();
+					menus.updateOrderDropdown();
 				}
 			});
 		},
@@ -1527,6 +1766,8 @@
 					}
 					api.refreshAdvancedAccessibility();
 					wp.a11y.speak( menus.itemRemoved );
+					menus.updateParentDropdown();
+					menus.updateOrderDropdown();
 				});
 		},
 
