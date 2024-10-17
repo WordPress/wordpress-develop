@@ -355,17 +355,17 @@ class WP_Theme_JSON {
 	 * @var string[]
 	 */
 	const VALID_TOP_LEVEL_KEYS = array(
-		'blockTypes',
-		'customTemplates',
-		'description',
-		'patterns',
-		'settings',
-		'slug',
-		'styles',
-		'templateParts',
-		'title',
-		'version',
-	);
+        'blockTypes' => 0,
+        'customTemplates' => 1,
+        'description' => 2,
+        'patterns' => 3,
+        'settings' => 4,
+        'slug' => 5,
+        'styles' => 6,
+        'templateParts' => 7,
+        'title' => 8,
+        'version' => 9,
+    );
 
 	/**
 	 * The valid properties under the settings key.
@@ -946,7 +946,7 @@ class WP_Theme_JSON {
 		}
 
 		// Preserve only the top most level keys.
-		$output = array_intersect_key( $input, array_flip( static::VALID_TOP_LEVEL_KEYS ) );
+		$output = array_intersect_key( $input, static::VALID_TOP_LEVEL_KEYS );
 
 		/*
 		 * Remove any rules that are annotated as "top" in VALID_STYLES constant.
