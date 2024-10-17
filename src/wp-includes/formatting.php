@@ -4702,6 +4702,7 @@ function esc_attr( $text ) {
  * @return string
  */
 function esc_textarea( $text ) {
+	$text      = is_null( $text ) ? '' : $text;
 	$safe_text = htmlspecialchars( $text, ENT_QUOTES, get_option( 'blog_charset' ) );
 	/**
 	 * Filters a string cleaned and escaped for output in a textarea element.
