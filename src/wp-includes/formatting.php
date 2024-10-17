@@ -3464,50 +3464,108 @@ function translate_smiley( $matches ) {
  * Will only convert smilies if the option 'use_smilies' is true and the global
  * used in the function isn't empty.
  *
+ * Example:
+ *
+ *     // Some replace with semantically equivalent Unicode Emoji.
+ *     'Be 🙂' === convert_smilies( 'Be :)' );
+ *
+ *     // Some replace with an inline image.
+ *     $converted = convert_smilies( ':mrgreen: is here.' );
+ *     $converted === '<img src="[...]/images/smilies/mrgreen.png" alt=":mrgreen:" class="wp-smiley" style="..." /> is here.'
+ *
+ *     // Attributes are not converted.
+ *     '<div class=":lol:">' === convert_smilies( '<div class=":lol:">' );
+ *
+ *     // Contents of PRE and CODE elements are not converted.
+ *     '<pre>:idea: read more</pre>' === convert_smilies( '<pre>:idea: read more</pre>' );
+ *
  * @since 0.71
+ * @since {WP_VERSION} Relies on HTML API to only replace inside text nodes and attribute values.
  *
- * @global string|array $wp_smiliessearch
+ * @global string|array $wp_smiliessearch PCRE pattern used to detect location of smilies in given HTML.
  *
- * @param string $text Content to convert smilies from text.
- * @return string Converted content with text smilies replaced with images.
+ * @param string $html Convert smilies in the text nodes of this HTML.
+ * @return string Converted content with text smilies replaced with Emoji and/or images.
  */
-function convert_smilies( $text ) {
+function convert_smilies( $html ) {
 	global $wp_smiliessearch;
-	$output = '';
-	if ( get_option( 'use_smilies' ) && ! empty( $wp_smiliessearch ) ) {
-		// HTML loop taken from texturize function, could possible be consolidated.
-		$textarr = preg_split( '/(<.*>)/U', $text, -1, PREG_SPLIT_DELIM_CAPTURE ); // Capture the tags as well as in between.
-		$stop    = count( $textarr ); // Loop stuff.
 
-		// Ignore processing of specific tags.
-		$tags_to_ignore       = 'code|pre|style|script|textarea';
-		$ignore_block_element = '';
-
-		for ( $i = 0; $i < $stop; $i++ ) {
-			$content = $textarr[ $i ];
-
-			// If we're in an ignore block, wait until we find its closing tag.
-			if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')[^>]*>/', $content, $matches ) ) {
-				$ignore_block_element = $matches[1];
-			}
-
-			// If it's not a tag and not in ignore block.
-			if ( '' === $ignore_block_element && strlen( $content ) > 0 && '<' !== $content[0] ) {
-				$content = preg_replace_callback( $wp_smiliessearch, 'translate_smiley', $content );
-			}
-
-			// Did we exit ignore block?
-			if ( '' !== $ignore_block_element && '</' . $ignore_block_element . '>' === $content ) {
-				$ignore_block_element = '';
-			}
-
-			$output .= $content;
-		}
-	} else {
-		// Return default text.
-		$output = $text;
+	if ( ! get_option( 'use_smilies' ) || empty( $wp_smiliessearch ) ) {
+		return $html;
 	}
-	return $output;
+
+	$processor = new class( $html ) extends WP_HTML_Tag_Processor {
+		/**
+		 * Replaces the contents of a text node with new unsafe HTML.
+		 *
+		 * @param string $core_only_html Replacement HTML to put in the text node.
+		 * @return bool Whether the replacement was performed.
+		 */
+		public function core_only_replace_text_node( $core_only_html ) {
+			if ( self::STATE_TEXT_NODE !== $this->parser_state ) {
+				return false;
+			}
+
+			if ( ! $this->set_bookmark( 'here' ) ) {
+				return false;
+			}
+
+			$here = $this->bookmarks['here'];
+
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+				$here->start,
+				$here->length,
+				$core_only_html
+			);
+
+			return true;
+		}
+	};
+
+	$ignore_stack = array();
+	while ( $processor->next_token() ) {
+		$token_name = $processor->get_token_name();
+
+		switch ( $token_name ) {
+			// Avoid replacing content in these elements.
+			case 'CODE':
+			case 'PRE':
+				if ( $processor->is_tag_closer() ) {
+					if ( end( $ignore_stack ) === $token_name ) {
+						array_pop( $ignore_stack );
+					}
+				} else {
+					$ignore_stack[] = $token_name;
+				}
+				continue 2;
+
+			case '#text':
+				break;
+
+			default:
+				continue 2;
+		}
+
+		if ( count( $ignore_stack ) > 0 ) {
+			continue;
+		}
+
+		$text_chunk        = $processor->get_modifiable_text();
+		$replacement_count = 0;
+		$translated        = preg_replace_callback(
+			$wp_smiliessearch,
+			'translate_smiley',
+			$text_chunk,
+			-1,
+			$replacement_count
+		);
+
+		if ( $replacement_count > 0 ) {
+			$processor->core_only_replace_text_node( $translated );
+		}
+	}
+
+	return $processor->get_updated_html();
 }
 
 /**
