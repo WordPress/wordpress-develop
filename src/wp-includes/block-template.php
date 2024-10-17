@@ -268,9 +268,21 @@ function get_the_block_template_html() {
 	$content = wp_filter_content_tags( $content, 'template' );
 	$content = str_replace( ']]>', ']]&gt;', $content );
 
+	/**
+	 * Filters the wrapper element used in the site blocks.
+	 *
+	 * This filter allows the modification of the wrapper element that encloses the site blocks.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $element The HTML element to be used as the wrapper. Default 'div'.
+	 * @param string $content The content to be wrapped.
+	 */
+	$wrapper_element = apply_filters( 'wp_site_blocks_wrapper_element', 'div', $content );
+
 	// Wrap block template in .wp-site-blocks to allow for specific descendant styles
 	// (e.g. `.wp-site-blocks > *`).
-	return '<div class="wp-site-blocks">' . $content . '</div>';
+	return "<{$wrapper_element} class=\"wp-site-blocks\">{$content}</{$wrapper_element}>";
 }
 
 /**
