@@ -21,24 +21,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 */
 	protected $image;
 
-	/**
-	 * Stores the information whether the image is indexed-color encoded.
-	 *
-	 * @since 6.6
-	 * @access protected
-	 * @var bool
-	 */
-	public $indexed_color_encoded = false;
-
-	/**
-	 * Stores the information whether the image is indexed-color encoded.
-	 *
-	 * @since 6.6
-	 * @access protected
-	 * @var int
-	 */
-	public $indexed_pixel_depth = false;
-
 	public function __destruct() {
 		if ( $this->image instanceof Imagick ) {
 			// We don't need the original in memory anymore.
@@ -488,7 +470,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'jpeg:fancy-upsampling', 'off' );
 			}
 
-			$indexed_pixel_depth   = false;
 			if ( 'image/png' === $this->mime_type ) {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
