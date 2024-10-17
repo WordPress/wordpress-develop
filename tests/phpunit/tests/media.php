@@ -5420,9 +5420,9 @@ EOF;
 
 		// Set the compression quality to a lower setting and test again, verifying that file sizes are all smaller.
 		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
-		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low' ), 10 );
+		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low' ) );
 		$smaller_avif_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
-		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low' ), 10 );
+		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low' ) );
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
 
 		// Sub-sizes: for each size, the AVIF should be smaller than the JPEG.
