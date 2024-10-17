@@ -542,7 +542,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 			// Limit the bit depth of resized images to 8 bits per channel.
 			if ( is_callable( array( $this->image, 'getImageDepth' ) ) && is_callable( array( $this->image, 'setImageDepth' ) ) ) {
-				if ( 8 < $this->image->getImageDepth() ) {
+				if ( 8 <= $this->image->getImageDepth() ) {
 					$this->image->setImageDepth( 8 );
 				}
 			}
