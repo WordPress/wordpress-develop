@@ -127,8 +127,10 @@ class WP_Block {
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
 	 */
 	public function __construct( $block, $available_context = array(), $registry = null ) {
+		$is_variation       = block_is_variation( $block['blockName'] );
+		$block_name         = $is_variation ? get_canonical_block_name( $block['blockName'] ) : $block['blockName'];
 		$this->parsed_block = $block;
-		$this->name         = $block['blockName'];
+		$this->name         = $block_name;
 
 		if ( is_null( $registry ) ) {
 			$registry = WP_Block_Type_Registry::get_instance();
