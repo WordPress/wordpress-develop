@@ -1,20 +1,11 @@
 const dotenv       = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
 const { execSync } = require( 'child_process' );
+const { constants, copyFile } = require( 'node:fs' );
 
-try {
-	execSync( 'test -f .env', { stdio: 'inherit' } );
-} catch ( e ) {
-	// test exits with a status code of 1 if the test fails.
-	// Alert the user on any other failure.
-	if ( e.status !== 1 ) {
-		throw e;
-	}
-
-	// The file does not exist, copy over the default example file.
-	execSync( 'cp .env.example .env', { stdio: 'inherit' } );
-}
-
+copyFile( '.env.example', '.env', constants.COPYFILE_EXCL, (e) => {
+	console.log( 'An .env file already exists.' );
+});
 
 dotenvExpand.expand( dotenv.config() );
 
