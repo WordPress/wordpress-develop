@@ -683,10 +683,15 @@ switch ( $action ) {
 											<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 											<span class="text"><?php _e( 'Hide' ); ?></span>
 										</button>
+										<button type="button" class="button wp-copy-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Copy password' ); ?>">
+											<span class="dashicons dashicons-clipboard" aria-hidden="true"></span>
+											<span class="text"><?php _e( 'Copy' ); ?></span>
+										</button>
 										<button type="button" class="button wp-cancel-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Cancel password change' ); ?>">
 											<span class="dashicons dashicons-no" aria-hidden="true"></span>
 											<span class="text"><?php _e( 'Cancel' ); ?></span>
 										</button>
+										<p class="copy-password" style="display: none; margin-top: 10px; color: #4CAF50;"></p>
 									</div>
 								</td>
 							</tr>
@@ -953,6 +958,35 @@ switch ( $action ) {
 	if (window.location.hash == '#password') {
 		document.getElementById('pass1').focus();
 	}
+	document.addEventListener('DOMContentLoaded', function() {
+	    // Get the copy button and the password input field
+	    const copyButton = document.querySelector('.wp-copy-pw');
+	    const passwordInput = document.querySelector('#pass1');
+
+	    // Get the paragraph element for feedback message
+	    const feedbackMessage = document.querySelector('.copy-password');
+
+	    // Add click event listener to the copy button
+	    copyButton.addEventListener('click', function() {
+	        // Create a temporary input element to hold the password for copying
+	        const tempInput = document.createElement('input');
+	        // Fetch the value directly from the password input field
+	        tempInput.value = passwordInput.value;
+	        document.body.appendChild(tempInput);
+	        tempInput.select();
+	        document.execCommand('copy');
+	        document.body.removeChild(tempInput);
+
+	        // Update the feedback message text and show it
+	        feedbackMessage.textContent = 'Password copied to clipboard!';
+	        feedbackMessage.style.display = 'block';
+	        
+	        // Hide the message after 3 seconds
+	        setTimeout(() => {
+	            feedbackMessage.style.display = 'none';
+	        }, 3000);
+	    });
+	});
 </script>
 
 <script type="text/javascript">
