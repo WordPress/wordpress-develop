@@ -88,7 +88,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		// Lists/updates a single global style variation based on the given id.
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<id>[\/\w-]+)',
+			'/' . $this->rest_base . '/(?P<id>[\/\d+]+)',
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
@@ -96,9 +96,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'args'                => array(
 						'id' => array(
-							'description'       => __( 'The id of a template' ),
-							'type'              => 'string',
-							'sanitize_callback' => array( $this, '_sanitize_global_styles_callback' ),
+							'description'       => __( 'ID of global styles config.' ),
+							'type'              => 'integer',
 						),
 					),
 				),
@@ -464,7 +463,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			'properties' => array(
 				'id'       => array(
 					'description' => __( 'ID of global styles config.' ),
-					'type'        => 'string',
+					'type'        => 'integer',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
