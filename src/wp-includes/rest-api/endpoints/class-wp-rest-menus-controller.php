@@ -43,6 +43,11 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
 	public function get_item_permissions_check( $request ) {
+		$check = $this->check_read_permission( $request['id'] );
+		if ( $check ) {
+			return true;
+		}
+
 		$has_permission = parent::get_item_permissions_check( $request );
 
 		if ( true !== $has_permission ) {
@@ -50,6 +55,18 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 		}
 
 		return $this->check_has_read_only_access( $request );
+	}
+
+	public function check_read_permission( $term_id ) {
+		$term = $this->get_term( $term_id );
+
+		if ( ! is_wp_error( $term ) ) {
+			if ( isset( $term->show_in_rest ) && $term->show_in_rest ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
