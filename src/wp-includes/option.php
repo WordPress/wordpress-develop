@@ -232,6 +232,19 @@ function get_option( $option, $default_value = false ) {
 	}
 
 	/**
+	 * Fires before an option value is returned.
+	 *
+	 * The dynamic portion of the hook name, `$option`, refers to the option name.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $option      The name of the option being retrieved.
+	 * @param mixed  $value       The value of the option retrieved from the database (or default).
+	 * @param bool   $is_default  Whether the value is based on the default (false if looked up from the database).
+	 */
+	do_action( "get_option_{$option}", $option, $value, false === $value );
+
+	/**
 	 * Filters the value of an existing option.
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
