@@ -1662,7 +1662,15 @@ class WP_List_Table {
 
 		$mode_class = esc_attr( 'table-view-' . $mode );
 
-		return array( 'widefat', 'fixed', 'striped', $mode_class, $this->_args['plural'] );
+		$classes = array( 'widefat', 'fixed', 'striped', $mode_class, $this->_args['plural'] );
+
+		// Apply the filter
+		$classes = apply_filters( 'wp_list_table_classes', $classes, $this );
+
+		// Sanitize each class
+		$classes = array_map( 'sanitize_html_class', $classes );
+
+		return $classes;
 	}
 
 	/**
