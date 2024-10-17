@@ -69,6 +69,7 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 		 */
 		return self::text_array_to_dataprovider(
 			array(
+				'mustuse_plugins',
 				'plugins',
 				'dependencies',
 				'dependency_slugs',
@@ -271,6 +272,7 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 	 * Tests that dependent files are loaded and slugified.
 	 *
 	 * @ticket 22316
+	 * @ticket 60504
 	 *
 	 * @covers WP_Plugin_Dependencies::read_dependencies_from_plugin_headers
 	 * @covers WP_Plugin_Dependencies::convert_to_slug
@@ -284,7 +286,7 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 			if ( 'hello.php' === $plugin_file ) {
 				$slug = 'hello-dolly';
 			} else {
-				$slug = str_replace( '.php', '', explode( '/', $plugin_file )[0] );
+				$slug = explode( '/', $plugin_file )[0];
 			}
 
 			$expected_slugs[ $plugin_file ] = $slug;
@@ -299,5 +301,195 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 
 		self::$instance->initialize();
 		$this->assertSame( $expected_slugs, $this->get_property_value( 'dependent_slugs' ) );
+	}
+
+	/**
+	 * Tests that dependent slugs are sanitized when slugified.
+	 *
+	 * @ticket 60504
+	 *
+	 * @covers WP_Plugin_Dependencies::read_dependencies_from_plugin_headers
+	 * @covers WP_Plugin_Dependencies::convert_to_slug
+	 *
+	 * @dataProvider data_dependent_files_to_be_slugified
+	 */
+	public function test_should_sanitize_dependent_slugs( $plugin_file, $expected ) {
+		$this->set_property_value(
+			'plugins',
+			array(
+				$plugin_file => array(
+					'Name'            => 'Dependent 1',
+					'RequiresPlugins' => 'dependency',
+				),
+			)
+		);
+
+		self::$instance->initialize();
+		$this->assertSame( array( $plugin_file => $expected ), $this->get_property_value( 'dependent_slugs' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_dependent_files_to_be_slugified() {
+		return array(
+			'a dependent with a leading slash'             => array(
+				'plugin_file' => '/dependent/dependent.php',
+				'expected'    => 'dependent',
+			),
+			'a single-file dependent with a leading slash' => array(
+				'plugin_file' => '/dependent.php',
+				'expected'    => 'dependent.php',
+			),
+			'a dependent with path traversal'              => array(
+				'plugin_file' => '../../dependent/dependent.php',
+				'expected'    => 'dependent',
+			),
+			'a single-file dependent with path traversal'  => array(
+				'plugin_file' => '../../dependent.php',
+				'expected'    => 'dependent.php',
+			),
+			'a dependent with various spaces'              => array(
+				'plugin_file' => " \n\r\t\v\x00dependent/dependent.php",
+				'expected'    => 'dependent',
+			),
+			'a single-file dependent with various spaces'  => array(
+				'plugin_file' => " \n\r\t\v\x00dependent.php",
+				'expected'    => 'dependent.php',
+			),
+			'a dependent with various spaces and path traversal' => array(
+				'plugin_file' => " \n\r\t\v\x00../../dependent/dependent.php",
+				'expected'    => 'dependent',
+			),
+			'a single-file dependent with various spaces and path traversal' => array(
+				'plugin_file' => " \n\r\t\v\x00../../dependent.php",
+				'expected'    => 'dependent.php',
+			),
+		);
+	}
+
+	/**
+	 * Tests that Must-Use plugins that are dependencies are detected.
+	 *
+	 * @ticket 60504
+	 *
+	 * @covers WP_Plugin_Dependencies::read_dependencies_from_plugin_headers
+	 * @covers WP_Plugin_Dependencies::sanitize_dependency_slugs
+	 */
+	public function test_should_detect_mustuse_plugins_that_are_dependencies() {
+		$mustuse_plugins = array(
+			'woocommerce-loader.php' => array(
+				'Name'            => 'WooCommerce',
+				'RequiresPlugins' => '',
+			),
+		);
+
+		$plugins = array(
+			'dependent/dependent.php' => array(
+				'Name'            => 'Dependent 1',
+				'RequiresPlugins' => 'woocommerce',
+			),
+			// Must-Use plugins are merged into the plugins property.
+			'woocommerce-loader.php'  => array(
+				'Name'            => 'WooCommerce',
+				'RequiresPlugins' => '',
+			),
+		);
+
+		$this->set_property_value( 'mustuse_plugins', $mustuse_plugins );
+		$this->set_property_value( 'plugins', $plugins );
+
+		add_filter(
+			'wp_plugin_dependencies_slug',
+			static function ( $slug ) {
+				if ( 'woocommerce' === $slug ) {
+					$slug = 'woocommerce-loader.php';
+				}
+
+				return $slug;
+			}
+		);
+
+		self::$instance->initialize();
+		$this->assertSame(
+			array( 'woocommerce-loader.php' ),
+			$this->get_property_value( 'dependency_slugs' ),
+			'The Must-Use plugin was not detected.'
+		);
+
+		$this->assertFalse(
+			self::$instance->has_unmet_dependencies( 'dependent/dependent.php' ),
+			'The Must-Use plugin was not considered when checking for unmet dependencies.'
+		);
+	}
+
+	/**
+	 * Tests that a "normal" install of a dependency is ignored as a dependency when
+	 * a Must-Use version is installed.
+	 *
+	 * @ticket 60504
+	 *
+	 * @covers WP_Plugin_Dependencies::read_dependencies_from_plugin_headers
+	 * @covers WP_Plugin_Dependencies::sanitize_dependency_slugs
+	 */
+	public function test_normal_plugin_install_is_ignored_when_a_mustuse_plugin_exists() {
+		$mustuse_plugins = array(
+			'woocommerce-loader.php' => array(
+				'Name'            => 'WooCommerce',
+				'RequiresPlugins' => '',
+			),
+		);
+
+		$plugins = array(
+			'dependent/dependent.php'     => array(
+				'Name'            => 'Dependent 1',
+				'RequiresPlugins' => 'woocommerce',
+			),
+			// Must-Use plugins are merged into the plugins property.
+			'woocommerce-loader.php'      => array(
+				'Name'            => 'WooCommerce',
+				'RequiresPlugins' => '',
+			),
+			'woocommerce/woocommerce.php' => array(
+				'Name'            => 'WooCommerce',
+				'RequiresPlugins' => '',
+			),
+		);
+
+		$this->set_property_value( 'mustuse_plugins', $mustuse_plugins );
+		$this->set_property_value( 'plugins', $plugins );
+
+		add_filter(
+			'wp_plugin_dependencies_slug',
+			static function ( $slug ) {
+				if ( 'woocommerce' === $slug ) {
+					$slug = 'woocommerce-loader.php';
+				}
+
+				return $slug;
+			}
+		);
+
+		self::$instance->initialize();
+		$dependency_slugs = $this->get_property_value( 'dependency_slugs' );
+
+		$this->assertContains(
+			'woocommerce-loader.php',
+			$dependency_slugs,
+			'The Must-Use plugin was not detected.'
+		);
+
+		$this->assertNotContains(
+			'woocommerce',
+			$dependency_slugs,
+			'The "normal" plugin install was not ignored.'
+		);
+
+		$this->assertFalse(
+			self::$instance->has_unmet_dependencies( 'dependent/dependent.php' ),
+			'The dependent plugin has unmet dependencies.'
+		);
 	}
 }
