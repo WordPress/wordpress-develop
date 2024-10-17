@@ -190,10 +190,10 @@ class WP_Http {
 			 * @since 2.7.0
 			 * @since 5.1.0 The `$url` parameter was added.
 			 *
-			 * @param string $version Version of HTTP used. Accepts '1.0' and '1.1'. Default '1.0'.
+			 * @param string $version Version of HTTP used. Accepts '1.0', '1.1', '2.0', and '3.0'. Default '2.0'.
 			 * @param string $url     The request URL.
 			 */
-			'httpversion'         => apply_filters( 'http_request_version', '1.0', $url ),
+			'httpversion'         => apply_filters( 'http_request_version', '2.0', $url ),
 			/**
 			 * Filters the user agent value sent with an HTTP request.
 			 *
