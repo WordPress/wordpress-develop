@@ -716,6 +716,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$posts_columns['date'] = __( 'Date' );
 
+		$posts_columns['post_modified'] = __( 'Last Modified' );
+
 		if ( 'page' === $post_type ) {
 
 			/**
@@ -775,6 +777,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				'parent'   => array( 'parent', false ),
 				'comments' => array( 'comment_count', false, __( 'Comments' ), __( 'Table ordered by Comments.' ) ),
 				'date'     => array( 'date', true, __( 'Date' ), __( 'Table ordered by Date.' ) ),
+				'post_modified' => array( 'post_modified', true, __( 'Last Modified' ), __( 'Take ordered by Last Modified Date.' ) ),
 			);
 		} else {
 			$sortables = array(
@@ -782,6 +785,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				'parent'   => array( 'parent', false ),
 				'comments' => array( 'comment_count', false, __( 'Comments' ), __( 'Table ordered by Comments.' ) ),
 				'date'     => array( 'date', true, __( 'Date' ), __( 'Table ordered by Date.' ), 'desc' ),
+				'post_modified' => array( 'post_modified', true, __( 'Last Modified' ), __( 'Take ordered by Last Modified.' ) ),
 			);
 		}
 		// Custom Post Types: there's a filter for that, see get_column_info().
@@ -1255,6 +1259,43 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Handles the post last modified date column output.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @global string $mode List table view mode.
+	 *
+	 * @param WP_Post $post The current WP_Post object.
+	 */
+	public function column_post_modified( $post ) {
+		global $mode;
+
+		if ( '0000-00-00 00:00:00' === $post->post_modified ) {
+			$t_time    = __( 'Unpublished' );
+		} else {
+			$t_time = sprintf(
+				/* translators: 1: Post date, 2: Post time. */
+				__( '%1$s at %2$s' ),
+				/* translators: Post date format. See https://www.php.net/manual/datetime.format.php */
+				get_the_modified_time( __( 'Y/m/d' ), $post ),
+				/* translators: Post time format. See https://www.php.net/manual/datetime.format.php */
+				get_the_modified_time( __( 'g:i a' ), $post )
+			);
+		}
+
+		/**
+		 * Filters the published, scheduled, or unpublished time of the post.
+		 *
+		 * @since 6.7.0
+		 * @param string  $t_time      The published time.
+		 * @param WP_Post $post        Post object.
+		 * @param string  $column_name The column name.
+		 * @param string  $mode        The list display mode ('excerpt' or 'list').
+		 */
+		echo apply_filters( 'post_date_modified_column_time', $t_time, $post, 'post_modified', $mode );
+	}
+
+	/**
 	 * Handles the comments column output.
 	 *
 	 * @since 4.3.0
@@ -1650,13 +1691,14 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$m            = ( isset( $mode ) && 'excerpt' === $mode ) ? 'excerpt' : 'list';
 		$can_publish  = current_user_can( $post_type_object->cap->publish_posts );
 		$core_columns = array(
-			'cb'         => true,
-			'date'       => true,
-			'title'      => true,
-			'categories' => true,
-			'tags'       => true,
-			'comments'   => true,
-			'author'     => true,
+			'cb'            => true,
+			'date'          => true,
+			'title'         => true,
+			'categories'    => true,
+			'tags'          => true,
+			'comments'      => true,
+			'author'        => true,
+			'post_modified' => true,
 		);
 		?>
 
