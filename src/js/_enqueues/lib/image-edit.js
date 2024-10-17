@@ -708,6 +708,11 @@
 		} ).done( function( response ) {
 			// Whether the executed action was `scale` or `restore`, the response does have a message.
 			if ( response && response.data.message.msg ) {
+				if( 'restore' === action && response.data.message.orig_size) {
+					// Reset the original size for this object on restore.
+					t.hold.ow = response.data.message.orig_size.width;
+					t.hold.oh = response.data.message.orig_size.height;
+				}
 				wp.a11y.speak( response.data.message.msg );
 				return;
 			}
