@@ -403,4 +403,18 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		}
 		$this->assertTrue( $has_html_files, 'contains at least one html file' );
 	}
+
+	/**
+	 * Should normalize slugs of deep nested templates.
+	 *
+	 * @ticket 58132
+	 */
+	public function test__get_block_templates_files_with_nested_folders() {
+		$template_files_slugs = array_column(
+			_get_block_templates_files( 'wp_template' ),
+			'slug'
+		);
+
+		$this->assertContains( 'subdir/subdir/template', $template_files_slugs );
+	}
 }
