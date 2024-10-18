@@ -235,7 +235,11 @@ function twentytwelve_block_editor_styles() {
 	$font_version = ( 0 === strpos( (string) twentytwelve_get_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentytwelve-fonts', twentytwelve_get_font_url(), array(), $font_version );
 }
-add_action( 'enqueue_block_editor_assets', 'twentytwelve_block_editor_styles' );
+if ( is_admin() && version_compare( $GLOBALS['wp_version'], '6.3', '>=' ) ) {
+	add_action( 'enqueue_block_assets', 'twentytwelve_block_editor_styles', 1, 1 );
+} else {
+	add_action( 'enqueue_block_editor_assets', 'twentytwelve_block_editor_styles', 1, 1 );
+}
 
 /**
  * Add preconnect for Google Fonts.
