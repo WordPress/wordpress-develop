@@ -903,6 +903,8 @@ function update_option( $option, $value, $autoload = null ) {
 	 */
 	$value = apply_filters( 'pre_update_option', $value, $option, $old_value );
 
+	$serialized_value = maybe_serialize( $value );
+
 	/*
 	 * If the new and old values are the same, no need to update.
 	 *
@@ -912,7 +914,7 @@ function update_option( $option, $value, $autoload = null ) {
 	 *
 	 * See https://core.trac.wordpress.org/ticket/38903
 	 */
-	if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
+	if ( sprintf( '%s', $serialized_value ) === $old_value || maybe_serialize( $old_value ) === $serialized_value ) {
 		return false;
 	}
 
@@ -920,8 +922,6 @@ function update_option( $option, $value, $autoload = null ) {
 	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
 		return add_option( $option, $value, '', $autoload );
 	}
-
-	$serialized_value = maybe_serialize( $value );
 
 	/**
 	 * Fires immediately before an option value is updated.
@@ -933,6 +933,15 @@ function update_option( $option, $value, $autoload = null ) {
 	 * @param mixed  $value     The new option value.
 	 */
 	do_action( 'update_option', $option, $old_value, $value );
+
+	/*
+	 * Ensure the serialized value is a string.
+	 *
+	 * This ensure that the option is stored in the cache in the same format as the
+	 * option is stored in the database. Rather than type casting, sprintf is used to
+	 * match the process used by wpdb::prepare().
+	 */
+	$serialized_value = sprintf( '%s', $serialized_value );
 
 	$update_args = array(
 		'option_value' => $serialized_value,
@@ -1130,6 +1139,15 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	 * @param mixed  $value  Value of the option.
 	 */
 	do_action( 'add_option', $option, $value );
+
+	/*
+	 * Ensure the serialized value is a string.
+	 *
+	 * This ensure that the option is stored in the cache in the same format as the
+	 * option is stored in the database. Rather than type casting, sprintf is used to
+	 * match the process used by wpdb::prepare().
+	 */
+	$serialized_value = sprintf( '%s', $serialized_value );
 
 	$result = $wpdb->query( $wpdb->prepare( "INSERT INTO `$wpdb->options` (`option_name`, `option_value`, `autoload`) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE `option_name` = VALUES(`option_name`), `option_value` = VALUES(`option_value`), `autoload` = VALUES(`autoload`)", $option, $serialized_value, $autoload ) );
 	if ( ! $result ) {
@@ -2161,6 +2179,16 @@ function add_network_option( $network_id, $option, $value ) {
 		$value = sanitize_option( $option, $value );
 
 		$serialized_value = maybe_serialize( $value );
+
+		/*
+		 * Ensure the serialized value is a string.
+		 *
+		 * This ensure that the option is stored in the cache in the same format as the
+		 * option is stored in the database. Rather than type casting, sprintf is used to
+		 * match the process used by wpdb::prepare().
+		 */
+		$serialized_value = sprintf( '%s', $serialized_value );
+
 		$result           = $wpdb->insert(
 			$wpdb->sitemeta,
 			array(
@@ -2373,6 +2401,8 @@ function update_network_option( $network_id, $option, $value ) {
 	 */
 	$value = apply_filters( "pre_update_site_option_{$option}", $value, $old_value, $option, $network_id );
 
+	$serialized_value = maybe_serialize( $value );
+
 	/*
 	 * If the new and old values are the same, no need to update.
 	 *
@@ -2382,7 +2412,7 @@ function update_network_option( $network_id, $option, $value ) {
 	 *
 	 * See https://core.trac.wordpress.org/ticket/44956
 	 */
-	if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
+	if ( sprintf( '%s', $serialized_value ) === $old_value || maybe_serialize( $old_value ) === $serialized_value ) {
 		return false;
 	}
 
@@ -2403,7 +2433,15 @@ function update_network_option( $network_id, $option, $value ) {
 	} else {
 		$value = sanitize_option( $option, $value );
 
-		$serialized_value = maybe_serialize( $value );
+		/*
+		 * Ensure the serialized value is a string.
+		 *
+		 * This ensure that the option is stored in the cache in the same format as the
+		 * option is stored in the database. Rather than type casting, sprintf is used to
+		 * match the process used by wpdb::prepare().
+		 */
+		$serialized_value = sprintf( '%s', $serialized_value );
+
 		$result           = $wpdb->update(
 			$wpdb->sitemeta,
 			array( 'meta_value' => $serialized_value ),
