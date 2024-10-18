@@ -1151,6 +1151,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'wp-mediaelement', "/wp-includes/js/mediaelement/wp-mediaelement$suffix.js", array( 'mediaelement' ), false, 1 );
 	$mejs_settings = array(
 		'pluginPath'            => includes_url( 'js/mediaelement/', 'relative' ),
+		'iconSprite'            => includes_url( 'js/mediaelement/mejs-controls.svg', 'relative' ),
 		'classPrefix'           => 'mejs-',
 		'stretching'            => 'responsive',
 		/** This filter is documented in wp-includes/media.php */
