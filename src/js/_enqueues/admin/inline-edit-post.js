@@ -275,7 +275,7 @@ window.wp = window.wp || {};
 		 *
 		 * @listens click
 		 */
-		$( '#bulk-titles .ntdelbutton' ).click( function() {
+		$( '#bulk-titles .ntdelbutton' ).on( 'click', function() {
 			var $this = $( this ),
 				id = $this.attr( 'id' ).substr( 1 ),
 				$prev = $this.parent().prev().children( '.ntdelbutton' ),
@@ -288,9 +288,9 @@ window.wp = window.wp || {};
 
 			// Move focus to a proper place when items are removed.
 			if ( $next.length ) {
-				$next.focus();
+				$next.trigger( 'focus' );
 			} else if ( $prev.length ) {
-				$prev.focus();
+				$prev.trigger( 'focus' );
 			} else {
 				$( '#bulk-titles-list' ).remove();
 				inlineEditPost.revert();
@@ -315,7 +315,7 @@ window.wp = window.wp || {};
 		}
 
 		// Set initial focus on the Bulk Edit region.
-		$( '#bulk-edit .inline-edit-wrapper' ).attr( 'tabindex', '-1' ).focus();
+		$( '#bulk-edit .inline-edit-wrapper' ).attr( 'tabindex', '-1' ).trigger( 'focus' );
 		// Scrolls to the top of the table where the editor is rendered.
 		$('html, body').animate( { scrollTop: 0 }, 'fast' );
 	},
