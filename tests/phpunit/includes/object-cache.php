@@ -2331,6 +2331,11 @@ class WP_Object_Cache {
 			$groups = (array) $groups;
 		}
 
+		// Allow force ignoring of global groups.
+		if ( ! empty( WP_OBJECT_CACHE_IGNORE_GLOBAL_GROUPS ) ) {
+			$groups = array_diff( $groups, WP_OBJECT_CACHE_IGNORE_GLOBAL_GROUPS );
+		}
+
 		$this->global_groups = array_merge( $this->global_groups, $groups );
 		$this->global_groups = array_unique( $this->global_groups );
 	}
