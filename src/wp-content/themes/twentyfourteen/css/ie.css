@@ -889,6 +889,10 @@ a.post-thumbnail:hover {
 	overflow: visible;
 }
 
+.ie7 .screen-reader-text {
+	clip: rect(1px 1px 1px 1px);
+}
+
 .ie7 .site,
 .ie7 .site-header {
 	max-width: 100%;

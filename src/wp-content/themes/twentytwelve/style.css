@@ -508,6 +508,7 @@ a:hover {
 .assistive-text,
 .site .screen-reader-text {
 	position: absolute !important;
+	clip-path: inset(50%);
 	overflow: hidden;
 	height: 1px;
 	width: 1px;
