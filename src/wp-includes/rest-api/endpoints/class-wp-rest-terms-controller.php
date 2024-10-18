@@ -451,9 +451,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			return $term;
 		}
 
+		if ( $request->is_method( 'head' ) ) {
+			return new WP_REST_Response();
+		}
+
 		$response = $this->prepare_item_for_response( $term, $request );
 
-		return rest_ensure_response( $response );
+		return reset_ensure_response( $response );
 	}
 
 	/**
