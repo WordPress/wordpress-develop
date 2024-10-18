@@ -7,8 +7,7 @@ on:
       - trunk
     paths:
       - '.github/workflows/test-old-branches.yml'
-      - '.github/workflows/reusable-phpunit-tests-v1.yml'
-      - '.github/workflows/reusable-phpunit-tests-v2.yml'
+      - '.github/workflows/reusable-phpunit-tests-v[0-9]+.yml'
   # Run twice a month on the 1st and 15th at 00:00 UTC.
   schedule:
     - cron: '0 0 1 * *'
