@@ -169,7 +169,7 @@ jobs:
 
       - name: Run PHPUnit tests
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }}&{{ inputs.phpunit-test-groups && format( '--group {0}', inputs.phpunit-test-groups ) || '' }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }}${{ inputs.phpunit-test-groups && format( '--group {0}', inputs.phpunit-test-groups ) || '' }}
 
       - name: Run AJAX tests
         if: ${{ ! inputs.phpunit-test-groups }}
