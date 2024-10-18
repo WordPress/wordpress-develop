@@ -2829,8 +2829,31 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Returns the adjusted tag name for a given token, taking into
-	 * account the current parsing context, whether HTML, SVG, or MathML.
+	 * Returns the adjusted tag name for displaying a given tag name, taking
+	 * into account the current parsing context, whether HTML, SVG, or MathML.
+	 *
+	 * Use this function when the purpose is displaying or printing HTML tags.
+	 * For checking if a tag has a given name, rely on {@see static::get_tag}
+	 * which takes HTML case-folding rules into account and always returns an
+	 * ASCII upper-case variant of the matched tag name.
+	 *
+	 * Some SVG tags have specifically-called out case-folding rules, such as
+	 * with `altGlyph`. These tags are normatively mixed-case.
+	 *
+	 * Example:
+	 *
+	 *     $processor = new WP_HTML_Tag_Processor( '<div>' );
+	 *     $processor->next_tag();
+	 *     'DIV' === $processor->get_tag();
+	 *     'div' === $processor->get_qualified_tag_name();
+	 *
+	 *     $processor = WP_HTML_Processor::create_fragment( '<svg><altglyph/><rect/></svg>' );
+	 *     $processor->next_tag( 'altglyph' );
+	 *     'ALTGLYPH' === $processor->get_tag();
+	 *     'altGlyph' === $processor->get_qualified_tag_name();
+	 *     $processor->next_tag();
+	 *     'RECT' === $processor->get_tag();
+	 *     'rect' === $processor->get_qualified_tag_name();
 	 *
 	 * @since 6.7.0
 	 *
@@ -2842,135 +2865,134 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		if ( 'html' === $this->get_namespace() ) {
-			return $tag_name;
+		$lower_tag_name = strtolower( $tag_name );
+		$namespace      = $this->get_namespace();
+
+		switch ( $namespace ) {
+			case 'html':
+			case 'math':
+				return $lower_tag_name;
 		}
 
-		$lower_tag_name = strtolower( $tag_name );
-		if ( 'math' === $this->get_namespace() ) {
+		if ( 'svg' !== $namespace ) {
+			// This should be unreachable, but prevents tools from inaccurately reporting type errors.
 			return $lower_tag_name;
 		}
 
-		if ( 'svg' === $this->get_namespace() ) {
-			switch ( $lower_tag_name ) {
-				case 'altglyph':
-					return 'altGlyph';
+		switch ( $lower_tag_name ) {
+			case 'altglyph':
+				return 'altGlyph';
 
-				case 'altglyphdef':
-					return 'altGlyphDef';
+			case 'altglyphdef':
+				return 'altGlyphDef';
 
-				case 'altglyphitem':
-					return 'altGlyphItem';
+			case 'altglyphitem':
+				return 'altGlyphItem';
 
-				case 'animatecolor':
-					return 'animateColor';
+			case 'animatecolor':
+				return 'animateColor';
 
-				case 'animatemotion':
-					return 'animateMotion';
+			case 'animatemotion':
+				return 'animateMotion';
 
-				case 'animatetransform':
-					return 'animateTransform';
+			case 'animatetransform':
+				return 'animateTransform';
 
-				case 'clippath':
-					return 'clipPath';
+			case 'clippath':
+				return 'clipPath';
 
-				case 'feblend':
-					return 'feBlend';
+			case 'feblend':
+				return 'feBlend';
 
-				case 'fecolormatrix':
-					return 'feColorMatrix';
+			case 'fecolormatrix':
+				return 'feColorMatrix';
 
-				case 'fecomponenttransfer':
-					return 'feComponentTransfer';
+			case 'fecomponenttransfer':
+				return 'feComponentTransfer';
 
-				case 'fecomposite':
-					return 'feComposite';
+			case 'fecomposite':
+				return 'feComposite';
 
-				case 'feconvolvematrix':
-					return 'feConvolveMatrix';
+			case 'feconvolvematrix':
+				return 'feConvolveMatrix';
 
-				case 'fediffuselighting':
-					return 'feDiffuseLighting';
+			case 'fediffuselighting':
+				return 'feDiffuseLighting';
 
-				case 'fedisplacementmap':
-					return 'feDisplacementMap';
+			case 'fedisplacementmap':
+				return 'feDisplacementMap';
 
-				case 'fedistantlight':
-					return 'feDistantLight';
+			case 'fedistantlight':
+				return 'feDistantLight';
 
-				case 'fedropshadow':
-					return 'feDropShadow';
+			case 'fedropshadow':
+				return 'feDropShadow';
 
-				case 'feflood':
-					return 'feFlood';
+			case 'feflood':
+				return 'feFlood';
 
-				case 'fefunca':
-					return 'feFuncA';
+			case 'fefunca':
+				return 'feFuncA';
 
-				case 'fefuncb':
-					return 'feFuncB';
+			case 'fefuncb':
+				return 'feFuncB';
 
-				case 'fefuncg':
-					return 'feFuncG';
+			case 'fefuncg':
+				return 'feFuncG';
 
-				case 'fefuncr':
-					return 'feFuncR';
+			case 'fefuncr':
+				return 'feFuncR';
 
-				case 'fegaussianblur':
-					return 'feGaussianBlur';
+			case 'fegaussianblur':
+				return 'feGaussianBlur';
 
-				case 'feimage':
-					return 'feImage';
+			case 'feimage':
+				return 'feImage';
 
-				case 'femerge':
-					return 'feMerge';
+			case 'femerge':
+				return 'feMerge';
 
-				case 'femergenode':
-					return 'feMergeNode';
+			case 'femergenode':
+				return 'feMergeNode';
 
-				case 'femorphology':
-					return 'feMorphology';
+			case 'femorphology':
+				return 'feMorphology';
 
-				case 'feoffset':
-					return 'feOffset';
+			case 'feoffset':
+				return 'feOffset';
 
-				case 'fepointlight':
-					return 'fePointLight';
+			case 'fepointlight':
+				return 'fePointLight';
 
-				case 'fespecularlighting':
-					return 'feSpecularLighting';
+			case 'fespecularlighting':
+				return 'feSpecularLighting';
 
-				case 'fespotlight':
-					return 'feSpotLight';
+			case 'fespotlight':
+				return 'feSpotLight';
 
-				case 'fetile':
-					return 'feTile';
+			case 'fetile':
+				return 'feTile';
 
-				case 'feturbulence':
-					return 'feTurbulence';
+			case 'feturbulence':
+				return 'feTurbulence';
 
-				case 'foreignobject':
-					return 'foreignObject';
+			case 'foreignobject':
+				return 'foreignObject';
 
-				case 'glyphref':
-					return 'glyphRef';
+			case 'glyphref':
+				return 'glyphRef';
 
-				case 'lineargradient':
-					return 'linearGradient';
+			case 'lineargradient':
+				return 'linearGradient';
 
-				case 'radialgradient':
-					return 'radialGradient';
+			case 'radialgradient':
+				return 'radialGradient';
 
-				case 'textpath':
-					return 'textPath';
-
-				default:
-					return $lower_tag_name;
-			}
+			case 'textpath':
+				return 'textPath';
 		}
 
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return $tag_name;
+		return $lower_tag_name;
 	}
 
 	/**
