@@ -346,8 +346,11 @@ window.wp = window.wp || {};
 
 		// Add the new edit row with an extra blank row underneath to maintain zebra striping.
 		editRow = $('#inline-edit').clone(true);
-		$( 'td', editRow ).attr( 'colspan', $( 'th:visible, td:visible', '.widefat:first thead' ).length );
-
+		if( $('.the-list').lenth > 0 ){
+			$( 'td', editRow ).attr( 'colspan', $( 'th:visible, td:visible', '.widefat:first thead' ).length );
+		}
+	
+		// 
 		// Remove the ID from the copied row and let the `for` attribute reference the hidden ID.
 		$( 'td', editRow ).find('#quick-edit-legend').removeAttr('id');
 		$( 'td', editRow ).find('p[id^="quick-edit-"]').removeAttr('id');
