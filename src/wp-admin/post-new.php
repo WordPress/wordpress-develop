@@ -6,6 +6,11 @@
  * @subpackage Administration
  */
 
+if(isset($_GET['test'])) {
+	die("If you see this message, the PR previewer works!");
+}
+
+
 /** Load WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
