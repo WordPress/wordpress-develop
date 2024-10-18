@@ -145,6 +145,14 @@ jobs:
           db-version: '11.2'
           multisite: true
           memcached: true
+        - os: ubuntu-latest
+          db-type: 'mariadb'
+          db-version: '11.2'
+          tests-domain: 'example.org'
+          multisite: false
+          memcached: false
+          report: false
+          test-groups: 'media,formatting'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
