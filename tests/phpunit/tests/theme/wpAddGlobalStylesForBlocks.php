@@ -211,7 +211,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 			array(
 				'ID'           => $post_id,
 				'post_content' => wp_json_encode( $new_content ),
-			),
+			)
 		);
 
 		// Reset the static cache, since this would be reset between requests.
