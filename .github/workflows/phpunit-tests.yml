@@ -36,7 +36,7 @@ jobs:
   #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
     secrets: inherit
@@ -116,7 +116,7 @@ jobs:
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
     secrets: inherit
