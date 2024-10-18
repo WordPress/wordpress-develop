@@ -665,16 +665,8 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		$this->new_theme_data = $info;
 
-		/**
-		 * Filters the path of the downloaded package source, allowing
-		 * extra checks to return WP_Error to prevent the upgrade.
-		 *
-		 * @since 6.7.0
-		 *
-		 * @param string $source The path to the downloaded package source.
-		 * @param array  $info   The data of the upgraded theme.
-		 */
-		return apply_filters( 'theme_upgrader_checked_package', $source, $info );
+		/** This filter is documented in wp-admin/includes/class-plugin-upgrader.php */
+		return apply_filters( 'upgrader_checked_package', $source, $info, 'theme' );
 	}
 
 	/**

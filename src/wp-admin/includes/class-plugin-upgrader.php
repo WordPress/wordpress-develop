@@ -516,15 +516,16 @@ class Plugin_Upgrader extends WP_Upgrader {
 		}
 
 		/**
-		 * Filters the path of the downloaded package source, allowing
-		 * extra checks to return WP_Error to prevent the upgrade.
+		 * Filters the path of the downloaded and checked package source,
+		 * allowing extra checks to return WP_Error to prevent the upgrade.
 		 *
-		 * @since 6.7.0
+		 * @since 6.8.0
 		 *
-		 * @param string $source The path to the downloaded package source.
-		 * @param array  $info   The data of the upgraded plugin.
+		 * @param string $source       The path to the downloaded package source.
+		 * @param array  $info         The data of the upgraded plugin or theme.
+		 * @param string $package_type The package type ('plugin' or 'theme').
 		 */
-		return apply_filters( 'plugin_upgrader_checked_package', $source, $info );
+		return apply_filters( 'upgrader_checked_package', $source, $info, 'plugin' );
 	}
 
 	/**
