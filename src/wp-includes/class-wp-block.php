@@ -10,7 +10,7 @@
  * Class representing a parsed instance of a block.
  *
  * @since 5.5.0
- * @property array $attributes
+ * @property-read array $attributes
  */
 #[AllowDynamicProperties]
 class WP_Block {
@@ -101,6 +101,15 @@ class WP_Block {
 	public $inner_content = array();
 
 	/**
+	 * Represents the attributes of a block.
+	 *
+	 * @since 5.5.0 Introduced as a dynamic class property.
+	 * @since 6.6.0 The $attributes property is explicitly declared.
+	 * @var array|null
+	 */
+	protected $attributes;
+
+	/**
 	 * Constructor.
 	 *
 	 * Populates object properties from the provided block instance argument.
@@ -129,6 +138,8 @@ class WP_Block {
 	public function __construct( $block, $available_context = array(), $registry = null ) {
 		$this->parsed_block = $block;
 		$this->name         = $block['blockName'];
+		// Unset the $attributes property to emulate the behavior when it was dynamic.
+		unset( $this->attributes );
 
 		if ( is_null( $registry ) ) {
 			$registry = WP_Block_Type_Registry::get_instance();
@@ -152,6 +163,7 @@ class WP_Block {
 			$child_context = $this->available_context;
 
 			if ( ! empty( $this->block_type->provides_context ) ) {
+				$this->populate_attributes();
 				foreach ( $this->block_type->provides_context as $context_name => $attribute_name ) {
 					if ( array_key_exists( $attribute_name, $this->attributes ) ) {
 						$child_context[ $context_name ] = $this->attributes[ $attribute_name ];
@@ -180,24 +192,94 @@ class WP_Block {
 	 * value is returned.
 	 *
 	 * @since 5.5.0
+	 * @since 6.6.0 Getting dynamic class properties is deprecated.
 	 *
 	 * @param string $name Property name.
 	 * @return array|null Prepared attributes, or null.
 	 */
 	public function __get( $name ) {
-		if ( 'attributes' === $name ) {
-			$this->attributes = isset( $this->parsed_block['attrs'] ) ?
-				$this->parsed_block['attrs'] :
-				array();
-
-			if ( ! is_null( $this->block_type ) ) {
-				$this->attributes = $this->block_type->prepare_attributes_for_render( $this->attributes );
+		if ( 'attributes' !== $name ) {
+			if ( ! static::check_if_public_class_property( $name ) ) {
+				wp_trigger_error(
+					__METHOD__,
+					sprintf( 'Getting the dynamic property "%s" on %s is deprecated.', $name, __CLASS__ ),
+					E_USER_DEPRECATED
+				);
 			}
-
-			return $this->attributes;
+			return null;
 		}
 
-		return null;
+		$this->populate_attributes();
+		return $this->attributes;
+	}
+
+
+	/**
+	 * This method returns true for the "attributes" property if it is set, and false otherwise.
+	 * It returns false to reflect that dynamic class properties are not really defined.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $key Property to check.
+	 * @return bool True if the property exists, false otherwise.
+	 */
+	public function __isset( $name ) {
+		if ( 'attributes' === $name ) {
+			return isset( $this->attributes );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Sets the "attributes" class property.
+	 * Triggers an error when attempting to set a dynamic class property since dynamic class
+	 * properties are deprecated.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $name  The name of the property to set.
+	 * @param mixed  $value The value to set.
+	 */
+	public function __set( $name, $value ) {
+		// Setting a public property should not trigger deprecation errors.
+		if ( ( 'attributes' === $name ) || static::check_if_public_class_property( $name ) ) {
+			$this->$name = $value;
+			return;
+		}
+
+		wp_trigger_error(
+			__METHOD__,
+			sprintf( 'Setting the dynamic property "%s" on %s is deprecated.', $name, __CLASS__ ),
+			E_USER_DEPRECATED
+		);
+	}
+
+	/**
+	 * Unsets the "attributes" class property.
+	 * Triggers an error when attempting to unset a dynamic class property since dynamic class
+	 * properties are deprecated.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $name The name of the property to unset.
+	 */
+	public function __unset( $name ) {
+		if ( 'attributes' === $name ) {
+			unset( $this->attributes );
+			return;
+		}
+
+		// Unsetting a public property should not trigger deprecation errors.
+		if ( static::check_if_public_class_property( $name ) ) {
+			return;
+		}
+
+		wp_trigger_error(
+			__METHOD__,
+			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated.', $name, __CLASS__ ),
+			E_USER_DEPRECATED
+		);
 	}
 
 	/**
@@ -483,6 +565,7 @@ class WP_Block {
 		// Process the block bindings and get attributes updated with the values from the sources.
 		$computed_attributes = $this->process_block_bindings();
 		if ( ! empty( $computed_attributes ) ) {
+			$this->populate_attributes();
 			// Merge the computed attributes with the original attributes.
 			$this->attributes = array_merge( $this->attributes, $computed_attributes );
 		}
@@ -534,6 +617,7 @@ class WP_Block {
 
 			WP_Block_Supports::$block_to_render = $this->parsed_block;
 
+			$this->populate_attributes();
 			$block_content = (string) call_user_func( $this->block_type->render_callback, $this->attributes, $block_content, $this );
 
 			WP_Block_Supports::$block_to_render = $parent;
@@ -605,5 +689,50 @@ class WP_Block {
 		}
 
 		return $block_content;
+	}
+
+	/**
+	 * Populates the block attributes.
+	 *
+	 * @since 6.6.0
+	 */
+	protected function populate_attributes() {
+		// Originally, attributes could only be populated if the $attributes dynamic property had not been initialized.
+		// Therefore, this method should exit if the $attributes property has already been initialized.
+		if ( array_key_exists( 'attributes', get_object_vars( $this ) ) ) {
+			return;
+		}
+
+		$this->attributes = isset( $this->parsed_block['attrs'] ) ?
+			$this->parsed_block['attrs'] :
+			array();
+
+		if ( ! is_null( $this->block_type ) ) {
+			$this->attributes = $this->block_type->prepare_attributes_for_render( $this->attributes );
+		}
+	}
+
+	/**
+	 * Checks whether a property is declared as public.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $class_property_name Name of the class property to check.
+	 * @return bool True if the property is public, false otherwise.
+	 */
+	protected static function check_if_public_class_property( $class_property_name ) {
+		// The Reflection API is not used here for performance reasons.
+		// As the list is hardcoded, all newly declared public properties should be added to this list manually.
+		$public_class_properties = array(
+			'parsed_block',
+			'name',
+			'block_type',
+			'context',
+			'inner_blocks',
+			'inner_html',
+			'inner_content',
+		);
+
+		return in_array( $class_property_name, $public_class_properties, true );
 	}
 }
