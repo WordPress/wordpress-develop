@@ -18,6 +18,23 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	 */
 	private $test_blocks = array();
 
+	/**
+	 * Administrator ID.
+	 *
+	 * @var int
+	 */
+	private static $administrator_id;
+
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+		self::$administrator_id = self::factory()->user->create(
+			array(
+				'role'       => 'administrator',
+				'user_email' => 'administrator@example.com',
+			)
+		);
+	}
+
 	public function set_up() {
 		parent::set_up();
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
@@ -149,6 +166,69 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		$this->assertNotSame(
 			$styles_for_blocks_initial,
 			$styles_for_blocks_updated,
+			'Block style cache was not updated.'
+		);
+	}
+
+	/**
+	 * Confirms that `wp_styles_for_blocks` cache is cleared when a user modifies global styles.
+	 * @ticket 61679
+	 */
+	public function test_styles_for_blocks_cache_is_reset_when_user_styles_change() {
+		// Only administrators can update the global styles post.
+		wp_set_current_user( self::$administrator_id );
+
+		$this->set_up_third_party_block();
+
+		wp_register_style( 'global-styles', false, array(), true, true );
+		wp_add_global_styles_for_blocks();
+
+		$cache_key                = 'wp_styles_for_blocks';
+		$styles_for_blocks_before = get_transient( $cache_key );
+
+		// Update the global styles post.
+		$post_id     = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
+		$before      = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme() );
+		$old_content = json_decode( $before['post_content'], true );
+
+		// Mock a change in the global styles.
+		$new_content = array_merge(
+			$old_content,
+			array(
+				'styles' => array(
+					'elements' => array(
+						'button' => array(
+							'color' => array(
+								'background' => 'orange',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		wp_update_post(
+			array(
+				'ID'           => $post_id,
+				'post_content' => wp_json_encode( $new_content ),
+			),
+		);
+
+		// Reset the static cache, since this would be reset between requests.
+		WP_Theme_JSON_Resolver::clean_cached_data();
+
+		/*
+		 * Call register of global styles again to ensure the cache is updated.
+		 * In normal conditions, this function is only called once per request.
+		 */
+		wp_add_global_styles_for_blocks();
+
+		$cache_key               = 'wp_styles_for_blocks';
+		$styles_for_blocks_after = get_transient( $cache_key );
+
+		$this->assertNotSame(
+			$styles_for_blocks_before,
+			$styles_for_blocks_after,
 			'Block style cache was not updated.'
 		);
 	}
