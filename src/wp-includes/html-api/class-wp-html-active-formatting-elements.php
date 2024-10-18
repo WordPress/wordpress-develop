@@ -44,6 +44,22 @@ class WP_HTML_Active_Formatting_Elements {
 	private $stack = array();
 
 	/**
+	 * Returns the node at the given 1-offset index in the list of active formatting elements.
+	 *
+	 * Do not use this method; it is meant to be used only by the HTML Processor.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @access private
+	 *
+	 * @param int $index Number of nodes from the top node to return.
+	 * @return WP_HTML_Token|null Node at the given index in the stack, if one exists, otherwise null.
+	 */
+	public function at( $nth ) {
+		return $this->stack[ $nth - 1 ];
+	}
+
+	/**
 	 * Reports if a specific node is in the stack of active formatting elements.
 	 *
 	 * @since 6.4.0
