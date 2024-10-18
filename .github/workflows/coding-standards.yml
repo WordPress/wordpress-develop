@@ -31,7 +31,7 @@ on:
       - 'phpcs.xml.dist'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/coding-standards.yml'
-      - '.github/workflows/reusable-coding-standards-v[0-9]+.yml'
+      - '.github/workflows/reusable-coding-standards-*.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
