@@ -515,7 +515,23 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return new WP_Error( 'incompatible_wp_required_version', $this->strings['incompatible_archive'], $error );
 		}
 
-		return $source;
+		/**
+		 * Filters the path of the downloaded and checked package source,
+		 * allowing extra checks to return WP_Error to prevent the upgrade.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string $source       The path to the downloaded package source.
+		 * @param array  $info         The data of the upgraded plugin or theme.
+		 * @param string $package_type The package type ('plugin' or 'theme').
+		 */
+		$source = apply_filters( 'upgrader_checked_package', $source, $info, 'plugin' );
+
+		if ( is_string( $source ) || is_wp_error( $source ) ) {
+			return $source;
+		}
+
+		return new WP_Error( 'invalid_package_source', $this->strings['invalid_source'], __( 'The source of the package should be either a string or a thrown error.' ) );
 	}
 
 	/**

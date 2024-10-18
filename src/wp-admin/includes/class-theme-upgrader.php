@@ -665,7 +665,14 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		$this->new_theme_data = $info;
 
-		return $source;
+		/** This filter is documented in wp-admin/includes/class-plugin-upgrader.php */
+		$source = apply_filters( 'upgrader_checked_package', $source, $info, 'theme' );
+
+		if ( is_string( $source ) || is_wp_error( $source ) ) {
+			return $source;
+		}
+
+		return new WP_Error( 'invalid_package_source', $this->strings['invalid_source'], __( 'The source of the package should be either a string or a thrown error.' ) );
 	}
 
 	/**
