@@ -91,6 +91,14 @@ jobs:
             multisite: false
             memcached: false
             report: true
+          - os: ubuntu-latest
+            db-type: 'mysql'
+            db-version: '8.0'
+            tests-domain: 'example.org'
+            multisite: false
+            memcached: false
+            report: false
+            test-groups: 'media,formatting'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -99,6 +107,7 @@ jobs:
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      phpunit-test-groups: ${{ matrix.test-groups || '' }}
       tests-domain: ${{ matrix.tests-domain }}
       report: ${{ matrix.report || false }}
 
