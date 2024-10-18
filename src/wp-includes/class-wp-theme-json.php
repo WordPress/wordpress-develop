@@ -2323,6 +2323,15 @@ class WP_Theme_JSON {
 			return $declarations;
 		}
 
+		// The global settings can include dynamic data related to typography. We need evaluate it so that the cache is invalidated when it changes.
+		$args      = array( func_get_args(), wp_get_global_settings() ); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.Changed
+		$cache_key = 'compute_style_properties_' . md5( wp_json_encode( $args ) );
+		$cache     = wp_cache_get( $cache_key, 'wp-styles' );
+
+		if ( $cache ) {
+			return $cache;
+		}
+
 		$root_variable_duplicates = array();
 
 		foreach ( $properties as $css_property => $value_path ) {
@@ -2421,6 +2430,8 @@ class WP_Theme_JSON {
 				array_splice( $declarations, $discard, 1 );
 			}
 		}
+
+		wp_cache_set( $cache_key, $declarations, 'wp-styles', DAY_IN_SECONDS );
 
 		return $declarations;
 	}
