@@ -1137,37 +1137,14 @@
 			.attr( 'aria-label', ariaLabel )
 			.text( buttonText );
 
-		if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
-			wp.updates.setCardButtonStatus(
-				{
-					status: 'activated-plugin',
-					slug: response.slug,
-					removeClasses: 'activating-message',
-					addClasses: 'activated-message button-disabled',
-					text: buttonText,
-					ariaLabel: ariaLabel
-				}
-			);
-		}
-
 		setTimeout( function() {
 			$message.removeClass( 'activated-message' )
 			.text( _x( 'Active', 'plugin' ) );
 
 			if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
-				wp.updates.setCardButtonStatus(
-					{
-						status: 'plugin-active',
-						slug: response.slug,
-						removeClasses: 'activated-message',
-						text: _x( 'Active', 'plugin' ),
-						ariaLabel: sprintf(
-							/* translators: %s: The plugin name. */
-							'%s is active.',
-							response.pluginName
-						)
-					}
-				);
+				window.parent.location.reload();
+			} else {
+				window.location.reload();
 			}
 		}, 1000 );
 	};
@@ -2653,9 +2630,35 @@
 		 *
 		 * @param {Event} event Event interface.
 		 */
-		$document.on( 'click', '#plugin-information-footer .activate-now', function( event ) {
+		$pluginFilter.on( 'click', '.activate-now', function( event ) {
+			var $activateButton = $( event.target );
+
 			event.preventDefault();
-			window.parent.location.href = $( event.target ).attr( 'href' );
+
+			if ( $activateButton.hasClass( 'activating-message' ) || $activateButton.hasClass( 'button-disabled' ) ) {
+				return;
+			}
+
+			$activateButton
+				.removeClass( 'activate-now button-primary' )
+				.addClass( 'activating-message' )
+				.attr(
+					'aria-label',
+					sprintf(
+						/* translators: %s: Plugin name. */
+						_x( 'Activating %s', 'plugin' ),
+						$activateButton.data( 'name' )
+					)
+				)
+				.text( __( 'Activating...' ) );
+
+			wp.updates.activatePlugin(
+				{
+					name: $activateButton.data( 'name' ),
+					slug: $activateButton.data( 'slug' ),
+					plugin: $activateButton.data( 'plugin' )
+				}
+			);
 		});
 
 		/**
