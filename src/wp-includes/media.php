@@ -4191,7 +4191,22 @@ function _wp_image_editor_choose( $args = array() ) {
 	 *                                'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD'.
 	 */
 	$implementations = apply_filters( 'wp_image_editors', array( 'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD' ) );
-	$supports_input  = false;
+
+	$editors = wp_cache_get( 'wp_image_editor_choose', 'image_editor' );
+
+	if ( ! is_array( $editors ) ) {
+		$editors = array();
+	}
+
+	// Cache the chosen editor implementation based on specific args and available implementations.
+	$cache_key = md5( serialize( array( $args, $implementations ) ) );
+
+	if ( isset( $editors[ $cache_key ] ) ) {
+		return $editors[ $cache_key ];
+	}
+
+	// Assume no support until a capable implementation is identified.
+	$editor = false;
 
 	foreach ( $implementations as $implementation ) {
 		if ( ! call_user_func( array( $implementation, 'test' ), $args ) ) {
@@ -4225,15 +4240,20 @@ function _wp_image_editor_choose( $args = array() ) {
 			 * This implementation supports the input type but not the output type.
 			 * Keep looking to see if we can find an implementation that supports both.
 			 */
-			$supports_input = $implementation;
+			$editor = $implementation;
 			continue;
 		}
 
 		// Favor the implementation that supports both input and output mime types.
-		return $implementation;
+		$editor = $implementation;
+		break;
 	}
 
-	return $supports_input;
+	$editors[ $cache_key ] = $editor;
+
+	wp_cache_set( 'wp_image_editor_choose', $editors, 'image_editor', DAY_IN_SECONDS );
+
+	return $editor;
 }
 
 /**
@@ -5382,6 +5402,31 @@ function wp_maybe_generate_attachment_metadata( $attachment ) {
  */
 function attachment_url_to_postid( $url ) {
 	global $wpdb;
+
+	/**
+	 * Filters the attachment ID to allow short-circuit the function.
+	 *
+	 * Allows plugins to short-circuit attachment ID lookups. Plugins making
+	 * use of this function should return:
+	 *
+	 * - 0 (integer) to indicate the attachment is not found,
+	 * - attachment ID (integer) to indicate the attachment ID found,
+	 * - null to indicate WordPress should proceed with the lookup.
+	 *
+	 * Warning: The post ID may be null or zero, both of which cast to a
+	 * boolean false. For information about casting to booleans see the
+	 * {@link https://www.php.net/manual/en/language.types.boolean.php PHP documentation}.
+	 * Use the === operator for testing the post ID when developing filters using
+	 * this hook.
+	 *
+	 * @param int|null $post_id The result of the post ID lookup. Null to indicate
+	 *                          no lookup has been attempted. Default null.
+	 * @param string   $url     The URL being looked up.
+	 */
+	$post_id = apply_filters( 'pre_attachment_url_to_postid', null, $url );
+	if ( null !== $post_id ) {
+		return (int) $post_id;
+	}
 
 	$dir  = wp_get_upload_dir();
 	$path = $url;

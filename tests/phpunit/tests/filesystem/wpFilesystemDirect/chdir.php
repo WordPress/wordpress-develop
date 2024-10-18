@@ -86,7 +86,7 @@ class Tests_Filesystem_WpFilesystemDirect_Chdir extends WP_Filesystem_Direct_Uni
 			'Changing working directory failed.'
 		);
 
-		$this->assertSame(
+		$this->assertSamePathIgnoringDirectorySeparators(
 			$path,
 			$cwd_result,
 			'The current working directory was incorrect.'

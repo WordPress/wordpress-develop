@@ -745,4 +745,141 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			$class_list
 		);
 	}
+
+	/**
+	 * Ensures that the processor correctly adjusts the namespace
+	 * for elements inside HTML integration points.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_adjusts_for_html_integration_points_in_svg() {
+		$processor = WP_HTML_Processor::create_full_parser(
+			'<svg><foreignobject><image /><svg /><image />'
+		);
+
+		// At the foreignObject, the processor is in the SVG namespace.
+		$this->assertTrue(
+			$processor->next_tag( 'foreignObject' ),
+			'Failed to find "foreignObject" under test: check test setup.'
+		);
+
+		$this->assertSame(
+			'svg',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the "foreignObject" element.'
+		);
+
+		/*
+		 * The IMAGE tag should be handled according to HTML processing rules
+		 * and transformted to an IMG tag because `foreignObject` is an HTML
+		 * integration point. At this point, the processor is entering the HTML
+		 * integration point.
+		 */
+		$this->assertTrue(
+			$processor->next_tag( 'IMG' ),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		/*
+		 * Again, the IMAGE tag should be handled according to HTML processing
+		 * rules and transformted to an IMG tag because `foreignObject` is an
+		 * HTML integration point. At this point, the processor is has entered
+		 * SVG and is returning to an HTML integration point.
+		 */
+		$this->assertTrue(
+			$processor->next_tag( 'IMG' ),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+	}
+
+	/**
+	 * Ensures that the processor correctly adjusts the namespace
+	 * for elements inside MathML integration points.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_adjusts_for_mathml_integration_points() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<mo><image /></mo><math><image /><mo><image /></mo></math>'
+		);
+
+		// Advance token-by-token to ensure matching the right raw "<image />" token.
+		$processor->next_token(); // Advance past the +MO.
+		$processor->next_token(); // Advance into the +IMG.
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		// Advance token-by-token to ensure matching the right raw "<image />" token.
+		$processor->next_token(); // Advance past the -MO.
+		$processor->next_token(); // Advance past the +MATH.
+		$processor->next_token(); // Advance into the +IMAGE.
+
+		$this->assertSame(
+			'IMAGE',
+			$processor->get_tag(),
+			'Failed to find the un-transformed "<image />" tag.'
+		);
+
+		$this->assertSame(
+			'math',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		$processor->next_token(); // Advance past the +MO.
+		$processor->next_token(); // Advance into the +IMG.
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+	}
+
+	/**
+	 * Ensures that the processor stops correctly on a FORM tag closer token.
+	 *
+	 * Form tag closers have complicated conditions. There was a bug where the processor
+	 * would not stop correctly on a FORM tag closer token. Ensure this token is reachable.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_ensure_form_tag_closer_token_is_reachable() {
+		$processor = WP_HTML_Processor::create_fragment( '<form></form>' );
+
+		// Advance to </form>.
+		$processor->next_token();
+		$processor->next_token();
+
+		$this->assertSame( 'FORM', $processor->get_tag() );
+		$this->assertTrue( $processor->is_tag_closer() );
+	}
 }
