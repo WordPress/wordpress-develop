@@ -95,6 +95,7 @@ class WP_Recovery_Mode {
 		add_action( 'wp_logout', array( $this, 'exit_recovery_mode' ) );
 		add_action( 'login_form_' . self::EXIT_ACTION, array( $this, 'handle_exit_recovery_mode' ) );
 		add_action( 'recovery_mode_clean_expired_keys', array( $this, 'clean_expired_keys' ) );
+		add_action( 'wp_install', array( $this, 'remove_orphaned_recovery_mode_cron_event' ) );
 
 		if ( ! wp_next_scheduled( 'recovery_mode_clean_expired_keys' ) && ! wp_installing() ) {
 			wp_schedule_event( time(), 'daily', 'recovery_mode_clean_expired_keys' );
@@ -260,6 +261,21 @@ class WP_Recovery_Mode {
 	 */
 	public function clean_expired_keys() {
 		$this->key_service->clean_expired_keys( $this->get_link_ttl() );
+	}
+
+	/**
+	 * Unschedule the recovery_mode_clean_expired_keys Event.
+	 */
+	public function remove_orphaned_recovery_mode_cron_event() {
+		// Check if we are in a Multisite installation.
+		if ( is_multisite() ) {
+			// Check if the cron event is scheduled.
+			$timestamp = wp_next_scheduled( 'recovery_mode_clean_expired_keys' );
+			if ( $timestamp ) {
+				// Unschedule the event.
+				wp_unschedule_event( $timestamp, 'recovery_mode_clean_expired_keys' );
+			}
+		}
 	}
 
 	/**
