@@ -101,6 +101,7 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 			'core/group',
 			array(
 				'name'       => 'WithSlug',
+				'label'      => 'With Slug',
 				'style_data' => array(
 					'color' => array(
 						'background' => 'whitesmoke',
@@ -113,6 +114,7 @@ class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
 			'core/group',
 			array(
 				'name'       => 'my-variation',
+				'label'      => 'My Variation',
 				'style_data' => $variation_styles_data,
 			)
 		);
