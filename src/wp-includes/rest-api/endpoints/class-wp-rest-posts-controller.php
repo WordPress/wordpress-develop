@@ -1884,6 +1884,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$data['slug'] = $post->post_name;
 		}
 
+		if ( rest_is_field_included( 'old_slug', $fields ) ) {
+			$data['old_slug'] = get_post_meta( $post->ID, '_wp_old_slug', true );
+		}
+
 		if ( rest_is_field_included( 'status', $fields ) ) {
 			$data['status'] = $post->post_status;
 		}
@@ -2377,6 +2381,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'description' => __( 'An alphanumeric identifier for the post unique to its type.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
+					'arg_options' => array(
+						'sanitize_callback' => array( $this, 'sanitize_slug' ),
+					),
+				),
+				'old_slug'         => array(
+					'description' => __( 'An alphanumeric identifier for the object unique to its type.' ),
+					'type'        => array( 'string', 'null' ),
+					'context'     => array( 'edit' ),
 					'arg_options' => array(
 						'sanitize_callback' => array( $this, 'sanitize_slug' ),
 					),
