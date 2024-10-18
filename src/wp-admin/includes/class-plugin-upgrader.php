@@ -525,7 +525,13 @@ class Plugin_Upgrader extends WP_Upgrader {
 		 * @param array  $info         The data of the upgraded plugin or theme.
 		 * @param string $package_type The package type ('plugin' or 'theme').
 		 */
-		return apply_filters( 'upgrader_checked_package', $source, $info, 'plugin' );
+		$source = apply_filters( 'upgrader_checked_package', $source, $info, 'plugin' );
+
+		if ( is_string( $source ) || is_wp_error( $source ) ) {
+			return $source;
+		}
+
+		return new WP_Error( 'invalid_package_source', $this->strings['invalid_source'], __( 'The source of the package should be either a string or a thrown error.' ) );
 	}
 
 	/**

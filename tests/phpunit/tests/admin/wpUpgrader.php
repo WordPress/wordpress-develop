@@ -145,6 +145,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 				'mkdir_failed',
 				'incompatible_archive',
 				'files_not_writable',
+				'invalid_source',
 				'maintenance_start',
 				'maintenance_end',
 				'temp_backup_mkdir_failed',
