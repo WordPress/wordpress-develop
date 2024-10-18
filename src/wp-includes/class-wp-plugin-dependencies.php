@@ -674,6 +674,14 @@ class WP_Plugin_Dependencies {
 				set_site_transient( "wp_plugin_dependencies_plugin_timeout_{$slug}", true, 12 * HOUR_IN_SECONDS );
 			}
 
+			/* Added by AV start */
+			//Check if non wp listed transient exists for this plugin, ignore the check
+
+			if ( get_site_transient( "wp_plugin_non_wp_listed_plugin_timeout_{$slug}" ) ) {
+				continue;
+			}
+			/* Added by AV ends */
+
 			if ( isset( self::$dependency_api_data[ $slug ] ) ) {
 				if ( false === self::$dependency_api_data[ $slug ] ) {
 					$dependency_file = self::get_dependency_filepath( $slug );
@@ -708,6 +716,11 @@ class WP_Plugin_Dependencies {
 			);
 
 			if ( is_wp_error( $information ) ) {
+				/* Added by AV start */
+				//Set a transient for non wp listed plugin for 12 hours so it won't trigger API check until expired
+				set_site_transient( "wp_plugin_non_wp_listed_plugin_timeout_{$slug}", true, 12 * HOUR_IN_SECONDS );
+				/* Added by AV ends */
+
 				continue;
 			}
 
