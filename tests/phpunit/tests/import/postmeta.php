@@ -8,6 +8,11 @@ require_once __DIR__ . '/base.php';
  * @covers WP_Import::import
  */
 class Tests_Import_Postmeta extends WP_Import_UnitTestCase {
+	protected $expected_deprecated = array(
+		'wp_slash_strings_only',
+		'addslashes_strings_only',
+	);
+
 	public function set_up() {
 		parent::set_up();
 
