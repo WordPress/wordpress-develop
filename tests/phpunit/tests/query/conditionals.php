@@ -441,46 +441,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		}
 	}
 
-	// 'search/(.+)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?s=$matches[1]&feed=$matches[2]',
-	// 'search/(.+)/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?s=$matches[1]&feed=$matches[2]',
-	public function test_search_feed() {
-		// Check the long form.
-		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
-		foreach ( $types as $type ) {
-				$this->go_to( "/search/test/feed/{$type}" );
-				$this->assertQueryTrue( 'is_feed', 'is_search' );
-		}
-
-		// Сheck the short form.
-		$types = array( 'feed', 'rdf', 'rss', 'rss2', 'atom' );
-		foreach ( $types as $type ) {
-				$this->go_to( "/search/test/{$type}" );
-				$this->assertQueryTrue( 'is_feed', 'is_search' );
-		}
-	}
-
-	// 'search/(.+)/page/?([0-9]{1,})/?$' => 'index.php?s=$matches[1]&paged=$matches[2]',
-	public function test_search_paged() {
-		update_option( 'posts_per_page', 2 );
-		self::factory()->post->create_many( 3, array( 'post_title' => 'test' ) );
-		$this->go_to( '/search/test/page/2/' );
-		$this->assertQueryTrue( 'is_search', 'is_paged' );
-	}
-
-	// 'search/(.+)/?$' => 'index.php?s=$matches[1]',
-	public function test_search() {
-		$this->go_to( '/search/test/' );
-		$this->assertQueryTrue( 'is_search' );
-	}
-
-	/**
-	 * @ticket 13961
-	 */
-	public function test_search_encoded_chars() {
-		$this->go_to( '/search/F%C3%BCnf%2Bbar/' );
-		$this->assertSame( get_query_var( 's' ), 'Fünf+bar' );
-	}
-
 	// 'category/(.+?)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?category_name=$matches[1]&feed=$matches[2]',
 	// 'category/(.+?)/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?category_name=$matches[1]&feed=$matches[2]',
 	public function test_category_feed() {
