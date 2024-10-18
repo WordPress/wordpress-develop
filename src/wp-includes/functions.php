@@ -1717,6 +1717,32 @@ function do_robots() {
 	$output  .= "Allow: $path/wp-admin/admin-ajax.php\n";
 
 	/**
+	 * Import list of default AI Bot names to add to blocklist
+	 *
+	 * @since 6.7.0
+	 */
+	$ai_bots_data = @file_get_contents( ABSPATH . 'wp-includes/ai-bots-for-robots-txt.json' );
+	if ( false === $ai_bots_data ) {
+		return new WP_Error( 'ai_bots_json_file_read_error', __( 'Unable to read the AI Bots JSON file' ) );
+	}
+
+	$ai_bots_data_array = json_decode( $ai_bots_data, true );
+	if ( null === $ai_bots_data_array ) {
+		// A parsing error occurred processing the JSON data
+		return new WP_Error( 'ai_bots_json_parse_error', __( 'Unable to parse the AI Bots JSON file' ) );
+	}
+
+	if ( isset( $ai_bots_data_array['bots'] ) ) {
+		$output .= "\n#Block AI Bots\n";
+		foreach ( $ai_bots_data_array['bots'] as $bot ) {
+			if ( isset( $bot['name'] ) ) {
+				$output .= 'User-agent: ' . esc_html( $bot ['name'] ) . "\n";
+			}
+		}
+		$output .= 'Disallow: /' . "\n";
+	}
+
+	/**
 	 * Filters the robots.txt output.
 	 *
 	 * @since 3.0.0
