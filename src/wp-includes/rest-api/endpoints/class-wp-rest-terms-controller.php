@@ -464,7 +464,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$response = $this->prepare_item_for_response( $term, $request );
 
-		return reset_ensure_response( $response );
+		return rest_ensure_response( $response );
 	}
 
 	/**
