@@ -76,6 +76,7 @@ if ( ! function_exists( 'wp_cache_get_multiple' ) ) :
 	 *
 	 * @ignore
 	 * @since 5.5.0
+	 * @since 6.3.0 Added the `$found` parameter.
 	 *
 	 * @see wp_cache_get_multiple()
 	 *
@@ -83,14 +84,16 @@ if ( ! function_exists( 'wp_cache_get_multiple' ) ) :
 	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
 	 * @param bool   $force Optional. Whether to force an update of the local cache
 	 *                      from the persistent cache. Default false.
+	 * @param array  $found Optional. Whether array of keys were found in the cache (passed by reference).
+	 *                      Disambiguates a return of false, a storable value. Default empty array.
 	 * @return array Array of return values, grouped by key. Each value is either
 	 *               the cache contents on success, or false on failure.
 	 */
-	function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
+	function wp_cache_get_multiple( $keys, $group = '', $force = false, &$found = array() ) {
 		$values = array();
 
 		foreach ( $keys as $key ) {
-			$values[ $key ] = wp_cache_get( $key, $group, $force );
+			$values[ $key ] = wp_cache_get( $key, $group, $force, $found[ $key ] );
 		}
 
 		return $values;
