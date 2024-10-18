@@ -2858,6 +2858,9 @@ if ( ! function_exists( 'wp_set_password' ) ) :
 
 		clean_user_cache( $user_id );
 
+		$user_sessions = WP_Session_Tokens::get_instance( $user_id );
+		$user_sessions->destroy_all();
+
 		/**
 		 * Fires after the user password is set.
 		 *
