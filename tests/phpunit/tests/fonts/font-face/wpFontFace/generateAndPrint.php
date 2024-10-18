@@ -31,10 +31,13 @@ class Tests_Fonts_WPFontFace_GenerateAndPrint extends WP_UnitTestCase {
 	 */
 	public function test_should_generate_and_print_given_fonts( array $fonts, $expected ) {
 		$font_face       = new WP_Font_Face();
-		$style_element   = "<style class='wp-fonts-local' type='text/css'>\n%s\n</style>\n";
+		$style_element   = "<style id='__placeholder_id__' class='wp-fonts-local' type='text/css'>\n%s\n</style>\n";
 		$expected_output = sprintf( $style_element, $expected );
 
-		$this->expectOutputString( $expected_output );
-		$font_face->generate_and_print( $fonts );
+		$actual = get_echo( array( $font_face, 'generate_and_print' ), array( $fonts ) );
+		// Replace `id='wp-fonts-local-#'` with `id='__placeholder_id__'` for comparison.
+		$actual = preg_replace( '/id=\'wp-fonts-local-\d+\'/', 'id=\'__placeholder_id__\'', $actual );
+
+		$this->assertSame( $expected_output, $actual );
 	}
 }

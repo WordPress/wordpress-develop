@@ -37,8 +37,11 @@ class Tests_Fonts_WpPrintFontFaces extends WP_Font_Face_UnitTestCase {
 	public function test_should_print_given_fonts( array $fonts, $expected ) {
 		$expected_output = $this->get_expected_styles_output( $expected );
 
-		$this->expectOutputString( $expected_output );
-		wp_print_font_faces( $fonts );
+		$actual = get_echo( 'wp_print_font_faces', array( $fonts ) );
+		// Replace `id='wp-fonts-local-#'` with `id='__placeholder_id__'` for comparison.
+		$actual = preg_replace( '/id=\'wp-fonts-local-\d+\'/', 'id=\'__placeholder_id__\'', $actual );
+
+		$this->assertSame( $expected_output, $actual );
 	}
 
 	public function test_should_escape_tags() {
@@ -55,14 +58,17 @@ class Tests_Fonts_WpPrintFontFaces extends WP_Font_Face_UnitTestCase {
 		);
 
 		$expected_output = <<<CSS
-<style class='wp-fonts-local' type='text/css'>
+<style id='__placeholder_id__' class='wp-fonts-local' type='text/css'>
 @font-face{font-family:"Source Serif Pro";font-style:normal;font-weight:200 900;font-display:fallback;src:url('http://example.com/assets/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2') format('woff2');font-stretch:;}
 </style>
 
 CSS;
-		$this->expectOutputString( $expected_output );
 
-		wp_print_font_faces( $fonts );
+		$actual = get_echo( 'wp_print_font_faces', array( $fonts ) );
+		// Replace `id='wp-fonts-local-#'` with `id='__placeholder_id__'` for comparison.
+		$actual = preg_replace( '/id=\'wp-fonts-local-\d+\'/', 'id=\'__placeholder_id__\'', $actual );
+
+		$this->assertSame( $expected_output, $actual );
 	}
 
 	public function test_should_print_fonts_in_merged_data() {
@@ -71,12 +77,15 @@ CSS;
 		$expected        = $this->get_expected_fonts_for_fonts_block_theme( 'font_face_styles' );
 		$expected_output = $this->get_expected_styles_output( $expected );
 
-		$this->expectOutputString( $expected_output );
-		wp_print_font_faces();
+		$actual = get_echo( 'wp_print_font_faces' );
+		// Replace `id='wp-fonts-local-#'` with `id='__placeholder_id__'` for comparison.
+		$actual = preg_replace( '/id=\'wp-fonts-local-\d+\'/', 'id=\'__placeholder_id__\'', $actual );
+
+		$this->assertSame( $expected_output, $actual );
 	}
 
 	private function get_expected_styles_output( $styles ) {
-		$style_element = "<style class='wp-fonts-local' type='text/css'>\n%s\n</style>\n";
+		$style_element = "<style id='__placeholder_id__' class='wp-fonts-local' type='text/css'>\n%s\n</style>\n";
 		return sprintf( $style_element, $styles );
 	}
 }

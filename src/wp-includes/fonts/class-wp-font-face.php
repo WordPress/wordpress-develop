@@ -227,9 +227,10 @@ class WP_Font_Face {
 	 * @return string The style element.
 	 */
 	private function get_style_element() {
-		$attributes = $this->generate_style_element_attributes();
+		$attributes   = $this->generate_style_element_attributes();
+		$id_attribute = wp_unique_prefixed_id( 'wp-fonts-local-' );
 
-		return "<style class='wp-fonts-local'{$attributes}>\n%s\n</style>\n";
+		return "<style id='$id_attribute' class='wp-fonts-local'{$attributes}>\n%s\n</style>\n";
 	}
 
 	/**
