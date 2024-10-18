@@ -2843,7 +2843,7 @@ class WP_HTML_Tag_Processor {
 		}
 
 		if ( 'html' === $this->get_namespace() ) {
-			return $tag_name;
+			return strtolower( $tag_name );
 		}
 
 		$lower_tag_name = strtolower( $tag_name );
