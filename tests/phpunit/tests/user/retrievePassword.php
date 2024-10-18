@@ -66,12 +66,12 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 	public function test_retrieve_password_should_fetch_user_by_login_if_not_found_by_email() {
 		self::factory()->user->create(
 			array(
-				'user_login' => 'foo@example.com',
+				'user_login' => 'foo',
 				'user_email' => 'bar@example.com',
 			)
 		);
 
-		$this->assertTrue( retrieve_password( 'foo@example.com' ), 'Fetching user by login failed.' );
+		$this->assertTrue( retrieve_password( 'foo' ), 'Fetching user by login failed.' );
 		$this->assertTrue( retrieve_password( 'bar@example.com' ), 'Fetching user by email failed.' );
 	}
 }
