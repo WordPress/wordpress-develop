@@ -42,6 +42,11 @@ on:
         required: false
         type: 'string'
         default: 'phpunit.xml.dist'
+      phpunit-test-groups:
+        description: 'A list of test groups to pass to PHPUnit.'
+        required: false
+        type: 'string'
+        default: ''
       tests-domain:
         description: 'The domain to use for the tests'
         required: false
@@ -164,25 +169,26 @@ jobs:
 
       - name: Run PHPUnit tests
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }}&{{ inputs.phpunit-test-groups && format( '--group {0}', inputs.phpunit-test-groups ) || '' }}
 
       - name: Run AJAX tests
+        if: ${{ ! inputs.phpunit-test-groups }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
 
       - name: Run ms-files tests as a multisite install
-        if: ${{ inputs.multisite }}
+        if: ${{ inputs.multisite && ! inputs.phpunit-test-groups }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ms-files
 
       - name: Run external HTTP tests
-        if: ${{ ! inputs.multisite }}
+        if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group external-http
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (Xdebug) tests
-        if: ${{ inputs.php != '8.4' }}
+        if: ${{ inputs.php != '8.4' && ! inputs.phpunit-test-groups }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
 
