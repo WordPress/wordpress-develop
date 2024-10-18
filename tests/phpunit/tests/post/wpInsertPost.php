@@ -1558,4 +1558,106 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$this->assertSame( 'future', get_post_status( $post_id ) );
 	}
+
+	/**
+	 * @ticket 58141
+	 *
+	 * @covers ::wp_insert_post
+	 */
+	public function test_zero_is_not_considered_as_empty_value_for_post_title_and_post_content_and_post_excerpt() {
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => '0',
+				'post_content' => '0',
+				'post_excerpt' => '0',
+			)
+		);
+
+		$this->assertSame( '0', get_the_title( $post_id ), 'Check post_title = "0"' );
+		$this->assertSame( '0', get_the_content( null, false, $post_id ), 'Check post_content = "0"' );
+		$this->assertSame( '0', get_the_excerpt( $post_id ), 'Check post_excerpt = "0"' );
+	}
+
+	/**
+	 * @ticket 58141
+	 *
+	 * @covers ::wp_insert_post
+	 */
+	public function test_zero_is_not_considered_as_empty_value_for_post_title() {
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => '0',
+				'post_content' => 'post_content',
+				'post_excerpt' => 'post_excerpt',
+			)
+		);
+
+		$this->assertSame( '0', get_the_title( $post_id ), 'Check post_title = "0"' );
+		$this->assertSame( 'post_content', get_the_content( null, false, $post_id ), 'Check post_content = "post_content"' );
+		$this->assertSame( 'post_excerpt', get_the_excerpt( $post_id ), 'Check post_excerpt = "post_excerpt"' );
+	}
+
+	/**
+	 * @ticket 58141
+	 *
+	 * @covers ::wp_insert_post
+	 */
+	public function test_zero_is_not_considered_as_empty_value_for_post_content() {
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'post_title',
+				'post_content' => '0',
+				'post_excerpt' => 'post_excerpt',
+			)
+		);
+
+		$this->assertSame( 'post_title', get_the_title( $post_id ), 'Check post_title = "post_title"' );
+		$this->assertSame( '0', get_the_content( null, false, $post_id ), 'Check post_content = "0"' );
+		$this->assertSame( 'post_excerpt', get_the_excerpt( $post_id ), 'Check post_excerpt = "post_excerpt"' );
+	}
+
+	/**
+	 * @ticket 58141
+	 *
+	 * @covers ::wp_insert_post
+	 */
+	public function test_zero_is_not_considered_as_empty_value_for_post_excerpt() {
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'post_title',
+				'post_content' => 'post_content',
+				'post_excerpt' => '0',
+			)
+		);
+
+		$this->assertSame( 'post_title', get_the_title( $post_id ), 'Check post_title = "post_title"' );
+		$this->assertSame( 'post_content', get_the_content( null, false, $post_id ), 'Check post_content = "post_content"' );
+		$this->assertSame( '0', get_the_excerpt( $post_id ), 'Check post_excerpt = "0"' );
+	}
+
+	/**
+	 * @ticket 58141
+	 *
+	 * @covers ::wp_insert_post
+	 */
+	public function test_slug_different_for_post_title_zero() {
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_title' => '0',
+			)
+		);
+
+		$post_2 = self::factory()->post->create_and_get(
+			array(
+				'post_title' => '0',
+			)
+		);
+
+		$this->assertNotEquals( $post->post_name, $post_2->post_name, 'Check post_name are different for 2 created posts with post_title "0"' );
+	}
 }
