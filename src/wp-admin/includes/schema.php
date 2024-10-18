@@ -583,8 +583,17 @@ function populate_options( array $options = array() ) {
 		'auto_plugin_theme_update_emails',
 	);
 
-	$keys             = "'" . implode( "', '", array_keys( $options ) ) . "'";
-	$existing_options = $wpdb->get_col( "SELECT option_name FROM $wpdb->options WHERE option_name in ( $keys )" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$keys = array_keys( $options );
+
+	$existing_options = $wpdb->get_col(
+		$wpdb->prepare(
+			sprintf(
+				"SELECT option_name FROM $wpdb->options WHERE option_name in ( %s )",
+				implode( ', ', array_fill( 0, count( $keys ), '%s' ) )
+			),
+			$keys
+		)
+	);
 
 	$insert = '';
 

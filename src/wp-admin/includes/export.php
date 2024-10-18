@@ -106,10 +106,14 @@ function export_wp( $args = array() ) {
 		$where = $wpdb->prepare( "{$wpdb->posts}.post_type = %s", $args['content'] );
 	} else {
 		$post_types = get_post_types( array( 'can_export' => true ) );
-		$esses      = array_fill( 0, count( $post_types ), '%s' );
 
-		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-		$where = $wpdb->prepare( "{$wpdb->posts}.post_type IN (" . implode( ',', $esses ) . ')', $post_types );
+		$where = $wpdb->prepare(
+			sprintf(
+				"{$wpdb->posts}.post_type IN (%s)",
+				implode( ',', array_fill( 0, count( $post_types ), '%s' ) )
+			),
+			$post_types
+		);
 	}
 
 	if ( $args['status'] && ( 'post' === $args['content'] || 'page' === $args['content'] ) ) {
@@ -142,6 +146,7 @@ function export_wp( $args = array() ) {
 	}
 
 	// Grab a snapshot of post IDs, just in case it changes during the export.
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$post_ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} $join WHERE $where" );
 
 	// Get IDs for the attachments of each post, unless all content is already being exported.
@@ -406,13 +411,28 @@ function export_wp( $args = array() ) {
 
 		if ( ! empty( $post_ids ) ) {
 			$post_ids = array_map( 'absint', $post_ids );
-			$and      = 'AND ID IN ( ' . implode( ', ', $post_ids ) . ')';
+			$results  = $wpdb->get_results(
+				$wpdb->prepare(
+					sprintf(
+						"SELECT DISTINCT post_author
+						FROM $wpdb->posts
+						WHERE post_status != 'auto-draft'
+						AND ID IN ( %s )",
+						implode( ',', array_fill( 0, count( $post_ids ), '%d' ) )
+					),
+					$post_ids
+				);
+			);
 		} else {
-			$and = '';
+			$results = $wpdb->get_results(
+				"SELECT DISTINCT post_author
+				FROM $wpdb->posts
+				WHERE post_status != 'auto-draft'"
+			);
 		}
 
 		$authors = array();
-		$results = $wpdb->get_results( "SELECT DISTINCT post_author FROM $wpdb->posts WHERE post_status != 'auto-draft' $and" );
+
 		foreach ( (array) $results as $result ) {
 			$authors[] = get_userdata( $result->post_author );
 		}
@@ -588,8 +608,15 @@ function export_wp( $args = array() ) {
 
 		// Fetch 20 posts at a time rather than loading the entire table into memory.
 		while ( $next_posts = array_splice( $post_ids, 0, 20 ) ) {
-			$where = 'WHERE ID IN (' . implode( ',', $next_posts ) . ')';
-			$posts = $wpdb->get_results( "SELECT * FROM {$wpdb->posts} $where" );
+			$posts = $wpdb->get_results(
+				$wpdb->prepare(
+					sprintf(
+						"SELECT * FROM {$wpdb->posts} WHERE ID IN ( %s )",
+						implode( ',', array_fill( 0, count( $next_posts ), '%d' ) )
+					),
+					$next_posts
+				)
+			);
 
 			// Begin Loop.
 			foreach ( $posts as $post ) {

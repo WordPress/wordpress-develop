@@ -599,8 +599,10 @@ class WP_Meta_Query {
 				$join .= $i ? " AS $alias" : '';
 
 				if ( 'LIKE' === $meta_compare_key ) {
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 					$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key LIKE %s )", '%' . $wpdb->esc_like( $clause['key'] ) . '%' );
 				} else {
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 					$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key = %s )", $clause['key'] );
 				}
 
@@ -742,7 +744,8 @@ class WP_Meta_Query {
 				case 'IN':
 				case 'NOT IN':
 					$meta_compare_string = '(' . substr( str_repeat( ',%s', count( $meta_value ) ), 1 ) . ')';
-					$where               = $wpdb->prepare( $meta_compare_string, $meta_value );
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$where = $wpdb->prepare( $meta_compare_string, $meta_value );
 					break;
 
 				case 'BETWEEN':

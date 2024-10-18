@@ -335,7 +335,7 @@ switch ( $step ) {
 		}
 
 		$errors = $wpdb->suppress_errors();
-		$wpdb->query( "SELECT $prefix" );
+		$wpdb->query( $wpdb->prepare( 'SELECT %i', $prefix ) );
 		$wpdb->suppress_errors( $errors );
 
 		if ( ! $wpdb->last_error ) {

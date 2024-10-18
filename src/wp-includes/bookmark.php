@@ -311,6 +311,8 @@ function get_bookmarks( $args = '' ) {
 		$query .= ' LIMIT ' . absint( $parsed_args['limit'] );
 	}
 
+	// The query is assembled from multiple conditions above and cannot be prepared.
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	$results = $wpdb->get_results( $query );
 
 	if ( 'rand()' !== $orderby ) {
