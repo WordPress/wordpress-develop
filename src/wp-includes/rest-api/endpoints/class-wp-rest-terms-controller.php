@@ -295,6 +295,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			}
 		}
 
+		$is_head_request = $request->is_method( 'head' );
+		if ( $is_head_request ) {
+			// Force the 'fields' argument. For HEAD requests, only term IDs are required.
+			$prepared_args['fields'] = 'ids';
+		}
+
 		/**
 		 * Filters get_terms() arguments when querying terms via the REST API.
 		 *
@@ -337,7 +343,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$total_terms = 0;
 		}
 
-		$is_head_request = $request->is_method( 'head' );
 		if ( ! $is_head_request ) {
 			$response = array();
 			foreach ( $query_result as $term ) {
