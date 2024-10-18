@@ -337,14 +337,16 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$total_terms = 0;
 		}
 
-		$response = array();
-
-		foreach ( $query_result as $term ) {
-			$data       = $this->prepare_item_for_response( $term, $request );
-			$response[] = $this->prepare_response_for_collection( $data );
+		$is_head_request = $request->is_method( 'head' );
+		if ( ! $is_head_request ) {
+			$response = array();
+			foreach ( $query_result as $term ) {
+				$data       = $this->prepare_item_for_response( $term, $request );
+				$response[] = $this->prepare_response_for_collection( $data );
+			}
 		}
 
-		$response = rest_ensure_response( $response );
+		$response = $is_head_request ? new WP_REST_Response() : rest_ensure_response( $response );
 
 		// Store pagination values for headers.
 		$per_page = (int) $prepared_args['number'];
