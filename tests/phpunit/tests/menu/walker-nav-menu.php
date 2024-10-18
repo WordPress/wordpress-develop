@@ -43,37 +43,6 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests when an item's target is _blank, that rel="noopener" is added.
-	 *
-	 * @ticket 43290
-	 */
-	public function test_noopener_no_referrer_for_target_blank() {
-		$actual     = '';
-		$post_id    = self::factory()->post->create();
-		$post_title = get_the_title( $post_id );
-
-		$item = array(
-			'ID'        => $post_id,
-			'object_id' => $post_id,
-			'title'     => $post_title,
-			'target'    => '_blank',
-			'xfn'       => '',
-			'current'   => false,
-		);
-
-		$args = array(
-			'before'      => '',
-			'after'       => '',
-			'link_before' => '',
-			'link_after'  => '',
-		);
-
-		$this->walker->start_el( $actual, (object) $item, 0, (object) $args );
-
-		$this->assertSame( "<li id=\"menu-item-{$post_id}\" class=\"menu-item-{$post_id}\"><a target=\"_blank\" rel=\"noopener\">{$post_title}</a>", $actual );
-	}
-
-	/**
 	 * @ticket 47720
 	 *
 	 * @dataProvider data_start_el_with_empty_attributes
@@ -218,7 +187,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 				'xfn'      => 'nofollow',
 			),
 			'no xfn value and a target of "_blank"' => array(
-				'expected' => 'rel="noopener privacy-policy"',
+				'expected' => 'rel="privacy-policy"',
 				'xfn'      => '',
 				'target'   => '_blank',
 			),

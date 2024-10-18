@@ -74,6 +74,14 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 /* Quote */
 
+.wp-block-quote {
+	border-width: 0 0 0 4px;
+}
+ 
+:where(.rtl) .wp-block-quote {
+	border-width: 0 4px 0 0;
+}
+
 .wp-block-quote:not(.is-large):not(.is-style-large).alignleft,
 .wp-block-quote:not(.is-large):not(.is-style-large).alignright {
 	border-left: none;
@@ -206,6 +214,21 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-style: normal;
 	line-height: 1.75;
 	text-transform: none;
+}
+
+.wp-block-pullquote[class*="-font-size"] blockquote,
+.wp-block-pullquote[class*="-font-size"] blockquote p,
+.wp-block-pullquote[class*="-font-size"] cite,
+.wp-block-pullquote[style*="font-size"] blockquote,
+.wp-block-pullquote[style*="font-size"] blockquote p,
+.wp-block-pullquote[style*="font-size"] cite {
+	font-size: inherit;
+}
+
+.wp-block-pullquote[style*="line-height"] blockquote,
+.wp-block-pullquote[style*="line-height"] blockquote p,
+.wp-block-pullquote[style*="line-height"] cite {
+	line-height: inherit;
 }
 
 .wp-block-pullquote cite:before {

@@ -1355,6 +1355,11 @@ class Tests_Functions extends WP_UnitTestCase {
 				DIR_TESTDATA . '/images/avif-transparent.avif',
 				'image/avif',
 			),
+			// HEIC.
+			array(
+				DIR_TESTDATA . '/images/test-image.heic',
+				'image/heic',
+			),
 		);
 
 		return $data;
@@ -1384,7 +1389,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data profider for test_wp_getimagesize().
+	 * Data provider for test_wp_getimagesize().
 	 */
 	public function data_wp_getimagesize() {
 		$data = array(
@@ -1540,6 +1545,35 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		return $data;
 	}
+
+	/**
+	 * Tests that wp_getimagesize() correctly handles HEIC image files.
+	 *
+	 * @ticket 53645
+	 */
+	public function test_wp_getimagesize_heic() {
+		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
+			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
+		}
+
+		$file = DIR_TESTDATA . '/images/test-image.heic';
+
+		$editor = wp_get_image_editor( $file );
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/heic' ) ) {
+			$this->markTestSkipped( 'No HEIC support in the editor engine on this system.' );
+		}
+
+		$expected = array(
+			50,
+			50,
+			IMAGETYPE_HEIC,
+			'width="50" height="50"',
+			'mime' => 'image/heic',
+		);
+		$result   = wp_getimagesize( $file );
+		$this->assertSame( $expected, $result );
+	}
+
 
 	/**
 	 * @ticket 39550
