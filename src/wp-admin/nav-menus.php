@@ -829,9 +829,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<?php
 	if ( $locations_screen ) :
 		if ( 1 === $num_locations ) {
-			echo '<p>' . __( 'Your theme supports one menu. Select which menu you would like to use.' ) . '</p>';
+			$text = __( 'Your theme supports one menu. Select which menu you would like to use.' );
 		} else {
-			echo '<p>' . sprintf(
+			$text = sprintf(
 				/* translators: %s: Number of menus. */
 				_n(
 					'Your theme supports %s menu. Select which menu appears in each location.',
@@ -839,7 +839,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					$num_locations
 				),
 				number_format_i18n( $num_locations )
-			) . '</p>';
+			);
+			$text = add_filter( 'nav_menu_theme_support_text', $text );
+			echo '<p>' . $text . '</p>';
 		}
 		?>
 	<div id="menu-locations-wrap">
