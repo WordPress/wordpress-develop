@@ -170,6 +170,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
+				'post_types'      => array(),
 			),
 			$this->find_and_normalize_template_by_id( $data, 'default//my_template' )
 		);
@@ -205,6 +206,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
+				'post_types'      => array(),
 			),
 			$this->find_and_normalize_template_by_id( $data, 'default//my_template' )
 		);
@@ -262,6 +264,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
+				'post_types'      => array(),
 			),
 			$data
 		);
@@ -299,6 +302,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
+				'post_types'      => array(),
 			),
 			$data
 		);
@@ -349,6 +353,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
+				'post_types'      => array(),
 			),
 			$data
 		);
@@ -412,6 +417,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'modified'        => mysql_to_rfc3339( $post->post_modified ),
 				'author_text'     => $author_name,
 				'original_source' => 'user',
+				'post_types'      => array(),
 			),
 			$data
 		);
@@ -644,6 +650,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'modified'        => mysql_to_rfc3339( $modified ),
 				'author_text'     => $author_name,
 				'original_source' => 'user',
+				'post_types'      => array(),
 			),
 			$data
 		);
@@ -696,6 +703,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'modified'        => mysql_to_rfc3339( $modified ),
 				'author_text'     => $author_name,
 				'original_source' => 'user',
+				'post_types'      => array(),
 			),
 			$data
 		);
@@ -752,6 +760,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'modified'        => mysql_to_rfc3339( $modified ),
 				'author_text'     => $author_name,
 				'original_source' => 'user',
+				'post_types'      => array(),
 			),
 			$data
 		);
@@ -910,7 +919,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 18, $properties );
+		$this->assertCount( 19, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
@@ -930,6 +939,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertArrayHasKey( 'author_text', $properties );
 		$this->assertArrayHasKey( 'original_source', $properties );
 		$this->assertArrayHasKey( 'plugin', $properties );
+		$this->assertArrayHasKey( 'post_types', $properties );
 	}
 
 	protected function find_and_normalize_template_by_id( $templates, $id ) {
@@ -966,6 +976,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$expected['modified']        = mysql_to_rfc3339( $modified );
 		$expected['author_text']     = get_user_by( 'id', self::$admin_id )->get( 'display_name' );
 		$expected['original_source'] = 'user';
+		$expected['post_types']      = array();
 
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
