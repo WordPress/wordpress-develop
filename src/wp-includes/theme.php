@@ -2173,23 +2173,35 @@ function wp_update_custom_css_post( $css, $args = array() ) {
  * It is a better option to use that class and add any RTL styles to the main stylesheet.
  *
  * @since 3.0.0
+ * @since 6.1.0 Added the `$rtl_mode` parameter. Defaults to 'add'.
  *
  * @global array $editor_styles
  *
  * @param array|string $stylesheet Optional. Stylesheet name or array thereof, relative to theme root.
- *                                 Defaults to 'editor-style.css'
+ *                                 Defaults to 'editor-style.css'.
+ * @param string       $rtl_mode   Optional. When the site is in RTL mode, whether the RTL stylesheet should replace the default stylesheet, or be added as well.
+ *                                 Accepts 'replace' or 'add'. Defaults to 'add'.
  */
-function add_editor_style( $stylesheet = 'editor-style.css' ) {
+function add_editor_style( $stylesheet = 'editor-style.css', $rtl_mode = 'add' ) {
 	global $editor_styles;
 
 	add_theme_support( 'editor-style' );
+
+	if ( empty( $stylesheet ) ) {
+		$stylesheet = 'editor-style.css';
+	}
 
 	$editor_styles = (array) $editor_styles;
 	$stylesheet    = (array) $stylesheet;
 
 	if ( is_rtl() ) {
 		$rtl_stylesheet = str_replace( '.css', '-rtl.css', $stylesheet[0] );
-		$stylesheet[]   = $rtl_stylesheet;
+
+		if ( is_string( $rtl_mode ) && 'replace' === strtolower( trim( $rtl_mode ) ) ) {
+			$stylesheet[0] = $rtl_stylesheet;
+		} else {
+			$stylesheet[] = $rtl_stylesheet;
+		}
 	}
 
 	$editor_styles = array_merge( $editor_styles, $stylesheet );
