@@ -62,7 +62,8 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromStyleVariations extends WP_Font
 		foreach ( $fonts as $family ) {
 			foreach ( $family as $font ) {
 				foreach ( $font['src'] as $src ) {
-					$this->assertStringNotContainsString( 'file:./', $src, 'Font src should not contain the "file:./" placeholder' );
+					$src_basename = basename( $src );
+					$this->assertStringNotContainsString( 'file:./', $src, "Font $src_basename should not contain the 'file:./' placeholder" );
 				}
 			}
 		}
