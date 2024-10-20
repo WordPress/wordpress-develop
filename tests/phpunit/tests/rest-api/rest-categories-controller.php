@@ -1301,4 +1301,26 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 			'HEAD request' => array( 'HEAD' ),
 		);
 	}
+
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_item_with_head_request_should_not_prepare_category_data() {
+		$category_id = self::factory()->category->create();
+
+		$request = new WP_REST_Request( 'HEAD', sprintf( '/wp/v2/categories/%d', $category_id ) );
+
+		$hook_name = 'rest_prepare_category';
+
+		$filter   = new MockAction();
+		$callback = array( $filter, 'filter' );
+		add_filter( $hook_name, $callback );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+
+		$this->assertSame( 0, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
+		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
 }
