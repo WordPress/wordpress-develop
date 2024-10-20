@@ -576,8 +576,14 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( 'Child', $data[0]['name'] );
 	}
 
-	public function test_get_terms_invalid_parent_arg() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_terms_invalid_parent_arg( $method ) {
+		$request = new WP_REST_Request( $method, '/wp/v2/categories' );
 		$request->set_param( 'parent', 'invalid-parent' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
