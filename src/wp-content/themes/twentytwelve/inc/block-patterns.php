@@ -75,9 +75,10 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			'categories'    => array( 'twentytwelve' ),
 			'viewportWidth' => 700,
 			'content'       => '<!-- wp:paragraph {"style":{"typography":{"fontSize":"40px","lineHeight":1.5}}} -->
-				<p style="font-size:40px;line-height:1.5"><strong><em>' . esc_html__( '"Few people are capable of expressing with equanimity opinions which differ from the prejudices of their social environment. Most people are even incapable of forming such opinions."', 'twentytwelve' ) . '</em></strong></p>
+				<blockquote class="wp-block-quote alignleft" style="font-size:40px;line-height:1.5;"><p><strong><em>' . esc_html__( '"Few people are capable of expressing with equanimity opinions which differ from the prejudices of their social environment. Most people are even incapable of forming such opinions."', 'twentytwelve' ) . '</em></strong></p></blockquote>
 				<!-- /wp:paragraph --><!-- wp:paragraph -->
 				<p><em>' . esc_html__( '—  Albert Einstein', 'twentytwelve' ) . '</em></p>
+				
 				<!-- /wp:paragraph -->',
 		)
 	);
