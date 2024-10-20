@@ -39,7 +39,7 @@ class Tests_Fonts_WpPrintFontFacesFromStyleVariations extends WP_Font_Face_UnitT
 	}
 
 	private function get_expected_styles_output( $styles ) {
-		$style_element = "<style id='wp-fonts-local' type='text/css'>\n%s\n</style>\n";
+		$style_element = "<style class='wp-fonts-local' type='text/css'>\n%s\n</style>\n";
 		return sprintf( $style_element, $styles );
 	}
 }
