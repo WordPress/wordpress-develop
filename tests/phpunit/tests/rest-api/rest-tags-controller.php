@@ -584,7 +584,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_terms_pagination_headers ( $method ) {
+	public function test_get_terms_pagination_headers( $method ) {
 		$total_tags  = self::$total_tags;
 		$total_pages = (int) ceil( $total_tags / 10 );
 
