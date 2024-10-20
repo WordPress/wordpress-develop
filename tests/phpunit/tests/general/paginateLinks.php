@@ -88,8 +88,8 @@ EXPECTED;
 		$page50 = get_pagenum_link( 50 );
 
 		$expected = <<<EXPECTED
-<a class="prev page-numbers" href="$home">&laquo; Previous</a>
-<a class="page-numbers" href="$home">1</a>
+<a class="prev page-numbers" href="$home" aria-label="$home">&laquo; Previous</a>
+<a class="page-numbers" href="$home" aria-label="$home">1</a>
 <span aria-current="page" class="page-numbers current">2</span>
 <a class="page-numbers" href="$page3">3</a>
 <a class="page-numbers" href="$page4">4</a>
@@ -126,6 +126,7 @@ EXPECTED;
 				'prev_next' => true,
 				'end_size'  => 1,
 				'mid_size'  => 1,
+				'links_aria_label' => ''
 			)
 		);
 		// The links should be:
