@@ -1788,6 +1788,56 @@ function is_wp_error( $thing ) {
 }
 
 /**
+ * Checks whether the given variable is a certain type.
+ *
+ * Returns whether `$value` is certain type.
+ *
+ * @since 6.x
+ *
+ * @param string $type  The type to check.
+ * @param mixed  $value The variable to check.
+ * @return bool Whether the variable is of the type.
+ */
+function wp_is_type( $type, $value ) {
+	switch ( $type ) {
+		case 'boolean':
+			return is_bool( $value );
+		case 'integer':
+			return is_int( $value );
+		case 'double':
+			return is_float( $value );
+		case 'string':
+			return is_string( $value );
+		case 'array':
+			return is_array( $value );
+		case 'object':
+			return is_object( $value );
+		case 'resource':
+		case 'resource (closed)':
+			return is_resource( $value );
+		case 'NULL':
+			return is_null( $value );
+		case 'unknown_type':
+			return false;
+		case 'mixed':
+			return true;
+		default:
+			/**
+			 * Filters whether the variable is of the type.
+			 * The dynamic portion of the hook name, `$type`, refers to the type of the variable.
+			 *
+			 * @since 6.x
+			 *
+			 * @param bool  $is_type Is the variable of the type. Default false.
+			 * @param mixed $value The variable to check.
+			 */
+			return apply_filters( "wp_is_type_{$type}", false, $value );
+	}
+}
+
+
+
+/**
  * Determines whether file modifications are allowed.
  *
  * @since 4.8.0

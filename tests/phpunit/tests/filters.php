@@ -539,4 +539,79 @@ class Tests_Filters extends WP_UnitTestCase {
 		global $wp_filter;
 		$this->current_priority = $wp_filter['the_content']->current_priority();
 	}
+
+	/**
+	 * @ticket 51525
+	 *
+	 * @dataProvider data_apply_filters_typed
+	 */
+	public function test_apply_filters_typed( $type, $value, $callbacks, $doing_it_wrong, $expected ) {
+		$hook_name = __FUNCTION__;
+
+		$this->setExpectedIncorrectUsage( $doing_it_wrong );
+
+		foreach ( $callbacks as $callback ) {
+			add_filter( $hook_name, $callback, 1, 1 );
+		}
+
+		$return = apply_filters_typed( $type, $hook_name, $value );
+
+		foreach ( $callbacks as $callback ) {
+			remove_filter( $hook_name, $callback );
+		}
+
+		$this->assertSame( $expected, $return );
+	}
+
+	public function data_apply_filters_typed() {
+		return array(
+			'testShouldDiscardNotMatchingTypesCallbacks' => array(
+				'type'           => 'boolean',
+				'value'          => true,
+				'callbacks'      => array(
+					'__return_false',
+					'__return_empty_string',
+				),
+				'doing_it_wrong' => '__return_empty_string',
+				'expected'       => false,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 51525
+	 *
+	 * @dataProvider data_apply_filters_typesafe
+	 */
+	public function test_apply_filters_typesafe( $value, $callbacks, $doing_it_wrong, $expected ) {
+		$hook_name = __FUNCTION__;
+
+		$this->setExpectedIncorrectUsage( $doing_it_wrong );
+
+		foreach ( $callbacks as $callback ) {
+			add_filter( $hook_name, $callback, 1, 1 );
+		}
+
+		$return = apply_filters_typesafe( $hook_name, $value );
+
+		foreach ( $callbacks as $callback ) {
+			remove_filter( $hook_name, $callback );
+		}
+
+		$this->assertSame( $expected, $return );
+	}
+
+	public function data_apply_filters_typesafe() {
+		return array(
+			'testShouldDiscardNotMatchingTypesCallbacks' => array(
+				'value'          => true,
+				'callbacks'      => array(
+					'__return_false',
+					'__return_zero',
+				),
+				'doing_it_wrong' => '__return_zero',
+				'expected'       => false,
+			),
+		);
+	}
 }

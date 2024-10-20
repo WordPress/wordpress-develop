@@ -297,6 +297,34 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @return mixed The filtered value after all hooked functions are applied to it.
 	 */
 	public function apply_filters( $value, $args ) {
+		return $this->apply_filters_typed( 'mixed', $value, $args );
+	}
+
+	/**
+	 * Calls the callback functions that have been added to a filter hook in a typesafe manner.
+	*
+	* @since 6.x.0
+	*
+	* @param mixed $value The value to filter.
+	* @param array $args  Additional parameters to pass to the callback functions.
+	*                     This array is expected to include $value at index 0.
+	* @return mixed The filtered value after all hooked functions are applied to it.
+	*/
+	public function apply_filters_typesafe( $value, $args ) {
+		return $this->apply_filters_typed( gettype( $value ), $value, $args );
+	}
+
+	/**
+	 * Calls the callback functions that have been added to a filter hook in a typed manner.
+	*
+	* @since 6.x.0
+	*
+	* @param mixed $value The value to filter.
+	* @param array $args  Additional parameters to pass to the callback functions.
+	*                     This array is expected to include $value at index 0.
+	* @return mixed The filtered value after all hooked functions are applied to it.
+	*/
+	public function apply_filters_typed( $type, $value, $args ) {
 		if ( ! $this->callbacks ) {
 			return $value;
 		}
@@ -319,11 +347,24 @@ final class WP_Hook implements Iterator, ArrayAccess {
 
 				// Avoid the array_slice() if possible.
 				if ( 0 === $the_['accepted_args'] ) {
-					$value = call_user_func( $the_['function'] );
+					$next_value = call_user_func( $the_['function'] );
 				} elseif ( $the_['accepted_args'] >= $num_args ) {
-					$value = call_user_func_array( $the_['function'], $args );
+					$next_value = call_user_func_array( $the_['function'], $args );
 				} else {
-					$value = call_user_func_array( $the_['function'], array_slice( $args, 0, $the_['accepted_args'] ) );
+					$next_value = call_user_func_array( $the_['function'], array_slice( $args, 0, (int) $the_['accepted_args'] ) );
+				}
+				if ( ! wp_is_type( $type, $next_value ) ) {
+						_doing_it_wrong(
+							$the_['function'],
+							sprintf(
+								__( 'Invalid type returned in filter. Expected %1$s but received %2$s' ),
+								$type,
+								gettype( $next_value )
+							),
+							'6.x'
+						);
+				} else {
+					$value = $next_value;
 				}
 			}
 		} while ( false !== next( $this->iterations[ $nesting_level ] ) );

@@ -171,6 +171,31 @@ function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters( $hook_name, $value, ...$args ) {
+	return apply_filters_typed( 'mixed', $hook_name, $value, ...$args );
+}
+
+/**
+ * Calls the callback functions that have been added to a filter hook in a typesafe manner.
+ *
+ * @param string $tag     The name of the filter hook.
+ * @param mixed  $value   The value to filter.
+ * @param mixed  ...$args Additional parameters to pass to the callback functions.
+ * @return mixed The filtered value after all hooked functions are applied to it.
+ */
+function apply_filters_typesafe( $hook_name, $value, ...$args ) {
+	return apply_filters_typed( gettype( $value ), $hook_name, $value, ...$args );
+}
+
+/**
+ * Calls the callback functions that have been added to a filter hook in a typed manner.
+ *
+ * @param string $type    The type the return value should have.
+ * @param string $tag     The name of the filter hook.
+ * @param mixed  $value   The value to filter.
+ * @param mixed  ...$args Additional parameters to pass to the callback functions.
+ * @return mixed The filtered value after all hooked functions are applied to it.
+ */
+function apply_filters_typed( $type, $hook_name, $value, ...$args ) {
 	global $wp_filter, $wp_filters, $wp_current_filter;
 
 	if ( ! isset( $wp_filters[ $hook_name ] ) ) {
@@ -184,6 +209,8 @@ function apply_filters( $hook_name, $value, ...$args ) {
 		$wp_current_filter[] = $hook_name;
 
 		$all_args = func_get_args(); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
+		// Don't pass the type to the 'all' actions.
+		array_shift( $all_args );
 		_wp_call_all_hook( $all_args );
 	}
 
@@ -202,7 +229,7 @@ function apply_filters( $hook_name, $value, ...$args ) {
 	// Pass the value to WP_Hook.
 	array_unshift( $args, $value );
 
-	$filtered = $wp_filter[ $hook_name ]->apply_filters( $value, $args );
+	$filtered = $wp_filter[ $hook_name ]->apply_filters_typed( $type, $value, $args );
 
 	array_pop( $wp_current_filter );
 
