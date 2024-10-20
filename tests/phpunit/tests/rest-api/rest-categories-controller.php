@@ -609,17 +609,25 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
-	public function test_get_terms_pagination_headers() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_terms_pagination_headers( $method ) {
 		$total_categories = self::$total_categories;
 		$total_pages      = (int) ceil( $total_categories / 10 );
 
 		// Start of the index + Uncategorized default term.
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/categories' );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertSame( $total_categories, $headers['X-WP-Total'] );
 		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
-		$this->assertCount( 10, $response->get_data() );
+		if ( 'HEAD' !== $method ) {
+			$this->assertCount( 10, $response->get_data() );
+		}
 		$next_link = add_query_arg(
 			array(
 				'page' => 2,
@@ -662,7 +670,9 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers  = $response->get_headers();
 		$this->assertSame( $total_categories, $headers['X-WP-Total'] );
 		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
-		$this->assertCount( 1, $response->get_data() );
+		if ( 'HEAD' !== $method ) {
+			$this->assertCount( 1, $response->get_data() );
+		}
 		$prev_link = add_query_arg(
 			array(
 				'page' => $total_pages - 1,
@@ -679,7 +689,9 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers  = $response->get_headers();
 		$this->assertSame( $total_categories, $headers['X-WP-Total'] );
 		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
-		$this->assertCount( 0, $response->get_data() );
+		if ( 'HEAD' !== $method ) {
+			$this->assertCount( 0, $response->get_data() );
+		}
 		$prev_link = add_query_arg(
 			array(
 				'page' => $total_pages,

@@ -578,12 +578,18 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
-	public function test_get_terms_pagination_headers() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_terms_pagination_headers ( $method ) {
 		$total_tags  = self::$total_tags;
 		$total_pages = (int) ceil( $total_tags / 10 );
 
 		// Start of the index.
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/tags' );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertSame( $total_tags, $headers['X-WP-Total'] );
