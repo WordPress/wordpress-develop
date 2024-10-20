@@ -556,20 +556,20 @@
 				menuItems = $( '#menu-to-edit li' ),
 				$this = $( ParentDropdown ),
 				newParentID = $this.val(),
-				menuItem = $this.closest('li.menu-item').first(),
+				menuItem = $this.closest( 'li.menu-item' ).first(),
 				menuItemOldDepth = menuItem.menuItemDepth(),
 				menuItemChildren = menuItem.childMenuItems(),
 				menuItemNoChildren = parseInt( menuItem.childMenuItems().length, 10 ),
-				parentItem = $('#menu-item-'+newParentID),
+				parentItem = $( '#menu-item-' + newParentID ),
 				parentItemDepth = parentItem.menuItemDepth(),
-				menuItemNewDepth = parseInt(parentItemDepth) + 1;
+				menuItemNewDepth = parseInt( parentItemDepth ) + 1;
 
-			if(newParentID == 0){
+			if ( newParentID == 0 ) {
 				menuItemNewDepth = 0;
 			}
 
-			menuItem.find('.menu-item-data-parent-id').val(newParentID);
-			menuItem.moveHorizontally(menuItemNewDepth, menuItemOldDepth);
+			menuItem.find( '.menu-item-data-parent-id' ).val( newParentID );
+			menuItem.moveHorizontally( menuItemNewDepth, menuItemOldDepth );
 
 			if ( menuItemNoChildren > 0 ) {
 				menuItem = menuItem.add( menuItemChildren );
@@ -581,13 +581,13 @@
 			var	parentItemPosition = parseInt( parentItem.index(), 10 ),
 				parentItemNoChild = parseInt( parentItem.childMenuItems().length, 10 );
 
-			if(parentItemNoChild > 0){
+			if ( parentItemNoChild > 0 ){
 				menuItemNewPosition = parentItemPosition + parentItemNoChild;
 			} else {
 				menuItemNewPosition = parentItemPosition;
 			}
 
-			if(newParentID == 0){
+			if ( newParentID == 0 ) {
 				menuItemNewPosition = menuItems.length - 1;
 			}
 
@@ -596,7 +596,7 @@
 			api.registerChange();
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
-			$this.focus();
+			$this.trigger( 'focus' );
 			wp.a11y.speak( menus.parentUpdated, 'polite' );
 		},
 
@@ -612,24 +612,24 @@
 				menuItems = $( '#menu-to-edit li' ),
 				$this = $( OrderDropdown ),
 				newOrderID = parseInt( $this.val(), 10),
-				menuItem = $this.closest('li.menu-item').first(),
+				menuItem = $this.closest( 'li.menu-item' ).first(),
 				depth = menuItem.menuItemDepth(),
 				thisItemChildren = menuItem.childMenuItems(),
 				thisItemNoOfChild = thisItemChildren.length,
 				isPrimaryMenuItem = ( 0 === depth ),
 				currentItemPosition = parseInt( menuItem.index(), 10 ),
-				parentItemID = menuItem.find('.menu-item-data-parent-id').val(),
-				parentItem = $('#menu-item-'+ parentItemID),
+				parentItemID = menuItem.find( '.menu-item-data-parent-id' ).val(),
+				parentItem = $( '#menu-item-' + parentItemID ),
 				parentPosition = parseInt( parentItem.index(), 10 ),
 				newItemPosition = parentPosition + newOrderID,
 				primaryItems = $( '.menu-item-depth-0' ),
-				currentItemAtPosition = $( primaryItems[newOrderID - 1] ),
+				currentItemAtPosition = $( primaryItems[ newOrderID - 1 ] ),
 				currentItemAtPositionNoOfChild = parseInt( currentItemAtPosition.childMenuItems().length, 10 );
 
 			if ( isPrimaryMenuItem ) {
 				newItemPosition = parseInt( currentItemAtPosition.index(), 10 );
-				if(currentItemPosition < newItemPosition) {
-					if(currentItemAtPositionNoOfChild > 0){
+				if ( currentItemPosition < newItemPosition ) {
+					if ( currentItemAtPositionNoOfChild > 0 ) {
 						newItemPosition = newItemPosition + currentItemAtPositionNoOfChild - thisItemNoOfChild;
 					}
 					menuItemWithChild = menuItem.add( thisItemChildren );
@@ -643,8 +643,8 @@
 					}
 				}
 			} else {
-				if(currentItemPosition < newItemPosition) {
-					if(currentItemAtPositionNoOfChild > 0){
+				if ( currentItemPosition < newItemPosition ) {
+					if ( currentItemAtPositionNoOfChild > 0 ) {
 						newItemPosition = newItemPosition + currentItemAtPositionNoOfChild - thisItemNoOfChild;
 					} else {
 						newItemPosition = newItemPosition + 1;
@@ -664,7 +664,7 @@
 			api.registerChange();
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
-			$this.focus();
+			$this.trigger( 'focus' );
 			wp.a11y.speak( menus.orderUpdated, 'polite' );
 		},
 
