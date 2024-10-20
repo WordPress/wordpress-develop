@@ -100,6 +100,116 @@ final class WP_Term {
 	public $filter = 'raw';
 
 	/**
+	 * Object's ID.
+	 *
+	 * Does not correspond to a database field.
+	 * Previously a known, named dynamic property added by WP_Term_Query::get_terms().
+	 *
+	 * @since 6.7.0
+	 * @var int
+	 */
+	public $object_id;
+
+	/**
+	 * Term's ID.
+	 *
+	 * Same as the WP_Term::$term_id property.
+	 * Previously a known, named dynamic property added by wp_tag_cloud().
+	 *
+	 * @since 6.7.0
+	 * @var int
+	 */
+	public $id;
+
+	/**
+	 * Term's link.
+	 *
+	 * Does not correspond to a database field.
+	 * Previously a known, named dynamic property added by wp_tag_cloud().
+	 *
+	 * @since 6.7.0
+	 * @var string
+	 */
+	public $link;
+
+	/**
+	 * Category's ID.
+	 *
+	 * Same as the WP_Term::$term_id property.
+	 * Previously a known, named dynamic property added by _make_cat_compat().
+	 *
+	 * @since 6.7.0
+	 * @var int
+	 */
+	public $cat_ID;
+
+	/**
+	 * The category's name.
+	 *
+	 * Same as the WP_Term::$name property.
+	 * Previously a known, named dynamic property added by _make_cat_compat().
+	 *
+	 * @since 6.7.0
+	 * @var string
+	 */
+	public $cat_name = '';
+
+	/**
+	 * The category's nicename.
+	 *
+	 * Same as the WP_Term::$slug property.
+	 * Previously a known, named dynamic property added by _make_cat_compat().
+	 *
+	 * @since 6.7.0
+	 * @var string
+	 */
+	public $category_nicename = '';
+
+	/**
+	 * The category's description.
+	 *
+	 * Same as the WP_Term::$description property.
+	 * Previously a known, named dynamic property added by _make_cat_compat().
+	 *
+	 * @since 6.7.0
+	 * @var string
+	 */
+	public $category_description = '';
+
+	/**
+	 * ID of a category's parent term.
+	 *
+	 * Same as the WP_Term::$parent property.
+	 * Previously a known, named dynamic property added by _make_cat_compat().
+	 *
+	 * @since 6.7.0
+	 * @var int
+	 */
+	public $category_parent = 0;
+
+	/**
+	 * Cached object count for this category.
+	 *
+	 * Same as the WP_Term::$count property.
+	 * Previously a known, named dynamic property added by _make_cat_compat().
+	 *
+	 * @since 6.7.0
+	 * @var int
+	 */
+	public $category_count = 0;
+
+	/**
+	 * Value of the menu's auto_add setting.
+	 *
+	 * Does not correspond to a database field.
+	 * Previously a known, named dynamic property added by WP_REST_Menus_Controller::get_term().
+	 *
+	 * @since 6.7.0
+	 * @var bool
+	 */
+	public $auto_add = false;
+
+	/**
 	 * Retrieve WP_Term instance.
 	 *
 	 * @since 4.4.0
@@ -226,20 +336,28 @@ final class WP_Term {
 	 * Getter.
 	 *
 	 * @since 4.4.0
+	 * @since 6.7.0 Getting a dynamic property is deprecated.
 	 *
 	 * @param string $key Property to get.
 	 * @return mixed Property value.
 	 */
-	public function __get( $key ) {
-		switch ( $key ) {
-			case 'data':
-				$data    = new stdClass();
-				$columns = array( 'term_id', 'name', 'slug', 'term_group', 'term_taxonomy_id', 'taxonomy', 'description', 'parent', 'count' );
-				foreach ( $columns as $column ) {
-					$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
-				}
+	public function __get( $name ) {
+		if ( 'data' === $name ) {
+			$data    = new stdClass();
+			$columns = array( 'term_id', 'name', 'slug', 'term_group', 'term_taxonomy_id', 'taxonomy', 'description', 'parent', 'count' );
+			foreach ( $columns as $column ) {
+				$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
+			}
 
-				return sanitize_term( $data, $data->taxonomy, 'raw' );
+			return sanitize_term( $data, $data->taxonomy, 'raw' );
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"The property `{$name}` is not declared. Getting a dynamic property is " .
+			'deprecated since version 6.7.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
+		return null;
 	}
 }
