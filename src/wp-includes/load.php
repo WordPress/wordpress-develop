@@ -421,11 +421,11 @@ function wp_is_maintenance_mode() {
 	}
 
 	// Don't enable maintenance mode while scraping for fatal errors.
-	if ( is_int( $upgrading ) && isset( $_REQUEST['wp_scrape_key'], $_REQUEST['wp_scrape_nonce'] ) ) {
+	if ( isset( $_REQUEST['wp_scrape_key'], $_REQUEST['wp_scrape_nonce'] ) ) {
 		$key   = stripslashes( $_REQUEST['wp_scrape_key'] );
 		$nonce = stripslashes( $_REQUEST['wp_scrape_nonce'] );
 
-		if ( md5( $upgrading ) === $key && (int) $nonce === $upgrading ) {
+		if ( md5( $nonce ) === $key ) {
 			return false;
 		}
 	}
