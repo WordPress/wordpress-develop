@@ -407,12 +407,13 @@ CSS
 	public static function get_custom_style_variations( $key = '' ) {
 		static $data = null;
 
+		$path                   = get_stylesheet_directory() . '/assets/fonts/';
 		$uri                    = get_stylesheet_directory_uri() . '/assets/fonts/';
 		$expected_font_families = array(
 			array(
 				array(
 					'src'          => array(
-						'/var/www/tests/phpunit/data/themedir1/fonts-block-theme/assets/fonts/dm-sans/DMSans-Regular.woff2',
+						"{$path}dm-sans/DMSans-Regular.woff2",
 					),
 					'font-family'  => 'DM Sans',
 					'font-stretch' => 'normal',
@@ -421,7 +422,7 @@ CSS
 				),
 				array(
 					'src'          => array(
-						'/var/www/tests/phpunit/data/themedir1/fonts-block-theme/assets/fonts/dm-sans/DMSans-Bold.woff2',
+						"{$path}dm-sans/DMSans-Bold.woff2",
 					),
 					'font-family'  => 'DM Sans',
 					'font-stretch' => 'normal',
@@ -432,7 +433,7 @@ CSS
 			array(
 				array(
 					'src'          => array(
-						'/var/www/tests/phpunit/data/themedir1/fonts-block-theme/assets/fonts/open-sans/OpenSans-VariableFont_wdth,wght.ttf',
+						"{$path}open-sans/OpenSans-VariableFont_wdth,wght.ttf",
 					),
 					'font-family'  => 'Open Sans',
 					'font-stretch' => 'normal',
@@ -441,7 +442,7 @@ CSS
 				),
 				array(
 					'src'          => array(
-						'/var/www/tests/phpunit/data/themedir1/fonts-block-theme/assets/fonts/open-sans/OpenSans-Italic-VariableFont_wdth,wght.ttf',
+						"{$path}open-sans/OpenSans-Italic-VariableFont_wdth,wght.ttf",
 					),
 					'font-family'  => 'Open Sans',
 					'font-stretch' => 'normal',
@@ -452,7 +453,7 @@ CSS
 			array(
 				array(
 					'src'          => array(
-						'/var/www/tests/phpunit/data/themedir1/fonts-block-theme/assets/fonts/dm-sans/DMSans-Medium.woff2',
+						"{$path}dm-sans/DMSans-Medium.woff2",
 					),
 					'font-family'  => 'DM Sans',
 					'font-stretch' => 'normal',
@@ -461,7 +462,7 @@ CSS
 				),
 				array(
 					'src'          => array(
-						'/var/www/tests/phpunit/data/themedir1/fonts-block-theme/assets/fonts/dm-sans/DMSans-Medium-Italic.woff2',
+						"{$path}dm-sans/DMSans-Medium-Italic.woff2",
 					),
 					'font-family'  => 'DM Sans',
 					'font-stretch' => 'normal',
