@@ -4443,7 +4443,6 @@ function _wp_json_convert_string( $input_string ) {
 	if ( $use_mb ) {
 		$encoding = mb_detect_encoding( $input_string, mb_detect_order(), true );
 		if ( $encoding ) {
-			echo $encoding;
 			$converted_string = mb_convert_encoding( $input_string, 'UTF-8', $encoding );
 		} else {
 			$converted_string = mb_convert_encoding( $input_string, 'UTF-8', 'UTF-8' );
