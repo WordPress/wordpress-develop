@@ -58,7 +58,7 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromStyleVariations extends WP_Font
 
 		$fonts = WP_Font_Face_Resolver::get_fonts_from_style_variations();
 
-		// check that the there is no theme relative url in the src list.
+		// Check that the there is no theme relative url in the src list.
 		foreach ( $fonts as $family ) {
 			foreach ( $family as $font ) {
 				foreach ( $font['src'] as $src ) {
