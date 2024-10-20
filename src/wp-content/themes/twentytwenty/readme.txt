@@ -24,6 +24,11 @@ you pick, ensuring a high, accessible color contrast for your visitors.
 
 == Changelog ==
 
+= 2.8 =
+* Released: November 12, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-changelog/#Version_2.8
+
 = 2.7 =
 * Released: July 16, 2024
 

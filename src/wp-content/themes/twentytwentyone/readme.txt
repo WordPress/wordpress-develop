@@ -30,6 +30,11 @@ No data is saved in the database or transferred.
 
 == Changelog ==
 
+= 2.4 =
+* Released: November 12, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_2.4
+
 = 2.3 =
 * Released: July 16, 2024
 

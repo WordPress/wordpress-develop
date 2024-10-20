@@ -48,6 +48,11 @@ Images
 
 == Changelog ==
 
+= 4.8 =
+* Released: November 12, 2024
+
+https://wordpress.org/documentation/article/twenty-eleven-changelog/#Version_4.8
+
 = 4.7 =
 * Released: July 16, 2024
 

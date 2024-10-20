@@ -44,6 +44,11 @@ Images
 
 == Changelog ==
 
+= 4.3 =
+* Released: November 12, 2024
+
+https://wordpress.org/documentation/article/twenty-ten-changelog/#Version_4.3
+
 = 4.2 =
 * Released: July 16, 2024
 

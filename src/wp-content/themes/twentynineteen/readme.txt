@@ -40,6 +40,11 @@ GNU General Public License for more details.
 
 == Changelog ==
 
+= 3.0 =
+* Released: November 12, 2024
+
+https://wordpress.org/documentation/article/twenty-nineteen-changelog/#Version_3.0
+
 = 2.9 =
 * Released: July 16, 2024
 

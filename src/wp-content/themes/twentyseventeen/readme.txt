@@ -75,6 +75,11 @@ Source: https://stocksnap.io/photo/striped-fabric-9CBVWF2CDU
 
 == Changelog ==
 
+= 3.8 =
+* Released: November 12, 2024
+
+https://wordpress.org/documentation/article/twenty-seventeen-changelog/#Version_3.8
+
 = 3.7 =
 * Released: July 16, 2024
 
