@@ -287,7 +287,13 @@ if ( ! function_exists( 'hash_hmac' ) ) :
 	 * @return string|false The hash in output determined by `$binary`.
 	 *                      False if `$algo` is unknown or invalid.
 	 */
-	function hash_hmac( $algo, $data, $key, $binary = false ) {
+	function hash_hmac(
+		$algo,
+		$data,
+		#[\SensitiveParameter]
+		$key,
+		$binary = false
+	) {
 		return _hash_hmac( $algo, $data, $key, $binary );
 	}
 endif;
@@ -306,7 +312,13 @@ endif;
  * @return string|false The hash in output determined by `$binary`.
  *                      False if `$algo` is unknown or invalid.
  */
-function _hash_hmac( $algo, $data, $key, $binary = false ) {
+function _hash_hmac(
+	$algo,
+	$data,
+	#[\SensitiveParameter]
+	$key,
+	$binary = false
+) {
 	$packs = array(
 		'md5'  => 'H32',
 		'sha1' => 'H40',
