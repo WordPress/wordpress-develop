@@ -13,7 +13,7 @@ require_once __DIR__ . '/base.php';
  *
  * @covers WP_Plugin_Dependencies::get_dependents
  */
-class Tests_Admin_WPPluginDependencies_GetDependents extends WP_PluginDependencies_UnitTestCase {
+class Functions_WPPluginDependencies_GetDependents_Test extends WP_PluginDependencies_UnitTestCase {
 
 	/**
 	 * Tests that a plugin with no dependents will return an empty array.
