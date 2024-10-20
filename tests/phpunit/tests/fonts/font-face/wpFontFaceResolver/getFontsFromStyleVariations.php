@@ -21,6 +21,11 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromStyleVariations extends WP_Font
 		parent::set_up_before_class();
 	}
 
+	/**
+	 * Ensure that an empty array is returned when the theme has no style variations.
+	 *
+	 * @ticket 62231
+	 */
 	public function test_should_return_empty_array_when_theme_has_no_style_variations() {
 		switch_theme( 'block-theme' );
 
@@ -29,6 +34,11 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromStyleVariations extends WP_Font
 		$this->assertEmpty( $fonts, 'Should return an empty array' );
 	}
 
+	/**
+	 * Ensure that all variations are loaded from a theme.
+	 *
+	 * @ticket 62231
+	 */
 	public function test_should_return_all_fonts_from_all_style_variations() {
 		switch_theme( static::FONTS_THEME );
 
@@ -38,6 +48,11 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromStyleVariations extends WP_Font
 		$this->assertSame( $expected, $actual, 'All the fonts from the theme variations should be returned.' );
 	}
 
+	/**
+	 * Ensure that file:./ is replaced in the src list.
+	 *
+	 * @ticket 62231
+	 */
 	public function test_should_replace_src_file_placeholder() {
 		switch_theme( static::FONTS_THEME );
 

@@ -20,6 +20,11 @@ class Tests_Fonts_WpPrintFontFacesFromStyleVariations extends WP_Font_Face_UnitT
 		self::$requires_switch_theme_fixtures = true;
 	}
 
+	/**
+	 * Ensure that no fonts are printed when the theme has no fonts.
+	 *
+	 * @ticket 62231
+	 */
 	public function test_should_not_print_when_no_fonts() {
 		switch_theme( 'block-theme' );
 
@@ -27,6 +32,11 @@ class Tests_Fonts_WpPrintFontFacesFromStyleVariations extends WP_Font_Face_UnitT
 		wp_print_font_faces_from_style_variations();
 	}
 
+	/**
+	 * Ensure that all fonts are printed from the theme style variations.
+	 *
+	 * @ticket 62231
+	 */
 	public function test_should_print_fonts_in_style_variations() {
 		switch_theme( static::FONTS_THEME );
 
