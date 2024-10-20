@@ -33,8 +33,8 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	 * @ticket 9591
 	 */
 	public function test_remove_accents_latin1_supplement() {
-		$input  = 'ªºÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ';
-		$output = 'aoAAAAAAAECEEEEIIIIDNOOOOOOUUUUYTHsaaaaaaaeceeeeiiiidnoooooouuuuythy';
+		$input  = 'ªºÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäååæçèéêëìíîïðñòóôõöøùúûüýþÿ';
+		$output = 'aoAAAAAAAECEEEEIIIIDNOOOOOOUUUUYTHsaaaaaaaaeceeeeiiiidnoooooouuuuythy';
 
 		$this->assertSame( $output, remove_accents( $input ), 'remove_accents replaces Latin-1 Supplement' );
 	}
