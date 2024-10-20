@@ -646,8 +646,6 @@
 				if ( currentItemPosition < newItemPosition ) {
 					if ( currentItemAtPositionNoOfChild > 0 ) {
 						newItemPosition = newItemPosition + currentItemAtPositionNoOfChild - thisItemNoOfChild;
-					} else {
-						newItemPosition = newItemPosition + 1;
 					}
 					menuItemWithChild = menuItem.add( thisItemChildren );
 					menuItemWithChild.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
