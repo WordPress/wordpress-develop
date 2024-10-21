@@ -70,8 +70,8 @@ function wp_is_site_url_using_https() {
 function wp_is_https_supported() {
 	$https_detection_errors = wp_get_https_detection_errors();
 
-    // If there are errors, HTTPS is not supported.
-    return empty($https_detection_errors);
+	// If there are errors, HTTPS is not supported.
+	return empty( $https_detection_errors );
 }
 
 /**
