@@ -576,8 +576,14 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( 'Child', $data[0]['name'] );
 	}
 
-	public function test_get_terms_invalid_parent_arg() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_terms_invalid_parent_arg( $method ) {
+		$request = new WP_REST_Request( $method, '/wp/v2/categories' );
 		$request->set_param( 'parent', 'invalid-parent' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
@@ -609,17 +615,25 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
-	public function test_get_terms_pagination_headers() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_terms_pagination_headers( $method ) {
 		$total_categories = self::$total_categories;
 		$total_pages      = (int) ceil( $total_categories / 10 );
 
 		// Start of the index + Uncategorized default term.
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/categories' );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertSame( $total_categories, $headers['X-WP-Total'] );
 		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
-		$this->assertCount( 10, $response->get_data() );
+		if ( 'HEAD' !== $method ) {
+			$this->assertCount( 10, $response->get_data() );
+		}
 		$next_link = add_query_arg(
 			array(
 				'page' => 2,
@@ -662,7 +676,9 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers  = $response->get_headers();
 		$this->assertSame( $total_categories, $headers['X-WP-Total'] );
 		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
-		$this->assertCount( 1, $response->get_data() );
+		if ( 'HEAD' !== $method ) {
+			$this->assertCount( 1, $response->get_data() );
+		}
 		$prev_link = add_query_arg(
 			array(
 				'page' => $total_pages - 1,
@@ -679,7 +695,9 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers  = $response->get_headers();
 		$this->assertSame( $total_categories, $headers['X-WP-Total'] );
 		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
-		$this->assertCount( 0, $response->get_data() );
+		if ( 'HEAD' !== $method ) {
+			$this->assertCount( 0, $response->get_data() );
+		}
 		$prev_link = add_query_arg(
 			array(
 				'page' => $total_pages,
@@ -1235,5 +1253,92 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$data     = $response->get_data();
 		$category = get_term( 1, 'category' );
 		$this->check_taxonomy_term( $category, $data, $response->get_links() );
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_returns_only_fetches_ids_for_head_requests( $method ) {
+		$is_head_request = 'HEAD' === $method;
+		$request         = new WP_REST_Request( $method, '/wp/v2/categories' );
+
+		$filter = new MockAction();
+
+		add_filter( 'terms_pre_query', array( $filter, 'filter' ), 10, 2 );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		if ( $is_head_request ) {
+			$this->assertEmpty( $response->get_data() );
+		} else {
+			$this->assertNotEmpty( $response->get_data() );
+		}
+
+		$args = $filter->get_args();
+		$this->assertTrue( isset( $args[0][1] ), 'Query parameters were not captured.' );
+		$this->assertInstanceOf( WP_Term_Query::class, $args[0][1], 'Query parameters were not captured.' );
+
+		/** @var WP_Term_Query $query */
+		$query = $args[0][1];
+
+		if ( $is_head_request ) {
+			$this->assertArrayHasKey( 'fields', $query->query_vars, 'The fields parameter is not set in the query vars.' );
+			$this->assertSame( 'ids', $query->query_vars['fields'], 'The query must fetch only term IDs.' );
+		} else {
+			$this->assertTrue(
+				! array_key_exists( 'fields', $query->query_vars ) || 'ids' !== $query->query_vars['fields'],
+				'The fields parameter should not be forced to "ids" for non-HEAD requests.'
+			);
+		}
+
+		if ( ! $is_head_request ) {
+			return;
+		}
+
+		global $wpdb;
+		$terms_table = preg_quote( $wpdb->terms, '/' );
+
+		$pattern = '/SELECT\s+t\.term_id.+FROM\s+' . $terms_table . '\s+AS\s+t\s+INNER\s+JOIN/is';
+
+		// Assert that the SQL query only fetches the term_id column.
+		$this->assertMatchesRegularExpression( $pattern, $query->request, 'The SQL query does not match the expected string.' );
+	}
+
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
+	}
+
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_item_with_head_request_should_not_prepare_category_data() {
+		$category_id = self::factory()->category->create();
+
+		$request = new WP_REST_Request( 'HEAD', sprintf( '/wp/v2/categories/%d', $category_id ) );
+
+		$hook_name = 'rest_prepare_category';
+
+		$filter   = new MockAction();
+		$callback = array( $filter, 'filter' );
+		add_filter( $hook_name, $callback );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+
+		$this->assertSame( 0, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
+		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 }
