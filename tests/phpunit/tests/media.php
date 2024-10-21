@@ -5391,6 +5391,49 @@ EOF;
 	}
 
 	/**
+	 * Test AVIF quality filters.
+	 *
+	 * @ticket 61614
+	 */
+	public function test_quality_with_avif_conversion_file_sizes() {
+		$temp_dir = get_temp_dir();
+		$file     = $temp_dir . '/33772.jpg';
+		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
+
+		$editor = wp_get_image_editor( $file );
+		// Only continue if the server supports AVIF.
+		if ( ! $editor->supports_mime_type( 'image/avif' ) ) {
+			$this->markTestSkipped( 'AVIF is not supported by the selected image editor.' );
+		}
+
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => $file,
+			)
+		);
+
+		// Test sizes with AVIF images.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
+		$avif_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
+
+		// Set the compression quality to a lower setting and test again, verifying that file sizes are all smaller.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
+		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low' ) );
+		$smaller_avif_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
+		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low' ) );
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
+
+		// Sub-sizes: for each size, the AVIF should be smaller than the JPEG.
+		$sizes_to_compare = array_intersect_key( $avif_sizes['sizes'], $smaller_avif_sizes['sizes'] );
+
+		foreach ( $sizes_to_compare as $size => $size_data ) {
+			$this->assertLessThan( $avif_sizes['sizes'][ $size ]['filesize'], $smaller_avif_sizes['sizes'][ $size ]['filesize'] );
+		}
+	}
+
+	/**
 	 * Test that an image size isn't generated if it matches the original image size.
 	 *
 	 * @ticket 57370
@@ -6442,6 +6485,13 @@ EOF;
 	}
 
 	/**
+	 * Output AVIF images.
+	 */
+	public function image_editor_output_avif() {
+		return array( 'image/jpeg' => 'image/avif' );
+	}
+
+	/**
 	 * Changes the quality using very low quality for JPEGs and very high quality
 	 * for WebPs, used to verify the filter is applying correctly.
 	 *
@@ -6457,6 +6507,13 @@ EOF;
 		} else {
 			return 30;
 		}
+	}
+
+	/**
+	 * Output only low quality images.
+	 */
+	public function image_editor_change_quality_low( $quality ) {
+		return 15;
 	}
 
 	/**

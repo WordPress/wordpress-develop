@@ -1116,7 +1116,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		if ( WP_HTML_Tag_Processor::STATE_READY !== $this->parser_state ) {
 			wp_trigger_error(
 				__METHOD__,
-				"An HTML Processor which has already started processing cannot serialize it's contents. Serialize immediately after creating the instance.",
+				'An HTML Processor which has already started processing cannot serialize its contents. Serialize immediately after creating the instance.',
 				E_USER_WARNING
 			);
 			return null;
@@ -2433,6 +2433,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					}
 
 					$this->state->stack_of_open_elements->remove_node( $node );
+					return true;
 				} else {
 					/*
 					 * > If the stack of open elements does not have a form element in scope,
