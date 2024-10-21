@@ -51,18 +51,8 @@ jobs:
         tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
-        group: [ '' ]
 
         include:
-          # Include a job for running the html5-lib tests.
-          - os: ubuntu-latest
-            php: '7.4'
-            db-type: 'mysql'
-            db-version: '8.0'
-            tests-domain: 'example.org'
-            multisite: false
-            memcached: false
-            group: 'html-api-html5lib-teests'
           # Include jobs for PHP 7.4 with memcached.
           - os: ubuntu-latest
             php: '7.4'
@@ -109,7 +99,6 @@ jobs:
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
-      phpunit-test-groups: ${{ matrix.group }}
       tests-domain: ${{ matrix.tests-domain }}
       report: ${{ matrix.report || false }}
 
@@ -157,13 +146,45 @@ jobs:
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       report: ${{ matrix.report || false }}
 
+  #
+  # Runs specific test groups.
+  #
+  specific-test-groups:
+    name: PHP ${{ matrix.php }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    permissions:
+      contents: read
+    secrets: inherit
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        php: [ '8.3' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '8.0' ]
+        multisite: [ false ]
+        memcached: [ false ]
+        phpunit-test-groups: [ 'html-api-html5lib-tests' ]
+
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      multisite: ${{ matrix.multisite }}
+      memcached: ${{ matrix.memcached }}
+      phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      phpunit-test-groups: ${{ matrix.phpunit-test-groups }}
+      report: ${{ matrix.report || false }}
+
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read
-    needs: [ test-with-mysql, test-with-mariadb ]
+    needs: [ test-with-mysql, test-with-mariadb, specific-test-groups ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
