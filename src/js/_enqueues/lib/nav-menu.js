@@ -297,37 +297,41 @@
 							parentDropdowns = $( '.edit-menu-item-parent' );
 
 						$.each( parentDropdowns, function() {
-							var parentDropdown = $(this),
+							var parentDropdown = $( this ),
 								$html = '',
 								$selected = '',
-								currentItemID = parentDropdown.closest('li.menu-item').find('.menu-item-data-db-id').val(),
-								currentparentID = parentDropdown.closest('li.menu-item').find('.menu-item-data-parent-id').val(),
-								currentItem = parentDropdown.closest('li.menu-item'),
+								currentItemID = parentDropdown.closest( 'li.menu-item' ).find( '.menu-item-data-db-id' ).val(),
+								currentparentID = parentDropdown.closest( 'li.menu-item' ).find( '.menu-item-data-parent-id' ).val(),
+								currentItem = parentDropdown.closest( 'li.menu-item' ),
 								currentMenuItemChild = currentItem.childMenuItems(),
-								excludeMenuItem = [currentItemID];
+								excludeMenuItem = [ currentItemID ];
 
-							if( currentMenuItemChild.length > 0 ){
+							if ( currentMenuItemChild.length > 0 ) {
 								$.each( currentMenuItemChild, function(){
 									var childItem = $(this),
-										childID = childItem.find('.menu-item-data-db-id').val();
+										childID = childItem.find( '.menu-item-data-db-id' ).val();
 
-									excludeMenuItem.push(childID);
+									excludeMenuItem.push( childID );
 								});
 							}
 
-							if(currentparentID == 0) $selected = 'selected';
+							if ( currentparentID == 0 ) {
+								$selected = 'selected';
+							}
 
 							$html += '<option ' + $selected + ' value="0">No Parent</option>';
 
 							$.each( menuItems, function() {
 								var menuItem = $(this),
 								$selected = '',
-								menuID = menuItem.find('.menu-item-data-db-id').val(),
-								menuTitle = menuItem.find('.edit-menu-item-title').val();
+								menuID = menuItem.find( '.menu-item-data-db-id' ).val(),
+								menuTitle = menuItem.find( '.edit-menu-item-title' ).val();
 
-								if(!excludeMenuItem.includes(menuID) ) {
-									if(currentparentID == menuID) $selected = 'selected';
-									$html += '<option ' + $selected + ' value="'+menuID+'">'+menuTitle+'</option>';
+								if ( ! excludeMenuItem.includes( menuID ) ) {
+									if ( currentparentID == menuID ) {
+										$selected = 'selected';
+									}
+									$html += '<option ' + $selected + ' value="' + menuID + '">' + menuTitle + '</option>';
 								}
 							});
 
@@ -337,13 +341,13 @@
 					});
 				},
 				updateOrderDropdown : function() {
-					return this.each(function(){
+					return this.each( function() {
 						var itemPosition,
 							orderDropdowns = $( '.edit-menu-item-order' );
 
 						$.each( orderDropdowns, function() {
-							var orderDropdown = $(this),
-								menuItem = orderDropdown.closest('li.menu-item').first(),
+							var orderDropdown = $( this ),
+								menuItem = orderDropdown.closest( 'li.menu-item' ).first(),
 								depth = menuItem.menuItemDepth(),
 								isPrimaryMenuItem = ( 0 === depth ),
 								$html = '',
@@ -355,9 +359,11 @@
 
 								itemPosition = primaryItems.index( menuItem ) + 1;
 
-								for(let i = 1; i < totalMenuItems + 1; i++){
+								for ( let i = 1; i < totalMenuItems + 1; i++ ) {
 									$selected = '';
-									if(i == itemPosition) $selected = 'selected';
+									if ( i == itemPosition ) { 
+										$selected = 'selected';
+									}
 									$html += '<option ' + $selected + ' value="' + i + '">' + i + ' of ' + totalMenuItems + '</option>';
 								}
 
@@ -369,9 +375,11 @@
 
 								itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
 
-								for(let i = 1; i < totalSubMenuItems + 1; i++){
+								for ( let i = 1; i < totalSubMenuItems + 1; i++ ) {
 									$selected = '';
-									if(i == itemPosition) $selected = 'selected';
+									if ( i == itemPosition ) {
+										$selected = 'selected';
+									}
 									$html += '<option ' + $selected + ' value="' + i + '">' + i + ' of ' + totalSubMenuItems + '</option>';
 								}
 
@@ -390,7 +398,6 @@
 		},
 
 		moveMenuItem : function( $this, dir ) {
-
 			var items, newItemPosition, newDepth,
 				menuItems = $( '#menu-to-edit li' ),
 				menuItemsCount = menuItems.length,
