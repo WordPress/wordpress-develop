@@ -2791,12 +2791,14 @@ All at ###SITENAME###
 			$default_cookie_life = apply_filters( 'auth_cookie_expiration', ( 2 * DAY_IN_SECONDS ), $user_id, false );
 
 			$remember = false;
+			$token    = '';
 
 			if ( false !== $logged_in_cookie && ( $logged_in_cookie['expiration'] - time() ) > $default_cookie_life ) {
 				$remember = true;
+				$token    = $logged_in_cookie['token'];
 			}
 
-			wp_set_auth_cookie( $user_id, $remember );
+			wp_set_auth_cookie( $user_id, $remember, $token );
 		}
 	}
 
