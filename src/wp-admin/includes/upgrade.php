@@ -965,6 +965,7 @@ function upgrade_101() {
  *
  * @ignore
  * @since 1.2.0
+ * Since x.y.z User passwords are no longer hashed with md5.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  */
@@ -977,13 +978,6 @@ function upgrade_110() {
 		if ( '' === $user->user_nicename ) {
 			$newname = sanitize_title( $user->user_nickname );
 			$wpdb->update( $wpdb->users, array( 'user_nicename' => $newname ), array( 'ID' => $user->ID ) );
-		}
-	}
-
-	$users = $wpdb->get_results( "SELECT ID, user_pass from $wpdb->users" );
-	foreach ( $users as $row ) {
-		if ( ! preg_match( '/^[A-Fa-f0-9]{32}$/', $row->user_pass ) ) {
-			$wpdb->update( $wpdb->users, array( 'user_pass' => md5( $row->user_pass ) ), array( 'ID' => $row->ID ) );
 		}
 	}
 
