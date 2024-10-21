@@ -308,12 +308,46 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * @ticket 21022
 	 * @ticket 50027
+	 *
+	 * @dataProvider data_empty_values
+	 * @param mixed $value
 	 */
-	public function test_wp_check_password_does_not_support_empty_value() {
+	public function test_wp_check_password_does_not_support_empty_hash( $value ) {
 		$password = 'password';
-		$hash     = '';
+		$hash     = $value;
 		$this->assertFalse( wp_check_password( $password, $hash ) );
 		$this->assertSame( 1, did_filter( 'check_password' ) );
+	}
+
+	/**
+	 * @ticket 21022
+	 * @ticket 50027
+	 *
+	 * @dataProvider data_empty_values
+	 * @param mixed $value
+	 */
+	public function test_wp_check_password_does_not_support_empty_password( $value ) {
+		$password = $value;
+		$hash     = $value;
+		$this->assertFalse( wp_check_password( $password, $hash ) );
+		$this->assertSame( 1, did_filter( 'check_password' ) );
+	}
+
+	public function data_empty_values() {
+		return array(
+			// Integer zero:
+			array( 0 ),
+			// String zero:
+			array( '0' ),
+			// Zero-length string:
+			array( '' ),
+			// Null byte character:
+			array( "\0" ),
+			// Asterisk values:
+			array( '*' ),
+			array( '*0' ),
+			array( '*1' ),
+		);
 	}
 
 	/**
@@ -547,20 +581,28 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 	}
 
-	public function test_f() {
-		$this->markTestIncomplete();
+	/**
+	 * @dataProvider data_empty_values
+	 * @param mixed $value
+	 */
+	public function test_empty_password_is_rejected_by_bcrypt( $value ) {
+		// Set the user password.
+		wp_set_password( 'password', self::$user_id );
 
-		$user = wp_authenticate( $this->user->user_login, '*0' );
+		$user = wp_authenticate( $this->user->user_login, $value );
 		$this->assertInstanceOf( 'WP_Error', $user );
-		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 	}
 
-	public function test_g() {
-		$this->markTestIncomplete();
+	/**
+	 * @dataProvider data_empty_values
+	 * @param mixed $value
+	 */
+	public function test_empty_password_is_rejected_by_phpass( $value ) {
+		// Set the user password with the old phpass algorithm.
+		self::set_user_password_with_phpass( 'password', self::$user_id );
 
-		$user = wp_authenticate( $this->user->user_login, '*1' );
+		$user = wp_authenticate( $this->user->user_login, $value );
 		$this->assertInstanceOf( 'WP_Error', $user );
-		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 	}
 
 	public function test_h() {
