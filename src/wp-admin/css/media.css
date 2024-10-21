@@ -583,7 +583,7 @@ border color while dragging a file over the uploader drop area */
 
 .media-frame.mode-select .attachments-browser.fixed .media-toolbar {
 	position: fixed;
-	top: 32px;
+	top: var(--wp-admin--admin-bar--height, 32px);
 	left: auto;
 	right: 20px;
 	margin-top: 0;
@@ -1368,7 +1368,6 @@ audio, video {
 
 @media only screen and (max-width: 782px) {
 	.media-frame.mode-select .attachments-browser.fixed .media-toolbar {
-		top: 46px;
 		right: 10px;
 	}
 }
