@@ -889,6 +889,11 @@ function wp_restore_image( $post_id ) {
 		}
 	}
 
+	$msg->orig_size = array(
+		'width'  => $meta['width'],
+		'height' => $meta['height'],
+	);
+
 	return $msg;
 }
 
