@@ -691,4 +691,58 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$imagick->destroy();
 		$this->assertSame( $expected, $output, 'The image color of the generated thumb does not match expected opaque background.' ); // Allow for floating point equivalence.
 	}
+
+
+	/**
+	 * Test that resizes are smaller for 16 bit PNG images.
+	 *
+	 * @ticket 36477
+	 *
+	 * @dataProvider data_resizes_are_small_for_16bit_images
+	 */
+	public function test_resizes_are_small_for_16bit_images( $file ) {
+
+		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+		$imagick_image_editor->load();
+		$size = $imagick_image_editor->get_size();
+
+		$org_filesize = filesize( $file );
+
+		$imagick_image_editor->resize( $size['width'] * .5, $size['height'] * .5 );
+
+		$saved = $imagick_image_editor->save( $temp_file );
+
+		$new_filesize = filesize( $temp_file );
+
+		unlink( $temp_file );
+
+		$this->assertLessThan( $org_filesize, $new_filesize, 'The resized image file size is not smaller than the original file size.' );
+	}
+
+	/**
+	 * data_test_resizes_are_small_for_16bit
+	 *
+	 * @return array[]
+	 */
+	public static function data_resizes_are_small_for_16bit_images() {
+		return array(
+			'cloudflare-status'       => array(
+				DIR_TESTDATA . '/images/png-tests/cloudflare-status.png',
+			),
+			'deskcat8'                => array(
+				DIR_TESTDATA . '/images/png-tests/deskcat8.png',
+			),
+			'17-c3-duplicate-entries' => array(
+				DIR_TESTDATA . '/images/png-tests/Palette_icon-or8.png',
+			),
+			'rabbit-time-paletted'    => array(
+				DIR_TESTDATA . '/images/png-tests/rabbit-time-paletted-or8.png',
+			),
+			'test8'                   => array(
+				DIR_TESTDATA . '/images/png-tests/test8.png',
+			),
+		);
+	}
 }
