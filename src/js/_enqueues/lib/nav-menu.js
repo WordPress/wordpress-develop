@@ -608,8 +608,7 @@
 		 * @param {object} orderDropdown select field
 		 */
 		changeMenuOrder : function( orderDropdown ) {
-			var menuItemWithChild,
-				menuItems = $( '#menu-to-edit li' ),
+			var menuItems = $( '#menu-to-edit li' ),
 				$this = $( orderDropdown ),
 				newOrderID = parseInt( $this.val(), 10),
 				menuItem = $this.closest( 'li.menu-item' ).first(),
