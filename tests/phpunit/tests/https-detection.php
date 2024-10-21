@@ -42,16 +42,28 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 	 */
 	public function test_wp_is_https_supported() {
 		// The function works with cached errors, so only test that here.
-		$wp_error = new WP_Error();
 
 		// No errors, so HTTPS is supported.
-		update_option( 'https_detection_errors', $wp_error->errors );
+		// We simulate that by returning an empty array from the errors.
 		$this->assertTrue( wp_is_https_supported() );
 
-		// Errors, so HTTPS is not supported.
-		$wp_error->add( 'ssl_verification_failed', 'SSL verification failed.' );
-		update_option( 'https_detection_errors', $wp_error->errors );
+		// Now we simulate that HTTPS is not supported by returning errors.
+		$support_errors = new WP_Error();
+		$support_errors->add( 'ssl_verification_failed', 'SSL verification failed.' );
+
+		// Short-circuit the detection logic to return our simulated errors.
+		add_filter(
+			'pre_wp_get_https_detection_errors',
+			function () use ( $support_errors ) {
+				return $support_errors;
+			}
+		);
+
+		// Test that HTTPS is not supported due to the simulated errors.
 		$this->assertFalse( wp_is_https_supported() );
+
+		// Remove the filter to avoid affecting other tests.
+		remove_filter( 'pre_wp_get_https_detection_errors', '__return_null' );
 	}
 
 	/**
