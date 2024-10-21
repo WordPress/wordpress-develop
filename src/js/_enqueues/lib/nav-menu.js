@@ -613,50 +613,30 @@
 				$this = $( orderDropdown ),
 				newOrderID = parseInt( $this.val(), 10),
 				menuItem = $this.closest( 'li.menu-item' ).first(),
-				depth = menuItem.menuItemDepth(),
-				thisItemChildren = menuItem.childMenuItems(),
-				thisItemNoOfChild = thisItemChildren.length,
-				isPrimaryMenuItem = ( 0 === depth ),
-				currentItemPosition = parseInt( menuItem.index(), 10 ),
+				menuItemChildren = menuItem.childMenuItems(),
+				menuItemNoChildren = menuItemChildren.length,
+				menuItemCurrentPosition = parseInt( menuItem.index(), 10 );
 				parentItemID = menuItem.find( '.menu-item-data-parent-id' ).val(),
-				parentItem = $( '#menu-item-' + parentItemID ),
-				parentPosition = parseInt( parentItem.index(), 10 ),
-				newItemPosition = parentPosition + newOrderID,
-				primaryItems = $( '.menu-item-depth-0' ),
-				currentItemAtPosition = $( primaryItems[ newOrderID - 1 ] ),
-				currentItemAtPositionNoOfChild = parseInt( currentItemAtPosition.childMenuItems().length, 10 );
+				subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemID + '"]' ),
+				currentItemAtPosition = $(subItems[newOrderID - 1]).closest( 'li.menu-item' );
 
-			if ( isPrimaryMenuItem ) {
-				newItemPosition = parseInt( currentItemAtPosition.index(), 10 );
-				if ( currentItemPosition < newItemPosition ) {
-					if ( currentItemAtPositionNoOfChild > 0 ) {
-						newItemPosition = newItemPosition + currentItemAtPositionNoOfChild - thisItemNoOfChild;
-					}
-					menuItemWithChild = menuItem.add( thisItemChildren );
-					menuItemWithChild.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
-				} else {
-					if ( thisItemChildren ) {
-						menuItemWithChild = menuItem.add( thisItemChildren );
-						menuItemWithChild.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
-					} else {
-						menuItem.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();	
-					}
-				}
+			if ( menuItemNoChildren > 0 ) {
+				menuItem = menuItem.add( menuItemChildren );
+			}
+
+			var currentItemNoChildren = currentItemAtPosition.childMenuItems().length,
+				currentItemPosition = parseInt( currentItemAtPosition.index(), 10 );
+
+			menuItems = $( '#menu-to-edit li' );
+
+			var	menuItemNewPosition = currentItemPosition;
+
+			if(menuItemCurrentPosition > menuItemNewPosition){
+				menuItemNewPosition = currentItemPosition;
+				menuItem.detach().insertBefore( menuItems.eq( menuItemNewPosition ) ).updateOrderDropdown();
 			} else {
-				if ( currentItemPosition < newItemPosition ) {
-					if ( currentItemAtPositionNoOfChild > 0 ) {
-						newItemPosition = newItemPosition + currentItemAtPositionNoOfChild - thisItemNoOfChild;
-					}
-					menuItemWithChild = menuItem.add( thisItemChildren );
-					menuItemWithChild.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
-				} else {
-					if ( thisItemChildren ) {
-						menuItemWithChild = menuItem.add( thisItemChildren );
-						menuItemWithChild.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
-					} else {
-						menuItem.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();	
-					}
-				}
+				menuItemNewPosition = menuItemNewPosition + currentItemNoChildren
+				menuItem.detach().insertAfter( menuItems.eq( menuItemNewPosition ) ).updateOrderDropdown();
 			}
 
 			api.registerChange();
