@@ -572,7 +572,7 @@ function populate_options( array $options = array() ) {
 		$defaults['permalink_structure'] = '/%year%/%monthnum%/%day%/%postname%/';
 	}
 
-	// 5.9.0
+	// 6.8.0
 	if ( ! is_multisite() ) {
 		$defaults['WPLANG'] = '';
 	}
