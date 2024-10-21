@@ -4555,4 +4555,31 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 */
 	const TEXT_IS_WHITESPACE = 'TEXT_IS_WHITESPACE';
+
+	/*
+	 * Debug helpers.
+	 */
+
+	public function debug_current_position() {
+		echo "\n\e[31mCurrent Position\e[m\n";
+		echo "\e[32m{$this->html}\e[m\n";
+		echo str_pad( '', $this->bytes_already_parsed, ' ' );
+		echo "\e[33m^\e[m\n";
+	}
+
+	public function debug_classname_updates() {
+		echo "\n\e[31m\"\e[35mclass\e[31m\" Updates\e[m\n";
+		foreach ( $this->classname_updates as $name => $change ) {
+			$op = $change === true ? 'added' : 'removed';
+			echo "  \e[32m{$name}\e[90m should be \e[35m{$op}\e[m\n";
+		}
+	}
+
+	public function debug_lexical_updates() {
+		echo "\n\e[31mLexical Updates\e[m\n";
+		foreach ( $this->lexical_updates as $index => $update ) {
+			$old = substr( $this->html, $update->start, $update->length );
+			echo "  \e[32m{$index}\e[90m changes (\e[34m{$update->start}\e[90m, \e[34m{$update->length}\e[90m) from \"\e[35m{$old}\e[90m\" to \"\e[31m{$update->text}\e[90m\"\e[m\n";
+		}
+	}
 }
