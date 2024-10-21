@@ -273,12 +273,43 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * A valid query that returns 0 results should return an empty JSON list.
-	 *
-	 * @link https://github.com/WP-API/WP-API/issues/862
+	 * @ticket 56481
 	 */
-	public function test_get_items_empty_query() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+	public function test_get_items_with_head_request_should_not_prepare_post_data() {
+		$request = new WP_REST_Request( 'HEAD', '/wp/v2/posts' );
+
+		$hook_name = 'rest_prepare_post';
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+
+		add_filter( $hook_name, $callback );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+
+		$this->assertNotWPError( $response );
+		$response = rest_ensure_response( $response );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+
+		$headers = $response->get_headers();
+		$this->assertSame( 0, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
+		$this->assertArrayHasKey( 'Link', $headers, 'The "Link" header should be present in the response.' );
+		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * A valid query that returns 0 results should return an empty JSON list.
+	 * In case of a HEAD request, the response should not contain a body.
+	 *
+	 * @dataProvider data_readable_http_methods
+	 * @link https://github.com/WP-API/WP-API/issues/862
+	 * @ticket 56481
+	 * @covers WP_REST_Posts_Controller::get_items
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_empty_query( $method ) {
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_query_params(
 			array(
 				'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
@@ -286,85 +317,147 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEmpty( $response->get_data() );
-		$this->assertSame( 200, $response->get_status() );
+		if ( $request->is_method( 'head' ) ) {
+			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+		} else {
+			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is an empty array for GET request.' );
+		}
+
+		$headers = $response->get_headers();
+		$this->assertSame( 0, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 0.' );
+		$this->assertSame( 0, $headers['X-WP-TotalPages'], 'Failed asserting that X-WP-TotalPages header is 0.' );
 	}
 
-	public function test_get_items_author_query() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_author_query( $method ) {
 		self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
 		self::factory()->post->create( array( 'post_author' => self::$author_id ) );
 
 		$total_posts = self::$total_posts + 2;
 
 		// All posts in the database.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertCount( $total_posts, $response->get_data() );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( $total_posts, $response->get_data() );
+
+		} else {
+			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( $total_posts, $headers['X-WP-Total'] );
+		}
 
 		// Limit to editor and author.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'author', array( self::$editor_id, self::$author_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertCount( 2, $data );
-		$this->assertSameSets( array( self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( 2, $data );
+			$this->assertSameSets( array( self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
+		} else {
+			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 2.' );
+		}
 
 		// Limit to editor.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'author', self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertCount( 1, $data );
-		$this->assertSame( self::$editor_id, $data[0]['author'] );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( 1, $data );
+			$this->assertSame( self::$editor_id, $data[0]['author'] );
+		} else {
+			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( 1, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 1.' );
+		}
 	}
 
-	public function test_get_items_author_exclude_query() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_author_exclude_query( $method ) {
 		self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
 		self::factory()->post->create( array( 'post_author' => self::$author_id ) );
 
 		$total_posts = self::$total_posts + 2;
 
 		// All posts in the database.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertCount( $total_posts, $response->get_data() );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( $total_posts, $response->get_data() );
+		} else {
+			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( $total_posts, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
+		}
 
 		// Exclude editor and author.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$request->set_param( 'author_exclude', array( self::$editor_id, self::$author_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertCount( $total_posts - 2, $data );
-		$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
-		$this->assertNotEquals( self::$author_id, $data[0]['author'] );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( $total_posts - 2, $data );
+			$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
+			$this->assertNotEquals( self::$author_id, $data[0]['author'] );
+		} else {
+			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( $total_posts - 2, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
+		}
 
 		// Exclude editor.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$request->set_param( 'author_exclude', self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertCount( $total_posts - 1, $data );
-		$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
-		$this->assertNotEquals( self::$editor_id, $data[1]['author'] );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( $total_posts - 1, $data );
+			$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
+			$this->assertNotEquals( self::$editor_id, $data[1]['author'] );
+		} else {
+			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( $total_posts - 1, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
+		}
 
 		// Invalid 'author_exclude' should error.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'author_exclude', 'invalid' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
-	public function test_get_items_include_query() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_include_query( $method ) {
 		$id1 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
@@ -378,26 +471,40 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 
 		// Order defaults to date descending.
 		$request->set_param( 'include', array( $id1, $id2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertCount( 2, $data );
-		$this->assertSame( $id2, $data[0]['id'] );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( 2, $data );
+			$this->assertSame( $id2, $data[0]['id'] );
+		} else {
+			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
+		}
+
 		$this->assertPostsOrderedBy( '{posts}.post_date DESC' );
 
 		// 'orderby' => 'include'.
 		$request->set_param( 'orderby', 'include' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertCount( 2, $data );
-		$this->assertSame( $id1, $data[0]['id'] );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( 2, $data );
+			$this->assertSame( $id1, $data[0]['id'] );
+		} else {
+			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
+		}
+
 		$this->assertPostsOrderedBy( "FIELD({posts}.ID,$id1,$id2)" );
 
 		// Invalid 'include' should error.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'include', 'invalid' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
@@ -1728,12 +1835,18 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSameSets( $parent_ids, $primed[1] );
 	}
 
-	public function test_get_items_pagination_headers() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_pagination_headers( $method ) {
 		$total_posts = self::$total_posts;
 		$total_pages = (int) ceil( $total_posts / 10 );
 
 		// Start of the index.
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertSame( $total_posts, $headers['X-WP-Total'] );
@@ -1824,6 +1937,70 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+	}
+
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_returns_only_fetches_ids_for_head_requests( $method ) {
+		$is_head_request = 'HEAD' === $method;
+		$request         = new WP_REST_Request( $method, '/wp/v2/posts' );
+
+		$filter = new MockAction();
+
+		add_filter( 'posts_pre_query', array( $filter, 'filter' ), 10, 2 );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		if ( $is_head_request ) {
+			$this->assertEmpty( $response->get_data() );
+		} else {
+			$this->assertNotEmpty( $response->get_data() );
+		}
+
+		$args = $filter->get_args();
+		$this->assertTrue( isset( $args[0][1] ), 'Query parameters were not captured.' );
+		$this->assertInstanceOf( WP_Query::class, $args[0][1], 'Query parameters were not captured.' );
+
+		/** @var WP_Query $query */
+		$query = $args[0][1];
+
+		if ( $is_head_request ) {
+			$this->assertArrayHasKey( 'fields', $query->query, 'The fields parameter is not set in the query vars.' );
+			$this->assertSame( 'ids', $query->query['fields'], 'The query must fetch only post IDs.' );
+			$this->assertArrayHasKey( 'fields', $query->query_vars, 'The fields parameter is not set in the query vars.' );
+			$this->assertSame( 'ids', $query->query_vars['fields'], 'The query must fetch only post IDs.' );
+		} else {
+			$this->assertTrue( ! array_key_exists( 'fields', $query->query ) || 'ids' !== $query->query['fields'], 'The fields parameter should not be forced to "ids" for non-HEAD requests.' );
+			$this->assertTrue( ! array_key_exists( 'fields', $query->query_vars ) || 'ids' !== $query->query_vars['fields'], 'The fields parameter should not be forced to "ids" for non-HEAD requests.' );
+		}
+
+		if ( ! $is_head_request ) {
+			return;
+		}
+
+		global $wpdb;
+		$posts_table = preg_quote( $wpdb->posts, '/' );
+		$pattern     = '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $posts_table . '\.ID\s+FROM\s+' . $posts_table . '\s+WHERE/i';
+
+		// Assert that the SQL query only fetches the ID column.
+		$this->assertMatchesRegularExpression( $pattern, $query->request, 'The SQL query does not match the expected string.' );
 	}
 
 	public function test_get_items_status_draft_permissions() {
@@ -1970,6 +2147,28 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->check_get_post_response( $response, 'view' );
+	}
+
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_item_with_head_request_should_not_prepare_post_data() {
+		$request = new WP_REST_Request( 'HEAD', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+
+		$hook_name = 'rest_prepare_' . get_post_type( self::$post_id );
+
+		$filter   = new MockAction();
+		$callback = array( $filter, 'filter' );
+		add_filter( $hook_name, $callback );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+
+		$headers = $response->get_headers();
+		$this->assertSame( 0, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
+		$this->assertArrayHasKey( 'Link', $headers, 'The "Link" header should be present in the response.' );
+		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
 	public function test_get_item_links() {
