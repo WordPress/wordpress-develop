@@ -989,6 +989,9 @@ class WP_Theme_JSON {
 		$schema_styles_blocks   = array();
 		$schema_settings_blocks = array();
 
+		$used_blocks = self::get_used_blocks( $input );
+		$valid_used_blocks = array_intersect( $used_blocks, $valid_block_names );
+
 		/*
 		 * Generate a schema for blocks.
 		 * - Block styles can contain `elements` & `variations` definitions.
@@ -999,7 +1002,7 @@ class WP_Theme_JSON {
 		 * As each variation needs a `blocks` schema but further nested
 		 * inner `blocks`, the overall schema will be generated in multiple passes.
 		 */
-		foreach ( $valid_block_names as $block ) {
+		foreach ( $valid_used_blocks as $block ) {
 			$schema_settings_blocks[ $block ]           = static::VALID_SETTINGS;
 			$schema_styles_blocks[ $block ]             = $styles_non_top_level;
 			$schema_styles_blocks[ $block ]['elements'] = $schema_styles_elements;
@@ -1009,7 +1012,7 @@ class WP_Theme_JSON {
 		$block_style_variation_styles['blocks']   = $schema_styles_blocks;
 		$block_style_variation_styles['elements'] = $schema_styles_elements;
 
-		foreach ( $valid_block_names as $block ) {
+		foreach ( $valid_used_blocks as $block ) {
 			// Build the schema for each block style variation.
 			$style_variation_names = array();
 			if (
@@ -4544,5 +4547,50 @@ class WP_Theme_JSON {
 		}
 
 		return $valid_variations;
+	}
+
+	/**
+	 * Retrieves the names of blocks used in the theme JSON input.
+	 *
+	 * This method extracts block names from the 'styles', 'settings' and 'blockTypes'
+	 * sections of the theme JSON input. It helps optimize processing by
+	 * identifying which blocks are actually present in the theme JSON data.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param array $input The raw theme JSON input array.
+	 * @return array An array of unique block names used in the input.
+	 */
+	protected static function get_used_blocks( $input ) {
+		$block_sources = array();
+
+		if ( isset( $input['styles']['blocks'] ) && is_array( $input['styles']['blocks'] ) ) {
+			$style_blocks = array_keys( $input['styles']['blocks'] );
+			$block_sources[] = $style_blocks;
+
+			foreach ( $style_blocks as $block ) {
+				if ( isset( $input['styles']['blocks'][ $block ]['variations'] ) && is_array( $input['styles']['blocks'][ $block ]['variations'] ) ) {
+					foreach ( $input['styles']['blocks'][ $block ]['variations'] as $variation ) {
+						if ( isset( $variation['blocks'] ) && is_array( $variation['blocks'] ) ) {
+							$block_sources[] = array_keys( $variation['blocks'] );
+						}
+					}
+				}
+			}
+		}
+
+		if ( isset( $input['settings']['blocks'] ) && is_array( $input['settings']['blocks'] ) ) {
+			$block_sources[] = array_keys( $input['settings']['blocks'] );
+		}
+
+		if ( isset( $input['blockTypes'] ) && is_array( $input['blockTypes'] ) ) {
+			$block_sources[] = $input['blockTypes'];
+		}
+
+		if ( empty( $block_sources ) ) {
+			return array();
+		}
+
+		return array_unique( array_merge( ...$block_sources ) );
 	}
 }
