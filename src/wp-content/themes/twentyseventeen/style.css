@@ -306,7 +306,7 @@ template {
 /* Text meant only for screen readers. */
 
 .screen-reader-text {
-	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
 	height: 1px;
 	overflow: hidden;
 	position: absolute !important;
@@ -4173,7 +4173,7 @@ p > object:only-child {
 	}
 
 	.page-numbers.current .screen-reader-text {
-		clip: rect(1px, 1px, 1px, 1px);
+		clip-path: inset(50%);
 		height: 1px;
 		overflow: hidden;
 		position: absolute !important;
