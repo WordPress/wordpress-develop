@@ -70,7 +70,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 
 	// Update last_checked for current to prevent multiple blocking requests if request hangs.
 	$current->last_checked = time();
-	set_site_transient( 'update_core', $current );
+	set_site_transient_nohook( 'update_plugins', $current );
 
 	if ( method_exists( $wpdb, 'db_server_info' ) ) {
 		$mysql_version = $wpdb->db_server_info();
