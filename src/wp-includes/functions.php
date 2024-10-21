@@ -10,9 +10,9 @@ require ABSPATH . WPINC . '/option.php';
 /**
  * Convert given MySQL date string into a different format.
  *
- * `$format` should be a PHP date format string.
- * 'U' and 'G' formats will return a sum of timestamp with timezone offset.
- * `$date` is expected to be local time in MySQL format (`Y-m-d H:i:s`).
+ *  - `$format` should be a PHP date format string.
+ *  - 'U' and 'G' formats will return an integer sum of timestamp with timezone offset.
+ *  - `$date` is expected to be local time in MySQL format (`Y-m-d H:i:s`).
  *
  * Historically UTC time could be passed to the function to produce Unix timestamp.
  *
@@ -24,7 +24,7 @@ require ABSPATH . WPINC . '/option.php';
  * @param string $format    Format of the date to return.
  * @param string $date      Date string to convert.
  * @param bool   $translate Whether the return date should be translated. Default true.
- * @return string|int|false Formatted date string or sum of Unix timestamp and timezone offset.
+ * @return string|int|false Integer if `$format` is 'U' or 'G', string otherwise.
  *                          False on failure.
  */
 function mysql2date( $format, $date, $translate = true ) {
@@ -53,20 +53,21 @@ function mysql2date( $format, $date, $translate = true ) {
 /**
  * Retrieves the current time based on specified type.
  *
- * The 'mysql' type will return the time in the format for MySQL DATETIME field.
- * The 'timestamp' type will return the current timestamp or a sum of timestamp
- * and timezone offset, depending on `$gmt`.
- * Other strings will be interpreted as PHP date formats (e.g. 'Y-m-d').
+ *  - The 'mysql' type will return the time in the format for MySQL DATETIME field.
+ *  - The 'timestamp' or 'U' types will return the current timestamp or a sum of timestamp
+ *    and timezone offset, depending on `$gmt`.
+ *  - Other strings will be interpreted as PHP date formats (e.g. 'Y-m-d').
  *
- * If $gmt is set to either '1' or 'true', then both types will use GMT time.
- * if $gmt is false, the output is adjusted with the GMT offset in the WordPress option.
+ * If `$gmt` is a truthy value then both types will use GMT time, otherwise the
+ * output is adjusted with the GMT offset for the site.
  *
  * @since 1.0.0
+ * @since 5.3.0 Now returns an integer if `$type` is 'U'. Previously a string was returned.
  *
- * @param string   $type Type of time to retrieve. Accepts 'mysql', 'timestamp',
+ * @param string   $type Type of time to retrieve. Accepts 'mysql', 'timestamp', 'U',
  *                       or PHP date format string (e.g. 'Y-m-d').
  * @param int|bool $gmt  Optional. Whether to use GMT timezone. Default false.
- * @return int|string Integer if $type is 'timestamp', string otherwise.
+ * @return int|string Integer if `$type` is 'timestamp' or 'U', string otherwise.
  */
 function current_time( $type, $gmt = 0 ) {
 	// Don't use non-GMT timestamp, unless you know the difference and really need to.
@@ -85,7 +86,7 @@ function current_time( $type, $gmt = 0 ) {
 }
 
 /**
- * Retrieves the current time as an object with the timezone from settings.
+ * Retrieves the current time as an object using the site's timezone.
  *
  * @since 5.3.0
  *
@@ -96,14 +97,23 @@ function current_datetime() {
 }
 
 /**
- * Retrieves the timezone from site settings as a string.
+ * Retrieves the timezone of the site as a string.
  *
- * Uses the `timezone_string` option to get a proper timezone if available,
- * otherwise falls back to an offset.
+ * Uses the `timezone_string` option to get a proper timezone name if available,
+ * otherwise falls back to a manual UTC ± offset.
+ *
+ * Example return values:
+ *
+ *  - 'Europe/Rome'
+ *  - 'America/North_Dakota/New_Salem'
+ *  - 'UTC'
+ *  - '-06:30'
+ *  - '+00:00'
+ *  - '+08:45'
  *
  * @since 5.3.0
  *
- * @return string PHP timezone string or a ±HH:MM offset.
+ * @return string PHP timezone name or a ±HH:MM offset.
  */
 function wp_timezone_string() {
 	$timezone_string = get_option( 'timezone_string' );
@@ -125,7 +135,7 @@ function wp_timezone_string() {
 }
 
 /**
- * Retrieves the timezone from site settings as a `DateTimeZone` object.
+ * Retrieves the timezone of the site as a `DateTimeZone` object.
  *
  * Timezone can be based on a PHP timezone string or a ±HH:MM offset.
  *
@@ -555,7 +565,12 @@ function human_readable_duration( $duration = '' ) {
  *
  * @param string     $mysqlstring   Date or datetime field type from MySQL.
  * @param int|string $start_of_week Optional. Start of the week as an integer. Default empty string.
- * @return array Keys are 'start' and 'end'.
+ * @return int[] {
+ *     Week start and end dates as Unix timestamps.
+ *
+ *     @type int $start The week start date as a Unix timestamp.
+ *     @type int $end   The week end date as a Unix timestamp.
+ * }
  */
 function get_weekstartend( $mysqlstring, $start_of_week = '' ) {
 	// MySQL string year.
@@ -1533,7 +1548,7 @@ function get_num_queries() {
  * @since 1.0.0
  *
  * @param string $yn Character string containing either 'y' (yes) or 'n' (no).
- * @return bool True if yes, false on anything else.
+ * @return bool True if 'y', false on anything else.
  */
 function bool_from_yn( $yn ) {
 	return ( 'y' === strtolower( $yn ) );
@@ -2620,6 +2635,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 		// Check if an image will be converted after uploading or some existing images sub-sizes file names may conflict
 		// when regenerated. If yes, ensure the new file name will be unique and will produce unique sub-sizes.
 		if ( $is_image ) {
+			/** This filter is documented in wp-includes/class-wp-image-editor.php */
 			$output_formats = apply_filters( 'image_editor_output_format', array(), $_dir . $filename, $mime_type );
 			$alt_types      = array();
 
@@ -2793,7 +2809,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 
 	$wp_filetype = wp_check_filetype( $name );
 	if ( ! $wp_filetype['ext'] && ! current_user_can( 'unfiltered_upload' ) ) {
-		return array( 'error' => __( 'Sorry, this file type is not permitted for security reasons.' ) );
+		return array( 'error' => __( 'Sorry, you are not allowed to upload this file type.' ) );
 	}
 
 	$upload = wp_upload_dir( $time );
@@ -3557,9 +3573,9 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 		 * @param callable $function Callback function name.
 		 */
 		$function = apply_filters( 'wp_die_json_handler', '_json_wp_die_handler' );
-	} elseif ( wp_is_jsonp_request() ) {
+	} elseif ( defined( 'REST_REQUEST' ) && REST_REQUEST && wp_is_jsonp_request() ) {
 		/**
-		 * Filters the callback for killing WordPress execution for JSONP requests.
+		 * Filters the callback for killing WordPress execution for JSONP REST requests.
 		 *
 		 * @since 5.2.0
 		 *
@@ -7618,6 +7634,10 @@ All at ###SITENAME###
  * @return string  The anonymized IP address.
  */
 function wp_privacy_anonymize_ip( $ip_addr, $ipv6_fallback = false ) {
+	if ( empty( $ip_addr ) ) {
+		return '0.0.0.0';
+	}
+
 	// Detect what kind of IP address this is.
 	$ip_prefix = '';
 	$is_ipv6   = substr_count( $ip_addr, ':' ) > 1;
@@ -8116,8 +8136,9 @@ function get_dirsize( $directory, $max_execution_time = null ) {
  * @param string       $directory          Full path of a directory.
  * @param string|array $exclude            Optional. Full path of a subdirectory to exclude from the total,
  *                                         or array of paths. Expected without trailing slash(es).
- * @param int          $max_execution_time Maximum time to run before giving up. In seconds. The timeout is global
- *                                         and is measured from the moment WordPress started to load.
+ * @param int          $max_execution_time Optional. Maximum time to run before giving up. In seconds.
+ *                                         The timeout is global and is measured from the moment
+ *                                         WordPress started to load.
  * @param array        $directory_cache    Optional. Array of cached directory paths.
  *
  * @return int|false|null Size in bytes if a valid directory. False if not. Null if timeout.
@@ -8190,7 +8211,9 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 						}
 					}
 
-					if ( $max_execution_time > 0 && microtime( true ) - WP_START_TIMESTAMP > $max_execution_time ) {
+					if ( $max_execution_time > 0 &&
+						( microtime( true ) - WP_START_TIMESTAMP ) > $max_execution_time
+					) {
 						// Time exceeded. Give up instead of risking a fatal timeout.
 						$size = null;
 						break;
@@ -8199,6 +8222,10 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 			}
 			closedir( $handle );
 		}
+	}
+
+	if ( ! is_array( $directory_cache ) ) {
+		$directory_cache = array();
 	}
 
 	$directory_cache[ $directory ] = $size;
@@ -8217,21 +8244,50 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
  * Removes the current directory and all parent directories from the `dirsize_cache` transient.
  *
  * @since 5.6.0
+ * @since 5.9.0 Added input validation with a notice for invalid input.
  *
  * @param string $path Full path of a directory or file.
  */
 function clean_dirsize_cache( $path ) {
+	if ( ! is_string( $path ) || empty( $path ) ) {
+		trigger_error(
+			sprintf(
+				/* translators: 1: Function name, 2: A variable type, like "boolean" or "integer". */
+				__( '%1$s only accepts a non-empty path string, received %2$s.' ),
+				'<code>clean_dirsize_cache()</code>',
+				'<code>' . gettype( $path ) . '</code>'
+			)
+		);
+		return;
+	}
+
 	$directory_cache = get_transient( 'dirsize_cache' );
 
 	if ( empty( $directory_cache ) ) {
 		return;
 	}
 
-	$path = untrailingslashit( $path );
+	if (
+		strpos( $path, '/' ) === false &&
+		strpos( $path, '\\' ) === false
+	) {
+		unset( $directory_cache[ $path ] );
+		set_transient( 'dirsize_cache', $directory_cache );
+		return;
+	}
+
+	$last_path = null;
+	$path      = untrailingslashit( $path );
 	unset( $directory_cache[ $path ] );
 
-	while ( DIRECTORY_SEPARATOR !== $path && '.' !== $path && '..' !== $path ) {
-		$path = dirname( $path );
+	while (
+		$last_path !== $path &&
+		DIRECTORY_SEPARATOR !== $path &&
+		'.' !== $path &&
+		'..' !== $path
+	) {
+		$last_path = $path;
+		$path      = dirname( $path );
 		unset( $directory_cache[ $path ] );
 	}
 

@@ -1,0 +1,1 @@
+This is a dummy text file which is only used by the `Tests_Functions_CleanDirsizeCache::test_recurse_dirsize_without_transient()` test.

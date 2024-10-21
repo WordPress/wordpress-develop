@@ -5,7 +5,7 @@
  */
 class Tests_Post_Template extends WP_UnitTestCase {
 
-	function test_wp_link_pages() {
+	public function test_wp_link_pages() {
 		$contents = array( 'One', 'Two', 'Three' );
 		$content  = implode( '<!--nextpage-->', $contents );
 		$post_id  = self::factory()->post->create( array( 'post_content' => $content ) );
@@ -131,7 +131,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 		$this->assertSame( $pagelink, $output );
 	}
 
-	function test_wp_dropdown_pages() {
+	public function test_wp_dropdown_pages() {
 		$none = wp_dropdown_pages( array( 'echo' => 0 ) );
 		$this->assertEmpty( $none );
 

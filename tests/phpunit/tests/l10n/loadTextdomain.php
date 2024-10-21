@@ -109,13 +109,13 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 	/**
 	 * @ticket 21319
 	 */
-	function test_is_textdomain_is_not_loaded_after_gettext_call_with_no_translations() {
+	public function test_is_textdomain_is_not_loaded_after_gettext_call_with_no_translations() {
 		$this->assertFalse( is_textdomain_loaded( 'wp-tests-domain' ) );
 		__( 'just some string', 'wp-tests-domain' );
 		$this->assertFalse( is_textdomain_loaded( 'wp-tests-domain' ) );
 	}
 
-	function test_override_load_textdomain_noop() {
+	public function test_override_load_textdomain_noop() {
 		add_filter( 'override_load_textdomain', '__return_true' );
 		$load_textdomain = load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/non-existent-file' );
 		remove_filter( 'override_load_textdomain', '__return_true' );
@@ -124,10 +124,10 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 		$this->assertFalse( is_textdomain_loaded( 'wp-tests-domain' ) );
 	}
 
-	function test_override_load_textdomain_non_existent_mofile() {
-		add_filter( 'override_load_textdomain', array( $this, '_override_load_textdomain_filter' ), 10, 3 );
+	public function test_override_load_textdomain_non_existent_mofile() {
+		add_filter( 'override_load_textdomain', array( $this, 'override_load_textdomain_filter' ), 10, 3 );
 		$load_textdomain = load_textdomain( 'wp-tests-domain', WP_LANG_DIR . '/non-existent-file.mo' );
-		remove_filter( 'override_load_textdomain', array( $this, '_override_load_textdomain_filter' ) );
+		remove_filter( 'override_load_textdomain', array( $this, 'override_load_textdomain_filter' ) );
 
 		$is_textdomain_loaded = is_textdomain_loaded( 'wp-tests-domain' );
 		unload_textdomain( 'wp-tests-domain' );
@@ -138,10 +138,10 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 		$this->assertFalse( $is_textdomain_loaded_after );
 	}
 
-	function test_override_load_textdomain_custom_mofile() {
-		add_filter( 'override_load_textdomain', array( $this, '_override_load_textdomain_filter' ), 10, 3 );
+	public function test_override_load_textdomain_custom_mofile() {
+		add_filter( 'override_load_textdomain', array( $this, 'override_load_textdomain_filter' ), 10, 3 );
 		$load_textdomain = load_textdomain( 'wp-tests-domain', WP_LANG_DIR . '/plugins/internationalized-plugin-de_DE.mo' );
-		remove_filter( 'override_load_textdomain', array( $this, '_override_load_textdomain_filter' ) );
+		remove_filter( 'override_load_textdomain', array( $this, 'override_load_textdomain_filter' ) );
 
 		$is_textdomain_loaded = is_textdomain_loaded( 'wp-tests-domain' );
 		unload_textdomain( 'wp-tests-domain' );
@@ -158,7 +158,7 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 	 * @param string $file     Path to the MO file.
 	 * @return bool
 	 */
-	function _override_load_textdomain_filter( $override, $domain, $file ) {
+	public function override_load_textdomain_filter( $override, $domain, $file ) {
 		global $l10n;
 
 		if ( ! is_readable( $file ) ) {

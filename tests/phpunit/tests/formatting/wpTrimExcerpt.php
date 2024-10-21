@@ -71,6 +71,16 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 	 * @ticket 51042
 	 */
 	public function test_should_generate_excerpt_for_empty_values() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$post = self::factory()->post->create(
 			array(
 				'post_content' => 'Post content',

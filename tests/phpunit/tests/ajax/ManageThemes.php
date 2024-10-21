@@ -13,7 +13,7 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 	private $orig_theme_dir;
 	private $theme_root;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		$this->theme_root     = DIR_TESTDATA . '/themedir1';
@@ -30,7 +30,7 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
 		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
@@ -101,8 +101,10 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 		$this->assertSameSets( $expected, $response );
 	}
 
+	/**
+	 * @group ms-excluded
+	 */
 	public function test_update_theme() {
-		$this->skipWithMultisite();
 		$this->_setRole( 'administrator' );
 
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'updates' );
@@ -139,8 +141,10 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 		$this->assertSameSets( $expected, $response );
 	}
 
-	function test_uppercase_theme_slug() {
-		$this->skipWithMultisite();
+	/**
+	 * @group ms-excluded
+	 */
+	public function test_uppercase_theme_slug() {
 		$this->_setRole( 'administrator' );
 
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'updates' );

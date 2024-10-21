@@ -77,7 +77,10 @@
 function get_option( $option, $default = false ) {
 	global $wpdb;
 
-	$option = trim( $option );
+	if ( is_scalar( $option ) ) {
+		$option = trim( $option );
+	}
+
 	if ( empty( $option ) ) {
 		return false;
 	}
@@ -378,7 +381,10 @@ function wp_load_core_site_options( $network_id = null ) {
 function update_option( $option, $value, $autoload = null ) {
 	global $wpdb;
 
-	$option = trim( $option );
+	if ( is_scalar( $option ) ) {
+		$option = trim( $option );
+	}
+
 	if ( empty( $option ) ) {
 		return false;
 	}
@@ -565,7 +571,10 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 		_deprecated_argument( __FUNCTION__, '2.3.0' );
 	}
 
-	$option = trim( $option );
+	if ( is_scalar( $option ) ) {
+		$option = trim( $option );
+	}
+
 	if ( empty( $option ) ) {
 		return false;
 	}
@@ -687,7 +696,10 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 function delete_option( $option ) {
 	global $wpdb;
 
-	$option = trim( $option );
+	if ( is_scalar( $option ) ) {
+		$option = trim( $option );
+	}
+
 	if ( empty( $option ) ) {
 		return false;
 	}
@@ -2238,6 +2250,8 @@ function register_initial_settings() {
  * Registers a setting and its data.
  *
  * @since 2.7.0
+ * @since 3.0.0 The `misc` option group was deprecated.
+ * @since 3.5.0 The `privacy` option group was deprecated.
  * @since 4.7.0 `$args` can be passed to set flags on the setting, similar to `register_meta()`.
  * @since 5.5.0 `$new_whitelist_options` was renamed to `$new_allowed_options`.
  *              Please consider writing more inclusive code.
@@ -2247,7 +2261,7 @@ function register_initial_settings() {
  *
  * @param string $option_group A settings group name. Should correspond to an allowed option key name.
  *                             Default allowed option key names include 'general', 'discussion', 'media',
- *                             'reading', 'writing', 'misc', 'options', and 'privacy'.
+ *                             'reading', 'writing', and 'options'.
  * @param string $option_name The name of an option to sanitize and save.
  * @param array  $args {
  *     Data used to describe the setting when registered.
@@ -2369,9 +2383,9 @@ function register_setting( $option_group, $option_name, $args = array() ) {
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
  *
- * @param string          $option_group The settings group name used during registration.
- * @param string          $option_name  The name of the option to unregister.
- * @param callable|string $deprecated   Deprecated.
+ * @param string   $option_group The settings group name used during registration.
+ * @param string   $option_name  The name of the option to unregister.
+ * @param callable $deprecated   Optional. Deprecated.
  */
 function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 	global $new_allowed_options, $wp_registered_settings;

@@ -94,7 +94,7 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 		return array(
 			'when url is given' => array(
 				'url' => 'https://wordpress.org/news/feed/',
-				'<section id="widget_rss-5" class="widget widget_rss"><h2><a class="rsswidget" href="https://wordpress.org/news/feed/">',
+				'<section id="widget_rss-5" class="widget widget_rss"><h2><a class="rsswidget rss-widget-feed" href="https://wordpress.org/news/feed/">',
 			),
 		);
 	}

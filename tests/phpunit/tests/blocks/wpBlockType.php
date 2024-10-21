@@ -216,7 +216,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 	/**
 	 * @ticket 45145
 	 */
-	function test_prepare_attributes_none_defined() {
+	public function test_prepare_attributes_none_defined() {
 		$attributes = array( 'exists' => 'keep' );
 
 		$block_type = new WP_Block_Type( 'core/dummy', array() );

@@ -10,14 +10,14 @@ class Tests_L10n_TranslateSettingsUsingI18nSchema extends WP_UnitTestCase {
 	 *
 	 * @return string
 	 */
-	function filter_set_locale_to_polish() {
+	public function filter_set_locale_to_polish() {
 		return 'pl_PL';
 	}
 
 	/**
 	 * @ticket 53238
 	 */
-	function test_translate_settings_using_i18n_schema() {
+	public function test_translate_settings_using_i18n_schema() {
 		$textdomain = 'notice';
 
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );

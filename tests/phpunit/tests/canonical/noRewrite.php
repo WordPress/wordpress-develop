@@ -24,11 +24,11 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 	/**
 	 * @dataProvider data
 	 */
-	function test( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
+	public function test( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	function data() {
+	public function data() {
 		/*
 		 * Test URL.
 		 * [0]: Test URL.

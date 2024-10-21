@@ -903,12 +903,14 @@ function post_slug_meta_box( $post ) {
  */
 function post_author_meta_box( $post ) {
 	global $user_ID;
+
+	$post_type_object = get_post_type_object( $post->post_type );
 	?>
 <label class="screen-reader-text" for="post_author_override"><?php _e( 'Author' ); ?></label>
 	<?php
 	wp_dropdown_users(
 		array(
-			'who'              => 'authors',
+			'capability'       => array( $post_type_object->cap->edit_posts ),
 			'name'             => 'post_author_override',
 			'selected'         => empty( $post->ID ) ? $user_ID : $post->post_author,
 			'include_selected' => true,
@@ -1581,7 +1583,7 @@ function register_and_do_post_meta_boxes( $post ) {
 	/**
 	 * Fires after all built-in meta boxes have been added, contextually for the given post type.
 	 *
-	 * The dynamic portion of the hook, `$post_type`, refers to the post type of the post.
+	 * The dynamic portion of the hook name, `$post_type`, refers to the post type of the post.
 	 *
 	 * Possible hook names include:
 	 *

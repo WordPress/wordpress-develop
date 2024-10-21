@@ -14,7 +14,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 22560
 	 */
-	function test_object_term_cache() {
+	public function test_object_term_cache() {
 		$post_id = self::$post_ids[0];
 
 		$terms_1 = array( 'foo', 'bar', 'baz' );
@@ -50,7 +50,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 24189
 	 */
-	function test_object_term_cache_when_term_changes() {
+	public function test_object_term_cache_when_term_changes() {
 		$post_id = self::$post_ids[0];
 		$tag_id  = self::factory()->tag->create(
 			array(
@@ -168,7 +168,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 34723
 	 */
-	function test_get_the_terms_should_return_wp_error_when_taxonomy_is_unregistered() {
+	public function test_get_the_terms_should_return_wp_error_when_taxonomy_is_unregistered() {
 		$p     = self::$post_ids[0];
 		$terms = get_the_terms( $p, 'this-taxonomy-does-not-exist' );
 		$this->assertWPError( $terms );

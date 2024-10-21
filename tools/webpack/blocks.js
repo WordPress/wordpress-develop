@@ -178,7 +178,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 				),
 			} ),
 			new DependencyExtractionPlugin( {
-				injectPolyfill: true,
+				injectPolyfill: false,
 			} ),
 			new CopyWebpackPlugin(
 				[

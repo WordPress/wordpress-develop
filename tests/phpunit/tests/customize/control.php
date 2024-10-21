@@ -24,7 +24,7 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	/**
 	 * Set up.
 	 */
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
@@ -37,7 +37,7 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Control::check_capabilities()
 	 */
-	function test_check_capabilities() {
+	public function test_check_capabilities() {
 		do_action( 'customize_register', $this->wp_customize );
 		$control = new WP_Customize_Control(
 			$this->wp_customize,
@@ -105,7 +105,7 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	/**
 	 * @ticket 38164
 	 */
-	function test_dropdown_pages() {
+	public function test_dropdown_pages() {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$this->assertInstanceOf( 'WP_Customize_Nav_Menus', $this->wp_customize->nav_menus );
@@ -172,7 +172,7 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	/**
 	 * Tear down.
 	 */
-	function tear_down() {
+	public function tear_down() {
 		$this->wp_customize = null;
 		unset( $GLOBALS['wp_customize'] );
 		parent::tear_down();

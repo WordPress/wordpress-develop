@@ -26,6 +26,8 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 * @ticket 41083
 	 * @ticket 43545
 	 *
+	 * @covers ::wp_privacy_anonymize_ip
+	 *
 	 * @param string $raw_ip          Raw IP address.
 	 * @param string $expected_result Expected result.
 	 */
@@ -54,6 +56,22 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 			// Invalid IP.
 			array(
 				null,
+				'0.0.0.0',
+			),
+			array(
+				false,
+				'0.0.0.0',
+			),
+			array(
+				true,
+				'0.0.0.0',
+			),
+			array(
+				0,
+				'0.0.0.0',
+			),
+			array(
+				1,
 				'0.0.0.0',
 			),
 			array(
@@ -165,6 +183,8 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 * @ticket 43545
 	 * @requires function inet_ntop
 	 * @requires function inet_pton
+	 *
+	 * @covers ::wp_privacy_anonymize_ip
 	 *
 	 * @param string $raw_ip          Raw IP address.
 	 * @param string $expected_result Expected result.

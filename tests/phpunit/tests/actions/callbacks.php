@@ -10,7 +10,7 @@ class Tests_Actions_Callbacks extends WP_UnitTestCase {
 	 *
 	 * @covers ::add_action
 	 */
-	function test_callback_representations() {
+	public function test_callback_representations() {
 		$tag = __FUNCTION__;
 
 		$this->assertFalse( has_action( $tag ) );

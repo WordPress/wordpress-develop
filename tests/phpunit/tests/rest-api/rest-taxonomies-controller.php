@@ -219,7 +219,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 10, $properties );
+		$this->assertCount( 11, $properties );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'hierarchical', $properties );
@@ -230,6 +230,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( 'types', $properties );
 		$this->assertArrayHasKey( 'visibility', $properties );
 		$this->assertArrayHasKey( 'rest_base', $properties );
+		$this->assertArrayHasKey( 'rest_namespace', $properties );
 	}
 
 	/**
@@ -252,6 +253,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( $tax_obj->description, $data['description'] );
 		$this->assertSame( $tax_obj->hierarchical, $data['hierarchical'] );
 		$this->assertSame( $tax_obj->rest_base, $data['rest_base'] );
+		$this->assertSame( $tax_obj->rest_namespace, $data['rest_namespace'] );
 		$this->assertSame( rest_url( 'wp/v2/taxonomies' ), $links['collection'][0]['href'] );
 		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
 		if ( 'edit' === $context ) {

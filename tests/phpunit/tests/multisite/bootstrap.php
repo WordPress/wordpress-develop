@@ -123,7 +123,7 @@ if ( is_multisite() ) :
 		 * @param string $path         The requested path.
 		 * @param string $message      The message to pass for failed tests.
 		 */
-		function test_get_network_by_path( $expected_key, $domain, $path, $message ) {
+		public function test_get_network_by_path( $expected_key, $domain, $path, $message ) {
 			$network = get_network_by_path( $domain, $path );
 			$this->assertSame( self::$network_ids[ $expected_key ], $network->id, $message );
 		}
@@ -255,7 +255,7 @@ if ( is_multisite() ) :
 		 * @param string $domain      The requested domain.
 		 * @param string $path        The requested path.
 		 */
-		function test_multisite_bootstrap( $site_key, $network_key, $domain, $path ) {
+		public function test_multisite_bootstrap( $site_key, $network_key, $domain, $path ) {
 			global $current_blog;
 
 			$expected = array(

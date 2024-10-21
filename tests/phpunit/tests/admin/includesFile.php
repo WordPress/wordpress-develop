@@ -8,8 +8,10 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20449
+	 *
+	 * @covers ::get_home_path
 	 */
-	function test_get_home_path() {
+	public function test_get_home_path() {
 		$home    = get_option( 'home' );
 		$siteurl = get_option( 'siteurl' );
 		$sfn     = $_SERVER['SCRIPT_FILENAME'];
@@ -34,6 +36,8 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43329
+	 *
+	 * @covers ::download_url
 	 */
 	public function test_download_url_non_200_response_code() {
 		add_filter( 'pre_http_request', array( $this, '_fake_download_url_non_200_response_code' ), 10, 3 );
@@ -76,6 +80,177 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 	public function __return_5() {
 		return 5;
+	}
+
+	/**
+	 * @ticket 38231
+	 * @dataProvider data_download_url_should_respect_filename_from_content_disposition_header
+	 *
+	 * @covers ::download_url
+	 *
+	 * @param $filter  A callback containing a fake Content-Disposition header.
+	 */
+	public function test_download_url_should_respect_filename_from_content_disposition_header( $filter ) {
+		add_filter( 'pre_http_request', array( $this, $filter ), 10, 3 );
+
+		$filename = download_url( 'url_with_content_disposition_header' );
+		$this->assertStringContainsString( 'filename-from-content-disposition-header', $filename );
+		$this->assertFileExists( $filename );
+		$this->unlink( $filename );
+
+		remove_filter( 'pre_http_request', array( $this, $filter ) );
+	}
+
+	/**
+	 * Data provider for test_download_url_should_respect_filename_from_content_disposition_header.
+	 *
+	 * @return array
+	 */
+	public function data_download_url_should_respect_filename_from_content_disposition_header() {
+		return array(
+			'valid parameters' => array( 'filter_content_disposition_header_with_filename' ),
+			'path traversal'   => array( 'filter_content_disposition_header_with_filename_with_path_traversal' ),
+			'no quotes'        => array( 'filter_content_disposition_header_with_filename_without_quotes' ),
+		);
+	}
+
+	/**
+	 * Filter callback for data_download_url_should_respect_filename_from_content_disposition_header.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return array
+	 */
+	public function filter_content_disposition_header_with_filename( $response, $args, $url ) {
+		return array(
+			'response' => array(
+				'code' => 200,
+			),
+			'headers'  => array(
+				'content-disposition' => 'attachment; filename="filename-from-content-disposition-header.txt"',
+			),
+		);
+	}
+
+	/**
+	 * Filter callback for data_download_url_should_respect_filename_from_content_disposition_header.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return array
+	 */
+	public function filter_content_disposition_header_with_filename_with_path_traversal( $response, $args, $url ) {
+		return array(
+			'response' => array(
+				'code' => 200,
+			),
+			'headers'  => array(
+				'content-disposition' => 'attachment; filename="../../filename-from-content-disposition-header.txt"',
+			),
+		);
+	}
+
+	/**
+	 * Filter callback for data_download_url_should_respect_filename_from_content_disposition_header.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return array
+	 */
+	public function filter_content_disposition_header_with_filename_without_quotes( $response, $args, $url ) {
+		return array(
+			'response' => array(
+				'code' => 200,
+			),
+			'headers'  => array(
+				'content-disposition' => 'attachment; filename=filename-from-content-disposition-header.txt',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 38231
+	 * @dataProvider data_download_url_should_reject_filename_from_invalid_content_disposition_header
+	 *
+	 * @covers ::download_url
+	 *
+	 * @param $filter  A callback containing a fake Content-Disposition header.
+	 */
+	public function test_download_url_should_reject_filename_from_invalid_content_disposition_header( $filter ) {
+		add_filter( 'pre_http_request', array( $this, $filter ), 10, 3 );
+
+		$filename = download_url( 'url_with_content_disposition_header' );
+		$this->assertStringContainsString( 'url_with_content_disposition_header', $filename );
+		$this->unlink( $filename );
+
+		remove_filter( 'pre_http_request', array( $this, $filter ) );
+	}
+
+	/**
+	 * Data provider for test_download_url_should_reject_filename_from_invalid_content_disposition_header.
+	 *
+	 * @return array
+	 */
+	public function data_download_url_should_reject_filename_from_invalid_content_disposition_header() {
+		return array(
+			'no context'        => array( 'filter_content_disposition_header_with_filename_without_context' ),
+			'inline context'    => array( 'filter_content_disposition_header_with_filename_with_inline_context' ),
+			'form-data context' => array( 'filter_content_disposition_header_with_filename_with_form_data_context' ),
+		);
+	}
+
+	/**
+	 * Filter callback for data_download_url_should_reject_filename_from_invalid_content_disposition_header.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return array
+	 */
+	public function filter_content_disposition_header_with_filename_without_context( $response, $args, $url ) {
+		return array(
+			'response' => array(
+				'code' => 200,
+			),
+			'headers'  => array(
+				'content-disposition' => 'filename="filename-from-content-disposition-header.txt"',
+			),
+		);
+	}
+
+	/**
+	 * Filter callback for data_download_url_should_reject_filename_from_invalid_content_disposition_header.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return array
+	 */
+	public function filter_content_disposition_header_with_filename_with_inline_context( $response, $args, $url ) {
+		return array(
+			'response' => array(
+				'code' => 200,
+			),
+			'headers'  => array(
+				'content-disposition' => 'inline; filename="filename-from-content-disposition-header.txt"',
+			),
+		);
+	}
+
+	/**
+	 * Filter callback for data_download_url_should_reject_filename_from_invalid_content_disposition_header.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @return array
+	 */
+	public function filter_content_disposition_header_with_filename_with_form_data_context( $response, $args, $url ) {
+		return array(
+			'response' => array(
+				'code' => 200,
+			),
+			'headers'  => array(
+				'content-disposition' => 'form-data; name="file"; filename="filename-from-content-disposition-header.txt"',
+			),
+		);
 	}
 
 	/**

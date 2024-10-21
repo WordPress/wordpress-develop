@@ -242,7 +242,7 @@ function _wp_dashboard_control_callback( $dashboard, $meta_box ) {
 	wp_dashboard_trigger_widget_control( $meta_box['id'] );
 	wp_nonce_field( 'edit-dashboard-widget_' . $meta_box['id'], 'dashboard-widget-nonce' );
 	echo '<input type="hidden" name="widget_id" value="' . esc_attr( $meta_box['id'] ) . '" />';
-	submit_button( __( 'Submit' ) );
+	submit_button( __( 'Save Changes' ) );
 	echo '</form>';
 }
 
@@ -1350,8 +1350,9 @@ function wp_print_community_events_markup() {
 			<p>
 				<span id="community-events-location-message"></span>
 
-				<button class="button-link community-events-toggle-location" aria-label="<?php esc_attr_e( 'Edit city' ); ?>" aria-expanded="false">
-					<span class="dashicons dashicons-edit"></span>
+				<button class="button-link community-events-toggle-location" aria-expanded="false">
+					<span class="dashicons dashicons-location" aria-hidden="true"></span>
+					<span class="community-events-location-edit"><?php _e( 'Select location' ); ?></span>
 				</button>
 			</p>
 

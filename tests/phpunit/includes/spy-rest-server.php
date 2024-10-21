@@ -6,6 +6,7 @@ class Spy_REST_Server extends WP_REST_Server {
 	public $sent_body           = '';
 	public $last_request        = null;
 	public $override_by_default = false;
+	public $status              = null;
 
 	/**
 	 * Gets the raw $endpoints data from the server.
@@ -35,6 +36,14 @@ class Spy_REST_Server extends WP_REST_Server {
 	 */
 	public function send_header( $header, $value ) {
 		$this->sent_headers[ $header ] = $value;
+	}
+
+	/**
+	 * Stores last set status.
+	 * @param int $code HTTP status.
+	 */
+	public function set_status( $status ) {
+		$this->status = $status;
 	}
 
 	/**

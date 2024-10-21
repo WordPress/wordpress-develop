@@ -268,7 +268,7 @@ class WP_Customize_Setting {
 	 * @since 4.5.0
 	 * @ignore
 	 */
-	static public function reset_aggregated_multidimensionals() {
+	public static function reset_aggregated_multidimensionals() {
 		self::$aggregated_multidimensionals = array();
 	}
 
@@ -559,7 +559,7 @@ class WP_Customize_Setting {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param string|array $value    The value to sanitize.
+	 * @param string|array $value The value to sanitize.
 	 * @return string|array|null|WP_Error Sanitized value, or `null`/`WP_Error` if invalid.
 	 */
 	public function sanitize( $value ) {

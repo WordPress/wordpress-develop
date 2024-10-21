@@ -166,7 +166,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		wp_trash_post( self::$posts['trash-page']->ID );
 	}
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		self::setup_custom_types();
 	}
@@ -248,7 +248,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	 *     @type string $expected  Expected URL.
 	 * }
 	 */
-	function data_canonical_redirects_to_plain_permalinks() {
+	public function data_canonical_redirects_to_plain_permalinks() {
 		$data              = array();
 		$all_user_list     = array( 'anon', 'subscriber', 'content_author', 'editor' );
 		$select_allow_list = array( 'content_author', 'editor' );
@@ -584,7 +584,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	 *     @type string $expected  Expected URL.
 	 * }
 	 */
-	function data_canonical_redirects_to_pretty_permalinks() {
+	public function data_canonical_redirects_to_pretty_permalinks() {
 		$data              = array();
 		$all_user_list     = array( 'anon', 'subscriber', 'content_author', 'editor' );
 		$select_allow_list = array( 'content_author', 'editor' );

@@ -143,7 +143,7 @@ jobs:
 
       - name: Run tests as a single site
         if: ${{ ! matrix.multisite }}
-        run: npm run test:php-composer -- --verbose -c phpunit.xml.dist --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
+        run: npm run test:php -- --verbose -c phpunit.xml.dist --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
@@ -157,7 +157,7 @@ jobs:
 
       - name: Run tests as a multisite install
         if: ${{ matrix.multisite }}
-        run: npm run test:php-composer -- --verbose -c tests/phpunit/multisite.xml --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
+        run: npm run test:php -- --verbose -c tests/phpunit/multisite.xml --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
@@ -168,3 +168,16 @@ jobs:
         with:
           file: wp-code-coverage-multisite-clover-${{ github.sha }}.xml
           flags: multisite,php
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    needs: [ test-coverage-report ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ needs.test-coverage-report.result == 'success' && 'success' || needs.test-coverage-report.result == 'cancelled' && 'cancelled' || 'failure' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
