@@ -687,6 +687,7 @@ switch ( $action ) {
 											<span class="dashicons dashicons-no" aria-hidden="true"></span>
 											<span class="text"><?php _e( 'Cancel' ); ?></span>
 										</button>
+										<p class="description indicator-hint"><?php echo wp_get_password_hint(); ?></p>
 									</div>
 								</td>
 							</tr>
