@@ -158,12 +158,41 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON Entity that holds core data.
 	 */
 	public static function get_core_data() {
+		$can_use_cached = ! wp_is_development_mode( 'theme' );
+		if ( $can_use_cached ) {
+			$cache_key = 'core_data';
+			if ( null === static::$core ) {
+				$cache_value = static::get_cache_data( $cache_key );
+				if ( $cache_value ) {
+					// Defined in this function below.
+					$theme_json   = apply_filters( 'wp_theme_json_data_default', $cache_value );
+					static::$core = $theme_json->get_theme_json();
+
+					/*
+					 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
+					 * compatible class that is not a WP_Theme_JSON_Data object.
+					 */
+					if ( $theme_json instanceof WP_Theme_JSON_Data ) {
+						static::$core = $theme_json->get_theme_json();
+					} else {
+						$config       = $theme_json->get_data();
+						static::$core = new WP_Theme_JSON( $config );
+					}
+				}
+			}
+		}
+
 		if ( null !== static::$core && static::has_same_registered_blocks( 'core' ) ) {
 			return static::$core;
 		}
 
 		$config = static::read_json_file( __DIR__ . '/theme.json' );
 		$config = static::translate( $config );
+
+		$theme_json = new WP_Theme_JSON_Data( $config, 'default' );
+		if ( $can_use_cached ) {
+			static::set_cache_data( $cache_key, $theme_json );
+		}
 
 		/**
 		 * Filters the default data provided by WordPress for global styles & settings.
@@ -172,7 +201,7 @@ class WP_Theme_JSON_Resolver {
 		 *
 		 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 		 */
-		$theme_json = apply_filters( 'wp_theme_json_data_default', new WP_Theme_JSON_Data( $config, 'default' ) );
+		$theme_json = apply_filters( 'wp_theme_json_data_default', $theme_json );
 
 		/*
 		 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
@@ -203,6 +232,17 @@ class WP_Theme_JSON_Resolver {
 			return false;
 		}
 
+		$can_use_cached = ! wp_is_development_mode( 'theme' );
+		if ( $can_use_cached ) {
+			$cache_key = 'registered_blocks_cache';
+			if ( static::is_block_cache_empty() ) {
+				$cache = static::get_cache_data( $cache_key );
+				if ( $cache ) {
+					static::$blocks_cache = $cache;
+				}
+			}
+		}
+
 		$registry = WP_Block_Type_Registry::get_instance();
 		$blocks   = $registry->get_all_registered();
 
@@ -214,6 +254,10 @@ class WP_Theme_JSON_Resolver {
 
 		foreach ( $blocks as $block_name => $block_type ) {
 			static::$blocks_cache[ $origin ][ $block_name ] = true;
+		}
+
+		if ( $can_use_cached ) {
+			static::set_cache_data( $cache_key, static::$blocks_cache );
 		}
 
 		return false;
@@ -247,6 +291,42 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
+
+		$can_use_cached = ! wp_is_development_mode( 'theme' );
+		if ( $can_use_cached ) {
+			$cache_key = 'theme_data';
+			if ( null === static::$theme ) {
+				$cache_value = static::get_cache_data( $cache_key );
+				if ( $cache_value ) {
+					// Defined in this function below.
+					$theme_json    = apply_filters( 'wp_theme_json_data_theme', $cache_value );
+					static::$theme = $theme_json->get_theme_json();
+
+					/*
+					 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
+					 * compatible class that is not a WP_Theme_JSON_Data object.
+					 */
+					if ( $theme_json instanceof WP_Theme_JSON_Data ) {
+						static::$theme = $theme_json->get_theme_json();
+					} else {
+						$config        = $theme_json->get_data();
+						static::$theme = new WP_Theme_JSON( $config );
+					}
+
+					$wp_theme = wp_get_theme();
+					if ( $wp_theme->parent() ) {
+						$parent_theme_json_file = $wp_theme->parent()->get_file_path( 'theme.json' );
+						if ( $theme_json_file !== $parent_theme_json_file && is_readable( $parent_theme_json_file ) ) {
+							$parent_theme_json_data = static::read_json_file( $parent_theme_json_file );
+							$parent_theme_json_data = static::translate( $parent_theme_json_data, $wp_theme->parent()->get( 'TextDomain' ) );
+							$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
+							$parent_theme->merge( static::$theme );
+							static::$theme = $parent_theme;
+						}
+					}
+				}
+			}
+		}
 
 		if ( null === static::$theme || ! static::has_same_registered_blocks( 'theme' ) ) {
 			$wp_theme        = wp_get_theme();
@@ -282,6 +362,11 @@ class WP_Theme_JSON_Resolver {
 			$theme_json_data = static::inject_variations_from_block_style_variation_files( $theme_json_data, $variations );
 			$theme_json_data = static::inject_variations_from_block_styles_registry( $theme_json_data );
 
+			$theme_json = new WP_Theme_JSON_Data( $theme_json_data, 'theme' );
+			if ( $can_use_cached ) {
+				static::set_cache_data( $cache_key, $theme_json );
+			}
+
 			/**
 			 * Filters the data provided by the theme for global styles and settings.
 			 *
@@ -289,7 +374,8 @@ class WP_Theme_JSON_Resolver {
 			 *
 			 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 			 */
-			$theme_json = apply_filters( 'wp_theme_json_data_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
+			$theme_json    = apply_filters( 'wp_theme_json_data_theme', $theme_json );
+			static::$theme = $theme_json->get_theme_json();
 
 			/*
 			 * Backward compatibility for extenders returning a WP_Theme_JSON_Data
@@ -753,6 +839,41 @@ class WP_Theme_JSON_Resolver {
 		static::$user                     = null;
 		static::$user_custom_post_type_id = null;
 		static::$i18n_schema              = null;
+		delete_site_transient( 'wp_theme_json_resolver_cache' );
+	}
+
+	/**
+	 * Retrieves persistent cache data of this class for given key.
+	 *
+	 * @since 6.6.0
+	 * @param string $cache_key The key to get the cache from.
+	 * @return mixed The cache value.
+	 */
+	private static function get_cache_data( $cache_key ) {
+		$cache = get_site_transient( 'wp_theme_json_resolver_cache' );
+		if ( $cache && isset( $cache[ $cache_key ] ) ) {
+			return $cache[ $cache_key ];
+		}
+		return false;
+	}
+
+	/**
+	 * Set persistent cache for given key.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $cache_key Cache key.
+	 * @param mixed $value The value to set in the cache.
+	 * @return bool True if the value was set, false otherwise.
+	 */
+	private static function set_cache_data( $cache_key, $value ) {
+		// This should be inexpensive as DB only happenes once per pageload.
+		$cache = get_site_transient( 'wp_theme_json_resolver_cache' );
+		if ( null === $cache ) {
+			$cache = array();
+		}
+		$cache[ $cache_key ] = $value;
+		return set_site_transient( 'wp_theme_json_resolver_cache', $cache, 10 * MINUTE_IN_SECONDS );
 	}
 
 	/**
@@ -1025,5 +1146,21 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		return $data;
+	}
+
+	/**
+	* Checks if block cache is fully empty.
+	*
+	* @since 6.6.0
+	*
+	* @return bool True if block cache is empty, false otherwise.
+	*/
+	private static function is_block_cache_empty() {
+		foreach ( static::$blocks_cache as $origin => $blocks ) {
+			if ( ! empty( $blocks ) ) {
+				return false;
+			}
+		}
+		return true;
 	}
 }
