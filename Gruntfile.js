@@ -1462,6 +1462,17 @@ module.exports = function(grunt) {
 		);
 	} );
 
+	grunt.registerTask( 'copy:theme-json', 'Copies theme.json file contents to theme-json.php.', function() {
+		[ 'theme.json', 'theme-i18n.json' ].forEach( function( fileName ) {
+			var themeData = grunt.file.readJSON(SOURCE_DIR + 'wp-includes/' + fileName);
+			var newFileName = fileName.replace('.', '-');
+			grunt.file.write(
+				SOURCE_DIR + 'wp-includes/assets/'+ newFileName + '.php',
+				'<?php return ' + json2php(themeData) + ';'
+			);
+		});
+	} );
+
 	grunt.registerTask( 'copy:js', [
 		'copy:npm-packages',
 		'copy:vendor-js',
@@ -1510,6 +1521,7 @@ module.exports = function(grunt) {
 		'clean:files',
 		'copy:files',
 		'copy:block-json',
+		'copy:theme-json',
 		'copy:version',
 	] );
 
@@ -1625,6 +1637,7 @@ module.exports = function(grunt) {
 			grunt.task.run( [
 				'build:js',
 				'build:css',
+				'copy:theme-json',
 			] );
 		} else {
 			grunt.task.run( [
