@@ -3297,41 +3297,46 @@ class WP_Query {
 		$is_unfiltered_query = $old_request == $this->request && "{$wpdb->posts}.*" === $fields;
 
 		if ( null === $this->posts ) {
-			$split_the_query = (
-				$is_unfiltered_query
-				&& (
-					wp_using_ext_object_cache()
-					|| ( ! empty( $limits ) && $q['posts_per_page'] < 500 )
-				)
-			);
+			if ( 1 === $q['posts_per_page'] ) {
+				$split_the_query = false;
+			} else {
+				$split_the_query = (
+					1 !== $q['posts_per_page']
+					&&
+					$is_unfiltered_query
+					&& (
+						wp_using_ext_object_cache()
+						|| ( ! empty( $limits ) && $q['posts_per_page'] < 500 )
+					)
+				);
 
-			/**
-			 * Filters whether to split the query.
-			 *
-			 * Splitting the query will cause it to fetch just the IDs of the found posts
-			 * (and then individually fetch each post by ID), rather than fetching every
-			 * complete row at once. One massive result vs. many small results.
-			 *
-			 * @since 3.4.0
-			 * @since 6.6.0 Added the `$old_request` and `$clauses` parameters.
-			 *
-			 * @param bool     $split_the_query Whether or not to split the query.
-			 * @param WP_Query $query           The WP_Query instance.
-			 * @param string   $old_request     The complete SQL query before filtering.
-			 * @param string[] $clauses {
-			 *     Associative array of the clauses for the query.
-			 *
-			 *     @type string $where    The WHERE clause of the query.
-			 *     @type string $groupby  The GROUP BY clause of the query.
-			 *     @type string $join     The JOIN clause of the query.
-			 *     @type string $orderby  The ORDER BY clause of the query.
-			 *     @type string $distinct The DISTINCT clause of the query.
-			 *     @type string $fields   The SELECT clause of the query.
-			 *     @type string $limits   The LIMIT clause of the query.
-			 * }
-			 */
-			$split_the_query = apply_filters( 'split_the_query', $split_the_query, $this, $old_request, compact( $pieces ) );
-
+				/**
+				 * Filters whether to split the query.
+				 *
+				 * Splitting the query will cause it to fetch just the IDs of the found posts
+				 * (and then individually fetch each post by ID), rather than fetching every
+				 * complete row at once. One massive result vs. many small results.
+				 *
+				 * @since 3.4.0
+				 * @since 6.6.0 Added the `$old_request` and `$clauses` parameters.
+				 *
+				 * @param bool     $split_the_query Whether or not to split the query.
+				 * @param WP_Query $query           The WP_Query instance.
+				 * @param string   $old_request     The complete SQL query before filtering.
+				 * @param string[] $clauses {
+				 *     Associative array of the clauses for the query.
+				 *
+				 *     @type string $where    The WHERE clause of the query.
+				 *     @type string $groupby  The GROUP BY clause of the query.
+				 *     @type string $join     The JOIN clause of the query.
+				 *     @type string $orderby  The ORDER BY clause of the query.
+				 *     @type string $distinct The DISTINCT clause of the query.
+				 *     @type string $fields   The SELECT clause of the query.
+				 *     @type string $limits   The LIMIT clause of the query.
+				 * }
+				 */
+				$split_the_query = apply_filters( 'split_the_query', $split_the_query, $this, $old_request, compact( $pieces ) );
+			}
 			if ( $split_the_query ) {
 				// First get the IDs and then fill in the objects.
 
