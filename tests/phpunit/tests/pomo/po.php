@@ -338,5 +338,55 @@ msgstr[2] "бабаяга"',
 		$this->assertCount( 1, $po->entries );
 	}
 
+	public function test_import_from_file_various_line_endings() {
+
+		$temp_fn = $this->temp_filename();
+		foreach ( array(
+			"\\r"    => "\r",
+			"\\n"    => "\n",
+			"\\r\\n" => "\r\n",
+		) as $printable_new_line => $newline ) {
+			$file  = 'msgid ""' . $newline;
+			$file .= 'msgstr ""' . $newline;
+			$file .= '"Project-Id-Version: WordPress 6.7\n"' . $newline;
+			$file .= '"Plural-Forms: nplurals=2; plural=n != 1;\n"';
+
+			$entries = array();
+			for ( $i = 1; $i <= 3; $i++ ) {
+				$file .= $newline;
+				$file .= $newline;
+				$line  = "Entry $i";
+				$file .= 'msgid "' . $line . '"' . $newline;
+				$file .= 'msgstr ""';
+				$entry = new Translation_Entry( array( 'singular' => $line ) );
+
+				$entries[ $entry->key() ] = $entry;
+			}
+
+			file_put_contents( $temp_fn, $file );
+
+			$po  = new PO();
+			$res = $po->import_from_file( $temp_fn );
+			$this->assertTrue( $res );
+
+			$this->assertSame(
+				array(
+					'Project-Id-Version' => 'WordPress 6.7',
+					'Plural-Forms'       => 'nplurals=2; plural=n != 1;',
+				),
+				$po->headers
+			);
+
+			$this->assertEquals( $po->entries, $entries, "Failed for $printable_new_line" );
+
+			$temp_fn2 = $this->temp_filename();
+			$po->export_to_file( $temp_fn2 );
+			$this->assertSame( str_replace( $newline, "\n", $file ), file_get_contents( $temp_fn2 ) );
+
+			unlink( $temp_fn );
+		}
+	}
+
+
 	// TODO: Add tests for bad files.
 }
