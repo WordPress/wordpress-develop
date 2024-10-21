@@ -139,11 +139,25 @@ if ( $action ) {
 
 		case 'promote':
 			check_admin_referer( 'bulk-users' );
+
+			if ( ! current_user_can( 'promote_users' ) ) {
+				wp_die( __( 'Sorry, you are not allowed to edit this user.' ), 403 );
+			}
+
 			$editable_roles = get_editable_roles();
 			$role           = $_REQUEST['new_role'];
 
+			// Mock the `none` role as editable.
+			$editable_roles['none'] = array(
+				'name' => __( '&mdash; No role for this site &mdash;' ),
+			);
+
 			if ( empty( $editable_roles[ $role ] ) ) {
 				wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
+			}
+
+			if ( 'none' === $role ) {
+				$role = '';
 			}
 
 			if ( isset( $_REQUEST['users'] ) ) {
