@@ -615,7 +615,7 @@
 				menuItem = $this.closest( 'li.menu-item' ).first(),
 				menuItemChildren = menuItem.childMenuItems(),
 				menuItemNoChildren = menuItemChildren.length,
-				menuItemCurrentPosition = parseInt( menuItem.index(), 10 );
+				menuItemCurrentPosition = parseInt( menuItem.index(), 10 ),
 				parentItemID = menuItem.find( '.menu-item-data-parent-id' ).val(),
 				subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemID + '"]' ),
 				currentItemAtPosition = $(subItems[newOrderID - 1]).closest( 'li.menu-item' );
