@@ -784,6 +784,8 @@ $_old_files = array(
 	 * WordPress 6.7 included a SimplePie upgrade that included a major
 	 * refactoring of the file structure and library. The old files are
 	 * split in to two sections to account for this: files and directories.
+	 *
+	 * See https://core.trac.wordpress.org/changeset/59141
 	 */
 	// 6.7 - files
 	'wp-includes/js/dist/vendor/react.min.js.LICENSE.txt',
