@@ -939,6 +939,7 @@ EOF;
 	 * @ticket 56122
 	 * @ticket 58551
 	 * @ticket 60132
+	 * @ticket 60979
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1357,6 +1358,31 @@ EOF;
 			array(
 				'css'      => 'opacity: 10',
 				'expected' => 'opacity: 10',
+			),
+			// Convert "&amp;" to "&".
+			array(
+				'css'      => 'background: url("/sites/2/2023/10/image.jpg?width=1024&amp;height=600")',
+				'expected' => 'background: url("/sites/2/2023/10/image.jpg?width=1024&height=600")',
+			),
+			// Continues to handle "&".
+			array(
+				'css'      => 'background: url("/sites/2/2023/10/image.jpg?width=1024&height=600")',
+				'expected' => 'background: url("/sites/2/2023/10/image.jpg?width=1024&height=600")',
+			),
+			// Background image with Absolute URLs.
+			array(
+				'css'      => 'background: url("https://wordpress.org/files/2024/07/6-6-whats-new-i1.png?resize=300%2C211&ssl=1")',
+				'expected' => 'background: url("https://wordpress.org/files/2024/07/6-6-whats-new-i1.png?resize=300%2C211&ssl=1")',
+			),
+			// Background image with multiple properties grouped together.
+			array(
+				'css'      => 'background: url("https://example.com/uploads/sites/2/2023/10/image.jpg?width=1024&amp;height=600")',
+				'expected' => 'background: url("https://example.com/uploads/sites/2/2023/10/image.jpg?width=1024&height=600")',
+			),
+			// Background-image with valid entities.
+			array(
+				'css'      => 'background-image:url("/sites/2/2023/10/some%20%21%40-_+-&image.jpg?foo=some%20%21%40-_+thing&width=1024&height=600")',
+				'expected' => 'background-image:url("/sites/2/2023/10/some%20%21%40-_+-&image.jpg?foo=some%20%21%40-_+thing&width=1024&height=600")',
 			),
 		);
 	}
