@@ -14068,7 +14068,7 @@ mockedApiResponse.settings = {
     "date_format": "F j, Y",
     "time_format": "g:i a",
     "start_of_week": 1,
-    "language": "en_US",
+    "language": "",
     "use_smilies": true,
     "default_category": 1,
     "default_post_format": "0",
