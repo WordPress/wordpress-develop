@@ -52,6 +52,11 @@ class Twenty_Twenty_One_Dark_Mode {
 	 * @return void
 	 */
 	public function editor_custom_color_variables() {
+		// See potential bug that this fixes in https://core.trac.wordpress.org/ticket/60111.
+		if ( ! is_admin() ) {
+			return;
+		}
+
 		if ( ! $this->switch_should_render() ) {
 			return;
 		}
@@ -306,15 +311,23 @@ class Twenty_Twenty_One_Dark_Mode {
 	 * @return void
 	 */
 	public function the_html( $attrs = array() ) {
-		$attrs = wp_parse_args(
-			$attrs,
-			array(
-				'id'           => 'dark-mode-toggler',
-				'class'        => 'fixed-bottom',
-				'aria-pressed' => 'false',
-				'onClick'      => 'toggleDarkMode()',
-			)
+		$defaults = array(
+			'id'           => 'dark-mode-toggler',
+			'class'        => 'fixed-bottom',
+			'aria-pressed' => 'false',
 		);
+
+		// Extra attributes depending on whether or not the Interactivity API is being used.
+		if ( function_exists( 'wp_register_script_module' ) ) {
+			$defaults['data-wp-on--click']           = 'actions.toggleDarkMode';
+			$defaults['data-wp-bind--aria-pressed']  = 'state.isDarkMode';
+			$defaults['data-wp-class--hide']         = 'state.isDarkModeTogglerHidden';
+			$defaults['data-wp-on-document--scroll'] = 'callbacks.refreshDarkModeToggler';
+		} else {
+			$defaults['onClick'] = 'toggleDarkMode()';
+		}
+
+		$attrs = wp_parse_args( $attrs, $defaults );
 		echo '<button';
 		foreach ( $attrs as $key => $val ) {
 			echo ' ' . esc_attr( $key ) . '="' . esc_attr( $val ) . '"';
@@ -363,6 +376,11 @@ class Twenty_Twenty_One_Dark_Mode {
 	 * @return void
 	 */
 	public function the_script() {
+		// If the Interactivity API is being used, loading this JS code is not necessary.
+		if ( function_exists( 'wp_register_script_module' ) ) {
+			return;
+		}
+
 		echo '<script>';
 		include get_template_directory() . '/assets/js/dark-mode-toggler.js'; // phpcs:ignore WPThemeReview.CoreFunctionality.FileInclude
 		echo '</script>';
