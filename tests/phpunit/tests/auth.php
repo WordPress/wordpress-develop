@@ -605,28 +605,25 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $user );
 	}
 
-	public function test_h() {
-		$this->markTestIncomplete();
+	public function test_incorrect_password_is_rejected_by_phpass() {
+		// Set the user password with the old phpass algorithm.
+		self::set_user_password_with_phpass( 'password', self::$user_id );
 
 		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
+
 		// Wrong password.
 		$this->assertInstanceOf( 'WP_Error', $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 	}
 
-	public function test_i() {
-		$this->markTestIncomplete();
+	public function test_too_long_password_is_rejected_by_phpass() {
+		$limit = str_repeat( 'a', self::$phpass_length_limit );
 
-		$user = wp_authenticate( $this->user->user_login, $limit );
-		// Wrong password.
-		$this->assertInstanceOf( 'WP_Error', $user );
-		$this->assertSame( 'incorrect_password', $user->get_error_code() );
-	}
-
-	public function test_j() {
-		$this->markTestIncomplete();
+		// Set the user password with the old phpass algorithm.
+		self::set_user_password_with_phpass( 'password', self::$user_id );
 
 		$user = wp_authenticate( $this->user->user_login, $limit . 'a' );
+
 		// Password broken by setting it to be too long.
 		$this->assertInstanceOf( 'WP_Error', $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
