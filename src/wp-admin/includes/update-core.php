@@ -778,6 +778,13 @@ $_old_files = array(
 	'wp-includes/blocks/block/editor.min.css',
 	'wp-includes/blocks/block/editor-rtl.css',
 	'wp-includes/blocks/block/editor-rtl.min.css',
+	/*
+	 * 6.7
+	 *
+	 * WordPress 6.7 included a SimplePie upgrade that included a major
+	 * refactoring of the file structure and library. The old files are
+	 * split in to two sections to account for this: files and directories.
+	 */
 	// 6.7 - files
 	'wp-includes/js/dist/vendor/react.min.js.LICENSE.txt',
 	'wp-includes/js/dist/vendor/wp-polyfill-importmap.min.js',
