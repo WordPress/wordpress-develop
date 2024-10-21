@@ -7854,13 +7854,13 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 	$filtered_limit_int = wp_convert_hr_to_bytes( $filtered_limit );
 
 	if ( -1 === $filtered_limit_int || ( $filtered_limit_int > $wp_max_limit_int && $filtered_limit_int > $current_limit_int ) ) {
-		if ( false !== ini_set( 'memory_limit', $filtered_limit ) ) {
+		if ( function_exists( 'ini_set' ) && false !== ini_set( 'memory_limit', $filtered_limit ) ) {
 			return $filtered_limit;
 		} else {
 			return false;
 		}
 	} elseif ( -1 === $wp_max_limit_int || $wp_max_limit_int > $current_limit_int ) {
-		if ( false !== ini_set( 'memory_limit', $wp_max_limit ) ) {
+		if ( function_exists( 'ini_set' ) && false !== ini_set( 'memory_limit', $wp_max_limit ) ) {
 			return $wp_max_limit;
 		} else {
 			return false;
