@@ -931,4 +931,206 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->assertSame( 2, $render_block_data_callback->get_call_count() );
 		$this->assertSame( 2, $render_block_context_callback->get_call_count() );
 	}
+
+	/**
+	 * @covers WP_Block::__get
+	 * @ticket 61154
+	 */
+	public function test_getting_dynamic_class_property_should_trigger_deprecation_error() {
+		$this->registry->register( 'core/example', array() );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$this->expect_deprecation_message( 'WP_Block::__get(): Getting the dynamic property "foo" on WP_Block is deprecated.' );
+		$block->foo;
+	}
+
+	/**
+	 * @covers WP_Block::__get
+	 * @ticket 61154
+	 */
+	public function test_attributes_property_should_not_be_rewritten_after_calling_getter_twice() {
+		$this->registry->register( 'core/example', array() );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$this->assertFalse( isset( $this->attributes ), 'The WP_Block::$attributes property should initially not be set.' );
+		$block->attributes = array( 'foo' => 'bar' );
+		$block->attributes; // Activates __get().
+		$this->assertSame( array( 'foo' => 'bar' ), $block->attributes, 'The WP_Block::$attributes property should remain unchanged after multiple accesses.' );
+	}
+
+	/**
+	 * @covers WP_Block::__isset
+	 * @ticket 61154
+	 */
+	public function test_checking_class_properties_should_work_correctly() {
+		$this->registry->register( 'core/example', array() );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$this->assertFalse( isset( $block->foo ), 'The WP_Block::$foo property should not be set.' );
+		$this->assertFalse( isset( $block->attributes ), 'The WP_Block::$attributes property should not be set as it\'s not initialized at this stage.' );
+		$block->attributes; // Activates __get().
+		$this->assertTrue( isset( $block->attributes ), 'The WP_Block::$attributes property should be set.' );
+	}
+
+	/**
+	 * @covers WP_Block::__set
+	 * @ticket 61154
+	 */
+	public function test_setting_class_properties_should_work_correctly() {
+		$this->registry->register( 'core/example', array() );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$this->assertFalse( isset( $block->attributes ), 'The WP_Block::$attributes property should not be initially set.' );
+		$block->attributes = array( 1, 2, 3 );
+		$this->assertTrue( isset( $block->attributes ), 'The WP_Block::$attributes property should be set after assignment.' );
+		$this->assertSame( array( 1, 2, 3 ), $block->attributes, 'The WP_Block::$attributes property should hold the correct values.' );
+		$this->expect_deprecation_message( 'WP_Block::__set(): Setting the dynamic property "foo" on WP_Block is deprecated.' );
+		$block->foo = 'foo';
+	}
+
+	/**
+	 * @covers WP_Block::__unset
+	 * @ticket 61154
+	 */
+	public function test_unsetting_class_properties_should_work_correctly() {
+		$this->registry->register( 'core/example', array() );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$block->attributes = array();
+		unset( $block->attributes );
+		$this->assertFalse( isset( $block->attributes ), 'The WP_Block::$attributes property should not be set.' );
+		$this->expect_deprecation_message( 'WP_Block::__unset(): Unsetting the dynamic property "foo" on WP_Block is deprecated.' );
+		unset( $block->foo );
+	}
+
+	/**
+	 * @covers WP_Block::populate_attributes
+	 * @ticket 61154
+	 */
+	public function test_setting_attributes_to_null_should_not_repopulate_attributes() {
+		$this->registry->register( 'core/example', array() );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$this->assertFalse( isset( $block->attributes ), 'The WP_Block::$attributes property should not be initially set.' );
+		$block->attributes = null;
+		$block->attributes; // Activates __get().
+		$this->assertNull( $block->attributes, 'The WP_Block::$attributes property should not be repopulated after calling __get() if it is initialized.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array An array of public WP_Block properties.
+	 */
+	public function data_unsetting_public_declared_properties_should_not_trigger_a_deprecation_error() {
+		$reflection     = new ReflectionClass( WP_Block::class );
+		$properties     = $reflection->getProperties( ReflectionProperty::IS_PUBLIC );
+		$property_names = array();
+
+		foreach ( $properties as $property ) {
+			$property_name                                    = $property->getName();
+			$property_names[ 'WP_Block::$' . $property_name ] = array( 'property_name' => $property_name );
+		}
+
+		return $property_names;
+	}
+
+	/**
+	 * @dataProvider data_unsetting_public_declared_properties_should_not_trigger_a_deprecation_error
+	 *
+	 * @covers WP_Block::to_array
+	 * @ticket 61154
+	 *
+	 * @param string $property_name A class property name to test.
+	 */
+	public function test_unsetting_public_declared_properties_should_not_trigger_a_deprecation_error( $property_name ) {
+		$this->registry->register( 'core/example', array() );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$this->assertObjectHasProperty( $property_name, $block, "WP_Block does not have the expected property '{$property_name}'." );
+
+		unset( $block->$property_name );
+		$this->assertFalse( isset( $block->$property_name ), "Property '{$property_name}' should be unset but is still set." );
+
+		// Set the property to null and verify through addToAssertionCount() that __set doesn't trigger a deprecation error.
+		$block->$property_name = null;
+		$this->addToAssertionCount( 1 );
+	}
+
+	/**
+	 * @dataProvider data_unsetting_public_declared_properties_should_not_trigger_a_deprecation_error
+	 *
+	 * @covers WP_Block::check_if_public_class_property
+	 * @ticket 61154
+	 *
+	 * @param string $property_name A class property name to test.
+	 */
+	public function test_public_properties_should_be_correctly_detected( $property_name ) {
+		$this->registry->register( 'core/example', array() );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$method = new ReflectionMethod( $block, 'check_if_public_class_property' );
+
+		// Set the method to be accessible
+		$method->setAccessible( true );
+
+		$this->assertTrue(
+			$method->invokeArgs( $block, array( $property_name ) ),
+			"Have you forgotten to add the \"$property_name\" property to the array in WP_Block::check_if_public_class_property()?"
+		);
+	}
+
+
+
+	/**
+	 * Provides a workaround to ensure compatibility with PHPUnit 10,
+	 * as TestCase::expectDeprecation() is deprecated.
+	 *
+	 * @throws Exception If a PHP error is triggered.
+	 *
+	 * @param string $message The deprecation message expected.
+	 */
+	private function expect_deprecation_message( $message ) {
+		$this->expectException( Exception::class );
+		$this->expectExceptionMessage( $message );
+		set_error_handler(
+			static function ( $errno, $errstr ) {
+				restore_error_handler();
+				throw new Exception( $errstr, $errno );
+			},
+			E_USER_DEPRECATED
+		);
+	}
 }
