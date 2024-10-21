@@ -429,7 +429,7 @@ twentytwenty.primaryMenu = {
 	// by adding the '.focus' class to all 'li.menu-item-has-children' when the focus is on the 'a' element.
 	focusMenuWithChildren: function() {
 		// Get all the link elements within the primary menu.
-		var links, i, len,
+		var links, i, len, focusedElement,
 			menu = document.querySelector( '.primary-menu-wrapper' );
 
 		if ( ! menu ) {
@@ -438,27 +438,88 @@ twentytwenty.primaryMenu = {
 
 		links = menu.getElementsByTagName( 'a' );
 
-		// Each time a menu link is focused or blurred, toggle focus.
+		// Each time a menu link is focused, update focus.
 		for ( i = 0, len = links.length; i < len; i++ ) {
-			links[i].addEventListener( 'focus', toggleFocus, true );
-			links[i].addEventListener( 'blur', toggleFocus, true );
+			links[i].addEventListener( 'focus', updateFocus, true );
 		}
 
-		//Sets or removes the .focus class on an element.
-		function toggleFocus() {
-			var self = this;
+		menu.addEventListener( 'focusout', removeFocus, true );
 
-			// Move up through the ancestors of the current link until we hit .primary-menu.
-			while ( -1 === self.className.indexOf( 'primary-menu' ) ) {
-				// On li elements toggle the class .focus.
-				if ( 'li' === self.tagName.toLowerCase() ) {
-					if ( -1 !== self.className.indexOf( 'focus' ) ) {
-						self.className = self.className.replace( ' focus', '' );
-					} else {
-						self.className += ' focus';
+		//Remove focus class from menu entirly
+		function removeFocus(e){
+			const leavingParent = !menu.contains(e.relatedTarget);
+
+    		if (leavingParent) {
+        		// Remove focus from all li elements of primary-menu.
+				menu.querySelectorAll('li').forEach( function(el){
+					if(el.classList.contains('focus')){
+						el.classList.remove('focus');
 					}
+				});
+    		}
+		}
+
+		// Update focus class on an element.
+		function updateFocus() {
+			var self = focusedElement = this;
+
+			//Removing display: none from previous child menu.
+			menu.querySelectorAll('li.menu-item-has-children > ul.sub-menu').forEach( function( el ){
+				el.style.display = 'block';
+			});
+
+			// Remove focus from all li elements of primary-menu.
+			menu.querySelectorAll('li').forEach( function( el ){
+				if(el.classList.contains('focus')){
+					el.classList.remove('focus');
 				}
-				self = self.parentElement;
+			});
+			
+			// Set focus on current a element's parent li.
+			self.parentElement.classList.add('focus');
+
+			// If current element is inside sub-menu find main parent li and add focus.
+			if(self.closest('.menu-item-has-children')) {
+				twentytwentyFindParents( self, 'li.menu-item-has-children' ).forEach( function( element ) {
+					element.classList.add('focus');
+				} );
+			}
+
+		}
+
+		// Each time esc key is pressed while in menu, remove focus.
+		menu.addEventListener('keydown', removeFocusEsc, true);
+
+		// Remove focus when esc key pressed.
+		function removeFocusEsc(e){
+			e = e || window.event;
+			var isEscape = false;
+
+			// Find is pressed key is esc.
+			if ('key' in e) {
+				isEscape = (e.key === 'Escape' || e.key === 'Esc');
+			} else {
+				isEscape = (e.keyCode === 27);
+			}
+
+			// If pressed key is esc, remove focus class from main parent menu li.
+			if (isEscape) {
+				var parentLi = focusedElement.parentNode,
+					nestedParent = parentLi.closest('li.menu-item-has-children');
+				if( parentLi.classList.contains('menu-item-has-children') ){
+					var subMenu = parentLi.querySelector('ul.sub-menu');
+					if( subMenu.style.display === 'block'){
+						subMenu.style.display = 'none';
+					} else {
+						nestedParent.querySelector('a').focus();
+						nestedParent.classList.add('focus');
+						parentLi.closest('ul.sub-menu').style.display = 'none';
+					}
+				} else {
+					nestedParent.querySelector('a').focus();
+					nestedParent.classList.add('focus');
+					parentLi.closest('ul.sub-menu').style.display = 'none';
+				}
 			}
 		}
 	}
