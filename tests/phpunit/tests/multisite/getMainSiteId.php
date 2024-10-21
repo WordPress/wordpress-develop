@@ -89,6 +89,17 @@ if ( is_multisite() ) :
 		}
 
 		/**
+		 * @ticket 55802
+		 */
+		public function test_get_main_site_id_with_different_network_cache_id() {
+			$this->assertSame( self::$site_ids['wordpress.org/'], get_main_site_id( self::$network_ids['wordpress.org/'] ), 'Main blog id needs to match blog id of wordpress.org/' );
+			$this->assertSame( self::$site_ids['wordpress.org/'], (int) get_network_option( self::$network_ids['wordpress.org/'], 'main_site' ), 'Network option needs to match blog id of wordpress.org/' );
+
+			$this->assertSame( 0, get_main_site_id( self::$network_ids['wp.org/'] ), 'Main blog id should not be found' );
+			$this->assertSame( 0, (int) get_network_option( self::$network_ids['wp.org/'], 'main_site' ), 'Network option should not be found' );
+		}
+
+		/**
 		 * @ticket 29684
 		 */
 		public function test_get_main_site_id_with_different_network_returns_correct_id() {

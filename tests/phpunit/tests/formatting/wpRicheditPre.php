@@ -3,6 +3,8 @@
 /**
  * @group formatting
  * @expectedDeprecated wp_richedit_pre
+ *
+ * @covers ::wp_richedit_pre
  */
 class Tests_Formatting_wpRicheditPre extends WP_UnitTestCase {
 
@@ -11,7 +13,6 @@ class Tests_Formatting_wpRicheditPre extends WP_UnitTestCase {
 	}
 
 	/*
-	 * Only fails in PHP 5.4 onwards
 	 * @ticket 23688
 	 */
 	public function test_wp_richedit_pre_charset_iso_8859_1() {

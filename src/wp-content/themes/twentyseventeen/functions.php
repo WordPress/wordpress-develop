@@ -25,13 +25,6 @@ if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '<' ) ) {
  * as indicating support for post thumbnails.
  */
 function twentyseventeen_setup() {
-	/*
-	 * Make theme available for translation.
-	 * Translations can be filed at WordPress.org. See: https://translate.wordpress.org/projects/wp-themes/twentyseventeen
-	 * If you're building a theme based on Twenty Seventeen, use a find and replace
-	 * to change 'twentyseventeen' to the name of your theme in all the template files.
-	 */
-	load_theme_textdomain( 'twentyseventeen' );
 
 	// Add default posts and comments RSS feed links to head.
 	add_theme_support( 'automatic-feed-links' );
@@ -91,7 +84,7 @@ function twentyseventeen_setup() {
 	/*
 	 * Enable support for Post Formats.
 	 *
-	 * See: https://wordpress.org/support/article/post-formats/
+	 * See: https://developer.wordpress.org/advanced-administration/wordpress/post-formats/
 	 */
 	add_theme_support(
 		'post-formats',
@@ -121,9 +114,15 @@ function twentyseventeen_setup() {
 
 	/*
 	 * This theme styles the visual editor to resemble the theme style,
-	 * specifically font, colors, and column width.
-	  */
-	add_editor_style( array( 'assets/css/editor-style.css', twentyseventeen_fonts_url() ) );
+	 * specifically font, colors, and column width. When fonts are
+	 * self-hosted, the theme directory needs to be removed first.
+	 */
+	$font_stylesheet = str_replace(
+		array( get_template_directory_uri() . '/', get_stylesheet_directory_uri() . '/' ),
+		'',
+		(string) twentyseventeen_fonts_url()
+	);
+	add_editor_style( array( 'assets/css/editor-style.css', $font_stylesheet ) );
 
 	// Load regular editor styles into the new block-based editor.
 	add_theme_support( 'editor-styles' );
@@ -283,39 +282,37 @@ function twentyseventeen_content_width() {
 }
 add_action( 'template_redirect', 'twentyseventeen_content_width', 0 );
 
-/**
- * Register custom fonts.
- */
-function twentyseventeen_fonts_url() {
-	$fonts_url = '';
-
-	/*
-	 * translators: If there are characters in your language that are not supported
-	 * by Libre Franklin, translate this to 'off'. Do not translate into your own language.
+if ( ! function_exists( 'twentyseventeen_fonts_url' ) ) :
+	/**
+	 * Register custom fonts.
+	 *
+	 * @since Twenty Seventeen 1.0
+	 * @since Twenty Seventeen 3.2 Replaced Google URL with self-hosted fonts.
+	 *
+	 * @return string Fonts URL for the theme.
 	 */
-	$libre_franklin = _x( 'on', 'Libre Franklin font: on or off', 'twentyseventeen' );
+	function twentyseventeen_fonts_url() {
+		$fonts_url = '';
 
-	if ( 'off' !== $libre_franklin ) {
-		$font_families = array();
+		/*
+		 * translators: If there are characters in your language that are not supported
+		 * by Libre Franklin, translate this to 'off'. Do not translate into your own language.
+		 */
+		$libre_franklin = _x( 'on', 'Libre Franklin font: on or off', 'twentyseventeen' );
 
-		$font_families[] = 'Libre Franklin:300,300i,400,400i,600,600i,800,800i';
+		if ( 'off' !== $libre_franklin ) {
+			$fonts_url = get_template_directory_uri() . '/assets/fonts/font-libre-franklin.css';
+		}
 
-		$query_args = array(
-			'family'  => urlencode( implode( '|', $font_families ) ),
-			'subset'  => urlencode( 'latin,latin-ext' ),
-			'display' => urlencode( 'fallback' ),
-		);
-
-		$fonts_url = add_query_arg( $query_args, 'https://fonts.googleapis.com/css' );
+		return esc_url_raw( $fonts_url );
 	}
-
-	return esc_url_raw( $fonts_url );
-}
+endif;
 
 /**
  * Add preconnect for Google Fonts.
  *
  * @since Twenty Seventeen 1.0
+ * @deprecated Twenty Seventeen 3.2 Disabled filter because, by default, fonts are self-hosted.
  *
  * @param array  $urls          URLs to print for resource hints.
  * @param string $relation_type The relation type the URLs are printed.
@@ -331,7 +328,7 @@ function twentyseventeen_resource_hints( $urls, $relation_type ) {
 
 	return $urls;
 }
-add_filter( 'wp_resource_hints', 'twentyseventeen_resource_hints', 10, 2 );
+// add_filter( 'wp_resource_hints', 'twentyseventeen_resource_hints', 10, 2 );
 
 /**
  * Register widget area.
@@ -394,7 +391,7 @@ function twentyseventeen_excerpt_more( $link ) {
 	$link = sprintf(
 		'<p class="link-more"><a href="%1$s" class="more-link">%2$s</a></p>',
 		esc_url( get_permalink( get_the_ID() ) ),
-		/* translators: %s: Post title. */
+		/* translators: %s: Post title. Only visible to screen readers. */
 		sprintf( __( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'twentyseventeen' ), get_the_title( get_the_ID() ) )
 	);
 	return ' &hellip; ' . $link;
@@ -451,41 +448,63 @@ add_action( 'wp_head', 'twentyseventeen_colors_css_wrap' );
  */
 function twentyseventeen_scripts() {
 	// Add custom fonts, used in the main stylesheet.
-	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), null );
+	$font_version = ( 0 === strpos( (string) twentyseventeen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
+	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), $font_version );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20201208' );
+	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20240716' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20190105' );
+	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20240624' );
 
 	// Load the dark colorscheme.
 	if ( 'dark' === get_theme_mod( 'colorscheme', 'light' ) || is_customize_preview() ) {
-		wp_enqueue_style( 'twentyseventeen-colors-dark', get_theme_file_uri( '/assets/css/colors-dark.css' ), array( 'twentyseventeen-style' ), '20190408' );
+		wp_enqueue_style( 'twentyseventeen-colors-dark', get_theme_file_uri( '/assets/css/colors-dark.css' ), array( 'twentyseventeen-style' ), '20240412' );
 	}
 
-	// Load the Internet Explorer 9 specific stylesheet, to fix display issues in the Customizer.
+	// Register the Internet Explorer 9 specific stylesheet, to fix display issues in the Customizer.
 	if ( is_customize_preview() ) {
-		wp_enqueue_style( 'twentyseventeen-ie9', get_theme_file_uri( '/assets/css/ie9.css' ), array( 'twentyseventeen-style' ), '20161202' );
+		wp_register_style( 'twentyseventeen-ie9', get_theme_file_uri( '/assets/css/ie9.css' ), array( 'twentyseventeen-style' ), '20161202' );
 		wp_style_add_data( 'twentyseventeen-ie9', 'conditional', 'IE 9' );
 	}
 
-	// Load the Internet Explorer 8 specific stylesheet.
-	wp_enqueue_style( 'twentyseventeen-ie8', get_theme_file_uri( '/assets/css/ie8.css' ), array( 'twentyseventeen-style' ), '20161202' );
+	// Register the Internet Explorer 8 specific stylesheet.
+	wp_register_style( 'twentyseventeen-ie8', get_theme_file_uri( '/assets/css/ie8.css' ), array( 'twentyseventeen-style' ), '20161202' );
 	wp_style_add_data( 'twentyseventeen-ie8', 'conditional', 'lt IE 9' );
 
-	// Load the html5 shiv.
-	wp_enqueue_script( 'html5', get_theme_file_uri( '/assets/js/html5.js' ), array(), '20161020' );
+	// Register the html5 shiv.
+	wp_register_script( 'html5', get_theme_file_uri( '/assets/js/html5.js' ), array(), '20161020' );
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
-	wp_enqueue_script( 'twentyseventeen-skip-link-focus-fix', get_theme_file_uri( '/assets/js/skip-link-focus-fix.js' ), array(), '20161114', true );
+	// Skip-link fix is no longer enqueued by default.
+	wp_register_script( 'twentyseventeen-skip-link-focus-fix', get_theme_file_uri( '/assets/js/skip-link-focus-fix.js' ), array(), '20161114', array( 'in_footer' => true ) );
+
+	wp_enqueue_script(
+		'twentyseventeen-global',
+		get_theme_file_uri( '/assets/js/global.js' ),
+		array( 'jquery' ),
+		'20211130',
+		array(
+			'in_footer' => false, // Because involves header.
+			'strategy'  => 'defer',
+		)
+	);
 
 	$twentyseventeen_l10n = array(
 		'quote' => twentyseventeen_get_svg( array( 'icon' => 'quote-right' ) ),
 	);
 
 	if ( has_nav_menu( 'top' ) ) {
-		wp_enqueue_script( 'twentyseventeen-navigation', get_theme_file_uri( '/assets/js/navigation.js' ), array( 'jquery' ), '20161203', true );
+		wp_enqueue_script(
+			'twentyseventeen-navigation',
+			get_theme_file_uri( '/assets/js/navigation.js' ),
+			array( 'jquery' ),
+			'20210122',
+			array(
+				'in_footer' => false, // Because involves header.
+				'strategy'  => 'defer',
+			)
+		);
 		$twentyseventeen_l10n['expand']   = __( 'Expand child menu', 'twentyseventeen' );
 		$twentyseventeen_l10n['collapse'] = __( 'Collapse child menu', 'twentyseventeen' );
 		$twentyseventeen_l10n['icon']     = twentyseventeen_get_svg(
@@ -496,11 +515,18 @@ function twentyseventeen_scripts() {
 		);
 	}
 
-	wp_enqueue_script( 'twentyseventeen-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), '20190121', true );
+	wp_localize_script( 'twentyseventeen-global', 'twentyseventeenScreenReaderText', $twentyseventeen_l10n );
 
-	wp_enqueue_script( 'jquery-scrollto', get_theme_file_uri( '/assets/js/jquery.scrollTo.js' ), array( 'jquery' ), '2.1.2', true );
-
-	wp_localize_script( 'twentyseventeen-skip-link-focus-fix', 'twentyseventeenScreenReaderText', $twentyseventeen_l10n );
+	wp_enqueue_script(
+		'jquery-scrollto',
+		get_theme_file_uri( '/assets/js/jquery.scrollTo.js' ),
+		array( 'jquery' ),
+		'2.1.3',
+		array(
+			'in_footer' => true,
+			'strategy'  => 'defer',
+		)
+	);
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
@@ -515,9 +541,10 @@ add_action( 'wp_enqueue_scripts', 'twentyseventeen_scripts' );
  */
 function twentyseventeen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyseventeen-block-editor-style', get_theme_file_uri( '/assets/css/editor-blocks.css' ), array(), '20201208' );
+	wp_enqueue_style( 'twentyseventeen-block-editor-style', get_theme_file_uri( '/assets/css/editor-blocks.css' ), array(), '20240624' );
 	// Add custom fonts.
-	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), null );
+	$font_version = ( 0 === strpos( (string) twentyseventeen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
+	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), $font_version );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyseventeen_block_editor_styles' );
 
@@ -553,6 +580,7 @@ add_filter( 'wp_calculate_image_sizes', 'twentyseventeen_content_image_sizes_att
  * Filters the `sizes` value in the header image markup.
  *
  * @since Twenty Seventeen 1.0
+ * @since Twenty Seventeen 3.7 Added larger image size for small screens.
  *
  * @param string $html   The HTML image tag markup being filtered.
  * @param object $header The custom header object returned by 'get_custom_header()'.
@@ -561,7 +589,7 @@ add_filter( 'wp_calculate_image_sizes', 'twentyseventeen_content_image_sizes_att
  */
 function twentyseventeen_header_image_tag( $html, $header, $attr ) {
 	if ( isset( $attr['sizes'] ) ) {
-		$html = str_replace( $attr['sizes'], '100vw', $html );
+		$html = str_replace( $attr['sizes'], '(max-width: 767px) 200vw, 100vw', $html );
 	}
 	return $html;
 }
@@ -647,6 +675,42 @@ function twentyseventeen_unique_id( $prefix = '' ) {
 	return $prefix . (string) ++$id_counter;
 }
 
+if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
+	/**
+	 * Retrieves the list item separator based on the locale.
+	 *
+	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
+	 *
+	 * @since 6.0.0
+	 */
+	function wp_get_list_item_separator() {
+		/* translators: Used between list items, there is a space after the comma. */
+		return __( ', ', 'twentyseventeen' );
+	}
+endif;
+
+/**
+ * Show the featured image below the header on single posts and pages, unless the
+ * page is the front page.
+ *
+ * Use the filter `twentyseventeen_should_show_featured_image` in a child theme or
+ * plugin to change when the image is shown. This example prevents the image
+ * from showing:
+ *
+ *     add_filter(
+ *         'twentyseventeen_should_show_featured_image',
+ *         '__return_false'
+ *     );
+ *
+ * @since Twenty Seventeen 3.7
+ *
+ * @return bool Whether the post thumbnail should be shown.
+ */
+function twentyseventeen_should_show_featured_image() {
+	$show_featured_image = ( is_single() || ( is_page() && ! twentyseventeen_is_frontpage() ) ) && has_post_thumbnail( get_queried_object_id() );
+	return apply_filters( 'twentyseventeen_should_show_featured_image', $show_featured_image );
+}
+
 /**
  * Implement the Custom Header feature.
  */
@@ -673,6 +737,12 @@ require get_parent_theme_file_path( '/inc/customizer.php' );
 require get_parent_theme_file_path( '/inc/icon-functions.php' );
 
 /**
- * Block Patterns.
+ * Register block patterns and pattern categories.
+ *
+ * @since Twenty Seventeen 3.8
  */
-require get_template_directory() . '/inc/block-patterns.php';
+function twentyseventeen_register_block_patterns() {
+	require get_template_directory() . '/inc/block-patterns.php';
+}
+
+add_action( 'init', 'twentyseventeen_register_block_patterns' );

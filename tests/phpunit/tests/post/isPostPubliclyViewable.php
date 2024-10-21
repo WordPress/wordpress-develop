@@ -54,7 +54,7 @@ class Tests_Post_IsPostPubliclyViewable extends WP_UnitTestCase {
 			$date = date_format( date_create( '+1 year' ), 'Y-m-d H:i:s' );
 		}
 
-		$post_id = $this->factory()->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_type'   => $post_type,
 				'post_status' => $post_status,

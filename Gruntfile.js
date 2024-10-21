@@ -3,6 +3,7 @@
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
+var json2php = require( 'json2php' );
 
 module.exports = function(grunt) {
 	var path = require('path'),
@@ -13,7 +14,7 @@ module.exports = function(grunt) {
 		SOURCE_DIR = 'src/',
 		BUILD_DIR = 'build/',
 		WORKING_DIR = grunt.option( 'dev' ) ? SOURCE_DIR : BUILD_DIR,
- 		BANNER_TEXT = '/*! This file is auto-generated */',
+		BANNER_TEXT = '/*! This file is auto-generated */',
 		autoprefixer = require( 'autoprefixer' ),
 		sass = require( 'sass' ),
 		phpUnitWatchGroup = grunt.option( 'group' ),
@@ -31,6 +32,41 @@ module.exports = function(grunt) {
 			'wp-content/plugins/akismet/**',
 			'!wp-content/themes/twenty*/node_modules/**',
 		],
+
+		// All built CSS files, in /src or /build.
+		cssFiles = [
+			'wp-admin/css/*.min.css',
+			'wp-admin/css/*-rtl*.css',
+			'wp-includes/css/*.min.css',
+			'wp-includes/css/*-rtl*.css',
+			'wp-admin/css/colors/**/*.css',
+		],
+
+		// All built js files, in /src or /build.
+		jsFiles = [
+			'wp-admin/js/',
+			'wp-includes/js/',
+			'wp-includes/blocks/**/*.js',
+			'wp-includes/blocks/**/*.js.map',
+		],
+
+		// All files built by Webpack, in /src or /build.
+		webpackFiles = [
+			'wp-includes/assets/*',
+			'wp-includes/css/dist',
+			'wp-includes/blocks/**/*.css',
+			'!wp-includes/assets/script-loader-packages.min.php',
+			'!wp-includes/assets/script-modules-packages.min.php',
+		],
+
+		// Prepend `dir` to `file`, and keep `!` in place.
+		setFilePath = function( dir, file ) {
+			if ( '!' === file.charAt( 0 ) ) {
+				return '!' + dir + file.substring( 1 );
+			}
+
+			return dir + file;
+		},
 		changedFiles = {
 			php: []
 		};
@@ -49,8 +85,12 @@ module.exports = function(grunt) {
 
 	// Load tasks.
 	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
+
 	// Load legacy utils.
 	grunt.util = require('grunt-legacy-util');
+
+	// Load PostCSS tasks.
+	grunt.loadNpmTasks('@lodder/grunt-postcss');
 
 	// Project configuration.
 	grunt.initConfig({
@@ -80,7 +120,7 @@ module.exports = function(grunt) {
 				]
 			}
 		},
- 		usebanner: {
+		usebanner: {
 			options: {
 				position: 'top',
 				banner: BANNER_TEXT,
@@ -102,29 +142,39 @@ module.exports = function(grunt) {
 		clean: {
 			plugins: [BUILD_DIR + 'wp-content/plugins'],
 			themes: [BUILD_DIR + 'wp-content/themes'],
+
+			// Clean the files from /build and the JS, CSS, and Webpack files from /src.
 			files: buildFiles.concat( [
 				'!wp-config.php',
 			] ).map( function( file ) {
-				if ( '!' === file.charAt( 0 ) ) {
-					return '!' + BUILD_DIR + file.substring( 1 );
-				}
-				return BUILD_DIR + file;
+				return setFilePath( BUILD_DIR, file );
+			} ).concat(
+				cssFiles.map( function( file ) {
+					return setFilePath( SOURCE_DIR, file );
+				} )
+			).concat(
+				jsFiles.map( function( file ) {
+					return setFilePath( SOURCE_DIR, file );
+				} )
+			).concat(
+				webpackFiles.map( function( file ) {
+					return setFilePath( SOURCE_DIR, file );
+				} )
+			),
+
+			// Clean built JS, CSS, and Webpack files from either /src or /build.
+			css: cssFiles.map( function( file ) {
+				return setFilePath( WORKING_DIR, file );
 			} ),
-			css: [
-				WORKING_DIR + 'wp-admin/css/*.min.css',
-				WORKING_DIR + 'wp-admin/css/*-rtl*.css',
-				WORKING_DIR + 'wp-includes/css/*.min.css',
-				WORKING_DIR + 'wp-includes/css/*-rtl*.css',
-				WORKING_DIR + 'wp-admin/css/colors/**/*.css'
-			],
-			js: [
-				WORKING_DIR + 'wp-admin/js/',
-				WORKING_DIR + 'wp-includes/js/'
-			],
-			'webpack-assets': [
-				WORKING_DIR + 'wp-includes/assets/*',
-				WORKING_DIR + 'wp-includes/css/dist/',
-				'!' + WORKING_DIR + 'wp-includes/assets/script-loader-packages.php'
+			js: jsFiles.map( function( file ) {
+				return setFilePath( WORKING_DIR, file );
+			} ),
+			'webpack-assets': webpackFiles.map( function( file ) {
+				return setFilePath( WORKING_DIR, file );
+			} ),
+			'interactivity-assets': [
+				WORKING_DIR + 'wp-includes/js/dist/interactivity.asset.php',
+				WORKING_DIR + 'wp-includes/js/dist/interactivity.min.asset.php',
 			],
 			dynamic: {
 				dot: true,
@@ -188,12 +238,13 @@ module.exports = function(grunt) {
 
 						// Renamed to avoid conflict with jQuery hoverIntent.min.js (after minifying).
 						[ WORKING_DIR + 'wp-includes/js/hoverintent-js.min.js' ]: [ './node_modules/hoverintent/dist/hoverintent.min.js' ],
+
 						[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: [ './node_modules/imagesloaded/imagesloaded.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.js' ]: [ './node_modules/jquery/dist/jquery.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.min.js' ]: [ './node_modules/jquery/dist/jquery.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.color.min.js' ]: [ './node_modules/jquery-color/dist/jquery.color.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
-						[ WORKING_DIR + 'wp-includes/js/twemoji.js' ]: [ './node_modules/twemoji/dist/twemoji.js' ],
 						[ WORKING_DIR + 'wp-includes/js/underscore.js' ]: [ './node_modules/underscore/underscore.js' ],
 					}
 				]
@@ -231,15 +282,16 @@ module.exports = function(grunt) {
 							'suggest*'
 						],
 						dest: WORKING_DIR + 'wp-includes/js/jquery/'
-					},
-					{
+					}
+				].concat(
+					// Copy tinymce.js only when building to /src.
+					WORKING_DIR === SOURCE_DIR ? {
 						expand: true,
 						cwd: SOURCE_DIR + 'js/_enqueues/vendor/tinymce/',
 						src: 'tinymce.js',
 						dest: SOURCE_DIR + 'wp-includes/js/tinymce/'
-					},
-
-				]
+					} : []
+				)
 			},
 			'admin-js': {
 				files: {
@@ -270,6 +322,7 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-admin/js/media.js' ]: [ './src/js/_enqueues/admin/media.js' ],
 					[ WORKING_DIR + 'wp-admin/js/nav-menu.js' ]: [ './src/js/_enqueues/lib/nav-menu.js' ],
 					[ WORKING_DIR + 'wp-admin/js/password-strength-meter.js' ]: [ './src/js/_enqueues/wp/password-strength-meter.js' ],
+					[ WORKING_DIR + 'wp-admin/js/password-toggle.js' ]: [ './src/js/_enqueues/admin/password-toggle.js' ],
 					[ WORKING_DIR + 'wp-admin/js/plugin-install.js' ]: [ './src/js/_enqueues/admin/plugin-install.js' ],
 					[ WORKING_DIR + 'wp-admin/js/post.js' ]: [ './src/js/_enqueues/admin/post.js' ],
 					[ WORKING_DIR + 'wp-admin/js/postbox.js' ]: [ './src/js/_enqueues/admin/postbox.js' ],
@@ -280,6 +333,7 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-admin/js/tags-suggest.js' ]: [ './src/js/_enqueues/admin/tags-suggest.js' ],
 					[ WORKING_DIR + 'wp-admin/js/tags.js' ]: [ './src/js/_enqueues/admin/tags.js' ],
 					[ WORKING_DIR + 'wp-admin/js/site-health.js' ]: [ './src/js/_enqueues/admin/site-health.js' ],
+					[ WORKING_DIR + 'wp-admin/js/site-icon.js' ]: [ './src/js/_enqueues/admin/site-icon.js' ],
 					[ WORKING_DIR + 'wp-admin/js/privacy-tools.js' ]: [ './src/js/_enqueues/admin/privacy-tools.js' ],
 					[ WORKING_DIR + 'wp-admin/js/theme-plugin-editor.js' ]: [ './src/js/_enqueues/wp/theme-plugin-editor.js' ],
 					[ WORKING_DIR + 'wp-admin/js/theme.js' ]: [ './src/js/_enqueues/wp/theme.js' ],
@@ -515,8 +569,10 @@ module.exports = function(grunt) {
 					'wp-admin/css/*.css',
 					'wp-includes/css/*.css',
 
-					// Exclude minified and already processed files, and files from external packages.
-					// These are present when running `grunt build` after `grunt --dev`.
+					/*
+					 * Exclude minified and already processed files, and files from external packages.
+					 * These are present when running `grunt build` after `grunt --dev`.
+					 */
 					'!wp-admin/css/*-rtl.css',
 					'!wp-includes/css/*-rtl.css',
 					'!wp-admin/css/*.min.css',
@@ -714,20 +770,7 @@ module.exports = function(grunt) {
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
 					'!wp-includes/js/swfobject.js',
-					'!wp-includes/js/wp-embed.js' // We have extra options for this, see uglify:embed.
 				]
-			},
-			embed: {
-				options: {
-					compress: {
-						conditionals: false
-					}
-				},
-				expand: true,
-				cwd: WORKING_DIR,
-				dest: WORKING_DIR,
-				ext: '.min.js',
-				src: ['wp-includes/js/wp-embed.js']
 			},
 			'jquery-ui': {
 				options: {
@@ -986,48 +1029,16 @@ module.exports = function(grunt) {
 				}
 			}
 		},
-		jsvalidate:{
-			options: {
-				globals: {},
-				esprimaOptions:{},
-				verbose: false
-			},
-			build: {
-				files: {
-					src: [
-						WORKING_DIR + 'wp-{admin,includes}/**/*.js',
-						WORKING_DIR + 'wp-content/themes/twenty*/**/*.js',
-						'!' + WORKING_DIR + 'wp-content/themes/twenty*/node_modules/**/*.js',
-						'!' + WORKING_DIR + 'wp-includes/blocks/**/*.js',
-						'!' + WORKING_DIR + 'wp-includes/js/dist/**/*.js',
-					]
-				}
-			},
-			dynamic: {
-				files: {
-					src: []
-				}
-			}
-		},
 		imagemin: {
 			core: {
 				expand: true,
 				cwd: SOURCE_DIR,
 				src: [
 					'wp-{admin,includes}/images/**/*.{png,jpg,gif,jpeg}',
+					'wp-content/themes/**/*.{png,jpg,gif,jpeg}',
 					'wp-includes/js/tinymce/skins/wordpress/images/*.{png,jpg,gif,jpeg}'
 				],
 				dest: SOURCE_DIR
-			}
-		},
-		includes: {
-			emoji: {
-				src: BUILD_DIR + 'wp-includes/formatting.php',
-				dest: '.'
-			},
-			embed: {
-				src: BUILD_DIR + 'wp-includes/embed.php',
-				dest: '.'
 			}
 		},
 		replace: {
@@ -1037,19 +1048,34 @@ module.exports = function(grunt) {
 						{
 							match: /\/\/ START: emoji arrays[\S\s]*\/\/ END: emoji arrays/g,
 							replacement: function() {
-								var regex, files,
+								var regex, files, ghCli,
 									partials, partialsSet,
-									entities, emojiArray;
+									entities, emojiArray,
+									apiResponse, query;
 
 								grunt.log.writeln( 'Fetching list of Twemoji files...' );
 
+								// Ensure that the GitHub CLI is installed.
+								ghCli = spawn( 'gh', [ '--version' ] );
+								if ( 0 !== ghCli.status ) {
+									grunt.fatal( 'Emoji precommit script requires GitHub CLI. See https://cli.github.com/.' );
+								}
+
 								// Fetch a list of the files that Twemoji supplies.
-								files = spawn( 'svn', [ 'ls', 'https://github.com/twitter/twemoji.git/trunk/assets/svg' ] );
+								query = 'query={repository(owner: "jdecked", name: "twemoji") {object(expression: "v15.0.3:assets/svg") {... on Tree {entries {name}}}}}';
+								files = spawn( 'gh', [ 'api', 'graphql', '-f', query] );
+
 								if ( 0 !== files.status ) {
 									grunt.fatal( 'Unable to fetch Twemoji file list' );
 								}
 
-								entities = files.stdout.toString();
+								try {
+									apiResponse = JSON.parse( files.stdout.toString() );
+								} catch ( e ) {
+									grunt.fatal( 'Unable to parse Twemoji file list' );
+								}
+								entities = apiResponse.data.repository.object.entries;
+								entities = entities.reduce( function( accumulator, val ) { return accumulator + val.name + '\n'; }, '' );
 
 								// Tidy up the file list.
 								entities = entities.replace( /\.svg/g, '' );
@@ -1103,31 +1129,11 @@ module.exports = function(grunt) {
 					}
 				]
 			},
-			'emoji-banner-text': {
-				options: {
-					patterns: [
-						{
-							match: new RegExp( '\\s*' + BANNER_TEXT.replace( /[\/\*\!]/g, '\\$&' ) ),
-							replacement: ''
-						}
-					]
-				},
-				files: [
-					{
-						expand: true,
-						flatten: true,
-						src: [
-							BUILD_DIR + 'wp-includes/formatting.php'
-						],
-						dest: BUILD_DIR + 'wp-includes/'
-					}
-				]
-			},
 			'source-maps': {
 				options: {
 					patterns: [
 						{
-							match: new RegExp( '//# sourceMappingURL=.*\\s*' ),
+							match: new RegExp( '\/\/# sourceMappingURL=.*\\s*', 'g' ),
 							replacement: ''
 						}
 					]
@@ -1140,6 +1146,15 @@ module.exports = function(grunt) {
 							BUILD_DIR + 'wp-includes/js/underscore.js'
 						],
 						dest: BUILD_DIR + 'wp-includes/js/'
+					},
+					{
+						expand: true,
+						flatten: true,
+						src: [
+							BUILD_DIR + 'wp-includes/js/dist/block-editor.js',
+							BUILD_DIR + 'wp-includes/js/dist/commands.js',
+						],
+						dest: BUILD_DIR + 'wp-includes/js/dist/'
 					}
 				]
 			}
@@ -1163,7 +1178,7 @@ module.exports = function(grunt) {
 			},
 			'js-enqueues': {
 				files: [SOURCE_DIR + 'js/_enqueues/**/*.js'],
-				tasks: ['clean:dynamic', 'copy:dynamic-js', 'uglify:dynamic', 'jsvalidate:dynamic'],
+				tasks: ['clean:dynamic', 'copy:dynamic-js', 'uglify:dynamic'],
 				options: {
 					dot: true,
 					spawn: false
@@ -1175,7 +1190,7 @@ module.exports = function(grunt) {
 					'!' + SOURCE_DIR + 'js/_enqueues/**/*.js',
 					'webpack-dev.config.js'
 				],
-				tasks: ['clean:dynamic', 'webpack:dev', 'uglify:dynamic', 'jsvalidate:dynamic'],
+				tasks: ['clean:dynamic', 'webpack:dev', 'uglify:dynamic'],
 				options: {
 					dot: true,
 					spawn: false
@@ -1244,6 +1259,36 @@ module.exports = function(grunt) {
 		'phpunit:restapi-jsclient',
 		'qunit:compiled'
 	] );
+
+	grunt.registerTask( 'sync-gutenberg-packages', function() {
+		if ( grunt.option( 'update-browserlist' ) ) {
+			/*
+			 * Updating the browserlist database is opt-in and up to the release lead.
+			 *
+			 * Browserlist database should be updated:
+			 * - In each release cycle up until RC1
+			 * - If Webpack throws a warning about an outdated database
+			 *
+			 * It should not be updated:
+			 * - After the RC1
+			 * - When backporting fixes to older WordPress releases.
+			 *
+			 * For more context, see:
+			 * https://github.com/WordPress/wordpress-develop/pull/2621#discussion_r859840515
+			 * https://core.trac.wordpress.org/ticket/55559
+			 */
+			grunt.task.run( 'browserslist:update' );
+		}
+
+		// Install the latest version of the packages already listed in package.json.
+		grunt.task.run( 'wp-packages:update' );
+
+		/*
+		 * Install any new @wordpress packages that are now required.
+		 * Update any non-@wordpress deps to the same version as required in the @wordpress packages (e.g. react 16 -> 17).
+		 */
+		grunt.task.run( 'wp-packages:refresh-deps' );
+	} );
 
 	grunt.renameTask( 'watch', '_watch' );
 
@@ -1400,6 +1445,23 @@ module.exports = function(grunt) {
 		}
 	} );
 
+	grunt.registerTask( 'copy:block-json', 'Copies block.json file contents to block-json.php.', function() {
+		var blocks = {};
+		grunt.file.recurse( SOURCE_DIR + 'wp-includes/blocks', function( abspath, rootdir, subdir, filename ) {
+			if ( /^block\.json$/.test( filename ) ) {
+				blocks[ subdir ] = grunt.file.readJSON( abspath );
+			}
+		} );
+		grunt.file.write(
+			SOURCE_DIR + 'wp-includes/blocks/blocks-json.php',
+			'<?php return ' + json2php.make( {
+				linebreak: '\n',
+				indent: '  ',
+				shortArraySyntax: false
+			} )( blocks ) + ';'
+		);
+	} );
+
 	grunt.registerTask( 'copy:js', [
 		'copy:npm-packages',
 		'copy:vendor-js',
@@ -1409,7 +1471,6 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'uglify:all', [
 		'uglify:core',
-		'uglify:embed',
 		'uglify:jquery-ui',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
@@ -1420,6 +1481,7 @@ module.exports = function(grunt) {
 		'clean:webpack-assets',
 		'webpack:prod',
 		'webpack:dev',
+		'clean:interactivity-assets',
 	] );
 
 	grunt.registerTask( 'build:js', [
@@ -1429,8 +1491,7 @@ module.exports = function(grunt) {
 		'file_append',
 		'uglify:all',
 		'concat:tinymce',
-		'concat:emoji',
-		'jsvalidate:build'
+		'concat:emoji'
 	] );
 
 	grunt.registerTask( 'build:css', [
@@ -1448,6 +1509,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'build:files', [
 		'clean:files',
 		'copy:files',
+		'copy:block-json',
 		'copy:version',
 	] );
 
@@ -1455,37 +1517,9 @@ module.exports = function(grunt) {
 	 * Build verification tasks.
 	 */
 	grunt.registerTask( 'verify:build', [
-		'verify:wp-embed',
 		'verify:old-files',
 		'verify:source-maps',
 	] );
-
-	/**
-	 * Build assertions for wp-embed.min.js.
-	 *
-	 * @ticket 34698
-	 */
-	grunt.registerTask( 'verify:wp-embed', function() {
-		const file = `${ BUILD_DIR }/wp-includes/js/wp-embed.min.js`;
-
-		assert(
-			fs.existsSync( file ),
-			'The build/wp-includes/js/wp-embed.min.js file does not exist.'
-		);
-
-		const contents = fs.readFileSync( file, {
-			encoding: 'utf8',
-		} );
-
-		assert(
-			contents.length > 0,
-			'The build/wp-includes/js/wp-embed.min.js file must not be empty.'
-		);
-		assert(
-			false === contents.includes( '&' ),
-			'The build/wp-includes/js/wp-embed.min.js file must not contain ampersands.'
-		);
-	} );
 
 	/**
 	 * Build assertions to ensure no project files are inside `$_old_files` in the build directory.
@@ -1517,19 +1551,19 @@ module.exports = function(grunt) {
 		);
 
 		const files = match[1].split( '\n\t' ).filter( function( file ) {
-			// Filter out empty lines
+			// Filter out empty lines.
 			if ( '' === file ) {
 				return false;
 			}
 
-			// Filter out commented out lines
+			// Filter out commented out lines.
 			if ( 0 === file.indexOf( '/' ) ) {
 				return false;
 			}
 
 			return true;
 		} ).map( function( file ) {
-			// Strip leading and trailing single quotes and commas
+			// Strip leading and trailing single quotes and commas.
 			return file.replace( /^\'|\',$/g, '' );
 		} );
 
@@ -1543,12 +1577,19 @@ module.exports = function(grunt) {
 	} );
 
 	/**
-	 * Build assertions for the lack of source maps in JavaScript files.
+	 * Compiled JavaScript files may link to sourcemaps. In some cases,
+	 * the source map may not be available, which can cause 404 errors when
+	 * browsers try to download the sourcemap from the referenced URLs.
+	 * Ensure that sourcemap links are not included in JavaScript files.
 	 *
 	 * @ticket 24994
 	 * @ticket 46218
+	 * @ticket 60348
 	 */
 	grunt.registerTask( 'verify:source-maps', function() {
+		const ignoredFiles = [
+			'build/wp-includes/js/dist/components.js',
+		];
 		const files = buildFiles.reduce( ( acc, path ) => {
 			// Skip excluded paths and any path that isn't a file.
 			if ( '!' === path[0] || '**' !== path.substr( -2 ) ) {
@@ -1563,18 +1604,20 @@ module.exports = function(grunt) {
 			'No JavaScript files found in the build directory.'
 		);
 
-		files.forEach( function( file ) {
-			const contents = fs.readFileSync( file, {
-				encoding: 'utf8',
-			} );
-			// `data:` URLs are allowed:
-			const match = contents.match( /sourceMappingURL=((?!data:).)/ );
+		files
+			.filter(file => ! ignoredFiles.includes( file) )
+			.forEach( function( file ) {
+				const contents = fs.readFileSync( file, {
+					encoding: 'utf8',
+				} );
+				// `data:` URLs are allowed:
+				const doesNotHaveSourceMap = ! /^\/\/# sourceMappingURL=((?!data:).)/m.test(contents);
 
-			assert(
-				match === null,
-				`The ${ file } file must not contain a sourceMappingURL.`
-			);
-		} );
+				assert(
+					doesNotHaveSourceMap,
+					`The ${ file } file must not contain a sourceMappingURL.`
+				);
+			} );
 	} );
 
 	grunt.registerTask( 'build', function() {
@@ -1588,9 +1631,6 @@ module.exports = function(grunt) {
 				'build:files',
 				'build:js',
 				'build:css',
-				'includes:emoji',
-				'includes:embed',
-				'replace:emoji-banner-text',
 				'replace:source-maps',
 				'verify:build'
 			] );
@@ -1664,6 +1704,38 @@ module.exports = function(grunt) {
 		} );
 	} );
 
+	grunt.registerTask( 'wp-packages:update', 'Update WordPress packages', function() {
+		const distTag = grunt.option('dist-tag') || 'latest';
+		grunt.log.writeln( `Updating WordPress packages (--dist-tag=${distTag})` );
+		spawn( 'npx', [ 'wp-scripts', 'packages-update', `--dist-tag=${distTag}` ], {
+			cwd: __dirname,
+			stdio: 'inherit',
+		} );
+	} );
+
+	grunt.registerTask( 'browserslist:update', 'Update the local database of browser supports', function() {
+		grunt.log.writeln( `Updating browsers list` );
+		spawn( 'npx', [ 'browserslist@latest', '--update-db' ], {
+			cwd: __dirname,
+			stdio: 'inherit',
+		} );
+	} );
+
+	grunt.registerTask( 'wp-packages:refresh-deps', 'Update version of dependencies in package.json to match the ones listed in the latest WordPress packages', function() {
+		const distTag = grunt.option('dist-tag') || 'latest';
+		grunt.log.writeln( `Updating versions of dependencies listed in package.json (--dist-tag=${distTag})` );
+		spawn( 'node', [ 'tools/release/sync-gutenberg-packages.js', `--dist-tag=${distTag}` ], {
+			cwd: __dirname,
+			stdio: 'inherit',
+		} );
+	} );
+
+	grunt.registerTask( 'wp-packages:sync-stable-blocks', 'Refresh the PHP files referring to stable @wordpress/block-library blocks.', function() {
+		grunt.log.writeln( `Syncing stable blocks from @wordpress/block-library to src/` );
+		const { main } = require( './tools/release/sync-stable-blocks' );
+		main();
+	} );
+
 	// Patch task.
 	grunt.renameTask('patch_wordpress', 'patch');
 
@@ -1732,7 +1804,7 @@ module.exports = function(grunt) {
 			if ( action !== 'deleted' ) {
 				grunt.config( [ 'copy', 'dynamic-js', 'files' ], files );
 			}
-		// For the webpack builds configure the jsvalidate task to only check those files build by webpack.
+		// For the webpack builds configure the task to only check those files built by webpack.
 		} else if ( target === 'js-webpack' ) {
 			src = [
 				'wp-includes/js/media-audiovideo.js',
@@ -1754,17 +1826,19 @@ module.exports = function(grunt) {
 			// Clean up only those files that were deleted.
 			grunt.config( [ 'clean', 'dynamic', 'src' ], src );
 		} else {
-			// Otherwise copy over only the changed file.
-			grunt.config( [ 'copy', 'dynamic', 'src' ], src );
+			if ( ! grunt.option( 'dev' ) ) {
+				// Otherwise copy over only the changed file.
+				grunt.config(['copy', 'dynamic', 'src'], src);
+			}
 
 			// For javascript also minify and validate the changed file.
 			if ( target === 'js-enqueues' ) {
 				grunt.config( [ 'uglify', 'dynamic', 'src' ], src );
-				grunt.config( [ 'jsvalidate', 'dynamic', 'files', 'src' ], src.map( function( dir ) { return  WORKING_DIR + dir; } ) );
+				grunt.config( [ 'dynamic', 'files', 'src' ], src.map( function( dir ) { return  WORKING_DIR + dir; } ) );
 			}
 			// For webpack only validate the file, minification is handled by webpack itself.
 			if ( target === 'js-webpack' ) {
-				grunt.config( [ 'jsvalidate', 'dynamic', 'files', 'src' ], src.map( function( dir ) { return  WORKING_DIR + dir; } ) );
+				grunt.config( [ 'dynamic', 'files', 'src' ], src.map( function( dir ) { return  WORKING_DIR + dir; } ) );
 			}
 			// For css run the rtl task on just the changed file.
 			if ( target === 'rtl' ) {

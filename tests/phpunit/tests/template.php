@@ -456,6 +456,43 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tests that `locate_template()` uses the current theme even after switching the theme.
+	 *
+	 * @ticket 18298
+	 *
+	 * @covers ::locate_template
+	 */
+	public function test_locate_template_uses_current_theme() {
+		$themes = wp_get_themes();
+
+		// Look for parent themes with an index.php template.
+		$relevant_themes = array();
+		foreach ( $themes as $theme ) {
+			if ( $theme->get_stylesheet() !== $theme->get_template() ) {
+				continue;
+			}
+			$php_templates = $theme['Template Files'];
+			if ( ! isset( $php_templates['index.php'] ) ) {
+				continue;
+			}
+			$relevant_themes[] = $theme;
+		}
+		if ( count( $relevant_themes ) < 2 ) {
+			$this->markTestSkipped( 'Test requires at least two parent themes with an index.php template.' );
+		}
+
+		$template_names = array( 'index.php' );
+
+		$old_theme = $relevant_themes[0];
+		$new_theme = $relevant_themes[1];
+
+		switch_theme( $old_theme->get_stylesheet() );
+		$this->assertSame( $old_theme->get_stylesheet_directory() . '/index.php', locate_template( $template_names ), 'Incorrect index template found in initial theme.' );
+
+		switch_theme( $new_theme->get_stylesheet() );
+		$this->assertSame( $new_theme->get_stylesheet_directory() . '/index.php', locate_template( $template_names ), 'Incorrect index template found in theme after switch.' );
+	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
 		$this->go_to( $url );
@@ -506,5 +543,4 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->hierarchy = array_merge( $this->hierarchy, $hierarchy );
 		return $hierarchy;
 	}
-
 }

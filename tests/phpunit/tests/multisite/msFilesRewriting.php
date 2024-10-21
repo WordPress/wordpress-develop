@@ -72,6 +72,8 @@ if ( is_multisite() ) :
 			// The file on the main site should still exist. The file on the deleted site should not.
 			$this->assertFileExists( $file1['file'] );
 			$this->assertFileDoesNotExist( $file2['file'] );
+
+			unlink( $file1['file'] );
 		}
 	}
 

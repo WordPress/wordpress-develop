@@ -4,7 +4,9 @@ Theme URI: https://wordpress.org/themes/twentyeleven/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: The 2011 theme for WordPress is sophisticated, lightweight, and adaptable. Make it yours with a custom menu, header image, and background -- then go further with available theme options for light or dark color scheme, custom link colors, and three layout choices. Twenty Eleven comes equipped with a Showcase page template that transforms your front page into a showcase to show off your best content, widget support galore (sidebar, three footer areas, and a Showcase page widget area), and a custom "Ephemera" widget to display your Aside, Link, Quote, or Status posts. Included are styles for print and for the admin editor, support for featured images (as custom header images on posts and pages and as large images on featured "sticky" posts), and special styles for six different post formats.
-Version: 3.9
+Version: 4.7
+Requires at least: 3.2
+Tested up to: 6.6
 Requires PHP: 5.2.4
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -406,6 +408,9 @@ pre {
 code, kbd, samp, var {
 	font: 13px Monaco, Consolas, "Andale Mono", "DejaVu Sans Mono", monospace;
 }
+pre code {
+	font-size: inherit;
+}
 abbr, acronym, dfn {
 	border-bottom: 1px dotted #666;
 	cursor: help;
@@ -573,9 +578,9 @@ a.assistive-text:focus,
 	background: -o-linear-gradient(#252525, #0a0a0a);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#252525), to(#0a0a0a)); /* older webkit syntax */
 	background: -webkit-linear-gradient(#252525, #0a0a0a);
-	-webkit-box-shadow: rgba(0, 0, 0, 0.4) 0px 1px 2px;
-	-moz-box-shadow: rgba(0, 0, 0, 0.4) 0px 1px 2px;
-	box-shadow: rgba(0, 0, 0, 0.4) 0px 1px 2px;
+	-webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+	-moz-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 	clear: both;
 	display: block;
 	float: left;
@@ -1124,7 +1129,7 @@ article.format-status .entry-content {
 /* Singular content styles for Posts and Pages */
 .singular .hentry {
 	border-bottom: none;
-	padding: 4.875em 0 0;
+	padding: 1.875em 0 0;
 	position: relative;
 }
 .singular.page .hentry {
@@ -1139,11 +1144,6 @@ article.format-status .entry-content {
 .singular .entry-title,
 .singular .entry-header .entry-meta {
 	padding-right: 0;
-}
-.singular .entry-header .entry-meta {
-	position: absolute;
-	top: 0;
-	left: 0;
 }
 blockquote.pull {
 	font-size: 21px;
@@ -1182,7 +1182,7 @@ blockquote.pull.alignright {
 	left: 50px;
 	position: absolute;
 	right: auto;
-	top: 80px;
+	top: 40px;
 }
 
 
@@ -1627,6 +1627,11 @@ section.feature-image.large img {
 	width: 14px;
 	height: 14px;
 }
+.feature-slider a .feature-slider-tooltip {
+	display: block;
+	width: 14px;
+	height: 14px;
+}
 .feature-slider a.active {
 	background: #1982d1;
 	-webkit-box-shadow: inset 1px 1px 5px rgba(0,0,0,0.4), inset 0 0 2px rgba(255,255,255,0.8);
@@ -1666,8 +1671,6 @@ section.recent-posts .other-recent-posts a[rel="bookmark"]:after {
 	content: '-';
 	color: transparent;
 	font-size: 11px;
-}
-section.recent-posts .other-recent-posts a[rel="bookmark"]:hover {
 }
 section.recent-posts .other-recent-posts .comments-link a,
 section.recent-posts .other-recent-posts .comments-link > span {
@@ -1787,10 +1790,7 @@ video {
 
 /* Singular navigation */
 #nav-single {
-	float: right;
 	position: relative;
-	top: -0.3em;
-	text-align: right;
 	z-index: 1;
 }
 #nav-single .nav-previous,
@@ -1861,9 +1861,9 @@ video {
 .widget_search #searchsubmit {
 	background: #ddd;
 	border: 1px solid #ccc;
-	-webkit-box-shadow: inset 0px -1px 1px rgba(0, 0, 0, 0.09);
-	-moz-box-shadow: inset 0px -1px 1px rgba(0, 0, 0, 0.09);
-	box-shadow: inset 0px -1px 1px rgba(0, 0, 0, 0.09);
+	-webkit-box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.09);
+	-moz-box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.09);
+	box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.09);
 	color: #888;
 	font-size: 13px;
 	line-height: 25px;
@@ -1873,9 +1873,9 @@ video {
 .widget_search #searchsubmit:active {
 	background: #1982d1;
 	border-color: #0861a5;
-	-webkit-box-shadow: inset 0px 1px 1px rgba(0, 0, 0, 0.1);
-	-moz-box-shadow: inset 0px 1px 1px rgba(0, 0, 0, 0.1);
-	box-shadow: inset 0px 1px 1px rgba(0, 0, 0, 0.1);
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1);
+	-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1);
 	color: #bfddf3;
 }
 
@@ -1898,9 +1898,6 @@ section.ephemera ol,
 	font-weight: 500;
 	line-height: 2.76333em;
 	text-transform: uppercase;
-}
-section.ephemera .entry-title .comments-link a:hover,
-.widget_twentyeleven_ephemera .entry-title .comments-link a:hover {
 }
 section.ephemera .entry-title a span {
 	color: #29628d;
@@ -2087,10 +2084,6 @@ section.ephemera .entry-title a span {
 .comment-meta a {
 	font-weight: bold;
 }
-.comment-meta a:focus,
-.comment-meta a:active,
-.comment-meta a:hover {
-}
 .commentlist .avatar {
 	-moz-border-radius: 3px;
 	border-radius: 3px;
@@ -2148,10 +2141,6 @@ a.comment-reply-link > span {
 }
 .commentlist > li.bypostauthor .comment-meta {
 	color: #575757;
-}
-.commentlist > li.bypostauthor .comment-meta a:focus,
-.commentlist > li.bypostauthor .comment-meta a:active,
-.commentlist > li.bypostauthor .comment-meta a:hover {
 }
 .commentlist > li.bypostauthor:before {
 	content: url(images/comment-arrow-bypostauthor.png);
@@ -2232,14 +2221,23 @@ a.comment-reply-link > span {
 	resize: vertical;
 	width: 95%;
 }
-#respond .comment-form-author .required,
-#respond .comment-form-email .required {
+#respond .comment-form label .required,
+#respond .comment-form .comment-notes .required,
+#respond .comment-form .logged-in-as .required {
 	color: #bd3500;
 	font-size: 22px;
 	font-weight: bold;
-	left: 75%;
-	position: absolute;
-	z-index: 1;
+}
+#respond .comment-form-author .required,
+#respond .comment-form-email .required,
+#respond .comment-form-url .required,
+#respond .comment-form-comment .required {
+	float: right;
+	margin-left: 4px;
+}
+#respond .comment-form .comment-notes .required,
+#respond .comment-form .logged-in-as .required {
+	vertical-align: middle;
 }
 #respond .comment-notes,
 #respond .logged-in-as {
@@ -2257,9 +2255,9 @@ a.comment-reply-link > span {
 	border: none;
 	-moz-border-radius: 3px;
 	border-radius: 3px;
-	-webkit-box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
-	-moz-box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
-	box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	-moz-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 	color: #eee;
 	cursor: pointer;
 	font-size: 15px;
@@ -2481,7 +2479,7 @@ p.comment-form-comment {
 	.singular .entry-meta .edit-link a {
 		left: 0;
 		position: absolute;
-		top: 40px;
+		top: 20px;
 	}
 	.singular #author-info {
 		margin: 2.2em -8.8% 0;
@@ -2571,14 +2569,6 @@ p.comment-form-comment {
 		margin-left: 0;
 		margin-right: 0;
 	}
-	/* Make sure the post-post navigation doesn't collide with anything */
-	#nav-single {
-		display: block;
-		position: static;
-	}
-	.singular .hentry {
-		padding: 1.625em 0 0;
-	}
 	.singular.page .hentry {
 		padding: 1.625em 0 0;
 	}
@@ -2608,10 +2598,6 @@ p.comment-form-comment {
 	/* Use the available space in the smaller comment form */
 	#respond input[type="text"] {
 		width: 95%;
-	}
-	#respond .comment-form-author .required,
-	#respond .comment-form-email .required {
-		left: 95%;
 	}
 	#content .gallery-columns-3 .gallery-item {
 		width: 31%;
@@ -2819,8 +2805,6 @@ p.comment-form-comment {
 #ie7 article.intro {
 	margin-left: -7.6%;
 	margin-right: -7.6%;
-	padding-left: -7.6%;
-	padding-right: -7.6%;
 	max-width: 1000px;
 }
 #ie7 .featured-posts {

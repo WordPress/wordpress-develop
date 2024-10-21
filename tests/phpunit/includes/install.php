@@ -4,7 +4,7 @@
  *
  * @todo Reuse the init/load code in init.php
  */
-error_reporting( E_ALL & ~E_DEPRECATED & ~E_STRICT );
+error_reporting( E_ALL & ~E_DEPRECATED );
 
 $config_file_path = $argv[1];
 $multisite        = in_array( 'run_ms_tests', $argv, true );
@@ -14,6 +14,13 @@ if ( ! defined( 'WP_RUN_CORE_TESTS' ) && in_array( 'run_core_tests', $argv, true
 }
 
 define( 'WP_INSTALLING', true );
+
+/*
+ * Cron tries to make an HTTP request to the site, which always fails,
+ * because tests are run in CLI mode only.
+ */
+define( 'DISABLE_WP_CRON', true );
+
 require_once $config_file_path;
 require_once __DIR__ . '/functions.php';
 
@@ -30,10 +37,10 @@ $_SERVER['PHP_SELF'] = '/index.php';
 
 tests_add_filter( 'wp_die_handler', '_wp_die_handler_filter_exit' );
 
-require_once ABSPATH . '/wp-settings.php';
+require_once ABSPATH . 'wp-settings.php';
 
-require_once ABSPATH . '/wp-admin/includes/upgrade.php';
-require_once ABSPATH . '/wp-includes/wp-db.php';
+require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+require_once ABSPATH . 'wp-includes/class-wpdb.php';
 
 // Override the PHPMailer.
 global $phpmailer;
@@ -57,12 +64,12 @@ echo 'Installing...' . PHP_EOL;
 
 $wpdb->query( 'SET foreign_key_checks = 0' );
 foreach ( $wpdb->tables() as $table => $prefixed_table ) {
-	//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$wpdb->query( "DROP TABLE IF EXISTS $prefixed_table" );
 }
 
 foreach ( $wpdb->tables( 'ms_global' ) as $table => $prefixed_table ) {
-	//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$wpdb->query( "DROP TABLE IF EXISTS $prefixed_table" );
 
 	// We need to create references to ms global tables.

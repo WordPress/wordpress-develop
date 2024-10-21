@@ -5,13 +5,14 @@ Theme URI: https://wordpress.org/themes/twentynineteen/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Our 2019 default theme is designed to show off the power of the block editor. It features custom styles for all the default blocks, and is built so that what you see in the editor looks like what you'll see on your website. Twenty Nineteen is designed to be adaptable to a wide range of websites, whether you’re running a photo blog, launching a new business, or supporting a non-profit. Featuring ample whitespace and modern sans-serif headlines paired with classic serif body text, it's built to be beautiful on all screen sizes.
-Requires at least: 4.9.6
+Tested up to: 6.6
+Requires at least: 4.7
 Requires PHP: 5.2.4
-Version: 2.1
+Version: 2.9
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentynineteen
-Tags: one-column, flexible-header, accessibility-ready, custom-colors, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, rtl-language-support, sticky-post, threaded-comments, translation-ready, block-patterns
+Tags: one-column, accessibility-ready, custom-colors, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, rtl-language-support, sticky-post, threaded-comments, translation-ready, block-patterns
 
 This theme, like WordPress, is licensed under the GPL.
 Use it to make something cool, have fun, and share what you've learned with others.
@@ -2218,6 +2219,7 @@ html {
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #fff;
   color: #111;
   font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
   font-weight: 400;
@@ -2470,6 +2472,7 @@ a:hover {
 
 a:focus {
   text-decoration: underline;
+  text-decoration-thickness: 2px;
 }
 
 /* Elements */
@@ -2491,10 +2494,6 @@ html {
   box-sizing: inherit;
 }
 
-body {
-  background-color: #fff;
-}
-
 a {
   transition: color 110ms ease-in-out;
   color: #0073aa;
@@ -2511,6 +2510,7 @@ a:focus {
   outline: thin;
   outline-style: dotted;
   text-decoration: underline;
+  text-decoration-thickness: 2px;
 }
 
 h1,
@@ -2759,6 +2759,7 @@ a:active {
 a:focus {
   outline: thin dotted;
   text-decoration: underline;
+  text-decoration-thickness: 2px;
 }
 
 /*--------------------------------------------------------------
@@ -2829,7 +2830,7 @@ body.page .main-navigation {
 
 .main-navigation .main-menu > li {
   color: #0073aa;
-  display: inline;
+  display: inline-block;
   position: relative;
 }
 
@@ -3958,10 +3959,6 @@ body.page .main-navigation {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
 }
 
-.site-header.featured-image .site-featured-image {
-  /* First layer: grayscale. */
-}
-
 .site-header.featured-image .site-featured-image .post-thumbnail img {
   height: auto;
   right: 50%;
@@ -3973,7 +3970,6 @@ body.page .main-navigation {
   transform: translateX(50%) translateY(-50%);
   width: auto;
   z-index: 1;
-  /* When image filters are active, make it grayscale to colorize it blue. */
 }
 
 @supports (object-fit: cover) {
@@ -3988,6 +3984,8 @@ body.page .main-navigation {
 }
 
 .image-filters-enabled .site-header.featured-image .site-featured-image .post-thumbnail img {
+  /* First layer: grayscale. */
+  /* When image filters are active, make it grayscale to colorize it blue. */
   filter: grayscale(100%);
 }
 
@@ -4422,6 +4420,7 @@ body.page .main-navigation {
 
 .entry .entry-content a {
   text-decoration: underline;
+  text-decoration-thickness: 2px;
 }
 
 .entry .entry-content a.button, .entry .entry-content a:hover {
@@ -4669,6 +4668,10 @@ body.page .main-navigation {
   width: calc(100vw / 12);
 }
 
+#respond .comment-reply-title small {
+  margin-right: 0.5em;
+}
+
 #comments > .comments-title:last-child {
   display: none;
 }
@@ -4689,6 +4692,11 @@ body.page .main-navigation {
 }
 
 .comment-form-flex #respond + .comments-title {
+  display: block;
+}
+
+.comment-form-wrapper,
+.comment-form-wrapper .comments-title {
   display: block;
 }
 
@@ -4768,8 +4776,10 @@ body.page .main-navigation {
 
 .comment .comment-author .avatar {
   float: right;
+  height: calc(2.25 * 1rem);
   margin-left: 1rem;
   position: relative;
+  width: calc(2.25 * 1rem);
 }
 
 @media only screen and (min-width: 768px) {
@@ -4894,6 +4904,7 @@ body.page .main-navigation {
 
 .comment .comment-content a {
   text-decoration: underline;
+  text-decoration-thickness: 2px;
 }
 
 .comment .comment-content a:hover {
@@ -5219,6 +5230,7 @@ body.page .main-navigation {
 
 .widget_calendar .calendar_wrap a {
   text-decoration: underline;
+  text-decoration-thickness: 2px;
 }
 
 .widget_calendar .calendar_wrap .wp-calendar-table {
@@ -5449,6 +5461,7 @@ body.page .main-navigation {
 }
 
 .entry .entry-content .wp-block-audio audio {
+  display: block;
   width: 100%;
 }
 
@@ -5475,17 +5488,19 @@ body.page .main-navigation {
   width: 100%;
 }
 
+.entry .entry-content .wp-block-buttons {
+  line-height: 1.2;
+}
+
 .entry .entry-content .wp-block-button .wp-block-button__link {
   transition: background 150ms ease-in-out;
   border: none;
   font-size: 0.88889em;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-  line-height: 1.2;
   box-sizing: border-box;
   font-weight: bold;
   text-decoration: none;
   padding: 0.76rem 1rem;
-  outline: none;
   outline: none;
 }
 
@@ -5503,11 +5518,19 @@ body.page .main-navigation {
   cursor: pointer;
 }
 
+.entry .entry-content .wp-block-button .wp-block-button__link:hover:not(.has-background) {
+  background: #111;
+}
+
 .entry .entry-content .wp-block-button .wp-block-button__link:focus {
   color: white;
   background: #111;
   outline: thin dotted;
   outline-offset: -4px;
+}
+
+.entry .entry-content .wp-block-button .wp-block-button__link:focus:not(.has-background) {
+  background: #111;
 }
 
 .entry .entry-content .wp-block-button:not(.is-style-squared) .wp-block-button__link {
@@ -5542,6 +5565,21 @@ body.page .main-navigation {
 
 .entry .entry-content .wp-block-button.is-style-outline .wp-block-button__link:hover:not(.has-background) {
   color: #111;
+}
+
+.entry .entry-content .wp-block-buttons.has-custom-font-size .wp-block-button__link,
+.entry .entry-content .wp-block-button.has-custom-font-size .wp-block-button__link {
+  font-size: 1em;
+}
+
+.entry .entry-content .wp-block-buttons[style*="font-weight"] .wp-block-button__link,
+.entry .entry-content .wp-block-button[style*="font-weight"] .wp-block-button__link {
+  font-weight: inherit;
+}
+
+.entry .entry-content .wp-block-buttons[style*="text-decoration"] .wp-block-button__link,
+.entry .entry-content .wp-block-button[style*="text-decoration"] .wp-block-button__link {
+  text-decoration: inherit;
 }
 
 .entry .entry-content .wp-block-archives,
@@ -5656,13 +5694,14 @@ body.page .main-navigation {
 }
 
 .entry .entry-content .wp-block-pullquote {
+  color: #111;
   border-color: transparent;
   border-width: 2px;
   padding: 1rem;
+  font-size: 1em;
 }
 
 .entry .entry-content .wp-block-pullquote blockquote {
-  color: #111;
   border: none;
   margin-top: calc(4 * 1rem);
   margin-bottom: calc(4.33 * 1rem);
@@ -5689,7 +5728,7 @@ body.page .main-navigation {
 }
 
 .entry .entry-content .wp-block-pullquote cite {
-  display: inline-block;
+  display: block;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   line-height: 1.6;
   text-transform: none;
@@ -5846,13 +5885,19 @@ body.page .main-navigation {
 }
 
 @media only screen and (min-width: 768px) {
-  .entry .entry-content .wp-block-image:not(.alignwide):not(.alignfull) > img {
+  .entry .entry-content .wp-block-image:not(.alignwide):not(.alignfull) > img,
+  .entry .entry-content .wp-block-image:not(.alignwide):not(.alignfull) > a > img,
+  .entry .entry-content .wp-block-image:not(.alignwide):not(.alignfull) > img + figcaption,
+  .entry .entry-content .wp-block-image:not(.alignwide):not(.alignfull) > a + figcaption {
     max-width: calc(8 * (100vw / 12) - 28px);
   }
 }
 
 @media only screen and (min-width: 1168px) {
-  .entry .entry-content .wp-block-image:not(.alignwide):not(.alignfull) > img {
+  .entry .entry-content .wp-block-image:not(.alignwide):not(.alignfull) > img,
+  .entry .entry-content .wp-block-image:not(.alignwide):not(.alignfull) > a > img,
+  .entry .entry-content .wp-block-image:not(.alignwide):not(.alignfull) > img + figcaption,
+  .entry .entry-content .wp-block-image:not(.alignwide):not(.alignfull) > a + figcaption {
     max-width: calc(6 * (100vw / 12) - 28px);
   }
 }
@@ -6180,6 +6225,8 @@ body.page .main-navigation {
 }
 
 @media only screen and (min-width: 768px) {
+  .entry .entry-content .wp-block-columns .wp-block-image:not(.alignwide):not(.alignfull) > img,
+  .entry .entry-content .wp-block-columns .wp-block-image:not(.alignwide):not(.alignfull) > a > img,
   .entry .entry-content .wp-block-columns .wp-block-image > img:not(.alignwide):not(.alignfull),
   .entry .entry-content .wp-block-columns .wp-block-image > figure {
     max-width: 100%;
@@ -6187,6 +6234,8 @@ body.page .main-navigation {
 }
 
 @media only screen and (min-width: 1168px) {
+  .entry .entry-content .wp-block-columns .wp-block-image:not(.alignwide):not(.alignfull) > img,
+  .entry .entry-content .wp-block-columns .wp-block-image:not(.alignwide):not(.alignfull) > a > img,
   .entry .entry-content .wp-block-columns .wp-block-image > img:not(.alignwide):not(.alignfull),
   .entry .entry-content .wp-block-columns .wp-block-image > figure {
     max-width: 100%;
@@ -6435,9 +6484,7 @@ object {
 .avatar {
   border-radius: 100%;
   display: block;
-  height: calc(2.25 * 1rem);
   min-height: inherit;
-  width: calc(2.25 * 1rem);
 }
 
 svg {

@@ -128,8 +128,15 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 		/*
 		 * Make theme available for translation.
 		 * Translations can be filed in the /languages/ directory.
+		 *
+		 * Manual loading of text domain is not required after the introduction of
+		 * just in time translation loading in WordPress version 4.6.
+		 *
+		 * @ticket 58318
 		 */
-		load_theme_textdomain( 'twentyten', get_template_directory() . '/languages' );
+		if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
+			load_theme_textdomain( 'twentyten', get_template_directory() . '/languages' );
+		}
 
 		// This theme uses wp_nav_menu() in one location.
 		register_nav_menus(
@@ -165,7 +172,7 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 			 */
 			'width'               => apply_filters( 'twentyten_header_image_width', 940 ),
 			/**
-			 * Filters the Twenty Ten defaul header image height.
+			 * Filters the Twenty Ten default header image height.
 			 *
 			 * @since Twenty Ten 1.0
 			 *
@@ -283,6 +290,39 @@ if ( ! function_exists( 'twentyten_admin_header_style' ) ) :
 	}
 endif;
 
+
+if ( ! function_exists( 'twentyten_header_image' ) ) :
+	/**
+	 * Custom header image markup displayed.
+	 *
+	 * @since Twenty Ten 4.0
+	 */
+	function twentyten_header_image() {
+		$attrs = array(
+			'alt' => get_bloginfo( 'name', 'display' ),
+		);
+
+		// Compatibility with versions of WordPress prior to 3.4.
+		if ( function_exists( 'get_custom_header' ) ) {
+			$custom_header   = get_custom_header();
+			$attrs['width']  = $custom_header->width;
+			$attrs['height'] = $custom_header->height;
+		} else {
+			$attrs['width']  = HEADER_IMAGE_WIDTH;
+			$attrs['height'] = HEADER_IMAGE_HEIGHT;
+		}
+
+		if ( function_exists( 'the_header_image_tag' ) ) {
+			the_header_image_tag( $attrs );
+			return;
+		}
+
+		?>
+		<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $attrs['width'] ); ?>" height="<?php echo esc_attr( $attrs['height'] ); ?>" alt="<?php echo esc_attr( $attrs['alt'] ); ?>" />
+		<?php
+	}
+endif; // twentyten_header_image()
+
 /**
  * Show a home link for our wp_nav_menu() fallback, wp_page_menu().
  *
@@ -326,7 +366,7 @@ if ( ! function_exists( 'twentyten_continue_reading_link' ) ) :
 	 * @return string "Continue Reading" link.
 	 */
 	function twentyten_continue_reading_link() {
-		return ' <a href="' . get_permalink() . '">' . __( 'Continue reading <span class="meta-nav">&rarr;</span>', 'twentyten' ) . '</a>';
+		return ' <a href="' . esc_url( get_permalink() ) . '">' . __( 'Continue reading <span class="meta-nav">&rarr;</span>', 'twentyten' ) . '</a>';
 	}
 endif;
 
@@ -389,6 +429,8 @@ add_filter( 'use_default_gallery_style', '__return_false' );
  * @since Twenty Ten 1.0
  * @deprecated Deprecated in Twenty Ten 1.2 for WordPress 3.1
  *
+ * @param string $css Default CSS styles and opening HTML div container
+ *                    for the gallery shortcode output.
  * @return string The gallery style filter, with the styles themselves removed.
  */
 function twentyten_remove_gallery_css( $css ) {
@@ -439,7 +481,7 @@ if ( ! function_exists( 'twentyten_comment' ) ) :
 				}
 				?>
 
-				<?php if ( '0' == $comment->comment_approved ) : ?>
+				<?php if ( '0' === $comment->comment_approved ) : ?>
 			<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
 			<br />
 			<?php endif; ?>
@@ -607,13 +649,13 @@ if ( ! function_exists( 'twentyten_posted_on' ) ) :
 			'meta-prep meta-prep-author',
 			sprintf(
 				'<a href="%1$s" title="%2$s" rel="bookmark"><span class="entry-date">%3$s</span></a>',
-				get_permalink(),
+				esc_url( get_permalink() ),
 				esc_attr( get_the_time() ),
 				get_the_date()
 			),
 			sprintf(
 				'<span class="author vcard"><a class="url fn n" href="%1$s" title="%2$s">%3$s</a></span>',
-				get_author_posts_url( get_the_author_meta( 'ID' ) ),
+				esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ),
 				/* translators: %s: Author display name. */
 				esc_attr( sprintf( __( 'View all posts by %s', 'twentyten' ), get_the_author() ) ),
 				get_the_author()
@@ -648,7 +690,7 @@ if ( ! function_exists( 'twentyten_posted_in' ) ) :
 			$posted_in,
 			get_the_category_list( ', ' ),
 			$tags_list,
-			get_permalink(),
+			esc_url( get_permalink() ),
 			the_title_attribute( 'echo=0' )
 		);
 	}
@@ -724,7 +766,7 @@ add_filter( 'widget_tag_cloud_args', 'twentyten_widget_tag_cloud_args' );
  */
 function twentyten_scripts_styles() {
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyten-block-style', get_template_directory_uri() . '/blocks.css', array(), '20181218' );
+	wp_enqueue_style( 'twentyten-block-style', get_template_directory_uri() . '/blocks.css', array(), '20230627' );
 }
 add_action( 'wp_enqueue_scripts', 'twentyten_scripts_styles' );
 
@@ -735,12 +777,20 @@ add_action( 'wp_enqueue_scripts', 'twentyten_scripts_styles' );
  */
 function twentyten_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyten-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20201208' );
+	wp_enqueue_style( 'twentyten-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20230627' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyten_block_editor_styles' );
 
-// Block Patterns.
-require get_template_directory() . '/block-patterns.php';
+/**
+ * Register block patterns and pattern categories.
+ *
+ * @since Twenty Ten 4.3
+ */
+function twentyten_register_block_patterns() {
+	require get_template_directory() . '/block-patterns.php';
+}
+
+add_action( 'init', 'twentyten_register_block_patterns' );
 
 if ( ! function_exists( 'wp_body_open' ) ) :
 	/**

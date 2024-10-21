@@ -1,14 +1,31 @@
 <?php
 /**
  * @group formatting
+ *
+ * @covers ::normalize_whitespace
  */
 class Tests_Formatting_NormalizeWhitespace extends WP_UnitTestCase {
+
 	/**
-	 * WhitespaceTest Content DataProvider
+	 * Tests the the normalize_whitespace() function.
 	 *
-	 * array( input_txt, converted_output_txt)
+	 * @dataProvider data_normalize_whitespace
 	 */
-	public function get_input_output() {
+	public function test_normalize_whitespace( $input, $expected ) {
+		$this->assertSame( $expected, normalize_whitespace( $input ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string $input    Input content.
+	 *         @type string $expected Expected output.
+	 *     }
+	 * }
+	 */
+	public function data_normalize_whitespace() {
 		return array(
 			array(
 				'		',
@@ -39,14 +56,5 @@ class Tests_Formatting_NormalizeWhitespace extends WP_UnitTestCase {
 				'MY TEST CONTENT',
 			),
 		);
-	}
-
-	/**
-	 * Validate the normalize_whitespace function
-	 *
-	 * @dataProvider get_input_output
-	 */
-	public function test_normalize_whitespace( $in_str, $exp_str ) {
-		$this->assertSame( $exp_str, normalize_whitespace( $in_str ) );
 	}
 }

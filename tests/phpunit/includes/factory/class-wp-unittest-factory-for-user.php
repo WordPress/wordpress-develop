@@ -6,9 +6,9 @@
  * Note: The below @method notations are defined solely for the benefit of IDEs,
  * as a way to indicate expected return values from the given factory methods.
  *
- * @method int create( $args = array(), $generation_definitions = null )
- * @method WP_User create_and_get( $args = array(), $generation_definitions = null )
- * @method int[] create_many( $count, $args = array(), $generation_definitions = null )
+ * @method int|WP_Error     create( $args = array(), $generation_definitions = null )
+ * @method WP_User|WP_Error create_and_get( $args = array(), $generation_definitions = null )
+ * @method (int|WP_Error)[] create_many( $count, $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 
@@ -24,6 +24,8 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Inserts an user.
 	 *
+	 * @since UT (3.7.0)
+	 *
 	 * @param array $args The user data to insert.
 	 *
 	 * @return int|WP_Error The user ID on success, WP_Error object on failure.
@@ -34,6 +36,8 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 
 	/**
 	 * Updates the user data.
+	 *
+	 * @since UT (3.7.0)
 	 *
 	 * @param int   $user_id ID of the user to update.
 	 * @param array $fields  The user data to update.
@@ -47,6 +51,8 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 
 	/**
 	 * Retrieves the user for a given ID.
+	 *
+	 * @since UT (3.7.0)
 	 *
 	 * @param int $user_id ID of the user ID to retrieve.
 	 *

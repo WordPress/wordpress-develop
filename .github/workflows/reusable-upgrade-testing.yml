@@ -1,0 +1,89 @@
+# A reusable workflow that runs WordPress upgrade testing under the conditions provided.
+name: Upgrade Tests
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run tests on.'
+        required: false
+        type: 'string'
+        default: 'ubuntu-latest'
+      wp:
+        description: 'The version of WordPress to start with.'
+        required: true
+        type: 'string'
+      new-version:
+        description: 'The version of WordPress to update to.'
+        type: 'string'
+        default: 'latest'
+      php:
+        description: 'The version of PHP to use. Expected format: X.Y.'
+        required: true
+        type: 'string'
+      multisite:
+        description: 'Whether to run tests as multisite.'
+        required: false
+        type: 'boolean'
+        default: false
+      db-type:
+        description: 'Database type. Valid types are mysql and mariadb.'
+        required: false
+        type: 'string'
+        default: 'mysql'
+      db-version:
+        description: 'Database version.'
+        required: false
+        type: 'string'
+        default: '5.7'
+
+jobs:
+  # Runs upgrade tests on a build of WordPress.
+  #
+  # Performs the following steps:
+  # - Sets up PHP.
+  # - Starts the database server.
+  # - Downloads the specified version of WordPress.
+  # - Creates a `wp-config.php` file.
+  # - Installs WordPress.
+  # - Updates to the latest minor version.
+  # - Updates to the version of WordPress being tested.
+  upgrade-tests:
+    name: ${{ inputs.wp }} to ${{ inputs.new-version }} / PHP ${{ inputs.php }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: 20
+
+    services:
+      database:
+        image: ${{ inputs.db-type }}:${{ inputs.db-version }}
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=30s --health-timeout=10s --health-retries=5 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=test_db --entrypoint sh ${{ inputs.db-type }}:${{ inputs.db-version }} -c "exec docker-entrypoint.sh mysqld --default-authentication-plugin=mysql_native_password"
+
+    steps:
+      - name: Set up PHP ${{ inputs.php }}
+        uses: shivammathur/setup-php@c541c155eee45413f5b09a52248675b1a2575231 # v2.31.1
+        with:
+          php-version: '${{ inputs.php }}'
+          coverage: none
+          tools: wp-cli
+
+      - name: Start the database server
+        run: |
+          sudo systemctl start ${{ inputs.db-type }}
+
+      - name: Download WordPress ${{ inputs.wp }}
+        run: wp core download --version=${{ inputs.wp }}
+
+      - name: Create wp-config.php file
+        run: wp config create --dbname=test_db --dbuser=root --dbpass=root --dbhost=127.0.0.1:${{ job.services.database.ports['3306'] }}
+
+      - name: Install WordPress
+        run: wp core ${{ inputs.multisite && 'multisite-' || '' }}install --url=http://localhost/ --title="Upgrade Test" --admin_user=admin --admin_password=password --admin_email=me@example.org --skip-email
+
+      - name: Update to the latest minor version
+        run: wp core update --minor
+
+      - name: Upgrade to WordPress ${{ inputs.new-version }}
+        run: |
+          wp core update${{ 'latest' != inputs.new-version && format( ' --version={0}', inputs.new-version ) || '' }}

@@ -8,7 +8,6 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 	protected $orig_theme_dir;
 	protected $theme_root;
 	protected static $user_id;
-	private $locale_count;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create(
@@ -24,7 +23,6 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 
 		$this->theme_root     = DIR_TESTDATA . '/themedir1';
 		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
-		$this->locale_count   = 0;
 
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
@@ -32,19 +30,27 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		add_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_theme_root' ) );
 		wp_clean_themes_cache();
-		unset( $GLOBALS['wp_themes'] );
-		unset( $GLOBALS['l10n'] );
-		unset( $GLOBALS['l10n_unloaded'] );
-		_get_path_to_translation( null, true );
+		unset( $GLOBALS['wp_themes'], $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
+
+		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
+		global $wp_textdomain_registry;
+
+		$wp_textdomain_registry = new WP_Textdomain_Registry();
 	}
 
 	public function tear_down() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		wp_clean_themes_cache();
-		unset( $GLOBALS['wp_themes'] );
-		unset( $GLOBALS['l10n'] );
-		unset( $GLOBALS['l10n_unloaded'] );
-		_get_path_to_translation( null, true );
+		unset( $GLOBALS['wp_themes'], $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
+
+		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
+		global $wp_textdomain_registry;
+
+		$wp_textdomain_registry = new WP_Textdomain_Registry();
+
+		unload_textdomain( 'internationalized-plugin' );
+		unload_textdomain( 'internationalized-plugin-2' );
+		unload_textdomain( 'internationalized-theme' );
 
 		parent::tear_down();
 	}
@@ -62,6 +68,8 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34114
+	 *
+	 * @covers ::is_textdomain_loaded
 	 */
 	public function test_plugin_translation_should_be_translated_without_calling_load_plugin_textdomain() {
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
@@ -69,18 +77,41 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		require_once DIR_TESTDATA . '/plugins/internationalized-plugin.php';
 
 		$is_textdomain_loaded_before = is_textdomain_loaded( 'internationalized-plugin' );
-		$expected_output             = i18n_plugin_test();
+		$actual_output               = i18n_plugin_test();
 		$is_textdomain_loaded_after  = is_textdomain_loaded( 'internationalized-plugin' );
 
 		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
 
 		$this->assertFalse( $is_textdomain_loaded_before );
-		$this->assertSame( 'Das ist ein Dummy Plugin', $expected_output );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $actual_output );
+		$this->assertTrue( $is_textdomain_loaded_after );
+	}
+
+	/**
+	 * @ticket 59656
+	 *
+	 * @covers ::is_textdomain_loaded
+	 */
+	public function test_plugin_translation_should_be_translated_with_only_an_l10n_php_file() {
+		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		require_once DIR_TESTDATA . '/plugins/internationalized-plugin-2.php';
+
+		$is_textdomain_loaded_before = is_textdomain_loaded( 'internationalized-plugin-2' );
+		$actual_output               = i18n_plugin_2_test();
+		$is_textdomain_loaded_after  = is_textdomain_loaded( 'internationalized-plugin-2' );
+
+		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		$this->assertFalse( $is_textdomain_loaded_before );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $actual_output );
 		$this->assertTrue( $is_textdomain_loaded_after );
 	}
 
 	/**
 	 * @ticket 34114
+	 *
+	 * @covers ::is_textdomain_loaded
 	 */
 	public function test_theme_translation_should_be_translated_without_calling_load_theme_textdomain() {
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
@@ -90,18 +121,20 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		require_once get_stylesheet_directory() . '/functions.php';
 
 		$is_textdomain_loaded_before = is_textdomain_loaded( 'internationalized-theme' );
-		$expected_output             = i18n_theme_test();
+		$actual_output               = i18n_theme_test();
 		$is_textdomain_loaded_after  = is_textdomain_loaded( 'internationalized-theme' );
 
 		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
 
 		$this->assertFalse( $is_textdomain_loaded_before );
-		$this->assertSame( 'Das ist ein Dummy Theme', $expected_output );
+		$this->assertSame( 'Das ist ein Dummy Theme', $actual_output );
 		$this->assertTrue( $is_textdomain_loaded_after );
 	}
 
 	/**
 	 * @ticket 34114
+	 *
+	 * @covers ::get_translations_for_domain
 	 */
 	public function test_get_translations_for_domain_does_not_return_null_if_override_load_textdomain_is_used() {
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
@@ -114,77 +147,107 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58321
+	 *
+	 * @covers ::get_translations_for_domain
+	 */
+	public function test_get_translations_for_domain_get_locale_is_called_only_once() {
+		$filter_locale = new MockAction();
+		add_filter( 'locale', array( $filter_locale, 'filter' ) );
+
+		get_translations_for_domain( 'internationalized-plugin' );
+		get_translations_for_domain( 'internationalized-plugin' );
+		get_translations_for_domain( 'internationalized-plugin' );
+		$translations = get_translations_for_domain( 'internationalized-plugin' );
+
+		remove_filter( 'locale', array( $filter_locale, 'filter' ) );
+
+		$this->assertSame( 1, $filter_locale->get_call_count() );
+		$this->assertInstanceOf( 'NOOP_Translations', $translations );
+		$this->assertFalse( is_textdomain_loaded( 'internationalized-plugin' ) );
+	}
+
+	/**
 	 * @ticket 37113
+	 *
+	 * @covers ::is_textdomain_loaded
 	 */
 	public function test_should_allow_unloading_of_text_domain() {
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
 
 		require_once DIR_TESTDATA . '/plugins/internationalized-plugin.php';
 
-		$expected_output_before      = i18n_plugin_test();
+		$actual_output_before        = i18n_plugin_test();
 		$is_textdomain_loaded_before = is_textdomain_loaded( 'internationalized-plugin' );
 
 		unload_textdomain( 'internationalized-plugin' );
 		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
 
-		$expected_output_after      = i18n_plugin_test();
+		$actual_output_after        = i18n_plugin_test();
 		$is_textdomain_loaded_after = is_textdomain_loaded( 'internationalized-plugin' );
 
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
 		load_textdomain( 'internationalized-plugin', WP_LANG_DIR . '/plugins/internationalized-plugin-de_DE.mo' );
 
-		$expected_output_final      = i18n_plugin_test();
+		$actual_output_final        = i18n_plugin_test();
 		$is_textdomain_loaded_final = is_textdomain_loaded( 'internationalized-plugin' );
 
 		unload_textdomain( 'internationalized-plugin' );
 		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
 
 		// Text domain loaded just in time.
-		$this->assertSame( 'Das ist ein Dummy Plugin', $expected_output_before );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $actual_output_before );
 		$this->assertTrue( $is_textdomain_loaded_before );
 
 		// Text domain unloaded.
-		$this->assertSame( 'This is a dummy plugin', $expected_output_after );
+		$this->assertSame( 'This is a dummy plugin', $actual_output_after );
 		$this->assertFalse( $is_textdomain_loaded_after );
 
 		// Text domain loaded manually again.
-		$this->assertSame( 'Das ist ein Dummy Plugin', $expected_output_final );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $actual_output_final );
 		$this->assertTrue( $is_textdomain_loaded_final );
 	}
 
 	/**
 	 * @ticket 26511
+	 *
+	 * @covers ::switch_to_locale
 	 */
 	public function test_plugin_translation_after_switching_locale() {
 		require_once DIR_TESTDATA . '/plugins/internationalized-plugin.php';
 
 		switch_to_locale( 'de_DE' );
-		$expected = i18n_plugin_test();
+		$actual = i18n_plugin_test();
 		restore_previous_locale();
 
-		$this->assertSame( 'Das ist ein Dummy Plugin', $expected );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $actual );
 	}
 
 	/**
 	 * @ticket 37997
+	 * @ticket 39210
+	 *
+	 * @covers ::switch_to_locale
 	 */
 	public function test_plugin_translation_after_switching_locale_twice() {
 		require_once DIR_TESTDATA . '/plugins/internationalized-plugin.php';
 
 		switch_to_locale( 'de_DE' );
-		$expected_de_de = i18n_plugin_test();
+		$actual_de_de = i18n_plugin_test();
 
 		switch_to_locale( 'es_ES' );
-		$expected_es_es = i18n_plugin_test();
+		$actual_es_es = i18n_plugin_test();
 
 		restore_current_locale();
 
-		$this->assertSame( 'Das ist ein Dummy Plugin', $expected_de_de );
-		$this->assertSame( 'This is a dummy plugin', $expected_es_es );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $actual_de_de );
+		$this->assertSame( 'Este es un plugin dummy', $actual_es_es );
 	}
 
 	/**
 	 * @ticket 26511
+	 *
+	 * @covers ::switch_to_locale
 	 */
 	public function test_theme_translation_after_switching_locale() {
 		switch_theme( 'internationalized-theme' );
@@ -192,16 +255,18 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		require_once get_stylesheet_directory() . '/functions.php';
 
 		switch_to_locale( 'de_DE' );
-		$expected = i18n_theme_test();
+		$actual = i18n_theme_test();
 		restore_previous_locale();
 
 		switch_theme( WP_DEFAULT_THEME );
 
-		$this->assertSame( 'Das ist ein Dummy Theme', $expected );
+		$this->assertSame( 'Das ist ein Dummy Theme', $actual );
 	}
 
 	/**
 	 * @ticket 38485
+	 *
+	 * @covers ::wp_set_current_user
 	 */
 	public function test_plugin_translation_with_user_locale() {
 		require_once DIR_TESTDATA . '/plugins/internationalized-plugin.php';
@@ -209,13 +274,15 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		set_current_screen( 'dashboard' );
 		wp_set_current_user( self::$user_id );
 
-		$expected = i18n_plugin_test();
+		$actual = i18n_plugin_test();
 
-		$this->assertSame( 'Das ist ein Dummy Plugin', $expected );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $actual );
 	}
 
 	/**
 	 * @ticket 38485
+	 *
+	 * @covers ::wp_set_current_user
 	 */
 	public function test_theme_translation_with_user_locale() {
 		switch_theme( 'internationalized-theme' );
@@ -224,20 +291,23 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 
 		require_once get_stylesheet_directory() . '/functions.php';
 
-		$expected = i18n_theme_test();
+		$actual = i18n_theme_test();
 
 		switch_theme( WP_DEFAULT_THEME );
 
-		$this->assertSame( 'Das ist ein Dummy Theme', $expected );
+		$this->assertSame( 'Das ist ein Dummy Theme', $actual );
 	}
 
 	/**
 	 * @ticket 37997
+	 *
+	 * @covers ::_load_textdomain_just_in_time
 	 */
 	public function test_get_locale_is_called_only_once_per_textdomain() {
 		$textdomain = 'foo-bar-baz';
 
-		add_filter( 'locale', array( $this, '_filter_locale_count' ) );
+		$filter = new MockAction();
+		add_filter( 'locale', array( $filter, 'filter' ) );
 
 		__( 'Foo', $textdomain );
 		__( 'Bar', $textdomain );
@@ -245,15 +315,31 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		__( 'Foo Bar', $textdomain );
 		__( 'Foo Bar Baz', $textdomain );
 
-		remove_filter( 'locale', array( $this, '_filter_locale_count' ) );
-
 		$this->assertFalse( is_textdomain_loaded( $textdomain ) );
-		$this->assertSame( 1, $this->locale_count );
+		$this->assertSame( 1, $filter->get_call_count() );
 	}
 
-	public function _filter_locale_count( $locale ) {
-		++$this->locale_count;
+	/**
+	 * @ticket 37997
+	 * @ticket 39210
+	 *
+	 * @covers ::_load_textdomain_just_in_time
+	 */
+	public function test_get_locale_is_called_only_once_per_textdomain_with_custom_lang_dir() {
+		load_plugin_textdomain( 'custom-internationalized-plugin', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
-		return $locale;
+		$textdomain = 'custom-internationalized-plugin';
+
+		$filter = new MockAction();
+		add_filter( 'locale', array( $filter, 'filter' ) );
+
+		__( 'Foo', $textdomain );
+		__( 'Bar', $textdomain );
+		__( 'Baz', $textdomain );
+		__( 'Foo Bar', $textdomain );
+		__( 'Foo Bar Baz', $textdomain );
+
+		$this->assertFalse( is_textdomain_loaded( $textdomain ) );
+		$this->assertSame( 1, $filter->get_call_count() );
 	}
 }

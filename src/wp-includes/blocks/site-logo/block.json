@@ -1,14 +1,12 @@
 {
-	"apiVersion": 2,
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
 	"name": "core/site-logo",
 	"title": "Site Logo",
-	"category": "layout",
-	"description": "Useful for displaying a graphic mark, design, or symbol to represent the site. Once a site logo is set, it can be reused in different places and templates. It should not be confused with the site icon, which is the small image used in the dashboard, browser tabs, public search results, etc, to help recognize a site.",
+	"category": "theme",
+	"description": "Display an image to represent this site. Update this block and the changes apply everywhere.",
 	"textdomain": "default",
 	"attributes": {
-		"align": {
-			"type": "string"
-		},
 		"width": {
 			"type": "number"
 		},
@@ -19,12 +17,38 @@
 		"linkTarget": {
 			"type": "string",
 			"default": "_self"
+		},
+		"shouldSyncIcon": {
+			"type": "boolean"
+		}
+	},
+	"example": {
+		"viewportWidth": 500,
+		"attributes": {
+			"width": 350,
+			"className": "block-editor-block-types-list__site-logo-example"
 		}
 	},
 	"supports": {
 		"html": false,
 		"align": true,
-		"alignWide": false
+		"alignWide": false,
+		"color": {
+			"__experimentalDuotone": "img, .components-placeholder__illustration, .components-placeholder::before",
+			"text": false,
+			"background": false
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true,
+			"__experimentalDefaultControls": {
+				"margin": false,
+				"padding": false
+			}
+		},
+		"interactivity": {
+			"clientNavigation": true
+		}
 	},
 	"styles": [
 		{

@@ -10,7 +10,7 @@ if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 	if ( ! file_exists( $config_file_path . '/wp-tests-config.php' ) ) {
 		// Support the config file from the root of the develop repository.
 		if ( basename( $config_file_path ) === 'phpunit' && basename( dirname( $config_file_path ) ) === 'tests' ) {
-			$config_file_path = dirname( dirname( $config_file_path ) );
+			$config_file_path = dirname( $config_file_path, 2 );
 		}
 	}
 	$config_file_path .= '/wp-tests-config.php';
@@ -79,7 +79,7 @@ if ( version_compare( $phpunit_version, '5.7.21', '<' ) ) {
  */
 if ( ! class_exists( 'Yoast\PHPUnitPolyfills\Autoload' ) ) {
 	// Default location of the autoloader for WP core test runs.
-	$phpunit_polyfills_autoloader = dirname( dirname( dirname( __DIR__ ) ) ) . '/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
+	$phpunit_polyfills_autoloader = dirname( __DIR__, 3 ) . '/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
 	$phpunit_polyfills_error      = false;
 
 	// Allow for a custom installation location to be provided for plugin/theme integration tests.
@@ -139,7 +139,7 @@ unset( $phpunit_polyfills_autoloader, $phpunit_polyfills_error, $phpunit_polyfil
  * Minimum version of the PHPUnit Polyfills package as declared in `composer.json`.
  * Only needs updating when new polyfill features start being used in the test suite.
  */
-$phpunit_polyfills_minimum_version = '1.0.1';
+$phpunit_polyfills_minimum_version = '1.1.0';
 if ( class_exists( '\Yoast\PHPUnitPolyfills\Autoload' )
 	&& ( defined( '\Yoast\PHPUnitPolyfills\Autoload::VERSION' ) === false
 	|| version_compare( Yoast\PHPUnitPolyfills\Autoload::VERSION, $phpunit_polyfills_minimum_version, '<' ) )
@@ -214,8 +214,19 @@ tests_reset__SERVER();
 define( 'WP_TESTS_TABLE_PREFIX', $table_prefix );
 define( 'DIR_TESTDATA', __DIR__ . '/../data' );
 define( 'DIR_TESTROOT', realpath( dirname( __DIR__ ) ) );
+define( 'IMPORTER_PLUGIN_FOR_TESTS', DIR_TESTDATA . '/plugins/wordpress-importer/wordpress-importer.php' );
 
-define( 'WP_LANG_DIR', DIR_TESTDATA . '/languages' );
+if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! file_exists( IMPORTER_PLUGIN_FOR_TESTS ) ) {
+	echo 'The test suite requires the WordPress Importer plugin to be available in the `/data/plugins/` directory.'
+		. ' See: https://make.wordpress.org/core/handbook/contribute/git/#unit-tests' . PHP_EOL,
+	exit( 1 );
+}
+
+define( 'WP_LANG_DIR', realpath( DIR_TESTDATA . '/languages' ) );
+
+if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
+	define( 'WP_PLUGIN_DIR', realpath( DIR_TESTDATA . '/plugins' ) );
+}
 
 if ( ! defined( 'WP_TESTS_FORCE_KNOWN_BUGS' ) ) {
 	define( 'WP_TESTS_FORCE_KNOWN_BUGS', false );
@@ -298,7 +309,7 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 }
 
 // Load WordPress.
-require_once ABSPATH . '/wp-settings.php';
+require_once ABSPATH . 'wp-settings.php';
 
 // Delete any default posts & related data.
 _delete_all_posts();
@@ -386,6 +397,5 @@ class WP_PHPUnit_Util_Getopt {
 			echo PHP_EOL;
 		}
 	}
-
 }
 new WP_PHPUnit_Util_Getopt( $_SERVER['argv'] );

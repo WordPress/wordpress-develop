@@ -267,7 +267,7 @@ class getid3_apetag extends getid3_handler
 				case 'cover art (publisher logo)':
 				case 'cover art (recording)':
 				case 'cover art (studio)':
-					// list of possible cover arts from http://taglib-sharp.sourcearchive.com/documentation/2.0.3.0-2/Ape_2Tag_8cs-source.html
+					// list of possible cover arts from https://github.com/mono/taglib-sharp/blob/taglib-sharp-2.0.3.2/src/TagLib/Ape/Tag.cs
 					if (is_array($thisfile_ape_items_current['data'])) {
 						$this->warning('APEtag "'.$item_key.'" should be flagged as Binary data, but was incorrectly flagged as UTF-8');
 						$thisfile_ape_items_current['data'] = implode("\x00", $thisfile_ape_items_current['data']);
@@ -332,7 +332,7 @@ class getid3_apetag extends getid3_handler
 							$info['ape']['comments']['picture'][] = $comments_picture_data;
 							unset($comments_picture_data);
 						}
-					} while (false);
+					} while (false); // @phpstan-ignore-line
 					break;
 
 				default:
@@ -360,6 +360,7 @@ class getid3_apetag extends getid3_handler
 		// http://www.uni-jena.de/~pfk/mpp/sv8/apeheader.html
 
 		// shortcut
+		$headerfooterinfo = array();
 		$headerfooterinfo['raw'] = array();
 		$headerfooterinfo_raw = &$headerfooterinfo['raw'];
 
@@ -389,6 +390,7 @@ class getid3_apetag extends getid3_handler
 		// "Note: APE Tags 1.0 do not use any of the APE Tag flags.
 		// All are set to zero on creation and ignored on reading."
 		// http://wiki.hydrogenaud.io/index.php?title=Ape_Tags_Flags
+		$flags                      = array();
 		$flags['header']            = (bool) ($rawflagint & 0x80000000);
 		$flags['footer']            = (bool) ($rawflagint & 0x40000000);
 		$flags['this_is_header']    = (bool) ($rawflagint & 0x20000000);

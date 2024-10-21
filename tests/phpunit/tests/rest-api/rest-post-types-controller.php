@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcase {
@@ -38,7 +36,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 
 		$data       = $response->get_data();
 		$post_types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
-		$this->assertSame( count( $post_types ), count( $data ) );
+		$this->assertCount( count( $post_types ), $data );
 		$this->assertSame( $post_types['post']->name, $data['post']['slug'] );
 		$this->check_post_type_obj( 'view', $post_types['post'], $data['post'], $data['post']['_links'] );
 		$this->assertSame( $post_types['page']->name, $data['page']['slug'] );
@@ -79,6 +77,27 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->check_post_type_object_response( 'view', $response, 'cpt' );
 	}
 
+	/**
+	 * @ticket 61477
+	 */
+	public function test_get_item_template_cpt() {
+		register_post_type(
+			'cpt_template',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'cpt_template',
+				'rest_namespace' => 'wordpress/v1',
+				'template'       => array(
+					array( 'core/paragraph', array( 'placeholder' => 'Content' ) ),
+				),
+				'template_lock'  => 'all',
+			)
+		);
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/types/cpt_template' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->check_post_type_object_response( 'view', $response, 'cpt_template' );
+	}
+
 	public function test_get_item_page() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/types/page' );
 		$response = rest_get_server()->dispatch( $request );
@@ -94,7 +113,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_get_item_edit_context() {
-		$editor_id = $this->factory->user->create( array( 'role' => 'editor' ) );
+		$editor_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/types/post' );
 		$request->set_param( 'context', 'edit' );
@@ -133,8 +152,8 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_prepare_item() {
 		$obj      = get_post_type_object( 'post' );
-		$endpoint = new WP_REST_Post_Types_Controller;
-		$request  = new WP_REST_Request;
+		$endpoint = new WP_REST_Post_Types_Controller();
+		$request  = new WP_REST_Request();
 		$request->set_param( 'context', 'edit' );
 		$response = $endpoint->prepare_item_for_response( $obj, $request );
 		$this->check_post_type_obj( 'edit', $obj, $response->get_data(), $response->get_links() );
@@ -142,8 +161,8 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_prepare_item_limit_fields() {
 		$obj      = get_post_type_object( 'post' );
-		$request  = new WP_REST_Request;
-		$endpoint = new WP_REST_Post_Types_Controller;
+		$request  = new WP_REST_Request();
+		$endpoint = new WP_REST_Post_Types_Controller();
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'id,name' );
 		$response = $endpoint->prepare_item_for_response( $obj, $request );
@@ -156,24 +175,34 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		);
 	}
 
+	/**
+	 * @ticket 56467
+	 *
+	 * @covers WP_REST_Post_Types_Controller::get_item_schema
+	 */
 	public function test_get_item_schema() {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/types' );
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 12, $properties );
-		$this->assertArrayHasKey( 'capabilities', $properties );
-		$this->assertArrayHasKey( 'description', $properties );
-		$this->assertArrayHasKey( 'hierarchical', $properties );
-		$this->assertArrayHasKey( 'viewable', $properties );
-		$this->assertArrayHasKey( 'labels', $properties );
-		$this->assertArrayHasKey( 'name', $properties );
-		$this->assertArrayHasKey( 'slug', $properties );
-		$this->assertArrayHasKey( 'supports', $properties );
-		$this->assertArrayHasKey( 'taxonomies', $properties );
-		$this->assertArrayHasKey( 'rest_base', $properties );
-		$this->assertArrayHasKey( 'rest_namespace', $properties );
-		$this->assertArrayHasKey( 'visibility', $properties );
+
+		$this->assertCount( 16, $properties, 'Schema should have 16 properties' );
+		$this->assertArrayHasKey( 'capabilities', $properties, '`capabilities` should be included in the schema' );
+		$this->assertArrayHasKey( 'description', $properties, '`description` should be included in the schema' );
+		$this->assertArrayHasKey( 'hierarchical', $properties, '`hierarchical` should be included in the schema' );
+		$this->assertArrayHasKey( 'viewable', $properties, '`viewable` should be included in the schema' );
+		$this->assertArrayHasKey( 'labels', $properties, '`labels` should be included in the schema' );
+		$this->assertArrayHasKey( 'name', $properties, '`name` should be included in the schema' );
+		$this->assertArrayHasKey( 'slug', $properties, '`slug` should be included in the schema' );
+		$this->assertArrayHasKey( 'supports', $properties, '`supports` should be included in the schema' );
+		$this->assertArrayHasKey( 'has_archive', $properties, '`has_archive` should be included in the schema' );
+		$this->assertArrayHasKey( 'taxonomies', $properties, '`taxonomies` should be included in the schema' );
+		$this->assertArrayHasKey( 'rest_base', $properties, '`rest_base` should be included in the schema' );
+		$this->assertArrayHasKey( 'rest_namespace', $properties, '`rest_namespace` should be included in the schema' );
+		$this->assertArrayHasKey( 'visibility', $properties, '`visibility` should be included in the schema' );
+		$this->assertArrayHasKey( 'icon', $properties, '`icon` should be included in the schema' );
+		$this->assertArrayHasKey( 'template', $properties, '`template` should be included in the schema' );
+		$this->assertArrayHasKey( 'template_lock', $properties, '`template_lock` should be included in the schema' );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -212,7 +241,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object ) {
+	public function additional_field_get_callback( $response_data ) {
 		return 123;
 	}
 
@@ -223,6 +252,9 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( $post_type_obj->hierarchical, $data['hierarchical'] );
 		$this->assertSame( $post_type_obj->rest_base, $data['rest_base'] );
 		$this->assertSame( $post_type_obj->rest_namespace, $data['rest_namespace'] );
+		$this->assertSame( $post_type_obj->has_archive, $data['has_archive'] );
+		$this->assertSame( $post_type_obj->template ?? array(), $data['template'] );
+		$this->assertSame( ! empty( $post_type_obj->template_lock ) ? $post_type_obj->template_lock : false, $data['template_lock'] );
 
 		$links = test_rest_expand_compact_links( $links );
 		$this->assertSame( rest_url( 'wp/v2/types' ), $links['collection'][0]['href'] );
@@ -256,5 +288,4 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$obj  = get_post_type_object( $post_type );
 		$this->check_post_type_obj( $context, $obj, $data, $response->get_links() );
 	}
-
 }

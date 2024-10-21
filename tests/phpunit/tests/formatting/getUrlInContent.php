@@ -2,15 +2,31 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::get_url_in_content
  */
 class Tests_Formatting_GetUrlInContent extends WP_UnitTestCase {
 
 	/**
-	 * URL Content Data Provider
+	 * Tests the get_url_in_content() function.
 	 *
-	 * array ( input_txt, converted_output_txt )
+	 * @dataProvider data_get_url_in_content
 	 */
-	public function get_input_output() {
+	public function test_get_url_in_content( $input, $expected ) {
+		$this->assertSame( $expected, get_url_in_content( $input ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string $input    Input content.
+	 *         @type string $expected Expected output.
+	 *     }
+	 * }
+	 */
+	public function data_get_url_in_content() {
 		return array(
 			array( // Empty content.
 				'',
@@ -37,14 +53,5 @@ class Tests_Formatting_GetUrlInContent extends WP_UnitTestCase {
 				'http://example.com/Mr%20WordPress%202',
 			),
 		);
-	}
-
-	/**
-	 * Validate the get_url_in_content function
-	 *
-	 * @dataProvider get_input_output
-	 */
-	public function test_get_url_in_content( $in_str, $exp_str ) {
-		$this->assertSame( $exp_str, get_url_in_content( $in_str ) );
 	}
 }

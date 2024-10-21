@@ -135,7 +135,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 		register_sidebars( 1, array( 'id' => 'wp-unit-test' ) );
 
 		$this->assertArrayHasKey( 'wp-unit-test', $wp_registered_sidebars );
-
 	}
 
 	/**
@@ -157,7 +156,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 		}
 
 		$this->assertCount( $num, $result );
-
 	}
 
 	/**
@@ -266,7 +264,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertArrayHasKey( $sidebar_id, $wp_registered_sidebars );
 		$this->assertStringContainsString( '<div id="%1$s" class="before-sidebar %2$s">', $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
 		$this->assertStringContainsString( '</div> <!-- .before-sidebar -->', $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
-
 	}
 
 	/**
@@ -286,7 +283,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertArrayHasKey( $sidebar_id, $wp_registered_sidebars );
 		$this->assertEmpty( $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
 		$this->assertEmpty( $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
-
 	}
 
 	/**
@@ -591,6 +587,42 @@ class Tests_Widgets extends WP_UnitTestCase {
 	// @todo Test WP_Widget::display_callback().
 
 	/**
+	 * @ticket 52728
+	 */
+	public function test_widget_display_callback_handles_arrayobject() {
+		$widget = new WP_Widget_Text();
+
+		register_widget( $widget );
+
+		add_filter(
+			"pre_option_{$widget->option_name}",
+			static function () {
+				return new ArrayObject(
+					array(
+						2              => array( 'title' => 'Test Title' ),
+						'_multiwidget' => 1,
+						'__i__'        => true,
+					)
+				);
+			}
+		);
+
+		$this->expectOutputRegex( '/Test Title/' );
+
+		$widget->display_callback(
+			array(
+				'before_widget' => '<section>',
+				'after_widget'  => "</section>\n",
+				'before_title'  => '<h2>',
+				'after_title'   => "</h2>\n",
+			),
+			2
+		);
+
+		unregister_widget( $widget );
+	}
+
+	/**
 	 * @see WP_Widget::is_preview()
 	 */
 	public function test_wp_widget_is_preview() {
@@ -648,6 +680,61 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$never_used = get_option( 'widget_nav_menu' );
 		$this->assertSame( 1, $never_used['_multiwidget'] );
 		$this->assertArrayNotHasKey( 0, $never_used );
+	}
+
+	/**
+	 * @ticket 54677
+	 *
+	 * @covers WP_Widget::get_settings
+	 */
+	public function test_wp_widget_initializes_widget_with_alt_option() {
+		/*
+		 * Emulate a new the recent posts widget.
+		 *
+		 * The widget contains an alternative (legacy) option so both the
+		 * current and the alternative option need to be deleted.
+		 */
+		delete_option( 'widget_recent-posts' );
+		delete_option( 'widget_recent_entries' );
+
+		$this->assertFalse( get_option( 'widget_recent-posts' ), 'The option widget_recent-posts was not deleted.' );
+		$this->assertFalse( get_option( 'widget_recent_entries' ), 'The option widget_recent_entries was not deleted.' );
+
+		wp_widgets_init();
+		$this->assertSameSetsWithIndex( array( '_multiwidget' => 1 ), get_option( 'widget_recent-posts' ), 'Option failed to be initialized.' );
+		$this->assertFalse( get_option( 'widget_recent_entries' ), 'Alternative option is set.' );
+	}
+
+	/**
+	 * @ticket 54677
+	 *
+	 * @covers WP_Widget::get_settings
+	 */
+	public function test_wp_widget_migrates_widget_with_alt_option() {
+		$option = array(
+			2              => array(
+				'title'     => 'Recent Posts',
+				'number'    => 5,
+				'show_date' => false,
+			),
+			'_multiwidget' => 1,
+		);
+
+		/*
+		 * Emulate the recent posts widget with an alternative option.
+		 *
+		 * The widget contains an alternative (legacy) option so the
+		 * current option is deleted while the alternative option is created.
+		 */
+		delete_option( 'widget_recent-posts' );
+		update_option( 'widget_recent_entries', $option );
+
+		$this->assertFalse( get_option( 'widget_recent-posts' ), 'The option widget_recent-posts was not deleted.' );
+		$this->assertSameSetsWithIndex( $option, get_option( 'widget_recent_entries' ), 'The option widget_recent_entries was not set to the default.' );
+
+		wp_widgets_init();
+		$this->assertSameSetsWithIndex( $option, get_option( 'widget_recent-posts' ), 'Option failed to be converted to new name.' );
+		$this->assertFalse( get_option( 'widget_recent_entries' ), 'Alternative option was not deleted.' );
 	}
 
 	/**
@@ -722,7 +809,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 
 		wp_widgets_init();
-		require_once ABSPATH . '/wp-admin/includes/widgets.php';
+		require_once ABSPATH . 'wp-admin/includes/widgets.php';
 		$widget_id    = 'search-2';
 		$widget       = $wp_registered_widgets[ $widget_id ];
 		$params       = array(
@@ -799,7 +886,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 		unregister_widget( 'WP_Widget_Text' );
 
 		$this->assertMatchesRegularExpression( '/<span class="special widget_text">/', $actual );
-
 	}
 
 	/**
@@ -1183,10 +1269,10 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$new_next_theme_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
 
 		$expected_sidebars = array(
-			'primary'             => 1,
 			'wp_inactive_widgets' => array(),
+			'primary'             => 1,
 		);
-		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
+		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
 	}
 
 	/**
@@ -1204,7 +1290,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		$new_next_theme_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
 
-		$this->assertEquals( $prev_theme_sidebars, $new_next_theme_sidebars );
+		$this->assertSameSetsWithIndex( $prev_theme_sidebars, $new_next_theme_sidebars );
 	}
 
 	/**
@@ -1227,7 +1313,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'secondary'           => array(),
 			'wp_inactive_widgets' => array(),
 		);
-		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
+		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
 	}
 
 	/**
@@ -1271,6 +1357,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'primary'             => array(),
 			'wp_inactive_widgets' => array(),
 		);
-		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
+		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
 	}
 }

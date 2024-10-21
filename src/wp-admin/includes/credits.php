@@ -8,7 +8,7 @@
  */
 
 /**
- * Retrieve the contributor credits.
+ * Retrieves the contributor credits.
  *
  * @since 3.2.0
  * @since 5.6.0 Added the `$version` and `$locale` parameters.
@@ -19,10 +19,7 @@
  */
 function wp_credits( $version = '', $locale = '' ) {
 	if ( ! $version ) {
-		// Include an unmodified $wp_version.
-		require ABSPATH . WPINC . '/version.php';
-
-		$version = $wp_version;
+		$version = wp_get_wp_version();
 	}
 
 	if ( ! $locale ) {
@@ -32,8 +29,8 @@ function wp_credits( $version = '', $locale = '' ) {
 	$results = get_site_transient( 'wordpress_credits_' . $locale );
 
 	if ( ! is_array( $results )
-		|| false !== strpos( $version, '-' )
-		|| ( isset( $results['data']['version'] ) && strpos( $version, $results['data']['version'] ) !== 0 )
+		|| str_contains( $version, '-' )
+		|| ( isset( $results['data']['version'] ) && ! str_starts_with( $version, $results['data']['version'] ) )
 	) {
 		$url     = "http://api.wordpress.org/core/credits/1.1/?version={$version}&locale={$locale}";
 		$options = array( 'user-agent' => 'WordPress/' . $version . '; ' . home_url( '/' ) );
@@ -61,7 +58,7 @@ function wp_credits( $version = '', $locale = '' ) {
 }
 
 /**
- * Retrieve the link to a contributor's WordPress.org profile page.
+ * Retrieves the link to a contributor's WordPress.org profile page.
  *
  * @access private
  * @since 3.2.0
@@ -75,7 +72,7 @@ function _wp_credits_add_profile_link( &$display_name, $username, $profiles ) {
 }
 
 /**
- * Retrieve the link to an external library used in WordPress.
+ * Retrieves the link to an external library used in WordPress.
  *
  * @access private
  * @since 3.2.0

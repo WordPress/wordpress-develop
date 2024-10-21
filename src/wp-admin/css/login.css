@@ -32,9 +32,9 @@ a:active {
 
 a:focus {
 	color: #043959;
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: 0 0 0 2px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 p {
@@ -42,22 +42,32 @@ p {
 }
 
 .login .message,
-.login .success,
-.login #login_error {
+.login .notice,
+.login .success {
 	border-left: 4px solid #72aee6;
 	padding: 12px;
 	margin-left: 0;
 	margin-bottom: 20px;
 	background-color: #fff;
 	box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
+	word-wrap: break-word;
 }
 
 .login .success {
 	border-left-color: #00a32a;
 }
 
-.login #login_error {
+/* Match border color from common.css */
+.login .notice-error {
 	border-left-color: #d63638;
+}
+
+.login .login-error-list {
+	list-style: none;
+}
+
+.login .login-error-list li + li {
+	margin-top: 4px;
 }
 
 #loginform p.submit,
@@ -131,7 +141,7 @@ p {
 .login form {
 	margin-top: 20px;
 	margin-left: 0;
-	padding: 26px 24px 34px;
+	padding: 26px 24px;
 	font-weight: 400;
 	overflow: hidden;
 	background: #fff;
@@ -214,7 +224,7 @@ p {
 	margin: 1.1em 0;
 }
 
-.login h1.admin-email__heading {
+.login .admin-email__heading {
 	border-bottom: 1px #f0f0f1 solid;
 	color: #50575e;
 	font-weight: normal;
@@ -236,6 +246,11 @@ p {
 	margin-bottom: 0;
 }
 
+#login form .indicator-hint,
+#login #reg_passmail {
+	margin-bottom: 16px;
+}
+
 #login form p.submit {
 	margin: 0;
 	padding: 0;
@@ -254,11 +269,11 @@ p {
 	vertical-align: baseline;
 }
 
-.login h1 {
+.login .wp-login-logo {
 	text-align: center;
 }
 
-.login h1 a {
+.login .wp-login-logo a {
 	background-image: url(../images/w-logo-blue.png?ver=20131202);
 	background-image: none, url(../images/wordpress-logo.svg?ver=20131107);
 	background-size: 84px;
@@ -281,7 +296,7 @@ p {
 
 #login {
 	width: 320px;
-	padding: 8% 0 0;
+	padding: 5% 0 0;
 	margin: auto;
 }
 
@@ -297,7 +312,7 @@ p {
 
 #backtoblog {
 	margin: 16px 0;
-	word-break: break-word;
+	word-wrap: break-word;
 }
 
 .login #nav a,
@@ -308,20 +323,20 @@ p {
 
 .login #nav a:hover,
 .login #backtoblog a:hover,
-.login h1 a:hover {
+.login .wp-login-logo a:hover {
 	color: #135e96;
 }
 
 .login #nav a:focus,
 .login #backtoblog a:focus,
-.login h1 a:focus {
+.login .wp-login-logo a:focus {
 	color: #043959;
 }
 
 .login .privacy-policy-page-link {
 	text-align: center;
 	width: 100%;
-	margin: 5em 0 2em;
+	margin: 3em 0 2em;
 }
 
 .login form .input,
@@ -341,9 +356,7 @@ p {
 	font-family: Consolas, Monaco, monospace;
 }
 
-.js.login input.password-input,
-.js.login-action-rp form .input,
-.js.login-action-rp input[type="text"] {
+.js.login input.password-input {
 	padding-right: 2.5rem;
 }
 
@@ -353,6 +366,8 @@ p {
 	background: #fff;
 }
 
+.js.login-action-resetpass input[type="text"],
+.js.login-action-resetpass input[type="password"],
 .js.login-action-rp input[type="text"],
 .js.login-action-rp input[type="password"] {
 	margin-bottom: 0;
@@ -375,7 +390,7 @@ body.interim-login {
 	margin: 5px auto 20px;
 }
 
-.interim-login.login h1 a {
+.interim-login.login .wp-login-logo a {
 	width: auto;
 }
 
@@ -393,7 +408,6 @@ body.interim-login {
 .screen-reader-text span {
 	border: 0;
 	clip: rect(1px, 1px, 1px, 1px);
-	-webkit-clip-path: inset(50%);
 	clip-path: inset(50%);
 	height: 1px;
 	margin: -1px;
@@ -409,9 +423,44 @@ input::-ms-reveal {
 	display: none;
 }
 
+#language-switcher {
+	padding: 0;
+	overflow: visible;
+	background: none;
+	border: none;
+	box-shadow: none;
+}
+
+#language-switcher select {
+	margin-right: 0.25em;
+}
+
+.language-switcher {
+	margin: 0 auto;
+	padding: 0 0 24px;
+	text-align: center;
+}
+
+.language-switcher label {
+	margin-right: 0.25em;
+}
+
+.language-switcher label .dashicons {
+	width: auto;
+	height: auto;
+}
+
+.login .language-switcher .button {
+	margin-bottom: 0;
+}
+
 @media screen and (max-height: 550px) {
 	#login {
 		padding: 20px 0;
+	}
+
+	#language-switcher {
+		margin-top: 0;
 	}
 }
 
@@ -426,5 +475,17 @@ input::-ms-reveal {
 		width: 1.3125rem;
 		height: 1.3125rem;
 		margin: -0.1875rem 0 0 -0.25rem;
+	}
+
+	#language-switcher label,
+	#language-switcher select {
+		margin-right: 0;
+	}
+}
+
+@media screen and (max-width: 400px) {
+	.login .language-switcher .button {
+		display: block;
+		margin: 5px auto 0;
 	}
 }

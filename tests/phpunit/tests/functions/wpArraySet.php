@@ -5,13 +5,14 @@
  *
  * @since 5.8.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::_wp_array_set
  */
 class Tests_Functions_wpArraySet extends WP_UnitTestCase {
 
 	/**
-	 * Test _wp_array_set() with invalid parameters.
+	 * Tests _wp_array_set() with invalid parameters.
 	 *
 	 * @ticket 53175
 	 */
@@ -53,7 +54,7 @@ class Tests_Functions_wpArraySet extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test _wp_array_set() with simple non-subtree path.
+	 * Tests _wp_array_set() with simple non-subtree path.
 	 *
 	 * @ticket 53175
 	 */
@@ -84,7 +85,7 @@ class Tests_Functions_wpArraySet extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test _wp_array_set() with subtree paths.
+	 * Tests _wp_array_set() with subtree paths.
 	 *
 	 * @ticket 53175
 	 */

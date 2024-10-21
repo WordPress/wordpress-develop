@@ -1,15 +1,9 @@
 <?php
 /**
- * Block supported style tests
+ * Test block supported styles.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.6.0
- */
-
-/**
- * Test block supported styles.
- *
  * @since 5.6.0
  *
  * @group blocks
@@ -175,7 +169,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 			'attrs'        => array(
 				'textColor'       => 'red',
 				'backgroundColor' => 'black',
-				// The following should not be applied (subcatagories of color support).
+				// The following should not be applied (subcategories of color support).
 				'gradient'        => 'some-gradient',
 			),
 			'innerBlock'   => array(),
@@ -209,7 +203,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 					'color' => array(
 						'text'       => '#000',
 						'background' => '#fff',
-						// The following should not be applied (subcatagories of color support).
+						// The following should not be applied (subcategories of color support).
 						'gradient'   => 'some-gradient',
 						'style'      => array( 'color' => array( 'link' => '#fff' ) ),
 					),
@@ -220,7 +214,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 			'innerHTML'    => array(),
 		);
 
-		$expected_styles  = 'test: style; color: #000; background-color: #fff;';
+		$expected_styles  = 'test: style;color:#000;background-color:#fff;';
 		$expected_classes = 'foo-bar-class wp-block-example has-text-color has-background';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
@@ -283,7 +277,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example has-background';
-		$expected_styles  = 'test: style; background: some-gradient-style;';
+		$expected_styles  = 'test: style; background:some-gradient-style;';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -379,7 +373,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'test: style; font-size: 10px;';
+		$expected_styles  = 'test: style; font-size:10px;';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -436,7 +430,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'test: style; line-height: 10;';
+		$expected_styles  = 'test: style; line-height:10;';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -563,7 +557,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example has-text-color has-background alignwide';
-		$expected_styles  = 'test: style; color: #000; background-color: #fff; font-size: 10px; line-height: 20;';
+		$expected_styles  = 'test: style; color:#000; background-color:#fff; font-size:10px; line-height:20;';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -606,7 +600,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 
 		$expected_classes = 'foo-bar-class wp-block-example';
-		$expected_styles  = 'test: style; font-size: 10px;';
+		$expected_styles  = 'test: style; font-size:10px;';
 
 		$this->assert_content_and_styles_and_classes_match( $block, $expected_classes, $expected_styles );
 	}
@@ -701,13 +695,14 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		);
 		$this->register_block_type( 'core/example', $block_type_settings );
 
-		$block = array(
+		$block    = array(
 			'blockName'    => 'core/example',
 			'attrs'        => array(),
 			'innerBlock'   => array(),
 			'innerContent' => array(),
 			'innerHTML'    => array(),
 		);
+		$wp_block = new WP_Block( $block );
 
 		// Custom error handler's see Warnings even if they are suppressed by the @ symbol.
 		$errors = array();
@@ -720,7 +715,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 
 		// HTML5 elements like <time> are not supported by the DOMDocument parser used by the block supports feature.
 		// This specific example is emitted by the "Display post date" setting in the latest-posts block.
-		apply_filters( 'render_block', '<div><time datetime="2020-06-18T04:01:43+10:00" class="wp-block-latest-posts__post-date">June 18, 2020</time></div>', $block );
+		apply_filters( 'render_block', '<div><time datetime="2020-06-18T04:01:43+10:00" class="wp-block-latest-posts__post-date">June 18, 2020</time></div>', $block, $wp_block );
 
 		restore_error_handler();
 

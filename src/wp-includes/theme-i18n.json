@@ -1,9 +1,16 @@
 {
+	"title": "Style variation name",
+	"description": "Style variation description",
 	"settings": {
 		"typography": {
 				"fontSizes": [
 					{
 						"name": "Font size name"
+					}
+				],
+				"fontFamilies": [
+					{
+						"name": "Font family name"
 					}
 				]
 		},
@@ -24,12 +31,31 @@
 					}
 				]
 		},
+		"spacing": {
+			"spacingSizes": [
+				{
+					"name": "Space size name"
+				}
+			]
+		},
+		"dimensions": {
+			"aspectRatios": [
+				{
+					"name": "Aspect ratio name"
+				}
+			]
+		},
 		"blocks": {
 			"*": {
 				"typography": {
 					"fontSizes": [
 						{
 							"name": "Font size name"
+						}
+					],
+					"fontFamilies": [
+						{
+							"name": "Font family name"
 						}
 					]
 				},
@@ -44,8 +70,25 @@
 							"name": "Gradient name"
 						}
 					]
+				},
+				"spacing": {
+					"spacingSizes": [
+						{
+							"name": "Space size name"
+						}
+					]
 				}
 			}
 		}
-	}
+	},
+	"customTemplates": [
+		{
+			"title": "Custom template name"
+		}
+	],
+	"templateParts": [
+		{
+			"title": "Template part name"
+		}
+	]
 }

@@ -116,7 +116,7 @@ class Tests_Link_ThemeFile extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_theme_files
 	 */
-	public function test_theme_file_existance( $file, $expected_theme, $existence ) {
+	public function test_theme_file_existence( $file, $expected_theme, $existence ) {
 
 		if ( in_array( 'theme-file-child', $existence, true ) ) {
 			$this->assertFileExists( WP_CONTENT_DIR . "/themes/theme-file-child/{$file}" );
@@ -129,7 +129,6 @@ class Tests_Link_ThemeFile extends WP_UnitTestCase {
 		} else {
 			$this->assertFileDoesNotExist( WP_CONTENT_DIR . "/themes/theme-file-parent/{$file}" );
 		}
-
 	}
 
 	/**
@@ -144,8 +143,8 @@ class Tests_Link_ThemeFile extends WP_UnitTestCase {
 		$uri        = get_theme_file_uri( $file );
 		$parent_uri = get_parent_theme_file_uri( $file );
 
-		$this->assertSame( esc_url_raw( $uri ), $uri );
-		$this->assertSame( esc_url_raw( $parent_uri ), $parent_uri );
+		$this->assertSame( sanitize_url( $uri ), $uri );
+		$this->assertSame( sanitize_url( $parent_uri ), $parent_uri );
 	}
 
 	public function data_theme_files() {
@@ -182,5 +181,4 @@ class Tests_Link_ThemeFile extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

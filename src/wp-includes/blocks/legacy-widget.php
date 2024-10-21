@@ -8,6 +8,10 @@
 /**
  * Renders the 'core/legacy-widget' block.
  *
+ * @since 5.8.0
+ *
+ * @global int $wp_widget_factory.
+ *
  * @param array $attributes The block attributes.
  *
  * @return string Rendered block.
@@ -24,21 +28,9 @@ function render_block_core_legacy_widget( $attributes ) {
 		return '';
 	}
 
-	$id_base = $attributes['idBase'];
-	if ( method_exists( $wp_widget_factory, 'get_widget_key' ) && method_exists( $wp_widget_factory, 'get_widget_object' ) ) {
-		$widget_key    = $wp_widget_factory->get_widget_key( $id_base );
-		$widget_object = $wp_widget_factory->get_widget_object( $id_base );
-	} else {
-		/*
-		 * This file is copied from the published @wordpress/widgets package when WordPress
-		 * Core is built. Because the package is a dependency of both WordPress Core and the
-		 * Gutenberg plugin where the block editor is developed, this fallback condition is
-		 * required until the minimum required version of WordPress for the plugin is raised
-		 * to 5.8.
-		 */
-		$widget_key    = gutenberg_get_widget_key( $id_base );
-		$widget_object = gutenberg_get_widget_object( $id_base );
-	}
+	$id_base       = $attributes['idBase'];
+	$widget_key    = $wp_widget_factory->get_widget_key( $id_base );
+	$widget_object = $wp_widget_factory->get_widget_object( $id_base );
 
 	if ( ! $widget_key || ! $widget_object ) {
 		return '';
@@ -46,7 +38,7 @@ function render_block_core_legacy_widget( $attributes ) {
 
 	if ( isset( $attributes['instance']['encoded'], $attributes['instance']['hash'] ) ) {
 		$serialized_instance = base64_decode( $attributes['instance']['encoded'] );
-		if ( wp_hash( $serialized_instance ) !== $attributes['instance']['hash'] ) {
+		if ( ! hash_equals( wp_hash( $serialized_instance ), (string) $attributes['instance']['hash'] ) ) {
 			return '';
 		}
 		$instance = unserialize( $serialized_instance );
@@ -66,6 +58,8 @@ function render_block_core_legacy_widget( $attributes ) {
 
 /**
  * Registers the 'core/legacy-widget' block.
+ *
+ * @since 5.8.0
  */
 function register_block_core_legacy_widget() {
 	register_block_type_from_metadata(
@@ -82,6 +76,8 @@ add_action( 'init', 'register_block_core_legacy_widget' );
  * Intercepts any request with legacy-widget-preview in the query param and, if
  * set, renders a page containing a preview of the requested Legacy Widget
  * block.
+ *
+ * @since 5.8.0
  */
 function handle_legacy_widget_preview_iframe() {
 	if ( empty( $_GET['legacy-widget-preview'] ) ) {
@@ -107,6 +103,33 @@ function handle_legacy_widget_preview_iframe() {
 			html, body, #page, #content {
 				padding: 0 !important;
 				margin: 0 !important;
+			}
+
+			/* Hide root level text nodes */
+			body {
+				font-size: 0 !important;
+			}
+
+			/* Hide non-widget elements */
+			body *:not(#page):not(#content):not(.widget):not(.widget *) {
+				display: none !important;
+				font-size: 0 !important;
+				height: 0 !important;
+				left: -9999px !important;
+				max-height: 0 !important;
+				max-width: 0 !important;
+				opacity: 0 !important;
+				pointer-events: none !important;
+				position: absolute !important;
+				top: -9999px !important;
+				transform: translate(-9999px, -9999px) !important;
+				visibility: hidden !important;
+				z-index: -999 !important;
+			}
+
+			/* Restore widget font-size */
+			.widget {
+				font-size: var(--global--font-size-base);
 			}
 		</style>
 	</head>

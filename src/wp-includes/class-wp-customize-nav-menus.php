@@ -16,6 +16,7 @@
  *
  * @see WP_Customize_Manager
  */
+#[AllowDynamicProperties]
 final class WP_Customize_Nav_Menus {
 
 	/**
@@ -131,17 +132,17 @@ final class WP_Customize_Nav_Menus {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param string $type   Optional. Accepts any custom object type and has built-in support for
-	 *                         'post_type' and 'taxonomy'. Default is 'post_type'.
-	 * @param string $object Optional. Accepts any registered taxonomy or post type name. Default is 'page'.
-	 * @param int    $page   Optional. The page number used to generate the query offset. Default is '0'.
+	 * @param string $object_type Optional. Accepts any custom object type and has built-in support for
+	 *                            'post_type' and 'taxonomy'. Default is 'post_type'.
+	 * @param string $object_name Optional. Accepts any registered taxonomy or post type name. Default is 'page'.
+	 * @param int    $page        Optional. The page number used to generate the query offset. Default is '0'.
 	 * @return array|WP_Error An array of menu items on success, a WP_Error object on failure.
 	 */
-	public function load_available_items_query( $type = 'post_type', $object = 'page', $page = 0 ) {
+	public function load_available_items_query( $object_type = 'post_type', $object_name = 'page', $page = 0 ) {
 		$items = array();
 
-		if ( 'post_type' === $type ) {
-			$post_type = get_post_type_object( $object );
+		if ( 'post_type' === $object_type ) {
+			$post_type = get_post_type_object( $object_name );
 			if ( ! $post_type ) {
 				return new WP_Error( 'nav_menus_invalid_post_type' );
 			}
@@ -152,7 +153,7 @@ final class WP_Customize_Nav_Menus {
 			 */
 			$important_pages   = array();
 			$suppress_page_ids = array();
-			if ( 0 === $page && 'page' === $object ) {
+			if ( 0 === $page && 'page' === $object_name ) {
 				// Insert Front Page or custom "Home" link.
 				$front_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0;
 				if ( ! empty( $front_page ) ) {
@@ -188,15 +189,15 @@ final class WP_Customize_Nav_Menus {
 						$suppress_page_ids[] = $privacy_policy_page->ID;
 					}
 				}
-			} elseif ( 'post' !== $object && 0 === $page && $post_type->has_archive ) {
+			} elseif ( 'post' !== $object_name && 0 === $page && $post_type->has_archive ) {
 				// Add a post type archive link.
 				$items[] = array(
-					'id'         => $object . '-archive',
+					'id'         => $object_name . '-archive',
 					'title'      => $post_type->labels->archives,
 					'type'       => 'post_type_archive',
 					'type_label' => __( 'Post Type Archive' ),
-					'object'     => $object,
-					'url'        => get_post_type_archive_link( $object ),
+					'object'     => $object_name,
+					'url'        => get_post_type_archive_link( $object_name ),
 				);
 			}
 
@@ -216,7 +217,7 @@ final class WP_Customize_Nav_Menus {
 				'offset'      => 10 * $page,
 				'orderby'     => 'date',
 				'order'       => 'DESC',
-				'post_type'   => $object,
+				'post_type'   => $object_name,
 			);
 
 			// Add suppression array to arguments for get_posts.
@@ -253,10 +254,10 @@ final class WP_Customize_Nav_Menus {
 					'url'        => get_permalink( (int) $post->ID ),
 				);
 			}
-		} elseif ( 'taxonomy' === $type ) {
+		} elseif ( 'taxonomy' === $object_type ) {
 			$terms = get_terms(
 				array(
-					'taxonomy'     => $object,
+					'taxonomy'     => $object_name,
 					'child_of'     => 0,
 					'exclude'      => '',
 					'hide_empty'   => false,
@@ -292,12 +293,12 @@ final class WP_Customize_Nav_Menus {
 		 *
 		 * @since 4.3.0
 		 *
-		 * @param array  $items  The array of menu items.
-		 * @param string $type   The object type.
-		 * @param string $object The object name.
-		 * @param int    $page   The current page number.
+		 * @param array  $items       The array of menu items.
+		 * @param string $object_type The object type.
+		 * @param string $object_name The object name.
+		 * @param int    $page        The current page number.
 		 */
-		$items = apply_filters( 'customize_nav_menu_available_items', $items, $type, $object, $page );
+		$items = apply_filters( 'customize_nav_menu_available_items', $items, $object_type, $object_name, $page );
 
 		return $items;
 	}
@@ -476,7 +477,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Enqueue scripts and styles for Customizer pane.
+	 * Enqueues scripts and styles for Customizer pane.
 	 *
 	 * @since 4.3.0
 	 */
@@ -561,10 +562,12 @@ final class WP_Customize_Nav_Menus {
 			'under'                   => __( 'Under %s' ),
 			/* translators: %s: Previous item name. */
 			'outFrom'                 => __( 'Out from under %s' ),
-			/* translators: 1: Item name, 2: Item position, 3: Total number of items. */
-			'menuFocus'               => __( '%1$s. Menu item %2$d of %3$d.' ),
-			/* translators: 1: Item name, 2: Item position, 3: Parent item name. */
-			'subMenuFocus'            => __( '%1$s. Sub item number %2$d under %3$s.' ),
+			/* translators: 1: Item name, 2: Item type, 3: Item index, 4: Total items. */
+			'menuFocus'               => __( 'Edit %1$s (%2$s, %3$d of %4$d)' ),
+			/* translators: 1: Item name, 2: Item type, 3: Item index, 4: Total items, 5: Item parent. */
+			'subMenuFocus'            => __( 'Edit %1$s (%2$s, sub-item %3$d of %4$d under %5$s)' ),
+			/* translators: 1: Item name, 2: Item type, 3: Item index, 4: Total items, 5: Item parent, 6: Item depth. */
+			'subMenuMoreDepthFocus'   => __( 'Edit %1$s (%2$s, sub-item %3$d of %4$d under %5$s, level %6$d)' ),
 		);
 		wp_localize_script( 'nav-menu', 'menus', $nav_menus_l10n );
 	}
@@ -598,7 +601,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Allow non-statically created settings to be constructed with custom WP_Customize_Setting subclass.
+	 * Allows non-statically created settings to be constructed with custom WP_Customize_Setting subclass.
 	 *
 	 * @since 4.3.0
 	 *
@@ -619,7 +622,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Add the customizer settings and controls.
+	 * Adds the customizer settings and controls.
 	 *
 	 * @since 4.3.0
 	 */
@@ -863,7 +866,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Get the base10 intval.
+	 * Gets the base10 intval.
 	 *
 	 * This is used as a setting's sanitize_callback; we can't use just plain
 	 * intval because the second argument is not what intval() expects.
@@ -878,7 +881,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Return an array of all the available item types.
+	 * Returns an array of all the available item types.
 	 *
 	 * @since 4.3.0
 	 * @since 4.7.0  Each array item now includes a `$type_label` in addition to `$title`, `$type`, and `$object`.
@@ -929,17 +932,17 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Add a new `auto-draft` post.
+	 * Adds a new `auto-draft` post.
 	 *
 	 * @since 4.7.0
 	 *
 	 * @param array $postarr {
 	 *     Post array. Note that post_status is overridden to be `auto-draft`.
 	 *
-	 * @var string $post_title   Post title. Required.
-	 * @var string $post_type    Post type. Required.
-	 * @var string $post_name    Post name.
-	 * @var string $post_content Post content.
+	 *     @type string $post_title   Post title. Required.
+	 *     @type string $post_type    Post type. Required.
+	 *     @type string $post_name    Post name.
+	 *     @type string $post_content Post content.
 	 * }
 	 * @return WP_Post|WP_Error Inserted auto-draft post object or error.
 	 */
@@ -1056,7 +1059,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Print the JavaScript templates used to render Menu Customizer components.
+	 * Prints the JavaScript templates used to render Menu Customizer components.
 	 *
 	 * Templates are imported into the JS use wp.template.
 	 *
@@ -1075,7 +1078,7 @@ final class WP_Customize_Nav_Menus {
 						<button type="button" class="button-link item-add">
 							<span class="screen-reader-text">
 							<?php
-								/* translators: 1: Title of a menu item, 2: Type of a menu item. */
+								/* translators: Hidden accessibility text. 1: Title of a menu item, 2: Type of a menu item. */
 								printf( __( 'Add to menu: %1$s (%2$s)' ), '{{ data.title || wp.customize.Menus.data.l10n.untitled }}', '{{ data.type_label }}' );
 							?>
 							</span>
@@ -1119,7 +1122,7 @@ final class WP_Customize_Nav_Menus {
 
 		<script type="text/html" id="tmpl-nav-menu-create-menu-section-title">
 			<p class="add-new-menu-notice">
-				<?php _e( 'It doesn&#8217;t look like your site has any menus yet. Want to build one? Click the button to start.' ); ?>
+				<?php _e( 'It does not look like your site has any menus yet. Want to build one? Click the button to start.' ); ?>
 			</p>
 			<p class="add-new-menu-notice">
 				<?php _e( 'You&#8217;ll create a menu, assign it a location, and add menu items like links to pages and categories. If your theme has multiple menu areas, you might need to create more than one.' ); ?>
@@ -1134,7 +1137,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Print the HTML template used to render the add-menu-item frame.
+	 * Prints the HTML template used to render the add-menu-item frame.
 	 *
 	 * @since 4.3.0
 	 */
@@ -1143,7 +1146,12 @@ final class WP_Customize_Nav_Menus {
 		<div id="available-menu-items" class="accordion-container">
 			<div class="customize-section-title">
 				<button type="button" class="customize-section-back" tabindex="-1">
-					<span class="screen-reader-text"><?php _e( 'Back' ); ?></span>
+					<span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Back' );
+						?>
+					</span>
 				</button>
 				<h3>
 					<span class="customize-action">
@@ -1157,13 +1165,23 @@ final class WP_Customize_Nav_Menus {
 			</div>
 			<div id="available-menu-items-search" class="accordion-section cannot-expand">
 				<div class="accordion-section-title">
-					<label class="screen-reader-text" for="menu-items-search"><?php _e( 'Search Menu Items' ); ?></label>
-					<input type="text" id="menu-items-search" placeholder="<?php esc_attr_e( 'Search menu items&hellip;' ); ?>" aria-describedby="menu-items-search-desc" />
-					<p class="screen-reader-text" id="menu-items-search-desc"><?php _e( 'The search results will be updated as you type.' ); ?></p>
+					<label for="menu-items-search"><?php _e( 'Search Menu Items' ); ?></label>
+					<input type="text" id="menu-items-search" aria-describedby="menu-items-search-desc" />
+					<p class="screen-reader-text" id="menu-items-search-desc">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'The search results will be updated as you type.' );
+						?>
+					</p>
 					<span class="spinner"></span>
+					<div class="search-icon" aria-hidden="true"></div>
+					<button type="button" class="clear-results"><span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Clear Results' );
+						?>
+					</span></button>
 				</div>
-				<div class="search-icon" aria-hidden="true"></div>
-				<button type="button" class="clear-results"><span class="screen-reader-text"><?php _e( 'Clear Results' ); ?></span></button>
 				<ul class="accordion-section-content available-menu-items-list" data-type="search"></ul>
 			</div>
 			<?php
@@ -1192,41 +1210,36 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Print the markup for new menu items.
+	 * Prints the markup for new menu items.
 	 *
 	 * To be used in the template #available-menu-items.
 	 *
 	 * @since 4.7.0
 	 *
 	 * @param array $available_item_type Menu item data to output, including title, type, and label.
-	 * @return void
 	 */
 	protected function print_post_type_container( $available_item_type ) {
 		$id = sprintf( 'available-menu-items-%s-%s', $available_item_type['type'], $available_item_type['object'] );
 		?>
 		<div id="<?php echo esc_attr( $id ); ?>" class="accordion-section">
 			<h4 class="accordion-section-title" role="presentation">
-				<?php echo esc_html( $available_item_type['title'] ); ?>
-				<span class="spinner"></span>
-				<span class="no-items"><?php _e( 'No items' ); ?></span>
-				<button type="button" class="button-link" aria-expanded="false">
-					<span class="screen-reader-text">
-					<?php
-						/* translators: %s: Title of a section with menu items. */
-						printf( __( 'Toggle section: %s' ), esc_html( $available_item_type['title'] ) );
-					?>
-						</span>
+				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="<?php echo esc_attr( $id ); ?>-content">
+					<?php echo esc_html( $available_item_type['title'] ); ?>
+					<span class="spinner"></span>
+					<span class="no-items"><?php _e( 'No items' ); ?></span>
 					<span class="toggle-indicator" aria-hidden="true"></span>
 				</button>
 			</h4>
-			<div class="accordion-section-content">
+			<div class="accordion-section-content" id="<?php echo esc_attr( $id ); ?>-content">
 				<?php if ( 'post_type' === $available_item_type['type'] ) : ?>
 					<?php $post_type_obj = get_post_type_object( $available_item_type['object'] ); ?>
 					<?php if ( current_user_can( $post_type_obj->cap->create_posts ) && current_user_can( $post_type_obj->cap->publish_posts ) ) : ?>
-						<div class="new-content-item">
-							<label for="<?php echo esc_attr( 'create-item-input-' . $available_item_type['object'] ); ?>" class="screen-reader-text"><?php echo esc_html( $post_type_obj->labels->add_new_item ); ?></label>
-							<input type="text" id="<?php echo esc_attr( 'create-item-input-' . $available_item_type['object'] ); ?>" class="create-item-input" placeholder="<?php echo esc_attr( $post_type_obj->labels->add_new_item ); ?>">
-							<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
+						<div class="new-content-item-wrapper">
+							<label for="<?php echo esc_attr( 'create-item-input-' . $available_item_type['object'] ); ?>"><?php echo esc_html( $post_type_obj->labels->add_new_item ); ?></label>
+							<div class="new-content-item">
+								<input type="text" id="<?php echo esc_attr( 'create-item-input-' . $available_item_type['object'] ); ?>" class="create-item-input">
+								<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
+							</div>
 						</div>
 					<?php endif; ?>
 				<?php endif; ?>
@@ -1237,23 +1250,20 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Print the markup for available menu item custom links.
+	 * Prints the markup for available menu item custom links.
 	 *
 	 * @since 4.7.0
-	 *
-	 * @return void
 	 */
 	protected function print_custom_links_available_menu_item() {
 		?>
 		<div id="new-custom-menu-item" class="accordion-section">
 			<h4 class="accordion-section-title" role="presentation">
-				<?php _e( 'Custom Links' ); ?>
-				<button type="button" class="button-link" aria-expanded="false">
-					<span class="screen-reader-text"><?php _e( 'Toggle section: Custom Links' ); ?></span>
+				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="new-custom-menu-item-content">
+					<?php _e( 'Custom Links' ); ?>
 					<span class="toggle-indicator" aria-hidden="true"></span>
 				</button>
 			</h4>
-			<div class="accordion-section-content customlinkdiv">
+			<div class="accordion-section-content customlinkdiv" id="new-custom-menu-item-content">
 				<input type="hidden" value="custom" id="custom-menu-item-type" name="menu-item[-1][menu-item-type]" />
 				<p id="menu-item-url-wrap" class="wp-clearfix">
 					<label class="howto" for="custom-menu-item-url"><?php _e( 'URL' ); ?></label>
@@ -1317,7 +1327,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Add hooks for the Customizer preview.
+	 * Adds hooks for the Customizer preview.
 	 *
 	 * @since 4.3.0
 	 */
@@ -1325,12 +1335,12 @@ final class WP_Customize_Nav_Menus {
 		add_action( 'wp_enqueue_scripts', array( $this, 'customize_preview_enqueue_deps' ) );
 		add_filter( 'wp_nav_menu_args', array( $this, 'filter_wp_nav_menu_args' ), 1000 );
 		add_filter( 'wp_nav_menu', array( $this, 'filter_wp_nav_menu' ), 10, 2 );
-		add_filter( 'wp_footer', array( $this, 'export_preview_data' ), 1 );
+		add_action( 'wp_footer', array( $this, 'export_preview_data' ), 1 );
 		add_filter( 'customize_render_partials_response', array( $this, 'export_partial_rendered_nav_menu_instances' ) );
 	}
 
 	/**
-	 * Make the auto-draft status protected so that it can be queried.
+	 * Makes the auto-draft status protected so that it can be queried.
 	 *
 	 * @since 4.7.0
 	 *
@@ -1342,7 +1352,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Sanitize post IDs for posts created for nav menu items to be published.
+	 * Sanitizes post IDs for posts created for nav menu items to be published.
 	 *
 	 * @since 4.7.0
 	 *
@@ -1372,7 +1382,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Publish the auto-draft posts that were created for nav menu items.
+	 * Publishes the auto-draft posts that were created for nav menu items.
 	 *
 	 * The post IDs will have been sanitized by already by
 	 * `WP_Customize_Nav_Menu_Items::sanitize_nav_menus_created_posts()` to
@@ -1413,7 +1423,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Keep track of the arguments that are being passed to wp_nav_menu().
+	 * Keeps track of the arguments that are being passed to wp_nav_menu().
 	 *
 	 * @since 4.3.0
 	 *
@@ -1449,7 +1459,7 @@ final class WP_Customize_Nav_Menus {
 			(
 				! empty( $args['container'] )
 				||
-				( isset( $args['items_wrap'] ) && '<' === substr( $args['items_wrap'], 0, 1 ) )
+				( isset( $args['items_wrap'] ) && str_starts_with( $args['items_wrap'], '<' ) )
 			)
 		);
 		$args['can_partial_refresh'] = $can_partial_refresh;
@@ -1517,7 +1527,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Enqueue scripts for the Customizer preview.
+	 * Enqueues scripts for the Customizer preview.
 	 *
 	 * @since 4.3.0
 	 */
@@ -1536,11 +1546,11 @@ final class WP_Customize_Nav_Menus {
 		$exports = array(
 			'navMenuInstanceArgs' => $this->preview_nav_menu_instance_args,
 		);
-		printf( '<script>var _wpCustomizePreviewNavMenusExports = %s;</script>', wp_json_encode( $exports ) );
+		wp_print_inline_script_tag( sprintf( 'var _wpCustomizePreviewNavMenusExports = %s;', wp_json_encode( $exports ) ) );
 	}
 
 	/**
-	 * Export any wp_nav_menu() calls during the rendering of any partials.
+	 * Exports any wp_nav_menu() calls during the rendering of any partials.
 	 *
 	 * @since 4.5.0
 	 *
@@ -1553,7 +1563,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Render a specific menu via wp_nav_menu() using the supplied arguments.
+	 * Renders a specific menu via wp_nav_menu() using the supplied arguments.
 	 *
 	 * @since 4.3.0
 	 *

@@ -20,7 +20,7 @@ class WP_Sitemaps_Empty_Test_Provider extends WP_Sitemaps_Provider {
 	 *
 	 * @param int    $page_num       Page of results.
 	 * @param string $object_subtype Optional. Object subtype name. Default empty.
-	 * @return array List of URLs for a sitemap.
+	 * @return array[] Array of URL information for a sitemap.
 	 */
 	public function get_url_list( $page_num, $object_subtype = '' ) {
 		return array();

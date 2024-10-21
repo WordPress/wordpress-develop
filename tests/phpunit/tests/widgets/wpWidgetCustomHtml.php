@@ -67,7 +67,6 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		$this->assertSame( 10, has_action( 'admin_print_scripts-widgets.php', array( $widget, 'enqueue_admin_scripts' ) ) );
 		$this->assertSame( 10, has_action( 'admin_footer-widgets.php', array( 'WP_Widget_Custom_HTML', 'render_control_template_scripts' ) ) );
 		$this->assertSame( 10, has_action( 'admin_head-widgets.php', array( 'WP_Widget_Custom_HTML', 'add_help_text' ) ) );
-		$this->assertContains( 'wp.customHtmlWidgets.idBases.push( "custom_html" );', wp_scripts()->registered['custom-html-widgets']->extra['after'] );
 	}
 
 	/**
@@ -172,7 +171,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		);
 
 		wp_set_current_user(
-			$this->factory()->user->create(
+			self::factory()->user->create(
 				array(
 					'role' => 'administrator',
 				)
@@ -185,7 +184,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 			'content' => $instance['content'],
 		);
 		$result   = $widget->update( $instance, array() );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Make sure KSES is applying as expected.
 		add_filter( 'map_meta_cap', array( $this, 'grant_unfiltered_html_cap' ), 10, 2 );
@@ -193,7 +192,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		$instance['content'] = '<script>alert( "Howdy!" );</script>';
 		$expected['content'] = $instance['content'];
 		$result              = $widget->update( $instance, array() );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 		remove_filter( 'map_meta_cap', array( $this, 'grant_unfiltered_html_cap' ) );
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_unfiltered_html_cap' ), 10, 2 );
@@ -201,7 +200,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		$instance['content'] = '<script>alert( "Howdy!" );</script>';
 		$expected['content'] = wp_kses_post( $instance['content'] );
 		$result              = $widget->update( $instance, array() );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 		remove_filter( 'map_meta_cap', array( $this, 'revoke_unfiltered_html_cap' ), 10 );
 	}
 
@@ -241,7 +240,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	 * @covers WP_Widget_Custom_HTML::enqueue_admin_scripts
 	 */
 	public function test_enqueue_admin_scripts_when_logged_in_and_syntax_highlighting_on() {
-		$user = $this->factory()->user->create();
+		$user = self::factory()->user->create();
 		wp_set_current_user( $user );
 		wp_get_current_user()->syntax_highlighting = 'true';
 		set_current_screen( 'widgets.php' );
@@ -262,7 +261,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	 * @covers WP_Widget_Custom_HTML::enqueue_admin_scripts
 	 */
 	public function test_enqueue_admin_scripts_when_logged_in_and_syntax_highlighting_off() {
-		$user = $this->factory()->user->create();
+		$user = self::factory()->user->create();
 		wp_set_current_user( $user );
 		update_user_meta( $user, 'syntax_highlighting', 'false' );
 		set_current_screen( 'widgets.php' );
@@ -304,32 +303,6 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that rel="noopener" is added to links with a target.
-	 *
-	 * @ticket 46421
-	 */
-	public function test_render_links_with_target() {
-		$widget = new WP_Widget_Custom_HTML();
-
-		$content = 'Test content with an external <a href="https://example.org" target="_blank">link</a>.';
-
-		$args = array(
-			'before_title'  => '<h2>',
-			'after_title'   => '</h2>',
-			'before_widget' => '',
-			'after_widget'  => '',
-		);
-
-		$instance = array(
-			'title'   => 'Foo',
-			'content' => $content,
-		);
-
-		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
-		$this->assertStringContainsString( 'rel="noopener"', $output );
-	}
-
-	/**
 	 * Ensure that rel="noopener" is not added to links without a target.
 	 *
 	 * @ticket 46421
@@ -354,5 +327,4 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
 		$this->assertStringNotContainsString( 'rel="noopener"', $output );
 	}
-
 }

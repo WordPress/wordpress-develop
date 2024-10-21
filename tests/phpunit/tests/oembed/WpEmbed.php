@@ -28,7 +28,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	}
 
 	public function test_maybe_run_ajax_cache_should_return_nothing_if_there_is_no_message() {
-		$GLOBALS['post'] = $this->factory()->post->create_and_get(
+		$GLOBALS['post'] = self::factory()->post->create_and_get(
 			array(
 				'post_title' => 'Hello World',
 			)
@@ -41,7 +41,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	}
 
 	public function test_maybe_run_ajax_cache_should_return_javascript() {
-		$GLOBALS['post'] = $this->factory()->post->create_and_get(
+		$GLOBALS['post'] = self::factory()->post->create_and_get(
 			array(
 				'post_title' => 'Hello World',
 			)
@@ -134,7 +134,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	}
 
 	public function test_delete_oembed_caches() {
-		$post_id = $this->factory()->post->create();
+		$post_id = self::factory()->post->create();
 
 		add_post_meta( $post_id, '_oembed_foo', 'bar' );
 		add_post_meta( $post_id, '_oembed_foo', 'baz' );
@@ -147,14 +147,14 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	}
 
 	public function test_cache_oembed_invalid_post_type() {
-		$post_id = $this->factory()->post->create( array( 'post_type' => 'nav_menu_item' ) );
+		$post_id = self::factory()->post->create( array( 'post_type' => 'nav_menu_item' ) );
 
 		$this->wp_embed->cache_oembed( $post_id );
 		$this->assertNotSame( $post_id, $this->wp_embed->post_ID );
 	}
 
 	public function test_cache_oembed_empty_content() {
-		$post_id = $this->factory()->post->create( array( 'post_content' => '' ) );
+		$post_id = self::factory()->post->create( array( 'post_content' => '' ) );
 
 		$this->wp_embed->cache_oembed( $post_id );
 		$this->assertNotSame( $post_id, $this->wp_embed->post_ID );
@@ -167,7 +167,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$cachekey      = '_oembed_' . $key_suffix;
 		$cachekey_time = '_oembed_time_' . $key_suffix;
 
-		$post_id = $this->factory()->post->create( array( 'post_content' => 'https://example.com/' ) );
+		$post_id = self::factory()->post->create( array( 'post_content' => 'https://example.com/' ) );
 
 		add_filter( 'pre_oembed_result', array( $this, '_pre_oembed_result_callback' ) );
 		$this->wp_embed->cache_oembed( $post_id );
@@ -181,7 +181,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	public function test_shortcode_should_get_cached_data_from_post_meta_for_known_post() {
 		global $post;
 
-		$post       = $this->factory()->post->create_and_get();
+		$post       = self::factory()->post->create_and_get();
 		$url        = 'https://example.com/';
 		$expected   = '<b>Embedded content</b>';
 		$key_suffix = md5( $url . serialize( wp_embed_defaults( $url ) ) );
@@ -208,7 +208,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	public function test_shortcode_should_get_cached_failure_from_post_meta_for_known_post() {
 		global $post;
 
-		$post          = $this->factory()->post->create_and_get();
+		$post          = self::factory()->post->create_and_get();
 		$url           = 'https://example.com/';
 		$expected      = '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>';
 		$key_suffix    = md5( $url . serialize( wp_embed_defaults( $url ) ) );

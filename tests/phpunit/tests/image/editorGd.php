@@ -52,7 +52,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test resizing an image, not using crop
+	 * Tests resizing an image, not using crop.
 	 *
 	 * @requires function imagejpeg
 	 */
@@ -74,7 +74,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test multi_resize with single image resize and no crop
+	 * Tests multi_resize() with single image resize and no crop.
 	 *
 	 * @requires function imagejpeg
 	 */
@@ -100,6 +100,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 50,
 				'height'    => 33,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-50x33.jpg' ),
 			),
 		);
 
@@ -115,7 +116,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Ensure multi_resize doesn't create an image when
+	 * Tests that multi_resize() does not create an image when
 	 * both height and weight are missing, null, or 0.
 	 *
 	 * @ticket 26823
@@ -184,7 +185,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test multi_resize with multiple sizes
+	 * Tests multi_resize() with multiple sizes.
 	 *
 	 * @ticket 26823
 	 * @requires function imagejpeg
@@ -197,7 +198,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$sizes_array = array(
 
-			/**
+			/*
 			 * #0 - 10x10 resize, no cropping.
 			 * By aspect, should be 10x6 output.
 			 */
@@ -207,7 +208,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'crop'   => false,
 			),
 
-			/**
+			/*
 			 * #1 - 75x50 resize, with cropping.
 			 * Output dimensions should be 75x50
 			 */
@@ -217,7 +218,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'crop'   => true,
 			),
 
-			/**
+			/*
 			 * #2 - 20 pixel max height, no cropping.
 			 * By aspect, should be 30x20 output.
 			 */
@@ -227,7 +228,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'crop'   => false,
 			),
 
-			/**
+			/*
 			 * #3 - 45 pixel max height, with cropping.
 			 * By aspect, should be 45x400 output.
 			 */
@@ -237,7 +238,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'crop'   => true,
 			),
 
-			/**
+			/*
 			 * #4 - 50 pixel max width, no cropping.
 			 * By aspect, should be 50x33 output.
 			 */
@@ -245,7 +246,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width' => 50,
 			),
 
-			/**
+			/*
 			 * #5 - 55 pixel max width, no cropping, null height
 			 * By aspect, should be 55x36 output.
 			 */
@@ -254,7 +255,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'height' => null,
 			),
 
-			/**
+			/*
 			 * #6 - 55 pixel max height, no cropping, no width specified.
 			 * By aspect, should be 82x55 output.
 			 */
@@ -262,7 +263,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'height' => 55,
 			),
 
-			/**
+			/*
 			 * #7 - 60 pixel max height, no cropping, null width.
 			 * By aspect, should be 90x60 output.
 			 */
@@ -271,7 +272,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'height' => 60,
 			),
 
-			/**
+			/*
 			 * #8 - 70 pixel max height, no cropping, negative width.
 			 * By aspect, should be 105x70 output.
 			 */
@@ -280,7 +281,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'height' => 70,
 			),
 
-			/**
+			/*
 			 * #9 - 200 pixel max width, no cropping, negative height.
 			 * By aspect, should be 200x133 output.
 			 */
@@ -300,6 +301,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 10,
 				'height'    => 7,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-10x7.jpg' ),
 			),
 
 			// #1
@@ -308,6 +310,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 75,
 				'height'    => 50,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-75x50.jpg' ),
 			),
 
 			// #2
@@ -316,6 +319,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 30,
 				'height'    => 20,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-30x20.jpg' ),
 			),
 
 			// #3
@@ -324,6 +328,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 45,
 				'height'    => 400,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-45x400.jpg' ),
 			),
 
 			// #4
@@ -332,6 +337,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 50,
 				'height'    => 33,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-50x33.jpg' ),
 			),
 
 			// #5
@@ -340,6 +346,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 55,
 				'height'    => 37,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-55x37.jpg' ),
 			),
 
 			// #6
@@ -348,6 +355,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 83,
 				'height'    => 55,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-83x55.jpg' ),
 			),
 
 			// #7
@@ -356,6 +364,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 90,
 				'height'    => 60,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-90x60.jpg' ),
 			),
 
 			// #8
@@ -364,6 +373,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 105,
 				'height'    => 70,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-105x70.jpg' ),
 			),
 
 			// #9
@@ -372,6 +382,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 200,
 				'height'    => 133,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => wp_filesize( dirname( $file ) . '/waffles-200x133.jpg' ),
 			),
 		);
 
@@ -391,7 +402,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test resizing an image with cropping
+	 * Tests resizing an image with cropping.
 	 */
 	public function test_resize_and_crop() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -411,7 +422,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test cropping an image.
+	 * Tests cropping an image.
 	 *
 	 * @ticket 51937
 	 *
@@ -468,7 +479,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test should return WP_Error when dimensions are not integer or are <= 0.
+	 * Tests that crop() returns WP_Error when dimensions are not integer or are <= 0.
 	 *
 	 * @ticket 51937
 	 *
@@ -534,7 +545,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test rotating an image 180 deg
+	 * Tests rotating an image 180 deg.
 	 */
 	public function test_rotate() {
 		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
@@ -553,7 +564,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test flipping an image
+	 * Tests flipping an image.
 	 */
 	public function test_flip() {
 		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
@@ -572,34 +583,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test the image created with WP_Image_Editor_GD preserves alpha when resizing
-	 *
-	 * @ticket 23039
-	 */
-	public function test_image_preserves_alpha_on_resize() {
-		if ( ! ( imagetypes() & IMG_PNG ) ) {
-			$this->fail( 'This test requires PHP to be compiled with PNG support.' );
-		}
-
-		$file = DIR_TESTDATA . '/images/transparent.png';
-
-		$editor = wp_get_image_editor( $file );
-
-		$this->assertNotWPError( $editor );
-
-		$editor->load();
-		$editor->resize( 5, 5 );
-		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
-
-		$editor->save( $save_to_file );
-
-		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), 127 );
-
-		unlink( $save_to_file );
-	}
-
-	/**
-	 * Test the image created with WP_Image_Editor_GD preserves alpha with no resizing etc
+	 * Tests that an image created with WP_Image_Editor_GD preserves alpha with no resizing.
 	 *
 	 * @ticket 23039
 	 */
@@ -610,15 +594,37 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$file = DIR_TESTDATA . '/images/transparent.png';
 
-		$editor = wp_get_image_editor( $file );
-
-		$this->assertNotWPError( $editor );
-
-		$editor->load();
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
 
 		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
 
-		$editor->save( $save_to_file );
+		$gd_image_editor->save( $save_to_file );
+
+		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), 127 );
+
+		unlink( $save_to_file );
+	}
+
+	/**
+	 * Tests that an image created with WP_Image_Editor_GD preserves alpha when resizing.
+	 *
+	 * @ticket 23039
+	 */
+	public function test_image_preserves_alpha_on_resize() {
+		if ( ! ( imagetypes() & IMG_PNG ) ) {
+			$this->fail( 'This test requires PHP to be compiled with PNG support.' );
+		}
+
+		$file = DIR_TESTDATA . '/images/transparent.png';
+
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
+
+		$gd_image_editor->resize( 5, 5 );
+		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
+
+		$gd_image_editor->save( $save_to_file );
 
 		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), 127 );
 
@@ -639,27 +645,29 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$rgb      = imagecolorat( $image, 0, 0 );
 		$expected = imagecolorsforindex( $image, $rgb );
 
-		$editor = new WP_Image_Editor_GD( $file );
-				$editor->load();
-				$editor->rotate( 180 );
-				$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
 
-				$editor->save( $save_to_file );
+		$gd_image_editor->rotate( 180 );
+		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
 
-				$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), $expected['alpha'] );
-				unlink( $save_to_file );
+		$gd_image_editor->save( $save_to_file );
 
+		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), $expected['alpha'] );
+
+		unlink( $save_to_file );
 	}
 
 	/**
-	 * Test WP_Image_Editor_GD handles extension-less images
+	 * Tests that WP_Image_Editor_GD handles extensionless images.
 	 *
 	 * @ticket 39195
 	 */
 	public function test_image_non_existent_extension() {
-		$image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/test-image-no-extension' );
-		$result       = $image_editor->load();
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/test-image-no-extension' );
 
-		$this->assertTrue( $result );
+		$loaded = $gd_image_editor->load();
+
+		$this->assertTrue( $loaded );
 	}
 }

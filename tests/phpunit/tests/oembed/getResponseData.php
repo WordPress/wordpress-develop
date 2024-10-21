@@ -12,6 +12,24 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		self::touch( ABSPATH . WPINC . '/js/wp-embed.js' );
 	}
 
+	private function normalize_secret_attribute( $data ) {
+		if ( is_array( $data ) ) {
+			$html = $data['html'];
+		} else {
+			$html = $data;
+		}
+
+		$html = preg_replace( '/secret=("?)\w+\1/', 'secret=__SECRET__', $html );
+
+		if ( is_array( $data ) ) {
+			$data['html'] = $html;
+		} else {
+			$data = $html;
+		}
+
+		return $data;
+	}
+
 	public function test_get_oembed_response_data_non_existent_post() {
 		$this->assertFalse( get_oembed_response_data( 0, 100 ) );
 	}
@@ -36,9 +54,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 				'type'          => 'rich',
 				'width'         => 400,
 				'height'        => 225,
-				'html'          => get_post_embed_html( 400, 225, $post ),
+				'html'          => $this->normalize_secret_attribute( get_post_embed_html( 400, 225, $post ) ),
 			),
-			$data
+			$this->normalize_secret_attribute( $data )
 		);
 	}
 
@@ -72,9 +90,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 				'type'          => 'rich',
 				'width'         => 400,
 				'height'        => 225,
-				'html'          => get_post_embed_html( 400, 225, $post ),
+				'html'          => $this->normalize_secret_attribute( get_post_embed_html( 400, 225, $post ) ),
 			),
-			$data
+			$this->normalize_secret_attribute( $data )
 		);
 	}
 
@@ -230,7 +248,7 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'thumbnail_url', $data );
 		$this->assertArrayHasKey( 'thumbnail_width', $data );
 		$this->assertArrayHasKey( 'thumbnail_height', $data );
-		$this->assertTrue( 400 >= $data['thumbnail_width'] );
+		$this->assertLessThanOrEqual( 400, $data['thumbnail_width'] );
 	}
 
 	public function test_get_oembed_response_data_for_attachment() {
@@ -249,6 +267,6 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'thumbnail_url', $data );
 		$this->assertArrayHasKey( 'thumbnail_width', $data );
 		$this->assertArrayHasKey( 'thumbnail_height', $data );
-		$this->assertTrue( 400 >= $data['thumbnail_width'] );
+		$this->assertLessThanOrEqual( 400, $data['thumbnail_width'] );
 	}
 }

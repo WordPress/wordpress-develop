@@ -1,19 +1,19 @@
 name: End-to-end Tests
 
 on:
-  # The end to end test suite was introduced in WordPress 5.3.
+  # The end-to-end test suite was introduced in WordPress 5.3.
   push:
     branches:
-      - master
       - trunk
       - '5.[3-9]'
       - '[6-9].[0-9]'
     tags:
-      - '5.[3-9]*'
-      - '[6-9].[0-9]*'
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+      - '![34].[0-9].[0-9]+'
+      - '!5.[0-2].[0-9]+'
   pull_request:
     branches:
-      - master
       - trunk
       - '5.[3-9]'
       - '[6-9].[0-9]'
@@ -26,106 +26,73 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 env:
   LOCAL_DIR: build
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
 
 jobs:
   # Runs the end-to-end test suite.
-  #
-  # Performs the following steps:
-  # - Set environment variables.
-  # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
-  # - Builds WordPress to run from the `build` directory.
-  # - Starts the WordPress Docker container.
-  # - Logs general debug information.
-  # - Logs the running Docker containers.
-  # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container).
-  # - Install WordPress within the Docker container.
-  # - Run the E2E tests.
-  # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
-    name: E2E Tests
-    runs-on: ubuntu-latest
+    name: Test with SCRIPT_DEBUG ${{ matrix.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-end-to-end-tests.yml@trunk
+    permissions:
+      contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-
-    steps:
-      - name: Configure environment variables
-        run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
-
-      - name: Checkout repository
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
-
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
-          php --version
-          php -i
-          locale -a
-
-      - name: Install NodeJS
-        uses: actions/setup-node@38d90ce44d5275ad62cc48384b3d8a58c500bb5f # v2.2.2
-        with:
-          node-version: 14
-          cache: npm
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build WordPress
-        run: npm run build
-
-      - name: Start Docker environment
-        run: |
-          npm run env:start
-
-      - name: General debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
-
-      - name: Log running Docker containers
-        run: docker ps -a
-
-      - name: Docker debug information
-        run: |
-          docker -v
-          docker-compose -v
-          docker-compose run --rm mysql mysql --version
-          docker-compose run --rm php php --version
-          docker-compose run --rm php php -m
-          docker-compose run --rm php php -i
-          docker-compose run --rm php locale -a
-
-      - name: Install WordPress
-        run: npm run env:install
-
-      - name: Run E2E tests
-        run: npm run test:e2e
-
-      - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
+    strategy:
+      fail-fast: false
+      matrix:
+        LOCAL_SCRIPT_DEBUG: [ true, false ]
+    with:
+      LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
     needs: [ e2e-tests ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
-      calling_status: ${{ needs.e2e-tests.result == 'success' && 'success' || needs.e2e-tests.result == 'cancelled' && 'cancelled' || 'failure' }}
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    needs: [ e2e-tests, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
+      )
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });
