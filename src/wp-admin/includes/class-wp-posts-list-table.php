@@ -641,13 +641,17 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$mode_class = esc_attr( 'table-view-' . $mode );
 
-		return array(
+		$classes = array(
 			'widefat',
 			'fixed',
 			'striped',
 			$mode_class,
 			is_post_type_hierarchical( $this->screen->post_type ) ? 'pages' : 'posts',
 		);
+
+		$classes = apply_filters( 'post_list_table_classes', $classes, $this );
+
+		return is_array( $classes ) ? $classes : array();
 	}
 
 	/**
