@@ -803,6 +803,7 @@ class WP_Theme_JSON_Resolver {
 	 *              theme.json partial files by the scope to which they
 	 *              can be applied e.g. theme vs block etc.
 	 *              Added basic caching for read theme.json partial files.
+	 * @since 6.7.0 Added `wp_theme_json_style_variations` filter.
 	 *
 	 * @param string $scope The scope or type of style variation to retrieve e.g. theme, block etc.
 	 * @return array
@@ -839,7 +840,16 @@ class WP_Theme_JSON_Resolver {
 				$variations[] = $variation;
 			}
 		}
-		return $variations;
+
+		/**
+		 * Filters the default style variations for the given directory
+		 *
+		 * @since 6.7.0
+		 *
+		 * @param array  $variations An array of style variations.
+		 * @param string $scope      The scope or type of style variation to retrieve e.g. theme, block etc.
+		 */
+		return apply_filters( 'wp_theme_json_style_variations', $variations, $scope );
 	}
 
 	/**
