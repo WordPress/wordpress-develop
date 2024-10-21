@@ -82,10 +82,6 @@ if ( wp_using_themes() ) {
 		}
 
 		if ( $template ) {
-			if ( 'is_attachment' === $tag ) {
-				remove_filter( 'the_content', 'prepend_attachment' );
-			}
-
 			break;
 		}
 	}
