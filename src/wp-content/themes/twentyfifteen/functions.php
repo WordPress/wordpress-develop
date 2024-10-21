@@ -489,7 +489,11 @@ function twentyfifteen_block_editor_styles() {
 	$font_version = ( 0 === strpos( (string) twentyfifteen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentyfifteen-fonts', twentyfifteen_fonts_url(), array(), $font_version );
 }
-add_action( 'enqueue_block_editor_assets', 'twentyfifteen_block_editor_styles' );
+if ( is_admin() && version_compare( $GLOBALS['wp_version'], '6.3', '>=' ) ) {
+	add_action( 'enqueue_block_assets', 'twentyfifteen_block_editor_styles', 1, 1 );
+} else {
+	add_action( 'enqueue_block_editor_assets', 'twentyfifteen_block_editor_styles', 1, 1 );
+}
 
 
 /**

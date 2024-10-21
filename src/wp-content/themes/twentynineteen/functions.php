@@ -321,7 +321,11 @@ function twentynineteen_editor_customizer_styles() {
 		wp_add_inline_style( 'twentynineteen-editor-customizer-styles', twentynineteen_custom_colors_css() );
 	}
 }
-add_action( 'enqueue_block_editor_assets', 'twentynineteen_editor_customizer_styles' );
+if ( is_admin() && version_compare( $GLOBALS['wp_version'], '6.3', '>=' ) ) {
+	add_action( 'enqueue_block_assets', 'twentynineteen_editor_customizer_styles', 1, 1 );
+} else {
+	add_action( 'enqueue_block_editor_assets', 'twentynineteen_editor_customizer_styles', 1, 1 );
+}
 
 /**
  * Display custom color CSS in customizer and on frontend.
