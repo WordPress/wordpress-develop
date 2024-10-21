@@ -1012,8 +1012,8 @@ tr.inline-edit-row td {
 .inline-edit-row fieldset label,
 .inline-edit-row fieldset span.inline-edit-categories-label {
 	display: block;
-	margin: .2em 0;
-	line-height: 2.5;
+	padding: .25em 0;
+	line-height: 1.4;
 }
 
 .inline-edit-row fieldset.inline-edit-date label {
@@ -1021,6 +1021,14 @@ tr.inline-edit-row td {
 	margin: 0;
 	vertical-align: baseline;
 	line-height: 2;
+}
+
+.inline-edit-row fieldset label {
+	display: flex;
+}
+
+.inline-edit-row fieldset label > * {
+    margin: auto 0;
 }
 
 .inline-edit-row fieldset label.inline-edit-tags {
@@ -1037,7 +1045,8 @@ tr.inline-edit-row td {
 	display: block;
 	float: left;
 	width: 6em;
-	line-height: 2.5;
+    line-height: 1;
+	margin: auto .3em auto 0;
 }
 
 #posts-filter fieldset.inline-edit-date legend {
