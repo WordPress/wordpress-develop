@@ -88,6 +88,64 @@ function wp_cache_replace( $key, $data, $group = '', $expire = 0 ) {
 }
 
 /**
+ * Replace multiple cache values only if they already exist.
+ *
+ * @param array  $data   Associative array of cache keys and their new values.
+ * @param string $group  Optional. The cache group. Defaults to 'default'.
+ * @param int    $expire Optional. When to expire the cache contents, in seconds.
+ *                       Default 0 (no expiration).
+ *
+ * @return array List of keys that were successfully replaced.
+ */
+function wp_cache_replace_multiple( $data, $group = 'default', $expire = 0 ) {
+	global $wp_object_cache;
+
+	if ( empty( $group ) ) {
+		$group = 'default';
+	}
+
+	$keys                  = array_keys( $data );
+	$existing_keys         = array();
+	$missing_keys          = array();
+	$successfully_replaced = array();
+
+	// Check existence of keys using _exists() and separate them.
+	foreach ( $keys as $key ) {
+		if ( $wp_object_cache->_exists( $key, $group ) ) {
+			$existing_keys[] = $key; // Track keys that exist.
+		} else {
+			$missing_keys[] = $key; // Track keys that are missing.
+		}
+	}
+
+	// Retrieve values for the missing keys.
+	$existing_values = $wp_object_cache->get_multiple( $missing_keys, $group );
+
+	// Merge existing keys with those retrieved from get_multiple.
+	$merged_keys = array_merge( $existing_keys, array_keys( array_filter( $existing_values ) ) );
+
+	// Prepare new values for replacement.
+	$values_to_set = array();
+
+	foreach ( $merged_keys as $key ) {
+		if ( isset( $existing_values[ $key ] ) || in_array( $key, $existing_keys, true ) ) {
+			// Only replace if it exists.
+			$values_to_set[ $key ] = $data[ $key ];
+		}
+	}
+
+	// Set new values in the cache and track successfully replaced keys.
+	if ( ! empty( $values_to_set ) ) {
+		$results = $wp_object_cache->set_multiple( $values_to_set, $group, (int) $expire );
+
+		// Track successfully replaced keys using array_keys.
+		$successfully_replaced = array_keys( array_filter( $results ) );
+	}
+
+	return $successfully_replaced; // Return list of keys that were successfully replaced.
+}
+
+/**
  * Saves the data to the cache.
  *
  * Differs from wp_cache_add() and wp_cache_replace() in that it will always write data.
