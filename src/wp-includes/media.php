@@ -3703,7 +3703,22 @@ function wp_video_shortcode( $attr, $content = '' ) {
 
 	$attr_strings = array();
 	foreach ( $html_atts as $k => $v ) {
-		$attr_strings[] = $k . '="' . esc_attr( $v ) . '"';
+		if ( in_array( $k, array( 'loop', 'autoplay', 'muted' ), true ) ) {
+			// Add boolean attributes without value for true
+			if ( wp_validate_boolean( $v ) ) {
+				$attr_strings[] = esc_attr( $k ); // Just include the attribute name
+			}
+		} elseif ( 'preload' === $k && ! empty( $v ) ) {
+			// Handle the preload attribute with specific allowed values
+			$allowed_preload_values = array( 'none', 'metadata', 'auto' );
+			if ( in_array( $v, $allowed_preload_values, true ) ) {
+				$attr_strings[] = sprintf( '%s="%s"', esc_attr( $k ), esc_attr( $v ) );
+			} 
+			// If the value is not allowed, you can log a warning or handle it as needed
+		} elseif ( ! empty( $v ) ) {
+			// For non-boolean attributes, add with value
+			$attr_strings[] = sprintf( '%s="%s"', esc_attr( $k ), esc_attr( $v ) );
+		}
 	}
 
 	$html = '';
