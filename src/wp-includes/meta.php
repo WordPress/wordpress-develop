@@ -174,12 +174,14 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  * @param mixed  $prev_value Optional. Previous value to check before updating.
  *                           If specified, only update existing metadata entries with
  *                           this value. Otherwise, update all entries. Default empty string.
- * @return int|bool The new meta field ID if a field with the given key didn't exist
- *                  and was therefore added, true on successful update,
- *                  false on failure or if the value passed to the function
- *                  is the same as the one that is already in the database.
+ * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure.
+ * @return int|bool|WP_Error The new meta field ID if a field with the given key didn't exist
+ *                           and was therefore added, true on successful update,
+ *                           false on failure or if the value passed to the function
+ *                           is the same as the one that is already in the database,
+ *                           or WP_Error on failure (depends on the $wp_error parameter).
  */
-function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_value = '' ) {
+function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_value = '', $wp_error = false ) {
 	global $wpdb;
 
 	if ( ! $meta_type || ! $meta_key || ! is_numeric( $object_id ) ) {
@@ -249,7 +251,13 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 
 	$meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT $id_column FROM $table WHERE meta_key = %s AND $column = %d", $meta_key, $object_id ) );
 	if ( empty( $meta_ids ) ) {
-		return add_metadata( $meta_type, $object_id, $raw_meta_key, $passed_value );
+		$result = add_metadata( $meta_type, $object_id, $raw_meta_key, $passed_value );
+		// The return value of add_metadata() should also be checked, as it may indicate a failure.
+		if ( $wp_error && false === $result ) {
+			return new WP_Error( 'meta_add_error', __( 'Failed to add metadata.' ) );
+		}
+
+		return $result;
 	}
 
 	$_meta_value = $meta_value;
@@ -306,6 +314,11 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 	}
 
 	$result = $wpdb->update( $table, $data, $where );
+
+	if ( $wp_error && false === $result ) {
+		return new WP_Error( 'meta_update_error', __( 'Failed to update metadata.' ) );
+	}
+
 	if ( ! $result ) {
 		return false;
 	}

@@ -401,19 +401,23 @@ abstract class WP_REST_Meta_Fields {
 			);
 		}
 
-		if ( ! update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) ) ) {
-			return new WP_Error(
-				'rest_meta_database_error',
-				/* translators: %s: Custom field key. */
-				sprintf( __( 'Could not update the meta value of %s in database.' ), $meta_key ),
-				array(
-					'key'    => $name,
-					'status' => WP_Http::INTERNAL_SERVER_ERROR,
-				)
-			);
+		$result = update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ), '', true );
+		// Return a WP_Error object if update_metadata() returns false due to a database error.
+		// However, update_metadata() may return false even without a database error.
+		// Use the $wp_error parameter to avoid returning a WP_Error object when there is no actual error.
+		if ( ! is_wp_error( $result ) ) {
+			return true;
 		}
 
-		return true;
+		return new WP_Error(
+			'rest_meta_database_error',
+			/* translators: %s: Custom field key. */
+			sprintf( __( 'Could not update the meta value of %s in database.' ), $meta_key ),
+			array(
+				'key'    => $name,
+				'status' => WP_Http::INTERNAL_SERVER_ERROR,
+			)
+		);
 	}
 
 	/**
