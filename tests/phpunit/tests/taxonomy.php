@@ -1056,7 +1056,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		// Test default term.
 		$term = wp_get_post_terms( $post_id, $tax );
-		$this->assertSame( get_option( 'default_term_' . $tax ), $term[0]->term_id );
+		$this->assertSame( get_option( 'default_term_' . $tax ), (string) $term[0]->term_id );
 
 		// Test default term deletion.
 		$this->assertSame( wp_delete_term( $term[0]->term_id, $tax ), 0 );
@@ -1077,7 +1077,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		// Test default term.
 		$term = wp_get_post_terms( $post_id, $tax );
-		$this->assertSame( get_option( 'default_term_' . $tax ), $term[0]->term_id );
+		$this->assertSame( get_option( 'default_term_' . $tax ), (string) $term[0]->term_id );
 
 		// wp_set_object_terms() should not assign default term.
 		wp_set_object_terms( $post_id, array(), $tax );

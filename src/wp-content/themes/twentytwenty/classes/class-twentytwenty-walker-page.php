@@ -63,7 +63,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Page' ) ) {
 				} elseif ( $_current_page && $page->ID === $_current_page->post_parent ) {
 					$css_class[] = 'current_page_parent';
 				}
-			} elseif ( get_option( 'page_for_posts' ) === $page->ID ) {
+			} elseif ( (int) get_option( 'page_for_posts' ) === $page->ID ) {
 				$css_class[] = 'current_page_parent';
 			}
 
