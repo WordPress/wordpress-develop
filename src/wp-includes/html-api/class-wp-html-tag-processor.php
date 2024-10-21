@@ -512,6 +512,32 @@ class WP_HTML_Tag_Processor {
 	protected $parser_state = self::STATE_READY;
 
 	/**
+	 * Indicates if the document is in quirks mode or no-quirks mode.
+	 *
+	 *  Impact on HTML parsing:
+	 *
+	 *   - In `NO_QUIRKS_MODE` (also known as "standard mode"):
+	 *       - CSS class and ID selectors match byte-for-byte (case-sensitively).
+	 *       - A TABLE start tag `<table>` implicitly closes any open `P` element.
+	 *
+	 *   - In `QUIRKS_MODE`:
+	 *       - CSS class and ID selectors match match in an ASCII case-insensitive manner.
+	 *       - A TABLE start tag `<table>` opens a `TABLE` element as a child of a `P`
+	 *         element if one is open.
+	 *
+	 * Quirks and no-quirks mode are thus mostly about styling, but have an impact when
+	 * tables are found inside paragraph elements.
+	 *
+	 * @see self::QUIRKS_MODE
+	 * @see self::NO_QUIRKS_MODE
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	protected $compat_mode = self::NO_QUIRKS_MODE;
+
+	/**
 	 * Indicates whether the parser is inside foreign content,
 	 * e.g. inside an SVG or MathML element.
 	 *
@@ -540,6 +566,20 @@ class WP_HTML_Tag_Processor {
 	 * @var string|null
 	 */
 	protected $comment_type = null;
+
+	/**
+	 * What kind of text the matched text node represents, if it was subdivided.
+	 *
+	 * @see self::TEXT_IS_NULL_SEQUENCE
+	 * @see self::TEXT_IS_WHITESPACE
+	 * @see self::TEXT_IS_GENERIC
+	 * @see self::subdivide_text_appropriately
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	protected $text_node_classification = self::TEXT_IS_GENERIC;
 
 	/**
 	 * How many bytes from the original HTML document have been read and parsed.
@@ -1141,6 +1181,8 @@ class WP_HTML_Tag_Processor {
 
 		$seen = array();
 
+		$is_quirks = self::QUIRKS_MODE === $this->compat_mode;
+
 		$at = 0;
 		while ( $at < strlen( $class ) ) {
 			// Skip past any initial boundary characters.
@@ -1155,13 +1197,11 @@ class WP_HTML_Tag_Processor {
 				return;
 			}
 
-			/*
-			 * CSS class names are case-insensitive in the ASCII range.
-			 *
-			 * @see https://www.w3.org/TR/CSS2/syndata.html#x1
-			 */
-			$name = strtolower( substr( $class, $at, $length ) );
-			$at  += $length;
+			$name = str_replace( "\x00", "\u{FFFD}", substr( $class, $at, $length ) );
+			if ( $is_quirks ) {
+				$name = strtolower( $name );
+			}
+			$at += $length;
 
 			/*
 			 * It's expected that the number of class names for a given tag is relatively small.
@@ -1191,10 +1231,14 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$wanted_class = strtolower( $wanted_class );
+		$case_insensitive = self::QUIRKS_MODE === $this->compat_mode;
 
+		$wanted_length = strlen( $wanted_class );
 		foreach ( $this->class_list() as $class_name ) {
-			if ( $class_name === $wanted_class ) {
+			if (
+				strlen( $class_name ) === $wanted_length &&
+				0 === substr_compare( $class_name, $wanted_class, 0, strlen( $wanted_class ), $case_insensitive )
+			) {
 				return true;
 			}
 		}
@@ -1940,6 +1984,9 @@ class WP_HTML_Tag_Processor {
 				 *                     [#x10000-#xEFFFF]
 				 * > NameChar      ::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
 				 *
+				 * @todo Processing instruction nodes in SGML may contain any kind of markup. XML defines a
+				 *       special case with `<?xml ... ?>` syntax, but the `?` is part of the bogus comment.
+				 *
 				 * @see https://www.w3.org/TR/2006/REC-xml11-20060816/#NT-PITarget
 				 */
 				if ( $this->token_length >= 5 && '?' === $html[ $closer_at - 1 ] ) {
@@ -2199,16 +2246,17 @@ class WP_HTML_Tag_Processor {
 			unset( $this->lexical_updates[ $name ] );
 		}
 
-		$this->token_starts_at      = null;
-		$this->token_length         = null;
-		$this->tag_name_starts_at   = null;
-		$this->tag_name_length      = null;
-		$this->text_starts_at       = 0;
-		$this->text_length          = 0;
-		$this->is_closing_tag       = null;
-		$this->attributes           = array();
-		$this->comment_type         = null;
-		$this->duplicate_attributes = null;
+		$this->token_starts_at          = null;
+		$this->token_length             = null;
+		$this->tag_name_starts_at       = null;
+		$this->tag_name_length          = null;
+		$this->text_starts_at           = 0;
+		$this->text_length              = 0;
+		$this->is_closing_tag           = null;
+		$this->attributes               = array();
+		$this->comment_type             = null;
+		$this->text_node_classification = self::TEXT_IS_GENERIC;
+		$this->duplicate_attributes     = null;
 	}
 
 	/**
@@ -2281,6 +2329,23 @@ class WP_HTML_Tag_Processor {
 		 */
 		$modified = false;
 
+		$seen      = array();
+		$to_remove = array();
+		$is_quirks = self::QUIRKS_MODE === $this->compat_mode;
+		if ( $is_quirks ) {
+			foreach ( $this->classname_updates as $updated_name => $action ) {
+				if ( self::REMOVE_CLASS === $action ) {
+					$to_remove[] = strtolower( $updated_name );
+				}
+			}
+		} else {
+			foreach ( $this->classname_updates as $updated_name => $action ) {
+				if ( self::REMOVE_CLASS === $action ) {
+					$to_remove[] = $updated_name;
+				}
+			}
+		}
+
 		// Remove unwanted classes by only copying the new ones.
 		$existing_class_length = strlen( $existing_class );
 		while ( $at < $existing_class_length ) {
@@ -2296,24 +2361,22 @@ class WP_HTML_Tag_Processor {
 				break;
 			}
 
-			$name = substr( $existing_class, $at, $name_length );
-			$at  += $name_length;
+			$name                  = substr( $existing_class, $at, $name_length );
+			$comparable_class_name = $is_quirks ? strtolower( $name ) : $name;
+			$at                   += $name_length;
 
-			// If this class is marked for removal, start processing the next one.
-			$remove_class = (
-				isset( $this->classname_updates[ $name ] ) &&
-				self::REMOVE_CLASS === $this->classname_updates[ $name ]
-			);
-
-			// If a class has already been seen then skip it; it should not be added twice.
-			if ( ! $remove_class ) {
-				$this->classname_updates[ $name ] = self::SKIP_CLASS;
-			}
-
-			if ( $remove_class ) {
+			// If this class is marked for removal, remove it and move on to the next one.
+			if ( in_array( $comparable_class_name, $to_remove, true ) ) {
 				$modified = true;
 				continue;
 			}
+
+			// If a class has already been seen then skip it; it should not be added twice.
+			if ( in_array( $comparable_class_name, $seen, true ) ) {
+				continue;
+			}
+
+			$seen[] = $comparable_class_name;
 
 			/*
 			 * Otherwise, append it to the new "class" attribute value.
@@ -2335,7 +2398,8 @@ class WP_HTML_Tag_Processor {
 
 		// Add new classes by appending those which haven't already been seen.
 		foreach ( $this->classname_updates as $name => $operation ) {
-			if ( self::ADD_CLASS === $operation ) {
+			$comparable_name = $is_quirks ? strtolower( $name ) : $name;
+			if ( self::ADD_CLASS === $operation && ! in_array( $comparable_name, $seen, true ) ) {
 				$modified = true;
 
 				$class .= strlen( $class ) > 0 ? ' ' : '';
@@ -2395,7 +2459,7 @@ class WP_HTML_Tag_Processor {
 			}
 
 			// Accumulate shift of the given pointer within this function call.
-			if ( $diff->start <= $shift_this_point ) {
+			if ( $diff->start < $shift_this_point ) {
 				$accumulated_shift_for_given_point += $shift;
 			}
 
@@ -2904,6 +2968,9 @@ class WP_HTML_Tag_Processor {
 					return $lower_tag_name;
 			}
 		}
+
+		// This unnecessary return prevents tools from inaccurately reporting type errors.
+		return $tag_name;
 	}
 
 	/**
@@ -3319,6 +3386,144 @@ class WP_HTML_Tag_Processor {
 		}
 
 		return $this->comment_type;
+	}
+
+	/**
+	 * Returns the text of a matched comment or null if not on a comment type node.
+	 *
+	 * This method returns the entire text content of a comment node as it
+	 * would appear in the browser.
+	 *
+	 * This differs from {@see ::get_modifiable_text()} in that certain comment
+	 * types in the HTML API cannot allow their entire comment text content to
+	 * be modified. Namely, "bogus comments" of the form `<?not allowed in html>`
+	 * will create a comment whose text content starts with `?`. Note that if
+	 * that character were modified, it would be possible to change the node
+	 * type.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return string|null The comment text as it would appear in the browser or null
+	 *                     if not on a comment type node.
+	 */
+	public function get_full_comment_text(): ?string {
+		if ( self::STATE_FUNKY_COMMENT === $this->parser_state ) {
+			return $this->get_modifiable_text();
+		}
+
+		if ( self::STATE_COMMENT !== $this->parser_state ) {
+			return null;
+		}
+
+		switch ( $this->get_comment_type() ) {
+			case self::COMMENT_AS_HTML_COMMENT:
+			case self::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT:
+				return $this->get_modifiable_text();
+
+			case self::COMMENT_AS_CDATA_LOOKALIKE:
+				return "[CDATA[{$this->get_modifiable_text()}]]";
+
+			case self::COMMENT_AS_PI_NODE_LOOKALIKE:
+				return "?{$this->get_tag()}{$this->get_modifiable_text()}?";
+
+			/*
+			 * This represents "bogus comments state" from HTML tokenization.
+			 * This can be entered by `<?` or `<!`, where `?` is included in
+			 * the comment text but `!` is not.
+			 */
+			case self::COMMENT_AS_INVALID_HTML:
+				$preceding_character = $this->html[ $this->text_starts_at - 1 ];
+				$comment_start       = '?' === $preceding_character ? '?' : '';
+				return "{$comment_start}{$this->get_modifiable_text()}";
+		}
+
+		return null;
+	}
+
+	/**
+	 * Subdivides a matched text node, splitting NULL byte sequences and decoded whitespace as
+	 * distinct nodes prefixes.
+	 *
+	 * Note that once anything that's neither a NULL byte nor decoded whitespace is
+	 * encountered, then the remainder of the text node is left intact as generic text.
+	 *
+	 *  - The HTML Processor uses this to apply distinct rules for different kinds of text.
+	 *  - Inter-element whitespace can be detected and skipped with this method.
+	 *
+	 * Text nodes aren't eagerly subdivided because there's no need to split them unless
+	 * decisions are being made on NULL byte sequences or whitespace-only text.
+	 *
+	 * Example:
+	 *
+	 *     $processor = new WP_HTML_Tag_Processor( "\x00Apples & Oranges" );
+	 *     true  === $processor->next_token();                   // Text is "Apples & Oranges".
+	 *     true  === $processor->subdivide_text_appropriately(); // Text is "".
+	 *     true  === $processor->next_token();                   // Text is "Apples & Oranges".
+	 *     false === $processor->subdivide_text_appropriately();
+	 *
+	 *     $processor = new WP_HTML_Tag_Processor( "&#x13; \r\n\tMore" );
+	 *     true  === $processor->next_token();                   // Text is "␤ ␤␉More".
+	 *     true  === $processor->subdivide_text_appropriately(); // Text is "␤ ␤␉".
+	 *     true  === $processor->next_token();                   // Text is "More".
+	 *     false === $processor->subdivide_text_appropriately();
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return bool Whether the text node was subdivided.
+	 */
+	public function subdivide_text_appropriately(): bool {
+		if ( self::STATE_TEXT_NODE !== $this->parser_state ) {
+			return false;
+		}
+
+		$this->text_node_classification = self::TEXT_IS_GENERIC;
+
+		/*
+		 * NULL bytes are treated categorically different than numeric character
+		 * references whose number is zero. `&#x00;` is not the same as `"\x00"`.
+		 */
+		$leading_nulls = strspn( $this->html, "\x00", $this->text_starts_at, $this->text_length );
+		if ( $leading_nulls > 0 ) {
+			$this->token_length             = $leading_nulls;
+			$this->text_length              = $leading_nulls;
+			$this->bytes_already_parsed     = $this->token_starts_at + $leading_nulls;
+			$this->text_node_classification = self::TEXT_IS_NULL_SEQUENCE;
+			return true;
+		}
+
+		/*
+		 * Start a decoding loop to determine the point at which the
+		 * text subdivides. This entails raw whitespace bytes and any
+		 * character reference that decodes to the same.
+		 */
+		$at  = $this->text_starts_at;
+		$end = $this->text_starts_at + $this->text_length;
+		while ( $at < $end ) {
+			$skipped = strspn( $this->html, " \t\f\r\n", $at, $end - $at );
+			$at     += $skipped;
+
+			if ( $at < $end && '&' === $this->html[ $at ] ) {
+				$matched_byte_length = null;
+				$replacement         = WP_HTML_Decoder::read_character_reference( 'data', $this->html, $at, $matched_byte_length );
+				if ( isset( $replacement ) && 1 === strspn( $replacement, " \t\f\r\n" ) ) {
+					$at += $matched_byte_length;
+					continue;
+				}
+			}
+
+			break;
+		}
+
+		if ( $at > $this->text_starts_at ) {
+			$new_length                     = $at - $this->text_starts_at;
+			$this->text_length              = $new_length;
+			$this->token_length             = $new_length;
+			$this->bytes_already_parsed     = $at;
+			$this->text_node_classification = self::TEXT_IS_WHITESPACE;
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -3831,8 +4036,29 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		$this->classname_updates[ $class_name ] = self::ADD_CLASS;
+		if ( self::QUIRKS_MODE !== $this->compat_mode ) {
+			$this->classname_updates[ $class_name ] = self::ADD_CLASS;
+			return true;
+		}
 
+		/*
+		 * Because class names are matched ASCII-case-insensitively in quirks mode,
+		 * this needs to see if a case variant of the given class name is already
+		 * enqueued and update that existing entry, if so. This picks the casing of
+		 * the first-provided class name for all lexical variations.
+		 */
+		$class_name_length = strlen( $class_name );
+		foreach ( $this->classname_updates as $updated_name => $action ) {
+			if (
+				strlen( $updated_name ) === $class_name_length &&
+				0 === substr_compare( $updated_name, $class_name, 0, $class_name_length, true )
+			) {
+				$this->classname_updates[ $updated_name ] = self::ADD_CLASS;
+				return true;
+			}
+		}
+
+		$this->classname_updates[ $class_name ] = self::ADD_CLASS;
 		return true;
 	}
 
@@ -3852,10 +4078,29 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		if ( null !== $this->tag_name_starts_at ) {
+		if ( self::QUIRKS_MODE !== $this->compat_mode ) {
 			$this->classname_updates[ $class_name ] = self::REMOVE_CLASS;
+			return true;
 		}
 
+		/*
+		 * Because class names are matched ASCII-case-insensitively in quirks mode,
+		 * this needs to see if a case variant of the given class name is already
+		 * enqueued and update that existing entry, if so. This picks the casing of
+		 * the first-provided class name for all lexical variations.
+		 */
+		$class_name_length = strlen( $class_name );
+		foreach ( $this->classname_updates as $updated_name => $action ) {
+			if (
+				strlen( $updated_name ) === $class_name_length &&
+				0 === substr_compare( $updated_name, $class_name, 0, $class_name_length, true )
+			) {
+				$this->classname_updates[ $updated_name ] = self::REMOVE_CLASS;
+				return true;
+			}
+		}
+
+		$this->classname_updates[ $class_name ] = self::REMOVE_CLASS;
 		return true;
 	}
 
@@ -4027,6 +4272,27 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Gets DOCTYPE declaration info from a DOCTYPE token.
+	 *
+	 * DOCTYPE tokens may appear in many places in an HTML document. In most places, they are
+	 * simply ignored. The main parsing functions find the basic shape of DOCTYPE tokens but
+	 * do not perform detailed parsing.
+	 *
+	 * This method can be called to perform a full parse of the DOCTYPE token and retrieve
+	 * its information.
+	 *
+	 * @return WP_HTML_Doctype_Info|null The DOCTYPE declaration information or `null` if not
+	 *                                   currently at a DOCTYPE node.
+	 */
+	public function get_doctype_info(): ?WP_HTML_Doctype_Info {
+		if ( self::STATE_DOCTYPE !== $this->parser_state ) {
+			return null;
+		}
+
+		return WP_HTML_Doctype_Info::from_doctype_token( substr( $this->html, $this->token_starts_at, $this->token_length ) );
+	}
+
+	/**
 	 * Parser Ready State.
 	 *
 	 * Indicates that the parser is ready to run and waiting for a state transition.
@@ -4117,7 +4383,7 @@ class WP_HTML_Tag_Processor {
 
 	/**
 	 * Indicates that the parser has found a DOCTYPE node and it's
-	 * possible to read and modify its modifiable text.
+	 * possible to read its DOCTYPE information via `get_doctype_info()`.
 	 *
 	 * @since 6.5.0
 	 *
@@ -4227,4 +4493,66 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.5.0
 	 */
 	const COMMENT_AS_INVALID_HTML = 'COMMENT_AS_INVALID_HTML';
+
+	/**
+	 * No-quirks mode document compatability mode.
+	 *
+	 * > In no-quirks mode, the behavior is (hopefully) the desired behavior
+	 * > described by the modern HTML and CSS specifications.
+	 *
+	 * @see self::$compat_mode
+	 * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Quirks_Mode_and_Standards_Mode
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	const NO_QUIRKS_MODE = 'no-quirks-mode';
+
+	/**
+	 * Quirks mode document compatability mode.
+	 *
+	 * > In quirks mode, layout emulates behavior in Navigator 4 and Internet
+	 * > Explorer 5. This is essential in order to support websites that were
+	 * > built before the widespread adoption of web standards.
+	 *
+	 * @see self::$compat_mode
+	 * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Quirks_Mode_and_Standards_Mode
+	 *
+	 * @since 6.7.0
+	 *
+	 * @var string
+	 */
+	const QUIRKS_MODE = 'quirks-mode';
+
+	/**
+	 * Indicates that a span of text may contain any combination of significant
+	 * kinds of characters: NULL bytes, whitespace, and others.
+	 *
+	 * @see self::$text_node_classification
+	 * @see self::subdivide_text_appropriately
+	 *
+	 * @since 6.7.0
+	 */
+	const TEXT_IS_GENERIC = 'TEXT_IS_GENERIC';
+
+	/**
+	 * Indicates that a span of text comprises a sequence only of NULL bytes.
+	 *
+	 * @see self::$text_node_classification
+	 * @see self::subdivide_text_appropriately
+	 *
+	 * @since 6.7.0
+	 */
+	const TEXT_IS_NULL_SEQUENCE = 'TEXT_IS_NULL_SEQUENCE';
+
+	/**
+	 * Indicates that a span of decoded text comprises only whitespace.
+	 *
+	 * @see self::$text_node_classification
+	 * @see self::subdivide_text_appropriately
+	 *
+	 * @since 6.7.0
+	 */
+	const TEXT_IS_WHITESPACE = 'TEXT_IS_WHITESPACE';
 }

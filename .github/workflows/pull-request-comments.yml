@@ -3,7 +3,7 @@ name: Pull Request Comments
 
 on:
   pull_request_target:
-    types: [ 'opened' ]
+    types: [ 'opened', 'synchronize', 'reopened', 'edited' ]
   workflow_run:
     workflows: [ 'Test Build Processes' ]
     types:
@@ -164,16 +164,16 @@ jobs:
 
             github.rest.issues.createComment( commentInfo );
 
-  # Leaves a comment on a pull request when no Trac ticket is included in the pull request description.
+  # Manages comments reminding contributors to include a Trac ticket link when opening a pull request.
   trac-ticket-check:
-    name: Comment on a pull request when no Trac ticket is included
+    name: Manage Trac ticket reminders for pull requests
     runs-on: ubuntu-latest
     permissions:
       issues: write
       pull-requests: write
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' && ! github.event.pull_request.draft && github.event.pull_request.state == 'open' }}
     steps:
-      - name: Check for Trac ticket and comment if missing
+      - name: Check for Trac ticket and manage comment
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
@@ -183,11 +183,13 @@ jobs:
             // Check for the presence of a comment and bail early.
             const comments = ( await github.rest.issues.listComments( { owner, repo, issue_number: number } ) ).data;
 
-            const hasMissingTicketComment = comments.some( comment =>
-              comment.user.type === 'Bot' && comment.body.includes( 'Trac Ticket Missing' )
-            );
+            const hasMissingTicketComment = comments.find( comment => comment.user.type === 'Bot' && comment.body.includes( 'Trac Ticket Missing' ) );
 
-            if ( hasMissingTicketComment ) return;
+            if ( hasMissingTicketComment ) {
+              // Trac ticket link found, delete existing "Trac Ticket Missing" comment.
+              await github.rest.issues.deleteComment( { owner, repo, comment_id: hasMissingTicketComment.id } );
+              return;
+            }
 
             // No comment was found. Create one.
             const pr = ( await github.rest.pulls.get( { owner, repo, pull_number: number } ) ).data;
@@ -195,7 +197,7 @@ jobs:
             const prBody = pr.body ?? '';
             const prTitle = pr.title ?? '';
 
-            const tracTicketRegex = new RegExp( '(https?://core.trac.wordpress.org/ticket/|Core-)([0-9]+)', 'g' );
+            const tracTicketRegex = new RegExp( '(https?://core.trac.wordpress.org/ticket/|Core-|ticket:)([0-9]+)', 'g' );
             const tracTicketMatches = prBody.match( tracTicketRegex ) || prTitle.match( tracTicketRegex );
 
             if ( ! tracTicketMatches ) {

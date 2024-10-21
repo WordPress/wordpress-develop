@@ -71,7 +71,7 @@ if ( $action ) {
 			if ( ! is_network_admin() ) {
 				$recent = (array) get_option( 'recently_activated' );
 				unset( $recent[ $plugin ] );
-				update_option( 'recently_activated', $recent );
+				update_option( 'recently_activated', $recent, false );
 			} else {
 				$recent = (array) get_site_option( 'recently_activated' );
 				unset( $recent[ $plugin ] );
@@ -136,7 +136,7 @@ if ( $action ) {
 			}
 
 			if ( ! is_network_admin() ) {
-				update_option( 'recently_activated', $recent );
+				update_option( 'recently_activated', $recent, false );
 			} else {
 				update_site_option( 'recently_activated', $recent );
 			}
@@ -211,7 +211,7 @@ if ( $action ) {
 			deactivate_plugins( $plugin, false, is_network_admin() );
 
 			if ( ! is_network_admin() ) {
-				update_option( 'recently_activated', array( $plugin => time() ) + (array) get_option( 'recently_activated' ) );
+				update_option( 'recently_activated', array( $plugin => time() ) + (array) get_option( 'recently_activated' ), false );
 			} else {
 				update_site_option( 'recently_activated', array( $plugin => time() ) + (array) get_site_option( 'recently_activated' ) );
 			}
@@ -258,7 +258,7 @@ if ( $action ) {
 			}
 
 			if ( ! is_network_admin() ) {
-				update_option( 'recently_activated', $deactivated + (array) get_option( 'recently_activated' ) );
+				update_option( 'recently_activated', $deactivated + (array) get_option( 'recently_activated' ), false );
 			} else {
 				update_site_option( 'recently_activated', $deactivated + (array) get_site_option( 'recently_activated' ) );
 			}
@@ -436,7 +436,7 @@ if ( $action ) {
 			exit;
 		case 'clear-recent-list':
 			if ( ! is_network_admin() ) {
-				update_option( 'recently_activated', array() );
+				update_option( 'recently_activated', array(), false );
 			} else {
 				update_site_option( 'recently_activated', array() );
 			}
@@ -600,6 +600,19 @@ if ( current_user_can( 'update_plugins' ) && wp_is_auto_update_enabled_for_type(
 	);
 
 	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/documentation/article/plugins-themes-auto-updates/">Documentation on Auto-updates</a>' ) . '</p>';
+}
+
+if ( current_user_can( 'install_plugins' ) ) {
+	get_current_screen()->add_help_tab(
+		array(
+			'id'      => 'plugins-dependencies',
+			'title'   => __( 'Dependencies' ),
+			'content' =>
+				'<p>' . __( 'Plugin Dependencies aims to make the process of installing and activating add-ons (dependents) and the plugins they rely on (dependencies) consistent and easy.' ) . '</p>' .
+				'<p>' . __( 'If a required plugin is deleted, a notice will be displayed on the Plugin administration screen informing the user that there is some missing dependencies to install and/or activate. Additionally, each plugin whose dependencies are not met will have an error notice on their plugin row.' ) . '</p>' .
+				'<p>' . __( 'If a dependent plugin is missing some dependencies, its activation button will be disabled until the required dependencies are activated.' ) . '</p>',
+		)
+	);
 }
 
 get_current_screen()->set_help_sidebar(

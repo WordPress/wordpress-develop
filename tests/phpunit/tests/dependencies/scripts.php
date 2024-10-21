@@ -3117,9 +3117,9 @@ HTML
 	 */
 	public function test_wp_get_script_polyfill() {
 		global $wp_scripts;
-		$script_name = 'wp-polyfill-importmap';
-		$test_script = 'HTMLScriptElement.supports && HTMLScriptElement.supports("importmap")';
-		$script_url  = 'https://example.com/wp-polyfill-importmap.js';
+		$script_name = 'tmp-polyfill-foo';
+		$test_script = 'HTMLScriptElement.supports && HTMLScriptElement.supports("foo")';
+		$script_url  = 'https://example.com/polyfill-foo.js';
 		wp_register_script( $script_name, $script_url );
 
 		$polyfill = wp_get_script_polyfill(
@@ -3133,7 +3133,7 @@ HTML
 
 		$expected = '( ' . $test_script . ' ) || document.write( \'<script src="' . $script_url . '"></scr\' + \'ipt>\' );';
 
-		$this->assertEquals( $expected, $polyfill );
+		$this->assertSame( $expected, $polyfill );
 	}
 
 	/**
@@ -3386,29 +3386,120 @@ HTML
 	}
 
 	/**
+	 * Tests default scripts are registered with the correct versions.
+	 *
+	 * Ensures that vendor scripts registered in wp_default_scripts() and
+	 * wp_default_packages_vendor() are registered with the correct version
+	 * number from package.json.
+	 *
+	 * @ticket 61855
 	 * @ticket 60048
 	 *
+	 * @covers ::wp_default_scripts
 	 * @covers ::wp_default_packages_vendor
 	 *
-	 * @dataProvider data_wp_default_packages_vendor
+	 * @dataProvider data_vendor_script_versions_registered_manually
+	 *
+	 * @param string $script Script name as defined in package.json.
+	 * @param string $handle Optional. Handle to check for. Defaults to the script name.
 	 */
-	public function test_wp_default_packages_vendor( $script ) {
+	public function test_vendor_script_versions_registered_manually( $script, $handle = null ) {
 		global $wp_scripts;
-		$package_json = $this->_scripts_from_package_json();
-
 		wp_default_packages_vendor( $wp_scripts );
+		wp_default_scripts( $wp_scripts );
 
-		$this->assertSame( $package_json[ $script ], $wp_scripts->query( $script, 'registered' )->ver );
+		$package_json = $this->_scripts_from_package_json();
+		if ( ! $handle ) {
+			$handle = $script;
+		}
+
+		$script_query = $wp_scripts->query( $handle, 'registered' );
+
+		$this->assertNotFalse( $script_query, "The script '{$handle}' should be registered." );
+		$this->assertArrayHasKey( $script, $package_json, "The dependency '{$script}' should be included in package.json." );
+		$this->assertSame( $package_json[ $script ], $wp_scripts->query( $handle, 'registered' )->ver, "The script '{$handle}' should be registered with version {$package_json[ $script ]}." );
 	}
 
-	public function data_wp_default_packages_vendor() {
+	/**
+	 * Data provider for test_vendor_script_versions_registered_manually.
+	 *
+	 * @return array[]
+	 */
+	public function data_vendor_script_versions_registered_manually() {
 		return array(
-			array( 'script' => 'lodash' ),
-			array( 'script' => 'moment' ),
-			array( 'script' => 'react' ),
-			array( 'script' => 'react-dom' ),
-			array( 'script' => 'regenerator-runtime' ),
+			'backbone'                         => array( 'backbone' ),
+			'clipboard'                        => array( 'clipboard' ),
+			'core-js-url-browser'              => array( 'core-js-url-browser', 'wp-polyfill-url' ),
+			'element-closest'                  => array( 'element-closest', 'wp-polyfill-element-closest' ),
+			'formdata-polyfill'                => array( 'formdata-polyfill', 'wp-polyfill-formdata' ),
+			'imagesloaded'                     => array( 'imagesloaded' ),
+			'jquery-color'                     => array( 'jquery-color' ),
+			'jquery-core'                      => array( 'jquery', 'jquery-core' ),
+			'jquery-form'                      => array( 'jquery-form' ),
+			'jquery-hoverintent'               => array( 'jquery-hoverintent', 'hoverIntent' ),
+			'lodash'                           => array( 'lodash' ),
+			'masonry'                          => array( 'masonry-layout', 'masonry' ),
+			'moment'                           => array( 'moment' ),
+			'objectFitPolyfill'                => array( 'objectFitPolyfill', 'wp-polyfill-object-fit' ),
+			'polyfill-library (dom rect)'      => array( 'polyfill-library', 'wp-polyfill-dom-rect' ),
+			'polyfill-library (node contains)' => array( 'polyfill-library', 'wp-polyfill-node-contains' ),
+			'react (jsx-runtime)'              => array( 'react', 'react-jsx-runtime' ),
+			'react (React)'                    => array( 'react' ),
+			'react-dom'                        => array( 'react-dom' ),
+			'regenerator-runtime'              => array( 'regenerator-runtime' ),
+			'underscore'                       => array( 'underscore' ),
+			'vanilla-js-hoverintent'           => array( 'hoverintent', 'hoverintent-js' ),
+			'whatwg-fetch'                     => array( 'whatwg-fetch', 'wp-polyfill-fetch' ),
+			'wicg-inert'                       => array( 'wicg-inert', 'wp-polyfill-inert' ),
 		);
+	}
+
+	/**
+	 * Ensures that all the scripts in the package.json are included in the data provider.
+	 *
+	 * This is a test the tests to ensure the data provider includes all the scripts in package.json.
+	 *
+	 * @ticket 61855
+	 */
+	public function test_vendor_script_data_provider_includes_all_packages() {
+		$package_json_dependencies  = array_keys( $this->_scripts_from_package_json() );
+		$data_provider_dependencies = $this->data_vendor_script_versions_registered_manually();
+
+		/*
+		 * Exclude `@wordpress/*` packages from the packages in package.json.
+		 *
+		 * The version numbers for these packages is generated by the build
+		 * process based on a hash of the file contents.
+		 */
+		$package_json_dependencies = array_filter(
+			$package_json_dependencies,
+			static function ( $dependency ) {
+				return 0 !== strpos( $dependency, '@wordpress/' );
+			}
+		);
+
+		// Get the script names from the data provider.
+		$data_provider_dependencies = array_map(
+			static function ( $dependency ) {
+				return $dependency[0];
+			},
+			$data_provider_dependencies
+		);
+
+		// Exclude packages that are not registered in WordPress.
+		$exclude                   = array( 'react-is', 'json2php' );
+		$package_json_dependencies = array_diff( $package_json_dependencies, $exclude );
+
+		/*
+		 * Ensure the arrays are unique.
+		 *
+		 * This is for the react package as it is included in the data provider
+		 * as both `react` and `react-jsx-runtime`.
+		 */
+		$package_json_dependencies  = array_unique( $package_json_dependencies );
+		$data_provider_dependencies = array_unique( $data_provider_dependencies );
+
+		$this->assertSameSets( $package_json_dependencies, $data_provider_dependencies );
 	}
 
 	/**

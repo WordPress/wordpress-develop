@@ -362,6 +362,14 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -617,6 +625,27 @@ mockedApiResponse.Schema = {
                         "sticky": {
                             "description": "Limit result set to items that are sticky.",
                             "type": "boolean",
+                            "required": false
+                        },
+                        "format": {
+                            "description": "Limit result set to items assigned one or more given formats.",
+                            "type": "array",
+                            "uniqueItems": true,
+                            "items": {
+                                "enum": [
+                                    "standard",
+                                    "aside",
+                                    "chat",
+                                    "gallery",
+                                    "link",
+                                    "image",
+                                    "quote",
+                                    "status",
+                                    "video",
+                                    "audio"
+                                ],
+                                "type": "string"
+                            },
                             "required": false
                         }
                     }
@@ -1717,6 +1746,14 @@ mockedApiResponse.Schema = {
                         "menu_order": {
                             "description": "Limit result set to posts with a specific menu_order value.",
                             "type": "integer",
+                            "required": false
+                        },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -2820,6 +2857,14 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -3569,6 +3614,14 @@ mockedApiResponse.Schema = {
                                 "type": "integer"
                             },
                             "default": [],
+                            "required": false
+                        },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -4380,6 +4433,14 @@ mockedApiResponse.Schema = {
                                 "type": "integer"
                             },
                             "default": [],
+                            "required": false
+                        },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -6995,6 +7056,14 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -7812,6 +7881,14 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -8015,6 +8092,14 @@ mockedApiResponse.Schema = {
                                 "type": "integer"
                             },
                             "default": [],
+                            "required": false
+                        },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -12334,7 +12419,16 @@ mockedApiResponse.PostsCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -12641,7 +12735,16 @@ mockedApiResponse.PagesCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -12932,7 +13035,16 @@ mockedApiResponse.MediaCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/media/10"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/media/10",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -13629,7 +13741,15 @@ mockedApiResponse.CategoriesCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/categories/1"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/categories/1",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -13694,7 +13814,16 @@ mockedApiResponse.TagsCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/tags/2"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/tags/2",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -13758,7 +13887,16 @@ mockedApiResponse.UsersCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/1"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/1",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -13786,7 +13924,16 @@ mockedApiResponse.UsersCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/2"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/2",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -13859,7 +14006,16 @@ mockedApiResponse.CommentsCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/comments/2"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/comments/2",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [

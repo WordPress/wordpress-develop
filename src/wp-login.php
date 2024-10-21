@@ -210,10 +210,16 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	 * @since 4.6.0
 	 */
 	do_action( 'login_header' );
-
+	?>
+	<?php
+	if ( 'confirm_admin_email' !== $action && ! empty( $title ) ) :
+		?>
+		<h1 class="screen-reader-text"><?php echo $title; ?></h1>
+		<?php
+	endif;
 	?>
 	<div id="login">
-		<h1><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
+		<h1 role="presentation" class="wp-login-logo"><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
 	<?php
 	/**
 	 * Filters the message to display above the login form.
@@ -420,6 +426,7 @@ function login_footer( $input_id = '' ) {
 				</div>
 		<?php } ?>
 	<?php } ?>
+
 	<?php
 
 	if ( ! empty( $input_id ) ) {
@@ -462,7 +469,7 @@ function wp_shake_js() {
  */
 function wp_login_viewport_meta() {
 	?>
-	<meta name="viewport" content="width=device-width" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<?php
 }
 
@@ -697,7 +704,7 @@ switch ( $action ) {
 				);
 
 				printf(
-					'<a href="%s" rel="noopener" target="_blank">%s%s</a>',
+					'<a href="%s" target="_blank">%s%s</a>',
 					esc_url( $admin_email_help_url ),
 					__( 'Why is this important?' ),
 					$accessibility_text
@@ -1629,7 +1636,6 @@ switch ( $action ) {
 					for ( i in links ) {
 						if ( links[i].href ) {
 							links[i].target = '_blank';
-							links[i].rel = 'noopener';
 						}
 					}
 				} catch( er ) {}
