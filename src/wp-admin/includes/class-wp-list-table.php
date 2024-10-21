@@ -388,7 +388,13 @@ class WP_List_Table {
 		$input_id = $input_id . '-search-input';
 
 		if ( ! empty( $_REQUEST['orderby'] ) ) {
-			echo '<input type="hidden" name="orderby" value="' . esc_attr( $_REQUEST['orderby'] ) . '" />';
+			if ( is_array( $_REQUEST['orderby'] ) ) {
+				foreach ( $_REQUEST['orderby'] as $key => $value ) {
+					echo '<input type="hidden" name="orderby[' . esc_attr( $key ) . ']" value="' . esc_attr( $value ) . '" />';
+				}
+			} else {
+				echo '<input type="hidden" name="orderby" value="' . esc_attr( $_REQUEST['orderby'] ) . '" />';
+			}
 		}
 		if ( ! empty( $_REQUEST['order'] ) ) {
 			echo '<input type="hidden" name="order" value="' . esc_attr( $_REQUEST['order'] ) . '" />';
@@ -619,7 +625,7 @@ class WP_List_Table {
 
 		echo "</select>\n";
 
-		submit_button( __( 'Apply' ), 'action', '', false, array( 'id' => "doaction$two" ) );
+		submit_button( __( 'Apply' ), 'action', 'bulk_action', false, array( 'id' => "doaction$two" ) );
 		echo "\n";
 	}
 
@@ -989,10 +995,10 @@ class WP_List_Table {
 		 *  - `edit_comments_per_page`
 		 *  - `sites_network_per_page`
 		 *  - `site_themes_network_per_page`
-		 *  - `themes_network_per_page'`
+		 *  - `themes_network_per_page`
 		 *  - `users_network_per_page`
 		 *  - `edit_post_per_page`
-		 *  - `edit_page_per_page'`
+		 *  - `edit_page_per_page`
 		 *  - `edit_{$post_type}_per_page`
 		 *  - `edit_post_tag_per_page`
 		 *  - `edit_category_per_page`
@@ -1712,7 +1718,7 @@ class WP_List_Table {
 	}
 
 	/**
-	 * Generates the table rows.
+	 * Generates the list table rows.
 	 *
 	 * @since 3.1.0
 	 */

@@ -14,11 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * @global string       $post_type
- * @global WP_Post_Type $post_type_object
+ * @global string       $post_type        Global post type.
+ * @global WP_Post_Type $post_type_object Global post type object.
  * @global WP_Post      $post             Global post object.
- * @global string       $title
- * @global array        $wp_meta_boxes
+ * @global string       $title            The title of the current screen.
+ * @global array        $wp_meta_boxes    Global meta box state.
  */
 global $post_type, $post_type_object, $post, $title, $wp_meta_boxes;
 
@@ -55,13 +55,6 @@ $rest_path = rest_get_route_for_post( $post );
 $preload_paths = array(
 	'/wp/v2/types?context=view',
 	'/wp/v2/taxonomies?context=view',
-	add_query_arg(
-		array(
-			'context'  => 'edit',
-			'per_page' => -1,
-		),
-		rest_get_route_for_post_type_items( 'wp_block' )
-	),
 	add_query_arg( 'context', 'edit', $rest_path ),
 	sprintf( '/wp/v2/types/%s?context=edit', $post_type ),
 	'/wp/v2/users/me',
@@ -72,6 +65,9 @@ $preload_paths = array(
 	sprintf( '%s/autosaves?context=edit', $rest_path ),
 	'/wp/v2/settings',
 	array( '/wp/v2/settings', 'OPTIONS' ),
+	'/wp/v2/global-styles/themes/' . get_stylesheet(),
+	'/wp/v2/themes?context=edit&status=active',
+	'/wp/v2/global-styles/' . WP_Theme_JSON_Resolver::get_user_global_styles_post_id() . '?context=edit',
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
@@ -110,6 +106,24 @@ wp_add_inline_script(
 	'wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( get_block_editor_server_block_settings() ) . ');'
 );
 
+// Preload server-registered block bindings sources.
+$registered_sources = get_all_registered_block_bindings_sources();
+if ( ! empty( $registered_sources ) ) {
+	$filtered_sources = array();
+	foreach ( $registered_sources as $source ) {
+		$filtered_sources[] = array(
+			'name'        => $source->name,
+			'label'       => $source->label,
+			'usesContext' => $source->uses_context,
+		);
+	}
+	$script = sprintf( 'for ( const source of %s ) { wp.blocks.registerBlockBindingsSource( source ); }', wp_json_encode( $filtered_sources ) );
+	wp_add_inline_script(
+		'wp-blocks',
+		$script
+	);
+}
+
 // Get admin url for handling meta boxes.
 $meta_box_url = admin_url( 'post.php' );
 $meta_box_url = add_query_arg(
@@ -125,6 +139,15 @@ wp_add_inline_script(
 	'wp-editor',
 	sprintf( 'var _wpMetaBoxUrl = %s;', wp_json_encode( $meta_box_url ) ),
 	'before'
+);
+
+// Set Heartbeat interval to 10 seconds, used to refresh post locks.
+wp_add_inline_script(
+	'heartbeat',
+	'jQuery( function() {
+		wp.heartbeat.interval( 10 );
+	} );',
+	'after'
 );
 
 /*
@@ -156,9 +179,12 @@ if ( $user_id ) {
 	if ( $locked ) {
 		$user         = get_userdata( $user_id );
 		$user_details = array(
-			'avatar' => get_avatar_url( $user_id, array( 'size' => 128 ) ),
-			'name'   => $user->display_name,
+			'name' => $user->display_name,
 		);
+
+		if ( get_option( 'show_avatars' ) ) {
+			$user_details['avatar'] = get_avatar_url( $user_id, array( 'size' => 128 ) );
+		}
 	}
 
 	$lock_details = array(

@@ -81,7 +81,7 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -94,7 +94,7 @@ jobs:
       # dependency versions are installed and cached.
       ##
       - name: Set up PHP
-        uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # v2.30.0
+        uses: shivammathur/setup-php@c541c155eee45413f5b09a52248675b1a2575231 # v2.31.1
         with:
           php-version: '7.4'
           coverage: none
@@ -151,7 +151,7 @@ jobs:
 
       - name: Upload single site report to Codecov
         if: ${{ ! matrix.multisite && matrix.format == 'clover' && github.event_name != 'pull_request' }}
-        uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # v4.1.0
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: wp-code-coverage-single-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
@@ -160,7 +160,7 @@ jobs:
 
       - name: Upload single site HTML report as artifact
         if: ${{ ! matrix.multisite && matrix.format == 'html' }}
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: wp-code-coverage-single-${{ github.sha }}
           path: wp-code-coverage-single-${{ github.sha }}
@@ -175,7 +175,7 @@ jobs:
 
       - name: Upload multisite report to Codecov
         if: ${{ matrix.multisite && matrix.format == 'clover' && github.event_name != 'pull_request' }}
-        uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # v4.1.0
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: wp-code-coverage-multisite-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
@@ -184,7 +184,7 @@ jobs:
 
       - name: Upload multisite HTML report as artifact
         if: ${{ matrix.multisite && matrix.format == 'html' }}
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: wp-code-coverage-multisite-${{ github.sha }}
           path: wp-code-coverage-multisite-${{ github.sha }}

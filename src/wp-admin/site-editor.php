@@ -88,10 +88,11 @@ $navigation_rest_route = rest_get_route_for_post_type_items(
 );
 
 $preload_paths = array(
-	array( '/wp/v2/media', 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'page' ), 'OPTIONS' ),
 	'/wp/v2/types?context=view',
 	'/wp/v2/types/wp_template?context=edit',
-	'/wp/v2/types/wp_template-part?context=edit',
+	'/wp/v2/types/wp_template_part?context=edit',
 	'/wp/v2/templates?context=edit&per_page=-1',
 	'/wp/v2/template-parts?context=edit&per_page=-1',
 	'/wp/v2/themes?context=edit&status=active',
@@ -133,6 +134,24 @@ wp_add_inline_script(
 	'wp-blocks',
 	'wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( get_block_editor_server_block_settings() ) . ');'
 );
+
+// Preload server-registered block bindings sources.
+$registered_sources = get_all_registered_block_bindings_sources();
+if ( ! empty( $registered_sources ) ) {
+	$filtered_sources = array();
+	foreach ( $registered_sources as $source ) {
+		$filtered_sources[] = array(
+			'name'        => $source->name,
+			'label'       => $source->label,
+			'usesContext' => $source->uses_context,
+		);
+	}
+	$script = sprintf( 'for ( const source of %s ) { wp.blocks.registerBlockBindingsSource( source ); }', wp_json_encode( $filtered_sources ) );
+	wp_add_inline_script(
+		'wp-blocks',
+		$script
+	);
+}
 
 wp_add_inline_script(
 	'wp-blocks',

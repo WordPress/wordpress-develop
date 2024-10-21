@@ -376,6 +376,22 @@ function get_block_metadata_i18n_schema() {
 }
 
 /**
+ * Registers a block metadata collection.
+ *
+ * This function allows core and third-party plugins to register their block metadata
+ * collections in a centralized location. Registering collections can improve performance
+ * by avoiding multiple reads from the filesystem and parsing JSON.
+ *
+ * @since 6.7.0
+ *
+ * @param string $path     The base path in which block files for the collection reside.
+ * @param string $manifest The path to the manifest file for the collection.
+ */
+function wp_register_block_metadata_collection( $path, $manifest ) {
+	WP_Block_Metadata_Registry::register_collection( $path, $manifest );
+}
+
+/**
  * Registers a block type from the metadata stored in the `block.json` file.
  *
  * @since 5.5.0
@@ -385,6 +401,7 @@ function get_block_metadata_i18n_schema() {
  * @since 6.3.0 Added `selectors` field.
  * @since 6.4.0 Added support for `blockHooks` field.
  * @since 6.5.0 Added support for `allowedBlocks`, `viewScriptModule`, and `viewStyle` fields.
+ * @since 6.7.0 Allow PHP filename as `variations` argument.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -401,34 +418,21 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 * instead of reading a JSON file per-block, and then decoding from JSON to PHP.
 	 * Using a static variable ensures that the metadata is only read once per request.
 	 */
-	static $core_blocks_meta;
-	if ( ! $core_blocks_meta ) {
-		$core_blocks_meta = require ABSPATH . WPINC . '/blocks/blocks-json.php';
-	}
 
 	$metadata_file = ( ! str_ends_with( $file_or_folder, 'block.json' ) ) ?
 		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
 
-	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
-	// If the block is not a core block, the metadata file must exist.
+	$is_core_block        = str_starts_with( $file_or_folder, ABSPATH . WPINC );
 	$metadata_file_exists = $is_core_block || file_exists( $metadata_file );
-	if ( ! $metadata_file_exists && empty( $args['name'] ) ) {
-		return false;
-	}
+	$registry_metadata    = WP_Block_Metadata_Registry::get_metadata( $file_or_folder );
 
-	// Try to get metadata from the static cache for core blocks.
-	$metadata = array();
-	if ( $is_core_block ) {
-		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
-		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
-			$metadata = $core_blocks_meta[ $core_block_name ];
-		}
-	}
-
-	// If metadata is not found in the static cache, read it from the file.
-	if ( $metadata_file_exists && empty( $metadata ) ) {
+	if ( $registry_metadata ) {
+		$metadata = $registry_metadata;
+	} elseif ( $metadata_file_exists ) {
 		$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
+	} else {
+		$metadata = array();
 	}
 
 	if ( ! is_array( $metadata ) || ( empty( $metadata['name'] ) && empty( $args['name'] ) ) ) {
@@ -519,6 +523,34 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 				require $template_path;
 				return ob_get_clean();
 			};
+		}
+	}
+
+	// If `variations` is a string, it's the name of a PHP file that
+	// generates the variations.
+	if ( ! empty( $metadata['variations'] ) && is_string( $metadata['variations'] ) ) {
+		$variations_path = wp_normalize_path(
+			realpath(
+				dirname( $metadata['file'] ) . '/' .
+				remove_block_asset_path_prefix( $metadata['variations'] )
+			)
+		);
+		if ( $variations_path ) {
+			/**
+			 * Generates the list of block variations.
+			 *
+			 * @since 6.7.0
+			 *
+			 * @return string Returns the list of block variations.
+			 */
+			$settings['variation_callback'] = static function () use ( $variations_path ) {
+				$variations = require $variations_path;
+				return $variations;
+			};
+			// The block instance's `variations` field is only allowed to be an array
+			// (of known block variations). We unset it so that the block instance will
+			// provide a getter that returns the result of the `variation_callback` instead.
+			unset( $settings['variations'] );
 		}
 	}
 
@@ -1006,6 +1038,7 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
  * Runs the hooked blocks algorithm on the given content.
  *
  * @since 6.6.0
+ * @since 6.7.0 Injects the `theme` attribute into Template Part blocks, even if no hooked blocks are registered.
  * @access private
  *
  * @param string                          $content  Serialized content.
@@ -1018,16 +1051,85 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
  */
 function apply_block_hooks_to_content( $content, $context, $callback = 'insert_hooked_blocks' ) {
 	$hooked_blocks = get_hooked_blocks();
-	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
-		return $content;
+
+	$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
+	$after_block_visitor  = null;
+	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
+		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $context, $callback );
+		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $context, $callback );
 	}
 
-	$blocks = parse_blocks( $content );
+	$block_allows_multiple_instances = array();
+	/*
+	 * Remove hooked blocks from `$hooked_block_types` if they have `multiple` set to false and
+	 * are already present in `$content`.
+	 */
+	foreach ( $hooked_blocks as $anchor_block_type => $relative_positions ) {
+		foreach ( $relative_positions as $relative_position => $hooked_block_types ) {
+			foreach ( $hooked_block_types as $index => $hooked_block_type ) {
+				$hooked_block_type_definition =
+					WP_Block_Type_Registry::get_instance()->get_registered( $hooked_block_type );
 
-	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $context, $callback );
-	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $context, $callback );
+				$block_allows_multiple_instances[ $hooked_block_type ] =
+					block_has_support( $hooked_block_type_definition, 'multiple', true );
 
-	return traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+				if (
+					! $block_allows_multiple_instances[ $hooked_block_type ] &&
+					has_block( $hooked_block_type, $content )
+				) {
+					unset( $hooked_blocks[ $anchor_block_type ][ $relative_position ][ $index ] );
+				}
+			}
+			if ( empty( $hooked_blocks[ $anchor_block_type ][ $relative_position ] ) ) {
+				unset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] );
+			}
+		}
+		if ( empty( $hooked_blocks[ $anchor_block_type ] ) ) {
+			unset( $hooked_blocks[ $anchor_block_type ] );
+		}
+	}
+
+	/*
+	 * We also need to cover the case where the hooked block is not present in
+	 * `$content` at first and we're allowed to insert it once -- but not again.
+	 */
+	$suppress_single_instance_blocks = static function ( $hooked_block_types ) use ( &$block_allows_multiple_instances, $content ) {
+		static $single_instance_blocks_present_in_content = array();
+		foreach ( $hooked_block_types as $index => $hooked_block_type ) {
+			if ( ! isset( $block_allows_multiple_instances[ $hooked_block_type ] ) ) {
+				$hooked_block_type_definition =
+					WP_Block_Type_Registry::get_instance()->get_registered( $hooked_block_type );
+
+				$block_allows_multiple_instances[ $hooked_block_type ] =
+					block_has_support( $hooked_block_type_definition, 'multiple', true );
+			}
+
+			if ( $block_allows_multiple_instances[ $hooked_block_type ] ) {
+				continue;
+			}
+
+			// The block doesn't allow multiple instances, so we need to check if it's already present.
+			if (
+				in_array( $hooked_block_type, $single_instance_blocks_present_in_content, true ) ||
+				has_block( $hooked_block_type, $content )
+			) {
+				unset( $hooked_block_types[ $index ] );
+			} else {
+				// We can insert the block once, but need to remember not to insert it again.
+				$single_instance_blocks_present_in_content[] = $hooked_block_type;
+			}
+		}
+		return $hooked_block_types;
+	};
+	add_filter( 'hooked_block_types', $suppress_single_instance_blocks, PHP_INT_MAX );
+	$content = traverse_and_serialize_blocks(
+		parse_blocks( $content ),
+		$before_block_visitor,
+		$after_block_visitor
+	);
+	remove_filter( 'hooked_block_types', $suppress_single_instance_blocks, PHP_INT_MAX );
+
+	return $content;
 }
 
 /**
@@ -1043,6 +1145,23 @@ function remove_serialized_parent_block( $serialized_block ) {
 	$start = strpos( $serialized_block, '-->' ) + strlen( '-->' );
 	$end   = strrpos( $serialized_block, '<!--' );
 	return substr( $serialized_block, $start, $end - $start );
+}
+
+/**
+ * Accepts the serialized markup of a block and its inner blocks, and returns serialized markup of the wrapper block.
+ *
+ * @since 6.7.0
+ * @access private
+ *
+ * @see remove_serialized_parent_block()
+ *
+ * @param string $serialized_block The serialized markup of a block and its inner blocks.
+ * @return string The serialized markup of the wrapper block.
+ */
+function extract_serialized_parent_block( $serialized_block ) {
+	$start = strpos( $serialized_block, '-->' ) + strlen( '-->' );
+	$end   = strrpos( $serialized_block, '<!--' );
+	return substr( $serialized_block, 0, $start ) . substr( $serialized_block, $end );
 }
 
 /**
@@ -1095,7 +1214,10 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 		$post->post_content
 	);
 
-	$serialized_block = apply_block_hooks_to_content( $markup, get_post( $post->ID ), 'set_ignored_hooked_blocks_metadata' );
+	$existing_post = get_post( $post->ID );
+	// Merge the existing post object with the updated post object to pass to the block hooks algorithm for context.
+	$context          = (object) array_merge( (array) $existing_post, (array) $post );
+	$serialized_block = apply_block_hooks_to_content( $markup, $context, 'set_ignored_hooked_blocks_metadata' );
 	$root_block       = parse_blocks( $serialized_block )[0];
 
 	$ignored_hooked_blocks = isset( $root_block['attrs']['metadata']['ignoredHookedBlocks'] )
@@ -1108,7 +1230,11 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 			$existing_ignored_hooked_blocks = json_decode( $existing_ignored_hooked_blocks, true );
 			$ignored_hooked_blocks          = array_unique( array_merge( $ignored_hooked_blocks, $existing_ignored_hooked_blocks ) );
 		}
-		update_post_meta( $post->ID, '_wp_ignored_hooked_blocks', json_encode( $ignored_hooked_blocks ) );
+
+		if ( ! isset( $post->meta_input ) ) {
+			$post->meta_input = array();
+		}
+		$post->meta_input['_wp_ignored_hooked_blocks'] = json_encode( $ignored_hooked_blocks );
 	}
 
 	$post->post_content = remove_serialized_parent_block( $serialized_block );
@@ -1152,7 +1278,7 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
 		return $response;
 	}
 
-	$attributes = array();
+	$attributes            = array();
 	$ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
 	if ( ! empty( $ignored_hooked_blocks ) ) {
 		$ignored_hooked_blocks  = json_decode( $ignored_hooked_blocks, true );
@@ -1379,7 +1505,7 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  * @since 5.3.1
  *
  * @param array $block {
- *     A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ *     An associative array of a single parsed block object. See WP_Block_Parser_Block.
  *
  *     @type string   $blockName    Name of block.
  *     @type array    $attrs        Attributes from block comment delimiters.
@@ -1420,7 +1546,7 @@ function serialize_block( $block ) {
  *     Array of block structures.
  *
  *     @type array ...$0 {
- *         A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ *         An associative array of a single parsed block object. See WP_Block_Parser_Block.
  *
  *         @type string   $blockName    Name of block.
  *         @type array    $attrs        Attributes from block comment delimiters.
@@ -1462,7 +1588,7 @@ function serialize_blocks( $blocks ) {
  *
  * @see serialize_block()
  *
- * @param array    $block         A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ * @param array    $block         An associative array of a single parsed block object. See WP_Block_Parser_Block.
  * @param callable $pre_callback  Callback to run on each block in the tree before it is traversed and serialized.
  *                                It is called with the following arguments: &$block, $parent_block, $previous_block.
  *                                Its string return value will be prepended to the serialized block markup.
@@ -1584,13 +1710,13 @@ function resolve_pattern_blocks( $blocks ) {
 			$i += count( $blocks_to_insert );
 		} else {
 			if ( ! empty( $blocks[ $i ]['innerBlocks'] ) ) {
-				$prev_inner_content          = $inner_content;
-				$inner_content               = $blocks[ $i ]['innerContent'];
-				$blocks[ $i ]['innerBlocks'] = resolve_pattern_blocks(
+				$prev_inner_content           = $inner_content;
+				$inner_content                = $blocks[ $i ]['innerContent'];
+				$blocks[ $i ]['innerBlocks']  = resolve_pattern_blocks(
 					$blocks[ $i ]['innerBlocks']
 				);
 				$blocks[ $i ]['innerContent'] = $inner_content;
-				$inner_content               = $prev_inner_content;
+				$inner_content                = $prev_inner_content;
 			}
 			++$i;
 		}
@@ -1637,8 +1763,11 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 	$result       = '';
 	$parent_block = null; // At the top level, there is no parent block to pass to the callbacks; yet the callbacks expect a reference.
 
+	$pre_callback_is_callable  = is_callable( $pre_callback );
+	$post_callback_is_callable = is_callable( $post_callback );
+
 	foreach ( $blocks as $index => $block ) {
-		if ( is_callable( $pre_callback ) ) {
+		if ( $pre_callback_is_callable ) {
 			$prev = 0 === $index
 				? null
 				: $blocks[ $index - 1 ];
@@ -1649,7 +1778,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 			);
 		}
 
-		if ( is_callable( $post_callback ) ) {
+		if ( $post_callback_is_callable ) {
 			$next = count( $blocks ) - 1 === $index
 				? null
 				: $blocks[ $index + 1 ];
@@ -1725,7 +1854,7 @@ function _filter_block_content_callback( $matches ) {
  * @return array The filtered and sanitized block object result.
  */
 function filter_block_kses( $block, $allowed_html, $allowed_protocols = array() ) {
-	$block['attrs'] = filter_block_kses_value( $block['attrs'], $allowed_html, $allowed_protocols );
+	$block['attrs'] = filter_block_kses_value( $block['attrs'], $allowed_html, $allowed_protocols, $block );
 
 	if ( is_array( $block['innerBlocks'] ) ) {
 		foreach ( $block['innerBlocks'] as $i => $inner_block ) {
@@ -1741,6 +1870,7 @@ function filter_block_kses( $block, $allowed_html, $allowed_protocols = array() 
  * non-allowable HTML.
  *
  * @since 5.3.1
+ * @since 6.5.5 Added the `$block_context` parameter.
  *
  * @param string[]|string $value             The attribute value to filter.
  * @param array[]|string  $allowed_html      An array of allowed HTML elements and attributes,
@@ -1748,14 +1878,18 @@ function filter_block_kses( $block, $allowed_html, $allowed_protocols = array() 
  *                                           for the list of accepted context names.
  * @param string[]        $allowed_protocols Optional. Array of allowed URL protocols.
  *                                           Defaults to the result of wp_allowed_protocols().
+ * @param array           $block_context     Optional. The block the attribute belongs to, in parsed block array format.
  * @return string[]|string The filtered and sanitized result.
  */
-function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = array() ) {
+function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = array(), $block_context = null ) {
 	if ( is_array( $value ) ) {
 		foreach ( $value as $key => $inner_value ) {
-			$filtered_key   = filter_block_kses_value( $key, $allowed_html, $allowed_protocols );
-			$filtered_value = filter_block_kses_value( $inner_value, $allowed_html, $allowed_protocols );
+			$filtered_key   = filter_block_kses_value( $key, $allowed_html, $allowed_protocols, $block_context );
+			$filtered_value = filter_block_kses_value( $inner_value, $allowed_html, $allowed_protocols, $block_context );
 
+			if ( isset( $block_context['blockName'] ) && 'core/template-part' === $block_context['blockName'] ) {
+				$filtered_value = filter_block_core_template_part_attributes( $filtered_value, $filtered_key, $allowed_html );
+			}
 			if ( $filtered_key !== $key ) {
 				unset( $value[ $key ] );
 			}
@@ -1767,6 +1901,28 @@ function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = ar
 	}
 
 	return $value;
+}
+
+/**
+ * Sanitizes the value of the Template Part block's `tagName` attribute.
+ *
+ * @since 6.5.5
+ *
+ * @param string         $attribute_value The attribute value to filter.
+ * @param string         $attribute_name  The attribute name.
+ * @param array[]|string $allowed_html    An array of allowed HTML elements and attributes,
+ *                                        or a context name such as 'post'. See wp_kses_allowed_html()
+ *                                        for the list of accepted context names.
+ * @return string The sanitized attribute value.
+ */
+function filter_block_core_template_part_attributes( $attribute_value, $attribute_name, $allowed_html ) {
+	if ( empty( $attribute_value ) || 'tagName' !== $attribute_name ) {
+		return $attribute_value;
+	}
+	if ( ! is_array( $allowed_html ) ) {
+		$allowed_html = wp_kses_allowed_html( $allowed_html );
+	}
+	return isset( $allowed_html[ $attribute_value ] ) ? $attribute_value : '';
 }
 
 /**
@@ -1917,7 +2073,7 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
  * @global WP_Post $post The post to edit.
  *
  * @param array $parsed_block {
- *     A representative array of the block being rendered. See WP_Block_Parser_Block.
+ *     An associative array of the block being rendered. See WP_Block_Parser_Block.
  *
  *     @type string   $blockName    Name of block.
  *     @type array    $attrs        Attributes from block comment delimiters.
@@ -1941,7 +2097,7 @@ function render_block( $parsed_block ) {
 	 *
 	 * @param string|null   $pre_render   The pre-rendered content. Default null.
 	 * @param array         $parsed_block {
-	 *     A representative array of the block being rendered. See WP_Block_Parser_Block.
+	 *     An associative array of the block being rendered. See WP_Block_Parser_Block.
 	 *
 	 *     @type string   $blockName    Name of block.
 	 *     @type array    $attrs        Attributes from block comment delimiters.
@@ -1967,7 +2123,7 @@ function render_block( $parsed_block ) {
 	 * @since 5.9.0 The `$parent_block` parameter was added.
 	 *
 	 * @param array         $parsed_block {
-	 *     A representative array of the block being rendered. See WP_Block_Parser_Block.
+	 *     An associative array of the block being rendered. See WP_Block_Parser_Block.
 	 *
 	 *     @type string   $blockName    Name of block.
 	 *     @type array    $attrs        Attributes from block comment delimiters.
@@ -2015,7 +2171,7 @@ function render_block( $parsed_block ) {
 	 *
 	 * @param array         $context      Default context.
 	 * @param array         $parsed_block {
-	 *     A representative array of the block being rendered. See WP_Block_Parser_Block.
+	 *     An associative array of the block being rendered. See WP_Block_Parser_Block.
 	 *
 	 *     @type string   $blockName    Name of block.
 	 *     @type array    $attrs        Attributes from block comment delimiters.
@@ -2044,7 +2200,7 @@ function render_block( $parsed_block ) {
  *     Array of block structures.
  *
  *     @type array ...$0 {
- *         A representative array of a single parsed block object. See WP_Block_Parser_Block.
+ *         An associative array of a single parsed block object. See WP_Block_Parser_Block.
  *
  *         @type string   $blockName    Name of block.
  *         @type array    $attrs        Attributes from block comment delimiters.
@@ -2250,6 +2406,7 @@ function wp_migrate_old_typography_shape( $metadata ) {
  *
  * @since 5.8.0
  * @since 6.1.0 Added `query_loop_block_query_vars` filter and `parents` support in query.
+ * @since 6.7.0 Added support for the `format` property in query.
  *
  * @param WP_Block $block Block instance.
  * @param int      $page  Current query's page.
@@ -2262,6 +2419,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 		'order'        => 'DESC',
 		'orderby'      => 'date',
 		'post__not_in' => array(),
+		'tax_query'    => array(),
 	);
 
 	if ( isset( $block->context['query'] ) ) {
@@ -2311,35 +2469,103 @@ function build_query_vars_from_query_block( $block, $page ) {
 		}
 		// Migrate `categoryIds` and `tagIds` to `tax_query` for backwards compatibility.
 		if ( ! empty( $block->context['query']['categoryIds'] ) || ! empty( $block->context['query']['tagIds'] ) ) {
-			$tax_query = array();
+			$tax_query_back_compat = array();
 			if ( ! empty( $block->context['query']['categoryIds'] ) ) {
-				$tax_query[] = array(
+				$tax_query_back_compat[] = array(
 					'taxonomy'         => 'category',
 					'terms'            => array_filter( array_map( 'intval', $block->context['query']['categoryIds'] ) ),
 					'include_children' => false,
 				);
 			}
 			if ( ! empty( $block->context['query']['tagIds'] ) ) {
-				$tax_query[] = array(
+				$tax_query_back_compat[] = array(
 					'taxonomy'         => 'post_tag',
 					'terms'            => array_filter( array_map( 'intval', $block->context['query']['tagIds'] ) ),
 					'include_children' => false,
 				);
 			}
-			$query['tax_query'] = $tax_query;
+			$query['tax_query'] = array_merge( $query['tax_query'], $tax_query_back_compat );
 		}
 		if ( ! empty( $block->context['query']['taxQuery'] ) ) {
-			$query['tax_query'] = array();
+			$tax_query = array();
 			foreach ( $block->context['query']['taxQuery'] as $taxonomy => $terms ) {
 				if ( is_taxonomy_viewable( $taxonomy ) && ! empty( $terms ) ) {
-					$query['tax_query'][] = array(
+					$tax_query[] = array(
 						'taxonomy'         => $taxonomy,
 						'terms'            => array_filter( array_map( 'intval', $terms ) ),
 						'include_children' => false,
 					);
 				}
 			}
+			$query['tax_query'] = array_merge( $query['tax_query'], $tax_query );
 		}
+		if ( ! empty( $block->context['query']['format'] ) && is_array( $block->context['query']['format'] ) ) {
+			$formats = $block->context['query']['format'];
+			/*
+			 * Validate that the format is either `standard` or a supported post format.
+			 * - First, add `standard` to the array of valid formats.
+			 * - Then, remove any invalid formats.
+			 */
+			$valid_formats = array_merge( array( 'standard' ), get_post_format_slugs() );
+			$formats       = array_intersect( $formats, $valid_formats );
+
+			/*
+			 * The relation needs to be set to `OR` since the request can contain
+			 * two separate conditions. The user may be querying for items that have
+			 * either the `standard` format or a specific format.
+			 */
+			$formats_query = array( 'relation' => 'OR' );
+
+			/*
+			 * The default post format, `standard`, is not stored in the database.
+			 * If `standard` is part of the request, the query needs to exclude all post items that
+			 * have a format assigned.
+			 */
+			if ( in_array( 'standard', $formats, true ) ) {
+				$formats_query[] = array(
+					'taxonomy' => 'post_format',
+					'field'    => 'slug',
+					'operator' => 'NOT EXISTS',
+				);
+				// Remove the `standard` format, since it cannot be queried.
+				unset( $formats[ array_search( 'standard', $formats, true ) ] );
+			}
+			// Add any remaining formats to the formats query.
+			if ( ! empty( $formats ) ) {
+				// Add the `post-format-` prefix.
+				$terms           = array_map(
+					static function ( $format ) {
+						return "post-format-$format";
+					},
+					$formats
+				);
+				$formats_query[] = array(
+					'taxonomy' => 'post_format',
+					'field'    => 'slug',
+					'terms'    => $terms,
+					'operator' => 'IN',
+				);
+			}
+
+			/*
+			 * Add `$formats_query` to `$query`, as long as it contains more than one key:
+			 * If `$formats_query` only contains the initial `relation` key, there are no valid formats to query,
+			 * and the query should not be modified.
+			 */
+			if ( count( $formats_query ) > 1 ) {
+				// Enable filtering by both post formats and other taxonomies by combining them with `AND`.
+				if ( empty( $query['tax_query'] ) ) {
+					$query['tax_query'] = $formats_query;
+				} else {
+					$query['tax_query'] = array(
+						'relation' => 'AND',
+						$query['tax_query'],
+						$formats_query,
+					);
+				}
+			}
+		}
+
 		if (
 			isset( $block->context['query']['order'] ) &&
 				in_array( strtoupper( $block->context['query']['order'] ), array( 'ASC', 'DESC' ), true )
@@ -2483,11 +2709,6 @@ function build_comment_query_vars_from_block( $block ) {
 				if ( 0 !== $max_num_pages ) {
 					$comment_args['paged'] = $max_num_pages;
 				}
-			}
-			// Set the `cpage` query var to ensure the previous and next pagination links are correct
-			// when inheriting the Discussion Settings.
-			if ( 0 === $page && isset( $comment_args['paged'] ) && $comment_args['paged'] > 0 ) {
-				set_query_var( 'cpage', $comment_args['paged'] );
 			}
 		}
 	}

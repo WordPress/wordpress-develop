@@ -210,10 +210,16 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	 * @since 4.6.0
 	 */
 	do_action( 'login_header' );
-
+	?>
+	<?php
+	if ( 'confirm_admin_email' !== $action && ! empty( $title ) ) :
+		?>
+		<h1 class="screen-reader-text"><?php echo $title; ?></h1>
+		<?php
+	endif;
 	?>
 	<div id="login">
-		<h1><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
+		<h1 role="presentation" class="wp-login-logo"><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
 	<?php
 	/**
 	 * Filters the message to display above the login form.
@@ -420,6 +426,7 @@ function login_footer( $input_id = '' ) {
 				</div>
 		<?php } ?>
 	<?php } ?>
+
 	<?php
 
 	if ( ! empty( $input_id ) ) {
@@ -462,7 +469,7 @@ function wp_shake_js() {
  */
 function wp_login_viewport_meta() {
 	?>
-	<meta name="viewport" content="width=device-width" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<?php
 }
 
@@ -697,7 +704,7 @@ switch ( $action ) {
 				);
 
 				printf(
-					'<a href="%s" rel="noopener" target="_blank">%s%s</a>',
+					'<a href="%s" target="_blank">%s%s</a>',
 					esc_url( $admin_email_help_url ),
 					__( 'Why is this important?' ),
 					$accessibility_text
@@ -1160,11 +1167,11 @@ switch ( $action ) {
 		<form name="registerform" id="registerform" action="<?php echo esc_url( site_url( 'wp-login.php?action=register', 'login_post' ) ); ?>" method="post" novalidate="novalidate">
 			<p>
 				<label for="user_login"><?php _e( 'Username' ); ?></label>
-				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( wp_unslash( $user_login ) ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
+				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" required="required" />
 			</p>
 			<p>
 				<label for="user_email"><?php _e( 'Email' ); ?></label>
-				<input type="email" name="user_email" id="user_email" class="input" value="<?php echo esc_attr( wp_unslash( $user_email ) ); ?>" size="25" autocomplete="email" required="required" />
+				<input type="email" name="user_email" id="user_email" class="input" value="<?php echo esc_attr( $user_email ); ?>" size="25" autocomplete="email" required="required" />
 			</p>
 			<?php
 
@@ -1482,7 +1489,7 @@ switch ( $action ) {
 		login_header( __( 'Log In' ), '', $errors );
 
 		if ( isset( $_POST['log'] ) ) {
-			$user_login = ( 'incorrect_password' === $errors->get_error_code() || 'empty_password' === $errors->get_error_code() ) ? esc_attr( wp_unslash( $_POST['log'] ) ) : '';
+			$user_login = ( 'incorrect_password' === $errors->get_error_code() || 'empty_password' === $errors->get_error_code() ) ? wp_unslash( $_POST['log'] ) : '';
 		}
 
 		$rememberme = ! empty( $_POST['rememberme'] );
@@ -1629,7 +1636,6 @@ switch ( $action ) {
 					for ( i in links ) {
 						if ( links[i].href ) {
 							links[i].target = '_blank';
-							links[i].rel = 'noopener';
 						}
 					}
 				} catch( er ) {}

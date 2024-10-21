@@ -206,6 +206,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			switch ( $this->mime_type ) {
 				case 'image/jpeg':
 					$this->image->setImageCompressionQuality( $quality );
+					$this->image->setCompressionQuality( $quality );
 					$this->image->setImageCompression( imagick::COMPRESSION_JPEG );
 					break;
 				case 'image/webp':
@@ -214,14 +215,23 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 					if ( 'lossless' === $webp_info['type'] ) {
 						// Use WebP lossless settings.
 						$this->image->setImageCompressionQuality( 100 );
+						$this->image->setCompressionQuality( 100 );
 						$this->image->setOption( 'webp:lossless', 'true' );
+						parent::set_quality( 100 );
 					} else {
 						$this->image->setImageCompressionQuality( $quality );
+						$this->image->setCompressionQuality( $quality );
 					}
 					break;
 				case 'image/avif':
+					// Set the AVIF encoder to work faster, with minimal impact on image size.
+					$this->image->setOption( 'heic:speed', 7 );
+					$this->image->setImageCompressionQuality( $quality );
+					$this->image->setCompressionQuality( $quality );
+					break;
 				default:
 					$this->image->setImageCompressionQuality( $quality );
+					$this->image->setCompressionQuality( $quality );
 			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_quality_error', $e->getMessage() );
@@ -258,10 +268,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		/*
-		 * If we still don't have the image size, fall back to `wp_getimagesize`. This ensures AVIF images
+		 * If we still don't have the image size, fall back to `wp_getimagesize`. This ensures AVIF and HEIC images
 		 * are properly sized without affecting previous `getImageGeometry` behavior.
 		 */
-		if ( ( ! $width || ! $height ) && 'image/avif' === $this->mime_type ) {
+		if ( ( ! $width || ! $height ) && ( 'image/avif' === $this->mime_type || 'image/heic' === $this->mime_type ) ) {
 			$size   = wp_getimagesize( $this->file );
 			$width  = $size[0];
 			$height = $size[1];

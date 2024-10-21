@@ -511,6 +511,9 @@ class WP_Automatic_Updater {
 				&& ( 'up_to_date' === $upgrade_result->get_error_code()
 					|| 'locked' === $upgrade_result->get_error_code() )
 			) {
+				// Allow visitors to browse the site again.
+				$upgrader->maintenance_mode( false );
+
 				/*
 				 * These aren't actual errors, treat it as a skipped-update instead
 				 * to avoid triggering the post-core update failure routines.
@@ -749,7 +752,7 @@ class WP_Automatic_Updater {
 
 		// Send debugging email to admin for all development installations.
 		if ( ! empty( $this->update_results ) ) {
-			$development_version = str_contains( get_bloginfo( 'version' ), '-' );
+			$development_version = str_contains( wp_get_wp_version(), '-' );
 
 			/**
 			 * Filters whether to send a debugging email for each automatic background update.
@@ -792,7 +795,7 @@ class WP_Automatic_Updater {
 	 * @param object $update_result The result of the core update. Includes the update offer and result.
 	 */
 	protected function after_core_update( $update_result ) {
-		$wp_version = get_bloginfo( 'version' );
+		$wp_version = wp_get_wp_version();
 
 		$core_update = $update_result->item;
 		$result      = $update_result->result;

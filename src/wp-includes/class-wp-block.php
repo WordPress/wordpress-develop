@@ -114,7 +114,7 @@ class WP_Block {
 	 * @since 5.5.0
 	 *
 	 * @param array                  $block             {
-	 *     A representative array of a single parsed block object. See WP_Block_Parser_Block.
+	 *     An associative array of a single parsed block object. See WP_Block_Parser_Block.
 	 *
 	 *     @type string   $blockName    Name of block.
 	 *     @type array    $attrs        Attributes from block comment delimiters.
@@ -237,6 +237,7 @@ class WP_Block {
 	 *
 	 * @since 6.5.0
 	 * @since 6.6.0 Handle the `__default` attribute for pattern overrides.
+	 * @since 6.7.0 Return any updated bindings metadata in the computed attributes.
 	 *
 	 * @return array The computed block attributes for the provided block bindings.
 	 */
@@ -284,6 +285,14 @@ class WP_Block {
 					: array( 'source' => 'core/pattern-overrides' );
 			}
 			$bindings = $updated_bindings;
+			/*
+			 * Update the bindings metadata of the computed attributes.
+			 * This ensures the block receives the expanded __default binding metadata when it renders.
+			 */
+			$computed_attributes['metadata'] = array_merge(
+				$parsed_block['attrs']['metadata'],
+				array( 'bindings' => $bindings )
+			);
 		}
 
 		foreach ( $bindings as $attribute_name => $block_binding ) {
@@ -299,6 +308,15 @@ class WP_Block {
 			$block_binding_source = get_block_bindings_source( $block_binding['source'] );
 			if ( null === $block_binding_source ) {
 				continue;
+			}
+
+			// Adds the necessary context defined by the source.
+			if ( ! empty( $block_binding_source->uses_context ) ) {
+				foreach ( $block_binding_source->uses_context as $context_name ) {
+					if ( array_key_exists( $context_name, $this->available_context ) ) {
+						$this->context[ $context_name ] = $this->available_context[ $context_name ];
+					}
+				}
 			}
 
 			$source_args  = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
@@ -333,27 +351,68 @@ class WP_Block {
 		switch ( $block_type->attributes[ $attribute_name ]['source'] ) {
 			case 'html':
 			case 'rich-text':
-				// Hardcode the selectors and processing until the HTML API is able to read CSS selectors and replace inner HTML.
-				// TODO: Use the HTML API instead.
-				if ( 'core/paragraph' === $this->name && 'content' === $attribute_name ) {
-					$selector = 'p';
-				}
-				if ( 'core/heading' === $this->name && 'content' === $attribute_name ) {
-					$selector = 'h[1-6]';
-				}
-				if ( 'core/button' === $this->name && 'text' === $attribute_name ) {
-					// Check if it is a <button> or <a> tag.
-					if ( preg_match( '/<button[^>]*>.*?<\/button>/', $block_content ) ) {
-						$selector = 'button';
-					} else {
-						$selector = 'a';
+				$block_reader = new WP_HTML_Tag_Processor( $block_content );
+
+				// TODO: Support for CSS selectors whenever they are ready in the HTML API.
+				// In the meantime, support comma-separated selectors by exploding them into an array.
+				$selectors = explode( ',', $block_type->attributes[ $attribute_name ]['selector'] );
+				// Add a bookmark to the first tag to be able to iterate over the selectors.
+				$block_reader->next_tag();
+				$block_reader->set_bookmark( 'iterate-selectors' );
+
+				// TODO: This shouldn't be needed when the `set_inner_html` function is ready.
+				// Store the parent tag and its attributes to be able to restore them later in the button.
+				// The button block has a wrapper while the paragraph and heading blocks don't.
+				if ( 'core/button' === $this->name ) {
+					$button_wrapper                 = $block_reader->get_tag();
+					$button_wrapper_attribute_names = $block_reader->get_attribute_names_with_prefix( '' );
+					$button_wrapper_attrs           = array();
+					foreach ( $button_wrapper_attribute_names as $name ) {
+						$button_wrapper_attrs[ $name ] = $block_reader->get_attribute( $name );
 					}
 				}
-				if ( empty( $selector ) ) {
-					return $block_content;
+
+				foreach ( $selectors as $selector ) {
+					// If the parent tag, or any of its children, matches the selector, replace the HTML.
+					if ( strcasecmp( $block_reader->get_tag( $selector ), $selector ) === 0 || $block_reader->next_tag(
+						array(
+							'tag_name' => $selector,
+						)
+					) ) {
+						$block_reader->release_bookmark( 'iterate-selectors' );
+
+						// TODO: Use `set_inner_html` method whenever it's ready in the HTML API.
+						// Until then, it is hardcoded for the paragraph, heading, and button blocks.
+						// Store the tag and its attributes to be able to restore them later.
+						$selector_attribute_names = $block_reader->get_attribute_names_with_prefix( '' );
+						$selector_attrs           = array();
+						foreach ( $selector_attribute_names as $name ) {
+							$selector_attrs[ $name ] = $block_reader->get_attribute( $name );
+						}
+						$selector_markup = "<$selector>" . wp_kses_post( $source_value ) . "</$selector>";
+						$amended_content = new WP_HTML_Tag_Processor( $selector_markup );
+						$amended_content->next_tag();
+						foreach ( $selector_attrs as $attribute_key => $attribute_value ) {
+							$amended_content->set_attribute( $attribute_key, $attribute_value );
+						}
+						if ( 'core/paragraph' === $this->name || 'core/heading' === $this->name ) {
+							return $amended_content->get_updated_html();
+						}
+						if ( 'core/button' === $this->name ) {
+							$button_markup  = "<$button_wrapper>{$amended_content->get_updated_html()}</$button_wrapper>";
+							$amended_button = new WP_HTML_Tag_Processor( $button_markup );
+							$amended_button->next_tag();
+							foreach ( $button_wrapper_attrs as $attribute_key => $attribute_value ) {
+								$amended_button->set_attribute( $attribute_key, $attribute_value );
+							}
+							return $amended_button->get_updated_html();
+						}
+					} else {
+						$block_reader->seek( 'iterate-selectors' );
+					}
 				}
-				$pattern = '/(<' . $selector . '[^>]*>).*?(<\/' . $selector . '>)/i';
-				return preg_replace( $pattern, '$1' . wp_kses_post( $source_value ) . '$2', $block_content );
+				$block_reader->release_bookmark( 'iterate-selectors' );
+				return $block_content;
 
 			case 'attribute':
 				$amended_content = new WP_HTML_Tag_Processor( $block_content );

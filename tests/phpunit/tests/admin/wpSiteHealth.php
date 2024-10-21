@@ -38,9 +38,6 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::__construct()
 	 */
 	public function test_mysql_recommended_version_matches_readme_html() {
-		// This test is designed to only run on trunk.
-		$this->skipOnAutomatedBranches();
-
 		$reflection          = new ReflectionClass( $this->instance );
 		$reflection_property = $reflection->getProperty( 'mysql_recommended_version' );
 		$reflection_property->setAccessible( true );
@@ -57,9 +54,6 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * @covers ::__construct()
 	 */
 	public function test_mariadb_recommended_version_matches_readme_html() {
-		// This test is designed to only run on trunk.
-		$this->skipOnAutomatedBranches();
-
 		$reflection          = new ReflectionClass( $this->instance );
 		$reflection_property = $reflection->getProperty( 'mariadb_recommended_version' );
 		$reflection_property->setAccessible( true );
