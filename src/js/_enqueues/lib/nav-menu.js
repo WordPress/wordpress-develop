@@ -634,7 +634,7 @@
 				menuItemNewPosition = currentItemPosition;
 				menuItem.detach().insertBefore( menuItems.eq( menuItemNewPosition ) ).updateOrderDropdown();
 			} else {
-				menuItemNewPosition = menuItemNewPosition + currentItemNoChildren
+				menuItemNewPosition = menuItemNewPosition + currentItemNoChildren;
 				menuItem.detach().insertAfter( menuItems.eq( menuItemNewPosition ) ).updateOrderDropdown();
 			}
 
