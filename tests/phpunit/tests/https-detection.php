@@ -41,10 +41,15 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 	 * @ticket 47577
 	 */
 	public function test_wp_is_https_supported() {
-		// The function works with cached errors, so only test that here.
+		// Simulate that HTTPS is supported by returning an empty error array.
+		add_filter(
+			'pre_wp_get_https_detection_errors',
+			function () {
+				return new WP_Error(); // No errors means HTTPS is supported.
+			}
+		);
 
 		// No errors, so HTTPS is supported.
-		// We simulate that by returning an empty array from the errors.
 		$this->assertTrue( wp_is_https_supported() );
 
 		// Now we simulate that HTTPS is not supported by returning errors.
