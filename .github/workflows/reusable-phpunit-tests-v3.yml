@@ -52,6 +52,11 @@ on:
         required: false
         type: 'string'
         default: 'example.org'
+      html5lib-tests:
+        description: 'Whether to run the html5lib tests'
+        required: false
+        type: 'boolean'
+        default: false
       report:
         description: 'Whether to report results to WordPress.org Hosting Tests'
         required: false
@@ -92,7 +97,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   phpunit-tests:
-    name: PHP ${{ inputs.php }} / ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.phpunit-test-groups && format( ' ({0})', inputs.phpunit-test-groups ) || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
+    name: PHP ${{ inputs.php }} / ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.html5lib-tests && ' with html5lib tests' || '' }}${{ inputs.phpunit-test-groups && format( ' ({0})', inputs.phpunit-test-groups ) || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
 
@@ -185,6 +190,22 @@ jobs:
         if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group external-http
+
+      - name: Check if the HTML API was modified
+        id: html-api-changes
+        if: ${{ inputs.html5lib-tests }}
+        uses: tj-actions/changed-files@cc733854b1f224978ef800d29e4709d5ee2883e4 # v45.5.5
+        with:
+          files: |
+            src/wp-includes/html-api/**.php
+            tests/phpunit/tests/html-api/wpHtmlProcessorHtml5lib.php
+            tests/phpunit/data/html5lib-tests/**.dat
+            .github/workflows/phpunit-tests.yml
+            .github/workflows/reusable-phpunit-tests-v3.yml
+
+      - name: Run html5lib tests
+        if: ${{ inputs.html5lib-tests && steps.html-api-changes.outputs.any_changed == 'true' }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group html-api-html5lib-tests
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (Xdebug) tests
