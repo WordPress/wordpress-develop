@@ -94,9 +94,9 @@ class WP_Block_Supports {
 	 * @return string[] Array of HTML attribute values keyed by their name.
 	 */
 	public function apply_block_supports() {
-		$block_type = WP_Block_Type_Registry::get_instance()->get_registered(
-			self::$block_to_render['blockName']
-		);
+		// Block variations don't have a registered WP_Block_Type so we need to get the canonical block name.
+		$block_name = block_is_variation( self::$block_to_render['blockName'] ) ? get_canonical_block_name( self::$block_to_render['blockName'] ) : self::$block_to_render['blockName'];
+		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
 
 		// If no render_callback, assume styles have been previously handled.
 		if ( ! $block_type || empty( $block_type ) ) {
