@@ -55,6 +55,57 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that the proper tag-name remapping happens for the `IMAGE` tag.
+	 *
+	 * An HTML parser should treat an IMAGE tag as if it were an IMG tag, but
+	 * only when found in the HTML namespace. As part of this rule, IMAGE tags
+	 * in the HTML namespace are also void elements, while those in foreign
+	 * content are not, making the self-closing flag significant.
+	 *
+	 * Example:
+	 *
+	 *     // This input...
+	 *     <image/><svg><image/></svg>
+	 *
+	 *     // ...is equivalent to this normative HTML.
+	 *     <img><svg><image/></svg>
+	 *
+	 * @ticket 61576
+	 *
+	 * @covers WP_HTML_Processor::get_tag
+	 */
+	public function test_get_tag_replaces_image_with_namespace_awareness() {
+		$processor = WP_HTML_Processor::create_fragment( '<image/><svg><image/></svg>' );
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find initial "<image/>" tag: check test setup.'
+		);
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'HTML tags with the name "IMAGE" should be remapped to "IMG"'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find "<svg>" tag: check test setup.'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find SVG "<image/>" tag: check test setup.'
+		);
+
+		$this->assertSame(
+			'IMAGE',
+			$processor->get_tag(),
+			'Should not remap "IMAGE" to "IMG" for foreign elements.'
+		);
+	}
+
+	/**
 	 * Ensures that the HTML Processor maintains its internal state through seek calls.
 	 *
 	 * Because the HTML Processor must track a stack of open elements and active formatting
@@ -155,10 +206,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 
 		$found_tag = $processor->next_tag();
 
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
-		}
-
 		$this->assertTrue(
 			$found_tag,
 			"Could not find first {$tag_name}."
@@ -219,10 +266,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	public function test_expects_closer_expects_no_closer_for_self_contained_tokens( $self_contained_token ) {
 		$processor   = WP_HTML_Processor::create_fragment( $self_contained_token );
 		$found_token = $processor->next_token();
-
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "HTML '{$self_contained_token}' is not supported." );
-		}
 
 		$this->assertTrue(
 			$found_token,
@@ -305,10 +348,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 
 		$found_tag = $processor->next_token();
 
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
-		}
-
 		$this->assertTrue(
 			$found_tag,
 			"Could not find first {$tag_name}."
@@ -356,37 +395,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		unset( $all_void_tags['COL'] );
 
 		return $all_void_tags;
-	}
-
-	/**
-	 * Ensures that special handling of unsupported tags is cleaned up
-	 * as handling is implemented. Otherwise there's risk of leaving special
-	 * handling (that is never reached) when tag handling is implemented.
-	 *
-	 * @ticket 60092
-	 *
-	 * @dataProvider data_unsupported_special_in_body_tags
-	 *
-	 * @covers WP_HTML_Processor::step_in_body
-	 *
-	 * @param string $tag_name Name of the tag to test.
-	 */
-	public function test_step_in_body_fails_on_unsupported_tags( $tag_name ) {
-		$fragment = WP_HTML_Processor::create_fragment( '<' . $tag_name . '></' . $tag_name . '>' );
-		$this->assertFalse( $fragment->next_tag(), 'Should fail to find tag: ' . $tag_name . '.' );
-		$this->assertEquals( $fragment->get_last_error(), WP_HTML_Processor::ERROR_UNSUPPORTED, 'Should have unsupported last error.' );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_unsupported_special_in_body_tags() {
-		return array(
-			'MATH' => array( 'MATH' ),
-			'SVG'  => array( 'SVG' ),
-		);
 	}
 
 	/**
@@ -533,5 +541,345 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 
 		$subclass_processor = call_user_func( array( get_class( $subclass_instance ), 'create_fragment' ), '' );
 		$this->assertInstanceOf( get_class( $subclass_instance ), $subclass_processor, '::create_fragment did not return subclass instance.' );
+	}
+
+	/**
+	 * Ensures that self-closing elements in foreign content properly report
+	 * that they expect no closer.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_expects_closer_foreign_content_self_closing() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg /><math>' );
+
+		$this->assertTrue( $processor->next_tag() );
+		$this->assertSame( 'SVG', $processor->get_tag() );
+		$this->assertFalse( $processor->expects_closer() );
+
+		$this->assertTrue( $processor->next_tag() );
+		$this->assertSame( 'MATH', $processor->get_tag() );
+		$this->assertTrue( $processor->expects_closer() );
+	}
+
+	/**
+	 * Ensures that self-closing foreign SCRIPT elements are properly found.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_foreign_content_script_self_closing() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg><script />' );
+		$this->assertTrue( $processor->next_tag( 'script' ) );
+	}
+
+	/**
+	 * Ensures that the HTML Processor correctly handles TEMPLATE tag closing and namespaces.
+	 *
+	 * This is a tricky test case that corresponds to the html5lib tests "template/line1466".
+	 *
+	 * When the `</template>` token is reached it is in the HTML namespace (thanks to the
+	 * SVG `foreignObject` element). It is not handled as foreign content; therefore, it
+	 * closes the open HTML `TEMPLATE` element (the first `<template>` token) - _not_ the
+	 * SVG `TEMPLATE` element (the second `<template>` token).
+	 *
+	 * The test is included here because it may show up as unsupported markup and be skipped by
+	 * the html5lib test suite.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_template_tag_closes_html_template_element() {
+		$processor = WP_HTML_Processor::create_fragment( '<template><svg><template><foreignObject><div></template><div>' );
+
+		$this->assertTrue( $processor->next_tag( 'DIV' ) );
+		$this->assertSame( array( 'HTML', 'BODY', 'TEMPLATE', 'SVG', 'TEMPLATE', 'FOREIGNOBJECT', 'DIV' ), $processor->get_breadcrumbs() );
+		$this->assertTrue( $processor->next_tag( 'DIV' ) );
+		$this->assertSame( array( 'HTML', 'BODY', 'DIV' ), $processor->get_breadcrumbs() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when removing CSS classes in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::remove_class
+	 */
+	public function test_remove_class_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$processor->remove_class( 'upper' );
+		$this->assertSame( '<!DOCTYPE html><span class="UPPER">', $processor->get_updated_html() );
+
+		$processor->remove_class( 'UPPER' );
+		$this->assertSame( '<!DOCTYPE html><span >', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when adding CSS classes in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::add_class
+	 */
+	public function test_add_class_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$processor->add_class( 'UPPER' );
+		$this->assertSame( '<!DOCTYPE html><span class="UPPER">', $processor->get_updated_html() );
+
+		$processor->add_class( 'upper' );
+		$this->assertSame( '<!DOCTYPE html><span class="UPPER upper">', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when checking has CSS classes in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::has_class
+	 */
+	public function test_has_class_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$this->assertFalse( $processor->has_class( 'upper' ) );
+		$this->assertTrue( $processor->has_class( 'UPPER' ) );
+	}
+
+	/**
+	 * Ensures that the tag processor lists unique CSS class names in no-quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::class_list
+	 */
+	public function test_class_list_no_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser(
+			/*
+			 * U+00C9 is LATIN CAPITAL LETTER E WITH ACUTE
+			 * U+0045 is LATIN CAPITAL LETTER E
+			 * U+0301 is COMBINING ACUTE ACCENT
+			 *
+			 * This tests not only that the class matching deduplicates the É, but also
+			 * that it treats the same character in different normalization forms as
+			 * distinct, since matching occurs on a byte-for-byte basis.
+			 */
+			"<!DOCTYPE html><span class='A A a B b \u{C9} \u{45}\u{0301} \u{C9} é'>"
+		);
+		$processor->next_tag( 'SPAN' );
+		$class_list = iterator_to_array( $processor->class_list() );
+		$this->assertSame(
+			array( 'A', 'a', 'B', 'b', 'É', "E\u{0301}", 'é' ),
+			$class_list
+		);
+	}
+
+	/**
+	 * Ensures that the tag processor is case insensitive when removing CSS classes in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::remove_class
+	 */
+	public function test_remove_class_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="uPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$processor->remove_class( 'upPer' );
+		$this->assertSame( '<span >', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case insensitive when adding CSS classes in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::add_class
+	 */
+	public function test_add_class_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$processor->add_class( 'upper' );
+
+		$this->assertSame( '<span class="UPPER">', $processor->get_updated_html() );
+
+		$processor->add_class( 'ANOTHER-UPPER' );
+		$this->assertSame( '<span class="UPPER ANOTHER-UPPER">', $processor->get_updated_html() );
+	}
+
+	/**
+	 * Ensures that the tag processor is case sensitive when checking has CSS classes in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::has_class
+	 */
+	public function test_has_class_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser( '<span class="UPPER">' );
+		$processor->next_tag( 'SPAN' );
+		$this->assertTrue( $processor->has_class( 'upper' ) );
+		$this->assertTrue( $processor->has_class( 'UPPER' ) );
+	}
+
+	/**
+	 * Ensures that the tag processor lists unique CSS class names in quirks mode.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers ::class_list
+	 */
+	public function test_class_list_quirks_mode() {
+		$processor = WP_HTML_Processor::create_full_parser(
+			/*
+			 * U+00C9 is LATIN CAPITAL LETTER E WITH ACUTE
+			 * U+0045 is LATIN CAPITAL LETTER E
+			 * U+0065 is LATIN SMALL LETTER E
+			 * U+0301 is COMBINING ACUTE ACCENT
+			 *
+			 * This tests not only that the class matching deduplicates the É, but also
+			 * that it treats the same character in different normalization forms as
+			 * distinct, since matching occurs on a byte-for-byte basis.
+			 */
+			"<span class='A A a B b \u{C9} \u{45}\u{301} \u{C9} é \u{65}\u{301}'>"
+		);
+		$processor->next_tag( 'SPAN' );
+		$class_list = iterator_to_array( $processor->class_list() );
+		$this->assertSame(
+			array( 'a', 'b', 'É', "e\u{301}", 'é' ),
+			$class_list
+		);
+	}
+
+	/**
+	 * Ensures that the processor correctly adjusts the namespace
+	 * for elements inside HTML integration points.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_adjusts_for_html_integration_points_in_svg() {
+		$processor = WP_HTML_Processor::create_full_parser(
+			'<svg><foreignobject><image /><svg /><image />'
+		);
+
+		// At the foreignObject, the processor is in the SVG namespace.
+		$this->assertTrue(
+			$processor->next_tag( 'foreignObject' ),
+			'Failed to find "foreignObject" under test: check test setup.'
+		);
+
+		$this->assertSame(
+			'svg',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the "foreignObject" element.'
+		);
+
+		/*
+		 * The IMAGE tag should be handled according to HTML processing rules
+		 * and transformted to an IMG tag because `foreignObject` is an HTML
+		 * integration point. At this point, the processor is entering the HTML
+		 * integration point.
+		 */
+		$this->assertTrue(
+			$processor->next_tag( 'IMG' ),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		/*
+		 * Again, the IMAGE tag should be handled according to HTML processing
+		 * rules and transformted to an IMG tag because `foreignObject` is an
+		 * HTML integration point. At this point, the processor is has entered
+		 * SVG and is returning to an HTML integration point.
+		 */
+		$this->assertTrue(
+			$processor->next_tag( 'IMG' ),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+	}
+
+	/**
+	 * Ensures that the processor correctly adjusts the namespace
+	 * for elements inside MathML integration points.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_adjusts_for_mathml_integration_points() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<mo><image /></mo><math><image /><mo><image /></mo></math>'
+		);
+
+		// Advance token-by-token to ensure matching the right raw "<image />" token.
+		$processor->next_token(); // Advance past the +MO.
+		$processor->next_token(); // Advance into the +IMG.
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		// Advance token-by-token to ensure matching the right raw "<image />" token.
+		$processor->next_token(); // Advance past the -MO.
+		$processor->next_token(); // Advance past the +MATH.
+		$processor->next_token(); // Advance into the +IMAGE.
+
+		$this->assertSame(
+			'IMAGE',
+			$processor->get_tag(),
+			'Failed to find the un-transformed "<image />" tag.'
+		);
+
+		$this->assertSame(
+			'math',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		$processor->next_token(); // Advance past the +MO.
+		$processor->next_token(); // Advance into the +IMG.
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+	}
+
+	/**
+	 * Ensures that the processor stops correctly on a FORM tag closer token.
+	 *
+	 * Form tag closers have complicated conditions. There was a bug where the processor
+	 * would not stop correctly on a FORM tag closer token. Ensure this token is reachable.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_ensure_form_tag_closer_token_is_reachable() {
+		$processor = WP_HTML_Processor::create_fragment( '<form></form>' );
+
+		// Advance to </form>.
+		$processor->next_token();
+		$processor->next_token();
+
+		$this->assertSame( 'FORM', $processor->get_tag() );
+		$this->assertTrue( $processor->is_tag_closer() );
 	}
 }

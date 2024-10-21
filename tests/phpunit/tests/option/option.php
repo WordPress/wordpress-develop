@@ -143,7 +143,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @covers ::get_option
 	 */
 	public function test_get_option_notoptions_do_not_load_cache() {
-		add_option( 'foo', 'bar', '', 'no' );
+		add_option( 'foo', 'bar', '', false );
 		wp_cache_delete( 'notoptions', 'options' );
 
 		$before = get_num_queries();
@@ -360,11 +360,13 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	public function data_option_autoloading() {
 		return array(
 			// Supported values.
-			array( 'autoload_yes', 'yes', 'on' ),
 			array( 'autoload_true', true, 'on' ),
-			array( 'autoload_no', 'no', 'off' ),
 			array( 'autoload_false', false, 'off' ),
 			array( 'autoload_null', null, 'auto' ),
+
+			// Values supported for backward compatibility.
+			array( 'autoload_yes', 'yes', 'on' ),
+			array( 'autoload_no', 'no', 'off' ),
 
 			// Technically unsupported values.
 			array( 'autoload_string', 'foo', 'auto' ),
@@ -457,8 +459,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @covers ::update_option
 	 */
 	public function test_update_option_with_autoload_change_no_to_yes() {
-		add_option( 'foo', 'value1', '', 'no' );
-		update_option( 'foo', 'value2', 'yes' );
+		add_option( 'foo', 'value1', '', false );
+		update_option( 'foo', 'value2', true );
 		delete_option( 'foo' );
 		$this->assertFalse( get_option( 'foo' ) );
 	}
@@ -473,8 +475,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @covers ::update_option
 	 */
 	public function test_update_option_with_autoload_change_yes_to_no() {
-		add_option( 'foo', 'value1', '', 'yes' );
-		update_option( 'foo', 'value2', 'no' );
+		add_option( 'foo', 'value1', '', true );
+		update_option( 'foo', 'value2', false );
 		delete_option( 'foo' );
 		$this->assertFalse( get_option( 'foo' ) );
 	}
