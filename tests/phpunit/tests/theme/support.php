@@ -228,4 +228,21 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		add_theme_support( 'responsive-embeds' );
 		$this->assertTrue( current_theme_supports( 'responsive-embeds' ) );
 	}
+
+	/**
+	 * @ticket 60826
+	 */
+	public function test_editor_styles() {
+		add_theme_support( 'editor-styles' );
+		$this->assertTrue( current_theme_supports( 'editor-styles' ) );
+
+		remove_theme_support( 'editor-styles' );
+		$this->assertTrue( current_theme_supports( 'editor-styles' ) );
+
+		remove_editor_styles();
+		$this->assertFalse( current_theme_supports( 'editor-styles' ) );
+
+		add_editor_style();
+		$this->assertTrue( current_theme_supports( 'editor-styles' ) );
+	}
 }
