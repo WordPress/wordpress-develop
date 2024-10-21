@@ -109,6 +109,7 @@ jobs:
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      group: ${{ matrix.group }}
       tests-domain: ${{ matrix.tests-domain }}
       report: ${{ matrix.report || false }}
 
