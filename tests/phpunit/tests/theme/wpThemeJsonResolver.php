@@ -1405,8 +1405,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertSame( $expected_data, $actual, 'Resolved theme uris do not match.' );
 
 		// Test that resolved theme uris are cached.
-		$cache_key                    = md5( wp_json_encode( $theme_json->get_raw_data() ) );
-		$expected_cache_data          = array( "$cache_key" => $actual );
+		$cache_key           = md5( wp_json_encode( $theme_json->get_raw_data() ) );
+		$expected_cache_data = array( "$cache_key" => $actual );
 
 		$this->assertSame( $expected_cache_data, static::$property_resolved_theme_uris_cache->getValue(), 'Resolved theme uris cache data does not match.' );
 	}
