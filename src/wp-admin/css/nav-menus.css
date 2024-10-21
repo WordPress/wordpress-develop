@@ -832,6 +832,10 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	column-gap: 10px;
 }
 
+.description-group > * {
+	flex-grow: 1;
+}
+
 .menu-item-actions {
 	padding-top: 15px;
 	padding-bottom: 7px;
