@@ -34,6 +34,20 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	private static $property_blocks_cache_orig_value;
 
 	/**
+	 * WP_Theme_JSON_Resolver::$resolved_theme_uris_cache property.
+	 *
+	 * @var ReflectionProperty
+	 */
+	private static $property_resolved_theme_uris_cache;
+
+	/**
+	 * Original value of the WP_Theme_JSON_Resolver::$resolved_theme_uris_cache property.
+	 *
+	 * @var array
+	 */
+	private static $property_resolved_theme_uris_cache_orig_value;
+
+	/**
 	 * WP_Theme_JSON_Resolver::$core property.
 	 *
 	 * @var ReflectionProperty
@@ -83,11 +97,16 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		static::$property_core = new ReflectionProperty( WP_Theme_JSON_Resolver::class, 'core' );
 		static::$property_core->setAccessible( true );
 		static::$property_core_orig_value = static::$property_core->getValue();
+
+		static::$property_resolved_theme_uris_cache = new ReflectionProperty( WP_Theme_JSON_Resolver::class, 'resolved_theme_uris_cache' );
+		static::$property_resolved_theme_uris_cache->setAccessible( true );
+		static::$property_resolved_theme_uris_cache_orig_value = static::$property_resolved_theme_uris_cache->getValue();
 	}
 
 	public static function tear_down_after_class() {
 		static::$property_blocks_cache->setValue( null, static::$property_blocks_cache_orig_value );
 		static::$property_core->setValue( null, static::$property_core_orig_value );
+		static::$property_resolved_theme_uris_cache->setValue( null, static::$property_resolved_theme_uris_cache_orig_value );
 		parent::tear_down_after_class();
 	}
 
@@ -1322,11 +1341,13 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that them uris are resolved and bundled with other metadata in an array.
+	 * Tests that them uris are resolved and bundled with other metadata in an array
+	 * and cached.
 	 *
 	 * @covers WP_Theme_JSON_Resolver::get_resolved_theme_uris
 	 * @ticket 61273
 	 * @ticket 61588
+	 * @ticket 62261
 	 */
 	public function test_get_resolved_theme_uris() {
 		$theme_json = new WP_Theme_JSON(
@@ -1381,7 +1402,13 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 		$actual = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $theme_json );
 
-		$this->assertSame( $expected_data, $actual );
+		$this->assertSame( $expected_data, $actual, 'Resolved theme uris do not match.' );
+
+		// Test that resolved theme uris are cached.
+		$cache_key           = md5( wp_json_encode( $theme_json->get_raw_data() ) );
+		$expected_cache_data = array( "$cache_key" => $actual );
+
+		$this->assertSame( $expected_cache_data, static::$property_resolved_theme_uris_cache->getValue(), 'Resolved theme uris cache data does not match.' );
 	}
 
 	/**
