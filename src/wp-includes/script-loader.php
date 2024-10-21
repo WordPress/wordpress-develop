@@ -1688,7 +1688,6 @@ function wp_default_styles( $styles ) {
 		 */
 		'wp-reset-editor-styles',
 		'wp-block-library',
-		'wp-reusable-blocks',
 		'wp-block-editor-content',
 		'wp-patterns',
 	);
