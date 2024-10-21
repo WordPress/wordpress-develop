@@ -917,7 +917,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertTrue( unregister_taxonomy( 'foo' ) );
 		$this->assertNotContains( '%foo%', $wp_rewrite->rewritecode );
 		$this->assertNotContains( 'bar=', $wp_rewrite->queryreplace );
-		$this->assertCount( --$count_before, $wp_rewrite->rewritereplace ); // Array was reduced by one value.
+		$this->assertCount( $count_before - 2, $wp_rewrite->rewritereplace ); // Array was reduced by two values.
 	}
 
 	/**

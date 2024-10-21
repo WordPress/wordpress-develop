@@ -1760,7 +1760,7 @@ function get_the_archive_title() {
 		$prefix = _x( 'Archives:', 'post type archive title prefix' );
 	} elseif ( is_tax() ) {
 		$queried_object = get_queried_object();
-		if ( $queried_object ) {
+		if ( $queried_object instanceof WP_Term ) {
 			$tax    = get_taxonomy( $queried_object->taxonomy );
 			$title  = single_term_title( '', false );
 			$prefix = sprintf(
@@ -1768,6 +1768,9 @@ function get_the_archive_title() {
 				_x( '%s:', 'taxonomy term archive title prefix' ),
 				$tax->labels->singular_name
 			);
+		} elseif ( $queried_object instanceof WP_Taxonomy ) {
+			$title  = $queried_object->labels->singular_name;
+			$prefix = _x( 'Archives:', 'taxonomy archive title prefix' );
 		}
 	}
 
