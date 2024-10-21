@@ -261,6 +261,18 @@ function edit_post( $post_data = null ) {
 
 	if ( empty( $post_data ) ) {
 		$post_data = &$_POST;
+
+		/**
+		 * Since this post object is coming from `$_POST`, decode any values
+		 * which might have been escaped or encoded for the sake of transferring
+		 * via application/x-www-form-urlencoded.
+		 *
+		 * @see #61833.
+		 * @see get_inline_data
+		 */
+		if ( isset( $post_data['post_title'] ) ) {
+			$post_data['post_title'] = htmlspecialchars( $post_data['post_title'], ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5 );
+		}
 	}
 
 	// Clear out any data in internal vars.
