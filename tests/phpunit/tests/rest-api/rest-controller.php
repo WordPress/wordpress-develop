@@ -300,6 +300,22 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'someobject', $args );
 	}
 
+	public function test_get_endpoint_args_for_item_schema_validate_callback() {
+		$controller = new WP_REST_Test_Controller();
+		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
+
+		$this->assertSame( '__return_true', $args['somestring']['validate_callback'] );
+		$this->assertSame( 'rest_validate_request_arg', $args['sometextfield']['validate_callback'] );
+	}
+
+	public function test_get_endpoint_args_for_item_schema_sanitize_callback() {
+		$controller = new WP_REST_Test_Controller();
+		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
+
+		$this->assertSame( 'absint', $args['someinteger']['sanitize_callback'] );
+		$this->assertSame( 'rest_sanitize_request_arg', $args['sometextfield']['sanitize_callback'] );
+	}
+
 	public function test_get_endpoint_args_for_item_schema_description() {
 		$controller = new WP_REST_Test_Controller();
 		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
