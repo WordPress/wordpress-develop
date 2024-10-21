@@ -546,7 +546,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			'post_types'  => array( 'post', 'page' ),
 		);
 
-		wp_register_block_template( $template_name, $args );
+		register_block_template( $template_name, $args );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/test-plugin//test-template' );
 		$response = rest_get_server()->dispatch( $request );
@@ -566,7 +566,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertSame( 'Test Template', $data['title']['rendered'], 'Template title mismatch.' );
 		$this->assertSame( 'test-plugin', $data['plugin'], 'Plugin name mismatch.' );
 
-		wp_unregister_block_template( $template_name );
+		unregister_block_template( $template_name );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/test-plugin//test-template' );
 		$response = rest_get_server()->dispatch( $request );
