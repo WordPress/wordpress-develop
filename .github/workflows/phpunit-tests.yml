@@ -51,8 +51,18 @@ jobs:
         tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
+        group: [ '' ]
 
         include:
+          # Include a job for running the html5-lib tests.
+          - os: ubuntu-latest
+            php: '7.4'
+            db-type: 'mysql'
+            db-version: '8.0'
+            tests-domain: 'example.org'
+            multisite: false
+            memcached: false
+            group: 'html-api-html5lib-teests'
           # Include jobs for PHP 7.4 with memcached.
           - os: ubuntu-latest
             php: '7.4'
