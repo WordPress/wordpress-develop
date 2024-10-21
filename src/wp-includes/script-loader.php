@@ -243,7 +243,11 @@ function wp_register_development_scripts( $scripts ) {
 	);
 
 	foreach ( $development_scripts as $script_name ) {
-		$assets = include ABSPATH . WPINC . '/assets/script-loader-' . $script_name . '.php';
+		$asset_path = ABSPATH . WPINC . '/assets/script-loader-' . $script_name . '.php';
+		if ( ! file_exists( $asset_path ) ) {
+			continue;
+		}
+		$assets = include $asset_path;
 		if ( ! is_array( $assets ) ) {
 			return;
 		}
@@ -278,7 +282,19 @@ function wp_default_packages_scripts( $scripts ) {
 	 *     'annotations.js' => array('dependencies' => array(...), 'version' => '...'),
 	 *     'api-fetch.js' => array(...
 	 */
-	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+	$assets_path = ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+	if ( '' === $suffix && ! file_exists( $assets_path ) ) {
+		/*
+		 * Most likely due to the use of the `script-loader-packages.php` file.
+		 *
+		 * The `script-loader-packages.min.php` file is committed to WordPress
+		 * so use that for the assets instead. The suffix can remain unchanged
+		 * as the JavaScript files themselves are only ever present in both
+		 * their compressed and uncompressed forms.
+		 */
+		$assets_path = ABSPATH . WPINC . '/assets/script-loader-packages.min.php';
+	}
+	$assets = include $assets_path;
 
 	foreach ( $assets as $file_name => $package_data ) {
 		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
