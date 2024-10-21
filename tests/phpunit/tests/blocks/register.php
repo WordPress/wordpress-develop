@@ -992,15 +992,18 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * Tests that the function returns the registered block when the `block.json`
 	 * is found in the fixtures directory.
 	 *
+	 * @dataProvider data_block_registers_with_metadata_fixture
+	 *
 	 * @ticket 50263
 	 * @ticket 50328
 	 * @ticket 57585
 	 * @ticket 59797
 	 * @ticket 60233
 	 */
-	public function test_block_registers_with_metadata_fixture() {
+	public function test_block_registers_with_metadata_fixture( $folder, $args ) {
 		$result = register_block_type_from_metadata(
-			DIR_TESTDATA . '/blocks/notice'
+			$folder,
+			$args
 		);
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
@@ -1133,6 +1136,74 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		// @ticket 53148
 		$this->assertIsCallable( $result->render_callback );
+	}
+
+	public function data_block_registers_with_metadata_fixture() {
+		$folder = DIR_TESTDATA . '/blocks/notice';
+		$json = wp_json_file_decode( $folder . '/block.json', array( 'associative' => true ) ); // We need the mappings!
+
+		$property_mappings = array(
+			'apiVersion'      => 'api_version',
+			'name'            => 'name',
+			'title'           => 'title',
+			'category'        => 'category',
+			'parent'          => 'parent',
+			'ancestor'        => 'ancestor',
+			'icon'            => 'icon',
+			'description'     => 'description',
+			'keywords'        => 'keywords',
+			'attributes'      => 'attributes',
+			'providesContext' => 'provides_context',
+			'usesContext'     => 'uses_context',
+			'selectors'       => 'selectors',
+			'supports'        => 'supports',
+			'styles'          => 'styles',
+			'variations'      => 'variations',
+			'example'         => 'example',
+			'allowedBlocks'   => 'allowed_blocks',
+		);
+
+		$script_fields = array(
+			'editorScript' => 'editor_script_handles',
+			'script'       => 'script_handles',
+			'viewScript'   => 'view_script_handles',
+		);
+
+		$module_fields = array(
+			'viewScriptModule' => 'view_script_module_ids',
+		);
+
+		$style_fields = array(
+			'editorStyle' => 'editor_style_handles',
+			'style'       => 'style_handles',
+			'viewStyle'   => 'view_style_handles',
+		);
+
+		$all_mappings = array_merge(
+			$property_mappings,
+			$script_fields,
+			$module_fields,
+			$style_fields
+		);
+
+		$args = array();
+		foreach ( $all_mappings as $json_key => $arg_key ) {
+			if ( isset( $json[ $json_key ] ) ) {
+				$args[ $arg_key ] = $json[ $json_key ];
+			}
+		}
+
+		return array(
+			'block.json with no extra arguments' => array(
+				$folder,
+				array(),
+			),
+			'arguments' => array(
+				'',
+				$args
+			),
+
+		);
 	}
 
 	/**
