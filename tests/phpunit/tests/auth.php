@@ -984,6 +984,48 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertSame( self::$user_id, $user->ID );
 	}
 
+	/**
+	 * @dataProvider data_usernames
+	 */
+	public function test_bcrypt_password_is_rehashed_with_new_cost_after_successful_user_password_authentication( $username_or_email ) {
+		$password = 'password';
+
+		// Hash the user password with a lower cost than default to mimic a cost upgrade.
+		add_filter( 'wp_hash_password_options', array( $this, 'reduce_hash_cost' ) );
+		wp_set_password( $password, self::$user_id );
+		remove_filter( 'wp_hash_password_options', array( $this, 'reduce_hash_cost' ) );
+
+		// Verify that the password needs rehashing.
+		$hash = get_userdata( self::$user_id )->user_pass;
+		$this->assertTrue( wp_password_needs_rehash( $hash ) );
+
+		// Authenticate.
+		$user = wp_authenticate( $username_or_email, $password );
+
+		// Verify that the reduced cost password hash was valid.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+
+		// Verify that the password has been rehashed with the increased cost.
+		$hash = get_userdata( self::$user_id )->user_pass;
+		$this->assertFalse( wp_password_needs_rehash( $hash ) );
+		$this->assertSame( self::get_default_bcrypt_cost(), password_get_info( $hash )['options']['cost'] );
+
+		// Authenticate a second time to ensure the new hash is valid.
+		$user = wp_authenticate( $username_or_email, $password );
+
+		// Verify that the password hash is valid.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+	}
+
+	public function reduce_hash_cost( array $options ): array {
+		$options['cost'] = self::get_default_bcrypt_cost() - 1;
+		return $options;
+	}
+
 	public function data_usernames() {
 		return array(
 			array(
@@ -1626,7 +1668,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		return $uuid;
 	}
 
-	private static function get_default_bcrypt_cost() {
+	private static function get_default_bcrypt_cost(): int {
 		$hash = password_hash( 'password', PASSWORD_BCRYPT );
 		$info = password_get_info( $hash );
 
