@@ -3566,6 +3566,20 @@ function is_email( $email, $deprecated = false ) {
 	 * DOMAIN PART
 	 * Test for sequences of periods.
 	 */
+	// Check if the domain is an IP address enclosed in brackets.
+	if ( preg_match( '/^\[([0-9a-fA-F:\.]+)\]$/', $domain, $matches ) ) {
+		// If it's an IP address enclosed in brackets, validate it as an IP address.
+		if ( filter_var( $matches[1], FILTER_VALIDATE_IP ) ) {
+			return apply_filters( 'is_email', $email, $email, null );
+		} else {
+			return apply_filters( 'is_email', false, $email, 'domain_invalid_ip_address' );
+		}
+	}
+
+	// Check if the domain is a non-bracketed IP address
+	if ( filter_var( $domain, FILTER_VALIDATE_IP ) ) {
+		return apply_filters( 'is_email', false, $email, 'domain_non_bracketed_ip_address' );
+	}
 	if ( preg_match( '/\.{2,}/', $domain ) ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'is_email', false, $email, 'domain_period_sequence' );
@@ -3580,8 +3594,10 @@ function is_email( $email, $deprecated = false ) {
 	// Split the domain into subs.
 	$subs = explode( '.', $domain );
 
+	$length_of_subs = count( $subs );
+
 	// Assume the domain will have at least two subs.
-	if ( 2 > count( $subs ) ) {
+	if ( 2 > $length_of_subs ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'is_email', false, $email, 'domain_no_periods' );
 	}
@@ -3599,6 +3615,13 @@ function is_email( $email, $deprecated = false ) {
 			/** This filter is documented in wp-includes/formatting.php */
 			return apply_filters( 'is_email', false, $email, 'sub_invalid_chars' );
 		}
+	}
+
+	if ( preg_match( '/\d+$/', $subs[ $length_of_subs - 1 ] ) ) {
+		/**
+		 * This filter is documented in wp-includes/formatting.php
+		 */
+		return apply_filters( 'is_email', false, $email, 'last_sub_ends_with_numbers' );
 	}
 
 	// Congratulations, your email made it!
@@ -3781,6 +3804,16 @@ function sanitize_email( $email ) {
 	 * DOMAIN PART
 	 * Test for sequences of periods.
 	 */
+
+	// Check if domain is a bracketed IP address
+	if ( preg_match( '/^\[([0-9a-fA-F:\.]+)\]$/', $domain, $matches ) ) {
+		// Validate the IP address within brackets
+		if ( filter_var( $matches[1], FILTER_VALIDATE_IP ) ) {
+			// If valid IP, return sanitized email.
+			$sanitized_email = $local . '@' . $domain;
+			return apply_filters( 'sanitize_email', $sanitized_email, $email, null );
+		}
+	}
 	$domain = preg_replace( '/\.{2,}/', '', $domain );
 	if ( '' === $domain ) {
 		/** This filter is documented in wp-includes/formatting.php */
@@ -3806,6 +3839,8 @@ function sanitize_email( $email ) {
 	// Create an array that will contain valid subs.
 	$new_subs = array();
 
+	$contains_alphabet = false;
+
 	// Loop through each sub.
 	foreach ( $subs as $sub ) {
 		// Test for leading and trailing hyphens.
@@ -3814,16 +3849,29 @@ function sanitize_email( $email ) {
 		// Test for invalid characters.
 		$sub = preg_replace( '/[^a-z0-9-]+/i', '', $sub );
 
+		// Check if the subdomain contains at least one alphabet character.
+		if ( preg_match( '/[a-zA-Z]/', $sub ) ) {
+			$contains_alphabet = true;
+		}
+
 		// If there's anything left, add it to the valid subs.
 		if ( '' !== $sub ) {
 			$new_subs[] = $sub;
 		}
 	}
 
+	$length_of_new_subs = count( $new_subs );
+
 	// If there aren't 2 or more valid subs.
-	if ( 2 > count( $new_subs ) ) {
+	if ( 2 > $length_of_new_subs ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'domain_no_valid_subs' );
+	}
+
+	// Only remove trailing numbers if the domain contains an alphabet.
+	if ( $contains_alphabet ) {
+		// Remove if any trailing number is present in the domain.
+		$subs[ $length_of_new_subs - 1 ] = preg_replace( '/\d*$/', '', $subs[ $length_of_new_subs - 1 ] );
 	}
 
 	// Join valid subs into the new domain.
