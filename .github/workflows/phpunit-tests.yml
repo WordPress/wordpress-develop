@@ -36,7 +36,7 @@ jobs:
   #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@try/html5lib-tests
     permissions:
       contents: read
     secrets: inherit
@@ -91,6 +91,15 @@ jobs:
             multisite: false
             memcached: false
             report: true
+          # Run tests for html-api-html5lib-tests once
+          - os: ubuntu-latest
+            php: '8.3'
+            db-type: 'mysql'
+            db-version: '8.0'
+            multisite: false
+            memcached: false
+            html-api-tests: true
+
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -101,13 +110,14 @@ jobs:
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       tests-domain: ${{ matrix.tests-domain }}
       report: ${{ matrix.report || false }}
+      html5lib-tests: ${{ matrix.html-api-tests || false }}
 
   #
   # Creates a PHPUnit test job for each PHP/MariaDB combination.
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@try/html5lib-tests
     permissions:
       contents: read
     secrets: inherit
