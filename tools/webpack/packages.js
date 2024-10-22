@@ -93,7 +93,6 @@ module.exports = function (
 		'wp-polyfill-object-fit.js':
 			'objectFitPolyfill/src/objectFitPolyfill.js',
 		'wp-polyfill-inert.js': 'wicg-inert/dist/inert.js',
-		'wp-polyfill-importmap.js': 'es-module-shims/dist/es-module-shims.wasm.js',
 		'moment.js': 'moment/moment.js',
 		'regenerator-runtime.js': 'regenerator-runtime/runtime.js',
 		'react.js': 'react/umd/react.development.js',
@@ -122,7 +121,6 @@ module.exports = function (
 			'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-dom-rect.min.js':
 			'polyfill-library/polyfills/__dist/DOMRect/raw.js',
-		'wp-polyfill-importmap.min.js': 'es-module-shims/dist/es-module-shims.wasm.js',
 	};
 
 	const phpFiles = {

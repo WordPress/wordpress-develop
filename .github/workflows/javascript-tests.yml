@@ -27,8 +27,9 @@ on:
       - '.jshintrc'
       # Any change to the QUnit directory should run tests.
       - 'tests/qunit/**'
-      # Changes to workflow files should always verify all workflows are successful.
-      - '.github/workflows/*.yml'
+      # Confirm any changes to relevant workflow files.
+      - '.github/workflows/javascript-tests.yml'
+      - '.github/workflows/reusable-javascript-tests.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.

@@ -148,8 +148,6 @@ class WP_Term_Query {
 	 *                                                   - 'id=>slug' Returns an associative array of term slugs,
 	 *                                                      keyed by term ID (`string[]`).
 	 *                                                   Default 'all'.
-	 *     @type bool            $count                  Whether to return a term count. If true, will take precedence
-	 *                                                   over `$fields`. Default false.
 	 *     @type string|string[] $name                   Name or array of names to return term(s) for.
 	 *                                                   Default empty.
 	 *     @type string|string[] $slug                   Slug or array of slugs to return term(s) for.
@@ -1170,12 +1168,11 @@ class WP_Term_Query {
 		if ( 'count' !== $args['fields'] && 'all_with_object_id' !== $args['fields'] ) {
 			$cache_args['fields'] = 'all';
 		}
-		$taxonomies = (array) $args['taxonomy'];
 
 		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 
-		$key          = md5( serialize( $cache_args ) . serialize( $taxonomies ) . $sql );
+		$key          = md5( serialize( $cache_args ) . $sql );
 		$last_changed = wp_cache_get_last_changed( 'terms' );
 		return "get_terms:$key:$last_changed";
 	}
