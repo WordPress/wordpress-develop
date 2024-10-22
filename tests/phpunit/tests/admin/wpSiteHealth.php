@@ -163,13 +163,14 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56041
+	 * @ticket 62101
 	 * @dataProvider data_get_page_cache
 	 * @covers ::get_test_page_cache()
 	 * @covers ::get_page_cache_detail()
 	 * @covers ::get_page_cache_headers()
 	 * @covers ::check_for_page_caching()
 	 */
-	public function test_get_page_cache( $responses, $expected_status, $expected_label, $good_basic_auth = null, $delay_the_response = false ) {
+	public function test_get_page_cache( $responses, $expected_status, $expected_label, $good_basic_auth = null, $delay_the_response = false, $expected_url = null ) {
 		$expected_props = array(
 			'badge'  => array(
 				'label' => __( 'Performance' ),
@@ -195,9 +196,20 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			);
 		}
 
+		if ( $expected_url ) {
+			add_filter(
+				'site_status_persistent_page_cache_url',
+				static function () use ( $expected_url ) {
+					return $expected_url;
+				}
+			);
+		} else {
+			$expected_url = home_url( '/' );
+		}
+
 		add_filter(
 			'pre_http_request',
-			function ( $response, $parsed_args ) use ( &$responses, &$is_unauthorized, $good_basic_auth, $delay_the_response, $threshold ) {
+			function ( $response, $parsed_args, $url ) use ( &$responses, &$is_unauthorized, $good_basic_auth, $delay_the_response, $threshold, $expected_url ) {
 
 				$expected_response = array_shift( $responses );
 
@@ -225,6 +237,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 				$this->assertIsArray( $expected_response );
 
+				$this->assertEquals( $expected_url, $url );
+
 				return array(
 					'headers'  => $expected_response,
 					'response' => array(
@@ -234,12 +248,14 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				);
 			},
 			20,
-			2
+			3
 		);
 
 		$actual = $this->instance->get_test_page_cache();
 		$this->assertArrayHasKey( 'description', $actual );
 		$this->assertArrayHasKey( 'actions', $actual );
+
+		$this->assertStringContainsString( $expected_url, $actual['description'] );
 
 		if ( $is_unauthorized ) {
 			$this->assertStringContainsString( 'Unauthorized', $actual['description'] );
@@ -283,6 +299,14 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 				'expected_label'     => $critical_label,
 				'good_basic_auth'    => null,
 				'delay_the_response' => true,
+			),
+			'set-persistent-page-cache-url'          => array(
+				'responses'          => array_fill( 0, 3, array( 'cache-control' => 'no-cache' ) ),
+				'expected_status'    => 'recommended',
+				'expected_label'     => $recommended_label,
+				'good_basic_auth'    => null,
+				'delay_the_response' => false,
+				'expected_url'       => 'https://example.com/?page=7',
 			),
 			'no-cache'                               => array(
 				'responses'       => array_fill( 0, 3, array( 'cache-control' => 'no-cache' ) ),
