@@ -1679,6 +1679,7 @@ function wp_default_styles( $styles ) {
 		array( 'wp-components' )
 	);
 
+	// Only add CONTENT styles here that should be enqueued in the iframe!
 	$wp_edit_blocks_dependencies = array(
 		'wp-components',
 		/*
