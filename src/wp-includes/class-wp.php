@@ -386,6 +386,99 @@ class WP {
 			}
 		}
 
+		// Prevent invalid date queries.
+
+		// Array containing all min-max checks.
+		$min_max_checks = array();
+
+		// Months per year.
+		$min_max_checks['monthnum'] = array(
+			'min' => 1,
+			'max' => 12,
+		);
+
+		// Weeks per year.
+		if ( isset( $this->query_vars['year'] ) ) {
+			/*
+			 * If we have a specific year, use it to calculate number of weeks.
+			 * Note: the number of weeks in a year is the date in which Dec 28 appears.
+			 */
+			$week_count = gmdate( 'W', mktime( 0, 0, 0, 12, 28, absint( $this->query_vars['year'] ) ) );
+
+		} else {
+			// Otherwise set the week-count to a maximum of 53.
+			$week_count = 53;
+		}
+
+		$min_max_checks['w'] = array(
+			'min' => 1,
+			'max' => $week_count,
+		);
+
+		// Days per month.
+		$min_max_checks['day'] = array(
+			'min' => 1,
+			'max' => 31,
+		);
+
+		// Hours per day.
+		$min_max_checks['hour'] = array(
+			'min' => 0,
+			'max' => 23,
+		);
+
+		// Minutes per hour.
+		$min_max_checks['minute'] = array(
+			'min' => 0,
+			'max' => 59,
+		);
+
+		// Seconds per minute.
+		$min_max_checks['second'] = array(
+			'min' => 0,
+			'max' => 59,
+		);
+
+		// Concatenate and unset each invalid value.
+
+		foreach ( $min_max_checks as $key => $check ) {
+			if (
+				! array_key_exists( $key, $this->query_vars )
+			) {
+				continue;
+			}
+
+			$is_between = $this->query_vars[ $key ] >= $check['min'] && $this->query_vars[ $key ] <= $check['max'];
+
+			if ( ! is_numeric( $this->query_vars[ $key ] ) || ! $is_between ) {
+				unset( $this->query_vars[ $key ] );
+			}
+		}
+
+		$day_month_year_error_msg = '';
+
+		$day_exists   = array_key_exists( 'day', $this->query_vars ) && is_numeric( $this->query_vars['day'] );
+		$month_exists = array_key_exists( 'monthnum', $this->query_vars ) && is_numeric( $this->query_vars['monthnum'] );
+		$year_exists  = array_key_exists( 'year', $this->query_vars ) && is_numeric( $this->query_vars['year'] );
+
+		if ( $day_exists && $month_exists && $year_exists ) {
+			// 1. Checking day, month, year combination.
+			if ( ! wp_checkdate( $this->query_vars['monthnum'], $this->query_vars['day'], $this->query_vars['year'], sprintf( '%s-%s-%s', $this->query_vars['year'], $this->query_vars['monthnum'], $this->query_vars['day'] ) ) ) {
+				unset( $this->query_vars['day'] );
+				unset( $this->query_vars['monthnum'] );
+				unset( $this->query_vars['year'] );
+			}
+		} elseif ( $day_exists && $month_exists ) {
+			/*
+			 * 2. checking day, month combination
+			 * We use 2012 because, as a leap year, it's the most permissive.
+			 */
+			if ( ! wp_checkdate( $this->query_vars['monthnum'], $this->query_vars['day'], 2012, sprintf( '2012-%s-%s', $this->query_vars['monthnum'], $this->query_vars['day'] ) ) ) {
+				unset( $this->query_vars['day'] );
+				unset( $this->query_vars['monthnum'] );
+			}
+		}
+
 		// Resolve conflicts between posts with numeric slugs and date archive queries.
 		$this->query_vars = wp_resolve_numeric_slug_conflicts( $this->query_vars );
 
