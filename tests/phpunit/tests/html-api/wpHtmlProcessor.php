@@ -882,4 +882,21 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$this->assertSame( 'FORM', $processor->get_tag() );
 		$this->assertTrue( $processor->is_tag_closer() );
 	}
+
+	/**
+	 * Ensures that the processor reaches the </body> tag and can set a bookmark.
+	 *
+	 * @ticket 62270
+	 */
+	public function test_ensure_body_close_tag_is_bookmarkable() {
+		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><body></body>' );
+
+		// Advance to </body>.
+		$processor->next_tag( 'BODY' );
+		$processor->next_token();
+
+		$this->assertSame( 'BODY', $processor->get_tag() );
+		$this->assertTrue( $processor->is_tag_closer() );
+		$this->assertTrue( $processor->set_bookmark( 'body tag' ) );
+	}
 }
