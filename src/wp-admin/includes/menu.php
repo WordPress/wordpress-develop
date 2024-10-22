@@ -368,7 +368,6 @@ if ( ! empty( $menu ) && 'wp-menu-separator' === $menu[ $last_menu_key ][4] ) {
 }
 unset( $last_menu_key );
 
-
 if ( ! admin_page_exists() ) {
 
 	/**
