@@ -858,7 +858,8 @@
 				prev, next, prevBottom, nextThreshold, helperHeight, transport,
 				menuEdge = api.menuList.offset().left,
 				body = $('body'), maxChildDepth,
-				menuMaxDepth = initialMenuMaxDepth();
+				menuMaxDepth = initialMenuMaxDepth(),
+				isMobile = $( document.body ).hasClass( 'mobile' );
 
 			if( 0 !== $( '#menu-to-edit li' ).length )
 				$( '.drag-instructions' ).show();
@@ -870,6 +871,7 @@
 				handle: '.menu-item-handle',
 				placeholder: 'sortable-placeholder',
 				items: api.options.sortableItems,
+				delay: ( isMobile ? 200 :  0),
 				start: function(e, ui) {
 					var height, width, parent, children, tempHolder;
 
@@ -1103,7 +1105,7 @@
 		 * Handle toggling bulk selection checkboxes for menu items.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachBulkSelectButtonListeners : function() {
 			var that = this;
 
@@ -1122,7 +1124,7 @@
 		 * Enable bulk selection checkboxes for menu items.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		enableBulkSelection : function() {
 			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
 
@@ -1139,7 +1141,7 @@
 		 * Disable bulk selection checkboxes for menu items.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		disableBulkSelection : function() {
 			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
 
@@ -1163,7 +1165,7 @@
 		 * Listen for state changes on bulk action checkboxes.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachMenuCheckBoxListeners : function() {
 			var that = this;
 
@@ -1176,7 +1178,7 @@
 		 * Create delete button to remove menu items from collection.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachMenuItemDeleteButton : function() {
 			var that = this;
 
@@ -1219,7 +1221,7 @@
 		 * List menu items awaiting deletion.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachPendingMenuItemsListForDeletion : function() {
 			$( '#post-body-content' ).on( 'change', '.menu-item-checkbox', function() {
 				var menuItemName, menuItemType, menuItemID, listedMenuItem;
@@ -1256,7 +1258,7 @@
 		 * Set status of bulk delete checkbox.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		setBulkDeleteCheckboxStatus : function() {
 			var that = this;
 			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
@@ -1280,7 +1282,7 @@
 		 * Set status of menu items removal button.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		setRemoveSelectedButtonStatus : function() {
 			var button = $( '.menu-items-delete' );
 
