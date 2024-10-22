@@ -1518,6 +1518,14 @@ class WP_REST_Server {
 	public function get_namespace_index( $request ) {
 		$namespace = $request['namespace'];
 
+		if ( ! is_string( $namespace ) ) {
+			return new WP_Error(
+				'rest_invalid_namespace',
+				__( 'The namespace must be a string.' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		if ( ! isset( $this->namespaces[ $namespace ] ) ) {
 			return new WP_Error(
 				'rest_invalid_namespace',
