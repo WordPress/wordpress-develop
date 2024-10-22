@@ -91,6 +91,14 @@ jobs:
             multisite: false
             memcached: false
             report: true
+
+        exclude:
+          # MySQL 9.0+ will not work on PHP 7.2 & 7.3
+          - php: '7.2'
+            db-version: '9.0'
+          - php: '7.3'
+            db-version: '9.0'
+
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
