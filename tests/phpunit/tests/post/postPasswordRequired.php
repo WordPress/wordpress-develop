@@ -42,8 +42,14 @@ class Tests_Post_PostPasswordRequired extends WP_UnitTestCase {
 		// Set the cookie:
 		$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = wp_hash_password( $password );
 
+		// Check if the password is required:
+		$required = post_password_required( $post_id );
+
+		// Clear the cookie:
+		unset( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] );
+
 		// Password is not required:
-		$this->assertFalse( post_password_required( $post_id ) );
+		$this->assertFalse( $required );
 	}
 
 	/**
@@ -63,7 +69,13 @@ class Tests_Post_PostPasswordRequired extends WP_UnitTestCase {
 		// Set the cookie with the phpass hash:
 		$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = self::$wp_hasher->HashPassword( $password );
 
+		// Check if the password is required:
+		$required = post_password_required( $post_id );
+
+		// Clear the cookie:
+		unset( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] );
+
 		// Password is not required as it remains valid when hashed with phpass:
-		$this->assertFalse( post_password_required( $post_id ) );
+		$this->assertFalse( $required );
 	}
 }
