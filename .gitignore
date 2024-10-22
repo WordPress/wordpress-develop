@@ -22,6 +22,7 @@ wp-tests-config.php
 /build
 /tests/phpunit/build
 /wp-cli.local.yml
+/phpstan.neon
 /jsdoc
 /composer.lock
 /vendor

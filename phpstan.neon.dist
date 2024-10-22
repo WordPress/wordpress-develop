@@ -1,0 +1,39 @@
+# PHPStan configuration for WordPress Core.
+#
+# To overload this configuration, copy this file to phpstan.neon and adjust as needed.
+#
+# https://phpstan.org/config-reference
+
+includes:
+  # The WordPress Core configuration file includes the base configuration for the WordPress codebase.
+  - tests/phpstan/base.neon
+  # The baseline file includes preexisting errors in the codebase that should be ignored.
+  # https://phpstan.org/user-guide/baseline
+  - tests/phpstan/baseline/level-0.php
+  - tests/phpstan/baseline/level-1.php
+  - tests/phpstan/baseline/level-2.php
+  - tests/phpstan/baseline/level-3.php
+  - tests/phpstan/baseline/level-4.php
+  - tests/phpstan/baseline/level-5.php
+  - tests/phpstan/baseline/level-6.php
+
+parameters:
+  level: 6
+
+  ignoreErrors:
+    # Inner functions aren't supported:
+    - '#Inner named functions are not supported by PHPStan#'
+    # Inner functions within the importer:
+    - '#Function wxr_[a-z_]+ not found#'
+
+    # Level 1:
+
+    # These are too noisy at the moment:
+    - '#Variable \$[a-zA-Z0-9_]+ might not be defined\.#'
+    - '#Variable \$[a-zA-Z0-9_]+ in isset\(\) always exists and is not nullable\.#'
+
+    # Level 6:
+
+    # WPCS syntax for iterable types is not supported:
+    -
+      identifier: missingType.iterableValue

@@ -1,0 +1,66 @@
+# Base PHPStan configuration for WordPress Core.
+#
+# This is kept separate from the main PHPStan configuration file to allow for easy overloading while baseline errors are being fixed.
+#
+# https://phpstan.org/config-reference
+
+parameters:
+  # What directories and files should be scanned.
+  paths:
+    - ../../src
+  bootstrapFiles:
+    - bootstrap.php
+  scanFiles:
+    - ../../wp-config-sample.php
+    - ../../src/wp-admin/includes/ms.php
+  scanDirectories:
+    - ../../src/wp-includes
+    - ../../src/wp-admin
+  excludePaths:
+    analyseAndScan:
+      # These files are deprecated and should not be scanned.
+      - ../../src/wp-admin/includes/deprecated.php
+      - ../../src/wp-admin/includes/ms-deprecated.php
+      - ../../src/wp-admin/includes/noop.php
+      - ../../src/wp-includes/deprecated.php
+      - ../../src/wp-includes/ms-deprecated.php
+      - ../../src/wp-includes/pluggable-deprecated.php
+      # These files are not part of the WordPress Core codebase.
+      - ../../src/wp-content
+      # JavaScript/CSS/Asset files.
+      - ../../src/js
+      - ../../src/wp-admin/css
+      - ../../src/wp-admin/images
+      - ../../src/wp-admin/js
+    analyse:
+      # Third-party libraries.
+      - ../../src/wp-admin/includes/class-ftp-pure.php
+      - ../../src/wp-admin/includes/class-ftp-sockets.php
+      - ../../src/wp-admin/includes/class-ftp.php
+      - ../../src/wp-admin/includes/class-pclzip.php
+      - ../../src/wp-includes/atomlib.php
+      - ../../src/wp-includes/class-json.php
+      - ../../src/wp-includes/class-phpmailer.php
+      - ../../src/wp-includes/class-requests.php
+      - ../../src/wp-includes/class-simplepie.php
+      - ../../src/wp-includes/class-smtp.php
+      - ../../src/wp-includes/class-snoopy.php
+      - ../../src/wp-includes/class-wp-feed-cache.php
+      - ../../src/wp-includes/class-wp-http-ixr-client.php
+      - ../../src/wp-includes/class-wp-http-requests-hooks.php
+      - ../../src/wp-includes/class-wp-http-requests-response.php
+      - ../../src/wp-includes/class-wp-simplepie-file.php
+      - ../../src/wp-includes/class-wp-simplepie-sanitize-kses.php
+      - ../../src/wp-includes/class-wp-text-diff-renderer-inline.php
+      - ../../src/wp-includes/class-wp-text-diff-renderer-table.php
+      - ../../src/wp-includes/ID3
+      - ../../src/wp-includes/PHPMailer
+      - ../../src/wp-includes/pomo
+      - ../../src/wp-includes/random_compat
+      - ../../src/wp-includes/Requests
+      - ../../src/wp-includes/rss.php
+      - ../../src/wp-includes/SimplePie
+      - ../../src/wp-includes/sodium_compat
+      - ../../src/wp-includes/Text
+      # Contains errors that cannot be ignored by PHPStan.
+      - ../../src/wp-includes/html-api/class-wp-html-processor.php
