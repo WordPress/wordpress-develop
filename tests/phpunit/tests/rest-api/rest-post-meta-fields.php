@@ -11,6 +11,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	protected static $wp_meta_keys_saved;
 	protected static $post_id;
 	protected static $cpt_post_id;
+	protected $error_query_regexp;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		register_post_type(
@@ -259,6 +260,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
+		$this->error_query_regexp = null;
 	}
 
 	protected function grant_write_permission() {
@@ -4013,5 +4015,111 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			'number default'  => array( 'number', 42.99, 43.99 ),
 			'string default'  => array( 'string', 'string', 'string2' ),
 		);
+	}
+
+	/**
+	 * @ticket 60618
+	 *
+	 * @dataProvider data_update_meta_should_not_fail_with_duplicate_values_for_single_registered_post_meta
+	 *
+	 * @covers WP_REST_Meta_Fields::update_meta_value
+	 *
+	 * @param string $post_type Post type.
+	 * @param string $endpoint  REST API endpoint (post type).
+	 */
+	public function test_update_meta_should_not_fail_with_duplicate_values_for_single_registered_post_meta( $post_type, $endpoint, $assert_database_error = false ) {
+		$this->grant_write_permission();
+
+		// Set up a new post.
+		$post_id = $this->factory()->post->create(
+			array(
+				'post_content' => 'initial content',
+				'post_type'    => $post_type,
+			)
+		);
+
+		add_post_meta( $post_id, 'foo_meta_key', 'bar' );
+		add_post_meta( $post_id, 'foo_meta_key', 'bar' );
+		add_post_meta( $post_id, 'foo_meta_key', 'bar' );
+
+		register_post_meta(
+			$post_type,
+			'foo_meta_key',
+			array(
+				'show_in_rest'  => true,
+				'single'        => true,
+				'type'          => 'string',
+				'auth_callback' => function () {
+					return current_user_can( 'edit_posts' );
+				},
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/' . $endpoint . '/' . $post_id );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'foo_meta_key' => 'bar',
+				),
+			)
+		);
+
+		if ( $assert_database_error ) {
+			global $wpdb;
+			$wpdb->suppress_errors    = true;
+			$this->error_query_regexp = '/^UPDATE.*foo_meta_key/i';
+			add_filter( 'query', array( $this, 'error_query' ) );
+		}
+		// Ensure the request does not result in a 500 HTTP error due to a duplicate meta value.
+		$response = rest_get_server()->dispatch( $request );
+
+		if ( $assert_database_error ) {
+			$wpdb->suppress_errors = false;
+			remove_filter( 'query', array( $this, 'error_query' ) );
+			$this->assertErrorResponse(
+				'rest_meta_database_error',
+				$response,
+				500,
+				'Expected error response code "rest_meta_database_error".'
+			);
+		} else {
+			$this->assertSame(
+				200,
+				$response->get_status(),
+				'Expected response status 200, got: ' . $response->get_status()
+			);
+		}
+
+		unregister_post_meta( $post_type, 'foo_meta_key' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_update_meta_should_not_fail_with_duplicate_values_for_single_registered_post_meta() {
+		return array(
+			'post'                             => array( 'post', 'posts' ),
+			'custom post type'                 => array( 'cpt', 'cpt' ),
+			'page'                             => array( 'page', 'pages' ),
+			'post, database error'             => array( 'post', 'posts', true ),
+			'custom post type, database error' => array( 'cpt', 'cpt', true ),
+			'page, database error'             => array( 'page', 'pages', true ),
+		);
+	}
+
+	/**
+	 * Internal function used to disable a query which
+	 * will trigger a wpdb error for testing purposes.
+	 *
+	 * @param string $query The query to modify.
+	 */
+	public function error_query( $query ) {
+		if ( 1 === preg_match( $this->error_query_regexp, $query ) ) {
+			$query = '],';
+		}
+
+		return $query;
 	}
 }
