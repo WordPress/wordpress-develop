@@ -2660,10 +2660,10 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	function wp_check_password( $password, $hash, $user_id = '' ) {
 		global $wp_hasher;
 
+		$check = false;
+
 		// If the hash is still md5 or otherwise truncated then invalidate it.
 		if ( strlen( $hash ) <= 32 ) {
-			$check = false;
-
 			/**
 			 * Filters whether the plaintext password matches the hashed password.
 			 *
