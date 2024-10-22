@@ -2147,7 +2147,7 @@ function admin_page_exists() {
 	if ( isset( $plugin_page ) ) {
 		$hookname = get_plugin_page_hookname( $plugin_page, $admin_page_parent );
 
-		if ( ! isset( $_registered_pages[$hookname] ) ) {
+		if ( ! isset( $_registered_pages[ $hookname ] ) ) {
 			return false;
 		}
 	}
