@@ -3337,6 +3337,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		'src'      => '',
 		'loop'     => '',
 		'autoplay' => '',
+		'muted'    => false,
 		'preload'  => 'none',
 		'class'    => 'wp-audio-shortcode',
 		'style'    => 'width: 100%;',
@@ -3416,12 +3417,13 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		'id'       => sprintf( 'audio-%d-%d', $post_id, $instance ),
 		'loop'     => wp_validate_boolean( $atts['loop'] ),
 		'autoplay' => wp_validate_boolean( $atts['autoplay'] ),
+		'muted'    => wp_validate_boolean( $atts['muted'] ),
 		'preload'  => $atts['preload'],
 		'style'    => $atts['style'],
 	);
 
 	// These ones should just be omitted altogether if they are blank.
-	foreach ( array( 'loop', 'autoplay', 'preload' ) as $a ) {
+	foreach ( array( 'loop', 'autoplay', 'preload', 'muted' ) as $a ) {
 		if ( empty( $html_atts[ $a ] ) ) {
 			unset( $html_atts[ $a ] );
 		}
@@ -3430,7 +3432,20 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 	$attr_strings = array();
 
 	foreach ( $html_atts as $k => $v ) {
-		$attr_strings[] = $k . '="' . esc_attr( $v ) . '"';
+		if ( in_array( $k, array( 'loop', 'autoplay', 'muted' ), true ) && true === $v ) {
+			// Add boolean attributes without a value
+			$attr_strings[] = esc_attr( $k );
+		} elseif ( 'preload' === $k && ! empty( $v ) ) {
+			// Handle the preload attribute with specific allowed values
+			$allowed_preload_values = array( 'none', 'metadata', 'auto' );
+			if ( in_array( $v, $allowed_preload_values, true ) ) {
+				$attr_strings[] = sprintf( '%s="%s"', esc_attr( $k ), esc_attr( $v ) );
+			}
+			// If the value is not allowed, you can log a warning or handle it as needed
+		} else {
+			// For other attributes, include the value
+			$attr_strings[] = $k . '="' . esc_attr( $v ) . '"';
+		}
 	}
 
 	$html = '';
