@@ -79,7 +79,7 @@ services:
       - mysql:/var/lib/mysql
 
     # For compatibility with PHP versions that don't support the caching_sha2_password auth plugin used in MySQL 8.0.
-    command: ${LOCAL_DB_AUTH_OPTION-}
+    command: --default-authentication-plugin=mysql_native_password
 
     healthcheck:
       test: [ "CMD-SHELL", "if [ \"$LOCAL_DB_TYPE\" = \"mariadb\" ]; then mariadb-admin ping -h localhost; else mysqladmin ping -h localhost; fi" ]
