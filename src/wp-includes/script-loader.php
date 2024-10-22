@@ -1681,7 +1681,6 @@ function wp_default_styles( $styles ) {
 
 	$wp_edit_blocks_dependencies = array(
 		'wp-components',
-		'wp-editor',
 		/*
 		 * This needs to be added before the block library styles,
 		 * The block library styles override the "reset" styles.
@@ -1749,6 +1748,7 @@ function wp_default_styles( $styles ) {
 		'edit-widgets'         => array(
 			'wp-widgets',
 			'wp-block-editor',
+			'wp-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
 			'wp-reusable-blocks',
@@ -1758,6 +1758,7 @@ function wp_default_styles( $styles ) {
 		'customize-widgets'    => array(
 			'wp-widgets',
 			'wp-block-editor',
+			'wp-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
 			'wp-reusable-blocks',
@@ -1767,6 +1768,7 @@ function wp_default_styles( $styles ) {
 		'edit-site'            => array(
 			'wp-components',
 			'wp-block-editor',
+			'wp-editor',
 			'wp-edit-blocks',
 			'wp-commands',
 			'wp-preferences',
