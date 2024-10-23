@@ -82,6 +82,8 @@ function wp_admin_bar_render() {
 		return;
 	}
 
+	$switched = switch_to_locale( get_user_locale() );
+
 	/**
 	 * Loads all necessary admin bar items.
 	 *
@@ -111,6 +113,10 @@ function wp_admin_bar_render() {
 	 * @since 3.1.0
 	 */
 	do_action( 'wp_after_admin_bar_render' );
+
+	if ( $switched ) {
+		restore_previous_locale();
+	}
 
 	$rendered = true;
 }
@@ -1402,4 +1408,35 @@ function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
 	}
 
 	return 'true' === $pref;
+}
+
+/**
+* Temporarily change the text direction when printing admin bar styles.
+*
+* @since x.x.x
+* @access private
+*
+* @param string $html   The link tag for the enqueued style.
+* @param string $handle The style's registered handle.
+*
+* @return string The link tag for the enqueued style.
+*/
+function _admin_bar_style_set_text_direction( $html, $handle ) {
+	static $text_direction = null;
+
+	if ( ! is_admin() && 'admin-bar' === $handle ) {
+		$switched = switch_to_locale( get_user_locale() );
+
+		$text_direction = wp_styles()->text_direction;
+
+		wp_styles()->text_direction = function_exists( 'is_rtl' ) && is_rtl() ? 'rtl' : 'ltr';
+
+		if ( $switched ) {
+			restore_previous_locale();
+		}
+	} elseif ( null !== $text_direction ) {
+		wp_styles()->text_direction = $text_direction;
+	}
+
+	return $html;
 }
