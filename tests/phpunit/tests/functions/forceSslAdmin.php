@@ -42,14 +42,14 @@ class Tests_Functions_ForceSslAdmin extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_should_return_expected_value_when_various_inputs_are_passed
 	 *
-	 * @param mixed $input                 The input value to test.
-	 * @param bool $expectedFirstCall      The expected result for the first call.
-	 * @param bool $expectedSubsequentCall The expected result for subsequent calls.
+	 * @param mixed $input                   The input value to test.
+	 * @param bool $expected_first_call      The expected result for the first call.
+	 * @param bool $expected_subsequent_call The expected result for subsequent calls.
 	 */
-	public function test_should_return_expected_value_when_various_inputs_are_passed( $input, $expectedFirstCall, $expectedSubsequentCall ) {
-		$this->assertSame( $expectedFirstCall, force_ssl_admin( $input ), 'First call did not return expected value' );
+	public function test_should_return_expected_value_when_various_inputs_are_passed( $input, $expected_first_call, $expected_subsequent_call ) {
+		$this->assertSame( $expected_first_call, force_ssl_admin( $input ), 'First call did not return expected value' );
 
 		// Call again to check subsequent behavior
-		$this->assertSame( $expectedSubsequentCall, force_ssl_admin( $input ), 'Subsequent call did not return expected value' );
+		$this->assertSame( $expected_subsequent_call, force_ssl_admin( $input ), 'Subsequent call did not return expected value' );
 	}
 }
