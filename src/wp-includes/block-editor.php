@@ -211,10 +211,19 @@ function get_default_block_editor_settings() {
 		);
 	}
 
+	$allowed_mime_types = get_allowed_mime_types();
+
+	// Iterate through mime types and check if they are supported by the image editor.
+	foreach ( $allowed_mime_types as $mime_type_extensions => $mime_type ) {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => $mime_type ) ) ) {
+			unset( $allowed_mime_types[ $mime_type_extensions ] );
+		}
+	}
+
 	$editor_settings = array(
 		'alignWide'                        => get_theme_support( 'align-wide' ),
 		'allowedBlockTypes'                => true,
-		'allowedMimeTypes'                 => get_allowed_mime_types(),
+		'allowedMimeTypes'                 => $allowed_mime_types,
 		'defaultEditorStyles'              => $default_editor_styles,
 		'blockCategories'                  => get_default_block_categories(),
 		'isRTL'                            => is_rtl(),
