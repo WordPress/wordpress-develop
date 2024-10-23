@@ -1,3 +1,5 @@
+const { existsSync } = require( 'node:fs' );
+
 const local_env_utils = {
 
 	/**
@@ -11,6 +13,10 @@ const local_env_utils = {
 	 */
 	get_compose_files: function() {
 		var composeFiles = '-f docker-compose.yml';
+
+		if ( existsSync( 'docker-compose.override.yml' ) ) {
+			composeFiles = composeFiles + ' -f docker-compose.override.yml';
+		}
 
 		if ( process.env.LOCAL_DB_TYPE !== 'mysql' ) {
 			return composeFiles;
