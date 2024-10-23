@@ -45,9 +45,15 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
+        db-version: [ '5.7', '8.0', '8.4' ]
         wp: [ '6.0', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6', '6.7-RC1' ]
         multisite: [ false, true ]
+
+        exclude:
+          - php: '7.2'
+            db-version: '8.4'
+          - php: '7.3'
+            db-version: '8.4'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -68,9 +74,15 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '7.2', '7.3', '7.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
+        db-version: [ '5.7', '8.0', '8.4' ]
         wp: [ '5.0', '5.1', '5.2', '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9' ]
         multisite: [ false, true ]
+
+        exclude:
+          - php: '7.2'
+            db-version: '8.4'
+          - php: '7.3'
+            db-version: '8.4'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -95,7 +107,7 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
+        db-version: [ '5.7', '8.0', '8.4' ]
         wp: [ '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9' ]
         multisite: [ false, true ]
     with:
@@ -118,9 +130,15 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '7.2', '7.3', '7.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
+        db-version: [ '5.7', '8.0', '8.4' ]
         wp: [ '4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7', '4.8', '4.9' ]
         multisite: [ false, true ]
+
+        exclude:
+          - php: '7.2'
+            db-version: '8.4'
+          - php: '7.3'
+            db-version: '8.4'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -145,7 +163,7 @@ jobs:
         os: [ 'ubuntu-latest' ]
         php: [ '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
+        db-version: [ '5.7', '8.0', '8.4' ]
         wp: [ '4.1', '4.2', '4.3', '4.4', '4.5' ]
         multisite: [ false, true ]
     with:
