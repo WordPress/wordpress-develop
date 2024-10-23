@@ -363,7 +363,7 @@ $bulk_messages['post']     = array(
 	/* translators: %s: Number of posts. */
 	'deleted'   => _n( '%s post permanently deleted.', '%s posts permanently deleted.', $bulk_counts['deleted'] ),
 	/* translators: %s: Number of posts. */
-	'trashed'   => _n( '%s post moved to the Trash.', '%s posts moved to the Trash.', $bulk_counts['trashed'] ),
+	'trashed'   => _n( '%s post moved to the Trash.', '%s posts moved to the Trash.', $bulk_counts['trashed'] ) . sprintf( __( 'It will be deleted from trash after %s days.' ), EMPTY_TRASH_DAYS ),
 	/* translators: %s: Number of posts. */
 	'untrashed' => _n( '%s post restored from the Trash.', '%s posts restored from the Trash.', $bulk_counts['untrashed'] ),
 );
@@ -376,7 +376,7 @@ $bulk_messages['page']     = array(
 	/* translators: %s: Number of pages. */
 	'deleted'   => _n( '%s page permanently deleted.', '%s pages permanently deleted.', $bulk_counts['deleted'] ),
 	/* translators: %s: Number of pages. */
-	'trashed'   => _n( '%s page moved to the Trash.', '%s pages moved to the Trash.', $bulk_counts['trashed'] ),
+	'trashed'   => _n( '%s page moved to the Trash.', '%s pages moved to the Trash.', $bulk_counts['trashed'] ) . sprintf( __( 'It will be deleted from trash after %s days.' ), EMPTY_TRASH_DAYS ),
 	/* translators: %s: Number of pages. */
 	'untrashed' => _n( '%s page restored from the Trash.', '%s pages restored from the Trash.', $bulk_counts['untrashed'] ),
 );
@@ -389,7 +389,7 @@ $bulk_messages['wp_block'] = array(
 	/* translators: %s: Number of patterns. */
 	'deleted'   => _n( '%s pattern permanently deleted.', '%s patterns permanently deleted.', $bulk_counts['deleted'] ),
 	/* translators: %s: Number of patterns. */
-	'trashed'   => _n( '%s pattern moved to the Trash.', '%s patterns moved to the Trash.', $bulk_counts['trashed'] ),
+	'trashed'   => _n( '%s pattern moved to the Trash.', '%s patterns moved to the Trash.', $bulk_counts['trashed'] ) . sprintf( __( 'It will be deleted from trash after %s days.' ), EMPTY_TRASH_DAYS ),
 	/* translators: %s: Number of patterns. */
 	'untrashed' => _n( '%s pattern restored from the Trash.', '%s patterns restored from the Trash.', $bulk_counts['untrashed'] ),
 );
