@@ -1097,6 +1097,35 @@
 					$( '#submit-customlinkdiv' ).trigger( 'click' );
 				}
 			});
+
+			$('#submit-customlinkdiv').on('click', function(e) {
+				var urlInput = $('#custom-menu-item-url'),
+					url = urlInput.val(),
+					errorMessage = $('#custom-url-error'),
+					urlWrap = $('#menu-item-url-wrap');
+			
+				// Hide the error message initially
+				errorMessage.hide();
+				urlWrap.removeClass('has-error');
+			
+				if ('' === url || 'https://' === url || 'http://' === url) {
+					e.preventDefault();
+					urlInput.addClass('form-invalid')
+						.attr('aria-invalid', 'true')
+						.attr('aria-describedby', 'custom-url-error');
+			
+					// Show the error message and add the class for extra margin
+					errorMessage.show();
+					urlWrap.addClass('has-error');
+			
+					// Announce error message via screen reader
+					wp.a11y.speak('Invalid URL. Please enter a valid URL.', 'assertive');
+				} else {
+					urlInput.removeClass('form-invalid')
+						.removeAttr('aria-invalid')
+						.removeAttr('aria-describedby');
+				}
+			});
 		},
 
 		/**

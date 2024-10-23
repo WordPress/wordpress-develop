@@ -382,6 +382,14 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 	float: right;
 }
 
+.postbox .howto input,
+.customlinkdiv .error-message {
+	position: absolute;
+	top: 30px;
+	width: 180px;
+	right: 0;
+}
+
 .accordion-container .outer-border {
 	margin: 0;
 }
@@ -868,6 +876,14 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	display: block;
 }
 
+#menu-item-url-wrap {
+	position: relative;
+}
+
+#menu-item-url-wrap.has-error {
+	margin-bottom: 2em;
+}
+
 /* =Media Queries
 -------------------------------------------------------------- */
 
@@ -889,6 +905,11 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	body.nav-menus-php,
 	body.wp-customizer {
 		min-width: 0 !important;
+	}
+
+	.postbox .howto input,
+	.customlinkdiv .error-message {
+		top: 40px;
 	}
 
 	#nav-menus-frame {
