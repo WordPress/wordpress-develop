@@ -979,7 +979,9 @@ function wp_get_mu_plugins() {
  * @since 3.0.0
  * @access private
  *
- * @return string[] Array of paths to plugin files relative to the plugins directory.
+ * @return string[] Array of absolute paths to plugin files.
+ *                  Each path is an absolute path to the plugin file,
+ *                  not relative to the plugins directory.
  */
 function wp_get_active_and_valid_plugins() {
 	$plugins        = array();
