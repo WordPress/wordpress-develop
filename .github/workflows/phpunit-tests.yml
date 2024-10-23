@@ -47,7 +47,7 @@ jobs:
         os: [ ubuntu-latest ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4', '9.0' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.0', '9.1' ]
         tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
@@ -126,7 +126,7 @@ jobs:
         os: [ ubuntu-latest ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mariadb' ]
-        db-version: [ '10.4', '10.6', '10.11', '11.2' ]
+        db-version: [ '10.4', '10.6', '10.11', '11.2', '11.4' ]
         multisite: [ false, true ]
         memcached: [ false ]
 
@@ -135,13 +135,13 @@ jobs:
         - os: ubuntu-latest
           php: '7.4'
           db-type: 'mariadb'
-          db-version: '11.2'
+          db-version: '11.4'
           multisite: false
           memcached: true
         - os: ubuntu-latest
           php: '7.4'
           db-type: 'mariadb'
-          db-version: '11.2'
+          db-version: '11.4'
           multisite: true
           memcached: true
     with:
