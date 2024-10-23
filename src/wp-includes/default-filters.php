@@ -293,8 +293,8 @@ add_filter( 'wp_default_autoload_value', 'wp_filter_default_autoload_value_via_o
 add_filter( 'option_ping_sites', 'privacy_ping_filter' );
 add_filter( 'option_blog_charset', '_wp_specialchars' ); // IMPORTANT: This must not be wp_specialchars() or esc_html() or it'll cause an infinite loop.
 add_filter( 'option_blog_charset', '_canonical_charset' );
-add_filter( 'option_home', '_config_wp_home' );
-add_filter( 'option_siteurl', '_config_wp_siteurl' );
+add_filter( 'pre_option_home', '_config_wp_home' );
+add_filter( 'pre_option_siteurl', '_config_wp_siteurl' );
 add_filter( 'tiny_mce_before_init', '_mce_set_direction' );
 add_filter( 'teeny_mce_before_init', '_mce_set_direction' );
 add_filter( 'pre_kses', 'wp_pre_kses_less_than' );
