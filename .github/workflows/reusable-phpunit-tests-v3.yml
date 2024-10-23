@@ -105,7 +105,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   phpunit-tests:
-    name: PHP ${{ inputs.php }} / ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.phpunit-test-groups && format( ' ({0})', inputs.phpunit-test-groups ) || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }}${{ inputs.coverage-format && format( '({0} report)', inputs.coverage-format ) || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
+    name: PHP ${{ inputs.php }} / ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.phpunit-test-groups && format( ' ({0})', inputs.phpunit-test-groups ) || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: ${{ inputs.coverage-format && 120 || 20 }}
 

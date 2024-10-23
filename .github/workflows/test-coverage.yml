@@ -50,7 +50,7 @@ jobs:
         multisite: [ false, true ]
         format: [ clover, html ]
     with:
-      php: '8.3-fpm'
+      php: '8.3'
       multisite: ${{ matrix.multisite }}
       coverage-format: ${{ matrix.format }}
     secrets:
