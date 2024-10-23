@@ -1,6 +1,13 @@
 👋 Welcome to "WordPress Core Development" in Codespaces!
 
-🛠️  Your environment is fully setup with all the required software.
+🛠️ Your environment is fully setup with all the required software.
 
-🚀 To get started, wait for the "postCreateCommand" to finish setting things up, then open the portforwarded URL and append '/wp-admin'.
+🚀 Wait for the postCreateCommand build to complete (view the log via Cmd/Ctrl + P, "> View Creation Log"),
+   then your site will be ready to view at:
 
+     SITE_URL
+
+  - Cmd/Ctrl + Click any link in the terminal to open it
+  - The default username is "admin" with password "password"
+
+Happy hacking!
