@@ -2862,7 +2862,9 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 	// Separate individual queries into an array.
 	if ( ! is_array( $queries ) ) {
-		$queries = explode( ';', $queries );
+		// $queries = explode( ';', $queries );
+		$queries = preg_split( '/;(?=(?:[^\'"]*[\'"][^\'"]*[\'"])*[^\'"]*$)/', $queries );
+		$queries = array_map( 'trim', $queries );
 		$queries = array_filter( $queries );
 	}
 
