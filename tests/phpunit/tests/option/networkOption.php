@@ -412,4 +412,108 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$this->assertIsArray( $network_notoptions_cache, 'Multisite notoptions cache should be set.' );
 		$this->assertArrayHasKey( 'ticket_61730_notoption', $network_notoptions_cache, 'The option should be in the notoptions cache.' );
 	}
+
+	/**
+	 * Tests that update_network_option() adds a non-existent option that uses a filtered default value.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_network_option_should_add_option_with_filtered_default_value() {
+		global $wpdb;
+
+		$option        = 'update_network_option_custom_default';
+		$default_value = 'default-value';
+
+		add_filter(
+			"default_site_option_{$option}",
+			static function () use ( $default_value ) {
+				return $default_value;
+			}
+		);
+
+		/*
+		 * For a non existing option with the unfiltered default of false, passing false here wouldn't work.
+		 * Because the default is different than false here though, passing false is expected to result in
+		 * a database update.
+		 */
+		$this->assertTrue( update_network_option( null, $option, false ), 'update_network_option() should have returned true.' );
+		if ( is_multisite() ) {
+				$table       = $wpdb->sitemeta;
+				$name_field  = 'meta_key';
+				$value_field = 'meta_value';
+		} else {
+				$table       = $wpdb->options;
+				$name_field  = 'option_name';
+				$value_field = 'option_value';
+		}
+
+		$actual = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT %s FROM %s WHERE %s = 'foo' LIMIT 1",
+				$value_field,
+				$table,
+				$name_field
+			)
+		);
+
+		$this->assertIsObject( $actual, 'The option was not added to the database.' );
+		$this->assertObjectHasProperty( $value_field, $actual, "The '$value_field' property was not included." );
+		$this->assertSame( '', $actual->$value_field, 'The new value was not stored in the database.' );
+	}
+
+	/**
+	 * Tests that a non-existent option is added even when its pre filter returns a value.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_network_option_with_pre_filter_adds_missing_option() {
+		// Force a return value of integer 0.
+		add_filter( 'pre_site_option_foo', '__return_zero' );
+
+		/*
+		 * This should succeed, since the 'foo' option does not exist in the database.
+		 * The default value is false, so it differs from 0.
+		 */
+		$this->assertTrue( update_network_option( null, 'foo', 0 ) );
+	}
+
+	/**
+	 * Tests that an existing option is updated even when its pre filter returns the same value.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_network_option_with_pre_filter_updates_option_with_different_value() {
+		// Add the option with a value of 1 to the database.
+		update_network_option( null, 'foo', 1 );
+
+		// Force a return value of integer 0.
+		add_filter( 'pre_site_option_foo', '__return_zero' );
+
+		/*
+		 * This should succeed, since the 'foo' option has a value of 1 in the database.
+		 * Therefore it differs from 0 and should be updated.
+		 */
+		$this->assertTrue( update_network_option( null, 'foo', 0 ) );
+	}
+
+	/**
+	 * Tests that calling update_network_option() does not permanently remove pre filters.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_network_option_maintains_pre_filters() {
+		add_filter( 'pre_site_option_foo', '__return_zero' );
+		update_network_option( null, 'foo', 0 );
+
+		// Assert that the filter is still present.
+		$this->assertSame( 10, has_filter( 'pre_site_option_foo', '__return_zero' ) );
+	}
 }
