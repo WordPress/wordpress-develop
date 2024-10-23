@@ -427,7 +427,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			)
 		);
 
-		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
+		wp_cache_add_non_persistent_groups( array( 'plugins', 'theme_json' ) );
 	}
 
 	/**

@@ -1416,7 +1416,9 @@ function wp_count_comments( $post_id = 0 ) {
 		return $filtered;
 	}
 
-	$count = wp_cache_get( "comments-{$post_id}", 'counts' );
+	$cache_key = wp_cache_get_last_changed( 'comment' ) . ":comments-{$post_id}";
+
+	$count = wp_cache_get( $cache_key, 'persistent-counts' );
 	if ( false !== $count ) {
 		return $count;
 	}
@@ -1426,7 +1428,7 @@ function wp_count_comments( $post_id = 0 ) {
 	unset( $stats['awaiting_moderation'] );
 
 	$stats_object = (object) $stats;
-	wp_cache_set( "comments-{$post_id}", $stats_object, 'counts' );
+	wp_cache_set( $cache_key, $stats_object, 'persistent-counts' );
 
 	return $stats_object;
 }
@@ -1551,6 +1553,8 @@ function wp_trash_comment( $comment_id ) {
 		add_comment_meta( $comment->comment_ID, '_wp_trash_meta_status', $comment->comment_approved );
 		add_comment_meta( $comment->comment_ID, '_wp_trash_meta_time', time() );
 
+		clean_comment_cache( $comment->comment_ID );
+
 		/**
 		 * Fires immediately after a comment is sent to Trash.
 		 *
@@ -1602,6 +1606,8 @@ function wp_untrash_comment( $comment_id ) {
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_time' );
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_status' );
 
+		clean_comment_cache( $comment->comment_ID );
+
 		/**
 		 * Fires immediately after a comment is restored from the Trash.
 		 *
@@ -1649,6 +1655,8 @@ function wp_spam_comment( $comment_id ) {
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_time' );
 		add_comment_meta( $comment->comment_ID, '_wp_trash_meta_status', $comment->comment_approved );
 		add_comment_meta( $comment->comment_ID, '_wp_trash_meta_time', time() );
+
+		clean_comment_cache( $comment->comment_ID );
 
 		/**
 		 * Fires immediately after a comment is marked as Spam.
@@ -1700,6 +1708,8 @@ function wp_unspam_comment( $comment_id ) {
 	if ( wp_set_comment_status( $comment, $status ) ) {
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_status' );
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_time' );
+
+		clean_comment_cache( $comment->comment_ID );
 
 		/**
 		 * Fires immediately after a comment is unmarked as Spam.
@@ -2730,9 +2740,6 @@ function wp_update_comment_count_now( $post_id ) {
 		return false;
 	}
 
-	wp_cache_delete( 'comments-0', 'counts' );
-	wp_cache_delete( "comments-{$post_id}", 'counts' );
-
 	$post = get_post( $post_id );
 
 	if ( ! $post ) {
@@ -2761,6 +2768,8 @@ function wp_update_comment_count_now( $post_id ) {
 	$wpdb->update( $wpdb->posts, array( 'comment_count' => $new ), array( 'ID' => $post_id ) );
 
 	clean_post_cache( $post );
+
+	wp_cache_set_comments_last_changed();
 
 	/**
 	 * Fires immediately after a post's comment count is updated in the database.
