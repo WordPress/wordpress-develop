@@ -6246,9 +6246,8 @@ function force_ssl_admin( $force = null ) {
 	static $forced = false;
 
 	if ( ! is_null( $force ) ) {
-		// Check if $force is a boolean, typecast to boolean if it's not.
 		$old_forced = $forced;
-		$forced     = (bool) $force; // Always cast to boolean.
+		$forced     = (bool) $force;
 		return $old_forced;
 	}
 
