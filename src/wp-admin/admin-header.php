@@ -33,7 +33,10 @@ if ( empty( $current_screen ) ) {
 }
 
 get_admin_page_title();
-$title = strip_tags( $title );
+
+if ( ! is_null( $title ) ) {
+	$title = wp_strip_all_tags( $title ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+}
 
 if ( is_network_admin() ) {
 	/* translators: Network admin screen title. %s: Network title. */
