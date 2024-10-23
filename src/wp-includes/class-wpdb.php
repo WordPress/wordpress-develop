@@ -1437,6 +1437,8 @@ class wpdb {
 	 *              Check support via `wpdb::has_cap( 'identifier_placeholders' )`.
 	 *              This preserves compatibility with `sprintf()`, as the C version uses
 	 *              `%d` and `$i` as a signed integer, whereas PHP only supports `%d`.
+	 * @since 6.4.0 Added `%...d` and `%...s` to work with the `IN()` operator, e.g.
+	 *              'WHERE id IN (%...d) AND type = (%...s)', [[4, 29, 51], ['post', 'page']]
 	 *
 	 * @link https://www.php.net/sprintf Description of syntax.
 	 *
@@ -1496,10 +1498,10 @@ class wpdb {
 		$query = str_replace( '"%s"', '%s', $query ); // Strip any existing double quotes.
 
 		// Escape any unescaped percents (i.e. anything unrecognised).
-		$query = preg_replace( "/%(?:%|$|(?!($allowed_format)?[sdfFi]))/", '%%\\1', $query );
+		$query = preg_replace( "/%(?:%|$|(?!(\.\.\.)?($allowed_format)?[sdfFi]))/", '%%\\1', $query );
 
 		// Extract placeholders from the query.
-		$split_query = preg_split( "/(^|[^%]|(?:%%)+)(%(?:$allowed_format)?[sdfFi])/", $query, -1, PREG_SPLIT_DELIM_CAPTURE );
+		$split_query = preg_split( "/(^|[^%]|(?:%%)+)(%(?:\.\.\.)?(?:$allowed_format)?[sdfFi])/", $query, -1, PREG_SPLIT_DELIM_CAPTURE );
 
 		$split_query_count = count( $split_query );
 
@@ -1511,48 +1513,71 @@ class wpdb {
 
 		// If args were passed as an array, as in vsprintf(), move them up.
 		$passed_as_array = ( isset( $args[0] ) && is_array( $args[0] ) && 1 === count( $args ) );
+		if ( $passed_as_array && isset( $split_query[2] ) && substr( $split_query[2], 1, 3 ) === '...' && isset( $args[0][0] ) && false === is_array( $args[0][0] ) ) {
+			/*
+			 * The first (and only) placeholder is using variadics (e.g. '%...d'),
+			 * and that array has *not* been $passed_as_array.
+			 *
+			 * e.g. `$wpdb->prepare('id IN (%...d)', [ 1, 2, 3 ] );`.
+			 */
+			$passed_as_array = false;
+		}
 		if ( $passed_as_array ) {
 			$args = $args[0];
 		}
 
 		$new_query       = '';
 		$key             = 2; // Keys 0 and 1 in $split_query contain values before the first placeholder.
-		$arg_id          = 0;
+		$arg_current     = 0;
+		$arg_offset      = 0;
 		$arg_identifiers = array();
 		$arg_strings     = array();
+		$arg_variadics   = array();
 
 		while ( $key < $split_query_count ) {
+
+			// Glue (-2), any leading characters (-1); then the placeholder.
+			$prefix      = $split_query[ $key - 2 ] . $split_query[ $key - 1 ];
 			$placeholder = $split_query[ $key ];
+
+			$variadic = ( '...' === substr( $placeholder, 1, 3 ) );
+			if ( $variadic ) {
+				$placeholder = '%' . substr( $placeholder, 4 );
+			}
 
 			$format = substr( $placeholder, 1, -1 );
 			$type   = substr( $placeholder, -1 );
 
-			if ( 'f' === $type && true === $this->allow_unsafe_unquoted_parameters
-				/*
-				 * Note: str_ends_with() is not used here, as this file can be included
-				 * directly outside of WordPress core, e.g. by HyperDB, in which case
-				 * the polyfills from wp-includes/compat.php are not loaded.
-				 */
-				&& '%' === substr( $split_query[ $key - 1 ], -1, 1 )
-			) {
+			$escaped = null;
+			for ( $l = ( strlen( $prefix ) - 1 ); $l >= 0; $l-- ) {
+				if ( '%' === $prefix[ $l ] ) {
+					$escaped = ( null === $escaped ? true : ! $escaped );
+				} else {
+					break;
+				}
+			}
 
+			if ( 'f' === $type && true === $this->allow_unsafe_unquoted_parameters && null !== $escaped ) {
 				/*
 				 * Before WP 6.2 the "force floats to be locale-unaware" RegEx didn't
 				 * convert "%%%f" to "%%%F" (note the uppercase F).
 				 * This was because it didn't check to see if the leading "%" was escaped.
 				 * And because the "Escape any unescaped percents" RegEx used "[sdF]" in its
 				 * negative lookahead assertion, when there was an odd number of "%", it added
-				 * an extra "%", to give the fully escaped "%%%%f" (not a placeholder).
+				 * an extra "%", to give the fully escaped "%%%%f" (so it's never a placeholder).
 				 */
 
-				$s = $split_query[ $key - 2 ] . $split_query[ $key - 1 ];
-				$k = 1;
-				$l = strlen( $s );
-				while ( $k <= $l && '%' === $s[ $l - $k ] ) {
-					++$k;
-				}
+				$new_placeholder = '%' . ( true === $escaped ? '' : '%' ) . $format . $type;
 
-				$placeholder = '%' . ( $k % 2 ? '%' : '' ) . $format . $type;
+				--$placeholder_count;
+
+			} elseif ( true === $escaped ) { // Don't change the $placeholder to contain an argnum.
+
+				if ( $variadic ) {
+					$new_placeholder = '%...' . substr( $placeholder, 1 );
+				} else {
+					$new_placeholder = $placeholder;
+				}
 
 				--$placeholder_count;
 
@@ -1560,57 +1585,66 @@ class wpdb {
 
 				// Force floats to be locale-unaware.
 				if ( 'f' === $type ) {
-					$type        = 'F';
-					$placeholder = '%' . $format . $type;
+					$type = 'F';
 				}
 
-				if ( 'i' === $type ) {
-					$placeholder = '`%' . $format . 's`';
-					// Using a simple strpos() due to previous checking (e.g. $allowed_format).
-					$argnum_pos = strpos( $format, '$' );
+				$set_format = ( '' !== $format );
 
-					if ( false !== $argnum_pos ) {
-						// sprintf() argnum starts at 1, $arg_id from 0.
-						$arg_identifiers[] = ( ( (int) substr( $format, 0, $argnum_pos ) ) - 1 );
+				$argnum_pos = strpos( $format, '$' );
+				if ( false !== $argnum_pos ) {
+					$argnum_value = (int) substr( $format, 0, $argnum_pos );
+					$format       = substr( $format, ( $argnum_pos + 1 ) );
+				} else {
+					$argnum_value = ++$arg_current; // Argnum starts at 1.
+				}
+
+				$new_argnum = ( $argnum_value + $arg_offset );
+
+				if ( $variadic ) {
+					if ( 'i' === $type ) {
+						$new_prefix        = '`%';
+						$new_suffix        = $format . 's`';
+						$arg_identifiers[] = ( $argnum_value - 1 );
+					} elseif ( 'd' === $type || 'F' === $type ) {
+						$new_prefix = '%'; // No need to quote integers or floats.
+						$new_suffix = $format . $type;
 					} else {
-						$arg_identifiers[] = $arg_id;
+						$new_prefix = "'%";
+						$new_suffix = $format . $type . "'";
 					}
-				} elseif ( 'd' !== $type && 'F' !== $type ) {
-					/*
-					 * i.e. ( 's' === $type ), where 'd' and 'F' keeps $placeholder unchanged,
-					 * and we ensure string escaping is used as a safe default (e.g. even if 'x').
-					 */
-					$argnum_pos = strpos( $format, '$' );
-
-					if ( false !== $argnum_pos ) {
-						$arg_strings[] = ( ( (int) substr( $format, 0, $argnum_pos ) ) - 1 );
-					} else {
-						$arg_strings[] = $arg_id;
+					$new_placeholder = '';
+					$arg_count       = count( $args[ ( $argnum_value - 1 ) ] ); // The argnum in $format starts from 1, but $args index start from 0.
+					for ( $k = 0; $k < $arg_count; $k++ ) {
+						$new_placeholder .= $new_prefix . ( $new_argnum + $k ) . '$' . $new_suffix . ',';
 					}
-
-					/*
-					 * Unquoted strings for backward compatibility (dangerous).
-					 * First, "numbered or formatted string placeholders (eg, %1$s, %5s)".
-					 * Second, if "%s" has a "%" before it, even if it's unrelated (e.g. "LIKE '%%%s%%'").
-					 */
-					if ( true !== $this->allow_unsafe_unquoted_parameters
+					$new_placeholder = substr( $new_placeholder, 0, -1 );
+					$arg_offset     += ( $arg_count - 1 ); // The arg already counts as 1, the offset is how many extra to move.
+					$arg_variadics[] = ( $argnum_value - 1 );
+				} elseif ( 'i' === $type ) {
+					$new_placeholder   = '`%' . $new_argnum . '$' . $format . 's`';
+					$arg_identifiers[] = ( $argnum_value - 1 );
+				} elseif ( 'd' === $type || 'F' === $type ) {
+					$new_placeholder = '%' . $new_argnum . '$' . $format . $type; // No need to quote integers or floats.
+				} else { // i.e. ( 's' === $type ).
+					if ( true === $this->allow_unsafe_unquoted_parameters && ( $set_format || null !== $escaped ) ) {
 						/*
-						 * Note: str_ends_with() is not used here, as this file can be included
-						 * directly outside of WordPress core, e.g. by HyperDB, in which case
-						 * the polyfills from wp-includes/compat.php are not loaded.
+						 * Unquoted strings for backward compatibility (dangerous).
+						 * First, "numbered or formatted string placeholders (eg, %1$s, %5s)"
+						 * Second, if "%s" has a "%" before it, even if it's unrelated (e.g. "LIKE '%%%s%%'").
 						 */
-						|| ( '' === $format && '%' !== substr( $split_query[ $key - 1 ], -1, 1 ) )
-					) {
-						$placeholder = "'%" . $format . "s'";
+						$new_placeholder = '%' . $new_argnum . '$' . $format . 's';
+					} else {
+						$new_placeholder = "'%" . $new_argnum . '$' . $format . "s'";
 					}
+					$arg_strings[] = ( $argnum_value - 1 );
 				}
 			}
 
-			// Glue (-2), any leading characters (-1), then the new $placeholder.
-			$new_query .= $split_query[ $key - 2 ] . $split_query[ $key - 1 ] . $placeholder;
+			// Glue (-2), any leading characters (-1), then $new_placeholder.
+			$new_query .= $prefix . $new_placeholder;
 
 			$key += 3;
-			++$arg_id;
+
 		}
 
 		// Replace $query; and add remaining $query characters, or index 0 if there were no placeholders.
@@ -1723,7 +1757,13 @@ class wpdb {
 		$args_escaped = array();
 
 		foreach ( $args as $i => $value ) {
-			if ( in_array( $i, $arg_identifiers, true ) ) {
+			if ( in_array( $i, $arg_variadics, true ) ) {
+				if ( in_array( $i, $arg_identifiers, true ) ) {
+					$args_escaped = array_merge( $args_escaped, array_map( array( $this, '_escape_identifier_value' ), $value ) );
+				} else {
+					$args_escaped = array_merge( $args_escaped, array_map( array( $this, '_real_escape' ), $value ) );
+				}
+			} elseif ( in_array( $i, $arg_identifiers, true ) ) {
 				$args_escaped[] = $this->_escape_identifier_value( $value );
 			} elseif ( is_int( $value ) || is_float( $value ) ) {
 				$args_escaped[] = $value;
@@ -4092,6 +4132,12 @@ class wpdb {
 				/*
 				 * As of WordPress 6.2, wpdb::prepare() supports identifiers via '%i',
 				 * e.g. table/field names.
+				 */
+				return true;
+			case 'variadic_placeholders':   // @since 6.3.0
+				/*
+				 * As of WordPress 6.3, wpdb::prepare() supports variadics via `%...d`,
+				 * e.g. `IN (%...d)`.
 				 */
 				return true;
 		}
