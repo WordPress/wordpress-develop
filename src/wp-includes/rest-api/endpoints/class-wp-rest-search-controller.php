@@ -42,6 +42,11 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	const PROP_SUBTYPE = 'subtype';
 
 	/**
+	 * Label property name.
+	 */
+	const PROP_LABEL = 'label';
+
+	/**
 	 * Identifier for the 'any' type.
 	 */
 	const TYPE_ANY = 'any';
@@ -280,6 +285,12 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 					'description' => __( 'Object subtype.' ),
 					'type'        => 'string',
 					'enum'        => $subtypes,
+					'context'     => array( 'view', 'embed' ),
+					'readonly'    => true,
+				),
+				self::PROP_LABEL   => array(
+					'description' => __( 'Object human readable subtype.' ),
+					'type'        => 'string',
 					'context'     => array( 'view', 'embed' ),
 					'readonly'    => true,
 				),
