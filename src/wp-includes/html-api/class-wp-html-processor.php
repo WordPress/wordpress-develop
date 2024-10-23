@@ -281,24 +281,62 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * ## Current HTML Support
 	 *
-	 *  - The only supported context is `<body>`, which is the default value.
 	 *  - The only supported document encoding is `UTF-8`, which is the default value.
+	 *
+	 * Example:
+	 *
+	 *     // Usually, snippets of HTML ought to be processed in the default `<body>` context.
+	 *     $processor = WP_HTML_Processor::create_fragment( '<p>Hi</p>' );
+	 *
+	 *     // Prevent inner closing tags from closing the containing element and leaking out.
+	 *     $processor = WP_HTML_Processor::create_fragment( 'No </div> escape.', '<div>' );
+	 *
+	 * @todo Set the SVG or MathML namespace when creating with context node SVG or MATH.
 	 *
 	 * @since 6.4.0
 	 * @since 6.6.0 Returns `static` instead of `self` so it can create subclass instances.
+	 * @since 6.7.0 Can create fragment in any context.
 	 *
 	 * @param string $html     Input HTML fragment to process.
-	 * @param string $context  Context element for the fragment, must be default of `<body>`.
+	 * @param string $context  Context element for the fragment, an HTML start tag like `<body>`.
 	 * @param string $encoding Text encoding of the document; must be default of 'UTF-8'.
 	 * @return static|null The created processor if successful, otherwise null.
 	 */
 	public static function create_fragment( $html, $context = '<body>', $encoding = 'UTF-8' ) {
-		if ( '<body>' !== $context || 'UTF-8' !== $encoding ) {
+		if ( 'UTF-8' !== $encoding ) {
+			return null;
+		}
+
+		$context_node = self::parse_context_element( $context );
+		if ( null === $context_node ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The context argument must be an HTML start tag.' ),
+				'6.7.0'
+			);
+			return null;
+		}
+
+		if ( self::is_void( $context_node[0] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The context argument may not specify a void element.' ),
+				'6.7.0'
+			);
+			return null;
+		}
+
+		if ( in_array( $context_node[0], array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'XMP' ), true ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The context argument may not specify a self-contained element.' ),
+				'6.7.0'
+			);
 			return null;
 		}
 
 		$processor                             = new static( $html, self::CONSTRUCTOR_UNLOCK_CODE );
-		$processor->state->context_node        = array( 'BODY', array() );
+		$processor->state->context_node        = $context_node;
 		$processor->state->insertion_mode      = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
 		$processor->state->encoding            = $encoding;
 		$processor->state->encoding_confidence = 'certain';
@@ -325,6 +363,62 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$processor->breadcrumbs  = array( 'HTML', $context_node->node_name );
 
 		return $processor;
+	}
+
+	/**
+	 * Parses an HTML span containing a context element for the fragment parser.
+	 *
+	 * Effectively this extracts the first token from an HTML input and if it's a
+	 * starting tag, will return the tag name and any attributes on the tag.
+	 *
+	 * Example:
+	 *
+	 *     array( 'BODY', array() ) === self::parse_context_element( '<body>' );
+	 *     array( 'SCRIPT', array( 'type' => 'javascript' ) ) === self::parse_context_element( '<script type=javascript>' );
+	 *
+	 *     null === self::parse_context_element( 'BODY' );
+	 *     null === self::parse_context_element( '</div>' );
+	 *     null === self::parse_context_element( '<!-- comment -->' );
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string $context HTML string containing start tag for context element.
+	 * @return array|null Element name and associative array of attributes if parsed, otherwise NULL.
+	 */
+	private static function parse_context_element( $context = '<body>' ): ?array {
+		if ( '<body>' === $context ) {
+			return array( 'BODY', array() );
+		}
+
+		/*
+		 * Check if the context might be a self-contained element, in which case it would
+		 * need a closing tag to avoid parsing an incomplete token. Adding closing tags
+		 * for each one is a minor hack, but ensures that each one of them will appear in
+		 * the context as a fully-parsed token.
+		 */
+		if ( '<' === $context[0] && 1 === strspn( $context, 'iInNsStTxX', 1, 1 ) ) {
+			$context .= '</iframe></noembed></noframes></script></style></textarea></title></xmp>';
+		}
+
+		// Parse out the context element as well as the attributes.
+		$context_processor = new WP_HTML_Tag_Processor( $context );
+		if (
+			! $context_processor->next_token() ||
+			'#tag' !== $context_processor->get_token_type() ||
+			$context_processor->is_tag_closer()
+		) {
+			return null;
+		}
+
+		$attributes      = array();
+		$attribute_names = $context_processor->get_attribute_names_with_prefix( '' );
+		if ( isset( $attribute_names ) ) {
+			foreach ( $attribute_names as $name ) {
+				$attributes[ $name ] = $context_processor->get_attribute( $name );
+			}
+		}
+
+		return array( $context_processor->get_tag(), $attributes );
 	}
 
 	/**
