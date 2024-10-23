@@ -282,7 +282,20 @@ function get_the_block_template_html() {
  * @since 5.8.0
  */
 function _block_template_viewport_meta_tag() {
-	echo '<meta name="viewport" content="width=device-width, initial-scale=1" />' . "\n";
+	$content_attr = 'width=device-width, initial-scale=1';
+	$meta_tag     = sprintf( '<meta name="viewport" content="%s" />', $content_attr );
+
+	/**
+	 * Filters the default block-template viewport meta tag
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $meta_tag The complete HTML viewport meta tag.
+	 * @param string $content_attr  Value of the meta tag's content attribute.
+	 */
+	$meta_tag = apply_filters( 'block_template_viewport_meta_tag', $meta_tag, $content_attr );
+
+	echo $meta_tag . "\n";
 }
 
 /**
