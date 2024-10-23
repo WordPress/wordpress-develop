@@ -2208,24 +2208,24 @@ function _get_comment_reply_id( $post = null ) {
  * @param string|array $args {
  *     Optional. Formatting options.
  *
- *     @type object   $walker            Instance of a Walker class to list comments. Default null.
- *     @type int      $max_depth         The maximum comments depth. Default empty.
- *     @type string   $style             The style of list ordering. Accepts 'ul', 'ol', or 'div'.
- *                                       'div' will result in no additional list markup. Default 'ul'.
- *     @type callable $callback          Callback function to use. Default null.
- *     @type callable $end-callback      Callback function to use at the end. Default null.
- *     @type string   $type              Type of comments to list. Accepts 'all', 'comment',
- *                                       'pingback', 'trackback', 'pings'. Default 'all'.
- *     @type int      $page              Page ID to list comments for. Default empty.
- *     @type int      $per_page          Number of comments to list per page. Default empty.
- *     @type int      $avatar_size       Height and width dimensions of the avatar size. Default 32.
- *     @type bool     $reverse_top_level Ordering of the listed comments. If true, will display
- *                                       newest comments first. Default null.
- *     @type bool     $reverse_children  Whether to reverse child comments in the list. Default null.
- *     @type string   $format            How to format the comments list. Accepts 'html5', 'xhtml'.
- *                                       Default 'html5' if the theme supports it.
- *     @type bool     $short_ping        Whether to output short pings. Default false.
- *     @type bool     $echo              Whether to echo the output or return it. Default true.
+ *     @type object       $walker            Instance of a Walker class to list comments. Default null.
+ *     @type int          $max_depth         The maximum comments depth. Default empty.
+ *     @type string       $style             The style of list ordering. Accepts 'ul', 'ol', or 'div'.
+ *                                           'div' will result in no additional list markup. Default 'ul'.
+ *     @type callable     $callback          Callback function to use. Default null.
+ *     @type callable     $end-callback      Callback function to use at the end. Default null.
+ *     @type array|string $type              Type of comments to list. Accepts 'all', 'a particular type', and an 'array of types'.
+ *                                           'pingback', 'trackback', 'pings'. Default 'all'.
+ *     @type int          $page              Page ID to list comments for. Default empty.
+ *     @type int          $per_page          Number of comments to list per page. Default empty.
+ *     @type int          $avatar_size       Height and width dimensions of the avatar size. Default 32.
+ *     @type bool         $reverse_top_level Ordering of the listed comments. If true, will display
+ *                                           newest comments first. Default null.
+ *     @type bool         $reverse_children  Whether to reverse child comments in the list. Default null.
+ *     @type string       $format            How to format the comments list. Accepts 'html5', 'xhtml'.
+ *                                           Default 'html5' if the theme supports it.
+ *     @type bool         $short_ping        Whether to output short pings. Default false.
+ *     @type bool         $echo              Whether to echo the output or return it. Default true.
  * }
  * @param WP_Comment[] $comments Optional. Array of WP_Comment objects. Default null.
  * @return void|string Void if 'echo' argument is true, or no comments to list.
@@ -2270,17 +2270,43 @@ function wp_list_comments( $args = array(), $comments = null ) {
 	 */
 	$parsed_args = apply_filters( 'wp_list_comments_args', $parsed_args );
 
+	// Check if the `$parsed_args['type']` is an array or not and store the result.
+	$is_parsed_type_array = is_array( $parsed_args['type'] );
+
 	// Figure out what comments we'll be looping through ($_comments).
 	if ( null !== $comments ) {
 		$comments = (array) $comments;
 		if ( empty( $comments ) ) {
 			return;
 		}
-		if ( 'all' !== $parsed_args['type'] ) {
+
+		// Check if the `$is_parsed_type_array` is true and not empty.
+		if ( $is_parsed_type_array && ! empty( $parsed_args['type'] ) ) {
 			$comments_by_type = separate_comments( $comments );
+
+			// Loop through each type.
+			foreach ( $parsed_args['type'] as $type ) {
+
+				// Possible situation.
+				if ( 'all' === $type ) {
+					$_comments = $comments;
+					break;
+				}
+
+				if ( empty( $comments_by_type[ $type ] ) ) {
+					continue;
+				}
+
+				// Merge the existing `$_comments` array with the `$comments_by_type[ $type ]` array.
+				$_comments = array_merge( $_comments ?? array(), $comments_by_type[ $type ] );
+			}
+		} elseif ( ! $is_parsed_type_array && 'all' !== $parsed_args['type'] ) {
+			$comments_by_type = separate_comments( $comments );
+
 			if ( empty( $comments_by_type[ $parsed_args['type'] ] ) ) {
 				return;
 			}
+
 			$_comments = $comments_by_type[ $parsed_args['type'] ];
 		} else {
 			$_comments = $comments;
@@ -2317,8 +2343,29 @@ function wp_list_comments( $args = array(), $comments = null ) {
 
 				$comments = get_comments( $comment_args );
 
-				if ( 'all' !== $parsed_args['type'] ) {
+				// Check if the `$is_parsed_type_array` is true and not empty.
+				if ( $is_parsed_type_array && ! empty( $parsed_args['type'] ) ) {
 					$comments_by_type = separate_comments( $comments );
+
+					// Loop through each type.
+					foreach ( $parsed_args['type'] as $type ) {
+
+						// Possible situation.
+						if ( 'all' === $type ) {
+							$_comments = $comments;
+							break;
+						}
+
+						if ( empty( $comments_by_type[ $type ] ) ) {
+							continue;
+						}
+
+						// Merge the existing `$_comments` array with the `$comments_by_type[ $type ]` array.
+						$_comments = array_merge( $_comments ?? array(), $comments_by_type[ $type ] );
+					}
+				} elseif ( ! $is_parsed_type_array && 'all' !== $parsed_args['type'] ) {
+					$comments_by_type = separate_comments( $comments );
+
 					if ( empty( $comments_by_type[ $parsed_args['type'] ] ) ) {
 						return;
 					}
@@ -2334,10 +2381,34 @@ function wp_list_comments( $args = array(), $comments = null ) {
 			if ( empty( $wp_query->comments ) ) {
 				return;
 			}
-			if ( 'all' !== $parsed_args['type'] ) {
+
+			// Check if the `$is_parsed_type_array` is true and not empty.
+			if ( $is_parsed_type_array && ! empty( $parsed_args['type'] ) ) {
 				if ( empty( $wp_query->comments_by_type ) ) {
 					$wp_query->comments_by_type = separate_comments( $wp_query->comments );
 				}
+
+				// Loop through each type.
+				foreach ( $parsed_args['type'] as $type ) {
+
+					// Possible situation.
+					if ( 'all' === $type ) {
+						$_comments = $wp_query->comments;
+						break;
+					}
+
+					if ( empty( $wp_query->comments_by_type[ $type ] ) ) {
+						continue;
+					}
+
+					// Merge the existing `$_comments` array with the `$comments_by_type[ $type ]` array.
+					$_comments = array_merge( $_comments ?? array(), $wp_query->comments_by_type[ $type ] );
+				}
+			} elseif ( ! $is_parsed_type_array && 'all' !== $parsed_args['type'] ) {
+				if ( empty( $wp_query->comments_by_type ) ) {
+					$wp_query->comments_by_type = separate_comments( $wp_query->comments );
+				}
+
 				if ( empty( $wp_query->comments_by_type[ $parsed_args['type'] ] ) ) {
 					return;
 				}
