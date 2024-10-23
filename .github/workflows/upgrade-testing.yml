@@ -32,8 +32,8 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Spawns upgrade testing from WordPress 6.x versions with MySQL 9.0+.
-  upgrade-tests-wp-6x-mysql-9:
+  # Spawns upgrade testing from WordPress 6.x versions on PHP 8.x with MySQL.
+  upgrade-tests-wp-6x-php-8x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -43,9 +43,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-latest' ]
-        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        php: [ '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '9.0' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.0' ]
         wp: [ '6.0', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6', '6.7-RC1' ]
         multisite: [ false, true ]
 
@@ -58,8 +58,8 @@ jobs:
       new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
       multisite: ${{ matrix.multisite }}
 
-  # Spawns upgrade testing from WordPress 6.x versions with MySQL.
-  upgrade-tests-wp-6x-mysql:
+  # Spawns upgrade testing from WordPress 6.x versions on PHP 7.x with MySQL.
+  upgrade-tests-wp-6x-php-7x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -69,9 +69,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-latest' ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        php: [ '7.2', '7.3', '7.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.0' ]
         wp: [ '6.0', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6', '6.7-RC1' ]
         multisite: [ false, true ]
 
@@ -207,7 +207,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ upgrade-tests-wp-6x-mysql-9, upgrade-tests-wp-6x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-wp-4x-php-7x-mysql, upgrade-tests-wp-4x-php-8x-mysql ]
+    needs: [ upgrade-tests-wp-6x-php-8x-mysql, upgrade-tests-wp-6x-php-7x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-wp-4x-php-7x-mysql, upgrade-tests-wp-4x-php-8x-mysql ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
