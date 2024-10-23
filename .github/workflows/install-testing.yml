@@ -129,6 +129,10 @@ jobs:
             db-version: '8.4'
           - php: '7.3'
             db-version: '8.4'
+          - php: '7.2'
+            db-version: '9.0'
+          - php: '7.3'
+            db-version: '9.0'
 
     services:
       database:
