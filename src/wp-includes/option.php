@@ -2832,6 +2832,16 @@ function register_initial_settings() {
 	);
 
 	register_setting(
+		'writing',
+		'empty_trash_days',
+		array(
+			'show_in_rest' => false,
+			'type'         => 'string',
+			'description'  => __( 'Empty trash after selected days' ),
+		)
+	);
+
+	register_setting(
 		'reading',
 		'posts_per_page',
 		array(

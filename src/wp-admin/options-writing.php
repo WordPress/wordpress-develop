@@ -113,6 +113,12 @@ unset( $post_formats['standard'] );
 	</select>
 </td>
 </tr>
+<tr>
+<th scope="row"><label for="empty_trash_days"><?php _e( 'Empty Trash After (in days)' ); ?></label></th>
+<td>
+	<input type="number" name="empty_trash_days" id="empty_trash_days" value="<?php echo esc_attr( get_option( 'empty_trash_days', 30 ) ); ?>">
+</td>
+</tr>
 <?php
 if ( get_option( 'link_manager_enabled' ) ) :
 	?>
