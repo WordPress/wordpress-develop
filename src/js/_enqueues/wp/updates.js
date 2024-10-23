@@ -1635,12 +1635,15 @@
 			if ( isModalOpen ) {
 				$( '.load-customize:visible' ).trigger( 'focus' );
 				$( '.theme-info .theme-autoupdate' ).find( '.auto-update-time' ).empty();
+				$( '.theme-info .theme-autoupdate' ).find( $notice ).remove();
 			} else {
 				$theme.find( '.load-customize' ).trigger( 'focus' );
 			}
 		}
-
-		wp.updates.addAdminNotice( _.extend( { selector: $notice }, updatedMessage ) );
+		
+		if ( !$theme.find('.updated-message').length ) {
+			wp.updates.addAdminNotice( _.extend( { selector: $notice }, updatedMessage ) );
+		}
 		wp.a11y.speak( __( 'Update completed successfully.' ) );
 
 		wp.updates.decrementCount( 'theme' );
@@ -1649,7 +1652,9 @@
 
 		// Show updated message after modal re-rendered.
 		if ( isModalOpen && 'customize' !== pagenow ) {
-			$( '.theme-info .theme-author' ).after( wp.updates.adminNotice( updatedMessage ) );
+			if ( !$( '.theme-info .updated-message' ).length ) {
+				$( '.theme-info .theme-author' ).after( wp.updates.adminNotice( updatedMessage ) );
+			}
 		}
 	};
 
