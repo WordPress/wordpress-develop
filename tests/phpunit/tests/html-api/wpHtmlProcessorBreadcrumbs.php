@@ -165,45 +165,55 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 58517
+	 * Ensures that formats inside unclosed A elements are reconstructed.
 	 *
-	 * @dataProvider data_unsupported_markup
-	 *
-	 * @param string $html HTML containing unsupported markup.
+	 * @ticket 61576
 	 */
-	public function test_fails_when_encountering_unsupported_markup( $html, $description ) {
-		$processor = WP_HTML_Processor::create_fragment( $html );
+	public function test_reconstructs_formatting_from_unclosed_a_elements() {
+		$processor = WP_HTML_Processor::create_fragment( '<a><strong>Click <a><big>Here</big></a></strong></a>' );
 
-		while ( $processor->next_token() && null === $processor->get_attribute( 'supported' ) ) {
-			continue;
-		}
-
-		$this->assertNull(
-			$processor->get_last_error(),
-			'Bailed on unsupported input before finding supported checkpoint: check test code.'
+		$processor->next_tag( 'STRONG' );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'A', 'STRONG' ),
+			$processor->get_breadcrumbs(),
+			'Failed to construct starting breadcrumbs properly.'
 		);
 
-		$this->assertTrue( $processor->get_attribute( 'supported' ), 'Did not find required supported element.' );
-		$processor->next_token();
-		$this->assertNotNull( $processor->get_last_error(), "Didn't properly reject unsupported markup: {$description}" );
+		$processor->next_tag( 'BIG' );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'STRONG', 'A', 'BIG' ),
+			$processor->get_breadcrumbs(),
+			'Failed to reconstruct the active formatting elements after an unclosed A element.'
+		);
 	}
 
 	/**
-	 * Data provider.
+	 * Ensures that unclosed A elements are reconstructed.
 	 *
-	 * @return array[]
+	 * @ticket 61576
 	 */
-	public static function data_unsupported_markup() {
-		return array(
-			'A with formatting following unclosed A' => array(
-				'<a><strong>Click <span supported><a unsupported><big>Here</big></a></strong></a>',
-				'Unclosed formatting requires complicated reconstruction.',
-			),
+	public function test_reconstructs_unclosed_a_elements() {
+		$processor = WP_HTML_Processor::create_fragment( '<a><div><a></div></a>' );
 
-			'A after unclosed A inside DIV'          => array(
-				'<a><div supported><a unsupported></div></a>',
-				'A is a formatting element, which requires more complicated reconstruction.',
-			),
+		$processor->next_tag( 'DIV' );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV' ),
+			$processor->get_breadcrumbs(),
+			'Failed to construct breadcrumbs properly - the DIV should have closed the A element.'
+		);
+
+		// When the DIV re-opens, it reconstructs an unclosed A, then the A in the text is a second A.
+		$processor->next_tag( 'A' );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'A' ),
+			'Failed to create proper breadcrumbs for recreated A element.'
+		);
+
+		// This is the one that's second in the raw text.
+		$processor->next_tag( 'A' );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'A' ),
+			'Failed to create proper breadcrumbs for explicit A element - this A should have closed the reconstructed A.'
 		);
 	}
 

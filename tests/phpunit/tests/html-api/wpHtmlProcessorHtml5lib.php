@@ -152,6 +152,9 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	/**
 	 * Generates the tree-like structure represented in the Html5lib tests.
 	 *
+	 * @throws WP_HTML_Unsupported_Exception Raises unsupported exceptions for test reporting.
+	 * @throws Error                         For unexpected "impossible" cases.
+	 *
 	 * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
 	 * @param string      $html             Given test HTML.
 	 * @return string|null Tree structure of parsed HTML, if supported, else null.
@@ -160,6 +163,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$processor = $fragment_context
 			? WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" )
 			: WP_HTML_Processor::create_full_parser( $html );
+
 		if ( null === $processor ) {
 			throw new WP_HTML_Unsupported_Exception( "Could not create a parser with the given fragment context: {$fragment_context}.", '', 0, '', array(), array() );
 		}
@@ -269,6 +273,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 						foreach ( $sorted_attributes as $attribute_name => $display_name ) {
 							$val = $processor->get_attribute( $attribute_name );
+
 							/*
 							 * Attributes with no value are `true` with the HTML API,
 							 * We map use the empty string value in the tree structure.

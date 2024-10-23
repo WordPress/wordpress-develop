@@ -708,7 +708,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var WP_HTML_Attribute_Token[]
 	 */
-	private $attributes = array();
+	protected $attributes = array();
 
 	/**
 	 * Tracks spans of duplicate attributes on a given tag, used for removing
@@ -2979,8 +2979,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @param string $attribute_name Which attribute to adjust.
-	 *
+	 * @param string      $attribute_name Which attribute to adjust.
 	 * @return string|null
 	 */
 	public function get_qualified_attribute_name( $attribute_name ): ?string {
@@ -2988,7 +2987,7 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$namespace  = $this->get_namespace();
+		$namespace  = $namespace_override ?? $this->get_namespace();
 		$lower_name = strtolower( $attribute_name );
 
 		if ( 'math' === $namespace && 'definitionurl' === $lower_name ) {
