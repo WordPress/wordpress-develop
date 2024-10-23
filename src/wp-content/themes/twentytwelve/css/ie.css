@@ -15,10 +15,12 @@ body.custom-background-white .site {
 	margin-top: 0;
 	padding: 0;
 }
+
 .assistive-text,
 .site .screen-reader-text {
 	clip: rect(1px 1px 1px 1px);
 }
+
 .full-width .site-content {
 	float: none;
 	width: 100%;
