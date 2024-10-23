@@ -2753,7 +2753,24 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1'", $post_id ) );
+		$bad_parents = array();
+		$_bad_parents = $wpdb->get_col( "SELECT comment_ID from $wpdb->comments WHERE comment_post_ID = $post_id AND comment_approved != '1'" );
+
+		if ( ! empty( $_bad_parents ) ) {
+			do {
+				$children = $wpdb->get_col( "SELECT comment_ID from $wpdb->comments WHERE comment_post_ID = $post_id AND comment_parent IN ( " . implode(',', array_map( 'intval', $_bad_parents ) ) . ' )' );
+				$bad_parents = array_merge( $bad_parents, $_bad_parents, $children );
+				$_bad_parents = array_unique( $children );
+			} while ( $children );
+		}
+
+		$bad_parent_query = null;
+		if ( $bad_parents = array_unique( $bad_parents ) ) {
+			$bad_parents = implode( ',', array_map( 'intval', $bad_parents ) );
+			$bad_parent_query = " AND comment_parent NOT IN ( $bad_parents )";
+		}
+
+		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1'" .   $bad_parent_query, $post_id ) );
 	} else {
 		$new = (int) $new;
 	}
