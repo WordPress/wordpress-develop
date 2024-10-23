@@ -256,6 +256,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	private $context_node = null;
 
+	/** @var bool */
+	private $has_produced_after_body_content = false;
+
+	/** @var bool */
+	private $has_procuded_after_html_content = false;
+
 	/*
 	 * Public Interface Functions
 	 */
@@ -4186,6 +4192,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '#text':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
+					if ( $this->has_produced_after_body_content || $this->has_procuded_after_html_content ) {
+						$this->bail( 'Cannot produce out-of-order content.' );
+					}
 					return $this->step_in_body();
 				}
 				goto after_body_anything_else;
@@ -4197,8 +4206,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
-				$this->bail( 'Content outside of BODY is unsupported.' );
-				break;
+				if ( $this->has_procuded_after_html_content ) {
+					$this->bail( 'Cannot produce out-of-order content.' );
+				}
+				if ( ! $this->has_produced_after_body_content ) {
+					$this->state->stack_of_open_elements->pop_until( 'BODY' );
+					$this->has_produced_after_body_content = true;
+				}
+				$this->insert_html_element( $this->state->current_token );
+				return true;
 
 			/*
 			 * > A DOCTYPE token
@@ -4234,6 +4250,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Parse error. Switch the insertion mode to "in body" and reprocess the token.
 		 */
 		after_body_anything_else:
+		if ( $this->has_produced_after_body_content || $this->has_procuded_after_html_content ) {
+			$this->bail( 'Cannot return to in body when content has been produced outside of body.' );
+		}
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -4271,6 +4290,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '#text':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
+					if ( $this->has_produced_after_body_content || $this->has_procuded_after_html_content ) {
+						$this->bail( 'Cannot produce out-of-order content.' );
+					}
 					return $this->step_in_body();
 				}
 				$this->bail( 'Non-whitespace characters cannot be handled in frameset.' );
@@ -4390,6 +4412,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '#text':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
+					if ( $this->has_produced_after_body_content || $this->has_procuded_after_html_content ) {
+						$this->bail( 'Cannot produce out-of-order content.' );
+					}
 					return $this->step_in_body();
 				}
 				$this->bail( 'Non-whitespace characters cannot be handled in after frameset' );
@@ -4463,8 +4488,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
-				$this->bail( 'Content outside of HTML is unsupported.' );
-				break;
+				if ( ! $this->has_procuded_after_html_content ) {
+					while ( $this->state->stack_of_open_elements->pop() ) {
+						// Just pop while we can.
+					}
+					$this->has_procuded_after_html_content = true;
+				}
+				$this->insert_html_element( $this->state->current_token );
+				return true;
 
 			/*
 			 * > A DOCTYPE token
@@ -4484,6 +4515,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '#text':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
+					if ( $this->has_produced_after_body_content || $this->has_procuded_after_html_content ) {
+						$this->bail( 'Cannot produce out-of-order content.' );
+					}
 					return $this->step_in_body();
 				}
 				goto after_after_body_anything_else;
@@ -4494,6 +4528,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Parse error. Switch the insertion mode to "in body" and reprocess the token.
 		 */
 		after_after_body_anything_else:
+		if ( $this->has_produced_after_body_content || $this->has_procuded_after_html_content ) {
+			$this->bail( 'Cannot return to in body when content has been produced outside of body.' );
+		}
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
 		return $this->step( self::REPROCESS_CURRENT_NODE );
 	}
@@ -4526,8 +4563,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '#comment':
 			case '#funky-comment':
 			case '#presumptuous-tag':
-				$this->bail( 'Content outside of HTML is unsupported.' );
-				break;
+				if ( ! $this->has_procuded_after_html_content ) {
+					while ( $this->state->stack_of_open_elements->pop() ) {
+						// Just pop while we can.
+					}
+					$this->has_procuded_after_html_content = true;
+				}
+				$this->insert_html_element( $this->state->current_token );
+				return true;
 
 			/*
 			 * > A DOCTYPE token
@@ -4550,6 +4593,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '#text':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
+					if ( $this->has_produced_after_body_content || $this->has_procuded_after_html_content ) {
+						$this->bail( 'Cannot produce out-of-order content.' );
+					}
 					return $this->step_in_body();
 				}
 				$this->bail( 'Non-whitespace characters cannot be handled in after after frameset.' );
@@ -4559,6 +4605,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "noframes"
 			 */
 			case '+NOFRAMES':
+				if ( $this->has_produced_after_body_content || $this->has_procuded_after_html_content ) {
+					$this->bail( 'Cannot produce out-of-order content.' );
+				}
 				return $this->step_in_head();
 		}
 
