@@ -38,6 +38,12 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
+Material Design icons by Google
+Copyright 2014-2024 Google
+Licensed under the Apache License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0
+Includes a modified version of the 'comment' icon, without the speech lines.
+
 == Changelog ==
 
 = 2.9 =
@@ -143,6 +149,8 @@ Initial release
 == Resources ==
 * normalize.css, © 2012-2018 Nicolas Gallagher and Jonathan Neal, MIT
 * Underscores, © 2012-2024 Automattic, Inc., GNU GPL v2 or later
+* Social Logos, © 2015-2024 Automattic, Inc., GNU GPL v2 or later
+* Material Design icons by Google, © 2014-2024 Google, Apache 2.0
 * Bundled block pattern images:
 	* Abstract Background by HD Wallpapers, CC0. https://stocksnap.io/photo/abstract-background-0SRRVNMKBX
 	* Abstract Waves by HD Wallpapers, CC0. https://stocksnap.io/photo/abstract-waves-0KREGLTZQ3
