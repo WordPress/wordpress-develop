@@ -801,7 +801,9 @@ hr.wp-block-separator.is-style-dots::before {
 	position: relative;
 	text-align: center;
 }
-
+.wp-block.wp-block-pullquote {
+	padding: 15px 10px;
+}
 .editor-styles-wrapper .wp-block-pullquote::before {
 	background: #fff;
 	border-radius: 50%;
