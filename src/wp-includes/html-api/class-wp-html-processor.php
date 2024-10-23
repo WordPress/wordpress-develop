@@ -620,34 +620,31 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	public function next_token(): bool {
 		$this->current_element = null;
 
-		if ( isset( $this->last_error ) ) {
-			return false;
-		}
-
 		/*
 		 * Prime the events if there are none.
-		 *
-		 * @todo In some cases, probably related to the adoption agency
-		 *       algorithm, this call to step() doesn't create any new
-		 *       events. Calling it again creates them. Figure out why
-		 *       this is and if it's inherent or if it's a bug. Looping
-		 *       until there are events or until there are no more
-		 *       tokens works in the meantime and isn't obviously wrong.
 		 */
-		if ( empty( $this->element_queue ) && $this->step() ) {
-			return $this->next_token();
+		if ( empty( $this->element_queue ) ) {
+			$found_token = $this->step();
+
+			if ( null !== $this->last_error ) {
+				return false;
+			}
+
+			// There are no tokens left, so close all remaining open elements.
+			if ( ! $found_token ) {
+				while ( $this->state->stack_of_open_elements->pop() ) {
+					// The element was popped.
+				}
+			}
+
+			// If the event queue remains empty, the processor is done.
+			if ( empty( $this->element_queue ) ) {
+				return false;
+			}
 		}
 
 		// Process the next event on the queue.
 		$this->current_element = array_shift( $this->element_queue );
-		if ( ! isset( $this->current_element ) ) {
-			// There are no tokens left, so close all remaining open elements.
-			while ( $this->state->stack_of_open_elements->pop() ) {
-				continue;
-			}
-
-			return empty( $this->element_queue ) ? false : $this->next_token();
-		}
 
 		$is_pop = WP_HTML_Stack_Event::POP === $this->current_element->operation;
 
