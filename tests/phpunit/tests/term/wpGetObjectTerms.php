@@ -1011,4 +1011,42 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 		$this->assertSameSets( $expected, $actual );
 	}
+
+	/**
+	 * @ticket 61936
+	 */
+	public function test_should_return_numeric_string_for_fields_count() {
+		$fields = array( 'fields' => 'count' );
+
+		$taxonomies = array( 'wptests_tax', 'wptests_tax_2' );
+
+		register_taxonomy( $taxonomies[0], 'post' );
+		register_taxonomy( $taxonomies[1], 'post' );
+
+		$term_1_id = self::factory()->term->create( array( 'taxonomy' => $taxonomies[0] ) );
+		$term_2_id = self::factory()->term->create( array( 'taxonomy' => $taxonomies[1] ) );
+
+		$post_ids = self::factory()->post->create_many( 2 );
+		wp_set_object_terms( $post_ids[0], $term_1_id, $taxonomies[0] );
+		wp_set_object_terms( $post_ids[1], $term_1_id, $taxonomies[0] );
+		wp_set_object_terms( $post_ids[1], $term_2_id, $taxonomies[1] );
+
+		$terms_count = wp_get_object_terms( 0, $taxonomies[0], $fields );
+		$this->assertSame( '0', $terms_count, 'Incorrect term count with empty object_ids.' );
+
+		$terms_count = wp_get_object_terms( $post_ids[0], '', $fields );
+		$this->assertSame( '0', $terms_count, 'Incorrect term count with empty taxonomies.' );
+
+		$terms_count = wp_get_object_terms( $post_ids[0], $taxonomies[0], $fields );
+		$this->assertSame( '1', $terms_count, 'Incorrect term count with single object_id and single taxonomy.' );
+
+		$terms_count = wp_get_object_terms( $post_ids[0], $taxonomies, $fields );
+		$this->assertSame( '1', $terms_count, 'Incorrect term count with single object_id and multiple taxonomies.' );
+
+		$terms_count = wp_get_object_terms( $post_ids[1], $taxonomies, $fields );
+		$this->assertSame( '2', $terms_count, 'Incorrect term count with single object_id and multiple taxonomies.' );
+
+		$terms_count = wp_get_object_terms( $post_ids, $taxonomies, $fields );
+		$this->assertSame( '3', $terms_count, 'Incorrect term count with multiple object_ids and multiple taxonomies.' );
+	}
 }
