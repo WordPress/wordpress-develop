@@ -387,23 +387,41 @@ class WP_List_Table {
 
 		$input_id = $input_id . '-search-input';
 
-		if ( ! empty( $_REQUEST['orderby'] ) ) {
-			if ( is_array( $_REQUEST['orderby'] ) ) {
-				foreach ( $_REQUEST['orderby'] as $key => $value ) {
-					echo '<input type="hidden" name="orderby[' . esc_attr( $key ) . ']" value="' . esc_attr( $value ) . '" />';
+		$builtin_hidden_fields = array(
+			'orderby',
+			'order',
+			'post_mime_type',
+			'detached',
+		);
+
+		/**
+		 * Filters the list of hidden custom query variables.
+		 * This filter should be used to add custom query variables that are hidden from the search query.
+		 *
+		 * @since unreleased
+		 *
+		 * @param string[] $custom_hidden_fields An array of hidden custom query variables.
+		 * @param string   $class_name The class name of the current list table.
+		 */
+		$custom_hidden_fields = apply_filters( 'search_box_custom_args', [], get_class( $this ) );
+
+		$hidden_fields = array_merge(
+			$builtin_hidden_fields,
+			array_filter( $custom_hidden_fields, function ( $query_arg ) {
+				return is_string( $query_arg );
+			} )
+		);
+
+		foreach ( $hidden_fields as $name ) {
+			if ( ! empty( $_REQUEST[ $name ] ) ) {
+				if ( is_array( $_REQUEST[ $name ] ) ) {
+					foreach ( $_REQUEST[ $name ] as $key => $value ) {
+						echo '<input type="hidden" name="' . esc_attr( $name ) . '[' . esc_attr( $key ) . ']" value="' . esc_attr( $value ) . '" />';
+					}
+				} else {
+					echo '<input type="hidden" name="' . esc_attr( $name ) . '" value="' . esc_attr( $_REQUEST[ $name ] ) . '" />';
 				}
-			} else {
-				echo '<input type="hidden" name="orderby" value="' . esc_attr( $_REQUEST['orderby'] ) . '" />';
 			}
-		}
-		if ( ! empty( $_REQUEST['order'] ) ) {
-			echo '<input type="hidden" name="order" value="' . esc_attr( $_REQUEST['order'] ) . '" />';
-		}
-		if ( ! empty( $_REQUEST['post_mime_type'] ) ) {
-			echo '<input type="hidden" name="post_mime_type" value="' . esc_attr( $_REQUEST['post_mime_type'] ) . '" />';
-		}
-		if ( ! empty( $_REQUEST['detached'] ) ) {
-			echo '<input type="hidden" name="detached" value="' . esc_attr( $_REQUEST['detached'] ) . '" />';
 		}
 		?>
 <p class="search-box">
