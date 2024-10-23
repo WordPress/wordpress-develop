@@ -35,7 +35,7 @@ jobs:
   # Spawns upgrade testing from WordPress 6.x versions with MySQL 9.0+.
   upgrade-tests-wp-6x-mysql-9:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: desrosj/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@add/mysql-8.4
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     permissions:
       contents: read
@@ -61,7 +61,7 @@ jobs:
   # Spawns upgrade testing from WordPress 6.x versions with MySQL.
   upgrade-tests-wp-6x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: desrosj/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@add/mysql-8.4
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     permissions:
       contents: read
@@ -92,7 +92,7 @@ jobs:
   # Spawns upgrade testing from WordPress 5.x versions on PHP 7.x with MySQL.
   upgrade-tests-wp-5x-php-7x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: desrosj/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@add/mysql-8.4
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
@@ -125,7 +125,7 @@ jobs:
   # - array/string offset with curly braces.
   upgrade-tests-wp-5x-php-8x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: desrosj/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@add/mysql-8.4
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
@@ -148,7 +148,7 @@ jobs:
   # Spawns upgrade testing from WordPress 4.x versions on PHP 7.x with MySQL.
   upgrade-tests-wp-4x-php-7x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: desrosj/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@add/mysql-8.4
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
@@ -181,7 +181,7 @@ jobs:
   # - array/string offset with curly braces.
   upgrade-tests-wp-4x-php-8x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: desrosj/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@add/mysql-8.4
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
