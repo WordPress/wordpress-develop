@@ -182,7 +182,7 @@ jobs:
 
       - name: Run PHPUnit tests${{ inputs.phpunit-test-groups && format( ' ({0} groups)', inputs.phpunit-test-groups ) || '' }}${{ inputs.coverage-format && format( ' with {0} report', inputs.coverage-format ) || '' }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }}${{ inputs.phpunit-test-groups && format( ' --group {0}', inputs.phpunit-test-groups ) || '' }}${{ inputs.coverage-format && format( '--coverage-{0} wp-code-coverage-{1}-{2}{3}', inputs.coverage-format, ( inputs.multisite && 'multisite' || 'single' ), github.sha, ( inputs.coverage-format == 'clover' && '.xml' || '' ) ) }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }}${{ inputs.phpunit-test-groups && format( ' --group {0}', inputs.phpunit-test-groups ) || '' }}${{ inputs.coverage-format && format( ' --coverage-{0} wp-code-coverage-{1}-{2}{3}', inputs.coverage-format, ( inputs.multisite && 'multisite' || 'single' ), github.sha, ( inputs.coverage-format == 'clover' && '.xml' || '' ) ) }}
 
       - name: Run AJAX tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-format }}
