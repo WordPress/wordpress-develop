@@ -125,6 +125,14 @@ jobs:
           - db-version: '5.0'
           - db-version: '5.1'
           - db-version: '5.5'
+          - php: '7.2'
+            db-version: '8.4'
+          - php: '7.3'
+            db-version: '8.4'
+          - php: '7.2'
+            db-version: '9.0'
+          - php: '7.3'
+            db-version: '9.0'
 
     services:
       database:
@@ -133,13 +141,13 @@ jobs:
           - 3306
         options: >-
           --health-cmd="mysqladmin ping"
-          --health-interval=30s
-          --health-timeout=10s
-          --health-retries=5
-          -e MYSQL_ROOT_PASSWORD=root
-          -e MYSQL_DATABASE=test_db
+          --health-interval="30s"
+          --health-timeout="10s"
+          --health-retries="5"
+          -e MYSQL_ROOT_PASSWORD="root"
+          -e MYSQL_DATABASE="test_db"
           --entrypoint sh ${{ matrix.db-type }}:${{ matrix.db-version }}
-          -c "exec docker-entrypoint.sh mysqld${{ matrix.db-version != '5.5' && ' --default-authentication-plugin=mysql_native_password"' || '' }}
+          -c "exec docker-entrypoint.sh mysqld${{ matrix.db-type == 'mysql' && contains( fromJSON('["7.2", "7.3"]'), matrix.php ) && ' --default-authentication-plugin=mysql_native_password' || '' }}"
 
     steps:
       - name: Set up PHP ${{ matrix.php }}
