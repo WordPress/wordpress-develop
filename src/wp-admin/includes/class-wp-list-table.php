@@ -658,7 +658,7 @@ class WP_List_Table {
 	 * @return string The HTML for the row actions.
 	 */
 	protected function row_actions( $actions, $always_visible = false ) {
-		$action_count = count( $actions );
+		$action_count = is_countable( $actions ) ? count( $actions ) : 0;
 
 		if ( ! $action_count ) {
 			return '';
