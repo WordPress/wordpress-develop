@@ -1,4 +1,10 @@
 <?php
+/**
+ * Handles the user registration and site creation process for multisite installations.
+ * This file manages new user signups and site creations.
+ *
+ * @package WordPress
+ */
 
 /** Sets up the WordPress Environment. */
 require __DIR__ . '/wp-load.php';
