@@ -18,7 +18,6 @@ const local_env_utils = {
 			composeFiles = composeFiles + ' -f docker-compose.override.yml';
 		}
 
-		console.log( composeFiles );
 		if ( process.env.LOCAL_DB_TYPE !== 'mysql' ) {
 			return composeFiles;
 		}
