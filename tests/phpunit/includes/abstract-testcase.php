@@ -1694,4 +1694,80 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		touch( $file );
 	}
+
+	/**
+	 * Reflects a private or protected method and invokes it.
+	 *
+	 * The method is temporarily made accessible for invocation.
+	 *
+	 * Returns the method's return value.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param object $obj     The object instance.
+	 * @param string $method  The method's name.
+	 * @param mixed  ...$args The arguments to pass to the method.
+	 * @return mixed The method's return value.
+	 */
+	protected function reflect_and_invoke( $obj, $method, ...$args ) {
+		$reflected_method = new ReflectionMethod( $obj, $method );
+
+		$reflected_method->setAccessible( true );
+		$value = $reflected_method->invoke( $obj, ...$args );
+		$reflected_method->setAccessible( false );
+
+		unset( $reflected_method );
+
+		return $value;
+	}
+
+	/**
+	 * Reflects a private or protected property and gets its value.
+	 *
+	 * The property is temporarily made accessible to retrieve the value.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param object $obj      The object instance.
+	 * @param string $property The property's name.
+	 * @return mixed The property's value.
+	 */
+	protected function reflect_and_get_value( $obj, $property ) {
+		$reflected_property = new ReflectionProperty( $obj, $property );
+
+		$reflected_property->setAccessible( true );
+		$value = $reflected_property->getValue( $obj );
+		$reflected_property->setAccessible( false );
+
+		unset( $reflected_property );
+
+		return $value;
+	}
+
+	/**
+	 * Reflects a private or protected property and sets its value.
+	 *
+	 * The property is temporarily made accessible to set the value.
+	 *
+	 * The previous value is returned.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param object $obj      The object instance.
+	 * @param string $property The property's name.
+	 * @param mixed  $value    The new value.
+	 * @return mixed The previous value.
+	 */
+	protected function reflect_and_set_value( $obj, $property, $value ) {
+		$reflected_property = new ReflectionProperty( $obj, $property );
+
+		$reflected_property->setAccessible( true );
+		$previous_value = $reflected_property->getValue( $obj );
+		$reflected_property->setValue( $obj, $value );
+		$reflected_property->setAccessible( false );
+
+		unset( $reflected_property );
+
+		return $previous_value;
+	}
 }
