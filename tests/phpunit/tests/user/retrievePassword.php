@@ -4,12 +4,6 @@
  *
  * @package WordPress
  * @since 6.0.0
- */
-
-/**
- * Test retrieve_password(), in wp-includes/user.php.
- *
- * @since 6.0.0
  *
  * @group user
  * @covers ::retrieve_password
@@ -58,7 +52,7 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 	public function test_retrieve_password_should_return_wp_error_on_failed_email() {
 		add_filter(
 			'retrieve_password_notification_email',
-			static function() {
+			static function () {
 				return array( 'message' => '' );
 			}
 		);

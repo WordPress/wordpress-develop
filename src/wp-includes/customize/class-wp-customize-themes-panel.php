@@ -44,7 +44,6 @@ class WP_Customize_Themes_Panel extends WP_Customize_Panel {
 					echo '<span class="customize-action">' . __( 'Previewing theme' ) . '</span> {{ data.title }}';
 				}
 				?>
-
 				<?php if ( current_user_can( 'switch_themes' ) ) : ?>
 					<button type="button" class="button change-theme" aria-label="<?php esc_attr_e( 'Change theme' ); ?>"><?php _ex( 'Change', 'theme' ); ?></button>
 				<?php endif; ?>
@@ -67,7 +66,12 @@ class WP_Customize_Themes_Panel extends WP_Customize_Panel {
 	protected function content_template() {
 		?>
 		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
-			<button class="customize-panel-back" tabindex="-1" type="button"><span class="screen-reader-text"><?php _e( 'Back' ); ?></span></button>
+			<button class="customize-panel-back" tabindex="-1" type="button"><span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Back' );
+				?>
+			</span></button>
 			<div class="accordion-section-title">
 				<span class="preview-notice">
 					<?php
@@ -80,7 +84,12 @@ class WP_Customize_Themes_Panel extends WP_Customize_Panel {
 				</span>
 				<?php if ( current_user_can( 'install_themes' ) && ! is_multisite() ) : ?>
 					<# if ( data.description ) { #>
-						<button class="customize-help-toggle dashicons dashicons-editor-help" type="button" aria-expanded="false"><span class="screen-reader-text"><?php _e( 'Help' ); ?></span></button>
+						<button class="customize-help-toggle dashicons dashicons-editor-help" type="button" aria-expanded="false"><span class="screen-reader-text">
+							<?php
+							/* translators: Hidden accessibility text. */
+							_e( 'Help' );
+							?>
+						</span></button>
 					<# } #>
 				<?php endif; ?>
 			</div>

@@ -141,6 +141,7 @@ abstract class WP_REST_Meta_Fields {
 	 */
 	public function update_value( $meta, $object_id ) {
 		$fields = $this->get_registered_fields();
+		$error  = new WP_Error();
 
 		foreach ( $fields as $meta_key => $args ) {
 			$name = $args['name'];
@@ -163,35 +164,38 @@ abstract class WP_REST_Meta_Fields {
 					$current = get_metadata( $this->get_meta_type(), $object_id, $meta_key, true );
 
 					if ( is_wp_error( rest_validate_value_from_schema( $current, $args['schema'] ) ) ) {
-						return new WP_Error(
+						$error->add(
 							'rest_invalid_stored_value',
 							/* translators: %s: Custom field key. */
 							sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $name ),
 							array( 'status' => 500 )
 						);
+						continue;
 					}
 				}
 
 				$result = $this->delete_meta_value( $object_id, $meta_key, $name );
 				if ( is_wp_error( $result ) ) {
-					return $result;
+					$error->merge_from( $result );
 				}
 				continue;
 			}
 
 			if ( ! $args['single'] && is_array( $value ) && count( array_filter( $value, 'is_null' ) ) ) {
-				return new WP_Error(
+				$error->add(
 					'rest_invalid_stored_value',
 					/* translators: %s: Custom field key. */
 					sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $name ),
 					array( 'status' => 500 )
 				);
+				continue;
 			}
 
 			$is_valid = rest_validate_value_from_schema( $value, $args['schema'], 'meta.' . $name );
 			if ( is_wp_error( $is_valid ) ) {
 				$is_valid->add_data( array( 'status' => 400 ) );
-				return $is_valid;
+				$error->merge_from( $is_valid );
+				continue;
 			}
 
 			$value = rest_sanitize_value_from_schema( $value, $args['schema'] );
@@ -203,8 +207,13 @@ abstract class WP_REST_Meta_Fields {
 			}
 
 			if ( is_wp_error( $result ) ) {
-				return $result;
+				$error->merge_from( $result );
+				continue;
 			}
+		}
+
+		if ( $error->has_errors() ) {
+			return $error;
 		}
 
 		return null;
@@ -259,6 +268,7 @@ abstract class WP_REST_Meta_Fields {
 	 * Alters the list of values in the database to match the list of provided values.
 	 *
 	 * @since 4.7.0
+	 * @since 6.7.0 Stores values into DB even if provided registered default value.
 	 *
 	 * @param int    $object_id Object ID to update.
 	 * @param string $meta_key  Key for the custom field.
@@ -281,7 +291,7 @@ abstract class WP_REST_Meta_Fields {
 			);
 		}
 
-		$current_values = get_metadata( $meta_type, $object_id, $meta_key, false );
+		$current_values = get_metadata_raw( $meta_type, $object_id, $meta_key, false );
 		$subtype        = get_object_subtype( $meta_type, $object_id );
 
 		if ( ! is_array( $current_values ) ) {
@@ -358,6 +368,7 @@ abstract class WP_REST_Meta_Fields {
 	 * Updates a meta value for an object.
 	 *
 	 * @since 4.7.0
+	 * @since 6.7.0 Stores values into DB even if provided registered default value.
 	 *
 	 * @param int    $object_id Object ID to update.
 	 * @param string $meta_key  Key for the custom field.
@@ -367,6 +378,16 @@ abstract class WP_REST_Meta_Fields {
 	 */
 	protected function update_meta_value( $object_id, $meta_key, $name, $value ) {
 		$meta_type = $this->get_meta_type();
+
+		// Do the exact same check for a duplicate value as in update_metadata() to avoid update_metadata() returning false.
+		$old_value = get_metadata_raw( $meta_type, $object_id, $meta_key );
+		$subtype   = get_object_subtype( $meta_type, $object_id );
+
+		if ( is_array( $old_value ) && 1 === count( $old_value )
+			&& $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $old_value[0], $value )
+		) {
+			return true;
+		}
 
 		if ( ! current_user_can( "edit_{$meta_type}_meta", $object_id, $meta_key ) ) {
 			return new WP_Error(
@@ -378,16 +399,6 @@ abstract class WP_REST_Meta_Fields {
 					'status' => rest_authorization_required_code(),
 				)
 			);
-		}
-
-		// Do the exact same check for a duplicate value as in update_metadata() to avoid update_metadata() returning false.
-		$old_value = get_metadata( $meta_type, $object_id, $meta_key );
-		$subtype   = get_object_subtype( $meta_type, $object_id );
-
-		if ( is_array( $old_value ) && 1 === count( $old_value )
-			&& $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $old_value[0], $value )
-		) {
-			return true;
 		}
 
 		if ( ! update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) ) ) {
@@ -467,6 +478,7 @@ abstract class WP_REST_Meta_Fields {
 
 			$default_schema = array(
 				'type'        => $default_args['type'],
+				'title'       => empty( $args['label'] ) ? '' : $args['label'],
 				'description' => empty( $args['description'] ) ? '' : $args['description'],
 				'default'     => isset( $args['default'] ) ? $args['default'] : null,
 			);

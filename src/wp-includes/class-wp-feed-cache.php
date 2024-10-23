@@ -19,14 +19,12 @@ _deprecated_file(
  * Core class used to implement a feed cache.
  *
  * @since 2.8.0
- *
- * @see SimplePie_Cache
  */
 #[AllowDynamicProperties]
-class WP_Feed_Cache extends SimplePie_Cache {
+class WP_Feed_Cache extends SimplePie\Cache {
 
 	/**
-	 * Creates a new SimplePie_Cache object.
+	 * Creates a new SimplePie\Cache object.
 	 *
 	 * @since 2.8.0
 	 *

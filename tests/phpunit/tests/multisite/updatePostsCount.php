@@ -30,7 +30,7 @@ if ( is_multisite() ) :
 
 			$post_count_after_creating = get_site()->post_count;
 
-			wp_delete_post( $post_id );
+			wp_delete_post( $post_id, true );
 
 			$post_count_after_deleting = get_site()->post_count;
 
@@ -47,7 +47,7 @@ if ( is_multisite() ) :
 
 			/*
 			 * Check that posts count is updated when a post is deleted:
-			 * add_action( 'deleted_post', '_update_posts_count_on_delete' );
+			 * add_action( 'after_delete_post', '_update_posts_count_on_delete', 10, 2 );
 			 *
 			 * Check that _update_posts_count_on_delete() is called on that filter,
 			 * which then calls update_posts_count() to update the count.

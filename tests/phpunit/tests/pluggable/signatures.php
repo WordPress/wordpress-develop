@@ -15,21 +15,21 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 	 *
 	 * @dataProvider get_defined_pluggable_functions
 	 */
-	public function test_pluggable_function_signatures_match( $function ) {
+	public function test_pluggable_function_signatures_match( $function_name ) {
 
 		$signatures = $this->get_pluggable_function_signatures();
 
-		$this->assertTrue( function_exists( $function ) );
-		$this->assertArrayHasKey( $function, $signatures );
+		$this->assertTrue( function_exists( $function_name ) );
+		$this->assertArrayHasKey( $function_name, $signatures );
 
-		$function_ref = new ReflectionFunction( $function );
+		$function_ref = new ReflectionFunction( $function_name );
 		$param_refs   = $function_ref->getParameters();
 
-		$this->assertSame( count( $signatures[ $function ] ), count( $param_refs ) );
+		$this->assertSame( count( $signatures[ $function_name ] ), count( $param_refs ) );
 
 		$i = 0;
 
-		foreach ( $signatures[ $function ] as $name => $value ) {
+		foreach ( $signatures[ $function_name ] as $name => $value ) {
 
 			$param_ref = $param_refs[ $i ];
 			$msg       = 'Parameter: ' . $param_ref->getName();
@@ -44,10 +44,9 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 
 			$this->assertSame( $name, $param_ref->getName(), $msg );
 
-			$i++;
+			++$i;
 
 		}
-
 	}
 
 	/**
@@ -66,7 +65,6 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 			$this->assertTrue( function_exists( $function ), $msg );
 			$this->assertContains( $function, $defined, $msg );
 		}
-
 	}
 
 	/**
@@ -113,7 +111,6 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 		}
 
 		return $data;
-
 	}
 
 	/**
@@ -173,7 +170,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 			'check_ajax_referer'              => array(
 				'action'    => -1,
 				'query_arg' => false,
-				'die'       => true,
+				'stop'      => true,
 			),
 			'wp_redirect'                     => array(
 				'location',
@@ -189,7 +186,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 			),
 			'wp_validate_redirect'            => array(
 				'location',
-				'default' => '',
+				'fallback_url' => '',
 			),
 			'wp_notify_postauthor'            => array(
 				'comment_id',
@@ -231,10 +228,10 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 			'wp_set_password'                 => array( 'password', 'user_id' ),
 			'get_avatar'                      => array(
 				'id_or_email',
-				'size'    => 96,
-				'default' => '',
-				'alt'     => '',
-				'args'    => null,
+				'size'          => 96,
+				'default_value' => '',
+				'alt'           => '',
+				'args'          => null,
 			),
 			'wp_text_diff'                    => array(
 				'left_string',

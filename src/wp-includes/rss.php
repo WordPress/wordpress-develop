@@ -63,7 +63,8 @@ class MagpieRSS {
 		# Check if PHP xml isn't compiled
 		#
 		if ( ! function_exists('xml_parser_create') ) {
-			return trigger_error( "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." );
+			wp_trigger_error( '', "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." );
+			return;
 		}
 
 		$parser = xml_parser_create();
@@ -73,11 +74,10 @@ class MagpieRSS {
 		# pass in parser, and a reference to this object
 		# set up handlers
 		#
-		xml_set_object( $this->parser, $this );
 		xml_set_element_handler($this->parser,
-				'feed_start_element', 'feed_end_element' );
+				array( $this, 'feed_start_element' ), array( $this, 'feed_end_element' ) );
 
-		xml_set_character_data_handler( $this->parser, 'feed_cdata' );
+		xml_set_character_data_handler( $this->parser, array( $this, 'feed_cdata' ) );
 
 		$status = xml_parse( $this->parser, $source );
 
@@ -195,7 +195,7 @@ class MagpieRSS {
 			array_unshift( $this->stack, $el );
 		}
 
-		// Atom support many links per containging element.
+		// Atom support many links per containing element.
 		// Magpie treats link elements of type rel='alternate'
 		// as being equivalent to RSS's simple link element.
 		//
@@ -338,7 +338,7 @@ class MagpieRSS {
 	function normalize () {
 		// if atom populate rss fields
 		if ( $this->is_atom() ) {
-			$this->channel['descripton'] = $this->channel['tagline'];
+			$this->channel['description'] = $this->channel['tagline'];
 			for ( $i = 0; $i < count($this->items); $i++) {
 				$item = $this->items[$i];
 				if ( isset($item['summary']) )
@@ -387,7 +387,7 @@ class MagpieRSS {
 
 	function error( $errormsg, $lvl = E_USER_WARNING ) {
 		if ( MAGPIE_DEBUG ) {
-			trigger_error( $errormsg, $lvl);
+			wp_trigger_error('', $errormsg, $lvl);
 		} else {
 			error_log( $errormsg, 0);
 		}
@@ -500,7 +500,7 @@ function fetch_rss ($url) {
 			else {
 				$errormsg = "Failed to fetch $url. ";
 				if ( $resp->error ) {
-					# compensate for Snoopy's annoying habbit to tacking
+					# compensate for Snoopy's annoying habit to tacking
 					# on '\n'
 					$http_error = substr($resp->error, 0, -2);
 					$errormsg .= "(HTTP Error: $http_error)";
@@ -541,7 +541,7 @@ endif;
  * @subpackage MagpieRSS
  *
  * @param string $url URL to retrieve
- * @param array $headers Optional. Headers to send to the URL.
+ * @param array $headers Optional. Headers to send to the URL. Default empty string.
  * @return Snoopy style response
  */
 function _fetch_remote_file($url, $headers = "" ) {
@@ -631,6 +631,9 @@ function _response_to_rss ($resp) {
  * Set up constants with default values, unless user overrides.
  *
  * @since 1.5.0
+ * 
+ * @global string $wp_version The WordPress version string.
+ * 
  * @package External
  * @subpackage MagpieRSS
  */
@@ -820,7 +823,7 @@ class RSSCache {
 	function error ($errormsg, $lvl=E_USER_WARNING) {
 		$this->ERROR = $errormsg;
 		if ( MAGPIE_DEBUG ) {
-			trigger_error( $errormsg, $lvl);
+			wp_trigger_error( '', $errormsg, $lvl);
 		}
 		else {
 			error_log( $errormsg, 0);
@@ -836,7 +839,7 @@ class RSSCache {
 if ( !function_exists('parse_w3cdtf') ) :
 function parse_w3cdtf ( $date_str ) {
 
-	# regex to match wc3dtf
+	# regex to match W3C date/time formats
 	$pat = "/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(:(\d{2}))?(?:([-+])(\d{2}):?(\d{2})|(Z))?/";
 
 	if ( preg_match( $pat, $date_str, $match ) ) {

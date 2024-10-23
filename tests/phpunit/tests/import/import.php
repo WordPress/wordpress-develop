@@ -7,6 +7,8 @@ require_once __DIR__ . '/base.php';
  */
 class Tests_Import_Import extends WP_Import_UnitTestCase {
 	public function set_up() {
+		global $wpdb;
+
 		parent::set_up();
 
 		if ( ! defined( 'WP_IMPORTING' ) ) {
@@ -19,16 +21,10 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 
 		add_filter( 'import_allow_create_users', '__return_true' );
 
-		if ( ! file_exists( DIR_TESTDATA . '/plugins/wordpress-importer/wordpress-importer.php' ) ) {
-			$this->fail( 'This test requires the WordPress Importer plugin to be installed in the test suite. See: https://make.wordpress.org/core/handbook/contribute/git/#unit-tests' );
-		}
+		require_once IMPORTER_PLUGIN_FOR_TESTS;
 
-		require_once DIR_TESTDATA . '/plugins/wordpress-importer/wordpress-importer.php';
-
-		global $wpdb;
 		// Crude but effective: make sure there's no residual data in the main tables.
 		foreach ( array( 'posts', 'postmeta', 'comments', 'terms', 'term_taxonomy', 'term_relationships', 'users', 'usermeta' ) as $table ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$wpdb->query( "DELETE FROM {$wpdb->$table}" );
 		}
 	}

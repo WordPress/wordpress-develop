@@ -3,6 +3,7 @@
 /**
  * @group date
  * @group datetime
+ *
  * @covers ::wp_date
  */
 class Tests_Date_wpDate extends WP_UnitTestCase {

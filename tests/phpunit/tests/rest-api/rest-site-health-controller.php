@@ -4,12 +4,10 @@
  *
  * Also generates the fixture data used by the wp-api.js QUnit tests.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage REST API
- * @since      5.6.0
- */
-
-/**
+ * @since 5.6.0
+ *
  * @group restapi
  */
 class WP_Test_REST_Site_Health_Controller extends WP_Test_REST_TestCase {

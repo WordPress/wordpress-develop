@@ -105,9 +105,13 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		return $out;
 	}
 
+	/**
+	 * @ticket 59249
+	 */
 	public function test_noatts() {
 		do_shortcode( '[test-shortcode-tag /]' );
-		$this->assertSame( '', $this->atts );
+		$this->assertIsArray( $this->atts );
+		$this->assertEmpty( $this->atts );
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
@@ -181,9 +185,13 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
+	/**
+	 * @ticket 59249
+	 */
 	public function test_noatts_enclosing() {
 		do_shortcode( '[test-shortcode-tag]content[/test-shortcode-tag]' );
-		$this->assertSame( '', $this->atts );
+		$this->assertIsArray( $this->atts );
+		$this->assertEmpty( $this->atts );
 		$this->assertSame( 'content', $this->content );
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
@@ -208,10 +216,14 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
+	/**
+	 * @ticket 59249
+	 */
 	public function test_unclosed() {
 		$out = do_shortcode( '[test-shortcode-tag]' );
 		$this->assertSame( '', $out );
-		$this->assertSame( '', $this->atts );
+		$this->assertIsArray( $this->atts );
+		$this->assertEmpty( $this->atts );
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
@@ -404,7 +416,19 @@ EOF;
 		$this->assertSame( $test_string, shortcode_unautop( wpautop( $test_string ) ) );
 	}
 
-	public function data_test_strip_shortcodes() {
+	/**
+	 * @ticket 10326
+	 *
+	 * @dataProvider data_strip_shortcodes
+	 *
+	 * @param string $expected  Expected output.
+	 * @param string $content   Content to run strip_shortcodes() on.
+	 */
+	public function test_strip_shortcodes( $expected, $content ) {
+		$this->assertSame( $expected, strip_shortcodes( $content ) );
+	}
+
+	public function data_strip_shortcodes() {
 		return array(
 			array( 'before', 'before[gallery]' ),
 			array( 'after', '[gallery]after' ),
@@ -417,18 +441,6 @@ EOF;
 			array( 'before  after', 'before [footag]content[/footag] after' ),
 			array( 'before  after', 'before [footag foo="123"]content[/footag] after' ),
 		);
-	}
-
-	/**
-	 * @ticket 10326
-	 *
-	 * @dataProvider data_test_strip_shortcodes
-	 *
-	 * @param string $expected  Expected output.
-	 * @param string $content   Content to run strip_shortcodes() on.
-	 */
-	public function test_strip_shortcodes( $expected, $content ) {
-		$this->assertSame( $expected, strip_shortcodes( $content ) );
 	}
 
 	/**
@@ -781,7 +793,6 @@ EOF;
 
 		$js = str_replace( "\'", "'", $matches[1] );
 		$this->assertSame( $php, $js );
-
 	}
 
 	/**
@@ -826,7 +837,7 @@ EOF;
 
 		// Pass arguments.
 		$arr = array(
-			'return' => 'p11',
+			'output' => 'p11',
 			'key'    => $str,
 			'atts'   => array(
 				'a' => 'b',
@@ -864,9 +875,9 @@ EOF;
 		return 'p11';
 	}
 
-	public function filter_pre_do_shortcode_tag_attr( $return, $key, $atts, $m ) {
+	public function filter_pre_do_shortcode_tag_attr( $output, $key, $atts, $m ) {
 		$arr = array(
-			'return' => $return,
+			'output' => $output,
 			'key'    => $key,
 			'atts'   => $atts,
 			'm'      => $m,
@@ -896,7 +907,7 @@ EOF;
 
 		// Pass arguments.
 		$arr = array(
-			'return' => 'foobar',
+			'output' => 'foobar',
 			'key'    => $str,
 			'atts'   => array(
 				'a' => 'b',
@@ -926,17 +937,17 @@ EOF;
 		return 'foo';
 	}
 
-	public function filter_do_shortcode_tag_replace( $return ) {
-		return str_replace( 'oo', 'ee', $return );
+	public function filter_do_shortcode_tag_replace( $output ) {
+		return str_replace( 'oo', 'ee', $output );
 	}
 
-	public function filter_do_shortcode_tag_generate( $return ) {
+	public function filter_do_shortcode_tag_generate( $output ) {
 		return 'foobar';
 	}
 
-	public function filter_do_shortcode_tag_attr( $return, $key, $atts, $m ) {
+	public function filter_do_shortcode_tag_attr( $output, $key, $atts, $m ) {
 		$arr = array(
-			'return' => $return,
+			'output' => $output,
 			'key'    => $key,
 			'atts'   => $atts,
 			'm'      => $m,
@@ -998,5 +1009,14 @@ EOF;
 			$this->atts
 		);
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
+	}
+
+	/**
+	 * @ticket 59249
+	 */
+	public function test_shortcode_parse_atts_empty() {
+		$out = shortcode_parse_atts( '' );
+		$this->assertIsArray( $out, 'Return value is not an array' );
+		$this->assertEmpty( $out, 'Returned array is not empty' );
 	}
 }

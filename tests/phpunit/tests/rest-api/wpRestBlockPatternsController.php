@@ -2,14 +2,8 @@
 /**
  * Unit tests covering WP_REST_Block_Patterns_Controller functionality.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage REST_API
- * @since      6.0.0
- */
-
-/**
- * Tests for REST API for Block Patterns.
- *
  * @since 6.0.0
  *
  * @ticket 55505
@@ -71,25 +65,39 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		self::$registry_instance_property = new ReflectionProperty( 'WP_Block_Patterns_Registry', 'instance' );
 		self::$registry_instance_property->setAccessible( true );
 		$test_registry = new WP_Block_Pattern_Categories_Registry();
-		self::$registry_instance_property->setValue( $test_registry );
+		self::$registry_instance_property->setValue( null, $test_registry );
 
 		// Register some patterns in the test registry.
 		$test_registry->register(
 			'test/one',
 			array(
 				'title'         => 'Pattern One',
-				'categories'    => array( 'test' ),
-				'viewportWidth' => 1440,
 				'content'       => '<!-- wp:heading {"level":1} --><h1>One</h1><!-- /wp:heading -->',
+				'viewportWidth' => 1440,
+				'categories'    => array( 'test' ),
+				'templateTypes' => array( 'page' ),
+				'source'        => 'theme',
 			)
 		);
 
 		$test_registry->register(
 			'test/two',
 			array(
-				'title'      => 'Pattern Two',
-				'categories' => array( 'test' ),
-				'content'    => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
+				'title'         => 'Pattern Two',
+				'content'       => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
+				'categories'    => array( 'test' ),
+				'templateTypes' => array( 'single' ),
+				'source'        => 'core',
+			)
+		);
+
+		$test_registry->register(
+			'test/three',
+			array(
+				'title'      => 'Pattern Three',
+				'content'    => '<!-- wp:paragraph --><p>Three</p><!-- /wp:paragraph -->',
+				'categories' => array( 'test', 'buttons', 'query' ),
+				'source'     => 'pattern-directory/featured',
 			)
 		);
 	}
@@ -98,7 +106,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		self::delete_user( self::$admin_id );
 
 		// Restore the original registry instance.
-		self::$registry_instance_property->setValue( self::$orig_registry );
+		self::$registry_instance_property->setValue( null, self::$orig_registry );
 		self::$registry_instance_property->setAccessible( false );
 		self::$registry_instance_property = null;
 		self::$orig_registry              = null;
@@ -119,7 +127,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		wp_set_current_user( self::$admin_id );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
-		$request['_fields'] = 'name,content';
+		$request['_fields'] = 'name,content,source,template_types';
 		$response           = rest_get_server()->dispatch( $request );
 		$data               = $response->get_data();
 
@@ -127,16 +135,20 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		$this->assertGreaterThanOrEqual( 2, count( $data ), 'WP_REST_Block_Patterns_Controller::get_items() should return at least 2 items' );
 		$this->assertSame(
 			array(
-				'name'    => 'test/one',
-				'content' => '<!-- wp:heading {"level":1} --><h1>One</h1><!-- /wp:heading -->',
+				'name'           => 'test/one',
+				'content'        => '<!-- wp:heading {"level":1} --><h1>One</h1><!-- /wp:heading -->',
+				'template_types' => array( 'page' ),
+				'source'         => 'theme',
 			),
 			$data[0],
 			'WP_REST_Block_Patterns_Controller::get_items() should return test/one'
 		);
 		$this->assertSame(
 			array(
-				'name'    => 'test/two',
-				'content' => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
+				'name'           => 'test/two',
+				'content'        => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
+				'template_types' => array( 'single' ),
+				'source'         => 'core',
 			),
 			$data[1],
 			'WP_REST_Block_Patterns_Controller::get_items() should return test/two'
@@ -169,6 +181,51 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 
 		$this->assertWPError( $response->as_error() );
 		$this->assertSame( 403, $response->get_status() );
+	}
+
+	/**
+	 * Tests the proper migration of old core pattern categories to new ones.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @ticket 57532
+	 *
+	 * @covers WP_REST_Block_Patterns_Controller::get_items
+	 */
+	public function test_get_items_migrate_pattern_categories() {
+		wp_set_current_user( self::$admin_id );
+
+		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
+		$request['_fields'] = 'name,categories';
+		$response           = rest_get_server()->dispatch( $request );
+		$data               = $response->get_data();
+
+		$this->assertIsArray( $data, 'WP_REST_Block_Patterns_Controller::get_items() should return an array' );
+		$this->assertGreaterThanOrEqual( 3, count( $data ), 'WP_REST_Block_Patterns_Controller::get_items() should return at least 3 items' );
+		$this->assertSame(
+			array(
+				'name'       => 'test/one',
+				'categories' => array( 'test' ),
+			),
+			$data[0],
+			'WP_REST_Block_Patterns_Controller::get_items() should return test/one'
+		);
+		$this->assertSame(
+			array(
+				'name'       => 'test/two',
+				'categories' => array( 'test' ),
+			),
+			$data[1],
+			'WP_REST_Block_Patterns_Controller::get_items() should return test/two'
+		);
+		$this->assertSame(
+			array(
+				'name'       => 'test/three',
+				'categories' => array( 'test', 'call-to-action', 'posts' ),
+			),
+			$data[2],
+			'WP_REST_Block_Patterns_Controller::get_items() should return test/three'
+		);
 	}
 
 	/**

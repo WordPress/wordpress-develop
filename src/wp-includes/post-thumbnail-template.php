@@ -112,8 +112,25 @@ function update_post_thumbnail_cache( $wp_query = null ) {
 
 	$thumb_ids = array();
 
+	/*
+	 * $wp_query may contain an array of post objects or post IDs.
+	 *
+	 * This ensures the cache is primed for all post objects to avoid
+	 * `get_post()` calls in `get_the_post_thumbnail()` triggering an
+	 * additional database call for each post.
+	 */
+	$parent_post_ids = array();
 	foreach ( $wp_query->posts as $post ) {
-		$id = get_post_thumbnail_id( $post->ID );
+		if ( $post instanceof WP_Post ) {
+			$parent_post_ids[] = $post->ID;
+		} elseif ( is_int( $post ) ) {
+			$parent_post_ids[] = $post;
+		}
+	}
+	_prime_post_caches( $parent_post_ids, false, true );
+
+	foreach ( $wp_query->posts as $post ) {
+		$id = get_post_thumbnail_id( $post );
 		if ( $id ) {
 			$thumb_ids[] = $id;
 		}
@@ -184,19 +201,6 @@ function get_the_post_thumbnail( $post = null, $size = 'post-thumbnail', $attr =
 
 		if ( in_the_loop() ) {
 			update_post_thumbnail_cache();
-		}
-
-		// Get the 'loading' attribute value to use as default, taking precedence over the default from
-		// `wp_get_attachment_image()`.
-		$loading = wp_get_loading_attr_default( 'the_post_thumbnail' );
-
-		// Add the default to the given attributes unless they already include a 'loading' directive.
-		if ( empty( $attr ) ) {
-			$attr = array( 'loading' => $loading );
-		} elseif ( is_array( $attr ) && ! array_key_exists( 'loading', $attr ) ) {
-			$attr['loading'] = $loading;
-		} elseif ( is_string( $attr ) && ! preg_match( '/(^|&)loading=/', $attr ) ) {
-			$attr .= '&loading=' . $loading;
 		}
 
 		$html = wp_get_attachment_image( $post_thumbnail_id, $size, false, $attr );

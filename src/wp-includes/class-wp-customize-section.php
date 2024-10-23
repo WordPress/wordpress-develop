@@ -264,7 +264,7 @@ class WP_Customize_Section {
 			return false;
 		}
 
-		if ( $this->theme_supports && ! current_theme_supports( ... (array) $this->theme_supports ) ) {
+		if ( $this->theme_supports && ! current_theme_supports( ...(array) $this->theme_supports ) ) {
 			return false;
 		}
 
@@ -355,15 +355,21 @@ class WP_Customize_Section {
 	protected function render_template() {
 		?>
 		<li id="accordion-section-{{ data.id }}" class="accordion-section control-section control-section-{{ data.type }}">
-			<h3 class="accordion-section-title" tabindex="0">
-				{{ data.title }}
-				<span class="screen-reader-text"><?php _e( 'Press return or enter to open this section' ); ?></span>
+			<h3 class="accordion-section-title">
+				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="{{ data.id }}-content">
+					{{ data.title }}
+				</button>
 			</h3>
-			<ul class="accordion-section-content">
+			<ul class="accordion-section-content" id="{{ data.id }}-content">
 				<li class="customize-section-description-container section-meta <# if ( data.description_hidden ) { #>customize-info<# } #>">
 					<div class="customize-section-title">
 						<button class="customize-section-back" tabindex="-1">
-							<span class="screen-reader-text"><?php _e( 'Back' ); ?></span>
+							<span class="screen-reader-text">
+								<?php
+								/* translators: Hidden accessibility text. */
+								_e( 'Back' );
+								?>
+							</span>
 						</button>
 						<h3>
 							<span class="customize-action">
@@ -372,7 +378,12 @@ class WP_Customize_Section {
 							{{ data.title }}
 						</h3>
 						<# if ( data.description && data.description_hidden ) { #>
-							<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text"><?php _e( 'Help' ); ?></span></button>
+							<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text">
+								<?php
+								/* translators: Hidden accessibility text. */
+								_e( 'Help' );
+								?>
+							</span></button>
 							<div class="description customize-section-description">
 								{{{ data.description }}}
 							</div>

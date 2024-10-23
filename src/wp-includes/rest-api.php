@@ -23,41 +23,70 @@ define( 'REST_API_VERSION', '2.0' );
  * @since 5.1.0 Added a `_doing_it_wrong()` notice when not called on or after the `rest_api_init` hook.
  * @since 5.5.0 Added a `_doing_it_wrong()` notice when the required `permission_callback` argument is not set.
  *
- * @param string $namespace The first URL segment after core prefix. Should be unique to your package/plugin.
- * @param string $route     The base URL for route you are adding.
- * @param array  $args      Optional. Either an array of options for the endpoint, or an array of arrays for
- *                          multiple methods. Default empty array.
- * @param bool   $override  Optional. If the route already exists, should we override it? True overrides,
- *                          false merges (with newer overriding if duplicate keys exist). Default false.
+ * @param string $route_namespace The first URL segment after core prefix. Should be unique to your package/plugin.
+ * @param string $route           The base URL for route you are adding.
+ * @param array  $args            Optional. Either an array of options for the endpoint, or an array of arrays for
+ *                                multiple methods. Default empty array.
+ * @param bool   $override        Optional. If the route already exists, should we override it? True overrides,
+ *                                false merges (with newer overriding if duplicate keys exist). Default false.
  * @return bool True on success, false on error.
  */
-function register_rest_route( $namespace, $route, $args = array(), $override = false ) {
-	if ( empty( $namespace ) ) {
+function register_rest_route( $route_namespace, $route, $args = array(), $override = false ) {
+	if ( empty( $route_namespace ) ) {
 		/*
 		 * Non-namespaced routes are not allowed, with the exception of the main
 		 * and namespace indexes. If you really need to register a
 		 * non-namespaced route, call `WP_REST_Server::register_route` directly.
 		 */
-		_doing_it_wrong( 'register_rest_route', __( 'Routes must be namespaced with plugin or theme name and version.' ), '4.4.0' );
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: string value of the namespace, 2: string value of the route. */
+				__( 'Routes must be namespaced with plugin or theme name and version. Instead there seems to be an empty namespace \'%1$s\' for route \'%2$s\'.' ),
+				'<code>' . $route_namespace . '</code>',
+				'<code>' . $route . '</code>'
+			),
+			'4.4.0'
+		);
 		return false;
 	} elseif ( empty( $route ) ) {
-		_doing_it_wrong( 'register_rest_route', __( 'Route must be specified.' ), '4.4.0' );
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: string value of the namespace, 2: string value of the route. */
+				__( 'Route must be specified. Instead within the namespace \'%1$s\', there seems to be an empty route \'%2$s\'.' ),
+				'<code>' . $route_namespace . '</code>',
+				'<code>' . $route . '</code>'
+			),
+			'4.4.0'
+		);
 		return false;
 	}
 
-	$clean_namespace = trim( $namespace, '/' );
+	$clean_namespace = trim( $route_namespace, '/' );
 
-	if ( $clean_namespace !== $namespace ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Namespace must not start or end with a slash.' ), '5.4.2' );
+	if ( $clean_namespace !== $route_namespace ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: string value of the namespace, 2: string value of the route. */
+				__( 'Namespace must not start or end with a slash. Instead namespace \'%1$s\' for route \'%2$s\' seems to contain a slash.' ),
+				'<code>' . $route_namespace . '</code>',
+				'<code>' . $route . '</code>'
+			),
+			'5.4.2'
+		);
 	}
 
 	if ( ! did_action( 'rest_api_init' ) ) {
 		_doing_it_wrong(
-			'register_rest_route',
+			__FUNCTION__,
 			sprintf(
-				/* translators: %s: rest_api_init */
-				__( 'REST API routes must be registered on the %s action.' ),
-				'<code>rest_api_init</code>'
+				/* translators: 1: rest_api_init, 2: string value of the route, 3: string value of the namespace. */
+				__( 'REST API routes must be registered on the %1$s action. Instead route \'%2$s\' with namespace \'%3$s\' was not registered on this action.' ),
+				'<code>rest_api_init</code>',
+				'<code>' . $route . '</code>',
+				'<code>' . $route_namespace . '</code>'
 			),
 			'5.1.0'
 		);
@@ -209,7 +238,7 @@ function rest_api_register_rewrites() {
  * @since 4.4.0
  */
 function rest_api_default_filters() {
-	if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+	if ( wp_is_serving_rest_request() ) {
 		// Deprecated reporting.
 		add_action( 'deprecated_function_run', 'rest_handle_deprecated_function', 10, 3 );
 		add_filter( 'deprecated_function_trigger_error', '__return_false' );
@@ -241,16 +270,22 @@ function create_initial_rest_routes() {
 			continue;
 		}
 
-		$controller->register_routes();
+		if ( ! $post_type->late_route_registration ) {
+			$controller->register_routes();
+		}
 
-		if ( post_type_supports( $post_type->name, 'revisions' ) ) {
-			$revisions_controller = new WP_REST_Revisions_Controller( $post_type->name );
+		$revisions_controller = $post_type->get_revisions_rest_controller();
+		if ( $revisions_controller ) {
 			$revisions_controller->register_routes();
 		}
 
-		if ( 'attachment' !== $post_type->name ) {
-			$autosaves_controller = new WP_REST_Autosaves_Controller( $post_type->name );
+		$autosaves_controller = $post_type->get_autosave_rest_controller();
+		if ( $autosaves_controller ) {
 			$autosaves_controller->register_routes();
+		}
+
+		if ( $post_type->late_route_registration ) {
+			$controller->register_routes();
 		}
 	}
 
@@ -317,10 +352,6 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Block_Types_Controller();
 	$controller->register_routes();
 
-	// Global Styles.
-	$controller = new WP_REST_Global_Styles_Controller();
-	$controller->register_routes();
-
 	// Settings.
 	$controller = new WP_REST_Settings_Controller();
 	$controller->register_routes();
@@ -377,6 +408,14 @@ function create_initial_rest_routes() {
 	// Site Editor Export.
 	$controller = new WP_REST_Edit_Site_Export_Controller();
 	$controller->register_routes();
+
+	// Navigation Fallback.
+	$controller = new WP_REST_Navigation_Fallback_Controller();
+	$controller->register_routes();
+
+	// Font Collections.
+	$font_collections_controller = new WP_REST_Font_Collections_Controller();
+	$font_collections_controller->register_routes();
 }
 
 /**
@@ -465,9 +504,11 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
 		$url .= $path;
 	} else {
 		$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
-		// nginx only allows HTTP/1.0 methods when redirecting from / to /index.php.
-		// To work around this, we manually add index.php to the URL, avoiding the redirect.
-		if ( 'index.php' !== substr( $url, 9 ) ) {
+		/*
+		 * nginx only allows HTTP/1.0 methods when redirecting from / to /index.php.
+		 * To work around this, we manually add index.php to the URL, avoiding the redirect.
+		 */
+		if ( ! str_ends_with( $url, 'index.php' ) ) {
 			$url .= 'index.php';
 		}
 
@@ -624,8 +665,10 @@ function rest_ensure_response( $response ) {
 		return $response;
 	}
 
-	// While WP_HTTP_Response is the base class of WP_REST_Response, it doesn't provide
-	// all the required methods used in WP_REST_Server::dispatch().
+	/*
+	 * While WP_HTTP_Response is the base class of WP_REST_Response, it doesn't provide
+	 * all the required methods used in WP_REST_Server::dispatch().
+	 */
 	if ( $response instanceof WP_HTTP_Response ) {
 		return new WP_REST_Response(
 			$response->get_data(),
@@ -642,20 +685,20 @@ function rest_ensure_response( $response ) {
  *
  * @since 4.4.0
  *
- * @param string $function    The function that was called.
- * @param string $replacement The function that should have been called.
- * @param string $version     Version.
+ * @param string $function_name The function that was called.
+ * @param string $replacement   The function that should have been called.
+ * @param string $version       Version.
  */
-function rest_handle_deprecated_function( $function, $replacement, $version ) {
+function rest_handle_deprecated_function( $function_name, $replacement, $version ) {
 	if ( ! WP_DEBUG || headers_sent() ) {
 		return;
 	}
 	if ( ! empty( $replacement ) ) {
 		/* translators: 1: Function name, 2: WordPress version number, 3: New function name. */
-		$string = sprintf( __( '%1$s (since %2$s; use %3$s instead)' ), $function, $version, $replacement );
+		$string = sprintf( __( '%1$s (since %2$s; use %3$s instead)' ), $function_name, $version, $replacement );
 	} else {
 		/* translators: 1: Function name, 2: WordPress version number. */
-		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function, $version );
+		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function_name, $version );
 	}
 
 	header( sprintf( 'X-WP-DeprecatedFunction: %s', $string ) );
@@ -666,20 +709,20 @@ function rest_handle_deprecated_function( $function, $replacement, $version ) {
  *
  * @since 4.4.0
  *
- * @param string $function    The function that was called.
- * @param string $message     A message regarding the change.
- * @param string $version     Version.
+ * @param string $function_name The function that was called.
+ * @param string $message       A message regarding the change.
+ * @param string $version       Version.
  */
-function rest_handle_deprecated_argument( $function, $message, $version ) {
+function rest_handle_deprecated_argument( $function_name, $message, $version ) {
 	if ( ! WP_DEBUG || headers_sent() ) {
 		return;
 	}
 	if ( $message ) {
 		/* translators: 1: Function name, 2: WordPress version number, 3: Error message. */
-		$string = sprintf( __( '%1$s (since %2$s; %3$s)' ), $function, $version, $message );
+		$string = sprintf( __( '%1$s (since %2$s; %3$s)' ), $function_name, $version, $message );
 	} else {
 		/* translators: 1: Function name, 2: WordPress version number. */
-		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function, $version );
+		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function_name, $version );
 	}
 
 	header( sprintf( 'X-WP-DeprecatedParam: %s', $string ) );
@@ -690,11 +733,11 @@ function rest_handle_deprecated_argument( $function, $message, $version ) {
  *
  * @since 5.5.0
  *
- * @param string      $function The function that was called.
- * @param string      $message  A message explaining what has been done incorrectly.
- * @param string|null $version  The version of WordPress where the message was added.
+ * @param string      $function_name The function that was called.
+ * @param string      $message       A message explaining what has been done incorrectly.
+ * @param string|null $version       The version of WordPress where the message was added.
  */
-function rest_handle_doing_it_wrong( $function, $message, $version ) {
+function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
 	if ( ! WP_DEBUG || headers_sent() ) {
 		return;
 	}
@@ -702,11 +745,11 @@ function rest_handle_doing_it_wrong( $function, $message, $version ) {
 	if ( $version ) {
 		/* translators: Developer debugging message. 1: PHP function name, 2: WordPress version number, 3: Explanatory message. */
 		$string = __( '%1$s (since %2$s; %3$s)' );
-		$string = sprintf( $string, $function, $version, $message );
+		$string = sprintf( $string, $function_name, $version, $message );
 	} else {
 		/* translators: Developer debugging message. 1: PHP function name, 2: Explanatory message. */
 		$string = __( '%1$s (%2$s)' );
-		$string = sprintf( $string, $function, $message );
+		$string = sprintf( $string, $function_name, $message );
 	}
 
 	header( sprintf( 'X-WP-DoingItWrong: %s', $string ) );
@@ -858,7 +901,7 @@ function _rest_array_intersect_key_recursive( $array1, $array2 ) {
 }
 
 /**
- * Filters the REST API response to include only a white-listed set of response object fields.
+ * Filters the REST API response to include only an allow-listed set of response object fields.
  *
  * @since 4.8.0
  *
@@ -937,14 +980,18 @@ function rest_is_field_included( $field, $fields ) {
 	}
 
 	foreach ( $fields as $accepted_field ) {
-		// Check to see if $field is the parent of any item in $fields.
-		// A field "parent" should be accepted if "parent.child" is accepted.
-		if ( strpos( $accepted_field, "$field." ) === 0 ) {
+		/*
+		 * Check to see if $field is the parent of any item in $fields.
+		 * A field "parent" should be accepted if "parent.child" is accepted.
+		 */
+		if ( str_starts_with( $accepted_field, "$field." ) ) {
 			return true;
 		}
-		// Conversely, if "parent" is accepted, all "parent.child" fields
-		// should also be accepted.
-		if ( strpos( $field, "$accepted_field." ) === 0 ) {
+		/*
+		 * Conversely, if "parent" is accepted, all "parent.child" fields
+		 * should also be accepted.
+		 */
+		if ( str_starts_with( $field, "$accepted_field." ) ) {
 			return true;
 		}
 	}
@@ -989,7 +1036,11 @@ function rest_output_link_wp_head() {
 	$resource = rest_get_queried_resource_route();
 
 	if ( $resource ) {
-		printf( '<link rel="alternate" type="application/json" href="%s" />', esc_url( rest_url( $resource ) ) );
+		printf(
+			'<link rel="alternate" title="%1$s" type="application/json" href="%2$s" />',
+			_x( 'JSON', 'REST API resource link name' ),
+			esc_url( rest_url( $resource ) )
+		);
 	}
 }
 
@@ -1014,7 +1065,14 @@ function rest_output_link_header() {
 	$resource = rest_get_queried_resource_route();
 
 	if ( $resource ) {
-		header( sprintf( 'Link: <%s>; rel="alternate"; type="application/json"', sanitize_url( rest_url( $resource ) ) ), false );
+		header(
+			sprintf(
+				'Link: <%1$s>; rel="alternate"; title="%2$s"; type="application/json"',
+				sanitize_url( rest_url( $resource ) ),
+				_x( 'JSON', 'REST API resource link name' )
+			),
+			false
+		);
 	}
 }
 
@@ -1068,6 +1126,7 @@ function rest_cookie_check_errors( $result ) {
 	$result = wp_verify_nonce( $nonce, 'wp_rest' );
 
 	if ( ! $result ) {
+		add_filter( 'rest_send_nocache_headers', '__return_true', 20 );
 		return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie check failed' ), array( 'status' => 403 ) );
 	}
 
@@ -1199,13 +1258,13 @@ function rest_add_application_passwords_to_index( $response ) {
 }
 
 /**
- * Retrieves the avatar urls in various sizes.
+ * Retrieves the avatar URLs in various sizes.
  *
  * @since 4.7.0
  *
  * @see get_avatar_url()
  *
- * @param mixed $id_or_email The Gravatar to retrieve a URL for. Accepts a user_id, gravatar md5 hash,
+ * @param mixed $id_or_email The avatar to retrieve a URL for. Accepts a user ID, Gravatar MD5 hash,
  *                           user email, WP_User object, WP_Post object, or WP_Comment object.
  * @return (string|false)[] Avatar URLs keyed by size. Each value can be a URL string or boolean false.
  */
@@ -1245,12 +1304,15 @@ function rest_get_avatar_sizes() {
 /**
  * Parses an RFC3339 time into a Unix timestamp.
  *
+ * Explicitly check for `false` to detect failure, as zero is a valid return
+ * value on success.
+ *
  * @since 4.4.0
  *
  * @param string $date      RFC3339 timestamp.
  * @param bool   $force_utc Optional. Whether to force UTC timezone instead of using
  *                          the timestamp's timezone. Default false.
- * @return int Unix timestamp.
+ * @return int|false Unix timestamp on success, false on failure.
  */
 function rest_parse_date( $date, $force_utc = false ) {
 	if ( $force_utc ) {
@@ -1272,7 +1334,7 @@ function rest_parse_date( $date, $force_utc = false ) {
  * @since 5.4.0
  *
  * @param string $color 3 or 6 digit hex color (with #).
- * @return string|false
+ * @return string|false Color value on success, false on failure.
  */
 function rest_parse_hex_color( $color ) {
 	$regex = '|^#([A-Fa-f0-9]{3}){1,2}$|';
@@ -1292,8 +1354,13 @@ function rest_parse_hex_color( $color ) {
  *
  * @param string $date   RFC3339 timestamp.
  * @param bool   $is_utc Whether the provided date should be interpreted as UTC. Default false.
- * @return array|null Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s),
- *                    null on failure.
+ * @return array|null {
+ *     Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s),
+ *     null on failure.
+ *
+ *     @type string $0 Local datetime string.
+ *     @type string $1 UTC datetime string.
+ * }
  */
 function rest_get_date_with_gmt( $date, $is_utc = false ) {
 	/*
@@ -1305,7 +1372,7 @@ function rest_get_date_with_gmt( $date, $is_utc = false ) {
 
 	$date = rest_parse_date( $date );
 
-	if ( empty( $date ) ) {
+	if ( false === $date ) {
 		return null;
 	}
 
@@ -1414,7 +1481,7 @@ function rest_parse_request_arg( $value, $request, $param ) {
 function rest_is_ip_address( $ip ) {
 	$ipv4_pattern = '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/';
 
-	if ( ! preg_match( $ipv4_pattern, $ip ) && ! Requests_IPv6::check_ipv6( $ip ) ) {
+	if ( ! preg_match( $ipv4_pattern, $ip ) && ! WpOrg\Requests\Ipv6::check_ipv6( $ip ) ) {
 		return false;
 	}
 
@@ -1549,12 +1616,12 @@ function rest_is_object( $maybe_object ) {
 }
 
 /**
- * Converts an object-like value to an object.
+ * Converts an object-like value to an array.
  *
  * @since 5.5.0
  *
  * @param mixed $maybe_object The value being evaluated.
- * @return array Returns the object extracted from the value.
+ * @return array Returns the object extracted from the value as an associative array.
  */
 function rest_sanitize_object( $maybe_object ) {
 	if ( '' === $maybe_object ) {
@@ -1581,8 +1648,8 @@ function rest_sanitize_object( $maybe_object ) {
  *
  * @since 5.5.0
  *
- * @param mixed $value The value to check.
- * @param array $types The list of possible types.
+ * @param mixed    $value The value to check.
+ * @param string[] $types The list of possible types.
  * @return string The best matching type, an empty string if no types match.
  */
 function rest_get_best_type_for_value( $value, $types ) {
@@ -1596,8 +1663,10 @@ function rest_get_best_type_for_value( $value, $types ) {
 		'null'    => 'is_null',
 	);
 
-	// Both arrays and objects allow empty strings to be converted to their types.
-	// But the best answer for this type is a string.
+	/*
+	 * Both arrays and objects allow empty strings to be converted to their types.
+	 * But the best answer for this type is a string.
+	 */
 	if ( '' === $value && in_array( 'string', $types, true ) ) {
 		return 'string';
 	}
@@ -1656,13 +1725,13 @@ function rest_handle_multi_type_schema( $value, $args, $param = '' ) {
  *
  * @since 5.5.0
  *
- * @param array $array The array to check.
+ * @param array $input_array The array to check.
  * @return bool True if the array contains unique items, false otherwise.
  */
-function rest_validate_array_contains_unique_items( $array ) {
+function rest_validate_array_contains_unique_items( $input_array ) {
 	$seen = array();
 
-	foreach ( $array as $item ) {
+	foreach ( $input_array as $item ) {
 		$stabilized = rest_stabilize_value( $item );
 		$key        = serialize( $stabilized );
 
@@ -2178,8 +2247,10 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		}
 	}
 
-	// The "format" keyword should only be applied to strings. However, for backward compatibility,
-	// we allow the "format" keyword if the type keyword was not specified, or was set to an invalid value.
+	/*
+	 * The "format" keyword should only be applied to strings. However, for backward compatibility,
+	 * we allow the "format" keyword if the type keyword was not specified, or was set to an invalid value.
+	 */
 	if ( isset( $args['format'] )
 		&& ( ! isset( $args['type'] ) || 'string' === $args['type'] || ! in_array( $args['type'], $allowed_types, true ) )
 	) {
@@ -2191,7 +2262,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 				break;
 
 			case 'date-time':
-				if ( ! rest_parse_date( $value ) ) {
+				if ( false === rest_parse_date( $value ) ) {
 					return new WP_Error( 'rest_invalid_date', __( 'Invalid date.' ) );
 				}
 				break;
@@ -2845,8 +2916,10 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
  * @return array Modified reduce accumulator.
  */
 function rest_preload_api_request( $memo, $path ) {
-	// array_reduce() doesn't support passing an array in PHP 5.2,
-	// so we need to make sure we start with one.
+	/*
+	 * array_reduce() doesn't support passing an array in PHP 5.2,
+	 * so we need to make sure we start with one.
+	 */
 	if ( ! is_array( $memo ) ) {
 		$memo = array();
 	}
@@ -2934,36 +3007,36 @@ function rest_parse_embed_param( $embed ) {
  * @since 5.6.0 Support the "patternProperties" keyword for objects.
  *              Support the "anyOf" and "oneOf" keywords.
  *
- * @param array|object $data    The response data to modify.
- * @param array        $schema  The schema for the endpoint used to filter the response.
- * @param string       $context The requested context.
+ * @param array|object $response_data The response data to modify.
+ * @param array        $schema        The schema for the endpoint used to filter the response.
+ * @param string       $context       The requested context.
  * @return array|object The filtered response data.
  */
-function rest_filter_response_by_context( $data, $schema, $context ) {
+function rest_filter_response_by_context( $response_data, $schema, $context ) {
 	if ( isset( $schema['anyOf'] ) ) {
-		$matching_schema = rest_find_any_matching_schema( $data, $schema, '' );
+		$matching_schema = rest_find_any_matching_schema( $response_data, $schema, '' );
 		if ( ! is_wp_error( $matching_schema ) ) {
 			if ( ! isset( $schema['type'] ) ) {
 				$schema['type'] = $matching_schema['type'];
 			}
 
-			$data = rest_filter_response_by_context( $data, $matching_schema, $context );
+			$response_data = rest_filter_response_by_context( $response_data, $matching_schema, $context );
 		}
 	}
 
 	if ( isset( $schema['oneOf'] ) ) {
-		$matching_schema = rest_find_one_matching_schema( $data, $schema, '', true );
+		$matching_schema = rest_find_one_matching_schema( $response_data, $schema, '', true );
 		if ( ! is_wp_error( $matching_schema ) ) {
 			if ( ! isset( $schema['type'] ) ) {
 				$schema['type'] = $matching_schema['type'];
 			}
 
-			$data = rest_filter_response_by_context( $data, $matching_schema, $context );
+			$response_data = rest_filter_response_by_context( $response_data, $matching_schema, $context );
 		}
 	}
 
-	if ( ! is_array( $data ) && ! is_object( $data ) ) {
-		return $data;
+	if ( ! is_array( $response_data ) && ! is_object( $response_data ) ) {
+		return $response_data;
 	}
 
 	if ( isset( $schema['type'] ) ) {
@@ -2971,14 +3044,14 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 	} elseif ( isset( $schema['properties'] ) ) {
 		$type = 'object'; // Back compat if a developer accidentally omitted the type.
 	} else {
-		return $data;
+		return $response_data;
 	}
 
 	$is_array_type  = 'array' === $type || ( is_array( $type ) && in_array( 'array', $type, true ) );
 	$is_object_type = 'object' === $type || ( is_array( $type ) && in_array( 'object', $type, true ) );
 
 	if ( $is_array_type && $is_object_type ) {
-		if ( rest_is_array( $data ) ) {
+		if ( rest_is_array( $response_data ) ) {
 			$is_object_type = false;
 		} else {
 			$is_array_type = false;
@@ -2987,7 +3060,7 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 
 	$has_additional_properties = $is_object_type && isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] );
 
-	foreach ( $data as $key => $value ) {
+	foreach ( $response_data as $key => $value ) {
 		$check = array();
 
 		if ( $is_array_type ) {
@@ -3012,27 +3085,27 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 		if ( ! in_array( $context, $check['context'], true ) ) {
 			if ( $is_array_type ) {
 				// All array items share schema, so there's no need to check each one.
-				$data = array();
+				$response_data = array();
 				break;
 			}
 
-			if ( is_object( $data ) ) {
-				unset( $data->$key );
+			if ( is_object( $response_data ) ) {
+				unset( $response_data->$key );
 			} else {
-				unset( $data[ $key ] );
+				unset( $response_data[ $key ] );
 			}
 		} elseif ( is_array( $value ) || is_object( $value ) ) {
 			$new_value = rest_filter_response_by_context( $value, $check, $context );
 
-			if ( is_object( $data ) ) {
-				$data->$key = $new_value;
+			if ( is_object( $response_data ) ) {
+				$response_data->$key = $new_value;
 			} else {
-				$data[ $key ] = $new_value;
+				$response_data[ $key ] = $new_value;
 			}
 		}
 	}
 
-	return $data;
+	return $response_data;
 }
 
 /**
@@ -3354,4 +3427,39 @@ function rest_convert_error_to_response( $error ) {
 	}
 
 	return new WP_REST_Response( $data, $status );
+}
+
+/**
+ * Checks whether a REST API endpoint request is currently being handled.
+ *
+ * This may be a standalone REST API request, or an internal request dispatched from within a regular page load.
+ *
+ * @since 6.5.0
+ *
+ * @global WP_REST_Server $wp_rest_server REST server instance.
+ *
+ * @return bool True if a REST endpoint request is currently being handled, false otherwise.
+ */
+function wp_is_rest_endpoint() {
+	/* @var WP_REST_Server $wp_rest_server */
+	global $wp_rest_server;
+
+	// Check whether this is a standalone REST request.
+	$is_rest_endpoint = wp_is_serving_rest_request();
+	if ( ! $is_rest_endpoint ) {
+		// Otherwise, check whether an internal REST request is currently being handled.
+		$is_rest_endpoint = isset( $wp_rest_server )
+			&& $wp_rest_server->is_dispatching();
+	}
+
+	/**
+	 * Filters whether a REST endpoint request is currently being handled.
+	 *
+	 * This may be a standalone REST API request, or an internal request dispatched from within a regular page load.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param bool $is_request_endpoint Whether a REST endpoint request is currently being handled.
+	 */
+	return (bool) apply_filters( 'wp_is_rest_endpoint', $is_rest_endpoint );
 }

@@ -44,7 +44,58 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 jobs:
+  # Checks for zero-byte files.
+  #
+  # Occasionally, binary files such as images and fonts are added to themes incorrectly.
+  # This checks that all files contain contents.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Checks for zero-byte (empty) files.
+  check-for-empty-files:
+    name: ${{ matrix.theme }} empty file check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        theme: [
+          'twentytwentyfive',
+          'twentytwentyfour',
+          'twentytwentythree',
+          'twentytwentytwo',
+          'twentytwentyone',
+          'twentytwenty',
+          'twentynineteen',
+          'twentyseventeen',
+          'twentysixteen',
+          'twentyfifteen',
+          'twentyfourteen',
+          'twentythirteen',
+          'twentytwelve',
+          'twentyeleven',
+          'twentyten'
+        ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Check for zero-byte (empty) files
+        run: |
+          [[ ! $(find src/wp-content/themes/${{ matrix.theme }} -empty) ]]
+
   # Tests the build script for themes that have one.
   #
   # Performs the following steps:
@@ -56,6 +107,8 @@ jobs:
   test-build-scripts:
     name: Test ${{ matrix.theme }} build script
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     timeout-minutes: 10
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
@@ -73,12 +126,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
+        uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -101,13 +155,17 @@ jobs:
   bundle-theme:
     name: Create ${{ matrix.theme }} ZIP file
     runs-on: ubuntu-latest
-    needs: [ test-build-scripts ]
+    permissions:
+      contents: read
+    needs: [ check-for-empty-files, test-build-scripts ]
     timeout-minutes: 10
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
         theme: [
+            'twentytwentyfive',
+            'twentytwentyfour',
             'twentytwentythree',
             'twentytwentytwo',
             'twentytwentyone',
@@ -125,24 +183,29 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Upload theme ZIP as an artifact
-        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # v3.1.1
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
-          if-no-files-found: error
           name: ${{ matrix.theme }}
           path: src/wp-content/themes/${{ matrix.theme }}
+          if-no-files-found: error
+          include-hidden-files: true
 
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
-    needs: [ bundle-theme, test-build-scripts ]
+    permissions:
+      actions: read
+      contents: read
+    needs: [ check-for-empty-files, bundle-theme, test-build-scripts ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
-      calling_status: ${{ needs.test-build-scripts.result == 'success' && needs.bundle-theme.result == 'success' && 'success' || ( needs.test-build-scripts.result == 'cancelled' || needs.bundle-theme.result == 'cancelled' ) && 'cancelled' || 'failure' }}
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
@@ -152,20 +215,22 @@ jobs:
   failed-workflow:
     name: Failed workflow tasks
     runs-on: ubuntu-latest
-    needs: [ test-build-scripts, bundle-theme, slack-notifications ]
+    permissions:
+      actions: write
+    needs: [ slack-notifications ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
       github.event_name != 'pull_request' &&
       github.run_attempt < 2 &&
       (
-        needs.test-build-scripts.result == 'cancelled' || needs.test-build-scripts.result == 'failure' ||
-        needs.bundle-theme.result == 'cancelled' || needs.bundle-theme.result == 'failure'
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
       )
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@100527700e8b29ca817ac0e0dfbfc5e8ff38edda # v6.3.2
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           retries: 2
           retry-exempt-status-codes: 418

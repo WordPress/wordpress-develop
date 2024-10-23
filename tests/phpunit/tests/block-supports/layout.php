@@ -1,22 +1,16 @@
 <?php
 /**
- * Block supports tests for the layout.
+ * Tests for block supports related to layout.
  *
  * @package WordPress
  * @subpackage Block Supports
- * @since 6.0.0
- */
-
-/**
- * Tests for block supports related to layout.
- *
  * @since 6.0.0
  *
  * @group block-supports
  *
  * @covers ::wp_restore_image_outer_container
  */
-class Test_Block_Supports_Layout extends WP_UnitTestCase {
+class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * Theme root directory.
@@ -172,5 +166,301 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 		$expected      = '<figure class="wp-block-image alignright size-full is-style-round my-custom-classname"><img src="/my-image.jpg"/></figure>';
 
 		$this->assertSame( $expected, wp_restore_image_outer_container( $block_content, $block ) );
+	}
+
+	/**
+	 * @ticket 57584
+	 * @ticket 58548
+	 * @ticket 60292
+	 * @ticket 61111
+	 *
+	 * @dataProvider data_layout_support_flag_renders_classnames_on_wrapper
+	 *
+	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @param array  $args            Dataset to test.
+	 * @param string $expected_output The expected output.
+	 */
+	public function test_layout_support_flag_renders_classnames_on_wrapper( $args, $expected_output ) {
+		switch_theme( 'default' );
+		$actual_output = wp_render_layout_support_flag( $args['block_content'], $args['block'] );
+		$this->assertSame( $expected_output, $actual_output );
+	}
+
+	/**
+	 * Data provider for test_layout_support_flag_renders_classnames_on_wrapper.
+	 *
+	 * @return array
+	 */
+	public function data_layout_support_flag_renders_classnames_on_wrapper() {
+		return array(
+			'single wrapper block layout with flow type'   => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow"></div>',
+			),
+			'single wrapper block layout with constrained type' => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'constrained',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group is-layout-constrained wp-block-group-is-layout-constrained"></div>',
+			),
+			'multiple wrapper block layout with flow type' => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"><div class="wp-block-group__inner-wrapper"></div></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"><div class="wp-block-group__inner-wrapper"></div></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"><div class="wp-block-group__inner-wrapper">',
+							' ',
+							' </div></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group"><div class="wp-block-group__inner-wrapper is-layout-flow wp-block-group-is-layout-flow"></div></div>',
+			),
+			'block with child layout'                      => array(
+				'args'            => array(
+					'block_content' => '<p>Some text.</p>',
+					'block'         => array(
+						'blockName'    => 'core/paragraph',
+						'attrs'        => array(
+							'style' => array(
+								'layout' => array(
+									'columnSpan' => '2',
+								),
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<p>Some text.</p>',
+						'innerContent' => array(
+							'<p>Some text.</p>',
+						),
+					),
+				),
+				'expected_output' => '<p class="wp-container-content-1">Some text.</p>', // The generated classname number assumes `wp_unique_prefixed_id( 'wp-container-content-' )` will not have run previously in this test.
+			),
+			'skip classname output if block does not support layout and there are no child layout classes to be output' => array(
+				'args'            => array(
+					'block_content' => '<p>A paragraph</p>',
+					'block'         => array(
+						'blockName'    => 'core/paragraph',
+						'attrs'        => array(
+							'style' => array(
+								'layout' => array(
+									'selfStretch' => 'fit',
+								),
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<p>A paragraph</p>',
+						'innerContent' => array( '<p>A paragraph</p>' ),
+					),
+				),
+				'expected_output' => '<p>A paragraph</p>',
+			),
+		);
+	}
+
+	/**
+	 * Check that wp_restore_group_inner_container() restores the legacy inner container on the Group block.
+	 *
+	 * @ticket 60130
+	 *
+	 * @covers ::wp_restore_group_inner_container
+	 *
+	 * @dataProvider data_restore_group_inner_container
+	 *
+	 * @param array  $args            Dataset to test.
+	 * @param string $expected_output The expected output.
+	 */
+	public function test_restore_group_inner_container( $args, $expected_output ) {
+		$actual_output = wp_restore_group_inner_container( $args['block_content'], $args['block'] );
+		$this->assertSame( $expected_output, $actual_output );
+	}
+
+	/**
+	 * Data provider for test_restore_group_inner_container.
+	 *
+	 * @return array
+	 */
+	public function data_restore_group_inner_container() {
+		return array(
+			'group block with existing inner container'    => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"><div class="wp-block-group__inner-container"></div></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"><div class="wp-block-group__inner-container"></div></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"><div class="wp-block-group__inner-container">',
+							' ',
+							' </div></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group"><div class="wp-block-group__inner-container"></div></div>',
+			),
+			'group block with no existing inner container' => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group">',
+							' ',
+							' </div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group"><div class="wp-block-group__inner-container"></div></div>',
+			),
+			'group block with layout classnames'           => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group is-layout-constrained wp-block-group-is-layout-constrained"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group">',
+							' ',
+							' </div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group"><div class="wp-block-group__inner-container is-layout-constrained wp-block-group-is-layout-constrained"></div></div>',
+			),
+		);
+	}
+
+	/**
+	 * Checks that `wp_add_parent_layout_to_parsed_block` adds the parent layout attribute to the block object.
+	 *
+	 * @ticket 61111
+	 *
+	 * @covers ::wp_add_parent_layout_to_parsed_block
+	 *
+	 * @dataProvider data_wp_add_parent_layout_to_parsed_block
+	 *
+	 * @param array    $block        The block object.
+	 * @param WP_Block $parent_block The parent block object.
+	 * @param array    $expected     The expected block object.
+	 */
+	public function test_wp_add_parent_layout_to_parsed_block( $block, $parent_block, $expected ) {
+		$actual = wp_add_parent_layout_to_parsed_block( $block, array(), $parent_block );
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider for test_wp_add_parent_layout_to_parsed_block.
+	 *
+	 * @return array
+	 */
+	public function data_wp_add_parent_layout_to_parsed_block() {
+		return array(
+			'block with no parent layout' => array(
+				'block'        => array(
+					'blockName' => 'core/group',
+					'attrs'     => array(
+						'layout' => array(
+							'type' => 'default',
+						),
+					),
+				),
+				'parent_block' => array(),
+				'expected'     => array(
+					'blockName' => 'core/group',
+					'attrs'     => array(
+						'layout' => array(
+							'type' => 'default',
+						),
+					),
+				),
+			),
+			'block with parent layout'    => array(
+				'block'        => array(
+					'blockName' => 'core/group',
+					'attrs'     => array(
+						'layout' => array(
+							'type' => 'default',
+						),
+					),
+				),
+				'parent_block' => new WP_Block(
+					array(
+						'blockName' => 'core/group',
+						'attrs'     => array(
+							'layout' => array(
+								'type' => 'grid',
+							),
+						),
+					)
+				),
+				'expected'     => array(
+					'blockName'    => 'core/group',
+					'attrs'        => array(
+						'layout' => array(
+							'type' => 'default',
+						),
+					),
+					'parentLayout' => array(
+						'type' => 'grid',
+					),
+				),
+			),
+		);
 	}
 }

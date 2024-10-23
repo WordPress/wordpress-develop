@@ -25,6 +25,10 @@ class Spy_REST_Server extends WP_REST_Server {
 	 * @return mixed
 	 */
 	public function __call( $method, $args ) {
+		if ( ! method_exists( $this, $method ) ) {
+			throw new Error( sprintf( 'Call to undefined method %s::%s()', get_class( $this ), $method ) );
+		}
+
 		return call_user_func_array( array( $this, $method ), $args );
 	}
 
@@ -70,15 +74,15 @@ class Spy_REST_Server extends WP_REST_Server {
 	/**
 	 * Overrides the register_route method so we can re-register routes internally if needed.
 	 *
-	 * @param string $namespace  Namespace.
-	 * @param string $route      The REST route.
-	 * @param array  $route_args Route arguments.
-	 * @param bool   $override   Optional. Whether the route should be overridden if it already exists.
-	 *                           Default false. Also set `$GLOBALS['wp_rest_server']->override_by_default = true`
-	 *                           to set overrides when you don't have access to the caller context.
+	 * @param string $route_namespace Namespace.
+	 * @param string $route           The REST route.
+	 * @param array  $route_args      Route arguments.
+	 * @param bool   $override        Optional. Whether the route should be overridden if it already exists.
+	 *                                Default false. Also set `$GLOBALS['wp_rest_server']->override_by_default = true`
+	 *                                to set overrides when you don't have access to the caller context.
 	 */
-	public function register_route( $namespace, $route, $route_args, $override = false ) {
-		parent::register_route( $namespace, $route, $route_args, $override || $this->override_by_default );
+	public function register_route( $route_namespace, $route, $route_args, $override = false ) {
+		parent::register_route( $route_namespace, $route, $route_args, $override || $this->override_by_default );
 	}
 
 	/**

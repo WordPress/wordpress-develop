@@ -25,14 +25,28 @@
  * @since 2.5.0
  *
  * @global string $auth_secure_cookie
+ * @global wpdb   $wpdb               WordPress database abstraction object.
  *
- * @param array       $credentials   Optional. User info in order to sign on.
+ * @param array       $credentials {
+ *     Optional. User info in order to sign on.
+ *
+ *     @type string $user_login    Username.
+ *     @type string $user_password User password.
+ *     @type bool   $remember      Whether to 'remember' the user. Increases the time
+ *                                 that the cookie will be kept. Default false.
+ * }
  * @param string|bool $secure_cookie Optional. Whether to use secure cookie.
  * @return WP_User|WP_Error WP_User on success, WP_Error on failure.
  */
 function wp_signon( $credentials = array(), $secure_cookie = '' ) {
+	global $auth_secure_cookie, $wpdb;
+
 	if ( empty( $credentials ) ) {
-		$credentials = array(); // Back-compat for plugins passing an empty string.
+		$credentials = array(
+			'user_login'    => '',
+			'user_password' => '',
+			'remember'      => false,
+		);
 
 		if ( ! empty( $_POST['log'] ) ) {
 			$credentials['user_login'] = wp_unslash( $_POST['log'] );
@@ -87,7 +101,7 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	 */
 	$secure_cookie = apply_filters( 'secure_signon_cookie', $secure_cookie, $credentials );
 
-	global $auth_secure_cookie; // XXX ugly hack to pass this to wp_authenticate_cookie().
+	// XXX ugly hack to pass this to wp_authenticate_cookie().
 	$auth_secure_cookie = $secure_cookie;
 
 	add_filter( 'authenticate', 'wp_authenticate_cookie', 30, 3 );
@@ -99,6 +113,20 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	}
 
 	wp_set_auth_cookie( $user->ID, $credentials['remember'], $secure_cookie );
+
+	// Clear `user_activation_key` after a successful login.
+	if ( ! empty( $user->user_activation_key ) ) {
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_activation_key' => '',
+			),
+			array( 'ID' => $user->ID )
+		);
+
+		$user->user_activation_key = '';
+	}
+
 	/**
 	 * Fires after the user has successfully logged in.
 	 *
@@ -108,6 +136,7 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	 * @param WP_User $user       WP_User object of the logged-in user.
 	 */
 	do_action( 'wp_login', $user->user_login, $user );
+
 	return $user;
 }
 
@@ -273,6 +302,8 @@ function wp_authenticate_email_password( $user, $email, $password ) {
  * @return WP_User|WP_Error WP_User on success, WP_Error on failure.
  */
 function wp_authenticate_cookie( $user, $username, $password ) {
+	global $auth_secure_cookie;
+
 	if ( $user instanceof WP_User ) {
 		return $user;
 	}
@@ -282,8 +313,6 @@ function wp_authenticate_cookie( $user, $username, $password ) {
 		if ( $user_id ) {
 			return new WP_User( $user_id );
 		}
-
-		global $auth_secure_cookie;
 
 		if ( $auth_secure_cookie ) {
 			$auth_cookie = SECURE_AUTH_COOKIE;
@@ -322,6 +351,7 @@ function wp_authenticate_application_password( $input_user, $username, $password
 		return $input_user;
 	}
 
+	// The 'REST_REQUEST' check here may happen too early for the constant to be available.
 	$is_api_request = ( ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) );
 
 	/**
@@ -691,7 +721,7 @@ function get_user_option( $option, $user = 0, $deprecated = '' ) {
  * Updates user option with global blog capability.
  *
  * User options are just like user metadata except that they have support for
- * global blog options. If the 'global' parameter is false, which it is by default
+ * global blog options. If the 'is_global' parameter is false, which it is by default,
  * it will prepend the WordPress table prefix to the option name.
  *
  * Deletes the user option if $newvalue is empty.
@@ -703,15 +733,15 @@ function get_user_option( $option, $user = 0, $deprecated = '' ) {
  * @param int    $user_id     User ID.
  * @param string $option_name User option name.
  * @param mixed  $newvalue    User option value.
- * @param bool   $global      Optional. Whether option name is global or blog specific.
+ * @param bool   $is_global   Optional. Whether option name is global or blog specific.
  *                            Default false (blog specific).
  * @return int|bool User meta ID if the option didn't exist, true on successful update,
  *                  false on failure.
  */
-function update_user_option( $user_id, $option_name, $newvalue, $global = false ) {
+function update_user_option( $user_id, $option_name, $newvalue, $is_global = false ) {
 	global $wpdb;
 
-	if ( ! $global ) {
+	if ( ! $is_global ) {
 		$option_name = $wpdb->get_blog_prefix() . $option_name;
 	}
 
@@ -722,7 +752,7 @@ function update_user_option( $user_id, $option_name, $newvalue, $global = false 
  * Deletes user option with global blog capability.
  *
  * User options are just like user metadata except that they have support for
- * global blog options. If the 'global' parameter is false, which it is by default
+ * global blog options. If the 'is_global' parameter is false, which it is by default,
  * it will prepend the WordPress table prefix to the option name.
  *
  * @since 3.0.0
@@ -731,17 +761,31 @@ function update_user_option( $user_id, $option_name, $newvalue, $global = false 
  *
  * @param int    $user_id     User ID
  * @param string $option_name User option name.
- * @param bool   $global      Optional. Whether option name is global or blog specific.
+ * @param bool   $is_global   Optional. Whether option name is global or blog specific.
  *                            Default false (blog specific).
  * @return bool True on success, false on failure.
  */
-function delete_user_option( $user_id, $option_name, $global = false ) {
+function delete_user_option( $user_id, $option_name, $is_global = false ) {
 	global $wpdb;
 
-	if ( ! $global ) {
+	if ( ! $is_global ) {
 		$option_name = $wpdb->get_blog_prefix() . $option_name;
 	}
+
 	return delete_user_meta( $user_id, $option_name );
+}
+
+/**
+ * Retrieves user info by user ID.
+ *
+ * @since 6.7.0
+ *
+ * @param int $user_id User ID.
+ *
+ * @return WP_User|false WP_User object on success, false on failure.
+ */
+function get_user( $user_id ) {
+	return get_user_by( 'id', $user_id );
 }
 
 /**
@@ -974,10 +1018,10 @@ function get_blogs_of_user( $user_id, $all = false ) {
 	$keys = array_keys( $keys );
 
 	foreach ( $keys as $key ) {
-		if ( 'capabilities' !== substr( $key, -12 ) ) {
+		if ( ! str_ends_with( $key, 'capabilities' ) ) {
 			continue;
 		}
-		if ( $wpdb->base_prefix && 0 !== strpos( $key, $wpdb->base_prefix ) ) {
+		if ( $wpdb->base_prefix && ! str_starts_with( $key, $wpdb->base_prefix ) ) {
 			continue;
 		}
 		$site_id = str_replace( array( $wpdb->base_prefix, '_capabilities' ), '', $key );
@@ -992,9 +1036,8 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	if ( ! empty( $site_ids ) ) {
 		$args = array(
-			'number'                 => '',
-			'site__in'               => $site_ids,
-			'update_site_meta_cache' => false,
+			'number'   => '',
+			'site__in' => $site_ids,
 		);
 		if ( ! $all ) {
 			$args['archived'] = 0;
@@ -1054,8 +1097,10 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 		$user_id = get_current_user_id();
 	}
 
-	// Technically not needed, but does save calls to get_site() and get_user_meta()
-	// in the event that the function is called when a user isn't logged in.
+	/*
+	 * Technically not needed, but does save calls to get_site() and get_user_meta()
+	 * in the event that the function is called when a user isn't logged in.
+	 */
 	if ( empty( $user_id ) ) {
 		return false;
 	} else {
@@ -1088,7 +1133,7 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 	$base_capabilities_key = $wpdb->base_prefix . 'capabilities';
 	$site_capabilities_key = $wpdb->base_prefix . $blog_id . '_capabilities';
 
-	if ( isset( $keys[ $base_capabilities_key ] ) && 1 == $blog_id ) {
+	if ( isset( $keys[ $base_capabilities_key ] ) && 1 === $blog_id ) {
 		return true;
 	}
 
@@ -1153,7 +1198,8 @@ function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
  * @return mixed An array of values if `$single` is false.
  *               The value of meta data field if `$single` is true.
  *               False for an invalid `$user_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing user ID is passed.
+ *               An empty array if a valid but non-existing user ID is passed and `$single` is false.
+ *               An empty string if a valid but non-existing user ID is passed and `$single` is true.
  */
 function get_user_meta( $user_id, $key = '', $single = false ) {
 	return get_metadata( 'user', $user_id, $key, $single );
@@ -1239,7 +1285,7 @@ function count_users( $strategy = 'time', $site_id = null ) {
 	$result      = array();
 
 	if ( 'time' === $strategy ) {
-		if ( is_multisite() && get_current_blog_id() != $site_id ) {
+		if ( is_multisite() && get_current_blog_id() !== $site_id ) {
 			switch_to_blog( $site_id );
 			$avail_roles = wp_roles()->get_names();
 			restore_current_blog();
@@ -1303,11 +1349,11 @@ function count_users( $strategy = 'time', $site_id = null ) {
 				continue;
 			}
 			if ( empty( $b_roles ) ) {
-				$avail_roles['none']++;
+				++$avail_roles['none'];
 			}
 			foreach ( $b_roles as $b_role => $val ) {
 				if ( isset( $avail_roles[ $b_role ] ) ) {
-					$avail_roles[ $b_role ]++;
+					++$avail_roles[ $b_role ];
 				} else {
 					$avail_roles[ $b_role ] = 1;
 				}
@@ -1517,63 +1563,77 @@ function setup_userdata( $for_user_id = 0 ) {
 /**
  * Creates dropdown HTML content of users.
  *
- * The content can either be displayed, which it is by default or retrieved by
- * setting the 'echo' argument. The 'include' and 'exclude' arguments do not
- * need to be used; all users will be displayed in that case. Only one can be
- * used, either 'include' or 'exclude', but not both.
- *
- * The available arguments are as follows:
+ * The content can either be displayed, which it is by default, or retrieved by
+ * setting the 'echo' argument to false. The 'include' and 'exclude' arguments
+ * are optional; if they are not specified, all users will be displayed. Only one
+ * can be used in a single call, either 'include' or 'exclude', but not both.
  *
  * @since 2.3.0
  * @since 4.5.0 Added the 'display_name_with_login' value for 'show'.
- * @since 4.7.0 Added the `$role`, `$role__in`, and `$role__not_in` parameters.
+ * @since 4.7.0 Added the 'role', 'role__in', and 'role__not_in' parameters.
+ * @since 5.9.0 Added the 'capability', 'capability__in', and 'capability__not_in' parameters.
+ *              Deprecated the 'who' parameter.
  *
  * @param array|string $args {
  *     Optional. Array or string of arguments to generate a drop-down of users.
  *     See WP_User_Query::prepare_query() for additional available arguments.
  *
- *     @type string       $show_option_all         Text to show as the drop-down default (all).
- *                                                 Default empty.
- *     @type string       $show_option_none        Text to show as the drop-down default when no
- *                                                 users were found. Default empty.
- *     @type int|string   $option_none_value       Value to use for $show_option_none when no users
- *                                                 were found. Default -1.
- *     @type string       $hide_if_only_one_author Whether to skip generating the drop-down
- *                                                 if only one user was found. Default empty.
- *     @type string       $orderby                 Field to order found users by. Accepts user fields.
- *                                                 Default 'display_name'.
- *     @type string       $order                   Whether to order users in ascending or descending
- *                                                 order. Accepts 'ASC' (ascending) or 'DESC' (descending).
- *                                                 Default 'ASC'.
- *     @type int[]|string $include                 Array or comma-separated list of user IDs to include.
- *                                                 Default empty.
- *     @type int[]|string $exclude                 Array or comma-separated list of user IDs to exclude.
- *                                                 Default empty.
- *     @type bool|int     $multi                   Whether to skip the ID attribute on the 'select' element.
- *                                                 Accepts 1|true or 0|false. Default 0|false.
- *     @type string       $show                    User data to display. If the selected item is empty
- *                                                 then the 'user_login' will be displayed in parentheses.
- *                                                 Accepts any user field, or 'display_name_with_login' to show
- *                                                 the display name with user_login in parentheses.
- *                                                 Default 'display_name'.
- *     @type int|bool     $echo                    Whether to echo or return the drop-down. Accepts 1|true (echo)
- *                                                 or 0|false (return). Default 1|true.
- *     @type int          $selected                Which user ID should be selected. Default 0.
- *     @type bool         $include_selected        Whether to always include the selected user ID in the drop-
- *                                                 down. Default false.
- *     @type string       $name                    Name attribute of select element. Default 'user'.
- *     @type string       $id                      ID attribute of the select element. Default is the value of $name.
- *     @type string       $class                   Class attribute of the select element. Default empty.
- *     @type int          $blog_id                 ID of blog (Multisite only). Default is ID of the current blog.
- *     @type string       $who                     Which type of users to query. Accepts only an empty string or
- *                                                 'authors'. Default empty.
- *     @type string|array $role                    An array or a comma-separated list of role names that users must
- *                                                 match to be included in results. Note that this is an inclusive
- *                                                 list: users must match *each* role. Default empty.
- *     @type string[]     $role__in                An array of role names. Matched users must have at least one of
- *                                                 these roles. Default empty array.
- *     @type string[]     $role__not_in            An array of role names to exclude. Users matching one or more of
- *                                                 these roles will not be included in results. Default empty array.
+ *     @type string          $show_option_all         Text to show as the drop-down default (all).
+ *                                                    Default empty.
+ *     @type string          $show_option_none        Text to show as the drop-down default when no
+ *                                                    users were found. Default empty.
+ *     @type int|string      $option_none_value       Value to use for `$show_option_none` when no users
+ *                                                    were found. Default -1.
+ *     @type string          $hide_if_only_one_author Whether to skip generating the drop-down
+ *                                                    if only one user was found. Default empty.
+ *     @type string          $orderby                 Field to order found users by. Accepts user fields.
+ *                                                    Default 'display_name'.
+ *     @type string          $order                   Whether to order users in ascending or descending
+ *                                                    order. Accepts 'ASC' (ascending) or 'DESC' (descending).
+ *                                                    Default 'ASC'.
+ *     @type int[]|string    $include                 Array or comma-separated list of user IDs to include.
+ *                                                    Default empty.
+ *     @type int[]|string    $exclude                 Array or comma-separated list of user IDs to exclude.
+ *                                                    Default empty.
+ *     @type bool|int        $multi                   Whether to skip the ID attribute on the 'select' element.
+ *                                                    Accepts 1|true or 0|false. Default 0|false.
+ *     @type string          $show                    User data to display. If the selected item is empty
+ *                                                    then the 'user_login' will be displayed in parentheses.
+ *                                                    Accepts any user field, or 'display_name_with_login' to show
+ *                                                    the display name with user_login in parentheses.
+ *                                                    Default 'display_name'.
+ *     @type int|bool        $echo                    Whether to echo or return the drop-down. Accepts 1|true (echo)
+ *                                                    or 0|false (return). Default 1|true.
+ *     @type int             $selected                Which user ID should be selected. Default 0.
+ *     @type bool            $include_selected        Whether to always include the selected user ID in the drop-
+ *                                                    down. Default false.
+ *     @type string          $name                    Name attribute of select element. Default 'user'.
+ *     @type string          $id                      ID attribute of the select element. Default is the value of `$name`.
+ *     @type string          $class                   Class attribute of the select element. Default empty.
+ *     @type int             $blog_id                 ID of blog (Multisite only). Default is ID of the current blog.
+ *     @type string          $who                     Deprecated, use `$capability` instead.
+ *                                                    Which type of users to query. Accepts only an empty string or
+ *                                                    'authors'. Default empty (all users).
+ *     @type string|string[] $role                    An array or a comma-separated list of role names that users
+ *                                                    must match to be included in results. Note that this is
+ *                                                    an inclusive list: users must match *each* role. Default empty.
+ *     @type string[]        $role__in                An array of role names. Matched users must have at least one
+ *                                                    of these roles. Default empty array.
+ *     @type string[]        $role__not_in            An array of role names to exclude. Users matching one or more
+ *                                                    of these roles will not be included in results. Default empty array.
+ *     @type string|string[] $capability              An array or a comma-separated list of capability names that users
+ *                                                    must match to be included in results. Note that this is
+ *                                                    an inclusive list: users must match *each* capability.
+ *                                                    Does NOT work for capabilities not in the database or filtered
+ *                                                    via {@see 'map_meta_cap'}. Default empty.
+ *     @type string[]        $capability__in          An array of capability names. Matched users must have at least one
+ *                                                    of these capabilities.
+ *                                                    Does NOT work for capabilities not in the database or filtered
+ *                                                    via {@see 'map_meta_cap'}. Default empty array.
+ *     @type string[]        $capability__not_in      An array of capability names to exclude. Users matching one or more
+ *                                                    of these capabilities will not be included in results.
+ *                                                    Does NOT work for capabilities not in the database or filtered
+ *                                                    via {@see 'map_meta_cap'}. Default empty array.
  * }
  * @return string HTML dropdown list of users.
  */
@@ -1754,7 +1814,7 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 		return $value;
 	}
 
-	$prefixed = false !== strpos( $field, 'user_' );
+	$prefixed = str_contains( $field, 'user_' );
 
 	if ( 'edit' === $context ) {
 		if ( $prefixed ) {
@@ -1873,6 +1933,7 @@ function update_user_caches( $user ) {
  *
  * @since 3.0.0
  * @since 4.4.0 'clean_user_cache' action was added.
+ * @since 6.2.0 User metadata caches are now cleared.
  *
  * @param WP_User|int $user User object or ID to be cleaned from the cache
  */
@@ -1892,6 +1953,9 @@ function clean_user_cache( $user ) {
 	if ( ! empty( $user->user_email ) ) {
 		wp_cache_delete( $user->user_email, 'useremail' );
 	}
+
+	wp_cache_delete( $user->ID, 'user_meta' );
+	wp_cache_set_users_last_changed();
 
 	/**
 	 * Fires immediately after the given user's cache is cleaned.
@@ -1979,7 +2043,7 @@ function email_exists( $email ) {
  */
 function validate_username( $username ) {
 	$sanitized = sanitize_user( $username, true );
-	$valid     = ( $sanitized == $username && ! empty( $sanitized ) );
+	$valid     = ( $sanitized === $username && ! empty( $sanitized ) );
 
 	/**
 	 * Filters whether the provided username is valid.
@@ -2015,7 +2079,8 @@ function validate_username( $username ) {
  *     An array, object, or WP_User object of user data arguments.
  *
  *     @type int    $ID                   User ID. If supplied, the user will be updated.
- *     @type string $user_pass            The plain-text user password.
+ *     @type string $user_pass            The plain-text user password for new users.
+ *                                        Hashed password for existing users.
  *     @type string $user_login           The user's login username.
  *     @type string $user_nicename        The URL-friendly user name.
  *     @type string $user_url             The user URL.
@@ -2076,6 +2141,9 @@ function wp_insert_user( $userdata ) {
 		if ( ! $old_user_data ) {
 			return new WP_Error( 'invalid_user_id', __( 'Invalid user ID.' ) );
 		}
+
+		// Slash current user email to compare it later with slashed new user email.
+		$old_user_data->user_email = wp_slash( $old_user_data->user_email );
 
 		// Hashed in wp_update_user(), plaintext if called directly.
 		$user_pass = ! empty( $userdata['user_pass'] ) ? $userdata['user_pass'] : $old_user_data->user_pass;
@@ -2159,7 +2227,7 @@ function wp_insert_user( $userdata ) {
 			$base_length         = 49 - mb_strlen( $suffix );
 			$alt_user_nicename   = mb_substr( $user_nicename, 0, $base_length ) . "-$suffix";
 			$user_nicename_check = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE user_nicename = %s AND user_login != %s LIMIT 1", $alt_user_nicename, $user_login ) );
-			$suffix++;
+			++$suffix;
 		}
 		$user_nicename = $alt_user_nicename;
 	}
@@ -2298,7 +2366,7 @@ function wp_insert_user( $userdata ) {
 	$admin_color         = empty( $userdata['admin_color'] ) ? 'fresh' : $userdata['admin_color'];
 	$meta['admin_color'] = preg_replace( '|[^a-z0-9 _.\-@]|i', '', $admin_color );
 
-	$meta['use_ssl'] = empty( $userdata['use_ssl'] ) ? 0 : (bool) $userdata['use_ssl'];
+	$meta['use_ssl'] = empty( $userdata['use_ssl'] ) ? '0' : '1';
 
 	$meta['show_admin_bar_front'] = empty( $userdata['show_admin_bar_front'] ) ? 'true' : $userdata['show_admin_bar_front'];
 
@@ -2330,7 +2398,7 @@ function wp_insert_user( $userdata ) {
 	 *     @type string $user_pass       The user's password.
 	 *     @type string $user_email      The user's email.
 	 *     @type string $user_url        The user's url.
-	 *     @type string $user_nicename   The user's nice name. Defaults to a URL-safe version of user's login
+	 *     @type string $user_nicename   The user's nice name. Defaults to a URL-safe version of user's login.
 	 *     @type string $display_name    The user's display name.
 	 *     @type string $user_registered MySQL timestamp describing the moment when the user registered. Defaults to
 	 *                                   the current UTC timestamp.
@@ -2413,9 +2481,16 @@ function wp_insert_user( $userdata ) {
 
 	$meta = array_merge( $meta, $custom_meta );
 
-	// Update user meta.
-	foreach ( $meta as $key => $value ) {
-		update_user_meta( $user_id, $key, $value );
+	if ( $update ) {
+		// Update user meta.
+		foreach ( $meta as $key => $value ) {
+			update_user_meta( $user_id, $key, $value );
+		}
+	} else {
+		// Add user meta.
+		foreach ( $meta as $key => $value ) {
+			add_user_meta( $user_id, $key, $value );
+		}
 	}
 
 	foreach ( wp_get_user_contact_methods( $user ) as $key => $value ) {
@@ -2445,8 +2520,8 @@ function wp_insert_user( $userdata ) {
 		 */
 		do_action( 'profile_update', $user_id, $old_user_data, $userdata );
 
-		if ( isset( $userdata['spam'] ) && $userdata['spam'] != $old_user_data->spam ) {
-			if ( 1 == $userdata['spam'] ) {
+		if ( isset( $userdata['spam'] ) && $userdata['spam'] !== $old_user_data->spam ) {
+			if ( '1' === $userdata['spam'] ) {
 				/**
 				 * Fires after the user is marked as a SPAM user.
 				 *
@@ -2504,6 +2579,8 @@ function wp_update_user( $userdata ) {
 	} elseif ( $userdata instanceof WP_User ) {
 		$userdata = $userdata->to_array();
 	}
+
+	$userdata_raw = $userdata;
 
 	$user_id = isset( $userdata['ID'] ) ? (int) $userdata['ID'] : 0;
 	if ( ! $user_id ) {
@@ -2574,7 +2651,7 @@ function wp_update_user( $userdata ) {
 
 	$switched_locale = false;
 	if ( ! empty( $send_password_change_email ) || ! empty( $send_email_change_email ) ) {
-		$switched_locale = switch_to_locale( get_user_locale( $user_id ) );
+		$switched_locale = switch_to_user_locale( $user_id );
 	}
 
 	if ( ! empty( $send_password_change_email ) ) {
@@ -2701,16 +2778,20 @@ All at ###SITENAME###
 
 	// Update the cookies if the password changed.
 	$current_user = wp_get_current_user();
-	if ( $current_user->ID == $user_id ) {
+	if ( $current_user->ID === $user_id ) {
 		if ( isset( $plaintext_pass ) ) {
 			wp_clear_auth_cookie();
 
-			// Here we calculate the expiration length of the current auth cookie and compare it to the default expiration.
-			// If it's greater than this, then we know the user checked 'Remember Me' when they logged in.
+			/*
+			 * Here we calculate the expiration length of the current auth cookie and compare it to the default expiration.
+			 * If it's greater than this, then we know the user checked 'Remember Me' when they logged in.
+			 */
 			$logged_in_cookie = wp_parse_auth_cookie( '', 'logged_in' );
 			/** This filter is documented in wp-includes/pluggable.php */
 			$default_cookie_life = apply_filters( 'auth_cookie_expiration', ( 2 * DAY_IN_SECONDS ), $user_id, false );
-			$remember            = false;
+
+			$remember = false;
+
 			if ( false !== $logged_in_cookie && ( $logged_in_cookie['expiration'] - time() ) > $default_cookie_life ) {
 				$remember = true;
 			}
@@ -2718,6 +2799,17 @@ All at ###SITENAME###
 			wp_set_auth_cookie( $user_id, $remember );
 		}
 	}
+
+	/**
+	 * Fires after the user has been updated and emails have been sent.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param int   $user_id      The ID of the user that was just updated.
+	 * @param array $userdata     The array of user data that was updated.
+	 * @param array $userdata_raw The unedited array of user data that was updated.
+	 */
+	do_action( 'wp_update_user', $user_id, $userdata, $userdata_raw );
 
 	return $user_id;
 }
@@ -2835,7 +2927,7 @@ function wp_get_password_hint() {
  *
  * @since 4.4.0
  *
- * @global PasswordHash $wp_hasher Portable PHP password hashing framework.
+ * @global PasswordHash $wp_hasher Portable PHP password hashing framework instance.
  *
  * @param WP_User $user User to retrieve password reset key for.
  * @return string|WP_Error Password reset key on success. WP_Error on error.
@@ -2868,25 +2960,11 @@ function get_password_reset_key( $user ) {
 	 */
 	do_action( 'retrieve_password', $user->user_login );
 
-	$allow = true;
-	if ( is_multisite() && is_user_spammy( $user ) ) {
-		$allow = false;
-	}
-
-	/**
-	 * Filters whether to allow a password to be reset.
-	 *
-	 * @since 2.7.0
-	 *
-	 * @param bool $allow   Whether to allow the password to be reset. Default true.
-	 * @param int  $user_id The ID of the user attempting to reset a password.
-	 */
-	$allow = apply_filters( 'allow_password_reset', $allow, $user->ID );
-
-	if ( ! $allow ) {
+	$password_reset_allowed = wp_is_password_reset_allowed_for_user( $user );
+	if ( ! $password_reset_allowed ) {
 		return new WP_Error( 'no_password_reset', __( 'Password reset is not allowed for this user' ) );
-	} elseif ( is_wp_error( $allow ) ) {
-		return $allow;
+	} elseif ( is_wp_error( $password_reset_allowed ) ) {
+		return $password_reset_allowed;
 	}
 
 	// Generate something random for a password reset key.
@@ -2934,7 +3012,6 @@ function get_password_reset_key( $user ) {
  *
  * @since 3.1.0
  *
- * @global wpdb         $wpdb      WordPress database object for queries.
  * @global PasswordHash $wp_hasher Portable PHP password hashing framework instance.
  *
  * @param string $key       Hash to validate sending user's password.
@@ -2942,7 +3019,7 @@ function get_password_reset_key( $user ) {
  * @return WP_User|WP_Error WP_User object on success, WP_Error object for invalid or expired keys.
  */
 function check_password_reset_key( $key, $login ) {
-	global $wpdb, $wp_hasher;
+	global $wp_hasher;
 
 	$key = preg_replace( '/[^a-z0-9]/i', '', $key );
 
@@ -2974,7 +3051,7 @@ function check_password_reset_key( $key, $login ) {
 	 */
 	$expiration_duration = apply_filters( 'password_reset_expiration', DAY_IN_SECONDS );
 
-	if ( false !== strpos( $user->user_activation_key, ':' ) ) {
+	if ( str_contains( $user->user_activation_key, ':' ) ) {
 		list( $pass_request_time, $pass_key ) = explode( ':', $user->user_activation_key, 2 );
 		$expiration_time                      = $pass_request_time + $expiration_duration;
 	} else {
@@ -3022,8 +3099,8 @@ function check_password_reset_key( $key, $login ) {
  * @since 2.5.0
  * @since 5.7.0 Added `$user_login` parameter.
  *
- * @global wpdb         $wpdb       WordPress database abstraction object.
- * @global PasswordHash $wp_hasher  Portable PHP password hashing framework.
+ * @global wpdb         $wpdb      WordPress database abstraction object.
+ * @global PasswordHash $wp_hasher Portable PHP password hashing framework instance.
  *
  * @param string $user_login Optional. Username to send a password retrieval email for.
  *                           Defaults to `$_POST['user_login']` if not set.
@@ -3135,7 +3212,7 @@ function retrieve_password( $user_login = null ) {
 	// Localize password reset message content for user.
 	$locale = get_user_locale( $user_data );
 
-	$switched_locale = switch_to_locale( $locale );
+	$switched_locale = switch_to_user_locale( $user_data->ID );
 
 	if ( is_multisite() ) {
 		$site_name = get_network()->site_name;
@@ -3154,7 +3231,15 @@ function retrieve_password( $user_login = null ) {
 	$message .= sprintf( __( 'Username: %s' ), $user_login ) . "\r\n\r\n";
 	$message .= __( 'If this was a mistake, ignore this email and nothing will happen.' ) . "\r\n\r\n";
 	$message .= __( 'To reset your password, visit the following address:' ) . "\r\n\r\n";
-	$message .= network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user_login ), 'login' ) . '&wp_lang=' . $locale . "\r\n\r\n";
+
+	/*
+	 * Since some user login names end in a period, this could produce ambiguous URLs that
+	 * end in a period. To avoid the ambiguity, ensure that the login is not the last query
+	 * arg in the URL. If moving it to the end, a trailing period will need to be escaped.
+	 *
+	 * @see https://core.trac.wordpress.org/tickets/42957
+	 */
+	$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user_login ) . "&key=$key&action=rp", 'login' ) . '&wp_lang=' . $locale . "\r\n\r\n";
 
 	if ( ! is_user_logged_in() ) {
 		$requester_ip = $_SERVER['REMOTE_ADDR'];
@@ -3226,9 +3311,9 @@ function retrieve_password( $user_login = null ) {
 	 *     @type string $message The body of the email.
 	 *     @type string $headers The headers of the email.
 	 * }
-	 * @type string  $key        The activation key.
-	 * @type string  $user_login The username for the user.
-	 * @type WP_User $user_data  WP_User object.
+	 * @param string  $key        The activation key.
+	 * @param string  $user_login The username for the user.
+	 * @param WP_User $user_data  WP_User object.
 	 */
 	$notification_email = apply_filters( 'retrieve_password_notification_email', $defaults, $key, $user_login, $user_data );
 
@@ -3253,7 +3338,7 @@ function retrieve_password( $user_login = null ) {
 			sprintf(
 				/* translators: %s: Documentation URL. */
 				__( '<strong>Error:</strong> The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.' ),
-				esc_url( __( 'https://wordpress.org/support/article/resetting-your-password/' ) )
+				esc_url( __( 'https://wordpress.org/documentation/article/reset-your-password/' ) )
 			)
 		);
 		return $errors;
@@ -3325,7 +3410,6 @@ function register_new_user( $user_login, $user_email ) {
 		$sanitized_user_login = '';
 	} elseif ( username_exists( $sanitized_user_login ) ) {
 		$errors->add( 'username_exists', __( '<strong>Error:</strong> This username is already registered. Please choose another one.' ) );
-
 	} else {
 		/** This filter is documented in wp-includes/user.php */
 		$illegal_user_logins = (array) apply_filters( 'illegal_user_logins', array() );
@@ -3505,6 +3589,8 @@ function wp_destroy_all_sessions() {
  * @since 4.4.0
  * @since 4.9.0 The `$site_id` parameter was added to support multisite.
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param int|null $site_id Optional. The site ID to get users with no role for. Defaults to the current site.
  * @return string[] Array of user IDs as strings.
  */
@@ -3517,7 +3603,7 @@ function wp_get_users_with_no_role( $site_id = null ) {
 
 	$prefix = $wpdb->get_blog_prefix( $site_id );
 
-	if ( is_multisite() && get_current_blog_id() != $site_id ) {
+	if ( is_multisite() && get_current_blog_id() !== $site_id ) {
 		switch_to_blog( $site_id );
 		$role_names = wp_roles()->get_names();
 		restore_current_blog();
@@ -3529,12 +3615,10 @@ function wp_get_users_with_no_role( $site_id = null ) {
 	$regex = preg_replace( '/[^a-zA-Z_\|-]/', '', $regex );
 	$users = $wpdb->get_col(
 		$wpdb->prepare(
-			"
-		SELECT user_id
-		FROM $wpdb->usermeta
-		WHERE meta_key = '{$prefix}capabilities'
-		AND meta_value NOT REGEXP %s
-	",
+			"SELECT user_id
+			FROM $wpdb->usermeta
+			WHERE meta_key = '{$prefix}capabilities'
+			AND meta_value NOT REGEXP %s",
 			$regex
 		)
 	);
@@ -3628,11 +3712,11 @@ function send_confirmation_on_profile_email() {
 		$errors = new WP_Error();
 	}
 
-	if ( $current_user->ID != $_POST['user_id'] ) {
+	if ( $current_user->ID !== (int) $_POST['user_id'] ) {
 		return false;
 	}
 
-	if ( $current_user->user_email != $_POST['email'] ) {
+	if ( $current_user->user_email !== $_POST['email'] ) {
 		if ( ! is_email( $_POST['email'] ) ) {
 			$errors->add(
 				'user_email',
@@ -3710,7 +3794,7 @@ All at ###SITENAME###
 		$content = apply_filters( 'new_user_email_content', $email_text, $new_user_email );
 
 		$content = str_replace( '###USERNAME###', $current_user->user_login, $content );
-		$content = str_replace( '###ADMIN_URL###', esc_url( admin_url( 'profile.php?newuseremail=' . $hash ) ), $content );
+		$content = str_replace( '###ADMIN_URL###', esc_url( self_admin_url( 'profile.php?newuseremail=' . $hash ) ), $content );
 		$content = str_replace( '###EMAIL###', $_POST['email'], $content );
 		$content = str_replace( '###SITENAME###', $sitename, $content );
 		$content = str_replace( '###SITEURL###', home_url(), $content );
@@ -3737,8 +3821,12 @@ function new_user_email_admin_notice() {
 	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) ) {
 		$email = get_user_meta( get_current_user_id(), '_new_email', true );
 		if ( $email ) {
-			/* translators: %s: New email address. */
-			echo '<div class="notice notice-info"><p>' . sprintf( __( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ), '<code>' . esc_html( $email['newemail'] ) . '</code>' ) . '</p></div>';
+			$message = sprintf(
+				/* translators: %s: New email address. */
+				__( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ),
+				'<code>' . esc_html( $email['newemail'] ) . '</code>'
+			);
+			wp_admin_notice( $message, array( 'type' => 'info' ) );
 		}
 	}
 }
@@ -3783,7 +3871,12 @@ function wp_register_user_personal_data_exporter( $exporters ) {
  * @since 5.4.0 Added 'Session Tokens' group to the export data.
  *
  * @param string $email_address  The user's email address.
- * @return array An array of personal data.
+ * @return array {
+ *     An array of personal data.
+ *
+ *     @type array[] $data An array of personal data arrays.
+ *     @type bool    $done Whether the exporter is finished.
+ * }
  */
 function wp_user_personal_data_exporter( $email_address ) {
 	$email_address = trim( $email_address );
@@ -3870,7 +3963,7 @@ function wp_user_personal_data_exporter( $email_address ) {
 		// Remove items that use reserved names.
 		$extra_data = array_filter(
 			$_extra_data,
-			static function( $item ) use ( $reserved_names ) {
+			static function ( $item ) use ( $reserved_names ) {
 				return ! in_array( $item['name'], $reserved_names, true );
 			}
 		);
@@ -4014,7 +4107,7 @@ function _wp_privacy_account_request_confirmed( $request_id ) {
 function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 	$request = wp_get_user_request( $request_id );
 
-	if ( ! is_a( $request, 'WP_User_Request' ) || 'request-confirmed' !== $request->status ) {
+	if ( ! ( $request instanceof WP_User_Request ) || 'request-confirmed' !== $request->status ) {
 		return;
 	}
 
@@ -4075,7 +4168,7 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 	 *     Data relating to the account action email.
 	 *
 	 *     @type WP_User_Request $request     User request object.
-	 *     @type string          $user_email  The email address confirming a request
+	 *     @type string          $user_email  The email address confirming a request.
 	 *     @type string          $description Description of the action being performed so the user knows what the email is for.
 	 *     @type string          $manage_url  The link to click manage privacy requests of this type.
 	 *     @type string          $sitename    The site name sending the mail.
@@ -4126,7 +4219,7 @@ All at ###SITENAME###
 	 *     Data relating to the account action email.
 	 *
 	 *     @type WP_User_Request $request     User request object.
-	 *     @type string          $user_email  The email address confirming a request
+	 *     @type string          $user_email  The email address confirming a request.
 	 *     @type string          $description Description of the action being performed
 	 *                                        so the user knows what the email is for.
 	 *     @type string          $manage_url  The link to click manage privacy requests of this type.
@@ -4166,7 +4259,7 @@ All at ###SITENAME###
 	 *     Data relating to the account action email.
 	 *
 	 *     @type WP_User_Request $request     User request object.
-	 *     @type string          $user_email  The email address confirming a request
+	 *     @type string          $user_email  The email address confirming a request.
 	 *     @type string          $description Description of the action being performed so the user knows what the email is for.
 	 *     @type string          $manage_url  The link to click manage privacy requests of this type.
 	 *     @type string          $sitename    The site name sending the mail.
@@ -4197,7 +4290,7 @@ All at ###SITENAME###
 	 *     Data relating to the account action email.
 	 *
 	 *     @type WP_User_Request $request     User request object.
-	 *     @type string          $user_email  The email address confirming a request
+	 *     @type string          $user_email  The email address confirming a request.
 	 *     @type string          $description Description of the action being performed so the user knows what the email is for.
 	 *     @type string          $manage_url  The link to click manage privacy requests of this type.
 	 *     @type string          $sitename    The site name sending the mail.
@@ -4226,7 +4319,7 @@ All at ###SITENAME###
 function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	$request = wp_get_user_request( $request_id );
 
-	if ( ! is_a( $request, 'WP_User_Request' ) || 'request-completed' !== $request->status ) {
+	if ( ! ( $request instanceof WP_User_Request ) || 'request-completed' !== $request->status ) {
 		return;
 	}
 
@@ -4238,12 +4331,10 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 
 	// Localize message content for user; fallback to site default for visitors.
 	if ( ! empty( $request->user_id ) ) {
-		$locale = get_user_locale( $request->user_id );
+		$switched_locale = switch_to_user_locale( $request->user_id );
 	} else {
-		$locale = get_locale();
+		$switched_locale = switch_to_locale( get_locale() );
 	}
-
-	$switched_locale = switch_to_locale( $locale );
 
 	/**
 	 * Filters the recipient of the data erasure fulfillment notification.
@@ -4649,12 +4740,10 @@ function wp_send_user_request( $request_id ) {
 
 	// Localize message content for user; fallback to site default for visitors.
 	if ( ! empty( $request->user_id ) ) {
-		$locale = get_user_locale( $request->user_id );
+		$switched_locale = switch_to_user_locale( $request->user_id );
 	} else {
-		$locale = get_locale();
+		$switched_locale = switch_to_locale( get_locale() );
 	}
-
-	$switched_locale = switch_to_locale( $locale );
 
 	$email_data = array(
 		'request'     => $request,
@@ -4788,6 +4877,8 @@ All at ###SITENAME###
  *
  * @since 4.9.6
  *
+ * @global PasswordHash $wp_hasher Portable PHP password hashing framework instance.
+ *
  * @param int $request_id Request ID.
  * @return string Confirmation key.
  */
@@ -4818,6 +4909,8 @@ function wp_generate_user_request_key( $request_id ) {
  * Validates a user request by comparing the key with the request's key.
  *
  * @since 4.9.6
+ *
+ * @global PasswordHash $wp_hasher Portable PHP password hashing framework instance.
  *
  * @param string $request_id ID of the request being confirmed.
  * @param string $key        Provided key to validate.
@@ -5003,4 +5096,45 @@ function wp_register_persisted_preferences_meta() {
 			),
 		)
 	);
+}
+
+/**
+ * Sets the last changed time for the 'users' cache group.
+ *
+ * @since 6.3.0
+ */
+function wp_cache_set_users_last_changed() {
+	wp_cache_set_last_changed( 'users' );
+}
+
+/**
+ * Checks if password reset is allowed for a specific user.
+ *
+ * @since 6.3.0
+ *
+ * @param int|WP_User $user The user to check.
+ * @return bool|WP_Error True if allowed, false or WP_Error otherwise.
+ */
+function wp_is_password_reset_allowed_for_user( $user ) {
+	if ( ! is_object( $user ) ) {
+		$user = get_userdata( $user );
+	}
+
+	if ( ! $user || ! $user->exists() ) {
+		return false;
+	}
+	$allow = true;
+	if ( is_multisite() && is_user_spammy( $user ) ) {
+		$allow = false;
+	}
+
+	/**
+	 * Filters whether to allow a password to be reset.
+	 *
+	 * @since 2.7.0
+	 *
+	 * @param bool $allow   Whether to allow the password to be reset. Default true.
+	 * @param int  $user_id The ID of the user attempting to reset a password.
+	 */
+	return apply_filters( 'allow_password_reset', $allow, $user->ID );
 }

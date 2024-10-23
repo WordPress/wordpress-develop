@@ -13,8 +13,10 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 	 * @ticket 46336
 	 * @ticket 46387
 	 * @ticket 49145
+	 * @ticket 60891
+	 * @ticket 62016
 	 *
-	 * @dataProvider data_test_resolve_relative_path
+	 * @dataProvider data_resolve_relative_path
 	 */
 	public function test_resolve_relative_path( $translation_path, $handle, $src, $textdomain, $filter = array() ) {
 		if ( ! empty( $filter ) ) {
@@ -26,7 +28,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 		$this->assertSame( $expected, load_script_textdomain( $handle, $textdomain, DIR_TESTDATA . '/languages' ) );
 	}
 
-	public function data_test_resolve_relative_path() {
+	public static function data_resolve_relative_path() {
 		return array(
 			// @ticket 45528
 			array(
@@ -41,7 +43,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 				'test-example-cdn',
 				'https://my-cdn.com/wordpress/wp-includes/js/script.js',
 				'default',
-				array( 'load_script_textdomain_relative_path', array( $this, 'relative_path_from_cdn' ), 2 ),
+				array( 'load_script_textdomain_relative_path', array( __CLASS__, 'relative_path_from_cdn' ), 2 ),
 			),
 			// Test for WordPress installs in a subdirectory.
 			array(
@@ -121,10 +123,30 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 					},
 				),
 			),
+			// @ticket 60891
+			array(
+				'/languages/plugins/internationalized-plugin-en_US-2f86cb96a0233e7cb3b6f03ad573be0b.json',
+				'plugin-in-custom-plugin-dir',
+				'/wp-content/mods/my-plugin/js/script.js',
+				'internationalized-plugin',
+				array(
+					'plugins_url',
+					static function () {
+						return 'https://example.com/wp-content/mods';
+					},
+				),
+			),
+			// @ticket 62016
+			array(
+				'/languages/themes/internationalized-theme-en_US-2f86cb96a0233e7cb3b6f03ad573be0b.json',
+				'theme-with-script-translations',
+				'/wp-content/themes/my-theme/js/script.js',
+				'internationalized-theme',
+			),
 		);
 	}
 
-	public function relative_path_from_cdn( $relative, $src ) {
+	public static function relative_path_from_cdn( $relative, $src ) {
 		if ( 0 === strpos( $src, 'https://my-cdn.com/wordpress/' ) ) {
 			return substr( $src, strlen( 'https://my-cdn.com/wordpress/' ) );
 		}
