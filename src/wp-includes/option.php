@@ -1409,6 +1409,39 @@ function delete_transient( $transient ) {
 }
 
 /**
+ * Determines if a transient is valid.
+ *
+ * If the transient does not exist, does not have a value, or has expired,
+ * then the return value will be false.
+ *
+ * @since 6.6.0
+ *
+ * @param string $transient Transient name. Expected to not be SQL-escaped.
+ * @return bool
+ */
+function is_valid_transient( $transient ) {
+	$transient_option  = '_transient_' . $transient;
+	$transient_timeout = '_transient_timeout_' . $transient;
+
+	wp_prime_option_caches( array( $transient_option, $transient_timeout ) );
+	$timeout = get_option( $transient_timeout );
+
+	// No transient found.
+	if ( false === $timeout ) {
+
+		return (bool) get_option( $transient_option );
+	} elseif ( $timeout < time() ) { // Expired transient detected.
+		delete_option( '_transient_' . $transient );
+		delete_option( $transient_timeout );
+
+		return false;
+	}
+
+	// Transient is valid.
+	return true;
+}
+
+/**
  * Retrieves the value of a transient.
  *
  * If the transient does not exist, does not have a value, or has expired,
@@ -1451,15 +1484,8 @@ function get_transient( $transient ) {
 			// If option is not in alloptions, it is not autoloaded and thus has a timeout.
 			$alloptions = wp_load_alloptions();
 
-			if ( ! isset( $alloptions[ $transient_option ] ) ) {
-				$transient_timeout = '_transient_timeout_' . $transient;
-				wp_prime_option_caches( array( $transient_option, $transient_timeout ) );
-				$timeout = get_option( $transient_timeout );
-				if ( false !== $timeout && $timeout < time() ) {
-					delete_option( $transient_option );
-					delete_option( $transient_timeout );
-					$value = false;
-				}
+			if ( ! isset( $alloptions[ $transient_option ] ) && ! is_valid_transient( $transient ) ) {
+				$value = false;
 			}
 		}
 
@@ -2503,7 +2529,38 @@ function delete_site_transient( $transient ) {
 
 	return $result;
 }
+/**
+* Determines if a site transient is valid.
+*
+* If the transient does not exist, does not have a value, or has expired,
+* then the return value will be false.
+*
+* @since 6.6.0
+*
+* @param string $transient Transient name. Expected to not be SQL-escaped.
+* @return bool
+*/
+function is_valid_site_transient( $transient ) {
+	$transient_option  = '_site_transient_' . $transient;
+	$transient_timeout = '_site_transient_timeout_' . $transient;
 
+	wp_prime_site_option_caches( array( $transient_option, $transient_timeout ) );
+	$timeout = get_site_option( $transient_timeout );
+
+	// No transient found.
+	if ( false === $timeout ) {
+
+		return (bool) get_option( $transient_option );
+	} elseif ( $timeout < time() ) { // Expired transient detected.
+		delete_site_option( '_site_transient_' . $transient );
+		delete_site_option( $transient_timeout );
+
+		return false;
+	}
+
+	// Transient is valid.
+	return true;
+}
 /**
  * Retrieves the value of a site transient.
  *
@@ -2546,21 +2603,12 @@ function get_site_transient( $transient ) {
 	} else {
 		// Core transients that do not have a timeout. Listed here so querying timeouts can be avoided.
 		$no_timeout       = array( 'update_core', 'update_plugins', 'update_themes' );
-		$transient_option = '_site_transient_' . $transient;
-		if ( ! in_array( $transient, $no_timeout, true ) ) {
-			$transient_timeout = '_site_transient_timeout_' . $transient;
-			wp_prime_site_option_caches( array( $transient_option, $transient_timeout ) );
-
-			$timeout = get_site_option( $transient_timeout );
-			if ( false !== $timeout && $timeout < time() ) {
-				delete_site_option( $transient_option );
-				delete_site_option( $transient_timeout );
+		if ( ! in_array( $transient, $no_timeout, true ) && ! is_valid_site_transient( $transient ) ) {
 				$value = false;
-			}
 		}
 
 		if ( ! isset( $value ) ) {
-			$value = get_site_option( $transient_option );
+			$value = get_site_option( '_site_transient_' . $transient );
 		}
 	}
 
