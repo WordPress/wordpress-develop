@@ -824,6 +824,36 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59610
+	 */
+	public function test_wp_insert_post_should_respect_post_modified_date() {
+		$date = new DateTime( '-2 hours', new DateTimeZone( 'UTC' ) );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_date'   => $date->format( 'Y-m-d H:i:s' ),
+			)
+		);
+
+		// Modify the date and update the post.
+		$date->modify( '+1 hour' );
+		$modified_format     = $date->format( 'Y-m-d H:i:s' );
+		$modified_format_gmt = get_gmt_from_date( $modified_format );
+		wp_update_post(
+			array(
+				'ID'            => $post_id,
+				'post_modified' => $modified_format,
+			)
+		);
+
+		$modified_post = get_post( $post_id );
+
+		$this->assertEquals( $modified_format, $modified_post->post_modified );
+		$this->assertEquals( $modified_format_gmt, $modified_post->post_modified_gmt );
+	}
+
+	/**
 	 * Test ensuring that the post_name (UUID) is preserved when wp_insert_post()/wp_update_post() is called.
 	 *
 	 * @see _wp_customize_changeset_filter_insert_post_data()
