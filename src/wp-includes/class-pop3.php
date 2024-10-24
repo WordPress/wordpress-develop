@@ -47,7 +47,7 @@ class POP3 {
 	/**
 	 * PHP5 constructor.
 	 */
-    function __construct ( $server = '', $timeout = '' ) {
+    function __construct ( $server = '', $timeout = 120 ) {
         settype($this->BUFFER,"integer");
         if( !empty($server) ) {
             // Do not allow programs to alter MAILSERVER
