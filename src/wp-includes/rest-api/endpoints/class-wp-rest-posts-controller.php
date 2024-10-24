@@ -402,6 +402,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Force the post_type argument, since it's not a user input variable.
 		$args['post_type'] = $this->post_type;
 
+		$is_head_request = $request->is_method( 'head' );
+		if ( $is_head_request ) {
+			// Force the 'fields' argument. For HEAD requests, only post IDs are required to calculate pagination.
+			$args['fields'] = 'ids';
+		}
+
 		/**
 		 * Filters WP_Query arguments when querying posts via the REST API.
 		 *
@@ -434,22 +440,24 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			add_filter( 'post_password_required', array( $this, 'check_password_required' ), 10, 2 );
 		}
 
-		$posts = array();
+		if ( ! $is_head_request ) {
+			$posts = array();
 
-		update_post_author_caches( $query_result );
-		update_post_parent_caches( $query_result );
+			update_post_author_caches( $query_result );
+			update_post_parent_caches( $query_result );
 
-		if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
-			update_post_thumbnail_cache( $posts_query );
-		}
-
-		foreach ( $query_result as $post ) {
-			if ( ! $this->check_read_permission( $post ) ) {
-				continue;
+			if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
+				update_post_thumbnail_cache( $posts_query );
 			}
 
-			$data    = $this->prepare_item_for_response( $post, $request );
-			$posts[] = $this->prepare_response_for_collection( $data );
+			foreach ( $query_result as $post ) {
+				if ( ! $this->check_read_permission( $post ) ) {
+					continue;
+				}
+
+				$data    = $this->prepare_item_for_response( $post, $request );
+				$posts[] = $this->prepare_response_for_collection( $data );
+			}
 		}
 
 		// Reset filter.
@@ -479,7 +487,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$response = rest_ensure_response( $posts );
+		$response = $is_head_request ? new WP_REST_Response() : rest_ensure_response( $posts );
 
 		$response->header( 'X-WP-Total', (int) $total_posts );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
@@ -632,8 +640,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return $post;
 		}
 
-		$data     = $this->prepare_item_for_response( $post, $request );
-		$response = rest_ensure_response( $data );
+		if ( $request->is_method( 'head' ) ) {
+			$response = new WP_REST_Response();
+		} else {
+			$data     = $this->prepare_item_for_response( $post, $request );
+			$response = rest_ensure_response( $data );
+		}
 
 		if ( is_post_type_viewable( get_post_type_object( $post->post_type ) ) ) {
 			$response->link_header( 'alternate', get_permalink( $post->ID ), array( 'type' => 'text/html' ) );
