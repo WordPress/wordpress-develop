@@ -42,13 +42,15 @@ function wp_get_block_default_classname( $block_name ) {
  * Adds the generated classnames to the output.
  *
  * @since 5.6.0
+ * @since 6.6.0 Add a class name for the active block variation, if any.
  *
  * @access private
  *
- * @param WP_Block_Type $block_type Block Type.
+ * @param WP_Block_Type  $block_type Block Type.
+ * @param array          $block_attributes Block attributes.
  * @return array Block CSS classes and inline styles.
  */
-function wp_apply_generated_classname_support( $block_type ) {
+function wp_apply_generated_classname_support( $block_type, $block_attributes ) {
 	$attributes                      = array();
 	$has_generated_classname_support = block_has_support( $block_type, 'className', true );
 	if ( $has_generated_classname_support ) {
@@ -56,6 +58,13 @@ function wp_apply_generated_classname_support( $block_type ) {
 
 		if ( $block_classname ) {
 			$attributes['class'] = $block_classname;
+		}
+
+		$variation = get_active_block_variation( $block_type, $block_attributes );
+		if ( $variation ) {
+			$attributes['class'] .= ' ' . wp_get_block_default_classname(
+				$block_type->name . '/' . $variation['name']
+			);
 		}
 	}
 

@@ -2833,3 +2833,41 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
 	}
 	return $arg;
 }
+
+/**
+ * Returns the active block variation for a given block based on its attributes.
+ *
+ * Variations are determined by their `isActive` property, which is an array of
+ * block attribute keys that are compared to the given block's attributes using
+ * a strict equality check.
+ *
+ * @param WP_Block_Type $block_type       Block Type.
+ * @param array         $block_attributes Block attributes.
+ * @return array|null The active block variation, or null if no active variation is found.
+ */
+function get_active_block_variation( $block_type, $block_attributes ) {
+	foreach ( $block_type->get_variations() as $variation ) {
+		if (
+			isset( $variation['isActive'] ) &&
+			is_array( $variation['isActive'] ) &&
+			! empty( $variation['isActive'] )
+		) {
+			$attributes = $variation['isActive'];
+		} else {
+			// We have no way to determine if this is the active variation.
+			continue;
+		}
+
+		foreach ( $attributes as $attribute ) {
+			if (
+				! isset( $block_attributes[ $attribute ] ) ||
+				! isset( $variation['attributes'][ $attribute ] ) ||
+				$block_attributes[ $attribute ] !== $variation['attributes'][ $attribute ]
+			) {
+				continue 2;
+			}
+		}
+		return $variation;
+	}
+	return null;
+}
