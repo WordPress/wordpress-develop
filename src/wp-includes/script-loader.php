@@ -1767,7 +1767,8 @@ function wp_default_styles( $styles ) {
 		'edit-site'            => array(
 			'wp-components',
 			'wp-block-editor',
-			'wp-edit-blocks',
+			'common',
+			'forms',
 			'wp-commands',
 			'wp-preferences',
 		),
