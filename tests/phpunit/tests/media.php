@@ -277,6 +277,11 @@ CAP;
 		$this->assertFalse( wp_oembed_remove_provider( 'http://foo.bar/*' ) );
 	}
 
+	public function test_img_caption_without_attributes() {
+		$out = do_shortcode( '[caption]<img class="alignnone" src="test.jpeg" width="2048" height="1091" />Test[/caption]' );
+		$this->assertSame( '<img class="alignnone" src="test.jpeg" width="2048" height="1091" />', $out );
+	}
+
 	/**
 	 * @ticket 23776
 	 */
