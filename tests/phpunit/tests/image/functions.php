@@ -1153,4 +1153,32 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Test that PHP and underlying external GD library actually supports AVIF.
+	 *
+	 * @link https://github.com/php/php-src/issues/12019
+	 *
+	 * @ticket 60628
+	 */
+	public function test_php_avif_support() {
+		if ( imagetypes() & IMG_AVIF ) {
+			$test_file = get_temp_dir() . 'php-gd.avif';
+
+			$result = @imageavif( imagecreatetruecolor( 16, 16 ), $test_file );
+
+			$this->assertTrue(
+				$result,
+				'imageavif() should return true.'
+			);
+
+			$this->assertGreaterThan(
+				0,
+				filesize( $test_file ),
+				"filesize( '$test_file' ) should be greater than 0 bytes."
+			);
+
+			unlink( $test_file );
+		}
+	}
 }
