@@ -784,4 +784,74 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( $autosave['id'], $data['id'], 'Original autosave was not returned' );
 	}
+
+	/**
+	 * @ticket 52925
+	 *
+	 * @dataProvider data_invalid_post_id
+	 *
+	 * @covers WP_REST_Autosaves_Controller::create_item
+	 * @covers WP_REST_Autosaves_Controller::get_post
+	 *
+	 * @param int $autosave_revision_id The autosave revision ID.
+	 */
+	public function test_invalid_autosave_revision_id_should_trigger_error_response( $autosave_revision_id ) {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
+		$body_parameters = $this->set_post_data(
+			array(
+				'id' => self::$post_id,
+			)
+		);
+		$request->set_body_params( $body_parameters );
+
+		/**
+		 * It's hard to programmatically create an invalid $autosave_id,
+		 * so mocking the ::create_post_autosave() method seems like a more reasonable solution.
+		 */
+		$autosaves_controller = $this->getMockBuilder( WP_REST_Autosaves_Controller::class )
+									->setConstructorArgs( array( 'post' ) )
+									->onlyMethods( array( 'create_post_autosave' ) )
+									->getMock();
+		$autosaves_controller->method( 'create_post_autosave' )
+							->willReturn( $autosave_revision_id );
+
+		$response = $autosaves_controller->create_item( $request );
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+	}
+
+	/**
+	 * @ticket 52925
+	 *
+	 * @dataProvider data_invalid_post_id
+	 *
+	 * @covers WP_REST_Autosaves_Controller::create_post_autosave
+	 * @covers WP_REST_Autosaves_Controller::get_post
+	 *
+	 * @param int $parent_post_id Parent post ID.
+	 */
+	public function test_invalid_parent_post_id_should_trigger_error_response( $parent_post_id ) {
+		$autosaves_controller = new WP_REST_Autosaves_Controller( 'post' );
+		$response             = $autosaves_controller->create_post_autosave(
+			array(
+				'ID' => $parent_post_id,
+			)
+		);
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_invalid_post_id() {
+		return array(
+			'impossibly high post ID' => array( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ),
+			'negative post ID'        => array( -1 ),
+			'zero post ID'            => array( 0 ),
+		);
+	}
 }
