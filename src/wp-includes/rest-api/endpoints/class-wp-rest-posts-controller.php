@@ -1181,17 +1181,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = array();
 
-		foreach ( $prepared_args as $key => $value ) {
-			/**
-			 * Filters the query_vars used in get_items() for the constructed query.
-			 *
-			 * The dynamic portion of the hook name, `$key`, refers to the query_var key.
-			 *
-			 * @since 4.7.0
-			 *
-			 * @param string $value The query_var value.
-			 */
-			$query_args[ $key ] = apply_filters( "rest_query_var-{$key}", $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+		if ( is_array( $prepared_args ) ) {
+			foreach ( $prepared_args as $key => $value ) {
+				/**
+				 * Filters the query_vars used in get_items() for the constructed query.
+				 *
+				 * The dynamic portion of the hook name, `$key`, refers to the query_var key.
+				 *
+				 * @since 4.7.0
+				 *
+				 * @param string $value The query_var value.
+				 */
+				$query_args[ $key ] = apply_filters( "rest_query_var-{$key}", $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+			}
 		}
 
 		if ( 'post' !== $this->post_type || ! isset( $query_args['ignore_sticky_posts'] ) ) {

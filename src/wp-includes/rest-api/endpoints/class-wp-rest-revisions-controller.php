@@ -532,9 +532,11 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = array();
 
-		foreach ( $prepared_args as $key => $value ) {
-			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
-			$query_args[ $key ] = apply_filters( "rest_query_var-{$key}", $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+		if ( is_array( $prepared_args ) ) {
+			foreach ( $prepared_args as $key => $value ) {
+				/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
+				$query_args[ $key ] = apply_filters( "rest_query_var-{$key}", $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+			}
 		}
 
 		// Map to proper WP_Query orderby param.
