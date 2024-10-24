@@ -729,10 +729,10 @@ class WP_Site_Health {
 		$result = array(
 			'label'       => sprintf(
 				/* translators: %s: The recommended PHP version. */
-				__( 'Your site is running a recommended version of PHP (%s)' ),
+				__( 'Your site is running PHP Version (%s).' ),
 				PHP_VERSION
 			),
-			'status'      => 'good',
+			'status'      => 'recommended',
 			'badge'       => array(
 				'label' => __( 'Performance' ),
 				'color' => 'blue',
@@ -755,8 +755,24 @@ class WP_Site_Health {
 			'test'        => 'php_version',
 		);
 
+		if ( ! $response ) {
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				__( 'The call to get recommended version requires to be able to communicate with WordPress.org.' )
+			);
+
+			return $result;
+		}
+
 		// PHP is up to date.
-		if ( ! $response || version_compare( PHP_VERSION, $response['recommended_version'], '>=' ) ) {
+		if ( version_compare( PHP_VERSION, $response['recommended_version'], '>=' ) ) {
+			$result['label'] = sprintf(
+				/* translators: %s: The recommended PHP version. */
+				__( 'Your site is running a recommended version of PHP (%s)' ),
+				PHP_VERSION
+			);
+			$result['status'] = 'good';
+
 			return $result;
 		}
 
