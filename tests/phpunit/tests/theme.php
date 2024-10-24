@@ -944,6 +944,9 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @covers ::_add_default_theme_supports
 	 * @covers ::wp_should_load_separate_core_block_assets
+	 *
+	 * @expectedDeprecated wp_should_load_separate_core_block_assets
+	 * @expectedDeprecated should_load_separate_core_block_assets
 	 */
 	public function test_block_theme_should_load_separate_core_block_assets_by_default() {
 		$this->helper_requires_block_theme();

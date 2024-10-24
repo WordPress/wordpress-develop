@@ -236,6 +236,8 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	/**
 	 * @ticket 56915
 	 * @ticket 61165
+	 *
+	 * @expectedDeprecated should_load_separate_core_block_assets
 	 */
 	public function test_third_party_blocks_inline_styles_get_registered_to_global_styles_when_per_block() {
 		$this->set_up_third_party_block();
@@ -261,6 +263,8 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	/**
 	 * @ticket 56915
 	 * @ticket 61165
+	 *
+	 * @expectedDeprecated should_load_separate_core_block_assets
 	 */
 	public function test_third_party_blocks_inline_styles_get_rendered_when_per_block() {
 		$this->set_up_third_party_block();
@@ -311,6 +315,8 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	/**
 	 * @ticket 57868
 	 * @ticket 61165
+	 *
+	 * @expectedDeprecated should_load_separate_core_block_assets
 	 */
 	public function test_third_party_blocks_inline_styles_for_elements_get_rendered_when_per_block() {
 		$this->set_up_third_party_block();
