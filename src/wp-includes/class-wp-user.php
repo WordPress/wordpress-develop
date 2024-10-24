@@ -11,6 +11,7 @@
  * Core class used to implement the WP_User object.
  *
  * @since 2.0.0
+ * @since x.y.z The `user_pass` property is now hashed using bcrypt instead of phpass.
  *
  * @property string $nickname
  * @property string $description

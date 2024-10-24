@@ -882,14 +882,11 @@ function post_password_required( $post = null ) {
 		return apply_filters( 'post_password_required', true, $post );
 	}
 
-	require_once ABSPATH . WPINC . '/class-phpass.php';
-	$hasher = new PasswordHash( 8, true );
-
 	$hash = wp_unslash( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] );
-	if ( ! str_starts_with( $hash, '$P$B' ) ) {
+	if ( ! str_starts_with( $hash, '$' ) ) {
 		$required = true;
 	} else {
-		$required = ! $hasher->CheckPassword( $post->post_password, $hash );
+		$required = ! wp_check_password( $post->post_password, $hash );
 	}
 
 	/**
