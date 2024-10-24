@@ -2078,12 +2078,14 @@ function wp_get_archives( $args = '' ) {
 		if ( $results ) {
 			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
-				$url = get_month_link( $result->year, $result->month );
+				// Add leading zeros when year has lower than 4 digits.
+				$result->year = str_pad( $result->year, 4, '0', STR_PAD_LEFT );
+				$url          = get_month_link( $result->year, $result->month );
 				if ( 'post' !== $parsed_args['post_type'] ) {
 					$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 				}
 				/* translators: 1: Month name, 2: 4-digit year. */
-				$text = sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $result->month ), $result->year );
+				$text = sprintf( __( '%1$s %2$s' ), $wp_locale->get_month( $result->month ), $result->year );
 				if ( $parsed_args['show_post_count'] ) {
 					$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
 				}
@@ -2103,11 +2105,13 @@ function wp_get_archives( $args = '' ) {
 		if ( $results ) {
 			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
-				$url = get_year_link( $result->year );
+				// Add leading zeros when year has lower than 4 digits.
+				$result->year = str_pad( $result->year, 4, '0', STR_PAD_LEFT );
+				$url          = get_year_link( $result->year );
 				if ( 'post' !== $parsed_args['post_type'] ) {
 					$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 				}
-				$text = sprintf( '%d', $result->year );
+				$text = sprintf( '%s', $result->year );
 				if ( $parsed_args['show_post_count'] ) {
 					$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
 				}
@@ -2127,11 +2131,13 @@ function wp_get_archives( $args = '' ) {
 		if ( $results ) {
 			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
-				$url = get_day_link( $result->year, $result->month, $result->dayofmonth );
+				// Add leading zeros when year has lower than 4 digits.
+				$result->year = str_pad( $result->year, 4, '0', STR_PAD_LEFT );
+				$url          = get_day_link( $result->year, $result->month, $result->dayofmonth );
 				if ( 'post' !== $parsed_args['post_type'] ) {
 					$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 				}
-				$date = sprintf( '%1$d-%2$02d-%3$02d 00:00:00', $result->year, $result->month, $result->dayofmonth );
+				$date = sprintf( '%1$s-%2$02d-%3$02d 00:00:00', $result->year, $result->month, $result->dayofmonth );
 				$text = mysql2date( get_option( 'date_format' ), $date );
 				if ( $parsed_args['show_post_count'] ) {
 					$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
