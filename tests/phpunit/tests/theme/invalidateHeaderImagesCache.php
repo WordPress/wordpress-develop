@@ -2,7 +2,7 @@
 /**
  * @group themes
  *
- * @coversDefaultClass ::invalidate_header_images_cache
+ * @covers ::invalidate_header_images_cache
  */
 class Tests_Theme_invalidateHeaderImagesCache extends WP_UnitTestCase {
 	public $custom_image_header;
