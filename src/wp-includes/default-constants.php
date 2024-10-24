@@ -68,7 +68,9 @@ function wp_initial_constants() {
 	// Set memory limits.
 	$wp_limit_int = wp_convert_hr_to_bytes( WP_MEMORY_LIMIT );
 	if ( -1 !== $current_limit_int && ( -1 === $wp_limit_int || $wp_limit_int > $current_limit_int ) ) {
-		ini_set( 'memory_limit', WP_MEMORY_LIMIT );
+		if ( function_exists( 'ini_set' ) ) {
+			ini_set( 'memory_limit', WP_MEMORY_LIMIT );
+		}
 	}
 
 	if ( ! isset( $blog_id ) ) {
