@@ -62,7 +62,6 @@ $preload_paths = array(
 	array( rest_get_route_for_post_type_items( 'page' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'wp_block' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'wp_template' ), 'OPTIONS' ),
-	sprintf( '%s/autosaves?context=edit', $rest_path ),
 	'/wp/v2/settings',
 	array( '/wp/v2/settings', 'OPTIONS' ),
 	'/wp/v2/global-styles/themes/' . get_stylesheet(),
