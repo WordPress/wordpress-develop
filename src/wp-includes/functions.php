@@ -5434,7 +5434,25 @@ function wp_widgets_add_menu() {
 function wp_ob_end_flush_all() {
 	$levels = ob_get_level();
 	for ( $i = 0; $i < $levels; $i++ ) {
-		ob_end_flush();
+		$ob_status = ob_get_status();
+
+		// can be not set in some installations
+		if ( ! isset( $ob_status['flags'] ) ) {
+			break;
+		}
+
+		if ( ( $ob_status['flags'] & PHP_OUTPUT_HANDLER_REMOVABLE ) === PHP_OUTPUT_HANDLER_REMOVABLE ) {
+			ob_end_flush();
+			continue;
+		}
+
+		if ( ( $ob_status['flags'] & PHP_OUTPUT_HANDLER_FLUSHABLE ) === PHP_OUTPUT_HANDLER_FLUSHABLE ) {
+			// we can't end it, but at least flush it
+			ob_flush();
+		}
+
+		// can't end any parents either
+		break;
 	}
 }
 
