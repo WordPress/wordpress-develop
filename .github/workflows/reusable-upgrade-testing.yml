@@ -58,7 +58,16 @@ jobs:
         image: ${{ inputs.db-type }}:${{ inputs.db-version }}
         ports:
           - 3306
-        options: --health-cmd="mysqladmin ping" --health-interval=30s --health-timeout=10s --health-retries=5 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=test_db --entrypoint sh ${{ inputs.db-type }}:${{ inputs.db-version }} -c "exec docker-entrypoint.sh mysqld --default-authentication-plugin=mysql_native_password"
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval="30s"
+          --health-timeout="10s"
+          --health-retries="5"
+          -e MYSQL_ROOT_PASSWORD="root"
+          -e MYSQL_DATABASE="test_db"
+          --entrypoint sh ${{ inputs.db-type }}:${{ inputs.db-version }}
+          -c "exec docker-entrypoint.sh mysqld${{ inputs.db-type == 'mysql' && contains( fromJSON('["7.2", "7.3"]'), inputs.php ) && ' --default-authentication-plugin=mysql_native_password' || '' }}"
+
 
     steps:
       - name: Set up PHP ${{ inputs.php }}

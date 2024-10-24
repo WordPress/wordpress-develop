@@ -55,6 +55,22 @@ function wp_print_font_faces( $fonts = array() ) {
 }
 
 /**
+ * Generates and prints font-face styles defined the the theme style variations.
+ *
+ * @since 6.7.0
+ *
+ */
+function wp_print_font_faces_from_style_variations() {
+	$fonts = WP_Font_Face_Resolver::get_fonts_from_style_variations();
+
+	if ( empty( $fonts ) ) {
+		return;
+	}
+
+	wp_print_font_faces( $fonts );
+}
+
+/**
  * Registers a new font collection in the font library.
  *
  * See {@link https://schemas.wp.org/trunk/font-collection.json} for the schema
@@ -249,7 +265,7 @@ function _wp_register_default_font_collections() {
 		array(
 			'name'          => _x( 'Google Fonts', 'font collection name' ),
 			'description'   => __( 'Install from Google Fonts. Fonts are copied to and served from your site.' ),
-			'font_families' => 'https://s.w.org/images/fonts/wp-6.5/collections/google-fonts-with-preview.json',
+			'font_families' => 'https://s.w.org/images/fonts/wp-6.7/collections/google-fonts-with-preview.json',
 			'categories'    => array(
 				array(
 					'name' => _x( 'Sans Serif', 'font category' ),
