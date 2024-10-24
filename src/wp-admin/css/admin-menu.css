@@ -858,6 +858,6 @@ li#wp-admin-bar-menu-toggle {
 	}
 
 	.auto-fold #adminmenu {
-		top: 46px;
+		top: var(--wp-admin--admin-bar--height, 32px);
 	}
 }
