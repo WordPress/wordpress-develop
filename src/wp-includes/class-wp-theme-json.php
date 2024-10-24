@@ -4533,7 +4533,7 @@ class WP_Theme_JSON {
 	 * Collects valid block style variations keyed by block type.
 	 *
 	 * @since 6.6.0
-	 * @since n.e.x.t Added the `$blocks_metadata` parameter.
+	 * @since 6.8.0 Added the `$blocks_metadata` parameter.
 	 *
 	 * @param array $blocks_metadata Optional list of selectors per block.
 	 * @return array Valid block style variations by block type.
