@@ -91,7 +91,7 @@ _wp_admin_html_begin();
 <?php
 
 // We do not need the default admin CSS stylesheets in the Site Editor.
-if ( $hook_suffix !== 'site-editor.php' ) {
+if ( 'site-editor.php' !== $hook_suffix ) {
 	wp_enqueue_style( 'colors' );
 }
 
