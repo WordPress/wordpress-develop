@@ -914,6 +914,51 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( 'user_nicename_too_long', $u->get_error_code() );
 	}
 
+
+	/**
+	 * @ticket 57394
+	 */
+	public function test_wp_insert_user_should_reject_user_login_that_matches_existing_user_email() {
+		// When creating a user, the user_login should not match an existing user's email.
+		$existing_email = get_option( 'admin_email' );
+		$user_id        = wp_insert_user(
+			array(
+				'user_login'    => $existing_email,
+				'user_email'    => 'whatever@example.com',
+				'user_pass'     => 'whatever',
+				'user_nicename' => 'whatever',
+			)
+		);
+		$this->assertWPError( $user_id );
+		$this->assertSame( 'existing_user_email_as_login', $user_id->get_error_code() );
+
+		// When updating a user, the user_login can match an existing user's email.
+		$new_email = 'new.email@example.com';
+
+		$user_id = wp_insert_user(
+			array(
+				'user_login'    => $new_email,
+				'user_email'    => $new_email,
+				'user_pass'     => 'whatever',
+				'user_nicename' => 'whatever',
+			)
+		);
+		$this->assertNotWPError( $user_id );
+
+		$user_id = wp_update_user(
+			array(
+				'ID'            => $user_id,
+				'user_login'    => $new_email,
+				'user_email'    => $new_email,
+				'user_nicename' => 'new-nicename',
+			)
+		);
+		// No error should be returned.
+		$this->assertNotWPError( $user_id );
+		// The user_nicename should have been updated.
+		$this->assertSame( 'new-nicename', get_userdata( $user_id )->user_nicename );
+	}
+
 	/**
 	 * @ticket 33793
 	 */
