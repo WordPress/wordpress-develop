@@ -34,6 +34,16 @@ class WP_Block {
 	public $name;
 
 	/**
+	 * Alias name of block.
+	 *
+	 * @example "core/social-link/wordpress"
+	 *
+	 * @since 6.6.0
+	 * @var string|null
+	 */
+	public $alias_name = null;
+
+	/**
 	 * Block type associated with the instance.
 	 *
 	 * @since 5.5.0
@@ -127,8 +137,11 @@ class WP_Block {
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
 	 */
 	public function __construct( $block, $available_context = array(), $registry = null ) {
-		$this->parsed_block = $block;
-		$this->name         = $block['blockName'];
+		$is_variation         = block_is_variation( $block['blockName'] );
+		$canonical_block_name = $is_variation ? get_canonical_block_name( $block['blockName'] ) : $block['blockName'];
+		$this->parsed_block   = $block;
+		$this->name           = $canonical_block_name;
+		$this->alias_name     = $is_variation ? $block['blockName'] : null;
 
 		if ( is_null( $registry ) ) {
 			$registry = WP_Block_Type_Registry::get_instance();

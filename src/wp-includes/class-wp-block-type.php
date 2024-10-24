@@ -34,6 +34,16 @@ class WP_Block_Type {
 	public $name;
 
 	/**
+	 * Alias name of block.
+	 *
+	 * @example "core/social-link/wordpress"
+	 *
+	 * @since 6.6.0
+	 * @var string|null
+	 */
+	public $alias_name = null;
+
+	/**
 	 * Human-readable block type label.
 	 *
 	 * @since 5.5.0
@@ -345,7 +355,9 @@ class WP_Block_Type {
 	 * }
 	 */
 	public function __construct( $block_type, $args = array() ) {
-		$this->name = $block_type;
+		$is_variation     = block_is_variation( $block_type );
+		$this->name       = $is_variation ? get_canonical_block_name( $block_type ) : $block_type;
+		$this->alias_name = $is_variation ? $block_type : null;
 
 		$this->set_props( $args );
 	}
