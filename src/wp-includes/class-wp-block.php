@@ -251,13 +251,11 @@ class WP_Block {
 			'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
 		);
 
-		// If the block doesn't have the bindings property, isn't one of the supported
+		// If the block doesn't have the bindings property, is a core block and isn't one of the supported
 		// block types, or the bindings property is not an array, return the block content.
-		if (
-			! isset( $supported_block_attributes[ $this->name ] ) ||
-			empty( $parsed_block['attrs']['metadata']['bindings'] ) ||
-			! is_array( $parsed_block['attrs']['metadata']['bindings'] )
-		) {
+		$bindings_present = isset( $parsed_block['attrs']['metadata']['bindings'] ) && is_array( $parsed_block['attrs']['metadata']['bindings'] );
+		$is_core_block    = strpos( $this->name, 'core/' ) === 0;
+		if ( ! $bindings_present || ( $is_core_block && ! isset( $supported_block_attributes[ $this->name ] ) ) ) {
 			return $computed_attributes;
 		}
 
@@ -297,9 +295,18 @@ class WP_Block {
 
 		foreach ( $bindings as $attribute_name => $block_binding ) {
 			// If the attribute is not in the supported list, process next attribute.
-			if ( ! in_array( $attribute_name, $supported_block_attributes[ $this->name ], true ) ) {
+			if ( $is_core_block && ! in_array( $attribute_name, $supported_block_attributes[ $this->name ], true ) ) {
 				continue;
 			}
+
+			// For non-core blocks, if the attribute definition is not set, or the role is not set to 'content', skip the attribute.
+			$attribute_definition = isset( $this->block_type->attributes[ $attribute_name ] ) ? $this->block_type->attributes[ $attribute_name ] : null;
+			$role_not_set         = isset( $attribute_definition ) && ! isset( $attribute_definition['role'] );
+			$role_not_content     = isset( $attribute_definition['role'] ) && 'content' !== $attribute_definition['role'];
+			if ( ! $is_core_block && ( ! $attribute_definition || $role_not_set || $role_not_content ) ) {
+				continue;
+			}
+
 			// If no source is provided, or that source is not registered, process next attribute.
 			if ( ! isset( $block_binding['source'] ) || ! is_string( $block_binding['source'] ) ) {
 				continue;
