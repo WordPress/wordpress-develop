@@ -783,6 +783,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			}
 		}
 
+		if ( rest_is_field_included( 'post_types', $fields ) ) {
+			$data['post_types'] = is_array( $template->post_types ) ? $template->post_types : array();
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data    = $this->add_additional_fields_to_object( $data, $request );
 		$data    = $this->filter_response_by_context( $data, $context );
@@ -1162,6 +1166,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 						'site',
 						'user',
 					),
+				),
+				'post_types' => array(
+					'description' => __( 'Post types associated with the template.' ),
+					'type'        => 'array',
+					'readonly'    => true,
+					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 			),
 		);
