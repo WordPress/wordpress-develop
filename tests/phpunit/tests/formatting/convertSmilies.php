@@ -317,7 +317,10 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 
 		smilies_init();
 
-		$this->assertSame( $converted, convert_smilies( $input ) );
+		$this->assertSame(
+			WP_HTML_Decoder::decode_text_node( $converted ),
+			WP_HTML_Decoder::decode_text_node( convert_smilies( $input ) )
+		);
 
 		// Standard smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
@@ -392,5 +395,21 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	public function _filter_add_smilies( $wpsmiliestrans ) {
 		$wpsmiliestrans['<3'] = '\xe2\x9d\xa4';
 		return $wpsmiliestrans;
+	}
+
+	/**
+	 * Ensure that conversion doesn't crash or fail when attribute values are
+	 * extremely long, such as in the case of embedded images as data attributes.
+	 *
+	 * @ticket 51019
+	 */
+	public function test_smilies_with_large_text_input() {
+		$fake_image_data = str_repeat( 'iVBORw0KGgoAAAAN', 99999 );
+
+		$html = <<<HTML
+<p><img alt="" src="data:image/png;base64,{$fake_image_data}="></p> <3
+HTML;
+
+		$this->assertSame( $html, convert_smilies( $html ) );
 	}
 }
