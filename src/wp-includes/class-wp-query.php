@@ -1176,7 +1176,11 @@ class WP_Query {
 				);
 
 				if ( ! empty( $t->rewrite['hierarchical'] ) ) {
-					$q[ $t->query_var ] = wp_basename( $q[ $t->query_var ] );
+					if ( is_array( $q[ $t->query_var ] ) ) {
+						$q[ $t->query_var ] = array_map( 'wp_basename', $q[ $t->query_var ] );
+					} else {
+						$q[ $t->query_var ] = wp_basename( $q[ $t->query_var ] );
+					}
 				}
 
 				$term = $q[ $t->query_var ];
