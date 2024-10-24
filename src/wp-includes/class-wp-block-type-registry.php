@@ -22,6 +22,15 @@ final class WP_Block_Type_Registry {
 	 */
 	private $registered_block_types = array();
 
+
+	/**
+	 * Registered block aliases, as `$alias_name => $instance` pairs.
+	 *
+	 * @since 6.6.0
+	 * var WP_Block_Type[]
+	 */
+	private $registered_block_type_aliases = array();
+
 	/**
 	 * Container for the main instance of the class.
 	 *
@@ -92,6 +101,19 @@ final class WP_Block_Type_Registry {
 
 		if ( ! $block_type ) {
 			$block_type = new WP_Block_Type( $name, $args );
+		}
+
+		// Register aliases for the block type.
+		$aliases = $block_type->get_aliases();
+		if ( ! empty( $aliases ) ) {
+			foreach ( $aliases as $alias_name => $alias_args ) {
+				if ( ! isset( $this->registered_block_type_aliases[ $alias_name ] ) ) {
+					// Add the alias to the alias registry.
+					$alias_block_type                                   = new WP_Block_Type( $alias_name, array_merge( $args, $alias_args ) );
+					$alias_block_type->alias_of                         = $name;
+					$this->registered_block_type_aliases[ $alias_name ] = $alias_block_type;
+				}
+			}
 		}
 
 		$this->registered_block_types[ $name ] = $block_type;
