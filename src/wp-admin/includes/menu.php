@@ -282,6 +282,8 @@ uksort( $menu, 'strnatcasecmp' ); // Make it all pretty.
  * @param bool $custom Whether custom ordering is enabled. Default false.
  */
 if ( apply_filters( 'custom_menu_order', false ) ) {
+	// this might not be in global context if it's called from outside of global context or with eval()
+	global $menu_order, $default_menu_order;
 	$menu_order = array();
 
 	foreach ( $menu as $menu_item ) {
