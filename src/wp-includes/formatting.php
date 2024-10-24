@@ -2244,6 +2244,456 @@ function sanitize_title_for_query( $title ) {
 }
 
 /**
+ * Translates a code point into a sequence of bytes as if encoded into UTF-8,
+ * but ignoring the restriction that surrogates halves must not be encoded.
+ *
+ * Avoid using this function, as it's meant to be used internally in sensitive
+ * and controlled environments. It can be used to generate invalid UTF-8.
+ *
+ * @access private
+ *
+ * @since {WP_VERSION}
+ *
+ * @param int $code_point Any Unicode code point, including the unassigned surrogate half values.
+ * @return string|null Bytes encoded using the UTF-8 algorithm, which might be invalid UTF-8,
+ *                     if possible to encode, otherwise `null`.
+ */
+function utf8_naive_codepoint_to_bytes( int $code_point ): ?string {
+	if ( 0 > $code_point || 0x10FFFF < $code_point ) {
+		return null;
+	}
+
+	if ( $code_point <= 0x7F ) {
+		return chr( $code_point );
+	}
+
+	if ( $code_point <= 0x7FF ) {
+		$byte1 = ( $code_point >> 6 ) | 0xC0;
+		$byte2 = $code_point & 0x3F | 0x80;
+
+		return pack( 'CC', $byte1, $byte2 );
+	}
+
+	if ( $code_point <= 0xFFFF ) {
+		$byte1 = ( $code_point >> 12 ) | 0xE0;
+		$byte2 = ( $code_point >> 6 ) & 0x3F | 0x80;
+		$byte3 = $code_point & 0x3F | 0x80;
+
+		return pack( 'CCC', $byte1, $byte2, $byte3 );
+	}
+
+	// Any values above U+10FFFF are eliminated above in the pre-check.
+	$byte1 = ( $code_point >> 18 ) | 0xF0;
+	$byte2 = ( $code_point >> 12 ) & 0x3F | 0x80;
+	$byte3 = ( $code_point >> 6 ) & 0x3F | 0x80;
+	$byte4 = $code_point & 0x3F | 0x80;
+
+	return pack( 'CCCC', $byte1, $byte2, $byte3, $byte4 );
+}
+
+/**
+ * Attempts to read a UTF-8 percent-escaped code point in the given
+ * text at the given starting point, measured in bytes.
+ *
+ * Example:
+ *
+ *     null    === read_utf8_percent_escaped_code_point( 'Unicode', 0 );
+ *     "…"     === "\xC2\xA0" === read_utf8_percent_escaped_code_point( 'White%C2%A0Space', 5 );
+ *     null    === read_utf8_percent_escaped_code_point( '%A0Is &nbsp; in ISO-8859-1', 0, $matched_byte_length );
+ *     3       === $matched_byte_length;
+ *     "🅰"    === read_utf8_percent_escaped_code_point( '%F0%9F%85%B0', 0, $matched_byte_length, $code_point );
+ *     12      === $matched_byte_length;
+ *     0x1F170 === $code_point;
+ *
+ * @since {WP_VERSION}
+ *
+ * @param string   $text                Text potentially containing percent-escapes.
+ * @param int      $starting_at_byte    Where to start looking for the escaped code point.
+ * @param int|null $matched_byte_length Optional. When provided, is set to the number of bytes
+ *                                      scanned in the given text to find a code point. It may
+ *                                      be non-zero when no code point is found, if an invalid
+ *                                      UTF-8 byte sequence had been decoded otherwise.
+ * @param int|null $code_point          Optional. When provided and a code point is decoded, will
+ *                                      be set to the value of the code point, otherwise not set.
+ * @return string|null Decoded code point in UTF-8 bytes, or false if none found.
+ */
+function read_utf8_percent_escaped_code_point( string $text, int $starting_at_byte, int &$matched_byte_length = null, int &$code_point = null ): ?string {
+	$at     = $starting_at_byte;
+	$end    = strlen( $text );
+	$buffer = '';
+	$need   = null;
+
+	/**
+	 * Indicates how many bytes are expected for a given leading byte.
+	 */
+	$length_table = "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x02\x02\x02\x02\x03\x03\x04\x00";
+
+	$matched_byte_length = 0;
+	while ( $at < $end ) {
+		$byte = $text[ $at ];
+
+		if ( '%' !== $byte || $at + 2 >= $end ) {
+			break;
+		}
+
+		$leading_byte = wp_hex_to_int( $text, $at + 1, 2 );
+		if ( null === $leading_byte ) {
+			break;
+		}
+
+		if ( ! isset( $need ) ) {
+			$need = ord( $length_table[ $leading_byte >> 3 ] );
+		}
+
+		if ( 1 === $need && '' === $buffer ) {
+			$matched_byte_length = 3;
+			$code_point          = $leading_byte;
+			return chr( $leading_byte );
+		}
+
+		if ( $leading_byte < 0x80 ) {
+			break;
+		}
+
+		$buffer .= chr( $leading_byte );
+		$at     += 3;
+	}
+
+	$matched_byte_length = $at - $starting_at_byte;
+
+	/*
+	 * At this point the buffer should be full and equal in length to the expected
+	 * byte need. If it isn't, or if those bytes aren't valid UTF-8, this should fail.
+	 */
+	$buffer_length = strlen( $buffer );
+	if ( $buffer_length !== $need ) {
+		return null;
+	}
+
+	$state      = 0;
+	$code_point = utf8_read_next_code_point( $buffer, 0, $state );
+
+	return 0 === $state ? $buffer : null;
+}
+
+/**
+ * Decodes UTF-8 encoded bytes in a string at a given starting byte offset.
+ *
+ * @since {WP_VERSION}
+ *
+ * @param string $text          UTF-8 text to decode.
+ * @param int    $starting_byte Byte offset into text where next code point starts.
+ * @param int    $state         Error tracker passed through multiple invocations of this function.
+ *                              A non-zero value indicates that there is an error.
+ * @param int    $matched_bytes Optional. Set to how many bytes were consumed while parsing the code point.
+ * @return int|null Decoded code point if found, else `null`.
+ */
+function utf8_read_next_code_point( string $text, int $starting_byte, int &$state, int &$matched_bytes = null ): ?int {
+	/**
+	 * State classification and transition table for UTF-8 validation.
+	 *
+	 * @see http://bjoern.hoehrmann.de/utf-8/decoder/dfa/
+	 */
+	static $state_table = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x09\x09\x09\x09\x09\x09\x09\x09\x09\x09\x09\x09\x09\x09\x09\x09\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\x08\x08\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x0a\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x04\x03\x03\x0b\x06\x06\x06\x05\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x00\x0c\x18\x24\x3c\x60\x54\x0c\x0c\x0c\x30\x48\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x00\x0c\x0c\x0c\x0c\x0c\x00\x0c\x00\x0c\x0c\x0c\x18\x0c\x0c\x0c\x0c\x0c\x18\x0c\x18\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x18\x0c\x0c\x0c\x0c\x0c\x18\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x18\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x24\x0c\x24\x0c\x0c\x0c\x24\x0c\x0c\x0c\x0c\x0c\x24\x0c\x24\x0c\x0c\x0c\x24\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c";
+
+	/**
+	 * This branchless UTF-8 decoding algorithm computes the
+	 * code point and validates in one efficient scan.
+	 *
+	 * @see http://bjoern.hoehrmann.de/utf-8/decoder/dfa/
+	 */
+	$end        = strlen( $text );
+	$code_point = 0;
+
+	for ( $at = $starting_byte; $at < $end && ( $at === $starting_byte || 0 !== $state ); $at++ ) {
+		$byte           = ord( $text[ $at ] );
+		$classification = ord( $state_table[ $byte ] );
+
+		// Append continuation bits to code point or collect the first byte's bits.
+		$code_point = ( 0 === $state )
+			? ( ( 0xFF >> $classification ) & $byte )
+			: ( ( $byte & 0x3F ) | ( $code_point << 6 ) );
+
+		$state = ord( $state_table[ 256 + $state + $classification ] );
+	}
+
+	$matched_bytes = $at - $starting_byte;
+
+	return $code_point;
+}
+
+/**
+ * Converts hexadecimal text into an integer value, or `null` if not able to decode.
+ *
+ * If unable to parse as many digits as provided into a valid int, this function will
+ * return `null`. This may be because of a failure to find proper digits or because
+ * of an integer overflow while performing the conversion.
+ *
+ * Example:
+ *
+ *     143  === wp_hex_to_int( "8F" );
+ *     null === wp_hex_to_int( "Train" );
+ *
+ *     // It's possible to decode inside an existing string without performing allocations.
+ *     194 === wp_hex_to_int( "Cats%c2%a0and%c2%a0Dogs", 5, 2 );
+ *
+ *     // There are only two hexademical digits in the given span, but three were requested.
+ *     null === wp_hex_to_int( "%2e%a6", 1, 3 );
+ *
+ *     // Integers are limited by PHP_INT_MAX, so it's not possible to decode a bigger number.
+ *     null === wp_hex_to_int( "FFFFFFFFFFFFFFFFFFF" );
+ *
+ * @since {WP_VERSION}
+ *
+ * @param string $text          Text containing span of hexadecimal digits to decode.
+ * @param int    $starting_byte Optional. Starting byte offset into text where digits begin.
+ *                              Default is to start at the beginning of the given text.
+ * @param int    $byte_length   Optional. Byte-length of span of text containing hexadecimal
+ *                              digits. Default is to decode until the end of the given text.
+ * @return int|null Decoded integer if properly decoded, otherwise `null`.
+ */
+function wp_hex_to_int( string $text, int $starting_byte = 0, int $byte_length = null ) {
+	/**
+	 * This table lookup provides for non-branching decoding of hex digits to integer values.
+	 *
+	 * The 0xFF value indicates that the character is not a hexadecimal digit, while any
+	 * other value indicates the integer value that digit represents. For instance, the
+	 * character in the 66th position, string-index 65, corresponding to U+41 "A", is "\x0A".
+	 *
+	 * Thus, a lookup for `ord("A")` will retrieve `\x0A` and `ord( "\x0A" )` is `10`.
+	 */
+	static $table = "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\xff\xff\xff\xff\xff\xff\xff\x0a\x0b\x0c\x0d\x0e\x0f\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x0a\x0b\x0c\x0d\x0e\x0f\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
+
+	$value   = 0;
+	$end     = isset( $byte_length ) ? $starting_byte + $byte_length : strlen( $text );
+	$pre_max = PHP_INT_MAX >> 4;
+
+	for ( $at = $starting_byte; $at < $end; $at++ ) {
+		$c      = $text[ $at ];
+		$nibble = ord( $table[ ord( $c ) ] );
+
+		/*
+		 * Whether encountering something that isn't a hex digit or an integer overflow,
+		 * this only returns properly-decoded integers. Return `null` for these cases.
+		 */
+		if ( 0xFF === $nibble || $value > $pre_max ) {
+			return null;
+		}
+
+		$value <<= 4;
+
+		/*
+		 * This overflow must be caught before adding to the value, otherwise
+		 * it would overflow and appear small by the time of this check.
+		 */
+		if ( $value > PHP_INT_MAX - $nibble ) {
+			return null;
+		}
+
+		$value |= $nibble;
+	}
+
+	return $value;
+}
+
+/**
+ * Converts text content into a slug for display.
+ *
+ * Slugs are used as identifiers in contexts which are largely
+ * US ASCII letters and which should be easy to recognize and
+ * type, for example, in a blog post's permalink.
+ *
+ * Example:
+ *
+ *     'the-forest-for-the-trees' === slugify( 'The forest for the trees.' );
+ *
+ *     $slug = slugify( "This%c2%a0cannot–work¿&nbsp;Even   -  for 5% &#xBB;correctness«?" );
+ *     $slug === 'This-cannot-work-Even-for-5%-correctness?';
+ *
+ * @since {WP_VERSION}
+ *
+ * @param string $sluggee Text content to convert into a slug.
+ * @return string Slugified version of given text content.
+ */
+function slugify( string $sluggee ): string {
+	$sluggee = WP_HTML_Decoder::decode_text_node( $sluggee );
+	if ( function_exists( 'normalizer_normalize' ) ) {
+		$sluggee = normalizer_normalize( $sluggee, Normalizer::FORM_C );
+	}
+
+	$slug             = '';
+	$slug_code_points = 0;
+	$at               = 0;
+	$end              = strlen( $sluggee );
+	$last             = null;
+
+	while ( $at < $end && $slug_code_points <= 200 ) {
+		$c = $sluggee[ $at ];
+
+		if ( "\x00" === $c ) {
+			++$at;
+			goto combining_dash; // phpcs:disable
+		}
+
+		// ASCII alphanumerics pass directly.
+		if (
+			( 'A' <= $c && 'Z' >= $c ) ||
+			( 'a' <= $c && 'z' >= $c ) ||
+			( '0' <= $c && '9' >= $c )
+		) {
+			$slug .= $c;
+			$last  = $c;
+			++$at;
+			++$slug_code_points;
+			continue;
+		}
+
+		$matched_bytes = 0;
+		$state         = 0;
+		$code_point    = utf8_read_next_code_point( $sluggee, $at, $state, $matched_bytes );
+		$at           += $matched_bytes;
+
+		/*
+		 * Replace invalid UTF-8 with a dash.
+		 *
+		 * Normally this would be replaced with U+FFFD (�) but this wouldn't
+		 * work well as a slug. So in this case, to avoid joining strings that
+		 * were separated, the dash is used as a safe fallback.
+		 */
+		if ( null === $code_point ) {
+			goto combining_dash; // phpcs:disable
+		}
+
+		// Decode percent-escaped characters.
+		if ( '%' === $c && $at + 1 < $end ) {
+			$matched_bytes = 0;
+			$code_point    = null;
+			$next_char     = read_utf8_percent_escaped_code_point( $sluggee, $at - 1, $matched_bytes, $code_point );
+			if ( isset( $next_char ) ) {
+				$at += $matched_bytes - 1;
+			} else {
+				$code_point = 0x25;
+			}
+		}
+
+		// Allow dashy things.
+		$is_dashy = in_array(
+			$code_point,
+			array(
+				0x20,   // Space.
+				0x2D,   // Hyphen-minus.
+				0x2E,   // Full stop.
+				0x2F,   // Solidus.
+				0xA0,   // No-break space.
+				0x2000, // En quad.
+				0x2001, // Em quad.
+				0x2002, // En space.
+				0x2003, // Em space.
+				0x2004, // Three-per-em space.
+				0x2005, // Four-per-em space.
+				0x2006, // Six-per-em space.
+				0x2007, // Figure space.
+				0x2008, // Punctuation space.
+				0x2009, // Thin space.
+				0x200A, // Hair space.
+				0x2010, // Hyphen.
+				0x2011, // Non-breaking hyphen.
+				0x2012, // Figure dash.
+				0x2013, // En dash.
+				0x2014, // Em dash.
+				0x2015, // Horizontal bar.
+				0x2028, // Line separator.
+				0x2029, // Paragraph separator.
+				0x202F, // Narrow no-break space.
+				0x2E3A, // Two-em dash.
+				0x2E3B, // Three-em dash.
+				0xFE58, // Small em dash.
+				0xFE63, // Small hyphen-minus.
+				0xFF0D, // Fullwidth hyphen-minus.
+			),
+			true
+		);
+
+		if ( $is_dashy ) {
+			goto combining_dash; // phpcs:disable
+		}
+
+		// Convert `×` (U+D7, "&times;") to 'x'.
+		if ( 0xD7 === $code_point ) {
+			$slug .= 'x';
+			$last  = 'x';
+			++$slug_code_points;
+			continue;
+		}
+
+		$should_remove = in_array(
+			$code_point,
+			array(
+				0x25,   // Percent sign.
+				0xA1,   // Inverted exclamation mark.
+				0xA9,   // Copyright sign.
+				0xAB,   // Left-pointing double angle quotation mark.
+				0xAD,   // Soft hyphen.
+				0xAE,   // Registered sign.
+				0xB0,   // Degree sign.
+				0xB4,   // Acute accent.
+				0xBB,   // Right-pointing double angle quotation mark.
+				0xBF,   // Inverted question mark.
+				0x02CA, // Modifier letter acute accent.
+				0x0300, // Combining grave accent.
+				0x0301, // Combining acute accent.
+				0x0304, // Combining macron.
+				0x030C, // Combining caron.
+				0x0341, // Combining acute tone mark.
+				0x200B, // Zero-width space.
+				0x200C, // Zero-width non-joiner.
+				0x200D, // Zero-width joiner.
+				0x200E, // Left-to-right mark.
+				0x200F, // Right-to-left mark.
+				0x2018, // Left single quotation mark.
+				0x2019, // Right single quotation mark.
+				0x201A, // Single low-9 quotation mark.
+				0x201B, // Single high-reversed-9 quotation mark.
+				0x201C, // Left double quotation mark.
+				0x201D, // Right double quotation mark.
+				0x201E, // Double low-9 quotation mark.
+				0x201F, // Double high-reversed-9 quotation mark.
+				0x2022, // Bullet.
+				0x2026, // Horizontal ellipsis.
+				0x202A, // Left-to-right embedding.
+				0x202B, // Right-to-left embedding.
+				0x202C, // Pop directional formatting.
+				0x202D, // Left-to-right override.
+				0x202E, // Right-to-left override.
+				0x2039, // Single left-pointing angle quotation mark.
+				0x203A, // Single right-pointing angle quotation mark.
+				0x2122, // Trade mark sign (sic).
+				0xFEFF, // Byte order mark (Zero-width no-break space).
+				0xFFFC, // Object-replacement character.
+			),
+			true
+		);
+
+		if ( ! $should_remove ) {
+			$slug .= substr( $sluggee, $at - $matched_bytes, $matched_bytes );
+			$last  = '';
+			++$slug_code_points;
+		}
+
+		continue;
+
+		combining_dash:
+		if ( '-' !== $last ) {
+			$slug .= '-';
+			$last  = '-';
+			++$slug_code_points;
+		}
+	}
+
+	return '-' === $last ? substr( $slug, 0, -1 ) : $slug;
+}
+
+/**
  * Sanitizes a title, replacing whitespace and a few other characters with dashes.
  *
  * Limits the output to alphanumeric characters, underscore (_) and dash (-).
@@ -2259,6 +2709,10 @@ function sanitize_title_for_query( $title ) {
  * @return string The sanitized title.
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
+	if ( 'display' === $context ) {
+		return slugify( $title );
+	}
+
 	$title = strip_tags( $title );
 	// Preserve escaped octets.
 	$title = preg_replace( '|%([a-fA-F0-9][a-fA-F0-9])|', '---$1---', $title );
