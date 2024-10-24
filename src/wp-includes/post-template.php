@@ -321,9 +321,11 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 	}
 
 	// If the requested page doesn't exist.
-	if ( $elements['page'] > count( $elements['pages'] ) ) {
-		// Give them the highest numbered page that DOES exist.
-		$elements['page'] = count( $elements['pages'] );
+	if ( 'integer' === gettype( $elements['page'] ) && 'array' === gettype( $elements['pages'] ) ) { {
+		if ( $elements['page'] > count( $elements['pages'] ) ) {
+			// Give them the highest numbered page that DOES exist.
+			$elements['page'] = count( $elements['pages'] );
+		}
 	}
 
 	$page_no = $elements['page'];
