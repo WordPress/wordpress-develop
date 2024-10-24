@@ -208,12 +208,12 @@ HTML;
 		$result        = $block->render();
 
 		$this->assertSame(
-			'Value: source two context value',
+			'Value: source one context value',
 			$block->attributes['content'],
-			"The 'content' should be updated with the value of the second source context value."
+			"The 'content' should be updated with the value of the first source context value."
 		);
 		$this->assertSame(
-			'<p>Value: source two context value</p>',
+			'<p>Value: source one context value</p>',
 			trim( $result ),
 			'The block content should be updated with the value of the source context.'
 		);

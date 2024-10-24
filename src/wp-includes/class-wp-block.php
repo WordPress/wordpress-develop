@@ -56,7 +56,7 @@ class WP_Block {
 	 * @var array
 	 * @access protected
 	 */
-	protected $available_context;
+	protected $available_context = array();
 
 	/**
 	 * Block type registry.
@@ -140,6 +140,33 @@ class WP_Block {
 
 		$this->available_context = $available_context;
 
+		$this->refresh_context_dependents();
+		$this->refresh_parsed_block_dependents();
+	}
+
+	/**
+	 * Updates the context for the current block and its inner blocks.
+	 *
+	 * This method updates the block's `context` property by merging the available context from ancestor blocks
+	 * with the block's own context values. It removes specific context keys (`postId` and `postType`) that should
+	 * not be carried over. The block only consumes the context keys specified in its registered block type (`uses_context`).
+	 *
+	 * After updating its own context, the method also updates the context of inner blocks, if any, by passing down
+	 * any context values the block provides (`provides_context`).
+	 *
+	 * If the block has inner blocks, the method recursively processes them by creating new instances of `WP_Block`
+	 * for each inner block and updating their context based on the block's `provides_context` property.
+	 *
+	 * @since 6.7.0
+	 */
+	public function refresh_context_dependents() {
+		$this->context = $this->available_context;
+
+		// Remove "postId" and "postType" keys.
+		if ( isset( $this->context['postId'] ) || isset( $this->context['postType'] ) ) {
+			unset( $this->context['postId'], $this->context['postType'] );
+		}
+
 		if ( ! empty( $this->block_type->uses_context ) ) {
 			foreach ( $this->block_type->uses_context as $context_name ) {
 				if ( array_key_exists( $context_name, $this->available_context ) ) {
@@ -147,8 +174,22 @@ class WP_Block {
 				}
 			}
 		}
+	}
 
-		if ( ! empty( $block['innerBlocks'] ) ) {
+	/**
+	 * Updates the parsed block content for the current block and its inner blocks.
+	 *
+	 * This method sets the `inner_html` and `inner_content` properties of the block based on the parsed
+	 * block content provided during initialization. It ensures that the block instance reflects the
+	 * most up-to-date content for both the inner HTML and any string fragments around inner blocks.
+	 *
+	 * If the block has inner blocks, this method initializes a new `WP_Block_List` for them, ensuring the
+	 * correct content and context are updated for each nested block.
+	 *
+	 * @since 6.7.0
+	 */
+	public function refresh_parsed_block_dependents() {
+		if ( ! empty( $this->parsed_block['innerBlocks'] ) ) {
 			$child_context = $this->available_context;
 
 			if ( ! empty( $this->block_type->provides_context ) ) {
@@ -159,15 +200,15 @@ class WP_Block {
 				}
 			}
 
-			$this->inner_blocks = new WP_Block_List( $block['innerBlocks'], $child_context, $registry );
+			$this->inner_blocks = new WP_Block_List( $this->parsed_block['innerBlocks'], $child_context, $this->registry );
 		}
 
-		if ( ! empty( $block['innerHTML'] ) ) {
-			$this->inner_html = $block['innerHTML'];
+		if ( ! empty( $this->parsed_block['innerHTML'] ) ) {
+			$this->inner_html = $this->parsed_block['innerHTML'];
 		}
 
-		if ( ! empty( $block['innerContent'] ) ) {
-			$this->inner_content = $block['innerContent'];
+		if ( ! empty( $this->parsed_block['innerContent'] ) ) {
+			$this->inner_content = $this->parsed_block['innerContent'];
 		}
 	}
 
@@ -506,13 +547,23 @@ class WP_Block {
 					if ( ! is_null( $pre_render ) ) {
 						$block_content .= $pre_render;
 					} else {
-						$source_block = $inner_block->parsed_block;
+						$source_block        = $inner_block->parsed_block;
+						$inner_block_context = $inner_block->context;
 
 						/** This filter is documented in wp-includes/blocks.php */
 						$inner_block->parsed_block = apply_filters( 'render_block_data', $inner_block->parsed_block, $source_block, $parent_block );
 
 						/** This filter is documented in wp-includes/blocks.php */
 						$inner_block->context = apply_filters( 'render_block_context', $inner_block->context, $inner_block->parsed_block, $parent_block );
+
+						if ( $inner_block->context !== $inner_block_context ) {
+							$inner_block->available_context = array_merge( $this->available_context, $inner_block->context );
+							$inner_block->refresh_context_dependents();
+						}
+
+						if ( $inner_block->parsed_block !== $source_block ) {
+							$inner_block->refresh_parsed_block_dependents();
+						}
 
 						$block_content .= $inner_block->render();
 					}
