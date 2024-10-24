@@ -171,6 +171,9 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 
 		// Add support for custom line height.
 		add_theme_support( 'custom-line-height' );
+
+		// Add support for block border controls.
+		add_theme_support( 'border' );
 	}
 endif;
 add_action( 'after_setup_theme', 'twentynineteen_setup' );
