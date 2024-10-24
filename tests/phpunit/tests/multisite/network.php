@@ -269,7 +269,7 @@ if ( is_multisite() ) :
 		}
 
 		public function test_active_network_plugins() {
-			$path = 'hello.php';
+			$path = 'hello-dolly/hello.php';
 
 			// Local activate, should be invisible for the network.
 			activate_plugin( $path ); // Enable the plugin for the current site.
@@ -281,7 +281,7 @@ if ( is_multisite() ) :
 			// Activate the plugin sitewide.
 			activate_plugin( $path, '', true ); // Enable the plugin for all sites in the network.
 			$active_plugins = wp_get_active_network_plugins();
-			$this->assertSame( array( WP_PLUGIN_DIR . '/hello.php' ), $active_plugins );
+			$this->assertSame( array( WP_PLUGIN_DIR . '/hello-dolly/hello.php' ), $active_plugins );
 
 			// Deactivate the plugin.
 			deactivate_plugins( $path );
@@ -300,7 +300,7 @@ if ( is_multisite() ) :
 		 * @ticket 28651
 		 */
 		public function test_duplicate_network_active_plugin() {
-			$path = 'hello.php';
+			$path = 'hello-dolly/hello.php';
 			$mock = new MockAction();
 			add_action( 'activate_' . $path, array( $mock, 'action' ) );
 
@@ -320,13 +320,13 @@ if ( is_multisite() ) :
 		}
 
 		public function test_is_plugin_active_for_network_true() {
-			activate_plugin( 'hello.php', '', true );
-			$this->assertTrue( is_plugin_active_for_network( 'hello.php' ) );
+			activate_plugin( 'hello-dolly/hello.php', '', true );
+			$this->assertTrue( is_plugin_active_for_network( 'hello-dolly/hello.php' ) );
 		}
 
 		public function test_is_plugin_active_for_network_false() {
-			deactivate_plugins( 'hello.php', false, true );
-			$this->assertFalse( is_plugin_active_for_network( 'hello.php' ) );
+			deactivate_plugins( 'hello-dolly/hello.php', false, true );
+			$this->assertFalse( is_plugin_active_for_network( 'hello-dolly/hello.php' ) );
 		}
 
 		public function helper_deactivate_hook() {

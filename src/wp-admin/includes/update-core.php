@@ -778,6 +778,8 @@ $_old_files = array(
 	'wp-includes/blocks/block/editor.min.css',
 	'wp-includes/blocks/block/editor-rtl.css',
 	'wp-includes/blocks/block/editor-rtl.min.css',
+	// 6.7
+	'wp-content/plugins/hello.php',
 );
 
 /**
