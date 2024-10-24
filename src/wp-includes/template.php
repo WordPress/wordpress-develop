@@ -344,11 +344,12 @@ function get_tag_template() {
  * @return string Full path to custom taxonomy term template file.
  */
 function get_taxonomy_template() {
-	$term = get_queried_object();
+	$term_or_tax = get_queried_object();
 
 	$templates = array();
 
-	if ( ! empty( $term->slug ) ) {
+	if ( $term_or_tax instanceof WP_Term && ! empty( $term_or_tax->slug ) ) {
+		$term     = $term_or_tax;
 		$taxonomy = $term->taxonomy;
 
 		$slug_decoded = urldecode( $term->slug );
@@ -357,6 +358,9 @@ function get_taxonomy_template() {
 		}
 
 		$templates[] = "taxonomy-$taxonomy-{$term->slug}.php";
+		$templates[] = "taxonomy-$taxonomy.php";
+	} elseif ( $term_or_tax instanceof WP_Taxonomy ) {
+		$taxonomy    = $term_or_tax->name;
 		$templates[] = "taxonomy-$taxonomy.php";
 	}
 	$templates[] = 'taxonomy.php';

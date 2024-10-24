@@ -510,7 +510,12 @@ final class WP_Taxonomy {
 				$tag = '([^/]+)';
 			}
 
-			add_rewrite_tag( "%$this->name%", $tag, $this->query_var ? "{$this->query_var}=" : "taxonomy=$this->name&term=" );
+			$query = $this->query_var ? "{$this->query_var}=" : "taxonomy=$this->name&term=";
+
+			add_rewrite_tag( "%taxonomy-$this->name%", "$this->name()", $query );
+			add_permastruct( "taxonomy-$this->name", "%taxonomy-$this->name%", $this->rewrite );
+
+			add_rewrite_tag( "%$this->name%", $tag, $query );
 			add_permastruct( $this->name, "{$this->rewrite['slug']}/%$this->name%", $this->rewrite );
 		}
 	}
@@ -535,6 +540,9 @@ final class WP_Taxonomy {
 		if ( false !== $this->rewrite ) {
 			remove_rewrite_tag( "%$this->name%" );
 			remove_permastruct( $this->name );
+
+			remove_rewrite_tag( "%taxonomy-$this->name%" );
+			remove_permastruct( "taxonomy-$this->name" );
 		}
 	}
 

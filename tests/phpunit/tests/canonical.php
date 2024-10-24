@@ -88,11 +88,30 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '?cat=%d', array( 'url' => '/category/parent/child-1/' ), 15256 ),
 			array( '?cat=%d', array( 'url' => '/category/parent/child-1/child-2/' ) ), // No children.
 			array(
+				'/category/',
+				array(
+					'url' => '/category/',
+					'qv'  => array( 'category_name' => '' ),
+				),
+				61957,
+			),
+			array(
 				'/category/uncategorized/',
 				array(
 					'url' => '/category/uncategorized/',
 					'qv'  => array( 'category_name' => 'uncategorized' ),
 				),
+			),
+			array(
+				'/category/page/2/',
+				array(
+					'url' => '/category/page/2/',
+					'qv'  => array(
+						'category_name' => '',
+						'paged'         => 2,
+					),
+				),
+				61957,
 			),
 			array(
 				'/category/uncategorized/page/2/',
@@ -103,6 +122,17 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 						'paged'         => 2,
 					),
 				),
+			),
+			array(
+				'/category/?paged=2',
+				array(
+					'url' => '/category/page/2/',
+					'qv'  => array(
+						'category_name' => '',
+						'paged'         => 2,
+					),
+				),
+				61957,
 			),
 			array(
 				'/category/uncategorized/?paged=2',
@@ -128,6 +158,17 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 			// Categories & intersections with other vars.
 			array(
+				'/category/?tag=post-formats',
+				array(
+					'url' => '/category/?tag=post-formats',
+					'qv'  => array(
+						'category_name' => '',
+						'tag'           => 'post-formats',
+					),
+				),
+				61957,
+			),
+			array(
 				'/category/uncategorized/?tag=post-formats',
 				array(
 					'url' => '/category/uncategorized/?tag=post-formats',
@@ -146,6 +187,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			),
 
 			// Taxonomies with extra query vars.
+			array( '/category/page/1/?test=one%20two', '/category/?test=one%20two', 61957 ), // Extra query vars should stay encoded.
 			array( '/category/cat-a/page/1/?test=one%20two', '/category/cat-a/?test=one%20two', 18086 ), // Extra query vars should stay encoded.
 
 			// Categories with dates.

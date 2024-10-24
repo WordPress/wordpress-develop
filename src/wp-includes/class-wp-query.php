@@ -1169,7 +1169,7 @@ class WP_Query {
 				continue; // Handled further down in the $q['tag'] block.
 			}
 
-			if ( $t->query_var && ! empty( $q[ $t->query_var ] ) ) {
+			if ( $t->query_var && isset( $q[ $t->query_var ] ) ) {
 				$tax_query_defaults = array(
 					'taxonomy' => $taxonomy,
 					'field'    => 'slug',
@@ -1195,13 +1195,24 @@ class WP_Query {
 							)
 						);
 					}
-				} else {
+				} elseif ( ! empty( $term ) ) {
 					$tax_query[] = array_merge(
 						$tax_query_defaults,
 						array(
 							'terms' => preg_split( '/[,]+/', $term ),
 						)
 					);
+				} else {
+					// FIXME: Figure out why 'category' is automatically
+					// added as a query arg and what to do about it.
+					if ( 'category' !== $taxonomy ) {
+						$tax_query[] = array_merge(
+							$tax_query_defaults,
+							array(
+								'operator' => 'EXISTS',
+							)
+						);
+					}
 				}
 			}
 		}
@@ -3860,6 +3871,7 @@ class WP_Query {
 	 * query variable. After it is set up, it will be returned.
 	 *
 	 * @since 1.5.0
+	 * @since 6.8.0 Return the queried taxonomy object for taxonomy queries if no term is specified.
 	 *
 	 * @return WP_Term|WP_Post_Type|WP_Post|WP_User|null The queried object.
 	 */
@@ -3914,6 +3926,9 @@ class WP_Query {
 				if ( $this->is_category && 'category' === $this->queried_object->taxonomy ) {
 					_make_cat_compat( $this->queried_object );
 				}
+			} else {
+				// If no term is specified, return the queried taxonomy object instead.
+				return get_taxonomy( $matched_taxonomy );
 			}
 		} elseif ( $this->is_post_type_archive ) {
 			$post_type = $this->get( 'post_type' );
