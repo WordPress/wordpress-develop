@@ -811,7 +811,7 @@ switch ( $action ) {
 														);
 														?>
 													</p>
-												<?php
+													<?php
 												endif;
 											endif;
 											?>
@@ -837,7 +837,7 @@ switch ( $action ) {
 
 													<button type="button" name="do_new_application_password" id="do_new_application_password" class="button button-secondary"><?php _e( 'Add New Application Password' ); ?></button>
 												</div>
-											<?php
+												<?php
 											else :
 												wp_admin_notice(
 													__( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ),
