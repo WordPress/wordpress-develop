@@ -114,6 +114,10 @@
 	background-color: var(--global--color-black);
 }
 
+.has-black-border-color[class] {
+	border-color: var(--global--color-black);
+}
+
 .has-dark-gray-background-color[class] {
 	// Localize CSS-variables to limit relationship scope
 	> [class*="__inner-container"] {
@@ -121,6 +125,10 @@
 		background-color: var(--local--color-background);
 	}
 	background-color: var(--global--color-dark-gray);
+}
+
+.has-dark-gray-border-color[class] {
+	border-color: var(--global--color-dark-gray);
 }
 
 .has-gray-background-color[class] {
@@ -132,6 +140,10 @@
 	background-color: var(--global--color-gray);
 }
 
+.has-gray-border-color[class] {
+	border-color: var(--global--color-gray);
+}
+
 .has-light-gray-background-color[class] {
 	// Localize CSS-variables to limit relationship scope
 	> [class*="__inner-container"] {
@@ -139,6 +151,10 @@
 		background-color: var(--local--color-background);
 	}
 	background-color: var(--global--color-light-gray);
+}
+
+.has-light-gray-border-color[class] {
+	border-color: var(--global--color-light-gray);
 }
 
 .has-green-background-color[class] {
@@ -150,6 +166,10 @@
 	background-color: var(--global--color-green);
 }
 
+.has-green-border-color[class] {
+	border-color: var(--global--color-green);
+}
+
 .has-blue-background-color[class] {
 	// Localize CSS-variables to limit relationship scope
 	> [class*="__inner-container"] {
@@ -157,6 +177,10 @@
 		background-color: var(--local--color-background);
 	}
 	background-color: var(--global--color-blue);
+}
+
+has-blue-border-color[class] {
+	border-color: var(--global--color-blue);
 }
 
 .has-purple-background-color[class] {
@@ -168,6 +192,10 @@
 	background-color: var(--global--color-purple);
 }
 
+.has-purple-border-color[class] {
+	border-color: var(--global--color-purple);
+}
+
 .has-red-background-color[class] {
 	// Localize CSS-variables to limit relationship scope
 	> [class*="__inner-container"] {
@@ -175,6 +203,10 @@
 		background-color: var(--local--color-background);
 	}
 	background-color: var(--global--color-red);
+}
+
+.has-red-border-color[class] {
+	border-color: var(--global--color-red);
 }
 
 .has-orange-background-color[class] {
@@ -186,6 +218,10 @@
 	background-color: var(--global--color-orange);
 }
 
+.has-orange-border-color[class] {
+	border-color: var(--global--color-orange);
+}
+
 .has-yellow-background-color[class] {
 	// Localize CSS-variables to limit relationship scope
 	> [class*="__inner-container"] {
@@ -195,6 +231,10 @@
 	background-color: var(--global--color-yellow);
 }
 
+.has-yellow-border-color[class] {
+	border-color: var(--global--color-yellow);
+}
+
 .has-white-background-color[class] {
 	// Localize CSS-variables to limit relationship scope
 	> [class*="__inner-container"] {
@@ -202,6 +242,10 @@
 		background-color: var(--local--color-background);
 	}
 	background-color: var(--global--color-white);
+}
+
+.has-white-border-color[class] {
+	border-color: var(--global--color-white);
 }
 
 .has-background:not(.has-text-color) {
