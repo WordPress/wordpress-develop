@@ -17,9 +17,6 @@
 				}
 			},
 			"core/post-author-name": {
-				"typography": {
-					"fontSize": "var:preset|font-size|medium"
-				},
 				"elements": {
 					"link": {
 						"typography": {
@@ -67,7 +64,6 @@
 					"cite": {
 						"typography": {
 							"fontFamily": "var:preset|font-family|literata",
-							"fontSize": "var:preset|font-size|small",
 							"fontWeight": "400",
 							"letterSpacing": "-0.14px"
 						}
@@ -83,8 +79,6 @@
 				"elements": {
 					"cite": {
 						"typography": {
-							"fontSize": "var:preset|font-size|small",
-							"fontWeight": "300",
 							"letterSpacing": "-0.14px"
 						}
 					}

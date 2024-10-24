@@ -214,6 +214,10 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	/**
 	 * Tests the default themes list in the test suite matches the runtime default themes.
+	 *
+	 * @ticket 62103
+	 *
+	 * @coversNothing
 	 */
 	public function test_default_default_theme_list_match_in_test_suite_and_at_runtime() {
 		// Use a reflection to make WP_THEME::$default_themes accessible.
@@ -233,6 +237,10 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	/**
 	 * Test the default theme in WP_Theme matches the WP_DEFAULT_THEME constant.
+	 *
+	 * @ticket 62103
+	 *
+	 * @covers WP_Theme::get_core_default_theme
 	 */
 	public function test_default_theme_matches_constant() {
 		$latest_default_theme = WP_Theme::get_core_default_theme();
@@ -248,6 +256,40 @@ class Tests_Theme extends WP_UnitTestCase {
 		$wp_default_theme_constant = $matches[1];
 
 		$this->assertSame( $wp_default_theme_constant, $latest_default_theme->get_stylesheet(), 'WP_DEFAULT_THEME should match the latest default theme.' );
+	}
+
+	/**
+	 * Ensure that the default themes are included in the new bundled files.
+	 *
+	 * @ticket 62103
+	 *
+	 * @coversNothing
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_default_themes_are_included_in_new_files() {
+		require_once ABSPATH . 'wp-admin/includes/update-core.php';
+		global $_new_bundled_files;
+		// Limit new bundled files to the default themes.
+		$new_theme_files = array_keys( $_new_bundled_files );
+		$new_theme_files = array_filter(
+			$new_theme_files,
+			static function ( $file ) {
+				return str_starts_with( $file, 'themes/' );
+			}
+		);
+
+		$tested_themes = $this->default_themes;
+		// Convert the tested themes to directory names.
+		$tested_themes = array_map(
+			static function ( $theme ) {
+				return "themes/{$theme}/";
+			},
+			$tested_themes
+		);
+
+		$this->assertSameSets( $tested_themes, $new_theme_files, 'New bundled files should include the default themes.' );
 	}
 
 	public function test_default_themes_have_textdomain() {

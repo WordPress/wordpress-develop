@@ -67,14 +67,6 @@
 					}
 				}
 			},
-			"core/code": {
-				"typography": {
-					"fontSize": "var:preset|font-size|medium",
-					"fontStyle": "normal",
-					"fontWeight": "300",
-					"letterSpacing": "0px"
-				}
-			},
 			"core/site-tagline": {
 				"color": {
 					"text": "var:preset|color|accent-4"
@@ -127,6 +119,15 @@
 							"color": {
 								"background": "color-mix(in srgb, var(--wp--preset--color--base) 85%, transparent)"
 							}
+						}
+					}
+				}
+			},
+			"section-3": {
+				"elements": {
+					"link": {
+						"color": {
+							"text": "var:preset|color|contrast"
 						}
 					}
 				}

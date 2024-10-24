@@ -5477,18 +5477,6 @@ function dead_db() {
 }
 
 /**
- * Converts a value to non-negative integer.
- *
- * @since 2.5.0
- *
- * @param mixed $maybeint Data you wish to have converted to a non-negative integer.
- * @return int A non-negative integer.
- */
-function absint( $maybeint ) {
-	return abs( (int) $maybeint );
-}
-
-/**
  * Marks a function as deprecated and inform when it has been used.
  *
  * There is a {@see 'deprecated_function_run'} hook that will be called that can be used
@@ -8833,7 +8821,11 @@ function clean_dirsize_cache( $path ) {
  * @return string The current WordPress version.
  */
 function wp_get_wp_version() {
-	require ABSPATH . WPINC . '/version.php';
+	static $wp_version;
+
+	if ( ! isset( $wp_version ) ) {
+		require ABSPATH . WPINC . '/version.php';
+	}
 
 	return $wp_version;
 }
