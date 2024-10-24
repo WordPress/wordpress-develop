@@ -883,7 +883,7 @@ switch ( $action ) {
 					} else {
 						/**
 						 * Fires after the 'Application Passwords' section is loaded on the 'Profile' editing screen.
-						 * 
+						 *
 						 * The action only fires if the current user is editing another user's profile.
 						 *
 						 * @since 2.0.0
