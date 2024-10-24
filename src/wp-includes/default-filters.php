@@ -748,6 +748,9 @@ add_action( 'wp_creating_autosave', 'wp_autosave_post_revisioned_meta_fields' );
 // When restoring revisions, also restore revisioned meta.
 add_action( 'wp_restore_post_revision', 'wp_restore_post_revision_meta', 10, 2 );
 
+// Add revisioned meta to the revisions screen.
+add_filter( 'wp_revision_ui_fields', 'wp_add_revisioned_meta_to_revision_ui', 10, 2 );
+
 // Font management.
 add_action( 'wp_head', 'wp_print_font_faces', 50 );
 add_action( 'deleted_post', '_wp_after_delete_font_family', 10, 2 );

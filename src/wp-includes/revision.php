@@ -1131,3 +1131,36 @@ function _wp_preview_meta_filter( $value, $object_id, $meta_key, $single ) {
 
 	return get_post_meta( $preview->ID, $meta_key, $single );
 }
+
+/**
+ * Add any revisioned meta fields to the revisions screen.
+ *
+ * @since 6.4.0
+ *
+ * @param array   $revision_screen_fields  Associative array of revision screen fields (key => title).
+ * @param WP_Post $post                    The post object.
+ * @return array The filtered array of revision screen fields.
+ */
+function wp_add_revisioned_meta_to_revision_ui( $fields, $post ) {
+
+	// Loop through the meta building additional fields for the $fields array.
+	$revisioned_meta = wp_post_revision_meta_keys( $post->post_type );
+
+	foreach ( $revisioned_meta as $meta_key ) {
+		// Construct a title for the meta field from the slug.
+		$title               = ucwords( str_replace( '_', ' ', $meta_key ) );
+		$fields[ $meta_key ] = $title;
+
+		// Add a callback filter to display the meta field.
+		add_filter(
+			'_wp_post_revision_field_{$meta_key}',
+			static function ( $revision_field, $field, $revision ) use ( $meta_key ) {
+				return get_metadata( 'post', $revision->ID, $meta_key, true );
+			},
+			10,
+			3
+		);
+
+		return $fields;
+	}
+}
