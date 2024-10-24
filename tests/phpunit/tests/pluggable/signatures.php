@@ -282,6 +282,11 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 						'group'  => '',
 						'expire' => 0,
 					),
+					'wp_cache_replace_multiple'          => array(
+						'data',
+						'group'  => 'default',
+						'expire' => 0,
+					),
 					'wp_cache_set'                       => array(
 						'key',
 						'data',
