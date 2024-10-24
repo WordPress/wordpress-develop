@@ -3,7 +3,7 @@
  * http://www.mediaelementjs.com/
  *
  * Wrapper that mimics native HTML5 MediaElement (audio and video)
- * using a variety of technologies (pure JavaScript, Flash, iframe)
+ * using a variety of technologies (pure JavaScript, iframe)
  *
  * Copyright 2010-2017, John Dyer (http://j.hn/)
  * License: MIT
@@ -284,6 +284,113 @@ module.exports = win;
 })(this);
 
 },{}],5:[function(_dereq_,module,exports){
+!function(root, factory) {
+    "function" == typeof define && define.amd ? // AMD. Register as an anonymous module unless amdModuleId is set
+    define([], function() {
+        return root.svg4everybody = factory();
+    }) : "object" == typeof module && module.exports ? // Node. Does not work with strict CommonJS, but
+    // only CommonJS-like environments that support module.exports,
+    // like Node.
+    module.exports = factory() : root.svg4everybody = factory();
+}(this, function() {
+    /*! svg4everybody v2.1.9 | github.com/jonathantneal/svg4everybody */
+    function embed(parent, svg, target) {
+        // if the target exists
+        if (target) {
+            // create a document fragment to hold the contents of the target
+            var fragment = document.createDocumentFragment(), viewBox = !svg.hasAttribute("viewBox") && target.getAttribute("viewBox");
+            // conditionally set the viewBox on the svg
+            viewBox && svg.setAttribute("viewBox", viewBox);
+            // copy the contents of the clone into the fragment
+            for (// clone the target
+            var clone = target.cloneNode(!0); clone.childNodes.length; ) {
+                fragment.appendChild(clone.firstChild);
+            }
+            // append the fragment into the svg
+            parent.appendChild(fragment);
+        }
+    }
+    function loadreadystatechange(xhr) {
+        // listen to changes in the request
+        xhr.onreadystatechange = function() {
+            // if the request is ready
+            if (4 === xhr.readyState) {
+                // get the cached html document
+                var cachedDocument = xhr._cachedDocument;
+                // ensure the cached html document based on the xhr response
+                cachedDocument || (cachedDocument = xhr._cachedDocument = document.implementation.createHTMLDocument(""), 
+                cachedDocument.body.innerHTML = xhr.responseText, xhr._cachedTarget = {}), // clear the xhr embeds list and embed each item
+                xhr._embeds.splice(0).map(function(item) {
+                    // get the cached target
+                    var target = xhr._cachedTarget[item.id];
+                    // ensure the cached target
+                    target || (target = xhr._cachedTarget[item.id] = cachedDocument.getElementById(item.id)), 
+                    // embed the target into the svg
+                    embed(item.parent, item.svg, target);
+                });
+            }
+        }, // test the ready state change immediately
+        xhr.onreadystatechange();
+    }
+    function svg4everybody(rawopts) {
+        function oninterval() {
+            // while the index exists in the live <use> collection
+            for (// get the cached <use> index
+            var index = 0; index < uses.length; ) {
+                // get the current <use>
+                var use = uses[index], parent = use.parentNode, svg = getSVGAncestor(parent), src = use.getAttribute("xlink:href") || use.getAttribute("href");
+                if (!src && opts.attributeName && (src = use.getAttribute(opts.attributeName)), 
+                svg && src) {
+                    if (polyfill) {
+                        if (!opts.validate || opts.validate(src, svg, use)) {
+                            // remove the <use> element
+                            parent.removeChild(use);
+                            // parse the src and get the url and id
+                            var srcSplit = src.split("#"), url = srcSplit.shift(), id = srcSplit.join("#");
+                            // if the link is external
+                            if (url.length) {
+                                // get the cached xhr request
+                                var xhr = requests[url];
+                                // ensure the xhr request exists
+                                xhr || (xhr = requests[url] = new XMLHttpRequest(), xhr.open("GET", url), xhr.send(), 
+                                xhr._embeds = []), // add the svg and id as an item to the xhr embeds list
+                                xhr._embeds.push({
+                                    parent: parent,
+                                    svg: svg,
+                                    id: id
+                                }), // prepare the xhr ready state change event
+                                loadreadystatechange(xhr);
+                            } else {
+                                // embed the local id into the svg
+                                embed(parent, svg, document.getElementById(id));
+                            }
+                        } else {
+                            // increase the index when the previous value was not "valid"
+                            ++index, ++numberOfSvgUseElementsToBypass;
+                        }
+                    }
+                } else {
+                    // increase the index when the previous value was not "valid"
+                    ++index;
+                }
+            }
+            // continue the interval
+            (!uses.length || uses.length - numberOfSvgUseElementsToBypass > 0) && requestAnimationFrame(oninterval, 67);
+        }
+        var polyfill, opts = Object(rawopts), newerIEUA = /\bTrident\/[567]\b|\bMSIE (?:9|10)\.0\b/, webkitUA = /\bAppleWebKit\/(\d+)\b/, olderEdgeUA = /\bEdge\/12\.(\d+)\b/, edgeUA = /\bEdge\/.(\d+)\b/, inIframe = window.top !== window.self;
+        polyfill = "polyfill" in opts ? opts.polyfill : newerIEUA.test(navigator.userAgent) || (navigator.userAgent.match(olderEdgeUA) || [])[1] < 10547 || (navigator.userAgent.match(webkitUA) || [])[1] < 537 || edgeUA.test(navigator.userAgent) && inIframe;
+        // create xhr requests object
+        var requests = {}, requestAnimationFrame = window.requestAnimationFrame || setTimeout, uses = document.getElementsByTagName("use"), numberOfSvgUseElementsToBypass = 0;
+        // conditionally start the interval if the polyfill is active
+        polyfill && oninterval();
+    }
+    function getSVGAncestor(node) {
+        for (var svg = node; "svg" !== svg.nodeName.toLowerCase() && (svg = svg.parentNode); ) {}
+        return svg;
+    }
+    return svg4everybody;
+});
+},{}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -292,13 +399,13 @@ Object.defineProperty(exports, "__esModule", {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _mejs = _dereq_(7);
+var _mejs = _dereq_(8);
 
 var _mejs2 = _interopRequireDefault(_mejs);
 
-var _en = _dereq_(9);
+var _en = _dereq_(10);
 
-var _general = _dereq_(18);
+var _general = _dereq_(17);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -550,7 +657,7 @@ if (typeof mejsL10n !== 'undefined') {
 
 exports.default = i18n;
 
-},{"18":18,"7":7,"9":9}],6:[function(_dereq_,module,exports){
+},{"10":10,"17":17,"8":8}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -567,17 +674,17 @@ var _document = _dereq_(2);
 
 var _document2 = _interopRequireDefault(_document);
 
-var _mejs = _dereq_(7);
+var _mejs = _dereq_(8);
 
 var _mejs2 = _interopRequireDefault(_mejs);
 
-var _general = _dereq_(18);
+var _general = _dereq_(17);
 
-var _media2 = _dereq_(19);
+var _media2 = _dereq_(18);
 
-var _renderer = _dereq_(8);
+var _renderer = _dereq_(9);
 
-var _constants = _dereq_(16);
+var _constants = _dereq_(15);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -595,11 +702,9 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 	t.defaults = {
 		renderers: [],
 
-		fakeNodeName: 'mediaelementwrapper',
+		fakeNodeName: 'div',
 
-		pluginPath: 'build/',
-
-		shimScriptAccess: 'sameDomain'
+		iconSprite: 'mejs-controls.svg'
 	};
 
 	options = Object.assign(t.defaults, options);
@@ -630,6 +735,8 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 		t.mediaElement.originalNode.setAttribute('preload', 'none');
 	}
 
+	t.mediaElement.originalNode.setAttribute('tabindex', -1);
+
 	t.mediaElement.originalNode.parentNode.insertBefore(t.mediaElement, t.mediaElement.originalNode);
 
 	t.mediaElement.appendChild(t.mediaElement.originalNode);
@@ -655,13 +762,11 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 	};
 
 	var mediaFiles = void 0;
-
 	if (sources !== null) {
 		mediaFiles = sources;
 	} else if (t.mediaElement.originalNode !== null) {
 
 		mediaFiles = [];
-
 		switch (t.mediaElement.originalNode.nodeName.toLowerCase()) {
 			case 'iframe':
 				mediaFiles.push({
@@ -703,15 +808,11 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 	t.mediaElement.rendererName = null;
 
 	t.mediaElement.changeRenderer = function (rendererName, mediaFiles) {
-
 		var t = _this,
 		    media = Object.keys(mediaFiles[0]).length > 2 ? mediaFiles[0] : mediaFiles[0].src;
 
 		if (t.mediaElement.renderer !== undefined && t.mediaElement.renderer !== null && t.mediaElement.renderer.name === rendererName) {
 			t.mediaElement.renderer.pause();
-			if (t.mediaElement.renderer.stop) {
-				t.mediaElement.renderer.stop();
-			}
 			t.mediaElement.renderer.show();
 			t.mediaElement.renderer.setSrc(media);
 			return true;
@@ -719,9 +820,6 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 
 		if (t.mediaElement.renderer !== undefined && t.mediaElement.renderer !== null) {
 			t.mediaElement.renderer.pause();
-			if (t.mediaElement.renderer.stop) {
-				t.mediaElement.renderer.stop();
-			}
 			t.mediaElement.renderer.hide();
 		}
 
@@ -795,7 +893,6 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 	},
 	    assignGettersSetters = function assignGettersSetters(propName) {
 		if (propName !== 'src') {
-
 			var capName = '' + propName.substring(0, 1).toUpperCase() + propName.substring(1),
 			    getFn = function getFn() {
 				return t.mediaElement.renderer !== undefined && t.mediaElement.renderer !== null && typeof t.mediaElement.renderer['get' + capName] === 'function' ? t.mediaElement.renderer['get' + capName]() : null;
@@ -816,7 +913,6 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 	},
 	    setSrc = function setSrc(value) {
 		var mediaFiles = [];
-
 		if (typeof value === 'string') {
 			mediaFiles.push({
 				src: value,
@@ -839,7 +935,6 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 					src: _src2,
 					type: (_type3 === '' || _type3 === null || _type3 === undefined) && _src2 ? (0, _media2.getTypeFromFile)(_src2) : _type3
 				});
-
 				mediaFiles.push(_media);
 			}
 		}
@@ -882,11 +977,13 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 						}
 					});
 				}
+				return response;
 			} else {
-				t.mediaElement.renderer[methodName](args);
+				return t.mediaElement.renderer[methodName](args);
 			}
 		} catch (e) {
 			t.mediaElement.generateError(e, mediaFiles);
+			throw e;
 		}
 	},
 	    assignMethods = function assignMethods(methodName) {
@@ -897,13 +994,14 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 
 			if (t.mediaElement.renderer !== undefined && t.mediaElement.renderer !== null && typeof t.mediaElement.renderer[methodName] === 'function') {
 				if (t.mediaElement.promises.length) {
-					Promise.all(t.mediaElement.promises).then(function () {
-						triggerAction(methodName, args);
+					return Promise.all(t.mediaElement.promises).then(function () {
+						return triggerAction(methodName, args);
 					}).catch(function (e) {
 						t.mediaElement.generateError(e, mediaFiles);
+						return Promise.reject(e);
 					});
 				} else {
-					triggerAction(methodName, args);
+					return triggerAction(methodName, args);
 				}
 			}
 			return null;
@@ -911,9 +1009,9 @@ var MediaElement = function MediaElement(idOrNode, options, sources) {
 	};
 
 	addProperty(t.mediaElement, 'src', getSrc, setSrc);
+
 	t.mediaElement.getSrc = getSrc;
 	t.mediaElement.setSrc = setSrc;
-
 	for (var _i3 = 0, total = props.length; _i3 < total; _i3++) {
 		assignGettersSetters(props[_i3]);
 	}
@@ -1003,7 +1101,7 @@ _mejs2.default.MediaElement = MediaElement;
 
 exports.default = MediaElement;
 
-},{"16":16,"18":18,"19":19,"2":2,"3":3,"7":7,"8":8}],7:[function(_dereq_,module,exports){
+},{"15":15,"17":17,"18":18,"2":2,"3":3,"8":8,"9":9}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1018,7 +1116,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var mejs = {};
 
-mejs.version = '4.2.17';
+mejs.version = '7.0.5';
 
 mejs.html5media = {
 	properties: ['volume', 'src', 'currentTime', 'muted', 'duration', 'paused', 'ended', 'buffered', 'error', 'networkState', 'readyState', 'seeking', 'seekable', 'currentSrc', 'preload', 'bufferedBytes', 'bufferedTime', 'initialTime', 'startOffsetTime', 'defaultPlaybackRate', 'playbackRate', 'played', 'autoplay', 'loop', 'controls'],
@@ -1035,7 +1133,7 @@ _window2.default.mejs = mejs;
 
 exports.default = mejs;
 
-},{"3":3}],8:[function(_dereq_,module,exports){
+},{"3":3}],9:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1047,7 +1145,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _mejs = _dereq_(7);
+var _mejs = _dereq_(8);
 
 var _mejs2 = _interopRequireDefault(_mejs);
 
@@ -1083,7 +1181,7 @@ var Renderer = function () {
 			renderers = renderers.length ? renderers : this.order;
 
 			if (!renderersLength) {
-				var rendererIndicator = [/^(html5|native)/i, /^flash/i, /iframe$/i],
+				var rendererIndicator = [/^(html5|native)/i, /iframe$/i],
 				    rendererRanking = function rendererRanking(renderer) {
 					for (var i = 0, total = rendererIndicator.length; i < total; i++) {
 						if (rendererIndicator[i].test(renderer)) {
@@ -1104,6 +1202,7 @@ var Renderer = function () {
 
 				if (_renderer !== null && _renderer !== undefined) {
 					for (var j = 0, jl = mediaFiles.length; j < jl; j++) {
+
 						if (typeof _renderer.canPlayType === 'function' && typeof mediaFiles[j].type === 'string' && _renderer.canPlayType(mediaFiles[j].type)) {
 							return {
 								rendererName: _renderer.name,
@@ -1149,7 +1248,7 @@ var renderer = exports.renderer = new Renderer();
 
 _mejs2.default.Renderers = renderer;
 
-},{"7":7}],9:[function(_dereq_,module,exports){
+},{"8":8}],10:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1159,8 +1258,6 @@ var EN = exports.EN = {
 	'mejs.plural-form': 1,
 
 	'mejs.download-file': 'Download File',
-
-	'mejs.install-flash': 'You are using a browser that does not have Flash player enabled or installed. Please turn on your Flash player plugin or download the latest version from https://get.adobe.com/flashplayer/',
 
 	'mejs.fullscreen': 'Fullscreen',
 
@@ -1239,7 +1336,7 @@ var EN = exports.EN = {
 	'mejs.yiddish': 'Yiddish'
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -1248,19 +1345,19 @@ var _window = _dereq_(3);
 
 var _window2 = _interopRequireDefault(_window);
 
-var _mejs = _dereq_(7);
+var _mejs = _dereq_(8);
 
 var _mejs2 = _interopRequireDefault(_mejs);
 
-var _renderer = _dereq_(8);
+var _renderer = _dereq_(9);
 
-var _general = _dereq_(18);
+var _general = _dereq_(17);
 
-var _media = _dereq_(19);
+var _media = _dereq_(18);
 
-var _constants = _dereq_(16);
+var _constants = _dereq_(15);
 
-var _dom = _dereq_(17);
+var _dom = _dereq_(16);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1468,8 +1565,8 @@ var DashNativeRenderer = {
 			}
 		};
 
-		var event = (0, _general.createEvent)('rendererready', node);
-		mediaElement.dispatchEvent(event);
+		var event = (0, _general.createEvent)('rendererready', node, false);
+		mediaElement.originalNode.dispatchEvent(event);
 
 		mediaElement.promises.push(NativeDash.load({
 			options: options.dash,
@@ -1486,449 +1583,7 @@ _media.typeChecks.push(function (url) {
 
 _renderer.renderer.add(DashNativeRenderer);
 
-},{"16":16,"17":17,"18":18,"19":19,"3":3,"7":7,"8":8}],11:[function(_dereq_,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-exports.PluginDetector = undefined;
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _window = _dereq_(3);
-
-var _window2 = _interopRequireDefault(_window);
-
-var _document = _dereq_(2);
-
-var _document2 = _interopRequireDefault(_document);
-
-var _mejs = _dereq_(7);
-
-var _mejs2 = _interopRequireDefault(_mejs);
-
-var _i18n = _dereq_(5);
-
-var _i18n2 = _interopRequireDefault(_i18n);
-
-var _renderer = _dereq_(8);
-
-var _general = _dereq_(18);
-
-var _constants = _dereq_(16);
-
-var _media = _dereq_(19);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var PluginDetector = exports.PluginDetector = {
-	plugins: [],
-
-	hasPluginVersion: function hasPluginVersion(plugin, v) {
-		var pv = PluginDetector.plugins[plugin];
-		v[1] = v[1] || 0;
-		v[2] = v[2] || 0;
-		return pv[0] > v[0] || pv[0] === v[0] && pv[1] > v[1] || pv[0] === v[0] && pv[1] === v[1] && pv[2] >= v[2];
-	},
-
-	addPlugin: function addPlugin(p, pluginName, mimeType, activeX, axDetect) {
-		PluginDetector.plugins[p] = PluginDetector.detectPlugin(pluginName, mimeType, activeX, axDetect);
-	},
-
-	detectPlugin: function detectPlugin(pluginName, mimeType, activeX, axDetect) {
-
-		var version = [0, 0, 0],
-		    description = void 0,
-		    ax = void 0;
-
-		if (_constants.NAV.plugins !== null && _constants.NAV.plugins !== undefined && _typeof(_constants.NAV.plugins[pluginName]) === 'object') {
-			description = _constants.NAV.plugins[pluginName].description;
-			if (description && !(typeof _constants.NAV.mimeTypes !== 'undefined' && _constants.NAV.mimeTypes[mimeType] && !_constants.NAV.mimeTypes[mimeType].enabledPlugin)) {
-				version = description.replace(pluginName, '').replace(/^\s+/, '').replace(/\sr/gi, '.').split('.');
-				for (var i = 0, total = version.length; i < total; i++) {
-					version[i] = parseInt(version[i].match(/\d+/), 10);
-				}
-			}
-		} else if (_window2.default.ActiveXObject !== undefined) {
-			try {
-				ax = new ActiveXObject(activeX);
-				if (ax) {
-					version = axDetect(ax);
-				}
-			} catch (e) {
-				
-			}
-		}
-		return version;
-	}
-};
-
-PluginDetector.addPlugin('flash', 'Shockwave Flash', 'application/x-shockwave-flash', 'ShockwaveFlash.ShockwaveFlash', function (ax) {
-	var version = [],
-	    d = ax.GetVariable("$version");
-
-	if (d) {
-		d = d.split(" ")[1].split(",");
-		version = [parseInt(d[0], 10), parseInt(d[1], 10), parseInt(d[2], 10)];
-	}
-	return version;
-});
-
-var FlashMediaElementRenderer = {
-	create: function create(mediaElement, options, mediaFiles) {
-
-		var flash = {};
-		var isActive = false;
-
-		flash.options = options;
-		flash.id = mediaElement.id + '_' + flash.options.prefix;
-		flash.mediaElement = mediaElement;
-		flash.flashState = {};
-		flash.flashApi = null;
-		flash.flashApiStack = [];
-
-		var props = _mejs2.default.html5media.properties,
-		    assignGettersSetters = function assignGettersSetters(propName) {
-			flash.flashState[propName] = null;
-
-			var capName = '' + propName.substring(0, 1).toUpperCase() + propName.substring(1);
-
-			flash['get' + capName] = function () {
-				if (flash.flashApi !== null) {
-					if (typeof flash.flashApi['get_' + propName] === 'function') {
-						var value = flash.flashApi['get_' + propName]();
-
-						if (propName === 'buffered') {
-							return {
-								start: function start() {
-									return 0;
-								},
-								end: function end() {
-									return value;
-								},
-								length: 1
-							};
-						}
-						return value;
-					} else {
-						return null;
-					}
-				} else {
-					return null;
-				}
-			};
-
-			flash['set' + capName] = function (value) {
-				if (propName === 'src') {
-					value = (0, _media.absolutizeUrl)(value);
-				}
-
-				if (flash.flashApi !== null && flash.flashApi['set_' + propName] !== undefined) {
-					try {
-						flash.flashApi['set_' + propName](value);
-					} catch (e) {
-						
-					}
-				} else {
-					flash.flashApiStack.push({
-						type: 'set',
-						propName: propName,
-						value: value
-					});
-				}
-			};
-		};
-
-		for (var i = 0, total = props.length; i < total; i++) {
-			assignGettersSetters(props[i]);
-		}
-
-		var methods = _mejs2.default.html5media.methods,
-		    assignMethods = function assignMethods(methodName) {
-			flash[methodName] = function () {
-				if (isActive) {
-					if (flash.flashApi !== null) {
-						if (flash.flashApi['fire_' + methodName]) {
-							try {
-								flash.flashApi['fire_' + methodName]();
-							} catch (e) {
-								
-							}
-						} else {
-							
-						}
-					} else {
-						flash.flashApiStack.push({
-							type: 'call',
-							methodName: methodName
-						});
-					}
-				}
-			};
-		};
-		methods.push('stop');
-		for (var _i = 0, _total = methods.length; _i < _total; _i++) {
-			assignMethods(methods[_i]);
-		}
-
-		var initEvents = ['rendererready'];
-
-		for (var _i2 = 0, _total2 = initEvents.length; _i2 < _total2; _i2++) {
-			var event = (0, _general.createEvent)(initEvents[_i2], flash);
-			mediaElement.dispatchEvent(event);
-		}
-
-		_window2.default['__ready__' + flash.id] = function () {
-
-			flash.flashReady = true;
-			flash.flashApi = _document2.default.getElementById('__' + flash.id);
-
-			if (flash.flashApiStack.length) {
-				for (var _i3 = 0, _total3 = flash.flashApiStack.length; _i3 < _total3; _i3++) {
-					var stackItem = flash.flashApiStack[_i3];
-
-					if (stackItem.type === 'set') {
-						var propName = stackItem.propName,
-						    capName = '' + propName.substring(0, 1).toUpperCase() + propName.substring(1);
-
-						flash['set' + capName](stackItem.value);
-					} else if (stackItem.type === 'call') {
-						flash[stackItem.methodName]();
-					}
-				}
-			}
-		};
-
-		_window2.default['__event__' + flash.id] = function (eventName, message) {
-			var event = (0, _general.createEvent)(eventName, flash);
-			if (message) {
-				try {
-					event.data = JSON.parse(message);
-					event.details.data = JSON.parse(message);
-				} catch (e) {
-					event.message = message;
-				}
-			}
-
-			flash.mediaElement.dispatchEvent(event);
-		};
-
-		flash.flashWrapper = _document2.default.createElement('div');
-
-		if (['always', 'sameDomain'].indexOf(flash.options.shimScriptAccess) === -1) {
-			flash.options.shimScriptAccess = 'sameDomain';
-		}
-
-		var autoplay = mediaElement.originalNode.autoplay,
-		    flashVars = ['uid=' + flash.id, 'autoplay=' + autoplay, 'allowScriptAccess=' + flash.options.shimScriptAccess, 'preload=' + (mediaElement.originalNode.getAttribute('preload') || '')],
-		    isVideo = mediaElement.originalNode !== null && mediaElement.originalNode.tagName.toLowerCase() === 'video',
-		    flashHeight = isVideo ? mediaElement.originalNode.height : 1,
-		    flashWidth = isVideo ? mediaElement.originalNode.width : 1;
-
-		if (mediaElement.originalNode.getAttribute('src')) {
-			flashVars.push('src=' + mediaElement.originalNode.getAttribute('src'));
-		}
-
-		if (flash.options.enablePseudoStreaming === true) {
-			flashVars.push('pseudostreamstart=' + flash.options.pseudoStreamingStartQueryParam);
-			flashVars.push('pseudostreamtype=' + flash.options.pseudoStreamingType);
-		}
-
-		if (flash.options.streamDelimiter) {
-			flashVars.push('streamdelimiter=' + encodeURIComponent(flash.options.streamDelimiter));
-		}
-
-		if (flash.options.proxyType) {
-			flashVars.push('proxytype=' + flash.options.proxyType);
-		}
-
-		mediaElement.appendChild(flash.flashWrapper);
-		mediaElement.originalNode.style.display = 'none';
-
-		var settings = [];
-
-		if (_constants.IS_IE || _constants.IS_EDGE) {
-			var specialIEContainer = _document2.default.createElement('div');
-			flash.flashWrapper.appendChild(specialIEContainer);
-
-			if (_constants.IS_EDGE) {
-				settings = ['type="application/x-shockwave-flash"', 'data="' + flash.options.pluginPath + flash.options.filename + '"', 'id="__' + flash.id + '"', 'width="' + flashWidth + '"', 'height="' + flashHeight + '\'"'];
-			} else {
-				settings = ['classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"', 'codebase="//download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab"', 'id="__' + flash.id + '"', 'width="' + flashWidth + '"', 'height="' + flashHeight + '"'];
-			}
-
-			if (!isVideo) {
-				settings.push('style="clip: rect(0 0 0 0); position: absolute;"');
-			}
-
-			specialIEContainer.outerHTML = '<object ' + settings.join(' ') + '>' + ('<param name="movie" value="' + flash.options.pluginPath + flash.options.filename + '?x=' + new Date() + '" />') + ('<param name="flashvars" value="' + flashVars.join('&amp;') + '" />') + '<param name="quality" value="high" />' + '<param name="bgcolor" value="#000000" />' + '<param name="wmode" value="transparent" />' + ('<param name="allowScriptAccess" value="' + flash.options.shimScriptAccess + '" />') + '<param name="allowFullScreen" value="true" />' + ('<div>' + _i18n2.default.t('mejs.install-flash') + '</div>') + '</object>';
-		} else {
-
-			settings = ['id="__' + flash.id + '"', 'name="__' + flash.id + '"', 'play="true"', 'loop="false"', 'quality="high"', 'bgcolor="#000000"', 'wmode="transparent"', 'allowScriptAccess="' + flash.options.shimScriptAccess + '"', 'allowFullScreen="true"', 'type="application/x-shockwave-flash"', 'pluginspage="//www.macromedia.com/go/getflashplayer"', 'src="' + flash.options.pluginPath + flash.options.filename + '"', 'flashvars="' + flashVars.join('&') + '"'];
-
-			if (isVideo) {
-				settings.push('width="' + flashWidth + '"');
-				settings.push('height="' + flashHeight + '"');
-			} else {
-				settings.push('style="position: fixed; left: -9999em; top: -9999em;"');
-			}
-
-			flash.flashWrapper.innerHTML = '<embed ' + settings.join(' ') + '>';
-		}
-
-		flash.flashNode = flash.flashWrapper.lastChild;
-
-		flash.hide = function () {
-			isActive = false;
-			if (isVideo) {
-				flash.flashNode.style.display = 'none';
-			}
-		};
-		flash.show = function () {
-			isActive = true;
-			if (isVideo) {
-				flash.flashNode.style.display = '';
-			}
-		};
-		flash.setSize = function (width, height) {
-			flash.flashNode.style.width = width + 'px';
-			flash.flashNode.style.height = height + 'px';
-
-			if (flash.flashApi !== null && typeof flash.flashApi.fire_setSize === 'function') {
-				flash.flashApi.fire_setSize(width, height);
-			}
-		};
-
-		flash.destroy = function () {
-			flash.flashNode.remove();
-		};
-
-		if (mediaFiles && mediaFiles.length > 0) {
-			for (var _i4 = 0, _total4 = mediaFiles.length; _i4 < _total4; _i4++) {
-				if (_renderer.renderer.renderers[options.prefix].canPlayType(mediaFiles[_i4].type)) {
-					flash.setSrc(mediaFiles[_i4].src);
-					break;
-				}
-			}
-		}
-
-		return flash;
-	}
-};
-
-var hasFlash = PluginDetector.hasPluginVersion('flash', [10, 0, 0]);
-
-if (hasFlash) {
-	_media.typeChecks.push(function (url) {
-		url = url.toLowerCase();
-
-		if (url.startsWith('rtmp')) {
-			if (~url.indexOf('.mp3')) {
-				return 'audio/rtmp';
-			} else {
-				return 'video/rtmp';
-			}
-		} else if (/\.og(a|g)/i.test(url)) {
-			return 'audio/ogg';
-		} else if (~url.indexOf('.m3u8')) {
-			return 'application/x-mpegURL';
-		} else if (~url.indexOf('.mpd')) {
-			return 'application/dash+xml';
-		} else if (~url.indexOf('.flv')) {
-			return 'video/flv';
-		} else {
-			return null;
-		}
-	});
-
-	var FlashMediaElementVideoRenderer = {
-		name: 'flash_video',
-		options: {
-			prefix: 'flash_video',
-			filename: 'mediaelement-flash-video.swf',
-			enablePseudoStreaming: false,
-
-			pseudoStreamingStartQueryParam: 'start',
-
-			pseudoStreamingType: 'byte',
-
-			proxyType: '',
-
-			streamDelimiter: ''
-		},
-
-		canPlayType: function canPlayType(type) {
-			return ~['video/mp4', 'video/rtmp', 'audio/rtmp', 'rtmp/mp4', 'audio/mp4', 'video/flv', 'video/x-flv'].indexOf(type.toLowerCase());
-		},
-
-		create: FlashMediaElementRenderer.create
-
-	};
-	_renderer.renderer.add(FlashMediaElementVideoRenderer);
-
-	var FlashMediaElementHlsVideoRenderer = {
-		name: 'flash_hls',
-		options: {
-			prefix: 'flash_hls',
-			filename: 'mediaelement-flash-video-hls.swf'
-		},
-
-		canPlayType: function canPlayType(type) {
-			return ~['application/x-mpegurl', 'application/vnd.apple.mpegurl', 'audio/mpegurl', 'audio/hls', 'video/hls'].indexOf(type.toLowerCase());
-		},
-
-		create: FlashMediaElementRenderer.create
-	};
-	_renderer.renderer.add(FlashMediaElementHlsVideoRenderer);
-
-	var FlashMediaElementMdashVideoRenderer = {
-		name: 'flash_dash',
-		options: {
-			prefix: 'flash_dash',
-			filename: 'mediaelement-flash-video-mdash.swf'
-		},
-
-		canPlayType: function canPlayType(type) {
-			return ~['application/dash+xml'].indexOf(type.toLowerCase());
-		},
-
-		create: FlashMediaElementRenderer.create
-	};
-	_renderer.renderer.add(FlashMediaElementMdashVideoRenderer);
-
-	var FlashMediaElementAudioRenderer = {
-		name: 'flash_audio',
-		options: {
-			prefix: 'flash_audio',
-			filename: 'mediaelement-flash-audio.swf'
-		},
-
-		canPlayType: function canPlayType(type) {
-			return ~['audio/mp3'].indexOf(type.toLowerCase());
-		},
-
-		create: FlashMediaElementRenderer.create
-	};
-	_renderer.renderer.add(FlashMediaElementAudioRenderer);
-
-	var FlashMediaElementAudioOggRenderer = {
-		name: 'flash_audio_ogg',
-		options: {
-			prefix: 'flash_audio_ogg',
-			filename: 'mediaelement-flash-audio-ogg.swf'
-		},
-
-		canPlayType: function canPlayType(type) {
-			return ~['audio/ogg', 'audio/oga', 'audio/ogv'].indexOf(type.toLowerCase());
-		},
-
-		create: FlashMediaElementRenderer.create
-	};
-	_renderer.renderer.add(FlashMediaElementAudioOggRenderer);
-}
-
-},{"16":16,"18":18,"19":19,"2":2,"3":3,"5":5,"7":7,"8":8}],12:[function(_dereq_,module,exports){
+},{"15":15,"16":16,"17":17,"18":18,"3":3,"8":8,"9":9}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -1937,268 +1592,19 @@ var _window = _dereq_(3);
 
 var _window2 = _interopRequireDefault(_window);
 
-var _mejs = _dereq_(7);
+var _mejs = _dereq_(8);
 
 var _mejs2 = _interopRequireDefault(_mejs);
 
-var _renderer = _dereq_(8);
+var _renderer = _dereq_(9);
 
-var _general = _dereq_(18);
+var _general = _dereq_(17);
 
-var _constants = _dereq_(16);
+var _constants = _dereq_(15);
 
-var _media = _dereq_(19);
+var _media = _dereq_(18);
 
-var _dom = _dereq_(17);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var NativeFlv = {
-
-	promise: null,
-
-	load: function load(settings) {
-		if (typeof flvjs !== 'undefined') {
-			NativeFlv.promise = new Promise(function (resolve) {
-				resolve();
-			}).then(function () {
-				NativeFlv._createPlayer(settings);
-			});
-		} else {
-			settings.options.path = typeof settings.options.path === 'string' ? settings.options.path : 'https://cdn.jsdelivr.net/npm/flv.js@latest';
-
-			NativeFlv.promise = NativeFlv.promise || (0, _dom.loadScript)(settings.options.path);
-			NativeFlv.promise.then(function () {
-				NativeFlv._createPlayer(settings);
-			});
-		}
-
-		return NativeFlv.promise;
-	},
-
-	_createPlayer: function _createPlayer(settings) {
-		flvjs.LoggingControl.enableDebug = settings.options.debug;
-		flvjs.LoggingControl.enableVerbose = settings.options.debug;
-		var player = flvjs.createPlayer(settings.options, settings.configs);
-		_window2.default['__ready__' + settings.id](player);
-		return player;
-	}
-};
-
-var FlvNativeRenderer = {
-	name: 'native_flv',
-	options: {
-		prefix: 'native_flv',
-		flv: {
-			path: 'https://cdn.jsdelivr.net/npm/flv.js@latest',
-
-			cors: true,
-			debug: false
-		}
-	},
-
-	canPlayType: function canPlayType(type) {
-		return _constants.HAS_MSE && ['video/x-flv', 'video/flv'].indexOf(type.toLowerCase()) > -1;
-	},
-
-	create: function create(mediaElement, options, mediaFiles) {
-
-		var originalNode = mediaElement.originalNode,
-		    id = mediaElement.id + '_' + options.prefix;
-
-		var node = null,
-		    flvPlayer = null;
-
-		node = originalNode.cloneNode(true);
-		options = Object.assign(options, mediaElement.options);
-
-		var props = _mejs2.default.html5media.properties,
-		    events = _mejs2.default.html5media.events.concat(['click', 'mouseover', 'mouseout']).filter(function (e) {
-			return e !== 'error';
-		}),
-		    attachNativeEvents = function attachNativeEvents(e) {
-			var event = (0, _general.createEvent)(e.type, mediaElement);
-			mediaElement.dispatchEvent(event);
-		},
-		    assignGettersSetters = function assignGettersSetters(propName) {
-			var capName = '' + propName.substring(0, 1).toUpperCase() + propName.substring(1);
-
-			node['get' + capName] = function () {
-				return flvPlayer !== null ? node[propName] : null;
-			};
-
-			node['set' + capName] = function (value) {
-				if (_mejs2.default.html5media.readOnlyProperties.indexOf(propName) === -1) {
-					if (propName === 'src') {
-						node[propName] = (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value.src ? value.src : value;
-						if (flvPlayer !== null) {
-							var _flvOptions = {};
-							_flvOptions.type = 'flv';
-							_flvOptions.url = value;
-							_flvOptions.cors = options.flv.cors;
-							_flvOptions.debug = options.flv.debug;
-							_flvOptions.path = options.flv.path;
-							var _flvConfigs = options.flv.configs;
-
-							flvPlayer.destroy();
-							for (var i = 0, total = events.length; i < total; i++) {
-								node.removeEventListener(events[i], attachNativeEvents);
-							}
-							flvPlayer = NativeFlv._createPlayer({
-								options: _flvOptions,
-								configs: _flvConfigs,
-								id: id
-							});
-							flvPlayer.attachMediaElement(node);
-							flvPlayer.load();
-						}
-					} else {
-						node[propName] = value;
-					}
-				}
-			};
-		};
-
-		for (var i = 0, total = props.length; i < total; i++) {
-			assignGettersSetters(props[i]);
-		}
-
-		_window2.default['__ready__' + id] = function (_flvPlayer) {
-			mediaElement.flvPlayer = flvPlayer = _flvPlayer;
-
-			var flvEvents = flvjs.Events,
-			    assignEvents = function assignEvents(eventName) {
-				if (eventName === 'loadedmetadata') {
-					flvPlayer.unload();
-					flvPlayer.detachMediaElement();
-					flvPlayer.attachMediaElement(node);
-					flvPlayer.load();
-				}
-
-				node.addEventListener(eventName, attachNativeEvents);
-			};
-
-			for (var _i = 0, _total = events.length; _i < _total; _i++) {
-				assignEvents(events[_i]);
-			}
-
-			var assignFlvEvents = function assignFlvEvents(name, data) {
-				if (name === 'error') {
-					var message = data[0] + ': ' + data[1] + ' ' + data[2].msg;
-					mediaElement.generateError(message, node.src);
-				} else {
-					var _event = (0, _general.createEvent)(name, mediaElement);
-					_event.data = data;
-					mediaElement.dispatchEvent(_event);
-				}
-			};
-
-			var _loop = function _loop(eventType) {
-				if (flvEvents.hasOwnProperty(eventType)) {
-					flvPlayer.on(flvEvents[eventType], function () {
-						for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-							args[_key] = arguments[_key];
-						}
-
-						return assignFlvEvents(flvEvents[eventType], args);
-					});
-				}
-			};
-
-			for (var eventType in flvEvents) {
-				_loop(eventType);
-			}
-		};
-
-		if (mediaFiles && mediaFiles.length > 0) {
-			for (var _i2 = 0, _total2 = mediaFiles.length; _i2 < _total2; _i2++) {
-				if (_renderer.renderer.renderers[options.prefix].canPlayType(mediaFiles[_i2].type)) {
-					node.setAttribute('src', mediaFiles[_i2].src);
-					break;
-				}
-			}
-		}
-
-		node.setAttribute('id', id);
-
-		originalNode.parentNode.insertBefore(node, originalNode);
-		originalNode.autoplay = false;
-		originalNode.style.display = 'none';
-
-		var flvOptions = {};
-		flvOptions.type = 'flv';
-		flvOptions.url = node.src;
-		flvOptions.cors = options.flv.cors;
-		flvOptions.debug = options.flv.debug;
-		flvOptions.path = options.flv.path;
-		var flvConfigs = options.flv.configs;
-
-		node.setSize = function (width, height) {
-			node.style.width = width + 'px';
-			node.style.height = height + 'px';
-			return node;
-		};
-
-		node.hide = function () {
-			if (flvPlayer !== null) {
-				flvPlayer.pause();
-			}
-			node.style.display = 'none';
-			return node;
-		};
-
-		node.show = function () {
-			node.style.display = '';
-			return node;
-		};
-
-		node.destroy = function () {
-			if (flvPlayer !== null) {
-				flvPlayer.destroy();
-			}
-		};
-
-		var event = (0, _general.createEvent)('rendererready', node);
-		mediaElement.dispatchEvent(event);
-
-		mediaElement.promises.push(NativeFlv.load({
-			options: flvOptions,
-			configs: flvConfigs,
-			id: id
-		}));
-
-		return node;
-	}
-};
-
-_media.typeChecks.push(function (url) {
-	return ~url.toLowerCase().indexOf('.flv') ? 'video/flv' : null;
-});
-
-_renderer.renderer.add(FlvNativeRenderer);
-
-},{"16":16,"17":17,"18":18,"19":19,"3":3,"7":7,"8":8}],13:[function(_dereq_,module,exports){
-'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _window = _dereq_(3);
-
-var _window2 = _interopRequireDefault(_window);
-
-var _mejs = _dereq_(7);
-
-var _mejs2 = _interopRequireDefault(_mejs);
-
-var _renderer = _dereq_(8);
-
-var _general = _dereq_(18);
-
-var _constants = _dereq_(16);
-
-var _media = _dereq_(19);
-
-var _dom = _dereq_(17);
+var _dom = _dereq_(16);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2448,8 +1854,8 @@ var HlsNativeRenderer = {
 			}
 		};
 
-		var event = (0, _general.createEvent)('rendererready', node);
-		mediaElement.dispatchEvent(event);
+		var event = (0, _general.createEvent)('rendererready', node, false);
+		mediaElement.originalNode.dispatchEvent(event);
 
 		mediaElement.promises.push(NativeHls.load({
 			options: options.hls,
@@ -2466,7 +1872,7 @@ _media.typeChecks.push(function (url) {
 
 _renderer.renderer.add(HlsNativeRenderer);
 
-},{"16":16,"17":17,"18":18,"19":19,"3":3,"7":7,"8":8}],14:[function(_dereq_,module,exports){
+},{"15":15,"16":16,"17":17,"18":18,"3":3,"8":8,"9":9}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var _window = _dereq_(3);
@@ -2477,15 +1883,15 @@ var _document = _dereq_(2);
 
 var _document2 = _interopRequireDefault(_document);
 
-var _mejs = _dereq_(7);
+var _mejs = _dereq_(8);
 
 var _mejs2 = _interopRequireDefault(_mejs);
 
-var _renderer = _dereq_(8);
+var _renderer = _dereq_(9);
 
-var _general = _dereq_(18);
+var _general = _dereq_(17);
 
-var _constants = _dereq_(16);
+var _constants = _dereq_(15);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2602,8 +2008,8 @@ var HtmlMediaElement = {
 			}
 		});
 
-		var event = (0, _general.createEvent)('rendererready', node);
-		mediaElement.dispatchEvent(event);
+		var event = (0, _general.createEvent)('rendererready', node, false);
+		mediaElement.originalNode.dispatchEvent(event);
 
 		return node;
 	}
@@ -2613,7 +2019,7 @@ _window2.default.HtmlMediaElement = _mejs2.default.HtmlMediaElement = HtmlMediaE
 
 _renderer.renderer.add(HtmlMediaElement);
 
-},{"16":16,"18":18,"2":2,"3":3,"7":7,"8":8}],15:[function(_dereq_,module,exports){
+},{"15":15,"17":17,"2":2,"3":3,"8":8,"9":9}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var _window = _dereq_(3);
@@ -2624,17 +2030,17 @@ var _document = _dereq_(2);
 
 var _document2 = _interopRequireDefault(_document);
 
-var _mejs = _dereq_(7);
+var _mejs = _dereq_(8);
 
 var _mejs2 = _interopRequireDefault(_mejs);
 
-var _renderer = _dereq_(8);
+var _renderer = _dereq_(9);
 
-var _general = _dereq_(18);
+var _general = _dereq_(17);
 
-var _media = _dereq_(19);
+var _media = _dereq_(18);
 
-var _dom = _dereq_(17);
+var _dom = _dereq_(16);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3016,7 +2422,7 @@ var YouTubeIframeRenderer = {
 					var initEvents = ['rendererready', 'loadedmetadata', 'loadeddata', 'canplay'];
 
 					for (var _i4 = 0, _total4 = initEvents.length; _i4 < _total4; _i4++) {
-						var event = (0, _general.createEvent)(initEvents[_i4], youtube);
+						var event = (0, _general.createEvent)(initEvents[_i4], youtube, true);
 						mediaElement.dispatchEvent(event);
 					}
 				},
@@ -3152,7 +2558,7 @@ _media.typeChecks.push(function (url) {
 
 _renderer.renderer.add(YouTubeIframeRenderer);
 
-},{"17":17,"18":18,"19":19,"2":2,"3":3,"7":7,"8":8}],16:[function(_dereq_,module,exports){
+},{"16":16,"17":17,"18":18,"2":2,"3":3,"8":8,"9":9}],15:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3168,7 +2574,7 @@ var _document = _dereq_(2);
 
 var _document2 = _interopRequireDefault(_document);
 
-var _mejs = _dereq_(7);
+var _mejs = _dereq_(8);
 
 var _mejs2 = _interopRequireDefault(_mejs);
 
@@ -3188,24 +2594,7 @@ var IS_FIREFOX = exports.IS_FIREFOX = /firefox/i.test(UA);
 var IS_SAFARI = exports.IS_SAFARI = /safari/i.test(UA) && !IS_CHROME;
 var IS_STOCK_ANDROID = exports.IS_STOCK_ANDROID = /^mozilla\/\d+\.\d+\s\(linux;\su;/i.test(UA);
 var HAS_MSE = exports.HAS_MSE = 'MediaSource' in _window2.default;
-var SUPPORT_POINTER_EVENTS = exports.SUPPORT_POINTER_EVENTS = function () {
-	var element = _document2.default.createElement('x'),
-	    documentElement = _document2.default.documentElement,
-	    getComputedStyle = _window2.default.getComputedStyle;
-
-	if (!('pointerEvents' in element.style)) {
-		return false;
-	}
-
-	element.style.pointerEvents = 'auto';
-	element.style.pointerEvents = 'x';
-	documentElement.appendChild(element);
-	var supports = getComputedStyle && (getComputedStyle(element, '') || {}).pointerEvents === 'auto';
-	element.remove();
-	return !!supports;
-}();
-
-var SUPPORT_PASSIVE_EVENT = exports.SUPPORT_PASSIVE_EVENT = function () {
+var SUPPORT_POINTER_EVENTS = exports.SUPPORT_POINTER_EVENTS = true;var SUPPORT_PASSIVE_EVENT = exports.SUPPORT_PASSIVE_EVENT = function () {
 	var supportsPassive = false;
 	try {
 		var opts = Object.defineProperty({}, 'passive', {
@@ -3338,7 +2727,7 @@ _mejs2.default.Features.isFullScreen = isFullScreen;
 _mejs2.default.Features.requestFullScreen = requestFullScreen;
 _mejs2.default.Features.cancelFullScreen = cancelFullScreen;
 
-},{"2":2,"3":3,"7":7}],17:[function(_dereq_,module,exports){
+},{"2":2,"3":3,"8":8}],16:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3362,7 +2751,7 @@ var _document = _dereq_(2);
 
 var _document2 = _interopRequireDefault(_document);
 
-var _mejs = _dereq_(7);
+var _mejs = _dereq_(8);
 
 var _mejs2 = _interopRequireDefault(_mejs);
 
@@ -3567,7 +2956,7 @@ _mejs2.default.Utils.visible = visible;
 _mejs2.default.Utils.ajax = ajax;
 _mejs2.default.Utils.loadScript = loadScript;
 
-},{"2":2,"3":3,"7":7}],18:[function(_dereq_,module,exports){
+},{"2":2,"3":3,"8":8}],17:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3581,7 +2970,7 @@ exports.createEvent = createEvent;
 exports.isNodeAfter = isNodeAfter;
 exports.isString = isString;
 
-var _mejs = _dereq_(7);
+var _mejs = _dereq_(8);
 
 var _mejs2 = _interopRequireDefault(_mejs);
 
@@ -3664,7 +3053,7 @@ function splitEvents(events, id) {
 	return ret;
 }
 
-function createEvent(eventName, target) {
+function createEvent(eventName, target, isIframe) {
 
 	if (typeof eventName !== 'string') {
 		throw new Error('Event name must be a string');
@@ -3672,7 +3061,8 @@ function createEvent(eventName, target) {
 
 	var eventFrags = eventName.match(/([a-z]+\.([a-z]+))/i),
 	    detail = {
-		target: target
+		target: target,
+		isIframe: isIframe
 	};
 
 	if (eventFrags !== null) {
@@ -3703,7 +3093,7 @@ _mejs2.default.Utils.createEvent = createEvent;
 _mejs2.default.Utils.isNodeAfter = isNodeAfter;
 _mejs2.default.Utils.isString = isString;
 
-},{"7":7}],19:[function(_dereq_,module,exports){
+},{"8":8}],18:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3717,11 +3107,11 @@ exports.getTypeFromFile = getTypeFromFile;
 exports.getExtension = getExtension;
 exports.normalizeExtension = normalizeExtension;
 
-var _mejs = _dereq_(7);
+var _mejs = _dereq_(8);
 
 var _mejs2 = _interopRequireDefault(_mejs);
 
-var _general = _dereq_(18);
+var _general = _dereq_(17);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3773,7 +3163,7 @@ function getTypeFromFile(url) {
 	var mime = 'video/mp4';
 
 	if (normalizedExt) {
-		if (~['mp4', 'm4v', 'ogg', 'ogv', 'webm', 'flv', 'mpeg'].indexOf(normalizedExt)) {
+		if (~['mp4', 'm4v', 'ogg', 'ogv', 'webm', 'mpeg'].indexOf(normalizedExt)) {
 			mime = 'video/' + normalizedExt;
 		} else if ('mov' === normalizedExt) {
 			mime = 'video/quicktime';
@@ -3828,7 +3218,7 @@ _mejs2.default.Utils.getTypeFromFile = getTypeFromFile;
 _mejs2.default.Utils.getExtension = getExtension;
 _mejs2.default.Utils.normalizeExtension = normalizeExtension;
 
-},{"18":18,"7":7}],20:[function(_dereq_,module,exports){
+},{"17":17,"8":8}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var _document = _dereq_(2);
@@ -3838,6 +3228,10 @@ var _document2 = _interopRequireDefault(_document);
 var _promisePolyfill = _dereq_(4);
 
 var _promisePolyfill2 = _interopRequireDefault(_promisePolyfill);
+
+var _svg4everybody = _dereq_(5);
+
+var _svg4everybody2 = _interopRequireDefault(_svg4everybody);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3962,6 +3356,8 @@ if (!window.Promise) {
 	window.Promise = _promisePolyfill2.default;
 }
 
+(0, _svg4everybody2.default)();
+
 (function (constructor) {
 	if (constructor && constructor.prototype && constructor.prototype.children === null) {
 		Object.defineProperty(constructor.prototype, 'children', {
@@ -3981,4 +3377,4 @@ if (!window.Promise) {
 	}
 })(window.Node || window.Element);
 
-},{"2":2,"4":4}]},{},[20,6,5,9,14,11,10,12,13,15]);
+},{"2":2,"4":4,"5":5}]},{},[19,7,6,10,13,11,12,14]);
