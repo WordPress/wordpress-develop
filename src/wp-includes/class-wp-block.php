@@ -247,7 +247,7 @@ class WP_Block {
 		$supported_block_attributes = array(
 			'core/paragraph' => array( 'content' ),
 			'core/heading'   => array( 'content' ),
-			'core/image'     => array( 'id', 'url', 'title', 'alt' ),
+			'core/image'     => array( 'id', 'url', 'title', 'alt', 'caption' ),
 			'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
 		);
 
@@ -351,6 +351,67 @@ class WP_Block {
 		switch ( $block_type->attributes[ $attribute_name ]['source'] ) {
 			case 'html':
 			case 'rich-text':
+				if ( 'core/image' === $this->name && 'caption' === $attribute_name ) {
+					// Create private anonymous class until the HTML API provides `set_inner_html` method.
+					$bindings_processor_builder = new class(
+						'Do not use this, it will not work. It is only here to create a subclass and call the static creator method',
+						WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE
+					) extends WP_HTML_Processor {
+						/**
+						 * Replace the inner content of a figcaption element with the passed content.
+						 *
+						 * DO NOT COPY THIS METHOD.
+						 * THE HTML PROCESSOR WILL HAVE A PROPER METHOD.
+						 * USE IT INSTEAD.
+						 *
+						 * @since 6.7.0
+						 *
+						 * @param string $new_content New content to insert in the figcaption element.
+						 * @return bool Whether the inner content was properly replaced.
+						 */
+						public function set_figcaption_inner_html( $new_content ) {
+							// Check that the processor is paused on an opener tag.
+							if ( 'FIGCAPTION' !== $this->get_tag() || $this->is_tag_closer() ) {
+								return false;
+							}
+
+							// Set position of the opening tag.
+							$this->set_bookmark( 'opening' );
+
+							// Once this element closes the depth will be one shallower than it is now.
+							$depth = $this->get_current_depth();
+							while ( $this->next_token() && $this->get_current_depth() >= $depth ) {
+								// This is inside the FIGCAPTION element.
+							}
+
+							if ( null !== $this->get_last_error() || $this->paused_at_incomplete_token() ) {
+								return false;
+							}
+
+							// Set position of the closing tag.
+							$this->set_bookmark( 'closing' );
+
+							$opening = $this->bookmarks['_opening'];
+							$closing = $this->bookmarks['_closing'];
+							$start   = $opening->start + $opening->length;
+
+							$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+								$start,
+								$closing->start - $start,
+								wp_kses_post( $new_content )
+							);
+
+							return true;
+						}
+					};
+
+					$block_reader = $bindings_processor_builder::create_fragment( $block_content );
+					if ( $block_reader->next_tag( 'figcaption' ) ) {
+						$block_reader->set_figcaption_inner_html( $source_value );
+					}
+					return $block_reader->get_updated_html();
+				}
+
 				$block_reader = new WP_HTML_Tag_Processor( $block_content );
 
 				// TODO: Support for CSS selectors whenever they are ready in the HTML API.

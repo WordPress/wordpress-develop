@@ -413,4 +413,41 @@ HTML;
 			'The block content should show the filtered value.'
 		);
 	}
+
+	/**
+	 * Tests that replacing inner text for bound attributes works as expected.
+	 *
+	 * @ticket 61466
+	 *
+	 * @covers WP_Block::process_block_bindings
+	 */
+	public function test_replacing_inner_text_with_block_bindings_value() {
+		$get_value_callback = function () {
+			return '$12.50';
+		};
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => $get_value_callback,
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:image {"metadata":{"bindings":{"caption":{"source":"test/source"}}}} -->
+<figure class="wp-block-image"><img src="https://example.com/image.jpg" /><figcaption class="wp-element-caption">Default value</figcaption></figure>
+<!-- /wp:image -->
+HTML;
+
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
+
+		$this->assertSame(
+			'<figure class="wp-block-image"><img src="https://example.com/image.jpg" /><figcaption class="wp-element-caption">$12.50</figcaption></figure>',
+			trim( $result ),
+			'The image caption should be updated with the value returned by the source.'
+		);
+	}
 }
