@@ -2833,3 +2833,52 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
 	}
 	return $arg;
 }
+
+/**
+ * Checks if the block name is a variation of a block. Variations follow a specific format
+ * of `namespace/block-name/variation-name`.
+ *
+ * @access private
+ * @since 6.6.0
+ *
+ * @param string $block_name
+ * @return boolean
+ */
+function block_is_variation( $block_name ) {
+	return substr_count( $block_name, '/' ) === 2;
+}
+
+/**
+ * Returns the canonical block name for a block. If the block is a variation, it will return
+ * the block name without the variation name.
+ *
+ * @access private
+ * @since 6.6.0
+ *
+ * @param string $block_name
+ * @return string
+ */
+function get_canonical_block_name( $block_name ) {
+	if ( block_is_variation( $block_name ) ) {
+		$parts = explode( '/', $block_name );
+		return $parts[0] . '/' . $parts[1];
+	}
+
+	return $block_name;
+}
+
+function infer_block_variation( $block_type, $block_attributes ) {
+	$variations = $block_type->get_variations();
+	foreach ( $variations as $variation ) {
+		$attributes = $variation['attributes'];
+		if ( isset( $variation['isActive'] ) && is_array( $variation['isActive'] ) ) {
+			$attributes = array_intersect_key( $attributes, array_flip( $variation['isActive'] ) );
+		}
+		foreach ( $attributes as $attribute => $value ) {
+			if ( ! isset( $block_attributes[ $attribute ] ) || $block_attributes[ $attribute ] !== $value ) {
+				continue 2;
+			}
+		}
+		return $variation['name'];
+	}
+}
