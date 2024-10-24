@@ -1617,7 +1617,10 @@ function term_exists( $term, $taxonomy = '', $parent_term = null ) {
 		if ( 0 === $term ) {
 			return 0;
 		}
-		$args  = wp_parse_args( array( 'include' => array( $term ) ), $defaults );
+		$args = wp_parse_args( array( 'include' => array( $term ) ), $defaults );
+		if ( ! empty( $taxonomy ) && is_numeric( $parent_term ) ) {
+			$args['parent'] = (int) $parent_term;
+		}
 		$terms = get_terms( $args );
 	} else {
 		$term = trim( wp_unslash( $term ) );
