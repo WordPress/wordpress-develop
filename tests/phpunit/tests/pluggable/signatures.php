@@ -188,6 +188,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 				'location',
 				'fallback_url' => '',
 			),
+			'_wp_is_self_redirect'            => array( 'location' ),
 			'wp_notify_postauthor'            => array(
 				'comment_id',
 				'deprecated' => null,
