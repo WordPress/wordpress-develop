@@ -449,7 +449,11 @@ function twentyfourteen_block_editor_styles() {
 	$font_version = ( 0 === strpos( (string) twentyfourteen_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentyfourteen-fonts', twentyfourteen_font_url(), array(), $font_version );
 }
-add_action( 'enqueue_block_editor_assets', 'twentyfourteen_block_editor_styles' );
+if ( is_admin() && version_compare( $GLOBALS['wp_version'], '6.3', '>=' ) ) {
+	add_action( 'enqueue_block_assets', 'twentyfourteen_block_editor_styles', 1, 1 );
+} else {
+	add_action( 'enqueue_block_editor_assets', 'twentyfourteen_block_editor_styles', 1, 1 );
+}
 
 if ( ! function_exists( 'twentyfourteen_the_attached_image' ) ) :
 	/**
