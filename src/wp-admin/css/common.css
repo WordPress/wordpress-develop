@@ -29,6 +29,11 @@
 	overflow: visible;
 }
 
+/* Additional margin when there is a PHP notice */
+.php-error #wpbody-content {
+	margin-top: 2em;
+}
+
 /* inner 2 column liquid layout */
 
 .inner-sidebar {
@@ -4207,12 +4212,20 @@ img {
 		padding-top: 0;
 	}
 
+	html.wp-toolbar body.php-error {
+		padding-top: 46px;
+	}
+
 	.screen-reader-shortcut:focus {
 		top: 7px;
 	}
 
 	#wpbody {
 		padding-top: 46px;
+	}
+
+	body.php-error #wpbody {
+		padding-top: 0px;
 	}
 
 	/* Keep full-width boxes on Edit Post page from causing horizontal scroll */
