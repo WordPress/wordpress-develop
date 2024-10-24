@@ -3340,6 +3340,14 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 			'sanitize_callback' => 'rest_sanitize_request_arg',
 		);
 
+		if ( isset( $params['validate_callback'] ) && is_callable( $params['validate_callback'] ) ) {
+			$endpoint_args[ $field_id ]['validate_callback'] = $params['validate_callback'];
+		}
+
+		if ( isset( $params['sanitize_callback'] ) && is_callable( $params['sanitize_callback'] ) ) {
+			$endpoint_args[ $field_id ]['sanitize_callback'] = $params['sanitize_callback'];
+		}
+
 		if ( WP_REST_Server::CREATABLE === $method && isset( $params['default'] ) ) {
 			$endpoint_args[ $field_id ]['default'] = $params['default'];
 		}
