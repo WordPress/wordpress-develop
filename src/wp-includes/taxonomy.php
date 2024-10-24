@@ -3524,10 +3524,20 @@ function wp_defer_term_counting( $defer = null ) {
 function wp_update_term_count( $terms, $taxonomy, $do_deferred = false ) {
 	static $_deferred = array();
 
+	$current_blog_id = get_current_blog_id();
+
 	if ( $do_deferred ) {
-		foreach ( (array) array_keys( $_deferred ) as $tax ) {
-			wp_update_term_count_now( $_deferred[ $tax ], $tax );
-			unset( $_deferred[ $tax ] );
+		foreach ( (array) array_keys( $_deferred ) as $blog_id ) {
+			if ( $blog_id !== $current_blog_id ) {
+				switch_to_blog( $blog_id );
+			}
+			foreach ( (array) array_keys( $_deferred[ $blog_id ] ) as $tax ) {
+				wp_update_term_count_now( $_deferred[ $blog_id ][ $tax ], $tax );
+				unset( $_deferred[ $blog_id ][ $tax ] );
+			}
+			if ( $blog_id !== $current_blog_id ) {
+				restore_current_blog();
+			}
 		}
 	}
 
@@ -3540,10 +3550,10 @@ function wp_update_term_count( $terms, $taxonomy, $do_deferred = false ) {
 	}
 
 	if ( wp_defer_term_counting() ) {
-		if ( ! isset( $_deferred[ $taxonomy ] ) ) {
-			$_deferred[ $taxonomy ] = array();
+		if ( ! isset( $_deferred[ $current_blog_id ][ $taxonomy ] ) ) {
+			$_deferred[ $current_blog_id ][ $taxonomy ] = array();
 		}
-		$_deferred[ $taxonomy ] = array_unique( array_merge( $_deferred[ $taxonomy ], $terms ) );
+		$_deferred[ $current_blog_id ][ $taxonomy ] = array_unique( array_merge( $_deferred[ $current_blog_id ][ $taxonomy ], $terms ) );
 		return true;
 	}
 
