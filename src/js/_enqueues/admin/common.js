@@ -831,7 +831,7 @@ $( function() {
 		currentPage = pageInput.val(),
 		isIOS = /iPhone|iPad|iPod/.test( navigator.userAgent ),
 		isAndroid = navigator.userAgent.indexOf( 'Android' ) !== -1,
-		$adminMenuWrap = $( '#adminmenuwrap' ),
+		$adminMenuWrap = $( 'body:not(.php-error) #adminmenuwrap' ),
 		$wpwrap = $( '#wpwrap' ),
 		$adminmenu = $( '#adminmenu' ),
 		$overlay = $( '#wp-responsive-overlay' ),
