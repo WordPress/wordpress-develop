@@ -40,7 +40,7 @@ jobs:
   #
   test-coverage-report:
     name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report (${{ matrix.format }})
-    uses: desrosj/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@use/reusable-php-for-coverage
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}

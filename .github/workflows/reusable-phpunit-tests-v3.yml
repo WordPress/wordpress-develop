@@ -74,7 +74,7 @@ on:
 env:
   LOCAL_PHP: ${{ inputs.php }}-fpm
   LOCAL_PHP_XDEBUG: ${{ inputs.coverage-format && true || false }}
-  LOCAL_PHP_XDEBUG_MODE: ${{ inputs.coverage-format && 'coverage' || 'develop,debug' }}
+  LOCAL_PHP_XDEBUG_MODE: ${{ inputs.coverage-format && 'coverage' || false }}
   LOCAL_DB_TYPE: ${{ inputs.db-type }}
   LOCAL_DB_VERSION: ${{ inputs.db-version }}
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
@@ -218,8 +218,8 @@ jobs:
         if: ${{ inputs.coverage-format == 'html' }}
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
-          name: wp-code-coverage${{ inputs.multisite && '-multisite' || 'single' }}-${{ github.sha }}
-          path: wp-code-coverage${{ inputs.multisite && '-multisite' || 'single' }}-${{ github.sha }}
+          name: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}
+          path: wp-code-coverage${{ inputs.multisite && '-multisite' || '-single' }}-${{ github.sha }}
           overwrite: true
 
       - name: Ensure version-controlled files are not modified or deleted
