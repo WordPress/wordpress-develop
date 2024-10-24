@@ -69,13 +69,14 @@
  *
  * @param string $option        Name of the option to retrieve. Expected to not be SQL-escaped.
  * @param mixed  $default_value Optional. Default value to return if the option does not exist.
+ * @param bool   $force         Optional. Whether to bypass the cache. Default false.
  * @return mixed Value of the option. A value of any type may be returned, including
  *               scalar (string, boolean, float, integer), null, array, object.
  *               Scalar and null values will be returned as strings as long as they originate
  *               from a database stored option value. If there is no option in the database,
  *               boolean `false` is returned.
  */
-function get_option( $option, $default_value = false ) {
+function get_option( $option, $default_value = false, $force = false ) {
 	global $wpdb;
 
 	if ( is_scalar( $option ) ) {
@@ -160,7 +161,7 @@ function get_option( $option, $default_value = false ) {
 	// Distinguish between `false` as a default, and not passing one.
 	$passed_default = func_num_args() > 1;
 
-	if ( ! wp_installing() ) {
+	if ( ! wp_installing() && ! $force ) {
 		$alloptions = wp_load_alloptions();
 
 		if ( isset( $alloptions[ $option ] ) ) {
@@ -1283,9 +1284,9 @@ function delete_option( $option ) {
  * @since 6.6.0
  * @access private
  *
- * @param string $option          The name of the option.
- * @param mixed $value            The value of the option to check its autoload value.
- * @param mixed $serialized_value The serialized value of the option to check its autoload value.
+ * @param string    $option          The name of the option.
+ * @param mixed     $value            The value of the option to check its autoload value.
+ * @param mixed     $serialized_value The serialized value of the option to check its autoload value.
  * @param bool|null $autoload     The autoload value to check.
  *                                Accepts 'on'|true to enable or 'off'|false to disable, or
  *                                'auto-on', 'auto-off', or 'auto' for internal purposes.
@@ -1417,9 +1418,10 @@ function delete_transient( $transient ) {
  * @since 2.8.0
  *
  * @param string $transient Transient name. Expected to not be SQL-escaped.
+ * @param bool   $force Optional. Whether to bypass the cache and retrieve the transient directly from the database. Default false.
  * @return mixed Value of transient.
  */
-function get_transient( $transient ) {
+function get_transient( $transient, $force = false ) {
 
 	/**
 	 * Filters the value of an existing transient before it is retrieved.
@@ -1443,7 +1445,7 @@ function get_transient( $transient ) {
 		return $pre;
 	}
 
-	if ( wp_using_ext_object_cache() || wp_installing() ) {
+	if ( ! $force && wp_using_ext_object_cache() || wp_installing() ) {
 		$value = wp_cache_get( $transient, 'transient' );
 	} else {
 		$transient_option = '_transient_' . $transient;
