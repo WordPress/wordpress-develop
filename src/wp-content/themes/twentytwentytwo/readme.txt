@@ -21,16 +21,16 @@ If you are using WordPress version 6.1 or newer, you are recommended to update t
 
 ### Instructions:
 
-1. Open the Site Editor from your WordPress admin area.
+1. From the WordPress admin, open Appearance > Site Editor.
 2. Select "Templates" from the menu in the Site Editor sidebar.
-3. Select the template and open it in the Site Editor.
+3. Select the template (see the list below) and open it in the Site Editor.
 4. Locate the comments block.
 5. If the comments block has a button with the text "Switch to editable mode", activate the button.
 6. Save the template.
 
 If the button is not present, then you may have already updated the block, and you do not need to make any changes.
 
-### Repeat these instructions for the following templates:
+Follow these instructions for each of the following templates:
 
 - Pages
 - Page (No Separators)
