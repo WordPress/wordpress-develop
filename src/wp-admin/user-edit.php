@@ -882,7 +882,7 @@ switch ( $action ) {
 						do_action( 'show_user_profile', $profile_user );
 					} else {
 						/**
-						 * Fires after the 'Application Passwords' section is loaded on the 'Profile' editing screen.
+						 * Fires after the 'Application Passwords' section is loaded on 'Edit User' screen.
 						 *
 						 * The action only fires if the current user is editing another user's profile.
 						 *
