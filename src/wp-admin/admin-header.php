@@ -90,7 +90,11 @@ _wp_admin_html_begin();
 <title><?php echo esc_html( $admin_title ); ?></title>
 <?php
 
-wp_enqueue_style( 'colors' );
+// We do not need the default admin CSS stylesheets in the Site Editor.
+if ( $hook_suffix !== 'site-editor.php' ) {
+	wp_enqueue_style( 'colors' );
+}
+
 wp_enqueue_script( 'utils' );
 wp_enqueue_script( 'svg-painter' );
 
