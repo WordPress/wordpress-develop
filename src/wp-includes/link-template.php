@@ -1739,6 +1739,25 @@ function edit_bookmark_link( $link = '', $before = '', $after = '', $bookmark = 
  * @return string URL to edit user page or empty string.
  */
 function get_edit_user_link( $user_id = null ) {
+
+	/**
+	 * Short-circuits the retrieval of the user edit link.
+	 *
+	 * Returning a non-empty string from this filter will effectively short-circuit
+	 * the function, returning the passed value instead of continuing with the
+	 * standard link generation process.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string|null $link    The edit link. Default is an empty string.
+	 * @param int        $user_id  User ID.
+	 */
+	$link = apply_filters( 'pre_get_edit_user_link', '', $user_id );
+
+	if ( ! empty( $link ) ) {
+		return $link;
+	}
+
 	if ( ! $user_id ) {
 		$user_id = get_current_user_id();
 	}
