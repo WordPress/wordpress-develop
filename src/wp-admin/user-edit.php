@@ -772,100 +772,106 @@ switch ( $action ) {
 						</table>
 
 					<?php if ( wp_is_application_passwords_available_for_user( $user_id ) || ! wp_is_application_passwords_supported() ) : ?>
-						<div class="application-passwords hide-if-no-js" id="application-passwords-section">
-							<h2><?php _e( 'Application Passwords' ); ?></h2>
-							<p><?php _e( 'Application passwords allow authentication via non-interactive systems, such as XML-RPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
-							<?php if ( wp_is_application_passwords_available_for_user( $user_id ) ) : ?>
-								<?php
-								if ( is_multisite() ) :
-									$blogs       = get_blogs_of_user( $user_id, true );
-									$blogs_count = count( $blogs );
-
-									if ( $blogs_count > 1 ) :
-										?>
-										<p>
+						<table class="form-table application-passwords-wrapper" role="presentation">
+							<tr>
+								<th><?php _e( 'Application Passwords' ); ?></th>
+								<td>
+									<div class="application-passwords hide-if-no-js" id="application-passwords-section">
+										<p><?php _e( 'Application passwords allow authentication via non-interactive systems, such as XML-RPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
+										<?php if ( wp_is_application_passwords_available_for_user( $user_id ) ) : ?>
 											<?php
-											/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
-											$message = _n(
-												'Application passwords grant access to <a href="%1$s">the %2$s site in this installation that you have permissions on</a>.',
-												'Application passwords grant access to <a href="%1$s">all %2$s sites in this installation that you have permissions on</a>.',
-												$blogs_count
-											);
+											if ( is_multisite() ) :
+												$blogs       = get_blogs_of_user( $user_id, true );
+												$blogs_count = count( $blogs );
 
-											if ( is_super_admin( $user_id ) ) {
-												/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
-												$message = _n(
-													'Application passwords grant access to <a href="%1$s">the %2$s site on the network as you have Super Admin rights</a>.',
-													'Application passwords grant access to <a href="%1$s">all %2$s sites on the network as you have Super Admin rights</a>.',
-													$blogs_count
-												);
-											}
+												if ( $blogs_count > 1 ) :
+													?>
+													<p>
+														<?php
+														/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
+														$message = _n(
+															'Application passwords grant access to <a href="%1$s">the %2$s site in this installation that you have permissions on</a>.',
+															'Application passwords grant access to <a href="%1$s">all %2$s sites in this installation that you have permissions on</a>.',
+															$blogs_count
+														);
 
-											printf(
-												$message,
-												admin_url( 'my-sites.php' ),
-												number_format_i18n( $blogs_count )
-											);
+														if ( is_super_admin( $user_id ) ) {
+															/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
+															$message = _n(
+																'Application passwords grant access to <a href="%1$s">the %2$s site on the network as you have Super Admin rights</a>.',
+																'Application passwords grant access to <a href="%1$s">all %2$s sites on the network as you have Super Admin rights</a>.',
+																$blogs_count
+															);
+														}
+
+														printf(
+															$message,
+															admin_url( 'my-sites.php' ),
+															number_format_i18n( $blogs_count )
+														);
+														?>
+													</p>
+													<?php
+												endif;
+											endif;
 											?>
-										</p>
-										<?php
-									endif;
-								endif;
-								?>
 
-								<?php if ( ! wp_is_site_protected_by_basic_auth( 'front' ) ) : ?>
-									<div class="create-application-password form-wrap">
-										<div class="form-field">
-											<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
-											<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" spellcheck="false" />
-											<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
-										</div>
+											<?php if ( ! wp_is_site_protected_by_basic_auth( 'front' ) ) : ?>
+												<div class="create-application-password form-wrap">
+													<div class="form-field">
+														<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
+														<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" spellcheck="false" />
+														<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
+													</div>
 
-										<?php
-										/**
-										 * Fires in the create Application Passwords form.
-										 *
-										 * @since 5.6.0
-										 *
-										 * @param WP_User $profile_user The current WP_User object.
-										 */
-										do_action( 'wp_create_application_password_form', $profile_user );
-										?>
+													<?php
+													/**
+													 * Fires in the create Application Passwords form.
+													 *
+													 * @since 5.6.0
+													 *
+													 * @param WP_User $profile_user The current WP_User object.
+													 */
+													do_action( 'wp_create_application_password_form', $profile_user );
+													?>
 
-										<button type="button" name="do_new_application_password" id="do_new_application_password" class="button button-secondary"><?php _e( 'Add New Application Password' ); ?></button>
+													<button type="button" name="do_new_application_password" id="do_new_application_password" class="button button-secondary"><?php _e( 'Add New Application Password' ); ?></button>
+												</div>
+												<?php
+											else :
+												wp_admin_notice(
+													__( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ),
+													array(
+														'type' => 'error',
+														'additional_classes' => array( 'inline' ),
+													)
+												);
+											endif;
+											?>
+
+											<div class="application-passwords-list-table-wrapper">
+												<?php
+												$application_passwords_list_table = _get_list_table( 'WP_Application_Passwords_List_Table', array( 'screen' => 'application-passwords-user' ) );
+												$application_passwords_list_table->prepare_items();
+												$application_passwords_list_table->display();
+												?>
+											</div>
+										<?php elseif ( ! wp_is_application_passwords_supported() ) : ?>
+											<p><?php _e( 'The application password feature requires HTTPS, which is not enabled on this site.' ); ?></p>
+											<p>
+												<?php
+												printf(
+												/* translators: %s: Documentation URL. */
+													__( 'If this is a development website, you can <a href="%s">set the environment type accordingly</a> to enable application passwords.' ),
+													__( 'https://developer.wordpress.org/apis/wp-config-php/#wp-environment-type' )
+												);
+												?>
+											</p>
+										<?php endif; ?>
 									</div>
-									<?php
-								else :
-									wp_admin_notice(
-										__( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ),
-										array(
-											'type' => 'error',
-											'additional_classes' => array( 'inline' ),
-										)
-									);
-								endif;
-								?>
-
-								<div class="application-passwords-list-table-wrapper">
-									<?php
-									$application_passwords_list_table = _get_list_table( 'WP_Application_Passwords_List_Table', array( 'screen' => 'application-passwords-user' ) );
-									$application_passwords_list_table->prepare_items();
-									$application_passwords_list_table->display();
-									?>
-								</div>
-							<?php elseif ( ! wp_is_application_passwords_supported() ) : ?>
-								<p><?php _e( 'The application password feature requires HTTPS, which is not enabled on this site.' ); ?></p>
-								<p>
-									<?php
-									printf(
-										/* translators: %s: Documentation URL. */
-										__( 'If this is a development website, you can <a href="%s">set the environment type accordingly</a> to enable application passwords.' ),
-										__( 'https://developer.wordpress.org/apis/wp-config-php/#wp-environment-type' )
-									);
-									?>
-								</p>
-							<?php endif; ?>
-						</div>
+								</td>
+							</tr>
+						</table>
 					<?php endif; // End Application Passwords. ?>
 
 					<?php
