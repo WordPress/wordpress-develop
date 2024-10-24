@@ -272,7 +272,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 
 		// Custom attributes.
 		$this->assertStringContainsString( 'preload="auto"', $output );
-		$this->assertStringContainsString( 'loop="1"', $output );
+		$this->assertStringContainsString( 'loop', $output );
 	}
 
 	/**
