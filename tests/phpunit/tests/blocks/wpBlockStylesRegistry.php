@@ -47,7 +47,10 @@ class Tests_Blocks_wpBlockStylesRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_block_style_with_string_block_name() {
 		$name             = 'core/paragraph';
-		$style_properties = array( 'name' => 'fancy' );
+		$style_properties = array(
+			'name'  => 'fancy',
+			'label' => 'Fancy',
+		);
 		$result           = $this->registry->register( $name, $style_properties );
 		$this->assertTrue( $result );
 		$this->assertTrue( $this->registry->is_registered( 'core/paragraph', 'fancy' ) );
@@ -60,10 +63,29 @@ class Tests_Blocks_wpBlockStylesRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_block_style_with_array_of_block_names() {
 		$names            = array( 'core/paragraph', 'core/group' );
-		$style_properties = array( 'name' => 'plain' );
+		$style_properties = array(
+			'name'  => 'plain',
+			'label' => 'Plain',
+		);
 		$result           = $this->registry->register( $names, $style_properties );
 		$this->assertTrue( $result );
 		$this->assertTrue( $this->registry->is_registered( 'core/paragraph', 'plain' ) );
 		$this->assertTrue( $this->registry->is_registered( 'core/group', 'plain' ) );
+	}
+
+	/**
+	 * Should accept valid string style label.
+	 * The registered style should have the same label.
+	 */
+	public function test_register_block_style_with_string_style_label() {
+		$name             = 'core/paragraph';
+		$style_properties = array(
+			'name'  => 'fancy',
+			'label' => 'Fancy',
+		);
+		$result           = $this->registry->register( $name, $style_properties );
+		$this->assertTrue( $result );
+		$this->assertTrue( $this->registry->is_registered( 'core/paragraph', 'fancy' ) );
+		$this->assertEquals( $style_properties['label'], $this->registry->get_registered_styles_for_block( 'core/paragraph' )['fancy']['label'] );
 	}
 }
