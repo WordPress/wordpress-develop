@@ -1287,7 +1287,7 @@ function is_uninstallable_plugin( $plugin ) {
  *                   Void otherwise.
  */
 function uninstall_plugin( $plugin ) {
-	$file = plugin_basename( $plugin );
+	$plugin_basename = plugin_basename( $plugin );
 
 	$uninstallable_plugins = (array) get_option( 'uninstall_plugins' );
 
@@ -1301,42 +1301,101 @@ function uninstall_plugin( $plugin ) {
 	 */
 	do_action( 'pre_uninstall_plugin', $plugin, $uninstallable_plugins );
 
-	if ( file_exists( WP_PLUGIN_DIR . '/' . dirname( $file ) . '/uninstall.php' ) ) {
-		if ( isset( $uninstallable_plugins[ $file ] ) ) {
-			unset( $uninstallable_plugins[ $file ] );
-			update_option( 'uninstall_plugins', $uninstallable_plugins );
+	// must be a separate variable in case we have a null or false callable value
+	$use_callable = null;
+	$has_callable = false;
+	if ( array_key_exists( $plugin_basename, $uninstallable_plugins ) ) {
+		$use_callable = true;
+		$has_callable = true;
+		$callable = $uninstallable_plugins[ $plugin_basename ];
+		unset( $uninstallable_plugins[ $plugin_basename ] );
+	}
+
+	$uninstall_file = WP_PLUGIN_DIR . '/' . dirname( $plugin_basename ) . '/uninstall.php';
+	if ( is_readable( $uninstall_file ) ) {
+		$use_callable = false;
+
+		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+			// The constant value does not indicate the plugin being uninstalled
+			// e.g. in bulk actions it is the first plugin uninstalled.
+			// The value should not be used and is only available for legacy reasons.
+			define( 'WP_UNINSTALL_PLUGIN', $plugin_basename );
 		}
-		unset( $uninstallable_plugins );
+	} else {
+		$uninstall_file = WP_PLUGIN_DIR . '/' . $plugin_basename;
+		if ( ! is_readable( $uninstall_file ) ) {
+			// the plugin was previous uninstalled already but the option not updated due to a race condition
+			if ( $has_callable ) {
+				update_option( 'uninstall_plugins', $uninstallable_plugins );
+			}
 
-		define( 'WP_UNINSTALL_PLUGIN', $file );
+			return;
+		}
+	}
 
-		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $file );
-		include_once WP_PLUGIN_DIR . '/' . dirname( $file ) . '/uninstall.php';
+	if ( null !== $use_callable ) {
+		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $plugin_basename );
+		_uninstall_include_once_without_variable_inheritance( $uninstall_file );
+	}
 
+	if ( $use_callable ) {
+		if ( is_callable( $callable, false, $callable_name ) ) {
+			add_action( "uninstall_{$plugin_basename}", $callable_name );
+		} else {
+			wp_trigger_error(
+				$callable_name,
+				sprintf(
+					'The uninstall callable "%1$s" of plugin %2$s is not callable and cannot be executed.',
+					$callable_name,
+					$plugin_basename
+				),
+				E_USER_NOTICE
+			);
+		}
+	}
+
+	/**
+	 * Fires in uninstall_plugin() once the plugin has been uninstalled.
+	 *
+	 * The action concatenates the 'uninstall_' prefix with the basename of the
+	 * plugin passed to uninstall_plugin() to create a dynamically-named action.
+	 *
+	 * @since 2.7.0
+	 * @since 6.6.0 also called for uninstalls with uninstall.php or if the plugin has neither.
+	 */
+	do_action( "uninstall_{$plugin_basename}" );
+
+	// Only remove it after the action finished to ensure the plugin stays uninstallable if the uninstall times out/crashes.
+	if ( $has_callable ) {
+		update_option( 'uninstall_plugins', $uninstallable_plugins );
+	}
+
+	/**
+	 * Fires in uninstall_plugin() after the plugin is uninstalled.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $plugin                Path to the plugin file relative to the plugins directory.
+	 * @param array  $uninstallable_plugins Uninstallable plugins.
+	 */
+	do_action( 'after_uninstall_plugin', $plugin, $uninstallable_plugins );
+
+	if ( false === $use_callable ) {
 		return true;
 	}
+}
 
-	if ( isset( $uninstallable_plugins[ $file ] ) ) {
-		$callable = $uninstallable_plugins[ $file ];
-		unset( $uninstallable_plugins[ $file ] );
-		update_option( 'uninstall_plugins', $uninstallable_plugins );
-		unset( $uninstallable_plugins );
-
-		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $file );
-		include_once WP_PLUGIN_DIR . '/' . $file;
-
-		add_action( "uninstall_{$file}", $callable );
-
-		/**
-		 * Fires in uninstall_plugin() once the plugin has been uninstalled.
-		 *
-		 * The action concatenates the 'uninstall_' prefix with the basename of the
-		 * plugin passed to uninstall_plugin() to create a dynamically-named action.
-		 *
-		 * @since 2.7.0
-		 */
-		do_action( "uninstall_{$file}" );
-	}
+/**
+ * Include once a file without inheriting any non-global variables from the caller context
+ *
+ * @since 6.6.0
+ *
+ * @param string $file_path The absolute file path that should be included
+ *
+ * @return void
+ */
+function _uninstall_include_once_without_variable_inheritance( $file_path ) {
+	include_once $file_path;
 }
 
 //
