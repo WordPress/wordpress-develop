@@ -183,6 +183,8 @@ CREATE TABLE $wpdb->posts (
 	PRIMARY KEY  (ID),
 	KEY post_name (post_name($max_index_length)),
 	KEY type_status_date (post_type,post_status,post_date,ID),
+	KEY type_status_post_date_gmt (post_type,post_status,post_date_gmt),
+	KEY type_status_modified_date_gmt (post_type,post_status,post_modified_gmt),
 	KEY post_parent (post_parent),
 	KEY post_author (post_author)
 ) $charset_collate;\n";
