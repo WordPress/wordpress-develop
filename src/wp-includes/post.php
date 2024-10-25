@@ -2468,7 +2468,26 @@ function is_post_publicly_viewable( $post = null ) {
 	$post_type   = get_post_type( $post );
 	$post_status = get_post_status( $post );
 
-	return is_post_type_viewable( $post_type ) && is_post_status_viewable( $post_status );
+	$is_viewable = is_post_type_viewable( $post_type ) && is_post_status_viewable( $post_status );
+
+	/**
+	 * Filters whether a post is publicly viewable.
+	 *
+	 * This filter allows for external modification of the publicly viewable status
+	 * of a post. The returned value must be a boolean to ensure that the function
+	 * `is_post_publicly_viewable()` behaves consistently and reliably. Returning
+	 * a non-boolean value (including falsey and truthy values) will result in the
+	 * function returning false, which maintains backwards compatibility and
+	 * guards against potential type errors in PHP 8.1+.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param bool       $is_viewable Whether the post is publicly viewable (strict type).
+	 * @param WP_Post    $post       Post object being checked for visibility.
+	 *
+	 * @return bool The filtered publicly viewable status of the post, which must be a boolean.
+	 */
+	return true === apply_filters( 'is_post_publicly_viewable', $is_viewable, $post );
 }
 
 /**
