@@ -80,7 +80,7 @@ class getid3_id3v1 extends getid3_handler
 				// Since ID3v1 has no concept of character sets there is no certain way to know we have the correct non-ISO-8859-1 character set, but we can guess
 				foreach ($ParsedID3v1['comments'] as $tag_key => $valuearray) {
 					foreach ($valuearray as $key => $value) {
-						if (preg_match('#^[\\x00-\\x40\\x80-\\xFF]+$#', $value) && !ctype_digit((string) $value)) { // check for strings with only characters above chr(128) and punctuation/numbers, but not just numeric strings (e.g. track numbers or years)
+						if (preg_match('#^[\\x00-\\x40\\x80-\\xFF]+$#', $value) && !is_numeric((string) $value)) { // check for strings with only characters above chr(128) and punctuation/numbers, but not just numeric strings (e.g. track numbers or years)
 							foreach (array('Windows-1251', 'KOI8-R') as $id3v1_bad_encoding) {
 								if (function_exists('mb_convert_encoding') && @mb_convert_encoding($value, $id3v1_bad_encoding, $id3v1_bad_encoding) === $value) {
 									$ID3v1encoding = $id3v1_bad_encoding;
