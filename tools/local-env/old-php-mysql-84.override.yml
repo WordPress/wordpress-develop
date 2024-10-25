@@ -1,0 +1,5 @@
+services:
+
+  mysql:
+    volumes:
+      - ./tools/local-env/mysql-old-php.conf:/etc/mysql/conf.d/config-file.cnf

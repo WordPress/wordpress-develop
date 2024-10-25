@@ -12,7 +12,7 @@
  */
 
 ?>
-<!-- wp:template-part {"slug":"header"} /-->
+<!-- wp:template-part {"slug":"header-large-title"} /-->
 
 	<!-- wp:group {"tagName":"main","align":"wide","style":{"spacing":{"blockGap":"0"}},"layout":{"type":"default"}} -->
 	<main class="wp-block-group alignwide">
@@ -26,12 +26,11 @@
 					<div class="wp-block-group alignwide">
 						<!-- wp:post-title {"level":1,"align":"wide","fontSize":"x-large"} /-->
 						<!-- wp:group {"style":{"spacing":{"blockGap":"4px"}},"fontSize":"small","layout":{"type":"flex","flexWrap":"nowrap"}} -->
-							<div class="wp-block-group has-small-font-size">
-								<!-- wp:paragraph -->
-							<p>by</p>
+						<div class="wp-block-group has-small-font-size">
+							<!-- wp:paragraph -->
+							<p><?php echo esc_html_x( 'by', 'Prefix before the author name. The post author name is displayed in a separate block.', 'twentytwentyfive' ); ?></p>
 							<!-- /wp:paragraph -->
-
-							<!-- wp:post-author-name {"isLink":true,"fontSize":"small"} /-->
+							<!-- wp:post-author-name {"isLink":true,"style":{"typography":{"textDecoration":"underline"}},"fontSize":"small"} /-->
 						</div>
 						<!-- /wp:group -->
 					</div>
@@ -54,7 +53,7 @@
 					<div class="wp-block-group alignwide has-small-font-size">
 						<!-- wp:post-date /-->
 						<!-- wp:paragraph -->
-						<p>·</p>
+						<p><?php echo esc_html_x( '·', 'Separator between date and categories.', 'twentytwentyfive' ); ?></p>
 						<!-- /wp:paragraph -->
 						<!-- wp:post-terms {"term":"category"} /-->
 					</div>
@@ -110,4 +109,4 @@
 	</main>
 	<!-- /wp:group -->
 
-<!-- wp:template-part {"slug":"footer"} /-->
+<!-- wp:template-part {"slug":"footer-columns"} /-->

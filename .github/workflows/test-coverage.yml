@@ -24,6 +24,13 @@ on:
   # Allow manually triggering the workflow.
   workflow_dispatch:
 
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
 permissions: {}
@@ -35,160 +42,26 @@ env:
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
 
 jobs:
-  # Runs the PHPUnit tests for WordPress.
   #
-  # Performs the following steps:
-  # - Sets environment variables.
-  # - Checks out the repository.
-  # - Sets up Node.js.
-  # - Sets up PHP.
-  # - Installs Composer dependencies.
-  # - Installs npm dependencies
-  # - Logs general debug information about the runner.
-  # - Logs Docker debug information (about the Docker installation within the runner).
-  # - Starts the WordPress Docker container.
-  # - Logs the running Docker containers.
-  # - Logs debug information about what's installed within the WordPress Docker containers.
-  # - Install WordPress within the Docker container.
-  # - Run the PHPUnit tests as a single site.
-  # - Ensures version-controlled files are not modified or deleted.
-  # - Upload the single site code coverage report to Codecov.io.
-  # - Run the PHPUnit tests as a multisite installation.
-  # - Ensures version-controlled files are not modified or deleted.
-  # - Upload the multisite code coverage report to Codecov.io.
+  # Creates a PHPUnit test jobs for generating code coverage reports.
+  #
   test-coverage-report:
-    name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report (${{ matrix.format }})
-    runs-on: ubuntu-latest
+    name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
     permissions:
       contents: read
-    timeout-minutes: 120
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
       fail-fast: false
       matrix:
         multisite: [ false, true ]
-        format: [ clover, html ]
-
-    steps:
-      - name: Configure environment variables
-        run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
-
-      - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-        with:
-          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      ##
-      # This allows Composer dependencies to be installed using a single step.
-      #
-      # Since the tests are currently run within the Docker containers where the PHP version varies,
-      # the same PHP version needs to be configured for the action runner machine so that the correct
-      # dependency versions are installed and cached.
-      ##
-      - name: Set up PHP
-        uses: shivammathur/setup-php@c541c155eee45413f5b09a52248675b1a2575231 # v2.31.1
-        with:
-          php-version: '7.4'
-          coverage: none
-
-      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
-      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
-      - name: Install Composer dependencies
-        uses: ramsey/composer-install@57532f8be5bda426838819c5ee9afb8af389d51a # v3.0.0
-        with:
-          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
-
-      - name: Install npm Dependencies
-        run: npm ci
-
-      - name: Log debug information
-        run: |
-          echo "$GITHUB_REF"
-          echo "$GITHUB_EVENT_NAME"
-          npm --version
-          node --version
-          curl --version
-          git --version
-          composer --version
-          locale -a
-
-      - name: Docker debug information
-        run: |
-          docker -v
-
-      - name: Start Docker environment
-        run: |
-          npm run env:start
-
-      - name: Log running Docker containers
-        run: docker ps -a
-
-      - name: WordPress Docker container debug information
-        run: |
-          docker compose run --rm mysql mysql --version
-          docker compose run --rm php php --version
-          docker compose run --rm php php -m
-          docker compose run --rm php php -i
-          docker compose run --rm php locale -a
-
-      - name: Install WordPress
-        run: npm run env:install
-
-      - name: Run tests as a single site
-        if: ${{ ! matrix.multisite }}
-        run: npm run test:php -- --verbose -c phpunit.xml.dist --coverage-${{ 'html' == matrix.format && 'html' || 'clover' }} wp-code-coverage-single-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
-
-      - name: Ensure version-controlled files are not modified during the tests
-        run: git diff --exit-code
-
-      - name: Upload single site report to Codecov
-        if: ${{ ! matrix.multisite && matrix.format == 'clover' && github.event_name != 'pull_request' }}
-        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.5.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: wp-code-coverage-single-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
-          flags: single,php
-          fail_ci_if_error: true
-
-      - name: Upload single site HTML report as artifact
-        if: ${{ ! matrix.multisite && matrix.format == 'html' }}
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
-        with:
-          name: wp-code-coverage-single-${{ github.sha }}
-          path: wp-code-coverage-single-${{ github.sha }}
-          overwrite: true
-
-      - name: Run tests as a multisite install
-        if: ${{ matrix.multisite }}
-        run: npm run test:php -- --verbose -c tests/phpunit/multisite.xml --coverage-${{ 'html' == matrix.format && 'html' || 'clover' }} wp-code-coverage-multisite-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
-
-      - name: Ensure version-controlled files are not modified during the tests
-        run: git diff --exit-code
-
-      - name: Upload multisite report to Codecov
-        if: ${{ matrix.multisite && matrix.format == 'clover' && github.event_name != 'pull_request' }}
-        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.5.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: wp-code-coverage-multisite-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
-          flags: multisite,php
-          fail_ci_if_error: true
-
-      - name: Upload multisite HTML report as artifact
-        if: ${{ matrix.multisite && matrix.format == 'html' }}
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
-        with:
-          name: wp-code-coverage-multisite-${{ github.sha }}
-          path: wp-code-coverage-multisite-${{ github.sha }}
-          overwrite: true
+        coverage-report: [ true ]
+    with:
+      php: '8.3'
+      multisite: ${{ matrix.multisite }}
+      coverage-report: ${{ matrix.coverage-report }}
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   slack-notifications:
     name: Slack Notifications
