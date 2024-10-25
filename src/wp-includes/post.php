@@ -4455,7 +4455,9 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	}
 
 	$maybe_empty = 'attachment' !== $post_type
-		&& ! $post_content && ! $post_title && ! $post_excerpt
+		&& ( is_null( $post_content ) || '' === $post_content )
+		&& ( is_null( $post_title ) || '' === $post_title )
+		&& ( is_null( $post_excerpt ) || '' === $post_excerpt )
 		&& post_type_supports( $post_type, 'editor' )
 		&& post_type_supports( $post_type, 'title' )
 		&& post_type_supports( $post_type, 'excerpt' );
@@ -5376,7 +5378,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		 */
 		$is_bad_attachment_slug = apply_filters( 'wp_unique_post_slug_is_bad_attachment_slug', false, $slug );
 
-		if ( $post_name_check
+		if ( ( ! is_null( $post_name_check ) && '' !== $post_name_check )
 			|| in_array( $slug, $feeds, true ) || 'embed' === $slug
 			|| $is_bad_attachment_slug
 		) {
@@ -5412,7 +5414,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		 */
 		$is_bad_hierarchical_slug = apply_filters( 'wp_unique_post_slug_is_bad_hierarchical_slug', false, $slug, $post_type, $post_parent );
 
-		if ( $post_name_check
+		if ( ( ! is_null( $post_name_check ) && '' !== $post_name_check )
 			|| in_array( $slug, $feeds, true ) || 'embed' === $slug
 			|| preg_match( "@^($wp_rewrite->pagination_base)?\d+$@", $slug )
 			|| $is_bad_hierarchical_slug
@@ -5468,7 +5470,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		 */
 		$is_bad_flat_slug = apply_filters( 'wp_unique_post_slug_is_bad_flat_slug', false, $slug, $post_type );
 
-		if ( $post_name_check
+		if ( ( ! is_null( $post_name_check ) && '' !== $post_name_check )
 			|| in_array( $slug, $feeds, true ) || 'embed' === $slug
 			|| $conflicts_with_date_archive
 			|| $is_bad_flat_slug
