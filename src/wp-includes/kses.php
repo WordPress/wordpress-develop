@@ -2683,7 +2683,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			// Only add the CSS part if it passes the regex check.
 			if ( $allow_css ) {
 				if ( '' !== $css ) {
-					$css .= ';';
+					$css .= '; ';
 				}
 
 				$css .= $css_item;
