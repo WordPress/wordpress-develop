@@ -167,22 +167,44 @@ function wp_check_php_mysql_versions() {
 		);
 		exit( 1 );
 	}
+	$required_extensions = array(
+		'json',
+		'mbstring',
+		'mysqli',
+	);
+	$missing_extensions  = array();
 
 	// This runs before default constants are defined, so we can't assume WP_CONTENT_DIR is set yet.
 	$wp_content_dir = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
 
-	if ( ! function_exists( 'mysqli_connect' )
-		&& ! file_exists( $wp_content_dir . '/db.php' )
-	) {
+	foreach ( $required_extensions as $extension ) {
+		if ( 'mysqli' === $extension
+			&& ! function_exists( 'mysqli_connect' )
+			&& ! file_exists( $wp_content_dir . '/db.php' )
+		) {
+			$missing_extensions[] = 'mysqli';
+			continue;
+		}
+
+		if ( ! extension_loaded( $extension ) ) {
+			$missing_extensions[] = $extension;
+		}
+	}
+
+	foreach ( $missing_extensions as $missing_extension ) {
 		require_once ABSPATH . WPINC . '/functions.php';
 		wp_load_translations_early();
 
-		$message = '<p>' . __( 'Your PHP installation appears to be missing the MySQL extension which is required by WordPress.' ) . "</p>\n";
+		$message = '<p>' . sprintf(
+			/* translators: %s: The PHP extension name needed. */
+			__( 'Your PHP installation appears to be missing the %s extension which is required by WordPress.' ),
+			'<code>' . $missing_extension . '</code>'
+		) . "</p>\n";
 
 		$message .= '<p>' . sprintf(
-			/* translators: %s: mysqli. */
+			/* translators: %s: The PHP extension name needed. */
 			__( 'Please check that the %s PHP extension is installed and enabled.' ),
-			'<code>mysqli</code>'
+			'<code>' . $missing_extension . '</code>'
 		) . "</p>\n";
 
 		$message .= '<p>' . sprintf(
@@ -193,7 +215,7 @@ function wp_check_php_mysql_versions() {
 
 		$args = array(
 			'exit' => false,
-			'code' => 'mysql_not_found',
+			'code' => sprintf( '%s_not_found', $missing_extension ),
 		);
 		wp_die(
 			$message,
