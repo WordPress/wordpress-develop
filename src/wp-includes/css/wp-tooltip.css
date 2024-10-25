@@ -1,0 +1,102 @@
+.wp-tooltip-container {
+	position: relative;
+	display: inline-block;
+}
+
+.wp-tooltip-button:focus {
+	outline: 1px solid black;
+	border-radius: 20px;
+}
+
+.wp-tooltip-button {
+	background: none;
+	border: none;
+	cursor: pointer;
+}
+
+.wp-tooltip-button-span {
+	vertical-align: top;
+    text-align: center;
+}
+
+.wp-tooltip-content {
+	display: none;
+	position: absolute;
+	background-color: #2271b1;
+	color: white;
+	border: 1px solid #ccc;
+	padding: 5px;
+	z-index: 1000;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	border-radius: 5px;
+	width: 200px;
+	height: auto;
+	text-align: center;
+}
+
+.wp-tooltip-content p {
+	all: unset;
+	overflow-wrap: break-word;
+}
+
+/* Styles for default positions. */
+.wp-tooltip-container.position-top .wp-tooltip-content {
+	top: auto;
+	bottom: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.wp-tooltip-container.position-bottom .wp-tooltip-content {
+	top: 100%;
+	bottom: auto;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.wp-tooltip-container.position-left .wp-tooltip-content {
+	top: 50%;
+	bottom: auto;
+	left: auto;
+	right: 100%;
+	transform: translateY(-50%);
+}
+
+.wp-tooltip-container.position-right .wp-tooltip-content {
+	top: 50%;
+	bottom: auto;
+	left: 100%;
+	right: auto;
+	transform: translateY(-50%);
+}
+
+/* Styles for Adjusted position. */
+.wp-tooltip-container.adjusted-position-top .wp-tooltip-content {
+	top: auto;
+	bottom: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.wp-tooltip-container.adjusted-position-bottom .wp-tooltip-content {
+	top: 100%;
+	bottom: auto;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.wp-tooltip-container.adjusted-position-left .wp-tooltip-content {
+	top: 50%;
+	bottom: auto;
+	left: auto;
+	right: 100%;
+	transform: translateY(-50%);
+}
+
+.wp-tooltip-container.adjusted-position-right .wp-tooltip-content {
+	top: 50%;
+	bottom: auto;
+	left: 100%;
+	right: auto;
+	transform: translateY(-50%);
+}
