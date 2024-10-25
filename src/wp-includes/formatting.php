@@ -3477,6 +3477,11 @@ function convert_smilies( $text ) {
 	if ( get_option( 'use_smilies' ) && ! empty( $wp_smiliessearch ) ) {
 		// HTML loop taken from texturize function, could possible be consolidated.
 		$textarr = preg_split( '/(<.*>)/U', $text, -1, PREG_SPLIT_DELIM_CAPTURE ); // Capture the tags as well as in between.
+
+		if ( ! $textarr ) {
+			return $text; // Bail out if preg_split() fails.
+		}
+
 		$stop    = count( $textarr ); // Loop stuff.
 
 		// Ignore processing of specific tags.

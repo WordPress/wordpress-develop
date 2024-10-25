@@ -393,4 +393,14 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 		$wpsmiliestrans['<3'] = '\xe2\x9d\xa4';
 		return $wpsmiliestrans;
 	}
+
+	/**
+	 * Test to ensure smilies can be added with a filter
+	 *
+	 * @ticket 51019
+	 */
+	public function test_smilies_with_large_text_input() {
+		$text = '<p><img alt="" src="data:image/png;base64,' . str_repeat( 'iVBORw0KGgoAAAAN', 99999 ) . '="></p> <3';
+		$this->assertSame( $text, convert_smilies( $text ) );
+	}
 }
