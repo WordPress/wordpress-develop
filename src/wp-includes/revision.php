@@ -665,9 +665,11 @@ function wp_get_post_revisions( $post = 0, $args = null ) {
 	}
 
 	$defaults = array(
-		'order'         => 'DESC',
-		'orderby'       => 'date ID',
-		'check_enabled' => true,
+		'order'                  => 'DESC',
+		'orderby'                => 'date ID',
+		'check_enabled'          => true,
+		'update_post_meta_cache' => false,
+		'update_post_term_cache' => false,
 	);
 	$args     = wp_parse_args( $args, $defaults );
 
