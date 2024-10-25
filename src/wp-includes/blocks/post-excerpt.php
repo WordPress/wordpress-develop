@@ -29,7 +29,7 @@ function render_block_core_post_excerpt( $attributes, $content, $block ) {
 	$excerpt_length = $attributes['excerptLength'];
 	$excerpt        = get_the_excerpt( $block->context['postId'] );
 	if ( isset( $excerpt_length ) ) {
-		$excerpt = wp_trim_words( $excerpt, $excerpt_length );
+		$excerpt = wp_trim_words( $excerpt, $excerpt_length, null, true );
 	}
 
 	$more_text           = ! empty( $attributes['moreText'] ) ? '<a class="wp-block-post-excerpt__more-link" href="' . esc_url( get_the_permalink( $block->context['postId'] ) ) . '">' . wp_kses_post( $attributes['moreText'] ) . '</a>' : '';

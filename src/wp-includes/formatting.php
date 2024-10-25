@@ -4022,20 +4022,80 @@ function wp_trim_excerpt( $text = '', $post = null ) {
  * to the number of individual characters.
  *
  * @since 3.3.0
+ * @since 6.7.0 Added the $allow_tags parameter.
  *
  * @param string $text      Text to trim.
  * @param int    $num_words Number of words. Default 55.
  * @param string $more      Optional. What to append if $text needs to be trimmed. Default '&hellip;'.
+ * @param bool   $allow_tags Optional. Whether to allow HTML tags in the text. Default false.
  * @return string Trimmed text.
  */
-function wp_trim_words( $text, $num_words = 55, $more = null ) {
+function wp_trim_words( $text, $num_words = 55, $more = null, $allow_tags = false ) {
 	if ( null === $more ) {
 		$more = __( '&hellip;' );
 	}
 
 	$original_text = $text;
-	$text          = wp_strip_all_tags( $text );
-	$num_words     = (int) $num_words;
+	if ( $allow_tags ) {
+		$allowed_tags = array(
+			'a'      => array(
+				'class' => array(),
+				'style' => array(),
+				'href'  => array(),
+				'id'    => array(),
+			),
+			'strong' => array(),
+			'b'      => array(),
+			'em'     => array(),
+			'img'    => array(
+				'class'  => array(),
+				'style'  => array(),
+				'src'    => array(),
+				'alt'    => array(),
+				'width'  => array(),
+				'height' => array(),
+			),
+			'mark'   => array(
+				'class' => array(),
+				'style' => array(),
+			),
+			'code'   => array(
+				'class' => array(),
+				'style' => array(),
+			),
+			'kbd'    => array(
+				'class' => array(),
+				'style' => array(),
+			),
+			'bdo'    => array(
+				'class' => array(),
+				'style' => array(),
+				'dir'   => array(),
+				'lang'  => array(),
+
+			),
+			'span'   => array(
+				'class' => array(),
+				'style' => array(),
+			),
+			'sup'    => array(
+				'class' => array(),
+				'style' => array(),
+			),
+			'sub'    => array(
+				'class' => array(),
+				'style' => array(),
+			),
+			's'      => array(
+				'class' => array(),
+				'style' => array(),
+			),
+		);
+		$text = wp_kses( $text, $allowed_tags );
+	} else {
+		$text = wp_strip_all_tags( $text );
+	}
+	$num_words = (int) $num_words;
 
 	if ( str_starts_with( wp_get_word_count_type(), 'characters' ) && preg_match( '/^utf\-?8$/i', get_option( 'blog_charset' ) ) ) {
 		$text = trim( preg_replace( "/[\n\r\t ]+/", ' ', $text ), ' ' );
