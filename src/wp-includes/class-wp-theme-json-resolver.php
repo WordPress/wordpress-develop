@@ -143,7 +143,14 @@ class WP_Theme_JSON_Resolver {
 	 */
 	protected static function translate( $theme_json, $domain = 'default' ) {
 		if ( null === static::$i18n_schema ) {
-			$i18n_schema         = wp_json_file_decode( __DIR__ . '/theme-i18n.json' );
+			$file_path = __DIR__ . '/assets/theme-i18n-json.php';
+			if ( file_exists( $file_path ) ) {
+				$i18n_schema = require $file_path;
+				$i18n_schema = json_decode( json_encode( $i18n_schema ) );
+			} else {
+				$i18n_schema = wp_json_file_decode( __DIR__ . '/theme-i18n.json' );
+			}
+
 			static::$i18n_schema = null === $i18n_schema ? array() : $i18n_schema;
 		}
 
@@ -162,7 +169,13 @@ class WP_Theme_JSON_Resolver {
 			return static::$core;
 		}
 
-		$config = static::read_json_file( __DIR__ . '/theme.json' );
+		$file_path = __DIR__ . '/assets/theme-json.php';
+		if ( file_exists( $file_path ) ) {
+			$config = require $file_path;
+		} else {
+			$config = static::read_json_file( __DIR__ . '/theme.json' );
+		}
+
 		$config = static::translate( $config );
 
 		/**
