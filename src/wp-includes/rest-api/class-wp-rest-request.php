@@ -809,7 +809,7 @@ class WP_REST_Request implements ArrayAccess {
 		$invalid_details = array();
 
 		foreach ( $order as $type ) {
-			if ( empty( $this->params[ $type ] ) ) {
+			if ( empty( $this->params[ $type ] ) || ! is_array( $this->params[ $type ] ) ) {
 				continue;
 			}
 
