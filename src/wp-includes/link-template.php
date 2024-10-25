@@ -1177,30 +1177,12 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $d
  *
  * @since 3.0.0
  *
- * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
- *
  * @param string $query Optional. The query string to use. If empty the current query is used. Default empty.
  * @return string The search permalink.
  */
 function get_search_link( $query = '' ) {
-	global $wp_rewrite;
-
-	if ( empty( $query ) ) {
-		$search = get_search_query( false );
-	} else {
-		$search = stripslashes( $query );
-	}
-
-	$permastruct = $wp_rewrite->get_search_permastruct();
-
-	if ( empty( $permastruct ) ) {
-		$link = home_url( '?s=' . urlencode( $search ) );
-	} else {
-		$search = urlencode( $search );
-		$search = str_replace( '%2F', '/', $search ); // %2F(/) is not valid within a URL, send it un-encoded.
-		$link   = str_replace( '%search%', $search, $permastruct );
-		$link   = home_url( user_trailingslashit( $link, 'search' ) );
-	}
+	$search = ( empty( $query ) ) ? get_search_query( false ) : stripslashes( $query );
+	$link   = home_url( '?s=' . urlencode( $search ) );
 
 	/**
 	 * Filters the search permalink.
@@ -1218,29 +1200,19 @@ function get_search_link( $query = '' ) {
  *
  * @since 2.5.0
  *
- * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
- *
  * @param string $search_query Optional. Search query. Default empty.
  * @param string $feed         Optional. Feed type. Possible values include 'rss2', 'atom'.
  *                             Default is the value of get_default_feed().
  * @return string The search results feed permalink.
  */
 function get_search_feed_link( $search_query = '', $feed = '' ) {
-	global $wp_rewrite;
 	$link = get_search_link( $search_query );
 
 	if ( empty( $feed ) ) {
 		$feed = get_default_feed();
 	}
 
-	$permastruct = $wp_rewrite->get_search_permastruct();
-
-	if ( empty( $permastruct ) ) {
-		$link = add_query_arg( 'feed', $feed, $link );
-	} else {
-		$link  = trailingslashit( $link );
-		$link .= "feed/$feed/";
-	}
+	$link = add_query_arg( 'feed', $feed, $link );
 
 	/**
 	 * Filters the search feed link.
@@ -1259,29 +1231,18 @@ function get_search_feed_link( $search_query = '', $feed = '' ) {
  *
  * @since 2.5.0
  *
- * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
- *
  * @param string $search_query Optional. Search query. Default empty.
  * @param string $feed         Optional. Feed type. Possible values include 'rss2', 'atom'.
  *                             Default is the value of get_default_feed().
  * @return string The comments feed search results permalink.
  */
 function get_search_comments_feed_link( $search_query = '', $feed = '' ) {
-	global $wp_rewrite;
-
 	if ( empty( $feed ) ) {
 		$feed = get_default_feed();
 	}
 
 	$link = get_search_feed_link( $search_query, $feed );
-
-	$permastruct = $wp_rewrite->get_search_permastruct();
-
-	if ( empty( $permastruct ) ) {
-		$link = add_query_arg( 'feed', 'comments-' . $feed, $link );
-	} else {
-		$link = add_query_arg( 'withcomments', 1, $link );
-	}
+	$link = add_query_arg( 'feed', 'comments-' . $feed, $link );
 
 	/** This filter is documented in wp-includes/link-template.php */
 	return apply_filters( 'search_feed_link', $link, $feed, 'comments' );
