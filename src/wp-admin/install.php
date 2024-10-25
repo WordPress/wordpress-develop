@@ -25,7 +25,7 @@ if ( false ) {
 }
 
 /**
- * We are installing WordPress.
+ * Installing WordPress.
  *
  * @since 1.5.1
  * @var bool
@@ -350,7 +350,7 @@ switch ( $step ) {
 			}
 		}
 
-		// Deliberately fall through if we can't reach the translations API.
+		// Deliberately fall through if the translations API is unreachable.
 
 	case 1: // Step 1, direct link or from language chooser.
 		if ( ! empty( $language ) ) {
@@ -389,7 +389,7 @@ switch ( $step ) {
 		$scripts_to_print[] = 'user-profile';
 
 		display_header();
-		// Fill in the data we gathered.
+		// Fill in the gathered data.
 		$weblog_title         = isset( $_POST['weblog_title'] ) ? trim( wp_unslash( $_POST['weblog_title'] ) ) : '';
 		$user_name            = isset( $_POST['user_name'] ) ? trim( wp_unslash( $_POST['user_name'] ) ) : '';
 		$admin_password       = isset( $_POST['admin_password'] ) ? wp_unslash( $_POST['admin_password'] ) : '';
