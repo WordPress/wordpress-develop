@@ -19,7 +19,7 @@ Whether you’re building a single-page website, a blog, a business website, or 
 
 If you are using WordPress version 6.1 or newer, you are recommended to update the comment block to the latest version.
 
-### Instructions:
+= Instructions =
 
 1. From the WordPress admin, open Appearance > Site Editor.
 2. Select "Templates" from the menu in the Site Editor sidebar.
