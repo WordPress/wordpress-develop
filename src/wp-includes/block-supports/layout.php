@@ -490,11 +490,49 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 			}
 		}
 	} elseif ( 'grid' === $layout_type ) {
-		if ( ! empty( $layout['columnCount'] ) ) {
+		// Deal with block gap first so it can be used for responsive computation.
+		$responsive_gap_value = '1.2rem';
+		if ( $has_block_gap_support && isset( $gap_value ) ) {
+			$combined_gap_value = '';
+			$gap_sides          = is_array( $gap_value ) ? array( 'top', 'left' ) : array( 'top' );
+
+			foreach ( $gap_sides as $gap_side ) {
+				$process_value = $gap_value;
+				if ( is_array( $gap_value ) ) {
+					$process_value = $gap_value[ $gap_side ] ?? $fallback_gap_value;
+				}
+				// Get spacing CSS variable from preset value if provided.
+				if ( is_string( $process_value ) && str_contains( $process_value, 'var:preset|spacing|' ) ) {
+					$index_to_splice = strrpos( $process_value, '|' ) + 1;
+					$slug            = _wp_to_kebab_case( substr( $process_value, $index_to_splice ) );
+					$process_value   = "var(--wp--preset--spacing--$slug)";
+				}
+				$combined_gap_value .= "$process_value ";
+			}
+			$gap_value            = trim( $combined_gap_value );
+			$responsive_gap_value = $gap_value;
+		}
+
+		if ( ! empty( $layout['columnCount'] ) && ! empty( $layout['minimumColumnWidth'] ) ) {
+			$max_value       = 'max(' . $layout['minimumColumnWidth'] . ', (100% - (' . $responsive_gap_value . ' * (' . $layout['columnCount'] . ' - 1))) /' . $layout['columnCount'] . ')';
+			$layout_styles[] = array(
+				'selector'     => $selector,
+				'declarations' => array(
+					'grid-template-columns' => 'repeat(auto-fill, minmax(' . $max_value . ', 1fr))',
+					'container-type'        => 'inline-size',
+				),
+			);
+		} elseif ( ! empty( $layout['columnCount'] ) ) {
 			$layout_styles[] = array(
 				'selector'     => $selector,
 				'declarations' => array( 'grid-template-columns' => 'repeat(' . $layout['columnCount'] . ', minmax(0, 1fr))' ),
 			);
+			if ( ! empty( $layout['rowCount'] ) ) {
+				$layout_styles[] = array(
+					'selector'     => $selector,
+					'declarations' => array( 'grid-template-rows' => 'repeat(' . $layout['rowCount'] . ', minmax(0, 1fr))' ),
+				);
+			}
 		} else {
 			$minimum_column_width = ! empty( $layout['minimumColumnWidth'] ) ? $layout['minimumColumnWidth'] : '12rem';
 
@@ -507,31 +545,11 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 			);
 		}
 
-		if ( $has_block_gap_support && isset( $gap_value ) ) {
-			$combined_gap_value = '';
-			$gap_sides          = is_array( $gap_value ) ? array( 'top', 'left' ) : array( 'top' );
-
-			foreach ( $gap_sides as $gap_side ) {
-				$process_value = $gap_value;
-				if ( is_array( $gap_value ) ) {
-					$process_value = isset( $gap_value[ $gap_side ] ) ? $gap_value[ $gap_side ] : $fallback_gap_value;
-				}
-				// Get spacing CSS variable from preset value if provided.
-				if ( is_string( $process_value ) && str_contains( $process_value, 'var:preset|spacing|' ) ) {
-					$index_to_splice = strrpos( $process_value, '|' ) + 1;
-					$slug            = _wp_to_kebab_case( substr( $process_value, $index_to_splice ) );
-					$process_value   = "var(--wp--preset--spacing--$slug)";
-				}
-				$combined_gap_value .= "$process_value ";
-			}
-			$gap_value = trim( $combined_gap_value );
-
-			if ( null !== $gap_value && ! $should_skip_gap_serialization ) {
-				$layout_styles[] = array(
-					'selector'     => $selector,
-					'declarations' => array( 'gap' => $gap_value ),
-				);
-			}
+		if ( $has_block_gap_support && null !== $gap_value && ! $should_skip_gap_serialization ) {
+			$layout_styles[] = array(
+				'selector'     => $selector,
+				'declarations' => array( 'gap' => $gap_value ),
+			);
 		}
 	}
 
@@ -584,37 +602,55 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		$child_layout_declarations = array();
 		$child_layout_styles       = array();
 
-		$self_stretch = isset( $child_layout['selfStretch'] ) ? $child_layout['selfStretch'] : null;
+		$self_stretch = isset( $block['attrs']['style']['layout']['selfStretch'] ) ? $block['attrs']['style']['layout']['selfStretch'] : null;
 
-		if ( 'fixed' === $self_stretch && isset( $child_layout['flexSize'] ) ) {
-			$child_layout_declarations['flex-basis'] = $child_layout['flexSize'];
+		if ( 'fixed' === $self_stretch && isset( $block['attrs']['style']['layout']['flexSize'] ) ) {
+			$child_layout_declarations['flex-basis'] = $block['attrs']['style']['layout']['flexSize'];
 			$child_layout_declarations['box-sizing'] = 'border-box';
 		} elseif ( 'fill' === $self_stretch ) {
 			$child_layout_declarations['flex-grow'] = '1';
 		}
 
-		if ( isset( $child_layout['columnSpan'] ) ) {
-			$column_span                              = $child_layout['columnSpan'];
+		$column_start = isset( $block['attrs']['style']['layout']['columnStart'] ) ? $block['attrs']['style']['layout']['columnStart'] : null;
+		$column_span  = isset( $block['attrs']['style']['layout']['columnSpan'] ) ? $block['attrs']['style']['layout']['columnSpan'] : null;
+		if ( $column_start && $column_span ) {
+			$child_layout_declarations['grid-column'] = "$column_start / span $column_span";
+		} elseif ( $column_start ) {
+			$child_layout_declarations['grid-column'] = "$column_start";
+		} elseif ( $column_span ) {
 			$child_layout_declarations['grid-column'] = "span $column_span";
 		}
-		if ( isset( $child_layout['rowSpan'] ) ) {
-			$row_span                              = $child_layout['rowSpan'];
+
+		$row_start = isset( $block['attrs']['style']['layout']['rowStart'] ) ? $block['attrs']['style']['layout']['rowStart'] : null;
+		$row_span  = isset( $block['attrs']['style']['layout']['rowSpan'] ) ? $block['attrs']['style']['layout']['rowSpan'] : null;
+		if ( $row_start && $row_span ) {
+			$child_layout_declarations['grid-row'] = "$row_start / span $row_span";
+		} elseif ( $row_start ) {
+			$child_layout_declarations['grid-row'] = "$row_start";
+		} elseif ( $row_span ) {
 			$child_layout_declarations['grid-row'] = "span $row_span";
 		}
+
 		$child_layout_styles[] = array(
 			'selector'     => ".$container_content_class",
 			'declarations' => $child_layout_declarations,
 		);
 
+		$minimum_column_width = isset( $block['parentLayout']['minimumColumnWidth'] ) ? $block['parentLayout']['minimumColumnWidth'] : null;
+		$column_count         = isset( $block['parentLayout']['columnCount'] ) ? $block['parentLayout']['columnCount'] : null;
+
 		/*
-		 * If columnSpan is set, and the parent grid is responsive, i.e. if it has a minimumColumnWidth set,
-		 * the columnSpan should be removed on small grids. If there's a minimumColumnWidth, the grid is responsive.
-		 * But if the minimumColumnWidth value wasn't changed, it won't be set. In that case, if columnCount doesn't
-		 * exist, we can assume that the grid is responsive.
+		 * If columnSpan or columnStart is set, and the parent grid is responsive, i.e. if it has a minimumColumnWidth set,
+		 * the columnSpan should be removed once the grid is smaller than the span, and columnStart should be removed
+		 * once the grid has less columns than the start.
+		 * If there's a minimumColumnWidth, the grid is responsive. But if the minimumColumnWidth value wasn't changed, it won't be set.
+		 * In that case, if columnCount doesn't exist, we can assume that the grid is responsive.
 		 */
-		if ( isset( $child_layout['columnSpan'] ) && ( isset( $block['parentLayout']['minimumColumnWidth'] ) || ! isset( $block['parentLayout']['columnCount'] ) ) ) {
-			$column_span_number  = floatval( $child_layout['columnSpan'] );
-			$parent_column_width = isset( $block['parentLayout']['minimumColumnWidth'] ) ? $block['parentLayout']['minimumColumnWidth'] : '12rem';
+		if ( ( $column_span || $column_start ) && ( $minimum_column_width || ! $column_count ) ) {
+			$column_span_number  = floatval( $column_span );
+			$column_start_number = floatval( $column_start );
+			$highest_number      = max( $column_span_number, $column_start_number );
+			$parent_column_width = $minimum_column_width ? $minimum_column_width : '12rem';
 			$parent_column_value = floatval( $parent_column_width );
 			$parent_column_unit  = explode( $parent_column_value, $parent_column_width );
 
@@ -638,15 +674,19 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 			 * A default gap value is used for this computation because custom gap values may not be
 			 * viable to use in the computation of the container query value.
 			 */
-			$default_gap_value     = 'px' === $parent_column_unit ? 24 : 1.5;
-			$container_query_value = $column_span_number * $parent_column_value + ( $column_span_number - 1 ) * $default_gap_value;
-			$container_query_value = $container_query_value . $parent_column_unit;
+			$default_gap_value             = 'px' === $parent_column_unit ? 24 : 1.5;
+			$container_query_value         = $highest_number * $parent_column_value + ( $highest_number - 1 ) * $default_gap_value;
+			$minimum_container_query_value = $parent_column_value * 2 + $default_gap_value - 1;
+			$container_query_value         = max( $container_query_value, $minimum_container_query_value ) . $parent_column_unit;
+			// If a span is set we want to preserve it as long as possible, otherwise we just reset the value.
+			$grid_column_value = $column_span && $column_span > 1 ? '1/-1' : 'auto';
 
 			$child_layout_styles[] = array(
 				'rules_group'  => "@container (max-width: $container_query_value )",
 				'selector'     => ".$container_content_class",
 				'declarations' => array(
-					'grid-column' => '1/-1',
+					'grid-column' => $grid_column_value,
+					'grid-row'    => 'auto',
 				),
 			);
 		}
