@@ -915,6 +915,65 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `wp_insert_user()` rejects a 'user_login' that matches an existing user email.
+	 *
+	 * @ticket 57394
+	 *
+	 * @covers ::wp_insert_user
+	 */
+	public function test_wp_insert_user_should_reject_user_login_that_matches_existing_user_email() {
+		$existing_email = get_option( 'admin_email' );
+		$user_id        = wp_insert_user(
+			array(
+				'user_login'    => $existing_email,
+				'user_email'    => 'whatever@example.com',
+				'user_pass'     => 'whatever',
+				'user_nicename' => 'whatever',
+			)
+		);
+
+		$this->assertWPError( $user_id, 'An error should have been returned as the user_login matches an existing email.' );
+		$this->assertSame( 'existing_user_email_as_login', $user_id->get_error_code(), 'An incorrect error code was returned.' );
+	}
+
+	/**
+	 * Tests that `wp_update_user()` does not reject a 'user_login' that matches an existing user email.
+	 *
+	 * @ticket 57394
+	 *
+	 * @covers ::wp_update_user
+	 */
+	public function test_wp_update_user_should_not_reject_user_login_that_matches_existing_user_email() {
+		$new_email = 'new.email@example.com';
+		$user_id   = wp_insert_user(
+			array(
+				'user_login'    => $new_email,
+				'user_email'    => $new_email,
+				'user_pass'     => 'whatever',
+				'user_nicename' => 'whatever',
+			)
+		);
+
+		$this->assertNotWPError( $user_id, 'The test user could not be created.' );
+
+		$user_id = wp_update_user(
+			array(
+				'ID'            => $user_id,
+				'user_login'    => $new_email,
+				'user_email'    => $new_email,
+				'user_nicename' => 'new-nicename',
+			)
+		);
+
+		$this->assertNotWPError( $user_id, 'An error should not have been returned.' );
+		$this->assertSame(
+			'new-nicename',
+			get_userdata( $user_id )->user_nicename,
+			'The user_nicename should have been updated.'
+		);
+	}
+
+	/**
 	 * @ticket 33793
 	 */
 	public function test_wp_insert_user_should_not_generate_user_nicename_longer_than_50_chars() {
