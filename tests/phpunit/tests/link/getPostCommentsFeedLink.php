@@ -54,8 +54,9 @@ class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 		$this->assertSame( $expected, $link );
 	}
 
-	public function test_attachment_pretty_link() {
+	public function test_attachment_pretty_link_attachment_pages_on() {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+		update_option( 'wp_attachment_pages_enabled', 1 );
 
 		$post_id       = self::factory()->post->create(
 			array(
@@ -80,8 +81,36 @@ class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 		$this->assertSame( $expected, $link );
 	}
 
-	public function test_attachment_no_name_pretty_link() {
+	public function test_attachment_pretty_link_attachment_pages_off() {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+		update_option( 'wp_attachment_pages_enabled', 0 );
+
+		$post_id       = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
+		$attachment_id = self::factory()->attachment->create_object(
+			'image.jpg',
+			$post_id,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+				'post_title'     => 'Burrito',
+			)
+		);
+
+		$p = get_post( $post_id );
+
+		$link     = get_post_comments_feed_link( $attachment_id );
+		$expected = get_permalink( $post_id ) . sha1( 'image.jpg' ) . '/feed/';
+
+		$this->assertSame( $expected, $link );
+	}
+
+	public function test_attachment_no_name_pretty_link_attachment_pages_on() {
+		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+		update_option( 'wp_attachment_pages_enabled', 1 );
 
 		$post_id       = self::factory()->post->create();
 		$attachment_id = self::factory()->attachment->create_object(
@@ -95,6 +124,26 @@ class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 
 		$link     = get_post_comments_feed_link( $attachment_id );
 		$expected = get_permalink( $post_id ) . 'attachment/' . $attachment_id . '/feed/';
+
+		$this->assertSame( $expected, $link );
+	}
+
+	public function test_attachment_no_name_pretty_link_attachment_pages_off() {
+		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+		update_option( 'wp_attachment_pages_enabled', 0 );
+
+		$post_id       = self::factory()->post->create();
+		$attachment_id = self::factory()->attachment->create_object(
+			'image.jpg',
+			$post_id,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$link     = get_post_comments_feed_link( $attachment_id );
+		$expected = get_permalink( $post_id ) . sha1( 'image.jpg' ) . '/feed/';
 
 		$this->assertSame( $expected, $link );
 	}

@@ -117,6 +117,8 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_old_slug_redirect_attachment() {
+		// Attachment page redirects only work when attachment pages are enabled.
+		update_option( 'wp_attachment_pages_enabled', '1' );
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
 		$attachment_id = self::factory()->attachment->create_object(
 			$file,
