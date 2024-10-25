@@ -412,4 +412,78 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$this->assertIsArray( $network_notoptions_cache, 'Multisite notoptions cache should be set.' );
 		$this->assertArrayHasKey( 'ticket_61730_notoption', $network_notoptions_cache, 'The option should be in the notoptions cache.' );
 	}
+
+	/**
+	 * Test get_network_option() returns the same type when cached and uncached.
+	 *
+	 * @ticket 32848
+	 *
+	 * @covers ::get_network_option
+
+	 * @dataProvider data_get_network_option_return_type_cached_and_uncached
+	 *
+	 * @param mixed $option_vale The value to test.
+	 */
+	public function test_get_network_option_return_type_cached_and_uncached( $option_vale ) {
+		$option_name = 'option_for_type_testing';
+		if ( is_multisite() ) {
+			$cache_key   = "1:$option_name";
+			$cache_group = 'site-options';
+		} else {
+			$cache_key   = $option_name;
+			$cache_group = 'options';
+		}
+
+		// Set the option value.
+		update_network_option( 1, $option_name, $option_vale, false );
+
+		// Get the option while cached.
+		$option_cached = get_network_option( 1, $option_name );
+
+		// Clear the cache.
+		wp_cache_delete( $cache_key, $cache_group );
+
+		// Get the option while uncached.
+		$option_uncached = get_network_option( 1, $option_name );
+
+		// Check that the return type is the same.
+		$this->assertSame( gettype( $option_cached ), gettype( $option_uncached ), 'The return type is not the same.' );
+		/*
+		 * Check canonicalized value.
+		 *
+		 * This is done separately from the above check to avoid false negatives
+		 * for objects as assertSame checks for the same instance.
+		 */
+		$this->assertEqualsCanonicalizing( $option_cached, $option_uncached, 'The option values are not the same.' );
+	}
+
+	/**
+	 * Data provider for test_get_network_option_return_type_cached_and_uncached().
+	 *
+	 * @return array[]
+	 */
+	public function data_get_network_option_return_type_cached_and_uncached() {
+		return array(
+			'an empty string'                => array( '' ),
+			'a string with spaces'           => array( '   ' ),
+			'a string with tabs'             => array( "\t" ),
+			'a string with new lines'        => array( "\n" ),
+			'a string with carriage returns' => array( "\r" ),
+			'int -1'                         => array( -1 ),
+			'int 0'                          => array( 0 ),
+			'int 1'                          => array( 1 ),
+			'float -1.0'                     => array( -1.0 ),
+			'float 0.0'                      => array( 0.0 ),
+			'float 1.0'                      => array( 1.0 ),
+			'false'                          => array( false ),
+			'true'                           => array( true ),
+			'null'                           => array( null ),
+			'an empty array'                 => array( array() ),
+			'a non-empty array'              => array( array( 'value' ) ),
+			'an empty object'                => array( new stdClass() ),
+			'a non-empty object'             => array( (object) array( 'value' ) ),
+			'INF'                            => array( INF ),
+			'NAN'                            => array( NAN ),
+		);
+	}
 }

@@ -329,7 +329,7 @@ final class WP_Site {
 			}
 			$details->blogname   = get_option( 'blogname' );
 			$details->siteurl    = get_option( 'siteurl' );
-			$details->post_count = get_option( 'post_count' );
+			$details->post_count = (int) get_option( 'post_count' );
 			$details->home       = get_option( 'home' );
 			restore_current_blog();
 

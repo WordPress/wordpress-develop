@@ -2565,6 +2565,9 @@ function get_space_allowed() {
 		$space_allowed = 100;
 	}
 
+	// Cast the value to an integer.
+	$space_allowed = (int) $space_allowed;
+
 	/**
 	 * Filters the upload quota for the current site.
 	 *

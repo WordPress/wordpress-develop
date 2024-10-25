@@ -183,12 +183,12 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 		);
 		clean_term_cache( $t1['term_id'], 'category' );
 
-		$this->assertSame( $t1['term_id'], get_option( 'default_category', -1 ) );
+		$this->assertSame( $t1['term_id'], (int) get_option( 'default_category', -1 ) );
 
 		$new_term_id = _split_shared_term( $t1['term_id'], $t1['term_taxonomy_id'] );
 
 		$this->assertNotEquals( $new_term_id, $t1['term_id'] );
-		$this->assertSame( $new_term_id, get_option( 'default_category', -1 ) );
+		$this->assertSame( $new_term_id, (int) get_option( 'default_category', -1 ) );
 	}
 
 	/**
