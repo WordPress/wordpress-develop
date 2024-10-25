@@ -79,6 +79,7 @@ function wp_print_styles( $handles = false ) {
  * @see WP_Styles::add_inline_style()
  *
  * @since 3.3.0
+ * @since 6.7.0 Refactor to use HTML API.
  *
  * @param string $handle Name of the stylesheet to add the extra styles to.
  * @param string $data   String containing the CSS styles to be added.
@@ -87,7 +88,15 @@ function wp_print_styles( $handles = false ) {
 function wp_add_inline_style( $handle, $data ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
-	if ( false !== stripos( $data, '</style>' ) ) {
+	$processor = new WP_HTML_Tag_Processor( "<style>{$data}</style>" );
+	$processor->next_tag( 'STYLE' );
+	$contents = $processor->get_modifiable_text();
+
+	/*
+	 * If the processor did not entirely consume the input already, it means
+	 * that the input contained a closing STYLE tag.
+	 */
+	if ( $processor->next_token() ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -98,10 +107,35 @@ function wp_add_inline_style( $handle, $data ) {
 			),
 			'3.7.0'
 		);
-		$data = trim( preg_replace( '#<style[^>]*>(.*)</style>#is', '$1', $data ) );
+
+		// It's possible this was a benign case of sending `<style>...</style>`.
+		$processor = new WP_HTML_Tag_Processor( $data );
+		$processor->next_token();
+		$is_style_token = 'STYLE' === $processor->get_token_name();
+		$contents       = $processor->get_modifiable_text();
+		$is_only_style  = false === $processor->next_token();
+
+		if ( ! $is_style_token || ! $is_only_style ) {
+			/*
+			 * Otherwise it's unbalanced. It could be malicious.
+			 *
+			 *  - The input could be entirely rejected.
+			 *  - This could take only the part before the closing STYLE tag.
+			 *  - The closing STYLE tag could be escaped.
+			 *
+			 * Without any more compelling reasons, this code is escaping the tag
+			 * and using the rest of the input so as to preserve as much of it as
+			 * is possible. It's possible the intent was to set a name in a `content`
+			 * property, such as `content: "Use a </style> to close a STYLE element."`.
+			 */
+			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
+			$processor->next_token();
+			$processor->set_modifiable_text( $data );
+			$contents = $processor->get_modifiable_text();
+		}
 	}
 
-	return wp_styles()->add_inline_style( $handle, $data );
+	return wp_styles()->add_inline_style( $handle, trim( $contents ) );
 }
 
 /**

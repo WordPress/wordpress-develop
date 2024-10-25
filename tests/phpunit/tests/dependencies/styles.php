@@ -632,4 +632,65 @@ CSS;
 
 		$this->assertSame( $GLOBALS['wp_styles']->registered['test-handle']->src, $url );
 	}
+
+	/**
+	 * Tests detecting nested tags in inline styles.
+	 *
+	 * @ticket 61828
+	 *
+	 * @dataProvider data_wp_add_inline_style_with_nested_style_tags
+	 */
+	public function test_wp_add_inline_style_with_nested_style_tags( $expected, $styles, $correct_usage = false ) {
+		if ( ! $correct_usage ) {
+			$this->setExpectedIncorrectUsage( 'wp_add_inline_style' );
+		}
+
+		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
+		wp_add_inline_style( 'handle', $styles );
+
+		$this->assertSame(
+			$expected,
+			get_echo( 'wp_print_styles' ),
+			"Improperly handled provided styles: {$styles}"
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_add_inline_style_with_nested_style_tags() {
+		return array(
+			'Closing style tag in front of content'     => array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n\\3c\\2fstyle><script>alert(0)</script><style>\n</style>\n",
+				'</style><script>alert(0)</script><style>',
+			),
+			'Closing style tag with invalid attributes' => array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n\\3c\\2fstyle id=\"attribute\"><p>Tasty</p><style id=\"attribute-two\">\n</style>\n",
+				'</style id="attribute"><p>Tasty</p><style id="attribute-two">',
+			),
+			'Surrounded by style tags'                  => array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n.desserts > main { color: PapayaWhip; }\n</style>\n",
+				'<style>.desserts > main { color: PapayaWhip; }</style>',
+			),
+			'Multiple style elements in one'            => array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n<style>\\3c\\2fstyle><style>.desserts > main { color: PapayaWhip; }\\3c\\2fstyle><style>\\3c\\2fstyle>\n</style>\n",
+				'<style></style><style>.desserts > main { color: PapayaWhip; }</style><style></style>',
+			),
+			'Style tags following inline CSS'           => array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n.desserts > main { color: PapayaWhip; }<style>\\3c\\2fstyle>\n</style>\n",
+				'.desserts > main { color: PapayaWhip; }<style></style>',
+			),
+			'Apparent style tag as text inside CSS'     => array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n.desserts > main { content: \"Use a \\3c\\2fstyle> to close a STYLE element.\" }\n</style>\n",
+				'.desserts > main { content: "Use a </style> to close a STYLE element." }',
+			),
+			'HTML tags as text inside CSS'              => array(
+				"<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n<style id='handle-inline-css' type='text/css'>\n<p><strong>.some-more-tags {font-weight: 100}</strong></p>\n</style>\n",
+				'<p><strong>.some-more-tags {font-weight: 100}</strong></p>',
+				true,
+			),
+		);
+	}
 }
