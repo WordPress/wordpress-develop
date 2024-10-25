@@ -314,7 +314,7 @@ function get_inline_data( $post ) {
 		return;
 	}
 
-	$title = esc_textarea( trim( $post->post_title ) );
+	$title = esc_textarea( trim( WP_HTML_Decoder::decode_text_node( $post->post_title ) ) );
 
 	echo '
 <div class="hidden" id="inline_' . $post->ID . '">
