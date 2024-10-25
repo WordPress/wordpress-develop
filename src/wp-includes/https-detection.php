@@ -109,12 +109,22 @@ function wp_get_https_detection_errors() {
 
 	$support_errors = new WP_Error();
 
+	$headers = array();
+	$headers['Cache-Control'] = 'no-cache';
+
+	/*
+	 * Include basic auth in loopback requests. Note that this will only pass along basic auth when user is
+	 * initiating the test. If a site requires basic auth, the test will fail when it runs in WP Cron as part of
+	 * wp_site_health_scheduled_check. This logic is copied from WP_Site_Health::can_perform_loopback().
+	 */
+	if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
+			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
+	}
+
 	$response = wp_remote_request(
 		home_url( '/', 'https' ),
 		array(
-			'headers'   => array(
-				'Cache-Control' => 'no-cache',
-			),
+			'headers'   => $headers,
 			'sslverify' => true,
 		)
 	);
@@ -123,9 +133,7 @@ function wp_get_https_detection_errors() {
 		$unverified_response = wp_remote_request(
 			home_url( '/', 'https' ),
 			array(
-				'headers'   => array(
-					'Cache-Control' => 'no-cache',
-				),
+				'headers'   => $headers,
 				'sslverify' => false,
 			)
 		);
