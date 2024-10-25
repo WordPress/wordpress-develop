@@ -180,6 +180,16 @@ foreach ( $crons as $timestamp => $cronhooks ) {
 			}
 
 			/**
+			 * Fires before every cron event.
+			 *
+			 * @since 6.6.0
+			 *
+			 * @param string $hook Action hook to execute when the event is run.
+			 * @param array  $v    Event data.
+			 */
+			do_action( 'cron_pre_fire_event', $hook, $v );
+
+			/**
 			 * Fires scheduled events.
 			 *
 			 * @ignore
