@@ -39,6 +39,7 @@ parameters:
       - ../../src/wp-admin/includes/class-ftp.php
       - ../../src/wp-admin/includes/class-pclzip.php
       - ../../src/wp-includes/atomlib.php
+      - ../../src/wp-includes/class-avif-info.php
       - ../../src/wp-includes/class-json.php
       - ../../src/wp-includes/class-phpmailer.php
       - ../../src/wp-includes/class-requests.php

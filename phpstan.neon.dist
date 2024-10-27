@@ -30,7 +30,6 @@ parameters:
 
     # These are too noisy at the moment:
     - '#Variable \$[a-zA-Z0-9_]+ might not be defined\.#'
-    - '#Variable \$[a-zA-Z0-9_]+ in isset\(\) always exists and is not nullable\.#'
 
     # Level 6:
 
