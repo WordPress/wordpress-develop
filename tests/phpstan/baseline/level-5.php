@@ -783,72 +783,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: argument.type
-	'message' => '#^Parameter \\#1 \\$block of function filter_block_kses expects WP_Block_Parser_Block, array given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#2 \\$context of function apply_block_hooks_to_content expects array\\|WP_Block_Template\\|WP_Post, stdClass given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#4 \\$block_context of function filter_block_kses_value expects array\\|null, WP_Block_Parser_Block given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#1 \\$from of function human_time_diff expects int, string given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks/comment-date.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#2 \\$comment of function comment_class expects int\\|WP_Comment\\|null, string given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks/comment-template.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#3 \\$post of function comment_class expects int\\|WP_Post\\|null, string given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks/comment-template.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#1 \\$author_id of function get_author_posts_url expects int, string given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks/latest-comments.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#1 \\$post of function wp_latest_comments_draft_or_post_title expects int\\|WP_Post, string given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks/latest-comments.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#2 \\$timestamp_with_offset of function date_i18n expects bool\\|int, string given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks/latest-comments.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#2 \\$user_id of function get_the_author_meta expects int\\|false, string given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks/latest-posts.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#3 \\$side of function apply_block_core_search_border_style expects string, null given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks/search.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
 	'message' => '#^Parameter \\#1 \\$year of function get_day_link expects int\\|false, string given\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/canonical.php',
@@ -894,24 +828,6 @@ $ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$user_id of function get_userdata expects int, string given\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/capabilities.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#1 \\$stream of function fread expects resource, Avifinfo\\\\stream given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-avif-info.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#1 \\$stream of function fseek expects resource, Avifinfo\\\\stream given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-avif-info.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#1 \\$string of function substr expects string, Avifinfo\\\\binary given\\.$#',
-	'count' => 12,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-avif-info.php',
 ];
 $ignoreErrors[] = [
 	// identifier: argument.type

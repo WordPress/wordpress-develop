@@ -33,6 +33,8 @@ parameters:
       - ../../src/wp-admin/images
       - ../../src/wp-admin/js
     analyse:
+      # These files are sourced by wordpress/gutenberg in `tools/release/sync-stable-blocks.js`.
+      - ../../src/wp-includes/blocks
       # Third-party libraries.
       - ../../src/wp-admin/includes/class-ftp-pure.php
       - ../../src/wp-admin/includes/class-ftp-sockets.php

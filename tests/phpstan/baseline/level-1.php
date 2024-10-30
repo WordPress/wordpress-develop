@@ -122,18 +122,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
 ];
 $ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$lightbox_settings in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks/image.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$inner_blocks in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks/navigation.php',
-];
-$ignoreErrors[] = [
 	// identifier: empty.variable
 	'message' => '#^Variable \\$addl_path in empty\\(\\) always exists and is always falsy\\.$#',
 	'count' => 1,

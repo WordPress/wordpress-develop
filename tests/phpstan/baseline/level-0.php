@@ -63,24 +63,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: return.missing
-	'message' => '#^Function block_core_navigation_get_classic_menu_fallback\\(\\) should return object but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks/navigation.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Navigation_Block_Renderer\\:\\:get_inner_blocks_from_navigation_post\\(\\) should return WP_Block_List but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks/navigation.php',
-];
-$ignoreErrors[] = [
-	// identifier: function.notFound
-	'message' => '#^Function gutenberg_serialize_blocks not found\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/blocks/pattern.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
 	'message' => '#^Method WP_Comment\\:\\:__isset\\(\\) should return bool but return statement is missing\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-comment.php',
