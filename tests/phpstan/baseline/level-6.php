@@ -10274,12 +10274,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/formatting.php',
 ];
 $ignoreErrors[] = [
-	// identifier: missingType.parameter
-	'message' => '#^Function untrailingslashit\\(\\) has parameter \\$value with no type specified\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/formatting.php',
-];
-$ignoreErrors[] = [
 	// identifier: missingType.return
 	'message' => '#^Function wp_enqueue_emoji_styles\\(\\) has no return type specified\\.$#',
 	'count' => 1,

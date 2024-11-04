@@ -15,12 +15,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: return.missing
-	'message' => '#^Method WP_Privacy_Requests_Table\\:\\:column_status\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-privacy-requests-table.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
 	'message' => '#^Method WP_Site_Health_Auto_Updates\\:\\:test_accepts_dev_updates\\(\\) should return array\\|false but return statement is missing\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-site-health-auto-updates.php',
@@ -60,24 +54,6 @@ $ignoreErrors[] = [
 	'message' => '#^Instantiated class WP_Press_This_Plugin not found\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/press-this.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Comment\\:\\:__isset\\(\\) should return bool but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-comment.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Query\\:\\:__isset\\(\\) should return bool but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Recovery_Mode\\:\\:handle_error\\(\\) should return WP_Error\\|true but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-recovery-mode.php',
 ];
 $ignoreErrors[] = [
 	// identifier: function.notFound
@@ -132,102 +108,6 @@ $ignoreErrors[] = [
 	'message' => '#^Undefined variable\\: \\$s$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/template.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Nav_Menu_Widget\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-nav-menu-widget.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Archives\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-archives.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Block\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-block.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Calendar\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-calendar.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Categories\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-categories.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Custom_HTML\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-custom-html.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Links\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-links.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Media\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-media.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Meta\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-meta.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Pages\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-pages.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Recent_Comments\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-recent-comments.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Recent_Posts\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-recent-posts.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_RSS\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-rss.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Search\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-search.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Tag_Cloud\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-tag-cloud.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Widget_Text\\:\\:form\\(\\) should return string but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-text.php',
 ];
 
 return ['parameters' => ['ignoreErrors' => $ignoreErrors]];

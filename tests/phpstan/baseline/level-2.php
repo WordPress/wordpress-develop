@@ -1388,12 +1388,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/fonts/class-wp-font-face-resolver.php',
 ];
 $ignoreErrors[] = [
-	// identifier: parameter.notFound
-	'message' => '#^PHPDoc tag @param references unknown parameter\\: \\$text$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/formatting.php',
-];
-$ignoreErrors[] = [
 	// identifier: assignOp.invalid
 	'message' => '#^Binary operation "\\+\\=" between string and 7 results in an error\\.$#',
 	'count' => 1,
@@ -1502,20 +1496,8 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/ms-functions.php',
 ];
 $ignoreErrors[] = [
-	// identifier: class.notFound
-	'message' => '#^Access to property \\$Hostname on an unknown class PHPMailer\\.$#',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/ms-functions.php',
-];
-$ignoreErrors[] = [
 	// identifier: parameter.defaultValue
 	'message' => '#^Default value of the parameter \\#1 \\$force \\(string\\) of function force_ssl_content\\(\\) is incompatible with type bool\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/ms-functions.php',
-];
-$ignoreErrors[] = [
-	// identifier: class.notFound
-	'message' => '#^Parameter \\$phpmailer of function fix_phpmailer_messageid\\(\\) has invalid type PHPMailer\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/ms-functions.php',
 ];
