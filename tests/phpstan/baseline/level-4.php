@@ -950,12 +950,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/themes.php',
 ];
 $ignoreErrors[] = [
-	// identifier: deadCode.unreachable
-	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
-	'count' => 7,
-	'path' => __DIR__ . '/../../../src/wp-includes/IXR/class-IXR-value.php',
-];
-$ignoreErrors[] = [
 	// identifier: return.unusedType
 	'message' => '#^Function wp_list_authors\\(\\) never returns void so it can be removed from the return type\\.$#',
 	'count' => 1,

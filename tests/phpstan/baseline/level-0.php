@@ -15,36 +15,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: return.missing
-	'message' => '#^Method WP_Site_Health_Auto_Updates\\:\\:test_accepts_dev_updates\\(\\) should return array\\|false but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-site-health-auto-updates.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Site_Health_Auto_Updates\\:\\:test_accepts_minor_updates\\(\\) should return array but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-site-health-auto-updates.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Site_Health_Auto_Updates\\:\\:test_constants\\(\\) should return array but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-site-health-auto-updates.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Site_Health_Auto_Updates\\:\\:test_filters_automatic_updater_disabled\\(\\) should return array but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-site-health-auto-updates.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
-	'message' => '#^Method WP_Site_Health_Auto_Updates\\:\\:test_wp_version_check_attached\\(\\) should return array but return statement is missing\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-site-health-auto-updates.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.missing
 	'message' => '#^Function wp_get_nav_menu_to_edit\\(\\) should return string\\|WP_Error but return statement is missing\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/nav-menu.php',

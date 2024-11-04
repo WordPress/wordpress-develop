@@ -194,12 +194,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/category.php',
 ];
 $ignoreErrors[] = [
-	// identifier: return.void
-	'message' => '#^Method POP3\\:\\:__construct\\(\\) with return type void returns true but should not return anything\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-pop3.php',
-];
-$ignoreErrors[] = [
 	// identifier: method.childParameterType
 	'message' => '#^Parameter \\#3 \\$args \\(stdClass\\) of method Walker_Nav_Menu\\:\\:end_lvl\\(\\) should be compatible with parameter \\$args \\(array\\) of method Walker\\:\\:end_lvl\\(\\)$#',
 	'count' => 1,

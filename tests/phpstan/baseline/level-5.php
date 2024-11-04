@@ -759,12 +759,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: argument.type
-	'message' => '#^Parameter \\#3 \\$value of function xml_parser_set_option expects int\\|string, false given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/IXR/class-IXR-message.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
 	'message' => '#^Parameter \\#1 \\$userid of function count_user_posts expects int, string given\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/author-template.php',
@@ -828,12 +822,6 @@ $ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$user_id of function get_userdata expects int, string given\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/capabilities.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
-	'message' => '#^Parameter \\#2 \\$enable of function socket_set_blocking expects bool, int given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-pop3.php',
 ];
 $ignoreErrors[] = [
 	// identifier: argument.type

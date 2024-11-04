@@ -134,18 +134,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/capabilities.php',
 ];
 $ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$PopArray in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-pop3.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$banner in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-pop3.php',
-];
-$ignoreErrors[] = [
 	// identifier: isset.variable
 	'message' => '#^Variable \\$block in isset\\(\\) always exists and is not nullable\\.$#',
 	'count' => 1,

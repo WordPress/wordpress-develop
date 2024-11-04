@@ -884,12 +884,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/install.php',
 ];
 $ignoreErrors[] = [
-	// identifier: arguments.count
-	'message' => '#^Method WP_Dependencies\\:\\:get_etag\\(\\) invoked with 2 parameters, 1 required\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/load-styles.php',
-];
-$ignoreErrors[] = [
 	// identifier: property.notFound
 	'message' => '#^Access to an undefined property WP_Term\\:\\:\\$truncated_name\\.$#',
 	'count' => 2,
