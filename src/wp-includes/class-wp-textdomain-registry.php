@@ -321,9 +321,15 @@ class WP_Textdomain_Registry {
 			$php_path = "$location/$domain-$locale.l10n.php";
 
 			foreach ( $files as $file_path ) {
+				$basename = str_replace( "$location/", '', $file_path );
+
+				/*
+				 * Match "some-domain-de_DE.l10n.php or "some-domain-de_DE.mo",
+				 * but not "some-de_DE.l10n.php or "some-de_DE.mo".
+				 */
 				if (
 					! in_array( $domain, $this->domains_with_translations, true ) &&
-					str_starts_with( str_replace( "$location/", '', $file_path ), "$domain-" )
+					1 === preg_match( '/^' . preg_quote( $domain ) . '-[^-.]+\./', $basename )
 				) {
 					$this->domains_with_translations[] = $domain;
 				}
