@@ -6455,11 +6455,14 @@ function block_core_navigation_set_ignored_hooked_blocks_metadata( $inner_blocks
  *
  * @access private
  * @since 6.5.0
+ * @deprecated 6.8.0 Use update_ignored_hooked_blocks_postmeta() instead.
  *
  * @param stdClass $post Post object.
  * @return stdClass The updated post object.
  */
 function block_core_navigation_update_ignore_hooked_blocks_meta( $post ) {
+	_deprecated_function( __FUNCTION__, '6.8.0', 'update_ignored_hooked_blocks_postmeta' );
+
 	/*
 	 * In this scenario the user has likely tried to create a navigation via the REST API.
 	 * In which case we won't have a post ID to work with and store meta against.
@@ -6512,12 +6515,14 @@ function block_core_navigation_update_ignore_hooked_blocks_meta( $post ) {
  * Hooks into the REST API response for the core/navigation block and adds the first and last inner blocks.
  *
  * @since 6.5.0
+ * @deprecated 6.8.0 Use insert_hooked_blocks_into_rest_response() instead.
  *
  * @param WP_REST_Response $response The response object.
  * @param WP_Post          $post     Post object.
  * @return WP_REST_Response The response object.
  */
 function block_core_navigation_insert_hooked_blocks_into_rest_response( $response, $post ) {
+	_deprecated_function( __FUNCTION__, '6.8.0', 'insert_hooked_blocks_into_rest_response' );
 	if ( ! isset( $response->data['content']['raw'] ) || ! isset( $response->data['content']['rendered'] ) ) {
 		return $response;
 	}
