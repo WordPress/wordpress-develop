@@ -637,6 +637,12 @@ function maybe_serialize( $data ) {
 	 * Also the world will end. See WP 3.6.1.
 	 */
 	if ( is_serialized( $data, false ) ) {
+		// While double serialization needs to be supported for backwards compatibility, let's inform the developer.
+		_doing_it_wrong(
+			'maybe_serialize',
+			'Double serialization detected, serialized data is likely sent to update_option(), add_option(), update_*_meta(), add_*_meta() and similar functions. These functions will automatically serialize if needed.',
+			'3.6.1'
+		);
 		return serialize( $data );
 	}
 
