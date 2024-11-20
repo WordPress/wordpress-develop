@@ -6461,7 +6461,7 @@ function block_core_navigation_set_ignored_hooked_blocks_metadata( $inner_blocks
  * @return stdClass The updated post object.
  */
 function block_core_navigation_update_ignore_hooked_blocks_meta( $post ) {
-	_deprecated_function( __FUNCTION__, '6.8.0', 'update_ignored_hooked_blocks_postmeta' );
+	_deprecated_function( __FUNCTION__, '6.8.0', 'update_ignored_hooked_blocks_postmeta()' );
 	return update_ignored_hooked_blocks_postmeta( $post );
 }
 
@@ -6476,6 +6476,6 @@ function block_core_navigation_update_ignore_hooked_blocks_meta( $post ) {
  * @return WP_REST_Response The response object.
  */
 function block_core_navigation_insert_hooked_blocks_into_rest_response( $response, $post ) {
-	_deprecated_function( __FUNCTION__, '6.8.0', 'insert_hooked_blocks_into_rest_response' );
+	_deprecated_function( __FUNCTION__, '6.8.0', 'insert_hooked_blocks_into_rest_response()' );
 	return insert_hooked_blocks_into_rest_response( $response, $post );
 }
