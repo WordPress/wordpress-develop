@@ -6462,53 +6462,7 @@ function block_core_navigation_set_ignored_hooked_blocks_metadata( $inner_blocks
  */
 function block_core_navigation_update_ignore_hooked_blocks_meta( $post ) {
 	_deprecated_function( __FUNCTION__, '6.8.0', 'update_ignored_hooked_blocks_postmeta' );
-
-	/*
-	 * In this scenario the user has likely tried to create a navigation via the REST API.
-	 * In which case we won't have a post ID to work with and store meta against.
-	 */
-	if ( empty( $post->ID ) ) {
-		return $post;
-	}
-
-	/**
-	 * Skip meta generation when consumers intentionally update specific Navigation fields
-	 * and omit the content update.
-	 */
-	if ( ! isset( $post->post_content ) ) {
-		return $post;
-	}
-
-	/*
-	 * We run the Block Hooks mechanism to inject the `metadata.ignoredHookedBlocks` attribute into
-	 * all anchor blocks. For the root level, we create a mock Navigation and extract them from there.
-	 */
-	$blocks = parse_blocks( $post->post_content );
-
-	/*
-	 * Block Hooks logic requires a `WP_Post` object (rather than the `stdClass` with the updates that
-	 * we're getting from the `rest_pre_insert_wp_navigation` filter) as its second argument (to be
-	 * used as context for hooked blocks insertion).
-	 * We thus have to look it up from the DB,based on `$post->ID`.
-	 */
-	$markup = block_core_navigation_set_ignored_hooked_blocks_metadata( $blocks, get_post( $post->ID ) );
-
-	$root_nav_block        = parse_blocks( $markup )[0];
-	$ignored_hooked_blocks = isset( $root_nav_block['attrs']['metadata']['ignoredHookedBlocks'] )
-		? $root_nav_block['attrs']['metadata']['ignoredHookedBlocks']
-		: array();
-
-	if ( ! empty( $ignored_hooked_blocks ) ) {
-		$existing_ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
-		if ( ! empty( $existing_ignored_hooked_blocks ) ) {
-			$existing_ignored_hooked_blocks = json_decode( $existing_ignored_hooked_blocks, true );
-			$ignored_hooked_blocks          = array_unique( array_merge( $ignored_hooked_blocks, $existing_ignored_hooked_blocks ) );
-		}
-		update_post_meta( $post->ID, '_wp_ignored_hooked_blocks', json_encode( $ignored_hooked_blocks ) );
-	}
-
-	$post->post_content = block_core_navigation_remove_serialized_parent_block( $markup );
-	return $post;
+	return update_ignored_hooked_blocks_postmeta( $post );
 }
 
 /**
@@ -6523,19 +6477,5 @@ function block_core_navigation_update_ignore_hooked_blocks_meta( $post ) {
  */
 function block_core_navigation_insert_hooked_blocks_into_rest_response( $response, $post ) {
 	_deprecated_function( __FUNCTION__, '6.8.0', 'insert_hooked_blocks_into_rest_response' );
-	if ( ! isset( $response->data['content']['raw'] ) || ! isset( $response->data['content']['rendered'] ) ) {
-		return $response;
-	}
-	$parsed_blocks = parse_blocks( $response->data['content']['raw'] );
-	$content       = block_core_navigation_insert_hooked_blocks( $parsed_blocks, $post );
-
-	// Remove mock Navigation block wrapper.
-	$content = block_core_navigation_remove_serialized_parent_block( $content );
-
-	$response->data['content']['raw'] = $content;
-
-	/** This filter is documented in wp-includes/post-template.php */
-	$response->data['content']['rendered'] = apply_filters( 'the_content', $content );
-
-	return $response;
+	return insert_hooked_blocks_into_rest_response( $response, $post );
 }
