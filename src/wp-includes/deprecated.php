@@ -6431,12 +6431,15 @@ function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
  * mock Navigation block wrapper.
  *
  * @since 6.5.0
+ * @deprecated 6.8.0
  *
  * @param array   $inner_blocks Parsed inner blocks of a Navigation block.
  * @param WP_Post $post         `wp_navigation` post object corresponding to the block.
  * @return string Serialized inner blocks in mock Navigation block wrapper, with hooked blocks inserted, if any.
  */
 function block_core_navigation_set_ignored_hooked_blocks_metadata( $inner_blocks, $post ) {
+	_deprecated_function( __FUNCTION__, '6.8.0' );
+
 	$mock_navigation_block = block_core_navigation_mock_parsed_block( $inner_blocks, $post );
 	$hooked_blocks         = get_hooked_blocks();
 	$before_block_visitor  = null;
