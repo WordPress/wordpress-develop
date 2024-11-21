@@ -6424,6 +6424,20 @@ function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
 }
 
 /**
+ * Accepts the serialized markup of a block and its inner blocks, and returns serialized markup of the inner blocks.
+ *
+ * @since 6.5.0
+ * @deprecated 6.8.0 Use remove_serialized_parent_block() instead.
+ *
+ * @param string $serialized_block The serialized markup of a block and its inner blocks.
+ * @return string
+ */
+function block_core_navigation_remove_serialized_parent_block( $serialized_block ) {
+	_deprecated_function( __FUNCTION__, '6.8.0', 'remove_serialized_parent_block()' );
+	return remove_serialized_parent_block( $serialized_block );
+}
+
+/**
  * Insert ignoredHookedBlocks meta into the Navigation block and its inner blocks.
  *
  * Given a Navigation block's inner blocks and its corresponding `wp_navigation` post object,
