@@ -1769,7 +1769,8 @@ function wp_kses_bad_protocol( $content, $allowed_protocols ) {
 	// Short-circuit if the string starts with `https://` or `http://`. Most common cases.
 	if (
 		( str_starts_with( $content, 'https://' ) && in_array( 'https', $allowed_protocols, true ) ) ||
-		( str_starts_with( $content, 'http://' ) && in_array( 'http', $allowed_protocols, true ) )
+		( str_starts_with( $content, 'http://' ) && in_array( 'http', $allowed_protocols, true ) ) ||
+		( str_starts_with( $content, '#:~:text' ) )
 	) {
 		return $content;
 	}
