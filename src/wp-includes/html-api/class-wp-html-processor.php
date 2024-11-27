@@ -793,8 +793,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 *       until there are events or until there are no more
 		 *       tokens works in the meantime and isn't obviously wrong.
 		 */
-		if ( empty( $this->element_queue ) && $this->step() ) {
-			return $this->next_visitable_token();
+		if ( empty( $this->element_queue ) ) {
+			if ( $this->step() ) {
+				assert( array() !== $this->element_queue );
+				return $this->next_visitable_token();
+			}
 		}
 
 		// Process the next event on the queue.
