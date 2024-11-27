@@ -4967,13 +4967,35 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Any other end tag
 		 */
 		if ( $this->is_tag_closer() ) {
+			/*
+			 * > Run these steps:
+			 * >
+			 * >   1. Initialize node to be the current node (the bottommost node of the stack).
+			 * >   2. If node's tag name, converted to ASCII lowercase, is not the same as
+			 * >      the tag name of the token, then this is a parse error.
+			 * >   3. Loop: If node is the topmost element in the stack of open elements,
+			 * >      then return. (fragment case)
+			 * >   4. If node's tag name, converted to ASCII lowercase, is the same as the
+			 * >      tag name of the token, pop elements from the stack of open elements
+			 * >      until node has been popped from the stack, and then return.
+			 * >   5. Set node to the previous entry in the stack of open elements.
+			 * >   6. If node is not an element in the HTML namespace, return to the step
+			 * >      labeled loop.
+			 * >   7. Otherwise, process the token according to the rules given in the section corresponding to the current insertion mode in HTML content.
+			 */
+
 			$node = $this->state->stack_of_open_elements->current_node();
 			if ( $tag_name !== $node->node_name ) {
 				// @todo Indicate a parse error once it's possible.
 			}
+
+			$has_modified = false;
 			in_foreign_content_end_tag_loop:
 			if ( $node === $this->state->stack_of_open_elements->at( 1 ) ) {
-				return true;
+				if ( $has_modified ) {
+					return true;
+				}
+				return $this->step();
 			}
 
 			/*
@@ -4987,6 +5009,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					if ( $node === $item ) {
 						return true;
 					}
+					$has_modified = true;
 				}
 			}
 
