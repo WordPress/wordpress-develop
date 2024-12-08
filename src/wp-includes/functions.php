@@ -290,7 +290,7 @@ function wp_date( $format, $timestamp = null, $timezone = null ) {
 					break;
 				case 'S':
 					// NumberFormatter can localize and format input numbers, producing results with ordinal suffixes
-					if ( 'j' === $prev ) {
+					if ( 'j' === $prev && class_exists('NumberFormatter') ) {
 						$ordinal_formatter = new \NumberFormatter( get_user_locale(), \NumberFormatter::ORDINAL );
 						$ordinal_day       = $ordinal_formatter->format( (int) $datetime->format( 'j' ) );
 						$new_format        = substr( $new_format, 0, -1 ) . addcslashes( $ordinal_day, '\\A..Za..z' );
