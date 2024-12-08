@@ -224,4 +224,15 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 			'After DST end'    => array( '2019-10-27 04:01:00', 'Europe/Helsinki' ),
 		);
 	}
+
+	public function test_adjusts_ordinal_based_on_locale() {
+		switch_to_locale( 'en_US' );
+		$this->assertSame( '8th', date_i18n( 'jS', 1733618500 ) );
+
+		switch_to_locale( 'de_DE' );
+		$this->assertSame( '8.', date_i18n( 'jS', 1733618500 ) );
+
+		switch_to_locale( 'es_ES' );
+		$this->assertSame( '8.º', date_i18n( 'jS', 1733618500 ) );
+	}
 }
