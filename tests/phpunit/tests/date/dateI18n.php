@@ -228,14 +228,14 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 	public function test_adjusts_ordinal_based_on_locale() {
 		switch_to_locale( 'en_US' );
 		$this->assertSame( '8th', date_i18n( 'jS', 1733618500 ) );
-                restore_previous_locale();
+		restore_previous_locale();
 
 		switch_to_locale( 'de_DE' );
 		$this->assertSame( '8.', date_i18n( 'jS', 1733618500 ) );
-                restore_previous_locale();
+		restore_previous_locale();
 
 		switch_to_locale( 'es_ES' );
 		$this->assertSame( '8.º', date_i18n( 'jS', 1733618500 ) );
-                restore_previous_locale();
+		restore_previous_locale();
 	}
 }
