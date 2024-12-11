@@ -95,12 +95,13 @@ final class WP_CSS_Compound_Selector extends WP_CSS_Selector_Parser_Matcher {
 			$last_parsed_subclass_selector = self::parse_subclass_selector( $input, $updated_offset );
 		}
 
-		// @todo invert this condition
-		if ( null !== $type_selector || array() !== $subclass_selectors ) {
-			$offset = $updated_offset;
-			return new self( $type_selector, $subclass_selectors );
+		// There must be at least one selector.
+		if ( null === $type_selector && array() === $subclass_selectors ) {
+			return null;
 		}
-		return null;
+
+		$offset = $updated_offset;
+		return new self( $type_selector, $subclass_selectors );
 	}
 
 	/**
