@@ -22,7 +22,7 @@ permissions: {}
 jobs:
   # Comments on a pull request when the author is a first time contributor.
   post-welcome-message:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       issues: write
       pull-requests: write
@@ -80,7 +80,7 @@ jobs:
   # Leaves a comment on a pull request with a link to test the changes in a WordPress Playground instance.
   playground-details:
     name: Comment on a pull request with Playground details
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       issues: write
       pull-requests: write
@@ -96,7 +96,7 @@ jobs:
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts( {
                owner: context.repo.owner,
                repo: context.repo.repo,
-               run_id: ${{ github.event.workflow_run.id }},
+               run_id: process.env.RUN_ID,
             } );
 
             const matchArtifact = artifacts.data.artifacts.filter( ( artifact ) => {
@@ -117,6 +117,8 @@ jobs:
 
             const fs = require( 'fs' );
             fs.writeFileSync( '${{github.workspace}}/pr-number.zip', Buffer.from( download.data ) )
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
 
       - name: Unzip the artifact containing the PR number
         run: unzip pr-number.zip
@@ -168,7 +170,7 @@ jobs:
   # Manages comments reminding contributors to include a Trac ticket link when opening a pull request.
   trac-ticket-check:
     name: Manage Trac ticket reminders for pull requests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       issues: write
       pull-requests: write

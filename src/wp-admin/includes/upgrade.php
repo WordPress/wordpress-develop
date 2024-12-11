@@ -44,7 +44,16 @@ if ( ! function_exists( 'wp_install' ) ) :
 	 *     @type string $password_message The explanatory message regarding the password.
 	 * }
 	 */
-	function wp_install( $blog_title, $user_name, $user_email, $is_public, $deprecated = '', $user_password = '', $language = '' ) {
+	function wp_install(
+		$blog_title,
+		$user_name,
+		$user_email,
+		$is_public,
+		$deprecated = '',
+		#[\SensitiveParameter]
+		$user_password = '',
+		$language = ''
+	) {
 		if ( ! empty( $deprecated ) ) {
 			_deprecated_argument( __FUNCTION__, '2.6.0' );
 		}
@@ -199,7 +208,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 
 		// First post.
 		$now             = current_time( 'mysql' );
-		$now_gmt         = current_time( 'mysql', 1 );
+		$now_gmt         = current_time( 'mysql', true );
 		$first_post_guid = get_option( 'home' ) . '/?p=1';
 
 		if ( is_multisite() ) {
@@ -306,20 +315,20 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 			$first_page .= __( "This is an example page. It's different from a blog post because it will stay in one place and will show up in your site navigation (in most themes). Most people start with an About page that introduces them to potential site visitors. It might say something like this:" );
 			$first_page .= "</p>\n<!-- /wp:paragraph -->\n\n";
 
-			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\"><p>";
+			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\">\n<!-- wp:paragraph -->\n<p>";
 			/* translators: First page content. */
 			$first_page .= __( "Hi there! I'm a bike messenger by day, aspiring actor by night, and this is my website. I live in Los Angeles, have a great dog named Jack, and I like pi&#241;a coladas. (And gettin' caught in the rain.)" );
-			$first_page .= "</p></blockquote>\n<!-- /wp:quote -->\n\n";
+			$first_page .= "</p>\n<!-- /wp:paragraph -->\n</blockquote>\n<!-- /wp:quote -->\n\n";
 
 			$first_page .= "<!-- wp:paragraph -->\n<p>";
 			/* translators: First page content. */
 			$first_page .= __( '...or something like this:' );
 			$first_page .= "</p>\n<!-- /wp:paragraph -->\n\n";
 
-			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\"><p>";
+			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\">\n<!-- wp:paragraph -->\n<p>";
 			/* translators: First page content. */
 			$first_page .= __( 'The XYZ Doohickey Company was founded in 1971, and has been providing quality doohickeys to the public ever since. Located in Gotham City, XYZ employs over 2,000 people and does all kinds of awesome things for the Gotham community.' );
-			$first_page .= "</p></blockquote>\n<!-- /wp:quote -->\n\n";
+			$first_page .= "</p>\n<!-- /wp:paragraph -->\n</blockquote>\n<!-- /wp:quote -->\n\n";
 
 			$first_page .= "<!-- wp:paragraph -->\n<p>";
 			$first_page .= sprintf(
@@ -563,7 +572,13 @@ if ( ! function_exists( 'wp_new_blog_notification' ) ) :
 	 * @param string $password   Administrator's password. Note that a placeholder message is
 	 *                           usually passed instead of the actual password.
 	 */
-	function wp_new_blog_notification( $blog_title, $blog_url, $user_id, $password ) {
+	function wp_new_blog_notification(
+		$blog_title,
+		$blog_url,
+		$user_id,
+		#[\SensitiveParameter]
+		$password
+	) {
 		$user      = new WP_User( $user_id );
 		$email     = $user->user_email;
 		$name      = $user->user_login;
@@ -965,6 +980,7 @@ function upgrade_101() {
  *
  * @ignore
  * @since 1.2.0
+ * @since 6.8.0 User passwords are no longer hashed with md5.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  */
@@ -977,13 +993,6 @@ function upgrade_110() {
 		if ( '' === $user->user_nicename ) {
 			$newname = sanitize_title( $user->user_nickname );
 			$wpdb->update( $wpdb->users, array( 'user_nicename' => $newname ), array( 'ID' => $user->ID ) );
-		}
-	}
-
-	$users = $wpdb->get_results( "SELECT ID, user_pass from $wpdb->users" );
-	foreach ( $users as $row ) {
-		if ( ! preg_match( '/^[A-Fa-f0-9]{32}$/', $row->user_pass ) ) {
-			$wpdb->update( $wpdb->users, array( 'user_pass' => md5( $row->user_pass ) ), array( 'ID' => $row->ID ) );
 		}
 	}
 
@@ -2851,7 +2860,7 @@ function deslash( $content ) {
  *                                 semicolons. Default empty string.
  * @param bool            $execute Optional. Whether or not to execute the query right away.
  *                                 Default true.
- * @return array Strings containing the results of the various update queries.
+ * @return string[] Strings containing the results of the various update queries.
  */
 function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	global $wpdb;

@@ -161,6 +161,101 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Test pagination headers.
+	 *
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_pagination_headers( $method ) {
+		$total_posts = count( self::$my_title_post_ids ) + count( self::$my_title_page_ids ) + count( self::$my_content_post_ids );
+		$per_page    = 3;
+		$total_pages = (int) ceil( $total_posts / $per_page );
+
+		// Start of the index.
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => $per_page,
+			),
+			$method
+		);
+		$headers  = $response->get_headers();
+		$this->assertSame( $total_posts, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
+
+		$next_link = add_query_arg(
+			array(
+				'per_page' => $per_page,
+				'page'     => 2,
+			),
+			rest_url( '/wp/v2/search' )
+		);
+		$this->assertStringNotContainsString( 'rel="prev"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => $per_page,
+				'page'     => 3,
+			),
+			$method
+		);
+		$headers  = $response->get_headers();
+		$this->assertSame( $total_posts, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg(
+			array(
+				'per_page' => $per_page,
+				'page'     => 2,
+			),
+			rest_url( '/wp/v2/search' )
+		);
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$next_link = add_query_arg(
+			array(
+				'per_page' => $per_page,
+				'page'     => 4,
+			),
+			rest_url( '/wp/v2/search' )
+		);
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+
+		// Last page.
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => $per_page,
+				'page'     => $total_pages,
+			),
+			$method
+		);
+		$headers  = $response->get_headers();
+		$this->assertSame( $total_posts, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg(
+			array(
+				'per_page' => $per_page,
+				'page'     => $total_pages - 1,
+			),
+			rest_url( '/wp/v2/search' )
+		);
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
+	}
+
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
+	}
+
+	/**
 	 * Search through all content with a low limit.
 	 */
 	public function test_get_items_with_limit() {
@@ -239,13 +334,19 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Search through an invalid type
+	 *
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_items_search_type_invalid() {
+	public function test_get_items_search_type_invalid( $method ) {
 		$response = $this->do_request_with_params(
 			array(
 				'per_page' => 100,
 				'type'     => 'invalid',
-			)
+			),
+			$method
 		);
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
@@ -253,6 +354,11 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Search through posts of an invalid post type.
+	 *
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
 	public function test_get_items_search_type_post_subtype_invalid() {
 		$response = $this->do_request_with_params(
@@ -462,13 +568,19 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Tests that non-public post types are not allowed.
+	 *
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_non_public_post_type() {
+	public function test_non_public_post_type( $method ) {
 		$response = $this->do_request_with_params(
 			array(
 				'type'    => 'post',
 				'subtype' => 'post,nav_menu_item',
-			)
+			),
+			$method
 		);
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
@@ -632,15 +744,21 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Search through posts of an invalid post type.
 	 *
+	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 51458
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_items_search_term_subtype_invalid() {
+	public function test_get_items_search_term_subtype_invalid( $method ) {
 		$response = $this->do_request_with_params(
 			array(
 				'per_page' => 100,
 				'type'     => 'term',
 				'subtype'  => 'invalid',
-			)
+			),
+			$method
 		);
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
@@ -890,14 +1008,19 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 60771
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_sanitize_subtypes_validates_type() {
+	public function test_sanitize_subtypes_validates_type( $method ) {
 		$response = $this->do_request_with_params(
 			array(
 				'subtype' => 'page',
 				'type'    => array( 'invalid' ),
-			)
+			),
+			$method
 		);
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
