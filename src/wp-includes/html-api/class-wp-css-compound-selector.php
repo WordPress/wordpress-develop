@@ -45,7 +45,7 @@ final class WP_CSS_Compound_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 * @param (WP_CSS_ID_Selector|WP_CSS_Class_Selector|WP_CSS_Attribute_Selector)[]|null $subclass_selectors
 	 *        The array of subclass selectors or null.
 	 */
-	public function __construct( ?WP_CSS_Type_Selector $type_selector, ?array $subclass_selectors ) {
+	private function __construct( ?WP_CSS_Type_Selector $type_selector, ?array $subclass_selectors ) {
 		$this->type_selector      = $type_selector;
 		$this->subclass_selectors = array() === $subclass_selectors ? null : $subclass_selectors;
 	}

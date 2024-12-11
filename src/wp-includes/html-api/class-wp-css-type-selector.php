@@ -29,7 +29,7 @@ final class WP_CSS_Type_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 *
 	 * @param string $type The element type (tag name) to match or '*' to match any element.
 	 */
-	public function __construct( string $type ) {
+	private function __construct( string $type ) {
 		$this->type = $type;
 	}
 

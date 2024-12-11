@@ -29,7 +29,7 @@ final class WP_CSS_Class_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 *
 	 * @param string $class_name The class name to match.
 	 */
-	public function __construct( string $class_name ) {
+	private function __construct( string $class_name ) {
 		$this->class_name = $class_name;
 	}
 

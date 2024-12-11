@@ -140,7 +140,7 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 * @param string|null $modifier The attribute case modifier.
 	 *        Must be one of the class MODIFIER_* constants or null.
 	 */
-	public function __construct( string $name, ?string $matcher = null, ?string $value = null, ?string $modifier = null ) {
+	private function __construct( string $name, ?string $matcher = null, ?string $value = null, ?string $modifier = null ) {
 		$this->name     = $name;
 		$this->matcher  = $matcher;
 		$this->value    = $value;

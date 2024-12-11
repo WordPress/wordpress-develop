@@ -29,7 +29,7 @@ final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 *
 	 * @param string $id The ID to match.
 	 */
-	public function __construct( string $id ) {
+	private function __construct( string $id ) {
 		$this->id = $id;
 	}
 
