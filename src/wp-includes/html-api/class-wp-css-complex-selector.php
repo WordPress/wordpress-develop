@@ -19,7 +19,7 @@
  *
  * @access private
  */
-final class WP_CSS_Complex_Selector implements WP_CSS_HTML_Processor_Matcher {
+final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser_Matcher {
 	/**
 	 * Child combinator.
 	 */
@@ -111,7 +111,7 @@ final class WP_CSS_Complex_Selector implements WP_CSS_HTML_Processor_Matcher {
 	 * @param WP_CSS_Compound_Selector $self_selector The selector in the final position.
 	 * @param array{WP_CSS_Type_Selector, string}[]|null $selectors The context selectors.
 	 */
-	public function __construct(
+	private function __construct(
 		WP_CSS_Compound_Selector $self_selector,
 		?array $context_selectors
 	) {
@@ -125,7 +125,7 @@ final class WP_CSS_Complex_Selector implements WP_CSS_HTML_Processor_Matcher {
 	 * @param WP_HTML_Processor $processor The processor.
 	 * @return bool True if the processor's current position matches the selector.
 	 */
-	public function matches( WP_HTML_Processor $processor ): bool {
+	public function matches( $processor ): bool {
 		// First selector must match this location.
 		if ( ! $this->self_selector->matches( $processor ) ) {
 			return false;
@@ -188,5 +188,79 @@ final class WP_CSS_Complex_Selector implements WP_CSS_HTML_Processor_Matcher {
 				);
 				return false;
 		}
+	}
+
+	/**
+	 * Parses a selector string to create a selector instance.
+	 *
+	 * To create an instance of this class, use the {@see WP_CSS_Compound_Selector_List::from_selectors()} method.
+	 *
+	 * @param string $input The selector string.
+	 * @param int    $offset The offset into the string. The offset is passed by reference and
+	 *                       will be updated if the parse is successful.
+	 * @return static|null The selector instance, or null if the parse was unsuccessful.
+	 */
+	public static function parse( string $input, int &$offset ): ?static {
+		if ( $offset >= strlen( $input ) ) {
+			return null;
+		}
+
+		$updated_offset = $offset;
+		$self_selector  = WP_CSS_Compound_Selector::parse( $input, $updated_offset );
+		if ( null === $self_selector ) {
+			return null;
+		}
+		/** @var array{WP_CSS_Compound_Selector, string}[] */
+		$selectors = array();
+
+		$found_whitespace = self::parse_whitespace( $input, $updated_offset );
+		while ( $updated_offset < strlen( $input ) ) {
+			$combinator    = null;
+			$next_selector = null;
+
+			if (
+				WP_CSS_Complex_Selector::COMBINATOR_CHILD === $input[ $updated_offset ] ||
+				WP_CSS_Complex_Selector::COMBINATOR_NEXT_SIBLING === $input[ $updated_offset ] ||
+				WP_CSS_Complex_Selector::COMBINATOR_SUBSEQUENT_SIBLING === $input[ $updated_offset ]
+			) {
+				$combinator = $input[ $updated_offset ];
+				++$updated_offset;
+				self::parse_whitespace( $input, $updated_offset );
+
+				// A combinator has been found, failure to find a selector here is a parse error.
+				$next_selector = WP_CSS_Compound_Selector::parse( $input, $updated_offset );
+				if ( null === $next_selector ) {
+					return null;
+				}
+			} elseif ( $found_whitespace ) {
+				/*
+				* Whitespace is ambiguous, it could be a descendant combinator or
+				* insignificant whitespace.
+				*/
+				$next_selector = WP_CSS_Compound_Selector::parse( $input, $updated_offset );
+				if ( null !== $next_selector ) {
+					$combinator = WP_CSS_Complex_Selector::COMBINATOR_DESCENDANT;
+				}
+			}
+
+			if ( null === $next_selector ) {
+				break;
+			}
+
+			// $self_selector will pass to a relative selector where only the type selector is allowed.
+			if ( null !== $self_selector->subclass_selectors || null === $self_selector->type_selector ) {
+				return null;
+			}
+
+			/** @var array{WP_CSS_Compound_Selector, string} */
+			$selector_pair = array( $self_selector->type_selector, $combinator );
+			$selectors[]   = $selector_pair;
+			$self_selector = $next_selector;
+
+			$found_whitespace = self::parse_whitespace( $input, $updated_offset );
+		}
+		$offset = $updated_offset;
+
+		return new self( $self_selector, array_reverse( $selectors ) );
 	}
 }

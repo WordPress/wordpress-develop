@@ -16,7 +16,7 @@
  *
  * @access private
  */
-final class WP_CSS_Type_Selector implements WP_CSS_HTML_Tag_Processor_Matcher {
+final class WP_CSS_Type_Selector extends WP_CSS_Selector_Parser_Matcher {
 	/**
 	 * The element type (tag name) to match or '*' to match any element.
 	 *
@@ -58,5 +58,33 @@ final class WP_CSS_Type_Selector implements WP_CSS_HTML_Tag_Processor_Matcher {
 			return true;
 		}
 		return 0 === strcasecmp( $tag_name, $this->type );
+	}
+
+	/**
+	 * Parses a selector string to create a selector instance.
+	 *
+	 * To create an instance of this class, use the {@see WP_CSS_Compound_Selector_List::from_selectors()} method.
+	 *
+	 * @param string $input The selector string.
+	 * @param int    $offset The offset into the string. The offset is passed by reference and
+	 *                       will be updated if the parse is successful.
+	 * @return static|null The selector instance, or null if the parse was unsuccessful.
+	 */
+	public static function parse( string $input, int &$offset ): ?static {
+		if ( $offset >= strlen( $input ) ) {
+			return null;
+		}
+
+		if ( '*' === $input[ $offset ] ) {
+			++$offset;
+			return new WP_CSS_Type_Selector( '*' );
+		}
+
+		$result = self::parse_ident( $input, $offset );
+		if ( null === $result ) {
+			return null;
+		}
+
+		return new self( $result );
 	}
 }
