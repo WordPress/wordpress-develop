@@ -200,7 +200,7 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 *                       will be updated if the parse is successful.
 	 * @return static|null The selector instance, or null if the parse was unsuccessful.
 	 */
-	public static function parse( string $input, int &$offset ): ?static {
+	public static function parse( string $input, int &$offset ) {
 		if ( $offset >= strlen( $input ) ) {
 			return null;
 		}

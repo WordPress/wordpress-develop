@@ -43,7 +43,7 @@ class WP_CSS_Complex_Selector_List extends WP_CSS_Compound_Selector_List {
 	 *                       will be updated if the parse is successful.
 	 * @return static|null The selector instance, or null if the parse was unsuccessful.
 	 */
-	public static function parse( string $input, int &$offset ): ?static {
+	public static function parse( string $input, int &$offset ) {
 		$selector = WP_CSS_Complex_Selector::parse( $input, $offset );
 		if ( null === $selector ) {
 			return null;

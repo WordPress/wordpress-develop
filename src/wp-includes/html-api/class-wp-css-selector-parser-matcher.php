@@ -34,7 +34,7 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	 *                       will be updated if the parse is successful.
 	 * @return static|null The selector instance, or null if the parse was unsuccessful.
 	 */
-	abstract public static function parse( string $input, int &$offset ): ?static;
+	abstract public static function parse( string $input, int &$offset );
 
 	/*
 	 * ------------------------

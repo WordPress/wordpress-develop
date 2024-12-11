@@ -255,7 +255,7 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 *                       will be updated if the parse is successful.
 	 * @return static|null The selector instance, or null if the parse was unsuccessful.
 	 */
-	public static function parse( string $input, int &$offset ): ?static {
+	public static function parse( string $input, int &$offset ) {
 		// Need at least 3 bytes [x]
 		if ( $offset + 2 >= strlen( $input ) ) {
 			return null;
