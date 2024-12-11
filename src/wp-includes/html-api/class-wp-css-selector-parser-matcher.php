@@ -34,7 +34,7 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	/**
 	 * @todo document
 	 */
-	final public static function parse_whitespace( string $input, int &$offset ): bool {
+	final protected static function parse_whitespace( string $input, int &$offset ): bool {
 		$length   = strspn( $input, self::WHITESPACE_CHARACTERS, $offset );
 		$advanced = $length > 0;
 		$offset  += $length;
