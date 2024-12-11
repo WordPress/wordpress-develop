@@ -46,7 +46,12 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	 */
 
 	/**
-	 * @todo document
+	 * Consumes whitespace from the input string.
+	 *
+	 * @param string $input The selector string.
+	 * @param int    $offset The offset into the string. The offset is passed by reference and will
+	 *                       be update to the byte after the whitespace sequence.
+	 * @return bool True if whitespace was consumed.
 	 */
 	final protected static function parse_whitespace( string $input, int &$offset ): bool {
 		$length   = strspn( $input, self::WHITESPACE_CHARACTERS, $offset );
@@ -289,7 +294,6 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 				$ident .= self::consume_escaped_codepoint( $input, $offset );
 				continue;
 			} elseif ( self::is_ident_codepoint( $input, $offset ) ) {
-				// @todo this should append and advance the correct number of bytes.
 				$ident .= $input[ $offset ];
 				++$offset;
 				continue;
@@ -338,7 +342,7 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	}
 
 	/**
-	 * Checks if the next code point is an "ident start code point".
+	 * Checks if the next code point is an "ident start code point."
 	 *
 	 * Caution! This method does not do any bounds checking, it should not be passed
 	 * a string with an offset that is out of bounds.
@@ -370,7 +374,7 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	}
 
 	/**
-	 * Checks if the next code point is an "ident code point".
+	 * Checks if the next code point is an "ident code point."
 	 *
 	 * Caution! This method does not do any bounds checking, it should not be passed
 	 * a string with an offset that is out of bounds.
@@ -461,7 +465,12 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	}
 
 	/**
-	 * @todo doc…
+	 * Normalizes selector input for processing.
+	 *
+	 * @see https://www.w3.org/TR/css-syntax-3/#input-preprocessing
+	 *
+	 * @param string $input The selector string.
+	 * @return string The normalized selector string.
 	 */
 	final protected static function normalize_selector_input( string $input ): string {
 		/*

@@ -122,6 +122,12 @@ class WP_CSS_Compound_Selector_List extends WP_CSS_Selector_Parser_Matcher {
 	 * @return static|null
 	 */
 	public static function from_selectors( string $input ): ?static {
+		$input = self::normalize_selector_input( $input );
+
+		if ( '' === $input ) {
+			return null;
+		}
+
 		$offset = 0;
 		return static::parse( $input, $offset );
 	}
@@ -137,14 +143,6 @@ class WP_CSS_Compound_Selector_List extends WP_CSS_Selector_Parser_Matcher {
 	 * @return static|null The selector instance, or null if the parse was unsuccessful.
 	 */
 	public static function parse( string $input, int &$offset ): ?static {
-		$input = self::normalize_selector_input( $input );
-
-		if ( '' === $input ) {
-			return null;
-		}
-
-		$offset = 0;
-
 		$selector = WP_CSS_Compound_Selector::parse( $input, $offset );
 		if ( null === $selector ) {
 			return null;
