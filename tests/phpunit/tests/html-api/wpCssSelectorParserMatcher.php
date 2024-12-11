@@ -16,6 +16,13 @@ class Tests_HtmlApi_WpCssSelectorParserMatcher extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 		$this->test_class = new class() extends WP_CSS_Selector_Parser_Matcher {
+			public function matches( $processor ): bool {
+				throw new Exeption( 'Matches called on test class.' );
+			}
+			public static function parse( string $input, int &$offset ): ?static {
+				throw new Exeption( 'Parse called on test class.' );
+			}
+
 			/*
 			 * Parsing
 			 */
