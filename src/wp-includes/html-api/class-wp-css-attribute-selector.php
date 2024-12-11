@@ -231,15 +231,15 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 */
 	private function whitespace_delimited_list( string $input ): Generator {
 		// Start by skipping whitespace.
-		$offset = strspn( $input, " \t\r\n\f" );
+		$offset = strspn( $input, self::WHITESPACE_CHARACTERS );
 
 		while ( $offset < strlen( $input ) ) {
 			// Find the byte length until the next boundary.
-			$length = strcspn( $input, " \t\r\n\f", $offset );
+			$length = strcspn( $input, self::WHITESPACE_CHARACTERS, $offset );
 			$value  = substr( $input, $offset, $length );
 
 			// Move past trailing whitespace.
-			$offset += $length + strspn( $input, " \t\r\n\f", $offset + $length );
+			$offset += $length + strspn( $input, self::WHITESPACE_CHARACTERS, $offset + $length );
 
 			yield $value;
 		}
