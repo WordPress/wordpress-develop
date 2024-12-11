@@ -116,16 +116,15 @@ final class WP_CSS_Compound_Selector extends WP_CSS_Selector_Parser_Matcher {
 			return null;
 		}
 
-		$next_char = $input[ $offset ];
-		return '.' === $next_char
-			? WP_CSS_Class_Selector::parse( $input, $offset )
-			: (
-				'#' === $next_char
-				? WP_CSS_ID_Selector::parse( $input, $offset )
-				: ( '[' === $next_char
-					? WP_CSS_Attribute_Selector::parse( $input, $offset )
-					: null
-				)
-			);
+		switch ( $input[ $offset ] ) {
+			case '.':
+				return WP_CSS_Class_Selector::parse( $input, $offset );
+			case '#':
+				return WP_CSS_ID_Selector::parse( $input, $offset );
+			case '[':
+				return WP_CSS_Attribute_Selector::parse( $input, $offset );
+		}
+
+		return null;
 	}
 }
