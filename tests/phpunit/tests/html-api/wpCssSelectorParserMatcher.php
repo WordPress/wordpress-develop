@@ -19,7 +19,7 @@ class Tests_HtmlApi_WpCssSelectorParserMatcher extends WP_UnitTestCase {
 			public function matches( $processor ): bool {
 				throw new Error( 'Matches called on test class.' );
 			}
-			public static function parse( string $input, int &$offset ): ?static {
+			public static function parse( string $input, int &$offset ) {
 				throw new Error( 'Parse called on test class.' );
 			}
 
