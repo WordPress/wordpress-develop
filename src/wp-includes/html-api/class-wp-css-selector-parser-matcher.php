@@ -1,5 +1,19 @@
 <?php
+/**
+ * HTML API: WP_CSS_Selector_Parser_Matcher class
+ *
+ * @package WordPress
+ * @subpackage HTML-API
+ * @since 6.8.0
+ */
 
+/**
+ * Base class for all CSS Selector praser/matcher classes.
+ *
+ * @since 6.8.0
+ *
+ * @access private
+ */
 abstract class WP_CSS_Selector_Parser_Matcher {
 	const UTF8_MAX_CODEPOINT_VALUE = 0x10FFFF;
 	const WHITESPACE_CHARACTERS    = " \t\r\n\f";
