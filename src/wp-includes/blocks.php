@@ -2390,11 +2390,8 @@ function parse_blocks( $content ) {
 	 */
 	$parser_class = apply_filters( 'block_parser_class', 'WP_Block_Parser' );
 
-	$parser        = new $parser_class();
-	$parsed_blocks = $parser->parse( $content );
-	block_thing( $parsed_blocks );
-
-	return $parsed_blocks;
+	$parser = new $parser_class();
+	return $parser->parse( $content );
 }
 
 function block_thing( array &$parsed_blocks ) {
