@@ -2390,8 +2390,67 @@ function parse_blocks( $content ) {
 	 */
 	$parser_class = apply_filters( 'block_parser_class', 'WP_Block_Parser' );
 
-	$parser = new $parser_class();
-	return $parser->parse( $content );
+	$parser        = new $parser_class();
+	$parsed_blocks = $parser->parse( $content );
+	block_thing( $parsed_blocks );
+
+	return $parsed_blocks;
+}
+
+function block_thing( array &$parsed_blocks ) {
+	$block_registry = WP_Block_Type_Registry::get_instance();
+
+	foreach ( $parsed_blocks as &$block ) {
+		if ( isset( $block['blockName'] ) ) {
+			$block_type = $block_registry->get_registered( $block['blockName'] );
+
+			if ( null !== $block_type && null !== $block_type->attributes ) {
+				foreach ( $block_type->attributes as $attribute_name => $attribute ) {
+					if ( ! isset( $attribute['selector'] ) ) {
+						continue;
+					}
+					if ( ! isset( $block['attrs'][ $attribute_name ] ) && '' !== $block['innerHTML'] ) {
+						$processor = WP_HTML_Processor::create_fragment( $block['innerHTML'] );
+
+						$selector = $attribute['selector'];
+
+						// This is a workaround for a known unsupported selector in a core block.
+						if ( 'a:not([download])' === $selector ) {
+							$selector = 'a';
+						}
+
+						foreach ( $processor->select_all( $selector ) as $_ ) {
+							// This is a workaround for a known unsupported selector in a core block.
+							if (
+								'a:not([download])' === $attribute['selector'] &&
+								null !== $processor->get_attribute( 'download' )
+							) {
+								continue;
+							}
+
+							switch ( $attribute['source'] ) {
+								case 'attribute':
+									$attr_value = $processor->get_attribute( $attribute['attribute'] );
+									// This could be null, string, true, check what JS parser does.
+									$block['attrs'][ $attribute_name ] = $attr_value;
+									break;
+
+								// @todo see about supporting these.
+								case 'text':
+								case 'rich-text':
+								case 'query':
+									break;
+							}
+						}
+					}
+				}
+			}
+		}
+		if ( isset( $block['innerBlocks'] ) ) {
+			block_thing( $block['innerBlocks'] );
+		}
+	}
+	return $parsed_blocks;
 }
 
 /**
