@@ -343,7 +343,7 @@ class WP_Block_Parser {
 	 */
 	public function add_inner_block( WP_Block_Parser_Block $block, $token_start, $token_length, $last_offset = null ) {
 		$parent                       = $this->stack[ count( $this->stack ) - 1 ];
-		$parent->block->innerBlocks[] = (array) $this->add_html_attributes_to_block( $block );
+		$parent->block->innerBlocks[] = (array) $block;
 		$html                         = substr( $this->document, $parent->prev_offset, $token_start - $parent->prev_offset );
 
 		if ( ! empty( $html ) ) {
@@ -385,74 +385,7 @@ class WP_Block_Parser {
 			);
 		}
 
-		$this->output[] = (array) $this->add_html_attributes_to_block( $stack_top->block );
-	}
-
-	private function add_html_attributes_to_block( WP_Block_Parser_Block $block ): WP_Block_Parser_Block {
-		//phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		if ( ! isset( $block->blockName ) ) {
-			return $block;
-		}
-
-		if ( '' === $block->innerHTML ) {
-			return $block;
-		}
-
-		$block_registry = WP_Block_Type_Registry::get_instance();
-		if ( null === $block_registry ) {
-			return $block;
-		}
-
-		$block_type = $block_registry->get_registered( $block->blockName );
-		if ( null === $block_type || ! isset( $block_type->attributes ) ) {
-			return $block;
-		}
-
-		foreach ( $block_type->attributes as $attribute_name => $attribute ) {
-			if ( ! isset( $attribute['selector'] ) ) {
-				continue;
-			}
-			if ( ! isset( $block->attrs[ $attribute_name ] ) ) {
-				$processor = WP_HTML_Processor::create_fragment( $block->innerHTML );
-				$selector  = $attribute['selector'];
-
-				// This is a workaround for a known unsupported selector in a core block.
-				if ( 'a:not([download])' === $selector ) {
-					$selector = 'a';
-				}
-
-				foreach ( $processor->select_all( $selector ) as $_ ) {
-					// This is a workaround for a known unsupported selector in a core block.
-					if (
-					'a:not([download])' === $attribute['selector'] &&
-					null !== $processor->get_attribute( 'download' )
-					) {
-						continue;
-					}
-
-					switch ( $attribute['source'] ) {
-						case 'attribute':
-							$attr_value = $processor->get_attribute( $attribute['attribute'] );
-							if ( null === $attr_value ) {
-								continue 2;
-							}
-							if ( null === $block->attrs ) {
-								$block->attrs = array();
-							}
-							// This could be null, string, true, check what JS parser does.
-							$block->attrs[ $attribute_name ] = $attr_value;
-							break;
-
-						// @todo see about supporting these.
-						case 'text':
-						case 'rich-text':
-						case 'query':
-							break;
-					}
-				}
-			}
-		}
-		return $block;
+		$this->output[] = (array) $stack_top->block;
 	}
 }
 

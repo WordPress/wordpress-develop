@@ -229,7 +229,8 @@ class WP_Block {
 				array();
 
 			if ( ! is_null( $this->block_type ) ) {
-				$this->attributes = $this->block_type->prepare_attributes_for_render( $this->attributes );
+				$this->attributes = $this->block_type->add_sourced_attributes_from_parsed_block( $this->attributes, $this->parsed_block );
+				$this->attributes = $this->block_type->prepare_attributes_for_render( $this->attributes, $this->parsed_block );
 			}
 
 			return $this->attributes;

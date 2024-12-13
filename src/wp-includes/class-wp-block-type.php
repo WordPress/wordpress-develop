@@ -533,6 +533,76 @@ class WP_Block_Type {
 	}
 
 	/**
+	 * Adds sourced attributes from the parsed block to the block attributes.
+	 *
+	 * @since TBD
+	 *
+	 * @param array $attributes   Original block attributes.
+	 * @param array $parsed_block Parsed block.
+	 * @return array Prepared block attributes.
+	 */
+	public function add_sourced_attributes_from_parsed_block( $attributes, $parsed_block ) {
+		// If there are no attribute definitions for the block type, skip
+		// processing and return verbatim.
+		if ( ! isset( $this->attributes ) ) {
+			return $attributes;
+		}
+
+		// Sourced attributes are extracted from the block's HTML. If there's no
+		// HTML, there's nothing to do.
+		if ( '' === $parsed_block['innerHTML'] ) {
+			return $attributes;
+		}
+
+		foreach ( $this->attributes as $attribute_name => $attribute_definition ) {
+			if (
+				! isset( $attribute_definition['source'] ) ||
+				'attribute' !== $attribute_definition['source'] ||
+				! is_string( $attribute_definition['attribute'] ) ||
+				! isset( $attribute_definition['selector'] ) ||
+
+				// @todo what to do if it's in serialized attributes already? Skip for now.
+				isset( $attributes[ $attribute_name ] )
+			) {
+				continue;
+			}
+
+			$processor = WP_HTML_Processor::create_fragment( $parsed_block['innerHTML'] );
+			if ( null === $processor ) {
+				continue;
+			}
+
+			$selector = $attribute_definition['selector'];
+
+			// This is a workaround for a known unsupported selector in a core block.
+			if ( 'a:not([download])' === $selector ) {
+				$selector = 'a';
+			}
+
+			foreach ( $processor->select_all( $selector ) as $_ ) {
+				// This is a workaround for a known unsupported selector in a core block.
+				if (
+					'a:not([download])' === $attribute_definition['selector'] &&
+					null !== $processor->get_attribute( 'download' )
+				) {
+					continue;
+				}
+
+				$value = $processor->get_attribute( $attribute_definition['attribute'] );
+				if ( null === $value ) {
+					continue 2;
+				}
+
+				// @todo another function validates value types, is that sufficient?
+				$attributes[ $attribute_name ] = $value;
+
+			}
+		}
+
+		return $attributes;
+	}
+
+	/**
 	 * Sets block type properties.
 	 *
 	 * @since 5.0.0
