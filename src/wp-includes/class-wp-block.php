@@ -224,13 +224,14 @@ class WP_Block {
 	 */
 	public function __get( $name ) {
 		if ( 'attributes' === $name ) {
-			$this->attributes = isset( $this->parsed_block['attrs'] ) ?
-				$this->parsed_block['attrs'] :
-				array();
-
 			if ( ! is_null( $this->block_type ) ) {
-				$this->attributes = $this->block_type->add_sourced_attributes_from_parsed_block( $this->attributes, $this->parsed_block );
-				$this->attributes = $this->block_type->prepare_attributes_for_render( $this->attributes, $this->parsed_block );
+				$this->attributes = $this->block_type->prepare_attributes_for_render(
+					$this->block_type->get_attributes_from_parsed_block( $this->parsed_block )
+				);
+			} else {
+				$this->attributes = isset( $this->parsed_block['attrs'] ) ?
+					$this->parsed_block['attrs'] :
+					array();
 			}
 
 			return $this->attributes;

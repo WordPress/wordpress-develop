@@ -533,15 +533,24 @@ class WP_Block_Type {
 	}
 
 	/**
-	 * Adds sourced attributes from the parsed block to the block attributes.
+	 * Gets attributes from a parsed block.
+	 *
+	 * This method will return an array of the block attributes that includes:
+	 *   - Block attributes serialized in the comment delimiters from the initial parse.
+	 *   - Sourced attributes from the "attribute" source.
+	 *
+	 * This method does not perform and validation of attribute types or default values.
 	 *
 	 * @since TBD
 	 *
-	 * @param array $attributes   Original block attributes.
-	 * @param array $parsed_block Parsed block.
-	 * @return array Prepared block attributes.
+	 * @param array $parsed_block Original parsed array representation of block.
+	 * @return array Block attributes.
 	 */
-	public function add_sourced_attributes_from_parsed_block( $attributes, $parsed_block ) {
+	public function get_attributes_from_parsed_block( $parsed_block ) {
+		$attributes = isset( $parsed_block['attrs'] ) ?
+			$parsed_block['attrs'] :
+			array();
+
 		// If there are no attribute definitions for the block type, skip
 		// processing and return verbatim.
 		if ( ! isset( $this->attributes ) ) {
@@ -558,7 +567,7 @@ class WP_Block_Type {
 			if (
 				! isset( $attribute_definition['source'] ) ||
 				'attribute' !== $attribute_definition['source'] ||
-				! is_string( $attribute_definition['attribute'] ) ||
+				! ( isset( $attribute_definition['attribute'] ) && is_string( $attribute_definition['attribute'] ) ) ||
 				! isset( $attribute_definition['selector'] ) ||
 
 				// @todo what to do if it's in serialized attributes already? Skip for now.
@@ -589,9 +598,11 @@ class WP_Block_Type {
 				}
 
 				$value = $processor->get_attribute( $attribute_definition['attribute'] );
-				if ( null === $value ) {
-					continue 2;
-				}
+
+				// @todo Should matched selectors without the attribute include null?
+				// if ( null === $value ) {
+				//   continue 2;
+				// }
 
 				// @todo another function validates value types, is that sufficient?
 				$attributes[ $attribute_name ] = $value;

@@ -255,6 +255,62 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket TBD
+	 */
+	public function test_add_sourced_attributes() {
+		$block_type   = new WP_Block_Type(
+			'core/fake',
+			array(
+				'attributes' => array(
+					'absentAtt'  => array(
+						'source'    => 'attribute',
+						'selector'  => '.omitted.attribute',
+						'attribute' => 'absent',
+					),
+					'booleanAtt' => array(
+						'source'    => 'attribute',
+						'selector'  => '#has-boolean-attribute',
+						'attribute' => 'a-boolean',
+					),
+					'imgSrc'     => array(
+						'source'    => 'attribute',
+						'selector'  => 'p img.target[src]',
+						'attribute' => 'src',
+					),
+					'serialized' => array(),
+				),
+			)
+		);
+		$inner_html   = <<<HTML
+<p>
+	<img no-src>
+	<img src="https://example.com/no.png">
+	<img class="target">
+	<img class="target" src="https://example.com/yes.png">
+	<br id="has-boolean-attribute" a-boolean>
+	<hr class="omitted attribute">
+<p>
+HTML;
+		$parsed_block = array(
+			'attrs'     => array( 'serialized' => 'already present' ),
+			'innerHTML' => $inner_html,
+		);
+
+		$result = $block_type->get_attributes_from_parsed_block( $parsed_block );
+
+		$this->assertEquals(
+			array(
+				'serialized' => 'already present',
+				// Should this be included?
+				'absentAtt'  => null,
+				'booleanAtt' => true,
+				'imgSrc'     => 'https://example.com/yes.png',
+			),
+			$result
+		);
+	}
+
+	/**
 	 * @ticket 45145
 	 */
 	public function test_prepare_attributes_none_defined() {
