@@ -749,7 +749,13 @@ class wpdb {
 	 * @param string $dbname     Database name.
 	 * @param string $dbhost     Database host.
 	 */
-	public function __construct( $dbuser, $dbpassword, $dbname, $dbhost ) {
+	public function __construct(
+		$dbuser,
+		#[\SensitiveParameter]
+		$dbpassword,
+		$dbname,
+		$dbhost
+	) {
 		if ( WP_DEBUG && WP_DEBUG_DISPLAY ) {
 			$this->show_errors();
 		}
@@ -2406,12 +2412,10 @@ class wpdb {
 		static $placeholder;
 
 		if ( ! $placeholder ) {
-			// If ext/hash is not present, compat.php's hash_hmac() does not support sha256.
-			$algo = function_exists( 'hash' ) ? 'sha256' : 'sha1';
 			// Old WP installs may not have AUTH_SALT defined.
 			$salt = defined( 'AUTH_SALT' ) && AUTH_SALT ? AUTH_SALT : (string) rand();
 
-			$placeholder = '{' . hash_hmac( $algo, uniqid( $salt, true ), $salt ) . '}';
+			$placeholder = '{' . hash_hmac( 'sha256', uniqid( $salt, true ), $salt ) . '}';
 		}
 
 		/*
@@ -2862,8 +2866,12 @@ class wpdb {
 	 * @return array {
 	 *     Array of values and formats keyed by their field names.
 	 *
-	 *     @type mixed  $value  The value to be formatted.
-	 *     @type string $format The format to be mapped to the value.
+	 *     @type array ...$0 {
+	 *         Value and format for this field.
+	 *
+	 *         @type mixed  $value  The value to be formatted.
+	 *         @type string $format The format to be mapped to the value.
+	 *     }
 	 * }
 	 */
 	protected function process_field_formats( $data, $format ) {
