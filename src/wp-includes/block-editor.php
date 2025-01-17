@@ -762,11 +762,16 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 	$wp_scripts = $backup_wp_scripts;
 	$wp_styles  = $backup_wp_styles;
 
+	$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS;
+	if ( ! is_utf8_charset() ) {
+		$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES;
+	}
+
 	wp_add_inline_script(
 		'wp-api-fetch',
 		sprintf(
 			'wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( %s ) );',
-			wp_json_encode( $preload_data )
+			wp_json_encode( $preload_data, $json_encode_flags )
 		),
 		'after'
 	);
