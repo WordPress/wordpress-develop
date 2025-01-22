@@ -636,6 +636,7 @@ function maybe_serialize( $data ) {
 	 * See https://core.trac.wordpress.org/ticket/12930
 	 * Also the world will end. See WP 3.6.1.
 	 */
+	
 	if ( is_serialized( $data, false ) ) {
 		// While double serialization needs to be supported for backwards compatibility, let's inform the developer.
 		_doing_it_wrong(
