@@ -6485,18 +6485,20 @@ function block_core_navigation_mock_parsed_block( $inner_blocks, $post ) {
  * of those hooked blocks should be exempted from insertion.
  *
  * @since 6.5.0
- * @deprecated 6.8.0
+ * @deprecated 6.8.0 Use apply_block_hooks_to_content_from_post_object() on the the blocks' serialized markup instead.
  *
  * @param array   $inner_blocks Parsed inner blocks of a Navigation block.
  * @param WP_Post $post         `wp_navigation` post object corresponding to the block.
  * @return string Serialized inner blocks in mock Navigation block wrapper, with hooked blocks inserted, if any.
  */
 function block_core_navigation_insert_hooked_blocks( $inner_blocks, $post ) {
-	_deprecated_function( __FUNCTION__, '6.8.0' );
-	$mock_navigation_block = block_core_navigation_mock_parsed_block( $inner_blocks, $post );
+	_deprecated_function( __FUNCTION__, '6.8.0', 'apply_block_hooks_to_content_from_post_object' );
 
-	$mock_navigation_block_markup = serialize_block( $mock_navigation_block );
-	return apply_block_hooks_to_content( $mock_navigation_block_markup, $post, 'insert_hooked_blocks' );
+	return apply_block_hooks_to_content_from_post_object(
+		serialize_blocks( $inner_blocks ),
+		$post,
+		'insert_hooked_blocks'
+	);
 }
 
 /**
