@@ -62,7 +62,6 @@ parameters:
       - ../../src/wp-includes/IXR
       - ../../src/wp-includes/PHPMailer
       - ../../src/wp-includes/pomo
-      - ../../src/wp-includes/random_compat
       - ../../src/wp-includes/Requests
       - ../../src/wp-includes/SimplePie
       - ../../src/wp-includes/sodium_compat
