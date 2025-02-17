@@ -740,8 +740,13 @@ function wp_initialize_site( $site_id, array $args = array() ) {
 	clean_blog_cache( $site );
 
 	// Populate the site's roles.
-	populate_roles();
 	$wp_roles = new WP_Roles();
+	$wp_roles->use_db = false;
+
+	populate_roles();
+
+	// Save all roles at once
+	update_option( 'wp_user_roles', $wp_roles->roles );
 
 	// Populate metadata for the site.
 	populate_site_meta( $site->id, $args['meta'] );
