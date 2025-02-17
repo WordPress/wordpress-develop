@@ -628,7 +628,7 @@
 	 */
 	wp.updates.updatePluginError = function( response ) {
 		var $pluginRow, $card, $message, errorMessage, buttonText, ariaLabel,
-			$adminBarUpdates = $( '#wp-admin-bar-updates' );
+			$adminBarUpdates = $( '#wp-admin-bar-updates' ),
 			isPluginInstall = 'plugin-install' === pagenow || 'plugin-install-network' === pagenow;
 
 		if ( ! wp.updates.isValidResponse( response, 'update' ) ) {
