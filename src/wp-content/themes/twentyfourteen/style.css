@@ -3184,6 +3184,92 @@ a.post-thumbnail:hover {
 	display: none;
 }
 
+@supports (scroll-marker-group: after) {
+	.slider .featured-content {
+	}
+
+	.slider .featured-content-inner {
+		display: grid;
+		grid-auto-columns: 100%;
+		grid-auto-flow: column;
+
+		scroll-behavior: smooth;
+
+		scrollbar-width: none;
+		anchor-name: --carousel;
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+
+		/* Dot Navigation */
+		scroll-marker-group: after;
+	}
+
+	/* The scroll-marker-group is actually a *sibling* */
+	.slider .featured-content-inner::scroll-marker-group {
+		position: absolute;
+		bottom: 0;
+		left: calc(222px + 24px + 6px);
+		z-index: 5;
+	}
+
+	.slider .featured-content .hentry::scroll-marker {
+		display: block;
+		content: '' / attr(data-index);
+		width: 12px;
+		height: 12px;
+		background: #4d4d4d;
+		float: left;
+		margin: 18px 24px 18px 0;
+		cursor: pointer;
+	}
+
+	.slider .featured-content .hentry::scroll-marker:target-current {
+		background: #24890d;
+	}
+
+	.slider .featured-content .hentry {
+		display: block;
+		container-type: scroll-state;
+		scroll-snap-align: center;
+	}
+
+	.slider .featured-content-inner::scroll-button(*) {
+		font: normal 32px/46px Genericons;
+		position: absolute;
+		bottom: 0;
+		right: 0;
+		height: 48px;
+		aspect-ratio: 1;
+		background: #000;
+		color: #fff;
+		cursor: pointer;
+		border: none;
+		z-index: 5;
+	}
+
+	@media screen and (min-width: 673px) {
+		.slider .featured-content-inner::scroll-button(*) {
+			line-height: 48px;
+		}
+	}
+
+	.slider .featured-content-inner::scroll-button(*):disabled {
+
+	}
+	.slider .featured-content-inner::scroll-button(*):hover {
+		background: #24890d;
+	}
+
+	.slider .featured-content-inner::scroll-button(left) {
+		content: "\f430" / attr(data-prev);
+		right: 48px;
+	}
+
+	.slider .featured-content-inner::scroll-button(right) {
+		content: "\f429" / attr(data-next);
+	}
+}
 
 /**
  * 10.0 Multisite

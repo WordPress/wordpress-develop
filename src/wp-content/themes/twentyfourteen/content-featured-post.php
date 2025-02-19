@@ -9,7 +9,7 @@
 
 ?>
 
-<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+<article id="post-<?php the_ID(); ?>" <?php post_class(); ?> data-index="<?php echo esc_attr( $GLOBALS['index'] ); ?>">
 	<a class="post-thumbnail" href="<?php the_permalink(); ?>">
 	<?php
 	// Output the featured image.

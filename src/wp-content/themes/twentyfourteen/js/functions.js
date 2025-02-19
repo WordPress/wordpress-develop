@@ -5,6 +5,7 @@
  * footer widgets and Featured Content slider.
  *
  */
+/* global twentyfourteenScriptVars */
 ( function( $ ) {
 	var body    = $( 'body' ),
 		_window = $( window ),
@@ -174,11 +175,19 @@
 		}
 
 		// Initialize Featured Content slider.
-		if ( body.is( '.slider' ) ) {
-			$( '.featured-content' ).featuredslider( {
-				selector: '.featured-content-inner > article',
-				controlsContainer: '.featured-content'
-			} );
+		if (body.is('.slider') && ! CSS.supports( 'scroll-marker-group: after' ) ) {
+			var slider = document.createElement( 'script' );
+			slider.src = twentyfourteenScriptVars.sliderScriptUrl;
+			slider.id = twentyfourteenScriptVars.sliderScriptId;
+			window.featuredSliderDefaults = twentyfourteenScriptVars.featuredSliderDefaults;
+			slider.onload = function() {
+				$('.featured-content').featuredslider({
+					selector: '.featured-content-inner > article',
+					controlsContainer: '.featured-content'
+				});
+			};
+
+			document.body.appendChild(slider);
 		}
 	} );
 } )( jQuery );
