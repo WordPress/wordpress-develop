@@ -104,24 +104,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/ajax-actions.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#1 \\$admin_header_callback \\(\'\'\\) of method Custom_Background\\:\\:__construct\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-custom-background.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#2 \\$admin_image_div_callback \\(\'\'\\) of method Custom_Background\\:\\:__construct\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-custom-background.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#2 \\$admin_image_div_callback \\(\'\'\\) of method Custom_Image_Header\\:\\:__construct\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-custom-image-header.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Call to an undefined method WP_Upgrader\\:\\:get_name_for_update\\(\\)\\.$#',
 	'identifier' => 'method.notFound',
 	'count' => 1,
@@ -604,84 +586,6 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Binary operation "\\*" between string and 1\\.0E\\-5 results in an error\\.$#',
 	'identifier' => 'binaryOp.invalid',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#5 \\$callback \\(\'\'\\) of function add_comments_page\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#5 \\$callback \\(\'\'\\) of function add_dashboard_page\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#5 \\$callback \\(\'\'\\) of function add_links_page\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#5 \\$callback \\(\'\'\\) of function add_management_page\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#5 \\$callback \\(\'\'\\) of function add_media_page\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#5 \\$callback \\(\'\'\\) of function add_menu_page\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#5 \\$callback \\(\'\'\\) of function add_options_page\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#5 \\$callback \\(\'\'\\) of function add_pages_page\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#5 \\$callback \\(\'\'\\) of function add_plugins_page\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#5 \\$callback \\(\'\'\\) of function add_posts_page\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#5 \\$callback \\(\'\'\\) of function add_theme_page\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#5 \\$callback \\(\'\'\\) of function add_users_page\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#6 \\$callback \\(\'\'\\) of function add_submenu_page\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
 ];
@@ -1212,12 +1116,6 @@ $ignoreErrors[] = [
 	'identifier' => 'parameter.defaultValue',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/ms-functions.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#3 \\$deprecated \\(\'\'\\) of function unregister_setting\\(\\) is incompatible with type callable\\(\\)\\: mixed\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/option.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Cannot access property \\$ID on array\\|object\\.$#',
