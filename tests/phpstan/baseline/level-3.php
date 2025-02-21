@@ -278,30 +278,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-comment-query.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Property WP_Comment\\:\\:\\$comment_karma \\(string\\) does not accept default value of type int\\.$#',
-	'identifier' => 'property.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-comment.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Comment\\:\\:\\$comment_parent \\(string\\) does not accept default value of type int\\.$#',
-	'identifier' => 'property.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-comment.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Comment\\:\\:\\$comment_post_ID \\(string\\) does not accept default value of type int\\.$#',
-	'identifier' => 'property.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-comment.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Comment\\:\\:\\$user_id \\(string\\) does not accept default value of type int\\.$#',
-	'identifier' => 'property.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-comment.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Property WP_Customize_Control\\:\\:\\$active_callback \\(callable\\(\\)\\: mixed\\) does not accept default value of type \'\'\\.$#',
 	'identifier' => 'property.defaultValue',
 	'count' => 1,
@@ -392,18 +368,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-post-type.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Property WP_Post\\:\\:\\$comment_count \\(string\\) does not accept default value of type int\\.$#',
-	'identifier' => 'property.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-post.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Post\\:\\:\\$post_author \\(string\\) does not accept default value of type int\\.$#',
-	'identifier' => 'property.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-post.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Method WP_Query\\:\\:setup_postdata\\(\\) should return true but empty return statement found\\.$#',
 	'identifier' => 'return.empty',
 	'count' => 2,
@@ -444,6 +408,12 @@ $ignoreErrors[] = [
 	'identifier' => 'property.defaultValue',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-site-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Speculation_Rules\\:\\:jsonSerialize\\(\\) should return array\\<string, array\\<string, mixed\\>\\> but returns array\\<string, list\\<mixed\\>\\>\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-speculation-rules.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Method WP_Tax_Query\\:\\:get_sql_for_clause\\(\\) should return array but returns string\\.$#',

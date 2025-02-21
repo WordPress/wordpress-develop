@@ -8108,12 +8108,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Function pingback\\(\\) has no return type specified\\.$#',
-	'identifier' => 'missingType.return',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Function sanitize_comment_cookies\\(\\) has no return type specified\\.$#',
 	'identifier' => 'missingType.return',
 	'count' => 1,

@@ -2510,6 +2510,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Strict comparison using \\=\\=\\= between null and string will always evaluate to false\\.$#',
+	'identifier' => 'identical.alwaysFalse',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Ternary operator condition is always true\\.$#',
 	'identifier' => 'ternary.alwaysTrue',
 	'count' => 1,
