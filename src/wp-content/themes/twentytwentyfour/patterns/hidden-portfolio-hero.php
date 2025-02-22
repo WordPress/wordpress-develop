@@ -8,6 +8,7 @@
  * @subpackage Twenty_Twenty_Four
  * @since Twenty Twenty-Four 1.0
  */
+
 ?>
 
 <!-- wp:spacer {"height":"var:preset|spacing|50","style":{"layout":{}}} -->

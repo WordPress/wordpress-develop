@@ -10,6 +10,7 @@
  * @subpackage Twenty_Twenty_Four
  * @since Twenty Twenty-Four 1.0
  */
+
 ?>
 
 <!-- wp:query {"query":{"perPage":10,"pages":0,"offset":"0","postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":true},"align":"wide","layout":{"type":"default"}} -->

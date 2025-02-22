@@ -8,6 +8,7 @@
  * @subpackage Twenty_Twenty_Four
  * @since Twenty Twenty-Four 1.0
  */
+
 ?>
 
 <!-- wp:group {"tagName":"nav","ariaLabel":"<?php esc_attr_e( 'Posts', 'twentytwentyfour' ); ?>","style":{"spacing":{"padding":{"bottom":"var:preset|spacing|40","top":"var:preset|spacing|40"}}},"layout":{"type":"flex","flexWrap":"nowrap","justifyContent":"space-between"}} -->

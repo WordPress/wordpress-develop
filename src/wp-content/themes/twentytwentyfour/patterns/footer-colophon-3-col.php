@@ -10,6 +10,7 @@
  * @subpackage Twenty_Twenty_Four
  * @since Twenty Twenty-Four 1.0
  */
+
 ?>
 
 <!-- wp:group {"align":"wide","layout":{"type":"constrained"}} -->
