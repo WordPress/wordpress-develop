@@ -8,7 +8,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_Four
- * @since Twenty Twenty-Four 1.0 
+ * @since Twenty Twenty-Four 1.0
  */
 
 ?>

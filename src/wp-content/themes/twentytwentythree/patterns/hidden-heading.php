@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_Three
- * @since Twenty Twenty-Three 1.0 
+ * @since Twenty Twenty-Three 1.0
  */
 
 ?>
