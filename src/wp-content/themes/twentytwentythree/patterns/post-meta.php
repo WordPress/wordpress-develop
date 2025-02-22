@@ -6,7 +6,12 @@
  * Keywords: post meta
  * Block Types: core/template-part/post-meta
  * Description: Post meta information with separator on the top.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Three
+ * @since Twenty Twenty-Three 1.0
  */
+
 ?>
 <!-- wp:spacer {"height":"0"} -->
 <div style="height:0" aria-hidden="true" class="wp-block-spacer"></div>
