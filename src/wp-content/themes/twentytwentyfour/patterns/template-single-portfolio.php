@@ -5,6 +5,10 @@
  * Template Types: posts, single
  * Viewport width: 1400
  * Inserter: no
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

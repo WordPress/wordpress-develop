@@ -4,6 +4,10 @@
  * Slug: twentytwentyfour/posts-images-only-offset-4-col
  * Categories: posts
  * Description: A list of posts with featured images only, 4 columns.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

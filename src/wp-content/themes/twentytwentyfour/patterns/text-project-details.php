@@ -5,6 +5,10 @@
  * Categories: text, portfolio
  * Viewport width: 1400
  * Description: A text-only section for project details.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0 
  */
 ?>
 

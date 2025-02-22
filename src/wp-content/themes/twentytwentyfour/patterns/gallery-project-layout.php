@@ -5,6 +5,10 @@
  * Categories: gallery, featured, portfolio
  * Viewport width: 1600
  * Description: A gallery section with a project layout with 2 images.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

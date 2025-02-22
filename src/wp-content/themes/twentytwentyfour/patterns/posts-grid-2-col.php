@@ -5,6 +5,10 @@
  * Categories: query
  * Block Types: core/query
  * Description: A grid of posts featuring the first post, 2 columns.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

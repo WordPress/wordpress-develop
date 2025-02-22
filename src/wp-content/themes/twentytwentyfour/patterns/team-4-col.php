@@ -5,6 +5,10 @@
  * Categories: team, about
  * Viewport width: 1400
  * Description: A team section, with a heading, a paragraph, and 4 columns for team members.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

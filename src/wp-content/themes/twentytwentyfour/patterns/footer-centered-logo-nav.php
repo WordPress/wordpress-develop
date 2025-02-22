@@ -5,6 +5,10 @@
  * Categories: footer
  * Block Types: core/template-part/footer
  * Description: A footer section with a centered logo, navigation, and WordPress credits.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

@@ -6,6 +6,10 @@
  * Keywords: project, images, media, masonry, columns
  * Viewport width: 1400
  * Description: A gallery section with 3 columns and offset images.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 <!-- wp:group {"metadata":{"name":"Portfolio Images"},"align":"full","style":{"spacing":{"padding":{"right":"var:preset|spacing|50","left":"var:preset|spacing|50","top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"},"margin":{"top":"0","bottom":"0"}}},"layout":{"type":"constrained"}} -->

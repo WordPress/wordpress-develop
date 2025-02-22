@@ -3,6 +3,10 @@
  * Title: Post navigation
  * Slug: twentytwentyfour/hidden-post-navigation
  * Inserter: no
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

@@ -8,6 +8,10 @@
  * Post Types: page, wp_template
  * Viewport width: 1400
  * Description: A portfolio home page that features a gallery.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

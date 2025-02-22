@@ -5,6 +5,10 @@
  * Categories: call-to-action
  * Keywords: newsletter, subscribe, button
  * Description: Subscribers CTA section with a title, a paragraph and a CTA button.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

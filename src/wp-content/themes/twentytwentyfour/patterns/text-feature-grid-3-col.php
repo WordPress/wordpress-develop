@@ -5,6 +5,10 @@
  * Categories: text, about
  * Viewport width: 1400
  * Description: A feature grid of 2 rows and 3 columns with headings and text.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

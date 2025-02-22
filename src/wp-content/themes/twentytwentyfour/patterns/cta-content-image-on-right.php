@@ -5,6 +5,10 @@
  * Categories: call-to-action, banner
  * Viewport width: 1400
  * Description: A title, paragraph, two CTA buttons, and an image for a general CTA section.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

@@ -3,6 +3,10 @@
  * Title: No results
  * Slug: twentytwentyfour/hidden-no-results
  * Inserter: no
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 <!-- wp:paragraph -->

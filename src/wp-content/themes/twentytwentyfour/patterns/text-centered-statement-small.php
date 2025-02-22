@@ -6,6 +6,10 @@
  * Keywords: mission, introduction
  * Viewport width: 1200
  * Description: A centered italic text statement with compact padding.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

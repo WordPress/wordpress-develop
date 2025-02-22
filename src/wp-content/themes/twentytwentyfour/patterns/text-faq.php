@@ -6,6 +6,10 @@
  * Keywords: faq, about, frequently asked
  * Viewport width: 1400
  * Description: A FAQ section with a large FAQ heading and a group of questions and answers.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

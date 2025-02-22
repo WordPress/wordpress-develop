@@ -6,6 +6,10 @@
  * Keywords: project, images, media, masonry, columns
  * Viewport width: 1400
  * Description: A gallery section with 4 columns and offset images.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

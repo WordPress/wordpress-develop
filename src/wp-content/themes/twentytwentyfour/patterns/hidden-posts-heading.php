@@ -4,6 +4,10 @@
  * Slug: twentytwentyfour/hidden-posts-heading
  * Categories: hidden
  * Inserter: no
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 <!-- wp:heading {"level":1,"align":"wide","style":{"spacing":{"padding":{"top":"var:preset|spacing|50"}}}} -->

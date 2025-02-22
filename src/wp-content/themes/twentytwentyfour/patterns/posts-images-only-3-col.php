@@ -5,6 +5,10 @@
  * Categories: query
  * Block Types: core/query
  * Description: A list of posts with featured images only, 3 columns.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 

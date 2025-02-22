@@ -8,6 +8,10 @@
  * Post Types: page, wp_template
  * Viewport width: 1100
  * Description: A large RSVP heading sideways, a description, and a CTA button.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
 ?>
 
