@@ -1145,7 +1145,7 @@ final class WP_Customize_Nav_Menus {
 		?>
 		<div id="available-menu-items" class="accordion-container">
 			<div class="customize-section-title">
-				<button type="button" class="customize-section-back" type="button">
+				<button type="button" class="customize-section-back">
 					<span class="screen-reader-text">
 						<?php
 						/* translators: Hidden accessibility text. */
