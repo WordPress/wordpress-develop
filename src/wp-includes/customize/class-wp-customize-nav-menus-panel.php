@@ -68,7 +68,7 @@ class WP_Customize_Nav_Menus_Panel extends WP_Customize_Panel {
 	protected function content_template() {
 		?>
 		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
-			<button type="button" class="customize-panel-back" tabindex="-1">
+			<button type="button" class="customize-panel-back">
 				<span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. */

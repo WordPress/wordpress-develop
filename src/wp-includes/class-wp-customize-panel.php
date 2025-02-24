@@ -374,7 +374,7 @@ class WP_Customize_Panel {
 	protected function content_template() {
 		?>
 		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
-			<button class="customize-panel-back" tabindex="-1"><span class="screen-reader-text">
+			<button class="customize-panel-back"><span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
 				_e( 'Back' );
