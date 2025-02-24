@@ -363,7 +363,7 @@ class WP_Customize_Section {
 			<ul class="accordion-section-content" id="{{ data.id }}-content">
 				<li class="customize-section-description-container section-meta <# if ( data.description_hidden ) { #>customize-info<# } #>">
 					<div class="customize-section-title">
-						<button class="customize-section-back" tabindex="-1">
+						<button class="customize-section-back">
 							<span class="screen-reader-text">
 								<?php
 								/* translators: Hidden accessibility text. */
