@@ -16,6 +16,8 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * retrieves and returns a cached calendar when one is available in the cache.
 	 * It also tests the non-display mode of get_calendar().
 	 *
+	 * @ticket 41011
+	 *
 	 * @global string $m        The month in YYYYMM format.
 	 * @global string $monthnum The month number (01-12).
 	 * @global string $year     The year in YYYY format.
@@ -49,6 +51,8 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * returns an empty string and sets an empty cache when there are no posts
 	 * in the database.
 	 *
+	 * @ticket 41011
+	 *
 	 * @global wpdb   $wpdb   WordPress database abstraction object.
 	 * @global array  $posts  Array of post objects.
 	 *
@@ -79,6 +83,8 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * This test verifies that the get_calendar() function correctly generates the calendar
 	 * for the current month, including the current year, days, and other expected details such as
 	 * marking today's date, displaying correct day names, and including month navigation links.
+	 *
+	 * @ticket 41011
 	 *
 	 * @return void
 	 * @global WP_Locale $wp_locale WordPress locale object for localizing calendar output.
@@ -144,11 +150,13 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * 3. Outputs the correct date range for the specified month, ensuring only valid days are included.
 	 * 4. Includes navigation elements in the calendar.
 	 *
-	 * @return void
+	 * @ticket 41011
+	 *
 	 * @global string $monthnum The numeric representation of the month.
 	 * @global string $year The year in 'yyyy' format.
 	 *
 	 * @global string $m The date in 'yyyymm' format.
+	 * @return void
 	 */
 	public function test_get_calendar_for_specified_month_and_year() {
 		global $m, $monthnum, $year;
@@ -201,6 +209,8 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * This method sets up a mock environment with database and localization functionality to emulate
 	 * the retrieval and rendering of a calendar for a given week number. It verifies that the calendar
 	 * correctly displays the appropriate month, year, and links for posts on specific days within that week.
+	 *
+	 * @ticket 41011
 	 *
 	 * @return void
 	 */
@@ -261,6 +271,8 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * that the generated output includes the appropriate HTML structure and weekday headers. It ensures
 	 * that each day of the week is correctly displayed with its corresponding abbreviation and title.
 	 *
+	 * @ticket 41011
+	 *
 	 * @return void
 	 */
 	public function test_get_calendar_weekday_headers() {
@@ -298,6 +310,8 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * It verifies that the calendar correctly highlights the current day with the 'id="today"'
 	 * attribute. Additionally, it ensures that no other day within the month is mistakenly
 	 * highlighted as the current day.
+	 *
+	 * @ticket 41011
 	 *
 	 * @return void
 	 */
@@ -345,6 +359,8 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * a link to the day corresponding to the post's publication date. It ensures that the
 	 * calendar accurately highlights days with published posts by generating proper links.
 	 *
+	 * @ticket 41011
+	 *
 	 * @return void
 	 */
 	public function test_get_calendar_includes_links_to_days_with_posts() {
@@ -379,6 +395,8 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * that the calendar correctly displays the appropriate number of days for the month,
 	 * ensuring the absence of invalid days (e.g., 29th, 30th, or 31st in non-leap years).
 	 * It also checks that the post date is properly linked within the calendar output.
+	 *
+	 * @ticket 41011
 	 *
 	 * @return void
 	 */
@@ -424,6 +442,8 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * in the calendar output. It verifies the presence of the navigation links and
 	 * checks that they contain the correct month names.
 	 *
+	 * @ticket 41011
+	 *
 	 * @return void
 	 */
 	public function test_get_calendar_includes_navigation_links() {
@@ -454,6 +474,13 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Tests if the function get_calendar handles out of range values.
+	 *
+	 * @ticket 41011
+	 *
+	 * @return void
+	 */
 	public function test_get_calendar_out_of_range() {
 		global $m, $monthnum, $year;
 
