@@ -10,7 +10,7 @@
 class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 
 	/**
-	 * Default values
+	 * Default values.
 	 *
 	 * @ticket 59941
 	 */
@@ -54,7 +54,7 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 
 
 	/**
-	 * zones are selected from the list.
+	 * Zones are selected from the list.
 	 *
 	 * @ticket 59941
 	 */
@@ -86,7 +86,7 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 
 
 	/**
-	 * Test passing the locale in
+	 * Test passing the locale in.
 	 *
 	 * @ticket 59941
 	 */
@@ -107,7 +107,7 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Sett the locale globally
+	 * Set the locale globally.
 	 *
 	 * @ticket 59941
 	 */
