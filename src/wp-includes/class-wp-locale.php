@@ -312,12 +312,10 @@ class WP_Locale {
 	 * You can use an integer instead and it will add the
 	 * '0' before the numbers less than 10 for you.
 	 *
-	 * If the month number is not found, an empty string is returned.
-	 *
 	 * @since 2.1.0
 	 *
 	 * @param string|int $month_number '01' through '12'.
-	 * @return string Translated full month name.
+	 * @return string Translated full month name. If the month number is not found, an empty string is returned.
 	 */
 	public function get_month( $month_number ) {
 		$month_number = zeroise( $month_number, 2 );
