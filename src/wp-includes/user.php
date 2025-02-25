@@ -3708,7 +3708,7 @@ function wp_get_users_with_no_role( $site_id = null ) {
  * @see wp_get_current_user()
  * @global WP_User $current_user Checks if the current user is set.
  *
- * @return WP_User|null Current WP_User instance or null if no user is logged in.
+ * @return WP_User|null Current WP_User instance if user is logged in, null otherwise.
  */
 function _wp_get_current_user() {
 	global $current_user;
