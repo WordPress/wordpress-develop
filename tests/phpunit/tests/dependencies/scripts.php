@@ -2068,6 +2068,9 @@ HTML
 	public function test_wp_add_inline_script_before_after_concat_with_core_dependency() {
 		global $wp_scripts, $wp_version;
 
+		// See: https://github.com/WordPress/gutenberg/pull/69070.
+		$this->markTestSkipped( 'Temporarily skipping to sync while wp-polyfill is removed.' );
+
 		wp_default_scripts( $wp_scripts );
 		wp_default_packages( $wp_scripts );
 
@@ -3411,6 +3414,21 @@ HTML
 		$package_json = $this->_scripts_from_package_json();
 		if ( ! $handle ) {
 			$handle = $script;
+		}
+
+		/*
+		 * Append '.1' to the version number for React and ReactDOM.
+		 *
+		 * This is due to a change in the build to use the UMD version of the
+		 * scripts, requiring a different version number in order to break the
+		 * caches of some CDNs.
+		 *
+		 * This can be removed in the next update to the packages.
+		 *
+		 * See https://core.trac.wordpress.org/ticket/62422
+		 */
+		if ( in_array( $handle, array( 'react', 'react-dom' ), true ) ) {
+			$package_json[ $script ] .= '.1';
 		}
 
 		$script_query = $wp_scripts->query( $handle, 'registered' );

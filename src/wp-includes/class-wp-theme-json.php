@@ -470,7 +470,7 @@ class WP_Theme_JSON {
 		),
 	);
 
-	/*
+	/**
 	 * The valid properties for fontFamilies under settings key.
 	 *
 	 * @since 6.5.0
@@ -578,7 +578,7 @@ class WP_Theme_JSON {
 	/**
 	 * Defines which pseudo selectors are enabled for which elements.
 	 *
-	 * The order of the selectors should be: link, any-link, visited, hover, focus, active.
+	 * The order of the selectors should be: link, any-link, visited, hover, focus, focus-visible, active.
 	 * This is to ensure the user action (hover, focus and active) styles have a higher
 	 * specificity than the visited styles, which in turn have a higher specificity than
 	 * the unvisited styles.
@@ -588,11 +588,12 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.1.0
 	 * @since 6.2.0 Added support for ':link' and ':any-link'.
+	 * @since 6.8.0 Added support for ':focus-visible'.
 	 * @var array
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
-		'link'   => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':active' ),
-		'button' => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':active' ),
+		'link'   => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
+		'button' => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
 	);
 
 	/**
@@ -1317,6 +1318,8 @@ class WP_Theme_JSON {
 	 *                          - `variables`: only the CSS Custom Properties for presets & custom ones.
 	 *                          - `styles`: only the styles section in theme.json.
 	 *                          - `presets`: only the classes for the presets.
+	 *                          - `base-layout-styles`: only the base layout styles.
+	 *                          - `custom-css`: only the custom CSS.
 	 * @param string[] $origins A list of origins to include. By default it includes VALID_ORIGINS.
 	 * @param array    $options {
 	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
@@ -2722,9 +2725,21 @@ class WP_Theme_JSON {
 		foreach ( $theme_json['styles']['blocks'] as $name => $node ) {
 			$node_path = array( 'styles', 'blocks', $name );
 			if ( $include_node_paths_only ) {
-				$nodes[] = array(
+				$variation_paths = array();
+				if ( $include_variations && isset( $node['variations'] ) ) {
+					foreach ( $node['variations'] as $variation => $variation_node ) {
+						$variation_paths[] = array(
+							'path' => array( 'styles', 'blocks', $name, 'variations', $variation ),
+						);
+					}
+				}
+				$node = array(
 					'path' => $node_path,
 				);
+				if ( ! empty( $variation_paths ) ) {
+					$node['variations'] = $variation_paths;
+				}
+				$nodes[] = $node;
 			} else {
 				$selector = null;
 				if ( isset( $selectors[ $name ]['selector'] ) ) {
@@ -2836,8 +2851,14 @@ class WP_Theme_JSON {
 
 				// Combine selectors with style variation's selector and add to overall style variation declarations.
 				foreach ( $variation_declarations as $current_selector => $new_declarations ) {
-					// If current selector includes block classname, remove it but leave the whitespace in.
-					$shortened_selector = str_replace( $block_metadata['selector'] . ' ', ' ', $current_selector );
+					/*
+					 * Clean up any whitespace between comma separated selectors.
+					 * This prevents these spaces breaking compound selectors such as:
+					 * - `.wp-block-list:not(.wp-block-list .wp-block-list)`
+					 * - `.wp-block-image img, .wp-block-image.my-class img`
+					 */
+					$clean_current_selector = preg_replace( '/,\s+/', ',', $current_selector );
+					$shortened_selector     = str_replace( $block_metadata['selector'], '', $clean_current_selector );
 
 					// Prepend the variation selector to the current selector.
 					$split_selectors    = explode( ',', $shortened_selector );
@@ -3313,7 +3334,7 @@ class WP_Theme_JSON {
 					continue;
 				}
 				foreach ( $duotone_presets[ $origin ] as $duotone_preset ) {
-					$filters .= wp_get_duotone_filter_svg( $duotone_preset );
+					$filters .= WP_Duotone::get_filter_svg_from_preset( $duotone_preset );
 				}
 			}
 		}
@@ -3538,26 +3559,12 @@ class WP_Theme_JSON {
 
 					$variation_output = static::remove_insecure_styles( $variation_input );
 
-					// Process a variation's elements and element pseudo selector styles.
+					if ( isset( $variation_input['blocks'] ) ) {
+						$variation_output['blocks'] = static::remove_insecure_inner_block_styles( $variation_input['blocks'] );
+					}
+
 					if ( isset( $variation_input['elements'] ) ) {
-						foreach ( $valid_element_names as $element_name ) {
-							$element_input = $variation_input['elements'][ $element_name ] ?? null;
-							if ( $element_input ) {
-								$element_output = static::remove_insecure_styles( $element_input );
-
-								if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] ) ) {
-									foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] as $pseudo_selector ) {
-										if ( isset( $element_input[ $pseudo_selector ] ) ) {
-											$element_output[ $pseudo_selector ] = static::remove_insecure_styles( $element_input[ $pseudo_selector ] );
-										}
-									}
-								}
-
-								if ( ! empty( $element_output ) ) {
-									_wp_array_set( $variation_output, array( 'elements', $element_name ), $element_output );
-								}
-							}
-						}
+						$variation_output['elements'] = static::remove_insecure_element_styles( $variation_input['elements'] );
 					}
 
 					if ( ! empty( $variation_output ) ) {
@@ -3593,6 +3600,59 @@ class WP_Theme_JSON {
 		}
 
 		return $theme_json;
+	}
+
+	/**
+	 * Remove insecure element styles within a variation or block.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array $elements The elements to process.
+	 * @return array The sanitized elements styles.
+	 */
+	protected static function remove_insecure_element_styles( $elements ) {
+		$sanitized           = array();
+		$valid_element_names = array_keys( static::ELEMENTS );
+
+		foreach ( $valid_element_names as $element_name ) {
+			$element_input = $elements[ $element_name ] ?? null;
+			if ( $element_input ) {
+				$element_output = static::remove_insecure_styles( $element_input );
+
+				if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] ) ) {
+					foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ] as $pseudo_selector ) {
+						if ( isset( $element_input[ $pseudo_selector ] ) ) {
+							$element_output[ $pseudo_selector ] = static::remove_insecure_styles( $element_input[ $pseudo_selector ] );
+						}
+					}
+				}
+
+				$sanitized[ $element_name ] = $element_output;
+			}
+		}
+		return $sanitized;
+	}
+
+	/**
+	 * Remove insecure styles from inner blocks and their elements.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array $blocks The block styles to process.
+	 * @return array Sanitized block type styles.
+	 */
+	protected static function remove_insecure_inner_block_styles( $blocks ) {
+		$sanitized = array();
+		foreach ( $blocks as $block_type => $block_input ) {
+			$block_output = static::remove_insecure_styles( $block_input );
+
+			if ( isset( $block_input['elements'] ) ) {
+				$block_output['elements'] = static::remove_insecure_element_styles( $block_input['elements'] );
+			}
+
+			$sanitized[ $block_type ] = $block_output;
+		}
+		return $sanitized;
 	}
 
 	/**

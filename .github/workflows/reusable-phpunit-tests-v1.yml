@@ -14,7 +14,7 @@ on:
         description: 'Operating system to run tests on'
         required: false
         type: 'string'
-        default: 'ubuntu-latest'
+        default: 'ubuntu-24.04'
       php:
         description: 'The version of PHP to use, in the format of X.Y'
         required: true
@@ -50,6 +50,7 @@ on:
         type: boolean
         default: false
 env:
+  COMPOSER_INSTALL: ${{ false }}
   LOCAL_PHP: ${{ inputs.php }}-fpm
   LOCAL_PHPUNIT: ${{ inputs.phpunit && inputs.phpunit || inputs.php }}-fpm
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
@@ -57,6 +58,10 @@ env:
   PHPUNIT_SCRIPT: php
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
   SLOW_TESTS: 'external-http,media'
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
 
 jobs:
   # Runs the PHPUnit tests for WordPress.
@@ -86,16 +91,17 @@ jobs:
     steps:
       - name: Configure environment variables
         run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+          echo "PHP_FPM_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -106,9 +112,14 @@ jobs:
       - name: Build WordPress
         run: npm run build
 
+      - name: Get composer cache directory
+        if: ${{ env.COMPOSER_INSTALL == true }}
+        id: composer-cache
+        run: echo "composer_dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
       - name: Cache Composer dependencies
         if: ${{ env.COMPOSER_INSTALL == true }}
-        uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         env:
           cache-name: cache-composer-dependencies
         with:
@@ -135,7 +146,8 @@ jobs:
         if: ${{ inputs.memcached }}
         run: |
           cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
-          docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
+          BASE=$(basename "$PWD")
+          docker run --name memcached --net "${BASE}_wpdevnet" -d memcached
 
       - name: General debug information
         run: |
@@ -143,7 +155,6 @@ jobs:
           node --version
           curl --version
           git --version
-          svn --version
 
       - name: Log running Docker containers
         run: docker ps -a
@@ -161,24 +172,24 @@ jobs:
 
       - name: Run slow PHPUnit tests
         if: ${{ inputs.split_slow }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c "${PHPUNIT_CONFIG}" --group "${SLOW_TESTS}"
 
       - name: Run PHPUnit tests for single site excluding slow tests
         if: ${{ inputs.php < '7.0' && ! inputs.split_slow && ! inputs.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-required
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c "${PHPUNIT_CONFIG}" --exclude-group "${SLOW_TESTS},ajax,ms-files,ms-required"
 
       - name: Run PHPUnit tests for Multisite excluding slow tests
         if: ${{ inputs.php < '7.0' && ! inputs.split_slow && inputs.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-excluded,oembed-headers
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c "${PHPUNIT_CONFIG}" --exclude-group "${SLOW_TESTS},ajax,ms-files,ms-excluded,oembed-headers"
 
       - name: Run PHPUnit tests
         if: ${{ inputs.php >= '7.0' }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c "${PHPUNIT_CONFIG}"
 
       - name: Run AJAX tests
         if: ${{ ! inputs.multisite && ! inputs.split_slow }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c "${PHPUNIT_CONFIG}" --group ajax
 
       - name: Run external HTTP tests
         if: ${{ ! inputs.multisite && ! inputs.split_slow }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group external-http
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c phpunit.xml.dist --group external-http

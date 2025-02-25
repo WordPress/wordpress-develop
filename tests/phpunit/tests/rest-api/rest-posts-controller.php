@@ -197,6 +197,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'context',
 				'exclude',
 				'format',
+				'ignore_sticky',
 				'include',
 				'modified_after',
 				'modified_before',
@@ -1574,7 +1575,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotContains( $id2, $ids );
 		$this->assertNotContains( $id3, $ids );
 
-		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3,$id2) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id2,$id3) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
 	}
 
 	public function test_get_items_not_sticky_with_exclude_no_sticky_posts() {
@@ -5508,6 +5509,45 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	}
 
 	/**
+	 * Test the REST API ignores the post format parameter for post types that do not support them.
+	 *
+	 * @ticket 62646
+	 * @ticket 62014
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_standard_post_format_ignored_for_post_types_that_do_not_support_them() {
+		$initial_theme_support = get_theme_support( 'post-formats' );
+		add_theme_support( 'post-formats', array( 'aside', 'gallery', 'link', 'image', 'quote', 'status', 'video', 'audio', 'chat' ) );
+
+		self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'format', 'invalid_type' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		/*
+		 * Restore the initial post formats support.
+		 *
+		 * This needs to be done prior to the assertions to avoid unexpected
+		 * results for other tests should an assertion fail.
+		 */
+		if ( $initial_theme_support ) {
+			add_theme_support( 'post-formats', $initial_theme_support[0] );
+		} else {
+			remove_theme_support( 'post-formats' );
+		}
+
+		$this->assertCount( 1, $response->get_data(), 'The response should ignore the post format parameter' );
+	}
+
+	/**
 	 * Test the REST API support for the standard post format.
 	 *
 	 * @ticket 62014
@@ -5635,6 +5675,110 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		}
 
 		$this->assertCount( 2, $response->get_data(), 'Two posts are expected to be returned' );
+	}
+
+	/**
+	 * Tests for the pagination.
+	 *
+	 * @ticket 62292
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_posts_with_pagination() {
+
+		// Test offset
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'offset', 1 );
+		$request->set_param( 'per_page', 1 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( 30, $response->get_headers()['X-WP-Total'] );
+		$this->assertEquals( 30, $response->get_headers()['X-WP-TotalPages'] );
+
+		// Test paged
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'page', 2 );
+		$request->set_param( 'per_page', 2 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertCount( 2, $data );
+		$this->assertEquals( 30, $response->get_headers()['X-WP-Total'] );
+		$this->assertEquals( 15, $response->get_headers()['X-WP-TotalPages'] );
+
+		// Test out of bounds
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'page', 4 );
+		$request->set_param( 'per_page', 10 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_post_invalid_page_number', $response, 400 );
+	}
+
+	/**
+	 * Test the REST API support for `ignore_sticky_posts`.
+	 *
+	 * @ticket 35907
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_posts_ignore_sticky_default_prepends_sticky_posts() {
+		$id1 = self::$post_id;
+		// Create more recent post to avoid automatically placing other at the top.
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id1 ) );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( $data[0]['id'], $id1, 'Response has sticky post at the top.' );
+		$this->assertSame( $data[1]['id'], $id2, 'It is followed by most recent post.' );
+	}
+
+	/**
+	 * Test the REST API support for `ignore_sticky_posts`.
+	 *
+	 * @ticket 35907
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_posts_ignore_sticky_ignores_post_stickiness() {
+		$id1 = self::$post_id;
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id1 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'ignore_sticky', true );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( $data[0]['id'], $id2, 'Response has no sticky post at the top.' );
+	}
+
+	/**
+	 * Test the REST API support for `ignore_sticky_posts`.
+	 *
+	 * @ticket 35907
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_posts_ignore_sticky_honors_include() {
+		$id1 = self::$post_id;
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id1 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'include', array( $id2 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertCount( 1, $data, 'Only one post is expected to be returned.' );
+		$this->assertSame( $data[0]['id'], $id2, 'Returns the included post.' );
 	}
 
 	/**

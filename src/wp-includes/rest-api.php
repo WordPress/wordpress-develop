@@ -818,9 +818,6 @@ function rest_handle_options_request( $response, $handler, $request ) {
 		}
 
 		foreach ( $endpoints as $endpoint ) {
-			// Remove the redundant preg_match() argument.
-			unset( $args[0] );
-
 			$request->set_url_params( $args );
 			$request->set_attributes( $endpoint );
 		}
@@ -2938,6 +2935,7 @@ function rest_preload_api_request( $memo, $path ) {
 		}
 	}
 
+	// Remove trailing slashes at the end of the REST API path (query part).
 	$path = untrailingslashit( $path );
 	if ( empty( $path ) ) {
 		$path = '/';
@@ -2946,6 +2944,14 @@ function rest_preload_api_request( $memo, $path ) {
 	$path_parts = parse_url( $path );
 	if ( false === $path_parts ) {
 		return $memo;
+	}
+
+	if ( isset( $path_parts['path'] ) && '/' !== $path_parts['path'] ) {
+		// Remove trailing slashes from the "path" part of the REST API path.
+		$path_parts['path'] = untrailingslashit( $path_parts['path'] );
+		$path               = str_contains( $path, '?' ) ?
+			$path_parts['path'] . '?' . ( $path_parts['query'] ?? '' ) :
+			$path_parts['path'];
 	}
 
 	$request = new WP_REST_Request( $method, $path_parts['path'] );

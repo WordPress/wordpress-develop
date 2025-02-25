@@ -14,11 +14,8 @@ if ( ! defined( 'WP_ADMIN' ) ) {
 	define( 'WP_ADMIN', true );
 }
 
-if ( defined( 'ABSPATH' ) ) {
-	require_once ABSPATH . 'wp-load.php';
-} else {
-	require_once dirname( __DIR__ ) . '/wp-load.php';
-}
+/** Load WordPress Bootstrap */
+require_once dirname( __DIR__ ) . '/wp-load.php';
 
 require_once ABSPATH . 'wp-admin/admin.php';
 
@@ -74,7 +71,9 @@ if ( isset( $_REQUEST['attachment_id'] ) && (int) $_REQUEST['attachment_id'] && 
 							}
 							?>
 							<span class="media-item-copy-container copy-to-clipboard-container edit-attachment">
-								<button type="button" class="button button-small copy-attachment-url" data-clipboard-text="<?php echo $file_url; ?>"><?php _e( 'Copy URL to clipboard' ); ?></button>
+								<button type="button" class="button button-small copy-attachment-url"
+									data-clipboard-text="<?php echo esc_url( $file_url ); ?>"
+								><?php _e( 'Copy URL to clipboard' ); ?></button>
 								<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
 							</span>
 						</div>
