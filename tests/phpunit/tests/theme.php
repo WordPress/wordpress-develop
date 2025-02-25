@@ -966,6 +966,50 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that block themes load block assets on demand by default.
+	 *
+	 * @ticket 61965
+	 *
+	 * @covers ::_add_default_theme_supports
+	 * @covers ::wp_should_load_block_assets_on_demand
+	 */
+	public function test_block_theme_should_load_block_assets_on_demand_by_default() {
+		$this->helper_requires_block_theme();
+
+		add_filter( 'should_load_block_assets_on_demand', '__return_false' );
+
+		$this->assertFalse(
+			wp_should_load_block_assets_on_demand(),
+			'Could not disable loading block assets on demand.'
+		);
+
+		do_action( 'after_setup_theme' );
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+
+		$this->assertTrue(
+			wp_should_load_block_assets_on_demand(),
+			'Block themes do not load block assets on demand by default.'
+		);
+	}
+
+	/**
+	 * Tests that block themes load block assets on demand by default even when loading separate core block assets is disabled.
+	 *
+	 * @ticket 61965
+	 *
+	 * @covers ::_add_default_theme_supports
+	 * @covers ::wp_should_load_block_assets_on_demand
+	 */
+	public function test_block_theme_should_load_block_assets_on_demand_by_default_even_with_separate_core_block_assets_disabled() {
+		$this->helper_requires_block_theme();
+
+		do_action( 'after_setup_theme' );
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+
+		$this->assertTrue( wp_should_load_block_assets_on_demand() );
+	}
+
+	/**
 	 * Tests that a theme in the custom test data theme directory is recognized.
 	 *
 	 * @ticket 18298
