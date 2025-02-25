@@ -5,9 +5,6 @@
  * Several constants are used to manage the loading, concatenating and compression of scripts and CSS:
  * define('SCRIPT_DEBUG', true); loads the development (non-minified) versions of all scripts and CSS, and disables compression and concatenation,
  * define('CONCATENATE_SCRIPTS', false); disables compression and concatenation of scripts and CSS,
- * define('COMPRESS_SCRIPTS', false); disables compression of scripts,
- * define('COMPRESS_CSS', false); disables compression of CSS,
- * define('ENFORCE_GZIP', true); forces gzip for compression (default is deflate).
  *
  * The globals $concatenate_scripts, $compress_scripts and $compress_css can be set by plugins
  * to temporarily override the above settings. Also a compression test is run once and the result is saved
@@ -2185,42 +2182,36 @@ function print_footer_scripts() {
  * @ignore
  *
  * @global WP_Scripts $wp_scripts
- * @global bool       $compress_scripts
  */
 function _print_scripts() {
-	global $wp_scripts, $compress_scripts;
+    global $wp_scripts;
 
-	$zip = $compress_scripts ? 1 : 0;
-	if ( $zip && defined( 'ENFORCE_GZIP' ) && ENFORCE_GZIP ) {
-		$zip = 'gzip';
-	}
+    $concat    = trim( $wp_scripts->concat, ', ' );
+    $type_attr = current_theme_supports( 'html5', 'script' ) ? '' : " type='text/javascript'";
 
-	$concat    = trim( $wp_scripts->concat, ', ' );
-	$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : " type='text/javascript'";
+    if ( $concat ) {
+        if ( ! empty( $wp_scripts->print_code ) ) {
+            echo "\n<script{$type_attr}>\n";
+            echo "/* <![CDATA[ */\n"; // Not needed in HTML 5.
+            echo $wp_scripts->print_code;
+            echo "/* ]]> */\n";
+            echo "</script>\n";
+        }
 
-	if ( $concat ) {
-		if ( ! empty( $wp_scripts->print_code ) ) {
-			echo "\n<script{$type_attr}>\n";
-			echo "/* <![CDATA[ */\n"; // Not needed in HTML 5.
-			echo $wp_scripts->print_code;
-			echo "/* ]]> */\n";
-			echo "</script>\n";
-		}
+        $concat       = str_split( $concat, 128 );
+        $concatenated = '';
 
-		$concat       = str_split( $concat, 128 );
-		$concatenated = '';
+        foreach ( $concat as $key => $chunk ) {
+            $concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
+        }
 
-		foreach ( $concat as $key => $chunk ) {
-			$concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
-		}
+        $src = $wp_scripts->base_url . "/wp-admin/load-scripts.php?" . ltrim( $concatenated, '&' ) . '&ver=' . $wp_scripts->default_version;
+        echo "<script{$type_attr} src='" . esc_attr( $src ) . "'></script>\n";
+    }
 
-		$src = $wp_scripts->base_url . "/wp-admin/load-scripts.php?c={$zip}" . $concatenated . '&ver=' . $wp_scripts->default_version;
-		echo "<script{$type_attr} src='" . esc_attr( $src ) . "'></script>\n";
-	}
-
-	if ( ! empty( $wp_scripts->print_html ) ) {
-		echo $wp_scripts->print_html;
-	}
+    if ( ! empty( $wp_scripts->print_html ) ) {
+        echo $wp_scripts->print_html;
+    }
 }
 
 /**
@@ -2365,84 +2356,55 @@ function print_late_styles() {
  *
  * @ignore
  * @since 3.3.0
- *
- * @global bool $compress_css
  */
 function _print_styles() {
-	global $compress_css;
+    $wp_styles = wp_styles();
 
-	$wp_styles = wp_styles();
+    $concat    = trim( $wp_styles->concat, ', ' );
+    $type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 
-	$zip = $compress_css ? 1 : 0;
-	if ( $zip && defined( 'ENFORCE_GZIP' ) && ENFORCE_GZIP ) {
-		$zip = 'gzip';
-	}
+    if ( $concat ) {
+        $dir = $wp_styles->text_direction;
+        $ver = $wp_styles->default_version;
 
-	$concat    = trim( $wp_styles->concat, ', ' );
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+        $concat       = str_split( $concat, 128 );
+        $concatenated = '';
 
-	if ( $concat ) {
-		$dir = $wp_styles->text_direction;
-		$ver = $wp_styles->default_version;
+        foreach ( $concat as $key => $chunk ) {
+            $concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
+        }
 
-		$concat       = str_split( $concat, 128 );
-		$concatenated = '';
+        $href = $wp_styles->base_url . "/wp-admin/load-styles.php?dir={$dir}" . $concatenated . '&ver=' . $ver;
+        echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "'{$type_attr} media='all' />\n";
 
-		foreach ( $concat as $key => $chunk ) {
-			$concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
-		}
+        if ( ! empty( $wp_styles->print_code ) ) {
+            echo "<style{$type_attr}>\n";
+            echo $wp_styles->print_code;
+            echo "\n</style>\n";
+        }
+    }
 
-		$href = $wp_styles->base_url . "/wp-admin/load-styles.php?c={$zip}&dir={$dir}" . $concatenated . '&ver=' . $ver;
-		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "'{$type_attr} media='all' />\n";
-
-		if ( ! empty( $wp_styles->print_code ) ) {
-			echo "<style{$type_attr}>\n";
-			echo $wp_styles->print_code;
-			echo "\n</style>\n";
-		}
-	}
-
-	if ( ! empty( $wp_styles->print_html ) ) {
-		echo $wp_styles->print_html;
-	}
+    if ( ! empty( $wp_styles->print_html ) ) {
+        echo $wp_styles->print_html;
+    }
 }
 
 /**
- * Determines the concatenation and compression settings for scripts and styles.
+ * Determines the concatenation settings for scripts and styles.
  *
  * @since 2.8.0
  *
  * @global bool $concatenate_scripts
- * @global bool $compress_scripts
- * @global bool $compress_css
  */
 function script_concat_settings() {
-	global $concatenate_scripts, $compress_scripts, $compress_css;
+    global $concatenate_scripts;
 
-	$compressed_output = ( ini_get( 'zlib.output_compression' ) || 'ob_gzhandler' === ini_get( 'output_handler' ) );
-
-	$can_compress_scripts = ! wp_installing() && get_site_option( 'can_compress_scripts' );
-
-	if ( ! isset( $concatenate_scripts ) ) {
-		$concatenate_scripts = defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true;
-		if ( ( ! is_admin() && ! did_action( 'login_init' ) ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
-			$concatenate_scripts = false;
-		}
-	}
-
-	if ( ! isset( $compress_scripts ) ) {
-		$compress_scripts = defined( 'COMPRESS_SCRIPTS' ) ? COMPRESS_SCRIPTS : true;
-		if ( $compress_scripts && ( ! $can_compress_scripts || $compressed_output ) ) {
-			$compress_scripts = false;
-		}
-	}
-
-	if ( ! isset( $compress_css ) ) {
-		$compress_css = defined( 'COMPRESS_CSS' ) ? COMPRESS_CSS : true;
-		if ( $compress_css && ( ! $can_compress_scripts || $compressed_output ) ) {
-			$compress_css = false;
-		}
-	}
+    if ( ! isset( $concatenate_scripts ) ) {
+        $concatenate_scripts = defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true;
+        if ( ( ! is_admin() && ! did_action( 'login_init' ) ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
+            $concatenate_scripts = false;
+        }
+    }
 }
 
 /**
