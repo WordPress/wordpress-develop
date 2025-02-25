@@ -144,7 +144,7 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 						'data-wp-preserve="' + encodeURIComponent( match ) + '" ' +
 						'data-mce-resize="false" ' +
 						'data-mce-placeholder="1" '+
-						'class="mce-object" ' +
+						'class="mce-object mce-object-' + tag + '" ' +
 						'width="20" height="20" '+
 						'alt="&lt;' + tag + '&gt;" ' +
 					'/>';
