@@ -6422,3 +6422,37 @@ function wp_create_block_style_variation_instance_name( $block, $variation ) {
 function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
 	return current_user_can_for_site( $blog_id, $capability, ...$args );
 }
+
+
+/**
+ * Sanitizes category data based on context.
+ *
+ * @since 2.3.0
+ * @deprecated 6.9.0
+ *
+ * @param object|array $category Category data.
+ * @param string       $context  Optional. Default 'display'.
+ * @return object|array Same type as $category with sanitized data for safe use.
+ */
+function sanitize_category( $category, $context = 'display' ) {
+	_deprecated_function( __FUNCTION__, '6.9.0', 'sanitize_term' );
+	return sanitize_term( $category, 'category', $context );
+}
+
+/**
+ * Sanitizes data in single category key field.
+ *
+ * @since 2.3.0
+ * @deprecated 6.9.0
+ *
+ * @param string $field   Category key to sanitize.
+ * @param mixed  $value   Category value to sanitize.
+ * @param int    $cat_id  Category ID.
+ * @param string $context What filter to use, 'raw', 'display', etc.
+ *
+ * @return mixed Value after $value has been sanitized.
+ */
+function sanitize_category_field( $field, $value, $cat_id, $context ) {
+	_deprecated_function( __FUNCTION__, '6.9.0', 'sanitize_term_field' );
+	return sanitize_term_field( $field, $value, $cat_id, 'category', $context );
+}
