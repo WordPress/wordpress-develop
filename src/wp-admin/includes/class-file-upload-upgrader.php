@@ -69,6 +69,30 @@ class File_Upload_Upgrader {
 				wp_die( $file['error'] );
 			}
 
+			if ( 'pluginzip' === $form || 'themezip' === $form ) {
+				if ( ! wp_zip_file_is_valid( $file['file'] ) ) {
+					wp_delete_file( $file['file'] );
+
+					if ( 'pluginzip' === $form ) {
+						$plugins_page = sprintf(
+							'<a href="%s">%s</a>',
+							self_admin_url( 'plugin-install.php' ),
+							__( 'Return to the Plugin Installer' )
+						);
+						wp_die( __( 'Incompatible Archive.' ) . '<br />' . $plugins_page );
+					}
+
+					if ( 'themezip' === $form ) {
+						$themes_page = sprintf(
+							'<a href="%s" target="_parent">%s</a>',
+							self_admin_url( 'theme-install.php' ),
+							__( 'Return to the Theme Installer' )
+						);
+						wp_die( __( 'Incompatible Archive.' ) . '<br />' . $themes_page );
+					}
+				}
+			}
+
 			$this->filename = $_FILES[ $form ]['name'];
 			$this->package  = $file['file'];
 
@@ -108,14 +132,14 @@ class File_Upload_Upgrader {
 			$this->filename = sanitize_file_name( $_GET[ $urlholder ] );
 			$this->package  = $uploads['basedir'] . '/' . $this->filename;
 
-			if ( 0 !== strpos( realpath( $this->package ), realpath( $uploads['basedir'] ) ) ) {
+			if ( ! str_starts_with( realpath( $this->package ), realpath( $uploads['basedir'] ) ) ) {
 				wp_die( __( 'Please select a file' ) );
 			}
 		}
 	}
 
 	/**
-	 * Delete the attachment/uploaded file.
+	 * Deletes the attachment/uploaded file.
 	 *
 	 * @since 3.2.2
 	 *

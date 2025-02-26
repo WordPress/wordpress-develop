@@ -27,19 +27,25 @@ function _wp_http_get_object() {
 }
 
 /**
- * Retrieve the raw response from a safe HTTP request.
+ * Retrieves the raw response from a safe HTTP request.
  *
  * This function is ideal when the HTTP request is being made to an arbitrary
- * URL. The URL is validated to avoid redirection and request forgery attacks.
+ * URL. The URL, and every URL it redirects to, are validated with wp_http_validate_url()
+ * to avoid Server Side Request Forgery attacks (SSRF).
  *
  * @since 3.6.0
  *
  * @see wp_remote_request() For more information on the response array format.
  * @see WP_Http::request() For default arguments information.
+ * @see wp_http_validate_url() For more information about how the URL is validated.
+ *
+ * @link https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
+ *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
  */
 function wp_safe_remote_request( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -48,19 +54,25 @@ function wp_safe_remote_request( $url, $args = array() ) {
 }
 
 /**
- * Retrieve the raw response from a safe HTTP request using the GET method.
+ * Retrieves the raw response from a safe HTTP request using the GET method.
  *
  * This function is ideal when the HTTP request is being made to an arbitrary
- * URL. The URL is validated to avoid redirection and request forgery attacks.
+ * URL. The URL, and every URL it redirects to, are validated with wp_http_validate_url()
+ * to avoid Server Side Request Forgery attacks (SSRF).
  *
  * @since 3.6.0
  *
  * @see wp_remote_request() For more information on the response array format.
  * @see WP_Http::request() For default arguments information.
+ * @see wp_http_validate_url() For more information about how the URL is validated.
+ *
+ * @link https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
+ *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
  */
 function wp_safe_remote_get( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -69,19 +81,25 @@ function wp_safe_remote_get( $url, $args = array() ) {
 }
 
 /**
- * Retrieve the raw response from a safe HTTP request using the POST method.
+ * Retrieves the raw response from a safe HTTP request using the POST method.
  *
  * This function is ideal when the HTTP request is being made to an arbitrary
- * URL. The URL is validated to avoid redirection and request forgery attacks.
+ * URL. The URL, and every URL it redirects to, are validated with wp_http_validate_url()
+ * to avoid Server Side Request Forgery attacks (SSRF).
  *
  * @since 3.6.0
  *
  * @see wp_remote_request() For more information on the response array format.
  * @see WP_Http::request() For default arguments information.
+ * @see wp_http_validate_url() For more information about how the URL is validated.
+ *
+ * @link https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
+ *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
  */
 function wp_safe_remote_post( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -90,19 +108,25 @@ function wp_safe_remote_post( $url, $args = array() ) {
 }
 
 /**
- * Retrieve the raw response from a safe HTTP request using the HEAD method.
+ * Retrieves the raw response from a safe HTTP request using the HEAD method.
  *
  * This function is ideal when the HTTP request is being made to an arbitrary
- * URL. The URL is validated to avoid redirection and request forgery attacks.
+ * URL. The URL, and every URL it redirects to, are validated with wp_http_validate_url()
+ * to avoid Server Side Request Forgery attacks (SSRF).
  *
  * @since 3.6.0
  *
  * @see wp_remote_request() For more information on the response array format.
  * @see WP_Http::request() For default arguments information.
+ * @see wp_http_validate_url() For more information about how the URL is validated.
+ *
+ * @link https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
+ *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
  */
 function wp_safe_remote_head( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -125,20 +149,9 @@ function wp_safe_remote_head( $url, $args = array() ) {
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
- * @return array|WP_Error {
- *     The response array or a WP_Error on failure.
- *
- *     @type string[]                       $headers       Array of response headers keyed by their name.
- *     @type string                         $body          Response body.
- *     @type array                          $response      {
- *         Data about the HTTP response.
- *
- *         @type int|false    $code    HTTP response code.
- *         @type string|false $message HTTP response message.
- *     }
- *     @type WP_HTTP_Cookie[]               $cookies       Array of response cookies.
- *     @type WP_HTTP_Requests_Response|null $http_response Raw HTTP response object.
- * }
+ *                     See WP_Http::request() for information on accepted arguments.
+ * @return array|WP_Error The response array or a WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
  */
 function wp_remote_request( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -155,7 +168,9 @@ function wp_remote_request( $url, $args = array() ) {
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
+ *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
  */
 function wp_remote_get( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -172,7 +187,9 @@ function wp_remote_get( $url, $args = array() ) {
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
+ *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
  */
 function wp_remote_post( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -189,7 +206,9 @@ function wp_remote_post( $url, $args = array() ) {
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
+ *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
  */
 function wp_remote_head( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -197,16 +216,16 @@ function wp_remote_head( $url, $args = array() ) {
 }
 
 /**
- * Retrieve only the headers from the raw response.
+ * Retrieves only the headers from the raw response.
  *
  * @since 2.7.0
- * @since 4.6.0 Return value changed from an array to an Requests_Utility_CaseInsensitiveDictionary instance.
+ * @since 4.6.0 Return value changed from an array to an WpOrg\Requests\Utility\CaseInsensitiveDictionary instance.
  *
- * @see \Requests_Utility_CaseInsensitiveDictionary
+ * @see \WpOrg\Requests\Utility\CaseInsensitiveDictionary
  *
  * @param array|WP_Error $response HTTP response.
- * @return \Requests_Utility_CaseInsensitiveDictionary|array The headers of the response, or empty array
- *                                                           if incorrect parameter given.
+ * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array The headers of the response, or empty array
+ *                                                                 if incorrect parameter given.
  */
 function wp_remote_retrieve_headers( $response ) {
 	if ( is_wp_error( $response ) || ! isset( $response['headers'] ) ) {
@@ -217,7 +236,7 @@ function wp_remote_retrieve_headers( $response ) {
 }
 
 /**
- * Retrieve a single header by name from the raw response.
+ * Retrieves a single header by name from the raw response.
  *
  * @since 2.7.0
  *
@@ -239,7 +258,7 @@ function wp_remote_retrieve_header( $response, $header ) {
 }
 
 /**
- * Retrieve only the response code from the raw response.
+ * Retrieves only the response code from the raw response.
  *
  * Will return an empty string if incorrect parameter value is given.
  *
@@ -257,7 +276,7 @@ function wp_remote_retrieve_response_code( $response ) {
 }
 
 /**
- * Retrieve only the response message from the raw response.
+ * Retrieves only the response message from the raw response.
  *
  * Will return an empty string if incorrect parameter value is given.
  *
@@ -275,7 +294,7 @@ function wp_remote_retrieve_response_message( $response ) {
 }
 
 /**
- * Retrieve only the body from the raw response.
+ * Retrieves only the body from the raw response.
  *
  * @since 2.7.0
  *
@@ -291,7 +310,7 @@ function wp_remote_retrieve_body( $response ) {
 }
 
 /**
- * Retrieve only the cookies from the raw response.
+ * Retrieves only the cookies from the raw response.
  *
  * @since 4.4.0
  *
@@ -308,7 +327,7 @@ function wp_remote_retrieve_cookies( $response ) {
 }
 
 /**
- * Retrieve a single cookie by name from the raw response.
+ * Retrieves a single cookie by name from the raw response.
  *
  * @since 4.4.0
  *
@@ -334,7 +353,7 @@ function wp_remote_retrieve_cookie( $response, $name ) {
 }
 
 /**
- * Retrieve a single cookie's value by name from the raw response.
+ * Retrieves a single cookie's value by name from the raw response.
  *
  * @since 4.4.0
  *
@@ -346,7 +365,7 @@ function wp_remote_retrieve_cookie( $response, $name ) {
 function wp_remote_retrieve_cookie_value( $response, $name ) {
 	$cookie = wp_remote_retrieve_cookie( $response, $name );
 
-	if ( ! is_a( $cookie, 'WP_Http_Cookie' ) ) {
+	if ( ! ( $cookie instanceof WP_Http_Cookie ) ) {
 		return '';
 	}
 
@@ -365,14 +384,12 @@ function wp_remote_retrieve_cookie_value( $response, $name ) {
  * @return bool
  */
 function wp_http_supports( $capabilities = array(), $url = null ) {
-	$http = _wp_http_get_object();
-
 	$capabilities = wp_parse_args( $capabilities );
 
 	$count = count( $capabilities );
 
 	// If we have a numeric $capabilities array, spoof a wp_remote_request() associative $args array.
-	if ( $count && count( array_filter( array_keys( $capabilities ), 'is_numeric' ) ) == $count ) {
+	if ( $count && count( array_filter( array_keys( $capabilities ), 'is_numeric' ) ) === $count ) {
 		$capabilities = array_combine( array_values( $capabilities ), array_fill( 0, $count, true ) );
 	}
 
@@ -383,11 +400,11 @@ function wp_http_supports( $capabilities = array(), $url = null ) {
 		}
 	}
 
-	return (bool) $http->_get_first_available_transport( $capabilities );
+	return WpOrg\Requests\Requests::has_capabilities( $capabilities );
 }
 
 /**
- * Get the HTTP Origin of the current request.
+ * Gets the HTTP Origin of the current request.
  *
  * @since 3.4.0
  *
@@ -400,7 +417,7 @@ function get_http_origin() {
 	}
 
 	/**
-	 * Change the origin of an HTTP request.
+	 * Changes the origin of an HTTP request.
 	 *
 	 * @since 3.4.0
 	 *
@@ -410,7 +427,7 @@ function get_http_origin() {
 }
 
 /**
- * Retrieve list of allowed HTTP origins.
+ * Retrieves list of allowed HTTP origins.
  *
  * @since 3.4.0
  *
@@ -431,7 +448,7 @@ function get_allowed_http_origins() {
 	);
 
 	/**
-	 * Change the origin types allowed for HTTP requests.
+	 * Changes the origin types allowed for HTTP requests.
 	 *
 	 * @since 3.4.0
 	 *
@@ -467,7 +484,7 @@ function is_allowed_http_origin( $origin = null ) {
 	}
 
 	/**
-	 * Change the allowed HTTP origin result.
+	 * Changes the allowed HTTP origin result.
 	 *
 	 * @since 3.4.0
 	 *
@@ -478,7 +495,7 @@ function is_allowed_http_origin( $origin = null ) {
 }
 
 /**
- * Send Access-Control-Allow-Origin and related headers if the current request
+ * Sends Access-Control-Allow-Origin and related headers if the current request
  * is from an allowed origin.
  *
  * If the request is an OPTIONS request, the script exits with either access
@@ -511,7 +528,21 @@ function send_origin_headers() {
 }
 
 /**
- * Validate a URL for safe use in the HTTP API.
+ * Validates a URL for safe use in the HTTP API.
+ *
+ * Examples of URLs that are considered unsafe:
+ *
+ * - ftp://example.com/caniload.php - Invalid protocol - only http and https are allowed.
+ * - http:///example.com/caniload.php - Malformed URL.
+ * - http://user:pass@example.com/caniload.php - Login information.
+ * - http://example.invalid/caniload.php - Invalid hostname, as the IP cannot be looked up in DNS.
+ *
+ * Examples of URLs that are considered unsafe by default:
+ *
+ * - http://192.168.0.1/caniload.php - IPs from LAN networks.
+ *   This can be changed with the {@see 'http_request_host_is_external'} filter.
+ * - http://198.143.164.252:81/caniload.php - By default, only 80, 443, and 8080 ports are allowed.
+ *   This can be changed with the {@see 'http_allowed_safe_ports'} filter.
  *
  * @since 3.5.2
  *
@@ -563,7 +594,7 @@ function wp_http_validate_url( $url ) {
 			) {
 				// If host appears local, reject unless specifically allowed.
 				/**
-				 * Check if HTTP request is external or not.
+				 * Checks if HTTP request is external or not.
 				 *
 				 * Allows to change and allow external requests for the HTTP request.
 				 *
@@ -593,7 +624,7 @@ function wp_http_validate_url( $url ) {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array  $allowed_ports Array of integers for valid ports.
+	 * @param int[]  $allowed_ports Array of integers for valid ports.
 	 * @param string $host          Host name of the requested URL.
 	 * @param string $url           Requested URL.
 	 */
@@ -610,7 +641,7 @@ function wp_http_validate_url( $url ) {
 }
 
 /**
- * Mark allowed redirect hosts safe for HTTP requests as well.
+ * Marks allowed redirect hosts safe for HTTP requests as well.
  *
  * Attached to the {@see 'http_request_host_is_external'} filter.
  *
@@ -661,12 +692,8 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
  * A wrapper for PHP's parse_url() function that handles consistency in the return values
  * across PHP versions.
  *
- * PHP 5.4.7 expanded parse_url()'s ability to handle non-absolute URLs, including
- * schemeless and relative URLs with "://" in the path. This function works around
- * those limitations providing a standard output on PHP 5.2~5.4+.
- *
- * Secondly, across various PHP versions, schemeless URLs containing a ":" in the query
- * are being handled inconsistently. This function works around those differences as well.
+ * Across various PHP versions, schemeless URLs containing a ":" in the query
+ * are being handled inconsistently. This function works around those differences.
  *
  * @since 4.4.0
  * @since 4.7.0 The `$component` parameter was added for parity with PHP's `parse_url()`.
@@ -686,10 +713,10 @@ function wp_parse_url( $url, $component = -1 ) {
 	$to_unset = array();
 	$url      = (string) $url;
 
-	if ( '//' === substr( $url, 0, 2 ) ) {
+	if ( str_starts_with( $url, '//' ) ) {
 		$to_unset[] = 'scheme';
 		$url        = 'placeholder:' . $url;
-	} elseif ( '/' === substr( $url, 0, 1 ) ) {
+	} elseif ( str_starts_with( $url, '/' ) ) {
 		$to_unset[] = 'scheme';
 		$to_unset[] = 'host';
 		$url        = 'placeholder://placeholder' . $url;
@@ -711,7 +738,7 @@ function wp_parse_url( $url, $component = -1 ) {
 }
 
 /**
- * Retrieve a specific component from a parsed URL array.
+ * Retrieves a specific component from a parsed URL array.
  *
  * @internal
  *
@@ -743,7 +770,7 @@ function _get_component_from_parsed_url_array( $url_parts, $component = -1 ) {
 }
 
 /**
- * Translate a PHP_URL_* constant to the named array keys PHP uses.
+ * Translates a PHP_URL_* constant to the named array keys PHP uses.
  *
  * @internal
  *

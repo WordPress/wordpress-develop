@@ -68,9 +68,19 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		$this->assertSame( self::$attachment_id, get_post_thumbnail_id() );
 	}
 
-	public function test_update_post_thumbnail_cache() {
+	/**
+	 * Ensure `update_post_thumbnail_cache()` works when querying post objects.
+	 *
+	 * @ticket 59521
+	 * @ticket 30017
+	 * @ticket 33968
+	 *
+	 * @covers ::update_post_thumbnail_cache
+	 */
+	public function test_update_post_thumbnail_cache_when_querying_full_post_objects() {
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
+		// Test case where `$query->posts` should return Array of post objects.
 		$query = new WP_Query(
 			array(
 				'post_type' => 'any',
@@ -79,11 +89,38 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertFalse( $query->thumbnails_cached );
+		$this->assertFalse( $query->thumbnails_cached, 'Thumbnails should not be cached prior to calling update_post_thumbnail_cache().' );
 
 		update_post_thumbnail_cache( $query );
 
-		$this->assertTrue( $query->thumbnails_cached );
+		$this->assertTrue( $query->thumbnails_cached, 'Thumbnails should be cached after calling update_post_thumbnail_cache().' );
+	}
+
+	/**
+	 * Ensure `update_post_thumbnail_cache()` works when querying post IDs.
+	 *
+	 * @ticket 59521
+	 *
+	 * @covers ::update_post_thumbnail_cache
+	 */
+	public function test_update_post_thumbnail_cache_when_querying_post_id_field() {
+		set_post_thumbnail( self::$post, self::$attachment_id );
+
+		// Test case where `$query2->posts` should return Array of post IDs.
+		$query = new WP_Query(
+			array(
+				'post_type' => 'any',
+				'post__in'  => array( self::$post->ID ),
+				'orderby'   => 'post__in',
+				'fields'    => 'ids',
+			)
+		);
+
+		$this->assertFalse( $query->thumbnails_cached, 'Thumbnails should not be cached prior to calling update_post_thumbnail_cache().' );
+
+		update_post_thumbnail_cache( $query );
+
+		$this->assertTrue( $query->thumbnails_cached, 'Thumbnails should be cached after calling update_post_thumbnail_cache().' );
 	}
 
 	/**
@@ -408,10 +445,174 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		$this->assertSame( $expected, $result );
 	}
 
+	/**
+	 * @ticket 57490
+	 */
+	public function test_get_the_post_thumbnail_includes_loading_lazy() {
+		set_post_thumbnail( self::$post, self::$attachment_id );
+
+		$html = get_the_post_thumbnail( self::$post );
+		$this->assertStringContainsString( ' loading="lazy"', $html );
+	}
+
+	/**
+	 * @ticket 57490
+	 */
+	public function test_get_the_post_thumbnail_respects_passed_loading_attr() {
+		set_post_thumbnail( self::$post, self::$attachment_id );
+
+		$html = get_the_post_thumbnail( self::$post, 'post-thumbnail', array( 'loading' => 'eager' ) );
+		$this->assertStringContainsString( ' loading="eager"', $html, 'loading=eager was not present in img tag because attributes array with loading=eager was overwritten.' );
+
+		$html = get_the_post_thumbnail( self::$post, 'post-thumbnail', 'loading=eager' );
+		$this->assertStringContainsString( ' loading="eager"', $html, 'loading=eager was not present in img tag because attributes string with loading=eager was overwritten.' );
+	}
+
+	/**
+	 * @ticket 57490
+	 */
+	public function test_get_the_post_thumbnail_respects_wp_lazy_loading_enabled_filter() {
+		set_post_thumbnail( self::$post, self::$attachment_id );
+
+		add_filter( 'wp_lazy_loading_enabled', '__return_false' );
+
+		$html = get_the_post_thumbnail( self::$post );
+		$this->assertStringNotContainsString( ' loading="lazy"', $html );
+	}
+
 	public function data_post_thumbnail_size_filter_complex() {
 		return array(
 			array( 0, 'medium' ),
 			array( 1, 'thumbnail' ),
+		);
+	}
+
+	/**
+	 * Tests that `_wp_post_thumbnail_context_filter()` returns 'the_post_thumbnail'.
+	 *
+	 * @ticket 58212
+	 *
+	 * @covers ::_wp_post_thumbnail_context_filter
+	 */
+	public function test_wp_post_thumbnail_context_filter_should_return_the_post_thumbnail() {
+		$this->assertSame( 'the_post_thumbnail', _wp_post_thumbnail_context_filter( 'wp_get_attachment_image' ) );
+	}
+
+	/**
+	 * Tests that `::_wp_post_thumbnail_context_filter_add` adds a filter to override the context
+	 * used in `wp_get_attachment_image()`.
+	 *
+	 * @ticket 58212
+	 *
+	 * @covers ::_wp_post_thumbnail_context_filter_add
+	 */
+	public function test_wp_post_thumbnail_context_filter_add_should_add_the_filter() {
+		$last_context = '';
+		$this->track_last_attachment_image_context( $last_context );
+
+		_wp_post_thumbnail_context_filter_add();
+		wp_get_attachment_image( self::$attachment_id );
+
+		$this->assertSame( 'the_post_thumbnail', $last_context );
+	}
+
+	/**
+	 * Tests that `_wp_post_thumbnail_context_filter_remove()` removes a filter to override the context
+	 * used in `wp_get_attachment_image()`.
+	 *
+	 * @ticket 58212
+	 *
+	 * @covers ::_wp_post_thumbnail_context_filter_remove
+	 */
+	public function test_wp_post_thumbnail_context_filter_remove_should_remove_the_filter() {
+		$last_context = '';
+		$this->track_last_attachment_image_context( $last_context );
+
+		_wp_post_thumbnail_context_filter_add();
+		wp_get_attachment_image( self::$attachment_id );
+
+		// Verify that the filter has been added before testing that it has been removed.
+		$this->assertSame(
+			'the_post_thumbnail',
+			$last_context,
+			'The filter was not added.'
+		);
+
+		_wp_post_thumbnail_context_filter_remove();
+
+		// The context should no longer be modified by the filter.
+		wp_get_attachment_image( self::$attachment_id );
+
+		$this->assertSame(
+			'wp_get_attachment_image',
+			$last_context,
+			'The filter was not removed.'
+		);
+	}
+
+	/**
+	 * Tests that `get_the_post_thumbnail()` uses the 'the_post_thumbnail' context.
+	 *
+	 * @ticket 58212
+	 *
+	 * @covers ::get_the_post_thumbnail
+	 */
+	public function test_get_the_post_thumbnail_should_use_the_post_thumbnail_context() {
+		$last_context = '';
+		$this->track_last_attachment_image_context( $last_context );
+
+		set_post_thumbnail( self::$post, self::$attachment_id );
+		get_the_post_thumbnail( self::$post );
+
+		$this->assertSame( 'the_post_thumbnail', $last_context );
+	}
+
+	/**
+	 * Tests that `get_the_post_thumbnail()` restores the context afterwards.
+	 *
+	 * @ticket 58212
+	 *
+	 * @covers ::get_the_post_thumbnail
+	 */
+	public function test_get_the_post_thumbnail_should_remove_the_post_thumbnail_context_afterwards() {
+		$last_context = '';
+		$this->track_last_attachment_image_context( $last_context );
+
+		set_post_thumbnail( self::$post, self::$attachment_id );
+		get_the_post_thumbnail( self::$post );
+
+		// Verify that the context was overridden before testing that it has been restored.
+		$this->assertSame(
+			'the_post_thumbnail',
+			$last_context,
+			'The context was not overridden.'
+		);
+
+		// The context should no longer be overridden.
+		wp_get_attachment_image( self::$attachment_id );
+
+		$this->assertSame(
+			'wp_get_attachment_image',
+			$last_context,
+			'The context was not restored.'
+		);
+	}
+
+	/**
+	 * Helper method to keep track of the last context returned by the 'wp_get_attachment_image_context' filter.
+	 *
+	 * The method parameter is passed by reference and therefore will always contain the last context value.
+	 *
+	 * @param mixed $last_context Variable to track last context. Passed by reference.
+	 */
+	private function track_last_attachment_image_context( &$last_context ) {
+		add_filter(
+			'wp_get_attachment_image_context',
+			static function ( $context ) use ( &$last_context ) {
+				$last_context = $context;
+				return $context;
+			},
+			11
 		);
 	}
 

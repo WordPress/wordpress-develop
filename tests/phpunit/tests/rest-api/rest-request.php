@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class Tests_REST_Request extends WP_UnitTestCase {
@@ -59,7 +57,16 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertSame( array( $value1, $value2 ), $this->request->get_header_as_array( 'Accept' ) );
 	}
 
-	public static function header_provider() {
+	/**
+	 * @dataProvider data_header_canonicalization
+	 * @param string $original Original header key.
+	 * @param string $expected Expected canonicalized version.
+	 */
+	public function test_header_canonicalization( $original, $expected ) {
+		$this->assertSame( $expected, $this->request->canonicalize_header_name( $original ) );
+	}
+
+	public static function data_header_canonicalization() {
 		return array(
 			array( 'Test', 'test' ),
 			array( 'TEST', 'test' ),
@@ -71,27 +78,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider header_provider
-	 * @param string $original Original header key.
-	 * @param string $expected Expected canonicalized version.
-	 */
-	public function test_header_canonicalization( $original, $expected ) {
-		$this->assertSame( $expected, $this->request->canonicalize_header_name( $original ) );
-	}
-
-	public static function content_type_provider() {
-		return array(
-			// Check basic parsing.
-			array( 'application/x-wp-example', 'application/x-wp-example', 'application', 'x-wp-example', '' ),
-			array( 'application/x-wp-example; charset=utf-8', 'application/x-wp-example', 'application', 'x-wp-example', 'charset=utf-8' ),
-
-			// Check case insensitivity.
-			array( 'APPLICATION/x-WP-Example', 'application/x-wp-example', 'application', 'x-wp-example', '' ),
-		);
-	}
-
-	/**
-	 * @dataProvider content_type_provider
+	 * @dataProvider data_content_type_parsing
 	 *
 	 * @param string $header     Header value.
 	 * @param string $value      Full type value.
@@ -110,6 +97,17 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertSame( $type, $parsed['type'] );
 		$this->assertSame( $subtype, $parsed['subtype'] );
 		$this->assertSame( $parameters, $parsed['parameters'] );
+	}
+
+	public static function data_content_type_parsing() {
+		return array(
+			// Check basic parsing.
+			array( 'application/x-wp-example', 'application/x-wp-example', 'application', 'x-wp-example', '' ),
+			array( 'application/x-wp-example; charset=utf-8', 'application/x-wp-example', 'application', 'x-wp-example', 'charset=utf-8' ),
+
+			// Check case insensitivity.
+			array( 'APPLICATION/x-WP-Example', 'application/x-wp-example', 'application', 'x-wp-example', '' ),
+		);
 	}
 
 	protected function request_with_parameters() {
@@ -188,22 +186,11 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertEmpty( $this->request->get_param( 'has_json_params' ) );
 	}
 
-	public static function alternate_json_content_type_provider() {
-		return array(
-			array( 'application/ld+json', 'json', true ),
-			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', 'json', true ),
-			array( 'application/activity+json', 'json', true ),
-			array( 'application/json+oembed', 'json', true ),
-			array( 'application/nojson', 'body', false ),
-			array( 'application/no.json', 'body', false ),
-		);
-	}
-
 	/**
 	 * @ticket 49404
-	 * @dataProvider alternate_json_content_type_provider
+	 * @dataProvider data_alternate_json_content_type
 	 *
-	 * @param string $content_type The content-type header.
+	 * @param string $content_type The Content-Type header.
 	 * @param string $source       The source value.
 	 * @param bool   $accept_json  The accept_json value.
 	 */
@@ -219,7 +206,34 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertEquals( $accept_json, $this->request->get_param( 'has_json_params' ) );
 	}
 
-	public static function is_json_content_type_provider() {
+	public static function data_alternate_json_content_type() {
+		return array(
+			array( 'application/ld+json', 'json', true ),
+			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', 'json', true ),
+			array( 'application/activity+json', 'json', true ),
+			array( 'application/json+oembed', 'json', true ),
+			array( 'application/nojson', 'body', false ),
+			array( 'application/no.json', 'body', false ),
+		);
+	}
+
+	/**
+	 * @ticket 49404
+	 * @dataProvider data_is_json_content_type
+	 *
+	 * @param string $content_type The Content-Type header.
+	 * @param bool   $is_json      The is_json value.
+	 */
+	public function test_is_json_content_type( $content_type, $is_json ) {
+		$this->request_with_parameters();
+
+		$this->request->set_header( 'Content-Type', $content_type );
+
+		// Check for JSON Content-Type.
+		$this->assertSame( $is_json, $this->request->is_json_content_type() );
+	}
+
+	public static function data_is_json_content_type() {
 		return array(
 			array( 'application/ld+json', true ),
 			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),
@@ -228,22 +242,6 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			array( 'application/nojson', false ),
 			array( 'application/no.json', false ),
 		);
-	}
-
-	/**
-	 * @ticket 49404
-	 * @dataProvider is_json_content_type_provider
-	 *
-	 * @param string $content_type The content-type header.
-	 * @param bool   $is_json      The is_json value.
-	 */
-	public function test_is_json_content_type( $content_type, $is_json ) {
-		$this->request_with_parameters();
-
-		$this->request->set_header( 'Content-Type', $content_type );
-
-		// Check for JSON content-type.
-		$this->assertSame( $is_json, $this->request->is_json_content_type() );
 	}
 
 	/**
@@ -312,20 +310,12 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertEmpty( $this->request->get_param( 'has_json_params' ) );
 	}
 
-	public function non_post_http_methods_with_request_body_provider() {
-		return array(
-			array( 'PUT' ),
-			array( 'PATCH' ),
-			array( 'DELETE' ),
-		);
-	}
-
 	/**
 	 * Tests that methods supporting request bodies have access to the
 	 * request's body.  For POST this is straightforward via `$_POST`; for
 	 * other methods `WP_REST_Request` needs to parse the body for us.
 	 *
-	 * @dataProvider non_post_http_methods_with_request_body_provider
+	 * @dataProvider data_non_post_body_parameters
 	 */
 	public function test_non_post_body_parameters( $request_method ) {
 		$data = array(
@@ -347,6 +337,14 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		}
 	}
 
+	public function data_non_post_body_parameters() {
+		return array(
+			array( 'PUT' ),
+			array( 'PATCH' ),
+			array( 'DELETE' ),
+		);
+	}
+
 	public function test_parameters_for_json_put() {
 		$data = array(
 			'foo'  => 'bar',
@@ -361,7 +359,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		);
 
 		$this->request->set_method( 'PUT' );
-		$this->request->add_header( 'content-type', 'application/json' );
+		$this->request->add_header( 'Content-Type', 'application/json' );
 		$this->request->set_body( wp_json_encode( $data ) );
 
 		foreach ( $data as $key => $expected_value ) {
@@ -383,7 +381,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		);
 
 		$this->request->set_method( 'POST' );
-		$this->request->add_header( 'content-type', 'application/json' );
+		$this->request->add_header( 'Content-Type', 'application/json' );
 		$this->request->set_body( wp_json_encode( $data ) );
 
 		foreach ( $data as $key => $expected_value ) {
@@ -864,7 +862,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 	public function test_set_param_follows_parameter_order() {
 		$request = new WP_REST_Request();
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_method( 'POST' );
 		$request->set_body(
 			wp_json_encode(
@@ -892,7 +890,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 */
 	public function test_set_param_updates_param_in_json_and_query() {
 		$request = new WP_REST_Request();
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_method( 'POST' );
 		$request->set_body(
 			wp_json_encode(
@@ -919,7 +917,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 */
 	public function test_set_param_updates_param_if_already_exists_in_query() {
 		$request = new WP_REST_Request();
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_method( 'POST' );
 		$request->set_body(
 			wp_json_encode(
@@ -953,7 +951,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 */
 	public function test_set_param_to_null_updates_param_in_json_and_query() {
 		$request = new WP_REST_Request();
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_method( 'POST' );
 		$request->set_body(
 			wp_json_encode(
@@ -980,7 +978,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 */
 	public function test_set_param_from_null_updates_param_in_json_and_query_with_null() {
 		$request = new WP_REST_Request();
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_method( 'POST' );
 		$request->set_body(
 			wp_json_encode(
@@ -1007,7 +1005,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 */
 	public function test_set_param_with_invalid_json() {
 		$request = new WP_REST_Request();
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_method( 'POST' );
 		$request->set_body( '' );
 		$request->set_param( 'param', 'value' );

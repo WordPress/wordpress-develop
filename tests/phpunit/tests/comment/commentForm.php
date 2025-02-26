@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @group  comment
+ * @group comment
  *
  * @covers ::comment_form
  */

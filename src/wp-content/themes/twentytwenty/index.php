@@ -25,6 +25,9 @@ get_header();
 	$archive_subtitle = '';
 
 	if ( is_search() ) {
+		/**
+		 * @global WP_Query $wp_query WordPress Query object.
+		 */
 		global $wp_query;
 
 		$archive_title = sprintf(
@@ -81,7 +84,7 @@ get_header();
 		$i = 0;
 
 		while ( have_posts() ) {
-			$i++;
+			++$i;
 			if ( $i > 1 ) {
 				echo '<hr class="post-separator styled-separator is-style-wide section-inner" aria-hidden="true" />';
 			}

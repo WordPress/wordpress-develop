@@ -7,13 +7,19 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	protected $queries = 0;
 
 	/**
+	 * Performs setup tasks for every test.
+	 */
+	public function set_up() {
+		parent::set_up();
+		switch_theme( 'default' );
+	}
+
+	/**
 	 * @ticket 16894
 	 *
 	 * @covers ::update_comment_meta
 	 */
-	public function test_update_comment_meta_cache_should_default_to_true() {
-		global $wpdb;
-
+	public function test_update_comment_meta_cache_should_default_to_lazy_loading() {
 		$p           = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$comment_ids = self::factory()->comment->create_post_comments( $p, 3 );
 
@@ -24,18 +30,55 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 		// Clear comment cache, just in case.
 		clean_comment_cache( $comment_ids );
 
-		$q = new WP_Comment_Query(
+		$num_queries = get_num_queries();
+		$q           = new WP_Comment_Query(
 			array(
 				'post_ID' => $p,
 			)
 		);
 
-		$num_queries = $wpdb->num_queries;
+		$this->assertSame( 2, get_num_queries() - $num_queries, 'Querying comments is expected to make two queries' );
+
+		$num_queries = get_num_queries();
 		foreach ( $comment_ids as $cid ) {
 			get_comment_meta( $cid, 'foo', 'bar' );
 		}
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'Querying comments is expected to make two queries' );
+	}
+
+	/**
+	 * @ticket 57801
+	 *
+	 * @covers ::wp_lazyload_comment_meta
+	 */
+	public function test_update_comment_meta_cache_should_default_to_lazy_loading_fields_id() {
+		$p           = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$comment_ids = self::factory()->comment->create_post_comments( $p, 3 );
+
+		foreach ( $comment_ids as $cid ) {
+			update_comment_meta( $cid, 'foo', 'bar' );
+		}
+
+		// Clear comment cache, just in case.
+		clean_comment_cache( $comment_ids );
+
+		$num_queries = get_num_queries();
+		$q           = new WP_Comment_Query(
+			array(
+				'post_ID' => $p,
+				'fields'  => 'ids',
+			)
+		);
+
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'Querying comments is expected to make two queries' );
+
+		$num_queries = get_num_queries();
+		foreach ( $comment_ids as $cid ) {
+			get_comment_meta( $cid, 'foo', 'bar' );
+		}
+
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'Comment meta is expected to be lazy loaded' );
 	}
 
 	/**
@@ -44,8 +87,6 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	 * @covers ::update_comment_meta
 	 */
 	public function test_update_comment_meta_cache_true() {
-		global $wpdb;
-
 		$p           = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$comment_ids = self::factory()->comment->create_post_comments( $p, 3 );
 
@@ -56,19 +97,59 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 		// Clear comment cache, just in case.
 		clean_comment_cache( $comment_ids );
 
-		$q = new WP_Comment_Query(
+		$num_queries = get_num_queries();
+		$q           = new WP_Comment_Query(
 			array(
 				'post_ID'                   => $p,
 				'update_comment_meta_cache' => true,
 			)
 		);
+		$this->assertSame( 2, get_num_queries() - $num_queries, 'Comments should be queries and primed in two database queries' );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		foreach ( $comment_ids as $cid ) {
 			get_comment_meta( $cid, 'foo', 'bar' );
 		}
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'Comment meta should be loaded in one database query' );
+	}
+
+	/**
+	 * @ticket 57801
+	 *
+	 * @covers ::update_comment_meta
+	 */
+	public function test_update_comment_meta_cache_true_multiple() {
+		$posts           = self::factory()->post->create_many( 3 );
+		$all_comment_ids = array();
+		foreach ( $posts as $p ) {
+			$comment_ids = self::factory()->comment->create_post_comments( $p, 3 );
+
+			foreach ( $comment_ids as $cid ) {
+				update_comment_meta( $cid, 'foo', 'bar' );
+				$all_comment_ids[] = $cid;
+			}
+
+			$num_queries = get_num_queries();
+			$q           = new WP_Comment_Query(
+				array(
+					'post_ID'                   => $p,
+					'update_comment_meta_cache' => true,
+				)
+			);
+			$this->assertSame( 1, get_num_queries() - $num_queries, 'Comment query should only add one query' );
+		}
+
+		$filter = new MockAction();
+		add_filter( 'update_comment_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+		$num_queries = get_num_queries();
+		get_comment_meta( $comment_ids[0], 'foo', 'bar' );
+
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'Comment meta should be loaded in one database query' );
+		$args              = $filter->get_args();
+		$first             = reset( $args );
+		$prime_comment_ids = end( $first );
+		$this->assertSameSets( $prime_comment_ids, $all_comment_ids, 'All comment meta should be loaded all at once' );
 	}
 
 	/**
@@ -77,8 +158,6 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	 * @covers ::update_comment_meta
 	 */
 	public function test_update_comment_meta_cache_false() {
-		global $wpdb;
-
 		$p           = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$comment_ids = self::factory()->comment->create_post_comments( $p, 3 );
 
@@ -93,12 +172,12 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		foreach ( $comment_ids as $cid ) {
 			get_comment_meta( $cid, 'foo', 'bar' );
 		}
 
-		$this->assertSame( $num_queries + 3, $wpdb->num_queries );
+		$this->assertSame( 3, get_num_queries() - $num_queries );
 	}
 
 	/**
@@ -107,8 +186,6 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	 * @covers ::get_comment_meta
 	 */
 	public function test_comment_meta_should_be_lazy_loaded_for_all_comments_in_comments_template() {
-		global $wpdb;
-
 		$p           = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$comment_ids = self::factory()->comment->create_post_comments( $p, 3 );
 
@@ -126,14 +203,14 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 				$cform = get_echo( 'comments_template' );
 
 				// First request will hit the database.
-				$num_queries = $wpdb->num_queries;
+				$num_queries = get_num_queries();
 				get_comment_meta( $comment_ids[0], 'sauce' );
-				$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+				$this->assertSame( 1, get_num_queries() - $num_queries );
 
 				// Second and third requests should be in cache.
 				get_comment_meta( $comment_ids[1], 'sauce' );
 				get_comment_meta( $comment_ids[2], 'sauce' );
-				$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+				$this->assertSame( 1, get_num_queries() - $num_queries );
 			}
 		}
 	}
@@ -142,10 +219,9 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	 * @ticket 34047
 	 *
 	 * @covers ::get_comment_meta
+	 * @covers ::wp_lazyload_comment_meta
 	 */
 	public function test_comment_meta_should_be_lazy_loaded_in_comment_feed_queries() {
-		global $wpdb;
-
 		$posts = self::factory()->post->create_many( 2, array( 'post_status' => 'publish' ) );
 
 		$now      = time();
@@ -173,29 +249,28 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 		);
 
 		// First comment will cause the cache to be primed.
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$this->assertSame( 'bar', get_comment_meta( $comments[0], 'foo', 'bar' ) );
-		$num_queries++;
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		++$num_queries;
+		$this->assertSame( $num_queries, get_num_queries() );
 
 		// Second comment from the results should not cause more queries.
 		$this->assertSame( 'bar', get_comment_meta( $comments[1], 'foo', 'bar' ) );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 
 		// A comment from outside the results will not be primed.
 		$this->assertSame( 'bar', get_comment_meta( $comments[4], 'foo', 'bar' ) );
-		$num_queries++;
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		++$num_queries;
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
 	 * @ticket 34047
 	 *
 	 * @covers ::get_comment_meta
+	 * @covers ::wp_lazyload_comment_meta
 	 */
 	public function test_comment_meta_should_be_lazy_loaded_in_single_post_comment_feed_queries() {
-		global $wpdb;
-
 		$posts = self::factory()->post->create_many( 2, array( 'post_status' => 'publish' ) );
 
 		$now      = time();
@@ -224,19 +299,19 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 		);
 
 		// First comment will cause the cache to be primed.
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$this->assertSame( 'bar', get_comment_meta( $comments[0], 'foo', 'bar' ) );
-		$num_queries++;
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		++$num_queries;
+		$this->assertSame( $num_queries, get_num_queries() );
 
 		// Second comment from the results should not cause more queries.
 		$this->assertSame( 'bar', get_comment_meta( $comments[1], 'foo', 'bar' ) );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 
 		// A comment from outside the results will not be primed.
 		$this->assertSame( 'bar', get_comment_meta( $comments[4], 'foo', 'bar' ) );
-		$num_queries++;
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		++$num_queries;
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**

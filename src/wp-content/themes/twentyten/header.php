@@ -21,10 +21,10 @@
 
 	wp_title( '|', true, 'right' );
 
-	// Add the blog name.
+	// Add the site name.
 	bloginfo( 'name' );
 
-	// Add the blog description for the home/front page.
+	// Add the site description for the home/front page.
 	$site_description = get_bloginfo( 'description', 'display' );
 if ( $site_description && ( is_home() || is_front_page() ) ) {
 	echo " | $site_description";
@@ -39,7 +39,7 @@ if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
 ?>
 	</title>
 <link rel="profile" href="https://gmpg.org/xfn/11" />
-<link rel="stylesheet" type="text/css" media="all" href="<?php echo esc_url( get_stylesheet_uri() ); ?>?ver=20221101" />
+<link rel="stylesheet" type="text/css" media="all" href="<?php echo esc_url( get_stylesheet_uri() ); ?>?ver=20241112" />
 <link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>">
 <?php
 	/*
@@ -63,6 +63,8 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <div id="wrapper" class="hfeed">
+	<?php // Allow screen readers / text browsers to skip the navigation menu and get right to the good stuff. ?>
+	<a href="#content" class="screen-reader-text skip-link"><?php _e( 'Skip to content', 'twentyten' ); ?></a>
 	<div id="header">
 		<div id="masthead">
 			<div id="branding" role="banner">
@@ -95,24 +97,12 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 					// Houston, we have a new header image!
 					echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
 				} else {
-					// Compatibility with versions of WordPress prior to 3.4.
-					if ( function_exists( 'get_custom_header' ) ) {
-						$header_image_width  = get_custom_header()->width;
-						$header_image_height = get_custom_header()->height;
-					} else {
-						$header_image_width  = HEADER_IMAGE_WIDTH;
-						$header_image_height = HEADER_IMAGE_HEIGHT;
-					}
-					?>
-					<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $header_image_width ); ?>" height="<?php echo esc_attr( $header_image_height ); ?>" alt="" />
-					<?php
+					twentyten_header_image();
 				} // End check for featured image or standard header.
 				?>
 			</div><!-- #branding -->
 
 			<div id="access" role="navigation">
-				<?php // Allow screen readers / text browsers to skip the navigation menu and get right to the good stuff. ?>
-				<div class="skip-link screen-reader-text"><a href="#content"><?php _e( 'Skip to content', 'twentyten' ); ?></a></div>
 				<?php
 				/*
 				 * Our navigation menu. If one isn't filled out, wp_nav_menu() falls back to wp_page_menu().

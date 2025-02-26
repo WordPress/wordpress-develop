@@ -170,7 +170,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		return array();
@@ -189,6 +189,9 @@ class WP_Themes_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
 	 */
 	public function display_rows() {
 		$themes = $this->items;
@@ -208,11 +211,11 @@ class WP_Themes_List_Table extends WP_List_Table {
 
 			$actions             = array();
 			$actions['activate'] = sprintf(
-				'<a href="%s" class="activatelink" title="%s">%s</a>',
+				'<a href="%s" class="activatelink" aria-label="%s">%s</a>',
 				$activate_link,
 				/* translators: %s: Theme name. */
 				esc_attr( sprintf( _x( 'Activate &#8220;%s&#8221;', 'theme' ), $title ) ),
-				__( 'Activate' )
+				_x( 'Activate', 'theme' )
 			);
 
 			if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {

@@ -136,7 +136,7 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 		$post_ids     = self::factory()->post->create_many( $sticky_count, array( 'post_date' => $post_date ) );
 		add_filter(
 			'pre_option_sticky_posts',
-			function () use ( $post_ids ) {
+			static function () use ( $post_ids ) {
 				return $post_ids;
 			}
 		);

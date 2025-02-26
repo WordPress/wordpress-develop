@@ -36,12 +36,13 @@ if ( 'upgrade_db' === $step ) {
 }
 
 /**
- * @global string $wp_version             The WordPress version string.
- * @global string $required_php_version   The required PHP version string.
- * @global string $required_mysql_version The required MySQL version string.
- * @global wpdb   $wpdb                   WordPress database abstraction object.
+ * @global string   $wp_version              The WordPress version string.
+ * @global string   $required_php_version    The required PHP version string.
+ * @global string[] $required_php_extensions The names of required PHP extensions.
+ * @global string   $required_mysql_version  The required MySQL version string.
+ * @global wpdb     $wpdb                    WordPress database abstraction object.
  */
-global $wp_version, $required_php_version, $required_mysql_version, $wpdb;
+global $wp_version, $required_php_version, $required_php_extensions, $required_mysql_version, $wpdb;
 
 $step = (int) $step;
 
@@ -54,12 +55,30 @@ if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
 	$mysql_compat = version_compare( $mysql_version, $required_mysql_version, '>=' );
 }
 
+$missing_extensions = array();
+
+if ( isset( $required_php_extensions ) && is_array( $required_php_extensions ) ) {
+	foreach ( $required_php_extensions as $extension ) {
+		if ( extension_loaded( $extension ) ) {
+			continue;
+		}
+
+		$missing_extensions[] = sprintf(
+			/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: The PHP extension name needed. */
+			__( 'You cannot upgrade because <a href="%1$s">WordPress %2$s</a> requires the %3$s PHP extension.' ),
+			$version_url,
+			$wp_version,
+			$extension
+		);
+	}
+}
+
 header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
-	<meta name="viewport" content="width=device-width" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php echo get_option( 'blog_charset' ); ?>" />
 	<meta name="robots" content="noindex,nofollow" />
 	<title><?php _e( 'WordPress &rsaquo; Update' ); ?></title>
@@ -72,13 +91,13 @@ header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option
 
 <h1><?php _e( 'No Update Required' ); ?></h1>
 <p><?php _e( 'Your WordPress database is already up to date!' ); ?></p>
-<p class="step"><a class="button button-large" href="<?php echo get_option( 'home' ); ?>/"><?php _e( 'Continue' ); ?></a></p>
+<p class="step"><a class="button button-large" href="<?php echo esc_url( get_option( 'home' ) ); ?>/"><?php _e( 'Continue' ); ?></a></p>
 
 	<?php
 elseif ( ! $php_compat || ! $mysql_compat ) :
 	$version_url = sprintf(
 		/* translators: %s: WordPress version. */
-		esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+		esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
 		sanitize_title( $wp_version )
 	);
 
@@ -126,8 +145,8 @@ elseif ( ! $php_compat || ! $mysql_compat ) :
 	}
 
 	echo '<p>' . $message . '</p>';
-	?>
-	<?php
+elseif ( count( $missing_extensions ) > 0 ) :
+	echo '<p>' . implode( '</p><p>', $missing_extensions ) . '</p>';
 else :
 	switch ( $step ) :
 		case 0:

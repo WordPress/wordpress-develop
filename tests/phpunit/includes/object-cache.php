@@ -313,6 +313,16 @@ function wp_cache_flush( $delay = 0 ) {
 }
 
 /**
+ * Removes all cache items from the in-memory runtime cache.
+ *
+ * @return bool True on success, false on failure.
+ */
+function wp_cache_flush_runtime() {
+	global $wp_object_cache;
+	return $wp_object_cache->flush_runtime();
+}
+
+/**
  * Determines whether the object cache implementation supports a particular feature.
  *
  * @since 6.1.0
@@ -325,6 +335,7 @@ function wp_cache_flush( $delay = 0 ) {
 function wp_cache_supports( $feature ) {
 	switch ( $feature ) {
 		case 'get_multiple':
+		case 'flush_runtime':
 			return true;
 		default:
 			return false;
@@ -809,7 +820,6 @@ function wp_cache_set_option( $option, $value ) {
  * Switches blog prefix, which changes the cache that is accessed.
  *
  * @param int $blog_id Blog to switch to.
- * @return void
  */
 function wp_cache_switch_to_blog( $blog_id ) {
 	global $wp_object_cache;
@@ -821,7 +831,6 @@ function wp_cache_switch_to_blog( $blog_id ) {
  * Sets up Object Cache Global and assigns it.
  *
  * @global WP_Object_Cache $wp_object_cache WordPress Object Cache
- * @return void
  */
 function wp_cache_init() {
 	global $wp_object_cache;
@@ -832,7 +841,6 @@ function wp_cache_init() {
  * Adds a group or set of groups to the list of non-persistent groups.
  *
  * @param string|array $groups A group or an array of groups to add.
- * @return void
  */
 function wp_cache_add_global_groups( $groups ) {
 	global $wp_object_cache;
@@ -843,7 +851,6 @@ function wp_cache_add_global_groups( $groups ) {
  * Adds a group or set of groups to the list of non-Memcached groups.
  *
  * @param string|array $groups A group or an array of groups to add.
- * @return void
  */
 function wp_cache_add_non_persistent_groups( $groups ) {
 	global $wp_object_cache;
@@ -901,6 +908,20 @@ class WP_Object_Cache {
 	 * @var string
 	 */
 	public $blog_prefix = '';
+
+	/**
+	 * Thirty days in seconds.
+	 *
+	 * @var int
+	 */
+	public $thirty_days;
+
+	/**
+	 * Current unix time stamp.
+	 *
+	 * @var int
+	 */
+	public $now;
 
 	/**
 	 * Instantiates the Memcached class.
@@ -977,20 +998,21 @@ class WP_Object_Cache {
 		}
 
 		$derived_key = $this->buildKey( $key, $group );
-		$expiration  = $this->sanitize_expiration( $expiration );
+
+		// Add does not set the value if the key exists; mimic that here.
+		if ( isset( $this->cache[ $derived_key ] ) ) {
+			return false;
+		}
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached.
 		if ( in_array( $group, $this->no_mc_groups, true ) ) {
-
-			// Add does not set the value if the key exists; mimic that here.
-			if ( isset( $this->cache[ $derived_key ] ) ) {
-				return false;
-			}
 
 			$this->add_to_internal_cache( $derived_key, $value );
 
 			return true;
 		}
+
+		$expiration = $this->sanitize_expiration( $expiration );
 
 		// Save to Memcached.
 		if ( $by_key ) {
@@ -1180,7 +1202,6 @@ class WP_Object_Cache {
 	 */
 	public function cas( $cas_token, $key, $value, $group = 'default', $expiration = 0, $server_key = '', $by_key = false ) {
 		$derived_key = $this->buildKey( $key, $group );
-		$expiration  = $this->sanitize_expiration( $expiration );
 
 		/**
 		 * If group is a non-Memcached group, save to runtime cache, not Memcached. Note
@@ -1191,6 +1212,8 @@ class WP_Object_Cache {
 			$this->add_to_internal_cache( $derived_key, $value );
 			return true;
 		}
+
+		$expiration = $this->sanitize_expiration( $expiration );
 
 		// Save to Memcached.
 		if ( $by_key ) {
@@ -1408,6 +1431,17 @@ class WP_Object_Cache {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Clears the in-memory cache of all data leaving the external cache untouched.
+	 *
+	 * @return bool Always returns true.
+	 */
+	public function flush_runtime() {
+		$this->cache = array();
+
+		return true;
 	}
 
 	/**
@@ -1905,7 +1939,6 @@ class WP_Object_Cache {
 	 */
 	public function replace( $key, $value, $group = 'default', $expiration = 0, $server_key = '', $by_key = false ) {
 		$derived_key = $this->buildKey( $key, $group );
-		$expiration  = $this->sanitize_expiration( $expiration );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached.
 		if ( in_array( $group, $this->no_mc_groups, true ) ) {
@@ -1918,6 +1951,8 @@ class WP_Object_Cache {
 			$this->cache[ $derived_key ] = $value;
 			return true;
 		}
+
+		$expiration = $this->sanitize_expiration( $expiration );
 
 		// Save to Memcached.
 		if ( $by_key ) {
@@ -1970,13 +2005,14 @@ class WP_Object_Cache {
 	 */
 	public function set( $key, $value, $group = 'default', $expiration = 0, $server_key = '', $by_key = false ) {
 		$derived_key = $this->buildKey( $key, $group );
-		$expiration  = $this->sanitize_expiration( $expiration );
 
 		// If group is a non-Memcached group, save to runtime cache, not Memcached.
 		if ( in_array( $group, $this->no_mc_groups, true ) ) {
 			$this->add_to_internal_cache( $derived_key, $value );
 			return true;
 		}
+
+		$expiration = $this->sanitize_expiration( $expiration );
 
 		// Save to Memcached.
 		if ( $by_key ) {
@@ -2032,7 +2068,6 @@ class WP_Object_Cache {
 	public function setMulti( $items, $groups = 'default', $expiration = 0, $server_key = '', $by_key = false ) {
 		// Build final keys and replace $items keys with the new keys.
 		$derived_keys  = $this->buildKeys( array_keys( $items ), $groups );
-		$expiration    = $this->sanitize_expiration( $expiration );
 		$derived_items = array_combine( $derived_keys, $items );
 
 		// Do not add to memcached if in no_mc_groups.
@@ -2047,6 +2082,8 @@ class WP_Object_Cache {
 				unset( $derived_items[ $derived_key ] );
 			}
 		}
+
+		$expiration = $this->sanitize_expiration( $expiration );
 
 		// Save to memcached.
 		if ( $by_key ) {
@@ -2288,7 +2325,6 @@ class WP_Object_Cache {
 	 * @link http://wordpress.org/extend/plugins/memcached/
 	 *
 	 * @param array $groups Array of groups.
-	 * @return void
 	 */
 	public function add_global_groups( $groups ) {
 		if ( ! is_array( $groups ) ) {
@@ -2308,7 +2344,6 @@ class WP_Object_Cache {
 	 * @link http://wordpress.org/extend/plugins/memcached/
 	 *
 	 * @param array $groups Array of groups.
-	 * @return void
 	 */
 	public function add_non_persistent_groups( $groups ) {
 		if ( ! is_array( $groups ) ) {
@@ -2340,7 +2375,6 @@ class WP_Object_Cache {
 	 * Switches blog prefix, which changes the cache that is accessed.
 	 *
 	 * @param int $blog_id Blog to switch to.
-	 * @return void
 	 */
 	public function switch_to_blog( $blog_id ) {
 		global $table_prefix;

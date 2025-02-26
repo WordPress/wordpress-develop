@@ -1,9 +1,14 @@
-$scheme-name: "midnight";
+@use "sass:color";
+
 $base-color: #363b3f;
 $highlight-color: #e14d43;
 $notification-color: #69a8bb;
 
-$dashboard-accent-1: $notification-color;
-$dashboard-icon-background: $highlight-color;
+@use "../_admin.scss" with (
+	$scheme-name: "midnight",
+	$base-color: $base-color,
+	$highlight-color: $highlight-color,
+	$notification-color: $notification-color,
 
-@import "../_admin.scss";
+	$dashboard-accent-2: color.mix($base-color, $notification-color, 90%),
+);

@@ -4,9 +4,9 @@
  *
  * To use this class you must follow these steps for PHP 5.2.6+
  *
- * @contrib http://kevin.vanzonneveld.net/techblog/article/make_ssh_connections_with_php/ - Installation Notes
+ * {@link http://kevin.vanzonneveld.net/techblog/article/make_ssh_connections_with_php/ - Installation Notes}
  *
- * Compile libssh2 (Note: Only 0.14 is officaly working with PHP 5.2.6+ right now, But many users have found the latest versions work)
+ * Compile libssh2 (Note: Only 0.14 is officially working with PHP 5.2.6+ right now, But many users have found the latest versions work)
  *
  * cd /usr/src
  * wget https://www.libssh2.org/download/libssh2-0.14.tar.gz
@@ -103,6 +103,8 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			// Password can be blank if we are using keys.
 			if ( ! $this->keys ) {
 				$this->errors->add( 'empty_password', __( 'SSH2 password is required' ) );
+			} else {
+				$this->options['password'] = null;
 			}
 		} else {
 			$this->options['password'] = $opt['password'];
@@ -496,20 +498,27 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	}
 
 	/**
-	 * Moves a file.
+	 * Moves a file or directory.
+	 *
+	 * After moving files or directories, OPcache will need to be invalidated.
+	 *
+	 * If moving a directory fails, `copy_dir()` can be used for a recursive copy.
+	 *
+	 * Use `move_dir()` for moving directories with OPcache invalidation and a
+	 * fallback to `copy_dir()`.
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string $source      Path to the source file.
-	 * @param string $destination Path to the destination file.
-	 * @param bool   $overwrite   Optional. Whether to overwrite the destination file if it exists.
+	 * @param string $source      Path to the source file or directory.
+	 * @param string $destination Path to the destination file or directory.
+	 * @param bool   $overwrite   Optional. Whether to overwrite the destination if it exists.
 	 *                            Default false.
 	 * @return bool True on success, false on failure.
 	 */
 	public function move( $source, $destination, $overwrite = false ) {
 		if ( $this->exists( $destination ) ) {
 			if ( $overwrite ) {
-				// We need to remove the destination file before we can rename the source.
+				// We need to remove the destination before we can rename the source.
 				$this->delete( $destination, false, 'f' );
 			} else {
 				// If we're not overwriting, the rename will fail, so return early.
@@ -734,18 +743,28 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * @param bool   $recursive      Optional. Whether to recursively include file details in nested directories.
 	 *                               Default false.
 	 * @return array|false {
-	 *     Array of files. False if unable to list directory contents.
+	 *     Array of arrays containing file information. False if unable to list directory contents.
 	 *
-	 *     @type string $name        Name of the file or directory.
-	 *     @type string $perms       *nix representation of permissions.
-	 *     @type string $permsn      Octal representation of permissions.
-	 *     @type string $owner       Owner name or ID.
-	 *     @type int    $size        Size of file in bytes.
-	 *     @type int    $lastmodunix Last modified unix timestamp.
-	 *     @type mixed  $lastmod     Last modified month (3 letter) and day (without leading 0).
-	 *     @type int    $time        Last modified time.
-	 *     @type string $type        Type of resource. 'f' for file, 'd' for directory.
-	 *     @type mixed  $files       If a directory and `$recursive` is true, contains another array of files.
+	 *     @type array ...$0 {
+	 *         Array of file information. Note that some elements may not be available on all filesystems.
+	 *
+	 *         @type string           $name        Name of the file or directory.
+	 *         @type string           $perms       *nix representation of permissions.
+	 *         @type string           $permsn      Octal representation of permissions.
+	 *         @type false            $number      File number. Always false in this context.
+	 *         @type string|false     $owner       Owner name or ID, or false if not available.
+	 *         @type string|false     $group       File permissions group, or false if not available.
+	 *         @type int|string|false $size        Size of file in bytes. May be a numeric string.
+	 *                                             False if not available.
+	 *         @type int|string|false $lastmodunix Last modified unix timestamp. May be a numeric string.
+	 *                                             False if not available.
+	 *         @type string|false     $lastmod     Last modified month (3 letters) and day (without leading 0), or
+	 *                                             false if not available.
+	 *         @type string|false     $time        Last modified time, or false if not available.
+	 *         @type string           $type        Type of resource. 'f' for file, 'd' for directory, 'l' for link.
+	 *         @type array|false      $files       If a directory and `$recursive` is true, contains another array of
+	 *                                             files. False if unable to list directory contents.
+	 *     }
 	 * }
 	 */
 	public function dirlist( $path, $include_hidden = true, $recursive = false ) {
@@ -767,6 +786,8 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			return false;
 		}
 
+		$path = trailingslashit( $path );
+
 		while ( false !== ( $entry = $dir->read() ) ) {
 			$struc         = array();
 			$struc['name'] = $entry;
@@ -783,20 +804,20 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 				continue;
 			}
 
-			$struc['perms']       = $this->gethchmod( $path . '/' . $entry );
+			$struc['perms']       = $this->gethchmod( $path . $entry );
 			$struc['permsn']      = $this->getnumchmodfromh( $struc['perms'] );
 			$struc['number']      = false;
-			$struc['owner']       = $this->owner( $path . '/' . $entry );
-			$struc['group']       = $this->group( $path . '/' . $entry );
-			$struc['size']        = $this->size( $path . '/' . $entry );
-			$struc['lastmodunix'] = $this->mtime( $path . '/' . $entry );
+			$struc['owner']       = $this->owner( $path . $entry );
+			$struc['group']       = $this->group( $path . $entry );
+			$struc['size']        = $this->size( $path . $entry );
+			$struc['lastmodunix'] = $this->mtime( $path . $entry );
 			$struc['lastmod']     = gmdate( 'M j', $struc['lastmodunix'] );
 			$struc['time']        = gmdate( 'h:i:s', $struc['lastmodunix'] );
-			$struc['type']        = $this->is_dir( $path . '/' . $entry ) ? 'd' : 'f';
+			$struc['type']        = $this->is_dir( $path . $entry ) ? 'd' : 'f';
 
 			if ( 'd' === $struc['type'] ) {
 				if ( $recursive ) {
-					$struc['files'] = $this->dirlist( $path . '/' . $struc['name'], $include_hidden, $recursive );
+					$struc['files'] = $this->dirlist( $path . $struc['name'], $include_hidden, $recursive );
 				} else {
 					$struc['files'] = array();
 				}

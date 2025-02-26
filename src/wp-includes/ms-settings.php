@@ -10,6 +10,11 @@
  * @since 3.0.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * Objects representing the current network and current site.
  *
@@ -55,10 +60,10 @@ ms_subdomain_constants();
 if ( ! isset( $current_site ) || ! isset( $current_blog ) ) {
 
 	$domain = strtolower( stripslashes( $_SERVER['HTTP_HOST'] ) );
-	if ( ':80' === substr( $domain, -3 ) ) {
+	if ( str_ends_with( $domain, ':80' ) ) {
 		$domain               = substr( $domain, 0, -3 );
 		$_SERVER['HTTP_HOST'] = substr( $_SERVER['HTTP_HOST'], 0, -3 );
-	} elseif ( ':443' === substr( $domain, -4 ) ) {
+	} elseif ( str_ends_with( $domain, ':443' ) ) {
 		$domain               = substr( $domain, 0, -4 );
 		$_SERVER['HTTP_HOST'] = substr( $_SERVER['HTTP_HOST'], 0, -4 );
 	}

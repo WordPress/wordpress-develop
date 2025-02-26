@@ -8,6 +8,8 @@
 /**
  * Renders the `core/site-title` block on the server.
  *
+ * @since 5.8.0
+ *
  * @param array $attributes The block attributes.
  *
  * @return string The render.
@@ -18,8 +20,11 @@ function render_block_core_site_title( $attributes ) {
 		return;
 	}
 
-	$tag_name         = 'h1';
-	$align_class_name = empty( $attributes['textAlign'] ) ? '' : "has-text-align-{$attributes['textAlign']}";
+	$tag_name = 'h1';
+	$classes  = empty( $attributes['textAlign'] ) ? '' : "has-text-align-{$attributes['textAlign']}";
+	if ( isset( $attributes['style']['elements']['link']['color']['text'] ) ) {
+		$classes .= ' has-link-color';
+	}
 
 	if ( isset( $attributes['level'] ) ) {
 		$tag_name = 0 === $attributes['level'] ? 'p' : 'h' . (int) $attributes['level'];
@@ -37,7 +42,7 @@ function render_block_core_site_title( $attributes ) {
 			esc_html( $site_title )
 		);
 	}
-	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => $align_class_name ) );
+	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => trim( $classes ) ) );
 
 	return sprintf(
 		'<%1$s %2$s>%3$s</%1$s>',
@@ -50,6 +55,8 @@ function render_block_core_site_title( $attributes ) {
 
 /**
  * Registers the `core/site-title` block on the server.
+ *
+ * @since 5.8.0
  */
 function register_block_core_site_title() {
 	register_block_type_from_metadata(

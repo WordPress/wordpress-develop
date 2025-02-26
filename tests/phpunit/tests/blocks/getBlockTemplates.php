@@ -1,5 +1,6 @@
 <?php
 /**
+ * @group blocks
  * @group block-templates
  *
  * @covers ::get_block_templates
@@ -101,7 +102,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	 */
 	private function get_template_ids( $templates ) {
 		return array_map(
-			static function( $template ) {
+			static function ( $template ) {
 				return $template->id;
 			},
 			$templates
@@ -161,7 +162,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 		$this->assertNotEmpty( $block_templates, 'get_block_templates() must return a non-empty value.' );
 
 		$block_template_ids = wp_list_pluck( $block_templates, 'id' );
-		$this->assertSame( count( array_unique( $block_template_ids ) ), count( $block_template_ids ), $error_message );
+		$this->assertCount( count( array_unique( $block_template_ids ) ), $block_template_ids, $error_message );
 	}
 
 	/**
@@ -187,6 +188,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_get_block_templates_should_respect_posttypes_property
 	 * @ticket 55881
+	 * @ticket 61110
 	 *
 	 * @param string $post_type Post type for query.
 	 * @param array  $expected  Expected template IDs.
@@ -203,6 +205,9 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
+	 * The `custom-hero-template` is intentionally omitted from the theme.json's `customTemplates`.
+	 * See: https://core.trac.wordpress.org/ticket/61110.
+	 *
 	 * @return array
 	 */
 	public function data_get_block_templates_should_respect_posttypes_property() {
@@ -210,12 +215,14 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 			'post' => array(
 				'post_type' => 'post',
 				'expected'  => array(
+					'block-theme//custom-hero-template',
 					'block-theme//custom-single-post-template',
 				),
 			),
 			'page' => array(
 				'post_type' => 'page',
 				'expected'  => array(
+					'block-theme//custom-hero-template',
 					'block-theme//page-home',
 				),
 			),

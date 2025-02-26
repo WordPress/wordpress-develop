@@ -164,7 +164,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		// Otherwise grant access if the post is readable by the logged in user.
+		// Otherwise grant access if the post is readable by the logged-in user.
 		if ( current_user_can( 'read_post', $post->ID ) ) {
 			return true;
 		}
@@ -179,7 +179,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access, otherwise false or WP_Error object.
+	 * @return bool|WP_Error True if the request has read access, otherwise false or WP_Error object.
 	 */
 	public function get_items_permissions_check( $request ) {
 		$tax_obj = get_taxonomy( $this->taxonomy );
@@ -227,6 +227,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Retrieves terms associated with a taxonomy.
 	 *
 	 * @since 4.7.0
+	 * @since 6.8.0 Respect default query arguments set for the taxonomy upon registration.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -295,6 +296,22 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			}
 		}
 
+		/*
+		 * When a taxonomy is registered with an 'args' array,
+		 * those params override the `$args` passed to this function.
+		 *
+		 * We only need to do this if no `post` argument is provided.
+		 * Otherwise, terms will be fetched using `wp_get_object_terms()`,
+		 * which respects the default query arguments set for the taxonomy.
+		 */
+		if (
+			empty( $prepared_args['post'] ) &&
+			isset( $taxonomy_obj->args ) &&
+			is_array( $taxonomy_obj->args )
+		) {
+			$prepared_args = array_merge( $prepared_args, $taxonomy_obj->args );
+		}
+
 		/**
 		 * Filters get_terms() arguments when querying terms via the REST API.
 		 *
@@ -348,13 +365,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		// Store pagination values for headers.
 		$per_page = (int) $prepared_args['number'];
-		$page     = ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
+		$page     = (int) ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
 
 		$response->header( 'X-WP-Total', (int) $total_terms );
 
-		$max_pages = ceil( $total_terms / $per_page );
+		$max_pages = (int) ceil( $total_terms / $per_page );
 
-		$response->header( 'X-WP-TotalPages', (int) $max_pages );
+		$response->header( 'X-WP-TotalPages', $max_pages );
 
 		$request_params = $request->get_query_params();
 		$collection_url = rest_url( rest_get_route_for_taxonomy_items( $this->taxonomy ) );
@@ -417,7 +434,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access for the item, otherwise false or WP_Error object.
+	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$term = $this->get_term( $request['id'] );
@@ -462,7 +479,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has access to create items, false or WP_Error object otherwise.
+	 * @return bool|WP_Error True if the request has access to create items, otherwise false or WP_Error object.
 	 */
 	public function create_item_permissions_check( $request ) {
 

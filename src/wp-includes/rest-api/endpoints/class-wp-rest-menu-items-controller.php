@@ -57,7 +57,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object or false otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$permission_check = parent::get_item_permissions_check( $request );
@@ -77,9 +77,24 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error Whether the current user has permission.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	protected function check_has_read_only_access( $request ) {
+		/**
+		 * Filters whether the current user has read access to menu items via the REST API.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param bool               $read_only_access Whether the current user has read access to menu items
+		 *                                             via the REST API.
+		 * @param WP_REST_Request    $request          Full details about the request.
+		 * @param WP_REST_Controller $this             The current instance of the controller.
+		 */
+		$read_only_access = apply_filters( 'rest_menu_read_access', false, $request, $this );
+		if ( $read_only_access ) {
+			return true;
+		}
+
 		if ( current_user_can( 'edit_theme_options' ) ) {
 			return true;
 		}
@@ -102,7 +117,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Creates a single post.
+	 * Creates a single nav menu item.
 	 *
 	 * @since 5.9.0
 	 *
@@ -267,7 +282,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Deletes a single menu item.
+	 * Deletes a single nav menu item.
 	 *
 	 * @since 5.9.0
 	 *
@@ -317,7 +332,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Prepares a single post for create or update.
+	 * Prepares a single nav menu item for create or update.
 	 *
 	 * @since 5.9.0
 	 *
@@ -482,7 +497,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Prepares a single post output for response.
+	 * Prepares a single nav menu item output for response.
 	 *
 	 * @since 5.9.0
 	 *
@@ -510,6 +525,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 
 			/** This filter is documented in wp-includes/post-template.php */
 			$title = apply_filters( 'the_title', $menu_item->title, $menu_item->ID );
@@ -517,6 +533,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			$data['title']['rendered'] = $title;
 
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 		}
 
 		if ( rest_is_field_included( 'status', $fields ) ) {
@@ -676,7 +693,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Retrieves Link Description Objects that should be added to the Schema for the posts collection.
+	 * Retrieves Link Description Objects that should be added to the Schema for the nav menu items collection.
 	 *
 	 * @since 5.9.0
 	 *
@@ -703,13 +720,17 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Retrieves the term's schema, conforming to JSON Schema.
+	 * Retrieves the nav menu item's schema, conforming to JSON Schema.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
 		$schema = array(
 			'$schema' => 'http://json-schema.org/draft-04/schema#',
 			'title'   => $this->post_type,
@@ -792,7 +813,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			),
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'arg_options' => array(
-				'sanitize_callback' => function ( $value ) {
+				'sanitize_callback' => static function ( $value ) {
 					return array_map( 'sanitize_html_class', wp_parse_list( $value ) );
 				},
 			),
@@ -873,7 +894,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			),
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'arg_options' => array(
-				'sanitize_callback' => function ( $value ) {
+				'sanitize_callback' => static function ( $value ) {
 					return array_map( 'sanitize_html_class', wp_parse_list( $value ) );
 				},
 			),
@@ -914,11 +935,13 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			$schema['links'] = $schema_links;
 		}
 
-		return $this->add_additional_fields_schema( $schema );
+		$this->schema = $schema;
+
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 
 	/**
-	 * Retrieves the query params for the posts collection.
+	 * Retrieves the query params for the nav menu items collection.
 	 *
 	 * @since 5.9.0
 	 *

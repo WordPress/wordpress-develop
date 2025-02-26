@@ -97,7 +97,6 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 
 		$this->assertSame( 10, $has_action );
 		$this->assertFalse( $has_action_after );
-
 	}
 
 	public function test_applies_registration_args_filters() {

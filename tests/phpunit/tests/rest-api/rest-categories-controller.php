@@ -5,9 +5,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcase {
@@ -225,7 +223,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 			'parent'     => 0,
 		);
 		$categories = get_terms( 'category', $args );
-		$this->assertSame( count( $categories ), count( $data ) );
+		$this->assertCount( count( $categories ), $data );
 	}
 
 	public function test_get_items_parent_zero_arg_string() {
@@ -257,7 +255,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 			'parent'     => 0,
 		);
 		$categories = get_terms( 'category', $args );
-		$this->assertSame( count( $categories ), count( $data ) );
+		$this->assertCount( count( $categories ), $data );
 	}
 
 	public function test_get_items_by_parent_non_found() {
@@ -633,8 +631,8 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 
 		// 3rd page.
 		self::factory()->category->create();
-		$total_categories++;
-		$total_pages++;
+		++$total_categories;
+		++$total_pages;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
@@ -1180,7 +1178,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object, $request ) {
+	public function additional_field_get_callback( $response_data, $field_name ) {
 		return 123;
 	}
 
@@ -1191,7 +1189,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 			'hide_empty' => false,
 		);
 		$categories = get_terms( 'category', $args );
-		$this->assertSame( count( $categories ), count( $data ) );
+		$this->assertCount( count( $categories ), $data );
 		$this->assertSame( $categories[0]->term_id, $data[0]['id'] );
 		$this->assertSame( $categories[0]->name, $data[0]['name'] );
 		$this->assertSame( $categories[0]->slug, $data[0]['slug'] );

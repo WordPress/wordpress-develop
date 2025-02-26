@@ -11,6 +11,9 @@
 	top: 0;
 	bottom: -120px;
 	z-index: 1; /* positive z-index to avoid elastic scrolling woes in Safari */
+
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
 .php-error #adminmenuback {
@@ -177,9 +180,7 @@
 
 #adminmenu li.wp-has-current-submenu a.wp-has-current-submenu,
 #adminmenu li.current a.menu-top,
-#adminmenu .wp-menu-arrow,
-#adminmenu .wp-has-current-submenu .wp-submenu .wp-submenu-head,
-#adminmenu .wp-menu-arrow div {
+#adminmenu .wp-has-current-submenu .wp-submenu .wp-submenu-head {
 	background: #2271b1;
 	color: #fff;
 }
@@ -205,7 +206,8 @@
 .folded #adminmenu .wp-has-current-submenu .wp-submenu {
 	min-width: 160px;
 	width: auto;
-	border-left: 5px solid transparent;
+	border: 1px solid transparent;
+	border-left-width: 5px;
 }
 
 #adminmenu .wp-submenu li.current,
@@ -268,7 +270,6 @@
 	word-wrap: break-word;
 	-ms-word-break: break-all;
 	word-break: break-word;
-	-webkit-hyphens: auto;
 	hyphens: auto;
 }
 
@@ -330,12 +331,6 @@ div.wp-menu-image:before {
 	position: fixed;
 }
 
-/* A new arrow */
-
-.wp-menu-arrow {
-	display: none !important;
-}
-
 ul#adminmenu a.wp-has-current-submenu {
 	position: relative;
 }
@@ -349,7 +344,7 @@ ul#adminmenu > li.current > a.current:after {
 	width: 0;
 	position: absolute;
 	pointer-events: none;
-	border-right-color: #f0f0f1;
+	border-right-color: #fff;
 	top: 50%;
 	margin-top: -8px;
 }
@@ -415,8 +410,8 @@ ul#adminmenu > li.current > a.current:after {
 	font-weight: 400;
 	font-size: 14px;
 	padding: 5px 4px 5px 11px;
-	margin: -7px 0 4px -5px;
-	border-width: 3px 0 3px 5px;
+	margin: -8px -1px 4px -5px;
+	border-width: 3px 1px 3px 5px;
 	border-style: solid;
 	border-color: transparent;
 }
@@ -581,8 +576,10 @@ li#wp-admin-bar-menu-toggle {
 	}
 
 	.auto-fold #adminmenu .wp-has-current-submenu .wp-submenu {
-		min-width: 150px;
+		min-width: 160px;
 		width: auto;
+		border: 1px solid transparent;
+		border-left-width: 5px;
 	}
 
 	.auto-fold #adminmenu .wp-has-current-submenu li > a {
@@ -771,8 +768,9 @@ li#wp-admin-bar-menu-toggle {
 	}
 
 	#adminmenu .wp-not-current-submenu .wp-submenu,
-	.folded #adminmenu .wp-has-current-submenu .wp-submenu {
-		border-left: none;
+	.folded #adminmenu .wp-has-current-submenu .wp-submenu,
+	.auto-fold #adminmenu .wp-has-current-submenu .wp-submenu {
+		border: none;
 	}
 
 	/* Remove submenu headers and adjust sub meu*/
