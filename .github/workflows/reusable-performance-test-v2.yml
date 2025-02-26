@@ -68,7 +68,6 @@ env:
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   LOCAL_PHP: ${{ inputs.php-version }}${{ 'latest' != inputs.php-version && '-fpm' || '' }}
   LOCAL_MULTISITE: ${{ inputs.multisite }}
-  LOCAL_DB_VERSION: '9.2'
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
