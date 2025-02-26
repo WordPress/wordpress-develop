@@ -219,6 +219,9 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * @param mixed $groups '_export_data_grouped' post meta value.
 	 */
 	public function test_doing_it_wrong_for_export_data_grouped_invalid_type( $groups ) {
+		if ( is_serialized( $groups ) ) {
+			$this->setExpectedIncorrectUsage( 'maybe_serialize' );
+		}
 		update_post_meta( self::$export_request_id, '_export_data_grouped', $groups );
 
 		$this->setExpectedIncorrectUsage( 'wp_privacy_generate_personal_data_export_file' );
