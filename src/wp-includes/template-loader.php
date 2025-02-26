@@ -1,4 +1,44 @@
 <?php
+
+ob_start(
+	static function ( string $output, ?int $phase ): string {
+		// When the output is being cleaned (e.g. pending template is replaced with error page), do not send it through the filter.
+		if ( ( $phase & PHP_OUTPUT_HANDLER_CLEAN ) !== 0 ) {
+			return $output;
+		}
+
+		/**
+		 * Filters the template output buffer prior to sending to the client.
+		 *
+		 * The output buffer is started before the `template_redirect` action is triggered, allowing templates rendered
+		 * at that action to also have their output filtered.
+		 *
+		 * @since n.e.x.t
+		 *
+		 * @param string $output Output buffer.
+		 * @return string Filtered output buffer.
+		 */
+		return (string) apply_filters( 'wp_template_output_buffer', $output );
+	},
+	0, // Unlimited buffer size so that entire output is passed to the filter.
+	/*
+	 * Instead of the default PHP_OUTPUT_HANDLER_STDFLAGS (cleanable, flushable, and removable) being used for flags,
+	 * the PHP_OUTPUT_HANDLER_FLUSHABLE flag must be omitted. If the buffer were flushable, then each time that
+	 * ob_flush() is called, it would send a fragment of the output into the output buffer callback. When buffering the
+	 * entire response as an HTML document, this would result in broken HTML processing.
+	 *
+	 * If this ends up being problematic, then PHP_OUTPUT_HANDLER_FLUSHABLE could be added to the $flags and the
+	 * output buffer callback could check if the phase is PHP_OUTPUT_HANDLER_FLUSH and abort any subsequent
+	 * processing while also emitting a _doing_it_wrong().
+	 *
+	 * The output buffer needs to be removable because WordPress calls wp_ob_end_flush_all() and then calls
+	 * wp_cache_close(). If the buffers are not all flushed before wp_cache_close() is closed, then some output buffer
+	 * handlers (e.g. for caching plugins) may fail to be able to store the page output in the object cache.
+	 * See <https://github.com/WordPress/performance/pull/1317#issuecomment-2271955356>.
+	 */
+	PHP_OUTPUT_HANDLER_STDFLAGS ^ PHP_OUTPUT_HANDLER_FLUSHABLE
+);
+
 /**
  * Loads the correct template based on the visitor's url
  *
