@@ -12,7 +12,7 @@ dotenvExpand.expand( dotenv.config() );
 local_env_utils.determine_auth_option();
 
 // Create wp-config.php.
-wp_cli( 'config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --path=/var/www/src --force' );
+wp_cli( 'config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force' );
 
 // Add the debug settings to wp-config.php.
 // Windows requires this to be done as an additional step, rather than using the --extra-php option in the previous step.
@@ -24,9 +24,7 @@ wp_cli( `config set WP_ENVIRONMENT_TYPE ${process.env.LOCAL_WP_ENVIRONMENT_TYPE}
 wp_cli( `config set WP_DEVELOPMENT_MODE ${process.env.LOCAL_WP_DEVELOPMENT_MODE} --type=constant` );
 
 // Move wp-config.php to the base directory, so it doesn't get mixed up in the src or build directories.
-renameSync( 'src/wp-config.php', 'wp-config.php' );
-
-install_wp_importer();
+renameSync( `${process.env.LOCAL_DIR}/wp-config.php`, 'wp-config.php' );
 
 // Read in wp-tests-config-sample.php, edit it to work with our config, then write it to wp-tests-config.php.
 const testConfig = readFileSync( 'wp-tests-config-sample.php', 'utf8' )
@@ -55,16 +53,5 @@ wait_on( { resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`] } )
 function wp_cli( cmd ) {
 	const composeFiles = local_env_utils.get_compose_files();
 
-	execSync( `docker compose ${composeFiles} run --quiet-pull --rm cli ${cmd}`, { stdio: 'inherit' } );
-}
-
-/**
- * Downloads the WordPress Importer plugin for use in tests.
- */
-function install_wp_importer() {
-	const testPluginDirectory = 'tests/phpunit/data/plugins/wordpress-importer';
-	const composeFiles = local_env_utils.get_compose_files();
-
-	execSync( `docker compose ${composeFiles} exec -T php rm -rf ${testPluginDirectory}`, { stdio: 'inherit' } );
-	execSync( `docker compose ${composeFiles} exec -T php git clone https://github.com/WordPress/wordpress-importer.git ${testPluginDirectory} --depth=1`, { stdio: 'inherit' } );
+	execSync( `docker compose ${composeFiles} run --quiet-pull --rm cli ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio: 'inherit' } );
 }

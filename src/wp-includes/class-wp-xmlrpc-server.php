@@ -285,7 +285,11 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @param string $password User's password.
 	 * @return WP_User|false WP_User object if authentication passed, false otherwise.
 	 */
-	public function login( $username, $password ) {
+	public function login(
+		$username,
+		#[\SensitiveParameter]
+		$password
+	) {
 		if ( ! $this->is_enabled ) {
 			$this->error = new IXR_Error( 405, sprintf( __( 'XML-RPC services are disabled on this site.' ) ) );
 			return false;
@@ -330,7 +334,11 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @param string $password User's password.
 	 * @return bool Whether authentication passed.
 	 */
-	public function login_pass_ok( $username, $password ) {
+	public function login_pass_ok(
+		$username,
+		#[\SensitiveParameter]
+		$password
+	) {
 		return (bool) $this->login( $username, $password );
 	}
 
@@ -735,17 +743,20 @@ class wp_xmlrpc_server extends IXR_Server {
 		 */
 		do_action( 'xmlrpc_call', 'wp.getUsersBlogs', $args, $this );
 
-		$blogs           = (array) get_blogs_of_user( $user->ID );
-		$struct          = array();
+		$blogs  = (array) get_blogs_of_user( $user->ID );
+		$struct = array();
+
 		$primary_blog_id = 0;
 		$active_blog     = get_active_blog_for_user( $user->ID );
 		if ( $active_blog ) {
 			$primary_blog_id = (int) $active_blog->blog_id;
 		}
 
+		$current_network_id = get_current_network_id();
+
 		foreach ( $blogs as $blog ) {
 			// Don't include blogs that aren't hosted at this site.
-			if ( get_current_network_id() != $blog->site_id ) {
+			if ( $blog->site_id !== $current_network_id ) {
 				continue;
 			}
 
@@ -4020,7 +4031,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		if ( ! $comment_id ) {
-			return new IXR_Error( 403, __( 'Something went wrong.' ) );
+			return new IXR_Error( 403, __( 'An error occurred while processing your comment. Please ensure all fields are filled correctly and try again.' ) );
 		}
 
 		/**
@@ -4327,7 +4338,7 @@ class wp_xmlrpc_server extends IXR_Server {
 				continue;
 			}
 
-			if ( true == $this->blog_options[ $o_name ]['readonly'] ) {
+			if ( $this->blog_options[ $o_name ]['readonly'] ) {
 				continue;
 			}
 
@@ -5040,7 +5051,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$posts_list = wp_get_recent_posts( $query );
 
 		if ( ! $posts_list ) {
-			$this->error = new IXR_Error( 500, __( 'Either there are no posts, or something went wrong.' ) );
+			$this->error = new IXR_Error( 500, __( 'No posts found or an error occurred while retrieving posts.' ) );
 			return $this->error;
 		}
 
@@ -6573,7 +6584,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$posts_list = wp_get_recent_posts( $query );
 
 		if ( ! $posts_list ) {
-			$this->error = new IXR_Error( 500, __( 'Either there are no posts, or something went wrong.' ) );
+			$this->error = new IXR_Error( 500, __( 'No posts found or an error occurred while retrieving posts.' ) );
 			return $this->error;
 		}
 
