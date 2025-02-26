@@ -96,4 +96,40 @@ class GetCalendarTest extends WP_UnitTestCase {
 
 		$this->assertMatchesRegularExpression( '#title="Sunday".*title="Monday"#s', $calendar_html );
 	}
+
+	/*
+	 * Test that the get_calendar function return HTML that represents the last day of October, day 31
+	 * in positive non UTC timezone (i.e: UTC+1)
+	 */
+	public function test_Get_calendar_returns_post_day_31_in_october_in_non_UTC_timezone() {
+
+		// date_default_timezone_set( 'Europe/Paris' );
+		$day_31_in_calendar_html = '<td><a href="http://example.org/?m=20241031" aria-label="Posts published on October 31, 2024">31</a>';
+		$post_id                 = self::factory()->post->create( array( 'post_date' => '2024-10-31 10:00:00' ) );
+		self::factory()->post->create( array( 'post_date' => '2024-10-30 10:00:00' ) );
+		global $year, $monthnum, $wpdb;
+		$year     = 2024;
+		$monthnum = 10;
+
+		$output = get_calendar( true, false );
+		var_dump( $wpdb->last_error );
+		$this->assertStringContainsString( $day_31_in_calendar_html, $output );
+	}
+
+	/*
+	 * Test that get_calendar function doesn't trigger wpdb errors in positive non UTC timezone (i.e: UTC+1)
+	 *
+	 */
+	public function test_Get_calendar_no_database_errors_in_non_UTC_timezone() {
+		$post_id = self::factory()->post->create( array( 'post_date' => '2024-11-15 10:00:00' ) );
+		global $year, $monthnum, $wpdb;
+		$year     = 2024;
+		$monthnum = 11;
+
+		date_default_timezone_set( 'Europe/Paris' );
+
+		$output = get_calendar( true, false );
+		$this->assertSame( '', $wpdb->last_error );
+		date_default_timezone_set( 'UTC' );
+	}
 }
