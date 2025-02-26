@@ -641,7 +641,7 @@ function maybe_serialize( $data ) {
 		_doing_it_wrong(
 			'maybe_serialize',
 			'Double serialization detected, serialized data is likely sent to update_option(), add_option(), update_*_meta(), add_*_meta() and similar functions. These functions will automatically serialize if needed.',
-			'3.6.1'
+			'6.8.0'
 		);
 		return serialize( $data );
 	}
