@@ -106,6 +106,7 @@ jobs:
       multisite: ${{ matrix.multisite }}
       subject: ${{ matrix.subject }}
       TARGET_SHA: ${{ needs.determine-matrix.outputs.target_sha }}
+      php-version: '8.4'
 
   compare:
     name: ${{ matrix.label }}
