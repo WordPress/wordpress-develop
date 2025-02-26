@@ -48,12 +48,12 @@ EOD;
 		$html   = '<span>Hello</span><p>World</p>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
 
-		$this->assertSame( 'Hello<p>World</p>' ,$actual );
+		$this->assertSame( 'Hello<p>World</p>', $actual );
 
 		$html   = '<div><p></p></div><script></script>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
 
-		$this->assertSame( '<p></p>' , $actual );
+		$this->assertSame( '<p></p>', $actual );
 	}
 
 	public function test_filter_oembed_result_secret_param_available() {
