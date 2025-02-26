@@ -2184,34 +2184,34 @@ function print_footer_scripts() {
  * @global WP_Scripts $wp_scripts
  */
 function _print_scripts() {
-    global $wp_scripts;
+	global $wp_scripts;
 
-    $concat    = trim( $wp_scripts->concat, ', ' );
-    $type_attr = current_theme_supports( 'html5', 'script' ) ? '' : " type='text/javascript'";
+	$concat    = trim( $wp_scripts->concat, ', ' );
+	$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : " type='text/javascript'";
 
-    if ( $concat ) {
-        if ( ! empty( $wp_scripts->print_code ) ) {
-            echo "\n<script{$type_attr}>\n";
-            echo "/* <![CDATA[ */\n"; // Not needed in HTML 5.
-            echo $wp_scripts->print_code;
-            echo "/* ]]> */\n";
-            echo "</script>\n";
-        }
+	if ( $concat ) {
+		if ( ! empty( $wp_scripts->print_code ) ) {
+			echo "\n<script{$type_attr}>\n";
+			echo "/* <![CDATA[ */\n"; // Not needed in HTML 5.
+			echo $wp_scripts->print_code;
+			echo "/* ]]> */\n";
+			echo "</script>\n";
+		}
 
-        $concat       = str_split( $concat, 128 );
-        $concatenated = '';
+		$concat       = str_split( $concat, 128 );
+		$concatenated = '';
 
-        foreach ( $concat as $key => $chunk ) {
-            $concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
-        }
+		foreach ( $concat as $key => $chunk ) {
+			$concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
+		}
 
-        $src = $wp_scripts->base_url . "/wp-admin/load-scripts.php?" . ltrim( $concatenated, '&' ) . '&ver=' . $wp_scripts->default_version;
-        echo "<script{$type_attr} src='" . esc_attr( $src ) . "'></script>\n";
-    }
+		$src = $wp_scripts->base_url . '/wp-admin/load-scripts.php?' . ltrim( $concatenated, '&' ) . '&ver=' . $wp_scripts->default_version;
+		echo "<script{$type_attr} src='" . esc_attr( $src ) . "'></script>\n";
+	}
 
-    if ( ! empty( $wp_scripts->print_html ) ) {
-        echo $wp_scripts->print_html;
-    }
+	if ( ! empty( $wp_scripts->print_html ) ) {
+		echo $wp_scripts->print_html;
+	}
 }
 
 /**
@@ -2358,35 +2358,35 @@ function print_late_styles() {
  * @since 3.3.0
  */
 function _print_styles() {
-    $wp_styles = wp_styles();
+	$wp_styles = wp_styles();
 
-    $concat    = trim( $wp_styles->concat, ', ' );
-    $type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	$concat    = trim( $wp_styles->concat, ', ' );
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 
-    if ( $concat ) {
-        $dir = $wp_styles->text_direction;
-        $ver = $wp_styles->default_version;
+	if ( $concat ) {
+		$dir = $wp_styles->text_direction;
+		$ver = $wp_styles->default_version;
 
-        $concat       = str_split( $concat, 128 );
-        $concatenated = '';
+		$concat       = str_split( $concat, 128 );
+		$concatenated = '';
 
-        foreach ( $concat as $key => $chunk ) {
-            $concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
-        }
+		foreach ( $concat as $key => $chunk ) {
+			$concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
+		}
 
-        $href = $wp_styles->base_url . "/wp-admin/load-styles.php?dir={$dir}" . $concatenated . '&ver=' . $ver;
-        echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "'{$type_attr} media='all' />\n";
+		$href = $wp_styles->base_url . "/wp-admin/load-styles.php?dir={$dir}" . $concatenated . '&ver=' . $ver;
+		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "'{$type_attr} media='all' />\n";
 
-        if ( ! empty( $wp_styles->print_code ) ) {
-            echo "<style{$type_attr}>\n";
-            echo $wp_styles->print_code;
-            echo "\n</style>\n";
-        }
-    }
+		if ( ! empty( $wp_styles->print_code ) ) {
+			echo "<style{$type_attr}>\n";
+			echo $wp_styles->print_code;
+			echo "\n</style>\n";
+		}
+	}
 
-    if ( ! empty( $wp_styles->print_html ) ) {
-        echo $wp_styles->print_html;
-    }
+	if ( ! empty( $wp_styles->print_html ) ) {
+		echo $wp_styles->print_html;
+	}
 }
 
 /**
@@ -2397,14 +2397,14 @@ function _print_styles() {
  * @global bool $concatenate_scripts
  */
 function script_concat_settings() {
-    global $concatenate_scripts;
+	global $concatenate_scripts;
 
-    if ( ! isset( $concatenate_scripts ) ) {
-        $concatenate_scripts = defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true;
-        if ( ( ! is_admin() && ! did_action( 'login_init' ) ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
-            $concatenate_scripts = false;
-        }
-    }
+	if ( ! isset( $concatenate_scripts ) ) {
+		$concatenate_scripts = defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true;
+		if ( ( ! is_admin() && ! did_action( 'login_init' ) ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
+			$concatenate_scripts = false;
+		}
+	}
 }
 
 /**
