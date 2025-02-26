@@ -61,7 +61,7 @@ jQuery( function( $ ) {
 		if ( hash ) {
 			var requestedPanel = $( hash );
 			if ( requestedPanel.length ) {
-				$( requestedPanel ).attr( 'aria-expanded', 'true' );
+				requestedPanel.attr('aria-expanded', 'true');
 				$( '#' + requestedPanel.attr( 'aria-controls' ) ).attr( 'hidden', false );
 			}
 		}
