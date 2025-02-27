@@ -36,6 +36,9 @@
  * @property string $rich_editing
  * @property string $syntax_highlighting
  * @property string $use_ssl
+ * @property array $caps
+ * @property array $roles
+ * @property array $allcaps
  */
 #[AllowDynamicProperties]
 class WP_User {
@@ -334,7 +337,7 @@ class WP_User {
 		}
 
 		if ( in_array( $key, array( 'caps', 'allcaps', 'roles' ), true ) ) {
-			$this->load_capablity_data();
+			$this->load_capability_data();
 			return $this->$key;
 		}
 
@@ -569,7 +572,7 @@ class WP_User {
 		if ( empty( $role ) ) {
 			return;
 		}
-		$this->load_capablity_data();
+		$this->load_capability_data();
 
 		if ( in_array( $role, $this->roles, true ) ) {
 			return;
@@ -599,7 +602,7 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function remove_role( $role ) {
-		$this->load_capablity_data();
+		$this->load_capability_data();
 		if ( ! in_array( $role, $this->roles, true ) ) {
 			return;
 		}
@@ -632,7 +635,7 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function set_role( $role ) {
-		$this->load_capablity_data();
+		$this->load_capability_data();
 		if ( 1 === count( $this->roles ) && current( $this->roles ) === $role ) {
 			return;
 		}
@@ -734,7 +737,7 @@ class WP_User {
 	 * @param bool   $grant Whether to grant capability to user.
 	 */
 	public function add_cap( $cap, $grant = true ) {
-		$this->load_capablity_data();
+		$this->load_capability_data();
 		$this->caps[ $cap ] = $grant;
 		update_user_meta( $this->ID, $this->cap_key, $this->caps );
 		$this->get_role_caps();
@@ -749,7 +752,7 @@ class WP_User {
 	 * @param string $cap Capability name.
 	 */
 	public function remove_cap( $cap ) {
-		$this->load_capablity_data();
+		$this->load_capability_data();
 		if ( ! isset( $this->caps[ $cap ] ) ) {
 			return;
 		}
@@ -768,11 +771,10 @@ class WP_User {
 	 */
 	public function remove_all_caps() {
 		global $wpdb;
-		$this->caps        = array();
-		$this->loaded_caps = false;
 		delete_user_meta( $this->ID, $this->cap_key );
 		delete_user_meta( $this->ID, $wpdb->get_blog_prefix() . 'user_level' );
-		$this->get_role_caps();
+		$this->loaded_caps = false;
+		$this->load_capability_data();
 	}
 
 	/**
@@ -803,7 +805,7 @@ class WP_User {
 	 *              the given capability for that object.
 	 */
 	public function has_cap( $cap, ...$args ) {
-		$this->load_capablity_data();
+		$this->load_capability_data();
 
 		if ( is_numeric( $cap ) ) {
 			_deprecated_argument( __FUNCTION__, '2.0.0', __( 'Usage of user levels is deprecated. Use capabilities instead.' ) );
@@ -941,11 +943,11 @@ class WP_User {
 	}
 
 	/**
-	 * Load capability data.
+	 * Loads capability data if it has not been loaded yet.
 	 *
 	 * @since 6.8.0
 	 */
-	private function load_capablity_data() {
+	private function load_capability_data() {
 		if ( $this->loaded_caps ) {
 			return;
 		}
