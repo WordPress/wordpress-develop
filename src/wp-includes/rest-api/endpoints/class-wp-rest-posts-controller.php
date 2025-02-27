@@ -411,6 +411,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Force the post_type argument, since it's not a user input variable.
 		$args['post_type'] = $this->post_type;
 
+		// Lazy load post meta.
+		$args['lazy_load_post_meta'] = true;
+
 		/**
 		 * Filters WP_Query arguments when querying posts via the REST API.
 		 *

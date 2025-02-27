@@ -61,6 +61,10 @@ class WP_Metadata_Lazyloader {
 				'filter'   => 'get_comment_metadata',
 				'callback' => array( $this, 'lazyload_meta_callback' ),
 			),
+			'post'    => array(
+				'filter'   => 'get_post_metadata',
+				'callback' => array( $this, 'lazyload_meta_callback' ),
+			),
 			'blog'    => array(
 				'filter'   => 'get_blog_metadata',
 				'callback' => array( $this, 'lazyload_meta_callback' ),
@@ -187,6 +191,10 @@ class WP_Metadata_Lazyloader {
 
 		$object_ids = array_keys( $this->pending_objects[ $meta_type ] );
 		if ( $object_id && ! in_array( $object_id, $object_ids, true ) ) {
+			// Only load in the post meta value is in the queue.
+			if ( 'post' === $meta_type ) {
+				return $check;
+			}
 			$object_ids[] = $object_id;
 		}
 

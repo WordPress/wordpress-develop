@@ -976,14 +976,15 @@ function wp_dashboard_site_activity() {
  */
 function wp_dashboard_recent_posts( $args ) {
 	$query_args = array(
-		'post_type'      => 'post',
-		'post_status'    => $args['status'],
-		'orderby'        => 'date',
-		'order'          => $args['order'],
-		'posts_per_page' => (int) $args['max'],
-		'no_found_rows'  => true,
-		'cache_results'  => true,
-		'perm'           => ( 'future' === $args['status'] ) ? 'editable' : 'readable',
+		'post_type'           => 'post',
+		'post_status'         => $args['status'],
+		'orderby'             => 'date',
+		'order'               => $args['order'],
+		'posts_per_page'      => (int) $args['max'],
+		'no_found_rows'       => true,
+		'cache_results'       => true,
+		'lazy_load_post_meta' => true,
+		'perm'                => ( 'future' === $args['status'] ) ? 'editable' : 'readable',
 	);
 
 	/**

@@ -1707,26 +1707,26 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		wp_cache_delete_multiple( $parent_ids, 'posts' );
 		wp_cache_delete_multiple( $attachment_ids, 'posts' );
 
-		$filter = new MockAction();
-		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+		$action = new MockAction();
+		add_action( 'metadata_lazyloader_queued_objects', array( $action, 'action' ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		rest_get_server()->dispatch( $request );
 
-		$events = $filter->get_events();
+		$events = $action->get_events();
 		$args   = wp_list_pluck( $events, 'args' );
 		$primed = false;
 		sort( $parent_ids );
 		foreach ( $args as $arg ) {
-			sort( $arg[1] );
-			if ( $parent_ids === $arg[1] ) {
+			sort( $arg[0] );
+			if ( $parent_ids === $arg[0] ) {
 				$primed = $arg;
 				break;
 			}
 		}
 
 		$this->assertIsArray( $primed, 'The last value is not an array' );
-		$this->assertSameSets( $parent_ids, $primed[1] );
+		$this->assertSameSets( $parent_ids, $primed[0] );
 	}
 
 	public function test_get_items_pagination_headers() {

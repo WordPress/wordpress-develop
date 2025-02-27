@@ -267,13 +267,13 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		wp_cache_delete( $post_id, 'posts' );
 		$action = new MockAction();
-		add_filter( 'update_post_metadata_cache', array( $action, 'filter' ), 10, 2 );
+		add_action( 'metadata_lazyloader_queued_objects', array( $action, 'action' ) );
 
 		update_menu_item_cache( $query_result );
 
 		$args = $action->get_args();
 		$last = end( $args );
-		$this->assertSameSets( array( $post_id ), $last[1], '_prime_post_caches() was not executed.' );
+		$this->assertSameSets( array( $post_id ), $last[0], 'wp_lazyload_post_meta() was not executed.' );
 	}
 
 	/**
@@ -336,17 +336,20 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		wp_cache_delete_multiple( $post_ids, 'posts' );
 		wp_cache_delete_multiple( $post_ids, 'post_meta' );
 
-		$action = new MockAction();
-		add_filter( 'update_post_metadata_cache', array( $action, 'filter' ), 10, 2 );
+		$action1 = new MockAction();
+		$action2 = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $action1, 'filter' ), 10, 2 );
+		add_action( 'metadata_lazyloader_queued_objects', array( $action2, 'action' ) );
 
 		$start_num_queries = get_num_queries();
 		wp_get_nav_menu_items( $this->menu_id, array( 'nopaging' => false ) );
 		$queries_made = get_num_queries() - $start_num_queries;
-		$this->assertSame( 7, $queries_made, 'Only does 7 database queries when running wp_get_nav_menu_items.' );
+		$this->assertSame( 6, $queries_made, 'Only does 6 database queries when running wp_get_nav_menu_items.' );
 
-		$args = $action->get_args();
-		$this->assertSameSets( $menu_nav_ids, $args[0][1], '_prime_post_caches() was not executed.' );
-		$this->assertSameSets( $post_ids, $args[2][1], '_prime_post_caches() was not executed.' );
+		$args1 = $action1->get_args();
+		$args2 = $action2->get_args();
+		$this->assertSameSets( $menu_nav_ids, $args1[0][1], '_prime_post_caches() was not executed.' );
+		$this->assertSameSets( $post_ids, $args2[0][0], 'lazy_load_post_meta() was not executed.' );
 	}
 
 	/**

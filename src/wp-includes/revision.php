@@ -670,9 +670,10 @@ function wp_get_post_revisions( $post = 0, $args = null ) {
 	$args = array_merge(
 		$args,
 		array(
-			'post_parent' => $post->ID,
-			'post_type'   => 'revision',
-			'post_status' => 'inherit',
+			'post_parent'         => $post->ID,
+			'post_type'           => 'revision',
+			'post_status'         => 'inherit',
+			'lazy_load_post_meta' => true,
 		)
 	);
 
