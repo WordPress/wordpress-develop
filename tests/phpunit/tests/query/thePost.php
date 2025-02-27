@@ -174,9 +174,12 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_the_loop_populates_the_global_post_completely.
+	 * Data provider for:
+	 * - test_the_loop_populates_the_global_post_completely,
+	 * - test_the_loop_primes_the_post_cache, and,
+	 * - test_the_loop_primes_the_author_cache.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_the_loop_fields() {
 		return array(
