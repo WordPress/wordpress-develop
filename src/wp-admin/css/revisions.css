@@ -577,7 +577,7 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 		display: flex;
 		flex-direction: column;
 		width: fit-content;
-		gap: 8px;
+		gap: 16px;
 	}
 
 	.comparing-two-revisions .revisions-meta .restore-revision {
