@@ -3738,30 +3738,29 @@ class WP_Query {
 		global $post;
 
 		if ( ! $this->in_the_loop ) {
-			// Only prime the post cache incomplete post ojects.
-			$post_ids = array_map(
-				function ( $post ) {
+			// Get post IDs to prime incomplete post objects.
+			$post_ids = array_reduce(
+				$this->posts,
+				function ( $carry, $post ) {
 					if ( $post instanceof WP_Post ) {
 						// Complete: primed during query.
-						return 0;
+						return $carry;
 					}
 
 					if ( is_numeric( $post ) ) {
 						// Query for post ID.
-						return $post;
+						$carry[] = $post;
 					}
 
 					if ( is_object( $post ) && isset( $post->ID ) ) {
 						// Query for sub-set of fields, eg id=>parent.
-						return $post->ID;
+						$cary[] = $post->ID;
 					}
 
-					return 0;
+					return $carry;
 				},
-				$this->posts
+				array()
 			);
-			// Exclude any falsey values as they're either unknown or previously primed.
-			$post_ids = array_filter( $post_ids );
 			if ( $post_ids ) {
 				_prime_post_caches( $post_ids, $this->query_vars['update_post_term_cache'], $this->query_vars['update_post_meta_cache'] );
 			}
