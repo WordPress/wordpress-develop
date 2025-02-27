@@ -3764,6 +3764,16 @@ class WP_Query {
 		}
 
 		$post = $this->next_post();
+
+		// Get the post ID.
+		if ( is_object( $post ) ) {
+			$global_post_id = $post->ID;
+		} else {
+			$global_post_id = $post;
+		}
+
+		// Ensure the global $post is the full post object.
+		$post = get_post( $global_post_id );
 		$this->setup_postdata( $post );
 	}
 
