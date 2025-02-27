@@ -3742,19 +3742,14 @@ class WP_Query {
 			$post_ids = array_reduce(
 				$this->posts,
 				function ( $carry, $post ) {
-					if ( $post instanceof WP_Post ) {
-						// Complete: primed during query.
-						return $carry;
-					}
-
-					if ( is_numeric( $post ) ) {
+					if ( is_numeric( $post ) && $post > 0 ) {
 						// Query for post ID.
 						$carry[] = $post;
 					}
 
 					if ( is_object( $post ) && isset( $post->ID ) ) {
-						// Query for sub-set of fields, eg id=>parent.
-						$cary[] = $post->ID;
+						// Query for object, either WP_Post or stdClass.
+						$carry[] = $post->ID;
 					}
 
 					return $carry;
@@ -3764,7 +3759,7 @@ class WP_Query {
 			if ( $post_ids ) {
 				_prime_post_caches( $post_ids, $this->query_vars['update_post_term_cache'], $this->query_vars['update_post_meta_cache'] );
 			}
-			$post_objects = array_map( 'get_post', $this->posts );
+			$post_objects = array_map( 'get_post', $post_ids );
 			update_post_author_caches( $post_objects );
 		}
 
