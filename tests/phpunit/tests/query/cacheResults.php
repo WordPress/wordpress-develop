@@ -1925,6 +1925,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 *
 	 * @since 6.1.1
 	 * @ticket 56948
+	 * @ticket 56992
 	 *
 	 * @covers WP_Query::the_post
 	 *
