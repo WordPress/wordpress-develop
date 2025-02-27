@@ -561,7 +561,6 @@ input[type="submit"]:active {
 
 ::-moz-placeholder {
 	color: #939393;
-	opacity: 1; /* Since FF19 lowers the opacity of the placeholder by default */
 }
 
 :-ms-input-placeholder {

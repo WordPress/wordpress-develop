@@ -468,7 +468,6 @@ del {
 ::-moz-placeholder {
 	color: rgba(51, 51, 51, 0.7);
 	font-family: "Noto Sans", sans-serif;
-	opacity: 1; /* Since FF19 lowers the opacity of the placeholder by default */
 }
 
 :-ms-input-placeholder {
