@@ -2154,7 +2154,7 @@ function wp_get_archives( $args = '' ) {
 		if ( $results ) {
 			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
-				if ( $result->week != $arc_w_last ) {
+				if ( $result->week !== $arc_w_last ) {
 					$arc_year       = $result->yr;
 					$arc_w_last     = $result->week;
 					$arc_week       = get_weekstartend( $result->yyyymmdd, get_option( 'start_of_week' ) );
@@ -2525,8 +2525,8 @@ function the_date_xml() {
  * i.e. Only one date listing will show per day worth of posts shown in the loop, even if the
  * function is called several times for each post.
  *
- * HTML output can be filtered with 'the_date'.
- * Date string output can be filtered with 'get_the_date'.
+ * HTML output can be filtered with {@see 'the_date'}.
+ * Date string output can be filtered with {@see 'get_the_date'}.
  *
  * @since 0.71
  *
@@ -2596,9 +2596,9 @@ function get_the_date( $format = '', $post = null ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string|int  $the_date Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
-	 * @param string      $format   PHP date format.
-	 * @param WP_Post     $post     The post object.
+	 * @param string|int $the_date Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+	 * @param string     $format   PHP date format.
+	 * @param WP_Post    $post     The post object.
 	 */
 	return apply_filters( 'get_the_date', $the_date, $format, $post );
 }
@@ -2622,10 +2622,10 @@ function the_modified_date( $format = '', $before = '', $after = '', $display = 
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string|false $the_modified_date The last modified date or false if no post is found.
-	 * @param string       $format            PHP date format.
-	 * @param string       $before            HTML output before the date.
-	 * @param string       $after             HTML output after the date.
+	 * @param string $the_modified_date The last modified date.
+	 * @param string $format            PHP date format.
+	 * @param string $before            HTML output before the date.
+	 * @param string $after             HTML output after the date.
 	 */
 	$the_modified_date = apply_filters( 'the_modified_date', $the_modified_date, $format, $before, $after );
 
@@ -2721,10 +2721,10 @@ function get_the_time( $format = '', $post = null ) {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param string|int  $the_time Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
-	 * @param string      $format   Format to use for retrieving the time the post
-	 *                              was written. Accepts 'G', 'U', or PHP date format.
-	 * @param WP_Post     $post     Post object.
+	 * @param string|int $the_time Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+	 * @param string     $format   Format to use for retrieving the time the post
+	 *                             was written. Accepts 'G', 'U', or PHP date format.
+	 * @param WP_Post    $post     Post object.
 	 */
 	return apply_filters( 'get_the_time', $the_time, $format, $post );
 }

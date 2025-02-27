@@ -201,7 +201,174 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59516
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 */
+	public function test_post_in_order_by_clauses_are_not_normalized() {
+		global $wpdb;
+
+		$post_ids = self::$posts;
+
+		$query_vars1 = array(
+			'post__in' => $post_ids,
+			'orderby'  => 'post__in',
+		);
+		$query_vars2 = array(
+			'post__in' => array_reverse( $post_ids ),
+			'orderby'  => 'post__in',
+		);
+
+		$fields   = "{$wpdb->posts}.ID";
+		$query1   = new WP_Query( $query_vars1 );
+		$request1 = str_replace( $fields, "{$wpdb->posts}.*", $query1->request );
+
+		$query2   = new WP_Query( $query_vars2 );
+		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
+
+		$reflection_q1 = new ReflectionProperty( $query1, 'query_cache_key' );
+		$reflection_q1->setAccessible( true );
+
+		$reflection_q2 = new ReflectionProperty( $query2, 'query_cache_key' );
+		$reflection_q2->setAccessible( true );
+
+		$this->assertNotSame( $request1, $request2, 'Queries should not match' );
+
+		$cache_key_1 = $reflection_q1->getValue( $query1 );
+		$cache_key_2 = $reflection_q2->getValue( $query2 );
+
+		$this->assertNotSame( $cache_key_1, $cache_key_2, 'Cache key should differ.' );
+		$this->assertNotEmpty( $cache_key_1, 'Cache key for query one should not be empty.' );
+		$this->assertNotEmpty( $cache_key_2, 'Cache key for query two should not be empty.' );
+
+		// Test the posts are returned different orders.
+		$this->assertNotSame( wp_list_pluck( $query1->posts, 'ID' ), wp_list_pluck( $query2->posts, 'ID' ), 'Query one posts should not match the order of query two posts.' );
+		// Test the posts are the same sets.
+		$this->assertSameSets( wp_list_pluck( $query1->posts, 'ID' ), wp_list_pluck( $query2->posts, 'ID' ), 'Query one posts should match the set of query two posts.' );
+	}
+
+	/**
+	 * @ticket 59516
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 */
+	public function test_post_parent_in_order_by_clauses_are_not_normalized() {
+		global $wpdb;
+
+		$parent_pages = self::$pages;
+		$post_names   = array( 'doctor-dillamond', 'elphaba', 'fiyero', 'glinda', 'the-wizard-of-oz' );
+		$child_pages  = array();
+		foreach ( $parent_pages as $key => $parent_page ) {
+			$child_pages[] = self::factory()->post->create(
+				array(
+					'post_parent' => $parent_page,
+					'post_type'   => 'page',
+					'post_name'   => $post_names[ $key ],
+				)
+			);
+		}
+
+		$query_vars1 = array(
+			'post_parent__in' => $parent_pages,
+			'post_type'       => 'page',
+			'orderby'         => 'post_parent__in',
+		);
+
+		$query_vars2 = array(
+			'post_parent__in' => array_reverse( $parent_pages ),
+			'post_type'       => 'page',
+			'orderby'         => 'post_parent__in',
+		);
+
+		$fields   = "{$wpdb->posts}.ID";
+		$query1   = new WP_Query( $query_vars1 );
+		$request1 = str_replace( $fields, "{$wpdb->posts}.*", $query1->request );
+
+		$query2   = new WP_Query( $query_vars2 );
+		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
+
+		$reflection_q1 = new ReflectionProperty( $query1, 'query_cache_key' );
+		$reflection_q1->setAccessible( true );
+
+		$reflection_q2 = new ReflectionProperty( $query2, 'query_cache_key' );
+		$reflection_q2->setAccessible( true );
+
+		$this->assertNotSame( $request1, $request2, 'Queries should not match' );
+
+		$cache_key_1 = $reflection_q1->getValue( $query1 );
+		$cache_key_2 = $reflection_q2->getValue( $query2 );
+
+		$this->assertNotSame( $cache_key_1, $cache_key_2, 'Cache key should differ.' );
+		$this->assertNotEmpty( $cache_key_1, 'Cache key for query one should not be empty.' );
+		$this->assertNotEmpty( $cache_key_2, 'Cache key for query two should not be empty.' );
+
+		// Test the posts are returned in the correct order.
+		$this->assertSame( array( 'doctor-dillamond', 'elphaba', 'fiyero', 'glinda', 'the-wizard-of-oz' ), wp_list_pluck( $query1->posts, 'post_name' ), 'Query one posts should be in alphabetical order' );
+		$this->assertSame( array( 'the-wizard-of-oz', 'glinda', 'fiyero', 'elphaba', 'doctor-dillamond' ), wp_list_pluck( $query2->posts, 'post_name' ), 'Query two posts should be in reverse alphabetical order.' );
+		// Test the posts are the same sets.
+		$this->assertSameSets( wp_list_pluck( $query1->posts, 'ID' ), wp_list_pluck( $query2->posts, 'ID' ), 'Query one posts should match the set of query two posts.' );
+	}
+
+	/**
+	 * @ticket 59516
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 */
+	public function test_post_name_in_order_by_clauses_are_not_normalized() {
+		global $wpdb;
+		$post_names = array( 'doctor-dillamond', 'elphaba', 'glinda', 'the-wizard-of-oz' );
+		$posts      = array();
+
+		foreach ( $post_names as $post_name ) {
+			$posts[] = self::factory()->post->create(
+				array(
+					'post_name' => $post_name,
+				)
+			);
+		}
+
+		$query_vars1 = array(
+			'post_name__in' => $post_names,
+			'orderby'       => 'post_name__in',
+		);
+
+		$query_vars2 = array(
+			'post_name__in' => array_reverse( $post_names ),
+			'orderby'       => 'post_name__in',
+		);
+
+		$fields   = "{$wpdb->posts}.ID";
+		$query1   = new WP_Query( $query_vars1 );
+		$request1 = str_replace( $fields, "{$wpdb->posts}.*", $query1->request );
+
+		$query2   = new WP_Query( $query_vars2 );
+		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
+
+		$reflection_q1 = new ReflectionProperty( $query1, 'query_cache_key' );
+		$reflection_q1->setAccessible( true );
+
+		$reflection_q2 = new ReflectionProperty( $query2, 'query_cache_key' );
+		$reflection_q2->setAccessible( true );
+
+		$this->assertNotSame( $request1, $request2, 'Queries should not match' );
+
+		$cache_key_1 = $reflection_q1->getValue( $query1 );
+		$cache_key_2 = $reflection_q2->getValue( $query2 );
+
+		$this->assertNotSame( $cache_key_1, $cache_key_2, 'Cache key should differ.' );
+		$this->assertNotEmpty( $cache_key_1, 'Cache key for query one should not be empty.' );
+		$this->assertNotEmpty( $cache_key_2, 'Cache key for query two should not be empty.' );
+
+		// Test the posts are returned in the correct order.
+		$this->assertSame( array( 'doctor-dillamond', 'elphaba', 'glinda', 'the-wizard-of-oz' ), wp_list_pluck( $query1->posts, 'post_name' ), 'Query one posts should be in alphabetical order' );
+		$this->assertSame( array( 'the-wizard-of-oz', 'glinda', 'elphaba', 'doctor-dillamond' ), wp_list_pluck( $query2->posts, 'post_name' ), 'Query two posts should be in reverse alphabetical order.' );
+		// Test the posts are the same sets.
+		$this->assertSameSets( wp_list_pluck( $query1->posts, 'ID' ), wp_list_pluck( $query2->posts, 'ID' ), 'Query one posts should match the set of query two posts.' );
+	}
+
+	/**
 	 * @ticket 59442
+	 * @ticket 59516
 	 *
 	 * @covers WP_Query::generate_cache_key
 	 *
@@ -217,15 +384,20 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query2   = new WP_Query( $query_vars2 );
 		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
 
-		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
-		$reflection->setAccessible( true );
+		$reflection_q1 = new ReflectionProperty( $query1, 'query_cache_key' );
+		$reflection_q1->setAccessible( true );
+
+		$reflection_q2 = new ReflectionProperty( $query2, 'query_cache_key' );
+		$reflection_q2->setAccessible( true );
 
 		$this->assertSame( $request1, $request2, 'Queries should match' );
 
-		$cache_key_1 = $reflection->invoke( $query1, $query_vars1, $request1 );
-		$cache_key_2 = $reflection->invoke( $query1, $query_vars2, $request2 );
+		$cache_key_1 = $reflection_q1->getValue( $query1 );
+		$cache_key_2 = $reflection_q2->getValue( $query2 );
 
-		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs the same paramters.' );
+		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs the same effective parameters.' );
+		$this->assertNotEmpty( $cache_key_1, 'Cache key for query one should not be empty.' );
+		$this->assertNotEmpty( $cache_key_2, 'Cache key for query two should not be empty.' );
 	}
 
 	/**
@@ -280,19 +452,19 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public function data_query_cache_duplicate() {
 		return array(
-			'post type empty'           => array(
+			'post type empty'                              => array(
 				'query_vars1' => array( 'post_type' => '' ),
 				'query_vars2' => array( 'post_type' => 'post' ),
 			),
-			'post type array'           => array(
+			'post type array'                              => array(
 				'query_vars1' => array( 'post_type' => array( 'page' ) ),
 				'query_vars2' => array( 'post_type' => 'page' ),
 			),
-			'orderby empty'             => array(
+			'orderby empty'                                => array(
 				'query_vars1' => array( 'orderby' => null ),
 				'query_vars2' => array( 'orderby' => 'date' ),
 			),
-			'different order parameter' => array(
+			'different order parameter'                    => array(
 				'query_vars1' => array(
 					'post_type'      => 'post',
 					'posts_per_page' => 15,
@@ -302,31 +474,241 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 					'post_type'      => 'post',
 				),
 			),
-			'same args'                 => array(
+			'same args'                                    => array(
 				'query_vars1' => array( 'post_type' => 'post' ),
 				'query_vars2' => array( 'post_type' => 'post' ),
 			),
-			'same args any'             => array(
+			'same args any'                                => array(
 				'query_vars1' => array( 'post_type' => 'any' ),
 				'query_vars2' => array( 'post_type' => 'any' ),
 			),
-			'any and post types'        => array(
+			'any and post types'                           => array(
 				'query_vars1' => array( 'post_type' => 'any' ),
 				'query_vars2' => array( 'post_type' => array( 'post', 'page', 'attachment' ) ),
 			),
-			'different order post type' => array(
+			'different order post type'                    => array(
 				'query_vars1' => array( 'post_type' => array( 'post', 'page' ) ),
 				'query_vars2' => array( 'post_type' => array( 'page', 'post' ) ),
 			),
-			'post status array'         => array(
+			'non-unique post type'                         => array(
+				'query_vars1' => array( 'post_type' => array( 'post', 'page' ) ),
+				'query_vars2' => array( 'post_type' => array( 'page', 'post', 'page' ) ),
+			),
+			'post status array'                            => array(
 				'query_vars1' => array( 'post_status' => 'publish' ),
 				'query_vars2' => array( 'post_status' => array( 'publish' ) ),
 			),
-			'post status order'         => array(
+			'post status order'                            => array(
 				'query_vars1' => array( 'post_status' => array( 'draft', 'publish' ) ),
 				'query_vars2' => array( 'post_status' => array( 'publish', 'draft' ) ),
 			),
-			'cache parameters'          => array(
+			'non-unique post status'                       => array(
+				'query_vars1' => array( 'post_status' => array( 'draft', 'publish' ) ),
+				'query_vars2' => array( 'post_status' => array( 'draft', 'publish', 'draft' ) ),
+			),
+			'post id int vs string'                        => array(
+				'query_vars1' => array( 'p' => '1' ),
+				'query_vars2' => array( 'p' => 1 ),
+			),
+			'page id int vs string'                        => array(
+				'query_vars1' => array( 'page_id' => '2' ),
+				'query_vars2' => array( 'page_id' => 2 ),
+			),
+			'attachment id int vs string'                  => array(
+				'query_vars1' => array( 'attachment_id' => '3' ),
+				'query_vars2' => array( 'attachment_id' => 3 ),
+			),
+			'date and time values int vs string'           => array(
+				'query_vars1' => array(
+					'year'     => '2013',
+					'monthnum' => '12',
+					'day'      => '12',
+					'hour'     => '12',
+					'minute'   => '12',
+					'second'   => '12',
+				),
+				'query_vars2' => array(
+					'year'     => 2013,
+					'monthnum' => 12,
+					'day'      => 12,
+					'hour'     => 12,
+					'minute'   => 12,
+					'second'   => 12,
+				),
+			),
+			'offset value int vs string'                   => array(
+				'query_vars1' => array( 'offset' => '5' ),
+				'query_vars2' => array( 'offset' => 5 ),
+			),
+			'posts per page value int vs string'           => array(
+				'query_vars1' => array( 'posts_per_page' => '5' ),
+				'query_vars2' => array( 'posts_per_page' => 5 ),
+			),
+			'paged value int vs string'                    => array(
+				'query_vars1' => array( 'paged' => '2' ),
+				'query_vars2' => array( 'paged' => 2 ),
+			),
+			'menu_order value int vs string'               => array(
+				'query_vars1' => array( 'menu_order' => '2' ),
+				'query_vars2' => array( 'menu_order' => 2 ),
+			),
+			'post__in different order'                     => array(
+				'query_vars1' => array( 'post__in' => array( 1, 2, 3, 4, 5 ) ),
+				'query_vars2' => array( 'post__in' => array( 5, 4, 3, 2, 1 ) ),
+			),
+			'post__in non-unique'                          => array(
+				'query_vars1' => array( 'post__in' => array( 1, 2, 3, 4, 5 ) ),
+				'query_vars2' => array( 'post__in' => array( 1, 2, 3, 4, 5, 1, 2, 3 ) ),
+			),
+			'post_parent__in different order'              => array(
+				'query_vars1' => array( 'post_parent__in' => array( 1, 2, 3, 4, 5 ) ),
+				'query_vars2' => array( 'post_parent__in' => array( 5, 4, 3, 2, 1 ) ),
+			),
+			'post_parent__in non-unique'                   => array(
+				'query_vars1' => array( 'post_parent__in' => array( 1, 2, 3, 4, 5 ) ),
+				'query_vars2' => array( 'post_parent__in' => array( 1, 2, 3, 4, 5, 1, 2, 3 ) ),
+			),
+			'post_name__in different order'                => array(
+				'query_vars1' => array( 'post_name__in' => array( 'elphaba', 'glinda', 'the-wizard-of-oz', 'doctor-dillamond' ) ),
+				'query_vars2' => array( 'post_name__in' => array( 'doctor-dillamond', 'elphaba', 'the-wizard-of-oz', 'glinda' ) ),
+			),
+			'post_name__in non-unique'                     => array(
+				'query_vars1' => array( 'post_name__in' => array( 'elphaba', 'glinda', 'the-wizard-of-oz', 'doctor-dillamond' ) ),
+				'query_vars2' => array( 'post_name__in' => array( 'elphaba', 'glinda', 'elphaba', 'glinda', 'the-wizard-of-oz', 'doctor-dillamond' ) ),
+			),
+			'cat different order (array)'                  => array(
+				'query_vars_1' => array( 'cat' => array( '1', '2' ) ),
+				'query_vars_2' => array( 'cat' => array( '2', '1' ) ),
+			),
+			'cat different order (string)'                 => array(
+				'query_vars_1' => array( 'cat' => '2,1' ),
+				'query_vars_2' => array( 'cat' => '1,2' ),
+			),
+			'cat queries int vs string'                    => array(
+				'query_vars_1' => array( 'cat' => '2' ),
+				'query_vars_2' => array( 'cat' => 2 ),
+			),
+			'category__in queries different order (array)' => array(
+				'query_vars_1' => array( 'category__in' => array( '1', '2' ) ),
+				'query_vars_2' => array( 'category__in' => array( '2', '1' ) ),
+			),
+			'category__in queries with non-unique array'   => array(
+				'query_vars_1' => array( 'category__in' => array( '1', '1' ) ),
+				'query_vars_2' => array( 'category__in' => array( '1' ) ),
+			),
+			'category__in queries string vs array (array)' => array(
+				'query_vars_1' => array( 'category__in' => array( '1' ) ),
+				'query_vars_2' => array( 'category__in' => array( 1 ) ),
+			),
+			'category__not_in different order (array)'     => array(
+				'query_vars_1' => array( 'category__not_in' => array( '1', '2' ) ),
+				'query_vars_2' => array( 'category__not_in' => array( '2', '1' ) ),
+			),
+			'category__not_in with non-unique array'       => array(
+				'query_vars_1' => array( 'category__not_in' => array( '1', '1' ) ),
+				'query_vars_2' => array( 'category__not_in' => array( '1' ) ),
+			),
+			'category__not_in queries string vs array (array)' => array(
+				'query_vars_1' => array( 'category__not_in' => array( '1' ) ),
+				'query_vars_2' => array( 'category__not_in' => array( 1 ) ),
+			),
+			'category__and queries width different order (array)' => array(
+				'query_vars_1' => array( 'category__and' => array( '1', '2' ) ),
+				'query_vars_2' => array( 'category__and' => array( '2', '1' ) ),
+			),
+			'category__and with non-unique array'          => array(
+				'query_vars_1' => array( 'category__and' => array( '1', '1', '2' ) ),
+				'query_vars_2' => array( 'category__and' => array( '1', '2' ) ),
+			),
+			'category__and queries string vs array (array)' => array(
+				'query_vars_1' => array( 'category__and' => array( '1', '2' ) ),
+				'query_vars_2' => array( 'category__and' => array( 1, 2 ) ),
+			),
+			'author queries different order (string)'      => array(
+				'query_vars_1' => array( 'author' => '1,2' ),
+				'query_vars_2' => array( 'author' => '2,1' ),
+			),
+			'author with non-unique string'                => array(
+				'query_vars_1' => array( 'author' => '1,1' ),
+				'query_vars_2' => array( 'author' => '1' ),
+			),
+			'author queries int vs string (string)'        => array(
+				'query_vars_1' => array( 'author' => 1 ),
+				'query_vars_2' => array( 'author' => '1' ),
+			),
+			'author queries int vs string (array)'         => array(
+				'query_vars_1' => array( 'author' => array( 1 ) ),
+				'query_vars_2' => array( 'author' => array( '1' ) ),
+			),
+			'author__in different order'                   => array(
+				'query_vars_1' => array( 'author__in' => array( 1, 2 ) ),
+				'query_vars_2' => array( 'author__in' => array( 2, 1 ) ),
+			),
+			'author__in with non-unique array'             => array(
+				'query_vars_1' => array( 'author__in' => array( 1, 1, 2 ) ),
+				'query_vars_2' => array( 'author__in' => array( 1, 2 ) ),
+			),
+			'author__in queries int vs string (array)'     => array(
+				'query_vars_1' => array( 'author__in' => array( 1 ) ),
+				'query_vars_2' => array( 'author__in' => array( '1' ) ),
+			),
+			'author__not_in different order (array)'       => array(
+				'query_vars_1' => array( 'author__not_in' => array( 1, 2 ) ),
+				'query_vars_2' => array( 'author__not_in' => array( 2, 1 ) ),
+			),
+			'author__not_in queries int vs string (array)' => array(
+				'query_vars_1' => array( 'author__not_in' => array( 1 ) ),
+				'query_vars_2' => array( 'author__not_in' => array( '1' ) ),
+			),
+			'tag_slug__in order'                           => array(
+				'query_vars_1' => array( 'tag_slug__in' => array( 'foo', 'bar' ) ),
+				'query_vars_2' => array( 'tag_slug__in' => array( 'bar', 'foo' ) ),
+			),
+			'tag_slug__in non-unique vs unique'            => array(
+				'query_vars_1' => array( 'tag_slug__in' => array( 'foo', 'bar', 'bar' ) ),
+				'query_vars_2' => array( 'tag_slug__in' => array( 'foo', 'bar' ) ),
+			),
+			'tag_slug__and order'                          => array(
+				'query_vars_1' => array( 'tag_slug__and' => array( 'foo', 'bar' ) ),
+				'query_vars_2' => array( 'tag_slug__and' => array( 'bar', 'foo' ) ),
+			),
+			'tag_slug__and non-unique'                     => array(
+				'query_vars_1' => array( 'tag_slug__and' => array( 'foo', 'bar', 'foo' ) ),
+				'query_vars_2' => array( 'tag_slug__and' => array( 'bar', 'foo' ) ),
+			),
+			'tag__in queries different order (array)'      => array(
+				'query_vars_1' => array( 'tag__in' => array( 1, 2 ) ),
+				'query_vars_2' => array( 'tag__in' => array( 2, 1 ) ),
+			),
+			'tag__in queries non-unique array'             => array(
+				'query_vars_1' => array( 'tag__in' => array( 1, 2, 1 ) ),
+				'query_vars_2' => array( 'tag__in' => array( 2, 1 ) ),
+			),
+			'tag__in queries int vs string'                => array(
+				'query_vars_1' => array( 'tag__in' => array( 2, 1 ) ),
+				'query_vars_2' => array( 'tag__in' => array( '2', '1' ) ),
+			),
+			'tag__and queries different order (array)'     => array(
+				'query_vars_1' => array( 'tag__and' => array( 1, 2 ) ),
+				'query_vars_2' => array( 'tag__and' => array( 2, 1 ) ),
+			),
+			'tag__and queries non-unique array'            => array(
+				'query_vars_1' => array( 'tag__and' => array( 1, 2, 2 ) ),
+				'query_vars_2' => array( 'tag__and' => array( 2, 1 ) ),
+			),
+			'tag__not_in queries different order (array)'  => array(
+				'query_vars_1' => array( 'tag__not_in' => array( 1, 2 ) ),
+				'query_vars_2' => array( 'tag__not_in' => array( 2, 1 ) ),
+			),
+			'tag__not_in queries non-unique array'         => array(
+				'query_vars_1' => array( 'tag__not_in' => array( 1, 2, 2 ) ),
+				'query_vars_2' => array( 'tag__not_in' => array( 1, 2 ) ),
+			),
+			'tag__not_in queries int vs string (array)'    => array(
+				'query_vars_1' => array( 'tag__not_in' => array( '1' ) ),
+				'query_vars_2' => array( 'tag__not_in' => array( 1 ) ),
+			),
+			'cache parameters'                             => array(
 				'query_vars1' => array(
 					'update_post_meta_cache' => true,
 					'update_post_term_cache' => true,
