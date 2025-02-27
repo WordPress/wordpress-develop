@@ -572,6 +572,19 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 	}
 }
 
+@media screen and (max-width: 600px) {
+	.revisions-meta .author-card:not(.comparing-two-revisions .author-card) {
+		display: flex;
+		flex-direction: column;
+		width: fit-content;
+		gap: 8px;
+	}
+
+	.comparing-two-revisions .revisions-meta .restore-revision {
+		margin-top: 16px;
+	}
+}
+
 @media screen and (max-width: 782px) {
 	#diff-next-revision,
 	#diff-previous-revision {
@@ -585,7 +598,7 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 
 	.revisions-controls,
 	.comparing-two-revisions .revisions-controls {
-		height: 170px;
+		height: fit-content;
 	}
 
 	.revisions-tooltip {
