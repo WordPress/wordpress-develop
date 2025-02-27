@@ -2585,6 +2585,33 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( array( 'GET', 'PUT' ), $link['targetHints']['allow'] );
 	}
 
+	/**
+	 * @ticket 62574
+	 */
+	public function test_populates_templates_default_data_for_logged_in_user() {
+		wp_set_current_user( self::$admin_id );
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+
+		$this->assertArrayHasKey( 'default_template_part_areas', $data );
+		$this->assertArrayHasKey( 'default_template_types', $data );
+	}
+
+	/**
+	 * @ticket 62574
+	 */
+	public function test_does_not_populate_templates_default_data_for_logged_out_user() {
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+
+		$this->assertArrayNotHasKey( 'default_template_part_areas', $data );
+		$this->assertArrayNotHasKey( 'default_template_types', $data );
+	}
+
 	public function _validate_as_integer_123( $value, $request, $key ) {
 		if ( ! is_int( $value ) ) {
 			return new WP_Error( 'some-error', 'This is not valid!' );

@@ -255,6 +255,7 @@ function rest_api_default_filters() {
 
 	add_filter( 'rest_pre_dispatch', 'rest_handle_options_request', 10, 3 );
 	add_filter( 'rest_index', 'rest_add_application_passwords_to_index' );
+	add_filter( 'rest_index', 'rest_add_templates_default_data_to_index' );
 }
 
 /**
@@ -1250,6 +1251,31 @@ function rest_add_application_passwords_to_index( $response ) {
 			'authorization' => admin_url( 'authorize-application.php' ),
 		),
 	);
+
+	return $response;
+}
+
+/**
+ * Adds the default template types and template part areas to the REST API index.
+ *
+ * @since 6.8.0
+ *
+ * @param WP_REST_Response $response REST API response.
+ * @return WP_REST_Response Modified REST API response.
+ */
+function rest_add_templates_default_data_to_index( WP_REST_Response $response ) {
+	if ( ! is_user_logged_in() ) {
+		return $response;
+	}
+
+	$default_template_types = array();
+	foreach ( (array) get_default_block_template_types() as $slug => $template_type ) {
+		$template_type['slug']    = (string) $slug;
+		$default_template_types[] = $template_type;
+	}
+
+	$response->data['default_template_part_areas'] = get_allowed_block_template_part_areas();
+	$response->data['default_template_types']      = $default_template_types;
 
 	return $response;
 }
