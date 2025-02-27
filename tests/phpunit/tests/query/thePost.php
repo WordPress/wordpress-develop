@@ -81,6 +81,65 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a secondary loop primes the post cache completely regardless of the fields parameter.
+	 *
+	 * @ticket 56992
+	 *
+	 * @dataProvider data_the_loop_fields
+	 */
+	public function test_the_loop_primes_the_post_cache( $fields ) {
+		$query = new WP_Query(
+			array(
+				'fields'    => $fields,
+				'post_type' => 'page',
+				'post__in'  => self::$page_child_ids,
+			)
+		);
+
+		// Start the loop.
+		$query->the_post();
+
+		// Complete the loop.
+		$start_queries = get_num_queries();
+		while ( $query->have_posts() ) {
+			$query->the_post();
+		}
+		$end_queries = get_num_queries();
+
+		$this->assertSame( 0, $end_queries - $start_queries, 'The cache is expected to be primed by the loop.' );
+	}
+
+	/**
+	 * Ensure that a secondary loop primes the author cache completely regardless of the fields parameter.
+	 *
+	 * @ticket 56992
+	 *
+	 * @dataProvider data_the_loop_fields
+	 */
+	public function test_the_loop_primes_the_author_cache( $fields ) {
+		$query = new WP_Query(
+			array(
+				'fields'    => $fields,
+				'post_type' => 'page',
+				'post__in'  => self::$page_child_ids,
+			)
+		);
+
+		// Start the loop.
+		$query->the_post();
+
+		// Complete the loop.
+		$start_queries = get_num_queries();
+		while ( $query->have_posts() ) {
+			$query->the_post();
+			get_the_author();
+		}
+		$end_queries = get_num_queries();
+
+		$this->assertSame( 0, $end_queries - $start_queries, 'The cache is expected to be primed by the loop.' );
+	}
+
+	/**
 	 * Data provider for test_the_loop_populates_the_global_post_completely.
 	 *
 	 * @return array
