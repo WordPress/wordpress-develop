@@ -1260,7 +1260,7 @@ function wp_check_comment_data_max_lengths( $comment_data ) {
  *
  * @param array $comment_data Array of arguments for inserting a comment.
  * @return int|string|WP_Error The approval status on success (0|1|'spam'|'trash'),
-  *                            WP_Error otherwise.
+ *                             WP_Error otherwise.
  */
 function wp_check_comment_data( $comment_data ) {
 	global $wpdb;
@@ -1325,13 +1325,13 @@ function wp_check_comment_data( $comment_data ) {
  *
  * @since 5.5.0
  *
- * @param string $author The author of the comment
- * @param string $email The email of the comment
- * @param string $url The url used in the comment
- * @param string $comment The comment content
- * @param string $user_ip The comment author's IP address
- * @param string $user_agent The author's browser user agent
- * @return bool True if comment contains disallowed content, false if comment does not
+ * @param string $author     The author of the comment.
+ * @param string $email      The email of the comment.
+ * @param string $url        The url used in the comment.
+ * @param string $comment    The comment content.
+ * @param string $user_ip    The comment author's IP address.
+ * @param string $user_agent The author's browser user agent.
+ * @return bool True if the comment contains disallowed content, false otherwise.
  */
 function wp_check_comment_disallowed_list( $author, $email, $url, $comment, $user_ip, $user_agent ) {
 	/**
@@ -1815,17 +1815,18 @@ function wp_transition_comment_status( $new_status, $old_status, $comment ) {
 	}
 
 	// Call the hooks.
-	if ( $new_status != $old_status ) {
+	if ( $new_status !== $old_status ) {
 		/**
 		 * Fires when the comment status is in transition.
 		 *
 		 * @since 2.7.0
 		 *
-		 * @param int|string $new_status The new comment status.
-		 * @param int|string $old_status The old comment status.
+		 * @param string     $new_status The new comment status.
+		 * @param string     $old_status The old comment status.
 		 * @param WP_Comment $comment    Comment object.
 		 */
 		do_action( 'transition_comment_status', $new_status, $old_status, $comment );
+
 		/**
 		 * Fires when the comment status is in transition from one specific status to another.
 		 *

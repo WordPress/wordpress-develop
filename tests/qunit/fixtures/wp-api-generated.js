@@ -12,6 +12,9 @@ mockedApiResponse.Schema = {
     "home": "http://example.org",
     "gmt_offset": "0",
     "timezone_string": "",
+    "page_for_posts": 0,
+    "page_on_front": 0,
+    "show_on_front": "posts",
     "namespaces": [
         "oembed/1.0",
         "wp/v2",
