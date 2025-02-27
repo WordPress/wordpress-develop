@@ -86,8 +86,11 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	 * @ticket 56992
 	 *
 	 * @dataProvider data_the_loop_fields
+	 *
+	 * @param string $fields           Fields parameter for use in the query.
+	 * @param int    $expected_queries Expected number of queries when starting the loop.
 	 */
-	public function test_the_loop_primes_the_post_cache( $fields ) {
+	public function test_the_loop_primes_the_post_cache( $fields, $expected_queries ) {
 		$query = new WP_Query(
 			array(
 				'fields'    => $fields,
@@ -97,7 +100,21 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		);
 
 		// Start the loop.
+		$start_queries = get_num_queries();
 		$query->the_post();
+		$end_queries = get_num_queries();
+		/*
+		 * Querying complete posts: 2 queries.
+		 * 1. User meta data.
+		 * 2. User data.
+		 *
+		 * Querying partial posts: 4 queries.
+		 * 1. Post objects
+		 * 2. Post meta data.
+		 * 3. User meta data.
+		 * 4. User data.
+		 */
+		$this->assertSame( $expected_queries, $end_queries - $start_queries, "Starting the loop should make $expected_queries db queries." );
 
 		// Complete the loop.
 		$start_queries = get_num_queries();
@@ -115,8 +132,11 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	 * @ticket 56992
 	 *
 	 * @dataProvider data_the_loop_fields
+	 *
+	 * @param string $fields           Fields parameter for use in the query.
+	 * @param int    $expected_queries Expected number of queries when starting the loop.
 	 */
-	public function test_the_loop_primes_the_author_cache( $fields ) {
+	public function test_the_loop_primes_the_author_cache( $fields, $expected_queries ) {
 		$query = new WP_Query(
 			array(
 				'fields'    => $fields,
@@ -126,7 +146,21 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		);
 
 		// Start the loop.
+		$start_queries = get_num_queries();
 		$query->the_post();
+		$end_queries = get_num_queries();
+		/*
+		 * Querying complete posts: 2 queries.
+		 * 1. User meta data.
+		 * 2. User data.
+		 *
+		 * Querying partial posts: 4 queries.
+		 * 1. Post objects
+		 * 2. Post meta data.
+		 * 3. User meta data.
+		 * 4. User data.
+		 */
+		$this->assertSame( $expected_queries, $end_queries - $start_queries, "Starting the loop should make $expected_queries db queries." );
 
 		// Complete the loop.
 		$start_queries = get_num_queries();
@@ -146,10 +180,10 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	 */
 	public function data_the_loop_fields() {
 		return array(
-			'all fields'                => array( 'all' ),
-			'all fields (empty fields)' => array( '' ),
-			'post IDs'                  => array( 'ids' ),
-			'post ids and parent'       => array( 'id=>parent' ),
+			'all fields'                => array( 'all', 2 ),
+			'all fields (empty fields)' => array( '', 2 ),
+			'post IDs'                  => array( 'ids', 4 ),
+			'post ids and parent'       => array( 'id=>parent', 4 ),
 		);
 	}
 }
