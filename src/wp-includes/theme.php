@@ -2943,9 +2943,9 @@ function add_theme_support( $feature, ...$args ) {
 					'main'   => 'main',
 				),
 				'post-transition-names'      => array(
-					'post-title'     => '.wp-block-post-title, .entry-title',
-					'post-thumbnail' => '.wp-post-image',
-					'post-content'   => '.wp-block-post-content, .entry-content',
+					'.wp-block-post-title, .entry-title'     => 'post-title',
+					'.wp-post-image'                         => 'post-thumbnail',
+					'.wp-block-post-content, .entry-content' => 'post-content',
 				),
 				'chronological-slide-in-out' => (bool) get_option( 'permalink_structure' ),
 			);

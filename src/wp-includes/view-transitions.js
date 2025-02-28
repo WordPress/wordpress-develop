@@ -6,7 +6,7 @@ if ( !! window.navigation && 'CSSViewTransitionRule' in window ) {
 		const isMainSlide = transitionType === 'forwards' || transitionType === 'backwards';
 		let foundMainElement = false;
 		return [
-			...Object.entries( config.globalTransitionNames || {} ).map( ( [ name, selector ] ) => {
+			...Object.entries( config.globalTransitionNames || {} ).map( ( [ selector, name ] ) => {
 				const element = bodyElement.querySelector( selector );
 				if ( name === 'main' && element ) {
 					foundMainElement = true;
@@ -14,7 +14,7 @@ if ( !! window.navigation && 'CSSViewTransitionRule' in window ) {
 				return [ element, name ];
 			} ),
 			...( articleElement && ( ! isMainSlide || ! foundMainElement )
-				? Object.entries( config.postTransitionNames || {} ).map( ( [ name, selector ] ) => {
+				? Object.entries( config.postTransitionNames || {} ).map( ( [ selector, name ] ) => {
 					const element = articleElement.querySelector( selector );
 					return [ element, name ];
 				} )
