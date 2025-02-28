@@ -5,6 +5,7 @@
 const fs = require( 'fs' );
 const spawn = require( 'cross-spawn' );
 const { zip, uniq, identity, groupBy } = require( 'lodash' );
+const path = require('path');
 
 /**
  * Constants
@@ -64,14 +65,24 @@ function readJSONFile( fileName ) {
  * @param {Array} packages List of tuples [packageName, version] to install.
  * @return {string} CLI output.
  */
-function installPackages( packages ) {
+function installPackages(packages) {
 	const packagesWithVersion = packages.map(
-		( [packageName, version] ) => `${ packageName }@${ version }`,
+	  ([packageName, version]) => `${packageName}@${version}`,
 	);
-	return spawn.sync( 'npm', ['install', ...packagesWithVersion, '--save'], {
-		stdio: 'inherit',
-	} );
-}
+	return spawn.sync(
+		"npm",
+		[
+			"install",
+			"--userconfig",
+			path.join(process.cwd(), ".npmrc"),
+			...packagesWithVersion,
+			"--save",
+		],
+	  	{
+			stdio: "inherit",
+	  	},
+	);
+  }
 
 /**
  * Computes which @wordpress packages are required by the Gutenberg
@@ -107,6 +118,13 @@ function getMismatchedNonWordPressDependencies() {
 	const currentPackages = getWordPressPackages( currentPackageJSON );
 
 	const packageLock = readJSONFile( "package-lock.json" );
+	console.log("JT   ->");
+	if (typeof packageLock !== 'object') {
+		
+		throw new Error("Parsed data is not a valid JSON object.");
+	}
+	console.log(packageLock);
+	process.exit(0);
 	const versionConflicts = Object.entries( packageLock.dependencies )
 		.filter( ( [packageName] ) => currentPackages.includes( packageName ) )
 		.flatMap( ( [, { dependencies }] ) => Object.entries( dependencies || {} ) )
