@@ -141,13 +141,13 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	public function test_column_author_with_no_author() {
 		wp_set_current_user( self::$admin );
 
-		add_filter( 'the_author', '__return_empty_string' );
+		// Create an attachment post with no author (post_author set to 0).
+		$post_id = self::factory()->attachment->create( array( 'post_author' => 0 ) );
+		$post    = get_post( $post_id );
 
 		ob_start();
-		self::$list_table->column_author( self::$post );
+		self::$list_table->column_author( $post );
 		$output = ob_get_clean();
-
-		remove_filter( 'the_author', '__return_empty_string' );
 
 		$this->assertStringContainsString( '<span aria-hidden="true">&#8212;</span>', $output );
 		$this->assertStringContainsString( '<span class="screen-reader-text">(no author)</span>', $output );
