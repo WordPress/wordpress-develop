@@ -1078,6 +1078,41 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58001
+	 */
+	public function test_get_role_caps() {
+		$id_1   = self::$users['contributor']->ID;
+		$user_1 = new WP_User( $id_1 );
+
+		$role_caps = $user_1->get_role_caps();
+		$this->assertIsArray( $role_caps, 'User role capabilities should be an array' );
+		$this->assertArrayHasKey( 'edit_posts', $role_caps, 'User role capabilities should contain the edit_posts capability' );
+	}
+
+	/**
+	 * @ticket 58001
+	 */
+	public function test_user_lazy_capabilities() {
+		$id_1   = self::$users['contributor']->ID;
+		$user_1 = new WP_User( $id_1 );
+
+		$this->assertTrue( isset( $user_1->roles ), 'User roles should be set' );
+		$this->assertTrue( isset( $user_1->allcaps ), 'User all capabilities should be set' );
+		$this->assertTrue( isset( $user_1->caps ), 'User capabilities should be set' );
+		$this->assertIsArray( $user_1->roles, 'User roles should be an array' );
+		$this->assertSame( array( 'contributor' ), $user_1->roles, 'User roles should match' );
+		$this->assertIsArray( $user_1->allcaps, 'User allcaps should be an array' );
+		$this->assertIsArray( $user_1->caps, 'User caps should be an array' );
+
+		$caps = $this->getAllCapsAndRoles();
+		foreach ( $caps as $cap => $roles ) {
+			if ( in_array( 'contributor', $roles, true ) ) {
+				$this->assertTrue( $user_1->has_cap( $cap ), "User should have the {$cap} capability" );
+			}
+		}
+	}
+
+	/**
 	 * Add an extra capability to a user.
 	 */
 	public function test_user_add_cap() {
