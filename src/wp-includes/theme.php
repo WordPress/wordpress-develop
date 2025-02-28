@@ -2937,14 +2937,17 @@ function add_theme_support( $feature, ...$args ) {
 
 		case 'view-transitions':
 			$defaults = array(
-				'post-selector'           => '.wp-block-post.post, article.post, body.single main',
-				'global-transition-names' => array(
+				'post-selector'              => '.wp-block-post.post, article.post, body.single main',
+				'global-transition-names'    => array(
 					'header' => 'header',
+					'main'   => 'main',
 				),
-				'post-transition-names'   => array(
+				'post-transition-names'      => array(
 					'post-title'     => '.wp-block-post-title, .entry-title',
 					'post-thumbnail' => '.wp-post-image',
+					'post-content'   => '.wp-block-post-content, .entry-content',
 				),
+				'chronological-slide-in-out' => (bool) get_option( 'permalink_structure' ),
 			);
 			if ( true === $args ) {
 				$args = $defaults;
@@ -4453,7 +4456,7 @@ function wp_load_view_transitions() {
 		return;
 	}
 
-	$stylesheet = '@view-transition { navigation: auto; }';
+	$stylesheet = file_get_contents( ABSPATH . WPINC . '/view-transitions.css' );
 
 	// Use an inline style to avoid an extra request, also because it's just 1 line of CSS.
 	wp_register_style( 'wp-view-transitions', false, array(), null );
@@ -4468,9 +4471,10 @@ function wp_load_view_transitions() {
 	}
 
 	$config = array(
-		'postSelector'          => $theme_support['post-selector'],
-		'globalTransitionNames' => $theme_support['global-transition-names'],
-		'postTransitionNames'   => $theme_support['post-transition-names'],
+		'postSelector'            => $theme_support['post-selector'],
+		'globalTransitionNames'   => $theme_support['global-transition-names'],
+		'postTransitionNames'     => $theme_support['post-transition-names'],
+		'chronologicalSlideInOut' => $theme_support['chronological-slide-in-out'],
 	);
 	$script = file_get_contents( ABSPATH . WPINC . '/view-transitions.js' );
 	$script = str_replace( '{ __PLACEHOLDER__: true }', wp_json_encode( $config, JSON_FORCE_OBJECT ), $script );
