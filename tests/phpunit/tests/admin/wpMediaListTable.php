@@ -112,7 +112,7 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	/**
 	 * Tests that column_author() displays the correct author link when an author exists.
 	 *
-	 * @ticket 12345
+	 * @ticket 62913
 	 * @covers WP_Media_List_Table::column_author
 	 */
 	public function test_column_author_with_valid_author() {
