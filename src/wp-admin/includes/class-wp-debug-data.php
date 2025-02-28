@@ -511,7 +511,7 @@ class WP_Debug_Data {
 
 			/* translators: %s: robots.txt */
 			$robotstxt_string = sprintf( __( 'There is a static %s file in your installation folder. WordPress can not dynamicly serve one.' ), 'robots.txt' );
-		} else if( got_url_rewrite() ) {
+		} elseif ( got_url_rewrite() ) {
 			// No robots.txt file available and rewrite rules in place, turn debug info to false.
 			$robotstxt_debug = false;
 
