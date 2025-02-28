@@ -29,8 +29,8 @@ if ( 'attachment' === $typenow ) {
 }
 
 /**
- * @global string       $post_type
- * @global WP_Post_Type $post_type_object
+ * @global string       $post_type        Global post type.
+ * @global WP_Post_Type $post_type_object Global post type object.
  */
 global $post_type, $post_type_object;
 
@@ -419,7 +419,7 @@ echo esc_html( $post_type_object->labels->name );
 
 <?php
 if ( current_user_can( $post_type_object->cap->create_posts ) ) {
-	echo ' <a href="' . esc_url( admin_url( $post_new_file ) ) . '" class="page-title-action">' . esc_html( $post_type_object->labels->add_new ) . '</a>';
+	echo ' <a href="' . esc_url( admin_url( $post_new_file ) ) . '" class="page-title-action">' . esc_html( $post_type_object->labels->add_new_item ) . '</a>';
 }
 
 if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {

@@ -16,8 +16,8 @@ function fileQueued( fileObj ) {
 	jQuery( '<div class="media-item">' )
 		.attr( 'id', 'media-item-' + fileObj.id )
 		.addClass( 'child-of-' + postid )
-		.append( '<div class="progress"><div class="percent">0%</div><div class="bar"></div></div>',
-			jQuery( '<div class="filename original">' ).text( ' ' + fileObj.name ) )
+		.append( jQuery( '<div class="filename original">' ).text( ' ' + fileObj.name ),
+			'<div class="progress"><div class="percent">0%</div><div class="bar"></div></div>' )
 		.appendTo( jQuery( '#media-items' ) );
 
 	// Disable submit.
@@ -605,6 +605,11 @@ jQuery( document ).ready( function( $ ) {
 					wpQueueError( pluploadL10n.unsupported_image );
 				} else if ( file.type === 'image/webp' && up.settings.webp_upload_error ) {
 					// Disallow uploading of WebP images if the server cannot edit them.
+					wpQueueError( pluploadL10n.noneditable_image );
+					up.removeFile( file );
+					return;
+				} else if ( file.type === 'image/avif' && up.settings.avif_upload_error ) {
+					// Disallow uploading of AVIF images if the server cannot edit them.
 					wpQueueError( pluploadL10n.noneditable_image );
 					up.removeFile( file );
 					return;

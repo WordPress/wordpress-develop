@@ -56,6 +56,7 @@ module.exports = function(grunt) {
 			'wp-includes/css/dist',
 			'wp-includes/blocks/**/*.css',
 			'!wp-includes/assets/script-loader-packages.min.php',
+			'!wp-includes/assets/script-modules-packages.min.php',
 		],
 
 		// Prepend `dir` to `file`, and keep `!` in place.
@@ -82,11 +83,45 @@ module.exports = function(grunt) {
 	// First do `npm install` if package.json has changed.
 	installChanged.watchPackage();
 
-	// Load tasks.
-	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
-
 	// Load legacy utils.
 	grunt.util = require('grunt-legacy-util');
+
+	var gruntDependencies = {
+		'contrib': [
+			'clean',
+			'concat',
+			'copy',
+			'cssmin',
+			'jshint',
+			'qunit',
+			'uglify',
+			'watch'
+		],
+		'standard': [
+			'banner',
+			'file-append',
+			'jsdoc',
+			'patch-wordpress',
+			'replace-lts',
+			'rtlcss',
+			'sass',
+			'webpack'
+		]
+	};
+
+	// Load grunt-* tasks.
+	function loadGruntTasks( dependency ) {
+		var contrib = key === 'contrib' ? 'contrib-' : '';
+		grunt.loadNpmTasks( 'grunt-' + contrib + dependency );
+	}
+
+	for ( var key in gruntDependencies ) {
+		if ( ! gruntDependencies.hasOwnProperty( key ) ) {
+			continue;
+		}
+
+		gruntDependencies[key].forEach( loadGruntTasks );
+	}
 
 	// Load PostCSS tasks.
 	grunt.loadNpmTasks('@lodder/grunt-postcss');
@@ -210,6 +245,8 @@ module.exports = function(grunt) {
 						src: buildFiles.concat( [
 							'!wp-includes/assets/**', // Assets is extracted into separate copy tasks.
 							'!js/**', // JavaScript is extracted into separate copy tasks.
+							'!wp-includes/certificates/cacert.pem*', // Exclude raw root certificate files that are combined into ca-bundle.crt.
+							'!wp-includes/certificates/legacy-1024bit.pem',
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php.
 							'!**/*.map', // The build doesn't need .map files.
@@ -332,6 +369,7 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-admin/js/tags-suggest.js' ]: [ './src/js/_enqueues/admin/tags-suggest.js' ],
 					[ WORKING_DIR + 'wp-admin/js/tags.js' ]: [ './src/js/_enqueues/admin/tags.js' ],
 					[ WORKING_DIR + 'wp-admin/js/site-health.js' ]: [ './src/js/_enqueues/admin/site-health.js' ],
+					[ WORKING_DIR + 'wp-admin/js/site-icon.js' ]: [ './src/js/_enqueues/admin/site-icon.js' ],
 					[ WORKING_DIR + 'wp-admin/js/privacy-tools.js' ]: [ './src/js/_enqueues/admin/privacy-tools.js' ],
 					[ WORKING_DIR + 'wp-admin/js/theme-plugin-editor.js' ]: [ './src/js/_enqueues/wp/theme-plugin-editor.js' ],
 					[ WORKING_DIR + 'wp-admin/js/theme.js' ]: [ './src/js/_enqueues/wp/theme.js' ],
@@ -454,6 +492,32 @@ module.exports = function(grunt) {
 						} );
 					}
 				}
+			},
+			'workflow-references-local-to-remote': {
+				options: {
+					processContent: function( src ) {
+						return src.replace( /uses: \.\/\.github\/workflows\/([^\.]+)\.yml/g, function( match, $1 ) {
+							return 'uses: WordPress/wordpress-develop/.github/workflows/' + $1 + '.yml@trunk';
+						} );
+					}
+				},
+				src: '.github/workflows/*.yml',
+				dest: './'
+			},
+			'workflow-references-remote-to-local': {
+				options: {
+					processContent: function( src ) {
+						return src.replace( /uses: WordPress\/wordpress-develop\/\.github\/workflows\/([^\.]+)\.yml@trunk/g, function( match, $1 ) {
+							return 'uses: ./.github/workflows/' + $1 + '.yml';
+						} );
+					}
+				},
+				src: '.github/workflows/*.yml',
+				dest: './'
+			},
+			certificates: {
+				src: 'vendor/composer/ca-bundle/res/cacert.pem',
+				dest: SOURCE_DIR + 'wp-includes/certificates/cacert.pem'
 			}
 		},
 		sass: {
@@ -744,7 +808,14 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			options: {
+				parse: {
+					module: false
+				},
+				compress: {
+					module: false
+				},
 				output: {
+					module: false,
 					ascii_only: true
 				}
 			},
@@ -835,6 +906,16 @@ module.exports = function(grunt) {
 					WORKING_DIR + 'wp-includes/js/wp-emoji.min.js'
 				],
 				dest: WORKING_DIR + 'wp-includes/js/wp-emoji-release.min.js'
+			},
+			certificates: {
+				options: {
+					separator: '\n\n'
+				},
+				src: [
+					SOURCE_DIR + 'wp-includes/certificates/legacy-1024bit.pem',
+					SOURCE_DIR + 'wp-includes/certificates/cacert.pem'
+				],
+				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			}
 		},
 		patch:{
@@ -1046,19 +1127,34 @@ module.exports = function(grunt) {
 						{
 							match: /\/\/ START: emoji arrays[\S\s]*\/\/ END: emoji arrays/g,
 							replacement: function() {
-								var regex, files,
+								var regex, files, ghCli,
 									partials, partialsSet,
-									entities, emojiArray;
+									entities, emojiArray,
+									apiResponse, query;
 
 								grunt.log.writeln( 'Fetching list of Twemoji files...' );
 
-								// Fetch a list of the files that Twemoji supplies.
-								files = spawn( 'svn', [ 'ls', 'https://github.com/twitter/twemoji.git/trunk/assets/svg' ] );
-								if ( 0 !== files.status ) {
-									grunt.fatal( 'Unable to fetch Twemoji file list' );
+								// Ensure that the GitHub CLI is installed.
+								ghCli = spawn( 'gh', [ '--version' ] );
+								if ( 0 !== ghCli.status ) {
+									grunt.fatal( 'Emoji precommit script requires GitHub CLI. See https://cli.github.com/.' );
 								}
 
-								entities = files.stdout.toString();
+								// Fetch a list of the files that Twemoji supplies.
+								query = 'query={repository(owner: "jdecked", name: "twemoji") {object(expression: "v15.0.3:assets/svg") {... on Tree {entries {name}}}}}';
+								files = spawn( 'gh', [ 'api', 'graphql', '-f', query] );
+
+								if ( 0 !== files.status ) {
+									grunt.fatal( files.stderr.toString() );
+								}
+
+								try {
+									apiResponse = JSON.parse( files.stdout.toString() );
+								} catch ( e ) {
+									grunt.fatal( 'Unable to parse Twemoji file list' );
+								}
+								entities = apiResponse.data.repository.object.entries;
+								entities = entities.reduce( function( accumulator, val ) { return accumulator + val.name + '\n'; }, '' );
 
 								// Tidy up the file list.
 								entities = entities.replace( /\.svg/g, '' );
@@ -1135,6 +1231,7 @@ module.exports = function(grunt) {
 						flatten: true,
 						src: [
 							BUILD_DIR + 'wp-includes/js/dist/block-editor.js',
+							BUILD_DIR + 'wp-includes/js/dist/commands.js',
 						],
 						dest: BUILD_DIR + 'wp-includes/js/dist/'
 					}
@@ -1488,12 +1585,48 @@ module.exports = function(grunt) {
 		'usebanner'
 	] );
 
+	grunt.registerTask( 'certificates:update', 'Updates the Composer package responsible for root certificate updates.', function() {
+		var done = this.async();
+		var flags = this.flags;
+		var args = [ 'update' ];
+
+		grunt.util.spawn( {
+			cmd: 'composer',
+			args: args,
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			if ( flags.error && error ) {
+				done( false );
+			} else {
+				done( true );
+			}
+		} );
+	} );
+
+	grunt.registerTask( 'build:certificates', [
+		'concat:certificates'
+	] );
+
+	grunt.registerTask( 'certificates:upgrade', [
+		'certificates:update',
+		'copy:certificates',
+		'build:certificates'
+	] );
+
 	grunt.registerTask( 'build:files', [
 		'clean:files',
 		'copy:files',
 		'copy:block-json',
 		'copy:version',
 	] );
+
+	grunt.registerTask( 'replace:workflow-references-local-to-remote', [
+		'copy:workflow-references-local-to-remote',
+	]);
+
+	grunt.registerTask( 'replace:workflow-references-remote-to-local', [
+		'copy:workflow-references-remote-to-local',
+	]);
 
 	/**
 	 * Build verification tasks.
@@ -1559,14 +1692,19 @@ module.exports = function(grunt) {
 	} );
 
 	/**
-	 * Build assertions for the lack of source maps in JavaScript files.
+	 * Compiled JavaScript files may link to sourcemaps. In some cases,
+	 * the source map may not be available, which can cause 404 errors when
+	 * browsers try to download the sourcemap from the referenced URLs.
+	 * Ensure that sourcemap links are not included in JavaScript files.
 	 *
 	 * @ticket 24994
 	 * @ticket 46218
+	 * @ticket 60348
 	 */
 	grunt.registerTask( 'verify:source-maps', function() {
 		const ignoredFiles = [
-			'build/wp-includes/js/dist/components.js'
+			'build/wp-includes/js/dist/components.js',
+			'build/wp-includes/js/dist/data.js',
 		];
 		const files = buildFiles.reduce( ( acc, path ) => {
 			// Skip excluded paths and any path that isn't a file.
@@ -1589,10 +1727,10 @@ module.exports = function(grunt) {
 					encoding: 'utf8',
 				} );
 				// `data:` URLs are allowed:
-				const match = contents.match( /sourceMappingURL=((?!data:).)/ );
+				const doesNotHaveSourceMap = ! /^\/\/# sourceMappingURL=((?!data:).)/m.test(contents);
 
 				assert(
-					match === null,
+					doesNotHaveSourceMap,
 					`The ${ file } file must not contain a sourceMappingURL.`
 				);
 			} );
@@ -1603,9 +1741,11 @@ module.exports = function(grunt) {
 			grunt.task.run( [
 				'build:js',
 				'build:css',
+				'build:certificates'
 			] );
 		} else {
 			grunt.task.run( [
+				'build:certificates',
 				'build:files',
 				'build:js',
 				'build:css',

@@ -48,7 +48,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 	 */
 	public function data_custom_post_statuses() {
 		return array(
-			// 0. False for non-publically queryable types.
+			// 0. False for non-publicly queryable types.
 			array(
 				array(
 					'publicly_queryable' => false,
@@ -57,7 +57,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				false,
 			),
-			// 1. True for publically queryable types.
+			// 1. True for publicly queryable types.
 			array(
 				array(
 					'publicly_queryable' => true,

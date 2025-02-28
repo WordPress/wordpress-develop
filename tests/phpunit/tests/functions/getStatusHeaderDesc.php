@@ -24,7 +24,7 @@ class Tests_Functions_GetStatusHeaderDesc extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_get_status_header_desc().
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_get_status_header_desc() {
 		return array(

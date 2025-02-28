@@ -33,7 +33,7 @@ class Tests_Comment_WpComment extends WP_UnitTestCase {
 	public function test_get_instance_should_work_for_numeric_string() {
 		$found = WP_Comment::get_instance( (string) self::$comment_id );
 
-		$this->assertEquals( self::$comment_id, $found->comment_ID );
+		$this->assertSame( (string) self::$comment_id, $found->comment_ID );
 	}
 
 	/**
@@ -60,6 +60,6 @@ class Tests_Comment_WpComment extends WP_UnitTestCase {
 	public function test_get_instance_should_succeed_for_float_that_is_equal_to_post_id() {
 		$found = WP_Comment::get_instance( 1.0 );
 
-		$this->assertEquals( 1, $found->comment_ID );
+		$this->assertSame( '1', $found->comment_ID );
 	}
 }

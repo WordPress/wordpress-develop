@@ -156,21 +156,31 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	}
 
 	/**
-	 * Gets the parent post, if the ID is valid.
+	 * Gets the parent post, if the template ID is valid.
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param int $parent_post_id Supplied ID.
+	 * @param string $parent_template_id Supplied ID.
 	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
 	 */
-	protected function get_parent( $parent_post_id ) {
-		$template = get_block_template( $parent_post_id, $this->parent_post_type );
+	protected function get_parent( $parent_template_id ) {
+		$template = get_block_template( $parent_template_id, $this->parent_post_type );
 
 		if ( ! $template ) {
 			return new WP_Error(
 				'rest_post_invalid_parent',
 				__( 'Invalid template parent ID.' ),
-				array( 'status' => 404 )
+				array( 'status' => WP_Http::NOT_FOUND )
+			);
+		}
+
+		$parent_post_id = isset( $template->wp_id ) ? (int) $template->wp_id : 0;
+
+		if ( $parent_post_id <= 0 ) {
+			return new WP_Error(
+				'rest_invalid_template',
+				__( 'Templates based on theme files can\'t have revisions.' ),
+				array( 'status' => WP_Http::BAD_REQUEST )
 			);
 		}
 

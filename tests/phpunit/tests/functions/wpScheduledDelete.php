@@ -87,7 +87,7 @@ class Tests_Functions_wpScheduledDelete extends WP_UnitTestCase {
 				'post_status' => 'trash',
 			)
 		);
-		add_post_meta( self::$page_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS ) );
+		add_post_meta( self::$page_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS - 1 ) );
 		add_post_meta( self::$page_id, '_wp_trash_meta_status', 'published' );
 
 		$this->assertInstanceOf( 'WP_Post', get_post( self::$page_id ) );
@@ -157,7 +157,7 @@ class Tests_Functions_wpScheduledDelete extends WP_UnitTestCase {
 				'comment_approved' => 'trash',
 			)
 		);
-		add_comment_meta( self::$comment_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS ) );
+		add_comment_meta( self::$comment_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS - 1 ) );
 		add_comment_meta( self::$comment_id, '_wp_trash_meta_status', 'published' );
 
 		$this->assertInstanceOf( 'WP_Comment', get_comment( self::$comment_id ) );

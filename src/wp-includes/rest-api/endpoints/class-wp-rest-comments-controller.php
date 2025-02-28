@@ -300,7 +300,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_args['orderby'] = 'none';
 
 			$total_comments = $query->query( $prepared_args );
-			$max_pages      = ceil( $total_comments / $request['per_page'] );
+			$max_pages      = (int) ceil( $total_comments / $request['per_page'] );
 		}
 
 		$response = rest_ensure_response( $comments );
@@ -1247,7 +1247,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string|int $comment_approved comment status.
+	 * @param string $comment_approved Comment status.
 	 * @return string Comment status.
 	 */
 	protected function prepare_status_response( $comment_approved ) {

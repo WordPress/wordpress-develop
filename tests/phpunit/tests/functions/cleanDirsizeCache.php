@@ -88,7 +88,7 @@ class Tests_Functions_CleanDirsizeCache extends WP_UnitTestCase {
 				'path'           => 'string',
 				'expected_count' => 1,
 			),
-			'non-existant string, but non-path' => array(
+			'non-existent string, but non-path' => array(
 				'path'           => 'doesnotexist',
 				'expected_count' => 2,
 			),

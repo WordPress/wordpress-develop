@@ -33,6 +33,7 @@
 			<group>ms-excluded</group>
 			<group>external-http</group>
 			<group>oembed-headers</group>
+			<group>html-api-html5lib-tests</group>
 		</exclude>
 	</groups>
 	<filter>

@@ -12,7 +12,7 @@ if ( is_multisite() ) :
 		protected static $site_id;
 		protected static $root_page;
 		protected static $child_page;
-		protected static $post_and_blog_path = 'permalink-collison';
+		protected static $post_and_blog_path = 'permalink-collision';
 
 		/**
 		 * Create a blog and the pages we need to test the collision.

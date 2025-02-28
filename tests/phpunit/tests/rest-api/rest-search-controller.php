@@ -888,4 +888,18 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			wp_list_pluck( $response->get_data(), 'id' )
 		);
 	}
+
+	/**
+	 * @ticket 60771
+	 */
+	public function test_sanitize_subtypes_validates_type() {
+		$response = $this->do_request_with_params(
+			array(
+				'subtype' => 'page',
+				'type'    => array( 'invalid' ),
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
 }

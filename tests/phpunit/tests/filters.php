@@ -313,7 +313,7 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertFalse( has_filter( 'all', array( $a, 'filterall' ) ) );
 		$this->assertFalse( has_filter( 'all' ) );
 		$this->assertSame( $val, apply_filters( $hook_name, $val ) );
-		// Call cound should remain at 1.
+		// Call count should remain at 1.
 		$this->assertSame( 1, $a->get_call_count() );
 		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
 	}

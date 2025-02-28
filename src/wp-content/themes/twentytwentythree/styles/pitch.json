@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.5/theme.json",
 	"version": 2,
 	"title": "Pitch",
 	"settings": {
@@ -120,7 +120,7 @@
 					"size": "3.2rem",
 					"fluid": {
 						"min": "3.2rem",
-						"max": "5.653rem"
+						"max": "5.2rem"
 					},
 					"slug": "xx-large",
 					"name": "2X Large"

@@ -11,175 +11,244 @@
  *
  * @coversDefaultClass WP_Script_Modules
  */
-class Tests_WP_Script_Modules extends WP_UnitTestCase {
+class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
+
 	/**
 	 * Instance of WP_Script_Modules.
 	 *
 	 * @var WP_Script_Modules
 	 */
-	protected $modules;
+	protected $script_modules;
 
 	/**
 	 * Set up.
 	 */
 	public function set_up() {
 		parent::set_up();
-		$this->modules = new WP_Script_Modules();
+		// Set up the WP_Script_Modules instance.
+		$this->script_modules = new WP_Script_Modules();
 	}
 
 	/**
-	 * Gets a list of the enqueued modules.
+	 * Gets a list of the enqueued script modules.
 	 *
-	 * @return array Enqueued module URLs, keyed by module identifier.
+	 * @return array Enqueued script module URLs, keyed by script module identifier.
 	 */
-	public function get_enqueued_modules() {
-		$modules_markup   = get_echo( array( $this->modules, 'print_enqueued_modules' ) );
-		$p                = new WP_HTML_Tag_Processor( $modules_markup );
-		$enqueued_modules = array();
+	public function get_enqueued_script_modules() {
+		$script_modules_markup   = get_echo( array( $this->script_modules, 'print_enqueued_script_modules' ) );
+		$p                       = new WP_HTML_Tag_Processor( $script_modules_markup );
+		$enqueued_script_modules = array();
 
-		while ( $p->next_tag(
-			array(
-				'tag'    => 'SCRIPT',
-				'import' => 'module',
-			)
-		) ) {
-			$id                      = preg_replace( '/-js-module$/', '', $p->get_attribute( 'id' ) );
-			$enqueued_modules[ $id ] = $p->get_attribute( 'src' );
+		while ( $p->next_tag( array( 'tag' => 'SCRIPT' ) ) ) {
+			if ( 'module' === $p->get_attribute( 'type' ) ) {
+				$id                             = preg_replace( '/-js-module$/', '', $p->get_attribute( 'id' ) );
+				$enqueued_script_modules[ $id ] = $p->get_attribute( 'src' );
+			}
 		}
 
-		return $enqueued_modules;
+		return $enqueued_script_modules;
 	}
 
 	/**
-	 * Gets the modules listed in the import map.
+	 * Gets the script modules listed in the import map.
 	 *
-	 * @return array Import map entry URLs, keyed by module identifier.
+	 * @return array Import map entry URLs, keyed by script module identifier.
 	 */
 	public function get_import_map() {
-		$import_map_markup = get_echo( array( $this->modules, 'print_import_map' ) );
+		$import_map_markup = get_echo( array( $this->script_modules, 'print_import_map' ) );
 		preg_match( '/<script type="importmap" id="wp-importmap">.*?(\{.*\}).*?<\/script>/s', $import_map_markup, $import_map_string );
 		return json_decode( $import_map_string[1], true )['imports'];
 	}
 
 	/**
-	 * Gets a list of preloaded modules.
+	 * Gets a list of preloaded script modules.
 	 *
-	 * @return array Preloaded module URLs, keyed by module identifier.
+	 * @return array Preloaded script module URLs, keyed by script module identifier.
 	 */
-	public function get_preloaded_modules() {
-		$preloaded_markup  = get_echo( array( $this->modules, 'print_module_preloads' ) );
-		$p                 = new WP_HTML_Tag_Processor( $preloaded_markup );
-		$preloaded_modules = array();
+	public function get_preloaded_script_modules() {
+		$preloaded_markup         = get_echo( array( $this->script_modules, 'print_script_module_preloads' ) );
+		$p                        = new WP_HTML_Tag_Processor( $preloaded_markup );
+		$preloaded_script_modules = array();
 
-		while ( $p->next_tag(
-			array(
-				'tag' => 'LINK',
-				'rel' => 'modulepreload',
-			)
-		) ) {
-			$id                       = preg_replace( '/-js-modulepreload$/', '', $p->get_attribute( 'id' ) );
-			$preloaded_modules[ $id ] = $p->get_attribute( 'href' );
+		while ( $p->next_tag( array( 'tag' => 'LINK' ) ) ) {
+			if ( 'modulepreload' === $p->get_attribute( 'rel' ) ) {
+				$id                              = preg_replace( '/-js-modulepreload$/', '', $p->get_attribute( 'id' ) );
+				$preloaded_script_modules[ $id ] = $p->get_attribute( 'href' );
+			}
 		}
 
-		return $preloaded_modules;
+		return $preloaded_script_modules;
 	}
 
 	/**
-	 * Tests that a module gets enqueued correctly after being registered.
+	 * Tests that a script module gets enqueued correctly after being registered.
 	 *
 	 * @ticket 56313
 	 *
 	 * @covers ::register()
 	 * @covers ::enqueue()
-	 * @covers ::print_enqueued_modules()
+	 * @covers ::print_enqueued_script_modules()
 	 */
-	public function test_wp_enqueue_module() {
-		$this->modules->register( 'foo', '/foo.js' );
-		$this->modules->register( 'bar', '/bar.js' );
-		$this->modules->enqueue( 'foo' );
-		$this->modules->enqueue( 'bar' );
+	public function test_wp_enqueue_script_module() {
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->register( 'bar', '/bar.js' );
+		$this->script_modules->enqueue( 'foo' );
+		$this->script_modules->enqueue( 'bar' );
 
-		$enqueued_modules = $this->get_enqueued_modules();
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
-		$this->assertCount( 2, $enqueued_modules );
-		$this->assertStringStartsWith( '/foo.js', $enqueued_modules['foo'] );
-		$this->assertStringStartsWith( '/bar.js', $enqueued_modules['bar'] );
+		$this->assertCount( 2, $enqueued_script_modules );
+		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo'] );
+		$this->assertStringStartsWith( '/bar.js', $enqueued_script_modules['bar'] );
 	}
 
 	/**
-	* Tests that a module can be dequeued after being enqueued.
+	* Tests that a script module can be dequeued after being enqueued.
 	*
 	* @ticket 56313
 	*
 	* @covers ::register()
 	* @covers ::enqueue()
 	* @covers ::dequeue()
-	* @covers ::print_enqueued_modules()
+	* @covers ::print_enqueued_script_modules()
 	*/
-	public function test_wp_dequeue_module() {
-		$this->modules->register( 'foo', '/foo.js' );
-		$this->modules->register( 'bar', '/bar.js' );
-		$this->modules->enqueue( 'foo' );
-		$this->modules->enqueue( 'bar' );
-		$this->modules->dequeue( 'foo' ); // Dequeued.
+	public function test_wp_dequeue_script_module() {
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->register( 'bar', '/bar.js' );
+		$this->script_modules->enqueue( 'foo' );
+		$this->script_modules->enqueue( 'bar' );
+		$this->script_modules->dequeue( 'foo' ); // Dequeued.
 
-		$enqueued_modules = $this->get_enqueued_modules();
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
-		$this->assertCount( 1, $enqueued_modules );
-		$this->assertFalse( isset( $enqueued_modules['foo'] ) );
-		$this->assertTrue( isset( $enqueued_modules['bar'] ) );
+		$this->assertCount( 1, $enqueued_script_modules );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
+		$this->assertArrayHasKey( 'bar', $enqueued_script_modules );
+	}
+
+
+	/**
+	 * Tests that a script module can be deregistered
+	 * after being enqueued, and that will be removed
+	 * from the enqueue list too.
+	 *
+	 * @ticket 60463
+	 *
+	 * @covers ::register()
+	 * @covers ::enqueue()
+	 * @covers ::deregister()
+	 * @covers ::get_enqueued_script_modules()
+	 */
+	public function test_wp_deregister_script_module() {
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->register( 'bar', '/bar.js' );
+		$this->script_modules->enqueue( 'foo' );
+		$this->script_modules->enqueue( 'bar' );
+		$this->script_modules->deregister( 'foo' ); // Dequeued.
+
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
+
+		$this->assertCount( 1, $enqueued_script_modules );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
+		$this->assertArrayHasKey( 'bar', $enqueued_script_modules );
 	}
 
 	/**
-	* Tests that a module can be enqueued before it is registered, and will be
-	* handled correctly once registered.
+	 * Tests that a script module is not deregistered
+	 * if it has not been registered before, causing
+	 * no errors.
+	 *
+	 * @ticket 60463
+	 *
+	 * @covers ::deregister()
+	 * @covers ::get_enqueued_script_modules()
+	 */
+	public function test_wp_deregister_unexistent_script_module() {
+		$this->script_modules->deregister( 'unexistent' );
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
+
+		$this->assertCount( 0, $enqueued_script_modules );
+		$this->assertArrayNotHasKey( 'unexistent', $enqueued_script_modules );
+	}
+
+	/**
+	 * Tests that a script module is not deregistered
+	 * if it has been deregistered previously, causing
+	 * no errors.
+	 *
+	 * @ticket 60463
+	 *
+	 * @covers ::get_enqueued_script_modules()
+	 * @covers ::register()
+	 * @covers ::deregister()
+	 * @covers ::enqueue()
+	 */
+	public function test_wp_deregister_already_deregistered_script_module() {
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->enqueue( 'foo' );
+		$this->script_modules->deregister( 'foo' ); // Dequeued.
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
+
+		$this->assertCount( 0, $enqueued_script_modules );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
+
+		$this->script_modules->deregister( 'foo' ); // Dequeued.
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
+
+		$this->assertCount( 0, $enqueued_script_modules );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
+	}
+
+	/**
+	* Tests that a script module can be enqueued before it is registered, and will
+	* be handled correctly once registered.
 	*
 	* @ticket 56313
 	*
 	* @covers ::register()
 	* @covers ::enqueue()
-	* @covers ::print_enqueued_modules()
+	* @covers ::print_enqueued_script_modules()
 	*/
-	public function test_wp_enqueue_module_works_before_register() {
-		$this->modules->enqueue( 'foo' );
-		$this->modules->register( 'foo', '/foo.js' );
-		$this->modules->enqueue( 'bar' ); // Not registered.
+	public function test_wp_enqueue_script_module_works_before_register() {
+		$this->script_modules->enqueue( 'foo' );
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->enqueue( 'bar' ); // Not registered.
 
-		$enqueued_modules = $this->get_enqueued_modules();
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
-		$this->assertCount( 1, $enqueued_modules );
-		$this->assertStringStartsWith( '/foo.js', $enqueued_modules['foo'] );
-		$this->assertFalse( isset( $enqueued_modules['bar'] ) );
+		$this->assertCount( 1, $enqueued_script_modules );
+		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo'] );
+		$this->assertArrayNotHasKey( 'bar', $enqueued_script_modules );
 	}
 
 	/**
-	 * Tests that a module can be dequeued before it is registered and ensures
-	 * that it is not enqueued after registration.
+	 * Tests that a script module can be dequeued before it is registered and
+	 * ensures that it is not enqueued after registration.
 	 *
 	 * @ticket 56313
 	 *
 	 * @covers ::register()
 	 * @covers ::enqueue()
 	 * @covers ::dequeue()
-	 * @covers ::print_enqueued_modules()
+	 * @covers ::print_enqueued_script_modules()
 	 */
-	public function test_wp_dequeue_module_works_before_register() {
-		$this->modules->enqueue( 'foo' );
-		$this->modules->enqueue( 'bar' );
-		$this->modules->dequeue( 'foo' );
-		$this->modules->register( 'foo', '/foo.js' );
-		$this->modules->register( 'bar', '/bar.js' );
+	public function test_wp_dequeue_script_module_works_before_register() {
+		$this->script_modules->enqueue( 'foo' );
+		$this->script_modules->enqueue( 'bar' );
+		$this->script_modules->dequeue( 'foo' );
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->register( 'bar', '/bar.js' );
 
-		$enqueued_modules = $this->get_enqueued_modules();
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
-		$this->assertCount( 1, $enqueued_modules );
-		$this->assertFalse( isset( $enqueued_modules['foo'] ) );
-		$this->assertTrue( isset( $enqueued_modules['bar'] ) );
+		$this->assertCount( 1, $enqueued_script_modules );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
+		$this->assertArrayHasKey( 'bar', $enqueued_script_modules );
 	}
 
 	/**
 	 * Tests that dependencies for a registered module are added to the import map
-	 * when the module is enqueued.
+	 * when the script module is enqueued.
 	 *
 	 * @ticket 56313
 	 *
@@ -188,21 +257,21 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 	 * @covers ::print_import_map()
 	 */
 	public function test_wp_import_map_dependencies() {
-		$this->modules->register( 'foo', '/foo.js', array( 'dep' ) );
-		$this->modules->register( 'dep', '/dep.js' );
-		$this->modules->register( 'no-dep', '/no-dep.js' );
-		$this->modules->enqueue( 'foo' );
+		$this->script_modules->register( 'foo', '/foo.js', array( 'dep' ) );
+		$this->script_modules->register( 'dep', '/dep.js' );
+		$this->script_modules->register( 'no-dep', '/no-dep.js' );
+		$this->script_modules->enqueue( 'foo' );
 
 		$import_map = $this->get_import_map();
 
 		$this->assertCount( 1, $import_map );
 		$this->assertStringStartsWith( '/dep.js', $import_map['dep'] );
-		$this->assertFalse( isset( $import_map['no-dep'] ) );
+		$this->assertArrayNotHasKey( 'no-dep', $import_map );
 	}
 
 	/**
 	 * Tests that dependencies are not duplicated in the import map when multiple
-	 * modules require the same dependency.
+	 * script modules require the same dependency.
 	 *
 	 * @ticket 56313
 	 *
@@ -211,11 +280,11 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 	 * @covers ::print_import_map()
 	 */
 	public function test_wp_import_map_no_duplicate_dependencies() {
-		$this->modules->register( 'foo', '/foo.js', array( 'dep' ) );
-		$this->modules->register( 'bar', '/bar.js', array( 'dep' ) );
-		$this->modules->register( 'dep', '/dep.js' );
-		$this->modules->enqueue( 'foo' );
-		$this->modules->enqueue( 'bar' );
+		$this->script_modules->register( 'foo', '/foo.js', array( 'dep' ) );
+		$this->script_modules->register( 'bar', '/bar.js', array( 'dep' ) );
+		$this->script_modules->register( 'dep', '/dep.js' );
+		$this->script_modules->enqueue( 'foo' );
+		$this->script_modules->enqueue( 'bar' );
 
 		$import_map = $this->get_import_map();
 
@@ -234,7 +303,7 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 	 * @covers ::print_import_map()
 	 */
 	public function test_wp_import_map_recursive_dependencies() {
-		$this->modules->register(
+		$this->script_modules->register(
 			'foo',
 			'/foo.js',
 			array(
@@ -245,7 +314,7 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->modules->register(
+		$this->script_modules->register(
 			'static-dep',
 			'/static-dep.js',
 			array(
@@ -259,11 +328,11 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->modules->register( 'dynamic-dep', '/dynamic-dep.js' );
-		$this->modules->register( 'nested-static-dep', '/nested-static-dep.js' );
-		$this->modules->register( 'nested-dynamic-dep', '/nested-dynamic-dep.js' );
-		$this->modules->register( 'no-dep', '/no-dep.js' );
-		$this->modules->enqueue( 'foo' );
+		$this->script_modules->register( 'dynamic-dep', '/dynamic-dep.js' );
+		$this->script_modules->register( 'nested-static-dep', '/nested-static-dep.js' );
+		$this->script_modules->register( 'nested-dynamic-dep', '/nested-dynamic-dep.js' );
+		$this->script_modules->register( 'no-dep', '/no-dep.js' );
+		$this->script_modules->enqueue( 'foo' );
 
 		$import_map = $this->get_import_map();
 
@@ -271,7 +340,7 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 		$this->assertStringStartsWith( '/dynamic-dep.js', $import_map['dynamic-dep'] );
 		$this->assertStringStartsWith( '/nested-static-dep.js', $import_map['nested-static-dep'] );
 		$this->assertStringStartsWith( '/nested-dynamic-dep.js', $import_map['nested-dynamic-dep'] );
-		$this->assertFalse( isset( $import_map['no-dep'] ) );
+		$this->assertArrayNotHasKey( 'no-dep', $import_map );
 	}
 
 	/**
@@ -285,10 +354,10 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 	 * @covers ::print_import_map()
 	 */
 	public function test_wp_import_map_doesnt_print_if_no_dependencies() {
-		$this->modules->register( 'foo', '/foo.js' ); // No deps.
-		$this->modules->enqueue( 'foo' );
+		$this->script_modules->register( 'foo', '/foo.js' ); // No deps.
+		$this->script_modules->enqueue( 'foo' );
 
-		$import_map_markup = get_echo( array( $this->modules, 'print_import_map' ) );
+		$import_map_markup = get_echo( array( $this->script_modules, 'print_import_map' ) );
 
 		$this->assertEmpty( $import_map_markup );
 	}
@@ -301,10 +370,10 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 	 *
 	 * @covers ::register()
 	 * @covers ::enqueue()
-	 * @covers ::print_module_preloads()
+	 * @covers ::print_script_module_preloads()
 	 */
 	public function test_wp_enqueue_preloaded_static_dependencies() {
-		$this->modules->register(
+		$this->script_modules->register(
 			'foo',
 			'/foo.js',
 			array(
@@ -315,7 +384,7 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->modules->register(
+		$this->script_modules->register(
 			'static-dep',
 			'/static-dep.js',
 			array(
@@ -329,33 +398,33 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->modules->register( 'dynamic-dep', '/dynamic-dep.js' );
-		$this->modules->register( 'nested-static-dep', '/nested-static-dep.js' );
-		$this->modules->register( 'nested-dynamic-dep', '/nested-dynamic-dep.js' );
-		$this->modules->register( 'no-dep', '/no-dep.js' );
-		$this->modules->enqueue( 'foo' );
+		$this->script_modules->register( 'dynamic-dep', '/dynamic-dep.js' );
+		$this->script_modules->register( 'nested-static-dep', '/nested-static-dep.js' );
+		$this->script_modules->register( 'nested-dynamic-dep', '/nested-dynamic-dep.js' );
+		$this->script_modules->register( 'no-dep', '/no-dep.js' );
+		$this->script_modules->enqueue( 'foo' );
 
-		$preloaded_modules = $this->get_preloaded_modules();
+		$preloaded_script_modules = $this->get_preloaded_script_modules();
 
-		$this->assertCount( 2, $preloaded_modules );
-		$this->assertStringStartsWith( '/static-dep.js', $preloaded_modules['static-dep'] );
-		$this->assertStringStartsWith( '/nested-static-dep.js', $preloaded_modules['nested-static-dep'] );
-		$this->assertFalse( isset( $preloaded_modules['no-dep'] ) );
-		$this->assertFalse( isset( $preloaded_modules['dynamic-dep'] ) );
-		$this->assertFalse( isset( $preloaded_modules['nested-dynamic-dep'] ) );
+		$this->assertCount( 2, $preloaded_script_modules );
+		$this->assertStringStartsWith( '/static-dep.js', $preloaded_script_modules['static-dep'] );
+		$this->assertStringStartsWith( '/nested-static-dep.js', $preloaded_script_modules['nested-static-dep'] );
+		$this->assertArrayNotHasKey( 'dynamic-dep', $preloaded_script_modules );
+		$this->assertArrayNotHasKey( 'nested-dynamic-dep', $preloaded_script_modules );
+		$this->assertArrayNotHasKey( 'no-dep', $preloaded_script_modules );
 	}
 
 	/**
-	 * Tests that static dependencies of dynamic depenendencies are not preloaded.
+	 * Tests that static dependencies of dynamic dependencies are not preloaded.
 	 *
 	 * @ticket 56313
 	 *
 	 * @covers ::register()
 	 * @covers ::enqueue()
-	 * @covers ::print_module_preloads()
+	 * @covers ::print_script_module_preloads()
 	 */
 	public function test_wp_dont_preload_static_dependencies_of_dynamic_dependencies() {
-		$this->modules->register(
+		$this->script_modules->register(
 			'foo',
 			'/foo.js',
 			array(
@@ -366,32 +435,32 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->modules->register( 'static-dep', '/static-dep.js' );
-		$this->modules->register( 'dynamic-dep', '/dynamic-dep.js', array( 'nested-static-dep' ) );
-		$this->modules->register( 'nested-static-dep', '/nested-static-dep.js' );
-		$this->modules->register( 'no-dep', '/no-dep.js' );
-		$this->modules->enqueue( 'foo' );
+		$this->script_modules->register( 'static-dep', '/static-dep.js' );
+		$this->script_modules->register( 'dynamic-dep', '/dynamic-dep.js', array( 'nested-static-dep' ) );
+		$this->script_modules->register( 'nested-static-dep', '/nested-static-dep.js' );
+		$this->script_modules->register( 'no-dep', '/no-dep.js' );
+		$this->script_modules->enqueue( 'foo' );
 
-		$preloaded_modules = $this->get_preloaded_modules();
+		$preloaded_script_modules = $this->get_preloaded_script_modules();
 
-		$this->assertCount( 1, $preloaded_modules );
-		$this->assertStringStartsWith( '/static-dep.js', $preloaded_modules['static-dep'] );
-		$this->assertFalse( isset( $preloaded_modules['dynamic-dep'] ) );
-		$this->assertFalse( isset( $preloaded_modules['nested-static-dep'] ) );
-		$this->assertFalse( isset( $preloaded_modules['no-dep'] ) );
+		$this->assertCount( 1, $preloaded_script_modules );
+		$this->assertStringStartsWith( '/static-dep.js', $preloaded_script_modules['static-dep'] );
+		$this->assertArrayNotHasKey( 'dynamic-dep', $preloaded_script_modules );
+		$this->assertArrayNotHasKey( 'nested-dynamic-dep', $preloaded_script_modules );
+		$this->assertArrayNotHasKey( 'no-dep', $preloaded_script_modules );
 	}
 
 	/**
-	 * Tests that preloaded dependencies don't include enqueued modules.
+	 * Tests that preloaded dependencies don't include enqueued script modules.
 	 *
 	 * @ticket 56313
 	 *
 	 * @covers ::register()
 	 * @covers ::enqueue()
-	 * @covers ::print_module_preloads()
+	 * @covers ::print_script_module_preloads()
 	 */
-	public function test_wp_preloaded_dependencies_filter_enqueued_modules() {
-		$this->modules->register(
+	public function test_wp_preloaded_dependencies_filter_enqueued_script_modules() {
+		$this->script_modules->register(
 			'foo',
 			'/foo.js',
 			array(
@@ -399,21 +468,21 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 				'enqueued-dep',
 			)
 		);
-		$this->modules->register( 'dep', '/dep.js' );
-		$this->modules->register( 'enqueued-dep', '/enqueued-dep.js' );
-		$this->modules->enqueue( 'foo' );
-		$this->modules->enqueue( 'enqueued-dep' ); // Not preloaded.
+		$this->script_modules->register( 'dep', '/dep.js' );
+		$this->script_modules->register( 'enqueued-dep', '/enqueued-dep.js' );
+		$this->script_modules->enqueue( 'foo' );
+		$this->script_modules->enqueue( 'enqueued-dep' ); // Not preloaded.
 
-		$preloaded_modules = $this->get_preloaded_modules();
+		$preloaded_script_modules = $this->get_preloaded_script_modules();
 
-		$this->assertCount( 1, $preloaded_modules );
-		$this->assertTrue( isset( $preloaded_modules['dep'] ) );
-		$this->assertFalse( isset( $preloaded_modules['enqueued-dep'] ) );
+		$this->assertCount( 1, $preloaded_script_modules );
+		$this->assertArrayHasKey( 'dep', $preloaded_script_modules );
+		$this->assertArrayNotHasKey( 'enqueued-dep', $preloaded_script_modules );
 	}
 
 	/**
-	 * Tests that enqueued modules with dependants correctly add both the module
-	 * and its dependencies to the import map.
+	 * Tests that enqueued script modules with dependants correctly add both the
+	 * script module and its dependencies to the import map.
 	 *
 	 * @ticket 56313
 	 *
@@ -421,8 +490,8 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 	 * @covers ::enqueue()
 	 * @covers ::print_import_map()
 	 */
-	public function test_wp_enqueued_modules_with_dependants_add_import_map() {
-		$this->modules->register(
+	public function test_wp_enqueued_script_modules_with_dependants_add_import_map() {
+		$this->script_modules->register(
 			'foo',
 			'/foo.js',
 			array(
@@ -430,78 +499,102 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 				'enqueued-dep',
 			)
 		);
-		$this->modules->register( 'dep', '/dep.js' );
-		$this->modules->register( 'enqueued-dep', '/enqueued-dep.js' );
-		$this->modules->enqueue( 'foo' );
-		$this->modules->enqueue( 'enqueued-dep' ); // Also in the import map.
+		$this->script_modules->register( 'dep', '/dep.js' );
+		$this->script_modules->register( 'enqueued-dep', '/enqueued-dep.js' );
+		$this->script_modules->enqueue( 'foo' );
+		$this->script_modules->enqueue( 'enqueued-dep' ); // Also in the import map.
 
 		$import_map = $this->get_import_map();
 
 		$this->assertCount( 2, $import_map );
-		$this->assertTrue( isset( $import_map['dep'] ) );
-		$this->assertTrue( isset( $import_map['enqueued-dep'] ) );
+		$this->assertArrayHasKey( 'dep', $import_map );
+		$this->assertArrayHasKey( 'enqueued-dep', $import_map );
 	}
 
 	/**
-	 * Tests the functionality of the `get_versioned_src` method to ensure
+	 * Tests the functionality of the `get_src` method to ensure
 	 * proper URLs with version strings are returned.
 	 *
 	 * @ticket 56313
 	 *
-	 * @covers ::get_versioned_src()
+	 * @covers ::get_src()
 	 */
-	public function test_get_versioned_src() {
-		$get_versioned_src = new ReflectionMethod( $this->modules, 'get_versioned_src' );
-		$get_versioned_src->setAccessible( true );
+	public function test_get_src() {
+		$get_src = new ReflectionMethod( $this->script_modules, 'get_src' );
+		$get_src->setAccessible( true );
 
-		$module_with_version = array(
-			'src'     => 'http://example.com/module.js',
-			'version' => '1.0',
+		$this->script_modules->register(
+			'module_with_version',
+			'http://example.com/module.js',
+			array(),
+			'1.0'
 		);
 
-		$result = $get_versioned_src->invoke( $this->modules, $module_with_version );
-		$this->assertEquals( 'http://example.com/module.js?ver=1.0', $result );
+		$result = $get_src->invoke( $this->script_modules, 'module_with_version' );
+		$this->assertSame( 'http://example.com/module.js?ver=1.0', $result );
 
-		$module_without_version = array(
-			'src'     => 'http://example.com/module.js',
-			'version' => null,
+		$this->script_modules->register(
+			'module_without_version',
+			'http://example.com/module.js',
+			array(),
+			null
 		);
 
-		$result = $get_versioned_src->invoke( $this->modules, $module_without_version );
-		$this->assertEquals( 'http://example.com/module.js', $result );
+		$result = $get_src->invoke( $this->script_modules, 'module_without_version' );
+		$this->assertSame( 'http://example.com/module.js', $result );
 
-		$module_with_wp_version = array(
-			'src'     => 'http://example.com/module.js',
-			'version' => false,
+		$this->script_modules->register(
+			'module_with_wp_version',
+			'http://example.com/module.js',
+			array(),
+			false
 		);
 
-		$result = $get_versioned_src->invoke( $this->modules, $module_with_wp_version );
-		$this->assertEquals( 'http://example.com/module.js?ver=' . get_bloginfo( 'version' ), $result );
+		$result = $get_src->invoke( $this->script_modules, 'module_with_wp_version' );
+		$this->assertSame( 'http://example.com/module.js?ver=' . get_bloginfo( 'version' ), $result );
 
-		$module_with_existing_query_string = array(
-			'src'     => 'http://example.com/module.js?foo=bar',
-			'version' => '1.0',
+		$this->script_modules->register(
+			'module_with_existing_query_string',
+			'http://example.com/module.js?foo=bar',
+			array(),
+			'1.0'
 		);
 
-		$result = $get_versioned_src->invoke( $this->modules, $module_with_existing_query_string );
-		$this->assertEquals( 'http://example.com/module.js?foo=bar&ver=1.0', $result );
+		$result = $get_src->invoke( $this->script_modules, 'module_with_existing_query_string' );
+		$this->assertSame( 'http://example.com/module.js?foo=bar&ver=1.0', $result );
+
+		// Filter the version to include the ID in the final URL, to test the filter, this should affect the tests below.
+		add_filter(
+			'script_module_loader_src',
+			function ( $src, $id ) {
+				return add_query_arg( 'script_module_id', urlencode( $id ), $src );
+			},
+			10,
+			2
+		);
+
+		$result = $get_src->invoke( $this->script_modules, 'module_without_version' );
+		$this->assertSame( 'http://example.com/module.js?script_module_id=module_without_version', $result );
+
+		$result = $get_src->invoke( $this->script_modules, 'module_with_existing_query_string' );
+		$this->assertSame( 'http://example.com/module.js?foo=bar&ver=1.0&script_module_id=module_with_existing_query_string', $result );
 	}
 
 	/**
 	 * Tests that the correct version is propagated to the import map, enqueued
-	 * modules and preloaded modules.
+	 * script modules and preloaded script modules.
 	 *
 	 * @ticket 56313
 	 *
 	 * @covers ::register()
 	 * @covers ::enqueue()
-	 * @covers ::print_enqueued_modules()
+	 * @covers ::print_enqueued_script_modules()
 	 * @covers ::print_import_map()
-	 * @covers ::print_module_preloads()
+	 * @covers ::print_script_module_preloads()
 	 * @covers ::get_version_query_string()
 	 */
 	public function test_version_is_propagated_correctly() {
-		$this->modules->register(
+		$this->script_modules->register(
 			'foo',
 			'/foo.js',
 			array(
@@ -509,161 +602,308 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 			),
 			'1.0'
 		);
-		$this->modules->register( 'dep', '/dep.js', array(), '2.0' );
-		$this->modules->enqueue( 'foo' );
+		$this->script_modules->register( 'dep', '/dep.js', array(), '2.0' );
+		$this->script_modules->enqueue( 'foo' );
 
-		$enqueued_modules = $this->get_enqueued_modules();
-		$this->assertEquals( '/foo.js?ver=1.0', $enqueued_modules['foo'] );
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
+		$this->assertSame( '/foo.js?ver=1.0', $enqueued_script_modules['foo'] );
 
 		$import_map = $this->get_import_map();
-		$this->assertEquals( '/dep.js?ver=2.0', $import_map['dep'] );
+		$this->assertSame( '/dep.js?ver=2.0', $import_map['dep'] );
 
-		$preloaded_modules = $this->get_preloaded_modules();
-		$this->assertEquals( '/dep.js?ver=2.0', $preloaded_modules['dep'] );
+		$preloaded_script_modules = $this->get_preloaded_script_modules();
+		$this->assertSame( '/dep.js?ver=2.0', $preloaded_script_modules['dep'] );
 	}
 
 	/**
-	 * Tests that it can print the enqueued modules multiple times, and it will
-	 * only print the modules that have not been printed before.
+	 * Tests that a script module is not registered when calling enqueue without a
+	 * valid src.
 	 *
 	 * @ticket 56313
 	 *
-	 * @covers ::register()
 	 * @covers ::enqueue()
-	 * @covers ::print_enqueued_modules()
+	 * @covers ::print_enqueued_script_modules()
 	 */
-	public function test_print_enqueued_modules_can_be_called_multiple_times() {
-		$this->modules->register( 'foo', '/foo.js' );
-		$this->modules->register( 'bar', '/bar.js' );
-		$this->modules->enqueue( 'foo' );
+	public function test_wp_enqueue_script_module_doesnt_register_without_a_valid_src() {
+		$this->script_modules->enqueue( 'foo' );
 
-		$enqueued_modules = $this->get_enqueued_modules();
-		$this->assertCount( 1, $enqueued_modules );
-		$this->assertTrue( isset( $enqueued_modules['foo'] ) );
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
-		$this->modules->enqueue( 'bar' );
-
-		$enqueued_modules = $this->get_enqueued_modules();
-		$this->assertCount( 1, $enqueued_modules );
-		$this->assertTrue( isset( $enqueued_modules['bar'] ) );
-
-		$enqueued_modules = $this->get_enqueued_modules();
-		$this->assertCount( 0, $enqueued_modules );
+		$this->assertCount( 0, $enqueued_script_modules );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
 	}
 
 	/**
-	 * Tests that it can print the preloaded modules multiple times, and it will
-	 * only print the modules that have not been printed before.
-	 *
-	 * @ticket 56313
-	 *
-	 * @covers ::register()
-	 * @covers ::enqueue()
-	 * @covers ::print_module_preloads()
-	 */
-	public function test_print_preloaded_modules_can_be_called_multiple_times() {
-		$this->modules->register( 'foo', '/foo.js', array( 'static-dep-1', 'static-dep-2' ) );
-		$this->modules->register( 'bar', '/bar.js', array( 'static-dep-3' ) );
-		$this->modules->register( 'static-dep-1', '/static-dep-1.js' );
-		$this->modules->register( 'static-dep-3', '/static-dep-3.js' );
-		$this->modules->enqueue( 'foo' );
-
-		$preloaded_modules = $this->get_preloaded_modules();
-		$this->assertCount( 1, $preloaded_modules );
-		$this->assertTrue( isset( $preloaded_modules['static-dep-1'] ) );
-
-		$this->modules->register( 'static-dep-2', '/static-dep-2.js' );
-		$this->modules->enqueue( 'bar' );
-
-		$preloaded_modules = $this->get_preloaded_modules();
-		$this->assertCount( 2, $preloaded_modules );
-		$this->assertTrue( isset( $preloaded_modules['static-dep-2'] ) );
-		$this->assertTrue( isset( $preloaded_modules['static-dep-3'] ) );
-
-		$preloaded_modules = $this->get_preloaded_modules();
-		$this->assertCount( 0, $preloaded_modules );
-	}
-
-	/**
-	 * Tests that a module is not registered when calling enqueue without a valid
+	 * Tests that a script module is registered when calling enqueue with a valid
 	 * src.
 	 *
 	 * @ticket 56313
 	 *
 	 * @covers ::enqueue()
-	 * @covers ::print_enqueued_modules()
+	 * @covers ::print_enqueued_script_modules()
 	 */
-	public function test_wp_enqueue_module_doesnt_register_without_a_valid_src() {
-		$this->modules->enqueue( 'foo' );
+	public function test_wp_enqueue_script_module_registers_with_valid_src() {
+		$this->script_modules->enqueue( 'foo', '/foo.js' );
 
-		$enqueued_modules = $this->get_enqueued_modules();
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
-		$this->assertCount( 0, $enqueued_modules );
-		$this->assertFalse( isset( $enqueued_modules['foo'] ) );
+		$this->assertCount( 1, $enqueued_script_modules );
+		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo'] );
 	}
 
 	/**
-	 * Tests that a module is registered when calling enqueue with a valid src.
+	 * Tests that a script module is registered when calling enqueue with a valid
+	 * src the second time.
 	 *
 	 * @ticket 56313
 	 *
 	 * @covers ::enqueue()
-	 * @covers ::print_enqueued_modules()
+	 * @covers ::print_enqueued_script_modules()
 	 */
-	public function test_wp_enqueue_module_registers_with_valid_src() {
-		$this->modules->enqueue( 'foo', '/foo.js' );
+	public function test_wp_enqueue_script_module_registers_with_valid_src_the_second_time() {
+		$this->script_modules->enqueue( 'foo' ); // Not valid src.
 
-		$enqueued_modules = $this->get_enqueued_modules();
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
-		$this->assertCount( 1, $enqueued_modules );
-		$this->assertStringStartsWith( '/foo.js', $enqueued_modules['foo'] );
+		$this->assertCount( 0, $enqueued_script_modules );
+		$this->assertArrayNotHasKey( 'foo', $enqueued_script_modules );
+
+		$this->script_modules->enqueue( 'foo', '/foo.js' ); // Valid src.
+
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
+
+		$this->assertCount( 1, $enqueued_script_modules );
+		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo'] );
 	}
 
 	/**
-	 * Tests that a module is registered when calling enqueue with a valid src the
-	 * second time.
-	 *
-	 * @ticket 56313
-	 *
-	 * @covers ::enqueue()
-	 * @covers ::print_enqueued_modules()
-	 */
-	public function test_wp_enqueue_module_registers_with_valid_src_the_second_time() {
-		$this->modules->enqueue( 'foo' ); // Not valid src.
-
-		$enqueued_modules = $this->get_enqueued_modules();
-
-		$this->assertCount( 0, $enqueued_modules );
-		$this->assertFalse( isset( $enqueued_modules['foo'] ) );
-
-		$this->modules->enqueue( 'foo', '/foo.js' ); // Valid src.
-
-		$enqueued_modules = $this->get_enqueued_modules();
-
-		$this->assertCount( 1, $enqueued_modules );
-		$this->assertStringStartsWith( '/foo.js', $enqueued_modules['foo'] );
-	}
-
-	/**
-	 * Tests that a module is registered with all the params when calling enqueue.
+	 * Tests that a script module is registered with all the params when calling
+	 * enqueue.
 	 *
 	 * @ticket 56313
 	 *
 	 * @covers ::register()
 	 * @covers ::enqueue()
-	 * @covers ::print_enqueued_modules()
+	 * @covers ::print_enqueued_script_modules()
 	 * @covers ::print_import_map()
 	 */
-	public function test_wp_enqueue_module_registers_all_params() {
-		$this->modules->enqueue( 'foo', '/foo.js', array( 'dep' ), '1.0' );
-		$this->modules->register( 'dep', '/dep.js' );
+	public function test_wp_enqueue_script_module_registers_all_params() {
+		$this->script_modules->enqueue( 'foo', '/foo.js', array( 'dep' ), '1.0' );
+		$this->script_modules->register( 'dep', '/dep.js' );
 
-		$enqueued_modules = $this->get_enqueued_modules();
-		$import_map       = $this->get_import_map();
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
+		$import_map              = $this->get_import_map();
 
-		$this->assertCount( 1, $enqueued_modules );
-		$this->assertEquals( '/foo.js?ver=1.0', $enqueued_modules['foo'] );
+		$this->assertCount( 1, $enqueued_script_modules );
+		$this->assertSame( '/foo.js?ver=1.0', $enqueued_script_modules['foo'] );
 		$this->assertCount( 1, $import_map );
 		$this->assertStringStartsWith( '/dep.js', $import_map['dep'] );
+	}
+
+	/**
+	 * @ticket 61510
+	 */
+	public function test_print_script_module_data_prints_enqueued_module_data() {
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/module',
+			function ( $data ) {
+				$data['foo'] = 'bar';
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$expected = <<<HTML
+<script type="application/json" id="wp-script-module-data-@test/module">
+{"foo":"bar"}
+</script>
+
+HTML;
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 61510
+	 */
+	public function test_print_script_module_data_prints_dependency_module_data() {
+		$this->script_modules->register( '@test/dependency', '/dependency.js' );
+		$this->script_modules->enqueue( '@test/module', '/example.js', array( '@test/dependency' ) );
+		add_action(
+			'script_module_data_@test/dependency',
+			function ( $data ) {
+				$data['foo'] = 'bar';
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$expected = <<<HTML
+<script type="application/json" id="wp-script-module-data-@test/dependency">
+{"foo":"bar"}
+</script>
+
+HTML;
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 61510
+	 */
+	public function test_print_script_module_data_does_not_print_nondependency_module_data() {
+		$this->script_modules->register( '@test/other', '/dependency.js' );
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/other',
+			function ( $data ) {
+				$data['foo'] = 'bar';
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * @ticket 61510
+	 */
+	public function test_print_script_module_data_does_not_print_empty_data() {
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/module',
+			function ( $data ) {
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * @ticket 61510
+	 *
+	 * @dataProvider data_special_chars_script_encoding
+	 * @param string $input    Raw input string.
+	 * @param string $expected Expected output string.
+	 * @param string $charset  Blog charset option.
+	 */
+	public function test_print_script_module_data_encoding( $input, $expected, $charset ) {
+		add_filter(
+			'pre_option_blog_charset',
+			function () use ( $charset ) {
+				return $charset;
+			}
+		);
+
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/module',
+			function ( $data ) use ( $input ) {
+				$data[''] = $input;
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$expected = <<<HTML
+<script type="application/json" id="wp-script-module-data-@test/module">
+{"":"{$expected}"}
+</script>
+
+HTML;
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_special_chars_script_encoding(): array {
+		return array(
+			// UTF-8
+			'Solidus'                                => array( '/', '/', 'UTF-8' ),
+			'Double quote'                           => array( '"', '\\"', 'UTF-8' ),
+			'Single quote'                           => array( '\'', '\'', 'UTF-8' ),
+			'Less than'                              => array( '<', '\u003C', 'UTF-8' ),
+			'Greater than'                           => array( '>', '\u003E', 'UTF-8' ),
+			'Ampersand'                              => array( '&', '&', 'UTF-8' ),
+			'Newline'                                => array( "\n", "\\n", 'UTF-8' ),
+			'Tab'                                    => array( "\t", "\\t", 'UTF-8' ),
+			'Form feed'                              => array( "\f", "\\f", 'UTF-8' ),
+			'Carriage return'                        => array( "\r", "\\r", 'UTF-8' ),
+			'Line separator'                         => array( "\u{2028}", "\u{2028}", 'UTF-8' ),
+			'Paragraph separator'                    => array( "\u{2029}", "\u{2029}", 'UTF-8' ),
+
+			/*
+			 * The following is the Flag of England emoji
+			 * PHP: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}"
+			 */
+			'Flag of england'                        => array( '🏴󠁧󠁢󠁥󠁮󠁧󠁿', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'UTF-8' ),
+			'Malicious script closer'                => array( '</script>', '\u003C/script\u003E', 'UTF-8' ),
+			'Entity-encoded malicious script closer' => array( '&lt;/script&gt;', '&lt;/script&gt;', 'UTF-8' ),
+
+			// Non UTF-8
+			'Solidus'                                => array( '/', '/', 'iso-8859-1' ),
+			'Less than'                              => array( '<', '\u003C', 'iso-8859-1' ),
+			'Greater than'                           => array( '>', '\u003E', 'iso-8859-1' ),
+			'Ampersand'                              => array( '&', '&', 'iso-8859-1' ),
+			'Newline'                                => array( "\n", "\\n", 'iso-8859-1' ),
+			'Tab'                                    => array( "\t", "\\t", 'iso-8859-1' ),
+			'Form feed'                              => array( "\f", "\\f", 'iso-8859-1' ),
+			'Carriage return'                        => array( "\r", "\\r", 'iso-8859-1' ),
+			'Line separator'                         => array( "\u{2028}", "\u2028", 'iso-8859-1' ),
+			'Paragraph separator'                    => array( "\u{2029}", "\u2029", 'iso-8859-1' ),
+			/*
+			 * The following is the Flag of England emoji
+			 * PHP: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}"
+			 */
+			'Flag of england'                        => array( '🏴󠁧󠁢󠁥󠁮󠁧󠁿', "\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f", 'iso-8859-1' ),
+			'Malicious script closer'                => array( '</script>', '\u003C/script\u003E', 'iso-8859-1' ),
+			'Entity-encoded malicious script closer' => array( '&lt;/script&gt;', '&lt;/script&gt;', 'iso-8859-1' ),
+
+		);
+	}
+
+	/**
+	 * @ticket 61510
+	 *
+	 * @dataProvider data_invalid_script_module_data
+	 * @param mixed $data Data to return in filter.
+	 */
+	public function test_print_script_module_data_does_not_print_invalid_data( $data ) {
+		$this->script_modules->enqueue( '@test/module', '/example.js' );
+		add_action(
+			'script_module_data_@test/module',
+			function ( $_ ) use ( $data ) {
+				return $data;
+			}
+		);
+
+		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_invalid_script_module_data(): array {
+		return array(
+			'null'     => array( null ),
+			'stdClass' => array( new stdClass() ),
+			'number 1' => array( 1 ),
+			'string'   => array( 'string' ),
+		);
 	}
 }

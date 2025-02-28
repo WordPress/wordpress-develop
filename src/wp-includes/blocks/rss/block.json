@@ -43,7 +43,16 @@
 	},
 	"supports": {
 		"align": true,
-		"html": false
+		"html": false,
+		"interactivity": {
+			"clientNavigation": true
+		},
+		"color": {
+			"background": true,
+			"text": true,
+			"gradients": true,
+			"link": true
+		}
 	},
 	"editorStyle": "wp-block-rss-editor",
 	"style": "wp-block-rss"

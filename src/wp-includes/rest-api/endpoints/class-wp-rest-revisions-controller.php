@@ -294,7 +294,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$revisions_query = new WP_Query();
 			$revisions       = $revisions_query->query( $query_args );
 			$offset          = isset( $query_args['offset'] ) ? (int) $query_args['offset'] : 0;
-			$page            = (int) $query_args['paged'];
+			$page            = isset( $query_args['paged'] ) ? (int) $query_args['paged'] : 0;
 			$total_revisions = $revisions_query->found_posts;
 
 			if ( $total_revisions < 1 ) {
@@ -308,7 +308,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			}
 
 			if ( $revisions_query->query_vars['posts_per_page'] > 0 ) {
-				$max_pages = ceil( $total_revisions / (int) $revisions_query->query_vars['posts_per_page'] );
+				$max_pages = (int) ceil( $total_revisions / (int) $revisions_query->query_vars['posts_per_page'] );
 			} else {
 				$max_pages = $total_revisions > 0 ? 1 : 0;
 			}

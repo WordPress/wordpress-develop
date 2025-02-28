@@ -580,10 +580,12 @@ $nav_menus_l10n = array(
 	'under'                   => __( 'Under %s' ),
 	/* translators: %s: Previous item name. */
 	'outFrom'                 => __( 'Out from under %s' ),
-	/* translators: 1: Item name, 2: Item position, 3: Total number of items. */
-	'menuFocus'               => __( '%1$s. Menu item %2$d of %3$d.' ),
-	/* translators: 1: Item name, 2: Item position, 3: Parent item name. */
-	'subMenuFocus'            => __( '%1$s. Sub item number %2$d under %3$s.' ),
+	/* translators: 1: Item name, 2: Item type, 3: Item index, 4: Total items. */
+	'menuFocus'               => __( 'Edit %1$s (%2$s, %3$d of %4$d)' ),
+	/* translators: 1: Item name, 2: Item type, 3: Item index, 4: Total items, 5: Item parent. */
+	'subMenuFocus'            => __( 'Edit %1$s (%2$s, sub-item %3$d of %4$d under %5$s)' ),
+	/* translators: 1: Item name, 2: Item type, 3: Item index, 4: Total items, 5: Item parent, 6: Item depth. */
+	'subMenuMoreDepthFocus'   => __( 'Edit %1$s (%2$s, sub-item %3$d of %4$d under %5$s, level %6$d)' ),
 	/* translators: %s: Item name. */
 	'menuItemDeletion'        => __( 'item %s' ),
 	/* translators: %s: Item name. */
@@ -595,6 +597,8 @@ $nav_menus_l10n = array(
 	'movedTop'                => __( 'Menu item moved to the top' ),
 	'movedLeft'               => __( 'Menu item moved out of submenu' ),
 	'movedRight'              => __( 'Menu item is now a sub-item' ),
+	'parentUpdated'           => __( 'Menu parent updated' ),
+	'orderUpdated'            => __( 'Menu order updated' ),
 );
 wp_localize_script( 'nav-menu', 'menus', $nav_menus_l10n );
 
@@ -669,6 +673,8 @@ if ( is_nav_menu( $nav_menu_selected_id ) ) {
 
 /**
  * @global int $_wp_nav_menu_max_depth
+ *
+ * @since 3.0.0
  *
  * @param string $classes
  * @return string
