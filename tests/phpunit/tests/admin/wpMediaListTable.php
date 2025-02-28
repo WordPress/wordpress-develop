@@ -150,7 +150,7 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 		remove_filter( 'the_author', '__return_empty_string' );
 
 		$this->assertStringContainsString( '<span aria-hidden="true">&#8212;</span>', $output );
-		$this->assertStringContainsString( '<span class="screen-reader-text">' . esc_html__( '(no author)', 'default' ) . '</span>', $output );
+		$this->assertStringContainsString( '<span class="screen-reader-text">(no author)</span>', $output );
 		$this->assertStringNotContainsString( '<a href="', $output );
 	}
 
