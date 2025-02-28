@@ -517,7 +517,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				esc_html( $author )
 			);
 		} else {
-			echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . esc_html__( '(no author)', 'default' ) . '</span>';
+			echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . __( '(no author)' ) . '</span>';
 		}
 	}
 
