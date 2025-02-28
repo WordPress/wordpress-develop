@@ -159,7 +159,6 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @ticket 55594
 	 */
 	public function test_get_all_primed_users() {
-		$this->reset_lazyload_queue();
 		$filter = new MockAction();
 		add_filter( 'update_user_metadata_cache', array( $filter, 'filter' ), 10, 2 );
 
