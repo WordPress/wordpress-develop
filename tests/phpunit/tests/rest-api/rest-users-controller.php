@@ -713,13 +713,16 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertCount( 0, $response->get_data() );
 	}
 
+	/**
+	 * @ticket 62596
+	 */
 	public function test_get_items_search_columns() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'search', 'yololololo' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 0, $response->get_data() );
 
-		$yolo_id = self::factory()->user->create(
+		self::factory()->user->create(
 			array(
 				'display_name' => 'Adam',
 				'user_email'   => 'yololololo@example.localhost',
@@ -744,6 +747,27 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'search_columns', 'name' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 1, $response->get_data() );
+	}
+
+	/**
+	 * @ticket 62596
+	 */
+	public function test_get_items_search_columns_without_permission() {
+		self::factory()->user->create(
+			array(
+				'display_name' => 'Adam',
+				'user_email'   => 'yololololo@example.localhost',
+			)
+		);
+
+		// Test user without sufficient capabilities - 'list_users'.
+		wp_set_current_user( self::$editor );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'search', 'yololololo' );
+		$request->set_param( 'search_columns', 'email' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( 0, $response->get_data() );
 	}
 
 	public function test_get_items_slug_query() {
