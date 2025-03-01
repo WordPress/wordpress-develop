@@ -640,8 +640,8 @@ function maybe_serialize( $data ) {
 		/**
 		 * Allows the developer to track double serialization in their projects.
 		 *
-		 * While not broken, double serialization increases the complexity of data structures, pose a performance
-		 * overhead and increases the cognitive load when reading code and data.
+		 * While not broken, double serialization increases the complexity of data structures,
+		 * pose a performance overhead, and increases the cognitive load when reading code and data.
 		 *
 		 * @since 6.8.0
 		 *
