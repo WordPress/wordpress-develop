@@ -26,6 +26,10 @@ on:
         description: "The MySQL versions to test for the given wp-version"
         value: ${{ jobs.mysql-versions.outputs.versions }}
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 jobs:
   # Determines the major version of WordPress being tested.
   #
@@ -36,7 +40,9 @@ jobs:
   # - Returns the major WordPress version as an output based on the value passed to the wp-version input.
   major-wp-version:
     name: Determine major WordPress version
-    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       version: ${{ steps.major-wp-version.outputs.version }}
@@ -47,17 +53,20 @@ jobs:
         with:
           repository: ${{ inputs.repository }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
 
       - name: Determine the major WordPress version
         id: major-wp-version
         run: |
-          if [ "${{ inputs.wp-version }}" ] && [ "${{ inputs.wp-version }}" != "nightly" ] && [ "${{ inputs.wp-version }}" != "latest" ] && [ "${{ inputs.wp-version }}" != "trunk" ]; then
-            echo "version=$(echo "${{ inputs.wp-version }}" | tr '.' '-' | cut -d '-' -f1-2)" >> $GITHUB_OUTPUT
-          elif [ "${{ inputs.wp-version }}" ] && [ "${{ inputs.wp-version }}" != "trunk" ]; then
-            echo "version=$(echo "${{ inputs.wp-version }}")" >> $GITHUB_OUTPUT
+          if [ "${WP_VERSION}" ] && [ "${WP_VERSION}" != "nightly" ] && [ "${WP_VERSION}" != "latest" ] && [ "${WP_VERSION}" != "trunk" ]; then
+            echo "version=$(echo "${WP_VERSION}" | tr '.' '-' | cut -d '-' -f1-2)" >> "$GITHUB_OUTPUT"
+          elif [ "${WP_VERSION}" ] && [ "${WP_VERSION}" != "trunk" ]; then
+            echo "version=${WP_VERSION}" >> "$GITHUB_OUTPUT"
           else
-            echo "version=nightly" >> $GITHUB_OUTPUT
+            echo "version=nightly" >> "$GITHUB_OUTPUT"
           fi
+        env:
+          WP_VERSION: ${{ inputs.wp-version }}
 
   # Determines the versions of PHP supported for a version of WordPress.
   #
@@ -67,7 +76,9 @@ jobs:
   #   .version-support-php.json file and returning the values in that version's index.
   php-versions:
     name: Determine PHP versions
-    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
     needs: [ major-wp-version ]
     timeout-minutes: 5
     outputs:
@@ -79,17 +90,26 @@ jobs:
         with:
           repository: ${{ inputs.repository }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
 
       # Look up the major version's specific PHP support policy when a version is provided.
       # Otherwise, use the current PHP support policy.
       - name: Get supported PHP versions
         id: php-versions
         run: |
-          if [ "${{ needs.major-wp-version.outputs.version }}" != "latest" ] && [ "${{ needs.major-wp-version.outputs.version }}" != "nightly" ]; then
-            echo "versions=$(jq -r '.["${{ needs.major-wp-version.outputs.version }}"] | @json' .version-support-php.json)" >> $GITHUB_OUTPUT
+          if [ "${WP_VERSION}" != "latest" ] && [ "${WP_VERSION}" != "nightly" ]; then
+            VERSIONS="$( jq \
+              -r \
+              --arg wp_version "${WP_VERSION}" \
+              '.[$wp_version] | @json' \
+              .version-support-php.json
+            )"
+            echo "versions=$VERSIONS" >> "$GITHUB_OUTPUT"
           else
-            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' .version-support-php.json)" >> $GITHUB_OUTPUT
+            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' .version-support-php.json)" >> "$GITHUB_OUTPUT"
           fi
+        env:
+          WP_VERSION: ${{ needs.major-wp-version.outputs.version }}
 
   # Determines the versions of MySQL supported for a version of WordPress.
   #
@@ -99,7 +119,9 @@ jobs:
   #   .version-support-mysql.json file and returning the values in that version's index.
   mysql-versions:
     name: Determine MySQL versions
-    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
     needs: [ major-wp-version ]
     timeout-minutes: 5
     outputs:
@@ -111,14 +133,23 @@ jobs:
         with:
           repository: ${{ inputs.repository }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
 
       # Look up the major version's specific MySQL support policy when a version is provided.
       # Otherwise, use the current MySQL support policy.
       - name: Get supported MySQL versions
         id: mysql-versions
         run: |
-          if [ "${{ needs.major-wp-version.outputs.version }}" != "latest" ] && [ "${{ needs.major-wp-version.outputs.version }}" != "nightly" ]; then
-            echo "versions=$(jq -r '.["${{ needs.major-wp-version.outputs.version }}"] | @json' .version-support-mysql.json)" >> $GITHUB_OUTPUT
+          if [ "${WP_VERSION}" != "latest" ] && [ "${WP_VERSION}" != "nightly" ]; then
+            VERSIONS="$( jq \
+              -r \
+              --arg wp_version "${WP_VERSION}" \
+              '.[$wp_version] | @json' \
+              .version-support-mysql.json
+            )"
+            echo "versions=$VERSIONS" >> "$GITHUB_OUTPUT"
           else
-            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' .version-support-mysql.json)" >> $GITHUB_OUTPUT
+            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' .version-support-mysql.json)" >> "$GITHUB_OUTPUT"
           fi
+        env:
+          WP_VERSION: ${{ needs.major-wp-version.outputs.version }}

@@ -1694,4 +1694,119 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		touch( $file );
 	}
+
+	/**
+	 * Wrapper for `wp_safe_remote_request()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_safe_remote_request( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_safe_remote_request', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_safe_remote_get()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_safe_remote_get( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_safe_remote_get', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_safe_remote_post()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_safe_remote_post( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_safe_remote_post', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_safe_remote_head()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_safe_remote_head( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_safe_remote_head', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_remote_request()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_remote_request( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_remote_request', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_remote_get()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_remote_get( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_remote_get', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_remote_post()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_remote_post( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_remote_post', $url, $args );
+	}
+
+	/**
+	 * Wrapper for `wp_remote_head()` that retries on error and skips the test on timeout.
+	 *
+	 * @param string $url  URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	protected function wp_remote_head( $url, $args = array() ) {
+		return self::retry_on_error( 'wp_remote_head', $url, $args );
+	}
+
+	/**
+	 * Retries an HTTP API request up to three times and skips the test on timeout.
+	 *
+	 * @param callable $callback The HTTP API request function to call.
+	 * @param string   $url      URL to retrieve.
+	 * @param array    $args     Request arguments.
+	 * @return array|WP_Error The response or WP_Error on failure.
+	 */
+	private function retry_on_error( callable $callback, $url, $args ) {
+		$attempts = 0;
+
+		while ( $attempts < 3 ) {
+			$result = call_user_func( $callback, $url, $args );
+
+			if ( ! is_wp_error( $result ) ) {
+				return $result;
+			}
+
+			++$attempts;
+			sleep( 5 );
+		}
+
+		$this->skipTestOnTimeout( $result );
+
+		return $result;
+	}
 }

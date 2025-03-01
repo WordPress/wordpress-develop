@@ -22,14 +22,15 @@ define( 'WPINC', 'wp-includes' );
  * include version.php from another installation and don't override
  * these values if already set.
  *
- * @global string $wp_version             The WordPress version string.
- * @global int    $wp_db_version          WordPress database version.
- * @global string $tinymce_version        TinyMCE version.
- * @global string $required_php_version   The required PHP version string.
- * @global string $required_mysql_version The required MySQL version string.
- * @global string $wp_local_package       Locale code of the package.
+ * @global string   $wp_version              The WordPress version string.
+ * @global int      $wp_db_version           WordPress database version.
+ * @global string   $tinymce_version         TinyMCE version.
+ * @global string   $required_php_version    The required PHP version string.
+ * @global string[] $required_php_extensions The names of required PHP extensions.
+ * @global string   $required_mysql_version  The required MySQL version string.
+ * @global string   $wp_local_package        Locale code of the package.
  */
-global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_mysql_version, $wp_local_package;
+global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_php_extensions, $required_mysql_version, $wp_local_package;
 require ABSPATH . WPINC . '/version.php';
 require ABSPATH . WPINC . '/compat.php';
 require ABSPATH . WPINC . '/load.php';
@@ -404,6 +405,9 @@ require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api.php';
 require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api-directives-processor.php';
 require ABSPATH . WPINC . '/interactivity-api/interactivity-api.php';
 require ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
+require ABSPATH . WPINC . '/class-wp-url-pattern-prefixer.php';
+require ABSPATH . WPINC . '/class-wp-speculation-rules.php';
+require ABSPATH . WPINC . '/speculative-loading.php';
 
 add_action( 'after_setup_theme', array( wp_script_modules(), 'add_hooks' ) );
 add_action( 'after_setup_theme', array( wp_interactivity(), 'add_hooks' ) );
@@ -525,6 +529,17 @@ require_once ABSPATH . 'wp-admin/includes/plugin.php';
 foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 	wp_register_plugin_realpath( $plugin );
 
+	$plugin_data = get_plugin_data( $plugin, false, false );
+
+	$textdomain = $plugin_data['TextDomain'];
+	if ( $textdomain ) {
+		if ( $plugin_data['DomainPath'] ) {
+			$GLOBALS['wp_textdomain_registry']->set_custom_path( $textdomain, dirname( $plugin ) . $plugin_data['DomainPath'] );
+		} else {
+			$GLOBALS['wp_textdomain_registry']->set_custom_path( $textdomain, dirname( $plugin ) );
+		}
+	}
+
 	$_wp_plugin_file = $plugin;
 	include_once $plugin;
 	$plugin = $_wp_plugin_file; // Avoid stomping of the $plugin variable in a plugin.
@@ -537,17 +552,6 @@ foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 	 * @param string $plugin Full path to the plugin's main file.
 	 */
 	do_action( 'plugin_loaded', $plugin );
-
-	$plugin_data = get_plugin_data( $plugin, false, false );
-
-	$textdomain = $plugin_data['TextDomain'];
-	if ( $textdomain ) {
-		if ( $plugin_data['DomainPath'] ) {
-			$GLOBALS['wp_textdomain_registry']->set_custom_path( $textdomain, dirname( $plugin ) . $plugin_data['DomainPath'] );
-		} else {
-			$GLOBALS['wp_textdomain_registry']->set_custom_path( $textdomain, dirname( $plugin ) );
-		}
-	}
 }
 unset( $plugin, $_wp_plugin_file, $plugin_data, $textdomain );
 
@@ -684,11 +688,11 @@ $GLOBALS['wp_locale_switcher']->init();
 foreach ( wp_get_active_and_valid_themes() as $theme ) {
 	$wp_theme = wp_get_theme( basename( $theme ) );
 
+	$wp_theme->load_textdomain();
+
 	if ( file_exists( $theme . '/functions.php' ) ) {
 		include $theme . '/functions.php';
 	}
-
-	$wp_theme->load_textdomain();
 }
 unset( $theme, $wp_theme );
 

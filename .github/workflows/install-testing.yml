@@ -43,7 +43,7 @@ jobs:
   # Determines the supported values for PHP and database versions based on the WordPress version being tested.
   build-test-matrix:
     name: Build Test Matrix
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-support-json-reader-v1.yml@trunk
+    uses: ./.github/workflows/reusable-support-json-reader-v1.yml
     permissions:
       contents: read
     secrets: inherit
@@ -69,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-24.04 ]
         php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
         db-type: [ 'mysql' ]
         db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
@@ -115,24 +115,28 @@ jobs:
 
     steps:
       - name: Set up PHP ${{ matrix.php }}
-        uses: shivammathur/setup-php@c541c155eee45413f5b09a52248675b1a2575231 # v2.31.1
+        uses: shivammathur/setup-php@9e72090525849c5e82e596468b86eb55e9cc5401 # v2.32.0
         with:
           php-version: '${{ matrix.php }}'
           coverage: none
-          tools: wp-cli${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && ':2.4.0' || '' }}
+          tools: ${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && 'wp-cli:2.4.0' || 'wp-cli' }}
 
       - name: Download WordPress
-        run: wp core download ${{ inputs.wp-version && format( '--version={0}', inputs.wp-version ) || '--version=nightly' }}
+        run: wp core download --version="${WP_VERSION}"
+        env:
+          WP_VERSION: ${{ inputs.wp-version || 'nightly' }}
 
       - name: Create wp-config.php file
-        run: wp config create --dbname=test_db --dbuser=root --dbpass=root --dbhost=127.0.0.1:${{ job.services.database.ports['3306'] }}
+        run: wp config create --dbname=test_db --dbuser=root --dbpass=root --dbhost="127.0.0.1:${DB_PORT}"
+        env:
+          DB_PORT: ${{ job.services.database.ports['3306'] }}
 
       - name: Install WordPress
-        run: wp core ${{ matrix.multisite && 'multisite-' || '' }}install --url=http://localhost/ --title="Upgrade Test" --admin_user=admin --admin_password=password --admin_email=me@example.org --skip-email
+        run: wp core ${{ matrix.multisite && 'multisite-install' || 'install' }} --url=http://localhost/ --title="Upgrade Test" --admin_user=admin --admin_password=password --admin_email=me@example.org --skip-email
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
@@ -148,7 +152,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ slack-notifications ]
@@ -175,6 +179,6 @@ jobs:
               workflow_id: 'failed-workflow.yml',
               ref: 'trunk',
               inputs: {
-                run_id: '${{ github.run_id }}'
+                run_id: `${context.runId}`,
               }
             });

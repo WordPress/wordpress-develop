@@ -3051,7 +3051,6 @@ function _navigation_markup( $links, $css_class = 'posts-navigation', $screen_re
 	 *
 	 * @param string $template  The default template.
 	 * @param string $css_class The class passed by the calling function.
-	 * @return string Navigation template.
 	 */
 	$template = apply_filters( 'navigation_markup_template', $template, $css_class );
 
@@ -4247,11 +4246,12 @@ function wp_shortlink_header() {
  * Call like the_shortlink( __( 'Shortlinkage FTW' ) )
  *
  * @since 3.0.0
+ * @since 6.8.0 Removed title attribute.
  *
- * @param string $text   Optional The link text or HTML to be displayed. Defaults to 'This is the short link.'
- * @param string $title  Optional The tooltip for the link. Must be sanitized. Defaults to the sanitized post title.
- * @param string $before Optional HTML to display before the link. Default empty.
- * @param string $after  Optional HTML to display after the link. Default empty.
+ * @param string $text   Optional. The link text or HTML to be displayed. Defaults to 'This is the short link.'
+ * @param string $title  Unused.
+ * @param string $before Optional. HTML to display before the link. Default empty.
+ * @param string $after  Optional. HTML to display after the link. Default empty.
  */
 function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
 	$post = get_post();
@@ -4260,14 +4260,10 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
 		$text = __( 'This is the short link.' );
 	}
 
-	if ( empty( $title ) ) {
-		$title = the_title_attribute( array( 'echo' => false ) );
-	}
-
 	$shortlink = wp_get_shortlink( $post->ID );
 
 	if ( ! empty( $shortlink ) ) {
-		$link = '<a rel="shortlink" href="' . esc_url( $shortlink ) . '" title="' . $title . '">' . $text . '</a>';
+		$link = '<a rel="shortlink" href="' . esc_url( $shortlink ) . '">' . $text . '</a>';
 
 		/**
 		 * Filters the short link anchor tag for a post.
@@ -4277,7 +4273,7 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
 		 * @param string $link      Shortlink anchor tag.
 		 * @param string $shortlink Shortlink URL.
 		 * @param string $text      Shortlink's text.
-		 * @param string $title     Shortlink's title attribute.
+		 * @param string $title     Shortlink's title attribute. Unused.
 		 */
 		$link = apply_filters( 'the_shortlink', $link, $shortlink, $text, $title );
 		echo $before, $link, $after;
