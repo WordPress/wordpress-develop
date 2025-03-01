@@ -637,6 +637,17 @@ function maybe_serialize( $data ) {
 	 * Also the world will end. See WP 3.6.1.
 	 */
 	if ( is_serialized( $data, false ) ) {
+		/**
+		 * Allows the developer to track double serialization in their projects.
+		 *
+		 * While not broken, double serialization increases the complexity of data structures, pose a performance
+		 * overhead and increases the cognitive load when reading code and data.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string $data Already serialized data.
+		 */
+		do_action( 'maybe_serialize_data_is_serialized', $data );
 		return serialize( $data );
 	}
 
