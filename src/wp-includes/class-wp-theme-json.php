@@ -578,7 +578,7 @@ class WP_Theme_JSON {
 	/**
 	 * Defines which pseudo selectors are enabled for which elements.
 	 *
-	 * The order of the selectors should be: link, any-link, visited, hover, focus, active.
+	 * The order of the selectors should be: link, any-link, visited, hover, focus, focus-visible, active.
 	 * This is to ensure the user action (hover, focus and active) styles have a higher
 	 * specificity than the visited styles, which in turn have a higher specificity than
 	 * the unvisited styles.
@@ -588,11 +588,12 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.1.0
 	 * @since 6.2.0 Added support for ':link' and ':any-link'.
+	 * @since 6.8.0 Added support for ':focus-visible'.
 	 * @var array
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
-		'link'   => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':active' ),
-		'button' => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':active' ),
+		'link'   => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
+		'button' => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
 	);
 
 	/**
@@ -2850,8 +2851,14 @@ class WP_Theme_JSON {
 
 				// Combine selectors with style variation's selector and add to overall style variation declarations.
 				foreach ( $variation_declarations as $current_selector => $new_declarations ) {
-					// If current selector includes block classname, remove it but leave the whitespace in.
-					$shortened_selector = str_replace( $block_metadata['selector'] . ' ', ' ', $current_selector );
+					/*
+					 * Clean up any whitespace between comma separated selectors.
+					 * This prevents these spaces breaking compound selectors such as:
+					 * - `.wp-block-list:not(.wp-block-list .wp-block-list)`
+					 * - `.wp-block-image img, .wp-block-image.my-class img`
+					 */
+					$clean_current_selector = preg_replace( '/,\s+/', ',', $current_selector );
+					$shortened_selector     = str_replace( $block_metadata['selector'], '', $clean_current_selector );
 
 					// Prepend the variation selector to the current selector.
 					$split_selectors    = explode( ',', $shortened_selector );
