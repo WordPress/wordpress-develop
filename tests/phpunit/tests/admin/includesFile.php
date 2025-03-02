@@ -452,7 +452,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 						'code' => 200,
 					),
 					'headers'  => array(
-						'content-type' => 'image/avif',
+						'content-type' => 'image/x-xbm',
 					),
 				);
 			},
