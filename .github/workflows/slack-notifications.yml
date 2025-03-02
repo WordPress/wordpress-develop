@@ -147,7 +147,7 @@ jobs:
         id: commit-message
         run: |
           # shellcheck disable=SC2016
-          COMMIT_MESSAGE="$(echo "${COMMIT_MSG_RAW}" | awk 'NR==1' | sed 's/`/\\`/g' | sed 's/\"/\\\\\\"/g' | sed 's/\$/\\$/g')"
+          COMMIT_MESSAGE="$(echo "${COMMIT_MSG_RAW}" | awk 'NR==1')"
           echo "commit_message_escaped=${COMMIT_MESSAGE}" >> "$GITHUB_OUTPUT"
         env:
           COMMIT_MSG_RAW: ${{ ( github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ) && fromJson( steps.current-commit-message.outputs.result ) || github.event.head_commit.message }}
