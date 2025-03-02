@@ -318,10 +318,10 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * @ticket 21022
 	 */
-	public function test_wp_check_password_does_not_support_md5_hashes() {
+	public function test_wp_check_password_supports_md5_hash() {
 		$password = 'password';
 		$hash     = md5( $password );
-		$this->assertFalse( wp_check_password( $password, $hash ) );
+		$this->assertTrue( wp_check_password( $password, $hash ) );
 		$this->assertSame( 1, did_filter( 'check_password' ) );
 	}
 
@@ -363,8 +363,6 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	public function data_empty_values() {
 		return array(
-			// Integer zero:
-			array( 0 ),
 			// String zero:
 			array( '0' ),
 			// Zero-length string:
@@ -1084,6 +1082,42 @@ class Tests_Auth extends WP_UnitTestCase {
 	 *
 	 * @ticket 21022
 	 */
+	public function test_md5_password_is_rehashed_after_successful_user_password_authentication( $username_or_email ) {
+		$password = 'password';
+
+		// Set the user password with the old md5 algorithm.
+		self::set_user_password_with_md5( $password, self::$user_id );
+
+		// Verify that the password needs rehashing.
+		$hash = get_userdata( self::$user_id )->user_pass;
+		$this->assertTrue( wp_password_needs_rehash( $hash, self::$user_id ) );
+
+		// Authenticate.
+		$user = wp_authenticate( $username_or_email, $password );
+
+		// Verify that the md5 password hash was valid.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+
+		// Verify that the password no longer needs rehashing.
+		$hash = get_userdata( self::$user_id )->user_pass;
+		$this->assertFalse( wp_password_needs_rehash( $hash, self::$user_id ) );
+
+		// Authenticate a second time to ensure the new hash is valid.
+		$user = wp_authenticate( $username_or_email, $password );
+
+		// Verify that the bcrypt password hash is valid.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+	}
+
+	/**
+	 * @dataProvider data_usernames
+	 *
+	 * @ticket 21022
+	 */
 	public function test_bcrypt_password_is_rehashed_with_new_cost_after_successful_user_password_authentication( $username_or_email ) {
 		$password = 'password';
 
@@ -1772,6 +1806,38 @@ class Tests_Auth extends WP_UnitTestCase {
 		clean_user_cache( $user_id );
 	}
 
+	/**
+	 * Test the tests
+	 *
+	 * @covers Tests_Auth::set_user_password_with_md5
+	 *
+	 * @ticket 21022
+	 */
+	public function test_set_user_password_with_md5() {
+		$password = 'password';
+
+		// Set the user password with the old md5 algorithm.
+		self::set_user_password_with_md5( $password, self::$user_id );
+
+		// Ensure the password is hashed with md5.
+		$hash = get_userdata( self::$user_id )->user_pass;
+		$this->assertSame( md5( $password ), $hash );
+	}
+
+	private static function set_user_password_with_md5( string $password, int $user_id ) {
+		global $wpdb;
+
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_pass' => md5( $password ),
+			),
+			array(
+				'ID' => $user_id,
+			)
+		);
+		clean_user_cache( $user_id );
+	}
 
 	/**
 	 * Test the tests
