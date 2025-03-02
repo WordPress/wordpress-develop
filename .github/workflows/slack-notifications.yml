@@ -143,18 +143,12 @@ jobs:
             });
             return commit_details.data.commit.message;
 
-      - name: Prepare commit message.
-        id: commit-message
-        run: |
-          # shellcheck disable=SC2016
-          COMMIT_MESSAGE="$(echo "${COMMIT_MSG_RAW}" | awk 'NR==1')"
-          echo "commit_message_escaped=${COMMIT_MESSAGE}" >> "$GITHUB_OUTPUT"
-        env:
-          COMMIT_MSG_RAW: ${{ ( github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ) && fromJson( steps.current-commit-message.outputs.result ) || github.event.head_commit.message }}
-
       - name: Construct payload and store as an output
         id: create-payload
         run: |
+          # shellcheck disable=SC2016
+          COMMIT_MSG="$(echo "${COMMIT_MSG_RAW}" | awk 'NR==1')"
+
           PAYLOAD="$( jq \
             -n \
             --arg workflow_name "${GITHUB_WORKFLOW}" \
@@ -165,7 +159,7 @@ jobs:
           )"
           echo "payload=$PAYLOAD" >> "$GITHUB_OUTPUT"
         env:
-          COMMIT_MSG: ${{ steps.commit-message.outputs.commit_message_escaped }}
+          COMMIT_MSG_RAW: ${{ ( github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ) && fromJson( steps.current-commit-message.outputs.result ) || github.event.head_commit.message }}
 
   # Posts notifications when a workflow fails.
   failure:
