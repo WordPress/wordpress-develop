@@ -247,6 +247,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'author_exclude' => 'author__not_in',
 			'exclude'        => 'post__not_in',
 			'include'        => 'post__in',
+			'ignore_sticky'  => 'ignore_sticky_posts',
 			'menu_order'     => 'menu_order',
 			'offset'         => 'offset',
 			'order'          => 'order',
@@ -337,6 +338,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
+		/*
+		 * Honor the original REST API `post__in` behavior. Don't prepend sticky posts
+		 * when `post__in` has been specified.
+		 */
+		if ( ! empty( $args['post__in'] ) ) {
+			unset( $args['ignore_sticky_posts'] );
+		}
+
 		if (
 			isset( $registered['search_semantics'], $request['search_semantics'] )
 			&& 'exact' === $request['search_semantics']
@@ -346,7 +355,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$args = $this->prepare_tax_query( $args, $request );
 
-		if ( ! empty( $request['format'] ) ) {
+		if ( isset( $registered['format'], $request['format'] ) ) {
 			$formats = $request['format'];
 			/*
 			 * The relation needs to be set to `OR` since the request can contain
@@ -457,7 +466,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			remove_filter( 'post_password_required', array( $this, 'check_password_required' ) );
 		}
 
-		$page        = (int) $query_args['paged'];
+		$page        = isset( $query_args['paged'] ) ? (int) $query_args['paged'] : 0;
 		$total_posts = $posts_query->found_posts;
 
 		if ( $total_posts < 1 && $page > 1 ) {
@@ -3044,6 +3053,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$query_params['sticky'] = array(
 				'description' => __( 'Limit result set to items that are sticky.' ),
 				'type'        => 'boolean',
+			);
+
+			$query_params['ignore_sticky'] = array(
+				'description' => __( 'Whether to ignore sticky posts or not.' ),
+				'type'        => 'boolean',
+				'default'     => false,
 			);
 		}
 
