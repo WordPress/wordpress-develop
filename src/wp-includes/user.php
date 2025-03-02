@@ -660,29 +660,23 @@ function count_user_posts( $userid, $post_type = 'post', $public_only = false ) 
 function count_many_users_posts( $users, $post_type = 'post', $public_only = false ) {
 	global $wpdb;
 
-	/**
-	 * Short-circuits counting of users' posts.
-	 *
-	 * @since 6.8.0
-	 *
-	 * @param bool $skip_count Whether to skip counting the users' posts. Default false.
-	 */
-	if ( apply_filters( 'skip_count_many_users_posts', false ) ) {
-		return array();
-	}
-
+	$count = array();
 	if ( empty( $users ) || ! is_array( $users ) ) {
-		return array();
+		return $count;
 	}
 
-	$userlist = implode( ',', wp_parse_id_list( $users ) );
+	$userlist = implode( ',', array_map( 'absint', $users ) );
 	$where    = get_posts_by_author_sql( $post_type, true, null, $public_only );
 
 	$result = $wpdb->get_results( "SELECT post_author, COUNT(*) FROM $wpdb->posts $where AND post_author IN ($userlist) GROUP BY post_author", ARRAY_N );
-
-	$count = array_fill_keys( $userlist, 0 );
 	foreach ( $result as $row ) {
 		$count[ $row[0] ] = $row[1];
+	}
+
+	foreach ( $users as $id ) {
+		if ( ! isset( $count[ $id ] ) ) {
+			$count[ $id ] = 0;
+		}
 	}
 
 	return $count;
