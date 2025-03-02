@@ -146,9 +146,7 @@ jobs:
       - name: Construct payload and store as an output
         id: create-payload
         run: |
-          # shellcheck disable=SC2016
           COMMIT_MSG="$(echo "${COMMIT_MSG_RAW}" | awk 'NR==1')"
-
           PAYLOAD="$( jq \
             -n \
             --arg workflow_name "${GITHUB_WORKFLOW}" \
