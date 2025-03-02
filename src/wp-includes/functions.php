@@ -9142,7 +9142,7 @@ function wp_fast_hash(
 	#[\SensitiveParameter]
 	string $message
 ): string {
-	$hashed = sodium_crypto_generichash( $message, 'wp_fast_hash_6.8+' );
+	$hashed = sodium_crypto_generichash( $message, 'wp_fast_hash_6.8+', 30 );
 	return '$generic$' . sodium_bin2base64( $hashed, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING );
 }
 
