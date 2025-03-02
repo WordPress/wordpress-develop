@@ -1824,8 +1824,8 @@ function wp_transition_comment_status( $new_status, $old_status, $comment ) {
 		 *
 		 * @since 2.7.0
 		 *
-		 * @param int|string $new_status The new comment status.
-		 * @param int|string $old_status The old comment status.
+		 * @param string     $new_status The new comment status.
+		 * @param string     $old_status The old comment status.
 		 * @param WP_Comment $comment    Comment object.
 		 */
 		do_action( 'transition_comment_status', $new_status, $old_status, $comment );
@@ -2074,7 +2074,7 @@ function wp_insert_comment( $commentdata ) {
 
 	$id = (int) $wpdb->insert_id;
 
-	if ( 1 === (int) $comment_approved ) {
+	if ( 1 === $comment_approved ) {
 		wp_update_comment_count( $comment_post_id );
 
 		$data = array();
