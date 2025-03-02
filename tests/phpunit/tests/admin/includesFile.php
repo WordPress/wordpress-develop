@@ -391,10 +391,13 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 54738
+	 * Test that `download_url()` properly handles setting the file name when set using 
+	 * the content type header on URLs with no file extension.
+	 *
 	 * @dataProvider data_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined
 	 *
 	 * @covers ::download_url
+	 * @ticket 54738
 	 *
 	 * @param string $filter A callback containing a fake Content-Type header.
 	 * @param string $ext The expected file extension to match. 
