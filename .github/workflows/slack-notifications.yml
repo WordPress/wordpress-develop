@@ -135,6 +135,7 @@ jobs:
         with:
           retries: 2
           retry-exempt-status-codes: 418
+          result-encoding: string
           script: |
             const commit_details = await github.rest.repos.getCommit({
               owner: context.repo.owner,
