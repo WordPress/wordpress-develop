@@ -1075,4 +1075,26 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		$this->assertArrayHasKey( 'url', $response->get_data()['data']['details'] );
 		$this->assertSame( 'rest_invalid_type', $response->get_data()['data']['details']['url']['code'] );
 	}
+
+	/**
+	 * @ticket 61842
+	 * @covers ::create_item
+	 */
+	public function test_create_item_invalid_type_for_url_arrays() {
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/menu-items' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
+		$params = $this->set_menu_item_data(
+			array(
+				'type' => 'custom',
+				'url'  => array( 'https://example.com', 'http://example.org' ),
+			)
+		);
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertArrayHasKey( 'url', $response->get_data()['data']['details'] );
+		$this->assertSame( 'rest_invalid_type', $response->get_data()['data']['details']['url']['code'] );
+	}
 }
