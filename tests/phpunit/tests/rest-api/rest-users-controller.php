@@ -254,7 +254,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		if ( 'HEAD' === $method ) {
-			$this->assertNull( $response->get_data(), 'Expected null response data for HEAD request, but received non-null data.' );
+			$this->assertSame( array(), $response->get_data(), 'Expected null response data for HEAD request, but received non-null data.' );
 			return null;
 		}
 
@@ -3251,7 +3251,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		if ( 'HEAD' !== $method ) {
 			return null;
 		}
-		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
 	/**
@@ -3272,7 +3272,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertSame( 200, $response->get_status() );
 		if ( $is_head_request ) {
-			$this->assertNull( $response->get_data() );
+			$this->assertSame( array(), $response->get_data() );
 		} else {
 			$this->assertNotEmpty( $response->get_data() );
 		}
