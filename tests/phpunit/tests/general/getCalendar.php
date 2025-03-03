@@ -30,6 +30,13 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 				'post_date' => '2025-02-01 12:00:00',
 			)
 		);
+
+		self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+				'post_date' => '2025-02-03 12:00:00',
+			)
+		);
 	}
 
 	/**
@@ -67,13 +74,6 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 	 * @ticket 34093
 	 */
 	public function test_get_calendar_args_filter() {
-		self::factory()->post->create(
-			array(
-				'post_type' => 'page',
-				'post_date' => '2025-02-03 12:00:00',
-			)
-		);
-
 		add_filter(
 			'get_calendar_args',
 			function ( $args ) {
@@ -97,13 +97,6 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 	 * @ticket 34093
 	 */
 	public function test_get_calendar_post_type_args() {
-		self::factory()->post->create(
-			array(
-				'post_type' => 'page',
-				'post_date' => '2025-02-03 12:00:00',
-			)
-		);
-
 		$calendar_html = get_echo( 'get_calendar', array( array( 'post_type' => 'page' ) ) );
 
 		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">M</th>', $calendar_html, 'Calendar is expected to display Mondays' );
