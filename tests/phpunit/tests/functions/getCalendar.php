@@ -53,7 +53,7 @@ class Tests_Get_Calendar extends WP_UnitTestCase {
 			array(
 				'post_type'     => 'page',
 				'post_date'     => '2025-02-03 12:00:00',
-				'post_date_gmt' => '2025-02-03 12:00:00',
+				'post_date_gmt' => get_gmt_from_date( '2025-02-03 12:00:00' ),
 			)
 		);
 
