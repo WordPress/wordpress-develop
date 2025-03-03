@@ -55,7 +55,7 @@
 		</nav><!-- #site-navigation -->
 
 		<?php if ( get_header_image() ) : ?>
-		<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php twentytwelve_header_image(); ?></a>
+		<a href="<?php echo esc_url( home_url( '/' ) ); ?>" <?php echo $is_front ? 'aria-current="page"' : ''; ?> rel="home"><?php twentytwelve_header_image(); ?></a>
 		<?php endif; ?>
 	</header><!-- #masthead -->
 
