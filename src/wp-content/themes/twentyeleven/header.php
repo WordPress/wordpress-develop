@@ -98,7 +98,7 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 					$header_image_width = HEADER_IMAGE_WIDTH;
 				}
 				?>
-			<a href="<?php echo esc_url( home_url( '/' ) ); ?>">
+			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>>
 				<?php
 				/*
 				 * The header image.
