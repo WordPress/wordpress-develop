@@ -42,7 +42,8 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 		 * Navigate to February 2025.
 		 *
 		 * All posts within this test suite are published in February 2025,
-		 * so the it goes to the calendar's month view for that month.
+		 * navigating to the month ensures that the correct month is displayed
+		 * in the calendar to allow the assertions to pass.
 		 */
 		$this->go_to( '/?m=202502' );
 	}
