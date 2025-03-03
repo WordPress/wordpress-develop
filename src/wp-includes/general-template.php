@@ -2292,7 +2292,14 @@ function get_calendar( $args = array() ) {
 	 */
 	$args = apply_filters( 'get_calendar_args', wp_parse_args( $args, $defaults ) );
 
-	$key   = md5( $m . $monthnum . $year );
+	if ( ! post_type_exists( $args['post_type'] ) ) {
+		$args['post_type'] = 'post';
+	}
+
+	$cache_args = $args;
+	unset( $cache_args['display'] );
+	ksort( $cache_args );
+	$key   = md5( $m . $monthnum . $year . serialize( $cache_args ) );
 	$cache = wp_cache_get( 'get_calendar', 'calendar' );
 
 	if ( $cache && is_array( $cache ) && isset( $cache[ $key ] ) ) {
@@ -2312,9 +2319,6 @@ function get_calendar( $args = array() ) {
 	}
 
 	$post_type = $args['post_type'];
-	if ( ! post_type_exists( $post_type ) ) {
-		$post_type = 'post';
-	}
 
 	// Quick check. If we have no posts at all, abort!
 	if ( ! $posts ) {
