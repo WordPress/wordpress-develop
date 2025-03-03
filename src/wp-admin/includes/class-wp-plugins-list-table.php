@@ -205,6 +205,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				$plugin_data = array_merge( (array) $plugin_info->response[ $plugin_file ], array( 'update-supported' => true ), $plugin_data );
 			} elseif ( isset( $plugin_info->no_update[ $plugin_file ] ) ) {
 				$plugin_data = array_merge( (array) $plugin_info->no_update[ $plugin_file ], array( 'update-supported' => true ), $plugin_data );
+			} elseif ( isset( $plugin_info->closed[ $plugin_file ] ) ) {
+				$plugin_data = array_merge( (array) $plugin_info->closed[ $plugin_file ], array( 'update-supported' => false, 'closed' => true ), $plugin_data );
 			} elseif ( empty( $plugin_data['update-supported'] ) ) {
 				$plugin_data['update-supported'] = false;
 			}
@@ -1120,6 +1122,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			! $compatible_wp
 		) {
 			$class .= ' update';
+		}
+
+		if ( ! empty( $plugin_data['closed'] ) ) {
+			$class .= ' closed';
 		}
 
 		$paused = ! $screen->in_admin( 'network' ) && is_plugin_paused( $plugin_file );

@@ -1540,6 +1540,7 @@ div.error {
 }
 
 .update-message p:before,
+.closed-message p:before,
 .updating-message p:before,
 .updated-message p:before,
 .import-php .updating-message:before,
@@ -1600,6 +1601,12 @@ div.error {
 .plugins .column-auto-updates .dashicons-update.spin,
 .theme-overlay .theme-autoupdate .dashicons-update.spin {
 	animation: rotation 2s infinite linear;
+}
+
+/* Closed icon */
+.closed-message p:before {
+	color: #d63638;
+	content: "\f534";
 }
 
 @media (prefers-reduced-motion: reduce) {

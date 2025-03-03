@@ -1283,6 +1283,8 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 
 .plugins tr.active.plugin-update-tr + tr.inactive th,
 .plugins tr.active.plugin-update-tr + tr.inactive td,
+.plugins tr.active.plugin-closed-tr + tr.inactive th,
+.plugins tr.active.plugin-closed-tr + tr.inactive td,
 .plugins tr.active + tr.inactive th,
 .plugins tr.active + tr.inactive td {
 	border-top: 1px solid rgba(0, 0, 0, 0.03);
@@ -1291,19 +1293,26 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 
 .plugins .update td,
 .plugins .update th,
+.plugins .closed td,
+.plugins .closed th,
 .upgrade .plugins tr:last-of-type td,
 .upgrade .plugins tr:last-of-type th,
 .plugins tr.active + tr.inactive.update th,
 .plugins tr.active + tr.inactive.update td,
+.plugins tr.active + tr.inactive.closed th,
+.plugins tr.active + tr.inactive.closed td,
 .plugins .updated td,
 .plugins .updated th,
 .plugins tr.active + tr.inactive.updated th,
-.plugins tr.active + tr.inactive.updated td {
+.plugins tr.active + tr.inactive.updated td,
+.plugins tr.active + tr.inactive.closed th,
+.plugins tr.active + tr.inactive.closed td {
 	box-shadow: none;
 }
 
 .plugins .active th.check-column,
-.plugin-update-tr.active td {
+.plugin-update-tr.active td,
+.plugin-closed-tr.active td {
 	border-left: 4px solid #72aee6;
 }
 
@@ -1365,13 +1374,15 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	border-top-width: 1px;
 }
 
-.plugins .plugin-update-tr .plugin-update {
+.plugins .plugin-update-tr .plugin-update,
+.plugins .plugin-closed-tr .plugin-closed {
 	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 	overflow: hidden; /* clearfix */
 	padding: 0;
 }
 
 .plugins .plugin-update-tr .notice,
+.plugins .plugin-closed-tr .notice,
 .plugins .plugin-update-tr div[class="update-message"] { /* back-compat for pre-4.6 */
 	margin: 5px 20px 15px 40px;
 }
@@ -2272,7 +2283,8 @@ div.action-links,
 
 	.plugins tr.active + tr.inactive th.check-column,
 	.plugins tr.active + tr.inactive td.column-description,
-	.plugins .plugin-update-tr:before {
+	.plugins .plugin-update-tr:before,
+	.plugins .plugin-closed-tr:before {
 		box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 	}
 
@@ -2282,26 +2294,32 @@ div.action-links,
 	}
 
 	/* mimic the checkbox th */
-	.plugins .plugin-update-tr:before {
+	.plugins .plugin-update-tr:before,
+	.plugins .plugin-closed-tr:before  {
 		content: "";
 		display: table-cell;
 	}
 
-	.plugins #the-list .plugin-update-tr .plugin-update {
+	.plugins #the-list .plugin-update-tr .plugin-update,
+	.plugins #the-list .plugin-closed-tr .plugin-closed {
 		border-left: none;
 	}
 
-	.plugin-update-tr .update-message {
+	.plugin-update-tr .update-message,
+	.plugin-closed-tr .closed-message {
 		margin-left: 0;
 	}
 
 	.plugins .active.update + .plugin-update-tr:before,
-	.plugins .active.updated + .plugin-update-tr:before {
+	.plugins .active.updated + .plugin-update-tr:before,
+	.plugins .active.update + .plugin-closed-tr:before,
+	.plugins .active.updated + .plugin-closed-tr:before {
 		background-color: #f0f6fc;
 		border-left: 4px solid #72aee6;
 	}
 
-	.plugins .plugin-update-tr .update-message {
+	.plugins .plugin-update-tr .update-message,
+	.plugins .plugin-closed-tr .closed-message {
 		margin-left: 0;
 	}
 
