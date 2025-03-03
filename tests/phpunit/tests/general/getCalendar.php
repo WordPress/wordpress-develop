@@ -34,13 +34,16 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 
 	/**
 	 * Set up for each test.
-	 *
-	 * Navigate the calendar to February 2025.
 	 */
 	public function set_up() {
 		parent::set_up();
 
-		// Set the current date to February 2025.
+		/*
+		 * Navigate to February 2025.
+		 *
+		 * All posts within this test suite are published in February 2025,
+		 * so the it goes to the calendar's month view for that month.
+		 */
 		$this->go_to( '/?m=202502' );
 	}
 
