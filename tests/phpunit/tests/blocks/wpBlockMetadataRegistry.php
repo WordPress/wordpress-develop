@@ -4,6 +4,7 @@
  * Tests for WP_Block_Metadata_Registry class.
  *
  * @group blocks
+ * @coversDefaultClass WP_Block_Metadata_Registry
  */
 class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 
@@ -187,5 +188,36 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 
 		$result = WP_Block_Metadata_Registry::register_collection( '/var/arbitrary/path', $non_existent_manifest );
 		$this->assertFalse( $result, 'Non-existent manifest should not be registered' );
+	}
+
+	/**
+	 * Tests that the `get_collection_block_metadata_files()` method returns the expected list of block metadata files.
+	 *
+	 * @ticket 62267
+	 * @covers ::get_collection_block_metadata_files
+	 */
+	public function test_get_collection_block_metadata_files() {
+		$path          = WP_PLUGIN_DIR . '/test-plugin/data/block-types';
+		$manifest_data = array(
+			'a-block'       => array(
+				'name'  => 'a-block',
+				'title' => 'A Block',
+			),
+			'another-block' => array(
+				'name'  => 'another-block',
+				'title' => 'Another Block',
+			),
+		);
+
+		file_put_contents( $this->temp_manifest_file, '<?php return ' . var_export( $manifest_data, true ) . ';' );
+
+		$this->assertTrue( WP_Block_Metadata_Registry::register_collection( $path, $this->temp_manifest_file ) );
+		$this->assertSame(
+			array(
+				WP_PLUGIN_DIR . '/test-plugin/data/block-types/a-block/block.json',
+				WP_PLUGIN_DIR . '/test-plugin/data/block-types/another-block/block.json',
+			),
+			WP_Block_Metadata_Registry::get_collection_block_metadata_files( $path )
+		);
 	}
 }

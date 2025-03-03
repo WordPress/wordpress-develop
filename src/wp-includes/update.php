@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Checks WordPress version against the newest version.
  *
- * The WordPress version, PHP version, and locale is sent.
+ * The WordPress version, PHP version, and locale is sent to api.wordpress.org.
  *
  * Checks against the WordPress server at api.wordpress.org. Will only check
  * if WordPress isn't installing.
@@ -306,7 +306,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
  *
  * Despite its name this function does not actually perform any updates, it only checks for available updates.
  *
- * A list of all plugins installed is sent to WP, along with the site locale.
+ * A list of all plugins installed is sent to api.wordpress.org, along with the site locale.
  *
  * Checks against the WordPress server at api.wordpress.org. Will only check
  * if WordPress isn't installing.
@@ -578,7 +578,7 @@ function wp_update_plugins( $extra_stats = array() ) {
  *
  * Despite its name this function does not actually perform any updates, it only checks for available updates.
  *
- * A list of all themes installed is sent to WP, along with the site locale.
+ * A list of all themes installed is sent to api.wordpress.org, along with the site locale.
  *
  * Checks against the WordPress server at api.wordpress.org. Will only check
  * if WordPress isn't installing.
@@ -891,7 +891,12 @@ function wp_get_translation_updates() {
  *
  * @since 3.3.0
  *
- * @return array
+ * @return array {
+ *     Fetched update data.
+ *
+ *     @type int[]   $counts       An array of counts for available plugin, theme, and WordPress updates.
+ *     @type string  $update_title Titles of available updates.
+ * }
  */
 function wp_get_update_data() {
 	$counts = array(
