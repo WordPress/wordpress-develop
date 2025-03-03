@@ -25,13 +25,12 @@ $header_class = $show_title ? 'site-title' : 'screen-reader-text';
 	<?php endif; ?>
 
 	<?php if ( $blog_info ) : ?>
-		<?php $is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) ); ?>
 		<?php if ( is_front_page() && ! is_paged() ) : ?>
 			<h1 class="<?php echo esc_attr( $header_class ); ?>"><?php echo esc_html( $blog_info ); ?></h1>
 		<?php elseif ( is_front_page() && ! is_home() ) : ?>
-			<h1 class="<?php echo esc_attr( $header_class ); ?>"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php echo esc_html( $blog_info ); ?></a></h1>
+			<h1 class="<?php echo esc_attr( $header_class ); ?>"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php echo esc_html( $blog_info ); ?></a></h1>
 		<?php else : ?>
-			<p class="<?php echo esc_attr( $header_class ); ?>"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php echo esc_html( $blog_info ); ?></a></p>
+			<p class="<?php echo esc_attr( $header_class ); ?>"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php echo esc_html( $blog_info ); ?></a></p>
 		<?php endif; ?>
 	<?php endif; ?>
 
