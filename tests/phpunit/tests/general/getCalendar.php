@@ -120,7 +120,7 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that get_calendar() cache for different arguments.
+	 * Test that get_calendar() uses a different cache for different arguments.
 	 *
 	 * @ticket 34093
 	 */
@@ -129,6 +129,47 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 		$second_calendar_html = get_echo( 'get_calendar', array( array( 'post_type' => 'page' ) ) );
 
 		$this->assertNotSame( $first_calendar_html, $second_calendar_html, 'Each calendar should be different' );
+	}
+
+	/**
+	 * Test that get_calendar() uses the same cache for equivalent arguments.
+	 *
+	 * @ticket 34093
+	 */
+	public function test_get_calendar_caching_accounts_for_equivalent_args() {
+		get_echo( 'get_calendar', array( array( 'post_type' => 'page' ) ) );
+
+		$num_queries_start = get_num_queries();
+		get_echo(
+			'get_calendar',
+			array(
+				array(
+					'post_type' => 'page',
+					'initial'   => true,
+				),
+			)
+		);
+
+		get_echo(
+			'get_calendar',
+			array(
+				array(
+					'initial'   => true,
+					'post_type' => 'page',
+				),
+			)
+		);
+
+		get_calendar(
+			array(
+				'post_type' => 'page',
+				'initial'   => true,
+				'display'   => false,
+			)
+		);
+		$num_queries_end = get_num_queries();
+
+		$this->assertSame( 0, $num_queries_end - $num_queries_start, 'Cache should be hit for subsequent equivalent calendar queries.' );
 	}
 
 	/**
