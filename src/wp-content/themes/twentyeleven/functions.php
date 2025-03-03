@@ -213,6 +213,17 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 
 		add_theme_support( 'custom-header', $custom_header_support );
 
+		// Enable support for custom logo.
+		add_theme_support(
+			'custom-logo',
+			array(
+				'height'      => 100,
+				'width'       => 300,
+				'flex-height' => true,
+				'flex-width'  => true,
+			)
+		);
+
 		if ( ! function_exists( 'get_custom_header' ) ) {
 			// This is all for compatibility with versions of WordPress prior to 3.4.
 			define( 'HEADER_TEXTCOLOR', $custom_header_support['default-text-color'] );
@@ -344,6 +355,9 @@ if ( ! function_exists( 'twentyeleven_header_style' ) ) :
 		#site-description {
 			position: absolute;
 			clip-path: inset(50%);
+		}
+		#site-logo {
+			margin-bottom: 3.65625em;
 		}
 			<?php
 			// If the user has set a custom color for the text, use that.

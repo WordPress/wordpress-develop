@@ -539,6 +539,17 @@ a.assistive-text:focus,
 	position: relative;
 	z-index: 9999;
 }
+#site-logo {
+	float: left;
+	margin: 0 1.4em 3.65625em 0;
+	padding: 3.65625em 0 0;
+}
+#site-logo + #site-title {
+	clear: none;
+}
+#site-logo + #site-title + #site-description {
+	clear: none;
+}
 #site-title {
 	margin-right: 270px;
 	padding: 3.65625em 0 0;
@@ -564,6 +575,9 @@ a.assistive-text:focus,
 	height: auto;
 	display: block;
 	width: 100%;
+}
+#branding img.custom-logo {
+	width: auto;
 }
 
 
@@ -2545,8 +2559,16 @@ p.comment-form-comment {
 	blockquote.pull {
 		font-size: 17px;
 	}
-	/* Reposition the site title and description slightly */
-	#site-title {
+	/* Reposition the site logo, site title and description slightly */
+	#site-logo {
+		float: none;
+		margin-bottom: .65em;
+	}
+	#site-logo + #site-title {
+		padding-top: 1.25em;
+	}
+	#site-title,
+	#site-logo {
 		padding: 5.30625em 0 0;
 	}
 	#site-title,

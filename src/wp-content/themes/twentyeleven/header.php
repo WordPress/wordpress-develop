@@ -78,8 +78,15 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 <div id="page" class="hfeed">
 	<header id="branding">
 			<hgroup>
-				<h1 id="site-title"><span><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></span></h1>
-				<h2 id="site-description"><?php bloginfo( 'description' ); ?></h2>
+				<?php if ( has_custom_logo() ) : ?>
+					<div id="site-logo"><span><?php echo get_custom_logo(); ?></span></div>
+				<?php endif; ?>
+				<?php if ( get_bloginfo( 'name' ) ) : ?>
+					<h1 id="site-title"><span><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></span></h1>
+				<?php endif; ?>
+				<?php if ( get_bloginfo( 'description' ) ) : ?>
+					<h2 id="site-description"><?php bloginfo( 'description' ); ?></h2>
+				<?php endif; ?>
 			</hgroup>
 
 			<?php

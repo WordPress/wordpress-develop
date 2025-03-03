@@ -549,6 +549,14 @@ function twentyeleven_customize_register( $wp_customize ) {
 				'render_callback'     => 'twentyeleven_customize_partial_blogdescription',
 			)
 		);
+		$wp_customize->selective_refresh->add_partial(
+			'custom_logo',
+			array(
+				'selector'            => '#site-logo',
+				'render_callback'     => 'twentyeleven_customize_partial_site_logo',
+				'container_inclusive' => false,
+			)
+		);
 	}
 
 	$options  = twentyeleven_get_theme_options();
@@ -663,6 +671,17 @@ function twentyeleven_customize_partial_blogname() {
  */
 function twentyeleven_customize_partial_blogdescription() {
 	bloginfo( 'description' );
+}
+
+if ( ! function_exists( 'twentyeleven_customize_partial_site_logo' ) ) {
+	/**
+	 * Render the site logo for the selective refresh partial.
+	 *
+	 * Doing it this way so we don't have issues with `render_callback`'s arguments.
+	 */
+	function twentyeleven_customize_partial_site_logo() {
+		echo get_custom_logo();
+	}
 }
 
 /**
