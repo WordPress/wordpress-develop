@@ -81,8 +81,6 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 
 		$calendar_html = get_echo( 'get_calendar' );
 
-		remove_all_filters( 'get_calendar_args' );
-
 		$this->assertStringContainsString( '<table id="wp-calendar"', $calendar_html );
 		$this->assertStringContainsString( 'Posts published on February 3, 2025', $calendar_html );
 		$this->assertStringContainsString( 'February 2025', $calendar_html );
