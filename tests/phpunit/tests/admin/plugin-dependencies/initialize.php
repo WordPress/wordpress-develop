@@ -16,6 +16,68 @@ require_once __DIR__ . '/base.php';
 class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_UnitTestCase {
 
 	/**
+	 * Tests that initialization runs only once.
+	 *
+	 * @ticket 60457
+	 *
+	 * @dataProvider data_static_properties_set_during_initialization
+	 *
+	 * @param string $property_name The name of the property to check.
+	 */
+	public function test_should_only_initialize_once( $property_name ) {
+		$this->assertFalse(
+			$this->get_property_value( 'initialized' ),
+			'Plugin Dependencies has already been initialized.'
+		);
+
+		self::$instance->initialize();
+
+		$this->assertTrue(
+			$this->get_property_value( 'initialized' ),
+			'"initialized" was not set to true during initialization.'
+		);
+
+		$default_value = self::$static_properties[ $property_name ];
+
+		$this->assertNotSame(
+			$default_value,
+			$this->get_property_value( $property_name ),
+			"\"{$property_name}\" was not set during initialization."
+		);
+
+		// Reset it to its default.
+		$this->set_property_value( $property_name, self::$static_properties[ $property_name ] );
+
+		self::$instance->initialize();
+
+		$this->assertSame(
+			$default_value,
+			$this->get_property_value( $property_name ),
+			"\"{$property_name}\" was set during the second initialization attempt."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_static_properties_set_during_initialization() {
+		/*
+		 * This does not include 'dependency_api_data' as it is only set
+		 * on certain pages. This is tested later.
+		 */
+		return self::text_array_to_dataprovider(
+			array(
+				'plugins',
+				'dependencies',
+				'dependency_slugs',
+				'dependent_slugs',
+			)
+		);
+	}
+
+	/**
 	 * Tests that `$dependency_api_data` is set on certain screens.
 	 *
 	 * @ticket 22316
@@ -237,100 +299,5 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 
 		self::$instance->initialize();
 		$this->assertSame( $expected_slugs, $this->get_property_value( 'dependent_slugs' ) );
-	}
-
-	/**
-	 * Tests that dependents with unmet dependencies are deactivated.
-	 *
-	 * @ticket 22316
-	 *
-	 * @covers WP_Plugin_Dependencies::deactivate_dependents_with_unmet_dependencies
-	 * @covers WP_Plugin_Dependencies::has_unmet_dependencies
-	 * @covers WP_Plugin_Dependencies::get_active_dependents_in_dependency_tree
-	 *
-	 * @dataProvider data_should_only_deactivate_dependents_with_unmet_dependencies
-	 *
-	 * @param array $active_plugins An array of active plugin paths.
-	 * @param array $plugins        An array of installed plugins.
-	 * @param array $expected       The expected value of 'active_plugins' after initialization.
-	 */
-	public function test_should_deactivate_dependents_with_uninstalled_dependencies( $active_plugins, $plugins, $expected ) {
-		update_option( 'active_plugins', $active_plugins );
-
-		$this->set_property_value( 'plugins', $plugins );
-		self::$instance::initialize();
-
-		$this->assertSame( $expected, array_values( get_option( 'active_plugins', array() ) ) );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public function data_should_only_deactivate_dependents_with_unmet_dependencies() {
-		return array(
-			'a dependent with an uninstalled dependency' => array(
-				'active_plugins' => array( 'dependent/dependent.php' ),
-				'plugins'        => array(
-					'dependent/dependent.php' => array( 'RequiresPlugins' => 'dependency' ),
-				),
-				'expected'       => array(),
-			),
-			'a dependent with an inactive dependency'    => array(
-				'active_plugins' => array( 'dependent/dependent.php' ),
-				'plugins'        => array(
-					'dependent/dependent.php'   => array( 'RequiresPlugins' => 'dependency' ),
-					'dependency/dependency.php' => array( 'RequiresPlugins' => '' ),
-				),
-				'expected'       => array(),
-			),
-			'a dependent with two dependencies, one uninstalled, one inactive' => array(
-				'active_plugins' => array( 'dependent/dependent.php' ),
-				'plugins'        => array(
-					'dependent/dependent.php'     => array( 'RequiresPlugins' => 'dependency, dependency2' ),
-					'dependency2/dependency2.php' => array( 'RequiresPlugins' => '' ),
-				),
-				'expected'       => array(),
-			),
-			'a dependent with a dependency that is installed and active' => array(
-				'active_plugins' => array( 'dependent/dependent.php', 'dependency/dependency.php' ),
-				'plugins'        => array(
-					'dependent/dependent.php'   => array( 'RequiresPlugins' => 'dependency' ),
-					'dependency/dependency.php' => array( 'RequiresPlugins' => '' ),
-				),
-				'expected'       => array( 'dependent/dependent.php', 'dependency/dependency.php' ),
-			),
-			'one dependent with two dependencies that are installed and active' => array(
-				'active_plugins' => array(
-					'dependent/dependent.php',
-					'dependency/dependency.php',
-					'dependency2/dependency2.php',
-				),
-				'plugins'        => array(
-					'dependent/dependent.php'     => array( 'RequiresPlugins' => 'dependency, dependency2' ),
-					'dependency/dependency.php'   => array( 'RequiresPlugins' => '' ),
-					'dependency2/dependency2.php' => array( 'RequiresPlugins' => '' ),
-				),
-				'expected'       => array(
-					'dependent/dependent.php',
-					'dependency/dependency.php',
-					'dependency2/dependency2.php',
-				),
-			),
-			'two dependents, one with an uninstalled dependency, and one with an active dependency' => array(
-				'active_plugins' => array(
-					'dependent/dependent.php',
-					'dependent2/dependent2.php',
-					'dependency2/dependency2.php',
-				),
-				'plugins'        => array(
-					'dependent/dependent.php'     => array( 'RequiresPlugins' => 'dependency' ),
-					'dependent2/dependent2.php'   => array( 'RequiresPlugins' => 'dependency2' ),
-					'dependency2/dependency2.php' => array( 'RequiresPlugins' => '' ),
-				),
-				'expected'       => array( 'dependent2/dependent2.php', 'dependency2/dependency2.php' ),
-			),
-		);
 	}
 }

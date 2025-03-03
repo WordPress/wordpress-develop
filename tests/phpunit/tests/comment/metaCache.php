@@ -7,6 +7,14 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	protected $queries = 0;
 
 	/**
+	 * Performs setup tasks for every test.
+	 */
+	public function set_up() {
+		parent::set_up();
+		switch_theme( 'default' );
+	}
+
+	/**
 	 * @ticket 16894
 	 *
 	 * @covers ::update_comment_meta

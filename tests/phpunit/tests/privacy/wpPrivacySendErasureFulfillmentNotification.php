@@ -99,6 +99,58 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	}
 
 	/**
+	 * The function should not send an email when the request ID does not exist.
+	 *
+	 * @ticket 44234
+	 */
+	public function test_should_not_send_email_when_not_a_valid_request_id() {
+		_wp_privacy_send_erasure_fulfillment_notification( 1234567890 );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertEmpty( $mailer->mock_sent );
+	}
+
+	/**
+	 * The function should not send an email when the ID passed does not correspond to a user request.
+	 *
+	 * @ticket 44234
+	 */
+	public function test_should_not_send_email_when_not_a_user_request() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type' => 'post', // Should be 'user_request'.
+			)
+		);
+
+		_wp_privacy_send_erasure_fulfillment_notification( $post_id );
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertEmpty( $mailer->mock_sent );
+	}
+
+	/**
+	 * The function should not send an email when the request is not completed.
+	 *
+	 * @ticket 44234
+	 */
+	public function test_should_not_send_email_when_request_not_completed() {
+		wp_update_post(
+			array(
+				'ID'          => self::$request_id,
+				'post_status' => 'request-confirmed', // Should be 'request-completed'.
+			)
+		);
+
+		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertEmpty( $mailer->mock_sent );
+		$this->assertFalse( metadata_exists( 'post', self::$request_id, '_wp_user_notified' ) );
+	}
+
+	/**
 	 * The function should send an email when a valid request ID is passed.
 	 *
 	 * @ticket 44234
@@ -280,58 +332,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 		);
 
 		return $headers;
-	}
-
-	/**
-	 * The function should not send an email when the request ID does not exist.
-	 *
-	 * @ticket 44234
-	 */
-	public function test_should_not_send_email_when_passed_invalid_request_id() {
-		_wp_privacy_send_erasure_fulfillment_notification( 1234567890 );
-
-		$mailer = tests_retrieve_phpmailer_instance();
-
-		$this->assertEmpty( $mailer->mock_sent );
-	}
-
-	/**
-	 * The function should not send an email when the ID passed does not correspond to a user request.
-	 *
-	 * @ticket 44234
-	 */
-	public function test_should_not_send_email_when_not_user_request() {
-		$post_id = self::factory()->post->create(
-			array(
-				'post_type' => 'post', // Should be 'user_request'.
-			)
-		);
-
-		_wp_privacy_send_erasure_fulfillment_notification( $post_id );
-		$mailer = tests_retrieve_phpmailer_instance();
-
-		$this->assertEmpty( $mailer->mock_sent );
-	}
-
-	/**
-	 * The function should not send an email when the request is not completed.
-	 *
-	 * @ticket 44234
-	 */
-	public function test_should_not_send_email_when_request_not_completed() {
-		wp_update_post(
-			array(
-				'ID'          => self::$request_id,
-				'post_status' => 'request-confirmed', // Should be 'request-completed'.
-			)
-		);
-
-		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
-
-		$mailer = tests_retrieve_phpmailer_instance();
-
-		$this->assertEmpty( $mailer->mock_sent );
-		$this->assertFalse( metadata_exists( 'post', self::$request_id, '_wp_user_notified' ) );
 	}
 
 	/**

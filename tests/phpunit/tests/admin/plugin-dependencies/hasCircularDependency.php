@@ -18,6 +18,44 @@ require_once __DIR__ . '/base.php';
 class Tests_Admin_WPPluginDependencies_HasCircularDependency extends WP_PluginDependencies_UnitTestCase {
 
 	/**
+	 * Tests that false is returned if Plugin Dependencies has not been initialized.
+	 *
+	 * @ticket 60457
+	 */
+	public function test_should_return_false_before_initialization() {
+		$this->set_property_value(
+			'plugins',
+			array(
+				'dependent/dependent.php'   => array(
+					'Name'            => 'Dependent',
+					'RequiresPlugins' => 'dependency',
+				),
+				'dependency/dependency.php' => array(
+					'Name'            => 'Dependency',
+					'RequiresPlugins' => 'dependent',
+				),
+			)
+		);
+
+		// Ensure Plugin Dependencies has not been initialized.
+		$this->assertFalse(
+			$this->get_property_value( 'initialized' ),
+			'Plugin Dependencies has been initialized.'
+		);
+
+		$this->assertSame(
+			self::$static_properties['circular_dependencies_slugs'],
+			$this->get_property_value( 'circular_dependencies_slugs' ),
+			'"circular_dependencies_slugs" was not set to its default value.'
+		);
+
+		$this->assertFalse(
+			self::$instance->has_circular_dependency( 'dependency' ),
+			'false was not returned before initialization.'
+		);
+	}
+
+	/**
 	 * Tests that a plugin with a circular dependency will return true.
 	 *
 	 * @ticket 22316

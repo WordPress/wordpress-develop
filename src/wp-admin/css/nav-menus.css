@@ -21,6 +21,7 @@ ul.add-menu-item-tabs li {
 
 #nav-menu-meta .accordion-section-content {
 	padding: 18px 13px;
+	resize: vertical;
 }
 
 #nav-menu-meta .button-controls {
@@ -48,6 +49,26 @@ ul.add-menu-item-tabs li {
 #menu-settings-column .inside {
 	clear: both;
 	margin: 10px 0 0;
+	height: 100%;
+	max-height: inherit;
+}
+
+#menu-settings-column .categorydiv,
+#menu-settings-column .customlinkdiv,
+#menu-settings-column .posttypediv,
+#menu-settings-column .taxonomydiv {
+	max-height: inherit;
+	height: 100%;
+}
+
+#menu-settings-column .wp-tab-panel,
+#menu-settings-column .categorydiv div.tabs-panel,
+#menu-settings-column .customlinkdiv div.tabs-panel,
+#menu-settings-column .posttypediv div.tabs-panel,
+#menu-settings-column .taxonomydiv div.tabs-panel {
+	/* Allow space for content after tab panels in nav menu editor. */
+	max-height: calc( 100% - 75px );
+	height: 100%;
 }
 
 .metabox-holder-disabled .postbox,
@@ -174,7 +195,6 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 }
 
 .bulk-actions input.menu-items-delete {
-	-webkit-appearance: none;
 	appearance: none;
 	font-size: inherit;
 	border: 0;
@@ -704,7 +724,6 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 
 .no-js.nav-menus-php .item-edit .screen-reader-text {
 	position: static;
-	-webkit-clip-path: none;
 	clip-path: none;
 	width: auto;
 	height: auto;
@@ -808,22 +827,13 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	display: none;
 }
 
-.menu-item-settings .description-thin,
-.menu-item-settings .description-wide {
-	margin-right: 10px;
-	float: left;
+.description-group {
+	display: flex;
+	column-gap: 10px;
 }
 
-.description-thin {
-	width: calc(50% - 5px);
-}
-
-.menu-item-settings .description-thin + .description-thin {
-	margin-right: 0;
-}
-
-.description-wide {
-	width: 100%;
+.description-group > * {
+	flex-grow: 1;
 }
 
 .menu-item-actions {
@@ -932,8 +942,7 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	}
 
 	.menu-item-bar .menu-item-handle,
-	.menu-item-settings,
-	.description-wide {
+	.menu-item-settings {
 		width: auto;
 	}
 
@@ -941,9 +950,8 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 		padding: 10px;
 	}
 
-	.menu-item-settings .description-thin,
-	.menu-item-settings .description-wide {
-		width: 100%;
+	.menu-item-settings .description-group {
+		display: block;
 	}
 
 	.menu-item-settings input {

@@ -90,7 +90,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	public function prepare_items() {
 		global $status, $plugins, $totals, $page, $orderby, $order, $s;
 
-		wp_reset_vars( array( 'orderby', 'order' ) );
+		$orderby = ! empty( $_REQUEST['orderby'] ) ? sanitize_text_field( $_REQUEST['orderby'] ) : '';
+		$order   = ! empty( $_REQUEST['order'] ) ? sanitize_text_field( $_REQUEST['order'] ) : '';
 
 		/**
 		 * Filters the full array of plugins to list in the Plugins list table.
@@ -193,7 +194,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		if ( $screen->in_admin( 'network' ) ) {
 			update_site_option( 'recently_activated', $recently_activated );
 		} else {
-			update_option( 'recently_activated', $recently_activated );
+			update_option( 'recently_activated', $recently_activated, false );
 		}
 
 		$plugin_info = get_site_transient( 'update_plugins' );
@@ -452,8 +453,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		}
 		?>
 		<p class="search-box">
-			<label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?>:</label>
-			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s" value="<?php _admin_search_query(); ?>" placeholder="<?php esc_attr_e( 'Search installed plugins...' ); ?>" />
+			<label for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?></label>
+			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s" value="<?php _admin_search_query(); ?>" />
 			<?php submit_button( $text, 'hide-if-js', '', false, array( 'id' => 'search-submit' ) ); ?>
 		</p>
 		<?php
@@ -607,11 +608,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$actions = array();
 
 		if ( 'active' !== $status ) {
-			$actions['activate-selected'] = $this->screen->in_admin( 'network' ) ? __( 'Network Activate' ) : __( 'Activate' );
+			$actions['activate-selected'] = $this->screen->in_admin( 'network' ) ? _x( 'Network Activate', 'plugin' ) : _x( 'Activate', 'plugin' );
 		}
 
 		if ( 'inactive' !== $status && 'recent' !== $status ) {
-			$actions['deactivate-selected'] = $this->screen->in_admin( 'network' ) ? __( 'Network Deactivate' ) : __( 'Deactivate' );
+			$actions['deactivate-selected'] = $this->screen->in_admin( 'network' ) ? _x( 'Network Deactivate', 'plugin' ) : _x( 'Deactivate', 'plugin' );
 		}
 
 		if ( ! is_multisite() || $this->screen->in_admin( 'network' ) ) {
@@ -693,6 +694,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @global string $status
 	 */
 	public function display_rows() {
@@ -820,7 +825,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 								esc_attr( $plugin_id_attr ),
 								/* translators: %s: Plugin name. */
 								esc_attr( sprintf( _x( 'Network Deactivate %s', 'plugin' ), $plugin_data['Name'] ) ),
-								__( 'Network Deactivate' )
+								_x( 'Network Deactivate', 'plugin' )
 							);
 						}
 					}
@@ -828,7 +833,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					if ( current_user_can( 'manage_network_plugins' ) ) {
 						if ( $compatible_php && $compatible_wp ) {
 							if ( $has_unmet_dependencies ) {
-								$actions['activate'] = __( 'Network Activate' ) .
+								$actions['activate'] = _x( 'Network Activate', 'plugin' ) .
 									'<span class="screen-reader-text">' .
 									__( 'You cannot activate this plugin as it has unmet requirements.' ) .
 									'</span>';
@@ -845,7 +850,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 									esc_attr( $plugin_id_attr ),
 									/* translators: %s: Plugin name. */
 									esc_attr( sprintf( _x( 'Network Activate %s', 'plugin' ), $plugin_data['Name'] ) ),
-									__( 'Network Activate' )
+									_x( 'Network Activate', 'plugin' )
 								);
 							}
 						} else {
@@ -934,7 +939,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					if ( current_user_can( 'activate_plugin', $plugin_file ) ) {
 						if ( $compatible_php && $compatible_wp ) {
 							if ( $has_unmet_dependencies ) {
-								$actions['activate'] = __( 'Activate' ) .
+								$actions['activate'] = _x( 'Activate', 'plugin' ) .
 									'<span class="screen-reader-text">' .
 									__( 'You cannot activate this plugin as it has unmet requirements.' ) .
 									'</span>';
@@ -951,7 +956,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 									esc_attr( $plugin_id_attr ),
 									/* translators: %s: Plugin name. */
 									esc_attr( sprintf( _x( 'Activate %s', 'plugin' ), $plugin_data['Name'] ) ),
-									__( 'Activate' )
+									_x( 'Activate', 'plugin' )
 								);
 							}
 						} else {
@@ -1532,11 +1537,18 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			return;
 		}
 
-		$dependency_note = __( 'Note: this plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.' );
+		$dependency_note = __( 'Note: This plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.' );
+
+		$comma       = wp_get_list_item_separator();
+		$required_by = sprintf(
+			/* translators: %s: List of dependencies. */
+			__( '<strong>Required by:</strong> %s' ),
+			implode( $comma, $dependent_names )
+		);
+
 		printf(
-			'<div class="required-by"><p><strong>%1$s</strong> %2$s</p><p>%3$s</p></div>',
-			__( 'Required by:' ),
-			esc_html( implode( ' | ', $dependent_names ) ),
+			'<div class="required-by"><p>%1$s</p><p>%2$s</p></div>',
+			$required_by,
 			$dependency_note
 		);
 	}
@@ -1560,13 +1572,35 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$links[] = $this->get_dependency_view_details_link( $name, $slug );
 		}
 
-		$dependency_note = __( 'Note: this plugin cannot be activated until the plugins that are required by it are activated.' );
+		$is_active = is_multisite() ? is_plugin_active_for_network( $dependent ) : is_plugin_active( $dependent );
+		$comma     = wp_get_list_item_separator();
+		$requires  = sprintf(
+			/* translators: %s: List of dependency names. */
+			__( '<strong>Requires:</strong> %s' ),
+			implode( $comma, $links )
+		);
+
+		$notice        = '';
+		$error_message = '';
+		if ( WP_Plugin_Dependencies::has_unmet_dependencies( $dependent ) ) {
+			if ( $is_active ) {
+				$error_message = __( 'This plugin is active but may not function correctly because required plugins are missing or inactive.' );
+			} else {
+				$error_message = __( 'This plugin cannot be activated because required plugins are missing or inactive.' );
+			}
+			$notice = wp_get_admin_notice(
+				$error_message,
+				array(
+					'type'               => 'error',
+					'additional_classes' => array( 'inline', 'notice-alt' ),
+				)
+			);
+		}
 
 		printf(
-			'<div class="requires"><p><strong>%1$s</strong> %2$s</p><p>%3$s</p></div>',
-			__( 'Requires:' ),
-			implode( ' | ', $links ),
-			$dependency_note
+			'<div class="requires"><p>%1$s</p>%2$s</div>',
+			$requires,
+			$notice
 		);
 	}
 

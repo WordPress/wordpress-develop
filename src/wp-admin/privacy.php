@@ -25,7 +25,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</h1>
 		</div>
 
-		<div class="about__header-text"></div>
+		<div class="about__header-text">
+			<?php _e( 'WordPress.org takes privacy and transparency very seriously' ); ?>
+		</div>
 	</div>
 
 	<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
@@ -38,7 +40,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 	<div class="about__section has-2-columns is-wider-right">
 		<div class="column about__image">
-			<img class="privacy-image" src="<?php echo esc_url( admin_url( 'images/privacy.svg?ver=6.4' ) ); ?>" alt="" />
+			<img class="privacy-image" src="<?php echo esc_url( admin_url( 'images/privacy.svg?ver=6.5' ) ); ?>" alt="" />
 		</div>
 		<div class="column is-vertically-aligned-center">
 			<p><?php _e( 'From time to time, your WordPress site may send data to WordPress.org &#8212; including, but not limited to &#8212; the version you are using, and a list of installed plugins and themes.' ); ?></p>
@@ -57,7 +59,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<?php
 				printf(
 					/* translators: %s: https://wordpress.org/about/privacy/ */
-					__( 'We take privacy and transparency very seriously. To learn more about what data we collect, and how we use it, please visit <a href="%s">our Privacy Policy</a>.' ),
+					__( 'WordPress.org takes privacy and transparency very seriously. To learn more about what data is collected, and how it is used, please visit <a href="%s">the WordPress.org Privacy Policy</a>.' ),
 					__( 'https://wordpress.org/about/privacy/' )
 				);
 				?>

@@ -8,75 +8,14 @@
  */
 
 /**
- * Processes the directives on the rendered HTML of the interactive blocks.
- *
- * This processes only one root interactive block at a time because the
- * rendered HTML of that block contains the rendered HTML of all its inner
- * blocks, including any interactive block. It does so by ignoring all the
- * interactive inner blocks until the root interactive block is processed.
- *
- * @since 6.5.0
- *
- * @param array $parsed_block The parsed block.
- * @return array The same parsed block.
- */
-function wp_interactivity_process_directives_of_interactive_blocks( array $parsed_block ): array {
-	static $root_interactive_block = null;
-
-	/*
-	 * Checks whether a root interactive block is already annotated for
-	 * processing, and if it is, it ignores the subsequent ones.
-	 */
-	if ( null === $root_interactive_block ) {
-		$block_name = $parsed_block['blockName'];
-		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
-
-		if (
-			isset( $block_name ) &&
-			( ( isset( $block_type->supports['interactivity'] ) && true === $block_type->supports['interactivity'] ) ||
-			( isset( $block_type->supports['interactivity']['interactive'] ) && true === $block_type->supports['interactivity']['interactive'] ) )
-		) {
-			// Annotates the root interactive block for processing.
-			$root_interactive_block = array( $block_name, $parsed_block );
-
-			/*
-			 * Adds a filter to process the root interactive block once it has
-			 * finished rendering.
-			 */
-			$process_interactive_blocks = static function ( string $content, array $parsed_block ) use ( &$root_interactive_block, &$process_interactive_blocks ): string {
-				// Checks whether the current block is the root interactive block.
-				list($root_block_name, $root_parsed_block) = $root_interactive_block;
-				if ( $root_block_name === $parsed_block['blockName'] && $parsed_block === $root_parsed_block ) {
-					// The root interactive blocks has finished rendering, process it.
-					$content = wp_interactivity_process_directives( $content );
-					// Removes the filter and reset the root interactive block.
-					remove_filter( 'render_block_' . $parsed_block['blockName'], $process_interactive_blocks );
-					$root_interactive_block = null;
-				}
-				return $content;
-			};
-
-			/*
-			 * Uses a priority of 20 to ensure that other filters can add additional
-			 * directives before the processing starts.
-			 */
-			add_filter( 'render_block_' . $block_name, $process_interactive_blocks, 20, 2 );
-		}
-	}
-
-	return $parsed_block;
-}
-add_filter( 'render_block_data', 'wp_interactivity_process_directives_of_interactive_blocks' );
-
-/**
  * Retrieves the main WP_Interactivity_API instance.
  *
  * It provides access to the WP_Interactivity_API instance, creating one if it
  * doesn't exist yet.
  *
- * @global WP_Interactivity_API $wp_interactivity
- *
  * @since 6.5.0
+ *
+ * @global WP_Interactivity_API $wp_interactivity
  *
  * @return WP_Interactivity_API The main WP_Interactivity_API instance.
  */
@@ -108,7 +47,11 @@ function wp_interactivity_process_directives( string $html ): string {
  * If state for that store namespace already exists, it merges the new
  * provided state with the existing one.
  *
+ * The namespace can be omitted inside derived state getters, using the
+ * namespace where the getter is defined.
+ *
  * @since 6.5.0
+ * @since 6.6.0 The namespace can be omitted when called inside derived state getters.
  *
  * @param string $store_namespace The unique store namespace identifier.
  * @param array  $state           Optional. The array that will be merged with the existing state for the specified
@@ -116,7 +59,7 @@ function wp_interactivity_process_directives( string $html ): string {
  * @return array The state for the specified store namespace. This will be the updated state if a $state argument was
  *               provided.
  */
-function wp_interactivity_state( string $store_namespace, array $state = array() ): array {
+function wp_interactivity_state( ?string $store_namespace = null, array $state = array() ): array {
 	return wp_interactivity()->state( $store_namespace, $state );
 }
 
@@ -149,7 +92,7 @@ function wp_interactivity_config( string $store_namespace, array $config = array
  *
  * Example:
  *
- *     <div <?php echo data_wp_context( array( 'isOpen' => true, 'count' => 0 ) ); ?>>
+ *     <div <?php echo wp_interactivity_data_wp_context( array( 'isOpen' => true, 'count' => 0 ) ); ?>>
  *
  * @since 6.5.0
  *
@@ -158,9 +101,40 @@ function wp_interactivity_config( string $store_namespace, array $config = array
  * @return string A complete `data-wp-context` directive with a JSON encoded value representing the context array and
  *                the store namespace if specified.
  */
-function data_wp_context( array $context, string $store_namespace = '' ): string {
+function wp_interactivity_data_wp_context( array $context, string $store_namespace = '' ): string {
 	return 'data-wp-context=\'' .
 		( $store_namespace ? $store_namespace . '::' : '' ) .
 		( empty( $context ) ? '{}' : wp_json_encode( $context, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP ) ) .
 		'\'';
+}
+
+/**
+ * Gets the current Interactivity API context for a given namespace.
+ *
+ * The function should be used only during directive processing. If the
+ * `$store_namespace` parameter is omitted, it uses the current namespace value
+ * on the internal namespace stack.
+ *
+ * It returns an empty array when the specified namespace is not defined.
+ *
+ * @since 6.6.0
+ *
+ * @param string $store_namespace Optional. The unique store namespace identifier.
+ * @return array The context for the specified store namespace.
+ */
+function wp_interactivity_get_context( ?string $store_namespace = null ): array {
+	return wp_interactivity()->get_context( $store_namespace );
+}
+
+/**
+ * Returns an array representation of the current element being processed.
+ *
+ * The function should be used only during directive processing.
+ *
+ * @since 6.7.0
+ *
+ * @return array{attributes: array<string, string|bool>}|null Current element.
+ */
+function wp_interactivity_get_element(): ?array {
+	return wp_interactivity()->get_element();
 }

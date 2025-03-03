@@ -105,15 +105,25 @@ class WP_Plugin_Dependencies {
 	protected static $circular_dependencies_slugs;
 
 	/**
-	 * Initializes by fetching plugin header and plugin API data,
-	 * and deactivating dependents with unmet dependencies.
+	 * Whether Plugin Dependencies have been initialized.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @var bool
+	 */
+	protected static $initialized = false;
+
+	/**
+	 * Initializes by fetching plugin header and plugin API data.
 	 *
 	 * @since 6.5.0
 	 */
 	public static function initialize() {
-		self::read_dependencies_from_plugin_headers();
-		self::get_dependency_api_data();
-		self::deactivate_dependents_with_unmet_dependencies();
+		if ( false === self::$initialized ) {
+			self::read_dependencies_from_plugin_headers();
+			self::get_dependency_api_data();
+			self::$initialized = true;
+		}
 	}
 
 	/**
@@ -125,7 +135,7 @@ class WP_Plugin_Dependencies {
 	 * @return bool Whether the plugin has plugins that depend on it.
 	 */
 	public static function has_dependents( $plugin_file ) {
-		return in_array( self::convert_to_slug( $plugin_file ), self::$dependency_slugs, true );
+		return in_array( self::convert_to_slug( $plugin_file ), (array) self::$dependency_slugs, true );
 	}
 
 	/**
@@ -172,7 +182,7 @@ class WP_Plugin_Dependencies {
 	public static function get_dependents( $slug ) {
 		$dependents = array();
 
-		foreach ( self::$dependencies as $dependent => $dependencies ) {
+		foreach ( (array) self::$dependencies as $dependent => $dependencies ) {
 			if ( in_array( $slug, $dependencies, true ) ) {
 				$dependents[] = $dependent;
 			}
@@ -359,40 +369,30 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function display_admin_notice_for_unmet_dependencies() {
 		if ( in_array( false, self::get_dependency_filepaths(), true ) ) {
-			wp_admin_notice(
-				__( 'There are additional plugin dependencies that must be installed.' ),
-				array(
-					'type' => 'info',
-				)
-			);
-		}
-	}
+			$error_message = __( 'Some required plugins are missing or inactive.' );
 
-	/**
-	 * Displays an admin notice if dependencies have been deactivated.
-	 *
-	 * @since 6.5.0
-	 */
-	public static function display_admin_notice_for_deactivated_dependents() {
-		/*
-		 * Plugin deactivated if dependencies not met.
-		 * Transient on a 10 second timeout.
-		 */
-		$deactivate_requires = get_site_transient( 'wp_plugin_dependencies_deactivated_plugins' );
-		if ( ! empty( $deactivate_requires ) ) {
-			$deactivated_plugins = '';
-			foreach ( $deactivate_requires as $deactivated ) {
-				$deactivated_plugins .= '<li>' . esc_html( self::$plugins[ $deactivated ]['Name'] ) . '</li>';
+			if ( is_multisite() ) {
+				if ( current_user_can( 'manage_network_plugins' ) ) {
+					$error_message .= ' ' . sprintf(
+						/* translators: %s: Link to the network plugins page. */
+						__( '<a href="%s">Manage plugins</a>.' ),
+						esc_url( network_admin_url( 'plugins.php' ) )
+					);
+				} else {
+					$error_message .= ' ' . __( 'Please contact your network administrator.' );
+				}
+			} elseif ( 'plugins' !== get_current_screen()->base ) {
+				$error_message .= ' ' . sprintf(
+					/* translators: %s: Link to the plugins page. */
+					__( '<a href="%s">Manage plugins</a>.' ),
+					esc_url( admin_url( 'plugins.php' ) )
+				);
 			}
+
 			wp_admin_notice(
-				sprintf(
-					/* translators: 1: plugin names */
-					__( 'The following plugin(s) have been deactivated due to uninstalled or inactive dependencies: %s' ),
-					"<ul>$deactivated_plugins</ul>"
-				),
+				$error_message,
 				array(
-					'type'        => 'error',
-					'dismissible' => true,
+					'type' => 'warning',
 				)
 			);
 		}
@@ -426,7 +426,7 @@ class WP_Plugin_Dependencies {
 			wp_admin_notice(
 				sprintf(
 					'<p>%1$s</p><ul>%2$s</ul><p>%3$s</p>',
-					__( 'These plugins cannot be activated because their requirements are invalid. ' ),
+					__( 'These plugins cannot be activated because their requirements are invalid.' ),
 					$circular_dependency_lines,
 					__( 'Please contact the plugin authors for more information.' )
 				),
@@ -488,6 +488,7 @@ class WP_Plugin_Dependencies {
 			$status['activateUrl'] = add_query_arg( array( 'networkwide' => 1 ), $status['activateUrl'] );
 		}
 
+		self::initialize();
 		$dependencies = self::get_dependencies( $plugin_file );
 		if ( empty( $dependencies ) ) {
 			$status['message'] = __( 'The plugin has no required plugins.' );
@@ -543,14 +544,8 @@ class WP_Plugin_Dependencies {
 			return self::$plugins;
 		}
 
-		$all_plugin_data = get_option( 'plugin_data', array() );
-
-		if ( empty( $all_plugin_data ) ) {
-			require_once ABSPATH . '/wp-admin/includes/plugin.php';
-			$all_plugin_data = get_plugins();
-		}
-
-		self::$plugins = $all_plugin_data;
+		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		self::$plugins = get_plugins();
 
 		return self::$plugins;
 	}
@@ -559,8 +554,6 @@ class WP_Plugin_Dependencies {
 	 * Reads and stores dependency slugs from a plugin's 'Requires Plugins' header.
 	 *
 	 * @since 6.5.0
-	 *
-	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 */
 	protected static function read_dependencies_from_plugin_headers() {
 		self::$dependencies     = array();
@@ -621,83 +614,6 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Gets plugin filepaths for active plugins that depend on the dependency.
-	 *
-	 * Recurses for each dependent that is also a dependency.
-	 *
-	 * @param string $plugin_file The dependency's filepath, relative to the plugin directory.
-	 * @return string[] An array of active dependent plugin filepaths, relative to the plugin directory.
-	 */
-	protected static function get_active_dependents_in_dependency_tree( $plugin_file ) {
-		$all_dependents = array();
-		$dependents     = self::get_dependents( self::convert_to_slug( $plugin_file ) );
-
-		if ( empty( $dependents ) ) {
-			return $all_dependents;
-		}
-
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
-		foreach ( $dependents as $dependent ) {
-			if ( is_plugin_active( $dependent ) ) {
-				$all_dependents[] = $dependent;
-				$all_dependents   = array_merge(
-					$all_dependents,
-					self::get_active_dependents_in_dependency_tree( $dependent )
-				);
-			}
-		}
-
-		return $all_dependents;
-	}
-
-	/**
-	 * Deactivates dependent plugins with unmet dependencies.
-	 *
-	 * @since 6.5.0
-	 */
-	protected static function deactivate_dependents_with_unmet_dependencies() {
-		$dependents_to_deactivate = array();
-		$circular_dependencies    = array_reduce(
-			self::get_circular_dependencies(),
-			function ( $all_circular, $circular_pair ) {
-				return array_merge( $all_circular, $circular_pair );
-			},
-			array()
-		);
-
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
-		foreach ( self::$dependencies as $dependent => $dependencies ) {
-			// Skip dependents that are no longer installed or aren't active.
-			if ( ! array_key_exists( $dependent, self::$plugins ) || is_plugin_inactive( $dependent ) ) {
-				continue;
-			}
-
-			// Skip plugins within a circular dependency tree or plugins that have no unmet dependencies.
-			if ( in_array( $dependent, $circular_dependencies, true ) || ! self::has_unmet_dependencies( $dependent ) ) {
-				continue;
-			}
-
-			$dependents_to_deactivate[] = $dependent;
-
-			// Also add any plugins that rely on any of this plugin's dependents.
-			$dependents_to_deactivate = array_merge(
-				$dependents_to_deactivate,
-				self::get_active_dependents_in_dependency_tree( $dependent )
-			);
-		}
-
-		// Bail early if there are no dependents to deactivate.
-		if ( empty( $dependents_to_deactivate ) ) {
-			return;
-		}
-
-		$dependents_to_deactivate = array_unique( $dependents_to_deactivate );
-
-		deactivate_plugins( $dependents_to_deactivate );
-		set_site_transient( 'wp_plugin_dependencies_deactivated_plugins', $dependents_to_deactivate, 10 );
-	}
-
-	/**
 	 * Gets the filepath of installed dependencies.
 	 * If a dependency is not installed, the filepath defaults to false.
 	 *
@@ -708,6 +624,10 @@ class WP_Plugin_Dependencies {
 	protected static function get_dependency_filepaths() {
 		if ( is_array( self::$dependency_filepaths ) ) {
 			return self::$dependency_filepaths;
+		}
+
+		if ( null === self::$dependency_slugs ) {
+			return array();
 		}
 
 		self::$dependency_filepaths = array();
@@ -793,7 +713,7 @@ class WP_Plugin_Dependencies {
 
 			self::$dependency_api_data[ $slug ] = (array) $information;
 			// plugins_api() returns 'name' not 'Name'.
-			self::$dependency_api_data[ $information->slug ]['Name'] = self::$dependency_api_data[ $information->slug ]['name'];
+			self::$dependency_api_data[ $slug ]['Name'] = self::$dependency_api_data[ $slug ]['name'];
 			set_site_transient( 'wp_plugin_dependencies_plugin_data', self::$dependency_api_data, 0 );
 		}
 
@@ -844,6 +764,10 @@ class WP_Plugin_Dependencies {
 	protected static function get_circular_dependencies() {
 		if ( is_array( self::$circular_dependencies_pairs ) ) {
 			return self::$circular_dependencies_pairs;
+		}
+
+		if ( null === self::$dependencies ) {
+			return array();
 		}
 
 		self::$circular_dependencies_slugs = array();

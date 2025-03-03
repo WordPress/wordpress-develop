@@ -85,6 +85,9 @@ if ( empty( $file ) ) {
 $file      = validate_file_to_edit( $file, $plugin_files );
 $real_file = WP_PLUGIN_DIR . '/' . $file;
 
+$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin_files[0] );
+$plugin_name = $plugin_data['Name'];
+
 // Handle fallback editing of file when JavaScript is not available.
 $edit_error     = null;
 $posted_content = null;
@@ -148,7 +151,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/documentation/article/plugins-editor-screen/">Documentation on Editing Plugins</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/plugins/editor-screen/">Documentation on Editing Plugins</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://developer.wordpress.org/plugins/">Documentation on Writing Plugins</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
@@ -220,23 +223,30 @@ endif;
 	<?php
 	if ( is_plugin_active( $plugin ) ) {
 		if ( is_writable( $real_file ) ) {
-			/* translators: %s: Plugin file name. */
-			printf( __( 'Editing %s (active)' ), '<strong>' . esc_html( $file ) . '</strong>' );
+			/* translators: %s: Plugin name. */
+			printf( __( 'Editing %s (active)' ), '<strong>' . esc_html( $plugin_name ) . '</strong>' );
 		} else {
-			/* translators: %s: Plugin file name. */
-			printf( __( 'Browsing %s (active)' ), '<strong>' . esc_html( $file ) . '</strong>' );
+			/* translators: %s: Plugin name. */
+			printf( __( 'Browsing %s (active)' ), '<strong>' . esc_html( $plugin_name ) . '</strong>' );
 		}
 	} else {
 		if ( is_writable( $real_file ) ) {
-			/* translators: %s: Plugin file name. */
-			printf( __( 'Editing %s (inactive)' ), '<strong>' . esc_html( $file ) . '</strong>' );
+			/* translators: %s: Plugin name. */
+			printf( __( 'Editing %s (inactive)' ), '<strong>' . esc_html( $plugin_name ) . '</strong>' );
 		} else {
-			/* translators: %s: Plugin file name. */
-			printf( __( 'Browsing %s (inactive)' ), '<strong>' . esc_html( $file ) . '</strong>' );
+			/* translators: %s: Plugin name. */
+			printf( __( 'Browsing %s (inactive)' ), '<strong>' . esc_html( $plugin_name ) . '</strong>' );
 		}
 	}
 	?>
 </h2>
+<?php
+printf(
+	/* translators: %s: File path. */
+	' <span><strong>' . __( 'File: %s' ) . '</strong></span>',
+	esc_html( $file )
+);
+?>
 </div>
 <div class="alignright">
 	<form action="plugin-editor.php" method="get">
@@ -323,7 +333,7 @@ endif;
 			printf(
 				/* translators: %s: Documentation URL. */
 				__( 'You need to make this file writable before you can save your changes. See <a href="%s">Changing File Permissions</a> for more information.' ),
-				__( 'https://wordpress.org/documentation/article/changing-file-permissions/' )
+				__( 'https://developer.wordpress.org/advanced-administration/server/file-permissions/' )
 			);
 			?>
 		</p>

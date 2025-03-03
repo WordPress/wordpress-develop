@@ -92,7 +92,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 		global $tabs, $tab, $paged, $type, $term;
 
-		wp_reset_vars( array( 'tab' ) );
+		$tab = ! empty( $_REQUEST['tab'] ) ? sanitize_text_field( $_REQUEST['tab'] ) : '';
 
 		$paged = $this->get_pagenum();
 
@@ -464,6 +464,11 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		}
 	}
 
+	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 */
 	public function display_rows() {
 		$plugins_allowedtags = array(
 			'a'       => array(
@@ -524,8 +529,6 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 			// Remove any HTML from the description.
 			$description = strip_tags( $plugin['short_description'] );
-
-			$description .= $this->get_dependencies_notice( $plugin );
 
 			/**
 			 * Filters the plugin card description on the Add Plugins screen.
@@ -628,7 +631,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				} elseif ( ! $compatible_wp ) {
 					$incompatible_notice_message .= __( 'This plugin does not work with your version of WordPress.' );
 					if ( current_user_can( 'update_core' ) ) {
-						$incompatible_notice_message .= printf(
+						$incompatible_notice_message .= sprintf(
 							/* translators: %s: URL to WordPress Updates screen. */
 							' ' . __( '<a href="%s">Please update WordPress</a>.' ),
 							self_admin_url( 'update-core.php' )
@@ -676,6 +679,12 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 					<p class="authors"><?php echo $author; ?></p>
 				</div>
 			</div>
+			<?php
+			$dependencies_notice = $this->get_dependencies_notice( $plugin );
+			if ( ! empty( $dependencies_notice ) ) {
+				echo $dependencies_notice;
+			}
+			?>
 			<div class="plugin-card-bottom">
 				<div class="vers column-rating">
 					<?php
@@ -781,7 +790,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		}
 
 		$dependencies_notice = sprintf(
-			'<div class="plugin-dependencies"><p class="plugin-dependencies-explainer-text">%s</p> %s</div>',
+			'<div class="plugin-dependencies notice notice-alt notice-info inline"><p class="plugin-dependencies-explainer-text">%s</p> %s</div>',
 			'<strong>' . __( 'Additional plugins are required' ) . '</strong>',
 			$dependencies_list
 		);

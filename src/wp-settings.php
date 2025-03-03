@@ -22,14 +22,15 @@ define( 'WPINC', 'wp-includes' );
  * include version.php from another installation and don't override
  * these values if already set.
  *
- * @global string $wp_version             The WordPress version string.
- * @global int    $wp_db_version          WordPress database version.
- * @global string $tinymce_version        TinyMCE version.
- * @global string $required_php_version   The required PHP version string.
- * @global string $required_mysql_version The required MySQL version string.
- * @global string $wp_local_package       Locale code of the package.
+ * @global string   $wp_version              The WordPress version string.
+ * @global int      $wp_db_version           WordPress database version.
+ * @global string   $tinymce_version         TinyMCE version.
+ * @global string   $required_php_version    The required PHP version string.
+ * @global string[] $required_php_extensions The names of required PHP extensions.
+ * @global string   $required_mysql_version  The required MySQL version string.
+ * @global string   $wp_local_package        Locale code of the package.
  */
-global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_mysql_version, $wp_local_package;
+global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_php_extensions, $required_mysql_version, $wp_local_package;
 require ABSPATH . WPINC . '/version.php';
 require ABSPATH . WPINC . '/compat.php';
 require ABSPATH . WPINC . '/load.php';
@@ -39,6 +40,7 @@ wp_check_php_mysql_versions();
 
 // Include files required for initialization.
 require ABSPATH . WPINC . '/class-wp-paused-extensions-storage.php';
+require ABSPATH . WPINC . '/class-wp-exception.php';
 require ABSPATH . WPINC . '/class-wp-fatal-error-handler.php';
 require ABSPATH . WPINC . '/class-wp-recovery-mode-cookie-service.php';
 require ABSPATH . WPINC . '/class-wp-recovery-mode-key-service.php';
@@ -107,6 +109,7 @@ wp_set_lang_dir();
 
 // Load early WordPress files.
 require ABSPATH . WPINC . '/class-wp-list-util.php';
+require ABSPATH . WPINC . '/class-wp-token-map.php';
 require ABSPATH . WPINC . '/formatting.php';
 require ABSPATH . WPINC . '/meta.php';
 require ABSPATH . WPINC . '/functions.php';
@@ -130,8 +133,14 @@ global $wpdb;
 // Include the wpdb class and, if present, a db.php database drop-in.
 require_wp_db();
 
-// Set the database table prefix and the format specifiers for database table columns.
+/**
+ * @since 3.3.0
+ *
+ * @global string $table_prefix The database table prefix.
+ */
 $GLOBALS['table_prefix'] = $table_prefix;
+
+// Set the database table prefix and the format specifiers for database table columns.
 wp_set_wpdb_vars();
 
 // Start the WordPress object cache, or an external object cache if the drop-in is present.
@@ -185,6 +194,7 @@ require ABSPATH . WPINC . '/class-wp-theme-json-resolver.php';
 require ABSPATH . WPINC . '/class-wp-duotone.php';
 require ABSPATH . WPINC . '/global-styles-and-settings.php';
 require ABSPATH . WPINC . '/class-wp-block-template.php';
+require ABSPATH . WPINC . '/class-wp-block-templates-registry.php';
 require ABSPATH . WPINC . '/block-template-utils.php';
 require ABSPATH . WPINC . '/block-template.php';
 require ABSPATH . WPINC . '/theme-templates.php';
@@ -242,14 +252,18 @@ require ABSPATH . WPINC . '/class-wp-oembed.php';
 require ABSPATH . WPINC . '/class-wp-oembed-controller.php';
 require ABSPATH . WPINC . '/media.php';
 require ABSPATH . WPINC . '/http.php';
+require ABSPATH . WPINC . '/html-api/html5-named-character-references.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-attribute-token.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-span.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-doctype-info.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-text-replacement.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-decoder.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-tag-processor.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-unsupported-exception.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-active-formatting-elements.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-open-elements.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-token.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-stack-event.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-processor-state.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-processor.php';
 require ABSPATH . WPINC . '/class-wp-http.php';
@@ -276,10 +290,10 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-posts-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-attachments-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-global-styles-controller.php';
-require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-global-styles-revisions-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-post-types-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-post-statuses-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-revisions-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-global-styles-revisions-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-template-revisions-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-autosaves-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-template-autosaves-controller.php';
@@ -342,6 +356,7 @@ require ABSPATH . WPINC . '/class-wp-block-styles-registry.php';
 require ABSPATH . WPINC . '/class-wp-block-type-registry.php';
 require ABSPATH . WPINC . '/class-wp-block.php';
 require ABSPATH . WPINC . '/class-wp-block-list.php';
+require ABSPATH . WPINC . '/class-wp-block-metadata-registry.php';
 require ABSPATH . WPINC . '/class-wp-block-parser-block.php';
 require ABSPATH . WPINC . '/class-wp-block-parser-frame.php';
 require ABSPATH . WPINC . '/class-wp-block-parser.php';
@@ -357,20 +372,21 @@ require ABSPATH . WPINC . '/block-patterns.php';
 require ABSPATH . WPINC . '/class-wp-block-supports.php';
 require ABSPATH . WPINC . '/block-supports/utils.php';
 require ABSPATH . WPINC . '/block-supports/align.php';
-require ABSPATH . WPINC . '/block-supports/background.php';
-require ABSPATH . WPINC . '/block-supports/border.php';
-require ABSPATH . WPINC . '/block-supports/colors.php';
 require ABSPATH . WPINC . '/block-supports/custom-classname.php';
-require ABSPATH . WPINC . '/block-supports/dimensions.php';
-require ABSPATH . WPINC . '/block-supports/duotone.php';
-require ABSPATH . WPINC . '/block-supports/shadow.php';
-require ABSPATH . WPINC . '/block-supports/elements.php';
 require ABSPATH . WPINC . '/block-supports/generated-classname.php';
+require ABSPATH . WPINC . '/block-supports/settings.php';
+require ABSPATH . WPINC . '/block-supports/elements.php';
+require ABSPATH . WPINC . '/block-supports/colors.php';
+require ABSPATH . WPINC . '/block-supports/typography.php';
+require ABSPATH . WPINC . '/block-supports/border.php';
 require ABSPATH . WPINC . '/block-supports/layout.php';
 require ABSPATH . WPINC . '/block-supports/position.php';
 require ABSPATH . WPINC . '/block-supports/spacing.php';
-require ABSPATH . WPINC . '/block-supports/typography.php';
-require ABSPATH . WPINC . '/block-supports/settings.php';
+require ABSPATH . WPINC . '/block-supports/dimensions.php';
+require ABSPATH . WPINC . '/block-supports/duotone.php';
+require ABSPATH . WPINC . '/block-supports/shadow.php';
+require ABSPATH . WPINC . '/block-supports/background.php';
+require ABSPATH . WPINC . '/block-supports/block-style-variations.php';
 require ABSPATH . WPINC . '/style-engine.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-declarations.php';
@@ -388,10 +404,19 @@ require ABSPATH . WPINC . '/script-modules.php';
 require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api.php';
 require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api-directives-processor.php';
 require ABSPATH . WPINC . '/interactivity-api/interactivity-api.php';
+require ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
+require ABSPATH . WPINC . '/class-wp-url-pattern-prefixer.php';
+require ABSPATH . WPINC . '/class-wp-speculation-rules.php';
+require ABSPATH . WPINC . '/speculative-loading.php';
 
-wp_script_modules()->add_hooks();
-wp_interactivity()->add_hooks();
+add_action( 'after_setup_theme', array( wp_script_modules(), 'add_hooks' ) );
+add_action( 'after_setup_theme', array( wp_interactivity(), 'add_hooks' ) );
 
+/**
+ * @since 3.3.0
+ *
+ * @global WP_Embed $wp_embed WordPress Embed object.
+ */
 $GLOBALS['wp_embed'] = new WP_Embed();
 
 /**
@@ -417,13 +442,12 @@ if ( is_multisite() ) {
 // Define must-use plugin directory constants, which may be overridden in the sunrise.php drop-in.
 wp_plugin_directory_constants();
 
+/**
+ * @since 3.9.0
+ *
+ * @global array $wp_plugin_paths
+ */
 $GLOBALS['wp_plugin_paths'] = array();
-
-// Load and initialize WP_Plugin_Dependencies.
-require_once ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
-if ( ! defined( 'WP_RUN_CORE_TESTS' ) ) {
-	WP_Plugin_Dependencies::initialize();
-}
 
 // Load must-use plugins.
 foreach ( wp_get_mu_plugins() as $mu_plugin ) {
@@ -498,87 +522,23 @@ if ( ! is_multisite() && wp_is_fatal_error_handler_enabled() ) {
 	wp_recovery_mode()->initialize();
 }
 
+// To make get_plugin_data() available in a way that's compatible with plugins also loading this file, see #62244.
+require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
 // Load active plugins.
-$all_plugin_data    = get_option( 'plugin_data', array() );
-$failed_plugins     = array();
-$plugins_dir_strlen = strlen( trailingslashit( WP_PLUGIN_DIR ) );
 foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
-	$plugin_file = substr( $plugin, $plugins_dir_strlen );
+	wp_register_plugin_realpath( $plugin );
 
-	/*
-	 * Skip any plugins that have not been added to the 'plugin_data' option yet.
-	 *
-	 * Some plugin files may be added locally and activated, but will not yet be
-	 * added to the 'plugin_data' option. This causes the 'active_plugins' option
-	 * and the 'plugin_data' option to be temporarily out of sync until the next
-	 * call to `get_plugins()`.
-	 */
-	if ( isset( $all_plugin_data[ $plugin_file ] ) ) {
-		$plugin_headers = $all_plugin_data[ $plugin_file ];
-		$errors         = array();
-		$requirements   = array(
-			'requires'     => ! empty( $plugin_headers['RequiresWP'] ) ? $plugin_headers['RequiresWP'] : '',
-			'requires_php' => ! empty( $plugin_headers['RequiresPHP'] ) ? $plugin_headers['RequiresPHP'] : '',
-		);
-		$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
-		$compatible_php = is_php_version_compatible( $requirements['requires_php'] );
+	$plugin_data = get_plugin_data( $plugin, false, false );
 
-		$php_update_message = '</p><p>' . sprintf(
-			/* translators: %s: URL to Update PHP page. */
-			__( '<a href="%s">Learn more about updating PHP</a>.' ),
-			esc_url( wp_get_update_php_url() )
-		);
-
-		$annotation = wp_get_update_php_annotation();
-
-		if ( $annotation ) {
-			$php_update_message .= '</p><p><em>' . $annotation . '</em>';
-		}
-
-		if ( ! $compatible_wp && ! $compatible_php ) {
-			$errors[] = sprintf(
-				/* translators: 1: Current WordPress version, 2: Current PHP version, 3: Plugin name, 4: Required WordPress version, 5: Required PHP version. */
-				_x( '<strong>Error:</strong> Current versions of WordPress (%1$s) and PHP (%2$s) do not meet minimum requirements for %3$s. The plugin requires WordPress %4$s and PHP %5$s.', 'plugin' ),
-				get_bloginfo( 'version' ),
-				PHP_VERSION,
-				$plugin_headers['Name'],
-				$requirements['requires'],
-				$requirements['requires_php']
-			) . $php_update_message;
-		} elseif ( ! $compatible_php ) {
-			$errors[] = sprintf(
-				/* translators: 1: Current PHP version, 2: Plugin name, 3: Required PHP version. */
-				_x( '<strong>Error:</strong> Current PHP version (%1$s) does not meet minimum requirements for %2$s. The plugin requires PHP %3$s.', 'plugin' ),
-				PHP_VERSION,
-				$plugin_headers['Name'],
-				$requirements['requires_php']
-			) . $php_update_message;
-		} elseif ( ! $compatible_wp ) {
-			$errors[] = sprintf(
-				/* translators: 1: Current WordPress version, 2: Plugin name, 3: Required WordPress version. */
-				_x( '<strong>Error:</strong> Current WordPress version (%1$s) does not meet minimum requirements for %2$s. The plugin requires WordPress %3$s.', 'plugin' ),
-				get_bloginfo( 'version' ),
-				$plugin_headers['Name'],
-				$requirements['requires']
-			);
-		}
-
-		if ( ! empty( $errors ) ) {
-			$failed_plugins[ $plugin_file ] = '';
-			foreach ( $errors as $error ) {
-				$failed_plugins[ $plugin_file ] .= wp_get_admin_notice(
-					$error,
-					array(
-						'type'        => 'error',
-						'dismissible' => true,
-					)
-				);
-			}
-			continue;
+	$textdomain = $plugin_data['TextDomain'];
+	if ( $textdomain ) {
+		if ( $plugin_data['DomainPath'] ) {
+			$GLOBALS['wp_textdomain_registry']->set_custom_path( $textdomain, dirname( $plugin ) . $plugin_data['DomainPath'] );
+		} else {
+			$GLOBALS['wp_textdomain_registry']->set_custom_path( $textdomain, dirname( $plugin ) );
 		}
 	}
-
-	wp_register_plugin_realpath( $plugin );
 
 	$_wp_plugin_file = $plugin;
 	include_once $plugin;
@@ -593,21 +553,7 @@ foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 	 */
 	do_action( 'plugin_loaded', $plugin );
 }
-unset( $plugin, $_wp_plugin_file );
-
-if ( ! empty( $failed_plugins ) ) {
-	add_action(
-		'admin_notices',
-		function () use ( $failed_plugins ) {
-			global $pagenow;
-
-			if ( 'index.php' === $pagenow || 'plugins.php' === $pagenow ) {
-				echo implode( '', $failed_plugins );
-			}
-		}
-	);
-}
-unset( $failed_plugins );
+unset( $plugin, $_wp_plugin_file, $plugin_data, $textdomain );
 
 // Load pluggable functions.
 require ABSPATH . WPINC . '/pluggable.php';
@@ -705,8 +651,9 @@ $GLOBALS['wp_roles'] = new WP_Roles();
  */
 do_action( 'setup_theme' );
 
-// Define the template related constants.
+// Define the template related constants and globals.
 wp_templating_constants();
+wp_set_template_globals();
 
 // Load the default text localization domain.
 load_default_textdomain();
@@ -737,15 +684,17 @@ $GLOBALS['wp_locale'] = new WP_Locale();
 $GLOBALS['wp_locale_switcher'] = new WP_Locale_Switcher();
 $GLOBALS['wp_locale_switcher']->init();
 
-WP_Translation_Controller::get_instance()->set_locale( $locale );
-
 // Load the functions for the active theme, for both parent and child theme if applicable.
 foreach ( wp_get_active_and_valid_themes() as $theme ) {
+	$wp_theme = wp_get_theme( basename( $theme ) );
+
+	$wp_theme->load_textdomain();
+
 	if ( file_exists( $theme . '/functions.php' ) ) {
 		include $theme . '/functions.php';
 	}
 }
-unset( $theme );
+unset( $theme, $wp_theme );
 
 /**
  * Fires after the theme is loaded.
@@ -792,7 +741,7 @@ if ( is_multisite() ) {
  * Ajax requests should use wp-admin/admin-ajax.php. admin-ajax.php can handle requests for
  * users not logged in.
  *
- * @link https://codex.wordpress.org/AJAX_in_Plugins
+ * @link https://developer.wordpress.org/plugins/javascript/ajax
  *
  * @since 3.0.0
  */

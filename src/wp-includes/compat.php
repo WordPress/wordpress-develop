@@ -2,6 +2,11 @@
 /**
  * WordPress implementation for PHP functions either missing from older PHP versions or not included by default.
  *
+ * This file is loaded extremely early and the functions can be relied upon by drop-ins.
+ * Ergo, please ensure you do not rely on external functions when writing code for this file.
+ * Only use functions built into PHP or are defined in this file and have adequate testing
+ * and error suppression to ensure the file will run correctly and not break websites.
+ *
  * @package PHP
  * @access private
  */
@@ -38,6 +43,43 @@ function _wp_can_use_pcre_u( $set = null ) {
 	}
 
 	return $utf8_pcre;
+}
+
+/**
+ * Indicates if a given slug for a character set represents the UTF-8 text encoding.
+ *
+ * A charset is considered to represent UTF-8 if it is a case-insensitive match
+ * of "UTF-8" with or without the hyphen.
+ *
+ * Example:
+ *
+ *     true  === _is_utf8_charset( 'UTF-8' );
+ *     true  === _is_utf8_charset( 'utf8' );
+ *     false === _is_utf8_charset( 'latin1' );
+ *     false === _is_utf8_charset( 'UTF 8' );
+ *
+ *     // Only strings match.
+ *     false === _is_utf8_charset( [ 'charset' => 'utf-8' ] );
+ *
+ * `is_utf8_charset` should be used outside of this file.
+ *
+ * @ignore
+ * @since 6.6.1
+ *
+ * @param string $charset_slug Slug representing a text character encoding, or "charset".
+ *                             E.g. "UTF-8", "Windows-1252", "ISO-8859-1", "SJIS".
+ *
+ * @return bool Whether the slug represents the UTF-8 encoding.
+ */
+function _is_utf8_charset( $charset_slug ) {
+	if ( ! is_string( $charset_slug ) ) {
+		return false;
+	}
+
+	return (
+		0 === strcasecmp( 'UTF-8', $charset_slug ) ||
+		0 === strcasecmp( 'UTF8', $charset_slug )
+	);
 }
 
 if ( ! function_exists( 'mb_substr' ) ) :
@@ -91,7 +133,7 @@ function _mb_substr( $str, $start, $length = null, $encoding = null ) {
 	 * The solution below works only for UTF-8, so in case of a different
 	 * charset just use built-in substr().
 	 */
-	if ( ! in_array( $encoding, array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
+	if ( ! _is_utf8_charset( $encoding ) ) {
 		return is_null( $length ) ? substr( $str, $start ) : substr( $str, $start, $length );
 	}
 
@@ -176,7 +218,7 @@ function _mb_strlen( $str, $encoding = null ) {
 	 * The solution below works only for UTF-8, so in case of a different charset
 	 * just use built-in strlen().
 	 */
-	if ( ! in_array( $encoding, array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
+	if ( ! _is_utf8_charset( $encoding ) ) {
 		return strlen( $str );
 	}
 
@@ -221,118 +263,6 @@ function _mb_strlen( $str, $encoding = null ) {
 	return --$count;
 }
 
-if ( ! function_exists( 'hash_hmac' ) ) :
-	/**
-	 * Compat function to mimic hash_hmac().
-	 *
-	 * The Hash extension is bundled with PHP by default since PHP 5.1.2.
-	 * However, the extension may be explicitly disabled on select servers.
-	 * As of PHP 7.4.0, the Hash extension is a core PHP extension and can no
-	 * longer be disabled.
-	 * I.e. when PHP 7.4.0 becomes the minimum requirement, this polyfill
-	 * and the associated `_hash_hmac()` function can be safely removed.
-	 *
-	 * @ignore
-	 * @since 3.2.0
-	 *
-	 * @see _hash_hmac()
-	 *
-	 * @param string $algo   Hash algorithm. Accepts 'md5' or 'sha1'.
-	 * @param string $data   Data to be hashed.
-	 * @param string $key    Secret key to use for generating the hash.
-	 * @param bool   $binary Optional. Whether to output raw binary data (true),
-	 *                       or lowercase hexits (false). Default false.
-	 * @return string|false The hash in output determined by `$binary`.
-	 *                      False if `$algo` is unknown or invalid.
-	 */
-	function hash_hmac( $algo, $data, $key, $binary = false ) {
-		return _hash_hmac( $algo, $data, $key, $binary );
-	}
-endif;
-
-/**
- * Internal compat function to mimic hash_hmac().
- *
- * @ignore
- * @since 3.2.0
- *
- * @param string $algo   Hash algorithm. Accepts 'md5' or 'sha1'.
- * @param string $data   Data to be hashed.
- * @param string $key    Secret key to use for generating the hash.
- * @param bool   $binary Optional. Whether to output raw binary data (true),
- *                       or lowercase hexits (false). Default false.
- * @return string|false The hash in output determined by `$binary`.
- *                      False if `$algo` is unknown or invalid.
- */
-function _hash_hmac( $algo, $data, $key, $binary = false ) {
-	$packs = array(
-		'md5'  => 'H32',
-		'sha1' => 'H40',
-	);
-
-	if ( ! isset( $packs[ $algo ] ) ) {
-		return false;
-	}
-
-	$pack = $packs[ $algo ];
-
-	if ( strlen( $key ) > 64 ) {
-		$key = pack( $pack, $algo( $key ) );
-	}
-
-	$key = str_pad( $key, 64, chr( 0 ) );
-
-	$ipad = ( substr( $key, 0, 64 ) ^ str_repeat( chr( 0x36 ), 64 ) );
-	$opad = ( substr( $key, 0, 64 ) ^ str_repeat( chr( 0x5C ), 64 ) );
-
-	$hmac = $algo( $opad . pack( $pack, $algo( $ipad . $data ) ) );
-
-	if ( $binary ) {
-		return pack( $pack, $hmac );
-	}
-
-	return $hmac;
-}
-
-if ( ! function_exists( 'hash_equals' ) ) :
-	/**
-	 * Timing attack safe string comparison.
-	 *
-	 * Compares two strings using the same time whether they're equal or not.
-	 *
-	 * Note: It can leak the length of a string when arguments of differing length are supplied.
-	 *
-	 * This function was added in PHP 5.6.
-	 * However, the Hash extension may be explicitly disabled on select servers.
-	 * As of PHP 7.4.0, the Hash extension is a core PHP extension and can no
-	 * longer be disabled.
-	 * I.e. when PHP 7.4.0 becomes the minimum requirement, this polyfill
-	 * can be safely removed.
-	 *
-	 * @since 3.9.2
-	 *
-	 * @param string $known_string Expected string.
-	 * @param string $user_string  Actual, user supplied, string.
-	 * @return bool Whether strings are equal.
-	 */
-	function hash_equals( $known_string, $user_string ) {
-		$known_string_length = strlen( $known_string );
-
-		if ( strlen( $user_string ) !== $known_string_length ) {
-			return false;
-		}
-
-		$result = 0;
-
-		// Do not attempt to "optimize" this.
-		for ( $i = 0; $i < $known_string_length; $i++ ) {
-			$result |= ord( $known_string[ $i ] ) ^ ord( $user_string[ $i ] );
-		}
-
-		return 0 === $result;
-	}
-endif;
-
 // sodium_crypto_box() was introduced in PHP 7.2.
 if ( ! function_exists( 'sodium_crypto_box' ) ) {
 	require ABSPATH . WPINC . '/sodium_compat/autoload.php';
@@ -359,23 +289,6 @@ if ( ! function_exists( 'is_countable' ) ) {
 	}
 }
 
-if ( ! function_exists( 'is_iterable' ) ) {
-	/**
-	 * Polyfill for is_iterable() function added in PHP 7.1.
-	 *
-	 * Verify that the content of a variable is an array or an object
-	 * implementing the Traversable interface.
-	 *
-	 * @since 4.9.6
-	 *
-	 * @param mixed $value The value to check.
-	 * @return bool True if `$value` is iterable, false otherwise.
-	 */
-	function is_iterable( $value ) {
-		return ( is_array( $value ) || $value instanceof Traversable );
-	}
-}
-
 if ( ! function_exists( 'array_key_first' ) ) {
 	/**
 	 * Polyfill for array_key_first() function added in PHP 7.3.
@@ -390,6 +303,10 @@ if ( ! function_exists( 'array_key_first' ) ) {
 	 *                         is not empty; `null` otherwise.
 	 */
 	function array_key_first( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		if ( empty( $array ) ) {
+			return null;
+		}
+
 		foreach ( $array as $key => $value ) {
 			return $key;
 		}
@@ -520,14 +437,96 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 	}
 }
 
-// IMAGETYPE_WEBP constant is only defined in PHP 7.1 or later.
-if ( ! defined( 'IMAGETYPE_WEBP' ) ) {
-	define( 'IMAGETYPE_WEBP', 18 );
+if ( ! function_exists( 'array_find' ) ) {
+	/**
+	 * Polyfill for `array_find()` function added in PHP 8.4.
+	 *
+	 * Searches an array for the first element that passes a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to search.
+	 * @param callable $callback The callback to run for each element.
+	 * @return mixed|null The first element in the array that passes the `$callback`, otherwise null.
+	 */
+	function array_find( array $array, callable $callback ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( $callback( $value, $key ) ) {
+				return $value;
+			}
+		}
+
+		return null;
+	}
 }
 
-// IMG_WEBP constant is only defined in PHP 7.0.10 or later.
-if ( ! defined( 'IMG_WEBP' ) ) {
-	define( 'IMG_WEBP', IMAGETYPE_WEBP );
+if ( ! function_exists( 'array_find_key' ) ) {
+	/**
+	 * Polyfill for `array_find_key()` function added in PHP 8.4.
+	 *
+	 * Searches an array for the first key that passes a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to search.
+	 * @param callable $callback The callback to run for each element.
+	 * @return int|string|null The first key in the array that passes the `$callback`, otherwise null.
+	 */
+	function array_find_key( array $array, callable $callback ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( $callback( $value, $key ) ) {
+				return $key;
+			}
+		}
+
+		return null;
+	}
+}
+
+if ( ! function_exists( 'array_any' ) ) {
+	/**
+	 * Polyfill for `array_any()` function added in PHP 8.4.
+	 *
+	 * Checks if any element of an array passes a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to check.
+	 * @param callable $callback The callback to run for each element.
+	 * @return bool True if any element in the array passes the `$callback`, otherwise false.
+	 */
+	function array_any( array $array, callable $callback ): bool { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( $callback( $value, $key ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+}
+
+if ( ! function_exists( 'array_all' ) ) {
+	/**
+	 * Polyfill for `array_all()` function added in PHP 8.4.
+	 *
+	 * Checks if all elements of an array pass a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to check.
+	 * @param callable $callback The callback to run for each element.
+	 * @return bool True if all elements in the array pass the `$callback`, otherwise false.
+	 */
+	function array_all( array $array, callable $callback ): bool { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( ! $callback( $value, $key ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 }
 
 // IMAGETYPE_AVIF constant is only defined in PHP 8.x or later.
@@ -538,4 +537,9 @@ if ( ! defined( 'IMAGETYPE_AVIF' ) ) {
 // IMG_AVIF constant is only defined in PHP 8.x or later.
 if ( ! defined( 'IMG_AVIF' ) ) {
 	define( 'IMG_AVIF', IMAGETYPE_AVIF );
+}
+
+// IMAGETYPE_HEIC constant is not yet defined in PHP as of PHP 8.3.
+if ( ! defined( 'IMAGETYPE_HEIC' ) ) {
+	define( 'IMAGETYPE_HEIC', 99 );
 }

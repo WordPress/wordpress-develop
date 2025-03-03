@@ -7,10 +7,8 @@
  * @since 6.4.0
  *
  * @group blocks
- *
- * @coversDefaultClass WP_Block_Patterns_Registry
  */
-class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
+class Tests_Blocks_wpBlockPatternsRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Fake block patterns registry.
@@ -21,6 +19,15 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 	private $registry = null;
 
 	/**
+	 * Original registered patterns.
+	 * This is the value from the internal private property.
+	 *
+	 * @since 6.5.0
+	 * @var array
+	 */
+	private $original_registered_patterns = null;
+
+	/**
 	 * Set up each test method.
 	 *
 	 * @since 6.4.0
@@ -28,7 +35,8 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->registry = new WP_Block_Patterns_Registry();
+		$this->registry                     = new WP_Block_Patterns_Registry();
+		$this->original_registered_patterns = $this->get_registered_patterns_variable_value();
 	}
 
 	/**
@@ -45,6 +53,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 			$registry->unregister( 'tests/my-block' );
 		}
 
+		$this->set_registered_patterns_variable_value( $this->original_registered_patterns );
 		parent::tear_down();
 	}
 
@@ -542,5 +551,140 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		wp_installing( false );
 
 		$this->assertEmpty( array_intersect( $theme_patterns, $registered ), 'Theme patterns were were incorrectly registered.' );
+	}
+
+	/**
+	 * Ensures theme patterns are lazy loaded.
+	 *
+	 * @ticket 59532
+	 *
+	 * @covers WP_Block_Patterns_Registry::get_all_registered
+	 */
+	public function test_lazy_loading_block_patterns_get_all_registered() {
+		// This test needs to use access static class properties.
+		$registry = WP_Block_Patterns_Registry::get_instance();
+
+		// Testing only the first pattern loaded from the theme.
+		$pattern_name = 'twentytwentythree/footer-default';
+
+		// Ensure we're using a theme with patterns.
+		switch_theme( 'twentytwentythree' );
+
+		// This helper is fired on the init hook.
+		_register_theme_block_patterns();
+
+		// Get the value of the private property.
+		$registered_patterns = $this->get_registered_patterns_variable_value();
+
+		$this->assertTrue(
+			isset( $registered_patterns[ $pattern_name ]['filePath'] ) &&
+			! isset( $registered_patterns[ $pattern_name ]['content'] ),
+			'Pattern was not lazy loaded.'
+		);
+
+		$all_patterns = $registry->get_all_registered();
+
+		$loaded_pattern = array_values(
+			array_filter(
+				$all_patterns,
+				function ( $pattern ) use ( $pattern_name ) {
+					return $pattern['name'] === $pattern_name;
+				}
+			)
+		);
+
+		$this->assertTrue(
+			! empty( $loaded_pattern[0]['content'] ),
+			'Content not loaded.'
+		);
+
+		// Check if the original property was updated.
+		$registered_patterns = $this->get_registered_patterns_variable_value();
+
+		$this->assertTrue(
+			! empty( $registered_patterns[ $pattern_name ]['content'] ),
+			'Content not updated.'
+		);
+	}
+
+	/**
+	 * Ensures theme patterns are lazy loaded.
+	 *
+	 * @ticket 59532
+	 *
+	 * @covers WP_Block_Patterns_Registry::get_registered
+	 */
+	public function test_lazy_loading_block_patterns_get_registered() {
+		// This test needs to use access static class properties.
+		$registry = WP_Block_Patterns_Registry::get_instance();
+
+		// Testing only the first pattern loaded from the theme.
+		$pattern_name = 'twentytwentythree/footer-default';
+
+		// Ensure we're using a theme with patterns.
+		switch_theme( 'twentytwentythree' );
+
+		// This helper is fired on the init hook.
+		_register_theme_block_patterns();
+
+		// Get the value of the private property.
+		$registered_patterns = $this->get_registered_patterns_variable_value();
+
+		$this->assertTrue(
+			isset( $registered_patterns[ $pattern_name ]['filePath'] ) &&
+			! isset( $registered_patterns[ $pattern_name ]['content'] ),
+			'Pattern was not lazy loaded.'
+		);
+
+		$loaded_pattern = $registry->get_registered( $pattern_name );
+
+		$this->assertTrue(
+			! empty( $loaded_pattern['content'] ),
+			'Content not loaded.'
+		);
+
+		// Check if the original property was updated.
+		$registered_patterns = $this->get_registered_patterns_variable_value();
+
+		$this->assertTrue(
+			! empty( $registered_patterns[ $pattern_name ]['content'] ),
+			'Content not updated.'
+		);
+	}
+
+	/**
+	 * Get the value of the `$registered_patterns` private property.
+	 *
+	 * @return array
+	 */
+	private function get_registered_patterns_variable_value() {
+		$registry = WP_Block_Patterns_Registry::get_instance();
+		// Use Reflection to access private property.
+		$reflection = new ReflectionClass( $registry );
+		$property   = $reflection->getProperty( 'registered_patterns' );
+		$property->setAccessible( true );
+
+		// Get the value of the private property.
+		$registered_patterns = $property->getValue( $registry );
+		$property->setAccessible( false );
+
+		return $registered_patterns;
+	}
+
+	/**
+	 * Set the value of the `$registered_patterns` private property.
+	 *
+	 * @param array $value The value to set.
+	 */
+	private function set_registered_patterns_variable_value( $value ) {
+		$registry = WP_Block_Patterns_Registry::get_instance();
+		// Use Reflection to access private property.
+		$reflection = new ReflectionClass( $registry );
+		$property   = $reflection->getProperty( 'registered_patterns' );
+		$property->setAccessible( true );
+
+		// Set the value of the private property.
+		$property->setValue( $registry, $value );
+		$property->setAccessible( false );
 	}
 }

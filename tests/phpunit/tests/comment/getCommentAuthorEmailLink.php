@@ -5,6 +5,7 @@
  * @covers ::get_comment_author_email_link
  */
 class Tests_Comment_GetCommentAuthorEmailLink extends WP_UnitTestCase {
+
 	public static $comment;
 
 	public function set_up() {

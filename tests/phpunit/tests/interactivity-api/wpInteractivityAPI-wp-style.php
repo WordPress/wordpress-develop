@@ -8,6 +8,8 @@
  *
  * @since 6.5.0
  *
+ * @coversDefaultClass WP_Interactivity_API
+ *
  * @group interactivity-api
  */
 class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
@@ -59,47 +61,47 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	public function test_merge_style_property_sets_properties() {
 		// Adds property on empty style attribute.
 		$result = $this->merge_style_property( '', 'color', 'green' );
-		$this->assertEquals( 'color:green;', $result );
+		$this->assertSame( 'color:green;', $result );
 
 		// Changes style property when there is an existing property.
 		$result = $this->merge_style_property( 'color:red;', 'color', 'green' );
-		$this->assertEquals( 'color:green;', $result );
+		$this->assertSame( 'color:green;', $result );
 
 		// Adds a new property when the existing one does not match.
 		$result = $this->merge_style_property( 'color:red;', 'background', 'blue' );
-		$this->assertEquals( 'color:red;background:blue;', $result );
+		$this->assertSame( 'color:red;background:blue;', $result );
 
 		// Handles multiple existing properties.
 		$result = $this->merge_style_property( 'color:red;margin:5px;', 'color', 'green' );
-		$this->assertEquals( 'margin:5px;color:green;', $result );
+		$this->assertSame( 'margin:5px;color:green;', $result );
 
 		// Adds a new property when multiple existing properties do not match.
 		$result = $this->merge_style_property( 'color:red;margin:5px;', 'padding', '10px' );
-		$this->assertEquals( 'color:red;margin:5px;padding:10px;', $result );
+		$this->assertSame( 'color:red;margin:5px;padding:10px;', $result );
 
 		// Removes whitespaces in all properties.
 		$result = $this->merge_style_property( ' color : red; margin : 5px; ', 'padding', ' 10px ' );
-		$this->assertEquals( 'color:red;margin:5px;padding:10px;', $result );
+		$this->assertSame( 'color:red;margin:5px;padding:10px;', $result );
 
 		// Updates a property when it's not the first one in the value.
 		$result = $this->merge_style_property( 'color:red;margin:5px;', 'margin', '15px' );
-		$this->assertEquals( 'color:red;margin:15px;', $result );
+		$this->assertSame( 'color:red;margin:15px;', $result );
 
 		// Adds missing trailing semicolon.
 		$result = $this->merge_style_property( 'color:red;margin:5px', 'padding', '10px' );
-		$this->assertEquals( 'color:red;margin:5px;padding:10px;', $result );
+		$this->assertSame( 'color:red;margin:5px;padding:10px;', $result );
 
 		// Doesn't add double semicolons.
 		$result = $this->merge_style_property( 'color:red;margin:5px;', 'padding', '10px;' );
-		$this->assertEquals( 'color:red;margin:5px;padding:10px;', $result );
+		$this->assertSame( 'color:red;margin:5px;padding:10px;', $result );
 
 		// Handles empty properties in the input.
 		$result = $this->merge_style_property( 'color:red;;margin:5px;;', 'padding', '10px' );
-		$this->assertEquals( 'color:red;margin:5px;padding:10px;', $result );
+		$this->assertSame( 'color:red;margin:5px;padding:10px;', $result );
 
 		// Moves the modified property to the end.
 		$result = $this->merge_style_property( 'border-style: dashed; border: 3px solid red;', 'border-style', 'inset' );
-		$this->assertEquals( 'border:3px solid red;border-style:inset;', $result );
+		$this->assertSame( 'border:3px solid red;border-style:inset;', $result );
 	}
 
 	/**
@@ -113,35 +115,35 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	public function test_merge_style_property_with_falsy_values() {
 		// Removes a property with an empty string.
 		$result = $this->merge_style_property( 'color:red;margin:5px;', 'color', '' );
-		$this->assertEquals( 'margin:5px;', $result );
+		$this->assertSame( 'margin:5px;', $result );
 
 		// Removes a property with null.
 		$result = $this->merge_style_property( 'color:red;margin:5px;', 'color', null );
-		$this->assertEquals( 'margin:5px;', $result );
+		$this->assertSame( 'margin:5px;', $result );
 
 		// Removes a property with false.
 		$result = $this->merge_style_property( 'color:red;margin:5px;', 'color', false );
-		$this->assertEquals( 'margin:5px;', $result );
+		$this->assertSame( 'margin:5px;', $result );
 
 		// Removes a property with 0.
 		$result = $this->merge_style_property( 'color:red;margin:5px;', 'color', 0 );
-		$this->assertEquals( 'margin:5px;', $result );
+		$this->assertSame( 'margin:5px;', $result );
 
 		// It doesn't add a new property with an empty string.
 		$result = $this->merge_style_property( 'color:red;', 'padding', '' );
-		$this->assertEquals( 'color:red;', $result );
+		$this->assertSame( 'color:red;', $result );
 
 		// It doesn't add a new property with null.
 		$result = $this->merge_style_property( 'color:red;', 'padding', null );
-		$this->assertEquals( 'color:red;', $result );
+		$this->assertSame( 'color:red;', $result );
 
 		// It doesn't add a new property with false.
 		$result = $this->merge_style_property( 'color:red;', 'padding', false );
-		$this->assertEquals( 'color:red;', $result );
+		$this->assertSame( 'color:red;', $result );
 
 		// It doesn't add a new property with 0.
 		$result = $this->merge_style_property( 'color:red;', 'padding', 0 );
-		$this->assertEquals( 'color:red;', $result );
+		$this->assertSame( 'color:red;', $result );
 	}
 
 	/**
@@ -168,7 +170,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	public function test_wp_style_sets_style_attribute() {
 		$html    = '<div data-wp-style--color="myPlugin::state.green">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'color:green;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'color:green;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
@@ -186,7 +188,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 				data-wp-style--background="myPlugin::state.green"
 			>Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'color:green;background:green;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'color:green;background:green;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
@@ -204,7 +206,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 				data-wp-style--background="myPlugin::state.false"
 			>Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'color:green;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'color:green;', $p->get_attribute( 'style' ) );
 
 		$html    = '
 			<div
@@ -213,7 +215,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 				data-wp-style--background="myPlugin::state.false"
 			>Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'color:green;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'color:green;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
@@ -227,7 +229,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	public function test_wp_style_sets_style_property_when_style_attribute_exists() {
 		$html    = '<div style="padding:10px;" data-wp-style--color="myPlugin::state.green">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'padding:10px;color:green;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'padding:10px;color:green;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
@@ -241,7 +243,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	public function test_wp_style_overwrites_style_property_when_style_property_exists() {
 		$html    = '<div style="color:red;" data-wp-style--color="myPlugin::state.green">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'color:green;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'color:green;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
@@ -269,7 +271,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	public function test_wp_style_doesnt_add_style_property_on_false() {
 		$html    = '<div style="padding:10px;" data-wp-style--color="myPlugin::state.false">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'padding:10px;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'padding:10px;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
@@ -283,7 +285,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	public function test_wp_style_keeps_style_property_when_style_property_exists() {
 		$html    = '<div style="color:green;" data-wp-style--color="myPlugin::state.green">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'color:green;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'color:green;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
@@ -297,7 +299,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	public function test_wp_style_keeps_style_property_when_style_property_exists_and_is_not_the_only_one() {
 		$html    = '<div style="padding:10px;color:green;" data-wp-style--color="myPlugin::state.green">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'padding:10px;color:green;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'padding:10px;color:green;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
@@ -325,7 +327,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	public function test_wp_style_removes_style_property_when_style_property_exists_and_is_not_the_only_one() {
 		$html    = '<div style="padding:10px;color:green;" data-wp-style--color="myPlugin::state.false">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'padding:10px;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'padding:10px;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
@@ -353,7 +355,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	public function test_wp_style_doesnt_change_style_attribute_with_empty_directive_suffix() {
 		$html    = '<div style="padding:10px;" data-wp-style="myPlugin::state.green">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'padding:10px;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'padding:10px;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
@@ -363,11 +365,12 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_wp_style_doesnt_change_style_attribute_with_empty_value() {
 		$html    = '<div style="padding:10px" data-wp-style--color="">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'padding:10px;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'padding:10px;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
@@ -377,11 +380,12 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_wp_style_doesnt_change_style_attribute_without_value() {
 		$html    = '<div style="padding: 10px;" data-wp-style--color>Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'padding:10px;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'padding:10px;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
@@ -395,7 +399,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	public function test_wp_style_works_with_multiple_directives() {
 		$html    = '<div data-wp-style--color="myPlugin::state.green" data-wp-style--color="myPlugin::state.green">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'color:green;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'color:green;', $p->get_attribute( 'style' ) );
 	}
 
 	/**

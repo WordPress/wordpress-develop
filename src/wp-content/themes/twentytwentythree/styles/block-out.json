@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.5/theme.json",
 	"version": 2,
 	"title": "Block out",
 	"settings": {
@@ -76,7 +76,7 @@
 				{
 					"fluid": {
 						"max": "7rem",
-						"min": "4rem"
+						"min": "4.3rem"
 					},
 					"size": "7rem",
 					"slug": "xx-large"

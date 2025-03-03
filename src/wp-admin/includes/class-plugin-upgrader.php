@@ -155,12 +155,6 @@ class Plugin_Upgrader extends WP_Upgrader {
 		// Force refresh of plugin update information.
 		wp_clean_plugins_cache( $parsed_args['clear_update_cache'] );
 
-		$all_plugin_data = get_option( 'plugin_data', array() );
-		$plugin_file     = $this->new_plugin_data['file'];
-		unset( $this->new_plugin_data['file'] );
-		$all_plugin_data[ $plugin_file ] = $this->new_plugin_data;
-		update_option( 'plugin_data', $all_plugin_data );
-
 		if ( $parsed_args['overwrite_package'] ) {
 			/**
 			 * Fires when the upgrader has successfully overwritten a currently installed
@@ -280,8 +274,6 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @since 2.8.0
 	 * @since 3.7.0 The `$args` parameter was added, making clearing the plugin update cache optional.
 	 *
-	 * @global string $wp_version The WordPress version string.
-	 *
 	 * @param string[] $plugins Array of paths to plugin files relative to the plugins directory.
 	 * @param array    $args {
 	 *     Optional. Other arguments for upgrading several plugins at once.
@@ -291,7 +283,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @return array|false An array of results indexed by plugin file, or false if unable to connect to the filesystem.
 	 */
 	public function bulk_upgrade( $plugins, $args = array() ) {
-		global $wp_version;
+		$wp_version = wp_get_wp_version();
 
 		$defaults    = array(
 			'clear_update_cache' => true,
@@ -463,14 +455,14 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @since 3.3.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
-	 * @global string             $wp_version    The WordPress version string.
 	 *
 	 * @param string $source The path to the downloaded package source.
 	 * @return string|WP_Error The source as passed, or a WP_Error object on failure.
 	 */
 	public function check_package( $source ) {
-		global $wp_filesystem, $wp_version;
+		global $wp_filesystem;
 
+		$wp_version            = wp_get_wp_version();
 		$this->new_plugin_data = array();
 
 		if ( is_wp_error( $source ) ) {
@@ -488,16 +480,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 			foreach ( $files as $file ) {
 				$info = get_plugin_data( $file, false, false );
 				if ( ! empty( $info['Name'] ) ) {
-					$basename = basename( $file );
-					$dirname  = basename( dirname( $file ) );
-
-					if ( '.' === $dirname ) {
-						$plugin_file = $basename;
-					} else {
-						$plugin_file = "$dirname/$basename";
-					}
-					$this->new_plugin_data         = ( $info );
-					$this->new_plugin_data['file'] = $plugin_file;
+					$this->new_plugin_data = $info;
 					break;
 				}
 			}
