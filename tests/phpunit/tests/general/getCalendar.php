@@ -33,6 +33,18 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Set up for each test.
+	 *
+	 * Navigate the calendar to February 2025.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		// Set the current date to February 2025.
+		$this->go_to( '/?m=202502' );
+	}
+
+	/**
 	 * Test that get_calendar() displays output when display is true.
 	 *
 	 * @ticket 34093
