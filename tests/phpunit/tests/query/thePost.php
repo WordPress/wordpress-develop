@@ -54,6 +54,8 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	 * @ticket 56992
 	 *
 	 * @dataProvider data_the_loop_fields
+	 *
+	 * @param string $fields Fields parameter for use in the query.
 	 */
 	public function test_the_loop_populates_the_global_post_completely( $fields ) {
 		$query = new WP_Query(
