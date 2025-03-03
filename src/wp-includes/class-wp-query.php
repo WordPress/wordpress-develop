@@ -3752,7 +3752,7 @@ class WP_Query {
 		$this->in_the_loop = true;
 		$this->before_loop = false;
 
-		if ( -1 == $this->current_post ) { // Loop has just started.
+		if ( -1 === $this->current_post ) { // Loop has just started.
 			/**
 			 * Fires once the loop is started.
 			 *
@@ -3779,7 +3779,7 @@ class WP_Query {
 	public function have_posts() {
 		if ( $this->current_post + 1 < $this->post_count ) {
 			return true;
-		} elseif ( $this->current_post + 1 == $this->post_count && $this->post_count > 0 ) {
+		} elseif ( $this->current_post + 1 === $this->post_count && $this->post_count > 0 ) {
 			/**
 			 * Fires once the loop has ended.
 			 *
@@ -3788,6 +3788,7 @@ class WP_Query {
 			 * @param WP_Query $query The WP_Query instance (passed by reference).
 			 */
 			do_action_ref_array( 'loop_end', array( &$this ) );
+
 			// Do some cleaning up after the loop.
 			$this->rewind_posts();
 		} elseif ( 0 === $this->post_count ) {
@@ -3846,7 +3847,7 @@ class WP_Query {
 
 		$comment = $this->next_comment();
 
-		if ( 0 == $this->current_comment ) {
+		if ( 0 === $this->current_comment ) {
 			/**
 			 * Fires once the comment loop is started.
 			 *
@@ -3868,7 +3869,7 @@ class WP_Query {
 	public function have_comments() {
 		if ( $this->current_comment + 1 < $this->comment_count ) {
 			return true;
-		} elseif ( $this->current_comment + 1 == $this->comment_count ) {
+		} elseif ( $this->current_comment + 1 === $this->comment_count ) {
 			$this->rewind_comments();
 		}
 
@@ -4533,9 +4534,10 @@ class WP_Query {
 				if ( ! strpos( $pagepath, '/' ) ) {
 					continue;
 				}
+
 				$pagepath_obj = get_page_by_path( $pagepath );
 
-				if ( $pagepath_obj && ( $pagepath_obj->ID == $page_obj->ID ) ) {
+				if ( $pagepath_obj && ( $pagepath_obj->ID === $page_obj->ID ) ) {
 					return true;
 				}
 			}
@@ -4643,9 +4645,10 @@ class WP_Query {
 				if ( ! strpos( $postpath, '/' ) ) {
 					continue;
 				}
+
 				$postpath_obj = get_page_by_path( $postpath, OBJECT, $post_obj->post_type );
 
-				if ( $postpath_obj && ( $postpath_obj->ID == $post_obj->ID ) ) {
+				if ( $postpath_obj && ( $postpath_obj->ID === $post_obj->ID ) ) {
 					return true;
 				}
 			}
