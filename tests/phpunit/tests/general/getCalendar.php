@@ -107,6 +107,31 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that get_calendar() respects the args initial parameter.
+	 *
+	 * @ticket 34093
+	 */
+	public function test_get_calendar_initial_args() {
+		$first_calendar_html  = get_echo( 'get_calendar', array( array( 'initial' => true ) ) );
+		$second_calendar_html = get_echo( 'get_calendar', array( array( 'initial' => false ) ) );
+
+		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">M</th>', $first_calendar_html, 'First calendar is expected to use initials for day names' );
+		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">Mon</th>', $second_calendar_html, 'Second calendar is expected to use abbreviations for day names' );
+	}
+
+	/**
+	 * Test that get_calendar() cache for different arguments.
+	 *
+	 * @ticket 34093
+	 */
+	public function test_get_calendar_caching_accounts_for_args() {
+		$first_calendar_html  = get_echo( 'get_calendar', );
+		$second_calendar_html = get_echo( 'get_calendar', array( array( 'post_type' => 'page' ) ) );
+
+		$this->assertNotSame( $first_calendar_html, $second_calendar_html, 'Each calendar should be different' );
+	}
+
+	/**
 	 * Test that get_calendar() maintains backwards compatibility with old parameter format.
 	 *
 	 * @ticket 34093
