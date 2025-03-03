@@ -84,6 +84,7 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 		$second_calendar_html = get_calendar( false, false );
 
 		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">Mon</th>', $first_calendar_html );
+		$this->assertStringContainsString( 'February 2025', $first_calendar_html );
 		$this->assertStringContainsString( '<table id="wp-calendar"', $second_calendar_html );
 		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">Mon</th>', $second_calendar_html );
 	}
