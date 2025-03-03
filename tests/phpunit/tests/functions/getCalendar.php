@@ -51,8 +51,9 @@ class Tests_Get_Calendar extends WP_UnitTestCase {
 	public function test_get_calendar_args_filter() {
 		$page_id = self::factory()->post->create(
 			array(
-				'post_type' => 'page',
-				'post_date' => '2025-02-03 12:00:00',
+				'post_type'     => 'page',
+				'post_date'     => '2025-02-03 12:00:00',
+				'post_date_gmt' => '2025-02-03 12:00:00',
 			)
 		);
 
