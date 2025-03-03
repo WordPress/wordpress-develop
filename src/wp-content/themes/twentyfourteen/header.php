@@ -43,6 +43,9 @@
 
 	<header id="masthead" class="site-header">
 		<div class="header-main">
+			<?php if ( has_custom_logo() ) : ?>
+				<div id="site-logo"><?php echo get_custom_logo(); ?></div>
+			<?php endif; ?>
 			<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></h1>
 
 			<div class="search-toggle">

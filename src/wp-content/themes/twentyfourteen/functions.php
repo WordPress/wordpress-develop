@@ -134,6 +134,16 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 		// Add RSS feed links to <head> for posts and comments.
 		add_theme_support( 'automatic-feed-links' );
 
+		// Enable support for custom logo.
+		add_theme_support(
+			'custom-logo',
+			array(
+				'height'     => 40,
+				'width'      => 164,
+				'flex-width' => true,
+			)
+		);
+
 		// Enable support for Post Thumbnails, and declare two sizes.
 		add_theme_support( 'post-thumbnails' );
 		set_post_thumbnail_size( 672, 372, true );
