@@ -18,8 +18,8 @@
  *
  * @since 2.7.0
  *
- * @global array $_old_files
- * @var array
+ * @global string[] $_old_files
+ * @var string[]
  * @name $_old_files
  */
 global $_old_files;
@@ -840,8 +840,8 @@ $_old_files = array(
  *
  * @since 6.2.0
  *
- * @global array $_old_requests_files
- * @var array
+ * @global string[] $_old_requests_files
+ * @var string[]
  * @name $_old_requests_files
  */
 global $_old_requests_files;
@@ -937,8 +937,8 @@ $_old_requests_files = array(
  *              upgrade. New themes are now installed again. To disable new
  *              themes from being installed on upgrade, explicitly define
  *              CORE_UPGRADE_SKIP_NEW_BUNDLED as true.
- * @global array $_new_bundled_files
- * @var array
+ * @global string[] $_new_bundled_files
+ * @var string[]
  * @name $_new_bundled_files
  */
 global $_new_bundled_files;
@@ -977,13 +977,14 @@ $_new_bundled_files = array(
  *
  * The steps for the upgrader for after the new release is downloaded and
  * unzipped is:
+ *
  *   1. Test unzipped location for select files to ensure that unzipped worked.
  *   2. Create the .maintenance file in current WordPress base.
  *   3. Copy new WordPress directory over old WordPress files.
  *   4. Upgrade WordPress to new version.
- *     4.1. Copy all files/folders other than wp-content
- *     4.2. Copy any language files to WP_LANG_DIR (which may differ from WP_CONTENT_DIR
- *     4.3. Copy any new bundled themes/plugins to their respective locations
+ *      1. Copy all files/folders other than wp-content
+ *      2. Copy any language files to `WP_LANG_DIR` (which may differ from `WP_CONTENT_DIR`
+ *      3. Copy any new bundled themes/plugins to their respective locations
  *   5. Delete new WordPress directory path.
  *   6. Delete .maintenance file.
  *   7. Remove old files.
@@ -1005,13 +1006,10 @@ $_new_bundled_files = array(
  * @since 2.7.0
  *
  * @global WP_Filesystem_Base $wp_filesystem          WordPress filesystem subclass.
- * @global array              $_old_files
- * @global array              $_old_requests_files
- * @global array              $_new_bundled_files
+ * @global string[]           $_old_files
+ * @global string[]           $_old_requests_files
+ * @global string[]           $_new_bundled_files
  * @global wpdb               $wpdb                   WordPress database abstraction object.
- * @global string             $wp_version
- * @global string             $required_php_version
- * @global string             $required_mysql_version
  *
  * @param string $from New release unzipped path.
  * @param string $to   Path to old WordPress installation.
@@ -1075,7 +1073,7 @@ function update_core( $from, $to ) {
 	}
 
 	/*
-	 * Import $wp_version, $required_php_version, and $required_mysql_version from the new version.
+	 * Import $wp_version, $required_php_version, $required_php_extensions, and $required_mysql_version from the new version.
 	 * DO NOT globalize any variables imported from `version-current.php` in this function.
 	 *
 	 * BC Note: $wp_filesystem->wp_content_dir() returned unslashed pre-2.8.
@@ -1181,17 +1179,29 @@ function update_core( $from, $to ) {
 		);
 	}
 
-	// Add a warning when the JSON PHP extension is missing.
-	if ( ! extension_loaded( 'json' ) ) {
-		return new WP_Error(
-			'php_not_compatible_json',
-			sprintf(
-				/* translators: 1: WordPress version number, 2: The PHP extension name needed. */
-				__( 'The update cannot be installed because WordPress %1$s requires the %2$s PHP extension.' ),
-				$wp_version,
-				'JSON'
-			)
-		);
+	if ( isset( $required_php_extensions ) && is_array( $required_php_extensions ) ) {
+		$missing_extensions = new WP_Error();
+
+		foreach ( $required_php_extensions as $extension ) {
+			if ( extension_loaded( $extension ) ) {
+				continue;
+			}
+
+			$missing_extensions->add(
+				"php_not_compatible_{$extension}",
+				sprintf(
+					/* translators: 1: WordPress version number, 2: The PHP extension name needed. */
+					__( 'The update cannot be installed because WordPress %1$s requires the %2$s PHP extension.' ),
+					$wp_version,
+					$extension
+				)
+			);
+		}
+
+		// Add a warning when required PHP extensions are missing.
+		if ( $missing_extensions->has_errors() ) {
+			return $missing_extensions;
+		}
 	}
 
 	/** This filter is documented in wp-admin/includes/update-core.php */
@@ -1594,7 +1604,7 @@ function update_core( $from, $to ) {
  *
  * @since 6.2.0
  *
- * @global array              $_old_requests_files Requests files to be preloaded.
+ * @global string[]           $_old_requests_files Requests files to be preloaded.
  * @global WP_Filesystem_Base $wp_filesystem       WordPress filesystem subclass.
  * @global string             $wp_version          The WordPress version string.
  *
@@ -1706,7 +1716,7 @@ window.location = 'about.php?updated';
  *
  * @since 4.2.2
  *
- * @global array              $wp_theme_directories
+ * @global string[]           $wp_theme_directories
  * @global WP_Filesystem_Base $wp_filesystem
  */
 function _upgrade_422_remove_genericons() {
@@ -1752,7 +1762,7 @@ function _upgrade_422_remove_genericons() {
  * @since 4.2.2
  *
  * @param string $directory Directory path. Expects trailingslashed.
- * @return array
+ * @return string[]
  */
 function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	$directory = trailingslashit( $directory );

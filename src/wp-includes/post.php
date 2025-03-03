@@ -69,13 +69,18 @@ function create_initial_post_types() {
 		)
 	);
 
+	// Enhance page editor for block themes by rendering template and content blocks.
+	if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
+		add_post_type_support( 'page', 'editor', array( 'default-mode' => 'template-locked' ) );
+	}
+
 	register_post_type(
 		'attachment',
 		array(
 			'labels'                => array(
 				'name'           => _x( 'Media', 'post type general name' ),
 				'name_admin_bar' => _x( 'Media', 'add new from admin bar' ),
-				'add_new'        => __( 'Add New Media File' ),
+				'add_new'        => __( 'Add Media File' ),
 				'edit_item'      => __( 'Edit Media' ),
 				'view_item'      => ( '1' === get_option( 'wp_attachment_pages_enabled' ) ) ? __( 'View Attachment Page' ) : __( 'View Media File' ),
 				'attributes'     => __( 'Attachment Attributes' ),
@@ -202,8 +207,8 @@ function create_initial_post_types() {
 			'labels'           => array(
 				'name'               => _x( 'Changesets', 'post type general name' ),
 				'singular_name'      => _x( 'Changeset', 'post type singular name' ),
-				'add_new'            => __( 'Add New Changeset' ),
-				'add_new_item'       => __( 'Add New Changeset' ),
+				'add_new'            => __( 'Add Changeset' ),
+				'add_new_item'       => __( 'Add Changeset' ),
 				'new_item'           => __( 'New Changeset' ),
 				'edit_item'          => __( 'Edit Changeset' ),
 				'view_item'          => __( 'View Changeset' ),
@@ -284,8 +289,8 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name'                     => _x( 'Patterns', 'post type general name' ),
 				'singular_name'            => _x( 'Pattern', 'post type singular name' ),
-				'add_new'                  => __( 'Add New Pattern' ),
-				'add_new_item'             => __( 'Add New Pattern' ),
+				'add_new'                  => __( 'Add Pattern' ),
+				'add_new_item'             => __( 'Add Pattern' ),
 				'new_item'                 => __( 'New Pattern' ),
 				'edit_item'                => __( 'Edit Block Pattern' ),
 				'view_item'                => __( 'View Pattern' ),
@@ -350,8 +355,8 @@ function create_initial_post_types() {
 			'labels'                          => array(
 				'name'                  => _x( 'Templates', 'post type general name' ),
 				'singular_name'         => _x( 'Template', 'post type singular name' ),
-				'add_new'               => __( 'Add New Template' ),
-				'add_new_item'          => __( 'Add New Template' ),
+				'add_new'               => __( 'Add Template' ),
+				'add_new_item'          => __( 'Add Template' ),
 				'new_item'              => __( 'New Template' ),
 				'edit_item'             => __( 'Edit Template' ),
 				'view_item'             => __( 'View Template' ),
@@ -415,8 +420,8 @@ function create_initial_post_types() {
 			'labels'                          => array(
 				'name'                  => _x( 'Template Parts', 'post type general name' ),
 				'singular_name'         => _x( 'Template Part', 'post type singular name' ),
-				'add_new'               => __( 'Add New Template Part' ),
-				'add_new_item'          => __( 'Add New Template Part' ),
+				'add_new'               => __( 'Add Template Part' ),
+				'add_new_item'          => __( 'Add Template Part' ),
 				'new_item'              => __( 'New Template Part' ),
 				'edit_item'             => __( 'Edit Template Part' ),
 				'view_item'             => __( 'View Template Part' ),
@@ -522,8 +527,8 @@ function create_initial_post_types() {
 			'labels'                => array(
 				'name'                  => _x( 'Navigation Menus', 'post type general name' ),
 				'singular_name'         => _x( 'Navigation Menu', 'post type singular name' ),
-				'add_new'               => __( 'Add New Navigation Menu' ),
-				'add_new_item'          => __( 'Add New Navigation Menu' ),
+				'add_new'               => __( 'Add Navigation Menu' ),
+				'add_new_item'          => __( 'Add Navigation Menu' ),
 				'new_item'              => __( 'New Navigation Menu' ),
 				'edit_item'             => __( 'Edit Navigation Menu' ),
 				'view_item'             => __( 'View Navigation Menu' ),
@@ -2026,8 +2031,8 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * - `name` - General name for the post type, usually plural. The same and overridden
  *          by `$post_type_object->label`. Default is 'Posts' / 'Pages'.
  * - `singular_name` - Name for one object of this post type. Default is 'Post' / 'Page'.
- * - `add_new` - Label for adding a new item. Default is 'Add New' / 'Add New'.
- * - `add_new_item` - Label for adding a new singular item. Default is 'Add New Post' / 'Add New Page'.
+ * - `add_new` - Label for adding a new item. Default is 'Add Post' / 'Add Page'.
+ * - `add_new_item` - Label for adding a new singular item. Default is 'Add Post' / 'Add Page'.
  * - `edit_item` - Label for editing a singular item. Default is 'Edit Post' / 'Edit Page'.
  * - `new_item` - Label for the new item page title. Default is 'New Post' / 'New Page'.
  * - `view_item` - Label for viewing a singular item. Default is 'View Post' / 'View Page'.

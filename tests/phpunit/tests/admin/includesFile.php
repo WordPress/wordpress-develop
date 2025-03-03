@@ -389,4 +389,78 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 		return $response;
 	}
+
+	/**
+	 * Test that `download_url()` properly handles setting the file name when set using
+	 * the content type header on URLs with no file extension.
+	 *
+	 * @dataProvider data_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined
+	 *
+	 * @covers ::download_url
+	 * @ticket 54738
+	 *
+	 * @param string $filter A callback containing a fake Content-Type header.
+	 * @param string $ext The expected file extension to match.
+	 */
+	public function test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined( $filter, $extension ) {
+		add_filter( 'pre_http_request', $filter );
+
+		$filename = download_url( 'url_with_content_type_header' );
+		$this->assertStringEndsWith( $extension, $filename );
+		$this->assertFileExists( $filename );
+		$this->unlink( $filename );
+	}
+
+	/**
+	 * Data provider for test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined
+	 *
+	 * @see test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined()
+	 * @test
+	 * @ticket 54738
+	 *
+	 * @return Generator
+	 */
+	public function data_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined() {
+		yield 'Content-Type header in the response' => array(
+			function () {
+				return array(
+					'response' => array(
+						'code' => 200,
+					),
+					'headers'  => array(
+						'content-type' => 'image/jpeg',
+					),
+				);
+			},
+			'.jpg',
+		);
+
+		yield 'Invalid Content-Type header' => array(
+			function () {
+				return array(
+					'response' => array(
+						'code' => 200,
+					),
+					'headers'  => array(
+						'content-type' => '../../filename-from-content-disposition-header.txt',
+					),
+				);
+			},
+			'.tmp',
+		);
+
+		yield 'Valid content type but not supported mime type' => array(
+			function () {
+				return array(
+					'response' => array(
+						'code' => 200,
+					),
+					'headers'  => array(
+						'content-type' => 'image/x-xbm',
+					),
+				);
+			},
+			'.tmp',
+		);
+	}
 }

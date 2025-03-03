@@ -78,9 +78,13 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @covers WP_REST_Font_Collections_Controller::get_items
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_should_only_return_valid_collections() {
+	public function test_get_items_should_only_return_valid_collections( $method ) {
 		$this->setExpectedIncorrectUsage( 'WP_Font_Collection::load_from_json' );
 
 		wp_set_current_user( self::$admin_id );
@@ -92,14 +96,23 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 			)
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/font-collections' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/font-collections' );
 		$response = rest_get_server()->dispatch( $request );
 		$content  = $response->get_data();
 
 		wp_unregister_font_collection( 'invalid-collection' );
 
 		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
-		$this->assertCount( 1, $content, 'The response should only contain valid collections.' );
+		if ( 'HEAD' !== $method ) {
+			$this->assertCount( 1, $content, 'The response should only contain valid collections.' );
+			return null;
+		}
+
+		$this->assertNull( $content, 'The response should be empty.' );
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'X-WP-Total', $headers, 'The "X-WP-Total" header should be present in the response.' );
+		// Includes non-valid collections.
+		$this->assertSame( 2, $headers['X-WP-Total'], 'The "X-WP-Total" header value should be equal to 1.' );
 	}
 
 	/**
@@ -127,19 +140,75 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 	}
 
 	/**
-	 * @covers WP_REST_Font_Collections_Controller::get_item
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_item_invalid_slug() {
+	public function test_get_item_should_allow_adding_headers_via_filter( $method ) {
+		$hook_name = 'rest_prepare_font_collection';
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+		add_filter( $hook_name, $callback );
+		$header_filter = new class() {
+			public static function add_custom_header( $response ) {
+				$response->header( 'X-Test-Header', 'Test' );
+
+				return $response;
+			}
+		};
+		add_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
 		wp_set_current_user( self::$admin_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/font-collections/non-existing-collection' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/font-collections/mock-col-slug' );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+		remove_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( 1, $filter->get_call_count(), 'The "' . $hook_name . '" filter was not called when it should be for GET/HEAD requests.' );
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'X-Test-Header', $headers, 'The "X-Test-Header" header should be present in the response.' );
+		$this->assertSame( 'Test', $headers['X-Test-Header'], 'The "X-Test-Header" header value should be equal to "Test".' );
+		if ( 'HEAD' !== $method ) {
+			return null;
+		}
+		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @covers WP_REST_Font_Collections_Controller::get_item
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_item_invalid_slug( $method ) {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( $method, '/wp/v2/font-collections/non-existing-collection' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_font_collection_not_found', $response, 404 );
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @covers WP_REST_Font_Collections_Controller::get_item
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_item_invalid_collection() {
+	public function test_get_item_invalid_collection( $method ) {
 		$this->setExpectedIncorrectUsage( 'WP_Font_Collection::load_from_json' );
 
 		wp_set_current_user( self::$admin_id );
@@ -152,7 +221,7 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 			)
 		);
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/font-collections/' . $slug );
+		$request  = new WP_REST_Request( $method, '/wp/v2/font-collections/' . $slug );
 		$response = rest_get_server()->dispatch( $request );
 
 		wp_unregister_font_collection( $slug );
@@ -161,10 +230,14 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @covers WP_REST_Font_Collections_Controller::get_item
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_item_invalid_id_permission() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/font-collections/mock-col-slug' );
+	public function test_get_item_invalid_id_permission( $method ) {
+		$request = new WP_REST_Request( $method, '/wp/v2/font-collections/mock-col-slug' );
 
 		wp_set_current_user( 0 );
 		$response = rest_get_server()->dispatch( $request );
