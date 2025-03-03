@@ -684,15 +684,24 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 
 	$userlist = implode( ',', array_map( 'absint', $users ) );
 	$where    = get_posts_by_author_sql( $post_type, true, null, $public_only );
+	$query    = "SELECT post_author, COUNT(*) FROM $wpdb->posts $where AND post_author IN ($userlist) GROUP BY post_author";
 
-	$result = $wpdb->get_results( "SELECT post_author, COUNT(*) FROM $wpdb->posts $where AND post_author IN ($userlist) GROUP BY post_author", ARRAY_N );
+	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$cache_key    = 'count_many_users_posts:' . md5( $query ) . ':' . $last_changed;
+	$counts       = wp_cache_get( $cache_key, 'post-queries' );
 
-	$count = array_fill_keys( $users, 0 );
-	foreach ( $result as $row ) {
-		$count[ $row[0] ] = $row[1];
+	if ( false === $counts ) {
+		$result = $wpdb->get_results( $query, ARRAY_N );
+		$counts = array_fill_keys( $users, 0 );
+
+		foreach ( $result as $row ) {
+			$counts[ $row[0] ] = $row[1];
+		}
+
+		wp_cache_set( $cache_key, $counts, 'post-queries' );
 	}
 
-	return $count;
+	return $counts;
 }
 
 //
