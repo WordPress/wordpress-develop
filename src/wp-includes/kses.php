@@ -2400,6 +2400,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'background-size',
 			'background-attachment',
 			'background-blend-mode',
+			'background-clip',
 
 			'border',
 			'border-radius',
