@@ -68,13 +68,10 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 	<div id="header">
 		<div id="masthead">
 			<div id="branding" role="banner">
-				<?php $heading_tag = ( is_home() || is_front_page() ) ? 'h1' : 'div'; ?>
-				<<?php echo $heading_tag; ?> id="site-title">
-					<span>
-						<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a>
-					</span>
-				</<?php echo $heading_tag; ?>>
-				<div id="site-description"><?php bloginfo( 'description' ); ?></div>
+				<?php twentyten_site_logo(); ?>
+				<?php if ( get_bloginfo( 'description' ) ) : ?>
+					<div id="site-description"><?php bloginfo( 'description' ); ?></div>
+				<?php endif; ?>
 
 				<?php
 					// Compatibility with versions of WordPress prior to 3.4.

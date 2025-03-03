@@ -371,6 +371,8 @@ a.skip-link:focus {
 	padding: 30px 0 0 0;
 }
 #site-title {
+	align-items: center;
+	display: flex;
 	float: left;
 	font-size: 30px;
 	line-height: 36px;
@@ -382,6 +384,10 @@ a.skip-link:focus {
 	font-weight: bold;
 	text-decoration: none;
 }
+#site-title h1 {
+	font-size: 30px;
+  	line-height: 36px;
+}
 #site-description {
 	clear: right;
 	float: right;
@@ -390,6 +396,9 @@ a.skip-link:focus {
 	width: 220px;
 }
 
+.custom-logo-link {
+	margin-right: 16px;
+}
 /* This is the custom header image */
 #branding img {
 	border-top: 4px solid #000;
@@ -397,7 +406,9 @@ a.skip-link:focus {
 	display: block;
 	float: left;
 }
-
+#branding img.custom-logo {
+	border: none;
+}
 
 /* =Menu
 -------------------------------------------------------------- */
