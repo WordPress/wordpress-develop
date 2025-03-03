@@ -24,7 +24,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  *     6: Icon for top level menu.
  *
  * @global array $menu
+ * @global array $submenu
  */
+global $menu, $submenu;
 
 $menu[2] = array( __( 'Dashboard' ), 'read', 'index.php', '', 'menu-top menu-top-first menu-icon-dashboard', 'menu-dashboard', 'dashicons-dashboard' );
 

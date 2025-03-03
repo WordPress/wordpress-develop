@@ -16,6 +16,7 @@
  *
  * @global string $wp_version
  */
+global $wp_version;
 $wp_version = '6.8-alpha-59274-src';
 
 /**
@@ -23,6 +24,7 @@ $wp_version = '6.8-alpha-59274-src';
  *
  * @global int $wp_db_version
  */
+global $wp_db_version;
 $wp_db_version = 58975;
 
 /**
@@ -30,6 +32,7 @@ $wp_db_version = 58975;
  *
  * @global string $tinymce_version
  */
+global $tinymce_version;
 $tinymce_version = '49110-20201110';
 
 /**
@@ -37,6 +40,7 @@ $tinymce_version = '49110-20201110';
  *
  * @global string $required_php_version
  */
+global $required_php_version;
 $required_php_version = '7.2.24';
 
 /**
@@ -44,6 +48,7 @@ $required_php_version = '7.2.24';
  *
  * @global string[] $required_php_extensions
  */
+global $required_php_extensions;
 $required_php_extensions = array(
 	'json',
 	'hash',
@@ -54,4 +59,5 @@ $required_php_extensions = array(
  *
  * @global string $required_mysql_version
  */
+global $required_mysql_version;
 $required_mysql_version = '5.5.5';

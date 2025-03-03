@@ -39,6 +39,7 @@
  * @var array
  * @global array $shortcode_tags
  */
+global $shortcode_tags;
 $shortcode_tags = array();
 
 /**
