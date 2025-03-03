@@ -37,6 +37,14 @@ function twentyfourteen_customize_register( $wp_customize ) {
 				'render_callback'     => 'twentyfourteen_customize_partial_blogdescription',
 			)
 		);
+		$wp_customize->selective_refresh->add_partial(
+			'custom_logo',
+			array(
+				'selector'            => '#site-logo',
+				'render_callback'     => 'twentyfourteen_customize_partial_site_logo',
+				'container_inclusive' => false,
+			)
+		);
 	}
 
 	// Rename the label to "Site Title Color" because this only affects the site title in this theme.
@@ -120,6 +128,14 @@ function twentyfourteen_customize_partial_blogdescription() {
 	bloginfo( 'description' );
 }
 
+/**
+ * Render the site logo for the selective refresh partial.
+ *
+ * Doing it this way so we don't have issues with `render_callback`'s arguments.
+ */
+function twentyfourteen_customize_partial_site_logo() {
+	echo get_custom_logo();
+}
 /**
  * Sanitize the Featured Content layout value.
  *
