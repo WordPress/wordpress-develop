@@ -92,6 +92,28 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that get_calendar() respects the args post type parameter.
+	 *
+	 * @ticket 34093
+	 */
+	public function test_get_calendar_post_type_args() {
+		self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+				'post_date' => '2025-02-03 12:00:00',
+			)
+		);
+
+		$calendar_html = get_echo( 'get_calendar', array( array( 'post_type' => 'page' ) ) );
+
+		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">M</th>', $calendar_html, 'Calendar is expected to display Mondays' );
+		$this->assertStringContainsString( '<table id="wp-calendar"', $calendar_html, 'Calendar is expected to contain the element table#wp-calendar' );
+		$this->assertStringContainsString( 'Posts published on February 3, 2025', $calendar_html, 'Calendar is expected to display page published on February 3, 2025.' );
+		$this->assertStringNotContainsString( 'Posts published on February 1, 2025', $calendar_html, 'Calendar is not expected to display posts published on February 1, 2025.' );
+		$this->assertStringContainsString( '<caption>February 2025</caption', $calendar_html, 'Calendar is expected to be captioned February 2025.' );
+	}
+
+	/**
 	 * Test that get_calendar() maintains backwards compatibility with old parameter format.
 	 *
 	 * @ticket 34093
