@@ -24,6 +24,9 @@
 	<div id="page" class="hfeed site">
 		<header id="masthead" class="site-header">
 			<a class="home-link" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
+				<?php if ( has_custom_logo() ) : ?>
+					<span class="site-logo"><?php echo get_custom_logo(); ?></span>
+				<?php endif; ?>
 				<h1 class="site-title"><?php bloginfo( 'name' ); ?></h1>
 				<h2 class="site-description"><?php bloginfo( 'description' ); ?></h2>
 			</a>

@@ -106,7 +106,7 @@ function twentythirteen_header_style() {
 	}
 	@media (max-width: 767px) {
 		.site-header {
-			background-size: 768px auto;
+			background-size: auto 220px;
 		}
 	}
 	@media (max-width: 359px) {
