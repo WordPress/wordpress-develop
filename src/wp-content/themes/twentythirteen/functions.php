@@ -245,6 +245,17 @@ function twentythirteen_setup() {
 	// This theme uses wp_nav_menu() in one location.
 	register_nav_menu( 'primary', __( 'Navigation Menu', 'twentythirteen' ) );
 
+	// Enable support for custom logo.
+	add_theme_support(
+		'custom-logo',
+		array(
+			'height'               => 100,
+			'width'                => 300,
+			'flex-width'           => true,
+			'unlink-homepage-logo' => true,
+		)
+	);
+
 	/*
 	 * This theme uses a custom image size for featured images, displayed on
 	 * "standard" posts and pages.
@@ -817,6 +828,14 @@ function twentythirteen_customize_register( $wp_customize ) {
 				'render_callback'     => 'twentythirteen_customize_partial_blogdescription',
 			)
 		);
+		$wp_customize->selective_refresh->add_partial(
+			'custom_logo',
+			array(
+				'selector'            => '.site-logo',
+				'render_callback'     => 'twentythirteen_customize_partial_site_logo',
+				'container_inclusive' => false,
+			)
+		);
 	}
 }
 add_action( 'customize_register', 'twentythirteen_customize_register' );
@@ -845,6 +864,15 @@ function twentythirteen_customize_partial_blogname() {
  */
 function twentythirteen_customize_partial_blogdescription() {
 	bloginfo( 'description' );
+}
+
+/**
+ * Render the site logo for the selective refresh partial.
+ *
+ * Doing it this way so we don't have issues with `render_callback`'s arguments.
+ */
+function twentythirteen_customize_partial_site_logo() {
+	echo get_custom_logo();
 }
 
 /**
