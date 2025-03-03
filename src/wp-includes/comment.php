@@ -1306,6 +1306,10 @@ function wp_check_comment_data( $comment_data ) {
 		}
 	}
 
+	if ( ! is_user_logged_in() && isset( $comment_data['comment_author_email'] ) && email_exists( $comment_data['comment_author_email'] ) ) {
+		$approved = 0;
+	}
+
 	/**
 	 * Filters a comment's approval status before it is set.
 	 *
@@ -3650,7 +3654,8 @@ function wp_handle_comment_submission( $comment_data ) {
 	}
 
 	// If the user is logged in.
-	$user = wp_get_current_user();
+	$is_comment_with_registered_email = false;
+	$user                             = wp_get_current_user();
 	if ( $user->exists() ) {
 		if ( empty( $user->display_name ) ) {
 			$user->display_name = $user->user_login;
@@ -3674,6 +3679,10 @@ function wp_handle_comment_submission( $comment_data ) {
 	} else {
 		if ( get_option( 'comment_registration' ) ) {
 			return new WP_Error( 'not_logged_in', __( 'Sorry, you must be logged in to comment.' ), 403 );
+		}
+
+		if ( ! empty( $comment_author_email ) && email_exists( $comment_author_email ) ) {
+			$is_comment_with_registered_email = true;
 		}
 	}
 
@@ -3726,6 +3735,23 @@ function wp_handle_comment_submission( $comment_data ) {
 
 	if ( ! $comment_id ) {
 		return new WP_Error( 'comment_save_error', __( '<strong>Error:</strong> The comment could not be saved. Please try again later.' ), 500 );
+	}
+
+	// If this was a comment with a registered email, add a note to the comment.
+	if ( $is_comment_with_registered_email ) {
+		$note = __( 'Note: This comment was submitted by a non-logged-in user with an email address that belongs to a registered account.' );
+		add_filter(
+			'comment_moderation_text',
+			function ( $message, $id ) use ( $comment_id, $note ) {
+				if ( $comment_id === $id ) {
+					return $message . "\n\n" . $note;
+				}
+
+				return $message;
+			},
+			10,
+			2
+		);
 	}
 
 	return get_comment( $comment_id );
