@@ -6536,6 +6536,7 @@ function _wp_check_split_nav_menu_terms( $term_id, $new_term_id, $term_taxonomy_
  * @return array Array of new term IDs, keyed by taxonomy.
  */
 function wp_get_split_terms( $old_term_id ) {
+	_deprecated_function( __FUNCTION__, 'x.y.z' );
 	return array();
 }
 
@@ -6552,6 +6553,7 @@ function wp_get_split_terms( $old_term_id ) {
  * @return int Returns the term ID.
  */
 function wp_get_split_term( $old_term_id, $taxonomy ) {
+	_deprecated_function( __FUNCTION__, 'x.y.z' );
 	return $old_term_id;
 }
 
@@ -6567,5 +6569,6 @@ function wp_get_split_term( $old_term_id, $taxonomy ) {
  * @return false Returns false.
  */
 function wp_term_is_shared( $term_id ) {
+	_deprecated_function( __FUNCTION__, 'x.y.z' );
 	return false;
 }
