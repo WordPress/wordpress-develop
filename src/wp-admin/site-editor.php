@@ -199,6 +199,32 @@ $preload_paths = array(
 		),
 		'GET',
 	),
+	'/wp/v2/settings',
+	array( '/wp/v2/settings', 'OPTIONS' ),
+	'/wp/v2/templates/lookup?slug=front-page',
+	'/wp/v2/templates/lookup?slug=home',
+	// Used by getBlockPatternCategories in useBlockEditorSettings.
+	'/wp/v2/block-patterns/categories',
+	// @see packages/core-data/src/entities.js
+	'/?_fields=' . implode(
+		',',
+		array(
+			'description',
+			'gmt_offset',
+			'home',
+			'name',
+			'site_icon',
+			'site_icon_url',
+			'site_logo',
+			'timezone_string',
+			'default_template_part_areas',
+			'default_template_types',
+			'url',
+			'page_for_posts',
+			'page_on_front',
+			'show_on_front',
+		)
+	),
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
