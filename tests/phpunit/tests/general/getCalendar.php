@@ -64,7 +64,7 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 	 * @ticket 34093
 	 */
 	public function test_get_calendar_args_filter() {
-		$page_id = self::factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_type' => 'page',
 				'post_date' => '2025-02-03 12:00:00',
