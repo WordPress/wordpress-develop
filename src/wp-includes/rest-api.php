@@ -1263,7 +1263,7 @@ function rest_add_application_passwords_to_index( $response ) {
  * @param WP_REST_Response $response REST API response.
  * @return WP_REST_Response Modified REST API response.
  */
-function rest_add_templates_default_data_to_index( WP_REST_Response $response ) {
+function rest_add_templates_default_data_to_index( $response ) {
 	if ( ! is_user_logged_in() ) {
 		return $response;
 	}
