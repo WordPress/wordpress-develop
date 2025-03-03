@@ -44,7 +44,16 @@ if ( ! function_exists( 'wp_install' ) ) :
 	 *     @type string $password_message The explanatory message regarding the password.
 	 * }
 	 */
-	function wp_install( $blog_title, $user_name, $user_email, $is_public, $deprecated = '', $user_password = '', $language = '' ) {
+	function wp_install(
+		$blog_title,
+		$user_name,
+		$user_email,
+		$is_public,
+		$deprecated = '',
+		#[\SensitiveParameter]
+		$user_password = '',
+		$language = ''
+	) {
 		if ( ! empty( $deprecated ) ) {
 			_deprecated_argument( __FUNCTION__, '2.6.0' );
 		}
@@ -563,7 +572,13 @@ if ( ! function_exists( 'wp_new_blog_notification' ) ) :
 	 * @param string $password   Administrator's password. Note that a placeholder message is
 	 *                           usually passed instead of the actual password.
 	 */
-	function wp_new_blog_notification( $blog_title, $blog_url, $user_id, $password ) {
+	function wp_new_blog_notification(
+		$blog_title,
+		$blog_url,
+		$user_id,
+		#[\SensitiveParameter]
+		$password
+	) {
 		$user      = new WP_User( $user_id );
 		$email     = $user->user_email;
 		$name      = $user->user_login;
@@ -965,6 +980,7 @@ function upgrade_101() {
  *
  * @ignore
  * @since 1.2.0
+ * @since 6.8.0 User passwords are no longer hashed with md5.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  */
@@ -977,13 +993,6 @@ function upgrade_110() {
 		if ( '' === $user->user_nicename ) {
 			$newname = sanitize_title( $user->user_nickname );
 			$wpdb->update( $wpdb->users, array( 'user_nicename' => $newname ), array( 'ID' => $user->ID ) );
-		}
-	}
-
-	$users = $wpdb->get_results( "SELECT ID, user_pass from $wpdb->users" );
-	foreach ( $users as $row ) {
-		if ( ! preg_match( '/^[A-Fa-f0-9]{32}$/', $row->user_pass ) ) {
-			$wpdb->update( $wpdb->users, array( 'user_pass' => md5( $row->user_pass ) ), array( 'ID' => $row->ID ) );
 		}
 	}
 

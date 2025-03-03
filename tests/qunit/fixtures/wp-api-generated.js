@@ -627,6 +627,12 @@ mockedApiResponse.Schema = {
                             "type": "boolean",
                             "required": false
                         },
+                        "ignore_sticky": {
+                            "description": "Whether to ignore sticky posts or not.",
+                            "type": "boolean",
+                            "default": false,
+                            "required": false
+                        },
                         "format": {
                             "description": "Limit result set to items assigned one or more given formats.",
                             "type": "array",
