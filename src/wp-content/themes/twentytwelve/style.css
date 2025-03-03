@@ -553,6 +553,10 @@ a:hover {
 	padding: 24px 0;
 	padding: 1.714285714rem 0;
 }
+#site-logo {
+	margin: 0 0 1rem 0;
+	text-align: center;
+}
 .site-header h1,
 .site-header h2 {
 	text-align: center;
@@ -1558,6 +1562,17 @@ img#wpstats {
 	.widget-area {
 		float: right;
 		width: 26.041666667%;
+	}
+	#site-logo {
+		float: left;
+		margin: 0 1.4em 1.714285714rem 0;
+		text-align: left;
+	}
+	#site-logo + .site-title {
+		clear: none;
+	}
+	#site-logo + .site-title + .site-description {
+		clear: none;
 	}
 	.site-header h1,
 	.site-header h2 {

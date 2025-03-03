@@ -125,6 +125,16 @@ function twentytwelve_setup() {
 		)
 	);
 
+	// Enable support for custom logo.
+	add_theme_support(
+		'custom-logo',
+		array(
+			'height'      => 90,
+			'width'       => 270,
+			'flex-width'  => true,
+		)
+	);
+
 	// This theme uses a custom image size for featured images, displayed on "standard" posts.
 	add_theme_support( 'post-thumbnails' );
 	set_post_thumbnail_size( 624, 9999 ); // Unlimited height, soft crop.
@@ -669,6 +679,14 @@ function twentytwelve_customize_register( $wp_customize ) {
 				'render_callback'     => 'twentytwelve_customize_partial_blogdescription',
 			)
 		);
+		$wp_customize->selective_refresh->add_partial(
+			'custom_logo',
+			array(
+				'selector'            => '#site-logo',
+				'render_callback'     => 'twentytwelve_customize_partial_site_logo',
+				'container_inclusive' => false,
+			)
+		);
 	}
 }
 add_action( 'customize_register', 'twentytwelve_customize_register' );
@@ -697,6 +715,15 @@ function twentytwelve_customize_partial_blogname() {
  */
 function twentytwelve_customize_partial_blogdescription() {
 	bloginfo( 'description' );
+}
+
+/**
+ * Render the site logo for the selective refresh partial.
+ *
+ * Doing it this way so we don't have issues with `render_callback`'s arguments.
+ */
+function twentytwelve_customize_partial_site_logo() {
+	echo get_custom_logo();
 }
 
 /**
