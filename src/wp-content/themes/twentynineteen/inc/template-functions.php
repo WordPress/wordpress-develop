@@ -138,10 +138,10 @@ function twentynineteen_add_ellipses_to_nav( $nav_menu, $args ) {
 				<ul class="main-menu">
 					<li class="menu-item menu-item-has-children">
 						<button class="submenu-expand main-menu-more-toggle is-empty" tabindex="-1"
-							aria-label="' . esc_attr__( 'More', 'twentynineteen' ) . '" aria-haspopup="true" aria-expanded="false">' .
+							aria-label="' . esc_attr__( 'More', 'twentynineteen' ) . '" aria-expanded="false" aria-controls="sub-menu-more">' .
 							twentynineteen_get_icon_svg( 'arrow_drop_down_ellipsis' ) . '
 						</button>
-						<ul class="sub-menu hidden-links">
+						<ul class="sub-menu hidden-links" id="sub-menu-more">
 							<li class="mobile-parent-nav-menu-item">
 								<button class="menu-item-link-return">' .
 									twentynineteen_get_icon_svg( 'chevron_left' ) .
@@ -181,10 +181,9 @@ add_filter( 'wp_nav_menu', 'twentynineteen_add_ellipses_to_nav', 10, 2 );
  */
 function twentynineteen_nav_menu_link_attributes( $atts, $item ) {
 
-	// Add [aria-haspopup] and [aria-expanded] to menu items that have children.
+	// Add [aria-expanded] to menu items that have children.
 	$item_has_children = in_array( 'menu-item-has-children', $item->classes, true );
 	if ( $item_has_children ) {
-		$atts['aria-haspopup'] = 'true';
 		$atts['aria-expanded'] = 'false';
 	}
 

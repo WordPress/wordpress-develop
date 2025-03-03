@@ -99,6 +99,27 @@
 	}
 
 	/**
+	 * Update the area-expanded attribute on hover.
+	 */
+	function toggleAriaExpandedOnHover() {
+		document.querySelectorAll('.main-navigation li.menu-item-has-children').forEach(function(li) {
+			['mouseenter', 'mouseleave'].forEach(function(event) {
+				li.addEventListener(event, function() {
+					var expanded = event === 'mouseenter' ? 'true' : 'false';
+					var anchor = li.querySelector('a');
+					var button = li.querySelector('button.main-menu-more-toggle');
+					if (anchor) {
+						anchor.setAttribute('aria-expanded', expanded);
+					}
+					if (button) {
+						button.setAttribute('aria-expanded', expanded);
+					}
+				});
+			});
+		});
+	}
+
+	/**
 	 * Open sub-menu.
 	 *
 	 * @param {Object} currentSubMenu
@@ -319,10 +340,29 @@
 	}
 
 	/**
+	 * Add unique ID to each .sub-menu and aria-controls to parent links.
+	 */
+	function addUniqueIDToSubMenus() {
+		var subMenus = document.querySelectorAll( '.main-navigation .sub-menu' );
+		subMenus.forEach( function( subMenu, index ) {
+			var parentLi = subMenu.closest( 'li.menu-item-has-children' );
+			subMenu.id = 'sub-menu-' + (index + 1);
+			if ( parentLi ) {
+				var parentLink = parentLi.querySelector( 'a' );
+				if ( parentLink ) {
+					parentLink.setAttribute( 'aria-controls', subMenu.id );
+				}
+			}
+		} );
+	}
+
+	/**
 	 * Run our sub-menu function as soon as the document is `ready`.
 	 */
 	document.addEventListener( 'DOMContentLoaded', function() {
 		toggleSubmenuDisplay();
+		addUniqueIDToSubMenus();
+		toggleAriaExpandedOnHover();
 	});
 
 	/**
