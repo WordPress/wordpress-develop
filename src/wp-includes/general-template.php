@@ -2154,7 +2154,7 @@ function wp_get_archives( $args = '' ) {
 		if ( $results ) {
 			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
-				if ( $result->week != $arc_w_last ) {
+				if ( $result->week !== $arc_w_last ) {
 					$arc_year       = $result->yr;
 					$arc_w_last     = $result->week;
 					$arc_week       = get_weekstartend( $result->yyyymmdd, get_option( 'start_of_week' ) );
@@ -2233,6 +2233,7 @@ function calendar_week_mod( $num ) {
  * no posts for the month, then it will not be displayed.
  *
  * @since 1.0.0
+ * @since 6.8.0 New argument $args added, with backward compatibility.
  *
  * @global wpdb      $wpdb      WordPress database abstraction object.
  * @global int       $m
@@ -2241,21 +2242,64 @@ function calendar_week_mod( $num ) {
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  * @global array     $posts
  *
- * @param bool $initial Optional. Whether to use initial calendar names. Default true.
- * @param bool $display Optional. Whether to display the calendar output. Default true.
+ * @param array $args {
+ *     Optional. Arguments for the `get_calendar` function.
+ *
+ *     @type bool   $initial   Whether to use initial calendar names. Default true.
+ *     @type bool   $display   Whether to display the calendar output. Default true.
+ *     @type string $post_type Optional. Post type. Default 'post'.
+ * }
  * @return void|string Void if `$display` argument is true, calendar HTML if `$display` is false.
  */
-function get_calendar( $initial = true, $display = true ) {
+function get_calendar( $args = array() ) {
 	global $wpdb, $m, $monthnum, $year, $wp_locale, $posts;
+
+	$defaults = array(
+		'initial'   => true,
+		'display'   => true,
+		'post_type' => 'post',
+	);
+
+	$original_args = func_get_args();
+	$args          = array();
+
+	if ( ! empty( $original_args ) ) {
+		if ( ! is_array( $original_args[0] ) ) {
+			if ( isset( $original_args[0] ) && is_bool( $original_args[0] ) ) {
+				$defaults['initial'] = $original_args[0];
+			}
+			if ( isset( $original_args[1] ) && is_bool( $original_args[1] ) ) {
+				$defaults['display'] = $original_args[1];
+			}
+		} else {
+			$args = $original_args[0];
+		}
+	}
+
+	/**
+	 * Filter the `get_calendar` function arguments before they are used.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array $args {
+	 *     Optional. Arguments for the `get_calendar` function.
+	 *
+	 *     @type bool   $initial   Whether to use initial calendar names. Default true.
+	 *     @type bool   $display   Whether to display the calendar output. Default true.
+	 *     @type string $post_type Optional. Post type. Default 'post'.
+	 * }
+	 * @return array The arguments for the `get_calendar` function.
+	 */
+	$args = apply_filters( 'get_calendar_args', wp_parse_args( $args, $defaults ) );
 
 	$key   = md5( $m . $monthnum . $year );
 	$cache = wp_cache_get( 'get_calendar', 'calendar' );
 
 	if ( $cache && is_array( $cache ) && isset( $cache[ $key ] ) ) {
 		/** This filter is documented in wp-includes/general-template.php */
-		$output = apply_filters( 'get_calendar', $cache[ $key ] );
+		$output = apply_filters( 'get_calendar', $cache[ $key ], $args );
 
-		if ( $display ) {
+		if ( $args['display'] ) {
 			echo $output;
 			return;
 		}
@@ -2267,9 +2311,15 @@ function get_calendar( $initial = true, $display = true ) {
 		$cache = array();
 	}
 
+	$post_type = $args['post_type'];
+	if ( ! post_type_exists( $post_type ) ) {
+		$post_type = 'post';
+	}
+
 	// Quick check. If we have no posts at all, abort!
 	if ( ! $posts ) {
-		$gotsome = $wpdb->get_var( "SELECT 1 as test FROM $wpdb->posts WHERE post_type = 'post' AND post_status = 'publish' LIMIT 1" );
+		$prepared_query = $wpdb->prepare( "SELECT 1 as test FROM $wpdb->posts WHERE post_type = %s AND post_status = 'publish' LIMIT 1", $post_type );
+		$gotsome        = $wpdb->get_var( $prepared_query );
 		if ( ! $gotsome ) {
 			$cache[ $key ] = '';
 			wp_cache_set( 'get_calendar', $cache, 'calendar' );
@@ -2309,22 +2359,27 @@ function get_calendar( $initial = true, $display = true ) {
 	$last_day  = gmdate( 't', $unixmonth );
 
 	// Get the next and previous month and year with at least one post.
-	$previous = $wpdb->get_row(
+	$previous_prepared_query = $wpdb->prepare(
 		"SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
 		FROM $wpdb->posts
 		WHERE post_date < '$thisyear-$thismonth-01'
-		AND post_type = 'post' AND post_status = 'publish'
+		AND post_type = %s AND post_status = 'publish'
 		ORDER BY post_date DESC
-		LIMIT 1"
+		LIMIT 1",
+		$post_type
 	);
-	$next     = $wpdb->get_row(
+	$previous                = $wpdb->get_row( $previous_prepared_query );
+
+	$next_prepared_query = $wpdb->prepare(
 		"SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
 		FROM $wpdb->posts
 		WHERE post_date > '$thisyear-$thismonth-{$last_day} 23:59:59'
-		AND post_type = 'post' AND post_status = 'publish'
+		AND post_type = %s AND post_status = 'publish'
 		ORDER BY post_date ASC
-		LIMIT 1"
+		LIMIT 1",
+		$post_type
 	);
+	$next                = $wpdb->get_row( $next_prepared_query );
 
 	/* translators: Calendar caption: 1: Month name, 2: 4-digit year. */
 	$calendar_caption = _x( '%1$s %2$s', 'calendar caption' );
@@ -2344,9 +2399,9 @@ function get_calendar( $initial = true, $display = true ) {
 	}
 
 	foreach ( $myweek as $wd ) {
-		$day_name         = $initial ? $wp_locale->get_weekday_initial( $wd ) : $wp_locale->get_weekday_abbrev( $wd );
+		$day_name         = $args['initial'] ? $wp_locale->get_weekday_initial( $wd ) : $wp_locale->get_weekday_abbrev( $wd );
 		$wd               = esc_attr( $wd );
-		$calendar_output .= "\n\t\t<th scope=\"col\" title=\"$wd\">$day_name</th>";
+		$calendar_output .= "\n\t\t<th scope=\"col\" aria-label=\"$wd\">$day_name</th>";
 	}
 
 	$calendar_output .= '
@@ -2358,13 +2413,14 @@ function get_calendar( $initial = true, $display = true ) {
 	$daywithpost = array();
 
 	// Get days with posts.
-	$dayswithposts = $wpdb->get_results(
+	$dayswithposts_prepared_query = $wpdb->prepare(
 		"SELECT DISTINCT DAYOFMONTH(post_date)
 		FROM $wpdb->posts WHERE post_date >= '{$thisyear}-{$thismonth}-01 00:00:00'
-		AND post_type = 'post' AND post_status = 'publish'
+		AND post_type = %s AND post_status = 'publish'
 		AND post_date <= '{$thisyear}-{$thismonth}-{$last_day} 23:59:59'",
-		ARRAY_N
+		$post_type
 	);
+	$dayswithposts                = $wpdb->get_results( $dayswithposts_prepared_query, ARRAY_N );
 
 	if ( $dayswithposts ) {
 		foreach ( (array) $dayswithposts as $daywith ) {
@@ -2452,19 +2508,29 @@ function get_calendar( $initial = true, $display = true ) {
 	$cache[ $key ] = $calendar_output;
 	wp_cache_set( 'get_calendar', $cache, 'calendar' );
 
-	if ( $display ) {
-		/**
-		 * Filters the HTML calendar output.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param string $calendar_output HTML output of the calendar.
-		 */
-		echo apply_filters( 'get_calendar', $calendar_output );
+	/**
+	 * Filters the HTML calendar output.
+	 *
+	 * @since 3.0.0
+	 * @since 6.8.0 New argument $args added, with backward compatibility.
+	 *
+	 * @param string $calendar_output HTML output of the calendar.
+	 * @param array  $args {
+	 *     Optional. Array of display arguments.
+	 *
+	 *     @type bool   $initial   Whether to use initial calendar names. Default true.
+	 *     @type bool   $display   Whether to display the calendar output. Default true.
+	 *     @type string $post_type Optional. Post type. Default 'post'.
+	 * }
+	 */
+	$calendar_output = apply_filters( 'get_calendar', $calendar_output, $args );
+
+	if ( $args['display'] ) {
+		echo $calendar_output;
 		return;
 	}
-	/** This filter is documented in wp-includes/general-template.php */
-	return apply_filters( 'get_calendar', $calendar_output );
+
+	return $calendar_output;
 }
 
 /**
@@ -2517,7 +2583,7 @@ function the_date_xml() {
 }
 
 /**
- * Displays or retrieves the date the current post was written (once per date)
+ * Displays or retrieves the date of the post (once per date).
  *
  * Will only output the date if the current post's date is different from the
  * previous one output.
@@ -2525,8 +2591,8 @@ function the_date_xml() {
  * i.e. Only one date listing will show per day worth of posts shown in the loop, even if the
  * function is called several times for each post.
  *
- * HTML output can be filtered with 'the_date'.
- * Date string output can be filtered with 'get_the_date'.
+ * HTML output can be filtered with {@see 'the_date'}.
+ * Date string output can be filtered with {@see 'get_the_date'}.
  *
  * @since 0.71
  *
@@ -2550,7 +2616,7 @@ function the_date( $format = '', $before = '', $after = '', $display = true ) {
 	}
 
 	/**
-	 * Filters the date a post was published for display.
+	 * Filters the date of the post, for display.
 	 *
 	 * @since 0.71
 	 *
@@ -2569,7 +2635,7 @@ function the_date( $format = '', $before = '', $after = '', $display = true ) {
 }
 
 /**
- * Retrieves the date on which the post was written.
+ * Retrieves the date of the post.
  *
  * Unlike the_date() this function will always return the date.
  * Modify output with the {@see 'get_the_date'} filter.
@@ -2592,13 +2658,13 @@ function get_the_date( $format = '', $post = null ) {
 	$the_date = get_post_time( $_format, false, $post, true );
 
 	/**
-	 * Filters the date a post was published.
+	 * Filters the date of the post.
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string|int  $the_date Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
-	 * @param string      $format   PHP date format.
-	 * @param WP_Post     $post     The post object.
+	 * @param string|int $the_date Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+	 * @param string     $format   PHP date format.
+	 * @param WP_Post    $post     The post object.
 	 */
 	return apply_filters( 'get_the_date', $the_date, $format, $post );
 }
@@ -2618,14 +2684,14 @@ function the_modified_date( $format = '', $before = '', $after = '', $display = 
 	$the_modified_date = $before . get_the_modified_date( $format ) . $after;
 
 	/**
-	 * Filters the date a post was last modified for display.
+	 * Filters the date a post was last modified, for display.
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string|false $the_modified_date The last modified date or false if no post is found.
-	 * @param string       $format            PHP date format.
-	 * @param string       $before            HTML output before the date.
-	 * @param string       $after             HTML output after the date.
+	 * @param string $the_modified_date The last modified date.
+	 * @param string $format            PHP date format.
+	 * @param string $before            HTML output before the date.
+	 * @param string $after             HTML output after the date.
 	 */
 	$the_modified_date = apply_filters( 'the_modified_date', $the_modified_date, $format, $before, $after );
 
@@ -2672,7 +2738,7 @@ function get_the_modified_date( $format = '', $post = null ) {
 }
 
 /**
- * Displays the time at which the post was written.
+ * Displays the time of the post.
  *
  * @since 0.71
  *
@@ -2682,7 +2748,7 @@ function get_the_modified_date( $format = '', $post = null ) {
  */
 function the_time( $format = '' ) {
 	/**
-	 * Filters the time a post was written for display.
+	 * Filters the time of the post, for display.
 	 *
 	 * @since 0.71
 	 *
@@ -2694,7 +2760,7 @@ function the_time( $format = '' ) {
 }
 
 /**
- * Retrieves the time at which the post was written.
+ * Retrieves the time of the post.
  *
  * @since 1.5.0
  *
@@ -2717,20 +2783,20 @@ function get_the_time( $format = '', $post = null ) {
 	$the_time = get_post_time( $_format, false, $post, true );
 
 	/**
-	 * Filters the time a post was written.
+	 * Filters the time of the post.
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param string|int  $the_time Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
-	 * @param string      $format   Format to use for retrieving the time the post
-	 *                              was written. Accepts 'G', 'U', or PHP date format.
-	 * @param WP_Post     $post     Post object.
+	 * @param string|int $the_time Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+	 * @param string     $format   Format to use for retrieving the time the post
+	 *                             was written. Accepts 'G', 'U', or PHP date format.
+	 * @param WP_Post    $post     Post object.
 	 */
 	return apply_filters( 'get_the_time', $the_time, $format, $post );
 }
 
 /**
- * Retrieves the time at which the post was written.
+ * Retrieves the localized time of the post.
  *
  * @since 2.0.0
  *
@@ -2774,12 +2840,12 @@ function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = 
 	}
 
 	/**
-	 * Filters the localized time a post was written.
+	 * Filters the localized time of the post.
 	 *
 	 * @since 2.6.0
 	 *
 	 * @param string|int $time   Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
-	 * @param string     $format Format to use for retrieving the time the post was written.
+	 * @param string     $format Format to use for retrieving the date of the post.
 	 *                           Accepts 'G', 'U', or PHP date format.
 	 * @param bool       $gmt    Whether to retrieve the GMT time.
 	 */
@@ -2976,7 +3042,7 @@ function get_post_modified_time( $format = 'U', $gmt = false, $post = null, $tra
 }
 
 /**
- * Displays the weekday on which the post was written.
+ * Displays the localized weekday for the post.
  *
  * @since 0.71
  *
@@ -2994,7 +3060,7 @@ function the_weekday() {
 	$the_weekday = $wp_locale->get_weekday( get_post_time( 'w', false, $post ) );
 
 	/**
-	 * Filters the weekday on which the post was written, for display.
+	 * Filters the localized weekday of the post, for display.
 	 *
 	 * @since 0.71
 	 *
@@ -3004,7 +3070,7 @@ function the_weekday() {
 }
 
 /**
- * Displays the weekday on which the post was written.
+ * Displays the localized weekday for the post.
  *
  * Will only output the weekday if the current post's weekday is different from
  * the previous one output.
@@ -3037,7 +3103,7 @@ function the_weekday_date( $before = '', $after = '' ) {
 	}
 
 	/**
-	 * Filters the localized date on which the post was written, for display.
+	 * Filters the localized weekday of the post, for display.
 	 *
 	 * @since 0.71
 	 *
@@ -3792,7 +3858,7 @@ function user_can_richedit() {
  * Finds out which editor should be displayed by default.
  *
  * Works out which of the editors to display as the current editor for a
- * user. The 'html' setting is for the "Text" editor tab.
+ * user. The 'html' setting is for the "Code" editor tab.
  *
  * @since 2.5.0
  *
@@ -4351,7 +4417,7 @@ function get_search_query( $escaped = true ) {
  */
 function the_search_query() {
 	/**
-	 * Filters the contents of the search query variable for display.
+	 * Filters the contents of the search query variable, for display.
 	 *
 	 * @since 2.3.0
 	 *
@@ -4579,7 +4645,7 @@ function paginate_links( $args = '' ) {
 	$dots       = false;
 
 	if ( $args['prev_next'] && $current && 1 < $current ) :
-		$link = str_replace( '%_%', 2 == $current ? '' : $args['format'], $args['base'] );
+		$link = str_replace( '%_%', 2 === $current ? '' : $args['format'], $args['base'] );
 		$link = str_replace( '%#%', $current - 1, $link );
 		if ( $add_args ) {
 			$link = add_query_arg( $add_args, $link );
@@ -4601,7 +4667,7 @@ function paginate_links( $args = '' ) {
 	endif;
 
 	for ( $n = 1; $n <= $total; $n++ ) :
-		if ( $n == $current ) :
+		if ( $n === $current ) :
 			$page_links[] = sprintf(
 				'<span aria-current="%s" class="page-numbers current">%s</span>',
 				esc_attr( $args['aria_current'] ),
@@ -4611,7 +4677,7 @@ function paginate_links( $args = '' ) {
 			$dots = true;
 		else :
 			if ( $args['show_all'] || ( $n <= $end_size || ( $current && $n >= $current - $mid_size && $n <= $current + $mid_size ) || $n > $total - $end_size ) ) :
-				$link = str_replace( '%_%', 1 == $n ? '' : $args['format'], $args['base'] );
+				$link = str_replace( '%_%', 1 === $n ? '' : $args['format'], $args['base'] );
 				$link = str_replace( '%#%', $n, $link );
 				if ( $add_args ) {
 					$link = add_query_arg( $add_args, $link );
@@ -4984,7 +5050,7 @@ function wp_generator() {
  */
 function the_generator( $type ) {
 	/**
-	 * Filters the output of the XHTML generator tag for display.
+	 * Filters the output of the XHTML generator tag, for display.
 	 *
 	 * @since 2.5.0
 	 *

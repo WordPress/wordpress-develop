@@ -163,6 +163,8 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 			return $global_styles_config;
 		}
 
+		$is_head_request = $request->is_method( 'HEAD' );
+
 		if ( wp_revisions_enabled( $parent ) ) {
 			$registered = $this->get_collection_params();
 			$query_args = array(
@@ -186,13 +188,21 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 				}
 			}
 
+			if ( $is_head_request ) {
+				// Force the 'fields' argument. For HEAD requests, only post IDs are required to calculate pagination.
+				$query_args['fields'] = 'ids';
+				// Disable priming post meta for HEAD requests to improve performance.
+				$query_args['update_post_term_cache'] = false;
+				$query_args['update_post_meta_cache'] = false;
+			}
+
 			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
 			$query_args = apply_filters( 'rest_global_styles_revision_query', $query_args, $request );
 
 			$revisions_query = new WP_Query();
 			$revisions       = $revisions_query->query( $query_args );
 			$offset          = isset( $query_args['offset'] ) ? (int) $query_args['offset'] : 0;
-			$page            = (int) $query_args['paged'];
+			$page            = isset( $query_args['paged'] ) ? (int) $query_args['paged'] : 0;
 			$total_revisions = $revisions_query->found_posts;
 
 			if ( $total_revisions < 1 ) {
@@ -231,14 +241,18 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 			$page            = (int) $request['page'];
 		}
 
-		$response = array();
+		if ( ! $is_head_request ) {
+			$response = array();
 
-		foreach ( $revisions as $revision ) {
-			$data       = $this->prepare_item_for_response( $revision, $request );
-			$response[] = $this->prepare_response_for_collection( $data );
+			foreach ( $revisions as $revision ) {
+				$data       = $this->prepare_item_for_response( $revision, $request );
+				$response[] = $this->prepare_response_for_collection( $data );
+			}
+
+			$response = rest_ensure_response( $response );
+		} else {
+			$response = new WP_REST_Response();
 		}
-
-		$response = rest_ensure_response( $response );
 
 		$response->header( 'X-WP-Total', (int) $total_revisions );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
@@ -278,6 +292,11 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * @return WP_REST_Response|WP_Error Response object.
 	 */
 	public function prepare_item_for_response( $post, $request ) {
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			return new WP_REST_Response();
+		}
+
 		$parent               = $this->get_parent( $request['parent'] );
 		$global_styles_config = $this->get_decoded_global_styles_json( $post->post_content );
 

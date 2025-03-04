@@ -691,4 +691,124 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$imagick->destroy();
 		$this->assertSame( $expected, $output, 'The image color of the generated thumb does not match expected opaque background.' ); // Allow for floating point equivalence.
 	}
+
+	/**
+	 * Test filter `image_max_bit_depth` correctly sets the maximum bit depth of resized images.
+	 *
+	 * @ticket 62285
+	 */
+	public function test_image_max_bit_depth() {
+		$file                 = DIR_TESTDATA . '/images/colors_hdr_p3.avif';
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+
+		// Skip if AVIF not supported.
+		if ( ! $imagick_image_editor->supports_mime_type( 'image/avif' ) ) {
+			$this->markTestSkipped( 'The image editor does not support the AVIF mime type.' );
+		}
+
+		// Skip if depth methods not available.
+		if ( ! method_exists( 'Imagick', 'getImageDepth' ) || ! method_exists( 'Imagick', 'setImageDepth' ) ) {
+			$this->markTestSkipped( 'The image editor does not support get or setImageDepth.' );
+		}
+
+		// Verify source image has 10-bit depth.
+		$imagick = new Imagick( $file );
+		$this->assertSame( 10, $imagick->getImageDepth() );
+
+		// Test ability to save 10-bit image.
+		$imagick->setImageDepth( 10 );
+		$test_file = tempnam( get_temp_dir(), '' ) . 'test10.avif';
+		$imagick->writeImage( $test_file );
+		$im = new Imagick( $test_file );
+
+		if ( $im->getImageDepth() !== 10 ) {
+			$this->markTestSkipped( 'Imagick is unable to save a 10 bit image.' );
+		}
+		$im->destroy();
+		unlink( $test_file );
+
+		// Test default behavior preserves 10-bit depth.
+		$imagick_image_editor->load();
+		$imagick_image_editor->resize( 100, 50 );
+		$test_file = tempnam( get_temp_dir(), '' ) . 'test1.avif';
+		$imagick_image_editor->save( $test_file );
+		$im = new Imagick( $test_file );
+		$this->assertSame( 10, $im->getImageDepth() );
+		unlink( $test_file );
+		$im->destroy();
+
+		// Test filter can set 8-bit depth
+		add_filter( 'image_max_bit_depth', array( $this, '__return_eight' ) );
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+		$imagick_image_editor->load();
+		$imagick_image_editor->resize( 100, 50 );
+		$test_file = tempnam( get_temp_dir(), '' ) . 'test2.avif';
+		$imagick_image_editor->save( $test_file );
+		$im = new Imagick( $test_file );
+		$this->assertSame( 8, $im->getImageDepth() );
+		unlink( $test_file );
+		$im->destroy();
+	}
+
+	/**
+	 * Helper function to return 8 for the `image_max_bit_depth` filter.
+	 *
+	 * @return int
+	 */
+	public function __return_eight() {
+		return 8;
+	}
+
+	/**
+	 * Test that resizes are smaller for 16 bit PNG images.
+	 *
+	 * @ticket 36477
+	 *
+	 * @dataProvider data_resizes_are_small_for_16bit_images
+	 */
+	public function test_resizes_are_small_for_16bit_images( $file ) {
+
+		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+		$imagick_image_editor->load();
+		$size = $imagick_image_editor->get_size();
+
+		$org_filesize = filesize( $file );
+
+		$imagick_image_editor->resize( $size['width'] * .5, $size['height'] * .5 );
+
+		$saved = $imagick_image_editor->save( $temp_file );
+
+		$new_filesize = filesize( $temp_file );
+
+		unlink( $temp_file );
+
+		$this->assertLessThan( $org_filesize, $new_filesize, 'The resized image file size is not smaller than the original file size.' );
+	}
+
+	/**
+	 * data_test_resizes_are_small_for_16bit
+	 *
+	 * @return array[]
+	 */
+	public static function data_resizes_are_small_for_16bit_images() {
+		return array(
+			'cloudflare-status'       => array(
+				DIR_TESTDATA . '/images/png-tests/cloudflare-status.png',
+			),
+			'deskcat8'                => array(
+				DIR_TESTDATA . '/images/png-tests/deskcat8.png',
+			),
+			'17-c3-duplicate-entries' => array(
+				DIR_TESTDATA . '/images/png-tests/Palette_icon-or8.png',
+			),
+			'rabbit-time-paletted'    => array(
+				DIR_TESTDATA . '/images/png-tests/rabbit-time-paletted-or8.png',
+			),
+			'test8'                   => array(
+				DIR_TESTDATA . '/images/png-tests/test8.png',
+			),
+		);
+	}
 }

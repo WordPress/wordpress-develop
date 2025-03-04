@@ -12,6 +12,9 @@ mockedApiResponse.Schema = {
     "home": "http://example.org",
     "gmt_offset": "0",
     "timezone_string": "",
+    "page_for_posts": 0,
+    "page_on_front": 0,
+    "show_on_front": "posts",
     "namespaces": [
         "oembed/1.0",
         "wp/v2",
@@ -625,6 +628,12 @@ mockedApiResponse.Schema = {
                         "sticky": {
                             "description": "Limit result set to items that are sticky.",
                             "type": "boolean",
+                            "required": false
+                        },
+                        "ignore_sticky": {
+                            "description": "Whether to ignore sticky posts or not.",
+                            "type": "boolean",
+                            "default": false,
                             "required": false
                         },
                         "format": {
@@ -9593,6 +9602,22 @@ mockedApiResponse.Schema = {
                                     "wp_font_family": "wp_font_family",
                                     "wp_font_face": "wp_font_face"
                                 }
+                            },
+                            "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "email",
+                                    "name",
+                                    "id",
+                                    "username",
+                                    "slug"
+                                ],
+                                "type": "string"
                             },
                             "required": false
                         }
