@@ -201,6 +201,8 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure draft content is shown for post previews and permalinks for logged in users.
+	 *
 	 * @ticket 56992
 	 */
 	public function test_post_preview_links_draft_posts() {
@@ -245,6 +247,8 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure autosave content is shown for post previews.
+	 *
 	 * @ticket 56992
 	 */
 	public function test_post_preview_links_autosaves() {
