@@ -683,7 +683,7 @@ class WP_Debug_Data {
 		}
 
 		// Get the image format transforms.
-		$mappings = wp_get_image_editor_output_format( '', '' );
+		$mappings           = wp_get_image_editor_output_format( '', '' );
 		$formatted_mappings = array();
 
 		if ( ! empty( $mappings ) ) {
