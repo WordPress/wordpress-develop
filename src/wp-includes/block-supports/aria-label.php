@@ -38,7 +38,7 @@ function wp_register_aria_label_support( $block_type ) {
  * @since 6.8.0
  * @access private
  *
- * @param WP_Block_Type $block_type Block Type.
+ * @param WP_Block_Type $block_type       Block Type.
  * @param array         $block_attributes Block attributes.
  *
  * @return array Block aria-label.
