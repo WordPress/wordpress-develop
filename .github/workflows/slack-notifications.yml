@@ -158,7 +158,7 @@ jobs:
           )"
           echo "payload=$PAYLOAD" >> "$GITHUB_OUTPUT"
         env:
-          COMMIT_MSG_RAW: ${{ ( github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ) && fromJson( steps.current-commit-message.outputs.result ) || github.event.head_commit.message }}
+          COMMIT_MSG_RAW: ${{ ( github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ) && steps.current-commit-message.outputs.result || github.event.head_commit.message }}
 
   # Posts notifications when a workflow fails.
   failure:
