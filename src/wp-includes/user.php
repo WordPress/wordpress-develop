@@ -1796,7 +1796,7 @@ function wp_dropdown_users( $args = '' ) {
 
 		if ( $show_option_none ) {
 			$_selected = selected( $option_none_value, $parsed_args['selected'], false );
-			$output   .= "\t<option value='" . esc_attr( $option_none_value ) . "'$_selected>$show_option_none</option>\n";
+			$output   .= "\t<option value='" . esc_attr( $option_none_value ) . "' $_selected>$show_option_none</option>\n";
 		}
 
 		if ( $parsed_args['include_selected'] && ( $parsed_args['selected'] > 0 ) ) {
@@ -1829,7 +1829,7 @@ function wp_dropdown_users( $args = '' ) {
 			}
 
 			$_selected = selected( $user->ID, $parsed_args['selected'], false );
-			$output   .= "\t<option value='$user->ID'$_selected>" . esc_html( $display ) . "</option>\n";
+			$output   .= "\t<option value='$user->ID' $_selected>" . esc_html( $display ) . "</option>\n";
 		}
 
 		$output .= '</select>';
