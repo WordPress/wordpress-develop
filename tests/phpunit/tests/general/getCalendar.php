@@ -151,6 +151,7 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 			)
 		);
 
+		// Changing the order of arguments shouldn't miss the cache.
 		get_echo(
 			'get_calendar',
 			array(
