@@ -8,3 +8,24 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Check for updates to Composer packages.
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    ignore:
+      # These dependencies do not currently need to be managed with Dependabot.
+      - dependency-name: "squizlabs/php_codesniffer"
+      - dependency-name: "wp-coding-standards/wpcs"
+      - dependency-name: "phpcompatibility/php-compatibility"
+      - dependency-name: "yoast/phpunit-polyfills"
+    groups:
+      composer-packages:
+        patterns:
+          - "composer/ca-bundle"

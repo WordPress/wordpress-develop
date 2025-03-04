@@ -147,11 +147,12 @@ function wp_populate_basic_auth_from_authorization_header() {
  * @since 3.0.0
  * @access private
  *
- * @global string $required_php_version The required PHP version string.
- * @global string $wp_version           The WordPress version string.
+ * @global string   $required_php_version    The required PHP version string.
+ * @global string[] $required_php_extensions The names of required PHP extensions.
+ * @global string   $wp_version              The WordPress version string.
  */
 function wp_check_php_mysql_versions() {
-	global $required_php_version, $wp_version;
+	global $required_php_version, $required_php_extensions, $wp_version;
 
 	$php_version = PHP_VERSION;
 
@@ -165,6 +166,30 @@ function wp_check_php_mysql_versions() {
 			$wp_version,
 			$required_php_version
 		);
+		exit( 1 );
+	}
+
+	$missing_extensions = array();
+
+	if ( isset( $required_php_extensions ) && is_array( $required_php_extensions ) ) {
+		foreach ( $required_php_extensions as $extension ) {
+			if ( extension_loaded( $extension ) ) {
+				continue;
+			}
+
+			$missing_extensions[] = sprintf(
+				'WordPress %1$s requires the <code>%2$s</code> PHP extension.',
+				$wp_version,
+				$extension
+			);
+		}
+	}
+
+	if ( count( $missing_extensions ) > 0 ) {
+		$protocol = wp_get_server_protocol();
+		header( sprintf( '%s 500 Internal Server Error', $protocol ), true, 500 );
+		header( 'Content-Type: text/html; charset=utf-8' );
+		echo implode( '<br>', $missing_extensions );
 		exit( 1 );
 	}
 
@@ -420,6 +445,16 @@ function wp_is_maintenance_mode() {
 		return false;
 	}
 
+	// Don't enable maintenance mode while scraping for fatal errors.
+	if ( is_int( $upgrading ) && isset( $_REQUEST['wp_scrape_key'], $_REQUEST['wp_scrape_nonce'] ) ) {
+		$key   = stripslashes( $_REQUEST['wp_scrape_key'] );
+		$nonce = stripslashes( $_REQUEST['wp_scrape_nonce'] );
+
+		if ( md5( $upgrading ) === $key && (int) $nonce === $upgrading ) {
+			return false;
+		}
+	}
+
 	/**
 	 * Filters whether to enable maintenance mode.
 	 *
@@ -442,8 +477,6 @@ function wp_is_maintenance_mode() {
 
 /**
  * Gets the time elapsed so far during this PHP script.
- *
- * Uses REQUEST_TIME_FLOAT that appeared in PHP 5.4.0.
  *
  * @since 5.8.0
  *
@@ -598,6 +631,10 @@ function wp_debug_mode() {
 		error_reporting( E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_ERROR | E_WARNING | E_PARSE | E_USER_ERROR | E_USER_WARNING | E_RECOVERABLE_ERROR );
 	}
 
+	/*
+	 * The 'REST_REQUEST' check here is optimistic as the constant is most
+	 * likely not set at this point even if it is in fact a REST request.
+	 */
 	if ( defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || defined( 'MS_FILES_REQUEST' )
 		|| ( defined( 'WP_INSTALLING' ) && WP_INSTALLING )
 		|| wp_doing_ajax() || wp_is_json_request()
@@ -864,6 +901,7 @@ function wp_start_object_cache() {
 				'blog-lookup',
 				'blog_meta',
 				'global-posts',
+				'image_editor',
 				'networks',
 				'network-queries',
 				'sites',
@@ -871,6 +909,8 @@ function wp_start_object_cache() {
 				'site-options',
 				'site-queries',
 				'site-transient',
+				'theme_files',
+				'translation_files',
 				'rss',
 				'users',
 				'user-queries',
@@ -1009,6 +1049,8 @@ function wp_get_active_and_valid_plugins() {
  *
  * @since 5.2.0
  *
+ * @global WP_Paused_Extensions_Storage $_paused_plugins
+ *
  * @param string[] $plugins Array of absolute plugin main file paths.
  * @return string[] Filtered array of plugins, without any paused plugins.
  */
@@ -1041,12 +1083,14 @@ function wp_skip_paused_plugins( array $plugins ) {
  * @since 5.1.0
  * @access private
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string $pagenow            The filename of the current screen.
+ * @global string $wp_stylesheet_path Path to current theme's stylesheet directory.
+ * @global string $wp_template_path   Path to current theme's template directory.
  *
  * @return string[] Array of absolute paths to theme directories.
  */
 function wp_get_active_and_valid_themes() {
-	global $pagenow;
+	global $pagenow, $wp_stylesheet_path, $wp_template_path;
 
 	$themes = array();
 
@@ -1054,14 +1098,11 @@ function wp_get_active_and_valid_themes() {
 		return $themes;
 	}
 
-	$stylesheet_path = get_stylesheet_directory();
-	$template_path   = get_template_directory();
-
-	if ( $template_path !== $stylesheet_path ) {
-		$themes[] = $stylesheet_path;
+	if ( is_child_theme() ) {
+		$themes[] = $wp_stylesheet_path;
 	}
 
-	$themes[] = $template_path;
+	$themes[] = $wp_template_path;
 
 	/*
 	 * Remove themes from the list of active themes when we're on an endpoint
@@ -1083,6 +1124,8 @@ function wp_get_active_and_valid_themes() {
  * Filters a given list of themes, removing any paused themes from it.
  *
  * @since 5.2.0
+ *
+ * @global WP_Paused_Extensions_Storage $_paused_themes
  *
  * @param string[] $themes Array of absolute theme directory paths.
  * @return string[] Filtered array of absolute paths to themes, without any paused themes.
@@ -1186,6 +1229,7 @@ function is_protected_ajax_action() {
 		'search-install-plugins', // Searching for a plugin in the plugin install screen.
 		'update-plugin',          // Update an existing plugin.
 		'update-theme',           // Update an existing theme.
+		'activate-plugin',        // Activating an existing plugin.
 	);
 
 	/**
@@ -1410,6 +1454,18 @@ function is_multisite() {
 }
 
 /**
+ * Converts a value to non-negative integer.
+ *
+ * @since 2.5.0
+ *
+ * @param mixed $maybeint Data you wish to have converted to a non-negative integer.
+ * @return int A non-negative integer.
+ */
+function absint( $maybeint ) {
+	return abs( (int) $maybeint );
+}
+
+/**
  * Retrieves the current site ID.
  *
  * @since 3.1.0
@@ -1480,6 +1536,11 @@ function wp_load_translations_early() {
 
 	// Translation and localization.
 	require_once ABSPATH . WPINC . '/pomo/mo.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-controller.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translations.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file-mo.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file-php.php';
 	require_once ABSPATH . WPINC . '/l10n.php';
 	require_once ABSPATH . WPINC . '/class-wp-textdomain-registry.php';
 	require_once ABSPATH . WPINC . '/class-wp-locale.php';
@@ -1656,9 +1717,8 @@ function wp_is_ini_value_changeable( $setting ) {
 		}
 	}
 
-	// Bit operator to workaround https://bugs.php.net/bug.php?id=44936 which changes access level to 63 in PHP 5.2.6 - 5.2.17.
 	if ( isset( $ini_all[ $setting ]['access'] )
-		&& ( INI_ALL === ( $ini_all[ $setting ]['access'] & 7 ) || INI_USER === ( $ini_all[ $setting ]['access'] & 7 ) )
+		&& ( INI_ALL === $ini_all[ $setting ]['access'] || INI_USER === $ini_all[ $setting ]['access'] )
 	) {
 		return true;
 	}
@@ -1784,8 +1844,20 @@ function wp_start_scraping_edited_file_errors() {
 
 	$key   = substr( sanitize_key( wp_unslash( $_REQUEST['wp_scrape_key'] ) ), 0, 32 );
 	$nonce = wp_unslash( $_REQUEST['wp_scrape_nonce'] );
+	if ( empty( $key ) || empty( $nonce ) ) {
+		return;
+	}
 
-	if ( get_transient( 'scrape_key_' . $key ) !== $nonce ) {
+	$transient = get_transient( 'scrape_key_' . $key );
+	if ( false === $transient ) {
+		return;
+	}
+
+	if ( $transient !== $nonce ) {
+		if ( ! headers_sent() ) {
+			header( 'X-Robots-Tag: noindex' );
+			nocache_headers();
+		}
 		echo "###### wp_scraping_result_start:$key ######";
 		echo wp_json_encode(
 			array(

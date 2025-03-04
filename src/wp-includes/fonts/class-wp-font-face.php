@@ -229,7 +229,7 @@ class WP_Font_Face {
 	private function get_style_element() {
 		$attributes = $this->generate_style_element_attributes();
 
-		return "<style id='wp-fonts-local'{$attributes}>\n%s\n</style>\n";
+		return "<style class='wp-fonts-local'{$attributes}>\n%s\n</style>\n";
 	}
 
 	/**
@@ -256,7 +256,7 @@ class WP_Font_Face {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param array $font_faces The font-faces to generate @font-face CSS styles.
+	 * @param array[] $font_faces The font-faces to generate @font-face CSS styles.
 	 * @return string The `@font-face` CSS styles.
 	 */
 	private function get_css( $font_faces ) {

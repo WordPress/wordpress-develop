@@ -88,6 +88,14 @@ class WP_REST_Server {
 	protected $embed_cache = array();
 
 	/**
+	 * Stores request objects that are currently being handled.
+	 *
+	 * @since 6.5.0
+	 * @var array
+	 */
+	protected $dispatching_requests = array();
+
+	/**
 	 * Instantiates the REST server.
 	 *
 	 * @since 4.4.0
@@ -628,11 +636,73 @@ class WP_REST_Server {
 			foreach ( $items as $item ) {
 				$attributes         = $item['attributes'];
 				$attributes['href'] = $item['href'];
-				$data[ $rel ][]     = $attributes;
+
+				if ( 'self' !== $rel ) {
+					$data[ $rel ][] = $attributes;
+					continue;
+				}
+
+				$target_hints = self::get_target_hints_for_link( $attributes );
+				if ( $target_hints ) {
+					$attributes['targetHints'] = $target_hints;
+				}
+
+				$data[ $rel ][] = $attributes;
 			}
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Gets the target links for a REST API Link.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param array $link
+	 *
+	 * @return array|null
+	 */
+	protected static function get_target_hints_for_link( $link ) {
+		// Prefer targetHints that were specifically designated by the developer.
+		if ( isset( $link['targetHints']['allow'] ) ) {
+			return null;
+		}
+
+		$request = WP_REST_Request::from_url( $link['href'] );
+		if ( ! $request ) {
+			return null;
+		}
+
+		$server = rest_get_server();
+		$match  = $server->match_request_to_handler( $request );
+
+		if ( is_wp_error( $match ) ) {
+			return null;
+		}
+
+		if ( is_wp_error( $request->has_valid_params() ) ) {
+			return null;
+		}
+
+		if ( is_wp_error( $request->sanitize_params() ) ) {
+			return null;
+		}
+
+		$target_hints = array();
+
+		$response = new WP_REST_Response();
+		$response->set_matched_route( $match[0] );
+		$response->set_matched_handler( $match[1] );
+		$headers = rest_send_allow_header( $response, $server, $request )->get_headers();
+
+		foreach ( $headers as $name => $value ) {
+			$name = WP_REST_Request::canonicalize_header_name( $name );
+
+			$target_hints[ $name ] = array_map( 'trim', explode( ',', $value ) );
+		}
+
+		return $target_hints;
 	}
 
 	/**
@@ -738,6 +808,13 @@ class WP_REST_Server {
 					// Embedded resources get passed context=embed.
 					if ( empty( $request['context'] ) ) {
 						$request['context'] = 'embed';
+					}
+
+					if ( empty( $request['per_page'] ) ) {
+						$matched = $this->match_request_to_handler( $request );
+						if ( ! is_wp_error( $matched ) && isset( $matched[1]['args']['per_page']['maximum'] ) ) {
+							$request['per_page'] = (int) $matched[1]['args']['per_page']['maximum'];
+						}
 					}
 
 					$response = $this->dispatch( $request );
@@ -983,6 +1060,8 @@ class WP_REST_Server {
 	 * @return WP_REST_Response Response returned by the callback.
 	 */
 	public function dispatch( $request ) {
+		$this->dispatching_requests[] = $request;
+
 		/**
 		 * Filters the pre-calculated result of a REST API dispatch request.
 		 *
@@ -1008,6 +1087,7 @@ class WP_REST_Server {
 				$result = $this->error_to_response( $result );
 			}
 
+			array_pop( $this->dispatching_requests );
 			return $result;
 		}
 
@@ -1015,7 +1095,9 @@ class WP_REST_Server {
 		$matched = $this->match_request_to_handler( $request );
 
 		if ( is_wp_error( $matched ) ) {
-			return $this->error_to_response( $matched );
+			$response = $this->error_to_response( $matched );
+			array_pop( $this->dispatching_requests );
+			return $response;
 		}
 
 		list( $route, $handler ) = $matched;
@@ -1040,7 +1122,22 @@ class WP_REST_Server {
 			}
 		}
 
-		return $this->respond_to_request( $request, $route, $handler, $error );
+		$response = $this->respond_to_request( $request, $route, $handler, $error );
+		array_pop( $this->dispatching_requests );
+		return $response;
+	}
+
+	/**
+	 * Returns whether the REST server is currently dispatching / responding to a request.
+	 *
+	 * This may be a standalone REST API request, or an internal request dispatched from within a regular page load.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return bool Whether the REST server is currently handling a request.
+	 */
+	public function is_dispatching() {
+		return (bool) $this->dispatching_requests;
 	}
 
 	/**
@@ -1274,6 +1371,9 @@ class WP_REST_Server {
 			'home'            => home_url(),
 			'gmt_offset'      => get_option( 'gmt_offset' ),
 			'timezone_string' => get_option( 'timezone_string' ),
+			'page_for_posts'  => (int) get_option( 'page_for_posts' ),
+			'page_on_front'   => (int) get_option( 'page_on_front' ),
+			'show_on_front'   => get_option( 'show_on_front' ),
 			'namespaces'      => array_keys( $this->namespaces ),
 			'authentication'  => array(),
 			'routes'          => $this->get_data_for_routes( $this->get_routes(), $request['context'] ),
@@ -1296,6 +1396,13 @@ class WP_REST_Server {
 			$this->add_active_theme_link_to_index( $response );
 			$this->add_site_logo_to_index( $response );
 			$this->add_site_icon_to_index( $response );
+		} else {
+			if ( rest_is_field_included( 'site_logo', $fields ) ) {
+				$this->add_site_logo_to_index( $response );
+			}
+			if ( rest_is_field_included( 'site_icon', $fields ) || rest_is_field_included( 'site_icon_url', $fields ) ) {
+				$this->add_site_icon_to_index( $response );
+			}
 		}
 
 		/**
@@ -1625,7 +1732,7 @@ class WP_REST_Server {
 			$single_request = new WP_REST_Request( isset( $args['method'] ) ? $args['method'] : 'POST', $parsed_url['path'] );
 
 			if ( ! empty( $parsed_url['query'] ) ) {
-				$query_args = null; // Satisfy linter.
+				$query_args = array();
 				wp_parse_str( $parsed_url['query'], $query_args );
 				$single_request->set_query_params( $query_args );
 			}

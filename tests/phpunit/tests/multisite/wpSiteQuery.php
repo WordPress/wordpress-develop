@@ -1162,6 +1162,26 @@ if ( is_multisite() ) :
 		public static function filter_sites_pre_query_and_set_sites( $sites, $query ) {
 			return array( get_site( self::$site_ids['wordpress.org/'] ) );
 		}
+
+		/**
+		 * @ticket 56841
+		 */
+		public function test_wp_site_query_does_not_have_leading_whitespace() {
+			$q = new WP_Site_Query();
+
+			$q->query(
+				array(
+					'fields'                 => 'ids',
+					'network_id'             => self::$network_ids['wordpress.org/'],
+					'number'                 => 3,
+					'order'                  => 'ASC',
+					'update_site_cache'      => true,
+					'update_site_meta_cache' => true,
+				)
+			);
+
+			$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
+		}
 	}
 
 endif;

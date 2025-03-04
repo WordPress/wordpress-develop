@@ -2151,6 +2151,45 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that trash_changeset_post() passes the correct number of arguments to post trash hooks.
+	 *
+	 * @ticket 60183
+	 * @covers WP_Customize_Manager::trash_changeset_post
+	 */
+	public function test_trash_changeset_post_passes_all_arguments_to_trash_hooks() {
+		$args = array(
+			'post_type'    => 'customize_changeset',
+			'post_content' => wp_json_encode(
+				array(
+					'blogname' => array(
+						'value' => 'Test',
+					),
+				)
+			),
+			'post_name'    => wp_generate_uuid4(),
+			'post_status'  => 'draft',
+		);
+
+		$post_id = wp_insert_post( $args );
+
+		$manager = $this->create_test_manager( $args['post_name'] );
+
+		$pre_trash_post = new MockAction();
+		$wp_trash_post  = new MockAction();
+		$trashed_post   = new MockAction();
+
+		add_action( 'pre_trash_post', array( $pre_trash_post, 'action' ), 10, 3 );
+		add_action( 'wp_trash_post', array( $wp_trash_post, 'action' ), 10, 2 );
+		add_action( 'trashed_post', array( $trashed_post, 'action' ), 10, 2 );
+
+		$manager->trash_changeset_post( $post_id );
+
+		$this->assertCount( 3, $pre_trash_post->get_args()[0] );
+		$this->assertCount( 2, $wp_trash_post->get_args()[0] );
+		$this->assertCount( 2, $trashed_post->get_args()[0] );
+	}
+
+	/**
 	 * Register scratchpad setting.
 	 *
 	 * @param WP_Customize_Manager $wp_customize Manager.

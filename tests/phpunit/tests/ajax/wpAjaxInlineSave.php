@@ -110,7 +110,7 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 
 		$this->assertSame( 'draft', $post->post_status );
 
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
 
 		// Set up a request.
 		$_POST['_inline_edit'] = wp_create_nonce( 'inlineeditnonce' );
@@ -142,7 +142,7 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 
 		$post_date = sprintf( '%04d-%02d-%02d %02d:%02d:%02d', $_POST['aa'], $_POST['mm'], $_POST['jj'], $_POST['hh'], $_POST['mn'], $_POST['ss'] );
 
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
 	}
 
 	/**
@@ -167,7 +167,7 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 
 		$this->assertSame( 'draft', $post->post_status );
 
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
 
 		// Set up a request.
 		$_POST['_inline_edit'] = wp_create_nonce( 'inlineeditnonce' );
@@ -197,6 +197,6 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 
 		$post = get_post( $post->ID );
 
-		$this->assertEquals( '2020-09-11 19:20:11', $post->post_date_gmt );
+		$this->assertSame( '2020-09-11 19:20:11', $post->post_date_gmt );
 	}
 }

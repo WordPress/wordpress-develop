@@ -363,7 +363,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 
 <?php if ( current_user_can( 'install_themes' ) ) : ?>
-	<a href="theme-install.php" class="page-title-action"><?php echo esc_html__( 'Add New Theme' ); ?></a>
+	<a href="theme-install.php" class="page-title-action"><?php echo esc_html__( 'Add Theme' ); ?></a>
 <?php endif; ?>
 
 <?php
@@ -460,7 +460,7 @@ if ( '' !== $message ) {
 ?>
 
 <form method="get">
-<?php $wp_list_table->search_box( __( 'Search Installed Themes' ), 'theme' ); ?>
+<?php $wp_list_table->search_box( __( 'Search installed themes' ), 'theme' ); ?>
 </form>
 
 <?php

@@ -11,6 +11,8 @@
  * Core class used to implement the WP_User object.
  *
  * @since 2.0.0
+ * @since 6.8.0 The `user_pass` property is now hashed using bcrypt by default instead of phpass.
+ *              Existing passwords may still be hashed using phpass.
  *
  * @property string $nickname
  * @property string $description
@@ -117,13 +119,18 @@ class WP_User {
 	 *
 	 * @since 2.0.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @param int|string|stdClass|WP_User $id      User's ID, a WP_User object, or a user object from the DB.
 	 * @param string                      $name    Optional. User's username
 	 * @param int                         $site_id Optional Site ID, defaults to current site.
 	 */
 	public function __construct( $id = 0, $name = '', $site_id = '' ) {
+		global $wpdb;
+
 		if ( ! isset( self::$back_compat_keys ) ) {
-			$prefix                 = $GLOBALS['wpdb']->prefix;
+			$prefix = $wpdb->prefix;
+
 			self::$back_compat_keys = array(
 				'user_firstname'             => 'first_name',
 				'user_lastname'              => 'last_name',
@@ -186,7 +193,7 @@ class WP_User {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string     $field The field to query against: 'id', 'ID', 'slug', 'email' or 'login'.
+	 * @param string     $field The field to query against: Accepts 'id', 'ID', 'slug', 'email' or 'login'.
 	 * @param string|int $value The field value.
 	 * @return object|false Raw user object.
 	 */

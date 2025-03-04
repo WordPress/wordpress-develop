@@ -317,7 +317,7 @@ class WP_Date_Query {
 				$_year = $date_query['year'];
 			}
 
-			$max_days_of_year = gmdate( 'z', mktime( 0, 0, 0, 12, 31, $_year ) ) + 1;
+			$max_days_of_year = (int) gmdate( 'z', mktime( 0, 0, 0, 12, 31, $_year ) ) + 1;
 		} else {
 			// Otherwise we use the max of 366 (leap-year).
 			$max_days_of_year = 366;
@@ -866,7 +866,7 @@ class WP_Date_Query {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param string|array $datetime       An array of parameters or a strotime() string.
+	 * @param string|array $datetime       An array of parameters or a strtotime() string.
 	 * @param bool         $default_to_max Whether to round up incomplete dates. Supported by values
 	 *                                     of $datetime that are arrays, or string values that are a
 	 *                                     subset of MySQL date format ('Y', 'Y-m', 'Y-m-d', 'Y-m-d H:i').
@@ -1057,7 +1057,7 @@ class WP_Date_Query {
 	 * @since 6.0.3
 	 *
 	 * @param string $relation Raw relation key from the query argument.
-	 * @return string Sanitized relation ('AND' or 'OR').
+	 * @return string Sanitized relation. Either 'AND' or 'OR'.
 	 */
 	public function sanitize_relation( $relation ) {
 		if ( 'OR' === strtoupper( $relation ) ) {

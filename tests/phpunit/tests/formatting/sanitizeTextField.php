@@ -103,15 +103,15 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 			),
 			array(
 				'%AB%BC%DE', // Just octets.
-				'',          // Emtpy as we strip all the octets out.
+				'',          // Empty as we strip all the octets out.
 			),
 			array(
-				'Invalid octects remain %II',
-				'Invalid octects remain %II',
+				'Invalid octets remain %II',
+				'Invalid octets remain %II',
 			),
 			array(
-				'Nested octects %%%ABABAB %A%A%ABBB',
-				'Nested octects',
+				'Nested octets %%%ABABAB %A%A%ABBB',
+				'Nested octets',
 			),
 			array(
 				array(),
@@ -142,5 +142,27 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 				'10.1',
 			),
 		);
+	}
+
+	/**
+	 * @ticket 60357
+	 */
+	public function test_sanitize_text_field_filter() {
+		$filter = new MockAction();
+		add_filter( 'sanitize_text_field', array( $filter, 'filter' ) );
+
+		$this->assertSame( 'example', sanitize_text_field( 'example' ) );
+		$this->assertSame( 1, $filter->get_call_count(), 'The sanitize_text_field filter was not called.' );
+	}
+
+	/**
+	 * @ticket 60357
+	 */
+	public function test_sanitize_textarea_field_filter() {
+		$filter = new MockAction();
+		add_filter( 'sanitize_textarea_field', array( $filter, 'filter' ) );
+
+		$this->assertSame( 'example', sanitize_textarea_field( 'example' ) );
+		$this->assertSame( 1, $filter->get_call_count(), 'The sanitize_textarea_field filter was not called.' );
 	}
 }

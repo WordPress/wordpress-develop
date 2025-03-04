@@ -146,7 +146,7 @@ function create_initial_taxonomies() {
 				'all_items'                  => __( 'All Link Categories' ),
 				'edit_item'                  => __( 'Edit Link Category' ),
 				'update_item'                => __( 'Update Link Category' ),
-				'add_new_item'               => __( 'Add New Link Category' ),
+				'add_new_item'               => __( 'Add Link Category' ),
 				'new_item_name'              => __( 'New Link Category Name' ),
 				'separate_items_with_commas' => null,
 				'add_or_remove_items'        => null,
@@ -231,8 +231,25 @@ function create_initial_taxonomies() {
 			'publicly_queryable' => false,
 			'hierarchical'       => false,
 			'labels'             => array(
-				'name'          => _x( 'Pattern Categories', 'taxonomy general name' ),
-				'singular_name' => _x( 'Pattern Category', 'taxonomy singular name' ),
+				'name'                       => _x( 'Pattern Categories', 'taxonomy general name' ),
+				'singular_name'              => _x( 'Pattern Category', 'taxonomy singular name' ),
+				'add_new_item'               => __( 'Add Category' ),
+				'add_or_remove_items'        => __( 'Add or remove pattern categories' ),
+				'back_to_items'              => __( '&larr; Go to Pattern Categories' ),
+				'choose_from_most_used'      => __( 'Choose from the most used pattern categories' ),
+				'edit_item'                  => __( 'Edit Pattern Category' ),
+				'item_link'                  => __( 'Pattern Category Link' ),
+				'item_link_description'      => __( 'A link to a pattern category.' ),
+				'items_list'                 => __( 'Pattern Categories list' ),
+				'items_list_navigation'      => __( 'Pattern Categories list navigation' ),
+				'new_item_name'              => __( 'New Pattern Category Name' ),
+				'no_terms'                   => __( 'No pattern categories' ),
+				'not_found'                  => __( 'No pattern categories found.' ),
+				'popular_items'              => __( 'Popular Pattern Categories' ),
+				'search_items'               => __( 'Search Pattern Categories' ),
+				'separate_items_with_commas' => __( 'Separate pattern categories with commas' ),
+				'update_item'                => __( 'Update Pattern Category' ),
+				'view_item'                  => __( 'View Pattern Category' ),
 			),
 			'query_var'          => false,
 			'rewrite'            => false,
@@ -241,6 +258,7 @@ function create_initial_taxonomies() {
 			'show_in_nav_menus'  => false,
 			'show_in_rest'       => true,
 			'show_admin_column'  => true,
+			'show_tagcloud'      => false,
 		)
 	);
 }
@@ -254,7 +272,7 @@ function create_initial_taxonomies() {
  *
  * @param array  $args     Optional. An array of `key => value` arguments to match against the taxonomy objects.
  *                         Default empty array.
- * @param string $output   Optional. The type of output to return in the array. Accepts either taxonomy 'names'
+ * @param string $output   Optional. The type of output to return in the array. Either 'names'
  *                         or 'objects'. Default 'names'.
  * @param string $operator Optional. The logical operation to perform. Accepts 'and' or 'or'. 'or' means only
  *                         one element from the array needs to match; 'and' means all elements must match.
@@ -627,6 +645,7 @@ function unregister_taxonomy( $taxonomy ) {
  * @since 5.8.0 Added the `item_link` and `item_link_description` labels.
  * @since 5.9.0 Added the `name_field_description`, `slug_field_description`,
  *              `parent_field_description`, and `desc_field_description` labels.
+ * @since 6.6.0 Added the `template_name` label.
  *
  * @param WP_Taxonomy $tax Taxonomy object.
  * @return object {
@@ -659,8 +678,9 @@ function unregister_taxonomy( $taxonomy ) {
  *     @type string $edit_item                  Default 'Edit Tag'/'Edit Category'.
  *     @type string $view_item                  Default 'View Tag'/'View Category'.
  *     @type string $update_item                Default 'Update Tag'/'Update Category'.
- *     @type string $add_new_item               Default 'Add New Tag'/'Add New Category'.
+ *     @type string $add_new_item               Default 'Add Tag'/'Add Category'.
  *     @type string $new_item_name              Default 'New Tag Name'/'New Category Name'.
+ *     @type string $template_name              Default 'Tag Archives'/'Category Archives'.
  *     @type string $separate_items_with_commas This label is only used for non-hierarchical taxonomies. Default
  *                                              'Separate tags with commas', used in the meta box.
  *     @type string $add_or_remove_items        This label is only used for non-hierarchical taxonomies. Default
@@ -700,6 +720,11 @@ function get_taxonomy_labels( $tax ) {
 	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
 	$labels = _get_custom_object_labels( $tax, $nohier_vs_hier_defaults );
+
+	if ( ! isset( $tax->labels->template_name ) && isset( $labels->singular_name ) ) {
+		/* translators: %s: Taxonomy name. */
+		$labels->template_name = sprintf( _x( '%s Archives', 'taxonomy template name' ), $labels->singular_name );
+	}
 
 	$taxonomy = $tax->name;
 
@@ -1361,7 +1386,13 @@ function get_terms( $args = array(), $deprecated = '' ) {
  *
  * @param int    $term_id    Term ID.
  * @param string $meta_key   Metadata name.
- * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
+ * @param mixed  $meta_value Metadata value. Arrays and objects are stored as serialized data and
+ *                           will be returned as the same type when retrieved. Other data types will
+ *                           be stored as strings in the database:
+ *                           - false is stored and retrieved as an empty string ('')
+ *                           - true is stored and retrieved as '1'
+ *                           - numbers (both integer and float) are stored and retrieved as strings
+ *                           Must be serializable if non-scalar.
  * @param bool   $unique     Optional. Whether the same key should not be added.
  *                           Default false.
  * @return int|false|WP_Error Meta ID on success, false on failure.
@@ -1405,7 +1436,13 @@ function delete_term_meta( $term_id, $meta_key, $meta_value = '' ) {
  * @return mixed An array of values if `$single` is false.
  *               The value of the meta field if `$single` is true.
  *               False for an invalid `$term_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing term ID is passed.
+ *               An empty array if a valid but non-existing term ID is passed and `$single` is false.
+ *               An empty string if a valid but non-existing term ID is passed and `$single` is true.
+ *               Note: Non-serialized values are returned as strings:
+ *               - false values are returned as empty strings ('')
+ *               - true values are returned as '1'
+ *               - numbers are returned as strings
+ *               Arrays and objects retain their original type.
  */
 function get_term_meta( $term_id, $key = '', $single = false ) {
 	return get_metadata( 'term', $term_id, $key, $single );
@@ -2434,6 +2471,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	$description = wp_unslash( $args['description'] );
 	$parent      = (int) $args['parent'];
 
+	// Sanitization could clean the name to an empty string that must be checked again.
+	if ( '' === $name ) {
+		return new WP_Error( 'invalid_term_name', __( 'Invalid term name.' ) );
+	}
+
 	$slug_provided = ! empty( $args['slug'] );
 	if ( ! $slug_provided ) {
 		$slug = sanitize_title( $name );
@@ -2573,7 +2615,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	$tt_id = (int) $wpdb->insert_id;
 
 	/*
-	 * Sanity check: if we just created a term with the same parent + taxonomy + slug but a higher term_id than
+	 * Confidence check: if we just created a term with the same parent + taxonomy + slug but a higher term_id than
 	 * an existing term, then we have unwittingly created a duplicate term. Delete the dupe, and use the term_id
 	 * and term_taxonomy_id of the older term instead. Then return out of the function so that the "create" hooks
 	 * are not fired.
@@ -2795,7 +2837,6 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 	}
 
 	$tt_ids     = array();
-	$term_ids   = array();
 	$new_tt_ids = array();
 
 	foreach ( (array) $terms as $term ) {
@@ -2818,9 +2859,8 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 			return $term_info;
 		}
 
-		$term_ids[] = $term_info['term_id'];
-		$tt_id      = $term_info['term_taxonomy_id'];
-		$tt_ids[]   = $tt_id;
+		$tt_id    = $term_info['term_taxonomy_id'];
+		$tt_ids[] = $tt_id;
 
 		if ( $wpdb->get_var( $wpdb->prepare( "SELECT term_taxonomy_id FROM $wpdb->term_relationships WHERE object_id = %d AND term_taxonomy_id = %d", $object_id, $tt_id ) ) ) {
 			continue;
@@ -4342,7 +4382,7 @@ function _wp_batch_split_terms() {
 	$lock_name = 'term_split.lock';
 
 	// Try to lock.
-	$lock_result = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO `$wpdb->options` ( `option_name`, `option_value`, `autoload` ) VALUES (%s, %s, 'no') /* LOCK */", $lock_name, time() ) );
+	$lock_result = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO `$wpdb->options` ( `option_name`, `option_value`, `autoload` ) VALUES (%s, %s, 'off') /* LOCK */", $lock_name, time() ) );
 
 	if ( ! $lock_result ) {
 		$lock_result = get_option( $lock_name );

@@ -45,13 +45,16 @@ final class WP_Block_Patterns_Registry {
 	 * @since 5.8.0 Added support for the `blockTypes` property.
 	 * @since 6.1.0 Added support for the `postTypes` property.
 	 * @since 6.2.0 Added support for the `templateTypes` property.
+	 * @since 6.5.0 Added support for the `filePath` property.
 	 *
 	 * @param string $pattern_name       Block pattern name including namespace.
 	 * @param array  $pattern_properties {
 	 *     List of properties for the block pattern.
 	 *
 	 *     @type string   $title         Required. A human-readable title for the pattern.
-	 *     @type string   $content       Required. Block HTML markup for the pattern.
+	 *     @type string   $content       Optional. Block HTML markup for the pattern.
+	 *                                   If not provided, the content will be retrieved from the `filePath` if set.
+	 *                                   If both `content` and `filePath` are not set, the pattern will not be registered.
 	 *     @type string   $description   Optional. Visually hidden text used to describe the pattern
 	 *                                   in the inserter. A description is optional, but is strongly
 	 *                                   encouraged when the title does not fully describe what the
@@ -79,6 +82,7 @@ final class WP_Block_Patterns_Registry {
 	 *                                   of the post types passed on the array. For all the other post types
 	 *                                   not part of the array the pattern is not available at all.
 	 *     @type string[] $templateTypes Optional. An array of template types where the pattern fits.
+	 *     @type string   $filePath      Optional. The full path to the file containing the block pattern content.
 	 * }
 	 * @return bool True if the pattern was registered with success and false otherwise.
 	 */
@@ -101,13 +105,15 @@ final class WP_Block_Patterns_Registry {
 			return false;
 		}
 
-		if ( ! isset( $pattern_properties['content'] ) || ! is_string( $pattern_properties['content'] ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'Pattern content must be a string.' ),
-				'5.5.0'
-			);
-			return false;
+		if ( ! isset( $pattern_properties['filePath'] ) ) {
+			if ( ! isset( $pattern_properties['content'] ) || ! is_string( $pattern_properties['content'] ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Pattern content must be a string.' ),
+					'5.5.0'
+				);
+				return false;
+			}
 		}
 
 		$pattern = array_merge(
@@ -153,28 +159,27 @@ final class WP_Block_Patterns_Registry {
 	}
 
 	/**
-	 * Prepares the content of a block pattern. If hooked blocks are registered, they get injected into the pattern,
-	 * when they met the defined criteria.
+	 * Retrieves the content of a registered block pattern.
 	 *
-	 * @since 6.4.0
+	 * @since 6.5.0
 	 *
-	 * @param array $pattern       Registered pattern properties.
-	 * @param array $hooked_blocks The list of hooked blocks.
+	 * @param string $pattern_name      Block pattern name including namespace.
+	 * @param bool   $outside_init_only Optional. Return only patterns registered outside the `init` action. Default false.
 	 * @return string The content of the block pattern.
 	 */
-	private function prepare_content( $pattern, $hooked_blocks ) {
-		$content = $pattern['content'];
-
-		$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
-		$after_block_visitor  = null;
-		if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-			$before_block_visitor = make_before_block_visitor( $hooked_blocks, $pattern );
-			$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $pattern );
+	private function get_content( $pattern_name, $outside_init_only = false ) {
+		if ( $outside_init_only ) {
+			$patterns = &$this->registered_patterns_outside_init;
+		} else {
+			$patterns = &$this->registered_patterns;
 		}
-		$blocks  = parse_blocks( $content );
-		$content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
-
-		return $content;
+		if ( ! isset( $patterns[ $pattern_name ]['content'] ) && isset( $patterns[ $pattern_name ]['filePath'] ) ) {
+			ob_start();
+			include $patterns[ $pattern_name ]['filePath'];
+			$patterns[ $pattern_name ]['content'] = ob_get_clean();
+			unset( $patterns[ $pattern_name ]['filePath'] );
+		}
+		return $patterns[ $pattern_name ]['content'];
 	}
 
 	/**
@@ -191,7 +196,12 @@ final class WP_Block_Patterns_Registry {
 		}
 
 		$pattern            = $this->registered_patterns[ $pattern_name ];
-		$pattern['content'] = $this->prepare_content( $pattern, get_hooked_blocks() );
+		$content            = $this->get_content( $pattern_name );
+		$pattern['content'] = apply_block_hooks_to_content(
+			$content,
+			$pattern,
+			'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
+		);
 
 		return $pattern;
 	}
@@ -206,16 +216,21 @@ final class WP_Block_Patterns_Registry {
 	 *                 and per style.
 	 */
 	public function get_all_registered( $outside_init_only = false ) {
-		$patterns      = array_values(
-			$outside_init_only
+		$patterns      = $outside_init_only
 				? $this->registered_patterns_outside_init
-				: $this->registered_patterns
-		);
+				: $this->registered_patterns;
 		$hooked_blocks = get_hooked_blocks();
+
 		foreach ( $patterns as $index => $pattern ) {
-			$patterns[ $index ]['content'] = $this->prepare_content( $pattern, $hooked_blocks );
+			$content                       = $this->get_content( $pattern['name'], $outside_init_only );
+			$patterns[ $index ]['content'] = apply_block_hooks_to_content(
+				$content,
+				$pattern,
+				'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
+			);
 		}
-		return $patterns;
+
+		return array_values( $patterns );
 	}
 
 	/**
