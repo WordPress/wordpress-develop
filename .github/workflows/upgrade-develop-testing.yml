@@ -70,6 +70,9 @@ jobs:
           # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
             db-version: '8.4'
+          # WordPress 5.0 does not support PHP 8.4.
+          - php: '8.4'
+            wp: '5.0'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
