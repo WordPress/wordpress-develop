@@ -136,6 +136,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->start_transaction();
 		$this->expectDeprecated();
 		add_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
+		add_filter( 'wp_hash_password_options', array( $this, 'wp_hash_password_options' ), 99, 2 );
+	}
+
+	public function wp_hash_password_options( array $options, string $algorithm ): array {
+		if ( ( PASSWORD_BCRYPT === $algorithm ) && ! isset( $options['cost'] ) ) {
+			$options['cost'] = 5;
+		}
+
+		return $options;
 	}
 
 	/**
