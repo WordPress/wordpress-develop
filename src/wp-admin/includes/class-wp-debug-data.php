@@ -692,13 +692,13 @@ class WP_Debug_Data {
 			}
 			$mappings_display = implode( ', ', $formatted_mappings );
 		} else {
-			$mappings_display = __( 'No format transforms defined.' );
+			$mappings_display = __( 'No format transforms defined' );
 		}
 
 		$fields['image_format_transforms'] = array(
 			'label' => __( 'Image Format Transforms' ),
 			'value' => $mappings_display,
-			'debug' => ( empty( $mappings ) ) ? 'Unable to determine' : $mappings_display,
+			'debug' => ( empty( $mappings ) ) ? 'No format transforms defined' : $mappings_display,
 		);
 
 		// Get GD information, if available.
