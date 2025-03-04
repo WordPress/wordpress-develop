@@ -1102,8 +1102,9 @@
 			}, 500 ) );
 
 			$('#add-custom-links input[type="text"]').on( 'keypress', function(e){
-				$('#customlinkdiv').removeClass('form-invalid');
-				$('#custom-url-error').hide();
+				$( '#customlinkdiv' ).removeClass( 'form-invalid' );
+				$( '#custom-menu-item-url' ).removeAttr( 'aria-invalid' ).removeAttr( 'aria-describedby' );
+				$( '#custom-url-error' ).hide();
 
 				if ( e.keyCode === 13 ) {
 					e.preventDefault();
@@ -1111,28 +1112,27 @@
 				}
 			});
 
-			$('#submit-customlinkdiv').on('click', function (e) {
-				var urlInput = $('#custom-menu-item-url'),
+			$( '#submit-customlinkdiv' ).on( 'click', function (e) {
+				var urlInput = $( '#custom-menu-item-url' ),
 					url = urlInput.val().trim(),
-					errorMessage = $('#custom-url-error'),
-					urlWrap = $('#menu-item-url-wrap');
+					errorMessage = $( '#custom-url-error' ),
+					urlWrap = $( '#menu-item-url-wrap' );
 
 				// Hide the error message initially
 				errorMessage.hide();
-				urlWrap.removeClass('has-error');
+				urlWrap.removeClass( 'has-error' );
 
-				if ('' === url || 'https://' === url || 'http://' === url) {
+				if ( '' === url || 'https://' === url || 'http://' === url ) {
 					e.preventDefault();
-					urlInput.addClass('form-invalid')
-						.attr('aria-invalid', 'true')
-						.attr('aria-describedby', 'custom-url-error');
+					urlInput.addClass( 'form-invalid' )
+						.attr( 'aria-invalid', 'true' )
+						.attr( 'aria-describedby', 'custom-url-error' );
 
-					var errorText = wp.i18n.__('Content is required for the link\'s href attribute.');
 					errorMessage.show();
-					urlWrap.addClass('has-error');
-
+					var errorText = errorMessage.text();
+					urlWrap.addClass( 'has-error' );
 					// Announce error message via screen reader
-					wp.a11y.speak(errorText, 'assertive');
+					wp.a11y.speak( errorText, 'assertive' );
 				}
 			});
 		},
