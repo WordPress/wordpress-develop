@@ -140,6 +140,7 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 		get_echo( 'get_calendar', array( array( 'post_type' => 'page' ) ) );
 
 		$num_queries_start = get_num_queries();
+		// Including an argument that is the same as the default value shouldn't miss the cache.
 		get_echo(
 			'get_calendar',
 			array(
