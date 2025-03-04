@@ -27,6 +27,15 @@ class Tests_Functions_wpTimezoneOverrideOffset extends WP_UnitTestCase {
 	/**
 	 * @ticket 59980
 	 */
+	public function test_wp_timezone_override_offset_with_UTC_option_set() {
+		update_option( 'timezone_string', 'UTC' );
+		$offset = wp_timezone_override_offset();
+		$this->assertSame( 0.0, $offset );
+	}
+
+	/**
+	 * @ticket 59980
+	 */
 	public function test_wp_timezone_override_offset_with_EST_option_set() {
 		update_option( 'timezone_string', 'EST' );
 		$offset = wp_timezone_override_offset();
