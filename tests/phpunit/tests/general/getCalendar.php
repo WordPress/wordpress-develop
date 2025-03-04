@@ -162,6 +162,7 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 			)
 		);
 
+		// Display param should be ignored for the cache.
 		get_calendar(
 			array(
 				'post_type' => 'page',
