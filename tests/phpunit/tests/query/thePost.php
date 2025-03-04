@@ -28,13 +28,6 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	public static $page_child_ids = array();
 
 	/**
-	 * Editor user ID.
-	 *
-	 * @var int
-	 */
-	public static $editor_user_id = 0;
-
-	/**
 	 * Create the shared fixtures.
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory object.
@@ -42,7 +35,6 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$author_ids     = $factory->user->create_many( 5, array( 'role' => 'author' ) );
 		self::$page_parent_id = $factory->post->create( array( 'post_type' => 'page' ) );
-		self::$editor_user_id = $factory->user->create( array( 'role' => 'editor' ) );
 
 		// Create child pages.
 		foreach ( self::$author_ids as $author_id ) {
