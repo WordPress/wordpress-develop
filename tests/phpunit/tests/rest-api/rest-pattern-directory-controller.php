@@ -171,6 +171,23 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	}
 
 	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_head_request_with_specified_fields_returns_success_response() {
+		wp_set_current_user( self::$contributor_id );
+		self::mock_successful_response( 'browse-all', true );
+		$request = new WP_REST_Request( 'HEAD', '/wp/v2/pattern-directory/patterns' );
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
 	 * @covers WP_REST_Pattern_Directory_Controller::get_items
 	 *
 	 * @since 5.8.0
