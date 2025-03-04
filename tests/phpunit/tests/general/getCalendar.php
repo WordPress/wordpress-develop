@@ -62,7 +62,7 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 	 */
 	public function test_get_calendar_display() {
 		$calendar_html = get_echo( 'get_calendar', array( array( 'display' => true ) ) );
-		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">M</th>', $calendar_html, 'Calendar is expected to display Mondays' );
+		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">M</th>', $calendar_html, 'Calendar is use initials for day names' );
 		$this->assertStringContainsString( '<table id="wp-calendar"', $calendar_html, 'Calendar is expected to contain the element table#wp-calendar' );
 		$this->assertStringContainsString( 'Posts published on February 1, 2025', $calendar_html, 'Calendar is expected to display posts published on February 1, 2025.' );
 		$this->assertStringContainsString( '<caption>February 2025</caption', $calendar_html, 'Calendar is expected to be captioned February 2025.' );
@@ -84,7 +84,7 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 
 		$calendar_html = get_echo( 'get_calendar' );
 
-		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">M</th>', $calendar_html, 'Calendar is expected to display Mondays' );
+		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">M</th>', $calendar_html, 'Calendar is use initials for day names' );
 		$this->assertStringContainsString( '<table id="wp-calendar"', $calendar_html, 'Calendar is expected to contain the element table#wp-calendar' );
 		$this->assertStringContainsString( 'Posts published on February 3, 2025', $calendar_html, 'Calendar is expected to display page published on February 3, 2025.' );
 		$this->assertStringNotContainsString( 'Posts published on February 1, 2025', $calendar_html, 'Calendar is not expected to display posts published on February 1, 2025.' );
@@ -99,7 +99,7 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 	public function test_get_calendar_post_type_args() {
 		$calendar_html = get_echo( 'get_calendar', array( array( 'post_type' => 'page' ) ) );
 
-		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">M</th>', $calendar_html, 'Calendar is expected to display Mondays' );
+		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">M</th>', $calendar_html, 'Calendar is use initials for day names' );
 		$this->assertStringContainsString( '<table id="wp-calendar"', $calendar_html, 'Calendar is expected to contain the element table#wp-calendar' );
 		$this->assertStringContainsString( 'Posts published on February 3, 2025', $calendar_html, 'Calendar is expected to display page published on February 3, 2025.' );
 		$this->assertStringNotContainsString( 'Posts published on February 1, 2025', $calendar_html, 'Calendar is not expected to display posts published on February 1, 2025.' );
@@ -187,7 +187,7 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 
 		$second_calendar_html = get_calendar( false, false );
 
-		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">Mon</th>', $first_calendar_html, 'Calendar is expected to display Mondays' );
+		$this->assertStringContainsString( '<th scope="col" aria-label="Monday">Mon</th>', $first_calendar_html, 'Calendar is use abbreviations for day names' );
 		$this->assertStringContainsString( '<caption>February 2025</caption>', $first_calendar_html, 'Calendar is expected to be captioned February 2025' );
 		$this->assertStringContainsString( '<table id="wp-calendar"', $first_calendar_html, 'Calendar is expected to contain the element table#wp-calendar' );
 		$this->assertSame( $first_calendar_html, $second_calendar_html, 'Both calendars should be identical' );
