@@ -217,26 +217,30 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		// Ensure the global post is populated with the draft content for the preview link.
 		$this->go_to( get_preview_post_link( $draft_post ) );
 		if ( have_posts() ) {
-			the_post(); }
+			the_post();
+		}
 		$this->assertSame( 'ticket 56992', get_the_content(), 'Preview link should show draft content to logged in user' );
 
 		// Ensure the global post is populated with the draft content for the permalink.
 		$this->go_to( get_permalink( $draft_post ) );
 		if ( have_posts() ) {
-			the_post(); }
+			the_post();
+		}
 		$this->assertSame( 'ticket 56992', get_the_content(), 'Permalink should show draft content to logged in user' );
 
 		// Ensure the global post is not populated with the draft content for the preview link when logged out.
 		wp_set_current_user( 0 );
 		$this->go_to( get_preview_post_link( $draft_post ) );
 		if ( have_posts() ) {
-			the_post(); }
+			the_post();
+		}
 		$this->assertEmpty( get_the_content(), 'Preview link should not show draft content to logged out users' );
 
 		// Ensure the global post is not populated with the draft content for the permalink when logged out.
 		$this->go_to( get_permalink( $draft_post ) );
 		if ( have_posts() ) {
-			the_post(); }
+			the_post();
+		}
 		$this->assertEmpty( get_the_content(), 'Permalink should not show draft content to logged out users' );
 	}
 
@@ -274,13 +278,15 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		// Ensure the global post is populated with the autosave content for the preview link.
 		$this->go_to( $post_preview_link );
 		if ( have_posts() ) {
-			the_post(); }
+			the_post();
+		}
 		$this->assertSame( 'ticket 56992 edited', get_the_content(), 'Preview link should show autosave content to logged in user' );
 
 		// Ensure the global post is populated with the published content for the permalink.
 		$this->go_to( get_permalink( $published_post ) );
 		if ( have_posts() ) {
-			the_post(); }
+			the_post();
+		}
 		$this->assertSame( 'ticket 56992', get_the_content(), 'Permalink should show published content to logged in user' );
 
 		wp_set_current_user( 0 );
@@ -299,13 +305,15 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		// Ensure the global post is not populated with the draft content for the preview link when logged out.
 		$this->go_to( $post_preview_link );
 		if ( have_posts() ) {
-			the_post(); }
+			the_post();
+		}
 		$this->assertSame( 'ticket 56992', get_the_content(), 'Preview link should show published to logged out users' );
 
 		// Ensure the global post is not populated with the draft content for the permalink when logged out.
 		$this->go_to( get_permalink( $published_post ) );
 		if ( have_posts() ) {
-			the_post(); }
+			the_post();
+		}
 		$this->assertSame( 'ticket 56992', get_the_content(), 'Permalink should show published content to logged out users' );
 	}
 }
