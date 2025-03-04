@@ -125,7 +125,7 @@ class Tests_General_GetCalendar extends WP_UnitTestCase {
 	 * @ticket 34093
 	 */
 	public function test_get_calendar_caching_accounts_for_args() {
-		$first_calendar_html  = get_echo( 'get_calendar', );
+		$first_calendar_html  = get_echo( 'get_calendar' );
 		$second_calendar_html = get_echo( 'get_calendar', array( array( 'post_type' => 'page' ) ) );
 
 		$this->assertNotSame( $first_calendar_html, $second_calendar_html, 'Each calendar should be different' );
