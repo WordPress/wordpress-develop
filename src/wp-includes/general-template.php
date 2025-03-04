@@ -2296,10 +2296,23 @@ function get_calendar( $args = array() ) {
 		$args['post_type'] = 'post';
 	}
 
+	$w = 0;
+	if ( isset( $_GET['w'] ) ) {
+		$w = (int) $_GET['w'];
+	}
+
 	$cache_args = $args;
 	unset( $cache_args['display'] );
-	ksort( $cache_args );
-	$key   = md5( $m . $monthnum . $year . serialize( $cache_args ) );
+
+	$cache_args['globals'] = array(
+		'm'        => $m,
+		'monthnum' => $monthnum,
+		'year'     => $year,
+		'week'     => $w,
+	);
+
+	wp_recursive_ksort( $cache_args );
+	$key   = md5( serialize( $cache_args ) );
 	$cache = wp_cache_get( 'get_calendar', 'calendar' );
 
 	if ( $cache && is_array( $cache ) && isset( $cache[ $key ] ) ) {
@@ -2331,9 +2344,6 @@ function get_calendar( $args = array() ) {
 		}
 	}
 
-	if ( isset( $_GET['w'] ) ) {
-		$w = (int) $_GET['w'];
-	}
 	// week_begins = 0 stands for Sunday.
 	$week_begins = (int) get_option( 'start_of_week' );
 
