@@ -8,12 +8,6 @@
  * @covers ::wp_timezone_override_offset
  */
 class Tests_Functions_wpTimezoneOverrideOffset extends WP_UnitTestCase {
-
-	public function tear_down() {
-		delete_option( 'timezone_string' );
-		parent::tear_down();
-	}
-
 	/**
 	 * @ticket 59980
 	 */
