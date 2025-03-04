@@ -38,11 +38,11 @@
     "extends @wordpress/browserslist-config"
   ],
   "scripts": {
-    "build:style": "sass style.scss style.css --style expanded && postcss -r style.css",
-    "build:style-editor": "sass style-editor.scss style-editor.css --style expanded && postcss -r style-editor.css",
-    "build:style-editor-customizer": "sass style-editor-customizer.scss style-editor-customizer.css --style expanded && postcss -r style-editor-customizer.css",
+    "build:style": "sass style.scss style.css --style expanded --no-source-map && postcss -r style.css",
+    "build:style-editor": "sass style-editor.scss style-editor.css --style expanded --no-source-map && postcss -r style-editor.css",
+    "build:style-editor-customizer": "sass style-editor-customizer.scss style-editor-customizer.css --style expanded --no-source-map && postcss -r style-editor-customizer.css",
     "build:rtl": "rtlcss style.css style-rtl.css",
-    "build:print": "sass print.scss print.css --style expanded && postcss -r print.css",
+    "build:print": "sass print.scss print.css --style expanded --no-source-map && postcss -r print.css",
     "build": "run-p \"build:*\"",
     "watch": "chokidar \"**/*.scss\" -c \"npm run build\" --initial"
   }
