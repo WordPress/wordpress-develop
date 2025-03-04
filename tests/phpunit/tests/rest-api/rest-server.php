@@ -2587,29 +2587,30 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 62574
+	 *
+	 * @dataProvider data_rest_index_template_and_template_part_default
+	 *
+	 * @param string $user_id     The test user role.
+	 * @param bool   $has_values Is data returned by REST index endpoint.
 	 */
-	public function test_populates_templates_default_data_for_logged_in_user() {
-		wp_set_current_user( self::$admin_id );
+	public function test_template_and_template_part_area_defaults( $role, $has_values ) {
+		if ( $role ) {
+			$user_id = self::factory()->user->create( array( 'role' => $role ) );
+			wp_set_current_user( $user_id );
+		}
+
 		$server  = new WP_REST_Server();
 		$request = new WP_REST_Request( 'GET', '/' );
 		$index   = $server->dispatch( $request );
 		$data    = $index->get_data();
 
-		$this->assertArrayHasKey( 'default_template_part_areas', $data );
-		$this->assertArrayHasKey( 'default_template_types', $data );
-	}
-
-	/**
-	 * @ticket 62574
-	 */
-	public function test_does_not_populate_templates_default_data_for_logged_out_user() {
-		$server  = new WP_REST_Server();
-		$request = new WP_REST_Request( 'GET', '/' );
-		$index   = $server->dispatch( $request );
-		$data    = $index->get_data();
-
-		$this->assertArrayNotHasKey( 'default_template_part_areas', $data );
-		$this->assertArrayNotHasKey( 'default_template_types', $data );
+		if ( $has_values ) {
+			$this->assertArrayHasKey( 'default_template_part_areas', $data );
+			$this->assertArrayHasKey( 'default_template_types', $data );
+		} else {
+			$this->assertArrayNotHasKey( 'default_template_part_areas', $data );
+			$this->assertArrayNotHasKey( 'default_template_types', $data );
+		}
 	}
 
 	public function _validate_as_integer_123( $value, $request, $key ) {
@@ -2642,6 +2643,22 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			array( true, false ),
 			array( false, true ),
 			array( false, false ),
+		);
+	}
+
+	/**
+	 * @return array {
+	 *     @type array {
+	 *         @type string $role       The test user role.
+	 *         @type bool   $has_values Is data returned by REST index endpoint.
+	 *     }
+	 * }
+	 */
+	public function data_rest_index_template_and_template_part_default() {
+		return array(
+			array( 'subscriber', false ),
+			array( 'contributor', true ),
+			array( 'editor', true ),
 		);
 	}
 

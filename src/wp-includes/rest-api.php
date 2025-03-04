@@ -1264,7 +1264,17 @@ function rest_add_application_passwords_to_index( $response ) {
  * @return WP_REST_Response Modified REST API response.
  */
 function rest_add_templates_default_data_to_index( $response ) {
-	if ( ! is_user_logged_in() ) {
+	$can_edit_posts = current_user_can( 'edit_posts' );
+	if ( ! $can_edit_posts ) {
+		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+			if ( current_user_can( $post_type->cap->edit_posts ) ) {
+				$can_edit_posts = true;
+				break;
+			}
+		}
+	}
+
+	if ( ! $can_edit_posts ) {
 		return $response;
 	}
 
