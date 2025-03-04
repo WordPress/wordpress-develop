@@ -9604,6 +9604,22 @@ mockedApiResponse.Schema = {
                                 }
                             },
                             "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "email",
+                                    "name",
+                                    "id",
+                                    "username",
+                                    "slug"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
                         }
                     }
                 },
