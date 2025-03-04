@@ -5,11 +5,17 @@
  * @group post
  */
 class Tests_User_CountManyUsersPosts extends WP_UnitTestCase {
-	public static $user_id_a;
-	public static $user_id_b;
-	public static $post_ids = array();
+	protected static $user_id_a;
+	protected static $user_id_b;
+	protected static $post_ids = array();
 
+	/**
+	 * Set up test users and posts before the class of tests run.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory object to create test fixtures.
+	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+
 		self::$user_id_a = $factory->user->create(
 			array(
 				'role'       => 'author',
@@ -26,47 +32,41 @@ class Tests_User_CountManyUsersPosts extends WP_UnitTestCase {
 			)
 		);
 
-		self::$post_ids = $factory->post->create_many(
-			3,
+		$test_posts = array(
 			array(
+				'count'       => 3,
 				'post_author' => self::$user_id_a,
 				'post_type'   => 'post',
-			)
+			),
+			array(
+				'count'       => 2,
+				'post_author' => self::$user_id_b,
+				'post_type'   => 'post',
+			),
+			array(
+				'count'       => 2,
+				'post_author' => self::$user_id_a,
+				'post_type'   => 'wptests_pt',
+			),
+			array(
+				'count'       => 1,
+				'post_author' => self::$user_id_b,
+				'post_type'   => 'wptests_pt',
+			),
 		);
 
-		self::$post_ids = array_merge(
-			self::$post_ids,
-			$factory->post->create_many(
-				2,
-				array(
-					'post_author' => self::$user_id_b,
-					'post_type'   => 'post',
-				)
-			)
-		);
+		// Create the posts.
+		foreach ( $test_posts as $post_data ) {
+			$count = $post_data['count'];
+			unset( $post_data['count'] );
 
-		self::$post_ids = array_merge(
-			self::$post_ids,
-			$factory->post->create_many(
-				2,
-				array(
-					'post_author' => self::$user_id_a,
-					'post_type'   => 'wptests_pt',
-				)
-			)
-		);
+			self::$post_ids = array_merge(
+				self::$post_ids,
+				$factory->post->create_many( $count, $post_data )
+			);
+		}
 
-		self::$post_ids = array_merge(
-			self::$post_ids,
-			$factory->post->create_many(
-				1,
-				array(
-					'post_author' => self::$user_id_b,
-					'post_type'   => 'wptests_pt',
-				)
-			)
-		);
-
+		// Create a private post for user B.
 		self::$post_ids[] = $factory->post->create(
 			array(
 				'post_author' => self::$user_id_b,
@@ -76,6 +76,9 @@ class Tests_User_CountManyUsersPosts extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Set up before each test method.
+	 */
 	public function set_up() {
 		parent::set_up();
 		register_post_type( 'wptests_pt' );
@@ -114,7 +117,6 @@ class Tests_User_CountManyUsersPosts extends WP_UnitTestCase {
 	 * @ticket 63045
 	 */
 	public function test_count_many_users_posts_should_invalidate_cache_when_posts_added() {
-
 		$counts_before = count_many_users_posts( array( self::$user_id_a, self::$user_id_b ), 'post', false );
 
 		self::factory()->post->create(
@@ -133,7 +135,7 @@ class Tests_User_CountManyUsersPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that count_many_users_posts() handles different post types.
+	 * Test count_many_users_posts() with different post types.
 	 *
 	 * @ticket 63045
 	 */
@@ -145,7 +147,7 @@ class Tests_User_CountManyUsersPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that count_many_users_posts() handles array of post types.
+	 * Test count_many_users_posts() with an array of post types.
 	 *
 	 * @ticket 63045
 	 */
