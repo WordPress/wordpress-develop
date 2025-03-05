@@ -135,18 +135,27 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
+		/**
+		 * Filter whether the server should prevent uploads for image types it doesn't support. Default true.
+		 *
+		 * Developers can use this filter to enable uploads of certain image types.
+		 *
+		 * @param bool $check_mime Whether to prevent uploads of unsupported image types.
+		 */
+		$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_image_uploads', true );
+
 		// If the upload is an image, check if the server can handle the mime type.
 		$files = $request->get_file_params();
 		if (
-			! empty( $files ) &&
-			isset( $files['file'] ) &&
+			$prevent_unsupported_uploads &&
+			isset( $files['file']['type'] ) &&
 			str_starts_with( $files['file']['type'], 'image/' )
 		) {
 			// Check if the image editor supports the type.
 			if ( ! wp_image_editor_supports( array( 'mime_type' => $files['file']['type'] ) ) ) {
 				return new WP_Error(
 					'rest_upload_image_type_not_supported',
-					__( 'The web server cannot generate responsive image sizes for this image. Convert it to JPEG or PNG before uploading.', 'gutenberg' ),
+					__( 'The web server cannot generate responsive image sizes for this image. Convert it to JPEG or PNG before uploading.' ),
 					array( 'status' => 400 )
 				);
 			}
