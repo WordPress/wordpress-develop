@@ -69,11 +69,6 @@ function create_initial_post_types() {
 		)
 	);
 
-	// Enhance page editor for block themes by rendering template and content blocks.
-	if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
-		add_post_type_support( 'page', 'editor', array( 'default-mode' => 'template-locked' ) );
-	}
-
 	register_post_type(
 		'attachment',
 		array(
