@@ -222,7 +222,17 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 			$response->add_links( $links );
 		}
 
-		return $response;
+		/**
+		 * Filters a single search result returned from the REST API.
+		 * Allows modification of the search result right before it is returned.
+		 *
+		 * @since 6.7.2
+		 *
+		 * @param WP_REST_Response  $response The response object.
+		 * @param int|string        $item     ID of the item to prepare.
+		 * @param WP_REST_Request   $request  Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_search', $response, $item, $request );
 	}
 
 	/**
