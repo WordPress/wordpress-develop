@@ -3781,7 +3781,7 @@ class WP_Query {
 
 		// Ensure a full post object is available.
 		if ( $post instanceof stdClass ) {
-			// stdClass indicates that the full post object was not queried.
+			// stdClass indicates that a partial post object was queried.
 			$post = get_post( $post->ID );
 		} elseif ( is_numeric( $post ) ) {
 			// Numeric indicates that only post IDs were queried.
