@@ -223,8 +223,6 @@ $preload_paths = array(
 			'site_icon_url',
 			'site_logo',
 			'timezone_string',
-			'default_template_part_areas',
-			'default_template_types',
 			'url',
 			'page_for_posts',
 			'page_on_front',
