@@ -319,7 +319,7 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		if ( have_posts() ) {
 			the_post();
 		}
-		$this->assertSame( 'ticket 56992', get_the_content(), 'Preview link should show published to logged out users' );
+		$this->assertSame( 'ticket 56992', get_the_content(), 'Preview link should show published content to logged out users' );
 
 		// Ensure the global post is not populated with the draft content for the permalink when logged out.
 		$this->go_to( get_permalink( $published_post ) );
