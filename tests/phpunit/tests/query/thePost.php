@@ -266,7 +266,15 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		$query_args['preview_nonce'] = $nonce;
 		$post_preview_link           = get_preview_post_link( $published_post, $query_args );
 
-		// Set up the GET parameters for the preview link.
+		/*
+		 * Set up the GET parameters for the preview link.
+		 *
+		 * _show_post_preview() checks the $_GET super global for preview
+		 * and nonce parameters. It needs to run prior to the global query
+		 * being set up in WP_Query (via $this->go_to()), so the preview
+		 * parameters are created here to ensure _show_post_preview()
+		 * runs correctly.
+		 */
 		$_GET['preview_id']    = $published_post;
 		$_GET['preview_nonce'] = $nonce;
 		_show_post_preview();
@@ -293,7 +301,15 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		$query_args['preview_nonce'] = $nonce;
 		$post_preview_link           = get_preview_post_link( $published_post, $query_args );
 
-		// Set up the GET parameters for the preview link.
+		/*
+		 * Set up the GET parameters for the preview link.
+		 *
+		 * _show_post_preview() checks the $_GET super global for preview
+		 * and nonce parameters. It needs to run prior to the global query
+		 * being set up in WP_Query (via $this->go_to()), so the preview
+		 * parameters are created here to ensure _show_post_preview()
+		 * runs correctly.
+		 */
 		$_GET['preview_id']    = $published_post;
 		$_GET['preview_nonce'] = $nonce;
 		_show_post_preview();
