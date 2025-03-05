@@ -35,6 +35,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	const TEMPLATE_PART_POST_TYPE = 'wp_template_part';
 
 	/**
+	 * @var string
+	 */
+	const PARENT_POST_TYPE = 'wp_template';
+
+	/**
 	 * Admin user ID.
 	 *
 	 * @since 6.4.0
@@ -293,6 +298,28 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+		$autosave_post_id = wp_create_post_autosave(
+			array(
+				'post_content' => 'Autosave content.',
+				'post_ID'      => self::$template_post->ID,
+				'post_type'    => self::PARENT_POST_TYPE,
+			)
+		);
+
+		$request  = new WP_REST_Request(
+			'HEAD',
+			'/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves'
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
 	 * Data provider for test_get_items_with_data_provider.
 	 *
 	 * @return array
@@ -424,6 +451,26 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 				$parent_post->ID
 			)
 		);
+	}
+
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_item_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+
+		$autosave_post_id = wp_create_post_autosave(
+			array(
+				'post_content' => 'Autosave content.',
+				'post_ID'      => self::$template_post->ID,
+				'post_type'    => self::PARENT_POST_TYPE,
+			)
+		);
+
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . $autosave_post_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
 	/**
