@@ -12,7 +12,7 @@ Version: 1.7.2
 Author URI: http://ma.tt/
 */
 
-// Don't load directly.
+// Do not load directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	die();
 }
