@@ -206,7 +206,7 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 		 * @param array            $item     The original pattern object.
 		 * @param WP_REST_Request  $request  Request used to generate the response.
 		 */
-		return apply_filters( 'rest_prepare_block_patterns', $response, $item, $request );
+		return apply_filters( 'rest_prepare_block_pattern', $response, $item, $request );
 	}
 
 	/**
