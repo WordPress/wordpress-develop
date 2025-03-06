@@ -68,7 +68,7 @@ function wpmu_signup_stylesheet() {
 		.mu_register form { margin-top: 2em; }
 		.mu_register fieldset,
 			.mu_register legend { margin: 0; padding: 0; border: none; }
-		.mu_register .error { font-weight: 600; padding: 10px; color: #333; background: #ffebe8; border: 1px solid #c00; }
+		.mu_register .error { padding: 10px; color: #333; background: #ffebe8; border: 1px solid #c00; }
 		.mu_register input[type="submit"],
 			.mu_register #blog_title,
 			.mu_register #user_email,
@@ -164,7 +164,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 	$errmsg_blog_title_aria = '';
 	if ( $errmsg_blog_title ) {
 		$errmsg_blog_title_aria = ' aria-describedby="wp-signup-blog-title-error"';
-		echo '<p class="notice notice-error" id="wp-signup-blog-title-error">' . $errmsg_blog_title . '</p>';
+		echo '<p class="error" id="wp-signup-blog-title-error">' . $errmsg_blog_title . '</p>';
 	}
 	echo '<input name="blog_title" type="text" id="blog_title" value="' . esc_attr( $blog_title ) . '" required="required" autocomplete="off"' . $errmsg_blog_title_aria . ' />';
 	?>
@@ -280,7 +280,7 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
 	$errmsg_username_aria = '';
 	if ( $errmsg_username ) {
 		$errmsg_username_aria = 'wp-signup-username-error ';
-		echo '<p class="notice notice-error" id="wp-signup-username-error">' . $errmsg_username . '</p>';
+		echo '<p class="error" id="wp-signup-username-error">' . $errmsg_username . '</p>';
 	}
 	?>
 	<input name="user_name" type="text" id="user_name" value="<?php echo esc_attr( $user_name ); ?>" autocapitalize="none" autocorrect="off" maxlength="60" autocomplete="username" required="required" aria-describedby="<?php echo $errmsg_username_aria; ?>wp-signup-username-description" />
@@ -293,7 +293,7 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
 	$errmsg_email_aria = '';
 	if ( $errmsg_email ) {
 		$errmsg_email_aria = 'wp-signup-email-error ';
-		echo '<p class="notice notice-error" id="wp-signup-email-error">' . $errmsg_email . '</p>';
+		echo '<p class="error" id="wp-signup-email-error">' . $errmsg_email . '</p>';
 	}
 	?>
 	<input name="user_email" type="email" id="user_email" value="<?php echo esc_attr( $user_email ); ?>" maxlength="200" autocomplete="email" required="required" aria-describedby="<?php echo $errmsg_email_aria; ?>wp-signup-email-description" />
@@ -303,7 +303,7 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
 	// Extra fields.
 	$errmsg_generic = $errors->get_error_message( 'generic' );
 	if ( $errmsg_generic ) {
-		echo '<p class="notice notice-error" id="wp-signup-generic-error">' . $errmsg_generic . '</p>';
+		echo '<p class="error" id="wp-signup-generic-error">' . $errmsg_generic . '</p>';
 	}
 	/**
 	 * Fires at the end of the new user account registration form.
