@@ -461,7 +461,7 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 	<legend>
 		<span class="hidden" id="editlegend"><?php _e( 'Edit Comment' ); ?></span>
 		<span class="hidden" id="replyhead"><?php _e( 'Reply to Comment' ); ?></span>
-		<span class="hidden" id="addhead"><?php _e( 'Add New Comment' ); ?></span>
+		<span class="hidden" id="addhead"><?php _e( 'Add Comment' ); ?></span>
 	</legend>
 
 	<div id="replycontainer">
@@ -735,7 +735,7 @@ function meta_form( $post = null ) {
 		natcasesort( $keys );
 	}
 	?>
-<p><strong><?php _e( 'Add New Custom Field:' ); ?></strong></p>
+<p><strong><?php _e( 'Add Custom Field:' ); ?></strong></p>
 <table id="newmeta">
 <thead>
 <tr>
@@ -1784,12 +1784,11 @@ function do_settings_sections( $page ) {
 			call_user_func( $section['callback'], $section );
 		}
 
-		if ( ! isset( $wp_settings_fields ) || ! isset( $wp_settings_fields[ $page ] ) || ! isset( $wp_settings_fields[ $page ][ $section['id'] ] ) ) {
-			continue;
+		if ( isset( $wp_settings_fields[ $page ][ $section['id'] ] ) ) {
+			echo '<table class="form-table" role="presentation">';
+			do_settings_fields( $page, $section['id'] );
+			echo '</table>';
 		}
-		echo '<table class="form-table" role="presentation">';
-		do_settings_fields( $page, $section['id'] );
-		echo '</table>';
 
 		if ( '' !== $section['after_section'] ) {
 			echo wp_kses_post( $section['after_section'] );

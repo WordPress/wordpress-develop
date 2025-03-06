@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.7/theme.json",
 	"version": 3,
 	"settings": {
 		"appearanceTools": true,
@@ -694,7 +694,7 @@
 		{
 			"area": "header",
 			"name": "vertical-header",
-			"title": "Vertical Header"
+			"title": "Vertical site header"
 		},
 		{
 			"area": "header",

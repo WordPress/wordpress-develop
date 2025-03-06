@@ -263,118 +263,6 @@ function _mb_strlen( $str, $encoding = null ) {
 	return --$count;
 }
 
-if ( ! function_exists( 'hash_hmac' ) ) :
-	/**
-	 * Compat function to mimic hash_hmac().
-	 *
-	 * The Hash extension is bundled with PHP by default since PHP 5.1.2.
-	 * However, the extension may be explicitly disabled on select servers.
-	 * As of PHP 7.4.0, the Hash extension is a core PHP extension and can no
-	 * longer be disabled.
-	 * I.e. when PHP 7.4.0 becomes the minimum requirement, this polyfill
-	 * and the associated `_hash_hmac()` function can be safely removed.
-	 *
-	 * @ignore
-	 * @since 3.2.0
-	 *
-	 * @see _hash_hmac()
-	 *
-	 * @param string $algo   Hash algorithm. Accepts 'md5' or 'sha1'.
-	 * @param string $data   Data to be hashed.
-	 * @param string $key    Secret key to use for generating the hash.
-	 * @param bool   $binary Optional. Whether to output raw binary data (true),
-	 *                       or lowercase hexits (false). Default false.
-	 * @return string|false The hash in output determined by `$binary`.
-	 *                      False if `$algo` is unknown or invalid.
-	 */
-	function hash_hmac( $algo, $data, $key, $binary = false ) {
-		return _hash_hmac( $algo, $data, $key, $binary );
-	}
-endif;
-
-/**
- * Internal compat function to mimic hash_hmac().
- *
- * @ignore
- * @since 3.2.0
- *
- * @param string $algo   Hash algorithm. Accepts 'md5' or 'sha1'.
- * @param string $data   Data to be hashed.
- * @param string $key    Secret key to use for generating the hash.
- * @param bool   $binary Optional. Whether to output raw binary data (true),
- *                       or lowercase hexits (false). Default false.
- * @return string|false The hash in output determined by `$binary`.
- *                      False if `$algo` is unknown or invalid.
- */
-function _hash_hmac( $algo, $data, $key, $binary = false ) {
-	$packs = array(
-		'md5'  => 'H32',
-		'sha1' => 'H40',
-	);
-
-	if ( ! isset( $packs[ $algo ] ) ) {
-		return false;
-	}
-
-	$pack = $packs[ $algo ];
-
-	if ( strlen( $key ) > 64 ) {
-		$key = pack( $pack, $algo( $key ) );
-	}
-
-	$key = str_pad( $key, 64, chr( 0 ) );
-
-	$ipad = ( substr( $key, 0, 64 ) ^ str_repeat( chr( 0x36 ), 64 ) );
-	$opad = ( substr( $key, 0, 64 ) ^ str_repeat( chr( 0x5C ), 64 ) );
-
-	$hmac = $algo( $opad . pack( $pack, $algo( $ipad . $data ) ) );
-
-	if ( $binary ) {
-		return pack( $pack, $hmac );
-	}
-
-	return $hmac;
-}
-
-if ( ! function_exists( 'hash_equals' ) ) :
-	/**
-	 * Timing attack safe string comparison.
-	 *
-	 * Compares two strings using the same time whether they're equal or not.
-	 *
-	 * Note: It can leak the length of a string when arguments of differing length are supplied.
-	 *
-	 * This function was added in PHP 5.6.
-	 * However, the Hash extension may be explicitly disabled on select servers.
-	 * As of PHP 7.4.0, the Hash extension is a core PHP extension and can no
-	 * longer be disabled.
-	 * I.e. when PHP 7.4.0 becomes the minimum requirement, this polyfill
-	 * can be safely removed.
-	 *
-	 * @since 3.9.2
-	 *
-	 * @param string $known_string Expected string.
-	 * @param string $user_string  Actual, user supplied, string.
-	 * @return bool Whether strings are equal.
-	 */
-	function hash_equals( $known_string, $user_string ) {
-		$known_string_length = strlen( $known_string );
-
-		if ( strlen( $user_string ) !== $known_string_length ) {
-			return false;
-		}
-
-		$result = 0;
-
-		// Do not attempt to "optimize" this.
-		for ( $i = 0; $i < $known_string_length; $i++ ) {
-			$result |= ord( $known_string[ $i ] ) ^ ord( $user_string[ $i ] );
-		}
-
-		return 0 === $result;
-	}
-endif;
-
 // sodium_crypto_box() was introduced in PHP 7.2.
 if ( ! function_exists( 'sodium_crypto_box' ) ) {
 	require ABSPATH . WPINC . '/sodium_compat/autoload.php';
@@ -415,6 +303,10 @@ if ( ! function_exists( 'array_key_first' ) ) {
 	 *                         is not empty; `null` otherwise.
 	 */
 	function array_key_first( array $array ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		if ( empty( $array ) ) {
+			return null;
+		}
+
 		foreach ( $array as $key => $value ) {
 			return $key;
 		}
@@ -542,6 +434,98 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 		$len = strlen( $needle );
 
 		return substr( $haystack, -$len, $len ) === $needle;
+	}
+}
+
+if ( ! function_exists( 'array_find' ) ) {
+	/**
+	 * Polyfill for `array_find()` function added in PHP 8.4.
+	 *
+	 * Searches an array for the first element that passes a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to search.
+	 * @param callable $callback The callback to run for each element.
+	 * @return mixed|null The first element in the array that passes the `$callback`, otherwise null.
+	 */
+	function array_find( array $array, callable $callback ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( $callback( $value, $key ) ) {
+				return $value;
+			}
+		}
+
+		return null;
+	}
+}
+
+if ( ! function_exists( 'array_find_key' ) ) {
+	/**
+	 * Polyfill for `array_find_key()` function added in PHP 8.4.
+	 *
+	 * Searches an array for the first key that passes a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to search.
+	 * @param callable $callback The callback to run for each element.
+	 * @return int|string|null The first key in the array that passes the `$callback`, otherwise null.
+	 */
+	function array_find_key( array $array, callable $callback ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( $callback( $value, $key ) ) {
+				return $key;
+			}
+		}
+
+		return null;
+	}
+}
+
+if ( ! function_exists( 'array_any' ) ) {
+	/**
+	 * Polyfill for `array_any()` function added in PHP 8.4.
+	 *
+	 * Checks if any element of an array passes a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to check.
+	 * @param callable $callback The callback to run for each element.
+	 * @return bool True if any element in the array passes the `$callback`, otherwise false.
+	 */
+	function array_any( array $array, callable $callback ): bool { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( $callback( $value, $key ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+}
+
+if ( ! function_exists( 'array_all' ) ) {
+	/**
+	 * Polyfill for `array_all()` function added in PHP 8.4.
+	 *
+	 * Checks if all elements of an array pass a given callback.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array    $array    The array to check.
+	 * @param callable $callback The callback to run for each element.
+	 * @return bool True if all elements in the array pass the `$callback`, otherwise false.
+	 */
+	function array_all( array $array, callable $callback ): bool { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.arrayFound
+		foreach ( $array as $key => $value ) {
+			if ( ! $callback( $value, $key ) ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
 
