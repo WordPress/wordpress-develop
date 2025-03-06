@@ -1,4 +1,7 @@
-// This script should eventually live elsewhere, but for now it's just in `wp-includes` for simplicity.
+/**
+ * @output wp-includes/js/wp-view-transitions.js
+ */
+
 window.wp = window.wp || {};
 window.wp.viewTransitions = {};
 window.wp.viewTransitions.init = ( config ) => {

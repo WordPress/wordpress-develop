@@ -4456,7 +4456,9 @@ function wp_load_view_transitions() {
 		return;
 	}
 
-	$stylesheet = file_get_contents( ABSPATH . WPINC . '/view-transitions.css' );
+	$suffix = wp_scripts_get_suffix();
+
+	$stylesheet = file_get_contents( ABSPATH . WPINC . "/css/view-transitions{$suffix}.css" );
 
 	// Use an inline style to avoid an extra request.
 	wp_register_style( 'wp-view-transitions', false, array(), null );
@@ -4476,7 +4478,7 @@ function wp_load_view_transitions() {
 		'postTransitionNames'     => $theme_support['post-transition-names'],
 		'chronologicalSlideInOut' => $theme_support['chronological-slide-in-out'],
 	);
-	$src_script  = file_get_contents( ABSPATH . WPINC . '/view-transitions.js' );
+	$src_script  = file_get_contents( ABSPATH . WPINC . "/js/wp-view-transitions{$suffix}.js" );
 	$init_script = sprintf(
 		'wp.viewTransitions.init( %s )',
 		wp_json_encode( $config, JSON_FORCE_OBJECT )
