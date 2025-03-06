@@ -1122,7 +1122,20 @@
 				errorMessage.hide();
 				urlWrap.removeClass( 'has-error' );
 
-				if ( '' === url || 'https://' === url || 'http://' === url ) {
+				/*
+				 * Allow URLs including:
+				 * - http://example.com/
+				 * - //example.com
+				 * - /directory/
+				 * - ?query-param
+				 * - #target
+				 * - mailto:foo@example.com
+				 *
+				 * Any further validation will be handled on the server when the setting is attempted to be saved,
+				 * so this pattern does not need to be complete.
+				 */
+				urlRegex = /^((\w+:)?\/\/\w.*|\w+:(?!\/\/$)|\/|\?|#)/;
+				if ( ! urlRegex.test( url ) ) {
 					e.preventDefault();
 					urlInput.addClass( 'form-invalid' )
 						.attr( 'aria-invalid', 'true' )
