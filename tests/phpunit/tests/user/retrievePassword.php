@@ -74,4 +74,17 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 		$this->assertTrue( retrieve_password( 'foo@example.com' ), 'Fetching user by login failed.' );
 		$this->assertTrue( retrieve_password( 'bar@example.com' ), 'Fetching user by email failed.' );
 	}
+
+	/**
+	 * Tests that PHP 8.1 "passing null to non-nullable" deprecation notice
+	 * is not thrown when the `$user_login` parameter is empty.
+	 *
+	 * The notice that we should not see:
+	 * `Deprecated: trim(): Passing null to parameter #1 ($string) of type string is deprecated`.
+	 *
+	 * @ticket 62298
+	 */
+	public function test_retrieve_password_does_not_throw_deprecation_notice_with_default_parameters() {
+		$this->assertWPError( retrieve_password() );
+	}
 }

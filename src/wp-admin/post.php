@@ -14,7 +14,7 @@ require_once __DIR__ . '/admin.php';
 $parent_file  = 'edit.php';
 $submenu_file = 'edit.php';
 
-wp_reset_vars( array( 'action' ) );
+$action = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
 
 if ( isset( $_GET['post'] ) && isset( $_POST['post_ID'] ) && (int) $_GET['post'] !== (int) $_POST['post_ID'] ) {
 	wp_die( __( 'A post ID mismatch has been detected.' ), __( 'Sorry, you are not allowed to edit this item.' ), 400 );
@@ -28,9 +28,9 @@ if ( isset( $_GET['post'] ) && isset( $_POST['post_ID'] ) && (int) $_GET['post']
 $post_ID = $post_id;
 
 /**
- * @global string  $post_type
- * @global object  $post_type_object
- * @global WP_Post $post             Global post object.
+ * @global string       $post_type        Global post type.
+ * @global WP_Post_Type $post_type_object Global post type object.
+ * @global WP_Post      $post             Global post object.
  */
 global $post_type, $post_type_object, $post;
 

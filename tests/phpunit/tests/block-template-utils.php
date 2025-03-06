@@ -87,6 +87,19 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down after each test.
+	 *
+	 * @since 6.5.0
+	 */
+	public function tear_down() {
+		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/hooked-block' ) ) {
+			unregister_block_type( 'tests/hooked-block' );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 59338
 	 *
 	 * @covers ::_inject_theme_attribute_in_template_part_block
@@ -366,7 +379,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	public function test_wp_generate_block_templates_export_file() {
 		$filename = wp_generate_block_templates_export_file();
 		$this->assertFileExists( $filename, 'zip file is created at the specified path' );
-		$this->assertTrue( filesize( $filename ) > 0, 'zip file is larger than 0 bytes' );
+		$this->assertGreaterThan( 0, filesize( $filename ), 'zip file is larger than 0 bytes' );
 
 		// Open ZIP file and make sure the directories exist.
 		$zip = new ZipArchive();

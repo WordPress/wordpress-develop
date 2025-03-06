@@ -3,7 +3,7 @@
 /**
  * Tests for the _wp_timezone_choice_usort_callback() function.
  *
- * @group function
+ * @group functions
  *
  * @covers ::_wp_timezone_choice_usort_callback
  */

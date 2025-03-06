@@ -236,7 +236,7 @@ wp_admin_notice(
 		}
 		printf(
 			/* translators: 1: Privacy Policy guide URL, 2: Additional link attributes, 3: Accessibility text. */
-			__( 'Need help putting together your new Privacy Policy page? <a href="%1$s" %2$s>Check out our privacy policy guide%3$s</a> for recommendations on what content to include, along with policies suggested by your plugins and theme.' ),
+			__( 'Need help putting together your new Privacy Policy page? <a href="%1$s" %2$s>Check out the privacy policy guide%3$s</a> for recommendations on what content to include, along with policies suggested by your plugins and theme.' ),
 			esc_url( admin_url( 'options-privacy.php?tab=policyguide' ) ),
 			'',
 			''
@@ -270,7 +270,7 @@ wp_admin_notice(
 				</label>
 			</th>
 			<td>
-				<form class="wp-create-privacy-page" method="post" action="">
+				<form class="wp-create-privacy-page" method="post">
 					<input type="hidden" name="action" value="create-privacy-page" />
 					<?php
 					wp_nonce_field( 'create-privacy-page' );
@@ -293,7 +293,7 @@ wp_admin_notice(
 				</label>
 			</th>
 			<td>
-				<form method="post" action="">
+				<form method="post">
 					<input type="hidden" name="action" value="set-privacy-page" />
 					<?php
 					wp_dropdown_pages(
