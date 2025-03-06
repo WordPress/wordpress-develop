@@ -383,6 +383,10 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 	float: right;
 }
 
+.customlinkdiv .error-message {
+	clear: right;
+}
+
 .accordion-container .outer-border {
 	margin: 0;
 }
