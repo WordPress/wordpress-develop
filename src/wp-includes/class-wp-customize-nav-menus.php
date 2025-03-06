@@ -1268,7 +1268,7 @@ final class WP_Customize_Nav_Menus {
 				<p id="menu-item-url-wrap" class="wp-clearfix">
 					<label class="howto" for="custom-menu-item-url"><?php _e( 'URL' ); ?></label>
 					<input id="custom-menu-item-url" name="menu-item[-1][menu-item-url]" type="text" class="code menu-item-textbox" placeholder="https://">
-					<span id="custom-url-error" class="error-message" style="display: none;"><?php _e( "Content is required for the link's href attribute." ); ?></span>
+					<span id="custom-url-error" class="error-message" style="display: none;"><?php _e( "Please provide a valid link." ); ?></span>
 				</p>
 				<p id="menu-item-name-wrap" class="wp-clearfix">
 					<label class="howto" for="custom-menu-item-name"><?php _e( 'Link Text' ); ?></label>
