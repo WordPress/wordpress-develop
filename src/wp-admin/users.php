@@ -138,7 +138,8 @@ switch ( $wp_list_table->current_action() ) {
 		$user_ids = array_map( 'intval', (array) $_REQUEST['users'] );
 		$update   = 'promote';
 
-		if ( in_array( get_current_user_id(), $user_ids, false ) && 'none' === $role ) {
+		$current_user_id = get_current_user_id();
+		if ( in_array( $current_user_id, $user_ids, false ) && '' === $role ) {
 			wp_die( __( 'Sorry, you cannot remove your own role.' ), 403 );
 		}
 
