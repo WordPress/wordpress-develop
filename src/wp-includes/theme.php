@@ -4470,14 +4470,17 @@ function wp_load_view_transitions() {
 		return;
 	}
 
-	$config = array(
+	$config      = array(
 		'postSelector'            => $theme_support['post-selector'],
 		'globalTransitionNames'   => $theme_support['global-transition-names'],
 		'postTransitionNames'     => $theme_support['post-transition-names'],
 		'chronologicalSlideInOut' => $theme_support['chronological-slide-in-out'],
 	);
-	$script = file_get_contents( ABSPATH . WPINC . '/view-transitions.js' );
-	$script = str_replace( '{ __PLACEHOLDER__: true }', wp_json_encode( $config, JSON_FORCE_OBJECT ), $script );
+	$src_script  = file_get_contents( ABSPATH . WPINC . '/view-transitions.js' );
+	$init_script = sprintf(
+		'wp.viewTransitions.init( %s )',
+		wp_json_encode( $config, JSON_FORCE_OBJECT )
+	);
 
 	/*
 	 * This must be in the <head>, not in the footer.
@@ -4485,6 +4488,7 @@ function wp_load_view_transitions() {
 	 * An inline script is used to avoid an extra request.
 	 */
 	wp_register_script( 'wp-view-transitions', false, array(), null, array() );
-	wp_add_inline_script( 'wp-view-transitions', $script );
+	wp_add_inline_script( 'wp-view-transitions', $src_script );
+	wp_add_inline_script( 'wp-view-transitions', $init_script );
 	wp_enqueue_script( 'wp-view-transitions' );
 }

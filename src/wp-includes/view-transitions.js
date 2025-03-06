@@ -1,6 +1,11 @@
 // This script should eventually live elsewhere, but for now it's just in `wp-includes` for simplicity.
-if ( !! window.navigation && 'CSSViewTransitionRule' in window ) {
-	const config = { __PLACEHOLDER__: true };
+window.wp = window.wp || {};
+window.wp.viewTransitions = {};
+window.wp.viewTransitions.init = ( config ) => {
+	if ( ! window.navigation || ! 'CSSViewTransitionRule' in window ) {
+		window.console.warn( 'View transitions not loaded as the browser is lacking support.' );
+		return;
+	}
 
 	const getViewTransitionEntries = ( transitionType, bodyElement, articleElement ) => {
 		const isMainSlide = transitionType === 'forwards' || transitionType === 'backwards';
@@ -186,6 +191,4 @@ if ( !! window.navigation && 'CSSViewTransitionRule' in window ) {
 			}
 		}
 	} );
-} else {
-	window.console.warn( 'View transitions not loaded as the browser is lacking support.' );
-}
+};
