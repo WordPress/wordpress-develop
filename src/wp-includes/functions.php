@@ -1715,7 +1715,7 @@ function do_robots() {
 	do_action( 'do_robotstxt' );
 
 	$output = "User-agent: *\n";
-	$public = get_option( 'blog_public' );
+	$public = (bool) get_option( 'blog_public' );
 
 	$site_url = parse_url( site_url() );
 	$path     = ( ! empty( $site_url['path'] ) ) ? $site_url['path'] : '';
@@ -9142,7 +9142,8 @@ function wp_fast_hash(
 	#[\SensitiveParameter]
 	string $message
 ): string {
-	return '$generic$' . sodium_bin2hex( sodium_crypto_generichash( $message ) );
+	$hashed = sodium_crypto_generichash( $message, 'wp_fast_hash_6.8+', 30 );
+	return '$generic$' . sodium_bin2base64( $hashed, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING );
 }
 
 /**
