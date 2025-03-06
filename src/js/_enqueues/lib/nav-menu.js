@@ -1116,7 +1116,8 @@
 				var urlInput = $( '#custom-menu-item-url' ),
 					url = urlInput.val().trim(),
 					errorMessage = $( '#custom-url-error' ),
-					urlWrap = $( '#menu-item-url-wrap' );
+					urlWrap = $( '#menu-item-url-wrap' ),
+					urlRegex;
 
 				// Hide the error message initially
 				errorMessage.hide();
@@ -1428,7 +1429,8 @@
 
 		addCustomLink : function( processMethod ) {
 			var url = $('#custom-menu-item-url').val().toString(),
-				label = $('#custom-menu-item-name').val();
+				label = $('#custom-menu-item-name').val()
+				urlRegex;
 
 			if ( '' !== url ) {
 				url = url.trim();
