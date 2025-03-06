@@ -451,7 +451,8 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 		 * @param int             $post_id   Attachment post ID.
 		 */
 		$saved = apply_filters( 'wp_save_image_editor_file', null, $filename, $image, $mime_type, $post_id );
-
+		$file_ext  = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+var_dump( $image->get_mime_type( $file_ext ) );
 		if ( null !== $saved ) {
 			return $saved;
 		}
@@ -489,8 +490,8 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 		if ( null !== $saved ) {
 			return $saved;
 		}
-
-		switch ( $mime_type ) {
+var_dump($image->mime_type);
+		switch ( $image->mime_type ) {
 			case 'image/jpeg':
 				/** This filter is documented in wp-includes/class-wp-image-editor.php */
 				return imagejpeg( $image, $filename, apply_filters( 'jpeg_quality', 90, 'edit_image' ) );
