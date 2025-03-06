@@ -1429,7 +1429,7 @@
 
 		addCustomLink : function( processMethod ) {
 			var url = $('#custom-menu-item-url').val().toString(),
-				label = $('#custom-menu-item-name').val()
+				label = $('#custom-menu-item-name').val(),
 				urlRegex;
 
 			if ( '' !== url ) {
