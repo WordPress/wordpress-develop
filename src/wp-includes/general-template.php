@@ -2448,7 +2448,7 @@ function get_calendar( $args = array() ) {
 	<thead>
 	<tr>';
 
-  // week_begins = 0 stands for Sunday.
+	// week_begins = 0 stands for Sunday.
 	$week_begins = (int) get_option( 'start_of_week' );
 	$myweek      = array();
 
