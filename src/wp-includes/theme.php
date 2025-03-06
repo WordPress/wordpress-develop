@@ -4458,7 +4458,7 @@ function wp_load_view_transitions() {
 
 	$stylesheet = file_get_contents( ABSPATH . WPINC . '/view-transitions.css' );
 
-	// Use an inline style to avoid an extra request, also because it's just 1 line of CSS.
+	// Use an inline style to avoid an extra request.
 	wp_register_style( 'wp-view-transitions', false, array(), null );
 	wp_add_inline_style( 'wp-view-transitions', $stylesheet );
 	wp_enqueue_style( 'wp-view-transitions' );
