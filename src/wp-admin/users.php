@@ -114,6 +114,11 @@ switch ( $wp_list_table->current_action() ) {
 			wp_die( __( 'Sorry, you are not allowed to edit this user.' ), 403 );
 		}
 
+		$count_users = count_users();
+		if ( 1 === $count_users['total_users'] ) {
+			wp_die( __( 'Sorry, you cannot edit roles when only one user is registered on the site.' ), 403 );
+		}
+
 		if ( empty( $_REQUEST['users'] ) ) {
 			wp_redirect( $redirect );
 			exit;
