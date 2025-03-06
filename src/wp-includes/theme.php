@@ -2738,7 +2738,7 @@ function add_theme_support( $feature, ...$args ) {
 				'style',
 			);
 
-			if ( isset($args[0]) && true === $args[0] ) {
+			if ( isset( $args[0] ) && true === $args[0] ) {
 				$args = array( 0 => $feature_areas );
 			}
 
