@@ -23,7 +23,7 @@ For more information about Twenty Fifteen please go to https://wordpress.org/doc
 
 == Installation ==
 
-1. In your admin panel, go to Appearance -> Themes and click the 'Add New' button.
+1. In your admin panel, go to Appearance -> Themes and click the 'Add' button.
 2. Type in Twenty Fifteen in the search form and press the 'Enter' key on your keyboard.
 3. Click on the 'Activate' button to use your new theme right away.
 4. Go to https://wordpress.org/documentation/article/twenty-fifteen/ for a guide on how to customize this theme.
@@ -31,7 +31,7 @@ For more information about Twenty Fifteen please go to https://wordpress.org/doc
 
 == Copyright ==
 
-Twenty Fifteen WordPress Theme, Copyright 2014-2024 WordPress.org, Automattic Inc., and contributors.
+Twenty Fifteen WordPress Theme, Copyright 2014-2025 WordPress.org, Automattic Inc., and contributors.
 Twenty Fifteen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify

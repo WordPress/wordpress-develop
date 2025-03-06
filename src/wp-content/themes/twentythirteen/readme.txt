@@ -15,7 +15,7 @@ For more information about Twenty Thirteen please go to https://codex.wordpress.
 
 == Installation ==
 
-1. In your admin panel, go to Appearance -> Themes and click the 'Add New' button.
+1. In your admin panel, go to Appearance -> Themes and click the 'Add' button.
 2. Type in Twenty Thirteen in the search form and press the 'Enter' key in your keyboard.
 3. Click on the 'Activate' button to use your new theme right away.
 4. Go to https://codex.wordpress.org/Twenty_Thirteen for a guide to customize this theme.
@@ -23,7 +23,7 @@ For more information about Twenty Thirteen please go to https://codex.wordpress.
 
 == Copyright ==
 
-Twenty Thirteen WordPress Theme, Copyright 2013-2024 WordPress.org, Automattic Inc., and contributors.
+Twenty Thirteen WordPress Theme, Copyright 2013-2025 WordPress.org, Automattic Inc., and contributors.
 Twenty Thirteen is Distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
