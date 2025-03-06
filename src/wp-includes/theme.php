@@ -4458,7 +4458,7 @@ function wp_load_view_transitions() {
 
 	$stylesheet = file_get_contents( ABSPATH . WPINC . '/view-transitions.css' );
 
-	// Use an inline style to avoid an extra request, also because it's just 1 line of CSS.
+	// Use an inline style to avoid an extra request.
 	wp_register_style( 'wp-view-transitions', false, array(), null );
 	wp_add_inline_style( 'wp-view-transitions', $stylesheet );
 	wp_enqueue_style( 'wp-view-transitions' );
@@ -4481,6 +4481,7 @@ function wp_load_view_transitions() {
 
 	/*
 	 * This must be in the <head>, not in the footer.
+	 * This is because the pagereveal event listener must be added before the first rAF occurs since that is when the event fires. See <https://issues.chromium.org/issues/40949146#comment10>.
 	 * An inline script is used to avoid an extra request.
 	 */
 	wp_register_script( 'wp-view-transitions', false, array(), null, array() );
