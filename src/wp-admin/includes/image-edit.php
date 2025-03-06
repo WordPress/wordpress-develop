@@ -431,6 +431,7 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
  * }
  */
 function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
+
 	if ( $image instanceof WP_Image_Editor ) {
 
 		/** This filter is documented in wp-admin/includes/image-edit.php */
@@ -451,13 +452,12 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 		 * @param int             $post_id   Attachment post ID.
 		 */
 		$saved = apply_filters( 'wp_save_image_editor_file', null, $filename, $image, $mime_type, $post_id );
-		$file_ext  = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
-var_dump( $image->get_mime_type( $file_ext ) );
+
 		if ( null !== $saved ) {
 			return $saved;
 		}
-
-		return $image->save( $filename, $mime_type );
+		$file_ext = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+		return $image->save( $filename, $image->get_mime_type( $file_ext ) );
 	} else {
 		/* translators: 1: $image, 2: WP_Image_Editor */
 		_deprecated_argument( __FUNCTION__, '3.5.0', sprintf( __( '%1$s needs to be a %2$s object.' ), '$image', 'WP_Image_Editor' ) );

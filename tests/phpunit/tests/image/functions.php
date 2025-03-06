@@ -339,9 +339,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			return DIR_TESTDATA . '/images/avif-lossy.avif';
 		});
 
-		// Save the file.
-		$file = wp_tempnam();
-		$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
+		$ret  = wp_save_image_file( 'canola.jpg', $img, $mime_type, 1 );
 
 		// Make assertions.
 
