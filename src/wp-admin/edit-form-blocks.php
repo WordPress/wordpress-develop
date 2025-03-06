@@ -53,6 +53,10 @@ $rest_path = rest_get_route_for_post( $post );
 
 $active_theme                   = get_stylesheet();
 $global_styles_endpoint_context = current_user_can( 'edit_theme_options' ) ? 'edit' : 'view';
+$template_lookup_slug           = 'page' === $post->post_type ? 'page' : 'single-' . $post->post_type;
+if ( ! empty( $post->post_name ) ) {
+	$template_lookup_slug .= '-' . $post->post_name;
+}
 // Preload common data.
 $preload_paths = array(
 	'/wp/v2/types?context=view',
@@ -98,6 +102,12 @@ $preload_paths = array(
 			'page_on_front',
 			'show_on_front',
 		)
+	),
+	$paths[] = add_query_arg(
+		'slug',
+		// @see https://github.com/WordPress/gutenberg/blob/e093fefd041eb6cc4a4e7f67b92ab54fd75c8858/packages/core-data/src/private-selectors.ts#L244-L254
+		$template_lookup_slug,
+		'/wp/v2/templates/lookup'
 	),
 );
 
