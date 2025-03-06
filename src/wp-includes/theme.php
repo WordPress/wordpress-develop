@@ -2728,7 +2728,7 @@ function add_theme_support( $feature, ...$args ) {
 			break;
 
 		case 'html5':
-			$defaults = array(
+			$feature_areas = array(
 				'search-form',
 				'comment-form',
 				'comment-list',
@@ -2738,8 +2738,8 @@ function add_theme_support( $feature, ...$args ) {
 				'style',
 			);
 
-			if ( true === $args[0] ) {
-				$args = array( 0 => $defaults );
+			if ( isset($args[0]) && true === $args[0] ) {
+				$args = array( 0 => $feature_areas );
 			}
 
 			// You can't just pass 'html5', you need to pass an array of types.
