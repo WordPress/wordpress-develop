@@ -5434,6 +5434,51 @@ EOF;
 	}
 
 	/**
+	 * Test that the `wp_editor_set_quality` filter includes the dimensions in the `$dims` parameter.
+	 *
+	 * @ticket 54648
+	 */
+	public function test_wp_editor_set_quality_includes_dimensions() {
+		// Before loading an image, set up the callback filter with the assertions.
+		add_filter( 'wp_editor_set_quality', array( $this, 'assert_dimensions_in_wp_editor_set_quality' ), 10, 3 );
+
+		$temp_dir = get_temp_dir();
+		$file     = $temp_dir . '/33772.jpg';
+		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
+
+		$editor = wp_get_image_editor( $file );
+
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => $file,
+			)
+		);
+
+		// Generate all sizes.
+		wp_generate_attachment_metadata( $attachment_id, $file );
+
+		// Clean up the filter.
+		remove_filter( 'wp_editor_set_quality', array( $this, 'assert_dimensions_in_wp_editor_set_quality' ), 10, 3 );
+	}
+
+	/**
+	 * Helper callback to assert that the dimensions are included in the `$dims` parameter.
+	 *
+	 * @param int   $quality The quality level.
+	 * @param array $dims    The dimensions array.
+	 */
+	public function assert_dimensions_in_wp_editor_set_quality( $quality, $mime_type, $dims ) {
+		// Assert that the array has non empty width and height values.
+		$this->assertArrayHasKey( 'width', $dims );
+		$this->assertArrayHasKey( 'height', $dims );
+		$this->assertGreaterThan( 0, $dims['width'] );
+		$this->assertGreaterThan( 0, $dims['height'] );
+
+		return $quality;
+	}
+
+	/**
 	 * Test that an image size isn't generated if it matches the original image size.
 	 *
 	 * @ticket 57370

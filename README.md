@@ -139,11 +139,14 @@ The development environment can be reset. This will destroy the database and att
 npm run env:reset
 ```
 
-### Apple Silicon machines and old MySQL versions
+### Apple Silicon machines and old MySQL/MariaDB versions
 
-The MySQL Docker images do not support Apple Silicon processors (M1, M2, etc.) for MySQL versions 5.7 and earlier.
+Older MySQL and MariaDB Docker images do not support Apple Silicon processors (M1, M2, etc.). This is true for:
 
-When using MySQL <= 5.7 on an Apple Silicon machine, you must create a `docker-compose.override.yml` file with the following contents:
+- MySQL versions 5.7 and earlier
+- MariaDB 5.5
+
+When using these versions on an Apple Silicon machine, you must create a `docker-compose.override.yml` file with the following contents:
 
 ```
 services:

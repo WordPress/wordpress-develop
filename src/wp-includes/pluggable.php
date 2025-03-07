@@ -251,7 +251,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
 			require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
 			require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
-			$phpmailer = new PHPMailer\PHPMailer\PHPMailer( true );
+			require_once ABSPATH . WPINC . '/class-wp-phpmailer.php';
+			$phpmailer = new WP_PHPMailer( true );
 
 			$phpmailer::$validator = static function ( $email ) {
 				return (bool) is_email( $email );
@@ -597,7 +598,11 @@ if ( ! function_exists( 'wp_authenticate' ) ) :
 	 * @return WP_User|WP_Error WP_User object if the credentials are valid,
 	 *                          otherwise WP_Error.
 	 */
-	function wp_authenticate( $username, $password ) {
+	function wp_authenticate(
+		$username,
+		#[\SensitiveParameter]
+		$password
+	) {
 		$username = sanitize_user( $username );
 		$password = trim( $password );
 
@@ -688,6 +693,7 @@ if ( ! function_exists( 'wp_validate_auth_cookie' ) ) :
 	 *
 	 * @param string $cookie Optional. If used, will validate contents instead of cookie's.
 	 * @param string $scheme Optional. The cookie scheme to use: 'auth', 'secure_auth', or 'logged_in'.
+	 *                       Note: This does *not* default to 'auth' like other cookie functions.
 	 * @return int|false User ID if valid cookie, false if invalid.
 	 */
 	function wp_validate_auth_cookie( $cookie = '', $scheme = '' ) {
@@ -710,8 +716,9 @@ if ( ! function_exists( 'wp_validate_auth_cookie' ) ) :
 		$username   = $cookie_elements['username'];
 		$hmac       = $cookie_elements['hmac'];
 		$token      = $cookie_elements['token'];
-		$expired    = $cookie_elements['expiration'];
 		$expiration = $cookie_elements['expiration'];
+
+		$expired = (int) $expiration;
 
 		// Allow a grace period for POST and Ajax requests.
 		if ( wp_doing_ajax() || 'POST' === $_SERVER['REQUEST_METHOD'] ) {
@@ -762,13 +769,17 @@ if ( ! function_exists( 'wp_validate_auth_cookie' ) ) :
 			return false;
 		}
 
-		$pass_frag = substr( $user->user_pass, 8, 4 );
+		if ( str_starts_with( $user->user_pass, '$P$' ) || str_starts_with( $user->user_pass, '$2y$' ) ) {
+			// Retain previous behaviour of phpass or vanilla bcrypt hashed passwords.
+			$pass_frag = substr( $user->user_pass, 8, 4 );
+		} else {
+			// Otherwise, use a substring from the end of the hash to avoid dealing with potentially long hash prefixes.
+			$pass_frag = substr( $user->user_pass, -4 );
+		}
 
 		$key = wp_hash( $username . '|' . $pass_frag . '|' . $expiration . '|' . $token, $scheme );
 
-		// If ext/hash is not present, compat.php's hash_hmac() does not support sha256.
-		$algo = function_exists( 'hash' ) ? 'sha256' : 'sha1';
-		$hash = hash_hmac( $algo, $username . '|' . $expiration . '|' . $token, $key );
+		$hash = hash_hmac( 'sha256', $username . '|' . $expiration . '|' . $token, $key );
 
 		if ( ! hash_equals( $hash, $hmac ) ) {
 			/**
@@ -865,13 +876,17 @@ if ( ! function_exists( 'wp_generate_auth_cookie' ) ) :
 			$token   = $manager->create( $expiration );
 		}
 
-		$pass_frag = substr( $user->user_pass, 8, 4 );
+		if ( str_starts_with( $user->user_pass, '$P$' ) || str_starts_with( $user->user_pass, '$2y$' ) ) {
+			// Retain previous behaviour of phpass or vanilla bcrypt hashed passwords.
+			$pass_frag = substr( $user->user_pass, 8, 4 );
+		} else {
+			// Otherwise, use a substring from the end of the hash to avoid dealing with potentially long hash prefixes.
+			$pass_frag = substr( $user->user_pass, -4 );
+		}
 
 		$key = wp_hash( $user->user_login . '|' . $pass_frag . '|' . $expiration . '|' . $token, $scheme );
 
-		// If ext/hash is not present, compat.php's hash_hmac() does not support sha256.
-		$algo = function_exists( 'hash' ) ? 'sha256' : 'sha1';
-		$hash = hash_hmac( $algo, $user->user_login . '|' . $expiration . '|' . $token, $key );
+		$hash = hash_hmac( 'sha256', $user->user_login . '|' . $expiration . '|' . $token, $key );
 
 		$cookie = $user->user_login . '|' . $expiration . '|' . $token . '|' . $hash;
 
@@ -2341,7 +2356,7 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) :
 	/**
 	 * Verifies that a correct security nonce was used with time limit.
 	 *
-	 * A nonce is valid for 24 hours (by default).
+	 * A nonce is valid for between 12 and 24 hours (by default).
 	 *
 	 * @since 2.0.3
 	 *
@@ -2580,18 +2595,38 @@ endif;
 
 if ( ! function_exists( 'wp_hash' ) ) :
 	/**
-	 * Gets hash of given string.
+	 * Gets the hash of the given string.
+	 *
+	 * The default algorithm is md5 but can be changed to any algorithm supported by
+	 * `hash_hmac()`. Use the `hash_hmac_algos()` function to check the supported
+	 * algorithms.
 	 *
 	 * @since 2.0.3
+	 * @since 6.8.0 The `$algo` parameter was added.
+	 *
+	 * @throws InvalidArgumentException if the hashing algorithm is not supported.
 	 *
 	 * @param string $data   Plain text to hash.
 	 * @param string $scheme Authentication scheme (auth, secure_auth, logged_in, nonce).
+	 * @param string $algo   Hashing algorithm to use. Default: 'md5'.
 	 * @return string Hash of $data.
 	 */
-	function wp_hash( $data, $scheme = 'auth' ) {
+	function wp_hash( $data, $scheme = 'auth', $algo = 'md5' ) {
 		$salt = wp_salt( $scheme );
 
-		return hash_hmac( 'md5', $data, $salt );
+		// Ensure the algorithm is supported by the hash_hmac function.
+		if ( ! in_array( $algo, hash_hmac_algos(), true ) ) {
+			throw new InvalidArgumentException(
+				sprintf(
+					/* translators: 1: Name of a cryptographic hash algorithm. 2: List of supported algorithms. */
+					__( 'Unsupported hashing algorithm: %1$s. Supported algorithms are: %2$s' ),
+					$algo,
+					implode( ', ', hash_hmac_algos() )
+				)
+			);
+		}
+
+		return hash_hmac( $algo, $data, $salt );
 	}
 endif;
 
@@ -2603,22 +2638,75 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 	 * instead use the other package password hashing algorithm.
 	 *
 	 * @since 2.5.0
+	 * @since 6.8.0 The password is now hashed using bcrypt by default instead of phpass.
 	 *
-	 * @global PasswordHash $wp_hasher PHPass object.
+	 * @global PasswordHash $wp_hasher phpass object.
 	 *
 	 * @param string $password Plain text user password to hash.
 	 * @return string The hash string of the password.
 	 */
-	function wp_hash_password( $password ) {
+	function wp_hash_password(
+		#[\SensitiveParameter]
+		$password
+	) {
 		global $wp_hasher;
 
-		if ( empty( $wp_hasher ) ) {
-			require_once ABSPATH . WPINC . '/class-phpass.php';
-			// By default, use the portable hash from phpass.
-			$wp_hasher = new PasswordHash( 8, true );
+		if ( ! empty( $wp_hasher ) ) {
+			return $wp_hasher->HashPassword( trim( $password ) );
 		}
 
-		return $wp_hasher->HashPassword( trim( $password ) );
+		if ( strlen( $password ) > 4096 ) {
+			return '*';
+		}
+
+		/**
+		 * Filters the hashing algorithm to use in the password_hash() and password_needs_rehash() functions.
+		 *
+		 * The default is the value of the `PASSWORD_BCRYPT` constant which means bcrypt is used.
+		 *
+		 * **Important:** The only password hashing algorithm that is guaranteed to be available across PHP
+		 * installations is bcrypt. If you use any other algorithm you must make sure that it is available on
+		 * the server. The `password_algos()` function can be used to check which hashing algorithms are available.
+		 *
+		 * The hashing options can be controlled via the {@see 'wp_hash_password_options'} filter.
+		 *
+		 * Other available constants include:
+		 *
+		 * - `PASSWORD_ARGON2I`
+		 * - `PASSWORD_ARGON2ID`
+		 * - `PASSWORD_DEFAULT`
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string $algorithm The hashing algorithm. Default is the value of the `PASSWORD_BCRYPT` constant.
+		 */
+		$algorithm = apply_filters( 'wp_hash_password_algorithm', PASSWORD_BCRYPT );
+
+		/**
+		 * Filters the options passed to the password_hash() and password_needs_rehash() functions.
+		 *
+		 * The default hashing algorithm is bcrypt, but this can be changed via the {@see 'wp_hash_password_algorithm'}
+		 * filter. You must ensure that the options are appropriate for the algorithm in use.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param array $options    Array of options to pass to the password hashing functions.
+		 *                          By default this is an empty array which means the default
+		 *                          options will be used.
+		 * @param string $algorithm The hashing algorithm in use.
+		 */
+		$options = apply_filters( 'wp_hash_password_options', array(), $algorithm );
+
+		// Algorithms other than bcrypt don't need to use pre-hashing.
+		if ( PASSWORD_BCRYPT !== $algorithm ) {
+			return password_hash( $password, $algorithm, $options );
+		}
+
+		// Use SHA-384 to retain entropy from a password that's longer than 72 bytes, and a `wp-sha384` key for domain separation.
+		$password_to_hash = base64_encode( hash_hmac( 'sha384', trim( $password ), 'wp-sha384', true ) );
+
+		// Add a prefix to facilitate distinguishing vanilla bcrypt hashes.
+		return '$wp' . password_hash( $password_to_hash, $algorithm, $options );
 	}
 endif;
 
@@ -2626,64 +2714,127 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	/**
 	 * Checks a plaintext password against a hashed password.
 	 *
-	 * Maintains compatibility between old version and the new cookie authentication
-	 * protocol using PHPass library. The $hash parameter is the encrypted password
-	 * and the function compares the plain text password when encrypted similarly
-	 * against the already encrypted password to see if they match.
+	 * Note that this function may be used to check a value that is not a user password.
+	 * A plugin may use this function to check a password of a different type, and there
+	 * may not always be a user ID associated with the password.
 	 *
 	 * For integration with other applications, this function can be overwritten to
 	 * instead use the other package password hashing algorithm.
 	 *
 	 * @since 2.5.0
+	 * @since 6.8.0 Passwords in WordPress are now hashed with bcrypt by default. A
+	 *              password that wasn't hashed with bcrypt will be checked with phpass.
 	 *
-	 * @global PasswordHash $wp_hasher PHPass object used for checking the password
-	 *                                 against the $hash + $password.
-	 * @uses PasswordHash::CheckPassword
+	 * @global PasswordHash $wp_hasher phpass object. Used as a fallback for verifying
+	 *                                 passwords that were hashed with phpass.
 	 *
-	 * @param string     $password Plaintext user's password.
-	 * @param string     $hash     Hash of the user's password to check against.
-	 * @param string|int $user_id  Optional. User ID.
+	 * @param string     $password Plaintext password.
+	 * @param string     $hash     Hash of the password to check against.
+	 * @param string|int $user_id  Optional. ID of a user associated with the password.
 	 * @return bool False, if the $password does not match the hashed password.
 	 */
-	function wp_check_password( $password, $hash, $user_id = '' ) {
+	function wp_check_password(
+		#[\SensitiveParameter]
+		$password,
+		$hash,
+		$user_id = ''
+	) {
 		global $wp_hasher;
 
-		// If the hash is still md5...
 		if ( strlen( $hash ) <= 32 ) {
+			// Check the hash using md5 regardless of the current hashing mechanism.
 			$check = hash_equals( $hash, md5( $password ) );
-			if ( $check && $user_id ) {
-				// Rehash using new hash.
-				wp_set_password( $password, $user_id );
-				$hash = wp_hash_password( $password );
-			}
-
-			/**
-			 * Filters whether the plaintext password matches the encrypted password.
-			 *
-			 * @since 2.5.0
-			 *
-			 * @param bool       $check    Whether the passwords match.
-			 * @param string     $password The plaintext password.
-			 * @param string     $hash     The hashed password.
-			 * @param string|int $user_id  User ID. Can be empty.
-			 */
-			return apply_filters( 'check_password', $check, $password, $hash, $user_id );
-		}
-
-		/*
-		 * If the stored hash is longer than an MD5,
-		 * presume the new style phpass portable hash.
-		 */
-		if ( empty( $wp_hasher ) ) {
+		} elseif ( ! empty( $wp_hasher ) ) {
+			// Check the password using the overridden hasher.
+			$check = $wp_hasher->CheckPassword( $password, $hash );
+		} elseif ( strlen( $password ) > 4096 ) {
+			// Passwords longer than 4096 characters are not supported.
+			$check = false;
+		} elseif ( str_starts_with( $hash, '$wp' ) ) {
+			// Check the password using the current prefixed hash.
+			$password_to_verify = base64_encode( hash_hmac( 'sha384', $password, 'wp-sha384', true ) );
+			$check              = password_verify( $password_to_verify, substr( $hash, 3 ) );
+		} elseif ( str_starts_with( $hash, '$P$' ) ) {
+			// Check the password using phpass.
 			require_once ABSPATH . WPINC . '/class-phpass.php';
-			// By default, use the portable hash from phpass.
-			$wp_hasher = new PasswordHash( 8, true );
+			$check = ( new PasswordHash( 8, true ) )->CheckPassword( $password, $hash );
+		} else {
+			// Check the password using compat support for any non-prefixed hash.
+			$check = password_verify( $password, $hash );
 		}
 
-		$check = $wp_hasher->CheckPassword( $password, $hash );
+		/**
+		 * Filters whether the plaintext password matches the hashed password.
+		 *
+		 * @since 2.5.0
+		 * @since 6.8.0 Passwords are now hashed with bcrypt by default.
+		 *              Old passwords may still be hashed with phpass or md5.
+		 *
+		 * @param bool       $check    Whether the passwords match.
+		 * @param string     $password The plaintext password.
+		 * @param string     $hash     The hashed password.
+		 * @param string|int $user_id  Optional ID of a user associated with the password.
+		 *                             Can be empty.
+		 */
+		return apply_filters( 'check_password', $check, $password, $hash, $user_id );
+	}
+endif;
+
+if ( ! function_exists( 'wp_password_needs_rehash' ) ) :
+	/**
+	 * Checks whether a password hash needs to be rehashed.
+	 *
+	 * Passwords are hashed with bcrypt using the default cost. A password hashed in a prior version
+	 * of WordPress may still be hashed with phpass and will need to be rehashed. If the default cost
+	 * or algorithm is changed in PHP or WordPress then a password hashed in a previous version will
+	 * need to be rehashed.
+	 *
+	 * Note that, just like wp_check_password(), this function may be used to check a value that is
+	 * not a user password. A plugin may use this function to check a password of a different type,
+	 * and there may not always be a user ID associated with the password.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @global PasswordHash $wp_hasher phpass object.
+	 *
+	 * @param string     $hash    Hash of a password to check.
+	 * @param string|int $user_id Optional. ID of a user associated with the password.
+	 * @return bool Whether the hash needs to be rehashed.
+	 */
+	function wp_password_needs_rehash( $hash, $user_id = '' ) {
+		global $wp_hasher;
+
+		if ( ! empty( $wp_hasher ) ) {
+			return false;
+		}
 
 		/** This filter is documented in wp-includes/pluggable.php */
-		return apply_filters( 'check_password', $check, $password, $hash, $user_id );
+		$algorithm = apply_filters( 'wp_hash_password_algorithm', PASSWORD_BCRYPT );
+
+		/** This filter is documented in wp-includes/pluggable.php */
+		$options = apply_filters( 'wp_hash_password_options', array(), $algorithm );
+
+		$prefixed = str_starts_with( $hash, '$wp' );
+
+		if ( ( PASSWORD_BCRYPT === $algorithm ) && ! $prefixed ) {
+			// If bcrypt is in use and the hash is not prefixed then it needs to be rehashed.
+			$needs_rehash = true;
+		} else {
+			// Otherwise check the hash minus its prefix if necessary.
+			$hash_to_check = $prefixed ? substr( $hash, 3 ) : $hash;
+			$needs_rehash  = password_needs_rehash( $hash_to_check, $algorithm, $options );
+		}
+
+		/**
+		 * Filters whether the password hash needs to be rehashed.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param bool       $needs_rehash Whether the password hash needs to be rehashed.
+		 * @param string     $hash         The password hash.
+		 * @param string|int $user_id      Optional. ID of a user associated with the password.
+		 */
+		return apply_filters( 'password_needs_rehash', $needs_rehash, $hash, $user_id );
 	}
 endif;
 
@@ -2835,13 +2986,18 @@ if ( ! function_exists( 'wp_set_password' ) ) :
 	 * of password resets if precautions are not taken to ensure it does not execute on every page load.
 	 *
 	 * @since 2.5.0
+	 * @since 6.8.0 The password is now hashed using bcrypt by default instead of phpass.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $password The plaintext new user password.
 	 * @param int    $user_id  User ID.
 	 */
-	function wp_set_password( $password, $user_id ) {
+	function wp_set_password(
+		#[\SensitiveParameter]
+		$password,
+		$user_id
+	) {
 		global $wpdb;
 
 		$old_user_data = get_userdata( $user_id );
