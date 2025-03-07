@@ -68,7 +68,7 @@ class GetCalendarTest extends WP_UnitTestCase {
 	public function testGet_calendar_day_of_week_starts_monday() {
 		$calendar_html = get_calendar( true, false );
 
-		$this->assertMatchesRegularExpression( '#title="Monday".*title="Sunday"#s', $calendar_html );
+		$this->assertMatchesRegularExpression( '#aria-label="Monday">M.*aria-label="Sunday">S#s', $calendar_html );
 	}
 
 	/**
@@ -92,7 +92,7 @@ class GetCalendarTest extends WP_UnitTestCase {
 
 		$calendar_html = get_calendar( true, false );
 
-		$this->assertMatchesRegularExpression( '#title="Sunday".*title="Monday"#s', $calendar_html );
+		$this->assertMatchesRegularExpression( '#aria-label="Sunday">S.*aria-label="Monday">M#s', $calendar_html );
 	}
 
 	/*
