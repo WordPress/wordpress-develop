@@ -69,8 +69,17 @@ function create_initial_post_types() {
 		)
 	);
 
-	// Enhance page editor for block themes by rendering template and content blocks.
-	if ( did_action( 'after_setup_theme' ) && wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
+	/*
+	 * Enhance page editor for block themes by rendering template and content blocks.
+	 *
+	 * Theme support for block templates is added on the 'after_setup_theme' hook in
+	 * wp_enable_block_templates(). So post type support will only be added on the second
+	 * pass of this function on the 'init' hook.
+
+	 * Note: The order of these checks is important, a doing_it_wrong notice will be fired
+	 * if the block theme check is done first.
+	 */
+	if ( current_theme_supports( 'block-templates' ) && wp_is_block_theme() ) {
 		add_post_type_support( 'page', 'editor', array( 'default-mode' => 'template-locked' ) );
 	}
 
