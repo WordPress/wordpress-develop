@@ -34,12 +34,10 @@ export function isCurrentURL( page, WPPath, query = '' ) {
  * WordPress dependencies
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
-import { env } from 'process';
-
-	test( 'currenet url should work', async ( { page, admin } ) => {
+	test( 'Is it network related?', async ( { page, admin } ) => {
 		await page.goto( '/wp-login.php?reauth=1' );
-
-		await page.goto( '/wp-admin/' );
+		await page.waitForEvent( 'load' );
+		await admin.visitAdminPage( '/' );
 
 		console.log( page.url() );
 		expect( isCurrentURL( page, '/wp-login.php' ) ).toBe( true );
