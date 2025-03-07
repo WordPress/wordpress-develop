@@ -3,16 +3,34 @@
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
-test('Test dismissing failed upload works correctly', async ({ page }) => {
-	await admin.visitAdminPage( '/media-new.php' );
-	await page.getByRole('link', { name: 'Add New Media File' }).click();
-	await page.getByRole('button', { name: 'Select Files' }).click();
-	await page.getByRole('button', { name: 'Select Files' }).setInputFiles('assets/sample.jfif');
-	await expect(
-		await page.getByText('”Dismiss sample.jfif” has failed to upload.Sorry, you are not allowed')
-	);
-	await page.getByRole('button', { name: 'Dismiss' }).click();
-	await page.locator('#wpbody-content').click();
-	expect(await page.getByText('”Dismiss sample.jfif” has failed to upload.Sorry, you are not allowed').count()).toEqual(0);
-});
+/**
+ * External dependencies
+ */
+import path from 'path';
 
+test( 'Test dismissing failed upload works correctly', async ({ page, admin }) => {
+	await admin.visitAdminPage( '/media-new.php' );
+
+	await page.waitForLoadState('load');
+
+	const testImagePath = path.join(__dirname, '../assets/sample.svg');
+	console.log( 'testImagePath', testImagePath );
+
+	const input = page.locator( '#plupload-upload-ui input[type="file"]' );
+	await input.setInputFiles( testImagePath );
+
+	// await page.waitForEvent('networkidle');
+
+	// await dragAndDropFile(page, "#plupload-upload-ui", testImagePath, "sample.svg");
+
+	await expect(
+		page.getByText('“sample.svg” has failed to upload.')
+	).toBeVisible();
+
+
+	await page.getByRole('button', { name: 'Dismiss' }).click();
+
+	await expect(
+		page.getByText('“sample.svg” has failed to upload.')
+	).not.toBeVisible();
+} );
