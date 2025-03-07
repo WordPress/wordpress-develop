@@ -15,7 +15,6 @@ test( 'Test dismissing failed upload works correctly', async ({ page, admin }) =
 	await page.waitForLoadState('load');
 
 	const testImagePath = path.join(__dirname, '../assets/sample.svg');
-	console.log( 'testImagePath', testImagePath );
 
 	// Upload a file that will fail.
 	const input = page.locator( '#plupload-upload-ui input[type="file"]' );
