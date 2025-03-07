@@ -17,12 +17,6 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * It also tests the non-display mode of get_calendar().
 	 *
 	 * @ticket 41011
-	 *
-	 * @global string $m        The month in YYYYMM format.
-	 * @global string $monthnum The month number (01-12).
-	 * @global string $year     The year in YYYY format.
-	 *
-	 * @return void
 	 */
 	public function test_get_calendar_returns_cached_calendar() {
 		global $m, $monthnum, $year;
@@ -52,11 +46,6 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * in the database.
 	 *
 	 * @ticket 41011
-	 *
-	 * @global wpdb   $wpdb   WordPress database abstraction object.
-	 * @global array  $posts  Array of post objects.
-	 *
-	 * @return void
 	 */
 	public function test_get_calendar_returns_empty_string_if_no_posts() {
 		global $posts, $m, $monthnum, $year;
@@ -85,10 +74,6 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * marking today's date, displaying correct day names, and including month navigation links.
 	 *
 	 * @ticket 41011
-	 *
-	 * @return void
-	 * @global WP_Locale $wp_locale WordPress locale object for localizing calendar output.
-	 *
 	 */
 	public function test_get_calendar_current_month() {
 		global $wp_locale, $m, $monthnum, $year;
@@ -151,12 +136,6 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * 4. Includes navigation elements in the calendar.
 	 *
 	 * @ticket 41011
-	 *
-	 * @global string $monthnum The numeric representation of the month.
-	 * @global string $year The year in 'yyyy' format.
-	 *
-	 * @global string $m The date in 'yyyymm' format.
-	 * @return void
 	 */
 	public function test_get_calendar_for_specified_month_and_year() {
 		global $m, $monthnum, $year;
@@ -211,8 +190,6 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * correctly displays the appropriate month, year, and links for posts on specific days within that week.
 	 *
 	 * @ticket 41011
-	 *
-	 * @return void
 	 */
 	public function test_get_calendar_handles_week_based_input() {
 		global $wpdb, $wp_locale, $m;
@@ -272,8 +249,6 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * that each day of the week is correctly displayed with its corresponding abbreviation and title.
 	 *
 	 * @ticket 41011
-	 *
-	 * @return void
 	 */
 	public function test_get_calendar_weekday_headers() {
 		global $wp_locale;
@@ -312,8 +287,6 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * highlighted as the current day.
 	 *
 	 * @ticket 41011
-	 *
-	 * @return void
 	 */
 	public function test_get_calendar_highlights_current_day() {
 		$current_year  = current_time( 'Y' );
@@ -360,8 +333,6 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * calendar accurately highlights days with published posts by generating proper links.
 	 *
 	 * @ticket 41011
-	 *
-	 * @return void
 	 */
 	public function test_get_calendar_includes_links_to_days_with_posts() {
 		// Create a post for today
@@ -397,8 +368,6 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * It also checks that the post date is properly linked within the calendar output.
 	 *
 	 * @ticket 41011
-	 *
-	 * @return void
 	 */
 	public function test_get_calendar_handles_months_with_less_than_31_days() {
 		global $m, $monthnum, $year;
@@ -443,8 +412,6 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * checks that they contain the correct month names.
 	 *
 	 * @ticket 41011
-	 *
-	 * @return void
 	 */
 	public function test_get_calendar_includes_navigation_links() {
 		global $m, $monthnum, $year;
@@ -478,8 +445,6 @@ class Tests_General_Template_GetCalendar extends WP_UnitTestCase {
 	 * Tests if the function get_calendar handles out of range values.
 	 *
 	 * @ticket 41011
-	 *
-	 * @return void
 	 */
 	public function test_get_calendar_out_of_range() {
 		global $m, $monthnum, $year;
