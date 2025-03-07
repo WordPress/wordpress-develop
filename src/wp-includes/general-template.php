@@ -2277,6 +2277,7 @@ function get_calendar( $initial = true, $display = true ) {
 		}
 	}
 
+	$w = '';
 	if ( isset( $_GET['w'] ) ) {
 		$w = (int) $_GET['w'];
 	}
@@ -2309,7 +2310,7 @@ function get_calendar( $initial = true, $display = true ) {
 	}
 
 	$unixmonth = mktime( 0, 0, 0, $thismonth, 1, $thisyear );
-	$last_day  = gmdate( 't', $unixmonth );
+	$last_day  = date( 't', $unixmonth );
 
 	// Get the next and previous month and year with at least one post.
 	$previous = $wpdb->get_row(
