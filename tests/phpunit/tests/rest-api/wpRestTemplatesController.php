@@ -176,6 +176,19 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * @ticket 56481
+	 *
+	 * @covers WP_REST_Templates_Controller::get_items
+	 */
+	public function test_get_items_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/templates' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
 	 * @covers WP_REST_Templates_Controller::get_items
 	 */
 	public function test_get_items_editor() {
@@ -268,6 +281,20 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * @ticket 56481
+	 *
+	 * @covers WP_REST_Templates_Controller::get_item
+	 * @covers WP_REST_Templates_Controller::prepare_item_for_response
+	 */
+	public function test_get_item_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/templates/default//my_template' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
 	 * @covers WP_REST_Templates_Controller::get_item
 	 */
 	public function test_get_item_editor() {
@@ -310,7 +337,6 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	public function test_get_item_subscriber() {
 		wp_set_current_user( self::$subscriber_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/default//my_template' );
-		$response = rest_get_server()->dispatch( $request );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, 403 );
 	}
