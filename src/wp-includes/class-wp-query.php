@@ -2791,7 +2791,7 @@ class WP_Query {
 		}
 
 		// Paging.
-		if ( empty( $q['nopaging'] ) && ! $this->is_singular ) {
+		if ( empty( $q['post_ancestor'] ) && empty( $q['nopaging'] ) && ! $this->is_singular ) {
 			$page = absint( $q['paged'] );
 			if ( ! $page ) {
 				$page = 1;
@@ -3434,7 +3434,10 @@ class WP_Query {
 
 			// if ancestor property is present, filter posts so that only posts with the specified ancestor are returned
 			if ( is_numeric( $q['post_ancestor'] ) && $q['post_ancestor'] > 0 ) {
-				$this->posts = get_page_children( $q['post_ancestor'], $this->posts );
+				$this->posts       = get_page_children( $q['post_ancestor'], $this->posts );
+				$this->found_posts = count( $this->posts );
+
+				$this->posts = array_slice( $this->posts, 0, $q['posts_per_page'] );
 			}
 		}
 
