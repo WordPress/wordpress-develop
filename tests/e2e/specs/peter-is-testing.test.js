@@ -109,7 +109,8 @@ async function visitAdminPage( page, adminPath, query ) {
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 	test( 'Is it network related?', async ( { page, admin } ) => {
 		await page.goto( '/wp-login.php?reauth=1', {} );
-		await visitAdminPage( page, '/' );
+		// await visitAdminPage( page, '/' );
+		await admin.visitAdminPage( '/' );
 
 		expect(page.locator('body')).toContainText('Dashboard');
 		expect( isCurrentURL( page, '/wp-admin/' ) ).toBe( true );
