@@ -4,7 +4,8 @@ test.describe( 'Settings -> General', () => {
 	const invalidTimezones = [ '', '0', 'Barry/Gary' ];
 
 	for ( const invalidTimezone of invalidTimezones ) {
-		test( `Does not allow saving an invalid timezone string with "${invalidTimezone}"`, async ( { admin, page } ) => {
+		test( `Does not allow saving an invalid timezone string with "${invalidTimezone}"`, async ( { admin, page, requestUtils } ) => {
+			await requestUtils.login();
 			await admin.visitAdminPage( '/options-general.php' );
 
 			// Set the timezone to a valid value.

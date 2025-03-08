@@ -95,6 +95,8 @@ class ApplicationPasswords {
 	}
 
 	async create(applicationName = TEST_APPLICATION_NAME) {
+		// Log in before visiting admin page.
+		await this.requestUtils.login();
 		await this.admin.visitAdminPage( '/profile.php' );
 
 		const newPasswordField = this.page.getByRole( 'textbox', { name: 'New Application Password Name' } );

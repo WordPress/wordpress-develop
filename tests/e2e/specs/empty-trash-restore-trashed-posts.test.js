@@ -7,6 +7,7 @@ const POST_TITLE = 'Test Title';
 
 test.describe( 'Empty Trash', () => {
 	test.beforeEach( async ( { requestUtils } ) => {
+		await requestUtils.login();
 		await requestUtils.deleteAllPosts();
 	});
 
