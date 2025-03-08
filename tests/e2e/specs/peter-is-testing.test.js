@@ -39,6 +39,6 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 		await page.waitForEvent( 'load' );
 		await admin.visitAdminPage( '/' );
 
-		console.log( page.url() );
-		expect( isCurrentURL( page, '/wp-login.php' ) ).toBe( true );
+		expect( isCurrentURL( page, '/wp-admin/' ) ).toBe( true );
+		expect( page.getByText( 'Dashboard' ) ).toBeVisible();
 	} );
