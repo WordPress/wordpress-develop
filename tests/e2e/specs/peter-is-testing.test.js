@@ -6,6 +6,34 @@ import { join } from 'path';
 
 const { PLAYWRIGHT_TEST_BASE_URL } = process.env;
 
+
+/**
+ * Regular expression matching a displayed PHP error within a markup string.
+ *
+ * @see https://github.com/php/php-src/blob/598175e/main/main.c#L1257-L1297
+ *
+ * @type {RegExp}
+ */
+const REGEXP_PHP_ERROR =
+	/(<b>)?(Fatal error|Recoverable fatal error|Warning|Parse error|Notice|Strict Standards|Deprecated|Unknown error)(<\/b>)?: (.*?) in (.*?) on line (<b>)?\d+(<\/b>)?/;
+
+/**
+ * Returns a promise resolving to one of either a string or null. A string will
+ * be resolved if an error message is present in the contents of the page. If no
+ * error is present, a null value will be resolved instead. This requires the
+ * environment be configured to display errors.
+ *
+ * @see http://php.net/manual/en/function.error-reporting.php
+ *
+ * @return {Promise<?string>} Promise resolving to a string or null, depending
+ *                            whether a page error is present.
+ */
+export async function getPageError( page ) {
+	const content = await page.content();
+	const match = content.match( REGEXP_PHP_ERROR );
+	return match ? match[ 0 ] : null;
+}
+
 /**
  * Creates new URL by parsing base URL, WPPath and query string.
  *
@@ -35,7 +63,7 @@ async function loginUser(
 	username = 'admin',
 	password = 'password'
 ) {
-	if ( ! isCurrentURL( 'wp-login.php' ) ) {
+	if ( ! isCurrentURL( page, 'wp-login.php' ) ) {
 		const waitForLoginPageNavigation = page.waitForNavigation();
 		await page.goto( createURL( 'wp-login.php' ) );
 		await waitForLoginPageNavigation;
@@ -56,19 +84,19 @@ async function visitAdminPage( page, adminPath, query ) {
 	await page.goto( createURL( join( 'wp-admin', adminPath ), query ) );
 
 	// Handle upgrade required screen.
-	if ( isCurrentURL( 'wp-admin/upgrade.php' ) ) {
+	if ( isCurrentURL( page, 'wp-admin/upgrade.php' ) ) {
 		// Click update.
 		await page.click( '.button.button-large.button-primary' );
 		// Click continue.
 		await page.click( '.button.button-large' );
 	}
 
-	if ( isCurrentURL( 'wp-login.php' ) ) {
-		await loginUser();
-		await visitAdminPage( adminPath, query );
+	if ( isCurrentURL( page, 'wp-login.php' ) ) {
+		await loginUser( page );
+		await visitAdminPage( page, adminPath, query );
 	}
 
-	const error = await getPageError();
+	const error = await getPageError( page );
 	if ( error ) {
 		throw new Error( 'Unexpected error in page content: ' + error );
 	}
@@ -81,8 +109,8 @@ async function visitAdminPage( page, adminPath, query ) {
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 	test( 'Is it network related?', async ( { page, admin } ) => {
 		await page.goto( '/wp-login.php?reauth=1', { waitUntil: 'networkidle' } );
-		await admin.visitAdminPage( '/' );
+		await visitAdminPage( page, '/' );
 
 		expect( isCurrentURL( page, '/wp-admin/' ) ).toBe( true );
-		expect( page.getByText( 'Dashboard' ) ).toBeVisible();
+		expect(page.locator('body')).toContainText('Dashboard');
 	} );
