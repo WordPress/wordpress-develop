@@ -8,7 +8,9 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
  */
 import path from 'path';
 
-test( 'Test dismissing failed upload works correctly', async ({ page, admin }) => {
+test( 'Test dismissing failed upload works correctly', async ({ page, admin, requestUtils }) => {
+	// Log in before visiting admin page.
+	await requestUtils.login();
 	await admin.visitAdminPage( '/media-new.php' );
 
 	// It takes a moment for the multi-file uploader to become available.
