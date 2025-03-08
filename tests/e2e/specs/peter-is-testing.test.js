@@ -30,6 +30,51 @@ export function isCurrentURL( page, WPPath, query = '' ) {
 	return createURL( WPPath, query ) === currentURL.href;
 }
 
+async function loginUser(
+	page,
+	username = 'admin',
+	password = 'password'
+) {
+	if ( ! isCurrentURL( 'wp-login.php' ) ) {
+		const waitForLoginPageNavigation = page.waitForNavigation();
+		await page.goto( createURL( 'wp-login.php' ) );
+		await waitForLoginPageNavigation;
+	}
+
+	await page.focus( '#user_login' );
+	await page.type( '#user_login', username );
+	await page.focus( '#user_pass' );
+	await page.type( '#user_pass', password );
+
+	await Promise.all( [
+		page.click( '#wp-submit' ),
+		page.waitForNavigation( { waitUntil: 'networkidle' } ),
+	] );
+}
+
+async function visitAdminPage( page, adminPath, query ) {
+	await page.goto( createURL( join( 'wp-admin', adminPath ), query ) );
+
+	// Handle upgrade required screen.
+	if ( isCurrentURL( 'wp-admin/upgrade.php' ) ) {
+		// Click update.
+		await page.click( '.button.button-large.button-primary' );
+		// Click continue.
+		await page.click( '.button.button-large' );
+	}
+
+	if ( isCurrentURL( 'wp-login.php' ) ) {
+		await loginUser();
+		await visitAdminPage( adminPath, query );
+	}
+
+	const error = await getPageError();
+	if ( error ) {
+		throw new Error( 'Unexpected error in page content: ' + error );
+	}
+}
+
+
 /**
  * WordPress dependencies
  */
