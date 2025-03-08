@@ -91,7 +91,7 @@ jobs:
           locale -a
 
       - name: Install npm Dependencies
-        run: npm ci
+        run: npx install-changed --install-command='npm ci'
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
