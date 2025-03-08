@@ -35,8 +35,7 @@ export function isCurrentURL( page, WPPath, query = '' ) {
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 	test( 'Is it network related?', async ( { page, admin } ) => {
-		await page.goto( '/wp-login.php?reauth=1' );
-		await page.waitForEvent( 'load' );
+		await page.goto( '/wp-login.php?reauth=1', { waitUntil: 'networkidle' } );
 		await admin.visitAdminPage( '/' );
 
 		expect( isCurrentURL( page, '/wp-admin/' ) ).toBe( true );
