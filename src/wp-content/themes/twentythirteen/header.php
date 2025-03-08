@@ -22,8 +22,15 @@
 <body <?php body_class(); ?>>
 	<?php wp_body_open(); ?>
 	<div id="page" class="hfeed site">
+		<a class="screen-reader-text skip-link" href="#content">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Skip to content', 'twentythirteen' );
+			?>
+		</a>
 		<header id="masthead" class="site-header">
-			<a class="home-link" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
+		<?php $is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) ); ?>
+			<a class="home-link" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>>
 				<h1 class="site-title"><?php bloginfo( 'name' ); ?></h1>
 				<h2 class="site-description"><?php bloginfo( 'description' ); ?></h2>
 			</a>
@@ -31,12 +38,6 @@
 			<div id="navbar" class="navbar">
 				<nav id="site-navigation" class="navigation main-navigation">
 					<button class="menu-toggle"><?php _e( 'Menu', 'twentythirteen' ); ?></button>
-					<a class="screen-reader-text skip-link" href="#content">
-						<?php
-						/* translators: Hidden accessibility text. */
-						_e( 'Skip to content', 'twentythirteen' );
-						?>
-					</a>
 					<?php
 					wp_nav_menu(
 						array(
