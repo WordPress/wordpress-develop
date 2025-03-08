@@ -111,6 +111,6 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 		await page.goto( '/wp-login.php?reauth=1', { waitUntil: 'networkidle' } );
 		await visitAdminPage( page, '/' );
 
-		expect( isCurrentURL( page, '/wp-admin/' ) ).toBe( true );
 		expect(page.locator('body')).toContainText('Dashboard');
+		expect( isCurrentURL( page, '/wp-admin/' ) ).toBe( true );
 	} );
