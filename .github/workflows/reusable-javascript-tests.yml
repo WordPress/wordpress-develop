@@ -53,7 +53,7 @@ jobs:
           git --version
 
       - name: Install npm Dependencies
-        run: npm ci
+        run: npx --yes install-changed@1.1.0 --install-command='npm ci'
 
       # Older branches using outdated versions of Puppeteer fail on newer versions of the `ubuntu-24` image.
       # This disables AppArmor in order to work around those failures.

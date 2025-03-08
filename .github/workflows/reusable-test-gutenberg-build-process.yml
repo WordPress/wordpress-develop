@@ -79,7 +79,7 @@ jobs:
           git --version
 
       - name: Install Core Dependencies
-        run: npm ci
+        run: npx --yes install-changed@1.1.0 --install-command='npm ci'
 
       - name: Install Gutenberg Dependencies
         run: npm ci

@@ -41,7 +41,7 @@ jobs:
           cache: npm
 
       - name: Install npm Dependencies
-        run: npm ci
+        run: npx --yes install-changed@1.1.0 --install-command='npm ci'
 
       - name: Build WordPress
         run: npm run build
