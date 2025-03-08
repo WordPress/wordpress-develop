@@ -76,7 +76,7 @@ async function loginUser(
 
 	await Promise.all( [
 		page.click( '#wp-submit' ),
-		page.waitForNavigation( { waitUntil: 'networkidle' } ),
+		page.waitForNavigation( { waitUntil: 'networkidle0' } ),
 	] );
 }
 
