@@ -108,7 +108,7 @@ async function visitAdminPage( page, adminPath, query ) {
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 	test( 'Is it network related?', async ( { page, admin } ) => {
-		await page.goto( '/wp-login.php?reauth=1', { waitUntil: 'networkidle' } );
+		await page.goto( '/wp-login.php?reauth=1', {} );
 		await visitAdminPage( page, '/' );
 
 		expect(page.locator('body')).toContainText('Dashboard');
