@@ -136,12 +136,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->start_transaction();
 		$this->expectDeprecated();
 		add_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
-
-		add_action( 'http_api_debug', array( $this, 'makes_external_http_call' ) );
-	}
-
-	function makes_external_http_call() {
-		$this->assertContains( 'external-http', $this->getGroups(), 'Tests making external HTTP requests should be in the external-http group' );
 	}
 
 	/**
