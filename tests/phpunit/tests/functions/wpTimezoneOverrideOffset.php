@@ -33,28 +33,25 @@ class Tests_Functions_wpTimezoneOverrideOffset extends WP_UnitTestCase {
 			'bad option set'                => array( 'BAD_TIME_ZONE', false ),
 			'UTC option set'                => array( 'UTC', 0.0 ),
 			'EST option set'                => array( 'EST', -5.0 ),
-			'NST option set'                => array( 'America/St_Johns', $this->get_timezone_offset_based_on_dst( 'America/St_Johns' ) ),
+			'NST option set'                => array( 'America/St_Johns', $this->is_timezone_in_dst( 'America/St_Johns' ) ? -2.5 : -3.5 ),
 		);
 	}
 
 	/**
-	 * Determines the current timezone offset based on daylight saving time (DST).
-	 *
-	 * This function checks if the provided timezone is currently observing DST
-	 * and returns the corresponding offset in hours.
+	 * Determines whether the current timezone offset is observing daylight saving time (DST).
 	 *
 	 * @param string $timezone_string The timezone identifier (e.g., 'America/St_Johns').
-	 * @return float The timezone offset in hours (-3.5 for standard time, -2.5 for DST).
+	 * @return bool Whether the timezone is observing DST.
 	 */
-	private function get_timezone_offset_based_on_dst( $timezone_string ) {
+	private function is_timezone_in_dst( $timezone_string ) {
 		$timezone    = new DateTimeZone( $timezone_string );
 		$timestamp   = time();
 		$transitions = $timezone->getTransitions( $timestamp, $timestamp );
 
 		if ( false === $transitions || ! is_array( $transitions ) || ! isset( $transitions[0]['isdst'] ) ) {
-			return -3.5;
+			return false;
 		}
 
-		return $transitions[0]['isdst'] ? -2.5 : -3.5;
+		return $transitions[0]['isdst'];
 	}
 }
