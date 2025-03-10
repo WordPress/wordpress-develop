@@ -123,6 +123,9 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		$this->assertArrayHasKey( static::REQUEST_ROUTE, $routes );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
 
