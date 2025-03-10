@@ -2,7 +2,6 @@
 
 /**
  * @group http
- * @group external-http
  *
  * @covers ::wp_remote_retrieve_headers
  */

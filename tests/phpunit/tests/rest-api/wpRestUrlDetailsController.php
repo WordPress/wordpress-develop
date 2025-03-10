@@ -10,7 +10,6 @@
  *
  * @group url-details
  * @group restapi
- * @group external-http
  */
 class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Testcase {
 

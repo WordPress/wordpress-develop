@@ -7,7 +7,6 @@
  *
  * @group fonts
  * @group font-library
- * @group external-http
  *
  * @covers WP_Font_Collection::get_data
  */

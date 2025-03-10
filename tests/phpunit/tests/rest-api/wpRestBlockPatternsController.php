@@ -189,6 +189,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	 * @since 6.2.0
 	 *
 	 * @ticket 57532
+	 * @group external-http
 	 *
 	 * @covers WP_REST_Block_Patterns_Controller::get_items
 	 */
