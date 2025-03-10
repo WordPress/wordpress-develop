@@ -4266,7 +4266,17 @@ function wp_get_code_editor_settings( $args ) {
 		}
 	}
 
-	if ( in_array( $type, array( 'text/css', 'text/x-scss', 'text/x-less', 'text/x-sass' ), true ) ) {
+	if ( 'text/css' === $type ) {
+		$settings['codemirror'] = array_merge(
+			$settings['codemirror'],
+			array(
+				'mode'              => 'css',
+				'lint'              => true,
+				'autoCloseBrackets' => true,
+				'matchBrackets'     => true,
+			)
+		);
+	} elseif ( in_array( $type, array( 'text/x-scss', 'text/x-less', 'text/x-sass' ), true ) ) {
 		$settings['codemirror'] = array_merge(
 			$settings['codemirror'],
 			array(
