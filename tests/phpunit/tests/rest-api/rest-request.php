@@ -1170,7 +1170,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			$this->fail( 'Fatal error thrown when parsing scalar request body.' );
 		}
 	}
- 
+
 	/**
 	 * Tests that WP_REST_Request::is_method() correctly detects the request method,
 	 * regardless of case sensitivity.

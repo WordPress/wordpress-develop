@@ -33,7 +33,7 @@ class Tests_Functions_wpTimezoneOverrideOffset extends WP_UnitTestCase {
 			'bad option set'                => array( 'BAD_TIME_ZONE', false ),
 			'UTC option set'                => array( 'UTC', 0.0 ),
 			'EST option set'                => array( 'EST', -5.0 ),
-			'NST option set'                => array( 'America/St_Johns', -3.5 ),
+			'NST option set'                => array( 'America/St_Johns', -2.5 ),
 		);
 	}
 }
