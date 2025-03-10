@@ -69,20 +69,6 @@ function create_initial_post_types() {
 		)
 	);
 
-	/*
-	 * Enhance page editor for block themes by rendering template and content blocks.
-	 *
-	 * Theme support for block templates is added on the 'after_setup_theme' hook in
-	 * wp_enable_block_templates(). So post type support will only be added on the second
-	 * pass of this function on the 'init' hook.
-
-	 * Note: The order of these checks is important, a doing_it_wrong notice will be fired
-	 * if the block theme check is done first.
-	 */
-	if ( current_theme_supports( 'block-templates' ) && wp_is_block_theme() ) {
-		add_post_type_support( 'page', 'editor', array( 'default-mode' => 'template-locked' ) );
-	}
-
 	register_post_type(
 		'attachment',
 		array(
@@ -8537,4 +8523,15 @@ function wp_create_initial_post_meta() {
 			),
 		)
 	);
+}
+
+/**
+ * Sets the default editor mode based on support for block templates.
+ *
+ * @since 6.8.0
+ */
+function wp_set_editor_default_mode() {
+	if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
+		add_post_type_support( 'page', 'editor', array( 'default-mode' => 'template-locked' ) );
+	}
 }
