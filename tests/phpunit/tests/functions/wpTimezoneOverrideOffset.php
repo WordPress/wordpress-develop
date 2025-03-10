@@ -44,7 +44,6 @@ class Tests_Functions_wpTimezoneOverrideOffset extends WP_UnitTestCase {
 	 * and returns the corresponding offset in hours.
 	 *
 	 * @param string $timezone_string The timezone identifier (e.g., 'America/St_Johns').
-	 *
 	 * @return float The timezone offset in hours (-3.5 for standard time, -2.5 for DST).
 	 */
 	private function get_timezone_offset_based_on_dst( $timezone_string ) {
