@@ -116,6 +116,12 @@ function plugins_api( $action, $args = array() ) {
 		$args->wp_version = substr( wp_get_wp_version(), 0, 3 ); // x.y
 	}
 
+	if ( 'plugin_information' === $action ) {
+		if ( ! isset( $args->downloaded ) ) {
+			$args->downloaded = true;
+		}
+	}
+
 	/**
 	 * Filters the WordPress.org Plugin Installation API arguments.
 	 *
