@@ -705,7 +705,13 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 		if ( $theme->errors() ) {
 			$pre = 'broken' === $status ? '<strong class="error-message">' . __( 'Broken Theme:' ) . '</strong> ' : '';
-			echo '<p>' . $pre . $theme->errors()->get_error_message() . '</p>';
+			wp_admin_notice(
+				$pre . $theme->errors()->get_error_message(),
+				array(
+					'type'               => 'error',
+					'additional_classes' => 'inline',
+				)
+			);
 		}
 
 		if ( $this->is_site_themes ) {
