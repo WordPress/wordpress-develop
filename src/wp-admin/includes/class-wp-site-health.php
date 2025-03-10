@@ -1322,7 +1322,7 @@ class WP_Site_Health {
 			$result['description'] .= sprintf(
 				'<p>%s</p>',
 				sprintf(
-					'<span class="notice notice-error"><span class="screen-reader-text">%s</span></span> %s',
+					'<span class="error"><span class="screen-reader-text">%s</span></span> %s',
 					/* translators: Hidden accessibility text. */
 					__( 'Error' ),
 					sprintf(
