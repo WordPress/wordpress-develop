@@ -134,7 +134,7 @@ if ( is_wp_error( $id ) ) {
 			'paragraph_wrap'     => false,
 		)
 	);
-	echo "<script type='text/javascript'>jQuery( 'button#" . esc_js( $button_unique_id ) . "' ).on( 'click', function() {jQuery(this).parents('div.media-item').slideUp(200, function(){jQuery(this).remove();})});</script>\n";
+	echo "<script>jQuery( 'button#" . esc_js( $button_unique_id ) . "' ).on( 'click', function() {jQuery(this).parents('div.media-item').slideUp(200, function(){jQuery(this).remove();})});</script>\n";
 	exit;
 }
 
