@@ -140,17 +140,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		add_action( 'http_api_debug', array( $this, 'makes_external_http_call' ) );
 	}
 
-	/**
-	 * Fails the test if an external HTTP request is made without being in the external-http group.
-	 */
-	public function makes_external_http_call() {
+	function makes_external_http_call() {
 		$this->assertContains( 'external-http', $this->getGroups(), 'Tests making external HTTP requests should be in the external-http group' );
 	}
 
-	/**
-	 * Fails the test if a test in the external-http group does not make an external HTTP request.
-	 */
-	public function fail_if_external_http_test_does_not_make_request() {
+	function test_external_http_group_made_request() {
 		if ( in_array( 'external-http', $this->getGroups(), true ) ) {
 			$this->assertTrue( did_action( 'http_api_debug' ) > 0, 'Tests in the external-http group should make an external HTTP request' );
 		}
@@ -160,7 +154,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * After a test method runs, resets any state in WordPress the test method might have changed.
 	 */
 	public function tear_down() {
-		$this->fail_if_external_http_test_does_not_make_request();
+		$this->test_external_http_group_made_request();
+
 
 		global $wpdb, $wp_the_query, $wp_query, $wp;
 		$wpdb->query( 'ROLLBACK' );
