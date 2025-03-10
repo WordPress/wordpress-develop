@@ -704,8 +704,8 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		global $status, $totals;
 
 		if ( $theme->errors() ) {
-			$pre = 'broken' === $status ? '<strong>' . __( 'Broken Theme:' ) . '</strong> ' : '';
-			echo '<p class="error-message">' . $pre . $theme->errors()->get_error_message() . '</p>';
+			$pre = 'broken' === $status ? '<strong class="error-message">' . __( 'Broken Theme:' ) . '</strong> ' : '';
+			echo '<p>' . $pre . $theme->errors()->get_error_message() . '</p>';
 		}
 
 		if ( $this->is_site_themes ) {
