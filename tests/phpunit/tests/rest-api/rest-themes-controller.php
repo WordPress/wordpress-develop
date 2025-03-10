@@ -480,6 +480,32 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 62574
+	 */
+	public function test_theme_default_template_part_areas() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$this->assertArrayHasKey( 'default_template_part_areas', $result[0] );
+		$this->assertSame( get_allowed_block_template_part_areas(), $result[0]['default_template_part_areas'] );
+	}
+
+	/**
+	 * @ticket 62574
+	 */
+	public function test_theme_default_template_types() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$expected = array();
+		foreach ( get_default_block_template_types() as $slug => $template_type ) {
+			$template_type['slug'] = (string) $slug;
+			$expected[]            = $template_type;
+		}
+
+		$this->assertArrayHasKey( 'default_template_types', $result[0] );
+		$this->assertSame( $expected, $result[0]['default_template_types'] );
+	}
+
+	/**
 	 * @ticket 49906
 	 */
 	public function test_theme_requires_php() {
