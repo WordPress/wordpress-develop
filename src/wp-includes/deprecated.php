@@ -6169,7 +6169,6 @@ function the_block_template_skip_link() {
 	<style id="skip-link-styles">
 		.skip-link.screen-reader-text {
 			border: 0;
-			clip: rect(1px,1px,1px,1px);
 			clip-path: inset(50%);
 			height: 1px;
 			margin: -1px;
@@ -6182,7 +6181,6 @@ function the_block_template_skip_link() {
 
 		.skip-link.screen-reader-text:focus {
 			background-color: #eee;
-			clip: auto !important;
 			clip-path: none;
 			color: #444;
 			display: block;
@@ -6316,7 +6314,7 @@ function wp_interactivity_process_directives_of_interactive_blocks( array $parse
  * Gets the global styles custom CSS from theme.json.
  *
  * @since 6.2.0
- * @deprecated 6.7.0 Use {@see 'wp_get_global_stylesheet'} instead.
+ * @deprecated 6.7.0 Use {@see 'wp_get_global_stylesheet'} instead for top-level custom CSS, or {@see 'WP_Theme_JSON::get_styles_for_block'} for block-level custom CSS.
  *
  * @return string The global styles custom CSS.
  */

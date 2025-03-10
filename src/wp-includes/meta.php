@@ -23,7 +23,13 @@ require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
  *                           or any other object type with an associated meta table.
  * @param int    $object_id  ID of the object metadata is for.
  * @param string $meta_key   Metadata key.
- * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
+ * @param mixed  $meta_value Metadata value. Arrays and objects are stored as serialized data and
+ *                           will be returned as the same type when retrieved. Other data types will
+ *                           be stored as strings in the database:
+ *                           - false is stored and retrieved as an empty string ('')
+ *                           - true is stored and retrieved as '1'
+ *                           - numbers (both integer and float) are stored and retrieved as strings
+ *                           Must be serializable if non-scalar.
  * @param bool   $unique     Optional. Whether the specified metadata key should be unique for the object.
  *                           If true, and the object already has a value for the specified metadata key,
  *                           no change will be made. Default false.
@@ -570,6 +576,11 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  *               or if `$meta_type` is not specified.
  *               An empty array if a valid but non-existing object ID is passed and `$single` is false.
  *               An empty string if a valid but non-existing object ID is passed and `$single` is true.
+ *               Note: Non-serialized values are returned as strings:
+ *               - false values are returned as empty strings ('')
+ *               - true values are returned as '1'
+ *               - numbers (both integer and float) are returned as strings
+ *               Arrays and objects retain their original type.
  */
 function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false ) {
 	$value = get_metadata_raw( $meta_type, $object_id, $meta_key, $single );
@@ -1154,10 +1165,10 @@ function update_meta_cache( $meta_type, $object_ids ) {
 		return (bool) $check;
 	}
 
-	$cache_key      = $meta_type . '_meta';
+	$cache_group    = $meta_type . '_meta';
 	$non_cached_ids = array();
 	$cache          = array();
-	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_key );
+	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_group );
 
 	foreach ( $cache_values as $id => $cached_object ) {
 		if ( false === $cached_object ) {
@@ -1203,7 +1214,7 @@ function update_meta_cache( $meta_type, $object_ids ) {
 		}
 		$data[ $id ] = $cache[ $id ];
 	}
-	wp_cache_add_multiple( $data, $cache_key );
+	wp_cache_add_multiple( $data, $cache_group );
 
 	return $cache;
 }

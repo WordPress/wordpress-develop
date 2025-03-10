@@ -14,7 +14,7 @@ on:
         description: 'Operating system to run tests on'
         required: false
         type: 'string'
-        default: 'ubuntu-latest'
+        default: 'ubuntu-24.04'
       php:
         description: 'The version of PHP to use, in the format of X.Y'
         required: true
@@ -63,6 +63,10 @@ env:
   PHPUNIT_SCRIPT: php
   SLOW_TESTS: 'external-http,media'
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 jobs:
   # Runs the PHPUnit tests for WordPress.
   #
@@ -89,16 +93,17 @@ jobs:
     steps:
       - name: Configure environment variables
         run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+          echo "PHP_FPM_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
 
       - name: Install Node.js
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -108,10 +113,10 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "composer_dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        run: echo "composer_dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Composer dependencies
-        uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         env:
           cache-name: cache-composer-dependencies
         with:
@@ -125,13 +130,13 @@ jobs:
           # The PHPUnit 7.x phar is not compatible with PHP 8 and won't be updated,
           # as PHPUnit 7 is no longer supported. The Composer-installed PHPUnit should be
           # used for PHP 8 testing instead.
-          if [ ${{ env.LOCAL_PHP }} == '8.0-fpm' ]; then
+          if [ "${LOCAL_PHP}" == '8.0-fpm' ]; then
             docker compose run --rm php composer install --ignore-platform-reqs
-            echo "PHPUNIT_SCRIPT=php-composer" >> $GITHUB_ENV
-          elif [ ${{ env.LOCAL_PHP }} == '7.1-fpm' ]; then
+            echo "PHPUNIT_SCRIPT=php-composer" >> "$GITHUB_ENV"
+          elif [ "${LOCAL_PHP}" == '7.1-fpm' ]; then
             docker compose run --rm php composer update
             git checkout -- composer.lock
-          elif [[ ${{ env.LOCAL_PHP }} == '5.6-fpm' || ${{ env.LOCAL_PHP }} == '7.0-fpm' ]]; then
+          elif [[ "${LOCAL_PHP}" == '5.6-fpm' || "${LOCAL_PHP}" == '7.0-fpm' ]]; then
             docker compose run --rm php composer require --dev phpunit/phpunit:"^5.7" --update-with-dependencies
             git checkout -- composer.lock composer.json
           else
@@ -170,36 +175,36 @@ jobs:
 
       - name: Run slow PHPUnit tests
         if: ${{ inputs.split_slow }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c "${PHPUNIT_CONFIG}" --group "${SLOW_TESTS}"
 
       - name: Run PHPUnit tests for single site excluding slow tests
         if: ${{ inputs.php < '7.0' && ! inputs.split_slow && ! inputs.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-required
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c "${PHPUNIT_CONFIG}" --exclude-group "${SLOW_TESTS},ajax,ms-files,ms-required"
 
       - name: Run PHPUnit tests for Multisite excluding slow tests
         if: ${{ inputs.php < '7.0' && ! inputs.split_slow && inputs.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-excluded,oembed-headers
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c "${PHPUNIT_CONFIG}" --exclude-group "${SLOW_TESTS},ajax,ms-files,ms-excluded,oembed-headers"
 
       - name: Run PHPUnit tests
         if: ${{ inputs.php >= '7.0' }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c "${PHPUNIT_CONFIG}"
 
       - name: Run AJAX tests
         if: ${{ ! inputs.split_slow&& inputs.test_ajax }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c "${PHPUNIT_CONFIG}" --group ajax
 
       - name: Run ms-files tests as a multisite install
         if: ${{ inputs.multisite && ! inputs.split_slow }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ms-files
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c "${PHPUNIT_CONFIG}" --group ms-files
 
       - name: Run external HTTP tests
         if: ${{ ! inputs.multisite && ! inputs.split_slow }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group external-http
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c phpunit.xml.dist --group external-http
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (xDebug) tests
         if: ${{ ! inputs.split_slow }}
-        run: LOCAL_PHP_XDEBUG=true npm run test:${{ env.PHPUNIT_SCRIPT }} -- -v --group xdebug --exclude-group __fakegroup__
+        run: LOCAL_PHP_XDEBUG=true npm run "test:${PHPUNIT_SCRIPT}" -- -v --group xdebug --exclude-group __fakegroup__
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
